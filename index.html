@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+	<title>jQuery.handsontable</title>
+	<script src="lib/jquery.min.js"></script>
+	<script src="handsontable.js"></script>
+	<style>
+body {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 13px;
+}
+
+#dataTable {
+	position: relative;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+}
+
+#dataTable table {
+	border-collapse: collapse;
+	position: relative;
+}
+
+#dataTable td {
+	height: 25px;
+	border: 1px solid #aaa;
+	width: 50px;
+	position: relative;
+	overflow: hidden;
+}
+
+#dataTable td.selected {
+	background: #eef;
+}
+
+#dataTable td input {
+	position: absolute;
+	top: 0;
+	left: 0;
+	border: 0;
+	background: cyan;
+}
+
+#dataTable .selectionArea {
+	background: #999;
+}
+
+	</style>
+</head>
+<body>
+
+<div id="dataTable"></div>
+
+<script>
+	$("#dataTable").handsontable();
+</script>
+
+</body>
+</html>
