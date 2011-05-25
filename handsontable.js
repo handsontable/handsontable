@@ -5,7 +5,7 @@
 
 	function handsontable(settings) {
 		var container = $(this);
-		
+		console.log('c', container);
 		var priv = {
 			isMouseDown: false,
 			isCellEdited: false,
@@ -31,7 +31,7 @@
 					}
 					for(c = Math.min(start.col, end.col); c <= clen; c++) {
 						if(input[r][c]) {
-							td = grid.getCellAtCoords.call(this, {row: r, col: c});
+							td = grid.getCellAtCoords({row: r, col: c});
 							td.html(input[r][c]);
 						}
 					}
@@ -52,7 +52,7 @@
 			 * Returns td object given coordinates
 			 */
 			getCellAtCoords: function(coords) {
-				var td = this.find('tr:eq('+coords.row+') td:eq('+coords.col+')');
+				var td = container.find('tr:eq('+coords.row+') td:eq('+coords.col+')');
 				return td;
 			}, 
 			
@@ -65,7 +65,7 @@
 				clen = Math.max(start.col, end.col);
 				for(r = Math.min(start.row, end.row); r <= rlen; r++) {
 					for(c = Math.min(start.col, end.col); c <= clen; c++) {
-						output.push( grid.getCellAtCoords.call(this, {row: r, col: c}) );
+						output.push( grid.getCellAtCoords({row: r, col: c}) );
 					}
 				}
 				return output;
@@ -106,14 +106,14 @@
 						td.mousedown(function(event){
 							//priv.editProxy.blur();
 							var td = $(this);
-							methods.selectionStart.call(container, td);
-							methods.toggleSelection.call(container, td);
+							methods.selectionStart(td);
+							methods.toggleSelection(td);
 							//event.preventDefault();
 							
 						});
 						td.mouseover(function(event){
 							if(priv.isMouseDown) {
-								methods.toggleSelection.call(container, $(this));
+								methods.toggleSelection($(this));
 							}
 							event.preventDefault();
 							event.stopPropagation();
@@ -132,7 +132,7 @@
 				container.append(priv.selectionArea);
 				
 				container.append(table);
-				methods.createEditProxy.call(container);
+				methods.createEditProxy();
 				
 				
 				
@@ -141,7 +141,7 @@
 					
 				});
 				$(window).click(function(){
-					methods.clearSelection.apply(container);
+					methods.clearSelection();
 				});
 				$(window).keypress(function(event){
 					console.log('keypress', event.keyCode);
@@ -154,7 +154,7 @@
 									priv.editProxy.val() //+
 									//String.fromCharCode(event.which||event.charCode||event.keyCode)
 								);* /
-								methods.editKeyDown.apply(this);
+								methods.editKeyDown();
 								priv.editProxy.focus();*/
 							}
 							break;
@@ -164,13 +164,13 @@
 					//console.log('keydown', event.keyCode);
 					switch(event.keyCode) {
 						case 13: /* return */
-							methods.editStop.apply(container, [event]);
+							methods.editStop(event);
 							event.preventDefault();
 							break;
 							
 						case 8: /* backspace */
 						case 46: /* delete */
-							methods.emptySelection.apply(container, [event]);
+							methods.emptySelection(event);
 							break;
 					}
 				});
@@ -179,7 +179,7 @@
 					setTimeout(function(){
 						var input = priv.editProxy.val();
 						console.log("sie wkleja", priv.editProxy.val());
-						methods.editStop.apply(container, [event]);
+						methods.editStop(event);
 						
 						var inputArray = keyboard.parsePasteInput(input);
 						grid.populateFromArray(priv.selStart, priv.selEnd, inputArray);
@@ -191,8 +191,8 @@
 			
 			selectionStart: function(td) {
 				priv.isMouseDown = true;
-				methods.clearSelection.apply(this);
-				priv.selStart = grid.getCellCoords.call(this, td);
+				methods.clearSelection();
+				priv.selStart = grid.getCellCoords(td);
 				
 				
 				
@@ -216,17 +216,17 @@
 			
 			toggleSelection: function(clickedTd) {
 				var td, tds;
-				methods.clearSelection.apply(this);
-				priv.selEnd = grid.getCellCoords.call(this, clickedTd);
-				tds = grid.getCellsAtSelection.call(this, priv.selStart, priv.selEnd);
+				methods.clearSelection();
+				priv.selEnd = grid.getCellCoords(clickedTd);
+				tds = grid.getCellsAtSelection(priv.selStart, priv.selEnd);
 				for(td in tds) {
 					tds[td].addClass('selected');
 				}
-				methods.highlightSelected.apply(this);
+				methods.highlightSelected();
 			},
 			
 			highlightSelected: function() {
-				var tds = grid.getCellsAtSelection.call(this, priv.selStart, priv.selEnd);
+				var tds = grid.getCellsAtSelection(priv.selStart, priv.selEnd);
 				var first = tds[0];
 				var last = tds[tds.length-1];
 				var firstOffset = first.offset();
@@ -249,13 +249,13 @@
 			},
 			
 			clearSelection: function() {
-				if(!methods.isSelected.apply(this)) {
+				if(!methods.isSelected()) {
 					return;
 				}
 				if(priv.isCellEdited) {
-					methods.editStop.apply(this);
+					methods.editStop();
 				}
-				tds = grid.getCellsAtSelection.call(this, priv.selStart, priv.selEnd);
+				tds = grid.getCellsAtSelection(priv.selStart, priv.selEnd);
 				for(td in tds) {
 					tds[td].removeClass('selected');
 				}
@@ -264,20 +264,19 @@
 			
 			emptySelection: function() {
 				var td, tds;
-				tds = grid.getCellsAtSelection.call(this, priv.selStart, priv.selEnd);
+				tds = grid.getCellsAtSelection(priv.selStart, priv.selEnd);
 				for(td in tds) {
 					tds[td].html('');
 				}
 			},
 			
 			createEditProxy: function() {
-				var container = this;
 				priv.editProxy = $('<textarea class="editInput">').hide();
 				priv.editProxy.keydown(function(){
-					methods.editKeyDown.apply(container);
+					methods.editKeyDown();
 				});
 				priv.editProxy.blur(function(){
-					//methods.editStop.apply(container);
+					//methods.editStop();
 				});
 				container.append(priv.editProxy);
 			},
@@ -295,13 +294,13 @@
 				if(length > 3) {
 					priv.editProxy.width(length * 10);
 				}
-				methods.editStart.apply(this);
+				methods.editStart();
 			},
 			
 			editStop: function(event) {
 				console.log('stop');
 				priv.isCellEdited = false;
-				var td = grid.getCellAtCoords.call(this, priv.selStart);
+				var td = grid.getCellAtCoords(priv.selStart);
 				td.html( priv.editProxy.val() );
 				priv.editProxy.hide().val('');
 			}
