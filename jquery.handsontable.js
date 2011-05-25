@@ -72,6 +72,51 @@
 			}
 		}
 		
+		var highlight = {
+			/**
+			 * Create highlight border
+			 */
+			 init: function() {
+				priv.selectionArea = $("<div class='selectionArea'>");
+				priv.selectionArea.css({
+					position: 'absolute'
+				});
+				container.append(priv.selectionArea);
+			 },
+			 
+			/**
+			 * Show border around selected cells
+			 */
+			 on: function() {
+				var tds = grid.getCellsAtSelection(priv.selStart, priv.selEnd);
+				for(td in tds) {
+					tds[td].addClass('selected');
+				}
+				var first = tds[0];
+				var last = tds[tds.length-1];
+				var firstOffset = first.offset();
+				var lastOffset = last.offset();
+				var containerOffset = priv.editProxy.parent().offset();
+				priv.selectionArea.css({
+					top: (firstOffset.top-containerOffset.top-2)+'px',
+					left: (firstOffset.left-containerOffset.left-2)+'px',
+					height: (lastOffset.top-firstOffset.top+last.height()+9)+'px',
+					width: (lastOffset.left-firstOffset.left+last.width()+9)+'px'
+				}).show();
+			 },
+			
+			/**
+			 * Hide border around selected cells
+			 */
+			 off: function() {
+				var tds = grid.getCellsAtSelection(priv.selStart, priv.selEnd);
+				for(td in tds) {
+					tds[td].removeClass('selected');
+				}
+				priv.selectionArea.hide();
+			 }
+		}
+		
 		var keyboard = {
 			/**
 			 * Parse paste input
@@ -125,11 +170,7 @@
 					table.append(tr);
 				}
 				
-				priv.selectionArea = $("<div class='selectionArea'>");
-				priv.selectionArea.css({
-					position: 'absolute'
-				});
-				container.append(priv.selectionArea);
+				highlight.init();
 				
 				container.append(table);
 				methods.createEditProxy();
@@ -218,26 +259,7 @@
 				var td, tds;
 				methods.clearSelection();
 				priv.selEnd = grid.getCellCoords(clickedTd);
-				tds = grid.getCellsAtSelection(priv.selStart, priv.selEnd);
-				for(td in tds) {
-					tds[td].addClass('selected');
-				}
-				methods.highlightSelected();
-			},
-			
-			highlightSelected: function() {
-				var tds = grid.getCellsAtSelection(priv.selStart, priv.selEnd);
-				var first = tds[0];
-				var last = tds[tds.length-1];
-				var firstOffset = first.offset();
-				var lastOffset = last.offset();
-				var containerOffset = priv.editProxy.parent().offset();
-				priv.selectionArea.css({
-					top: (firstOffset.top-containerOffset.top-2)+'px',
-					left: (firstOffset.left-containerOffset.left-2)+'px',
-					height: (lastOffset.top-firstOffset.top+last.height()+9)+'px',
-					width: (lastOffset.left-firstOffset.left+last.width()+9)+'px'
-				}).show();
+				highlight.on();
 			},
 					
 			isSelected: function() {
@@ -255,10 +277,7 @@
 				if(priv.isCellEdited) {
 					methods.editStop();
 				}
-				tds = grid.getCellsAtSelection(priv.selStart, priv.selEnd);
-				for(td in tds) {
-					tds[td].removeClass('selected');
-				}
+				highlight.off();
 				priv.selEnd.row = undefined;
 			},
 			
