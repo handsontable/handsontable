@@ -10,7 +10,7 @@ body {
 	font-size: 13px;
 }
 
-#dataTable {
+.dataTable {
 	position: relative;
 	-webkit-user-select: none;
 	-khtml-user-select: none;
@@ -19,12 +19,12 @@ body {
 	user-select: none;
 }
 
-#dataTable table {
+.dataTable table {
 	border-collapse: collapse;
 	position: relative;
 }
 
-#dataTable td {
+.dataTable td {
 	height: 25px;
 	border: 1px solid #aaa;
 	width: 50px;
@@ -32,11 +32,11 @@ body {
 	overflow: hidden;
 }
 
-#dataTable td.selected {
+.dataTable td.selected {
 	background: #eef;
 }
 
-#dataTable td input {
+.dataTable td input {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -44,7 +44,7 @@ body {
 	background: cyan;
 }
 
-#dataTable .selectionArea {
+.dataTable .selectionArea {
 	background: #999;
 }
 
@@ -52,10 +52,16 @@ body {
 </head>
 <body>
 
-<div id="dataTable"></div>
+<div id="dataTable" class="dataTable"></div>
+<div id="dataTable2" class="dataTable"></div>
 
 <script>
-	$("#dataTable").handsontable();
+	$("#dataTable").handsontable({
+		rows: 3,
+		cols: 3
+	});
+	
+	$("#dataTable2").handsontable();
 </script>
 
 </body>
