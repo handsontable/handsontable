@@ -311,7 +311,7 @@
 			editKeyDown: function(event) {
 				var length = priv.editProxy.val().length;
 				if(length > 3) {
-					priv.editProxy.width(length * 10);
+					priv.editProxy.width(25 + length * 8);
 				}
 				methods.editStart();
 			},
@@ -322,6 +322,10 @@
 				var td = grid.getCellAtCoords(priv.selStart);
 				td.html( priv.editProxy.val() );
 				priv.editProxy.hide().val('');
+				
+				setTimeout(function(){
+					highlight.on(); //must run asynchronously, otherwise .offset() is broken
+				}, 1);
 			}
 		};
 		
