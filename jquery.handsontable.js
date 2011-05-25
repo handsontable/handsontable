@@ -5,12 +5,13 @@
 
 	function handsontable(settings) {
 		var container = $(this);
-		console.log('c', container);
+		var undefined = function(){}();
+
 		var priv = {
 			isMouseDown: false,
 			isCellEdited: false,
-			selStart: {},
-			selEnd: {},
+			selStart: null,
+			selEnd: null,
 			editProxy: false
 		}
 		
@@ -42,9 +43,11 @@
 			 * Returns coordinates given td object
 			 */
 			getCellCoords: function(td) {
-				return {
-					row: td.parent().index(),
-					col: td.index()
+				if(td && td.length) {
+					return {
+						row: td.parent().index(),
+						col: td.index()
+					}
 				}
 			},
 			
@@ -69,6 +72,45 @@
 					}
 				}
 				return output;
+			},
+			
+			/**
+			 * Starts selection range on given td object
+			 */
+			selectCell: function(td) {
+				methods.selectionStart(td);
+				methods.toggleSelection(td);
+				highlight.on();
+			},
+			
+			/**
+			 * Starts selection range on given td object
+			 */
+			selectStart: function(td) {
+				if(td !== undefined) {
+					priv.selStart = grid.getCellCoords(td);
+				}
+				return priv.selStart;
+			},
+			
+			/**
+			 * Ends selection range on given td object
+			 */
+			selectEnd: function(td) {
+				if(td !== undefined) {
+					priv.selEnd = grid.getCellCoords(td);
+				}
+				return priv.selEnd;
+			},
+			
+			/**
+			 * Selects cell in next table row (if exists)
+			 */
+			selectCellInNextRow: function() {
+				var td = grid.getCellAtCoords({row: (priv.selStart.row+1), col: priv.selStart.col});
+				if(td) {
+					grid.selectCell(td);
+				}
 			}
 		}
 		
@@ -88,7 +130,11 @@
 			 * Show border around selected cells
 			 */
 			 on: function() {
-				var tds = grid.getCellsAtSelection(priv.selStart, priv.selEnd);
+				if(!methods.isSelected()) {
+					return false;
+				}
+				var td;
+				var tds = grid.getCellsAtSelection(priv.selStart, grid.selectEnd());
 				for(td in tds) {
 					tds[td].addClass('selected');
 				}
@@ -109,7 +155,10 @@
 			 * Hide border around selected cells
 			 */
 			 off: function() {
-				var tds = grid.getCellsAtSelection(priv.selStart, priv.selEnd);
+				if(!methods.isSelected()) {
+					return false;
+				}
+				var tds = grid.getCellsAtSelection(priv.selStart, grid.selectEnd());
 				for(td in tds) {
 					tds[td].removeClass('selected');
 				}
@@ -150,9 +199,8 @@
 						tr.append(td);
 						td.mousedown(function(event){
 							//priv.editProxy.blur();
-							var td = $(this);
-							methods.selectionStart(td);
-							methods.toggleSelection(td);
+							priv.isMouseDown = true;
+							grid.selectCell($(this));
 							//event.preventDefault();
 							
 						});
@@ -185,10 +233,10 @@
 					methods.clearSelection();
 				});
 				$(window).keypress(function(event){
-					console.log('keypress', event.keyCode);
+					//console.log('keypress', event.keyCode);
 					switch(event.keyCode) {
 						default:
-							console.log('priv.isCellEdited', priv.isCellEdited);
+							//console.log('priv.isCellEdited', priv.isCellEdited);
 							if(!priv.isCellEdited) {
 								/*methods.editStart.apply(this, [event]);
 								/*priv.editProxy.val(
@@ -203,51 +251,54 @@
 				});
 				$(window).keydown(function(event){
 					//console.log('keydown', event.keyCode);
-					switch(event.keyCode) {
-						case 13: /* return */
-							methods.editStop(event);
-							event.preventDefault();
-							break;
-							
-						case 8: /* backspace */
-						case 46: /* delete */
-							methods.emptySelection(event);
-							break;
+					if(methods.isSelected()) {
+						switch(event.keyCode) {
+							case 13: /* return */
+								methods.editStop(event);
+								grid.selectCellInNextRow();
+								//event.preventDefault();
+								break;
+								
+							case 8: /* backspace */
+							case 46: /* delete */
+								methods.emptySelection(event);
+								break;
+						}
 					}
 				});
 				
 				priv.editProxy.bind('paste',function(event){
 					setTimeout(function(){
 						var input = priv.editProxy.val();
-						console.log("sie wkleja", priv.editProxy.val());
 						methods.editStop(event);
 						
 						var inputArray = keyboard.parsePasteInput(input);
-						grid.populateFromArray(priv.selStart, priv.selEnd, inputArray);
-						console.log(inputArray);
-						
+						grid.populateFromArray(priv.selStart, grid.selectEnd(), inputArray);
 					}, 100);
 				});
 			},
 			
 			selectionStart: function(td) {
-				priv.isMouseDown = true;
+				
 				methods.clearSelection();
 				priv.selStart = grid.getCellCoords(td);
-				
+
 				
 				
 				var tdOffset = td.offset();
 				var containerOffset = priv.editProxy.parent().offset();
-				priv.editProxy.css({
-					position: 'absolute',
-					top: (tdOffset.top-containerOffset.top)+'px',
-					left: (tdOffset.left-containerOffset.left)+'px',
-					width: td.width(),
-					height: td.height(),
-					opacity: 0
-				}).val(td.html()).show();
+
 				
+				if(containerOffset && tdOffset) {
+					priv.editProxy.css({
+						position: 'absolute',
+						top: (tdOffset.top-containerOffset.top)+'px',
+						left: (tdOffset.left-containerOffset.left)+'px',
+						width: td.width(),
+						height: td.height(),
+						opacity: 0
+					}).val(td.html()).show();
+				}
 
 				
 				setTimeout(function(){
@@ -258,13 +309,13 @@
 			toggleSelection: function(clickedTd) {
 				var td, tds;
 				methods.clearSelection();
-				priv.selEnd = grid.getCellCoords(clickedTd);
+				grid.selectEnd(clickedTd);
 				highlight.on();
 			},
 					
 			isSelected: function() {
-				var undefined = function(){}();
-				if(priv.selEnd.row == undefined) {
+				var selEnd = grid.selectEnd();
+				if(!selEnd || selEnd.row == undefined) {
 					return false;
 				}
 				return true;
@@ -278,12 +329,15 @@
 					methods.editStop();
 				}
 				highlight.off();
-				priv.selEnd.row = undefined;
+				grid.selectEnd(false);
 			},
 			
 			emptySelection: function() {
+				if(!methods.isSelected()) {
+					return;
+				}
 				var td, tds;
-				tds = grid.getCellsAtSelection(priv.selStart, priv.selEnd);
+				tds = grid.getCellsAtSelection(priv.selStart, grid.selectEnd());
 				for(td in tds) {
 					tds[td].html('');
 				}
@@ -317,15 +371,17 @@
 			},
 			
 			editStop: function(event) {
-				console.log('stop');
-				priv.isCellEdited = false;
-				var td = grid.getCellAtCoords(priv.selStart);
-				td.html( priv.editProxy.val() );
-				priv.editProxy.hide().val('');
-				
-				setTimeout(function(){
-					highlight.on(); //must run asynchronously, otherwise .offset() is broken
-				}, 1);
+				if(priv.isCellEdited) {
+					console.log('e dit spot');
+					priv.isCellEdited = false;
+					var td = grid.getCellAtCoords(priv.selStart);
+					td.html( priv.editProxy.val() );
+					priv.editProxy.hide().val('');
+					
+					//setTimeout(function(){
+						highlight.on(); //must run asynchronously, otherwise .offset() is broken
+					//}, 1);
+				}
 			}
 		};
 		
