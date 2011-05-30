@@ -47,6 +47,28 @@
 			}, 
 			
 			/**
+			 * Return data as array
+			 * @return {Array}
+			 */
+			getData: function() {
+				var td, tr, data = [];
+				trs = container.find('tr');
+				trs.each(function(){
+					var dataRow;
+					var tr = $(this);
+					var tds = tr.find('td');
+					if(tds.filter(':parent').length) { //if not all tds are empty in this row
+						dataRow = [];
+						tds.each(function(){
+							dataRow.push($(this).html());
+						});
+						data.push(dataRow);
+					}
+				});
+				return data;
+			}, 
+			
+			/**
 			 * Returns coordinates given td object
 			 */
 			getCellCoords: function(td) {
@@ -424,6 +446,15 @@
 			grid.populateFromArray({row: 0, col: 0}, null, data);
 		}
 		
+		/**
+		 * Return data as array
+		 * @public
+		 * @return {Array}
+		 */
+		this.getData = function() {
+			return grid.getData();
+		}
+		
 		methods.init(settings);
 	}
 
@@ -433,31 +464,29 @@
 	};
   
 	$.fn.handsontable = function(action, options) {
-		var i, ilen;
-		if(typeof action !== 'string') {
+		var i, ilen, args, output;
+		if(typeof action !== 'string') { //init
 			options = action;
-			action = 'init';
-		}
-		var args = [];
-		if(arguments.length > 1)
-		for(i = 1, ilen = arguments.length; i < ilen; i++) {
-			args.push(arguments[i]);
-		}
-	
-		return this.each(function() {
-			var currentSettings = $.extend({}, settings);
-			if (options) {
-				$.extend(currentSettings, options);
-			}
-			console.log('action', $(this), $(this).data("handsontable"), action);
-			if(action == 'init') {
+			return this.each(function() {
+				var currentSettings = $.extend({}, settings);
+				if (options) {
+					$.extend(currentSettings, options);
+				}
 				var instance = new handsontable($(this), currentSettings);
 				$(this).data("handsontable", instance);
+			});
+		}
+		else {
+			args = [];
+			if(arguments.length > 1)
+			for(i = 1, ilen = arguments.length; i < ilen; i++) {
+				args.push(arguments[i]);
 			}
-			else {
-				$(this).data("handsontable")[action].apply(this, args);
-			}
-		});
+			this.each(function() {
+				output = $(this).data("handsontable")[action].apply(this, args);
+			});
+			return output;
+		}
 	};
 	
 })(jQuery);
