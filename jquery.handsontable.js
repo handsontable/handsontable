@@ -1,10 +1,14 @@
 /**
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
+ * 
+ * TODO multiline Excel paste doesn't work
+ * TODO TAB moves focus away from the gird (add prevent default)
+ * TODO make selection border from 4 divs - make it look nice in Firefox - make actually selected field bg transparent
+ * TODO 
  */
 (function($){
 
-	function handsontable(settings) {
-		var container = $(this);
+	function handsontable(container, settings) {
 		var undefined = function(){}();
 
 		var priv = {
@@ -24,6 +28,9 @@
 			 */
 			populateFromArray: function(start, end, input) {
 				var r, rlen, c, clen, td;
+				if(!end) {
+					end = {row: input.length, col: input[0].length};
+				}
 				rlen = Math.max(start.row, end.row);
 				clen = Math.max(start.col, end.col);
 				for(r = Math.min(start.row, end.row); r <= rlen; r++) {
@@ -408,6 +415,15 @@
 			}
 		};
 		
+		/**
+		 * Load data from array
+		 * @public
+		 * @param {Array} data
+		 */
+		this.loadData = function(data) {
+			grid.populateFromArray({row: 0, col: 0}, null, data);
+		}
+		
 		methods.init(settings);
 	}
 
@@ -416,13 +432,31 @@
 		'cols': 5
 	};
   
-	$.fn.handsontable = function(options) {
+	$.fn.handsontable = function(action, options) {
+		var i, ilen;
+		if(typeof action !== 'string') {
+			options = action;
+			action = 'init';
+		}
+		var args = [];
+		if(arguments.length > 1)
+		for(i = 1, ilen = arguments.length; i < ilen; i++) {
+			args.push(arguments[i]);
+		}
+	
 		return this.each(function() {
 			var currentSettings = $.extend({}, settings);
 			if (options) {
 				$.extend(currentSettings, options);
 			}
-			handsontable.call(this, currentSettings);
+			console.log('action', $(this), $(this).data("handsontable"), action);
+			if(action == 'init') {
+				var instance = new handsontable($(this), currentSettings);
+				$(this).data("handsontable", instance);
+			}
+			else {
+				$(this).data("handsontable")[action].apply(this, args);
+			}
 		});
 	};
 	
