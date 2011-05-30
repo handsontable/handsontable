@@ -51,7 +51,7 @@
 			 * @return {Array}
 			 */
 			getData: function() {
-				var td, tr, data = [];
+				var td, tr, data = [], r, rlen, c, clen, allEmpty;
 				trs = container.find('tr');
 				trs.each(function(){
 					var dataRow;
@@ -63,8 +63,22 @@
 							dataRow.push($(this).html());
 						});
 						data.push(dataRow);
+						console.log("td");
 					}
 				});
+				if(data.length > 0 && data[0].length) {
+					rlen = data.length;
+					col : for(c = data[0].length - 1; c >= 0; c--) {
+						for(r = 0; r < rlen; r++) {
+							if(data[r][c]) {
+								break col;
+							}
+						}
+						for(r = 0; r < rlen; r++) {
+							data[r].pop();
+						}
+					}
+				}
 				return data;
 			}, 
 			
