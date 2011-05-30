@@ -376,7 +376,7 @@
 						case 40: /* arrow down */
 							methods.editStop(event);
 							grid.selectCellRelative(1, 0);
-							//event.preventDefault();
+							event.preventDefault();
 							break;
 							
 						default:
