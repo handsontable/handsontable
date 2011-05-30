@@ -326,6 +326,7 @@
 					console.log('kasuje', tds[td]);
 					tds[td].html('');
 				}
+				highlight.on();
 			},
 			
 			createEditProxy: function() {
