@@ -104,11 +104,11 @@
 			},
 			
 			/**
-			 * Selects cell in next table row (if exists)
+			 * Selects cell relative to current cell (if possible)
 			 */
-			selectCellInNextRow: function() {
-				var td = grid.getCellAtCoords({row: (priv.selStart.row+1), col: priv.selStart.col});
-				if(td) {
+			selectCellRelative: function(rowDelta, colDelta) {
+				var td = grid.getCellAtCoords({row: (priv.selStart.row+rowDelta), col: priv.selStart.col+colDelta});
+				if(td.length) {
 					grid.selectCell(td);
 				}
 			}
@@ -250,12 +250,32 @@
 					}
 				});
 				$(window).keydown(function(event){
-					//console.log('keydown', event.keyCode);
+					console.log('keydown', event.keyCode);
 					if(methods.isSelected()) {
 						switch(event.keyCode) {
 							case 13: /* return */
+							case 40: /* arrow down */
 								methods.editStop(event);
-								grid.selectCellInNextRow();
+								grid.selectCellRelative(1, 0);
+								//event.preventDefault();
+								break;
+								
+							case 38: /* arrow up */
+								methods.editStop(event);
+								grid.selectCellRelative(-1, 0);
+								//event.preventDefault();
+								break;
+								
+							case 39: /* arrow right */
+							case 9: /* tab */
+								methods.editStop(event);
+								grid.selectCellRelative(0, 1);
+								//event.preventDefault();
+								break;
+								
+							case 37: /* arrow left */
+								methods.editStop(event);
+								grid.selectCellRelative(0, -1);
 								//event.preventDefault();
 								break;
 								
