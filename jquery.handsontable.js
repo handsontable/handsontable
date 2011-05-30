@@ -232,6 +232,7 @@
 				$(window).click(function(){
 					methods.clearSelection();
 				});
+				/*
 				$(window).keypress(function(event){
 					//console.log('keypress', event.keyCode);
 					switch(event.keyCode) {
@@ -244,49 +245,12 @@
 									//String.fromCharCode(event.which||event.charCode||event.keyCode)
 								);* /
 								methods.editKeyDown();
-								priv.editProxy.focus();*/
+								priv.editProxy.focus();* /
 							}
 							break;
 					}
 				});
-				$(window).keydown(function(event){
-					console.log('keydown', event.keyCode);
-					if(methods.isSelected()) {
-						switch(event.keyCode) {
-							case 13: /* return */
-							case 40: /* arrow down */
-								methods.editStop(event);
-								grid.selectCellRelative(1, 0);
-								//event.preventDefault();
-								break;
-								
-							case 38: /* arrow up */
-								methods.editStop(event);
-								grid.selectCellRelative(-1, 0);
-								//event.preventDefault();
-								break;
-								
-							case 39: /* arrow right */
-							case 9: /* tab */
-								methods.editStop(event);
-								grid.selectCellRelative(0, 1);
-								//event.preventDefault();
-								break;
-								
-							case 37: /* arrow left */
-								methods.editStop(event);
-								grid.selectCellRelative(0, -1);
-								//event.preventDefault();
-								break;
-								
-							case 8: /* backspace */
-							case 46: /* delete */
-								methods.emptySelection(event);
-								break;
-						}
-					}
-				});
-				
+				*/
 				priv.editProxy.bind('paste',function(event){
 					setTimeout(function(){
 						var input = priv.editProxy.val();
@@ -311,7 +275,6 @@
 				
 				if(containerOffset && tdOffset) {
 					priv.editProxy.css({
-						position: 'absolute',
 						top: (tdOffset.top-containerOffset.top)+'px',
 						left: (tdOffset.left-containerOffset.left)+'px',
 						width: td.width(),
@@ -356,20 +319,22 @@
 				if(!methods.isSelected()) {
 					return;
 				}
+				console.log("wchodze");
 				var td, tds;
 				tds = grid.getCellsAtSelection(priv.selStart, grid.selectEnd());
 				for(td in tds) {
+					console.log('kasuje', tds[td]);
 					tds[td].html('');
 				}
 			},
 			
 			createEditProxy: function() {
-				priv.editProxy = $('<textarea class="editInput">').hide();
-				priv.editProxy.keydown(function(){
-					methods.editKeyDown();
+				priv.editProxy = $('<textarea class="editInput">').css({
+					position: 'absolute',
+					opacity: 0
 				});
-				priv.editProxy.blur(function(){
-					//methods.editStop();
+				priv.editProxy.keydown(function(event){
+					methods.editKeyDown(event);
 				});
 				container.append(priv.editProxy);
 			},
@@ -378,16 +343,51 @@
 				priv.isCellEdited = true;
 				priv.editProxy.css({
 					opacity: 1
-				//}).val(td.html() + priv.editProxy.val()).show();
 				});
 			},
 			
 			editKeyDown: function(event) {
-				var length = priv.editProxy.val().length;
-				if(length > 3) {
-					priv.editProxy.width(25 + length * 8);
+				console.log('keydown', event.keyCode);
+				if(methods.isSelected()) {
+					switch(event.keyCode) {						
+						case 38: /* arrow up */
+							methods.editStop(event);
+							grid.selectCellRelative(-1, 0);
+							break;
+							
+						case 39: /* arrow right */
+						case 9: /* tab */
+							methods.editStop(event);
+							grid.selectCellRelative(0, 1);
+							break;
+							
+						case 37: /* arrow left */
+							methods.editStop(event);
+							grid.selectCellRelative(0, -1);
+							break;
+							
+						case 8: /* backspace */
+						case 46: /* delete */
+							console.log("del");
+							methods.emptySelection(event);
+							break;
+							
+						case 13: /* return */
+						case 40: /* arrow down */
+							methods.editStop(event);
+							grid.selectCellRelative(1, 0);
+							//event.preventDefault();
+							break;
+							
+						default:
+							var length = priv.editProxy.val().length;
+							if(length > 3) {
+								priv.editProxy.width(25 + length * 8);
+							}
+							methods.editStart();
+							break;
+					}
 				}
-				methods.editStart();
 			},
 			
 			editStop: function(event) {
@@ -396,7 +396,9 @@
 					priv.isCellEdited = false;
 					var td = grid.getCellAtCoords(priv.selStart);
 					td.html( priv.editProxy.val() );
-					priv.editProxy.hide().val('');
+					priv.editProxy.css({
+						opacity: 0
+					}).val('');
 					
 					//setTimeout(function(){
 						highlight.on(); //must run asynchronously, otherwise .offset() is broken
