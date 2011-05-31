@@ -63,7 +63,10 @@ body {
 	
 	$("#dataTable2").handsontable({
 		rows: 5,
-		cols: 8
+		cols: 8,
+		onChange: function() {
+			console.log("grid data changed");
+		}
 	});
 	
 	var data = [

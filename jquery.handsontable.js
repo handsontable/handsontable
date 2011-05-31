@@ -385,6 +385,8 @@
 			
 			editStart: function(event) {
 				priv.isCellEdited = true;
+				var td = grid.getCellAtCoords(priv.selStart);
+				td.data("originalValue", td.html());
 				priv.editProxy.css({
 					opacity: 1
 				});
@@ -412,8 +414,10 @@
 							
 						case 8: /* backspace */
 						case 46: /* delete */
-							console.log("del");
-							methods.emptySelection(event);
+							if(!priv.isCellEdited) {
+								console.log("del");
+								methods.emptySelection(event);
+							}
 							break;
 							
 						case 13: /* return */
@@ -439,7 +443,14 @@
 					console.log('e dit spot');
 					priv.isCellEdited = false;
 					var td = grid.getCellAtCoords(priv.selStart);
-					td.html( priv.editProxy.val() );
+					var val = priv.editProxy.val();
+					if(val !== td.data("originalValue")) {
+						td.html( val );
+						if(settings.onChange) {
+							settings.onChange();
+						}
+					}
+					
 					priv.editProxy.css({
 						opacity: 0
 					}).val('');
