@@ -399,17 +399,20 @@
 						case 38: /* arrow up */
 							methods.editStop(event);
 							grid.selectCellRelative(-1, 0);
+							event.preventDefault();
 							break;
 							
 						case 39: /* arrow right */
 						case 9: /* tab */
 							methods.editStop(event);
 							grid.selectCellRelative(0, 1);
+							event.preventDefault();
 							break;
 							
 						case 37: /* arrow left */
 							methods.editStop(event);
 							grid.selectCellRelative(0, -1);
+							event.preventDefault();
 							break;
 							
 						case 8: /* backspace */
@@ -417,6 +420,7 @@
 							if(!priv.isCellEdited) {
 								console.log("del");
 								methods.emptySelection(event);
+								event.preventDefault();
 							}
 							break;
 							
