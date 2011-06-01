@@ -2,9 +2,7 @@
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  * 
  * TODO multiline Excel paste doesn't work
- * TODO TAB moves focus away from the gird (add prevent default)
- * TODO make selection border from 4 divs - make it look nice in Firefox - make actually selected field bg transparent
- * TODO 
+ * TODO in firefox 4 it is very slow and doesn't look pixel perfect
  */
 (function($){
 
@@ -162,11 +160,16 @@
 			 * Create highlight border
 			 */
 			 init: function() {
-				priv.selectionArea = $("<div class='selectionArea'>");
-				priv.selectionArea.css({
-					position: 'absolute'
-				});
-				container.append(priv.selectionArea);
+				priv.selectionArea = {
+					top: $("<div class='selectionArea'>").css({position: 'absolute', height: 2}),
+					left: $("<div class='selectionArea'>").css({position: 'absolute', width: 2}),
+					bottom: $("<div class='selectionArea'>").css({position: 'absolute', height: 2}),
+					right: $("<div class='selectionArea'>").css({position: 'absolute', width: 2})
+				}
+				container.append(priv.selectionArea.top);
+				container.append(priv.selectionArea.left);
+				container.append(priv.selectionArea.bottom);
+				container.append(priv.selectionArea.right);
 			 },
 			 
 			/**
@@ -181,16 +184,38 @@
 				for(td in tds) {
 					tds[td].addClass('selected');
 				}
-				var first = tds[0];
+				grid.getCellAtCoords(priv.selStart).removeClass('selected');
+				
 				var last = tds[tds.length-1];
-				var firstOffset = first.offset();
+				var firstOffset = tds[0].offset();
 				var lastOffset = last.offset();
-				var containerOffset = priv.editProxy.parent().offset();
-				priv.selectionArea.css({
-					top: (firstOffset.top-containerOffset.top-2)+'px',
-					left: (firstOffset.left-containerOffset.left-2)+'px',
-					height: (lastOffset.top-firstOffset.top+last.height()+9)+'px',
-					width: (lastOffset.left-firstOffset.left+last.width()+9)+'px'
+				var containerOffset = last.parent().parent().offset();
+				
+				
+				var top = firstOffset.top-containerOffset.top-1;
+				console.log("yy", firstOffset.top, containerOffset.top, top);
+				var left = firstOffset.left-containerOffset.left-1;
+				var height = lastOffset.top-firstOffset.top+last.height()+5;
+				var width = lastOffset.left-firstOffset.left+last.width()+5;
+				priv.selectionArea.top.css({
+					top: top,
+					left: left,
+					width: width
+				}).show();
+				priv.selectionArea.left.css({
+					top: top,
+					left: left,
+					height: height
+				}).show();
+				priv.selectionArea.bottom.css({
+					top: top+height,
+					left: left,
+					width: width
+				}).show();
+				priv.selectionArea.right.css({
+					top: top,
+					left: left+width,
+					height: height+2
 				}).show();
 			 },
 			
@@ -205,7 +230,10 @@
 				for(td in tds) {
 					tds[td].removeClass('selected');
 				}
-				priv.selectionArea.hide();
+				priv.selectionArea.top.hide();
+				priv.selectionArea.left.hide();
+				priv.selectionArea.bottom.hide();
+				priv.selectionArea.right.hide();
 			 }
 		}
 		
@@ -261,9 +289,8 @@
 					table.append(tr);
 				}
 				
-				highlight.init();
-				
 				container.append(table);
+				highlight.init();
 				methods.createEditProxy();
 				
 				
