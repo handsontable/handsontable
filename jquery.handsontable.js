@@ -350,7 +350,7 @@
 						width: td.width(),
 						height: td.height(),
 						opacity: 0
-					}).val(td.html()).show();
+					}).val('').show();
 				}
 
 				
