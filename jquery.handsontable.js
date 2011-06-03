@@ -7,7 +7,7 @@
 (function($){
 
 	function handsontable(container, settings) {
-		var undefined = function(){}();
+		var _undefined = (function(){}());
 
 		var priv = {
 			isMouseDown: false,
@@ -15,7 +15,7 @@
 			selStart: null,
 			selEnd: null,
 			editProxy: false
-		}
+		};
 		
 		var grid = {
 			/**
@@ -88,7 +88,7 @@
 					return {
 						row: td.parent().index(),
 						col: td.index()
-					}
+					};
 				}
 			},
 			
@@ -114,7 +114,7 @@
 				}
 				return output;
 			}
-		}
+		};
 		
 		var selection = {
 			/**
@@ -141,7 +141,7 @@
 			 * Setter/getter for selection start
 			 */
 			start: function(td) {
-				if(td !== undefined) {
+				if(td !== _undefined) {
 					priv.selStart = grid.getCellCoords(td);
 				}
 				return priv.selStart;
@@ -151,7 +151,7 @@
 			 * Setter/getter for selection end
 			 */
 			end: function(td) {
-				if(td !== undefined) {
+				if(td !== _undefined) {
 					priv.selEnd = grid.getCellCoords(td);
 				}
 				return priv.selEnd;
@@ -172,7 +172,7 @@
 			 */
 			isSelected: function() {
 				var selEnd = selection.end();
-				if(!selEnd || selEnd.row == undefined) {
+				if(!selEnd || selEnd.row === _undefined) {
 					return false;
 				}
 				return true;
@@ -199,14 +199,14 @@
 				if(!selection.isSelected()) {
 					return;
 				}
-				var td, tds;
+				var tds, i, ilen;
 				tds = grid.getCellsAtCoords(priv.selStart, selection.end());
-				for(td in tds) {
-					tds[td].html('');
+				for(i=0, ilen=tds.length; i<ilen; i++) {
+					tds[i].html('');
 				}
 				highlight.on();
-			},
-		}
+			}
+		};
 		
 		var highlight = {
 			/**
@@ -218,7 +218,7 @@
 					left: $("<div class='selectionArea'>").css({position: 'absolute', width: 2}),
 					bottom: $("<div class='selectionArea'>").css({position: 'absolute', height: 2}),
 					right: $("<div class='selectionArea'>").css({position: 'absolute', width: 2})
-				}
+				};
 				container.append(priv.selectionArea.top);
 				container.append(priv.selectionArea.left);
 				container.append(priv.selectionArea.bottom);
@@ -232,10 +232,10 @@
 				if(!selection.isSelected()) {
 					return false;
 				}
-				var td;
-				var tds = grid.getCellsAtCoords(priv.selStart, selection.end());
-				for(td in tds) {
-					tds[td].addClass('selected');
+				var tds, i, ilen;
+				tds = grid.getCellsAtCoords(priv.selStart, selection.end());
+				for(i=0, ilen=tds.length; i<ilen; i++) {
+					tds[i].addClass('selected');
 				}
 				grid.getCellAtCoords(priv.selStart).removeClass('selected');
 				
@@ -279,16 +279,17 @@
 				if(!selection.isSelected()) {
 					return false;
 				}
-				var tds = grid.getCellsAtCoords(priv.selStart, selection.end());
-				for(td in tds) {
-					tds[td].removeClass('selected');
+				var tds, i, ilen;
+				tds = grid.getCellsAtCoords(priv.selStart, selection.end());
+				for(i=0, ilen=tds.length; i<ilen; i++) {
+					tds[i].removeClass('selected');
 				}
 				priv.selectionArea.top.hide();
 				priv.selectionArea.left.hide();
 				priv.selectionArea.bottom.hide();
 				priv.selectionArea.right.hide();
 			 }
-		}
+		};
 		
 		var keyboard = {
 			/**
@@ -309,7 +310,7 @@
 				}
 				return rows;
 			}
-		}
+		};
 		
 		var editproxy = {
 			/**
@@ -437,34 +438,36 @@
 					
 					highlight.on();
 				}
-			},
-		}
+			}
+		};
 		
 		function init(settings) {
 			var r, c, table, tr, td;
+			
+			function onMouseDown() {
+				priv.isMouseDown = true;
+				selection.setRangeStart($(this));
+			}
+			function onMouseOver(event) {
+				if(priv.isMouseDown) {
+					selection.setRangeEnd($(this));
+				}
+				event.preventDefault();
+				event.stopPropagation();
+			}
+			function onClick(event) {
+				event.stopPropagation();
+			}
+			
 			table = $('<table>');
 			for(r=0; r < settings.rows; r++) {
 				tr = $('<tr>');
 				for(c=0; c < settings.cols; c++) {
 					td = $('<td>');
 					tr.append(td);
-					td.mousedown(function(event){
-						//priv.editProxy.blur();
-						priv.isMouseDown = true;
-						selection.setRangeStart($(this));
-						//event.preventDefault();
-						
-					});
-					td.mouseover(function(event){
-						if(priv.isMouseDown) {
-							selection.setRangeEnd($(this));
-						}
-						event.preventDefault();
-						event.stopPropagation();
-					});
-					td.click(function(event){
-						event.stopPropagation();
-					});
+					td.bind('mousedown', onMouseDown);
+					td.bind('mouseover', onMouseOver);
+					td.bind('click', onClick);
 				}
 				table.append(tr);
 			}
@@ -488,7 +491,7 @@
 		 */
 		this.loadData = function(data) {
 			grid.populateFromArray({row: 0, col: 0}, null, data);
-		}
+		};
 		
 		/**
 		 * Return data as array
@@ -497,7 +500,7 @@
 		 */
 		this.getData = function() {
 			return grid.getData();
-		}
+		};
 		
 		init(settings);
 	}
@@ -522,9 +525,10 @@
 		}
 		else {
 			args = [];
-			if(arguments.length > 1)
-			for(i = 1, ilen = arguments.length; i < ilen; i++) {
-				args.push(arguments[i]);
+			if(arguments.length > 1) {
+				for(i = 1, ilen = arguments.length; i < ilen; i++) {
+					args.push(arguments[i]);
+				}
 			}
 			this.each(function() {
 				output = $(this).data("handsontable")[action].apply(this, args);
