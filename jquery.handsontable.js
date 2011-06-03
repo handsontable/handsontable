@@ -21,27 +21,26 @@
 			/**
 			 * Populate cells at position with 2d array
 			 * @param {Object} start Start selection position
-			 * @param {Object} end End selection position
 			 * @param {Array} input 2d array
+			 * @return {Object} ending td in pasted area
 			 */
-			populateFromArray: function(start, end, input) {
-				var r, rlen, c, clen, td;
-				if(!end) {
-					end = {row: input.length, col: input[0].length};
+			populateFromArray: function(start, input) {
+				var r, rlen, c, clen, td, endTd;
+				rlen = input.length;
+				if(rlen === 0) {
+					return;
 				}
-				rlen = Math.max(start.row, end.row);
-				clen = Math.max(start.col, end.col);
-				for(r = Math.min(start.row, end.row); r <= rlen; r++) {
-					if(!input[r]) {
-						continue;
-					}
-					for(c = Math.min(start.col, end.col); c <= clen; c++) {
-						if(input[r][c]) {
-							td = grid.getCellAtCoords({row: r, col: c});
+				clen = input[0].length;
+				for(r = 0; r < rlen; r++) {
+					for(c = 0; c < clen; c++) {
+						td = grid.getCellAtCoords({row: start.row+r, col: start.col+c});
+						if(td) {
 							td.html(input[r][c]);
+							endTd = td;
 						}
 					}
 				}
+				return endTd;
 			}, 
 			
 			/**
@@ -299,7 +298,9 @@
 			 */
 			parsePasteInput: function(input) {
 				var rows = [], r, rlen;
+				
 				if(input.indexOf("\t")) { //Excel format
+					
 					rows = input.split("\n");
 					if(rows[rows.length-1] === '') {
 						rows.pop();
@@ -327,7 +328,8 @@
 						editproxy.finishEditing(event);
 						
 						var inputArray = keyboard.parsePasteInput(input);
-						grid.populateFromArray(priv.selStart, selection.end(), inputArray);
+						var endTd = grid.populateFromArray(priv.selStart, inputArray);
+						selection.setRangeEnd(endTd);
 					}, 100);
 				});
 				priv.editProxy.bind('keydown',function(event){
@@ -490,7 +492,7 @@
 		 * @param {Array} data
 		 */
 		this.loadData = function(data) {
-			grid.populateFromArray({row: 0, col: 0}, null, data);
+			grid.populateFromArray({row: 0, col: 0}, data);
 		};
 		
 		/**
