@@ -320,8 +320,63 @@
 					position: 'absolute',
 					opacity: 0
 				});
-				priv.editProxy.keydown(function(event){
-					methods.editKeyDown(event);
+				priv.editProxy.bind('paste',function(event){
+					setTimeout(function(){
+						var input = priv.editProxy.val();
+						editproxy.finishEditing(event);
+						
+						var inputArray = keyboard.parsePasteInput(input);
+						grid.populateFromArray(priv.selStart, selection.end(), inputArray);
+					}, 100);
+				});
+				priv.editProxy.bind('keydown',function(event){
+					console.log('keydown', event.keyCode);
+					if(selection.isSelected()) {
+						switch(event.keyCode) {						
+							case 38: /* arrow up */
+								editproxy.finishEditing(event);
+								selection.transform(-1, 0);
+								event.preventDefault();
+								break;
+								
+							case 39: /* arrow right */
+							case 9: /* tab */
+								editproxy.finishEditing(event);
+								selection.transform(0, 1);
+								event.preventDefault();
+								break;
+								
+							case 37: /* arrow left */
+								editproxy.finishEditing(event);
+								selection.transform(0, -1);
+								event.preventDefault();
+								break;
+								
+							case 8: /* backspace */
+							case 46: /* delete */
+								if(!priv.isCellEdited) {
+									console.log("del");
+									selection.empty(event);
+									event.preventDefault();
+								}
+								break;
+								
+							case 13: /* return */
+							case 40: /* arrow down */
+								editproxy.finishEditing(event);
+								selection.transform(1, 0);
+								event.preventDefault();
+								break;
+								
+							default:
+								var length = priv.editProxy.val().length;
+								if(length > 3) {
+									priv.editProxy.width(25 + length * 8);
+								}
+								editproxy.beginEditing();
+								break;
+						}
+					}
 				});
 				container.append(priv.editProxy);
 			},
@@ -380,136 +435,51 @@
 						opacity: 0
 					}).val('');
 					
-					//setTimeout(function(){
-						highlight.on(); //must run asynchronously, otherwise .offset() is broken
-					//}, 1);
-				}			},
+					highlight.on();
+				}
+			},
 		}
 		
-		var methods = {
-			init: function(settings) {
-				
-				var r, c, table, tr, td;
-				table = $('<table>');
-				for(r=0; r < settings.rows; r++) {
-					tr = $('<tr>');
-					for(c=0; c < settings.cols; c++) {
-						td = $('<td>');
-						tr.append(td);
-						td.mousedown(function(event){
-							//priv.editProxy.blur();
-							priv.isMouseDown = true;
-							selection.setRangeStart($(this));
-							//event.preventDefault();
-							
-						});
-						td.mouseover(function(event){
-							if(priv.isMouseDown) {
-								selection.setRangeEnd($(this));
-							}
-							event.preventDefault();
-							event.stopPropagation();
-						});
-						td.click(function(event){
-							event.stopPropagation();
-						});
-					}
-					table.append(tr);
-				}
-				
-				container.append(table);
-				highlight.init();
-				editproxy.init();
-				
-				$(window).mouseup(function(){
-					priv.isMouseDown = false;
-					
-				});
-				$(window).click(function(){
-					selection.deselect();
-				});
-				/*
-				$(window).keypress(function(event){
-					//console.log('keypress', event.keyCode);
-					switch(event.keyCode) {
-						default:
-							//console.log('priv.isCellEdited', priv.isCellEdited);
-							if(!priv.isCellEdited) {
-								/*editproxy.beginEditing.apply(this, [event]);
-								/*priv.editProxy.val(
-									priv.editProxy.val() //+
-									//String.fromCharCode(event.which||event.charCode||event.keyCode)
-								);* /
-								methods.editKeyDown();
-								priv.editProxy.focus();* /
-							}
-							break;
-					}
-				});
-				*/
-				priv.editProxy.bind('paste',function(event){
-					setTimeout(function(){
-						var input = priv.editProxy.val();
-						editproxy.finishEditing(event);
+		function init(settings) {
+			var r, c, table, tr, td;
+			table = $('<table>');
+			for(r=0; r < settings.rows; r++) {
+				tr = $('<tr>');
+				for(c=0; c < settings.cols; c++) {
+					td = $('<td>');
+					tr.append(td);
+					td.mousedown(function(event){
+						//priv.editProxy.blur();
+						priv.isMouseDown = true;
+						selection.setRangeStart($(this));
+						//event.preventDefault();
 						
-						var inputArray = keyboard.parsePasteInput(input);
-						grid.populateFromArray(priv.selStart, selection.end(), inputArray);
-					}, 100);
-				});
-			},
-			
-
-			
-			editKeyDown: function(event) {
-				console.log('keydown', event.keyCode);
-				if(selection.isSelected()) {
-					switch(event.keyCode) {						
-						case 38: /* arrow up */
-							editproxy.finishEditing(event);
-							selection.transform(-1, 0);
-							event.preventDefault();
-							break;
-							
-						case 39: /* arrow right */
-						case 9: /* tab */
-							editproxy.finishEditing(event);
-							selection.transform(0, 1);
-							event.preventDefault();
-							break;
-							
-						case 37: /* arrow left */
-							editproxy.finishEditing(event);
-							selection.transform(0, -1);
-							event.preventDefault();
-							break;
-							
-						case 8: /* backspace */
-						case 46: /* delete */
-							if(!priv.isCellEdited) {
-								console.log("del");
-								selection.empty(event);
-								event.preventDefault();
-							}
-							break;
-							
-						case 13: /* return */
-						case 40: /* arrow down */
-							editproxy.finishEditing(event);
-							selection.transform(1, 0);
-							event.preventDefault();
-							break;
-							
-						default:
-							var length = priv.editProxy.val().length;
-							if(length > 3) {
-								priv.editProxy.width(25 + length * 8);
-							}
-							editproxy.beginEditing();
-							break;
-					}
+					});
+					td.mouseover(function(event){
+						if(priv.isMouseDown) {
+							selection.setRangeEnd($(this));
+						}
+						event.preventDefault();
+						event.stopPropagation();
+					});
+					td.click(function(event){
+						event.stopPropagation();
+					});
 				}
+				table.append(tr);
 			}
-		};
+			
+			container.append(table);
+			highlight.init();
+			editproxy.init();
+			
+			$(window).mouseup(function(){
+				priv.isMouseDown = false;
+			});
+			$(window).click(function(){
+				selection.deselect();
+			});
+		}
 		
 		/**
 		 * Load data from array
@@ -529,7 +499,7 @@
 			return grid.getData();
 		}
 		
-		methods.init(settings);
+		init(settings);
 	}
 
 	var settings = {
