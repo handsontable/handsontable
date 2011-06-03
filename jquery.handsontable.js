@@ -98,12 +98,12 @@
 			getCellAtCoords: function(coords) {
 				var td = container.find('tr:eq('+coords.row+') td:eq('+coords.col+')');
 				return td;
-			}, 
+			},
 			
 			/**
 			 * Returns array of td objects given start and end coordinates
 			 */
-			getCellsAtSelection: function(start, end) {
+			getCellsAtCoords: function(start, end) {
 				var r, rlen, c, clen, output = [];
 				rlen = Math.max(start.row, end.row);
 				clen = Math.max(start.col, end.col);
@@ -113,8 +113,10 @@
 					}
 				}
 				return output;
-			},
-			
+			}
+		}
+		
+		var selection = {
 			/**
 			 * Starts selection range on given td object
 			 */
@@ -127,7 +129,7 @@
 			/**
 			 * Starts selection range on given td object
 			 */
-			selectStart: function(td) {
+			start: function(td) {
 				if(td !== undefined) {
 					priv.selStart = grid.getCellCoords(td);
 				}
@@ -137,7 +139,7 @@
 			/**
 			 * Ends selection range on given td object
 			 */
-			selectEnd: function(td) {
+			end: function(td) {
 				if(td !== undefined) {
 					priv.selEnd = grid.getCellCoords(td);
 				}
@@ -147,10 +149,10 @@
 			/**
 			 * Selects cell relative to current cell (if possible)
 			 */
-			selectCellRelative: function(rowDelta, colDelta) {
+			transform: function(rowDelta, colDelta) {
 				var td = grid.getCellAtCoords({row: (priv.selStart.row+rowDelta), col: priv.selStart.col+colDelta});
 				if(td.length) {
-					grid.selectCell(td);
+					selection.selectCell(td);
 				}
 			}
 		}
@@ -180,7 +182,7 @@
 					return false;
 				}
 				var td;
-				var tds = grid.getCellsAtSelection(priv.selStart, grid.selectEnd());
+				var tds = grid.getCellsAtCoords(priv.selStart, selection.end());
 				for(td in tds) {
 					tds[td].addClass('selected');
 				}
@@ -226,7 +228,7 @@
 				if(!methods.isSelected()) {
 					return false;
 				}
-				var tds = grid.getCellsAtSelection(priv.selStart, grid.selectEnd());
+				var tds = grid.getCellsAtCoords(priv.selStart, selection.end());
 				for(td in tds) {
 					tds[td].removeClass('selected');
 				}
@@ -271,7 +273,7 @@
 						td.mousedown(function(event){
 							//priv.editProxy.blur();
 							priv.isMouseDown = true;
-							grid.selectCell($(this));
+							selection.selectCell($(this));
 							//event.preventDefault();
 							
 						});
@@ -327,7 +329,7 @@
 						methods.editStop(event);
 						
 						var inputArray = keyboard.parsePasteInput(input);
-						grid.populateFromArray(priv.selStart, grid.selectEnd(), inputArray);
+						grid.populateFromArray(priv.selStart, selection.end(), inputArray);
 					}, 100);
 				});
 			},
@@ -362,12 +364,12 @@
 			toggleSelection: function(clickedTd) {
 				var td, tds;
 				methods.clearSelection();
-				grid.selectEnd(clickedTd);
+				selection.end(clickedTd);
 				highlight.on();
 			},
 					
 			isSelected: function() {
-				var selEnd = grid.selectEnd();
+				var selEnd = selection.end();
 				if(!selEnd || selEnd.row == undefined) {
 					return false;
 				}
@@ -382,7 +384,7 @@
 					methods.editStop();
 				}
 				highlight.off();
-				grid.selectEnd(false);
+				selection.end(false);
 			},
 			
 			emptySelection: function() {
@@ -391,7 +393,7 @@
 				}
 				console.log("wchodze");
 				var td, tds;
-				tds = grid.getCellsAtSelection(priv.selStart, grid.selectEnd());
+				tds = grid.getCellsAtCoords(priv.selStart, selection.end());
 				for(td in tds) {
 					console.log('kasuje', tds[td]);
 					tds[td].html('');
@@ -425,20 +427,20 @@
 					switch(event.keyCode) {						
 						case 38: /* arrow up */
 							methods.editStop(event);
-							grid.selectCellRelative(-1, 0);
+							selection.transform(-1, 0);
 							event.preventDefault();
 							break;
 							
 						case 39: /* arrow right */
 						case 9: /* tab */
 							methods.editStop(event);
-							grid.selectCellRelative(0, 1);
+							selection.transform(0, 1);
 							event.preventDefault();
 							break;
 							
 						case 37: /* arrow left */
 							methods.editStop(event);
-							grid.selectCellRelative(0, -1);
+							selection.transform(0, -1);
 							event.preventDefault();
 							break;
 							
@@ -454,7 +456,7 @@
 						case 13: /* return */
 						case 40: /* arrow down */
 							methods.editStop(event);
-							grid.selectCellRelative(1, 0);
+							selection.transform(1, 0);
 							event.preventDefault();
 							break;
 							
