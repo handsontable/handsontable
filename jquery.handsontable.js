@@ -1,7 +1,6 @@
 /**
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  * 
- * TODO multiline Excel paste doesn't work
  * TODO in firefox 4 it is very slow and doesn't look pixel perfect
  */
 (function($){
