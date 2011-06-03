@@ -121,7 +121,9 @@
 			 * Starts selection range on given td object
 			 */
 			selectCell: function(td) {
-				methods.selectionStart(td);
+				methods.clearSelection();
+				priv.selStart = grid.getCellCoords(td);
+				editproxy.prepare(td);
 				methods.toggleSelection(td);
 				highlight.on();
 			},
@@ -260,6 +262,44 @@
 			}
 		}
 		
+		var editproxy = {
+			/**
+			 * Create input field
+			 */
+			init: function() {
+				priv.editProxy = $('<textarea class="editInput">').css({
+					position: 'absolute',
+					opacity: 0
+				});
+				priv.editProxy.keydown(function(event){
+					methods.editKeyDown(event);
+				});
+				container.append(priv.editProxy);
+			},
+			
+			/**
+			 * Prepare text input to be displayed at given grid cell
+			 */
+			prepare: function(td) {
+				var tdOffset = td.offset();
+				var containerOffset = priv.editProxy.parent().offset();
+				
+				if(containerOffset && tdOffset) {
+					priv.editProxy.css({
+						top: (tdOffset.top-containerOffset.top)+'px',
+						left: (tdOffset.left-containerOffset.left)+'px',
+						width: td.width(),
+						height: td.height(),
+						opacity: 0
+					}).val('').show();
+				}
+
+				setTimeout(function(){
+					priv.editProxy.focus();
+				}, 1);
+			},
+		}
+		
 		var methods = {
 			init: function(settings) {
 				
@@ -293,9 +333,7 @@
 				
 				container.append(table);
 				highlight.init();
-				methods.createEditProxy();
-				
-				
+				editproxy.init();
 				
 				$(window).mouseup(function(){
 					priv.isMouseDown = false;
@@ -332,33 +370,6 @@
 						grid.populateFromArray(priv.selStart, selection.end(), inputArray);
 					}, 100);
 				});
-			},
-			
-			selectionStart: function(td) {
-				
-				methods.clearSelection();
-				priv.selStart = grid.getCellCoords(td);
-
-				
-				
-				var tdOffset = td.offset();
-				var containerOffset = priv.editProxy.parent().offset();
-
-				
-				if(containerOffset && tdOffset) {
-					priv.editProxy.css({
-						top: (tdOffset.top-containerOffset.top)+'px',
-						left: (tdOffset.left-containerOffset.left)+'px',
-						width: td.width(),
-						height: td.height(),
-						opacity: 0
-					}).val('').show();
-				}
-
-				
-				setTimeout(function(){
-					priv.editProxy.focus();
-				}, 1);
 			},
 			
 			toggleSelection: function(clickedTd) {
@@ -399,17 +410,6 @@
 					tds[td].html('');
 				}
 				highlight.on();
-			},
-			
-			createEditProxy: function() {
-				priv.editProxy = $('<textarea class="editInput">').css({
-					position: 'absolute',
-					opacity: 0
-				});
-				priv.editProxy.keydown(function(event){
-					methods.editKeyDown(event);
-				});
-				container.append(priv.editProxy);
 			},
 			
 			editStart: function(event) {
