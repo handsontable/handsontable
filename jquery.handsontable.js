@@ -323,10 +323,9 @@
 					opacity: 0
 				});
 				priv.editProxy.bind('paste',function(event){
+					editproxy.finishEditing(event);
 					setTimeout(function(){
 						var input = priv.editProxy.val();
-						editproxy.finishEditing(event);
-						
 						var inputArray = keyboard.parsePasteInput(input);
 						var endTd = grid.populateFromArray(priv.selStart, inputArray);
 						selection.setRangeEnd(endTd);
