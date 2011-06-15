@@ -1,85 +1,143 @@
 <!doctype html>
 <html>
 <head>
-	<title>jQuery.handsontable</title>
+	<meta charset='utf-8'>
+	<title>jquery-handsontable @ GitHub</title>
+	
 	<script src="lib/jquery.min.js"></script>
 	<script src="jquery.handsontable.js"></script>
-	<style>
-body {
-	font-family: Arial, Helvetica, sans-serif;
-	font-size: 13px;
-}
 
-.dataTable {
-	position: relative;
-	-webkit-user-select: none;
-	-khtml-user-select: none;
-	-moz-user-select: none;
-	-o-user-select: none;
-	user-select: none;
-}
+	<style type="text/css">
+	body { margin-top: 1.0em; background-color: #ffffff; font-family: Helvetica, Arial, FreeSans, san-serif; color: #000000; }
+	#container { margin: 0 auto; width: 700px; }
+	h1 { font-size: 3.8em; color: #663300; margin-bottom: 3px; }
+	h1 .small { font-size: 0.4em; }
+	h1 a { text-decoration: none }
+	h2 { font-size: 1.5em; color: #663300; }
+	h3 { text-align: center; color: #663300; }
+	a { color: #663300; }
+	.description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
+	.download { float: right; }
+	pre { background: #000; color: #fff; padding: 15px;}
+	hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
+	.footer { text-align:center; padding-top:30px; font-style: italic; }
+	
+	/**
+	 * It may be useful to copy the below styles and use on your page
+	 */
+	.dataTable {
+		position: relative;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-moz-user-select: none;
+		-o-user-select: none;
+		user-select: none;
+	}
 
-.dataTable table {
-	border-collapse: collapse;
-	position: relative;
-}
+	.dataTable table {
+		border-collapse: collapse;
+		position: relative;
+	}
 
-.dataTable td {
-	height: 25px;
-	border: 1px solid #aaa;
-	width: 50px;
-	min-width: 50px;
-	position: relative;
-	overflow: hidden;
-}
+	.dataTable td {
+		height: 25px;
+		border: 1px solid #aaa;
+		width: 50px;
+		position: relative;
+		overflow: hidden;
+	}
 
-.dataTable td.selected {
-	background: #eef;
-}
+	.dataTable td.selected {
+		background: #eef;
+	}
 
-.dataTable td input {
-	position: absolute;
-	top: 0;
-	left: 0;
-	border: 0;
-	background: cyan;
-}
+	.dataTable td input {
+		position: absolute;
+		top: 0;
+		left: 0;
+		border: 0;
+		background: cyan;
+	}
 
-.dataTable .selectionArea {
-	background: #000;
-}
+	.dataTable .selectionArea {
+		background: #000;
+	}
 	</style>
 </head>
+
 <body>
+	<a href="http://github.com/warpech/jquery-handsontable"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
 
-<div id="dataTable" class="dataTable"></div>
-<div id="dataTable2" class="dataTable"></div>
+	<div id="container">
 
-<script>
-	$("#dataTable").handsontable({
-		rows: 3,
-		cols: 3
-	});
-	
-	$("#dataTable2").handsontable({
-		rows: 5,
-		cols: 8,
-		onChange: function() {
-			console.log("grid data changed");
-		}
-	});
-	
-	var data = [
-		["", "Kia", "Nissan", "Toyota", "Honda"],
-		["2008", 10, 11, 12, 13],
-		["2009", 20, 11, 14, 13],
-		["2010", 30, 15, 12, 13]
-	];
-	
-	$("#dataTable, #dataTable2").handsontable("loadData", data);
-	
-	console.log("getData", $("#dataTable2").handsontable("getData") );
-</script>
+		<div class="download">
+			<a href="http://github.com/warpech/jquery-handsontable/zipball/master">
+			<img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
+			<a href="http://github.com/warpech/jquery-handsontable/tarball/master">
+			<img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
+		</div>
+
+		<h1><a href="http://github.com/warpech/jquery-handsontable">jquery-handsontable</a></h1>
+
+		<div class="description">
+			Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery
+		</div>
+		
+		<h2>Demo</h2>
+		
+		<h3>Very small example</h3>
+		<div id="dataTable" class="dataTable"></div>
+		
+		<h3>Larger example</h3>
+		<p>Try to edit, it will write your changes to console.log.</p>
+		<div id="dataTable2" class="dataTable"></div>
+		
+		<script>
+			$("#dataTable").handsontable({
+				rows: 3,
+				cols: 3
+			});
+
+			$("#dataTable2").handsontable({
+				rows: 5,
+				cols: 8,
+				onChange: function() {
+					console.log("grid data changed");
+				}
+			});
+
+			var data = [
+				["", "Kia", "Nissan", "Toyota", "Honda"],
+				["2008", 10, 11, 12, 13],
+				["2009", 20, 11, 14, 13],
+				["2010", 30, 15, 12, 13]
+			];
+
+			$("#dataTable, #dataTable2").handsontable("loadData", data);
+		</script>
+
+		<h2>License</h2>
+			<p>MIT</p>
+		<h2>Authors</h2>
+			<p>Marcin Warpechowski</p>
+
+		<h2>Download</h2>
+		<p>
+			You can download this project in either
+			<a href="http://github.com/warpech/jquery-handsontable/zipball/master">zip</a> or
+			<a href="http://github.com/warpech/jquery-handsontable/tarball/master">tar</a> formats.
+		</p>
+		
+		<p>
+			You can also clone the project with <a href="http://git-scm.com">Git</a>
+			by running:
+			<pre>$ git clone git://github.com/warpech/jquery-handsontable</pre>
+		</p>
+
+		<div class="footer">
+			get the source code on GitHub : <a href="http://github.com/warpech/jquery-handsontable">warpech/jquery-handsontable</a>
+		</div>
+	</div>
 
 </body>
 </html>
