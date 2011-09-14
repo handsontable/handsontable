@@ -370,6 +370,9 @@
 							case 46: /* delete */
 								if(!priv.isCellEdited) {
 									selection.empty(event);
+									if(settings.onChange) {
+										settings.onChange();
+									}
 									event.preventDefault();
 								}
 								break;
