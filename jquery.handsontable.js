@@ -59,7 +59,6 @@
 							dataRow.push($(this).html());
 						});
 						data.push(dataRow);
-						console.log("td");
 					}
 				});
 				if(data.length > 0 && data[0].length) {
@@ -244,7 +243,6 @@
 				
 				
 				var top = firstOffset.top-containerOffset.top-1;
-				console.log("yy", firstOffset.top, containerOffset.top, top);
 				var left = firstOffset.left-containerOffset.left-1;
 				var height = lastOffset.top-firstOffset.top+last.height()+5;
 				var width = lastOffset.left-firstOffset.left+last.width()+5;
@@ -331,7 +329,6 @@
 					}, 100);
 				});
 				priv.editProxy.bind('keydown',function(event){
-					console.log('keydown', event.keyCode);
 					if(selection.isSelected()) {
 						switch(event.keyCode) {						
 							case 38: /* arrow up */
@@ -356,7 +353,6 @@
 							case 8: /* backspace */
 							case 46: /* delete */
 								if(!priv.isCellEdited) {
-									console.log("del");
 									selection.empty(event);
 									event.preventDefault();
 								}
@@ -421,7 +417,6 @@
 			 */
 			finishEditing: function(event) {
 				if(priv.isCellEdited) {
-					console.log('e dit spot');
 					priv.isCellEdited = false;
 					var td = grid.getCellAtCoords(priv.selStart);
 					var val = priv.editProxy.val();
