@@ -43,6 +43,14 @@
 			}, 
 			
 			/**
+			 * Clears all cells in the grid
+			 */
+			clear: function() {
+				var tds = grid.getAllCells();
+				tds.html('');
+			}, 
+			
+			/**
 			 * Return data as array
 			 * @return {Array}
 			 */
@@ -110,6 +118,14 @@
 					}
 				}
 				return output;
+			},
+			
+			/**
+			 * Returns all td objects in grid
+			 */
+			getAllCells: function() {
+				var tds = container.find('td');
+				return tds;
 			}
 		};
 		
@@ -485,6 +501,7 @@
 		 * @param {Array} data
 		 */
 		this.loadData = function(data) {
+			grid.clear();
 			grid.populateFromArray({row: 0, col: 0}, data);
 		};
 		
