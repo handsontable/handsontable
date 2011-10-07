@@ -1,0 +1,40 @@
+/**
+ * It may be useful to copy the below styles and use on your page
+ */
+.dataTable {
+	position: relative;
+}
+
+.dataTable table {
+	border-collapse: collapse;
+	position: relative;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+}
+
+.dataTable td {
+	height: 25px;
+	border: 1px solid #aaa;
+	width: 50px;
+	position: relative;
+	overflow: hidden;
+}
+
+.dataTable td.selected {
+	background: #eef;
+}
+
+.dataTable td input {
+	position: absolute;
+	top: 0;
+	left: 0;
+	border: 0;
+	background: cyan;
+}
+
+.dataTable .selectionArea {
+	background: #000;
+}
