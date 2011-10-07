@@ -335,7 +335,8 @@
 					position: 'absolute',
 					opacity: 0
 				});
-				priv.editProxy.bind('paste',function(event){
+				
+				function onPaste(event) {
 					editproxy.finishEditing(event);
 					setTimeout(function(){
 						var input = priv.editProxy.val();
@@ -343,8 +344,9 @@
 						var endTd = grid.populateFromArray(priv.selStart, inputArray);
 						selection.setRangeEnd(endTd);
 					}, 100);
-				});
-				priv.editProxy.bind('keydown',function(event){
+				};
+				
+				function onKeyDown(event) {
 					if(selection.isSelected()) {
 						if((event.keyCode >= 48 && event.keyCode <= 57) //0-9
 						||(event.keyCode >= 65 && event.keyCode <= 90)) { //a-z 
@@ -405,7 +407,10 @@
 								break;
 						}
 					}
-				});
+				};
+				
+				priv.editProxy.bind('paste', onPaste);
+				priv.editProxy.bind('keydown', onKeyDown);
 				container.append(priv.editProxy);
 			},
 			
@@ -426,9 +431,14 @@
 					}).val('').show();
 				}
 
-				setTimeout(function(){
-					priv.editProxy.focus();
-				}, 1);
+				setTimeout(editproxy.focus, 1);
+			},
+			
+			/**
+			 * Sets focus to textarea
+			 */
+			focus: function() {
+				priv.editProxy.focus();
 			},
 			
 			/**
@@ -502,12 +512,16 @@
 			highlight.init();
 			editproxy.init();
 			
-			$(window).mouseup(function(){
+			function onOutsideMouseDown() {
 				priv.isMouseDown = false;
-			});
-			$(window).click(function(){
+			}
+			
+			function onOutsideClick() {
 				selection.deselect();
-			});
+			}
+			
+			$(window).bind('mouseup', onOutsideMouseDown);
+			$(window).bind('click', onOutsideClick);
 		}
 		
 		/**
