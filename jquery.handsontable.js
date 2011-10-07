@@ -346,6 +346,17 @@
 				});
 				priv.editProxy.bind('keydown',function(event){
 					if(selection.isSelected()) {
+						if((event.keyCode >= 48 && event.keyCode <= 57) //0-9
+						||(event.keyCode >= 65 && event.keyCode <= 90)) { //a-z 
+							/* alphanumeric */
+							var length = priv.editProxy.val().length;
+							if(length > 3) {
+								priv.editProxy.width(25 + length * 8);
+							}
+							editproxy.beginEditing();
+							return;
+						}
+						
 						switch(event.keyCode) {						
 							case 38: /* arrow up */
 								editproxy.finishEditing(event);
@@ -384,12 +395,13 @@
 								event.preventDefault();
 								break;
 								
-							default:
-								var length = priv.editProxy.val().length;
-								if(length > 3) {
-									priv.editProxy.width(25 + length * 8);
-								}
-								editproxy.beginEditing();
+							case 16: /* shift */
+							case 17: /* ctrl */
+							case 18: /* alt */
+							case 9: /* tab */
+								break;
+								
+							default:								
 								break;
 						}
 					}
