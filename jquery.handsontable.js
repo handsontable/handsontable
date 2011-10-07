@@ -336,6 +336,10 @@
 					opacity: 0
 				});
 				
+				function onClick(event) {
+					event.stopPropagation();
+				}
+				
 				function onPaste(event) {
 					editproxy.finishEditing(event);
 					setTimeout(function(){
@@ -409,6 +413,7 @@
 					}
 				};
 				
+				priv.editProxy.bind('click', onClick);
 				priv.editProxy.bind('paste', onPaste);
 				priv.editProxy.bind('keydown', onKeyDown);
 				container.append(priv.editProxy);
