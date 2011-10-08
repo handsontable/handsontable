@@ -1,7 +1,5 @@
 /**
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
- * 
- * TODO in firefox 4 it is very slow and doesn't look pixel perfect
  */
 (function($){
 
@@ -9,6 +7,7 @@
 		var _undefined = (function(){}());
 
 		var priv = {
+			isMouseOverTable: false,
 			isMouseDown: false,
 			isCellEdited: false,
 			selStart: null,
@@ -501,7 +500,15 @@
 		function init(settings) {
 			var r, c, table, tr, td;
 			
-			function onMouseDown() {
+			function onMouseEnterTable(event) {
+				priv.isMouseOverTable = true;
+			}
+				
+			function onMouseLeaveTable(event) {
+				priv.isMouseOverTable = false;
+			}
+				
+			function onMouseDown(event) {
 				priv.isMouseDown = true;
 				selection.setRangeStart($(this));
 			}
@@ -509,11 +516,11 @@
 				if(priv.isMouseDown) {
 					selection.setRangeEnd($(this));
 				}
-				event.preventDefault();
-				event.stopPropagation();
+				//event.preventDefault();
+				//event.stopPropagation();
 			}
 			function onClick(event) {
-				event.stopPropagation();
+				//event.stopPropagation();
 			}
 			
 			table = $('<table>');
@@ -524,7 +531,7 @@
 					tr.append(td);
 					td.bind('mousedown', onMouseDown);
 					td.bind('mouseover', onMouseOver);
-					td.bind('click', onClick);
+					//td.bind('click', onClick);
 				}
 				table.append(tr);
 			}
@@ -533,16 +540,25 @@
 			highlight.init();
 			editproxy.init();
 			
-			function onOutsideMouseDown() {
+			table.bind('mouseenter', onMouseEnterTable);
+			table.bind('mouseleave', onMouseLeaveTable);
+			priv.editProxy.bind('mouseenter', onMouseEnterTable);
+			priv.editProxy.bind('mouseleave', onMouseLeaveTable);
+			
+			function onMouseUp() {
 				priv.isMouseDown = false;
 			}
 			
 			function onOutsideClick() {
-				selection.deselect();
+				setTimeout(function(){//do async so all mouseenter, mouseleave events will fire before
+					if(!priv.isMouseOverTable){
+						selection.deselect();
+					}
+				}, 1);
 			}
 			
-			$(window).bind('mouseup', onOutsideMouseDown);
-			$(window).bind('click', onOutsideClick);
+			$(window).bind('mouseup', onMouseUp);
+			$("html").bind('click', onOutsideClick);
 		}
 		
 		/**
