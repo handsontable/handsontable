@@ -340,6 +340,10 @@
 					event.stopPropagation();
 				}
 				
+				function onDblClick(event) {
+					editproxy.beginEditing(event, true);
+				}
+				
 				function onPaste(event) {
 					editproxy.finishEditing(event);
 					setTimeout(function(){
@@ -355,10 +359,6 @@
 						if((event.keyCode >= 48 && event.keyCode <= 57) //0-9
 						||(event.keyCode >= 65 && event.keyCode <= 90)) { //a-z 
 							/* alphanumeric */
-							var length = priv.editProxy.val().length;
-							if(length > 3) {
-								priv.editProxy.width(25 + length * 8);
-							}
 							editproxy.beginEditing();
 							return;
 						}
@@ -396,9 +396,15 @@
 								
 							case 13: /* return */
 							case 40: /* arrow down */
-								editproxy.finishEditing(event);
-								selection.transform(1, 0);
-								event.preventDefault();
+								if(event.keyCode === 13 && !priv.isCellEdited) {
+									editproxy.beginEditing(event, true); //show edit field
+									event.preventDefault(); //don't add newline to field
+								}
+								else {
+									editproxy.finishEditing(event);
+									selection.transform(1, 0);
+									event.preventDefault();
+								}
 								break;
 								
 							case 16: /* shift */
@@ -414,6 +420,7 @@
 				};
 				
 				priv.editProxy.bind('click', onClick);
+				priv.editProxy.bind('dblclick', onDblClick);
 				priv.editProxy.bind('paste', onPaste);
 				priv.editProxy.bind('keydown', onKeyDown);
 				container.append(priv.editProxy);
@@ -448,14 +455,23 @@
 			
 			/**
 			 * Shows text input in grid cell
+			 * @param event {Object}
+			 * @param useOriginalValue {Boolean}
 			 */
-			beginEditing: function(event) {
+			beginEditing: function(event, useOriginalValue) {
+				var length = priv.editProxy.val().length;
+				if(length > 3) {
+					priv.editProxy.width(25 + length * 8);
+				}
 				priv.isCellEdited = true;
 				var td = grid.getCellAtCoords(priv.selStart);
 				td.data("originalValue", td.html());
 				priv.editProxy.css({
 					opacity: 1
 				});
+				if(useOriginalValue){
+					priv.editProxy.val(td.data("originalValue"));
+				}
 			},
 			
 			/**
