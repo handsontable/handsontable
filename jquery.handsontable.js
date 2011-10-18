@@ -215,12 +215,18 @@
 				if(!selection.isSelected()) {
 					return;
 				}
-				var tds, i, ilen;
+				var tds, i, ilen, changes = [], coords;
 				tds = grid.getCellsAtCoords(priv.selStart, selection.end());
 				for(i=0, ilen=tds.length; i<ilen; i++) {
+					var old = tds[i].html();
 					tds[i].html('');
+					coords = grid.getCellCoords(tds[i]);
+					changes.push([coords.row, coords.col, old, '']);
 				}
 				highlight.on();
+				if(settings.onChange) {
+					settings.onChange(changes);
+				}
 			}
 		};
 		
@@ -390,9 +396,6 @@
 							case 46: /* delete */
 								if(!priv.isCellEdited) {
 									selection.empty(event);
-									if(settings.onChange) {
-										settings.onChange();
-									}
 									event.preventDefault();
 								}
 								break;
@@ -488,7 +491,7 @@
 					if(val !== td.data("originalValue")) {
 						td.html( val );
 						if(settings.onChange) {
-							settings.onChange();
+							settings.onChange([[priv.selStart.row, priv.selStart.col, td.data("originalValue"), val]]);
 						}
 					}
 					
@@ -564,6 +567,21 @@
 			$(window).bind('mouseup', onMouseUp);
 			$("html").bind('click', onOutsideClick);
 		}
+		
+		/**
+		 * Set data at given cell
+		 * @public
+		 * @param row {Number}
+		 * @param col {Number}
+		 * @param value {String}
+		 */
+		this.setDataAtCell = function(row, col, value) {
+			var td = grid.getCellAtCoords({row: row, col: col});
+			td.html(value);
+			if(settings.onChange) {
+				settings.onChange(); //this is empty by design, to avoid recursive changes in history
+			}
+		};
 		
 		/**
 		 * Load data from array
