@@ -578,9 +578,9 @@
 		this.setDataAtCell = function(row, col, value) {
 			var td = grid.getCellAtCoords({row: row, col: col});
 			td.html(value);
-			if(settings.onChange) {
+			/*if(settings.onChange) {
 				settings.onChange(); //this is empty by design, to avoid recursive changes in history
-			}
+			}*/
 		};
 		
 		/**
