@@ -246,10 +246,10 @@
 			 */
 			 init: function() {
 				priv.selectionArea = {
-					top: $("<div class='selectionArea'>").css({position: 'absolute', height: 2}),
-					left: $("<div class='selectionArea'>").css({position: 'absolute', width: 2}),
-					bottom: $("<div class='selectionArea'>").css({position: 'absolute', height: 2}),
-					right: $("<div class='selectionArea'>").css({position: 'absolute', width: 2})
+					top: $("<div class='selectionArea' style='display: none; position: absolute; height: 2px'>"),
+					left: $("<div class='selectionArea' style='display: none; position: absolute; width: 2px'>"),
+					bottom: $("<div class='selectionArea' style='display: none; position: absolute; height: 2px'>"),
+					right: $("<div class='selectionArea' style='display: none; position: absolute; width: 2px'>")
 				};
 				container.append(priv.selectionArea.top);
 				container.append(priv.selectionArea.left);
