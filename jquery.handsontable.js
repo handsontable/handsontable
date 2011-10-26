@@ -375,7 +375,6 @@
 				
 				function onKeyDown(event) {
 					if(selection.isSelected()) {
-					console.log(event.keyCode);
 						if((event.keyCode >= 48 && event.keyCode <= 57) //0-9
 						||(event.keyCode >= 96 && event.keyCode <= 111)  //numpad
 						||(event.keyCode >= 65 && event.keyCode <= 90)) { //a-z 
@@ -596,7 +595,7 @@
 				}, 1);
 			}
 			
-			$(window).bind('mouseup', onMouseUp);
+			$("html").bind('mouseup', onMouseUp);
 			$("html").bind('click', onOutsideClick);
 		}
 		
