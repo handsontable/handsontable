@@ -176,10 +176,20 @@
 			/**
 			 * Selects cell relative to current cell (if possible)
 			 */
-			transform: function(rowDelta, colDelta) {
+			transformStart: function(rowDelta, colDelta) {
 				var td = grid.getCellAtCoords({row: (priv.selStart.row+rowDelta), col: priv.selStart.col+colDelta});
 				if(td.length) {
 					selection.setRangeStart(td);
+				}
+			},
+			
+			/**
+			 * Sets selection end cell relative to current selection end cell (if possible)
+			 */
+			transformEnd: function(rowDelta, colDelta) {
+				var td = grid.getCellAtCoords({row: (priv.selEnd.row+rowDelta), col: priv.selEnd.col+colDelta});
+				if(td.length) {
+					selection.setRangeEnd(td);
 				}
 			},
 			
@@ -365,7 +375,9 @@
 				
 				function onKeyDown(event) {
 					if(selection.isSelected()) {
+					console.log(event.keyCode);
 						if((event.keyCode >= 48 && event.keyCode <= 57) //0-9
+						||(event.keyCode >= 96 && event.keyCode <= 111)  //numpad
 						||(event.keyCode >= 65 && event.keyCode <= 90)) { //a-z 
 							/* alphanumeric */
 							editproxy.beginEditing();
@@ -374,21 +386,36 @@
 						
 						switch(event.keyCode) {						
 							case 38: /* arrow up */
-								editproxy.finishEditing(event);
-								selection.transform(-1, 0);
+								if(event.shiftKey) {
+									selection.transformEnd(-1, 0);
+								}
+								else {
+									editproxy.finishEditing(event);
+									selection.transformStart(-1, 0);
+								}
 								event.preventDefault();
 								break;
 								
 							case 39: /* arrow right */
 							case 9: /* tab */
-								editproxy.finishEditing(event);
-								selection.transform(0, 1);
+								if(event.shiftKey) {
+									selection.transformEnd(0, 1);
+								}
+								else {
+									editproxy.finishEditing(event);
+									selection.transformStart(0, 1);
+								}
 								event.preventDefault();
 								break;
 								
 							case 37: /* arrow left */
-								editproxy.finishEditing(event);
-								selection.transform(0, -1);
+								if(event.shiftKey) {
+									selection.transformEnd(0, -1);
+								}
+								else {
+									editproxy.finishEditing(event);
+									selection.transformStart(0, -1);
+								}
 								event.preventDefault();
 								break;
 								
@@ -407,8 +434,13 @@
 									event.preventDefault(); //don't add newline to field
 								}
 								else {
-									editproxy.finishEditing(event);
-									selection.transform(1, 0);
+									if(event.shiftKey) {
+										selection.transformEnd(1, 0);
+									}
+									else {
+										editproxy.finishEditing(event);
+										selection.transformStart(1, 0);
+									}
 									event.preventDefault();
 								}
 								break;
