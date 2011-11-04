@@ -277,10 +277,10 @@
 				var containerOffset = last.parent().parent().offset();
 				
 				
-				var top = firstOffset.top-containerOffset.top-1;
-				var left = firstOffset.left-containerOffset.left-1;
-				var height = lastOffset.top-firstOffset.top+last.height()+5;
-				var width = lastOffset.left-firstOffset.left+last.width()+5;
+				var top = (firstOffset.top-containerOffset.top || 1)-1;
+				var left = (firstOffset.left-containerOffset.left || 1)-1;
+				var height = lastOffset.top-firstOffset.top+last.innerHeight();
+				var width = lastOffset.left-firstOffset.left+last.innerWidth();
 				priv.selectionArea.top.css({
 					top: top,
 					left: left,

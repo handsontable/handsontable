@@ -13,14 +13,19 @@
 	-moz-user-select: none;
 	-o-user-select: none;
 	user-select: none;
+	border-spacing: 0;
+	border-top: 1px solid #aaa;
+	border-left: 1px solid #aaa;
 }
 
 .dataTable td {
 	height: 25px;
-	border: 1px solid #aaa;
+	border-right: 1px solid #aaa;
+	border-bottom: 1px solid #aaa;
+	min-width: 50px;
 	width: 50px;
-	position: relative;
 	overflow: hidden;
+	padding: 0 4px 0 4px;
 }
 
 .dataTable td.selected {
