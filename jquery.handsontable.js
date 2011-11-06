@@ -16,10 +16,73 @@
 			isCellEdited: false,
 			selStart: null,
 			selEnd: null,
-			editProxy: false
+			editProxy: false,
+			table: null
 		};
 		
 		var grid = {
+			/**
+			 * Creates row at the bottom
+			 */
+			createRow: function(){
+				var tr, td, c;
+				tr = $('<tr>');
+				for(c=0; c < settings.cols; c++) {
+					td = $('<td>');
+					tr.append(td);
+					td.bind('mousedown', interaction.onMouseDown);
+					td.bind('mouseover', interaction.onMouseOver);
+				}
+				priv.table.append(tr);
+			},
+			
+			/**
+			 * Makes sure there are empty rows at the bottom of the table
+			 */
+			keepEmptyRows: function(){
+				if(!settings.keepSpareRows) {
+					return;
+				}
+				var trs, tds, r, c, clen, emptyRows = 0, trslen;
+				trs = priv.table.find('tr');
+				trslen = trs.length;
+				rows : for(r=trslen - 1; r>=0; r--) {
+					tds = $(trs[r]).find('td');
+					cols : for(c=0, clen=tds.length; c<clen; c++) {
+						if(tds[c].innerHTML !== '') {
+							break rows;
+						}
+					}
+					emptyRows++;
+				}
+				if(emptyRows < settings.keepSpareRows) {
+					for(; emptyRows<settings.keepSpareRows; emptyRows++) {
+						grid.createRow();
+					}
+				}
+				else if(emptyRows > settings.keepSpareRows) {
+					r = Math.min(emptyRows - settings.keepSpareRows, trslen - settings.rows);
+					if(r > 0) {
+						trs.slice(-r).remove(); //slices last n rows from table and removes them
+						//if selection is outside, move selection to last row
+						if(priv.selStart.row > trslen - r - 1) {
+							priv.selStart.row = trslen - r - 1;
+							if(priv.selEnd.row > priv.selStart.row) {
+								priv.selEnd.row = priv.selStart.row;
+							}
+							highlight.on();
+						}
+						else if(priv.selEnd.row > trslen - r - 1) {
+							priv.selEnd.row = trslen - r - 1;
+							if(priv.selStart.row > priv.selEnd.row) {
+								priv.selStart.row = priv.selEnd.row;
+							}
+							highlight.on();
+						}
+					}					
+				}
+			},
+			
 			/**
 			 * Populate cells at position with 2d array
 			 * @param {Object} start Start selection position
@@ -50,6 +113,7 @@
 				if(settings.onChange && changes.length) {
 					settings.onChange(changes);
 				}
+				grid.keepEmptyRows();
 				return endTd;
 			}, 
 			
@@ -283,6 +347,7 @@
 				if(settings.onChange && changes.length) {
 					settings.onChange(changes);
 				}
+				grid.keepEmptyRows();
 			}
 		};
 		
@@ -574,6 +639,7 @@
 						if(settings.onChange) {
 							settings.onChange([[priv.selStart.row, priv.selStart.col, td.data("originalValue"), val]]);
 						}
+						grid.keepEmptyRows();
 					}
 					
 					priv.editProxy.css({
@@ -585,6 +651,21 @@
 			}
 		};
 		
+		var interaction = {
+			onMouseDown: function(event) {
+				priv.isMouseDown = true;
+				selection.setRangeStart($(this));
+			},
+			
+			onMouseOver: function(event) {
+				if(priv.isMouseDown) {
+					selection.setRangeEnd($(this));
+				}
+				//event.preventDefault();
+				//event.stopPropagation();
+			}
+		}
+		
 		function init(settings) {
 			var r, c, table, tr, td;
 			
@@ -595,41 +676,18 @@
 			function onMouseLeaveTable(event) {
 				priv.isMouseOverTable = false;
 			}
-				
-			function onMouseDown(event) {
-				priv.isMouseDown = true;
-				selection.setRangeStart($(this));
-			}
-			function onMouseOver(event) {
-				if(priv.isMouseDown) {
-					selection.setRangeEnd($(this));
-				}
-				//event.preventDefault();
-				//event.stopPropagation();
-			}
-			function onClick(event) {
-				//event.stopPropagation();
-			}
 			
-			table = $('<table>');
+			priv.table = $('<table>');
 			for(r=0; r < settings.rows; r++) {
-				tr = $('<tr>');
-				for(c=0; c < settings.cols; c++) {
-					td = $('<td>');
-					tr.append(td);
-					td.bind('mousedown', onMouseDown);
-					td.bind('mouseover', onMouseOver);
-					//td.bind('click', onClick);
-				}
-				table.append(tr);
+				grid.createRow();
 			}
 			
-			container.append(table);
+			container.append(priv.table);
 			highlight.init();
 			editproxy.init();
 			
-			table.bind('mouseenter', onMouseEnterTable);
-			table.bind('mouseleave', onMouseLeaveTable);
+			priv.table.bind('mouseenter', onMouseEnterTable);
+			priv.table.bind('mouseleave', onMouseLeaveTable);
 			priv.editProxy.bind('mouseenter', onMouseEnterTable);
 			priv.editProxy.bind('mouseleave', onMouseLeaveTable);
 			
