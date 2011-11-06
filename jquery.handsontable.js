@@ -27,7 +27,7 @@
 			 * @return {Object} ending td in pasted area
 			 */
 			populateFromArray: function(start, input) {
-				var r, rlen, c, clen, td, endTd;
+				var r, rlen, c, clen, td, endTd, changes = [];
 				rlen = input.length;
 				if(rlen === 0) {
 					return;
@@ -39,12 +39,16 @@
 							if(input[r][c] !== null && input[r][c] !== "") {
 								td = grid.getCellAtCoords({row: start.row+r, col: start.col+c});
 								if(td) {
+									changes.push([start.row+r, start.col+c, td.html(), input[r][c]]);
 									td.html(input[r][c]);
 									endTd = td;
 								}
 							}
 						}
 					}
+				}
+				if(settings.onChange && changes.length) {
+					settings.onChange(changes);
 				}
 				return endTd;
 			}, 
@@ -59,23 +63,35 @@
 			
 			/**
 			 * Return data as array
+			 * @param {Object} start (Optional) Start selection position
+			 * @param {Object} end (Optional) End selection position
 			 * @return {Array}
 			 */
-			getData: function() {
-				var td, tr, data = [], r, rlen, c, clen, allEmpty;
-				trs = container.find('tr');
-				trs.each(function(){
-					var dataRow;
-					var tr = $(this);
-					var tds = tr.find('td');
-					if(tds.filter(':parent').length) { //if not all tds are empty in this row
-						dataRow = [];
-						tds.each(function(){
-							dataRow.push($(this).html());
-						});
-						data.push(dataRow);
+			getData: function(start, end) {
+				var tds, td, i, ilen, col, row, data = [], r, rlen, c, clen;
+				if(start) {
+					tds = grid.getCellsAtCoords(start, end);
+				}
+				else {
+					tds = grid.getAllCells();
+				}
+				var outRow = -1;
+				var outCol;
+				var lastRow = -1;
+				var lastCol = -1;
+				for(i=0, ilen=tds.length; i<ilen; i++) {
+					td = tds[i];
+					col = td.index();
+					row = td.parent().index();
+					if(row !== lastRow) {
+						outCol = 0;
+						outRow++;
+						data[outRow] = [];
+						lastRow = row;
 					}
-				});
+					data[outRow][outCol] = td.html();
+					outCol++;
+				};
 				if(data.length > 0 && data[0].length) {
 					rlen = data.length;
 					col : for(c = data[0].length - 1; c >= 0; c--) {
@@ -90,6 +106,26 @@
 					}
 				}
 				return data;
+			}, 
+			
+			/**
+			 * Return data as text (tab separated columns)
+			 * @param {Object} start (Optional) Start selection position
+			 * @param {Object} end (Optional) End selection position
+			 * @return {String}
+			 */
+			getText: function(start, end) {
+				var data = grid.getData.apply(this, arguments), text = '';
+				for(var r=0, rlen=data.length; r<rlen; r++) {
+					for(var c=0, clen=data[r].length; c<clen; c++) {
+						if(c > 0) {
+							text += "\t";
+						}
+						text += data[r][c];
+					}
+					text += "\n";
+				}
+				return text;
 			}, 
 			
 			/**
@@ -116,6 +152,9 @@
 			 * Returns array of td objects given start and end coordinates
 			 */
 			getCellsAtCoords: function(start, end) {
+				if(!end) {
+					return grid.getCellAtCoords(start, end);
+				}
 				var r, rlen, c, clen, output = [];
 				rlen = Math.max(start.row, end.row);
 				clen = Math.max(start.col, end.col);
@@ -143,8 +182,8 @@
 			setRangeStart: function(td) {
 				selection.deselect();
 				priv.selStart = grid.getCellCoords(td);
-				editproxy.prepare(td);
 				selection.setRangeEnd(td);
+				editproxy.prepare(td);
 				highlight.on();
 			},
 			
@@ -154,6 +193,7 @@
 			setRangeEnd: function(td) {
 				selection.deselect();
 				selection.end(td);
+				editproxy.prepare(td);
 				highlight.on();
 			},
 			
@@ -385,7 +425,9 @@
 						||(event.keyCode >= 96 && event.keyCode <= 111)  //numpad
 						||(event.keyCode >= 65 && event.keyCode <= 90)) { //a-z 
 							/* alphanumeric */
-							editproxy.beginEditing();
+							if(!event.ctrlKey) { //disregard CTRL-key shortcuts
+								editproxy.beginEditing();
+							}
 							return;
 						}
 						
@@ -478,12 +520,12 @@
 				
 				if(containerOffset && tdOffset) {
 					priv.editProxy.css({
-						top: (tdOffset.top-containerOffset.top)+'px',
+						top: (tdOffset.top-containerOffset.top)-100+'px',
 						left: (tdOffset.left-containerOffset.left)+'px',
 						width: td.width(),
 						height: td.height(),
 						opacity: 0
-					}).val('').show();
+					}).val(grid.getText(priv.selStart, priv.selEnd)).show();
 				}
 
 				setTimeout(editproxy.focus, 1);
@@ -493,7 +535,7 @@
 			 * Sets focus to textarea
 			 */
 			focus: function() {
-				priv.editProxy.focus();
+				priv.editProxy[0].select();
 			},
 			
 			/**
@@ -502,14 +544,16 @@
 			 * @param useOriginalValue {Boolean}
 			 */
 			beginEditing: function(event, useOriginalValue) {
-				var length = priv.editProxy.val().length;
-				if(length > 3) {
-					priv.editProxy.width(25 + length * 8);
+				if(priv.isCellEdited) {
+					return;
 				}
 				priv.isCellEdited = true;
 				var td = grid.getCellAtCoords(priv.selStart);
+				priv.editProxy.width(td.width() * 1.5);
+				priv.editProxy.height(td.height());
 				td.data("originalValue", td.html());
 				priv.editProxy.css({
+					top: parseInt(priv.editProxy.css('top'))+100+'px', //revert position from prepare()
 					opacity: 1
 				});
 				if(useOriginalValue){

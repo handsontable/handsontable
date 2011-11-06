@@ -56,14 +56,17 @@
 		<script>
 			$("#dataTable").handsontable({
 				rows: 3,
-				cols: 3
+				cols: 3,
+				onChange: function(data) {
+					console.log("grid data changed", data);
+				}
 			});
 
 			$("#dataTable2").handsontable({
 				rows: 5,
 				cols: 8,
-				onChange: function() {
-					console.log("grid data changed");
+				onChange: function(data) {
+					console.log("grid data changed", data);
 				}
 			});
 
