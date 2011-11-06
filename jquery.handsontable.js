@@ -32,13 +32,17 @@
 				if(rlen === 0) {
 					return;
 				}
-				clen = input[0].length;
 				for(r = 0; r < rlen; r++) {
-					for(c = 0; c < clen; c++) {
-						td = grid.getCellAtCoords({row: start.row+r, col: start.col+c});
-						if(td) {
-							td.html(input[r][c]);
-							endTd = td;
+					if(input[r]) {
+						clen = input[r].length;
+						for(c = 0; c < clen; c++) {
+							if(input[r][c] !== null && input[r][c] !== "") {
+								td = grid.getCellAtCoords({row: start.row+r, col: start.col+c});
+								if(td) {
+									td.html(input[r][c]);
+									endTd = td;
+								}
+							}
 						}
 					}
 				}
@@ -229,12 +233,14 @@
 				tds = grid.getCellsAtCoords(priv.selStart, selection.end());
 				for(i=0, ilen=tds.length; i<ilen; i++) {
 					var old = tds[i].html();
-					tds[i].html('');
-					coords = grid.getCellCoords(tds[i]);
-					changes.push([coords.row, coords.col, old, '']);
+					if(old !== '') {
+						tds[i].html('');
+						coords = grid.getCellCoords(tds[i]);
+						changes.push([coords.row, coords.col, old, '']);
+					}
 				}
 				highlight.on();
-				if(settings.onChange) {
+				if(settings.onChange && changes.length) {
 					settings.onChange(changes);
 				}
 			}
