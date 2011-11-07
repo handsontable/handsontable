@@ -510,25 +510,29 @@
 								
 							case 39: /* arrow right */
 							case 9: /* tab */
-								if(event.shiftKey) {
-									selection.transformEnd(0, 1);
+								if(!priv.isCellEdited) {
+									if(event.shiftKey) {
+										selection.transformEnd(0, 1);
+									}
+									else {
+										editproxy.finishEditing(event);
+										selection.transformStart(0, 1);
+									}
+									event.preventDefault();
 								}
-								else {
-									editproxy.finishEditing(event);
-									selection.transformStart(0, 1);
-								}
-								event.preventDefault();
 								break;
 								
 							case 37: /* arrow left */
-								if(event.shiftKey) {
-									selection.transformEnd(0, -1);
+								if(!priv.isCellEdited) {
+									if(event.shiftKey) {
+										selection.transformEnd(0, -1);
+									}
+									else {
+										editproxy.finishEditing(event);
+										selection.transformStart(0, -1);
+									}
+									event.preventDefault();
 								}
-								else {
-									editproxy.finishEditing(event);
-									selection.transformStart(0, -1);
-								}
-								event.preventDefault();
 								break;
 								
 							case 8: /* backspace */
