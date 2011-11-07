@@ -585,7 +585,7 @@
 				
 				if(containerOffset && tdOffset) {
 					priv.editProxy.css({
-						top: (tdOffset.top-containerOffset.top)-100+'px',
+						top: (tdOffset.top-containerOffset.top)-1000+'px',
 						left: (tdOffset.left-containerOffset.left)+'px',
 						width: td.width(),
 						height: td.height(),
@@ -618,7 +618,7 @@
 				priv.editProxy.height(td.height());
 				td.data("originalValue", td.html());
 				priv.editProxy.css({
-					top: parseInt(priv.editProxy.css('top'))+100+'px', //revert position from prepare()
+					top: parseInt(priv.editProxy.css('top'))+1000+'px', //revert position from prepare()
 					opacity: 1
 				});
 				if(useOriginalValue){
