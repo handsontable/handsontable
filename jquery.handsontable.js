@@ -452,8 +452,8 @@
 			parsePasteInput: function (input) {
 				var rows = [], r, rlen;
 
-				if (input.indexOf("\t") > -1) { //Excel format
-
+				//if (input.indexOf("\t") > -1) { //Excel format
+					input.replace(/[\r\n]*$/g, ''); //remove newline from end of the input
 					rows = input.split("\n");
 					if (rows[rows.length - 1] === '') {
 						rows.pop();
@@ -461,7 +461,8 @@
 					for (r = 0, rlen = rows.length; r < rlen; r++) {
 						rows[r] = rows[r].split("\t");
 					}
-				}
+				//}
+				
 				return rows;
 			}
 		};
@@ -482,6 +483,13 @@
 
 				function onDblClick(event) {
 					editproxy.beginEditing(event, true);
+				}
+				
+				function onCut(event) {
+					editproxy.finishEditing(event);
+					setTimeout(function () {
+						selection.empty(event);
+					}, 100);
 				}
 
 				function onPaste(event) {
@@ -599,6 +607,7 @@
 				
 				priv.editProxy.bind('click', onClick);
 				priv.editProxy.bind('dblclick', onDblClick);
+				priv.editProxy.bind('cut', onCut);
 				priv.editProxy.bind('paste', onPaste);
 				priv.editProxy.bind('keydown', onKeyDown);
 				container.append(priv.editProxy);
