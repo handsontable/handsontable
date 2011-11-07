@@ -135,11 +135,10 @@
 			 * @return {Array}
 			 */
 			getData: function (start, end) {
-				var tds, td, i, ilen, col, row, data = [], r, rlen, c, clen,
-				outRow = -1,
-				outCol,
-				lastRow = -1,
-				lastCol = -1;
+				var tds, td, i, ilen, col, row, data = [], r, rlen, c,
+					outRow = -1,
+					outCol,
+					lastRow = -1;
 				if (start) {
 					tds = grid.getCellsAtCoords(start, end);
 				} else {
@@ -181,7 +180,7 @@
 			 * @return {String}
 			 */
 			getText: function (start, end) {
-				var data = grid.getData.apply(this, arguments), text = '', r, rlen, c, clen;
+				var data = grid.getData(start, end), text = '', r, rlen, c, clen;
 				for (r = 0, rlen = data.length; r < rlen; r++) {
 					for (c = 0, clen = data[r].length; c < clen; c++) {
 						if (c > 0) {
@@ -696,13 +695,13 @@
 		};
 
 		function init(settings) {
-			var r, c, table, tr, td;
+			var r;
 			
-			function onMouseEnterTable(event) {
+			function onMouseEnterTable() {
 				priv.isMouseOverTable = true;
 			}
 				
-			function onMouseLeaveTable(event) {
+			function onMouseLeaveTable() {
 				priv.isMouseOverTable = false;
 			}
 			
