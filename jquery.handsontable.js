@@ -539,21 +539,36 @@
 								}
 								break;
 								
+							case 27: /* ESC */
+							case 113: /* F2 */
 							case 13: /* return */
 							case 40: /* arrow down */
-								if(event.keyCode === 13 && !priv.isCellEdited) {
-									editproxy.beginEditing(event, true); //show edit field
-									event.preventDefault(); //don't add newline to field
+								if(!priv.isCellEdited) {
+									if(event.keyCode === 113 || event.keyCode === 13) {
+										//begin editing
+										editproxy.beginEditing(event, true); //show edit field
+										event.preventDefault(); //don't add newline to field
+									}
+									else if(event.keyCode === 40) {
+										if(event.shiftKey) {
+											selection.transformEnd(1, 0); //expanding selection down with shift
+										}
+										else {
+											selection.transformStart(1, 0); //move selection down
+										}
+									}
 								}
 								else {
-									if(event.shiftKey) {
-										selection.transformEnd(1, 0);
+									if(event.keyCode === 27 || event.keyCode === 13 || event.keyCode === 40) {
+										editproxy.finishEditing(event); //hide edit field
+										if(event.keyCode === 27) {
+											selection.transformStart(0, 0); //don't move selection, but refresh routines
+										}
+										else {
+											selection.transformStart(1, 0); //move selection down
+										}
+										event.preventDefault(); //don't add newline to field
 									}
-									else {
-										editproxy.finishEditing(event);
-										selection.transformStart(1, 0);
-									}
-									event.preventDefault();
 								}
 								break;
 								
