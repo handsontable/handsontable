@@ -497,7 +497,10 @@
 					setTimeout(function () {
 						var input = priv.editProxy.val(),
 						inputArray = keyboard.parsePasteInput(input),
-						endTd = grid.populateFromArray(priv.selStart, inputArray);
+						endTd = grid.populateFromArray({
+							row: Math.min(priv.selStart.row, priv.selEnd.row),
+							col: Math.min(priv.selStart.col, priv.selEnd.col)
+						}, inputArray);
 						selection.setRangeEnd(endTd);
 					}, 100);
 				}
