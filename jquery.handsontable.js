@@ -65,19 +65,21 @@
 					r = Math.min(emptyRows - settings.keepSpareRows, trslen - settings.rows);
 					if (r > 0) {
 						trs.slice(-r).remove(); //slices last n rows from table and removes them
-						//if selection is outside, move selection to last row
-						if (priv.selStart.row > trslen - r - 1) {
-							priv.selStart.row = trslen - r - 1;
-							if (priv.selEnd.row > priv.selStart.row) {
-								priv.selEnd.row = priv.selStart.row;
-							}
-							highlight.on();
-						} else if (priv.selEnd.row > trslen - r - 1) {
-							priv.selEnd.row = trslen - r - 1;
-							if (priv.selStart.row > priv.selEnd.row) {
-								priv.selStart.row = priv.selEnd.row;
-							}
-							highlight.on();
+						if(priv.selStart) {
+							//if selection is outside, move selection to last row
+							if (priv.selStart.row > trslen - r - 1) {
+								priv.selStart.row = trslen - r - 1;
+								if (priv.selEnd.row > priv.selStart.row) {
+									priv.selEnd.row = priv.selStart.row;
+								}
+								highlight.on();
+							} else if (priv.selEnd.row > trslen - r - 1) {
+								priv.selEnd.row = trslen - r - 1;
+								if (priv.selStart.row > priv.selEnd.row) {
+									priv.selStart.row = priv.selEnd.row;
+								}
+								highlight.on();
+							}	
 						}
 					}
 				}
