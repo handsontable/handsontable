@@ -663,6 +663,9 @@
 				if (useOriginalValue){
 					priv.editProxy.val(td.data("originalValue"));
 				}
+				else {
+					priv.editProxy.val('');
+				}
 			},
 
 			/**
@@ -682,6 +685,8 @@
 					}
 					
 					priv.editProxy.css({
+						width: 0,
+						height: 0,
 						opacity: 0
 					}).val('');
 					
