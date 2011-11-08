@@ -622,10 +622,10 @@
 			prepare: function (td) {
 				var tdOffset = td.offset(),
 					containerOffset = priv.editProxy.parent().offset();
-				
+
 				if (containerOffset && tdOffset) {
 					priv.editProxy.css({
-						top: (tdOffset.top - containerOffset.top) + 'px',
+						top: (tdOffset.top - containerOffset.top) - 1000 + 'px',
 						left: (tdOffset.left - containerOffset.left) + 'px',
 						width: 0,
 						height: 0,
@@ -654,17 +654,17 @@
 				}
 				priv.isCellEdited = true;
 				var td = grid.getCellAtCoords(priv.selStart);
-				td.data("originalValue", td.get(0).innerHTML);
+				priv.editProxy.width(td.width() * 1.5);
+				priv.editProxy.height(td.height());
+				td.data("originalValue", td.html());
 				priv.editProxy.css({
-					width: td.width() * 1.5 + 'px',
-					height: td.height() + 'px',
+					top: parseInt(priv.editProxy.css('top'), 10) + 1000 + 'px', //revert position from prepare()
+					width: td.width(),
+					height: td.height(),
 					opacity: 1
 				});
 				if (useOriginalValue){
 					priv.editProxy.val(td.data("originalValue"));
-				}
-				else {
-					priv.editProxy.val('');
 				}
 			},
 
@@ -677,19 +677,19 @@
 					var td = grid.getCellAtCoords(priv.selStart),
 						val = priv.editProxy.val();
 					if (val !== td.data("originalValue")) {
-						td.get(0).innerHTML = val;
+						td.html( val );
 						if (settings.onChange) {
 							settings.onChange([[priv.selStart.row, priv.selStart.col, td.data("originalValue"), val]]);
 						}
 						grid.keepEmptyRows();
 					}
-					
+
 					priv.editProxy.css({
 						width: 0,
 						height: 0,
 						opacity: 0
 					}).val('');
-					
+
 					highlight.on();
 				}
 			}
