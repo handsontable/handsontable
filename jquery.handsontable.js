@@ -261,7 +261,7 @@
 			setRangeEnd: function (td) {
 				selection.deselect();
 				selection.end(td);
-				//editproxy.prepare(td);
+				editproxy.prepare(td);
 				highlight.on();
 			},
 
