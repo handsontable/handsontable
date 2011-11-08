@@ -58,7 +58,9 @@
 				rows: 3,
 				cols: 3,
 				onChange: function(data) {
-					console.log("grid data changed", data);
+					if(window.console) {
+						console.log("grid #1 data changed", data);
+					}
 				}
 			});
 
@@ -67,7 +69,9 @@
 				cols: 8,
 				keepSpareRows: 1, //always keep at least 1 spare row at the bottom
 				onChange: function(data) {
-					console.log("grid data changed", data);
+					if(window.console) {
+						console.log("grid #2 data changed", data);
+					}
 				}
 			});
 
