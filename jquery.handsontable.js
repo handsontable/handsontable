@@ -251,7 +251,6 @@
 				selection.deselect();
 				priv.selStart = grid.getCellCoords(td);
 				selection.setRangeEnd(td);
-				console.log("start");
 				editproxy.prepare(td);
 				highlight.on();
 			},
@@ -262,7 +261,6 @@
 			setRangeEnd: function (td) {
 				selection.deselect();
 				selection.end(td);
-				console.log("end", td);
 				editproxy.prepare(td);
 				highlight.on();
 			},
