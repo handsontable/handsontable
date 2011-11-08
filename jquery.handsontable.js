@@ -474,7 +474,10 @@
 			init: function () {
 				priv.editProxy = $('<textarea class="editInput">').css({
 					position: 'absolute',
-					opacity: 0
+					top: '0',
+					left: '-10000px',
+					width: '1000px',
+					height: '1000px'
 				});
 
 				function onClick(event) {
@@ -620,19 +623,7 @@
 			 * Prepare text input to be displayed at given grid cell
 			 */
 			prepare: function (td) {
-				var tdOffset = td.offset(),
-					containerOffset = priv.editProxy.parent().offset();
-
-				if (containerOffset && tdOffset) {
-					priv.editProxy.css({
-						top: (tdOffset.top - containerOffset.top) - 1000 + 'px',
-						left: (tdOffset.left - containerOffset.left) + 'px',
-						width: 0,
-						height: 0,
-						opacity: 0
-					}).val(grid.getText(priv.selStart, priv.selEnd)).show();
-				}
-
+				priv.editProxy.val(grid.getText(priv.selStart, priv.selEnd));
 				setTimeout(editproxy.focus, 1);
 			},
 
@@ -653,15 +644,15 @@
 					return;
 				}
 				priv.isCellEdited = true;
-				var td = grid.getCellAtCoords(priv.selStart);
-				priv.editProxy.width(td.width() * 1.5);
-				priv.editProxy.height(td.height());
-				td.data("originalValue", td.html());
+				var td = grid.getCellAtCoords(priv.selStart),
+					tdOffset = td.offset(),
+					containerOffset = priv.editProxy.parent().offset();
+				td.data("originalValue", td[0].innerHTML);
 				priv.editProxy.css({
-					top: parseInt(priv.editProxy.css('top'), 10) + 1000 + 'px', //revert position from prepare()
-					width: td.width(),
-					height: td.height(),
-					opacity: 1
+					top: (tdOffset.top - containerOffset.top) + 'px',
+					left: (tdOffset.left - containerOffset.left) + 'px',
+					width: td.width() * 1.5,
+					height: td.height()
 				});
 				if (useOriginalValue){
 					priv.editProxy.val(td.data("originalValue"));
@@ -677,7 +668,7 @@
 					var td = grid.getCellAtCoords(priv.selStart),
 						val = priv.editProxy.val();
 					if (val !== td.data("originalValue")) {
-						td.html( val );
+						td[0].innerHTML = val;
 						if (settings.onChange) {
 							settings.onChange([[priv.selStart.row, priv.selStart.col, td.data("originalValue"), val]]);
 						}
@@ -685,10 +676,11 @@
 					}
 
 					priv.editProxy.css({
-						width: 0,
-						height: 0,
-						opacity: 0
-					}).val('');
+						top: '0',
+						left: '-10000px',
+						width: '1000px',
+						height: '1000px'
+					});
 
 					highlight.on();
 				}
