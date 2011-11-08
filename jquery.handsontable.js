@@ -104,9 +104,9 @@
 									row: start.row + r, 
 									col: start.col + c
 								});
-								if (td) {
-									changes.push([start.row + r, start.col + c, td.html(), input[r][c]]);
-									td.html(input[r][c]);
+								if (td.length > 0) {
+									changes.push([start.row + r, start.col + c, td.get(0).innerHTML, input[r][c]]);
+									td.get(0).innerHTML = input[r][c];
 									endTd = td;
 								}
 							}
@@ -125,7 +125,7 @@
 			 */
 			clear: function () {
 				var tds = grid.getAllCells();
-				tds.html('');
+				tds.empty();
 			},
 
 			/**
@@ -154,7 +154,7 @@
 						data[outRow] = [];
 						lastRow = row;
 					}
-					data[outRow][outCol] = td.html();
+					data[outRow][outCol] = td.get(0).innerHTML;
 					outCol++;
 				}
 				if (data.length > 0 && data[0].length) {
@@ -346,9 +346,9 @@
 				var tds, i, ilen, changes = [], coords, old;
 				tds = grid.getCellsAtCoords(priv.selStart, selection.end());
 				for (i = 0, ilen = tds.length; i < ilen; i++) {
-					old = tds[i].html();
+					old = tds[i].get(0).innerHTML;
 					if (old !== '') {
-						tds[i].html('');
+						tds[i].empty();
 						coords = grid.getCellCoords(tds[i]);
 						changes.push([coords.row, coords.col, old, '']);
 					}
@@ -654,7 +654,7 @@
 				}
 				priv.isCellEdited = true;
 				var td = grid.getCellAtCoords(priv.selStart);
-				td.data("originalValue", td.html());
+				td.data("originalValue", td.get(0).innerHTML);
 				priv.editProxy.css({
 					width: td.width() * 1.5 + 'px',
 					height: td.height() + 'px',
@@ -674,7 +674,7 @@
 					var td = grid.getCellAtCoords(priv.selStart),
 						val = priv.editProxy.val();
 					if (val !== td.data("originalValue")) {
-						td.html( val );
+						td.get(0).innerHTML = val;
 						if (settings.onChange) {
 							settings.onChange([[priv.selStart.row, priv.selStart.col, td.data("originalValue"), val]]);
 						}
@@ -758,7 +758,7 @@
 				row: row, 
 				col: col
 			});
-			td.html(value);
+			td.get(0).innerHTML = value;
 		/*if (settings.onChange) {
 				settings.onChange(); //this is empty by design, to avoid recursive changes in history
 			}*/
