@@ -238,9 +238,9 @@
 			 * Returns array of td objects given start and end coordinates
 			 */
 			getCellsAtCoords: function (start, end) {
-				if (!end) {
+				/*if (!end) {
 					return grid.getCellAtCoords(start, end);
-				}
+				}*/
 				var r, rlen, c, clen, output = [];
 				rlen = Math.max(start.row, end.row);
 				clen = Math.max(start.col, end.col);
