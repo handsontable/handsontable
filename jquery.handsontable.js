@@ -536,7 +536,7 @@
 								
 							case 39: /* arrow right */
 							case 9: /* tab */
-								if (!priv.isCellEdited) {
+								if (!priv.isCellEdited || event.keyCode === 9) {
 									if (event.shiftKey) {
 										selection.transformEnd(0, 1);
 									}
