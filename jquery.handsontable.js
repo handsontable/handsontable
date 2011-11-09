@@ -337,6 +337,17 @@
 				highlight.off();
 				selection.end(false);
 			},
+			
+			/**
+			 * Select all cells
+			 */
+			selectAll: function () {
+				var tds = grid.getAllCells();
+				if(tds.length) {
+					selection.setRangeStart($(tds[0]));
+					selection.setRangeEnd($(tds[tds.length-1]));
+				}
+			},
 
 			/**
 			 * Deletes data from selected cells
@@ -518,6 +529,9 @@
 							/* alphanumeric */
 							if (!event.ctrlKey) { //disregard CTRL-key shortcuts
 								editproxy.beginEditing();
+							}
+							else if (event.ctrlKey && event.keyCode === 65) { //CTRL + A
+								selection.selectAll(); //select all cells
 							}
 							return;
 						}
