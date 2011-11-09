@@ -106,6 +106,14 @@
 									row: start.row + r, 
 									col: start.col + c
 								});
+								if(td.length === 0 && c === 0 && settings.keepSpareRows) {
+									//we don't have a spare row but we can add it!
+									grid.createRow();
+									td = grid.getCellAtCoords({
+										row: start.row + r, 
+										col: start.col + c
+									});
+								}
 								if (td.length > 0) {
 									changes.push([start.row + r, start.col + c, td.get(0).innerHTML, input[r][c]]);
 									td.get(0).innerHTML = input[r][c];
@@ -808,7 +816,8 @@
 
 	var settings = {
 		'rows': 5,
-		'cols': 5
+		'cols': 5,
+		'keepSpareRows': false
 	};
 
 	$.fn.handsontable = function (action, options) {
