@@ -219,8 +219,18 @@
 			 * Returns td object given coordinates
 			 */
 			getCellAtCoords: function (coords) {
-				var td = container.find('tr:eq(' + coords.row + ') td:eq(' + coords.col + ')');
-				return td;
+				//var td = container.find('tr:eq(' + coords.row + ') td:eq(' + coords.col + ')');
+				//return td;
+				if(coords.row < 0 || coords.col < 0) {
+					return $();
+				}
+				var tr = priv.tableBody.childNodes[coords.row];
+				if(tr) {
+					return $(tr.childNodes[coords.col]);
+				}
+				else {
+					return $();
+				}
 			},
 
 			/**
@@ -741,7 +751,8 @@
 				priv.isMouseOverTable = false;
 			}
 			
-			priv.table = $('<table>');
+			priv.table = $('<table><tbody></tbody></table>');
+			priv.tableBody = priv.table.find("tbody")[0];
 			for (r = 0; r < settings.rows; r++) {
 				grid.createRow();
 			}
