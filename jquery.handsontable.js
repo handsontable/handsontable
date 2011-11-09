@@ -590,11 +590,12 @@
 								}
 								else {
 									if (event.keyCode === 27 || event.keyCode === 13 || event.keyCode === 40) {
-										editproxy.finishEditing(event); //hide edit field
 										if (event.keyCode === 27) {
+											editproxy.finishEditing(event, true); //hide edit field, restore old value
 											selection.transformStart(0, 0); //don't move selection, but refresh routines
 										}
 										else {
+											editproxy.finishEditing(event); //hide edit field
 											selection.transformStart(1, 0); //move selection down
 										}
 										event.preventDefault(); //don't add newline to field
@@ -664,13 +665,15 @@
 
 			/**
 			 * Shows text input in grid cell
+			 * @param event {Object}
+			 * @param isCancelled {Boolean} If TRUE, restore old value instead of using current from editproxy
 			 */
-			finishEditing: function (event) {
+			finishEditing: function (event, isCancelled) {
 				if (priv.isCellEdited) {
 					priv.isCellEdited = false;
 					var td = grid.getCellAtCoords(priv.selStart),
 						val = priv.editProxy.val();
-					if (val !== td.data("originalValue")) {
+					if (!isCancelled && val !== td.data("originalValue")) {
 						td[0].innerHTML = val;
 						if (settings.onChange) {
 							settings.onChange([[priv.selStart.row, priv.selStart.col, td.data("originalValue"), val]]);
