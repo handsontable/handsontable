@@ -35,7 +35,7 @@
 					td.bind('mousedown', interaction.onMouseDown);
 					td.bind('mouseover', interaction.onMouseOver);
 				}
-				priv.table.append(tr);
+				$(priv.tableBody).append(tr);
 			},
 
 			/**
@@ -46,10 +46,11 @@
 					return;
 				}
 				var trs, tds, r, c, clen, emptyRows = 0, trslen;
-				trs = priv.table.find('tr');
+				//trs = priv.table.find('tr');
+				trs = priv.tableBody.childNodes;
 				trslen = trs.length;
 					rows : for (r = trslen - 1; r >= 0; r--) {
-						tds = $(trs[r]).find('td');
+						tds = trs[r].childNodes;
 							cols : for (c = 0, clen = tds.length; c < clen; c++) {
 								if (tds[c].innerHTML !== '') {
 									break rows;
@@ -64,7 +65,7 @@
 				} else if (emptyRows > settings.keepSpareRows) {
 					r = Math.min(emptyRows - settings.keepSpareRows, trslen - settings.rows);
 					if (r > 0) {
-						trs.slice(-r).remove(); //slices last n rows from table and removes them
+						$(trs).slice(-r).remove(); //slices last n rows from table and removes them
 						if(priv.selStart) {
 							//if selection is outside, move selection to last row
 							if (priv.selStart.row > trslen - r - 1) {
@@ -434,24 +435,16 @@
 				width = lastOffset.left - firstOffset.left + last.innerWidth();
 
 				priv.selectionArea.top.css({
-					top: top,
-					left: left,
-					width: width
+					top: top, left: left, width: width
 				}).show();
 				priv.selectionArea.left.css({
-					top: top,
-					left: left,
-					height: height
+					top: top, left: left, height: height
 				}).show();
 				priv.selectionArea.bottom.css({
-					top: top + height,
-					left: left,
-					width: width
+					top: top + height, left: left, width: width
 				}).show();
 				priv.selectionArea.right.css({
-					top: top,
-					left: left + width,
-					height: height + 2
+					top: top, left: left + width, height: height + 2
 				}).show();
 			},
 
