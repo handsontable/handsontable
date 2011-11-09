@@ -115,8 +115,8 @@
 									});
 								}
 								if (td.length > 0) {
-									changes.push([start.row + r, start.col + c, td.get(0).innerHTML, input[r][c]]);
-									td.get(0).innerHTML = input[r][c];
+									changes.push([start.row + r, start.col + c, td[0].innerHTML, input[r][c]]);
+									td[0].innerHTML = input[r][c];
 									endTd = td;
 								}
 							}
@@ -164,7 +164,7 @@
 						data[outRow] = [];
 						lastRow = row;
 					}
-					data[outRow][outCol] = td.get(0).innerHTML;
+					data[outRow][outCol] = td[0].innerHTML;
 					outCol++;
 				}
 				if (data.length > 0 && data[0].length) {
@@ -367,7 +367,7 @@
 				var tds, i, ilen, changes = [], coords, old;
 				tds = grid.getCellsAtCoords(priv.selStart, selection.end());
 				for (i = 0, ilen = tds.length; i < ilen; i++) {
-					old = tds[i].get(0).innerHTML;
+					old = tds[i][0].innerHTML;
 					if (old !== '') {
 						tds[i].empty();
 						coords = grid.getCellCoords(tds[i]);
@@ -783,7 +783,7 @@
 				row: row, 
 				col: col
 			});
-			td.get(0).innerHTML = value;
+			td[0].innerHTML = value;
 		/*if (settings.onChange) {
 				settings.onChange(); //this is empty by design, to avoid recursive changes in history
 			}*/
