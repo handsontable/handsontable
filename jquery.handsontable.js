@@ -479,7 +479,7 @@
 					top: '0',
 					left: '-10000px',
 					width: '1000px',
-					height: '1000px'
+					height: '10px'
 				});
 
 				function onClick(event) {
@@ -625,6 +625,7 @@
 			 * Prepare text input to be displayed at given grid cell
 			 */
 			prepare: function (td) {
+				priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
 				priv.editProxy.val(grid.getText(priv.selStart, priv.selEnd));
 				setTimeout(editproxy.focus, 1);
 			},
