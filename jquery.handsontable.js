@@ -120,7 +120,7 @@
 									row: start.row + r, 
 									col: start.col + c
 								});
-								if(td.length === 0 && c === 0 && priv.settings.minSpareRows) {
+								if(td && c === 0 && priv.settings.minSpareRows) {
 									//we don't have a spare row but we can add it!
 									grid.createRow();
 									td = grid.getCellAtCoords({
@@ -128,9 +128,9 @@
 										col: start.col + c
 									});
 								}
-								if (td.length > 0) {
-									changes.push([start.row + r, start.col + c, td[0].innerHTML, input[r][c]]);
-									td[0].innerHTML = input[r][c];
+								if (td) {
+									changes.push([start.row + r, start.col + c, td.innerHTML, input[r][c]]);
+									td.innerHTML = input[r][c];
 									endTd = td;
 								}
 							}
@@ -149,7 +149,7 @@
 			 */
 			clear: function () {
 				var tds = grid.getAllCells();
-				tds.empty();
+				$(tds).empty();
 			},
 
 			/**
@@ -166,15 +166,14 @@
 				else {
 					tds = grid.getAllCells();
 				}
-				
 				tdslen = tds.length;
 				if(tdslen === 0) {
 					return data;
 				}
 				
-				col = tds[0].index();
-				row = tds[0].parent().index();
-				countCols = tds[tdslen - 1].index() - col + 1;
+				col = $(tds[0]).index();
+				row = $(tds[0]).parent().index();
+				countCols = $(tds[tdslen - 1]).index() - col + 1;
 				countRows = Math.round(tdslen / countCols);
 				
 				for(r = 0; r < countRows; r++) {
@@ -182,7 +181,7 @@
 						if(c == 0) {
 							data.push([]);
 						}
-						data[r].push(tds[r * countCols + c][0].innerHTML);
+						data[r].push(tds[r * countCols + c].innerHTML);
 					}
 				}
 				return data;
@@ -212,10 +211,11 @@
 			 * Returns coordinates given td object
 			 */
 			getCellCoords: function (td) {
-				if (td && td.length) {
+				var $td = $(td);
+				if ($td.length) {
 					return {
-						row: td.parent().index(),
-						col: td.index()
+						row: $td.parent().index(),
+						col: $td.index()
 					};
 				}
 			},
@@ -227,14 +227,14 @@
 				//var td = container.find('tr:eq(' + coords.row + ') td:eq(' + coords.col + ')');
 				//return td;
 				if(coords.row < 0 || coords.col < 0) {
-					return $();
+					return null;
 				}
 				var tr = priv.tableBody.childNodes[coords.row];
 				if(tr) {
-					return $(tr.childNodes[coords.col]);
+					return tr.childNodes[coords.col];
 				}
 				else {
-					return $();
+					return null;
 				}
 			},
 
@@ -263,7 +263,17 @@
 			 * Returns all td objects in grid
 			 */
 			getAllCells: function () {
-				var tds = container.find('td');
+				var tds = [], trs, r, rlen, c, clen;
+				var trs = priv.tableBody.childNodes;
+				rlen = trs.length;
+				if(rlen > 0) {
+					clen = trs[0].childNodes.length;
+					for(r = 0; r < rlen; r++) {
+						for(c = 0; c < clen ; c++) {
+							tds.push(trs[r].childNodes[c]);
+						}
+					}
+				}
 				return tds;
 			}
 		};
@@ -294,7 +304,7 @@
 			 * Setter/getter for selection start
 			 */
 			start: function (td) {
-				if (td !== UNDEFINED) {
+				if (td) {
 					priv.selStart = grid.getCellCoords(td);
 				}
 				return priv.selStart;
@@ -304,7 +314,7 @@
 			 * Setter/getter for selection end
 			 */
 			end: function (td) {
-				if (td !== UNDEFINED) {
+				if (td) {
 					priv.selEnd = grid.getCellCoords(td);
 				}
 				return priv.selEnd;
@@ -318,7 +328,7 @@
 					row: (priv.selStart.row + rowDelta), 
 					col: priv.selStart.col + colDelta
 				});
-				if (td.length) {
+				if (td) {
 					selection.setRangeStart(td);
 				}
 			},
@@ -331,7 +341,7 @@
 					row: (priv.selEnd.row + rowDelta), 
 					col: priv.selEnd.col + colDelta
 				});
-				if (td.length) {
+				if (td) {
 					selection.setRangeEnd(td);
 				}
 			},
@@ -382,9 +392,9 @@
 				var tds, i, ilen, changes = [], coords, old;
 				tds = grid.getCellsAtCoords(priv.selStart, selection.end());
 				for (i = 0, ilen = tds.length; i < ilen; i++) {
-					old = tds[i][0].innerHTML;
+					old = tds[i].innerHTML;
 					if (old !== '') {
-						tds[i].empty();
+						$(tds[i]).empty();
 						coords = grid.getCellCoords(tds[i]);
 						changes.push([coords.row, coords.col, old, '']);
 					}
@@ -424,12 +434,12 @@
 				var tds, i, ilen, last, firstOffset, lastOffset, containerOffset, top, left, height, width;
 				tds = grid.getCellsAtCoords(priv.selStart, selection.end());
 				for (i = 0, ilen = tds.length; i < ilen; i++) {
-					tds[i].addClass('selected');
+					$(tds[i]).addClass('selected');
 				}
-				grid.getCellAtCoords(priv.selStart).removeClass('selected');
+				$(grid.getCellAtCoords(priv.selStart)).removeClass('selected');
 
-				last = tds[tds.length - 1];
-				firstOffset = tds[0].offset();
+				last = $(tds[tds.length - 1]);
+				firstOffset = $(tds[0]).offset();
 				lastOffset = last.offset();
 				containerOffset = last.parent().parent().offset();
 
@@ -462,7 +472,7 @@
 				var tds, i, ilen;
 				tds = grid.getCellsAtCoords(priv.selStart, selection.end());
 				for (i = 0, ilen = tds.length; i < ilen; i++) {
-					tds[i].removeClass('selected');
+					$(tds[i]).removeClass('selected');
 				}
 				priv.selectionArea.top.hide();
 				priv.selectionArea.left.hide();
@@ -678,17 +688,18 @@
 				}
 				priv.isCellEdited = true;
 				var td = grid.getCellAtCoords(priv.selStart),
-					tdOffset = td.offset(),
+					$td = $(td),
+					tdOffset = $td.offset(),
 					containerOffset = priv.editProxy.parent().offset();
-				td.data("originalValue", td[0].innerHTML);
+				$td.data("originalValue", td.innerHTML);
 				priv.editProxy.css({
 					top: (tdOffset.top - containerOffset.top) + 'px',
 					left: (tdOffset.left - containerOffset.left) + 'px',
-					width: td.width() * 1.5,
-					height: td.height()
+					width: $td.width() * 1.5,
+					height: $td.height()
 				});
 				if (useOriginalValue){
-					priv.editProxy.val(td.data("originalValue"));
+					priv.editProxy.val($td.data("originalValue"));
 				}
 			},
 
@@ -701,11 +712,12 @@
 				if (priv.isCellEdited) {
 					priv.isCellEdited = false;
 					var td = grid.getCellAtCoords(priv.selStart),
+						$td = $(td),
 						val = priv.editProxy.val();
-					if (!isCancelled && val !== td.data("originalValue")) {
-						td[0].innerHTML = val;
+					if (!isCancelled && val !== $td.data("originalValue")) {
+						td.innerHTML = val;
 						if (priv.settings.onChange) {
-							priv.settings.onChange([[priv.selStart.row, priv.selStart.col, td.data("originalValue"), val]]);
+							priv.settings.onChange([[priv.selStart.row, priv.selStart.col, $td.data("originalValue"), val]]);
 						}
 						grid.keepEmptyRows();
 					}
@@ -791,7 +803,7 @@
 				row: row, 
 				col: col
 			});
-			td[0].innerHTML = value;
+			td.innerHTML = value;
 		/*if (priv.settings.onChange) {
 				priv.settings.onChange(); //this is empty by design, to avoid recursive changes in history
 			}*/
