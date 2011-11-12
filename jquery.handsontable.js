@@ -10,9 +10,10 @@
 	"use strict";
 
 	function Handsontable(container, settings) {
-		var UNDEFINED = (function () {}()), priv, grid, selection, keyboard, editproxy, highlight, interaction;
+		var UNDEFINED = (function () {}()), priv, grid, selection, keyboard, editproxy, highlight, interaction, self = this;
 
 		priv = {
+			settings: settings,
 			isMouseOverTable: false,
 			isMouseDown: false,
 			isCellEdited: false,
@@ -29,7 +30,7 @@
 			createRow: function () {
 				var tr, td, c;
 				tr = $('<tr>');
-				for (c = 0; c < settings.cols; c++) {
+				for (c = 0; c < priv.settings.cols; c++) {
 					td = $('<td>');
 					tr.append(td);
 					td.bind('mousedown', interaction.onMouseDown);
@@ -42,28 +43,33 @@
 			 * Makes sure there are empty rows at the bottom of the table
 			 */
 			keepEmptyRows: function () {
-				if (!settings.minSpareRows) {
+				if (!priv.settings.minSpareRows && !priv.settings.minHeight) {
 					return;
 				}
 				var trs, tds, r, c, clen, emptyRows = 0, trslen;
-				//trs = priv.table.find('tr');
+				
+				//count currently empty rows
 				trs = priv.tableBody.childNodes;
 				trslen = trs.length;
-					rows : for (r = trslen - 1; r >= 0; r--) {
-						tds = trs[r].childNodes;
-							cols : for (c = 0, clen = tds.length; c < clen; c++) {
-								if (tds[c].innerHTML !== '') {
-									break rows;
-								}
+				rows : for (r = trslen - 1; r >= 0; r--) {
+					tds = trs[r].childNodes;
+						cols : for (c = 0, clen = tds.length; c < clen; c++) {
+							if (tds[c].innerHTML !== '') {
+								break rows;
 							}
-						emptyRows++;
-					}
-				if (emptyRows < settings.minSpareRows) {
-					for (; emptyRows < settings.minSpareRows; emptyRows++) {
+						}
+					emptyRows++;
+				}
+				
+				//should I add empty rows to meet minSpareRows?
+				if (emptyRows < priv.settings.minSpareRows) {
+					for (; emptyRows < priv.settings.minSpareRows; emptyRows++) {
 						grid.createRow();
 					}
-				} else if (emptyRows > settings.minSpareRows) {
-					r = Math.min(emptyRows - settings.minSpareRows, trslen - settings.rows);
+				} 
+				//should I remove empty rows to meet minSpareRows?
+				else if (emptyRows > priv.settings.minSpareRows) {
+					r = Math.min(emptyRows - priv.settings.minSpareRows, trslen - priv.settings.rows);
 					if (r > 0) {
 						$(trs).slice(-r).remove(); //slices last n rows from table and removes them
 						if(priv.selStart) {
@@ -82,6 +88,13 @@
 								highlight.on();
 							}	
 						}
+					}
+				}
+				
+				//should I add empty rows to meet minHeight
+				if (container.height() <= priv.settings.minHeight) {
+					while(container.height() <= priv.settings.minHeight) {
+						grid.createRow();
 					}
 				}
 			},
@@ -107,7 +120,7 @@
 									row: start.row + r, 
 									col: start.col + c
 								});
-								if(td.length === 0 && c === 0 && settings.minSpareRows) {
+								if(td.length === 0 && c === 0 && priv.settings.minSpareRows) {
 									//we don't have a spare row but we can add it!
 									grid.createRow();
 									td = grid.getCellAtCoords({
@@ -124,8 +137,8 @@
 						}
 					}
 				}
-				if (settings.onChange && changes.length) {
-					settings.onChange(changes);
+				if (priv.settings.onChange && changes.length) {
+					priv.settings.onChange(changes);
 				}
 				grid.keepEmptyRows();
 				return endTd;
@@ -386,8 +399,8 @@
 					}
 				}
 				highlight.on();
-				if (settings.onChange && changes.length) {
-					settings.onChange(changes);
+				if (priv.settings.onChange && changes.length) {
+					priv.settings.onChange(changes);
 				}
 				grid.keepEmptyRows();
 			}
@@ -700,8 +713,8 @@
 						val = priv.editProxy.val();
 					if (!isCancelled && val !== td.data("originalValue")) {
 						td[0].innerHTML = val;
-						if (settings.onChange) {
-							settings.onChange([[priv.selStart.row, priv.selStart.col, td.data("originalValue"), val]]);
+						if (priv.settings.onChange) {
+							priv.settings.onChange([[priv.selStart.row, priv.selStart.col, td.data("originalValue"), val]]);
 						}
 						grid.keepEmptyRows();
 					}
@@ -733,7 +746,7 @@
 			}
 		};
 
-		function init(settings) {
+		function init() {
 			var r;
 			
 			function onMouseEnterTable() {
@@ -746,7 +759,7 @@
 			
 			priv.table = $('<table><tbody></tbody></table>');
 			priv.tableBody = priv.table.find("tbody")[0];
-			for (r = 0; r < settings.rows; r++) {
+			for (r = 0; r < priv.settings.rows; r++) {
 				grid.createRow();
 			}
 			
@@ -788,8 +801,8 @@
 				col: col
 			});
 			td[0].innerHTML = value;
-		/*if (settings.onChange) {
-				settings.onChange(); //this is empty by design, to avoid recursive changes in history
+		/*if (priv.settings.onChange) {
+				priv.settings.onChange(); //this is empty by design, to avoid recursive changes in history
 			}*/
 		};
 
@@ -814,14 +827,28 @@
 		this.getData = function () {
 			return grid.getData();
 		};
-
+		
+		/**
+		 * Update settings
+		 * @public
+		 */
+		this.updateSettings = function (settings) {
+			for(var i in settings) {
+				priv.settings[i] = settings[i];
+			}
+			if(typeof priv.settings.minHeight !== "undefined" || typeof priv.settings.minSpareRows !== "undefined") {
+				grid.keepEmptyRows();
+			}
+		};
+		
 		init(settings);
 	}
 
 	var settings = {
 		'rows': 5,
 		'cols': 5,
-		'minSpareRows': 0
+		'minSpareRows': 0,
+		'minHeight': 0
 	};
 
 	$.fn.handsontable = function (action, options) {
@@ -829,12 +856,18 @@
 		if (typeof action !== 'string') { //init
 			options = action;
 			return this.each(function () {
-				var currentSettings = $.extend({}, settings), instance;
-				if (options) {
-					$.extend(currentSettings, options);
+				if($(this).data("handsontable")) {
+					instance = $(this).data("handsontable");
+					instance.updateSettings(options);
 				}
-				instance = new Handsontable($(this), currentSettings);
-				$(this).data("handsontable", instance);
+				else {
+					var currentSettings = $.extend({}, settings), instance;
+					if (options) {
+						$.extend(currentSettings, options);
+					}
+					instance = new Handsontable($(this), currentSettings);
+					$(this).data("handsontable", instance);
+				}
 			});
 		}
 		else {

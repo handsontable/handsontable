@@ -57,6 +57,7 @@
 			$("#dataTable").handsontable({
 				rows: 3,
 				cols: 3,
+				minHeight: 100, //add spare rows at the bottom until minimum height is filled
 				onChange: function(data) {
 					if(window.console) {
 						console.log("grid #1 data changed", data);
