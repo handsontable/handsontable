@@ -42,7 +42,7 @@
 			 * Makes sure there are empty rows at the bottom of the table
 			 */
 			keepEmptyRows: function () {
-				if (!settings.keepSpareRows) {
+				if (!settings.minSpareRows) {
 					return;
 				}
 				var trs, tds, r, c, clen, emptyRows = 0, trslen;
@@ -58,12 +58,12 @@
 							}
 						emptyRows++;
 					}
-				if (emptyRows < settings.keepSpareRows) {
-					for (; emptyRows < settings.keepSpareRows; emptyRows++) {
+				if (emptyRows < settings.minSpareRows) {
+					for (; emptyRows < settings.minSpareRows; emptyRows++) {
 						grid.createRow();
 					}
-				} else if (emptyRows > settings.keepSpareRows) {
-					r = Math.min(emptyRows - settings.keepSpareRows, trslen - settings.rows);
+				} else if (emptyRows > settings.minSpareRows) {
+					r = Math.min(emptyRows - settings.minSpareRows, trslen - settings.rows);
 					if (r > 0) {
 						$(trs).slice(-r).remove(); //slices last n rows from table and removes them
 						if(priv.selStart) {
@@ -107,7 +107,7 @@
 									row: start.row + r, 
 									col: start.col + c
 								});
-								if(td.length === 0 && c === 0 && settings.keepSpareRows) {
+								if(td.length === 0 && c === 0 && settings.minSpareRows) {
 									//we don't have a spare row but we can add it!
 									grid.createRow();
 									td = grid.getCellAtCoords({
@@ -821,7 +821,7 @@
 	var settings = {
 		'rows': 5,
 		'cols': 5,
-		'keepSpareRows': false
+		'minSpareRows': 0
 	};
 
 	$.fn.handsontable = function (action, options) {

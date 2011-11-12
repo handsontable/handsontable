@@ -67,7 +67,7 @@
 			$("#dataTable2").handsontable({
 				rows: 6,
 				cols: 8,
-				keepSpareRows: 1, //always keep at least 1 spare row at the bottom
+				minSpareRows: 1, //always keep at least 1 spare row at the bottom
 				onChange: function(data) {
 					if(window.console) {
 						console.log("grid #2 data changed", data);
