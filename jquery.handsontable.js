@@ -159,39 +159,30 @@
 			 * @return {Array}
 			 */
 			getData: function (start, end) {
-				var tds, td, i, ilen, col, row, data = [], r, rlen, c,
-					outRow = -1,
-					outCol,
-					lastRow = -1;
+				var tds, tdslen, col, row, countCols, countRows, c, r, data = [];
 				if (start) {
 					tds = grid.getCellsAtCoords(start, end);
-				} else {
+				}
+				else {
 					tds = grid.getAllCells();
 				}
-				for (i = 0, ilen = tds.length; i < ilen; i++) {
-					td = tds[i];
-					col = td.index();
-					row = td.parent().index();
-					if (row !== lastRow) {
-						outCol = 0;
-						outRow++;
-						data[outRow] = [];
-						lastRow = row;
-					}
-					data[outRow][outCol] = td[0].innerHTML;
-					outCol++;
+				
+				tdslen = tds.length;
+				if(tdslen === 0) {
+					return data;
 				}
-				if (data.length > 0 && data[0].length) {
-					rlen = data.length;
-					searchForEmptyRow : for (c = data[0].length - 1; c >= 0; c--) {
-						for (r = 0; r < rlen; r++) {
-							if (data[r][c]) {
-								break searchForEmptyRow;
-							}
+				
+				col = tds[0].index();
+				row = tds[0].parent().index();
+				countCols = tds[tdslen - 1].index() - col + 1;
+				countRows = Math.round(tdslen / countCols);
+				
+				for(r = 0; r < countRows; r++) {
+					for(c = 0; c < countCols; c++) {
+						if(c == 0) {
+							data.push([]);
 						}
-						for (r = 0; r < rlen; r++) {
-							data[r].pop();
-						}
+						data[r].push(tds[r * countCols + c][0].innerHTML);
 					}
 				}
 				return data;
@@ -285,7 +276,7 @@
 				selection.deselect();
 				priv.selStart = grid.getCellCoords(td);
 				selection.setRangeEnd(td);
-				editproxy.prepare(td);
+				//editproxy.prepare(td);
 				highlight.on();
 			},
 
