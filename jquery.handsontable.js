@@ -33,7 +33,7 @@
 				for (c = 0; c < priv.settings.cols; c++) {
 					td = $('<td>');
 					tr.append(td);
-					td.bind('mousedown', interaction.onMouseDown);
+					td.bind('mousedown touchend', interaction.onMouseDown);
 					td.bind('mouseover', interaction.onMouseOver);
 				}
 				$(priv.tableBody).append(tr);
