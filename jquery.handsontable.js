@@ -92,7 +92,8 @@
 				}
 				
 				//should I add empty rows to meet minHeight
-				if (container.height() <= priv.settings.minHeight) {
+				//WARNING! jQuery returns 0 as height() for container which is not :visible. this will lead to a infinite loop
+				if (container.height() > 0 && container.height() <= priv.settings.minHeight) {
 					while(container.height() <= priv.settings.minHeight) {
 						grid.createRow();
 					}
