@@ -845,6 +845,15 @@
 			}
 		};
 		
+		/**
+		 * Clears grid
+		 * @public
+		 */
+		this.clear = function () {
+			selection.selectAll();
+			selection.empty();
+		};
+		
 		init(settings);
 	}
 
