@@ -14,10 +14,13 @@
 	h1 a { text-decoration: none }
 	h2 { font-size: 1.5em; color: #663300; }
 	h3 { text-align: center; color: #663300; }
+	li { margin-bottom: 1em; }
 	a { color: #663300; }
 	.description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
 	.download { float: right; }
-	pre { background: #000; color: #fff; padding: 15px;}
+	pre { font-family: monospace; background: #000; color: #fff; padding: 15px; white-space: normal;}
+	.code { font-family: monospace; color: #666; font-size: 90%}
+	.console { background-color: #eee; color: #333; padding: 10px; font-size: 90%}
 	hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
 	.footer { text-align:center; padding-top:30px; font-style: italic; }
 	</style>
@@ -48,31 +51,41 @@
 		
 		<h3>Very small example</h3>
 		<div id="dataTable" class="dataTable"></div>
+		<p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
+		<pre id="dataTable-console" class="console">Edit the above grid to see callback</pre>
 		
 		<h3>Larger example</h3>
 		<p>Try to edit, it will write your changes to your browser console. Try <b>CTRL+C</b>, <b>CTRL+V</b> between this and Excel!</p>
 		<div id="dataTable2" class="dataTable"></div>
+		<p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
+		<pre id="dataTable2-console" class="console">Edit the above grid to see callback</pre>
 		
 		<script>
+			var first = true;
 			$("#dataTable").handsontable({
 				rows: 3,
 				cols: 3,
-				minHeight: 100, //add spare rows at the bottom until minimum height is filled
+				minHeight: 120, //add spare rows at the bottom until minimum height (in pixels) is filled
 				onChange: function(data) {
-					if(window.console) {
-						console.log("grid #1 data changed", data);
+					if(first) {
+						first = false;
+						return;
 					}
+					$("#dataTable-console").text(JSON.stringify(data));
 				}
 			});
 
+			var isFirst = true;
 			$("#dataTable2").handsontable({
 				rows: 6,
 				cols: 8,
 				minSpareRows: 1, //always keep at least 1 spare row at the bottom
 				onChange: function(data) {
-					if(window.console) {
-						console.log("grid #2 data changed", data);
+					if(isFirst) {
+						isFirst = false;
+						return;
 					}
+					$("#dataTable2-console").text(JSON.stringify(data));
 				}
 			});
 
@@ -86,6 +99,22 @@
 			$("#dataTable, #dataTable2").handsontable("loadData", data);
 		</script>
 
+		<h2>Options</h2>
+		<p>
+			Plugin constructor <b>handsontable(options)</b> accepts the following configuration options as the first argument:
+		</p>
+		<ul>
+			<li><b>rows</b> - Initial number of rows</li>
+			<li><b>cols</b> - Initial number of columns</li>
+			<li><b>minHeight</b> - <i>(Optional)</i> If set, will add as many rows as needed to meet the given height in pixels</li>
+			<li><b>minSpareRows</b> - <i>(Optional)</i> If set to 1 (or more), will add a new row at the end of grid when there are no more empty rows</li>
+			<li><b>onChange</b> - <i>(Optional)</i> Function to be called after one or more fields is changed (with changes array as an argument)</li>
+		</ul>
+		
+		<p>
+			Plugin method <b>handsontable("loadData", data)</b> accepts initial grid data as the argument.
+		</p>
+		
 		<h2>License</h2>
 		<p>
 			Dual licensed under the MIT or GPL Version 2 licenses.
