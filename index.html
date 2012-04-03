@@ -7,19 +7,19 @@
 	<script src="lib/jquery.min.js"></script>
 	
 	<style type="text/css">
-	body { margin-top: 1.0em; background-color: #ffffff; font-family: Helvetica, Arial, FreeSans, san-serif; color: #000000; }
+	body { margin-top: 1.0em; background-color: #ffffff; font-family: Helvetica, Arial, FreeSans, san-serif; color: #000000; font-size: 13px; }
 	#container { margin: 0 auto; width: 700px; }
-	h1 { font-size: 3.8em; color: #663300; margin-bottom: 3px; }
+	h1 { font-size: 3.8em; color: #7AB317; margin-bottom: 3px; }
 	h1 .small { font-size: 0.4em; }
 	h1 a { text-decoration: none }
-	h2 { font-size: 1.5em; color: #663300; }
-	h3 { text-align: center; color: #663300; }
-	li { margin-bottom: 1em; }
-	a { color: #663300; }
+	h2 { font-size: 1.5em; color: #7AB317; margin: 2em 0 0.5em 0; }
+	h3 { font-size: 1.2em; color: #1B676B; margin: 1em 0 1em 0; text-align: left; }
+	li { margin-bottom: 0.5em; }
+	a { color: #7AB317; }
 	.description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
 	.download { float: right; }
 	pre { font-family: monospace; background: #000; color: #fff; padding: 15px; white-space: normal;}
-	.code { font-family: monospace; color: #666; font-size: 90%}
+	.code { font-family: monospace; color: #666;}
 	.console { background-color: #eee; color: #333; padding: 10px; font-size: 90%}
 	hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
 	.footer { text-align:center; padding-top:30px; font-style: italic; }
@@ -54,7 +54,7 @@
 		<p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
 		<pre id="dataTable-console" class="console">Edit the above grid to see callback</pre>
 		
-		<h3>Larger example</h3>
+		<h3 style="margin-top: 2em">Larger example</h3>
 		<p>Try to edit, it will write your changes to your browser console. Try <b>CTRL+C</b>, <b>CTRL+V</b> between this and Excel!</p>
 		<div id="dataTable2" class="dataTable"></div>
 		<p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
@@ -99,9 +99,12 @@
 			$("#dataTable, #dataTable2").handsontable("loadData", data);
 		</script>
 
-		<h2>Options</h2>
+		<h2>Documentation</h2>
+		
+		<h3>handsontable(options)</h3>
+		
 		<p>
-			Plugin constructor <b>handsontable(options)</b> accepts the following configuration options as the first argument:
+			Plugin constructor <span class="code">handsontable(options)</span> accepts the following configuration options as the first argument:
 		</p>
 		<ul>
 			<li><b>rows</b> - Initial number of rows</li>
@@ -111,8 +114,10 @@
 			<li><b>onChange</b> - <i>(Optional)</i> Function to be called after one or more fields is changed (with changes array as an argument)</li>
 		</ul>
 		
+		<h3>handsontable("loadData", data)</h3>
+		
 		<p>
-			Plugin method <b>handsontable("loadData", data)</b> accepts initial grid data as the argument.
+			Plugin method <span class="code">handsontable("loadData", data)</span> accepts initial grid data as the argument.
 		</p>
 		
 		<h2>License</h2>
