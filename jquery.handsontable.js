@@ -446,8 +446,8 @@
 
 				top = (firstOffset.top - containerOffset.top || 1) - 1;
 				left = (firstOffset.left - containerOffset.left || 1) - 1;
-				height = lastOffset.top - firstOffset.top + last.innerHeight();
-				width = lastOffset.left - firstOffset.left + last.innerWidth();
+				height = lastOffset.top - firstOffset.top + last.outerHeight();
+				width = lastOffset.left - firstOffset.left + last.outerWidth();
 
 				priv.selectionArea.top.css({
 					top: top, left: left, width: width
@@ -516,7 +516,8 @@
 					top: '0',
 					left: '-10000px',
 					width: '1000px',
-					height: '10px'
+					height: '10px',
+					margin: '0'
 				});
 
 				function onClick(event) {
@@ -694,8 +695,8 @@
 					containerOffset = priv.editProxy.parent().offset();
 				$td.data("originalValue", td.innerHTML);
 				priv.editProxy.css({
-					top: (tdOffset.top - containerOffset.top) + 'px',
-					left: (tdOffset.left - containerOffset.left) + 'px',
+					top: Math.floor(tdOffset.top - containerOffset.top) + 'px',
+					left: Math.floor(tdOffset.left - containerOffset.left) + 'px',
 					width: $td.width() * 1.5,
 					height: $td.height()
 				});
