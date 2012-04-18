@@ -3,6 +3,9 @@
  */
 .dataTable {
 	position: relative;
+	font-family: Arial, Helvetica, sans-serif;
+	line-height: 1.3em;
+	font-size: 13px;
 }
 
 .dataTable table {
@@ -19,25 +22,16 @@
 }
 
 .dataTable td {
-	height: 25px;
 	border-right: 1px solid #aaa;
 	border-bottom: 1px solid #aaa;
 	min-width: 50px;
 	width: 50px;
-	overflow: hidden;
+	height: 22px;
 	padding: 0 4px 0 4px;
 }
 
 .dataTable td.selected {
 	background: #eef;
-}
-
-.dataTable td input {
-	position: absolute;
-	top: 0;
-	left: 0;
-	border: 0;
-	background: cyan;
 }
 
 /* selection border color */
@@ -59,4 +53,8 @@
 	height: 0;
 	border: 2px solid black;
 	margin: 0;
+	padding: 2px 4px 0 4px;	
+	font-family: Arial, Helvetica, sans-serif; /*repeat from .dataTable (inherit doesn't work with IE<8) */
+	line-height: 1.3em;
+	font-size: 13px;
 }
