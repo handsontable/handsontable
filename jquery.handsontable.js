@@ -414,10 +414,10 @@
 			 */
 			init: function () {
 				priv.selectionArea = {
-					top: $("<div class='selectionArea' style='display: none; position: absolute; height: 2px'>"),
-					left: $("<div class='selectionArea' style='display: none; position: absolute; width: 2px'>"),
-					bottom: $("<div class='selectionArea' style='display: none; position: absolute; height: 2px'>"),
-					right: $("<div class='selectionArea' style='display: none; position: absolute; width: 2px'>")
+					top: $("<div class='selectionArea'>"),
+					left: $("<div class='selectionArea'>"),
+					bottom: $("<div class='selectionArea'>"),
+					right: $("<div class='selectionArea'>")
 				};
 				container.append(priv.selectionArea.top);
 				container.append(priv.selectionArea.left);
@@ -512,12 +512,10 @@
 			 */
 			init: function () {
 				priv.editProxy = $('<textarea class="editInput">').css({
-					position: 'absolute',
 					top: '0',
 					left: '-10000px',
 					width: '1000px',
-					height: '10px',
-					margin: '0'
+					height: '10px'
 				});
 
 				function onClick(event) {
@@ -689,14 +687,19 @@
 					return;
 				}
 				priv.isCellEdited = true;
+				
+				if(priv.selEnd.col !== priv.selStart.col || priv.selEnd.row !== priv.selStart.row) { //if we are in multiselection, select only one
+					highlight.off();
+					priv.selEnd = priv.selStart; 
+					highlight.on();
+				}
+				
 				var td = grid.getCellAtCoords(priv.selStart),
-					$td = $(td),
-					tdOffset = $td.offset(),
-					containerOffset = priv.editProxy.parent().offset();
+					$td = $(td);					
 				$td.data("originalValue", td.innerHTML);
 				priv.editProxy.css({
-					top: Math.floor(tdOffset.top - containerOffset.top) + 'px',
-					left: Math.floor(tdOffset.left - containerOffset.left) + 'px',
+					top: parseInt(priv.selectionArea.top.css('top')) + 'px',
+					left: parseInt(priv.selectionArea.top.css('left')) + 'px',
 					width: $td.width() * 1.5,
 					height: $td.height()
 				});

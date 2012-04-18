@@ -40,7 +40,23 @@
 	background: cyan;
 }
 
+/* selection border color */
 .dataTable .selectionArea {
+	position: absolute;
+	width: 2px;
+	height: 2px;
 	background: #000;
 	font-size: 0;
+	display: none;
+}
+
+/* textarea border color */
+.dataTable textarea.editInput {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 0;
+	height: 0;
+	border: 2px solid black;
+	margin: 0;
 }
