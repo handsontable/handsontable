@@ -2,59 +2,59 @@
  * It may be useful to copy the below styles and use on your page
  */
 .dataTable {
-	position: relative;
-	font-family: Arial, Helvetica, sans-serif;
-	line-height: 1.3em;
-	font-size: 13px;
+  position: relative;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.3em;
+  font-size: 13px;
 }
 
 .dataTable table {
-	border-collapse: collapse;
-	position: relative;
-	-webkit-user-select: none;
-	-khtml-user-select: none;
-	-moz-user-select: none;
-	-o-user-select: none;
-	user-select: none;
-	border-spacing: 0;
-	border-top: 1px solid #aaa;
-	border-left: 1px solid #aaa;
+  border-collapse: collapse;
+  position: relative;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+  border-spacing: 0;
+  border-top: 1px solid #aaa;
+  border-left: 1px solid #aaa;
 }
 
 .dataTable td {
-	border-right: 1px solid #aaa;
-	border-bottom: 1px solid #aaa;
-	min-width: 50px;
-	width: 50px;
-	height: 22px;
-	padding: 0 4px 0 4px;
+  border-right: 1px solid #aaa;
+  border-bottom: 1px solid #aaa;
+  min-width: 50px;
+  width: 50px;
+  height: 22px;
+  padding: 0 4px 0 4px;
 }
 
 .dataTable td.selected {
-	background: #eef;
+  background: #eef;
 }
 
 /* selection border color */
 .dataTable .selectionArea {
-	position: absolute;
-	width: 2px;
-	height: 2px;
-	background: #000;
-	font-size: 0;
-	display: none;
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #000;
+  font-size: 0;
+  display: none;
 }
 
 /* textarea border color */
 .dataTable textarea.editInput {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 0;
-	height: 0;
-	border: 2px solid black;
-	margin: 0;
-	padding: 2px 4px 0 4px;	
-	font-family: Arial, Helvetica, sans-serif; /*repeat from .dataTable (inherit doesn't work with IE<8) */
-	line-height: 1.3em;
-	font-size: 13px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border: 2px solid black;
+  margin: 0;
+  padding: 2px 4px 0 4px;
+  font-family: Arial, Helvetica, sans-serif; /*repeat from .dataTable (inherit doesn't work with IE<8) */
+  line-height: 1.3em;
+  font-size: 13px;
 }
