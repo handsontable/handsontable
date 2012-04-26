@@ -551,6 +551,12 @@
           }, 100);
         }
 
+        var currentValue;
+
+        function onKeyUp(event) {
+          currentValue = priv.editProxy.val();
+        }
+
         function onKeyDown(event) {
           if (selection.isSelected()) {
             if ((event.keyCode >= 48 && event.keyCode <= 57) || //0-9
@@ -667,11 +673,12 @@
         }
 
         function onChange(event) {
-          if(isAutoComplete()) {
-            priv.isCellEdited = true;
-            editproxy.finishEditing(event); //hide edit field
-            selection.transformStart(1, 0); //move selection down
-            //editproxy.prepare(priv.selStart); //hide edit field
+          if(currentValue !== priv.editProxy.val()) { //do we really have an outside change
+            if(isAutoComplete()) { //could this change be from autocomplete
+              priv.isCellEdited = true;
+              editproxy.finishEditing(event); //save change, hide edit field
+              selection.transformStart(1, 0); //move selection down
+            }
           }
         }
 
@@ -679,6 +686,7 @@
         priv.editProxy.bind('dblclick', onDblClick);
         priv.editProxy.bind('cut', onCut);
         priv.editProxy.bind('paste', onPaste);
+        priv.editProxy.bind('keyup', onKeyUp);
         priv.editProxy.bind('keydown', onKeyDown);
         priv.editProxy.bind('change', onChange);
         container.append(priv.editProxy);
