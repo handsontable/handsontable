@@ -24,6 +24,10 @@
       table: null
     };
 
+    function isAutoComplete() {
+      return (priv.editProxy.data("typeahead") && priv.editProxy.data("typeahead").$menu.is(":visible"));
+    }
+
     grid = {
       /**
        * Creates row at the bottom
@@ -111,7 +115,7 @@
         var r, rlen, c, clen, td, endTd, changes = [];
         rlen = input.length;
         if (rlen === 0) {
-          return;
+          return false;
         }
         for (r = 0; r < rlen; r++) {
           if (input[r]) {
@@ -564,6 +568,9 @@
 
             switch (event.keyCode) {
               case 38: /* arrow up */
+                if (isAutoComplete()) {
+                  return true;
+                }
                 if (event.shiftKey) {
                   selection.transformEnd(-1, 0);
                 }
@@ -629,14 +636,19 @@
                   }
                 }
                 else {
+                  if (isAutoComplete() && event.keyCode === 40) {
+                    return true;
+                  }
                   if (event.keyCode === 27 || event.keyCode === 13 || event.keyCode === 40) {
                     if (event.keyCode === 27) {
                       editproxy.finishEditing(event, true); //hide edit field, restore old value
                       selection.transformStart(0, 0); //don't move selection, but refresh routines
                     }
                     else {
-                      editproxy.finishEditing(event); //hide edit field
-                      selection.transformStart(1, 0); //move selection down
+                      if(!isAutoComplete()) {
+                        editproxy.finishEditing(event); //hide edit field
+                        selection.transformStart(1, 0); //move selection down
+                      }
                     }
                     event.preventDefault(); //don't add newline to field
                   }
@@ -654,11 +666,21 @@
           }
         }
 
+        function onChange(event) {
+          if(isAutoComplete()) {
+            priv.isCellEdited = true;
+            editproxy.finishEditing(event); //hide edit field
+            selection.transformStart(1, 0); //move selection down
+            //editproxy.prepare(priv.selStart); //hide edit field
+          }
+        }
+
         priv.editProxy.bind('click', onClick);
         priv.editProxy.bind('dblclick', onDblClick);
         priv.editProxy.bind('cut', onCut);
         priv.editProxy.bind('paste', onPaste);
         priv.editProxy.bind('keydown', onKeyDown);
+        priv.editProxy.bind('change', onChange);
         container.append(priv.editProxy);
       },
 
@@ -669,6 +691,27 @@
         priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
         priv.editProxy.val(grid.getText(priv.selStart, priv.selEnd));
         setTimeout(editproxy.focus, 1);
+
+        var td = grid.getCellAtCoords(priv.selStart);
+        if (priv.settings.autoComplete) {
+          var typeahead = priv.editProxy.data('typeahead');
+          if (typeahead) {
+            typeahead.source = [];
+          }
+          for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
+            if (priv.settings.autoComplete[i].match(priv.selStart.row, priv.selStart.col, self.getData)) {
+              if (typeahead) {
+                typeahead.source = priv.settings.autoComplete[i].source();
+              }
+              else {
+                priv.editProxy.typeahead({
+                  source: priv.settings.autoComplete[i].source()
+                });
+              }
+              break;
+            }
+          }
+        }
       },
 
       /**
@@ -720,7 +763,7 @@
           var td = grid.getCellAtCoords(priv.selStart),
             $td = $(td),
             val = priv.editProxy.val();
-          if (!isCancelled && val !== $td.data("originalValue")) {
+          if (!isCancelled) {
             td.innerHTML = val;
             if (priv.settings.onChange) {
               priv.settings.onChange([
