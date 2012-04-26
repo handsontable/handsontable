@@ -58,7 +58,7 @@
         trslen = trs.length;
         rows : for (r = trslen - 1; r >= 0; r--) {
           tds = trs[r].childNodes;
-          cols : for (c = 0, clen = tds.length; c < clen; c++) {
+          for (c = 0, clen = tds.length; c < clen; c++) {
             if (tds[c].innerHTML !== '') {
               break rows;
             }
@@ -165,7 +165,7 @@
        * @return {Array}
        */
       getData: function (start, end) {
-        var tds, tdslen, col, row, countCols, countRows, c, r, data = [];
+        var tds, tdslen, col, countCols, countRows, c, r, data = [];
         if (start) {
           tds = grid.getCellsAtCoords(start, end);
         }
@@ -178,7 +178,6 @@
         }
 
         col = $(tds[0]).index();
-        row = $(tds[0]).parent().index();
         countCols = $(tds[tdslen - 1]).index() - col + 1;
         countRows = Math.round(tdslen / countCols);
 
@@ -270,7 +269,7 @@
        */
       getAllCells: function () {
         var tds = [], trs, r, rlen, c, clen;
-        var trs = priv.tableBody.childNodes;
+        trs = priv.tableBody.childNodes;
         rlen = trs.length;
         if (rlen > 0) {
           clen = trs[0].childNodes.length;
@@ -292,7 +291,6 @@
         selection.deselect();
         priv.selStart = grid.getCellCoords(td);
         selection.setRangeEnd(td);
-        //editproxy.prepare(td);
         highlight.on();
       },
 
@@ -302,7 +300,7 @@
       setRangeEnd: function (td) {
         selection.deselect();
         selection.end(td);
-        editproxy.prepare(td);
+        editproxy.prepare();
         highlight.on();
       },
 
@@ -494,7 +492,7 @@
        * @return {Array} 2d array
        */
       parsePasteInput: function (input) {
-        var rows = [], r, rlen;
+        var rows, r, rlen;
 
         //if (input.indexOf("\t") > -1) { //Excel format
         input.replace(/[\r\n]*$/g, ''); //remove newline from end of the input
@@ -527,19 +525,19 @@
           event.stopPropagation();
         }
 
-        function onDblClick(event) {
-          editproxy.beginEditing(event, true);
+        function onDblClick() {
+          editproxy.beginEditing(true);
         }
 
-        function onCut(event) {
-          editproxy.finishEditing(event);
+        function onCut() {
+          editproxy.finishEditing();
           setTimeout(function () {
-            selection.empty(event);
+            selection.empty();
           }, 100);
         }
 
-        function onPaste(event) {
-          editproxy.finishEditing(event);
+        function onPaste() {
+          editproxy.finishEditing();
           setTimeout(function () {
             var input = priv.editProxy.val(),
               inputArray = keyboard.parsePasteInput(input),
@@ -553,7 +551,7 @@
 
         var currentValue;
 
-        function onKeyUp(event) {
+        function onKeyUp() {
           currentValue = priv.editProxy.val();
         }
 
@@ -581,7 +579,7 @@
                   selection.transformEnd(-1, 0);
                 }
                 else {
-                  editproxy.finishEditing(event);
+                  editproxy.finishEditing();
                   selection.transformStart(-1, 0);
                 }
                 event.preventDefault();
@@ -594,7 +592,7 @@
                     selection.transformEnd(0, 1);
                   }
                   else {
-                    editproxy.finishEditing(event);
+                    editproxy.finishEditing();
                     selection.transformStart(0, 1);
                   }
                   event.preventDefault();
@@ -607,7 +605,7 @@
                     selection.transformEnd(0, -1);
                   }
                   else {
-                    editproxy.finishEditing(event);
+                    editproxy.finishEditing();
                     selection.transformStart(0, -1);
                   }
                   event.preventDefault();
@@ -629,7 +627,7 @@
                 if (!priv.isCellEdited) {
                   if (event.keyCode === 113 || event.keyCode === 13) {
                     //begin editing
-                    editproxy.beginEditing(event, true); //show edit field
+                    editproxy.beginEditing(true); //show edit field
                     event.preventDefault(); //don't add newline to field
                   }
                   else if (event.keyCode === 40) {
@@ -647,12 +645,12 @@
                   }
                   if (event.keyCode === 27 || event.keyCode === 13 || event.keyCode === 40) {
                     if (event.keyCode === 27) {
-                      editproxy.finishEditing(event, true); //hide edit field, restore old value
+                      editproxy.finishEditing(true); //hide edit field, restore old value
                       selection.transformStart(0, 0); //don't move selection, but refresh routines
                     }
                     else {
                       if(!isAutoComplete()) {
-                        editproxy.finishEditing(event); //hide edit field
+                        editproxy.finishEditing(); //hide edit field
                         selection.transformStart(1, 0); //move selection down
                       }
                     }
@@ -672,11 +670,11 @@
           }
         }
 
-        function onChange(event) {
+        function onChange() {
           if(currentValue !== priv.editProxy.val()) { //do we really have an outside change
             if(isAutoComplete()) { //could this change be from autocomplete
               priv.isCellEdited = true;
-              editproxy.finishEditing(event); //save change, hide edit field
+              editproxy.finishEditing(); //save change, hide edit field
               selection.transformStart(1, 0); //move selection down
             }
           }
@@ -695,12 +693,11 @@
       /**
        * Prepare text input to be displayed at given grid cell
        */
-      prepare: function (td) {
+      prepare: function () {
         priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
         priv.editProxy.val(grid.getText(priv.selStart, priv.selEnd));
         setTimeout(editproxy.focus, 1);
 
-        var td = grid.getCellAtCoords(priv.selStart);
         if (priv.settings.autoComplete) {
           var typeahead = priv.editProxy.data('typeahead');
           if (typeahead) {
@@ -731,10 +728,9 @@
 
       /**
        * Shows text input in grid cell
-       * @param event {Object}
        * @param useOriginalValue {Boolean}
        */
-      beginEditing: function (event, useOriginalValue) {
+      beginEditing: function (useOriginalValue) {
         if (priv.isCellEdited) {
           return;
         }
@@ -762,10 +758,9 @@
 
       /**
        * Shows text input in grid cell
-       * @param event {Object}
        * @param isCancelled {Boolean} If TRUE, restore old value instead of using current from editproxy
        */
-      finishEditing: function (event, isCancelled) {
+      finishEditing: function (isCancelled) {
         if (priv.isCellEdited) {
           priv.isCellEdited = false;
           var td = grid.getCellAtCoords(priv.selStart),
@@ -794,17 +789,15 @@
     };
 
     interaction = {
-      onMouseDown: function (event) {
+      onMouseDown: function () {
         priv.isMouseDown = true;
         selection.setRangeStart($(this));
       },
 
-      onMouseOver: function (event) {
+      onMouseOver: function () {
         if (priv.isMouseDown) {
           selection.setRangeEnd($(this));
         }
-        //event.preventDefault();
-        //event.stopPropagation();
       }
     };
 
@@ -896,7 +889,9 @@
      */
     this.updateSettings = function (settings) {
       for (var i in settings) {
-        priv.settings[i] = settings[i];
+        if(settings.hasOwnProperty(i)) {
+          priv.settings[i] = settings[i];
+        }
       }
       if (typeof priv.settings.minHeight !== "undefined" || typeof priv.settings.minSpareRows !== "undefined") {
         grid.keepEmptyRows();
@@ -923,7 +918,7 @@
   };
 
   $.fn.handsontable = function (action, options) {
-    var i, ilen, args, output;
+    var i, ilen, args, output = [];
     if (typeof action !== 'string') { //init
       options = action;
       return this.each(function () {
