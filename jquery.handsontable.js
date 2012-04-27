@@ -128,9 +128,9 @@
             for (var j = 0, jlen = priv.settings.legend.length; j < jlen; j++) {
               var legend = priv.settings.legend[j];
               if (legend.match(row, col, self.getData)) {
-                td.css(priv.settings.legend[j].style);
-                td.data("readOnly", priv.settings.legend[j].readOnly);
-                td.attr("title", priv.settings.legend[j].title);
+                typeof priv.settings.legend[j].style !== "undefined" && td.css(priv.settings.legend[j].style);
+                typeof priv.settings.legend[j].readOnly !== "undefined" && td.data("readOnly", priv.settings.legend[j].readOnly);
+                typeof priv.settings.legend[j].title !== "undefined" && td.attr("title", priv.settings.legend[j].title);
               }
             }
           }
