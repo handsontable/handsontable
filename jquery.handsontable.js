@@ -553,14 +553,15 @@
 
         function onKeyDown(event) {
           if (selection.isSelected()) {
+            var ctrlOnly = event.ctrlKey && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
             if ((event.keyCode >= 48 && event.keyCode <= 57) || //0-9
                 (event.keyCode >= 96 && event.keyCode <= 111) || //numpad
                 (event.keyCode >= 65 && event.keyCode <= 90)) { //a-z
               /* alphanumeric */
-              if (!event.ctrlKey) { //disregard CTRL-key shortcuts
+              if (!ctrlOnly) { //disregard CTRL-key shortcuts
                 editproxy.beginEditing();
               }
-              else if (event.ctrlKey && event.keyCode === 65) { //CTRL + A
+              else if (ctrlOnly && event.keyCode === 65) { //CTRL + A
                 selection.selectAll(); //select all cells
               }
               return;
