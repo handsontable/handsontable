@@ -21,7 +21,8 @@
       selStart: null,
       selEnd: null,
       editProxy: false,
-      table: null
+      table: null,
+      isPopulated: null
     };
 
     var lastChange = '';
@@ -53,7 +54,7 @@
         if (!priv.settings.minSpareRows && !priv.settings.minHeight) {
           return;
         }
-        var trs, tds, r, c, clen, emptyRows = 0, trslen;
+        var trs, tds, r, c, clen, emptyRows = 0, trslen, recreate = false;
 
         //count currently empty rows
         trs = priv.tableBody.childNodes;
@@ -72,6 +73,7 @@
         if (emptyRows < priv.settings.minSpareRows) {
           for (; emptyRows < priv.settings.minSpareRows; emptyRows++) {
             grid.createRow();
+            recreate = true;
           }
         }
         //should I remove empty rows to meet minSpareRows?
@@ -79,6 +81,7 @@
           r = Math.min(emptyRows - priv.settings.minSpareRows, trslen - priv.settings.rows);
           if (r > 0) {
             $(trs).slice(-r).remove(); //slices last n rows from table and removes them
+            recreate = true;
             if (priv.selStart) {
               //if selection is outside, move selection to last row
               if (priv.selStart.row > trslen - r - 1) {
@@ -103,7 +106,46 @@
         if (container.height() > 0 && container.height() <= priv.settings.minHeight) {
           while (container.height() <= priv.settings.minHeight) {
             grid.createRow();
+            recreate = true;
           }
+        }
+
+        if (recreate) {
+          grid.createLegend();
+        }
+      },
+
+      /**
+       * Create legend
+       */
+      createLegend: function () {
+        if (priv.settings.legend) {
+          var tds = grid.getAllCells(), col, row;
+          for (var i = 0, ilen = tds.length; i < ilen; i++) {
+            var td = $(tds[i]);
+            col = td.index();
+            row = td.parent().index();
+            for (var j = 0, jlen = priv.settings.legend.length; j < jlen; j++) {
+              var legend = priv.settings.legend[j];
+              if (legend.match(row, col, self.getData)) {
+                td.css(priv.settings.legend[j].style);
+                td.data("readOnly", priv.settings.legend[j].readOnly);
+                td.attr("title", priv.settings.legend[j].title);
+              }
+            }
+          }
+        }
+      },
+
+      /**
+       * Is cell writeable
+       */
+      isCellWriteable: function ($td) {
+        if (priv.isPopulated && $td.data("readOnly")) {
+          return false;
+        }
+        else {
+          return true;
         }
       },
 
@@ -136,7 +178,7 @@
                     col: start.col + c
                   });
                 }
-                if (td) {
+                if (td && grid.isCellWriteable($(td))) {
                   changes.push([start.row + r, start.col + c, td.innerHTML, input[r][c]]);
                   td.innerHTML = input[r][c];
                   endTd = td;
@@ -395,12 +437,13 @@
         if (!selection.isSelected()) {
           return;
         }
-        var tds, i, ilen, changes = [], coords, old;
+        var tds, i, ilen, changes = [], coords, old, $td;
         tds = grid.getCellsAtCoords(priv.selStart, selection.end());
         for (i = 0, ilen = tds.length; i < ilen; i++) {
           old = tds[i].innerHTML;
-          if (old !== '') {
-            $(tds[i]).empty();
+          $td = $(tds[i]);
+          if (old !== '' && grid.isCellWriteable($td)) {
+            $td.empty();
             coords = grid.getCellCoords(tds[i]);
             changes.push([coords.row, coords.col, old, '']);
           }
@@ -732,6 +775,10 @@
         if (priv.isCellEdited) {
           return;
         }
+
+        var td = grid.getCellAtCoords(priv.selStart),
+            $td = $(td);
+
         priv.isCellEdited = true;
         lastChange = '';
 
@@ -741,8 +788,10 @@
           highlight.on();
         }
 
-        var td = grid.getCellAtCoords(priv.selStart),
-            $td = $(td);
+        if (!grid.isCellWriteable($td)) {
+          return;
+        }
+
         $td.data("originalValue", td.innerHTML);
         priv.editProxy.css({
           top: parseInt(priv.selectionArea.top.css('top')) + 'px',
@@ -765,7 +814,7 @@
           var td = grid.getCellAtCoords(priv.selStart),
               $td = $(td),
               val = priv.editProxy.val();
-          if (!isCancelled) {
+          if (!isCancelled && grid.isCellWriteable($td)) {
             td.innerHTML = val;
             if (priv.settings.onChange) {
               priv.settings.onChange([
@@ -817,6 +866,10 @@
         grid.createRow();
       }
 
+      if (!priv.settings.minHeight && !priv.settings.minSpareRows) {
+        grid.createLegend();
+      }
+
       container.append(priv.table);
       highlight.init();
       editproxy.init();
@@ -866,11 +919,13 @@
      * @param {Array} data
      */
     this.loadData = function (data) {
+      priv.isPopulated = false;
       grid.clear();
       grid.populateFromArray({
         row: 0,
         col: 0
       }, data);
+      priv.isPopulated = true;
     };
 
     /**

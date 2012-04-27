@@ -47,7 +47,7 @@
 		<h1><a href="http://github.com/warpech/jquery-handsontable">jquery-handsontable</a></h1>
 
 		<div class="description">
-			Handsontable is a minimalistic (29 KB unminified) approach to Excel-like table editor in HTML & jQuery
+			Handsontable is a minimalistic (30 KB unminified) approach to Excel-like table editor in HTML & jQuery
 		</div>
 		
 		<h2>Demo</h2>
@@ -114,6 +114,18 @@
             $("#dataTable3").handsontable({
                 rows: 6,
                 cols: 8,
+                minSpareRows: 1, //always keep at least 1 spare row at the bottom
+                legend: [{
+                        match: function(row, col, data) {
+                            return (row === 0); //if it is first row
+                        },
+                        style: {
+                            color: '#666',
+                            fontWeight: 'bold'
+                        },
+                        title: 'Heading',
+                        readOnly: true
+                    }],
                 autoComplete: [{
                         match: function(row, col, data) {
                             if(data()[0][col].indexOf("color") > -1) { //if column name contains word "color"
@@ -127,10 +139,7 @@
                     },
                     {
                         match: function(row, col, data) {
-                            if(col === 0) { //if it is first column
-                                return true;
-                            }
-                            return false;
+                            return (col === 0); //if it is first column
                         },
                         source: function(){
                             return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
