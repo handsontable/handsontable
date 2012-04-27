@@ -551,8 +551,6 @@
           }, 100);
         }
 
-
-
         function onKeyDown(event) {
           if (selection.isSelected()) {
             if ((event.keyCode >= 48 && event.keyCode <= 57) || //0-9
@@ -693,7 +691,6 @@
        * Prepare text input to be displayed at given grid cell
        */
       prepare: function () {
-        lastChange = '';
         priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
         priv.editProxy.val(grid.getText(priv.selStart, priv.selEnd));
         setTimeout(editproxy.focus, 1);
@@ -735,6 +732,7 @@
           return;
         }
         priv.isCellEdited = true;
+        lastChange = '';
 
         if (priv.selEnd.col !== priv.selStart.col || priv.selEnd.row !== priv.selStart.row) { //if we are in multiselection, select only one
           highlight.off();
