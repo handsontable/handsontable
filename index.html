@@ -1,232 +1,343 @@
 <!doctype html>
 <html>
 <head>
-	<meta charset='utf-8'>
-	<title>jquery-handsontable @ GitHub</title>
-	
-	<script src="lib/jquery.min.js"></script>
-	
-	<style type="text/css">
-	body { margin-top: 1.0em; background-color: #ffffff; font-family: Helvetica, Arial, FreeSans, sans-serif; color: #000000; font-size: 13px; }
-	#container { margin: 0 auto; width: 700px; }
-	h1 { font-size: 3.8em; color: #7AB317; margin-bottom: 3px; }
-	h1 a { text-decoration: none }
-	h2 { font-size: 1.5em; color: #7AB317; margin: 2em 0 0.5em 0; }
-	h3 { font-size: 1.2em; color: #1B676B; margin: 2em 0 1em 0; text-align: left; }
-    .super { color: red; font-size: 85%; vertical-align: super; }
-	li { margin-top: 0.5em; }
-    ul { margin-bottom: 0.5em }
-	a { color: #1B676B; }
-	.description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-	.download { float: right; }
-	pre { font-family: monospace; background: #000; color: #fff; padding: 15px; white-space: normal;}
-	.code { font-family: monospace; color: #666;}
-	.console { background-color: #eee; color: #333; padding: 10px; font-size: 90%}
-	hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
-	.footer { text-align:center; padding-top:30px; font-style: italic; }
-	</style>
-	
-	<script src="jquery.handsontable.js"></script>
+    <meta charset='utf-8'>
+    <title>jquery-handsontable @ GitHub</title>
+
+    <script src="lib/jquery.min.js"></script>
+
+    <style type="text/css">
+        body {
+            margin-top: 1.0em;
+            background-color: #ffffff;
+            font-family: Helvetica, Arial, FreeSans, sans-serif;
+            color: #000000;
+            font-size: 13px;
+        }
+
+        #container {
+            margin: 0 auto;
+            width: 700px;
+        }
+
+        h1 {
+            font-size: 3.8em;
+            color: #7AB317;
+            margin-bottom: 3px;
+        }
+
+        h1 a {
+            text-decoration: none
+        }
+
+        h2 {
+            font-size: 1.5em;
+            color: #7AB317;
+            margin: 2em 0 0.5em 0;
+        }
+
+        h3 {
+            font-size: 1.2em;
+            color: #1B676B;
+            margin: 2em 0 1em 0;
+            text-align: left;
+        }
+
+        .super {
+            color: red;
+            font-size: 85%;
+            vertical-align: super;
+        }
+
+        li {
+            margin-top: 0.5em;
+        }
+
+        ul {
+            margin-bottom: 0.5em
+        }
+
+        a {
+            color: #1B676B;
+        }
+
+        .description {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            margin-top: 30px;
+            font-style: italic;
+        }
+
+        .download {
+            float: right;
+        }
+
+        pre {
+            font-family: monospace;
+            background: #000;
+            color: #fff;
+            padding: 15px;
+            white-space: normal;
+        }
+
+        .code {
+            font-family: monospace;
+            color: #666;
+        }
+
+        .console {
+            background-color: #eee;
+            color: #333;
+            padding: 10px;
+            font-size: 90%
+        }
+
+        hr {
+            border: 0;
+            width: 80%;
+            border-bottom: 1px solid #aaa
+        }
+
+        .footer {
+            text-align: center;
+            padding-top: 30px;
+            font-style: italic;
+        }
+    </style>
+
+    <script src="jquery.handsontable.js"></script>
     <script src="lib/bootstrap-typeahead.js"></script>
-	<script src="lib/json2.min.js"></script><!-- Only needed by index.html for IE6/IE7 support. Not needed by jquery.handsontable.js -->
-	<link rel="stylesheet" media="screen" href="jquery.handsontable.css">
+    <script src="lib/json2.min.js"></script>
+    <!-- Only needed by index.html for IE6/IE7 support. Not needed by jquery.handsontable.js -->
+    <link rel="stylesheet" media="screen" href="jquery.handsontable.css">
 </head>
 
 <body>
-	<a href="http://github.com/warpech/jquery-handsontable"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+<a href="http://github.com/warpech/jquery-handsontable"><img style="position: absolute; top: 0; right: 0; border: 0;"
+                                                             src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
+                                                             alt="Fork me on GitHub"/></a>
 
-	<div id="container">
+<div id="container">
 
-		<div class="download">
-			<a href="http://github.com/warpech/jquery-handsontable/zipball/master">
-			<img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
-			<a href="http://github.com/warpech/jquery-handsontable/tarball/master">
-			<img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
-		</div>
+    <div class="download">
+        <a href="http://github.com/warpech/jquery-handsontable/zipball/master">
+            <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
+        <a href="http://github.com/warpech/jquery-handsontable/tarball/master">
+            <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
+    </div>
 
-		<h1><a href="http://github.com/warpech/jquery-handsontable">jquery-handsontable</a></h1>
+    <h1><a href="http://github.com/warpech/jquery-handsontable">jquery-handsontable</a></h1>
 
-		<div class="description">
-			Handsontable is a minimalistic (30 KB unminified) approach to Excel-like table editor in HTML & jQuery
-		</div>
-		
-		<h2>Demo</h2>
-		
-		<h3>Very small example</h3>
-		<div id="dataTable" class="dataTable"></div>
-		<p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
-		<pre id="dataTable-console" class="console">Edit the above grid to see callback</pre>
-		
-		<h3>Larger example</h3>
-		<p>Try to edit, it will write your changes to your browser console. Try <b>CTRL+C</b>, <b>CTRL+V</b> between this and Excel!</p>
-		<div id="dataTable2" class="dataTable"></div>
-		<p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
-		<pre id="dataTable2-console" class="console">Edit the above grid to see callback</pre>
+    <div class="description">
+        Handsontable is a minimalistic (30 KB unminified) approach to Excel-like table editor in HTML & jQuery
+    </div>
 
-        <script>
-            var first = true;
-            $("#dataTable").handsontable({
-                rows: 3,
-                cols: 3,
-                minHeight: 120, //add spare rows at the bottom until minimum height (in pixels) is filled
-                onChange: function(data) {
-                    if(first) {
-                        first = false;
-                        return;
-                    }
-                    $("#dataTable-console").text(JSON.stringify(data));
+    <h2>Demo</h2>
+
+    <h3>Very small example</h3>
+
+    <div id="dataTable" class="dataTable"></div>
+    <p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
+    <pre id="dataTable-console" class="console">Edit the above grid to see callback</pre>
+
+    <h3>Larger example</h3>
+
+    <p>Try to edit, it will write your changes to your browser console. Try <b>CTRL+C</b>, <b>CTRL+V</b> between this
+        and Excel!</p>
+
+    <div id="dataTable2" class="dataTable"></div>
+    <p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
+    <pre id="dataTable2-console" class="console">Edit the above grid to see callback</pre>
+
+    <script>
+        var first = true;
+        $("#dataTable").handsontable({
+            rows: 3,
+            cols: 3,
+            minHeight: 120, //add spare rows at the bottom until minimum height (in pixels) is filled
+            onChange: function (data) {
+                if (first) {
+                    first = false;
+                    return;
                 }
-            });
+                $("#dataTable-console").text(JSON.stringify(data));
+            }
+        });
 
-            var first2 = true;
-            $("#dataTable2").handsontable({
-                rows: 6,
-                cols: 8,
-                minSpareRows: 1, //always keep at least 1 spare row at the bottom
-                onChange: function(data) {
-                    if(first2) {
-                        first2 = false;
-                        return;
-                    }
-                    $("#dataTable2-console").text(JSON.stringify(data));
+        var first2 = true;
+        $("#dataTable2").handsontable({
+            rows: 6,
+            cols: 8,
+            minSpareRows: 1, //always keep at least 1 spare row at the bottom
+            onChange: function (data) {
+                if (first2) {
+                    first2 = false;
+                    return;
                 }
-            });
+                $("#dataTable2-console").text(JSON.stringify(data));
+            }
+        });
 
-            var data = [
-                ["", "Kia", "Nissan", "Toyota", "Honda"],
-                ["2008", 10, 11, 12, 13],
-                ["2009", 20, 11, 14, 13],
-                ["2010", 30, 15, 12, 13]
-            ];
+        var data = [
+            ["", "Kia", "Nissan", "Toyota", "Honda"],
+            ["2008", 10, 11, 12, 13],
+            ["2009", 20, 11, 14, 13],
+            ["2010", 30, 15, 12, 13]
+        ];
 
-            $("#dataTable, #dataTable2").handsontable("loadData", data);
-        </script>
+        $("#dataTable, #dataTable2").handsontable("loadData", data);
+    </script>
 
-        <h3>Autocomplete <span class="super"> NEW!</span></h3>
-        <p>Now you can define rules for autocompletition. You define 2 callback functions <b>match</b> and <b>source</b> to define what cells should get completition and what suggestions should be shown to the user. Check the source of this page for example.</p>
-        <p>To keep this plugin lightweight, autocomplete feature relies on <a href="https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js">bootstrap-typeahead</a>. You need that plugin to be loaded to make it work.</p>
-        <div id="dataTable3" class="dataTable"></div>
-        <p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
-        <pre id="dataTable3-console" class="console">Edit the above grid to see callback</pre>
-        
-		<script>
-			var first3 = true;
-            $("#dataTable3").handsontable({
-                rows: 6,
-                cols: 8,
-                minSpareRows: 1, //always keep at least 1 spare row at the bottom
-                legend: [{
-                        match: function(row, col, data) {
-                            return (row === 0); //if it is first row
-                        },
-                        style: {
-                            color: '#666',
-                            fontWeight: 'bold'
-                        },
-                        title: 'Heading',
-                        readOnly: true
-                    }],
-                autoComplete: [{
-                        match: function(row, col, data) {
-                            if(data()[0][col].indexOf("color") > -1) { //if column name contains word "color"
-                                return true;
-                            }
-                            return false;
-                        },
-                        source: function(){
-                            return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
-                        }
+    <h3>Autocomplete <span class="super"> NEW!</span></h3>
+
+    <p>Now you can define rules for autocompletition. You define 2 callback functions <b>match</b> and <b>source</b> to
+        define what cells should get completition and what suggestions should be shown to the user. Check the source of
+        this page for example.</p>
+
+    <p>To keep this plugin lightweight, autocomplete feature relies on <a
+            href="https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js">bootstrap-typeahead</a>.
+        You need that plugin to be loaded to make it work.</p>
+
+    <div id="dataTable3" class="dataTable"></div>
+    <p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
+    <pre id="dataTable3-console" class="console">Edit the above grid to see callback</pre>
+
+    <script>
+        var first3 = true;
+        $("#dataTable3").handsontable({
+            rows: 6,
+            cols: 8,
+            minSpareRows: 1, //always keep at least 1 spare row at the bottom
+            legend: [
+                {
+                    match: function (row, col, data) {
+                        return (row === 0); //if it is first row
                     },
-                    {
-                        match: function(row, col, data) {
-                            return (col === 0); //if it is first column
-                        },
-                        source: function(){
-                            return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
-                        }
-                    }],
-                onChange: function(data) {
-                    if(first3) {
-                        first3 = false;
-                        return;
-                    }
-                    $("#dataTable3-console").text(JSON.stringify(data));
+                    style: {
+                        color: '#666',
+                        fontWeight: 'bold'
+                    },
+                    title: 'Heading',
+                    readOnly: true
                 }
-            });
+            ],
+            autoComplete: [
+                {
+                    match: function (row, col, data) {
+                        if (data()[0][col].indexOf("color") > -1) { //if column name contains word "color"
+                            return true;
+                        }
+                        return false;
+                    },
+                    source: function () {
+                        return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
+                    }
+                },
+                {
+                    match: function (row, col, data) {
+                        return (col === 0); //if it is first column
+                    },
+                    source: function () {
+                        return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
+                    }
+                }
+            ],
+            onChange: function (data) {
+                if (first3) {
+                    first3 = false;
+                    return;
+                }
+                $("#dataTable3-console").text(JSON.stringify(data));
+            }
+        });
 
-			var data = [
-				["Car", "Year", "Chassis color", "Bumper color"],
-				["Nissan", 2009, "black", "black"],
-				["Nissan", 2006, "blue", "blue"],
-				["Chrysler", 2004, "yellow", "black"],
-				["Volvo", 2012, "white", "gray"]
-			];
+        var data = [
+            ["Car", "Year", "Chassis color", "Bumper color"],
+            ["Nissan", 2009, "black", "black"],
+            ["Nissan", 2006, "blue", "blue"],
+            ["Chrysler", 2004, "yellow", "black"],
+            ["Volvo", 2012, "white", "gray"]
+        ];
 
-			$("#dataTable3").handsontable("loadData", data);
-		</script>
+        $("#dataTable3").handsontable("loadData", data);
+    </script>
 
-		<h2>Documentation</h2>
-		
-		<h3>handsontable(options)</h3>
-		
-		<p>
-			Plugin constructor <span class="code">handsontable(options)</span> accepts the following configuration options as the first argument:
-		</p>
-		<ul>
-			<li><b>rows</b> - Initial number of rows</li>
-			<li><b>cols</b> - Initial number of columns</li>
-			<li><b>minHeight</b> - <i>(Optional)</i> If set, will add as many rows as needed to meet the given height in pixels</li>
-			<li><b>minSpareRows</b> - <i>(Optional)</i> If set to 1 (or more), will add a new row at the end of grid when there are no more empty rows</li>
-			<li><b>onChange</b> - <i>(Optional)</i> Function to be called after one or more fields is changed (with changes array as an argument)</li>
-			<li><b>autocomplete</b> - <i>(Optional)</i> Array of object literals. Each literal defines 2 functions:
-                <ul>
-                    <li><b>match</b>(row, col, data) - function to check if the source should be used as autocomplete for current cell. Returns TRUE if source should be used. Function parameters:
+    <h2>Documentation</h2>
 
-                        <ul>
-                            <li>row - Number of row, starting of 0</li>
-                            <li>col - Number of column, starting of 0</li>
-                            <li>data - Function that returns current grid data. Can be used to check what is the current content of any cell.</li>
-                        </ul>
-                    </li>
-                    <li><b>source</b>() - funtion to return data for autocomplete</li>
-                </ul>
-            </li>
-		</ul>
-		
-		<h3>handsontable("loadData", data)</h3>
-		
-		<p>
-			Plugin method <span class="code">handsontable("loadData", data)</span> accepts initial grid data as the argument.
-		</p>
-		
-		<h2>License</h2>
-		<p>
-			Dual licensed under the MIT or GPL Version 2 licenses.
-		</p>
-			
-		<h2>Authors</h2>
-		<p>
-			Marcin Warpechowski
-		</p>
+    <h3>handsontable(options)</h3>
 
-		<h2>Download</h2>
-		<p>
-			You can download this project in either
-			<a href="http://github.com/warpech/jquery-handsontable/zipball/master">zip</a> or
-			<a href="http://github.com/warpech/jquery-handsontable/tarball/master">tar</a> formats.
-		</p>
-		
-		<p>
-			You can also clone the project with <a href="http://git-scm.com">Git</a>
-			by running:
-        </p>
+    <p>
+        Plugin constructor <span class="code">handsontable(options)</span> accepts the following configuration options
+        as the first argument:
+    </p>
+    <ul>
+        <li><b>rows</b> - Initial number of rows</li>
+        <li><b>cols</b> - Initial number of columns</li>
+        <li><b>minHeight</b> - <i>(Optional)</i> If set, will add as many rows as needed to meet the given height in
+            pixels
+        </li>
+        <li><b>minSpareRows</b> - <i>(Optional)</i> If set to 1 (or more), will add a new row at the end of grid when
+            there are no more empty rows
+        </li>
+        <li><b>onChange</b> - <i>(Optional)</i> Function to be called after one or more fields is changed (with changes
+            array as an argument)
+        </li>
+        <li><b>autocomplete</b> - <i>(Optional)</i> Array of object literals. Each literal defines 2 functions:
+            <ul>
+                <li><b>match</b>(row, col, data) - function to check if the source should be used as autocomplete for
+                    current cell. Returns TRUE if source should be used. Function parameters:
 
-        <pre>$ git clone git://github.com/warpech/jquery-handsontable</pre>
+                    <ul>
+                        <li>row - Number of row, starting of 0</li>
+                        <li>col - Number of column, starting of 0</li>
+                        <li>data - Function that returns current grid data. Can be used to check what is the current
+                            content of any cell.
+                        </li>
+                    </ul>
+                </li>
+                <li><b>source</b>() - funtion to return data for autocomplete</li>
+            </ul>
+        </li>
+    </ul>
 
-		<div class="footer">
-			get the source code on GitHub : <a href="http://github.com/warpech/jquery-handsontable">warpech/jquery-handsontable</a>
-		</div>
-	</div>
+    <h3>handsontable("loadData", data)</h3>
+
+    <p>
+        Plugin method <span class="code">handsontable("loadData", data)</span> accepts initial grid data as the
+        argument.
+    </p>
+
+    <h2>License</h2>
+
+    <p>
+        Dual licensed under the MIT or GPL Version 2 licenses.
+    </p>
+
+    <h2>Authors</h2>
+
+    <p>
+        Marcin Warpechowski
+    </p>
+
+    <h2>Download</h2>
+
+    <p>
+        You can download this project in either
+        <a href="http://github.com/warpech/jquery-handsontable/zipball/master">zip</a> or
+        <a href="http://github.com/warpech/jquery-handsontable/tarball/master">tar</a> formats.
+    </p>
+
+    <p>
+        You can also clone the project with <a href="http://git-scm.com">Git</a>
+        by running:
+    </p>
+
+    <pre>$ git clone git://github.com/warpech/jquery-handsontable</pre>
+
+    <div class="footer">
+        get the source code on GitHub : <a href="http://github.com/warpech/jquery-handsontable">warpech/jquery-handsontable</a>
+    </div>
+</div>
 
 </body>
 </html>
