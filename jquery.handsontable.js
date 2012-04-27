@@ -24,6 +24,8 @@
       table: null
     };
 
+    var lastChange = '';
+
     function isAutoComplete() {
       return (priv.editProxy.data("typeahead") && priv.editProxy.data("typeahead").$menu.is(":visible"));
     }
@@ -540,26 +542,22 @@
           editproxy.finishEditing();
           setTimeout(function () {
             var input = priv.editProxy.val(),
-              inputArray = keyboard.parsePasteInput(input),
-              endTd = grid.populateFromArray({
-                row: Math.min(priv.selStart.row, priv.selEnd.row),
-                col: Math.min(priv.selStart.col, priv.selEnd.col)
-              }, inputArray);
+                inputArray = keyboard.parsePasteInput(input),
+                endTd = grid.populateFromArray({
+                  row: Math.min(priv.selStart.row, priv.selEnd.row),
+                  col: Math.min(priv.selStart.col, priv.selEnd.col)
+                }, inputArray);
             selection.setRangeEnd(endTd);
           }, 100);
         }
 
-        var currentValue;
 
-        function onKeyUp() {
-          currentValue = priv.editProxy.val();
-        }
 
         function onKeyDown(event) {
           if (selection.isSelected()) {
             if ((event.keyCode >= 48 && event.keyCode <= 57) || //0-9
-              (event.keyCode >= 96 && event.keyCode <= 111) || //numpad
-              (event.keyCode >= 65 && event.keyCode <= 90)) { //a-z
+                (event.keyCode >= 96 && event.keyCode <= 111) || //numpad
+                (event.keyCode >= 65 && event.keyCode <= 90)) { //a-z
               /* alphanumeric */
               if (!event.ctrlKey) { //disregard CTRL-key shortcuts
                 editproxy.beginEditing();
@@ -649,7 +647,7 @@
                       selection.transformStart(0, 0); //don't move selection, but refresh routines
                     }
                     else {
-                      if(!isAutoComplete()) {
+                      if (!isAutoComplete()) {
                         editproxy.finishEditing(); //hide edit field
                         selection.transformStart(1, 0); //move selection down
                       }
@@ -671,12 +669,14 @@
         }
 
         function onChange() {
-          if(currentValue !== priv.editProxy.val()) { //do we really have an outside change
-            if(isAutoComplete()) { //could this change be from autocomplete
+          if (isAutoComplete()) { //could this change be from autocomplete
+            var val = priv.editProxy.val();
+            if (val !== lastChange && $.inArray(val, priv.editProxy.data("typeahead").source) > -1) { //is it change from source (don't trigger on partial)
               priv.isCellEdited = true;
               editproxy.finishEditing(); //save change, hide edit field
               selection.transformStart(1, 0); //move selection down
             }
+            lastChange = val;
           }
         }
 
@@ -684,7 +684,6 @@
         priv.editProxy.bind('dblclick', onDblClick);
         priv.editProxy.bind('cut', onCut);
         priv.editProxy.bind('paste', onPaste);
-        priv.editProxy.bind('keyup', onKeyUp);
         priv.editProxy.bind('keydown', onKeyDown);
         priv.editProxy.bind('change', onChange);
         container.append(priv.editProxy);
@@ -694,6 +693,7 @@
        * Prepare text input to be displayed at given grid cell
        */
       prepare: function () {
+        lastChange = '';
         priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
         priv.editProxy.val(grid.getText(priv.selStart, priv.selEnd));
         setTimeout(editproxy.focus, 1);
@@ -743,7 +743,7 @@
         }
 
         var td = grid.getCellAtCoords(priv.selStart),
-          $td = $(td);
+            $td = $(td);
         $td.data("originalValue", td.innerHTML);
         priv.editProxy.css({
           top: parseInt(priv.selectionArea.top.css('top')) + 'px',
@@ -764,8 +764,8 @@
         if (priv.isCellEdited) {
           priv.isCellEdited = false;
           var td = grid.getCellAtCoords(priv.selStart),
-            $td = $(td),
-            val = priv.editProxy.val();
+              $td = $(td),
+              val = priv.editProxy.val();
           if (!isCancelled) {
             td.innerHTML = val;
             if (priv.settings.onChange) {
@@ -889,7 +889,7 @@
      */
     this.updateSettings = function (settings) {
       for (var i in settings) {
-        if(settings.hasOwnProperty(i)) {
+        if (settings.hasOwnProperty(i)) {
           priv.settings[i] = settings[i];
         }
       }
