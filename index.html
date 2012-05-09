@@ -146,10 +146,12 @@
 <script>
     var first = true;
     $("#dataTable").handsontable({
-        rows: 6,
-        cols: 6,
+        rows: 4,
+        cols: 4,
+        minWidth: 300, //add spare cols at the right until minimum width (in pixels) is filled
         minHeight: 160, //add spare rows at the bottom until minimum height (in pixels) is filled
-        minSpareRows: 1, //always keep at least 1 spare row at the bottom
+        minSpareCols: 1, //always keep at least 1 spare row at the right
+        minSpareRows: 1, //always keep at least 1 spare row at the bottomminHeight: 160, //add spare rows at the bottom until minimum height (in pixels) is filled
         onChange: function (data) {
             if (first) {
                 first = false;
@@ -173,7 +175,8 @@
 
 <p>Now you can define rules for <b>autocompletition</b>. To keep this plugin lightweight, this feature has a dependency
     on another jQuery plugin: <a
-            href="https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js">bootstrap-typeahead</a>. It is included in the repo.
+            href="https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js">bootstrap-typeahead</a>.
+    It is included in the repo.
 </p>
 
 <p>The below example also shows the <b>legend</b> feature, which makes the first row uneditable and have a different
@@ -188,6 +191,7 @@
     $("#dataTable2").handsontable({
         rows: 6,
         cols: 8,
+        minSpareCols: 1, //always keep at least 1 spare row at the right
         minSpareRows: 1, //always keep at least 1 spare row at the bottom
         legend: [
             {
@@ -254,12 +258,17 @@
 <ul>
     <li><b>rows</b> - Initial number of rows</li>
     <li><b>cols</b> - Initial number of columns</li>
+    <li><b>minWidth</b> - <i>(Optional)</i> Number. If set, will add as many columns as needed to meet the given width
+        in pixels
+    </li>
     <li><b>minHeight</b> - <i>(Optional)</i> Number. If set, will add as many rows as needed to meet the given height in
         pixels
     </li>
+    <li><b>minSpareCols</b> - <i>(Optional)</i> Number. If set to 1 (or more), will add a new column at the end of grid
+        when there are no&nbsp;more empty columns
+    </li>
     <li><b>minSpareRows</b> - <i>(Optional)</i> Number. If set to 1 (or more), will add a new row at the end of grid
-        when
-        there are no more empty rows
+        when there are no&nbsp;more empty rows
     </li>
     <li><b>onChange</b> - <i>(Optional)</i> Function to be called after one or more cells is changed (with changes
         array as an argument)

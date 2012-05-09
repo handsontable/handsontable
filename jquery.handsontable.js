@@ -22,7 +22,9 @@
       selEnd: null,
       editProxy: false,
       table: null,
-      isPopulated: null
+      isPopulated: null,
+      rowCount: null,
+      colCount: null
     };
 
     var lastChange = '';
@@ -36,66 +38,85 @@
        * Creates row at the bottom
        */
       createRow: function () {
-        var tr, td, c;
+        var tr, c;
         tr = $('<tr>');
-        for (c = 0; c < priv.settings.cols; c++) {
-          td = $('<td>');
-          tr.append(td);
-          td.bind('mousedown', interaction.onMouseDown);
-          td.bind('mouseover', interaction.onMouseOver);
+        for (c = 0; c < priv.colCount; c++) {
+          grid.createCell(tr);
         }
         $(priv.tableBody).append(tr);
+        priv.rowCount = priv.tableBody.childNodes.length;
+      },
+
+      /**
+       * Creates col at the right
+       */
+      createCol: function () {
+        var trs = priv.tableBody.childNodes;
+        for (var r = 0, trslen = trs.length; r < trslen; r++) {
+          grid.createCell($(priv.tableBody.childNodes[r]));
+        }
+        priv.colCount = trs[0].childNodes.length;
+      },
+
+      /**
+       * Creates td in $tr
+       */
+      createCell: function ($tr) {
+        var td = $('<td>');
+        $tr.append(td);
+        td.bind('mousedown', interaction.onMouseDown);
+        td.bind('mouseover', interaction.onMouseOver);
       },
 
       /**
        * Makes sure there are empty rows at the bottom of the table
        */
       keepEmptyRows: function () {
-        if (!priv.settings.minSpareRows && !priv.settings.minHeight) {
-          return;
-        }
-        var trs, tds, r, c, clen, emptyRows = 0, trslen, recreate = false;
+        var trs, tds, r, c, clen, emptyRows = 0, emptyCols = 0, trslen, recreate = false;
 
-        //count currently empty rows
-        trs = priv.tableBody.childNodes;
-        trslen = trs.length;
-        rows : for (r = trslen - 1; r >= 0; r--) {
-          tds = trs[r].childNodes;
-          for (c = 0, clen = tds.length; c < clen; c++) {
-            if (tds[c].innerHTML !== '') {
-              break rows;
+        if (priv.settings.minSpareRows) {
+          //count currently empty rows
+          trs = priv.tableBody.childNodes;
+          trslen = trs.length;
+          rows : for (r = trslen - 1; r >= 0; r--) {
+            tds = trs[r].childNodes;
+            for (c = 0, clen = tds.length; c < clen; c++) {
+              if (tds[c].innerHTML !== '') {
+                break rows;
+              }
+            }
+            emptyRows++;
+          }
+
+          //should I add empty rows to meet minSpareRows?
+          if (emptyRows < priv.settings.minSpareRows) {
+            for (; emptyRows < priv.settings.minSpareRows; emptyRows++) {
+              grid.createRow(clen || priv.settings.cols);
+              recreate = true;
             }
           }
-          emptyRows++;
-        }
-
-        //should I add empty rows to meet minSpareRows?
-        if (emptyRows < priv.settings.minSpareRows) {
-          for (; emptyRows < priv.settings.minSpareRows; emptyRows++) {
-            grid.createRow();
-            recreate = true;
-          }
-        }
-        //should I remove empty rows to meet minSpareRows?
-        else if (emptyRows > priv.settings.minSpareRows) {
-          r = Math.min(emptyRows - priv.settings.minSpareRows, trslen - priv.settings.rows);
-          if (r > 0) {
-            $(trs).slice(-r).remove(); //slices last n rows from table and removes them
-            recreate = true;
-            if (priv.selStart) {
-              //if selection is outside, move selection to last row
-              if (priv.selStart.row > trslen - r - 1) {
-                priv.selStart.row = trslen - r - 1;
-                if (priv.selEnd.row > priv.selStart.row) {
-                  priv.selEnd.row = priv.selStart.row;
+          //should I remove empty rows to meet minSpareRows?
+          else if (emptyRows > priv.settings.minSpareRows) {
+            r = Math.min(emptyRows - priv.settings.minSpareRows, trslen - priv.settings.rows);
+            if (r > 0) {
+              $(trs).slice(-r).remove(); //slices last n rows from table and removes them
+              priv.rowCount = priv.tableBody.childNodes.length;
+              recreate = true;
+              if (priv.selStart) {
+                //if selection is outside, move selection to last row
+                if (priv.selStart.row > trslen - r - 1) {
+                  priv.selStart.row = trslen - r - 1;
+                  if (priv.selEnd.row > priv.selStart.row) {
+                    priv.selEnd.row = priv.selStart.row;
+                  }
+                  highlight.on();
+                } else if (priv.selEnd.row > trslen - r - 1) {
+                  priv.selEnd.row = trslen - r - 1;
+                  if (priv.selStart.row > priv.selEnd.row) {
+                    priv.selStart.row = priv.selEnd.row;
+                  }
+                  highlight.on();
                 }
-                highlight.on();
-              } else if (priv.selEnd.row > trslen - r - 1) {
-                priv.selEnd.row = trslen - r - 1;
-                if (priv.selStart.row > priv.selEnd.row) {
-                  priv.selStart.row = priv.selEnd.row;
-                }
-                highlight.on();
               }
             }
           }
@@ -103,10 +124,76 @@
 
         //should I add empty rows to meet minHeight
         //WARNING! jQuery returns 0 as height() for container which is not :visible. this will lead to a infinite loop
-        if (container.height() > 0 && container.height() <= priv.settings.minHeight) {
-          while (container.height() <= priv.settings.minHeight) {
-            grid.createRow();
-            recreate = true;
+        if (priv.settings.minHeight) {
+          if (container.height() > 0 && container.height() <= priv.settings.minHeight) {
+            while (container.height() <= priv.settings.minHeight) {
+              grid.createRow(clen || priv.settings.cols);
+              recreate = true;
+            }
+          }
+        }
+
+        if (priv.settings.minSpareCols) {
+          //count currently empty cols
+          trs = priv.tableBody.childNodes;
+          trslen = trs.length;
+          if (trslen > 0) {
+            clen = trs[0].childNodes.length;
+            cols : for (c = clen - 1; c >= 0; c--) {
+              for (r = 0; r < trslen; r++) {
+                if (trs[r].childNodes[c].innerHTML !== '') {
+                  break cols;
+                }
+              }
+              emptyCols++;
+            }
+          }
+
+          //should I add empty cols to meet minSpareCols?
+          if (emptyCols < priv.settings.minSpareCols) {
+            for (; emptyCols < priv.settings.minSpareCols; emptyCols++) {
+              grid.createCol();
+              recreate = true;
+            }
+          }
+          //should I remove empty rows to meet minSpareCols?
+          else if (emptyCols > priv.settings.minSpareCols) {
+            c = Math.min(emptyCols - priv.settings.minSpareCols, clen - priv.settings.cols);
+            if (c > 0) {
+              $(trs).each(function () {
+                $(this.childNodes).slice(-c).remove(); //slices last n cols from table and removes them
+              });
+              priv.colCount = trs[0].childNodes.length;
+              recreate = true;
+              if (priv.selStart) {
+                //if selection is outside, move selection to last row
+                if (priv.selStart.col > clen - c - 1) {
+                  priv.selStart.col = clen - c - 1;
+                  if (priv.selEnd.col > priv.selStart.col) {
+                    priv.selEnd.col = priv.selStart.col;
+                  }
+                  highlight.on();
+                } else if (priv.selEnd.col > clen - c - 1) {
+                  priv.selEnd.col = clen - c - 1;
+                  if (priv.selStart.col > priv.selEnd.col) {
+                    priv.selStart.col = priv.selEnd.col;
+                  }
+                  highlight.on();
+                }
+              }
+            }
+          }
+        }
+
+        //should I add empty rows to meet minWidth
+        //WARNING! jQuery returns 0 as width() for container which is not :visible. this will lead to a infinite loop
+        if (priv.settings.minWidth) {
+          var $tbody = $(priv.tableBody);
+          if ($tbody.width() > 0 && $tbody.width() <= priv.settings.minWidth) {
+            while ($tbody.width() <= priv.settings.minWidth) {
+              grid.createCol();
+              recreate = true;
+            }
           }
         }
 
@@ -862,6 +949,7 @@
 
       priv.table = $('<table><tbody></tbody></table>');
       priv.tableBody = priv.table.find("tbody")[0];
+      priv.colCount = priv.settings.cols;
       for (r = 0; r < priv.settings.rows; r++) {
         grid.createRow();
       }
