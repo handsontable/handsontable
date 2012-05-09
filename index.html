@@ -169,15 +169,15 @@
     $("#dataTable").handsontable("loadData", data);
 </script>
 
-<h3>Autocomplete <span class="super"> NEW!</span></h3>
+<h3>Autocomplete and Legend <span class="super"> NEW!</span></h3>
 
-<p>Now you can define rules for autocompletition. You define 2 callback functions <b>match</b> and <b>source</b> to
-    define what cells should get completition and what suggestions should be shown to the user. Check the source of
-    this page for example.</p>
+<p>Now you can define rules for <b>autocompletition</b>. To keep this plugin lightweight, this feature has a dependency
+    on another jQuery plugin: <a
+            href="https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js">bootstrap-typeahead</a>. It is included in the repo.
+</p>
 
-<p>To keep this plugin lightweight, autocomplete feature relies on <a
-        href="https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js">bootstrap-typeahead</a>.
-    You need that plugin to be loaded to make it work.</p>
+<p>The below example also shows the <b>legend</b> feature, which makes the first row uneditable and have a different
+    text style.</p>
 
 <div id="dataTable2" class="dataTable"></div>
 <p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
