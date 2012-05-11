@@ -72,7 +72,7 @@
 
       /**
        * Makes sure there are empty rows at the bottom of the table
-       * @return recreate {Boolean} TRUE if row or col was added or removed
+       * @return recreate {Boolean} TRUE if row or col was added
        */
       keepEmptyRows: function() {
         var trs, tds, r, c, clen, emptyRows = 0, emptyCols = 0, trslen, recreate = false;
@@ -96,31 +96,6 @@
             for (; emptyRows < priv.settings.minSpareRows; emptyRows++) {
               grid.createRow(clen || priv.settings.cols);
               recreate = true;
-            }
-          }
-          //should I remove empty rows to meet minSpareRows?
-          else if (emptyRows > priv.settings.minSpareRows) {
-            r = Math.min(emptyRows - priv.settings.minSpareRows, trslen - priv.settings.rows);
-            if (r > 0) {
-              $(trs).slice(-r).remove(); //slices last n rows from table and removes them
-              priv.rowCount = priv.tableBody.childNodes.length;
-              recreate = true;
-              if (priv.selStart) {
-                //if selection is outside, move selection to last row
-                if (priv.selStart.row > trslen - r - 1) {
-                  priv.selStart.row = trslen - r - 1;
-                  if (priv.selEnd.row > priv.selStart.row) {
-                    priv.selEnd.row = priv.selStart.row;
-                  }
-                  highlight.on();
-                } else if (priv.selEnd.row > trslen - r - 1) {
-                  priv.selEnd.row = trslen - r - 1;
-                  if (priv.selStart.row > priv.selEnd.row) {
-                    priv.selStart.row = priv.selEnd.row;
-                  }
-                  highlight.on();
-                }
-              }
             }
           }
         }
@@ -157,33 +132,6 @@
             for (; emptyCols < priv.settings.minSpareCols; emptyCols++) {
               grid.createCol();
               recreate = true;
-            }
-          }
-          //should I remove empty rows to meet minSpareCols?
-          else if (emptyCols > priv.settings.minSpareCols) {
-            c = Math.min(emptyCols - priv.settings.minSpareCols, clen - priv.settings.cols);
-            if (c > 0) {
-              $(trs).each(function() {
-                $(this.childNodes).slice(-c).remove(); //slices last n cols from table and removes them
-              });
-              priv.colCount = trs[0].childNodes.length;
-              recreate = true;
-              if (priv.selStart) {
-                //if selection is outside, move selection to last row
-                if (priv.selStart.col > clen - c - 1) {
-                  priv.selStart.col = clen - c - 1;
-                  if (priv.selEnd.col > priv.selStart.col) {
-                    priv.selEnd.col = priv.selStart.col;
-                  }
-                  highlight.on();
-                } else if (priv.selEnd.col > clen - c - 1) {
-                  priv.selEnd.col = clen - c - 1;
-                  if (priv.selStart.col > priv.selEnd.col) {
-                    priv.selStart.col = priv.selEnd.col;
-                  }
-                  highlight.on();
-                }
-              }
             }
           }
         }
