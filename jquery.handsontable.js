@@ -6,11 +6,11 @@
  * http://warpech.github.com/jquery-handsontable/
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
-(function($) {
+(function ($) {
   "use strict";
 
   function Handsontable(container, settings) {
-    var UNDEFINED = (function() {
+    var UNDEFINED = (function () {
     }()), priv, grid, selection, keyboard, editproxy, highlight, interaction, self = this;
 
     priv = {
@@ -26,7 +26,8 @@
       rowCount: null,
       colCount: null,
       scrollableContainer: null,
-      hasLegend: null
+      hasLegend: null,
+      lastAutoComplete: null
     };
 
     var lastChange = '';
@@ -35,11 +36,21 @@
       return (priv.editProxy.data("typeahead") && priv.editProxy.data("typeahead").$menu.is(":visible"));
     }
 
+    /**
+     * Copied from bootstrap-typeahead.js for reference
+     */
+    function defaultAutoCompleteHighlighter(item) {
+      var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
+      return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+        return '<strong>' + match + '</strong>';
+      })
+    }
+
     grid = {
       /**
        * Creates row at the bottom
        */
-      createRow: function() {
+      createRow: function () {
         var tr, c;
         tr = $('<tr>');
         for (c = 0; c < priv.colCount; c++) {
@@ -52,7 +63,7 @@
       /**
        * Creates col at the right
        */
-      createCol: function() {
+      createCol: function () {
         var trs = priv.tableBody.childNodes;
         for (var r = 0, trslen = trs.length; r < trslen; r++) {
           grid.createCell($(priv.tableBody.childNodes[r]));
@@ -63,7 +74,7 @@
       /**
        * Creates td in $tr
        */
-      createCell: function($tr) {
+      createCell: function ($tr) {
         var td = $('<td>');
         $tr.append(td);
         td.bind('mousedown', interaction.onMouseDown);
@@ -74,7 +85,7 @@
        * Makes sure there are empty rows at the bottom of the table
        * @return recreate {Boolean} TRUE if row or col was added
        */
-      keepEmptyRows: function() {
+      keepEmptyRows: function () {
         var trs, tds, r, c, clen, emptyRows = 0, emptyCols = 0, trslen, recreate = false;
 
         if (priv.settings.minSpareRows) {
@@ -158,7 +169,7 @@
       /**
        * Create legend
        */
-      createLegend: function() {
+      createLegend: function () {
         grid.resetLegend();
         if (priv.settings.legend) {
           var tds = grid.getAllCells(), col, row;
@@ -182,8 +193,8 @@
       /**
        * Reset legend
        */
-      resetLegend: function() {
-        if(priv.hasLegend) {
+      resetLegend: function () {
+        if (priv.hasLegend) {
           var tds = grid.getAllCells();
           for (var j = 0, jlen = tds.length; j < jlen; j++) {
             $(tds[j]).removeAttr("style").removeAttr("title").removeData("readOnly");
@@ -194,7 +205,7 @@
       /**
        * Is cell writeable
        */
-      isCellWriteable: function($td) {
+      isCellWriteable: function ($td) {
         if (priv.isPopulated && $td.data("readOnly")) {
           return false;
         }
@@ -209,7 +220,7 @@
        * @param {Array} input 2d array
        * @return {Object} ending td in pasted area
        */
-      populateFromArray: function(start, input) {
+      populateFromArray: function (start, input) {
         var r, rlen, c, clen, td, endTd, changes = [];
         rlen = input.length;
         if (rlen === 0) {
@@ -251,7 +262,7 @@
       /**
        * Clears all cells in the grid
        */
-      clear: function() {
+      clear: function () {
         var tds = grid.getAllCells();
         $(tds).empty();
       },
@@ -262,7 +273,7 @@
        * @param {Object} end (Optional) End selection position
        * @return {Array}
        */
-      getData: function(start, end) {
+      getData: function (start, end) {
         var tds, tdslen, col, countCols, countRows, c, r, data = [];
         if (start) {
           tds = grid.getCellsAtCoords(start, end);
@@ -296,7 +307,7 @@
        * @param {Object} end (Optional) End selection position
        * @return {String}
        */
-      getText: function(start, end) {
+      getText: function (start, end) {
         var data = grid.getData(start, end), text = '', r, rlen, c, clen;
         for (r = 0, rlen = data.length; r < rlen; r++) {
           for (c = 0, clen = data[r].length; c < clen; c++) {
@@ -313,7 +324,7 @@
       /**
        * Returns coordinates given td object
        */
-      getCellCoords: function(td) {
+      getCellCoords: function (td) {
         var $td = $(td);
         if ($td.length) {
           return {
@@ -326,7 +337,7 @@
       /**
        * Returns td object given coordinates
        */
-      getCellAtCoords: function(coords) {
+      getCellAtCoords: function (coords) {
         //var td = container.find('tr:eq(' + coords.row + ') td:eq(' + coords.col + ')');
         //return td;
         if (coords.row < 0 || coords.col < 0) {
@@ -344,7 +355,7 @@
       /**
        * Returns array of td objects given start and end coordinates
        */
-      getCellsAtCoords: function(start, end) {
+      getCellsAtCoords: function (start, end) {
         /*if (!end) {
          return grid.getCellAtCoords(start, end);
          }*/
@@ -365,7 +376,7 @@
       /**
        * Returns all td objects in grid
        */
-      getAllCells: function() {
+      getAllCells: function () {
         var tds = [], trs, r, rlen, c, clen;
         trs = priv.tableBody.childNodes;
         rlen = trs.length;
@@ -386,7 +397,7 @@
        * Starts selection range on given td object
        * @param td element
        */
-      setRangeStart: function(td) {
+      setRangeStart: function (td) {
         selection.deselect();
         priv.selStart = grid.getCellCoords(td);
         selection.setRangeEnd(td);
@@ -397,7 +408,7 @@
        * Ends selection range on given td object
        * @param td element
        */
-      setRangeEnd: function(td) {
+      setRangeEnd: function (td) {
         selection.deselect();
         selection.end(td);
         editproxy.prepare();
@@ -408,7 +419,7 @@
       /**
        * Setter/getter for selection start
        */
-      start: function(td) {
+      start: function (td) {
         if (td) {
           priv.selStart = grid.getCellCoords(td);
         }
@@ -418,7 +429,7 @@
       /**
        * Setter/getter for selection end
        */
-      end: function(td) {
+      end: function (td) {
         if (td) {
           priv.selEnd = grid.getCellCoords(td);
         }
@@ -428,7 +439,7 @@
       /**
        * Selects cell relative to current cell (if possible)
        */
-      transformStart: function(rowDelta, colDelta) {
+      transformStart: function (rowDelta, colDelta) {
         var td = grid.getCellAtCoords({
           row: (priv.selStart.row + rowDelta),
           col: priv.selStart.col + colDelta
@@ -441,7 +452,7 @@
       /**
        * Sets selection end cell relative to current selection end cell (if possible)
        */
-      transformEnd: function(rowDelta, colDelta) {
+      transformEnd: function (rowDelta, colDelta) {
         var td = grid.getCellAtCoords({
           row: (priv.selEnd.row + rowDelta),
           col: priv.selEnd.col + colDelta
@@ -454,7 +465,7 @@
       /**
        * Returns true if currently there is a selection on screen, false otherwise
        */
-      isSelected: function() {
+      isSelected: function () {
         var selEnd = selection.end();
         if (!selEnd || selEnd.row === UNDEFINED) {
           return false;
@@ -465,7 +476,7 @@
       /**
        * Deselects all selected cells
        */
-      deselect: function() {
+      deselect: function () {
         if (!selection.isSelected()) {
           return;
         }
@@ -479,7 +490,7 @@
       /**
        * Select all cells
        */
-      selectAll: function() {
+      selectAll: function () {
         var tds = grid.getAllCells();
         if (tds.length) {
           selection.setRangeStart(tds[0]);
@@ -490,7 +501,7 @@
       /**
        * Deletes data from selected cells
        */
-      empty: function() {
+      empty: function () {
         if (!selection.isSelected()) {
           return;
         }
@@ -517,7 +528,7 @@
       /**
        * Create highlight border
        */
-      init: function() {
+      init: function () {
         priv.selectionArea = {
           top: $("<div class='selectionArea'>"),
           left: $("<div class='selectionArea'>"),
@@ -533,7 +544,7 @@
       /**
        * Show border around selected cells
        */
-      on: function() {
+      on: function () {
         if (!selection.isSelected()) {
           return false;
         }
@@ -571,7 +582,7 @@
       /**
        * Hide border around selected cells
        */
-      off: function() {
+      off: function () {
         if (!selection.isSelected()) {
           return false;
         }
@@ -590,7 +601,7 @@
        * Scroll viewport to selection
        * @param td
        */
-      scrollViewport: function(td) {
+      scrollViewport: function (td) {
         if (!selection.isSelected() || !priv.scrollableContainer) {
           return false;
         }
@@ -608,23 +619,23 @@
         var scrollHeight = priv.scrollableContainer.height();
 
         if (scrollLeft + scrollWidth < offsetLeft + 1.5 * width + 4) {
-          setTimeout(function() {
+          setTimeout(function () {
             priv.scrollableContainer.scrollLeft(offsetLeft + 1.5 * width + 4 - scrollWidth);
           }, 1);
         }
         else if (scrollLeft > offsetLeft) {
-          setTimeout(function() {
+          setTimeout(function () {
             priv.scrollableContainer.scrollLeft(offsetLeft - 0.5 * width);
           }, 1);
         }
 
         if (scrollTop + scrollHeight < offsetTop + 2 * height + 4) {
-          setTimeout(function() {
+          setTimeout(function () {
             priv.scrollableContainer.scrollTop(offsetTop + 2 * height + 4 - scrollHeight);
           }, 1);
         }
         else if (scrollTop > offsetTop) {
-          setTimeout(function() {
+          setTimeout(function () {
             priv.scrollableContainer.scrollTop(offsetTop - 0.1 * height);
           }, 1);
         }
@@ -637,7 +648,7 @@
        * @param {String} input
        * @return {Array} 2d array
        */
-      parsePasteInput: function(input) {
+      parsePasteInput: function (input) {
         var rows, r, rlen;
 
         //if (input.indexOf("\t") > -1) { //Excel format
@@ -659,7 +670,7 @@
       /**
        * Create input field
        */
-      init: function() {
+      init: function () {
         priv.editProxy = $('<textarea class="editInput">').css({
           top: '0',
           left: '-10000px',
@@ -677,14 +688,14 @@
 
         function onCut() {
           editproxy.finishEditing();
-          setTimeout(function() {
+          setTimeout(function () {
             selection.empty();
           }, 100);
         }
 
         function onPaste() {
           editproxy.finishEditing();
-          setTimeout(function() {
+          setTimeout(function () {
             var input = priv.editProxy.val(),
                 inputArray = keyboard.parsePasteInput(input),
                 endTd = grid.populateFromArray({
@@ -814,7 +825,7 @@
         function onChange() {
           if (isAutoComplete()) { //could this change be from autocomplete
             var val = priv.editProxy.val();
-            if (val !== lastChange && $.inArray(val, priv.editProxy.data("typeahead").source) > -1) { //is it change from source (don't trigger on partial)
+            if (val !== lastChange && val === priv.lastAutoComplete) { //is it change from source (don't trigger on partial)
               priv.isCellEdited = true;
               editproxy.finishEditing(); //save change, hide edit field
               selection.transformStart(1, 0); //move selection down
@@ -835,7 +846,7 @@
       /**
        * Prepare text input to be displayed at given grid cell
        */
-      prepare: function() {
+      prepare: function () {
         priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
         priv.editProxy.val(grid.getText(priv.selStart, priv.selEnd));
         setTimeout(editproxy.focus, 1);
@@ -849,10 +860,16 @@
             if (priv.settings.autoComplete[i].match(priv.selStart.row, priv.selStart.col, self.getData)) {
               if (typeahead) {
                 typeahead.source = priv.settings.autoComplete[i].source();
+                typeahead.highlighter = priv.settings.autoComplete[i].highlighter || defaultAutoCompleteHighlighter;
               }
               else {
                 priv.editProxy.typeahead({
-                  source: priv.settings.autoComplete[i].source()
+                  source: priv.settings.autoComplete[i].source(),
+                  updater: function (item) {
+                    priv.lastAutoComplete = item;
+                    return item
+                  },
+                  highlighter: priv.settings.autoComplete[i].highlighter || defaultAutoCompleteHighlighter
                 });
               }
               break;
@@ -864,7 +881,7 @@
       /**
        * Sets focus to textarea
        */
-      focus: function() {
+      focus: function () {
         priv.editProxy[0].select();
       },
 
@@ -872,7 +889,7 @@
        * Shows text input in grid cell
        * @param useOriginalValue {Boolean}
        */
-      beginEditing: function(useOriginalValue) {
+      beginEditing: function (useOriginalValue) {
         if (priv.isCellEdited) {
           return;
         }
@@ -909,7 +926,7 @@
        * Shows text input in grid cell
        * @param isCancelled {Boolean} If TRUE, restore old value instead of using current from editproxy
        */
-      finishEditing: function(isCancelled) {
+      finishEditing: function (isCancelled) {
         if (priv.isCellEdited) {
           priv.isCellEdited = false;
           var td = grid.getCellAtCoords(priv.selStart),
@@ -938,12 +955,12 @@
     };
 
     interaction = {
-      onMouseDown: function() {
+      onMouseDown: function () {
         priv.isMouseDown = true;
         selection.setRangeStart(this);
       },
 
-      onMouseOver: function() {
+      onMouseOver: function () {
         if (priv.isMouseDown) {
           selection.setRangeEnd(this);
         }
@@ -969,7 +986,7 @@
       }
 
       var recreated = grid.keepEmptyRows();
-      if(!recreated) {
+      if (!recreated) {
         grid.createLegend();
       }
 
@@ -987,7 +1004,7 @@
       }
 
       function onOutsideClick() {
-        setTimeout(function() {//do async so all mouseenter, mouseleave events will fire before
+        setTimeout(function () {//do async so all mouseenter, mouseleave events will fire before
           if (!priv.isMouseOverTable) {
             selection.deselect();
           }
@@ -1012,7 +1029,7 @@
      * @param col {Number}
      * @param value {String}
      */
-    this.setDataAtCell = function(row, col, value) {
+    this.setDataAtCell = function (row, col, value) {
       var td = grid.getCellAtCoords({
         row: row,
         col: col
@@ -1028,7 +1045,7 @@
      * @public
      * @param {Array} data
      */
-    this.loadData = function(data) {
+    this.loadData = function (data) {
       priv.isPopulated = false;
       grid.clear();
       grid.populateFromArray({
@@ -1043,7 +1060,7 @@
      * @public
      * @return {Array}
      */
-    this.getData = function() {
+    this.getData = function () {
       return grid.getData();
     };
 
@@ -1051,7 +1068,7 @@
      * Update settings
      * @public
      */
-    this.updateSettings = function(settings) {
+    this.updateSettings = function (settings) {
       for (var i in settings) {
         if (settings.hasOwnProperty(i)) {
           priv.settings[i] = settings[i];
@@ -1064,7 +1081,7 @@
      * Clears grid
      * @public
      */
-    this.clear = function() {
+    this.clear = function () {
       selection.selectAll();
       selection.empty();
     };
@@ -1079,11 +1096,11 @@
     'minHeight': 0
   };
 
-  $.fn.handsontable = function(action, options) {
+  $.fn.handsontable = function (action, options) {
     var i, ilen, args, output = [];
     if (typeof action !== 'string') { //init
       options = action;
-      return this.each(function() {
+      return this.each(function () {
         if ($(this).data("handsontable")) {
           instance = $(this).data("handsontable");
           instance.updateSettings(options);
@@ -1105,7 +1122,7 @@
           args.push(arguments[i]);
         }
       }
-      this.each(function() {
+      this.each(function () {
         output = $(this).data("handsontable")[action].apply(this, args);
       });
       return output;

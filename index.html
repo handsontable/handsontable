@@ -214,6 +214,13 @@
                     }
                     return false;
                 },
+                highlighter: function (item) {
+                    var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
+                    var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+                        return '<strong>' + match + '</strong>';
+                    })
+                    return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
+                },
                 source: function () {
                     return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
                 }
@@ -245,6 +252,8 @@
     ];
 
     $("#dataTable2").handsontable("loadData", data);
+
+    $('.typeahead dropdown-menu li')
 </script>
 
 <h2>Documentation</h2>
@@ -282,8 +291,7 @@
                     <li>row - Number of row, starting of 0</li>
                     <li>col - Number of column, starting of 0</li>
                     <li>data - Function that returns array of current data for all cells. Can be used to check what is
-                        the current
-                        content of any cell.
+                        the current content of any cell.
                     </li>
                 </ul>
             </li>
@@ -303,10 +311,12 @@
                     <li>row - Number of row, starting of 0</li>
                     <li>col - Number of column, starting of 0</li>
                     <li>data - Function that returns array of current data for all cells. Can be used to check what is
-                        the current
-                        content of any cell.
+                        the current content of any cell.
                     </li>
                 </ul>
+            </li>
+            <li><b>highlighter</b>(item) - Function to render suggestion row for autocomplete. See the above example for
+                color highlighter.
             </li>
             <li><b>source</b>() - Function to return data for autocomplete</li>
         </ul>
