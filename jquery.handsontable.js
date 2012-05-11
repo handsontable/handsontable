@@ -25,7 +25,8 @@
       isPopulated: null,
       rowCount: null,
       colCount: null,
-      scrollableContainer: null
+      scrollableContainer: null,
+      hasLegend: null
     };
 
     var lastChange = '';
@@ -71,6 +72,7 @@
 
       /**
        * Makes sure there are empty rows at the bottom of the table
+       * @return recreate {Boolean} TRUE if row or col was added or removed
        */
       keepEmptyRows: function() {
         var trs, tds, r, c, clen, emptyRows = 0, emptyCols = 0, trslen, recreate = false;
@@ -201,12 +203,15 @@
         if (recreate) {
           grid.createLegend();
         }
+
+        return recreate;
       },
 
       /**
        * Create legend
        */
       createLegend: function() {
+        grid.resetLegend();
         if (priv.settings.legend) {
           var tds = grid.getAllCells(), col, row;
           for (var i = 0, ilen = tds.length; i < ilen; i++) {
@@ -216,11 +221,24 @@
             for (var j = 0, jlen = priv.settings.legend.length; j < jlen; j++) {
               var legend = priv.settings.legend[j];
               if (legend.match(row, col, self.getData)) {
-                typeof priv.settings.legend[j].style !== "undefined" && td.css(priv.settings.legend[j].style);
-                typeof priv.settings.legend[j].readOnly !== "undefined" && td.data("readOnly", priv.settings.legend[j].readOnly);
-                typeof priv.settings.legend[j].title !== "undefined" && td.attr("title", priv.settings.legend[j].title);
+                priv.hasLegend = true;
+                typeof legend.style !== "undefined" && td.css(legend.style);
+                typeof legend.readOnly !== "undefined" && td.data("readOnly", legend.readOnly);
+                typeof legend.title !== "undefined" && td.attr("title", legend.title);
               }
             }
+          }
+        }
+      },
+
+      /**
+       * Reset legend
+       */
+      resetLegend: function() {
+        if(priv.hasLegend) {
+          var tds = grid.getAllCells();
+          for (var j = 0, jlen = tds.length; j < jlen; j++) {
+            $(tds[j]).removeAttr("style").removeAttr("title").removeData("readOnly");
           }
         }
       },
@@ -720,11 +738,11 @@
           editproxy.finishEditing();
           setTimeout(function() {
             var input = priv.editProxy.val(),
-              inputArray = keyboard.parsePasteInput(input),
-              endTd = grid.populateFromArray({
-                row: Math.min(priv.selStart.row, priv.selEnd.row),
-                col: Math.min(priv.selStart.col, priv.selEnd.col)
-              }, inputArray);
+                inputArray = keyboard.parsePasteInput(input),
+                endTd = grid.populateFromArray({
+                  row: Math.min(priv.selStart.row, priv.selEnd.row),
+                  col: Math.min(priv.selStart.col, priv.selEnd.col)
+                }, inputArray);
             selection.setRangeEnd(endTd);
           }, 100);
         }
@@ -733,8 +751,8 @@
           if (selection.isSelected()) {
             var ctrlOnly = event.ctrlKey && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
             if ((event.keyCode >= 48 && event.keyCode <= 57) || //0-9
-              (event.keyCode >= 96 && event.keyCode <= 111) || //numpad
-              (event.keyCode >= 65 && event.keyCode <= 90)) { //a-z
+                (event.keyCode >= 96 && event.keyCode <= 111) || //numpad
+                (event.keyCode >= 65 && event.keyCode <= 90)) { //a-z
               /* alphanumeric */
               if (!ctrlOnly) { //disregard CTRL-key shortcuts
                 editproxy.beginEditing();
@@ -912,7 +930,7 @@
         }
 
         var td = grid.getCellAtCoords(priv.selStart),
-          $td = $(td);
+            $td = $(td);
 
         priv.isCellEdited = true;
         lastChange = '';
@@ -947,8 +965,8 @@
         if (priv.isCellEdited) {
           priv.isCellEdited = false;
           var td = grid.getCellAtCoords(priv.selStart),
-            $td = $(td),
-            val = priv.editProxy.val();
+              $td = $(td),
+              val = priv.editProxy.val();
           if (!isCancelled && grid.isCellWriteable($td)) {
             td.innerHTML = val;
             if (priv.settings.onChange) {
@@ -1002,7 +1020,8 @@
         grid.createRow();
       }
 
-      if (!priv.settings.minHeight && !priv.settings.minSpareRows) {
+      var recreated = grid.keepEmptyRows();
+      if(!recreated) {
         grid.createLegend();
       }
 
@@ -1090,9 +1109,7 @@
           priv.settings[i] = settings[i];
         }
       }
-      if (typeof priv.settings.minHeight !== "undefined" || typeof priv.settings.minSpareRows !== "undefined") {
-        grid.keepEmptyRows();
-      }
+      grid.keepEmptyRows();
     };
 
     /**
@@ -1148,4 +1165,4 @@
   };
 
 })
-  (jQuery);
+    (jQuery);
