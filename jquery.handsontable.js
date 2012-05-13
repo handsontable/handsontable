@@ -89,6 +89,17 @@
       },
 
       /**
+       * Clears the data array
+       */
+      clear: function () {
+        for (var r = 0; r < priv.rowCount; r++) {
+          for (var c = 0; c < priv.colCount; c++) {
+            datamap.data[r][c] = '';
+          }
+        }
+      },
+
+      /**
        * Returns the data array
        * @return {Array}
        */
@@ -1103,6 +1114,7 @@
      */
     this.loadData = function (data) {
       priv.isPopulated = false;
+      datamap.clear();
       grid.clear();
       grid.populateFromArray({
         row: 0,
