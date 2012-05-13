@@ -953,7 +953,6 @@
           return;
         }
 
-        $td.data("originalValue", datamap.get(priv.selStart.row, priv.selStart.col));
         priv.editProxy.css({
           top: parseInt(priv.selectionArea.top.css('top')) + 'px',
           left: parseInt(priv.selectionArea.top.css('left')) + 'px',
@@ -961,7 +960,7 @@
           height: $td.height()
         });
         if (useOriginalValue) {
-          priv.editProxy.val($td.data("originalValue"));
+          priv.editProxy.val(datamap.get(priv.selStart.row, priv.selStart.col));
         }
       },
 
@@ -976,13 +975,13 @@
               $td = $(td),
               val = priv.editProxy.val();
           if (!isCancelled && grid.isCellWriteable($td)) {
-            td.innerHTML = val;
-            datamap.set(priv.selStart.row, priv.selStart.col, val);
             if (priv.settings.onChange) {
               priv.settings.onChange([
-                [priv.selStart.row, priv.selStart.col, $td.data("originalValue"), val]
+                [priv.selStart.row, priv.selStart.col, datamap.get(priv.selStart.row, priv.selStart.col), val]
               ]);
             }
+            td.innerHTML = val;
+            datamap.set(priv.selStart.row, priv.selStart.col, val);
             grid.keepEmptyRows();
           }
 
