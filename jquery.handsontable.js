@@ -114,6 +114,26 @@
           output.push(row);
         }
         return output;
+      },
+
+      /**
+       * Return data as text (tab separated columns)
+       * @param {Object} start (Optional) Start selection position
+       * @param {Object} end (Optional) End selection position
+       * @return {String}
+       */
+      getText: function (start, end) {
+        var data = datamap.getRange(start, end), text = '', r, rlen, c, clen;
+        for (r = 0, rlen = data.length; r < rlen; r++) {
+          for (c = 0, clen = data[r].length; c < clen; c++) {
+            if (c > 0) {
+              text += "\t";
+            }
+            text += data[r][c];
+          }
+          text += "\n";
+        }
+        return text;
       }
     };
 
@@ -341,26 +361,6 @@
       clear: function () {
         var tds = grid.getAllCells();
         $(tds).empty();
-      },
-
-      /**
-       * Return data as text (tab separated columns)
-       * @param {Object} start (Optional) Start selection position
-       * @param {Object} end (Optional) End selection position
-       * @return {String}
-       */
-      getText: function (start, end) {
-        var data = datamap.getRange(start, end), text = '', r, rlen, c, clen;
-        for (r = 0, rlen = data.length; r < rlen; r++) {
-          for (c = 0, clen = data[r].length; c < clen; c++) {
-            if (c > 0) {
-              text += "\t";
-            }
-            text += data[r][c];
-          }
-          text += "\n";
-        }
-        return text;
       },
 
       /**
@@ -891,7 +891,7 @@
        */
       prepare: function () {
         priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
-        priv.editProxy.val(grid.getText(priv.selStart, priv.selEnd));
+        priv.editProxy.val(datamap.getText(priv.selStart, priv.selEnd));
         setTimeout(editproxy.focus, 1);
 
         if (priv.settings.autoComplete) {
