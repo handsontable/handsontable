@@ -1039,12 +1039,13 @@
         datamap.createRow();
       }
 
+      container.append(priv.table);
+
       var recreated = grid.keepEmptyRows();
       if (!recreated) {
         grid.createLegend();
       }
 
-      container.append(priv.table);
       highlight.init();
       editproxy.init();
 
