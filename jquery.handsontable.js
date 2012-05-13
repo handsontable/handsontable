@@ -315,38 +315,35 @@
        * @return {Object} ending td in pasted area
        */
       populateFromArray: function (start, input) {
-        var r, rlen, c, clen, td, endTd, changes = [];
+        var r, rlen, c, clen, td, endTd, changes = [], current = {};
         rlen = input.length;
         if (rlen === 0) {
           return false;
         }
+        current.row = start.row;
+        current.col = start.col;
         for (r = 0; r < rlen; r++) {
-          if (input[r]) {
-            clen = input[r].length;
-            for (c = 0; c < clen; c++) {
-              if (input[r][c] !== null) {
-                td = grid.getCellAtCoords({
-                  row: start.row + r,
-                  col: start.col + c
-                });
-                if (td && c === 0 && priv.settings.minSpareRows) {
-                  //we don't have a spare row but we can add it!
-                  grid.createRow();
-                  datamap.createRow();
-                  td = grid.getCellAtCoords({
-                    row: start.row + r,
-                    col: start.col + c
-                  });
-                }
-                if (td && grid.isCellWriteable($(td))) {
-                  changes.push([start.row + r, start.col + c, datamap.get(start.row + r, start.col + c), input[r][c]]);
-                  td.innerHTML = input[r][c];
-                  datamap.set(start.row + r, start.col + c, input[r][c]);
-                  endTd = td;
-                }
-              }
-            }
+          current.col = start.col;
+          if(current.row > priv.rowCount - 1) {
+            grid.createRow();
+            datamap.createRow();
           }
+          clen = input[r].length;
+          for (c = 0; c < clen; c++) {
+            if(current.col > priv.colCount - 1) {
+              grid.createCol();
+              datamap.createCol();
+            }
+            td = grid.getCellAtCoords(current);
+            if (grid.isCellWriteable($(td))) {
+              changes.push([current.row, current.col, datamap.get(current.row, current.col), input[r][c]]);
+              td.innerHTML = input[r][c];
+              datamap.set(current.row, current.col, input[r][c]);
+              endTd = td;
+            }
+            current.col++;
+          }
+          current.row++;
         }
         if (priv.settings.onChange && changes.length) {
           priv.settings.onChange(changes);
