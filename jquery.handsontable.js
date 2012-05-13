@@ -711,12 +711,9 @@
        * Create input field
        */
       init: function () {
-        priv.editProxy = $('<textarea class="editInput">').css({
-          top: '0',
-          left: '-10000px',
-          width: '1000px',
-          height: '10px'
-        });
+        priv.editProxy = $('<textarea class="editInput">');
+        priv.editProxyHolder = $('<div class="editInputHolder">');
+        priv.editProxyHolder.append(priv.editProxy);
 
         function onClick(event) {
           event.stopPropagation();
@@ -880,7 +877,7 @@
         priv.editProxy.bind('paste', onPaste);
         priv.editProxy.bind('keydown', onKeyDown);
         priv.editProxy.bind('change', onChange);
-        container.append(priv.editProxy);
+        container.append(priv.editProxyHolder);
       },
 
       /**
@@ -916,6 +913,18 @@
             }
           }
         }
+
+        var containerOffset = container.offset();
+        var $window = $(window);
+        priv.editProxyHolder.css({
+          top: $window.scrollTop() - containerOffset.top + 'px',
+          left: $window.scrollLeft() - containerOffset.left + 'px',
+          overflow: 'hidden'
+        });
+        priv.editProxy.css({
+          width: '1000px',
+          height: '1000px'
+        });
       },
 
       /**
@@ -951,10 +960,13 @@
         }
 
         priv.editProxy.css({
-          top: parseInt(priv.selectionArea.top.css('top')) + 'px',
-          left: parseInt(priv.selectionArea.top.css('left')) + 'px',
           width: $td.width() * 1.5,
           height: $td.height()
+        });
+        priv.editProxyHolder.css({
+          top: parseInt(priv.selectionArea.top.css('top')) - 1 + 'px',
+          left: parseInt(priv.selectionArea.top.css('left')) - 1 + 'px',
+          overflow: 'visible'
         });
         if (useOriginalValue) {
           priv.editProxy.val(datamap.get(priv.selStart.row, priv.selStart.col));
@@ -983,10 +995,11 @@
           }
 
           priv.editProxy.css({
-            top: '0',
-            left: '-10000px',
             width: '1000px',
             height: '1000px'
+          });
+          priv.editProxyHolder.css({
+            overflow: 'hidden'
           });
 
           highlight.on();

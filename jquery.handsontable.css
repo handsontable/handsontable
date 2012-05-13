@@ -47,16 +47,21 @@
 /* textarea border color */
 .dataTable textarea.editInput {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 0;
-  height: 0;
+  top: 1px;
+  left: 1px;
   border: 2px solid black;
   margin: 0;
   padding: 2px 4px 0 4px;
   font-family: Arial, Helvetica, sans-serif; /*repeat from .dataTable (inherit doesn't work with IE<8) */
   line-height: 1.3em;
   font-size: 13px;
+}
+
+.dataTable .editInputHolder {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 /* typeahead rules. Needed only if you are using the autocomplete feature */
