@@ -169,12 +169,11 @@
        * Creates row at the bottom of the <table>
        */
       createRow: function () {
-        var tr, c, tds = [];
+        var tr, c;
         tr = document.createElement('tr');
         for (c = 0; c < priv.colCount; c++) {
-          tds.push(grid.createCell(tr));
+          grid.createCell(tr);
         }
-        grid.bindCellActions(tds);
         priv.tableBody.appendChild(tr);
         priv.rowCount = priv.tableBody.childNodes.length;
       },
@@ -183,11 +182,10 @@
        * Creates col at the right of the <table>
        */
       createCol: function () {
-        var trs = priv.tableBody.childNodes, r, tds = [];
+        var trs = priv.tableBody.childNodes, r;
         for (r = 0; r < priv.rowCount; r++) {
-          tds.push(grid.createCell(priv.tableBody.childNodes[r]));
+          grid.createCell(priv.tableBody.childNodes[r]);
         }
-        grid.bindCellActions(tds);
         priv.colCount = trs[0].childNodes.length;
       },
 
@@ -198,16 +196,6 @@
         var td = document.createElement('td');
         tr.appendChild(td);
         return td;
-      },
-
-      /**
-       * Binds action to cells
-       * @param {Array} tds
-       */
-      bindCellActions: function (tds) {
-        $(tds).
-            on('mousedown', interaction.onMouseDown).
-            on('mouseover', interaction.onMouseOver);
       },
 
       /**
@@ -979,12 +967,12 @@
           }
         }
 
-        priv.editProxy.bind('click', onClick);
-        priv.editProxy.bind('dblclick', onDblClick);
-        priv.editProxy.bind('cut', onCut);
-        priv.editProxy.bind('paste', onPaste);
-        priv.editProxy.bind('keydown', onKeyDown);
-        priv.editProxy.bind('change', onChange);
+        priv.editProxy.on('click', onClick);
+        priv.editProxy.on('dblclick', onDblClick);
+        priv.editProxy.on('cut', onCut);
+        priv.editProxy.on('paste', onPaste);
+        priv.editProxy.on('keydown', onKeyDown);
+        priv.editProxy.on('change', onChange);
         container.append(priv.editProxyHolder);
       },
 
@@ -1147,6 +1135,9 @@
         datamap.createRow();
       }
 
+      priv.table.on('mousedown', 'td', interaction.onMouseDown);
+      priv.table.on('mouseover', 'td', interaction.onMouseOver);
+
       container.append(priv.table);
 
       var recreated = grid.keepEmptyRows();
@@ -1157,10 +1148,10 @@
       highlight.init();
       editproxy.init();
 
-      priv.table.bind('mouseenter', onMouseEnterTable);
-      priv.table.bind('mouseleave', onMouseLeaveTable);
-      priv.editProxy.bind('mouseenter', onMouseEnterTable);
-      priv.editProxy.bind('mouseleave', onMouseLeaveTable);
+      priv.table.on('mouseenter', onMouseEnterTable);
+      priv.table.on('mouseleave', onMouseLeaveTable);
+      priv.editProxy.on('mouseenter', onMouseEnterTable);
+      priv.editProxy.on('mouseleave', onMouseLeaveTable);
 
       function onMouseUp() {
         priv.isMouseDown = false;
@@ -1174,8 +1165,8 @@
         }, 1);
       }
 
-      $("html").bind('mouseup', onMouseUp);
-      $("html").bind('click', onOutsideClick);
+      $("html").on('mouseup', onMouseUp);
+      $("html").on('click', onOutsideClick);
 
       if (container.css('overflow') === 'scroll') {
         priv.scrollableContainer = container;
