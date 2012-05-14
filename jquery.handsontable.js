@@ -169,12 +169,13 @@
        * Creates row at the bottom of the <table>
        */
       createRow: function () {
-        var tr, c;
-        tr = $('<tr>');
+        var tr, c, tds = [];
+        tr = document.createElement('tr');
         for (c = 0; c < priv.colCount; c++) {
-          grid.createCell(tr);
+          tds.push(grid.createCell(tr));
         }
-        $(priv.tableBody).append(tr);
+        grid.bindCellActions(tds);
+        priv.tableBody.appendChild(tr);
         priv.rowCount = priv.tableBody.childNodes.length;
       },
 
@@ -182,21 +183,31 @@
        * Creates col at the right of the <table>
        */
       createCol: function () {
-        var trs = priv.tableBody.childNodes;
-        for (var r = 0, trslen = trs.length; r < trslen; r++) {
-          grid.createCell($(priv.tableBody.childNodes[r]));
+        var trs = priv.tableBody.childNodes, r, tds = [];
+        for (r = 0; r < priv.rowCount; r++) {
+          tds.push(grid.createCell(priv.tableBody.childNodes[r]));
         }
+        grid.bindCellActions(tds);
         priv.colCount = trs[0].childNodes.length;
       },
 
       /**
-       * Creates td in $tr
+       * Creates td in tr
        */
-      createCell: function ($tr) {
-        var td = $('<td>');
-        $tr.append(td);
-        td.bind('mousedown', interaction.onMouseDown);
-        td.bind('mouseover', interaction.onMouseOver);
+      createCell: function (tr) {
+        var td = document.createElement('td');
+        tr.appendChild(td);
+        return td;
+      },
+
+      /**
+       * Binds action to cells
+       * @param {Array} tds
+       */
+      bindCellActions: function (tds) {
+        $(tds).
+            on('mousedown', interaction.onMouseDown).
+            on('mouseover', interaction.onMouseOver);
       },
 
       /**
@@ -443,7 +454,7 @@
         if (priv.settings.onChange && changes.length) {
           priv.settings.onChange(changes);
         }
-        setTimeout(function(){
+        setTimeout(function () {
           grid.keepEmptyRows();
         }, 100);
         return endTd;
@@ -688,9 +699,9 @@
         var tds, i, ilen, last, firstOffset, lastOffset, containerOffset, top, left, height, width;
         tds = grid.getCellsAtCoords(priv.selStart, selection.end());
         for (i = 0, ilen = tds.length; i < ilen; i++) {
-          $(tds[i]).addClass('selected');
+          tds[i].className = 'selected';
         }
-        $(grid.getCellAtCoords(priv.selStart)).removeClass('selected');
+        grid.getCellAtCoords(priv.selStart).className = '';
 
         last = $(tds[tds.length - 1]);
         firstOffset = $(tds[0]).offset();
@@ -726,7 +737,7 @@
         var tds, i, ilen;
         tds = grid.getCellsAtCoords(priv.selStart, selection.end());
         for (i = 0, ilen = tds.length; i < ilen; i++) {
-          $(tds[i]).removeClass('selected');
+          tds[i].className = '';
         }
         priv.selectionArea.top.hide();
         priv.selectionArea.left.hide();
