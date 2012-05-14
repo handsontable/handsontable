@@ -70,6 +70,22 @@
       },
 
       /**
+       * Removes row at the bottom of the data array
+       */
+      removeRow: function () {
+        datamap.data.pop();
+      },
+
+      /**
+       * Removes col at the right of the data array
+       */
+      removeCol: function () {
+        for (var r = 0, rlen = datamap.data.length; r < rlen; r++) {
+          datamap.data[r].pop();
+        }
+      },
+
+      /**
        * Returns single value from the data array
        * @param {Number} row
        * @param {Number} col
@@ -184,11 +200,32 @@
       },
 
       /**
+       * Removes row at the bottom of the <table>
+       */
+      removeRow: function () {
+        priv.rowCount = priv.tableBody.childNodes.length - 1;
+        $(priv.tableBody.childNodes[priv.rowCount]).remove();
+      },
+
+      /**
+       * Removes col at the right of the <table>
+       */
+      removeCol: function () {
+        var trs = priv.tableBody.childNodes;
+        priv.colCount--;
+        for (var r = 0, rlen = trs.length; r < rlen; r++) {
+          $(trs[r].childNodes[priv.colCount]).remove();
+        }
+      },
+
+      /**
        * Makes sure there are empty rows at the bottom of the table
-       * @return recreate {Boolean} TRUE if row or col was added
+       * @return recreate {Boolean} TRUE if row or col was added or removed
        */
       keepEmptyRows: function () {
-        var rows, r, c, clen, emptyRows = 0, emptyCols = 0, rlen, recreate = false;
+        var rows, r, c, clen, emptyRows = 0, emptyCols = 0, rlen, recreateRows = false, recreateCols = false;
+
+        var $tbody = $(priv.tableBody);
 
         if (priv.settings.minSpareRows) {
           //count currently empty rows
@@ -208,7 +245,7 @@
             for (; emptyRows < priv.settings.minSpareRows; emptyRows++) {
               grid.createRow();
               datamap.createRow();
-              recreate = true;
+              recreateRows = true;
             }
           }
         }
@@ -220,7 +257,7 @@
             while (container.height() <= priv.settings.minHeight) {
               grid.createRow();
               datamap.createRow();
-              recreate = true;
+              recreateRows = true;
             }
           }
         }
@@ -246,7 +283,7 @@
             for (; emptyCols < priv.settings.minSpareCols; emptyCols++) {
               grid.createCol();
               datamap.createCol();
-              recreate = true;
+              recreateCols = true;
             }
           }
         }
@@ -254,21 +291,68 @@
         //should I add empty rows to meet minWidth
         //WARNING! jQuery returns 0 as width() for container which is not :visible. this will lead to a infinite loop
         if (priv.settings.minWidth) {
-          var $tbody = $(priv.tableBody);
           if ($tbody.width() > 0 && $tbody.width() <= priv.settings.minWidth) {
             while ($tbody.width() <= priv.settings.minWidth) {
               grid.createCol();
               datamap.createCol();
-              recreate = true;
+              recreateCols = true;
             }
           }
         }
 
-        if (recreate) {
+        if (!recreateRows) {
+          for (; ((priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows) && (!priv.settings.minHeight || container.height() - $tbody.find('tr:last').height() - 4 > priv.settings.minHeight)); emptyRows--) {
+            grid.removeRow();
+            datamap.removeRow();
+            recreateRows = true;
+          }
+          if (recreateRows && priv.selStart) {
+            //if selection is outside, move selection to last row
+            if (priv.selStart.row > priv.rowCount - 1) {
+              priv.selStart.row = priv.rowCount - 1;
+              if (priv.selEnd.row > priv.selStart.row) {
+                priv.selEnd.row = priv.selStart.row;
+              }
+              highlight.on();
+            } else if (priv.selEnd.row > priv.rowCount - 1) {
+              priv.selEnd.row = priv.rowCount - 1;
+              if (priv.selStart.row > priv.selEnd.row) {
+                priv.selStart.row = priv.selEnd.row;
+              }
+              highlight.on();
+            }
+          }
+        }
+
+        if (!recreateCols) {
+          for (; ((priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (priv.settings.minWidth && $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
+            grid.removeCol();
+            datamap.removeCol();
+            recreateCols = true;
+          }
+          if (priv.selStart) {
+            //if selection is outside, move selection to last row
+            if (priv.selStart.col > priv.colCount - 1) {
+              priv.selStart.col = priv.colCount - 1;
+              if (priv.selEnd.col > priv.selStart.col) {
+                priv.selEnd.col = priv.selStart.col;
+              }
+              highlight.on();
+            } else if (priv.selEnd.col > priv.colCount - 1) {
+              priv.selEnd.col = priv.colCount - 1;
+              if (priv.selStart.col > priv.selEnd.col) {
+                priv.selStart.col = priv.selEnd.col;
+              }
+              highlight.on();
+            }
+          }
+        }
+
+        if (recreateRows || recreateCols) {
           grid.createLegend();
         }
 
-        return recreate;
+        return (recreateRows || recreateCols);
       },
 
       /**
@@ -335,13 +419,13 @@
         current.col = start.col;
         for (r = 0; r < rlen; r++) {
           current.col = start.col;
-          if(current.row > priv.rowCount - 1) {
+          if (current.row > priv.rowCount - 1) {
             grid.createRow();
             datamap.createRow();
           }
           clen = input[r].length;
           for (c = 0; c < clen; c++) {
-            if(current.col > priv.colCount - 1) {
+            if (current.col > priv.colCount - 1) {
               grid.createCol();
               datamap.createCol();
             }
@@ -359,7 +443,9 @@
         if (priv.settings.onChange && changes.length) {
           priv.settings.onChange(changes);
         }
-        grid.keepEmptyRows();
+        setTimeout(function(){
+          grid.keepEmptyRows();
+        }, 100);
         return endTd;
       },
 
