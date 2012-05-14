@@ -172,7 +172,7 @@
         var tr, c;
         tr = document.createElement('tr');
         for (c = 0; c < priv.colCount; c++) {
-          grid.createCell(tr);
+          tr.appendChild(document.createElement('td'));
         }
         priv.tableBody.appendChild(tr);
         priv.rowCount = priv.tableBody.childNodes.length;
@@ -184,18 +184,9 @@
       createCol: function () {
         var trs = priv.tableBody.childNodes, r;
         for (r = 0; r < priv.rowCount; r++) {
-          grid.createCell(priv.tableBody.childNodes[r]);
+          trs[r].appendChild(document.createElement('td'));
         }
         priv.colCount = trs[0].childNodes.length;
-      },
-
-      /**
-       * Creates td in tr
-       */
-      createCell: function (tr) {
-        var td = document.createElement('td');
-        tr.appendChild(td);
-        return td;
       },
 
       /**
