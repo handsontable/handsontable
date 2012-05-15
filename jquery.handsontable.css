@@ -19,6 +19,7 @@
   border-spacing: 0;
   border-top: 1px solid #aaa;
   border-left: 1px solid #aaa;
+  z-index: 2;
 }
 
 .dataTable td {
@@ -30,8 +31,16 @@
   padding: 0 4px 0 4px;
 }
 
-.dataTable td.selected {
-  background: #eef;
+.dataTable td.selectedCell {
+  background-color: #ffffff;
+}
+
+.dataTable .selectionBg {
+  position: absolute;
+  background-color: #eeeeff;
+  font-size: 0;
+  display: none;
+  z-index: 1;
 }
 
 /* selection border color */
@@ -42,6 +51,7 @@
   background: #000;
   font-size: 0;
   display: none;
+  z-index: 3;
 }
 
 /* textarea border color */
@@ -55,6 +65,7 @@
   font-family: Arial, Helvetica, sans-serif; /*repeat from .dataTable (inherit doesn't work with IE<8) */
   line-height: 1.3em;
   font-size: 13px;
+  z-index: 4;
 }
 
 .dataTable .editInputHolder {

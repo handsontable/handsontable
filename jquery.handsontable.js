@@ -27,7 +27,8 @@
       colCount: null,
       scrollableContainer: null,
       hasLegend: null,
-      lastAutoComplete: null
+      lastAutoComplete: null,
+      lastSelectedCell: null
     };
 
     var lastChange = '';
@@ -657,11 +658,13 @@
        */
       init: function () {
         priv.selectionArea = {
+          bg: $("<div class='selectionBg'>"),
           top: $("<div class='selectionArea'>"),
           left: $("<div class='selectionArea'>"),
           bottom: $("<div class='selectionArea'>"),
           right: $("<div class='selectionArea'>")
         };
+        container.append(priv.selectionArea.bg);
         container.append(priv.selectionArea.top);
         container.append(priv.selectionArea.left);
         container.append(priv.selectionArea.bottom);
@@ -675,15 +678,22 @@
         if (!selection.isSelected()) {
           return false;
         }
-        var tds, i, ilen, last, firstOffset, lastOffset, containerOffset, top, left, height, width;
-        tds = grid.getCellsAtCoords(priv.selStart, selection.end());
-        for (i = 0, ilen = tds.length; i < ilen; i++) {
-          tds[i].className = 'selected';
-        }
-        grid.getCellAtCoords(priv.selStart).className = '';
+        var tds, first, last, firstOffset, lastOffset, containerOffset, top, left, height, width;
 
+        tds = grid.getCellsAtCoords(priv.selStart, selection.end());
+
+        first = $(tds[0]);
         last = $(tds[tds.length - 1]);
-        firstOffset = $(tds[0]).offset();
+
+        if (priv.lastSelectedCell) {
+          priv.lastSelectedCell.className = '';
+          priv.lastSelectedCell = null;
+        }
+        if (tds.length > 1) {
+          priv.lastSelectedCell = grid.getCellAtCoords(priv.selStart).className = 'selectedCell';
+        }
+
+        firstOffset = first.offset();
         lastOffset = last.offset();
         containerOffset = container.offset();
 
@@ -692,6 +702,9 @@
         height = lastOffset.top - firstOffset.top + last.outerHeight();
         width = lastOffset.left - firstOffset.left + last.outerWidth();
 
+        priv.selectionArea.bg.css({
+          top: top, left: left, width: width + 2, height: height + 2
+        }).show();
         priv.selectionArea.top.css({
           top: top, left: left, width: width
         }).show();
@@ -713,11 +726,11 @@
         if (!selection.isSelected()) {
           return false;
         }
-        var tds, i, ilen;
-        tds = grid.getCellsAtCoords(priv.selStart, selection.end());
-        for (i = 0, ilen = tds.length; i < ilen; i++) {
-          tds[i].className = '';
+        if (priv.lastSelectedCell) {
+          priv.lastSelectedCell.className = '';
+          priv.lastSelectedCell = null;
         }
+        priv.selectionArea.bg.hide();
         priv.selectionArea.top.hide();
         priv.selectionArea.left.hide();
         priv.selectionArea.bottom.hide();
