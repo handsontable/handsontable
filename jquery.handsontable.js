@@ -25,7 +25,7 @@
       isPopulated: null,
       rowCount: null,
       colCount: null,
-      scrollableContainer: null,
+      scrollable: null,
       hasLegend: null,
       lastAutoComplete: null,
       firstOfSelectedCells: null
@@ -244,8 +244,8 @@
         //should I add empty rows to meet minHeight
         //WARNING! jQuery returns 0 as height() for container which is not :visible. this will lead to a infinite loop
         if (priv.settings.minHeight) {
-          if (container.height() > 0 && container.height() <= priv.settings.minHeight) {
-            while (container.height() <= priv.settings.minHeight) {
+          if ($tbody.height() > 0 && $tbody.height() <= priv.settings.minHeight) {
+            while ($tbody.height() <= priv.settings.minHeight) {
               grid.createRow();
               datamap.createRow();
               recreateRows = true;
@@ -292,7 +292,7 @@
         }
 
         if (!recreateRows) {
-          for (; ((priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows) && (!priv.settings.minHeight || container.height() - $tbody.find('tr:last').height() - 4 > priv.settings.minHeight)); emptyRows--) {
+          for (; ((priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows) && (!priv.settings.minHeight || $tbody.height() - $tbody.find('tr:last').height() - 4 > priv.settings.minHeight)); emptyRows--) {
             grid.removeRow();
             datamap.removeRow();
             recreateRows = true;
@@ -538,8 +538,8 @@
       setRangeEnd: function (td) {
         selection.deselect();
         selection.end(td);
-        editproxy.prepare();
         highlight.on();
+        editproxy.prepare();
         highlight.scrollViewport(td);
       },
 
@@ -692,16 +692,28 @@
         lastOffset = last.offset();
         containerOffset = container.offset();
 
-        top = (firstOffset.top - containerOffset.top || 1) - 1;
-        left = (firstOffset.left - containerOffset.left || 1) - 1;
+        top = firstOffset.top - containerOffset.top + container.scrollTop() - 1;
+        left = firstOffset.left - containerOffset.left + container.scrollLeft() - 1;
         height = lastOffset.top - firstOffset.top + last.outerHeight();
         width = lastOffset.left - firstOffset.left + last.outerWidth();
+
+        if ($.browser.webkit) {
+          top += 1;
+          left += 1;
+        }
+
+        if(top < 0) {
+          top = 0;
+        }
+        if(left < 0) {
+          left = 0;
+        }
 
         if (tds.length > 1) {
           priv.firstOfSelectedCells = grid.getCellAtCoords(priv.selStart);
           priv.firstOfSelectedCells.className = 'selectedCell';
           priv.selectionArea.bg.css({
-            top: top, left: left, width: width + 2, height: height + 2
+            top: top, left: left, width: width, height: height
           }).show();
         }
 
@@ -712,10 +724,10 @@
           top: top, left: left, height: height
         }).show();
         priv.selectionArea.bottom.css({
-          top: top + height, left: left, width: width
+          top: top + height - 1, left: left, width: width
         }).show();
         priv.selectionArea.right.css({
-          top: top, left: left + width, height: height + 2
+          top: top, left: left + width - 1, height: height + 1
         }).show();
       },
 
@@ -742,41 +754,47 @@
        * @param td
        */
       scrollViewport: function (td) {
-        if (!selection.isSelected() || !priv.scrollableContainer) {
+        if (!selection.isSelected()) {
           return false;
         }
 
-        var containerOffset = container.offset();
-        var offset = $(td).offset();
-        var offsetTop = (offset.top - containerOffset.top || 1) - 1;
-        var offsetLeft = (offset.left - containerOffset.left || 1) - 1;
-        var height = $(td).outerHeight();
-        var width = $(td).outerWidth();
+        var $td = $(td);
+        var tdOffset = $td.offset();
+        var scrollLeft = priv.scrollable.scrollLeft(); //scrollbar position
+        var scrollTop = priv.scrollable.scrollTop(); //scrollbar position
+        var scrollWidth = priv.scrollable.outerWidth() - 24; //24 = scrollbar
+        var scrollHeight = priv.scrollable.outerHeight() - 24; //24 = scrollbar
+        var scrollOffset = priv.scrollable.offset();
 
-        var scrollLeft = priv.scrollableContainer.scrollLeft();
-        var scrollWidth = priv.scrollableContainer.width();
-        var scrollTop = priv.scrollableContainer.scrollTop();
-        var scrollHeight = priv.scrollableContainer.height();
+        var offsetTop = tdOffset.top;
+        var offsetLeft = tdOffset.left;
+        if (scrollOffset) { //if is not the window
+          offsetTop += scrollTop - scrollOffset.top;
+          offsetLeft += scrollLeft - scrollOffset.left;
+        }
 
-        if (scrollLeft + scrollWidth < offsetLeft + 1.5 * width + 4) {
+        var height = $td.outerHeight();
+        var width = $td.outerWidth();
+
+        if (scrollLeft + scrollWidth <= offsetLeft + width) {
           setTimeout(function () {
-            priv.scrollableContainer.scrollLeft(offsetLeft + 1.5 * width + 4 - scrollWidth);
+            priv.scrollable.scrollLeft(offsetLeft + width - scrollWidth);
           }, 1);
         }
         else if (scrollLeft > offsetLeft) {
           setTimeout(function () {
-            priv.scrollableContainer.scrollLeft(offsetLeft - 0.5 * width);
+            priv.scrollable.scrollLeft(offsetLeft - 2);
           }, 1);
         }
 
-        if (scrollTop + scrollHeight < offsetTop + 2 * height + 4) {
+        if (scrollTop + scrollHeight <= offsetTop + height) {
           setTimeout(function () {
-            priv.scrollableContainer.scrollTop(offsetTop + 2 * height + 4 - scrollHeight);
+            priv.scrollable.scrollTop(offsetTop + height - scrollHeight);
           }, 1);
         }
         else if (scrollTop > offsetTop) {
           setTimeout(function () {
-            priv.scrollableContainer.scrollTop(offsetTop - 0.1 * height);
+            priv.scrollable.scrollTop(offsetTop - 2);
           }, 1);
         }
       }
@@ -811,8 +829,8 @@
        * Create input field
        */
       init: function () {
-        priv.editProxy = $('<textarea class="editInput">');
-        priv.editProxyHolder = $('<div class="editInputHolder">');
+        priv.editProxy = $('<textarea class="handsontableInput">');
+        priv.editProxyHolder = $('<div class="handsontableInputHolder">');
         priv.editProxyHolder.append(priv.editProxy);
 
         function onClick(event) {
@@ -1014,12 +1032,11 @@
           }
         }
 
-        var containerOffset = container.offset();
-        var $window = $(window);
         priv.editProxyHolder.css({
-          top: $window.scrollTop() - containerOffset.top + 'px',
-          left: $window.scrollLeft() - containerOffset.left + 'px',
-          overflow: 'hidden'
+          top: parseInt(priv.selectionArea.top.css('top')) - 1 + 'px',
+          left: parseInt(priv.selectionArea.top.css('left')) - 1 + 'px',
+          overflow: 'hidden',
+          zIndex: 1
         });
         priv.editProxy.css({
           width: '1000px',
@@ -1064,9 +1081,8 @@
           height: $td.height()
         });
         priv.editProxyHolder.css({
-          top: parseInt(priv.selectionArea.top.css('top')) - 1 + 'px',
-          left: parseInt(priv.selectionArea.top.css('left')) - 1 + 'px',
-          overflow: 'visible'
+          overflow: 'visible',
+          zIndex: 4
         });
         if (useOriginalValue) {
           priv.editProxy.val(datamap.get(priv.selStart.row, priv.selStart.col));
@@ -1131,7 +1147,7 @@
         priv.isMouseOverTable = false;
       }
 
-      priv.table = $('<table><tbody></tbody></table>');
+      priv.table = $('<table cellspacing="0" cellpadding="0"><tbody></tbody></table>');
       priv.tableBody = priv.table.find("tbody")[0];
       priv.colCount = priv.settings.cols;
       for (r = 0; r < priv.settings.rows; r++) {
@@ -1173,11 +1189,28 @@
       $("html").on('click', onOutsideClick);
 
       if (container.css('overflow') === 'scroll') {
-        priv.scrollableContainer = container;
+        priv.scrollable = container;
       }
-      else if (container.parent().css('overflow') === 'scroll') {
-        priv.scrollableContainer = container.parent();
+      else {
+        container.parents().each(function () {
+          if ($(this).css('overflow') == 'scroll') {
+            priv.scrollable = $(this);
+            return false;
+          }
+        });
       }
+
+      if (priv.scrollable) {
+        priv.scrollable.scrollTop(0);
+        priv.scrollable.scrollLeft(0);
+      }
+      else {
+        priv.scrollable = $(window);
+      }
+
+      priv.scrollable.on('scroll', function (e) {
+        e.stopPropagation();
+      });
     }
 
     /**

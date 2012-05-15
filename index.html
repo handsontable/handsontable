@@ -113,9 +113,7 @@
 </head>
 
 <body>
-<a href="http://github.com/warpech/jquery-handsontable"><img style="position: absolute; top: 0; right: 0; border: 0;"
-                                                             src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"
-                                                             alt="Fork me on GitHub"/></a>
+<a href="http://github.com/warpech/jquery-handsontable"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"/></a>
 
 <div id="container">
 
@@ -174,23 +172,24 @@
 <h3>Autocomplete and Legend <span class="super"> NEW!</span></h3>
 
 <p>Now you can define rules for <b>autocompletition</b>. To keep this plugin lightweight, this feature has a dependency
-    on another jQuery plugin: <a
-            href="https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js">bootstrap-typeahead</a>.
+    on another jQuery plugin: <a href="https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js">bootstrap-typeahead</a>.
     It is included in the repo.
 </p>
 
 <p>The below example also shows the <b>legend</b> feature, which makes the first row uneditable and have a different
     text style.</p>
 
-<div id="dataTable2" class="dataTable"></div>
+<p>If you want scrollbars, just set it in the container CSS, e.g. <span class="code">width:700px; height:300px; overflow:scroll</span></p>
+
+<div id="dataTable2" class="dataTable" style="width: 700px; height: 300px; overflow: scroll"></div>
 <p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
 <pre id="dataTable2-console" class="console">Edit the above grid to see callback</pre>
 
 <script>
     var first2 = true;
     $("#dataTable2").handsontable({
-        rows: 6,
-        cols: 8,
+        minWidth: 700,
+        minHeight: 400,
         minSpareCols: 1, //always keep at least 1 spare row at the right
         minSpareRows: 1, //always keep at least 1 spare row at the bottom
         legend: [
@@ -218,7 +217,7 @@
                     var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
                     var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
                         return '<strong>' + match + '</strong>';
-                    })
+                    });
                     return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
                 },
                 source: function () {
