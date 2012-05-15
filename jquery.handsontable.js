@@ -537,6 +537,9 @@
        */
       setRangeEnd: function (td) {
         selection.deselect();
+        if (!priv.settings.multiSelect) {
+          priv.selStart = grid.getCellCoords(td);
+        }
         selection.end(td);
         highlight.on();
         editproxy.prepare();
@@ -618,6 +621,9 @@
        * Select all cells
        */
       selectAll: function () {
+        if (!priv.settings.multiSelect) {
+          return;
+        }
         var tds = grid.getAllCells();
         if (tds.length) {
           selection.setRangeStart(tds[0]);
@@ -702,10 +708,10 @@
           left += 1;
         }
 
-        if(top < 0) {
+        if (top < 0) {
           top = 0;
         }
-        if(left < 0) {
+        if (left < 0) {
           left = 0;
         }
 
@@ -1124,9 +1130,14 @@
     };
 
     interaction = {
-      onMouseDown: function () {
+      onMouseDown: function (event) {
         priv.isMouseDown = true;
-        selection.setRangeStart(this);
+        if (event.shiftKey) {
+          selection.setRangeEnd(this);
+        }
+        else {
+          selection.setRangeStart(this);
+        }
       },
 
       onMouseOver: function () {
@@ -1289,7 +1300,8 @@
     'rows': 5,
     'cols': 5,
     'minSpareRows': 0,
-    'minHeight': 0
+    'minHeight': 0,
+    "multiSelect": true
   };
 
   $.fn.handsontable = function (action, options) {
