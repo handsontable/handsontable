@@ -28,7 +28,7 @@
       scrollableContainer: null,
       hasLegend: null,
       lastAutoComplete: null,
-      lastSelectedCell: null
+      firstOfSelectedCells: null
     };
 
     var lastChange = '';
@@ -678,21 +678,16 @@
         if (!selection.isSelected()) {
           return false;
         }
-        var tds, first, last, firstOffset, lastOffset, containerOffset, top, left, height, width;
+        if (priv.firstOfSelectedCells) {
+          priv.firstOfSelectedCells.className = '';
+          priv.firstOfSelectedCells = null;
+        }
 
+        var tds, first, last, firstOffset, lastOffset, containerOffset, top, left, height, width;
         tds = grid.getCellsAtCoords(priv.selStart, selection.end());
 
         first = $(tds[0]);
         last = $(tds[tds.length - 1]);
-
-        if (priv.lastSelectedCell) {
-          priv.lastSelectedCell.className = '';
-          priv.lastSelectedCell = null;
-        }
-        if (tds.length > 1) {
-          priv.lastSelectedCell = grid.getCellAtCoords(priv.selStart).className = 'selectedCell';
-        }
-
         firstOffset = first.offset();
         lastOffset = last.offset();
         containerOffset = container.offset();
@@ -702,9 +697,14 @@
         height = lastOffset.top - firstOffset.top + last.outerHeight();
         width = lastOffset.left - firstOffset.left + last.outerWidth();
 
-        priv.selectionArea.bg.css({
-          top: top, left: left, width: width + 2, height: height + 2
-        }).show();
+        if (tds.length > 1) {
+          priv.firstOfSelectedCells = grid.getCellAtCoords(priv.selStart);
+          priv.firstOfSelectedCells.className = 'selectedCell';
+          priv.selectionArea.bg.css({
+            top: top, left: left, width: width + 2, height: height + 2
+          }).show();
+        }
+
         priv.selectionArea.top.css({
           top: top, left: left, width: width
         }).show();
@@ -726,11 +726,11 @@
         if (!selection.isSelected()) {
           return false;
         }
-        if (priv.lastSelectedCell) {
-          priv.lastSelectedCell.className = '';
-          priv.lastSelectedCell = null;
+        if (priv.firstOfSelectedCells) {
+          priv.firstOfSelectedCells.className = '';
+          priv.firstOfSelectedCells = null;
+          priv.selectionArea.bg.hide();
         }
-        priv.selectionArea.bg.hide();
         priv.selectionArea.top.hide();
         priv.selectionArea.left.hide();
         priv.selectionArea.bottom.hide();
