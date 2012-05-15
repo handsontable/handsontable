@@ -537,10 +537,11 @@
        */
       setRangeEnd: function (td) {
         selection.deselect();
+        var coords = grid.getCellCoords(td);
         if (!priv.settings.multiSelect) {
-          priv.selStart = grid.getCellCoords(td);
+          priv.selStart = coords;
         }
-        selection.end(td);
+        selection.end(coords);
         highlight.on();
         editproxy.prepare();
         highlight.scrollViewport(td);
@@ -549,9 +550,9 @@
       /**
        * Setter/getter for selection start
        */
-      start: function (td) {
-        if (td) {
-          priv.selStart = grid.getCellCoords(td);
+      start: function (coords) {
+        if (coords) {
+          priv.selStart = coords;
         }
         return priv.selStart;
       },
@@ -559,9 +560,9 @@
       /**
        * Setter/getter for selection end
        */
-      end: function (td) {
-        if (td) {
-          priv.selEnd = grid.getCellCoords(td);
+      end: function (coords) {
+        if (coords) {
+          priv.selEnd = coords;
         }
         return priv.selEnd;
       },
@@ -883,6 +884,8 @@
               return;
             }
 
+            var rangeModifier = event.shiftKey ? selection.setRangeEnd : selection.setRangeStart;
+
             switch (event.keyCode) {
               case 38: /* arrow up */
                 if (isAutoComplete()) {
@@ -972,9 +975,30 @@
                 }
                 break;
 
-              case 16: /* shift */
-              case 17: /* ctrl */
-              case 18: /* alt */
+              case 36: /* home */
+                if(event.ctrlKey) {
+                  rangeModifier(grid.getCellAtCoords({row: 0, col: priv.selStart.col}));
+                }
+                else {
+                  rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: 0}));
+                }
+                break;
+
+              case 35: /* end */
+                if(event.ctrlKey) {
+                  rangeModifier(grid.getCellAtCoords({row: priv.rowCount - 1, col: priv.selStart.col}));
+                }
+                else {
+                  rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: priv.colCount - 1}));
+                }
+                break;
+
+              case 33: /* pg up */
+                rangeModifier(grid.getCellAtCoords({row: 0, col: priv.selStart.col}));
+                break;
+
+              case 34: /* pg dn */
+                rangeModifier(grid.getCellAtCoords({row: priv.rowCount - 1, col: priv.selStart.col}));
                 break;
 
               default:
@@ -1301,7 +1325,7 @@
     'cols': 5,
     'minSpareRows': 0,
     'minHeight': 0,
-    "multiSelect": true
+    'multiSelect': true
   };
 
   $.fn.handsontable = function (action, options) {
