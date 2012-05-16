@@ -1344,8 +1344,9 @@
     if (typeof action !== 'string') { //init
       options = action;
       return this.each(function () {
-        if ($(this).data("handsontable")) {
-          instance = $(this).data("handsontable");
+        var $this = $(this);
+        if ($this.data("handsontable")) {
+          instance = $this.data("handsontable");
           instance.updateSettings(options);
         }
         else {
@@ -1353,8 +1354,8 @@
           if (options) {
             $.extend(currentSettings, options);
           }
-          instance = new Handsontable($(this), currentSettings);
-          $(this).data("handsontable", instance);
+          instance = new Handsontable($this, currentSettings);
+          $this.data("handsontable", instance);
         }
       });
     }
