@@ -976,7 +976,7 @@
                 break;
 
               case 36: /* home */
-                if(event.ctrlKey) {
+                if (event.ctrlKey) {
                   rangeModifier(grid.getCellAtCoords({row: 0, col: priv.selStart.col}));
                 }
                 else {
@@ -985,7 +985,7 @@
                 break;
 
               case 35: /* end */
-                if(event.ctrlKey) {
+                if (event.ctrlKey) {
                   rangeModifier(grid.getCellAtCoords({row: priv.rowCount - 1, col: priv.selStart.col}));
                 }
                 else {
@@ -1062,9 +1062,20 @@
           }
         }
 
+        var current = grid.getCellAtCoords(priv.selStart);
+        var currentOffset = $(current).offset();
+        var containerOffset = container.offset();
+        var editTop = currentOffset.top - containerOffset.top + container.scrollTop() - 2;
+        var editLeft = currentOffset.left - containerOffset.left + container.scrollLeft() - 2;
+
+        if ($.browser.webkit) {
+          editTop += 1;
+          editLeft += 1;
+        }
+
         priv.editProxyHolder.css({
-          top: parseInt(priv.selectionArea.top.css('top')) - 1 + 'px',
-          left: parseInt(priv.selectionArea.top.css('left')) - 1 + 'px',
+          top: editTop,
+          left: editLeft,
           overflow: 'hidden',
           zIndex: 1
         });
