@@ -1120,6 +1120,13 @@
           return;
         }
 
+        if (useOriginalValue) {
+          priv.editProxy.val(datamap.get(priv.selStart.row, priv.selStart.col));
+        }
+        else {
+          priv.editProxy.val('');
+        }
+
         priv.editProxy.css({
           width: $td.width() * 1.5,
           height: $td.height()
@@ -1128,9 +1135,6 @@
           overflow: 'visible',
           zIndex: 4
         });
-        if (useOriginalValue) {
-          priv.editProxy.val(datamap.get(priv.selStart.row, priv.selStart.col));
-        }
       },
 
       /**
