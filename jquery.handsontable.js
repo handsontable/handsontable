@@ -423,7 +423,8 @@
             td = grid.getCellAtCoords(current);
             if (grid.isCellWriteable($(td))) {
               changes.push([current.row, current.col, datamap.get(current.row, current.col), input[r][c]]);
-              td.innerHTML = input[r][c];
+              input[r][c] += '';
+              td.innerHTML = input[r][c].replace(/\n/g, '<br/>');
               datamap.set(current.row, current.col, input[r][c]);
               endTd = td;
             }
@@ -944,7 +945,9 @@
                   if (event.keyCode === 113 || event.keyCode === 13) {
                     //begin editing
                     editproxy.beginEditing(true); //show edit field
-                    event.preventDefault(); //don't add newline to field
+                    if (!(event.keyCode === 13 && event.shiftKey)) {
+                      event.preventDefault(); //don't add newline to field
+                    }
                   }
                   else if (event.keyCode === 40) {
                     if (event.shiftKey) {
@@ -956,7 +959,7 @@
                   }
                 }
                 else {
-                  if (isAutoComplete() && event.keyCode === 40) {
+                  if (event.shiftKey || isAutoComplete() && event.keyCode === 40) { //if shift+enter or browsing through autocomplete
                     return true;
                   }
                   if (event.keyCode === 27 || event.keyCode === 13 || event.keyCode === 40) {
@@ -1146,7 +1149,7 @@
                 [priv.selStart.row, priv.selStart.col, datamap.get(priv.selStart.row, priv.selStart.col), val]
               ]);
             }
-            td.innerHTML = val;
+            td.innerHTML = val.replace(/\n/g, '<br/>');
             datamap.set(priv.selStart.row, priv.selStart.col, val);
             grid.keepEmptyRows();
           }
@@ -1271,7 +1274,7 @@
         row: row,
         col: col
       });
-      td.innerHTML = value;
+      td.innerHTML = value.replace(/\n/g, '<br/>');
       datamap.set(row, col, value);
       /*if (priv.settings.onChange) {
        priv.settings.onChange(); //this is empty by design, to avoid recursive changes in history
