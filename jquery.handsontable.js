@@ -946,8 +946,8 @@
                     //begin editing
                     editproxy.beginEditing(true); //show edit field
                     if (!(event.keyCode === 13 && event.shiftKey)) {
-                      event.preventDefault(); //don't add newline to field
-                    }
+                    event.preventDefault(); //don't add newline to field
+                  }
                   }
                   else if (event.keyCode === 40) {
                     if (event.shiftKey) {
@@ -1146,7 +1146,7 @@
           priv.isCellEdited = false;
           var td = grid.getCellAtCoords(priv.selStart),
               $td = $(td),
-              val = priv.editProxy.val();
+              val = $.trim(priv.editProxy.val());
           if (!isCancelled && grid.isCellWriteable($td)) {
             if (priv.settings.onChange) {
               priv.settings.onChange([
