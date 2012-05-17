@@ -704,7 +704,7 @@
         height = lastOffset.top - firstOffset.top + last.outerHeight();
         width = lastOffset.left - firstOffset.left + last.outerWidth();
 
-        if ($.browser.webkit) {
+        if (!$.browser.gecko) {
           top += 1;
           left += 1;
         }
@@ -1068,7 +1068,7 @@
         var editTop = currentOffset.top - containerOffset.top + container.scrollTop() - 2;
         var editLeft = currentOffset.left - containerOffset.left + container.scrollLeft() - 2;
 
-        if ($.browser.webkit) {
+        if (!$.browser.gecko) {
           editTop += 1;
           editLeft += 1;
         }
