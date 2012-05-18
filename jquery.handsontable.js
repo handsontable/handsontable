@@ -539,6 +539,11 @@
       setRangeEnd: function (td) {
         selection.deselect();
         var coords = grid.getCellCoords(td);
+        if(priv.isAutoFill) {
+          if(priv.selStart.row !== coords.row && priv.selStart.col !== coords.col) {
+            coords.col = priv.selStart.col;
+          }
+        }
         if (!priv.settings.multiSelect) {
           priv.selStart = coords;
         }
@@ -670,13 +675,20 @@
           top: $("<div class='selectionArea'>"),
           left: $("<div class='selectionArea'>"),
           bottom: $("<div class='selectionArea'>"),
-          right: $("<div class='selectionArea'>")
+          right: $("<div class='selectionArea'>"),
+          autofill: $("<div class='selectionAutoFillHandle'>")
         };
         container.append(priv.selectionArea.bg);
         container.append(priv.selectionArea.top);
         container.append(priv.selectionArea.left);
         container.append(priv.selectionArea.bottom);
         container.append(priv.selectionArea.right);
+        container.append(priv.selectionArea.autofill);
+
+        priv.selectionArea.autofill.on('mousedown', function() {
+          priv.isAutoFill = true;
+          container.find('.selectionArea').addClass('autofill');
+        });
       },
 
       /**
@@ -736,6 +748,9 @@
         }).show();
         priv.selectionArea.right.css({
           top: top, left: left + width - 1, height: height + 1
+        }).show();
+        priv.selectionArea.autofill.css({
+          top: top + height - 3, left: left + width - 3
         }).show();
       },
 
@@ -1195,7 +1210,7 @@
       },
 
       onMouseOver: function () {
-        if (priv.isMouseDown) {
+        if (priv.isMouseDown || priv.isAutoFill) {
           selection.setRangeEnd(this);
         }
       }
@@ -1240,6 +1255,8 @@
 
       function onMouseUp() {
         priv.isMouseDown = false;
+        priv.isAutoFill = false;
+        container.find('.selectionArea').removeClass('autofill');
       }
 
       function onOutsideClick() {

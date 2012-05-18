@@ -45,13 +45,29 @@
 
 /* selection border color */
 .dataTable .selectionArea {
+   position: absolute;
+   width: 2px;
+   height: 2px;
+   background: #000;
+   font-size: 0;
+   display: none;
+   z-index: 3;
+}
+
+.dataTable .selectionArea.autofill {
+  background: red;
+}
+
+.dataTable .selectionAutoFillHandle {
   position: absolute;
-  width: 2px;
-  height: 2px;
+  width: 4px;
+  height: 4px;
   background: #000;
+  border: 1px solid #fff;
   font-size: 0;
   display: none;
   z-index: 3;
+  cursor: crosshair;
 }
 
 /* textarea border color */
