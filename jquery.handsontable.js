@@ -414,7 +414,7 @@
             grid.createRow();
             datamap.createRow();
           }
-          clen = input[r].length;
+          clen = input[r] ? input[r].length : 0;
           for (c = 0; c < clen; c++) {
             if (current.col > priv.colCount - 1) {
               grid.createCol();
