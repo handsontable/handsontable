@@ -946,8 +946,8 @@
                     //begin editing
                     editproxy.beginEditing(true); //show edit field
                     if (!(event.keyCode === 13 && event.shiftKey)) {
-                    event.preventDefault(); //don't add newline to field
-                  }
+                      event.preventDefault(); //don't add newline to field
+                    }
                   }
                   else if (event.keyCode === 40) {
                     if (event.shiftKey) {
@@ -1127,10 +1127,22 @@
           priv.editProxy.val('');
         }
 
-        priv.editProxy.css({
-          width: $td.width() * 1.5,
-          height: $td.height()
-        });
+        if (priv.editProxy.autoResize) {
+          priv.editProxy.autoResize({
+            maxHeight: 200,
+            minHeight: $td.outerHeight() - 4,
+            minWidth: $td.width(),
+            maxWidth: Math.max(168, $td.width()),
+            animate: false,
+            extraSpace: 0
+          });
+        }
+        else {
+          priv.editProxy.css({
+            width: $td.width() * 1.5,
+            height: $td.height()
+          });
+        }
         priv.editProxyHolder.css({
           overflow: 'visible',
           zIndex: 4
