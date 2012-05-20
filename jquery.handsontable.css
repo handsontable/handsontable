@@ -39,33 +39,30 @@
   position: absolute;
   background-color: #eeeeff;
   font-size: 0;
-  display: none;
   z-index: 1;
 }
 
 /* selection border color */
-.dataTable .selectionArea {
-   position: absolute;
-   width: 2px;
-   height: 2px;
-   background: #000;
-   font-size: 0;
-   display: none;
-   z-index: 3;
+.dataTable .htBorder {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #000;
+  font-size: 0;
+  z-index: 3;
 }
 
-.dataTable .selectionArea.autofill {
+.dataTable .htBorder.autofill {
   background: red;
 }
 
-.dataTable .selectionAutoFillHandle {
+.dataTable .htBorderHandle {
   position: absolute;
   width: 4px;
   height: 4px;
   background: #000;
   border: 1px solid #fff;
   font-size: 0;
-  display: none;
   z-index: 3;
   cursor: crosshair;
 }

@@ -539,8 +539,8 @@
       setRangeEnd: function (td) {
         selection.deselect();
         var coords = grid.getCellCoords(td);
-        if(priv.isAutoFill) {
-          if(priv.selStart.row !== coords.row && priv.selStart.col !== coords.col) {
+        if (priv.isAutoFill) {
+          if (priv.selStart.row !== coords.row && priv.selStart.col !== coords.col) {
             coords.col = priv.selStart.col;
           }
         }
@@ -670,24 +670,14 @@
        * Create highlight border
        */
       init: function () {
-        priv.selectionArea = {
-          bg: $("<div class='selectionBg'>"),
-          top: $("<div class='selectionArea'>"),
-          left: $("<div class='selectionArea'>"),
-          bottom: $("<div class='selectionArea'>"),
-          right: $("<div class='selectionArea'>"),
-          autofill: $("<div class='selectionAutoFillHandle'>")
-        };
-        container.append(priv.selectionArea.bg);
-        container.append(priv.selectionArea.top);
-        container.append(priv.selectionArea.left);
-        container.append(priv.selectionArea.bottom);
-        container.append(priv.selectionArea.right);
-        container.append(priv.selectionArea.autofill);
-
-        priv.selectionArea.autofill.on('mousedown', function() {
-          priv.isAutoFill = true;
-          container.find('.selectionArea').addClass('autofill');
+        priv.selectionArea = new Border(container, {
+          className: 'selection',
+          bg: true,
+          handle: true,
+          onHandleDrag: function () {
+            priv.isAutoFill = true;
+            container.find('.htBorder').addClass('autofill');
+          }
         });
       },
 
@@ -703,55 +693,13 @@
           priv.firstOfSelectedCells = null;
         }
 
-        var tds, first, last, firstOffset, lastOffset, containerOffset, top, left, height, width;
-        tds = grid.getCellsAtCoords(priv.selStart, selection.end());
-
-        first = $(tds[0]);
-        last = $(tds[tds.length - 1]);
-        firstOffset = first.offset();
-        lastOffset = last.offset();
-        containerOffset = container.offset();
-
-        top = firstOffset.top - containerOffset.top + container.scrollTop() - 1;
-        left = firstOffset.left - containerOffset.left + container.scrollLeft() - 1;
-        height = lastOffset.top - firstOffset.top + last.outerHeight();
-        width = lastOffset.left - firstOffset.left + last.outerWidth();
-
-        if (!$.browser.mozilla) {
-          top += 1;
-          left += 1;
-        }
-
-        if (top < 0) {
-          top = 0;
-        }
-        if (left < 0) {
-          left = 0;
-        }
+        var tds = grid.getCellsAtCoords(priv.selStart, selection.end());
+        priv.selectionArea.appear(tds);
 
         if (tds.length > 1) {
           priv.firstOfSelectedCells = grid.getCellAtCoords(priv.selStart);
           priv.firstOfSelectedCells.className = 'selectedCell';
-          priv.selectionArea.bg.css({
-            top: top, left: left, width: width, height: height
-          }).show();
         }
-
-        priv.selectionArea.top.css({
-          top: top, left: left, width: width
-        }).show();
-        priv.selectionArea.left.css({
-          top: top, left: left, height: height
-        }).show();
-        priv.selectionArea.bottom.css({
-          top: top + height - 1, left: left, width: width
-        }).show();
-        priv.selectionArea.right.css({
-          top: top, left: left + width - 1, height: height + 1
-        }).show();
-        priv.selectionArea.autofill.css({
-          top: top + height - 3, left: left + width - 3
-        }).show();
       },
 
       /**
@@ -764,12 +712,8 @@
         if (priv.firstOfSelectedCells) {
           priv.firstOfSelectedCells.className = '';
           priv.firstOfSelectedCells = null;
-          priv.selectionArea.bg.hide();
         }
-        priv.selectionArea.top.hide();
-        priv.selectionArea.left.hide();
-        priv.selectionArea.bottom.hide();
-        priv.selectionArea.right.hide();
+        priv.selectionArea.disappear();
       },
 
       /**
@@ -1256,7 +1200,7 @@
       function onMouseUp() {
         priv.isMouseDown = false;
         priv.isAutoFill = false;
-        container.find('.selectionArea').removeClass('autofill');
+        container.find('.htBorder').removeClass('autofill');
       }
 
       function onOutsideClick() {
@@ -1366,6 +1310,123 @@
 
     init(settings);
   }
+
+  /**
+   * Create DOM elements for selection border lines (top, right, bottom, left) and optionally: background and handle
+   * @constructor
+   * @param {jQuery} $container jQuery DOM element of handsontable container
+   * @param {Object} options Configurable options
+   * @param {Boolean} [options.bg] Should include a background
+   * @param {Boolean} [options.handle] Should include a handle
+   * @param {Function} [options.onHandleDrag] Callback to run when handle is dragged
+   */
+  function Border($container, options) {
+    this.$container = $container;
+
+    var html = '';
+    if (options.bg) {
+      html += '<div class="htBorderBg ' + options.className + '"></div>';
+    }
+    html += (new Array(5)).join('<div class="htBorder ' + options.className + '"></div>');
+    if (options.handle) {
+      html += '<div class="htBorderHandle ' + options.className + '"></div>';
+    }
+
+    this.main = document.createElement("div");
+    this.main.style.position = 'absolute';
+    this.main.style.top = 0;
+    this.main.style.left = 0;
+    this.main.innerHTML = html;
+    this.disappear();
+    this.$container[0].appendChild(this.main);
+
+    var nodes = this.main.childNodes;
+    var i = 0;
+    if (options.bg) {
+      this.bg = nodes[i++];
+    }
+    this.top = nodes[i++];
+    this.left = nodes[i++];
+    this.bottom = nodes[i++];
+    this.right = nodes[i++];
+    if (options.handle) {
+      this.handle = nodes[i];
+    }
+
+    if (options.onHandleDrag) {
+      $(this.handle).on('mousedown', options.onHandleDrag);
+    }
+  }
+
+  Border.prototype = {
+    /**
+     * Show border around the array of table cels
+     * @param {Element[]} tds
+     */
+    appear: function (tds) {
+      var first, last, firstOffset, lastOffset, containerOffset, top, left, height, width;
+
+      first = $(tds[0]);
+      last = $(tds[tds.length - 1]);
+      firstOffset = first.offset();
+      lastOffset = last.offset();
+      containerOffset = this.$container.offset();
+
+      top = firstOffset.top - containerOffset.top + this.$container.scrollTop() - 1;
+      left = firstOffset.left - containerOffset.left + this.$container.scrollLeft() - 1;
+      height = lastOffset.top - firstOffset.top + last.outerHeight();
+      width = lastOffset.left - firstOffset.left + last.outerWidth();
+
+      if (!$.browser.mozilla) {
+        top += 1;
+        left += 1;
+      }
+
+      if (top < 0) {
+        top = 0;
+      }
+      if (left < 0) {
+        left = 0;
+      }
+
+      if (this.bg) {
+        this.bg.style.top = top + 'px';
+        this.bg.style.left = left + 'px';
+        this.bg.style.width = width + 'px';
+        this.bg.style.height = height + 'px';
+      }
+
+      this.top.style.top = top + 'px';
+      this.top.style.left = left + 'px';
+      this.top.style.width = width + 'px';
+
+      this.left.style.top = top + 'px';
+      this.left.style.left = left + 'px';
+      this.left.style.height = height + 'px';
+
+      this.bottom.style.top = top + height - 1 + 'px';
+      this.bottom.style.left = left + 'px';
+      this.bottom.style.width = width + 'px';
+
+      this.right.style.top = top + 'px';
+      this.right.style.left = left + width - 1 + 'px';
+      this.right.style.height = height + 1 + 'px';
+
+      if (this.handle) {
+        this.handle.style.top = top + height - 3 + 'px';
+        this.handle.style.left = left + width - 3 + 'px';
+      }
+
+      this.main.style.display = 'block';
+    },
+
+    /**
+     * Hide border
+     */
+    disappear: function () {
+      this.main.style.display = 'none';
+    }
+  };
 
   var settings = {
     'rows': 5,
