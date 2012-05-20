@@ -35,14 +35,22 @@
   background-color: #ffffff;
 }
 
-.dataTable .selectionBg {
+/* border background */
+.dataTable .htBorderBg {
   position: absolute;
-  background-color: #eeeeff;
   font-size: 0;
   z-index: 1;
 }
 
-/* selection border color */
+.dataTable .htBorderBg.current {
+  background-color: #fff;
+}
+
+.dataTable .htBorderBg.selection {
+  background-color: #eef;
+}
+
+/* border line */
 .dataTable .htBorder {
   position: absolute;
   width: 2px;
@@ -56,6 +64,19 @@
   background: red;
 }
 
+.dataTable .htBorder.current {
+  background: green;
+  width: 2px;
+  height: 2px;
+}
+
+.dataTable .htBorder.selection {
+  background: blue;
+  width: 2px;
+  height: 2px;
+}
+
+/* border handle */
 .dataTable .htBorderHandle {
   position: absolute;
   width: 4px;

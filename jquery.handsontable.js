@@ -27,8 +27,7 @@
       colCount: null,
       scrollable: null,
       hasLegend: null,
-      lastAutoComplete: null,
-      firstOfSelectedCells: null
+      lastAutoComplete: null
     };
 
     var lastChange = '';
@@ -528,8 +527,8 @@
       setRangeStart: function (td) {
         selection.deselect();
         priv.selStart = grid.getCellCoords(td);
+        priv.currentBorder.appear([td]);
         selection.setRangeEnd(td);
-        highlight.on();
       },
 
       /**
@@ -542,10 +541,12 @@
         if (priv.isAutoFill) {
           if (priv.selStart.row !== coords.row && priv.selStart.col !== coords.col) {
             coords.col = priv.selStart.col;
+            td = grid.getCellAtCoords(coords);
           }
         }
         if (!priv.settings.multiSelect) {
           priv.selStart = coords;
+          priv.currentBorder.appear([td]);
         }
         selection.end(coords);
         highlight.on();
@@ -670,7 +671,7 @@
        * Create highlight border
        */
       init: function () {
-        priv.selectionArea = new Border(container, {
+        priv.selectionBorder = new Border(container, {
           className: 'selection',
           bg: true,
           handle: true,
@@ -688,17 +689,9 @@
         if (!selection.isSelected()) {
           return false;
         }
-        if (priv.firstOfSelectedCells) {
-          priv.firstOfSelectedCells.className = '';
-          priv.firstOfSelectedCells = null;
-        }
-
         var tds = grid.getCellsAtCoords(priv.selStart, selection.end());
-        priv.selectionArea.appear(tds);
-
         if (tds.length > 1) {
-          priv.firstOfSelectedCells = grid.getCellAtCoords(priv.selStart);
-          priv.firstOfSelectedCells.className = 'selectedCell';
+          priv.selectionBorder.appear(tds);
         }
       },
 
@@ -709,11 +702,7 @@
         if (!selection.isSelected()) {
           return false;
         }
-        if (priv.firstOfSelectedCells) {
-          priv.firstOfSelectedCells.className = '';
-          priv.firstOfSelectedCells = null;
-        }
-        priv.selectionArea.disappear();
+        priv.selectionBorder.disappear();
       },
 
       /**
@@ -1190,6 +1179,12 @@
       }
 
       highlight.init();
+
+      priv.currentBorder = new Border(container, {
+        className: 'current',
+        bg: true
+      });
+
       editproxy.init();
 
       priv.table.on('mouseenter', onMouseEnterTable);
