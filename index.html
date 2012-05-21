@@ -106,10 +106,9 @@
     </style>
 
     <script src="jquery.handsontable.js"></script>
-    <script src="lib/bootstrap-typeahead.js"></script>
-    <script src="lib/jquery.autoresize.js"></script>
-    <script src="lib/json2.min.js"></script>
-    <!-- Only needed by index.html for IE6/IE7 support. Not needed by jquery.handsontable.js -->
+    <script src="lib/bootstrap-typeahead.js"></script><!-- only if you need the autocomplete feature -->
+    <script src="lib/jquery.autoresize.js"></script><!-- only if you need the sexy autoexpanding textarea feature -->
+    <script src="lib/json2.min.js"></script><!-- Only needed by index.html for IE6/IE7 support. Not needed by jquery.handsontable.js -->
     <link rel="stylesheet" media="screen" href="jquery.handsontable.css">
 </head>
 
@@ -266,85 +265,14 @@
 
 <h2>Documentation</h2>
 
-<h3>handsontable(options)</h3>
-
 <p>
-    Plugin constructor <span class="code">handsontable(options)</span> accepts the following configuration options
-    as the first argument:
-</p>
-<ul>
-    <li><b>rows</b> - Initial number of rows</li>
-    <li><b>cols</b> - Initial number of columns</li>
-    <li><b>minWidth</b> - <i>(Optional)</i> Number. If set, will add as many columns as needed to meet the given width
-        in pixels
-    </li>
-    <li><b>minHeight</b> - <i>(Optional)</i> Number. If set, will add as many rows as needed to meet the given height in
-        pixels
-    </li>
-    <li><b>minSpareCols</b> - <i>(Optional)</i> Number. If set to 1 (or more), will add a new column at the end of grid
-        when there are no&nbsp;more empty columns
-    </li>
-    <li><b>minSpareRows</b> - <i>(Optional)</i> Number. If set to 1 (or more), will add a new row at the end of grid
-        when there are no&nbsp;more empty rows
-    </li>
-    <li><b>onChange</b> - <i>(Optional)</i> Function to be called after one or more cells is changed (with changes
-        array as an argument)
-    </li>
-    <li><b>multiSelect</b> - <i>(Optional)</i> Boolean. If true, selection of multiple cells using keyboard or mouse
-        is allowed. Default true.
-    </li>
-    <li><b>legend</b> - <i>(Optional)</i> Array of object literals. Each literal defines 4 properties:
-        <ul>
-            <li><b>match</b>(row, col, data) - Function to check if legend should be used for a cell. Returns TRUE if
-                legend should be used. Function parameters:
-
-                <ul>
-                    <li>row - Number of row, starting of 0</li>
-                    <li>col - Number of column, starting of 0</li>
-                    <li>data - Function that returns array of current data for all cells. Can be used to check what is
-                        the current content of any cell.
-                    </li>
-                </ul>
-            </li>
-            <li><b>style</b> - <i>(Optional)</i>. Object literal that contains CSS properties for matched cell</li>
-            <li><b>title</b> - <i>(Optional)</i>. String that will be used as "title" attribute for matched cell</li>
-            <li><b>readOnly</b> - <i>(Optional)</i>. Boolean. If true, then value of matched cell cannot be manually
-                changed
-            </li>
-        </ul>
-    </li>
-    <li><b>autocomplete</b> - <i>(Optional)</i> Array of object literals. Each literal defines 2 properties:
-        <ul>
-            <li><b>match</b>(row, col, data) - Function to check if the source should be used as autocomplete for
-                a cell. Returns TRUE if source should be used. Function parameters:
-
-                <ul>
-                    <li>row - Number of row, starting of 0</li>
-                    <li>col - Number of column, starting of 0</li>
-                    <li>data - Function that returns array of current data for all cells. Can be used to check what is
-                        the current content of any cell.
-                    </li>
-                </ul>
-            </li>
-            <li><b>highlighter</b>(item) - Function to render suggestion row for autocomplete. See the above example for
-                color highlighter.
-            </li>
-            <li><b>source</b>() - Function to return data for autocomplete</li>
-        </ul>
-    </li>
-</ul>
-
-<h3>handsontable("loadData", data)</h3>
-
-<p>
-    Plugin method <span class="code">handsontable("loadData", data)</span> accepts initial cell data as the
-    argument.
+    Available plugin methods and configuration options are listed in <a href="http://github.com/warpech/jquery-handsontable">README.md on GitHub</a>
 </p>
 
 <h2>License</h2>
 
 <p>
-    Dual licensed under the MIT or GPL Version 2 licenses.
+    Licensed under the MIT license
 </p>
 
 <h2>Authors</h2>
