@@ -1317,10 +1317,13 @@
    */
   function Border($container, options) {
     this.$container = $container;
+    var container = this.$container[0];
 
     var html = '';
     if (options.bg) {
-      html += '<div class="htBorderBg ' + options.className + '"></div>';
+      this.bg = document.createElement("div");
+      this.bg.className = 'htBorderBg ' + options.className;
+      container.insertBefore(this.bg, container.getElementsByTagName('table')[0]);
     }
     html += (new Array(5)).join('<div class="htBorder ' + options.className + '"></div>');
     if (options.handle) {
@@ -1333,13 +1336,10 @@
     this.main.style.left = 0;
     this.main.innerHTML = html;
     this.disappear();
-    this.$container[0].appendChild(this.main);
+    container.appendChild(this.main);
 
     var nodes = this.main.childNodes;
     var i = 0;
-    if (options.bg) {
-      this.bg = nodes[i++];
-    }
     this.top = nodes[i++];
     this.left = nodes[i++];
     this.bottom = nodes[i++];
@@ -1375,7 +1375,9 @@
       width = lastOffset.left - firstOffset.left + last.outerWidth();
 
       if (!$.browser.mozilla) {
-        top += 1;
+        if(!($.browser.msie && parseInt($.browser.version)< 8)) {
+          top += 1;
+        }
         left += 1;
       }
 
@@ -1391,6 +1393,7 @@
         this.bg.style.left = left + 'px';
         this.bg.style.width = width + 'px';
         this.bg.style.height = height + 'px';
+        this.bg.style.display = 'block';
       }
 
       this.top.style.top = top + 'px';
@@ -1424,6 +1427,9 @@
      */
     disappear: function () {
       this.main.style.display = 'none';
+      if(this.bg) {
+        this.bg.style.display = 'none';
+      }
     }
   };
 

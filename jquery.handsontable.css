@@ -19,7 +19,6 @@
   border-spacing: 0;
   border-top: 1px solid #aaa;
   border-left: 1px solid #aaa;
-  z-index: 2;
 }
 
 .dataTable td {
@@ -39,7 +38,6 @@
 .dataTable .htBorderBg {
   position: absolute;
   font-size: 0;
-  z-index: 1;
 }
 
 .dataTable .htBorderBg.current {
@@ -57,7 +55,6 @@
   height: 2px;
   background: #000;
   font-size: 0;
-  z-index: 3;
 }
 
 .dataTable .htBorder.autofill {
@@ -84,7 +81,6 @@
   background: #000;
   border: 1px solid #fff;
   font-size: 0;
-  z-index: 3;
   cursor: crosshair;
 }
 
@@ -110,7 +106,6 @@ textarea.handsontableInput {
   width: 1px;
   height: 1px;
   overflow: hidden;
-  z-index: 1;
 }
 
 /* typeahead rules. Needed only if you are using the autocomplete feature */
@@ -118,7 +113,6 @@ textarea.handsontableInput {
   position: absolute;
   top: 100%;
   left: 0;
-  z-index: 1000;
   float: left;
   display: none;
   min-width: 160px;
