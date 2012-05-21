@@ -17,21 +17,17 @@
   -o-user-select: none;
   user-select: none;
   border-spacing: 0;
-  border-top: 1px solid #aaa;
-  border-left: 1px solid #aaa;
+  border-top: 1px solid #CCC;
+  border-left: 1px solid #CCC;
 }
 
 .dataTable td {
-  border-right: 1px solid #aaa;
-  border-bottom: 1px solid #aaa;
+  border-right: 1px solid #CCC;
+  border-bottom: 1px solid #CCC;
   min-width: 50px;
   width: 50px;
   height: 22px;
   padding: 0 4px 0 4px;
-}
-
-.dataTable td.selectedCell {
-  background-color: #ffffff;
 }
 
 /* border background */
@@ -40,12 +36,8 @@
   font-size: 0;
 }
 
-.dataTable .htBorderBg.current {
-  background-color: #fff;
-}
-
 .dataTable .htBorderBg.selection {
-  background-color: #eef;
+  background-color: #EEF4FF;
 }
 
 /* border line */
@@ -62,13 +54,13 @@
 }
 
 .dataTable .htBorder.current {
-  background: green;
+  background: #5292F7;
   width: 2px;
   height: 2px;
 }
 
 .dataTable .htBorder.selection {
-  background: blue;
+  background: #89AFF9;
   width: 1px;
   height: 1px;
 }
