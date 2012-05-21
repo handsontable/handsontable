@@ -16,10 +16,10 @@ The table below presents configurable options that are interpreted by `handsonta
  `minHeight`    | Number   | 0           | Handsontable will add as many rows as needed to meet the given height in pixels
  `minSpareCols` | Number   | 0           | When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns
  `minSpareRows` | Number   | 0           | When set to 1 (or more), Handsontable will add a new row at the end of grid if there are no more empty rows
- `onChange`     | Function | _undefined_ | Callback to be fired after one or more cells is changed (with changes array as an argument)
  `multiSelect`  | Boolean  | true        | If true, selection of multiple cells using keyboard or mouse is allowed
  `legend`       | Array    | _undefined_ | Legend definitions. See **Defining legend**
- `autocomplete` | Array    | _undefined_ | Autocomplete definitions. See **Defining autocomplete** 
+ `autocomplete` | Array    | _undefined_ | Autocomplete definitions. See **Defining autocomplete**
+ `onChange`     | Function | _undefined_ | Callback to be fired after one or more cells is changed (with changes array as an argument)
 
 ### Defining legend
 
