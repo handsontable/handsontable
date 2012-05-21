@@ -754,8 +754,7 @@
       parsePasteInput: function (input) {
         var rows, r, rlen;
 
-        //if (input.indexOf("\t") > -1) { //Excel format
-        input.replace(/[\r\n]*$/g, ''); //remove newline from end of the input
+        input = input.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''); //remove newline from the start and the end of the input
         rows = input.split("\n");
         if (rows[rows.length - 1] === '') {
           rows.pop();
@@ -763,7 +762,6 @@
         for (r = 0, rlen = rows.length; r < rlen; r++) {
           rows[r] = rows[r].split("\t");
         }
-        //}
 
         return rows;
       }
