@@ -21,10 +21,10 @@ Then, run `handsontable()` constructor on an empty div:
         rows: 6,
         cols: 8
         onChange: function (change) {
-            //here put some code that saves current data
-            //this part is up to you (not a part of Handsontable)
-            var lastChange = change;
-            var allData = $("#dataTable").handsontable("getData");
+          //here put some code that saves current data
+          //this part is up to you (not a part of Handsontable)
+          var lastChange = change;
+          var allData = $("#dataTable").handsontable("getData");
         }
     });
     </script>
@@ -32,13 +32,13 @@ Then, run `handsontable()` constructor on an empty div:
 Maybe you want to show some default data. Use the `handsontable('loadData', data)` method:
 
     <script>
-    var data = [
+      var data = [
         ["", "Kia", "Nissan", "Toyota", "Honda"],
         ["2008", 10, 11, 12, 13],
         ["2009", 20, 11, 14, 13],
         ["2010", 30, 15, 12, 13]
-    ];
-    $("#dataTable").handsontable("loadData", data);
+      ];
+      $("#dataTable").handsontable("loadData", data);
     </script>
 
 ## Methods
