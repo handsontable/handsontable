@@ -538,12 +538,6 @@
       setRangeEnd: function (td) {
         selection.deselect();
         var coords = grid.getCellCoords(td);
-        if (priv.isAutoFill) {
-          if (priv.selStart.row !== coords.row && priv.selStart.col !== coords.col) {
-            coords.col = priv.selStart.col;
-            td = grid.getCellAtCoords(coords);
-          }
-        }
         if (!priv.settings.multiSelect) {
           priv.selStart = coords;
           priv.currentBorder.appear([td]);
@@ -673,12 +667,7 @@
       init: function () {
         priv.selectionBorder = new Border(container, {
           className: 'selection',
-          bg: true,
-          handle: true,
-          onHandleDrag: function () {
-            priv.isAutoFill = true;
-            container.find('.htBorder').addClass('autofill');
-          }
+          bg: true
         });
       },
 
@@ -1143,7 +1132,7 @@
       },
 
       onMouseOver: function () {
-        if (priv.isMouseDown || priv.isAutoFill) {
+        if (priv.isMouseDown) {
           selection.setRangeEnd(this);
         }
       }
@@ -1194,8 +1183,6 @@
 
       function onMouseUp() {
         priv.isMouseDown = false;
-        priv.isAutoFill = false;
-        container.find('.htBorder').removeClass('autofill');
       }
 
       function onOutsideClick() {
@@ -1307,50 +1294,36 @@
   }
 
   /**
-   * Create DOM elements for selection border lines (top, right, bottom, left) and optionally: background and handle
+   * Create DOM elements for selection border lines (top, right, bottom, left) and optionally background
    * @constructor
    * @param {jQuery} $container jQuery DOM element of handsontable container
    * @param {Object} options Configurable options
    * @param {Boolean} [options.bg] Should include a background
-   * @param {Boolean} [options.handle] Should include a handle
-   * @param {Function} [options.onHandleDrag] Callback to run when handle is dragged
+   * @param {String} [options.className] CSS class for border elements
    */
   function Border($container, options) {
     this.$container = $container;
     var container = this.$container[0];
 
-    var html = '';
     if (options.bg) {
       this.bg = document.createElement("div");
       this.bg.className = 'htBorderBg ' + options.className;
       container.insertBefore(this.bg, container.getElementsByTagName('table')[0]);
-    }
-    html += (new Array(5)).join('<div class="htBorder ' + options.className + '"></div>');
-    if (options.handle) {
-      html += '<div class="htBorderHandle ' + options.className + '"></div>';
     }
 
     this.main = document.createElement("div");
     this.main.style.position = 'absolute';
     this.main.style.top = 0;
     this.main.style.left = 0;
-    this.main.innerHTML = html;
+    this.main.innerHTML = (new Array(5)).join('<div class="htBorder ' + options.className + '"></div>');
     this.disappear();
     container.appendChild(this.main);
 
     var nodes = this.main.childNodes;
-    var i = 0;
-    this.top = nodes[i++];
-    this.left = nodes[i++];
-    this.bottom = nodes[i++];
-    this.right = nodes[i++];
-    if (options.handle) {
-      this.handle = nodes[i];
-    }
-
-    if (options.onHandleDrag) {
-      $(this.handle).on('mousedown', options.onHandleDrag);
-    }
+    this.top = nodes[0];
+    this.left = nodes[1];
+    this.bottom = nodes[2];
+    this.right = nodes[3];
 
     this.borderWidth = $(this.left).width();
   }
@@ -1413,11 +1386,6 @@
       this.right.style.top = top + 'px';
       this.right.style.left = left + width - delta + 'px';
       this.right.style.height = height + 1 + 'px';
-
-      if (this.handle) {
-        this.handle.style.top = top + height - 3 + 'px';
-        this.handle.style.left = left + width - 3 + 'px';
-      }
 
       this.main.style.display = 'block';
     },

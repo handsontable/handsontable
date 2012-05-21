@@ -49,10 +49,6 @@
   font-size: 0;
 }
 
-.dataTable .htBorder.autofill {
-  background: red;
-}
-
 .dataTable .htBorder.current {
   background: #5292F7;
   width: 2px;
@@ -63,17 +59,6 @@
   background: #89AFF9;
   width: 1px;
   height: 1px;
-}
-
-/* border handle */
-.dataTable .htBorderHandle {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  background: #000;
-  border: 1px solid #fff;
-  font-size: 0;
-  cursor: crosshair;
 }
 
 /* textarea border color */
