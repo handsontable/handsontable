@@ -1348,7 +1348,7 @@
       width = lastOffset.left - firstOffset.left + last.outerWidth();
 
       if (!$.browser.mozilla) {
-        if(!($.browser.msie && parseInt($.browser.version)< 8)) {
+        if (!($.browser.msie && parseInt($.browser.version) < 8)) {
           top += 1;
         }
         left += 1;
@@ -1395,7 +1395,7 @@
      */
     disappear: function () {
       this.main.style.display = 'none';
-      if(this.bg) {
+      if (this.bg) {
         this.bg.style.display = 'none';
       }
     }
