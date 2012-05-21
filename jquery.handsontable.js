@@ -1351,11 +1351,13 @@
     if (options.onHandleDrag) {
       $(this.handle).on('mousedown', options.onHandleDrag);
     }
+
+    this.borderWidth = $(this.left).width();
   }
 
   Border.prototype = {
     /**
-     * Show border around the array of table cels
+     * Show border around the array of table cells
      * @param {Element[]} tds
      */
     appear: function (tds) {
@@ -1399,12 +1401,14 @@
       this.left.style.left = left + 'px';
       this.left.style.height = height + 'px';
 
-      this.bottom.style.top = top + height - 1 + 'px';
+      var delta = Math.floor(this.borderWidth / 2);
+
+      this.bottom.style.top = top + height - delta + 'px';
       this.bottom.style.left = left + 'px';
       this.bottom.style.width = width + 'px';
 
       this.right.style.top = top + 'px';
-      this.right.style.left = left + width - 1 + 'px';
+      this.right.style.left = left + width - delta + 'px';
       this.right.style.height = height + 1 + 'px';
 
       if (this.handle) {
