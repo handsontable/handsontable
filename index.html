@@ -199,11 +199,19 @@
                     return (row === 0); //if it is first row
                 },
                 style: {
-                    color: '#666',
+                    color: '#666', //make the text gray and bold
                     fontWeight: 'bold'
                 },
-                title: 'Heading',
-                readOnly: true
+                title: 'Heading', //make some tooltip
+                readOnly: true //make it read-only
+            },
+            {
+                match: function (row, col, data) {
+                    return (row > 0 && data()[0][col].indexOf('color') > 0); //if first cell in this column contains word "color"
+                },
+                style: {
+                    fontStyle: 'italic' //make cells text in this column written in italic
+                }
             }
         ],
         autoComplete: [
