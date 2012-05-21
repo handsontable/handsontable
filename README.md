@@ -11,7 +11,7 @@ The table below presents configurable options that are interpreted by `handsonta
   Option        | Optional | Type     | Description
 ----------------|----------|----------|-------------
  `rows`         |          | Number   | Initial number of rows
- `cols`         | Optional | Number   | Initial number of columns
+ `cols`         |          | Number   | Initial number of columns
  `minWidth`     | Optional | Number   | Handsontable will add as many columns as needed to meet the given width in pixels
  `minHeight`    | Optional | Number   | Handsontable will add as many rows as needed to meet the given height in pixels
  `minSpareCols` | Optional | Number   | When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns
