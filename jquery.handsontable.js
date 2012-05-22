@@ -1095,13 +1095,14 @@
               $td = $(td),
               val = $.trim(priv.editProxy.val());
           if (!isCancelled && grid.isCellWriteable($td)) {
-            if (priv.settings.onChange) {
-              priv.settings.onChange([
-                [priv.selStart.row, priv.selStart.col, datamap.get(priv.selStart.row, priv.selStart.col), val]
-              ]);
-            }
+            var oldVal = datamap.get(priv.selStart.row, priv.selStart.col);
             td.innerHTML = val.replace(/\n/g, '<br/>');
             datamap.set(priv.selStart.row, priv.selStart.col, val);
+            if (priv.settings.onChange) {
+              priv.settings.onChange([
+                [priv.selStart.row, priv.selStart.col, oldVal, val]
+              ]);
+            }
             grid.keepEmptyRows();
           }
 
