@@ -535,7 +535,7 @@
        * @param td element
        */
       setRangeStart: function (td) {
-        selection.deselect();
+        highlight.off();
         priv.selStart = grid.getCellCoords(td);
         priv.currentBorder.appear([td]);
         selection.setRangeEnd(td);
@@ -546,7 +546,6 @@
        * @param td element
        */
       setRangeEnd: function (td) {
-        selection.deselect();
         var coords = grid.getCellCoords(td);
         if (!priv.settings.multiSelect) {
           priv.selStart = coords;
@@ -626,6 +625,7 @@
           editproxy.finishEditing();
         }
         highlight.off();
+        priv.currentBorder.disappear();
         selection.end(false);
       },
 
