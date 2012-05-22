@@ -537,7 +537,7 @@
       setRangeStart: function (td) {
         highlight.off();
         priv.selStart = grid.getCellCoords(td);
-        priv.currentBorder.appear([td]);
+        priv.currentBorder.appear(td);
         selection.setRangeEnd(td);
       },
 
@@ -549,7 +549,7 @@
         var coords = grid.getCellCoords(td);
         if (!priv.settings.multiSelect) {
           priv.selStart = coords;
-          priv.currentBorder.appear([td]);
+          priv.currentBorder.appear(td);
         }
         selection.end(coords);
         highlight.on();
@@ -575,6 +575,14 @@
           priv.selEnd = coords;
         }
         return priv.selEnd;
+      },
+
+      /**
+       * Returns information if we have a multiselection
+       * @return {Boolean}
+       */
+      isMultiple: function() {
+        return !(priv.selEnd.col === priv.selStart.col && priv.selEnd.row === priv.selStart.row);
       },
 
       /**
@@ -688,9 +696,8 @@
         if (!selection.isSelected()) {
           return false;
         }
-        var tds = grid.getCellsAtCoords(priv.selStart, selection.end());
-        if (tds.length > 1) {
-          priv.selectionBorder.appear(tds);
+        if (selection.isMultiple()) {
+          priv.selectionBorder.appear(grid.getCellAtCoords(priv.selStart), grid.getCellAtCoords(selection.end()));
         }
         else {
           priv.selectionBorder.disappear();
@@ -1058,7 +1065,7 @@
         priv.isCellEdited = true;
         lastChange = '';
 
-        if (priv.selEnd.col !== priv.selStart.col || priv.selEnd.row !== priv.selStart.row) { //if we are in multiselection, select only one
+        if (selection.isMultiple()) {
           highlight.off();
           priv.selEnd = priv.selStart;
           highlight.on();
@@ -1342,22 +1349,39 @@
 
   Border.prototype = {
     /**
-     * Show border around the array of table cells
-     * @param {Element[]} tds
+     * Show border around one or many cells
+     * @param {Element} fromTd
+     * @param {Element} [toTd]
      */
-    appear: function (tds) {
-      var first, last, firstOffset, lastOffset, containerOffset, top, left, height, width;
+    appear: function (fromTd, toTd) {
+      var $from, $to, fromOffset, toOffset, containerOffset, top, minTop, left, minLeft, height, width;
 
-      first = $(tds[0]);
-      last = $(tds[tds.length - 1]);
-      firstOffset = first.offset();
-      lastOffset = last.offset();
+      $from = $(fromTd);
+      $to = toTd ? $(toTd) : $from;
+      fromOffset = $from.offset();
+      toOffset = toTd ? $to.offset() : fromOffset;
       containerOffset = this.$container.offset();
 
-      top = firstOffset.top - containerOffset.top + this.$container.scrollTop() - 1;
-      left = firstOffset.left - containerOffset.left + this.$container.scrollLeft() - 1;
-      height = lastOffset.top - firstOffset.top + last.outerHeight();
-      width = lastOffset.left - firstOffset.left + last.outerWidth();
+      if(fromOffset.top > toOffset.top) {
+        minTop = toOffset.top;
+        height = fromOffset.top + $from.outerHeight() - minTop;
+      }
+      else {
+        minTop = fromOffset.top;
+        height = toOffset.top + $to.outerHeight() - minTop;
+      }
+
+      if(fromOffset.left > toOffset.left) {
+        minLeft = toOffset.left;
+        width = fromOffset.left + $from.outerWidth() - minLeft;
+      }
+      else {
+        minLeft = fromOffset.left;
+        width = toOffset.left + $to.outerWidth() - minLeft;
+      }
+
+      top = minTop - containerOffset.top + this.$container.scrollTop() - 1;
+      left = minLeft - containerOffset.left + this.$container.scrollLeft() - 1;
 
       if (!$.browser.mozilla) {
         if (!($.browser.msie && parseInt($.browser.version) < 8)) {
