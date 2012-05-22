@@ -421,8 +421,18 @@
             }
             td = grid.getCellAtCoords(current);
             if (grid.isCellWriteable($(td))) {
+              switch (typeof input[r][c]) {
+                case 'string':
+                  break;
+
+                case 'number':
+                  input[r][c] += '';
+                  break;
+
+                default:
+                  input[r][c] = '';
+              }
               changes.push([current.row, current.col, datamap.get(current.row, current.col), input[r][c]]);
-              input[r][c] += '';
               td.innerHTML = input[r][c].replace(/\n/g, '<br/>');
               datamap.set(current.row, current.col, input[r][c]);
               endTd = td;
