@@ -692,6 +692,9 @@
         if (tds.length > 1) {
           priv.selectionBorder.appear(tds);
         }
+        else {
+          priv.selectionBorder.disappear();
+        }
       },
 
       /**
