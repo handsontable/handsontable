@@ -1,6 +1,6 @@
 # Handsontable
 
-Handsontable is minimalistic a jQuery plugin approach to Excel-like table editor.
+Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery
 
 See the live demo at: http://warpech.github.com/jquery-handsontable/
 
