@@ -305,9 +305,9 @@ $("#example5grid").handsontable("loadData", data);
   <div class="pad">
     <h3>Save</h3>
 
-    <p>Use the
-      <b>onChange</b> callback to track changes made in the table. In the example below it is used to display the last changes
-    </p>
+    <p>Use the <b>onChange</b> callback to track changes made in the table. In the example below it is used to display the last changes.</p>
+
+    <p>There is also the NEW <b>onBeforeChange</b> callback, which can be used to validate changes before they are applied to the table.</p>
 
     <div id="example6grid" class="dataTable"></div>
 
@@ -331,28 +331,28 @@ $("#example6grid").handsontable({
   minSpareCols: 1,
   minSpareRows: 1,
   onBeforeChange: function (data) {
-  for(var i = 0, ilen = data.length; i < ilen; i++) {
-    if(data[i][3] === "foo") {
-      //gently don't accept the word "foo"
-      data[i][3] = false;
+    for(var i = 0, ilen = data.length; i < ilen; i++) {
+      if(data[i][3] === "foo") {
+        //gently don't accept the word "foo"
+        data[i][3] = false;
+      }
+      else if(data[i][3] === "bar") {
+        //if the word bar is given, add a ! at the end of it
+        data[i][3] = data[i][3] + '!';
+      }
+      else if(data[i][3] === "nuke") {
+        //if any of pasted cells contains the word "nuke", reject the whole paste
+        return false;
+      }
     }
-    else if(data[i][3] === "bar") {
-      //if the word bar is given, add a ! at the end of it
-      data[i][3] = data[i][3] + '!';
+  },
+  onChange: function (data) {
+    if (first) {
+      first = false;
+      return; //don't show this change in console
     }
-    else if(data[i][3] === "nuke") {
-      //if any of pasted cells contains the word "nuke", reject the whole paste
-      return false;
-    }
+    $("#example6console").text(JSON.stringify(data));
   }
-},
-onChange: function (data) {
-  if (first) {
-    first = false;
-    return; //don't show this change in console
-  }
-  $("#example6console").text(JSON.stringify(data));
-}
 });
 
 var data = [
