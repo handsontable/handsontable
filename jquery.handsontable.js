@@ -291,7 +291,7 @@
         }
 
         if (!recreateRows) {
-          for (; ((priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows) && (!priv.settings.minHeight || $tbody.height() - $tbody.find('tr:last').height() - 4 > priv.settings.minHeight)); emptyRows--) {
+          for (; ((priv.settings.rows && priv.rowCount > priv.settings.rows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows) && (!priv.settings.minHeight || $tbody.height() - $tbody.find('tr:last').height() - 4 > priv.settings.minHeight)); emptyRows--) {
             grid.removeRow();
             datamap.removeRow();
             recreateRows = true;
@@ -315,7 +315,7 @@
         }
 
         if (!recreateCols) {
-          for (; ((priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (priv.settings.minWidth && $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
+          for (; ((priv.settings.cols && priv.colCount > priv.settings.cols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (priv.settings.minWidth && $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
             grid.removeCol();
             datamap.removeCol();
             recreateCols = true;
@@ -1638,7 +1638,7 @@
       options = action;
       return this.each(function () {
         var $this = $(this);
-        if ($this.data("handsontable")) {
+        if (0 && $this.data("handsontable")) {
           instance = $this.data("handsontable");
           instance.updateSettings(options);
         }
