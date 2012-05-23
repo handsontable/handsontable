@@ -1,0 +1,168 @@
+/*This file is only needed for demo purposes in index.html*/
+body {
+  margin-top: 1.0em;
+  background-color: #ffffff;
+  font-family: Helvetica, Arial, FreeSans, sans-serif;
+  color: #000000;
+  font-size: 13px;
+}
+
+#container {
+  margin: 0 auto;
+  width: 700px;
+}
+
+h1 {
+  font-size: 3.8em;
+  color: #7AB317;
+  margin-bottom: 3px;
+}
+
+h1 a {
+  text-decoration: none
+}
+
+h2 {
+  font-size: 1.5em;
+  color: #7AB317;
+  margin: 2em 0 0.5em 0;
+}
+
+h2#demos {
+  margin-bottom: -30px;
+}
+
+.examplesList {
+  list-style-type: none;
+  margin: 0;
+  padding: 10px 0 0 0;
+  position: absolute;
+  left: -131px;
+  top: 50px;
+}
+
+.examplesList li {
+  padding: 0;
+  margin: 0;
+}
+
+.examplesList li a {
+  padding: 4px;
+  cursor: pointer;
+  width: 122px;
+  margin: 0;
+  position: relative;
+  display: block;
+  color: black;
+  text-decoration: none;
+}
+
+.examplesList li a.active {
+  background-color: #7AB317;
+  color: white;
+}
+
+.examplesList li a:hover {
+  background-color: #EEE;
+}
+
+.examplesList li a.active:hover {
+  background-color: #7AB317;
+}
+
+.arr {
+  font-size: 0;
+  line-height: 0%;
+  width: 0;
+  border-top: 12px solid #FFF;
+  border-left: 12px solid #FFF;
+  border-bottom: 12px solid #FFF;
+  float: right;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.examplesList li a.active .arr {
+  border-left-color: #7AB317;
+}
+
+.examplesList li a:hover .arr {
+  border-left-color: #EEE;
+}
+
+.examplesList li a.active:hover .arr {
+  border-left-color: #7AB317;
+}
+
+.example {
+  padding-top: 50px;
+  position: relative;
+}
+
+.example .pad {
+  border: 1px solid #7AB317;
+  padding: 14px 10px 10px 10px;
+}
+
+h3 {
+  font-size: 1.6em;
+  color: #1B676B;
+  margin: 0 0 2px 0;
+  text-align: left;
+}
+
+li {
+  margin-top: 0.5em;
+}
+
+ul {
+  margin-bottom: 0.5em
+}
+
+a {
+  color: #1B676B;
+}
+
+.description {
+  font-size: 1.2em;
+  margin-bottom: 30px;
+  margin-top: 30px;
+  font-style: italic;
+}
+
+.download {
+  float: right;
+}
+
+pre {
+  font-family: monospace;
+  background: #000;
+  color: #fff;
+  padding: 15px;
+  margin: 0;
+}
+
+.code {
+  font-family: monospace;
+  white-space: pre;
+}
+
+.console {
+  background-color: #eee;
+  color: #333;
+  padding: 10px;
+  font-size: 90%
+}
+
+hr {
+  border: 0;
+  width: 80%;
+  border-bottom: 1px solid #aaa
+}
+
+.footer {
+  text-align: center;
+  padding-top: 30px;
+  font-style: italic;
+}
