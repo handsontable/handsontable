@@ -11,7 +11,7 @@
 
   function Handsontable(container, settings) {
     var UNDEFINED = (function () {
-    }()), priv, datamap, grid, selection, keyboard, editproxy, highlight, interaction, self = this;
+    }()), priv, datamap, grid, selection, keyboard, editproxy, highlight, dragdown, interaction, self = this;
 
     priv = {
       settings: settings,
@@ -397,9 +397,10 @@
        * Populate cells at position with 2d array
        * @param {Object} start Start selection position
        * @param {Array} input 2d array
+       * @param {Object} end End selection position (only for drag-down mode)
        * @return {Object} ending td in pasted area
        */
-      populateFromArray: function (start, input) {
+      populateFromArray: function (start, input, end) {
         var r, rlen, c, clen, td, endTd, changes = [], current = {};
         rlen = input.length;
         if (rlen === 0) {
@@ -408,6 +409,9 @@
         current.row = start.row;
         current.col = start.col;
         for (r = 0; r < rlen; r++) {
+          if (end && current.row > end.row) {
+            break;
+          }
           current.col = start.col;
           if (current.row > priv.rowCount - 1) {
             grid.createRow();
@@ -415,6 +419,9 @@
           }
           clen = input[r] ? input[r].length : 0;
           for (c = 0; c < clen; c++) {
+            if (end && current.col > end.col) {
+              break;
+            }
             if (current.col > priv.colCount - 1) {
               grid.createCol();
               datamap.createCol();
@@ -438,8 +445,14 @@
               endTd = td;
             }
             current.col++;
+            if (end && c === clen - 1) {
+              c = -1;
+            }
           }
           current.row++;
+          if (end && r === rlen - 1) {
+            r = -1;
+          }
         }
         if (priv.settings.onChange && changes.length) {
           priv.settings.onChange(changes);
@@ -490,17 +503,42 @@
       },
 
       /**
+       * Returns the top left (TL) and bottom right (BR) selection coordinates
+       * @param {Object[]} coordsArr
+       * @returns {Object}
+       */
+      getCornerCoords: function (coordsArr) {
+        function mapProp(func, array, prop) {
+          function getProp(el) {
+            return el[prop];
+          }
+
+          if (Array.prototype.map) {
+            return func.apply(Math, array.map(getProp));
+          }
+          return func.apply(Math, $.map(array, getProp));
+        }
+
+        return {
+          TL: {
+            row: mapProp(Math.min, coordsArr, "row"),
+            col: mapProp(Math.min, coordsArr, "col")
+          },
+          BR: {
+            row: mapProp(Math.max, coordsArr, "row"),
+            col: mapProp(Math.max, coordsArr, "col")
+          }
+        };
+      },
+
+      /**
        * Returns array of td objects given start and end coordinates
        */
       getCellsAtCoords: function (start, end) {
-        /*if (!end) {
-         return grid.getCellAtCoords(start, end);
-         }*/
-        var r, rlen, c, clen, output = [];
-        rlen = Math.max(start.row, end.row);
-        clen = Math.max(start.col, end.col);
-        for (r = Math.min(start.row, end.row); r <= rlen; r++) {
-          for (c = Math.min(start.col, end.col); c <= clen; c++) {
+        var corners = grid.getCornerCoords([start, end]);
+        var r, c, output = [];
+        for (r = corners.TL.row; r <= corners.BR.row; r++) {
+          for (c = corners.TL.col; c <= corners.BR.col; c++) {
             output.push(grid.getCellAtCoords({
               row: r,
               col: c
@@ -537,7 +575,8 @@
       setRangeStart: function (td) {
         highlight.off();
         priv.selStart = grid.getCellCoords(td);
-        priv.currentBorder.appear(td);
+        priv.currentBorder.appear([priv.selStart]);
+        dragdown.hideHandle();
         selection.setRangeEnd(td);
       },
 
@@ -547,11 +586,14 @@
        */
       setRangeEnd: function (td) {
         var coords = grid.getCellCoords(td);
+        selection.end(coords);
+        if (priv.dragHandle) {
+          dragdown.showHandle();
+        }
         if (!priv.settings.multiSelect) {
           priv.selStart = coords;
-          priv.currentBorder.appear(td);
+          priv.currentBorder.appear([priv.selStart]);
         }
-        selection.end(coords);
         highlight.on();
         editproxy.prepare();
         highlight.scrollViewport(td);
@@ -581,7 +623,7 @@
        * Returns information if we have a multiselection
        * @return {Boolean}
        */
-      isMultiple: function() {
+      isMultiple: function () {
         return !(priv.selEnd.col === priv.selStart.col && priv.selEnd.row === priv.selStart.row);
       },
 
@@ -697,7 +739,7 @@
           return false;
         }
         if (selection.isMultiple()) {
-          priv.selectionBorder.appear(grid.getCellAtCoords(priv.selStart), grid.getCellAtCoords(selection.end()));
+          priv.selectionBorder.appear([priv.selStart, selection.end()]);
         }
         else {
           priv.selectionBorder.disappear();
@@ -762,6 +804,102 @@
             priv.scrollable.scrollTop(offsetTop - 2);
           }, 1);
         }
+      }
+    };
+
+    dragdown = {
+      /**
+       * Create drag-down handle and drag border objects
+       */
+      init: function () {
+        priv.dragHandle = new DragHandle(container);
+        priv.dragBorder = new Border(container, {
+          className: 'htDragBorder'
+        });
+      },
+
+      /**
+       * Apply drag-down values to the area in drag border, omitting the selection border
+       */
+      apply: function () {
+        var drag, select, start, end;
+
+        priv.dragHandle.isDragged = false;
+        priv.dragBorder.disappear();
+
+        drag = priv.dragBorder.corners;
+        if (selection.isMultiple()) {
+          select = priv.selectionBorder.corners;
+        }
+        else {
+          select = priv.currentBorder.corners;
+        }
+
+        if (drag.TL.row === select.TL.row && drag.TL.col < select.TL.col) {
+          start = drag.TL;
+          end = {
+            row: drag.BR.row,
+            col: select.TL.col - 1
+          };
+        }
+        else if (drag.TL.row === select.TL.row && drag.BR.col > select.BR.col) {
+          start = {
+            row: drag.TL.row,
+            col: select.BR.col + 1
+          };
+          end = drag.BR;
+        }
+        else if (drag.TL.row < select.TL.row && drag.TL.col === select.TL.col) {
+          start = drag.TL;
+          end = {
+            row: select.TL.row - 1,
+            col: drag.BR.col
+          };
+        }
+        else if (drag.BR.row > select.BR.row && drag.TL.col === select.TL.col) {
+          start = {
+            row: select.BR.row + 1,
+            col: drag.TL.col
+          };
+          end = drag.BR;
+        }
+
+        if (start) {
+          var inputArray = keyboard.parsePasteInput(priv.editProxy.val());
+          grid.populateFromArray(start, inputArray, end);
+
+          selection.setRangeStart(grid.getCellAtCoords(drag.TL));
+          selection.setRangeEnd(grid.getCellAtCoords(drag.BR));
+        }
+      },
+
+      /**
+       * Show drag-down handle
+       */
+      showHandle: function () {
+        priv.dragHandle.appear([priv.selStart, priv.selEnd]);
+      },
+
+      /**
+       * Hide drag-down handle
+       */
+      hideHandle: function () {
+        priv.dragHandle.disappear();
+      },
+
+      /**
+       * Show drag-down border
+       */
+      showBorder: function (td) {
+        var coords = grid.getCellCoords(td);
+        var corners = grid.getCornerCoords([priv.selStart, priv.selEnd]);
+        if (corners.BR.row < coords.row || corners.TL.row > coords.row) {
+          coords = {row: coords.row, col: corners.BR.col};
+        }
+        else {
+          coords = {row: corners.BR.row, col: coords.col};
+        }
+        priv.dragBorder.appear([priv.selStart, priv.selEnd, coords]);
       }
     };
 
@@ -1154,6 +1292,9 @@
         if (priv.isMouseDown) {
           selection.setRangeEnd(this);
         }
+        else if (priv.dragHandle && priv.dragHandle.isDragged) {
+          dragdown.showBorder(this);
+        }
       }
     };
 
@@ -1187,12 +1328,11 @@
       }
 
       highlight.init();
-
       priv.currentBorder = new Border(container, {
         className: 'current',
         bg: true
       });
-
+      dragdown.init();
       editproxy.init();
 
       priv.table.on('mouseenter', onMouseEnterTable);
@@ -1202,6 +1342,9 @@
 
       function onMouseUp() {
         priv.isMouseDown = false;
+        if (priv.dragHandle && priv.dragHandle.isDragged) {
+          dragdown.apply();
+        }
       }
 
       function onOutsideClick() {
@@ -1309,133 +1452,173 @@
       selection.empty();
     };
 
-    init(settings);
-  }
+    /**
+     * Create DOM elements for selection border lines (top, right, bottom, left) and optionally background
+     * @constructor
+     * @param {jQuery} $container jQuery DOM element of handsontable container
+     * @param {Object} options Configurable options
+     * @param {Boolean} [options.bg] Should include a background
+     * @param {String} [options.className] CSS class for border elements
+     */
+    function Border($container, options) {
+      this.$container = $container;
+      var container = this.$container[0];
 
-  /**
-   * Create DOM elements for selection border lines (top, right, bottom, left) and optionally background
-   * @constructor
-   * @param {jQuery} $container jQuery DOM element of handsontable container
-   * @param {Object} options Configurable options
-   * @param {Boolean} [options.bg] Should include a background
-   * @param {String} [options.className] CSS class for border elements
-   */
-  function Border($container, options) {
-    this.$container = $container;
-    var container = this.$container[0];
+      if (options.bg) {
+        this.bg = document.createElement("div");
+        this.bg.className = 'htBorderBg ' + options.className;
+        container.insertBefore(this.bg, container.getElementsByTagName('table')[0]);
+      }
 
-    if (options.bg) {
-      this.bg = document.createElement("div");
-      this.bg.className = 'htBorderBg ' + options.className;
-      container.insertBefore(this.bg, container.getElementsByTagName('table')[0]);
+      this.main = document.createElement("div");
+      this.main.style.position = 'absolute';
+      this.main.style.top = 0;
+      this.main.style.left = 0;
+      this.main.innerHTML = (new Array(5)).join('<div class="htBorder ' + options.className + '"></div>');
+      this.disappear();
+      container.appendChild(this.main);
+
+      var nodes = this.main.childNodes;
+      this.top = nodes[0];
+      this.left = nodes[1];
+      this.bottom = nodes[2];
+      this.right = nodes[3];
+
+      this.borderWidth = $(this.left).width();
     }
 
-    this.main = document.createElement("div");
-    this.main.style.position = 'absolute';
-    this.main.style.top = 0;
-    this.main.style.left = 0;
-    this.main.innerHTML = (new Array(5)).join('<div class="htBorder ' + options.className + '"></div>');
-    this.disappear();
-    container.appendChild(this.main);
+    Border.prototype = {
+      /**
+       * Show border around one or many cells
+       * @param {Object[]} coordsArr
+       */
+      appear: function (coordsArr) {
+        var $from, $to, fromOffset, toOffset, containerOffset, top, minTop, left, minLeft, height, width;
 
-    var nodes = this.main.childNodes;
-    this.top = nodes[0];
-    this.left = nodes[1];
-    this.bottom = nodes[2];
-    this.right = nodes[3];
+        this.corners = grid.getCornerCoords(coordsArr);
 
-    this.borderWidth = $(this.left).width();
-  }
+        $from = $(grid.getCellAtCoords(this.corners.TL));
+        $to = (coordsArr.length > 1) ? $(grid.getCellAtCoords(this.corners.BR)) : $from;
+        fromOffset = $from.offset();
+        toOffset = (coordsArr.length > 1) ? $to.offset() : fromOffset;
+        containerOffset = this.$container.offset();
 
-  Border.prototype = {
-    /**
-     * Show border around one or many cells
-     * @param {Element} fromTd
-     * @param {Element} [toTd]
-     */
-    appear: function (fromTd, toTd) {
-      var $from, $to, fromOffset, toOffset, containerOffset, top, minTop, left, minLeft, height, width;
-
-      $from = $(fromTd);
-      $to = toTd ? $(toTd) : $from;
-      fromOffset = $from.offset();
-      toOffset = toTd ? $to.offset() : fromOffset;
-      containerOffset = this.$container.offset();
-
-      if(fromOffset.top > toOffset.top) {
-        minTop = toOffset.top;
-        height = fromOffset.top + $from.outerHeight() - minTop;
-      }
-      else {
         minTop = fromOffset.top;
         height = toOffset.top + $to.outerHeight() - minTop;
-      }
-
-      if(fromOffset.left > toOffset.left) {
-        minLeft = toOffset.left;
-        width = fromOffset.left + $from.outerWidth() - minLeft;
-      }
-      else {
         minLeft = fromOffset.left;
         width = toOffset.left + $to.outerWidth() - minLeft;
-      }
 
-      top = minTop - containerOffset.top + this.$container.scrollTop() - 1;
-      left = minLeft - containerOffset.left + this.$container.scrollLeft() - 1;
+        top = minTop - containerOffset.top + this.$container.scrollTop() - 1;
+        left = minLeft - containerOffset.left + this.$container.scrollLeft() - 1;
 
-      if (!$.browser.mozilla) {
-        if (!($.browser.msie && parseInt($.browser.version) < 8)) {
-          top += 1;
+        if (!$.browser.mozilla) {
+          if (!($.browser.msie && parseInt($.browser.version) < 8)) {
+            top += 1;
+          }
+          left += 1;
         }
-        left += 1;
+
+        if (top < 0) {
+          top = 0;
+        }
+        if (left < 0) {
+          left = 0;
+        }
+
+        if (this.bg) {
+          this.bg.style.top = top + 'px';
+          this.bg.style.left = left + 'px';
+          this.bg.style.width = width + 'px';
+          this.bg.style.height = height + 'px';
+          this.bg.style.display = 'block';
+        }
+
+        this.top.style.top = top + 'px';
+        this.top.style.left = left + 'px';
+        this.top.style.width = width + 'px';
+
+        this.left.style.top = top + 'px';
+        this.left.style.left = left + 'px';
+        this.left.style.height = height + 'px';
+
+        var delta = Math.floor(this.borderWidth / 2);
+
+        this.bottom.style.top = top + height - delta + 'px';
+        this.bottom.style.left = left + 'px';
+        this.bottom.style.width = width + 'px';
+
+        this.right.style.top = top + 'px';
+        this.right.style.left = left + width - delta + 'px';
+        this.right.style.height = height + 1 + 'px';
+
+        this.main.style.display = 'block';
+      },
+
+      /**
+       * Hide border
+       */
+      disappear: function () {
+        this.main.style.display = 'none';
+        if (this.bg) {
+          this.bg.style.display = 'none';
+        }
       }
-
-      if (top < 0) {
-        top = 0;
-      }
-      if (left < 0) {
-        left = 0;
-      }
-
-      if (this.bg) {
-        this.bg.style.top = top + 'px';
-        this.bg.style.left = left + 'px';
-        this.bg.style.width = width + 'px';
-        this.bg.style.height = height + 'px';
-        this.bg.style.display = 'block';
-      }
-
-      this.top.style.top = top + 'px';
-      this.top.style.left = left + 'px';
-      this.top.style.width = width + 'px';
-
-      this.left.style.top = top + 'px';
-      this.left.style.left = left + 'px';
-      this.left.style.height = height + 'px';
-
-      var delta = Math.floor(this.borderWidth / 2);
-
-      this.bottom.style.top = top + height - delta + 'px';
-      this.bottom.style.left = left + 'px';
-      this.bottom.style.width = width + 'px';
-
-      this.right.style.top = top + 'px';
-      this.right.style.left = left + width - delta + 'px';
-      this.right.style.height = height + 1 + 'px';
-
-      this.main.style.display = 'block';
-    },
+    };
 
     /**
-     * Hide border
+     * Create DOM element for drag-down handle
+     * @constructor
+     * @param {jQuery} $container jQuery DOM element of handsontable container
      */
-    disappear: function () {
-      this.main.style.display = 'none';
-      if (this.bg) {
-        this.bg.style.display = 'none';
-      }
+    function DragHandle($container) {
+      this.$container = $container;
+      var container = this.$container[0];
+
+      this.handle = document.createElement("div");
+      this.handle.className = "htDragHandle";
+      this.disappear();
+      container.appendChild(this.handle);
+
+      var that = this;
+      $(this.handle).mousedown(function () {
+        that.isDragged = true;
+      });
     }
-  };
+
+    DragHandle.prototype = {
+      /**
+       * Show handle in cell corner
+       * @param {Object[]} coordsArr
+       */
+      appear: function (coordsArr) {
+        var $td, tdOffset, containerOffset, top, left, height, width;
+
+        var corners = grid.getCornerCoords(coordsArr);
+
+        $td = $(grid.getCellAtCoords(corners.BR));
+        tdOffset = $td.offset();
+        containerOffset = this.$container.offset();
+
+        top = tdOffset.top - containerOffset.top + this.$container.scrollTop() - 1;
+        left = tdOffset.left - containerOffset.left + this.$container.scrollLeft() - 1;
+        height = $td.outerHeight();
+        width = $td.outerWidth();
+
+        this.handle.style.top = top + height - 3 + 'px';
+        this.handle.style.left = left + width - 3 + 'px';
+        this.handle.style.display = 'block';
+      },
+
+      /**
+       * Hide handle
+       */
+      disappear: function () {
+        this.handle.style.display = 'none';
+      }
+    };
+
+    init(settings);
+  }
 
   var settings = {
     'rows': 5,

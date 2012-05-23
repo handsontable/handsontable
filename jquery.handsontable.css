@@ -61,6 +61,23 @@
   height: 1px;
 }
 
+/* drag handle */
+.dataTable .htDragHandle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #5292F7;
+  border: 1px solid #fff;
+  font-size: 0;
+  cursor: crosshair;
+}
+
+.dataTable .htBorder.htDragBorder {
+  background: red;
+  width: 1px;
+  height: 1px;
+}
+
 /* textarea border color */
 textarea.handsontableInput {
   position: absolute;
