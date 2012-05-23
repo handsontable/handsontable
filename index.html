@@ -330,13 +330,29 @@ $("#example6grid").handsontable({
   cols: 8,
   minSpareCols: 1,
   minSpareRows: 1,
-  onChange: function (data) {
-    if (first) {
-      first = false;
-      return;
+  onBeforeChange: function (data) {
+  for(var i = 0, ilen = data.length; i < ilen; i++) {
+    if(data[i][3] === "foo") {
+      //gently don't accept the word "foo"
+      data[i][3] = false;
     }
-    $("#example6console").text(JSON.stringify(data));
+    else if(data[i][3] === "bar") {
+      //if the word bar is given, add a ! at the end of it
+      data[i][3] = data[i][3] + '!';
+    }
+    else if(data[i][3] === "nuke") {
+      //if any of pasted cells contains the word "nuke", reject the whole paste
+      return false;
+    }
   }
+},
+onChange: function (data) {
+  if (first) {
+    first = false;
+    return; //don't show this change in console
+  }
+  $("#example6console").text(JSON.stringify(data));
+}
 });
 
 var data = [

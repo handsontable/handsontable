@@ -173,10 +173,23 @@ $(function () {
       cols: 8,
       minSpareCols: 1,
       minSpareRows: 1,
+      onBeforeChange: function (data) {
+        for(var i = 0, ilen = data.length; i < ilen; i++) {
+          if(data[i][3] === "foo") {
+            data[i][3] = false; //gently don't accept the word "foo"
+          }
+          else if(data[i][3] === "bar") {
+            data[i][3] = data[i][3] + '!'; //if the word bar is given, add a ! at the end of it
+          }
+          else if(data[i][3] === "nuke") {
+            return false; //if any of pasted cells contains the word "nuke", reject the whole paste
+          }
+        }
+      },
       onChange: function (data) {
         if (first) {
           first = false;
-          return;
+          return; //don't show this change in console
         }
         $("#example6console").text(JSON.stringify(data));
       }

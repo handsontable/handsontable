@@ -10,8 +10,7 @@
   "use strict";
 
   function Handsontable(container, settings) {
-    var UNDEFINED = (function () {
-    }()), priv, datamap, grid, selection, keyboard, editproxy, highlight, dragdown, interaction, self = this;
+    var priv, datamap, grid, selection, keyboard, editproxy, highlight, dragdown, interaction, self = this;
 
     priv = {
       settings: settings,
@@ -91,7 +90,7 @@
        * @param {Number} col
        */
       get: function (row, col) {
-        return datamap.data[row][col];
+        return datamap.data[row] ? datamap.data[row][col] : void 0; //void 0 produces undefined
       },
 
       /**
@@ -413,36 +412,14 @@
             break;
           }
           current.col = start.col;
-          if (current.row > priv.rowCount - 1) {
-            grid.createRow();
-            datamap.createRow();
-          }
           clen = input[r] ? input[r].length : 0;
           for (c = 0; c < clen; c++) {
             if (end && current.col > end.col) {
               break;
             }
-            if (current.col > priv.colCount - 1) {
-              grid.createCol();
-              datamap.createCol();
-            }
             td = grid.getCellAtCoords(current);
             if (grid.isCellWriteable($(td))) {
-              switch (typeof input[r][c]) {
-                case 'string':
-                  break;
-
-                case 'number':
-                  input[r][c] += '';
-                  break;
-
-                default:
-                  input[r][c] = '';
-              }
               changes.push([current.row, current.col, datamap.get(current.row, current.col), input[r][c]]);
-              td.innerHTML = input[r][c].replace(/\n/g, '<br/>');
-              datamap.set(current.row, current.col, input[r][c]);
-              endTd = td;
             }
             current.col++;
             if (end && c === clen - 1) {
@@ -454,13 +431,52 @@
             r = -1;
           }
         }
+        if (priv.settings.onBeforeChange && changes.length) {
+          var result = priv.settings.onBeforeChange(changes);
+          if (result === false) {
+            return grid.getCellAtCoords(start);
+          }
+        }
+        for (var i = 0, ilen = changes.length; i < ilen; i++) {
+          if (end && (changes[i][0] > end.row || changes[i][1] > end.col)) {
+            continue;
+          }
+          if (changes[i][3] === false) {
+            continue;
+          }
+          while (changes[i][0] > priv.rowCount - 1) {
+            grid.createRow();
+            datamap.createRow();
+          }
+          while (changes[i][1] > priv.colCount - 1) {
+            grid.createCol();
+            datamap.createCol();
+          }
+          td = grid.getCellAtCoords({row: changes[i][0], col: changes[i][1]});
+          if (grid.isCellWriteable($(td))) {
+            switch (typeof changes[i][3]) {
+              case 'string':
+                break;
+
+              case 'number':
+                changes[i][3] += '';
+                break;
+
+              default:
+                changes[i][3] = '';
+            }
+            td.innerHTML = changes[i][3].replace(/\n/g, '<br/>');
+            datamap.set(changes[i][0], changes[i][1], changes[i][3]);
+            endTd = td;
+          }
+        }
         if (priv.settings.onChange && changes.length) {
           priv.settings.onChange(changes);
         }
         setTimeout(function () {
           grid.keepEmptyRows();
         }, 100);
-        return endTd;
+        return endTd || grid.getCellAtCoords(start);
       },
 
       /**
@@ -657,7 +673,7 @@
        */
       isSelected: function () {
         var selEnd = selection.end();
-        if (!selEnd || selEnd.row === UNDEFINED) {
+        if (!selEnd || typeof selEnd.row === "undefined") {
           return false;
         }
         return true;
@@ -675,7 +691,7 @@
         }
         highlight.off();
         priv.currentBorder.disappear();
-        if(priv.dragHandle) {
+        if (priv.dragHandle) {
           dragdown.hideHandle();
         }
         selection.end(false);
@@ -903,7 +919,7 @@
         if (priv.settings.dragDown !== 'horizontal' && (corners.BR.row < coords.row || corners.TL.row > coords.row)) {
           coords = {row: coords.row, col: corners.BR.col};
         }
-        else if(priv.settings.dragDown !== 'vertical') {
+        else if (priv.settings.dragDown !== 'vertical') {
           coords = {row: corners.BR.row, col: coords.col};
         }
         else {
@@ -997,8 +1013,7 @@
                   selection.transformEnd(-1, 0);
                 }
                 else {
-                  editproxy.finishEditing();
-                  selection.transformStart(-1, 0);
+                  editproxy.finishEditing(false, -1, 0);
                 }
                 event.preventDefault();
                 break;
@@ -1010,8 +1025,7 @@
                     selection.transformEnd(0, 1);
                   }
                   else {
-                    editproxy.finishEditing();
-                    selection.transformStart(0, 1);
+                    editproxy.finishEditing(false, 0, 1);
                   }
                   event.preventDefault();
                 }
@@ -1023,8 +1037,7 @@
                     selection.transformEnd(0, -1);
                   }
                   else {
-                    editproxy.finishEditing();
-                    selection.transformStart(0, -1);
+                    editproxy.finishEditing(false, 0, -1);
                   }
                   event.preventDefault();
                 }
@@ -1065,13 +1078,11 @@
                   }
                   if (event.keyCode === 27 || event.keyCode === 13 || event.keyCode === 40) {
                     if (event.keyCode === 27) {
-                      editproxy.finishEditing(true); //hide edit field, restore old value
-                      selection.transformStart(0, 0); //don't move selection, but refresh routines
+                      editproxy.finishEditing(true, 0, 0); //hide edit field, restore old value, don't move selection, but refresh routines
                     }
                     else {
                       if (!isAutoComplete()) {
-                        editproxy.finishEditing(); //hide edit field
-                        selection.transformStart(1, 0); //move selection down
+                        editproxy.finishEditing(false, 1, 0);
                       }
                     }
                     event.preventDefault(); //don't add newline to field
@@ -1116,8 +1127,7 @@
             var val = priv.editProxy.val();
             if (val !== lastChange && val === priv.lastAutoComplete) { //is it change from source (don't trigger on partial)
               priv.isCellEdited = true;
-              editproxy.finishEditing(); //save change, hide edit field
-              selection.transformStart(1, 0); //move selection down
+              editproxy.finishEditing(false, 1, 0);
             }
             lastChange = val;
           }
@@ -1205,7 +1215,7 @@
           return;
         }
 
-        if(priv.dragHandle) {
+        if (priv.dragHandle) {
           dragdown.hideHandle();
         }
 
@@ -1256,24 +1266,36 @@
 
       /**
        * Shows text input in grid cell
-       * @param isCancelled {Boolean} If TRUE, restore old value instead of using current from editproxy
+       * @param {Boolean} [isCancelled] If TRUE, restore old value instead of using current from editproxy
+       * @param {Number} [moveRow] Move selection row if edit is not cancelled
+       * @param {Number} [moveCol] Move selection column if edit is not cancelled
        */
-      finishEditing: function (isCancelled) {
+      finishEditing: function (isCancelled, moveRow, moveCol) {
         if (priv.isCellEdited) {
           priv.isCellEdited = false;
           var td = grid.getCellAtCoords(priv.selStart),
               $td = $(td),
               val = $.trim(priv.editProxy.val());
           if (!isCancelled && grid.isCellWriteable($td)) {
+            var result;
             var oldVal = datamap.get(priv.selStart.row, priv.selStart.col);
-            td.innerHTML = val.replace(/\n/g, '<br/>');
-            datamap.set(priv.selStart.row, priv.selStart.col, val);
-            if (priv.settings.onChange) {
-              priv.settings.onChange([
-                [priv.selStart.row, priv.selStart.col, oldVal, val]
-              ]);
+            var change = [
+              [priv.selStart.row, priv.selStart.col, oldVal, val]
+            ];
+            if (priv.settings.onBeforeChange) {
+              result = priv.settings.onBeforeChange(change);
             }
-            grid.keepEmptyRows();
+            if (result !== false && change[0][3] !== false) { //edit is not cancelled
+              td.innerHTML = change[0][3].replace(/\n/g, '<br/>');
+              datamap.set(change[0][0], change[0][1], change[0][3]);
+              if (priv.settings.onChange) {
+                priv.settings.onChange(change);
+              }
+              grid.keepEmptyRows();
+            }
+            else {
+              isCancelled = true;
+            }
           }
 
           priv.editProxy.css({
@@ -1285,6 +1307,14 @@
           });
 
           highlight.on();
+        }
+        if(typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
+          if(isCancelled) {
+            selection.transformStart(0, 0); //don't move selection, but refresh routines
+          }
+          else {
+            selection.transformStart(moveRow, moveCol);
+          }
         }
       }
     };
@@ -1344,7 +1374,7 @@
         className: 'current',
         bg: true
       });
-      if(priv.settings.dragDown) {
+      if (priv.settings.dragDown) {
         dragdown.init();
       }
       editproxy.init();
