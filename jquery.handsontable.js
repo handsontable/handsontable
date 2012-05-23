@@ -873,6 +873,11 @@
           selection.setRangeStart(grid.getCellAtCoords(drag.TL));
           selection.setRangeEnd(grid.getCellAtCoords(drag.BR));
         }
+        else {
+          //reset to avoid some range bug
+          selection.setRangeStart(grid.getCellAtCoords(priv.selStart));
+          selection.setRangeEnd(grid.getCellAtCoords(priv.selEnd));
+        }
       },
 
       /**
@@ -895,11 +900,14 @@
       showBorder: function (td) {
         var coords = grid.getCellCoords(td);
         var corners = grid.getCornerCoords([priv.selStart, priv.selEnd]);
-        if (corners.BR.row < coords.row || corners.TL.row > coords.row) {
+        if (priv.settings.dragDown !== 'horizontal' && (corners.BR.row < coords.row || corners.TL.row > coords.row)) {
           coords = {row: coords.row, col: corners.BR.col};
         }
-        else {
+        else if(priv.settings.dragDown !== 'vertical') {
           coords = {row: corners.BR.row, col: coords.col};
+        }
+        else {
+          return; //wrong direction
         }
         priv.dragBorder.appear([priv.selStart, priv.selEnd, coords]);
       }
@@ -1336,7 +1344,9 @@
         className: 'current',
         bg: true
       });
-      dragdown.init();
+      if(priv.settings.dragDown) {
+        dragdown.init();
+      }
       editproxy.init();
 
       priv.table.on('mouseenter', onMouseEnterTable);
@@ -1628,8 +1638,11 @@
     'rows': 5,
     'cols': 5,
     'minSpareRows': 0,
+    'minSpareCols': 0,
     'minHeight': 0,
-    'multiSelect': true
+    'minWidth': 0,
+    'multiSelect': true,
+    'dragDown': true
   };
 
   $.fn.handsontable = function (action, options) {
