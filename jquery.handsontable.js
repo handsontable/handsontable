@@ -576,7 +576,6 @@
         highlight.off();
         priv.selStart = grid.getCellCoords(td);
         priv.currentBorder.appear([priv.selStart]);
-        dragdown.hideHandle();
         selection.setRangeEnd(td);
       },
 
@@ -676,6 +675,9 @@
         }
         highlight.off();
         priv.currentBorder.disappear();
+        if(priv.dragHandle) {
+          dragdown.hideHandle();
+        }
         selection.end(false);
       },
 
@@ -911,8 +913,6 @@
        */
       parsePasteInput: function (input) {
         var rows, r, rlen;
-
-        input = input.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''); //remove newline from the start and the end of the input
         rows = input.split("\n");
         if (rows[rows.length - 1] === '') {
           rows.pop();
@@ -952,7 +952,7 @@
         function onPaste() {
           editproxy.finishEditing();
           setTimeout(function () {
-            var input = priv.editProxy.val(),
+            var input = priv.editProxy.val().replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
                 inputArray = keyboard.parsePasteInput(input),
                 endTd = grid.populateFromArray({
                   row: Math.min(priv.selStart.row, priv.selEnd.row),
@@ -1195,6 +1195,10 @@
       beginEditing: function (useOriginalValue) {
         if (priv.isCellEdited) {
           return;
+        }
+
+        if(priv.dragHandle) {
+          dragdown.hideHandle();
         }
 
         var td = grid.getCellAtCoords(priv.selStart),
