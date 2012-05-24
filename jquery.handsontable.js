@@ -1239,6 +1239,7 @@
           editLeft += 1;
         }
 
+        priv.editProxyHolder.addClass('hidden');
         priv.editProxyHolder.css({
           top: editTop,
           left: editLeft,
@@ -1310,6 +1311,7 @@
             height: $td.height()
           });
         }
+        priv.editProxyHolder.removeClass('hidden');
         priv.editProxyHolder.css({
           overflow: 'visible',
           zIndex: 4
@@ -1354,6 +1356,7 @@
             width: '1000px',
             height: '1000px'
           });
+          priv.editProxyHolder.addClass('hidden');
           priv.editProxyHolder.css({
             overflow: 'hidden'
           });
