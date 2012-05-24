@@ -653,6 +653,9 @@
         if (td) {
           selection.setRangeStart(td);
         }
+        else {
+          selection.setRangeStart(grid.getCellAtCoords(priv.selStart)); //rerun some routines
+        }
       },
 
       /**
@@ -855,7 +858,6 @@
 
         if (select.TL.col > 0) {
           data = datamap.getAll();
-          maxR;
           rows : for (r = select.BR.row + 1; r < priv.rowCount; r++) {
             for (c = select.TL.col; c <= select.BR.col; c++) {
               if (data[r][c]) {
@@ -1221,16 +1223,23 @@
         var current = grid.getCellAtCoords(priv.selStart);
         var currentOffset = $(current).offset();
         var containerOffset = container.offset();
-        var editTop = currentOffset.top - containerOffset.top + container.scrollTop() - 2;
-        var editLeft = currentOffset.left - containerOffset.left + container.scrollLeft() - 2;
+        var editTop = currentOffset.top - containerOffset.top + container.scrollTop() - 1;
+        var editLeft = currentOffset.left - containerOffset.left + container.scrollLeft() - 1;
 
         if (!$.browser.mozilla) {
-          if ($.browser.webkit || $.browser.opera) {
-            editTop += 1;
+          if($.browser.msie) {
+            if(parseInt(($.browser.version)) < 8) {
+              editTop -= 2;
+            }
+            else if(parseInt(($.browser.version)) === 8) {
+              editTop -= 1;
+            }
           }
+          editTop += 1;
           editLeft += 1;
         }
 
+        priv.editProxyHolder.addClass('hidden');
         priv.editProxyHolder.css({
           top: editTop,
           left: editLeft,
@@ -1302,6 +1311,7 @@
             height: $td.height()
           });
         }
+        priv.editProxyHolder.removeClass('hidden');
         priv.editProxyHolder.css({
           overflow: 'visible',
           zIndex: 4
@@ -1346,6 +1356,7 @@
             width: '1000px',
             height: '1000px'
           });
+          priv.editProxyHolder.addClass('hidden');
           priv.editProxyHolder.css({
             overflow: 'hidden'
           });
@@ -1610,9 +1621,12 @@
         left = minLeft - containerOffset.left + this.$container.scrollLeft() - 1;
 
         if (!$.browser.mozilla) {
-          if ($.browser.webkit || $.browser.opera) {
-            top += 1;
+          if($.browser.msie) {
+            if(parseInt(($.browser.version)) < 9) {
+              top -= 1;
+            }
           }
+          top += 1;
           left += 1;
         }
 
