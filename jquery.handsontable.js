@@ -10,7 +10,7 @@
   "use strict";
 
   function Handsontable(container, settings) {
-    var priv, datamap, grid, selection, keyboard, editproxy, highlight, dragdown, interaction, self = this;
+    var priv, datamap, grid, selection, keyboard, editproxy, highlight, autofill, interaction, self = this;
 
     priv = {
       settings: settings,
@@ -602,8 +602,8 @@
       setRangeEnd: function (td) {
         var coords = grid.getCellCoords(td);
         selection.end(coords);
-        if (priv.dragHandle) {
-          dragdown.showHandle();
+        if (priv.fillHandle) {
+          autofill.showHandle();
         }
         if (!priv.settings.multiSelect) {
           priv.selStart = coords;
@@ -691,8 +691,8 @@
         }
         highlight.off();
         priv.currentBorder.disappear();
-        if (priv.dragHandle) {
-          dragdown.hideHandle();
+        if (priv.fillHandle) {
+          autofill.hideHandle();
         }
         selection.end(false);
       },
@@ -825,27 +825,27 @@
       }
     };
 
-    dragdown = {
+    autofill = {
       /**
-       * Create drag-down handle and drag border objects
+       * Create fill handle and fill border objects
        */
       init: function () {
-        priv.dragHandle = new DragHandle(container);
-        priv.dragBorder = new Border(container, {
-          className: 'htDragBorder'
+        priv.fillHandle = new FillHandle(container);
+        priv.fillBorder = new Border(container, {
+          className: 'htFillBorder'
         });
       },
 
       /**
-       * Apply drag-down values to the area in drag border, omitting the selection border
+       * Apply fill values to the area in fill border, omitting the selection border
        */
       apply: function () {
         var drag, select, start, end;
 
-        priv.dragHandle.isDragged = false;
-        priv.dragBorder.disappear();
+        priv.fillHandle.isDragged = false;
+        priv.fillBorder.disappear();
 
-        drag = priv.dragBorder.corners;
+        drag = priv.fillBorder.corners;
         if (selection.isMultiple()) {
           select = priv.selectionBorder.corners;
         }
@@ -897,35 +897,35 @@
       },
 
       /**
-       * Show drag-down handle
+       * Show fill handle
        */
       showHandle: function () {
-        priv.dragHandle.appear([priv.selStart, priv.selEnd]);
+        priv.fillHandle.appear([priv.selStart, priv.selEnd]);
       },
 
       /**
-       * Hide drag-down handle
+       * Hide fill handle
        */
       hideHandle: function () {
-        priv.dragHandle.disappear();
+        priv.fillHandle.disappear();
       },
 
       /**
-       * Show drag-down border
+       * Show fill border
        */
       showBorder: function (td) {
         var coords = grid.getCellCoords(td);
         var corners = grid.getCornerCoords([priv.selStart, priv.selEnd]);
-        if (priv.settings.dragDown !== 'horizontal' && (corners.BR.row < coords.row || corners.TL.row > coords.row)) {
+        if (priv.settings.fillHandle !== 'horizontal' && (corners.BR.row < coords.row || corners.TL.row > coords.row)) {
           coords = {row: coords.row, col: corners.BR.col};
         }
-        else if (priv.settings.dragDown !== 'vertical') {
+        else if (priv.settings.fillHandle !== 'vertical') {
           coords = {row: corners.BR.row, col: coords.col};
         }
         else {
           return; //wrong direction
         }
-        priv.dragBorder.appear([priv.selStart, priv.selEnd, coords]);
+        priv.fillBorder.appear([priv.selStart, priv.selEnd, coords]);
       }
     };
 
@@ -1215,8 +1215,8 @@
           return;
         }
 
-        if (priv.dragHandle) {
-          dragdown.hideHandle();
+        if (priv.fillHandle) {
+          autofill.hideHandle();
         }
 
         var td = grid.getCellAtCoords(priv.selStart),
@@ -1334,8 +1334,8 @@
         if (priv.isMouseDown) {
           selection.setRangeEnd(this);
         }
-        else if (priv.dragHandle && priv.dragHandle.isDragged) {
-          dragdown.showBorder(this);
+        else if (priv.fillHandle && priv.fillHandle.isDragged) {
+          autofill.showBorder(this);
         }
       }
     };
@@ -1374,8 +1374,8 @@
         className: 'current',
         bg: true
       });
-      if (priv.settings.dragDown) {
-        dragdown.init();
+      if (priv.settings.fillHandle) {
+        autofill.init();
       }
       editproxy.init();
 
@@ -1386,8 +1386,8 @@
 
       function onMouseUp() {
         priv.isMouseDown = false;
-        if (priv.dragHandle && priv.dragHandle.isDragged) {
-          dragdown.apply();
+        if (priv.fillHandle && priv.fillHandle.isDragged) {
+          autofill.apply();
         }
       }
 
@@ -1614,12 +1614,12 @@
      * @constructor
      * @param {jQuery} $container jQuery DOM element of handsontable container
      */
-    function DragHandle($container) {
+    function FillHandle($container) {
       this.$container = $container;
       var container = this.$container[0];
 
       this.handle = document.createElement("div");
-      this.handle.className = "htDragHandle";
+      this.handle.className = "htFillHandle";
       this.disappear();
       container.appendChild(this.handle);
 
@@ -1629,7 +1629,7 @@
       });
     }
 
-    DragHandle.prototype = {
+    FillHandle.prototype = {
       /**
        * Show handle in cell corner
        * @param {Object[]} coordsArr
@@ -1672,7 +1672,7 @@
     'minHeight': 0,
     'minWidth': 0,
     'multiSelect': true,
-    'dragDown': true
+    'fillHandle': true
   };
 
   $.fn.handsontable = function (action, options) {

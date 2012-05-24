@@ -28,7 +28,7 @@ $(function () {
     $("#example2grid").handsontable({
       rows: 5,
       cols: 5,
-      dragDown: false, //dragDown can be turned off
+      fillHandle: false, //fillHandle can be turned off
       legend: [
         {
           match: function (row, col, data) {
@@ -151,7 +151,7 @@ $(function () {
       cols: 8,
       minSpareCols: 1,
       minSpareRows: 1,
-      dragDown: true //possible values: true, false, "horizontal", "vertical"
+      fillHandle: true //possible values: true, false, "horizontal", "vertical"
     });
 
     var data = [
