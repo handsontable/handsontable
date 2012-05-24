@@ -61,8 +61,8 @@
   height: 1px;
 }
 
-/* drag handle */
-.dataTable .htDragHandle {
+/* fill handle */
+.dataTable .htFillHandle {
   position: absolute;
   width: 4px;
   height: 4px;
@@ -72,7 +72,7 @@
   cursor: crosshair;
 }
 
-.dataTable .htBorder.htDragBorder {
+.dataTable .htBorder.htFillBorder {
   background: red;
   width: 1px;
   height: 1px;

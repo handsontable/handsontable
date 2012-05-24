@@ -124,7 +124,7 @@
   $("#example2grid").handsontable({
   rows: 5,
   cols: 5,
-  dragDown: false, //dragDown can be turned off
+  fillHandle: false, //fillHandle can be turned off
   legend: [
     {
       match: function (row, col, data) {
@@ -269,7 +269,7 @@ $("#example4grid").handsontable("loadData", data);
   <div class="pad">
     <h3>Drag-down</h3>
 
-    <p>Notice the little square in the corner of the selected cell. You can drag it to repeat the values from the cell.</p>
+    <p>Notice the little square (<b>fill handle</b>) in the corner of the selected cell. You can drag it to repeat the values from the cell.</p>
 
     <div id="example5grid" class="dataTable"></div>
 
@@ -284,7 +284,7 @@ $("#example5grid").handsontable({
   cols: 8,
   minSpareCols: 1,
   minSpareRows: 1,
-  dragDown: true //possible values: true, false, "horizontal", "vertical"
+  fillHandle: true //possible values: true, false, "horizontal", "vertical"
 });
 
 var data = [
