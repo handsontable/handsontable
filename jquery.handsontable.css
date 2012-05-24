@@ -80,9 +80,6 @@
 
 /* textarea border color */
 textarea.handsontableInput {
-  position: absolute;
-  top: 1px;
-  left: 1px;
   border: 2px solid #5292F7;
   outline-width: 0;
   margin: 0;
@@ -92,6 +89,12 @@ textarea.handsontableInput {
   font-size: 13px;
   box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
   resize: none;
+}
+
+textarea.handsontableInput.hidden {
+  border-color: #5292F7;
+  background: #5292F7;
+  color: #5292F7;
 }
 
 .handsontableInputHolder {
