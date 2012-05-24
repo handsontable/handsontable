@@ -1183,7 +1183,9 @@
         var editLeft = currentOffset.left - containerOffset.left + container.scrollLeft() - 2;
 
         if (!$.browser.mozilla) {
-          editTop += 1;
+          if ($.browser.webkit || $.browser.opera) {
+            editTop += 1;
+          }
           editLeft += 1;
         }
 
@@ -1556,7 +1558,7 @@
         left = minLeft - containerOffset.left + this.$container.scrollLeft() - 1;
 
         if (!$.browser.mozilla) {
-          if (!($.browser.msie && parseInt($.browser.version) < 8)) {
+          if ($.browser.webkit || $.browser.opera) {
             top += 1;
           }
           left += 1;
