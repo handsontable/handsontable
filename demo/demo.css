@@ -141,6 +141,7 @@ pre {
   color: #fff;
   padding: 15px;
   margin: 0;
+  white-space: normal;
 }
 
 .code {
