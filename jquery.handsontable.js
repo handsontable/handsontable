@@ -1402,12 +1402,12 @@
       $("html").on('mouseup', onMouseUp);
       $("html").on('click', onOutsideClick);
 
-      if (container.css('overflow') === 'scroll') {
+      if (container[0].tagName.toLowerCase() !== "html" && container[0].tagName.toLowerCase() !== "body" && container.css('overflow') === 'scroll') {
         priv.scrollable = container;
       }
       else {
         container.parents().each(function () {
-          if ($(this).css('overflow') == 'scroll') {
+          if (this.tagName.toLowerCase() !== "html" && this.tagName.toLowerCase() !== "body" && $(this).css('overflow') == 'scroll') {
             priv.scrollable = $(this);
             return false;
           }
