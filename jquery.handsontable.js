@@ -988,7 +988,7 @@
 
         function onKeyDown(event) {
           if (selection.isSelected()) {
-            var ctrlOnly = event.ctrlKey && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+            var ctrlOnly = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
             if ((event.keyCode >= 48 && event.keyCode <= 57) || //0-9
                 (event.keyCode >= 96 && event.keyCode <= 111) || //numpad
                 (event.keyCode >= 65 && event.keyCode <= 90)) { //a-z
@@ -1091,7 +1091,7 @@
                 break;
 
               case 36: /* home */
-                if (event.ctrlKey) {
+                if (event.ctrlKey || event.metaKey) {
                   rangeModifier(grid.getCellAtCoords({row: 0, col: priv.selStart.col}));
                 }
                 else {
@@ -1100,7 +1100,7 @@
                 break;
 
               case 35: /* end */
-                if (event.ctrlKey) {
+                if (event.ctrlKey || event.metaKey) {
                   rangeModifier(grid.getCellAtCoords({row: priv.rowCount - 1, col: priv.selStart.col}));
                 }
                 else {
