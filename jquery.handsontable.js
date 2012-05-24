@@ -589,7 +589,7 @@
        * @param td element
        */
       setRangeStart: function (td) {
-        highlight.off();
+        selection.deselect();
         priv.selStart = grid.getCellCoords(td);
         priv.currentBorder.appear([priv.selStart]);
         selection.setRangeEnd(td);
