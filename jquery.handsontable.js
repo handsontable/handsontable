@@ -834,6 +834,43 @@
         priv.fillBorder = new Border(container, {
           className: 'htFillBorder'
         });
+
+        $(priv.fillHandle.handle).on('dblclick', autofill.selectAdjacent);
+      },
+
+      /**
+       * Selects cells down to the last row in the left column, then fills down to that cell
+       */
+      selectAdjacent: function () {
+        var select, data, r, maxR, c;
+
+        if (selection.isMultiple()) {
+          select = priv.selectionBorder.corners;
+        }
+        else {
+          select = priv.currentBorder.corners;
+        }
+
+        priv.fillBorder.disappear();
+
+        if (select.TL.col > 0) {
+          data = datamap.getAll();
+          maxR;
+          rows : for (r = select.BR.row + 1; r < priv.rowCount; r++) {
+            for (c = select.TL.col; c <= select.BR.col; c++) {
+              if (data[r][c]) {
+                break rows;
+              }
+            }
+            if (!!data[r][select.TL.col - 1]) {
+              maxR = r;
+            }
+          }
+          if (maxR) {
+            autofill.showBorder(grid.getCellAtCoords({row: maxR, col: select.BR.col}));
+            autofill.apply();
+          }
+        }
       },
 
       /**
@@ -842,10 +879,15 @@
       apply: function () {
         var drag, select, start, end;
 
-        priv.fillHandle.isDragged = false;
-        priv.fillBorder.disappear();
+        priv.fillHandle.isDragged = 0;
 
         drag = priv.fillBorder.corners;
+        if (!drag) {
+          return;
+        }
+
+        priv.fillBorder.disappear();
+
         if (selection.isMultiple()) {
           select = priv.selectionBorder.corners;
         }
@@ -1310,8 +1352,8 @@
 
           highlight.on();
         }
-        if(typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
-          if(isCancelled) {
+        if (typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
+          if (isCancelled) {
             selection.transformStart(0, 0); //don't move selection, but refresh routines
           }
           else {
@@ -1337,6 +1379,7 @@
           selection.setRangeEnd(this);
         }
         else if (priv.fillHandle && priv.fillHandle.isDragged) {
+          priv.fillHandle.isDragged++;
           autofill.showBorder(this);
         }
       }
@@ -1385,11 +1428,20 @@
       priv.table.on('mouseleave', onMouseLeaveTable);
       priv.editProxy.on('mouseenter', onMouseEnterTable);
       priv.editProxy.on('mouseleave', onMouseLeaveTable);
+      if (priv.fillHandle) {
+        $(priv.fillHandle.handle).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
+        $(priv.fillBorder.main).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
+      }
+      $(priv.selectionBorder.main).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
+      $(priv.currentBorder.main).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
 
       function onMouseUp() {
         priv.isMouseDown = false;
         if (priv.fillHandle && priv.fillHandle.isDragged) {
-          autofill.apply();
+          if (priv.fillHandle.isDragged > 1) {
+            autofill.apply();
+          }
+          priv.fillHandle.isDragged = 0;
         }
       }
 
@@ -1608,6 +1660,7 @@
         if (this.bg) {
           this.bg.style.display = 'none';
         }
+        this.corners = null;
       }
     };
 
@@ -1627,7 +1680,7 @@
 
       var that = this;
       $(this.handle).mousedown(function () {
-        that.isDragged = true;
+        that.isDragged = 1;
       });
     }
 
