@@ -834,6 +834,43 @@
         priv.fillBorder = new Border(container, {
           className: 'htFillBorder'
         });
+
+        $(priv.fillHandle.handle).on('dblclick', autofill.selectAdjacent);
+      },
+
+      /**
+       * Selects cells down to the last row in the left column, then fills down to that cell
+       */
+      selectAdjacent: function () {
+        var select, data, r, maxR, c;
+
+        if (selection.isMultiple()) {
+          select = priv.selectionBorder.corners;
+        }
+        else {
+          select = priv.currentBorder.corners;
+        }
+
+        priv.fillBorder.disappear();
+
+        if (select.TL.col > 0) {
+          data = datamap.getAll();
+          maxR;
+          rows : for (r = select.BR.row + 1; r < priv.rowCount; r++) {
+            for (c = select.TL.col; c <= select.BR.col; c++) {
+              if (data[r][c]) {
+                break rows;
+              }
+            }
+            if (!!data[r][select.TL.col - 1]) {
+              maxR = r;
+            }
+          }
+          if (maxR) {
+            autofill.showBorder(grid.getCellAtCoords({row: maxR, col: select.BR.col}));
+            autofill.apply();
+          }
+        }
       },
 
       /**
@@ -842,10 +879,15 @@
       apply: function () {
         var drag, select, start, end;
 
-        priv.fillHandle.isDragged = false;
-        priv.fillBorder.disappear();
+        priv.fillHandle.isDragged = 0;
 
         drag = priv.fillBorder.corners;
+        if (!drag) {
+          return;
+        }
+
+        priv.fillBorder.disappear();
+
         if (selection.isMultiple()) {
           select = priv.selectionBorder.corners;
         }
@@ -988,7 +1030,7 @@
 
         function onKeyDown(event) {
           if (selection.isSelected()) {
-            var ctrlOnly = event.ctrlKey && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+            var ctrlOnly = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
             if ((event.keyCode >= 48 && event.keyCode <= 57) || //0-9
                 (event.keyCode >= 96 && event.keyCode <= 111) || //numpad
                 (event.keyCode >= 65 && event.keyCode <= 90)) { //a-z
@@ -1091,7 +1133,7 @@
                 break;
 
               case 36: /* home */
-                if (event.ctrlKey) {
+                if (event.ctrlKey || event.metaKey) {
                   rangeModifier(grid.getCellAtCoords({row: 0, col: priv.selStart.col}));
                 }
                 else {
@@ -1100,7 +1142,7 @@
                 break;
 
               case 35: /* end */
-                if (event.ctrlKey) {
+                if (event.ctrlKey || event.metaKey) {
                   rangeModifier(grid.getCellAtCoords({row: priv.rowCount - 1, col: priv.selStart.col}));
                 }
                 else {
@@ -1183,7 +1225,9 @@
         var editLeft = currentOffset.left - containerOffset.left + container.scrollLeft() - 2;
 
         if (!$.browser.mozilla) {
-          editTop += 1;
+          if ($.browser.webkit || $.browser.opera) {
+            editTop += 1;
+          }
           editLeft += 1;
         }
 
@@ -1308,8 +1352,8 @@
 
           highlight.on();
         }
-        if(typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
-          if(isCancelled) {
+        if (typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
+          if (isCancelled) {
             selection.transformStart(0, 0); //don't move selection, but refresh routines
           }
           else {
@@ -1335,6 +1379,7 @@
           selection.setRangeEnd(this);
         }
         else if (priv.fillHandle && priv.fillHandle.isDragged) {
+          priv.fillHandle.isDragged++;
           autofill.showBorder(this);
         }
       }
@@ -1383,11 +1428,20 @@
       priv.table.on('mouseleave', onMouseLeaveTable);
       priv.editProxy.on('mouseenter', onMouseEnterTable);
       priv.editProxy.on('mouseleave', onMouseLeaveTable);
+      if (priv.fillHandle) {
+        $(priv.fillHandle.handle).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
+        $(priv.fillBorder.main).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
+      }
+      $(priv.selectionBorder.main).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
+      $(priv.currentBorder.main).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
 
       function onMouseUp() {
         priv.isMouseDown = false;
         if (priv.fillHandle && priv.fillHandle.isDragged) {
-          autofill.apply();
+          if (priv.fillHandle.isDragged > 1) {
+            autofill.apply();
+          }
+          priv.fillHandle.isDragged = 0;
         }
       }
 
@@ -1402,12 +1456,12 @@
       $("html").on('mouseup', onMouseUp);
       $("html").on('click', onOutsideClick);
 
-      if (container.css('overflow') === 'scroll') {
+      if (container[0].tagName.toLowerCase() !== "html" && container[0].tagName.toLowerCase() !== "body" && container.css('overflow') === 'scroll') {
         priv.scrollable = container;
       }
       else {
         container.parents().each(function () {
-          if ($(this).css('overflow') == 'scroll') {
+          if (this.tagName.toLowerCase() !== "html" && this.tagName.toLowerCase() !== "body" && $(this).css('overflow') == 'scroll') {
             priv.scrollable = $(this);
             return false;
           }
@@ -1556,7 +1610,7 @@
         left = minLeft - containerOffset.left + this.$container.scrollLeft() - 1;
 
         if (!$.browser.mozilla) {
-          if (!($.browser.msie && parseInt($.browser.version) < 8)) {
+          if ($.browser.webkit || $.browser.opera) {
             top += 1;
           }
           left += 1;
@@ -1606,6 +1660,7 @@
         if (this.bg) {
           this.bg.style.display = 'none';
         }
+        this.corners = null;
       }
     };
 
@@ -1625,7 +1680,7 @@
 
       var that = this;
       $(this.handle).mousedown(function () {
-        that.isDragged = true;
+        that.isDragged = 1;
       });
     }
 

@@ -141,7 +141,6 @@ pre {
   color: #fff;
   padding: 15px;
   margin: 0;
-  white-space: normal;
 }
 
 .code {
@@ -153,7 +152,8 @@ pre {
   background-color: #eee;
   color: #333;
   padding: 10px;
-  font-size: 90%
+  font-size: 90%;
+  white-space: normal;
 }
 
 hr {
