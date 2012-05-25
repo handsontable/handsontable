@@ -50,21 +50,36 @@
 
       /**
        * Creates row at the bottom of the data array
+       * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
        */
-      createRow: function () {
+      createRow: function (coords) {
         var row = [];
         for (var c = 0; c < priv.colCount; c++) {
           row.push('');
         }
-        datamap.data.push(row);
+        if (!coords || coords.row >= priv.rowCount) {
+          datamap.data.push(row);
+        }
+        else {
+          datamap.data.splice(coords.row, 0, row);
+        }
       },
 
       /**
        * Creates col at the right of the data array
+       * @param {Object} [coords] Optional. Coords of the cell before which the new column will be inserted
        */
-      createCol: function () {
-        for (var r = 0; r < priv.rowCount; r++) {
-          datamap.data[r].push('');
+      createCol: function (coords) {
+        var r = 0;
+        if (!coords || coords.col >= priv.colCount) {
+          for (; r < priv.rowCount; r++) {
+            datamap.data[r].push('');
+          }
+        }
+        else {
+          for (; r < priv.rowCount; r++) {
+            datamap.data[r].splice(coords.col, 0, '');
+          }
         }
       },
 
@@ -166,24 +181,39 @@
     grid = {
       /**
        * Creates row at the bottom of the <table>
+       * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
        */
-      createRow: function () {
+      createRow: function (coords) {
         var tr, c;
         tr = document.createElement('tr');
         for (c = 0; c < priv.colCount; c++) {
           tr.appendChild(document.createElement('td'));
         }
-        priv.tableBody.appendChild(tr);
+        if (!coords || coords.row >= priv.rowCount) {
+          priv.tableBody.appendChild(tr);
+        }
+        else {
+          var oldTr = grid.getCellAtCoords(coords).parentNode;
+          priv.tableBody.insertBefore(tr, oldTr);
+        }
         priv.rowCount = priv.tableBody.childNodes.length;
       },
 
       /**
        * Creates col at the right of the <table>
+       * @param {Object} [coords] Optional. Coords of the cell before which the new column will be inserted
        */
-      createCol: function () {
+      createCol: function (coords) {
         var trs = priv.tableBody.childNodes, r;
-        for (r = 0; r < priv.rowCount; r++) {
-          trs[r].appendChild(document.createElement('td'));
+        if (!coords || coords.col >= priv.colCount) {
+          for (r = 0; r < priv.rowCount; r++) {
+            trs[r].appendChild(document.createElement('td'));
+          }
+        }
+        else {
+          for (r = 0; r < priv.rowCount; r++) {
+            trs[r].insertBefore(document.createElement('td'), grid.getCellAtCoords({row: r, col: coords.col}));
+          }
         }
         priv.colCount = trs[0].childNodes.length;
       },
@@ -387,9 +417,7 @@
         if (priv.isPopulated && $td.data("readOnly")) {
           return false;
         }
-        else {
-          return true;
-        }
+        return true;
       },
 
       /**
@@ -1227,11 +1255,11 @@
         var editLeft = currentOffset.left - containerOffset.left + container.scrollLeft() - 1;
 
         if (!$.browser.mozilla) {
-          if($.browser.msie) {
-            if(parseInt(($.browser.version)) < 8) {
+          if ($.browser.msie) {
+            if (parseInt(($.browser.version)) < 8) {
               editTop -= 2;
             }
-            else if(parseInt(($.browser.version)) === 8) {
+            else if (parseInt(($.browser.version)) === 8) {
               editTop -= 1;
             }
           }
@@ -1490,6 +1518,67 @@
       priv.scrollable.on('scroll', function (e) {
         e.stopPropagation();
       });
+
+      if (priv.settings.contextMenu) {
+        var onContextClick = function (key) {
+          switch (key) {
+            case "row_above":
+              grid.createRow(priv.selStart);
+              datamap.createRow(priv.selStart);
+              break;
+
+            case "row_below":
+              grid.createRow({row: priv.selStart.row + 1, col: priv.selStart.col});
+              datamap.createRow({row: priv.selStart.row + 1, col: priv.selStart.col});
+              break;
+
+            case "col_left":
+              grid.createCol(priv.selStart);
+              datamap.createCol(priv.selStart);
+              break;
+
+            case "col_right":
+              grid.createCol({row: priv.selStart.row, col: priv.selStart.col + 1});
+              datamap.createCol({row: priv.selStart.row, col: priv.selStart.col + 1});
+              break;
+          }
+        }
+
+        var isReadOnly = function (key) {
+          if ((key === "row_above" && priv.selStart.row === 0) || (key === "col_left" && priv.selStart.col === 0)) {
+            if ($(grid.getCellAtCoords(priv.selStart)).data("readOnly")) {
+              return true;
+            }
+          }
+          return false;
+        };
+
+        var defaultItems = {
+          "row_above": {name: "Insert row above", disabled: isReadOnly},
+          "row_below": {name: "Insert row below"},
+          "sep1": "---------",
+          "col_left": {name: "Insert column on the left", disabled: isReadOnly},
+          "col_right": {name: "Insert column on the right"}
+        };
+
+        var items;
+        if (priv.settings.contextMenu.length) {
+          items = {};
+          for (var i = 0, ilen = priv.settings.contextMenu.length; i < ilen; i++) {
+            items[priv.settings.contextMenu[i]] = defaultItems[priv.settings.contextMenu[i]];
+          }
+        }
+        else {
+          items = defaultItems;
+        }
+
+        $.contextMenu({
+          selector: container.attr('id') ? ("#" + container.attr('id')) : "." + container[0].className.replace(/[\s]+/g, ' .'),
+          trigger: 'right',
+          callback: onContextClick,
+          items: items
+        });
+      }
     }
 
     /**
@@ -1621,8 +1710,8 @@
         left = minLeft - containerOffset.left + this.$container.scrollLeft() - 1;
 
         if (!$.browser.mozilla) {
-          if($.browser.msie) {
-            if(parseInt(($.browser.version)) < 9) {
+          if ($.browser.msie) {
+            if (parseInt(($.browser.version)) < 9) {
               top -= 1;
             }
           }
