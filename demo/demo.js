@@ -9,7 +9,8 @@ $(function () {
       rows: 5,
       cols: 5,
       minSpareCols: 1, //always keep at least 1 spare row at the right
-      minSpareRows: 1 //always keep at least 1 spare row at the bottom
+      minSpareRows: 1, //always keep at least 1 spare row at the bottom
+      contextMenu: true
     });
 
     var data = [
@@ -29,6 +30,7 @@ $(function () {
       rows: 5,
       cols: 5,
       fillHandle: false, //fillHandle can be turned off
+      contextMenu: ["row_above", "row_below"],
       legend: [
         {
           match: function (row, col, data) {
@@ -174,14 +176,14 @@ $(function () {
       minSpareCols: 1,
       minSpareRows: 1,
       onBeforeChange: function (data) {
-        for(var i = 0, ilen = data.length; i < ilen; i++) {
-          if(data[i][3] === "foo") {
+        for (var i = 0, ilen = data.length; i < ilen; i++) {
+          if (data[i][3] === "foo") {
             data[i][3] = false; //gently don't accept the word "foo"
           }
-          else if(data[i][3] === "bar") {
+          else if (data[i][3] === "bar") {
             data[i][3] = data[i][3] + '!'; //if the word bar is given, add a ! at the end of it
           }
-          else if(data[i][3] === "nuke") {
+          else if (data[i][3] === "nuke") {
             return false; //if any of pasted cells contains the word "nuke", reject the whole paste
           }
         }
@@ -203,6 +205,29 @@ $(function () {
     ];
 
     $("#example6grid").handsontable("loadData", data);
+
+
+    /**
+     * Example 7
+     */
+    $("#example7grid").handsontable({
+      rows: 5,
+      cols: 5,
+      minSpareCols: 1,
+      minSpareRows: 1,
+      contextMenu: true
+    });
+
+    var data = [
+      ["", "Kia", "Nissan", "Toyota", "Honda"],
+      ["2008", 10, 11, 12, 13],
+      ["2009", 20, 11, 14, 13],
+      ["2010", 30, 15, 12, 13]
+    ];
+
+    $("#example7grid").handsontable("loadData", data);
+
+
   }
 
   loadExamples();
