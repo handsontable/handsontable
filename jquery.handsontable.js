@@ -1521,6 +1521,11 @@
 
       if (priv.settings.contextMenu) {
         var onContextClick = function (key) {
+          var oldData, newData, changes, r, rlen, c, clen;
+          if (priv.settings.onChange) {
+            oldData = $.extend(true, [], datamap.getAll());
+          }
+
           switch (key) {
             case "row_above":
               grid.createRow(priv.selStart);
@@ -1541,6 +1546,17 @@
               grid.createCol({row: priv.selStart.row, col: priv.selStart.col + 1});
               datamap.createCol({row: priv.selStart.row, col: priv.selStart.col + 1});
               break;
+          }
+
+          if (priv.settings.onChange) {
+            changes = [];
+            newData = datamap.getAll();
+            for (r = 0, rlen = newData.length; r < rlen; r++) {
+              for (c = 0, clen = newData[r].length; c < clen; c++) {
+                changes.push([r, c, oldData[r] ? oldData[r][c] : null, newData[r][c]]);
+              }
+            }
+            priv.settings.onChange(changes);
           }
         }
 

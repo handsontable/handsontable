@@ -175,6 +175,7 @@ $(function () {
       cols: 8,
       minSpareCols: 1,
       minSpareRows: 1,
+      contextMenu: true,
       onBeforeChange: function (data) {
         for (var i = 0, ilen = data.length; i < ilen; i++) {
           if (data[i][3] === "foo") {
