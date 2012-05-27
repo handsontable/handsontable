@@ -332,13 +332,11 @@
               if (priv.selEnd.row > priv.selStart.row) {
                 priv.selEnd.row = priv.selStart.row;
               }
-              highlight.on();
             } else if (priv.selEnd.row > priv.rowCount - 1) {
               priv.selEnd.row = priv.rowCount - 1;
               if (priv.selStart.row > priv.selEnd.row) {
                 priv.selStart.row = priv.selEnd.row;
               }
-              highlight.on();
             }
           }
         }
@@ -356,19 +354,18 @@
               if (priv.selEnd.col > priv.selStart.col) {
                 priv.selEnd.col = priv.selStart.col;
               }
-              highlight.on();
             } else if (priv.selEnd.col > priv.colCount - 1) {
               priv.selEnd.col = priv.colCount - 1;
               if (priv.selStart.col > priv.selEnd.col) {
                 priv.selStart.col = priv.selEnd.col;
               }
-              highlight.on();
             }
           }
         }
 
         if (recreateRows || recreateCols) {
           grid.createLegend();
+          selection.refreshBorders();
         }
 
         return (recreateRows || recreateCols);
@@ -502,7 +499,10 @@
           priv.settings.onChange(changes);
         }
         setTimeout(function () {
-          grid.keepEmptyRows();
+          var result = grid.keepEmptyRows();
+          if (!result) {
+            selection.refreshBorders();
+          }
         }, 100);
         return endTd || grid.getCellAtCoords(start);
       },
@@ -619,7 +619,6 @@
       setRangeStart: function (td) {
         selection.deselect();
         priv.selStart = grid.getCellCoords(td);
-        priv.currentBorder.appear([priv.selStart]);
         selection.setRangeEnd(td);
       },
 
@@ -630,16 +629,26 @@
       setRangeEnd: function (td) {
         var coords = grid.getCellCoords(td);
         selection.end(coords);
+        if (!priv.settings.multiSelect) {
+          priv.selStart = coords;
+        }
+        selection.refreshBorders();
+        highlight.scrollViewport(td);
+      },
+
+      /**
+       * Redraws borders around cells
+       */
+      refreshBorders: function () {
+        if (!selection.isSelected()) {
+          return;
+        }
         if (priv.fillHandle) {
           autofill.showHandle();
         }
-        if (!priv.settings.multiSelect) {
-          priv.selStart = coords;
-          priv.currentBorder.appear([priv.selStart]);
-        }
+        priv.currentBorder.appear([priv.selStart]);
         highlight.on();
         editproxy.prepare();
-        highlight.scrollViewport(td);
       },
 
       /**
@@ -761,11 +770,11 @@
             changes.push([coords.row, coords.col, old, '']);
           }
         }
-        highlight.on();
         if (priv.settings.onChange && changes.length) {
           priv.settings.onChange(changes);
         }
         grid.keepEmptyRows();
+        selection.refreshBorders();
       }
     };
 
@@ -963,8 +972,7 @@
         }
         else {
           //reset to avoid some range bug
-          selection.setRangeStart(grid.getCellAtCoords(priv.selStart));
-          selection.setRangeEnd(grid.getCellAtCoords(priv.selEnd));
+          selection.refreshBorders();
         }
       },
 
@@ -1388,12 +1396,10 @@
           priv.editProxyHolder.css({
             overflow: 'hidden'
           });
-
-          highlight.on();
         }
         if (typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
           if (isCancelled) {
-            selection.transformStart(0, 0); //don't move selection, but refresh routines
+            selection.refreshBorders();
           }
           else {
             selection.transformStart(moveRow, moveCol);
@@ -1558,7 +1564,7 @@
             }
             priv.settings.onChange(changes);
           }
-        }
+        };
 
         var isReadOnly = function (key) {
           if ((key === "row_above" && priv.selStart.row === 0) || (key === "col_left" && priv.selStart.col === 0)) {
@@ -1654,6 +1660,7 @@
       var recreated = grid.keepEmptyRows();
       if (!recreated) {
         grid.createLegend();
+        selection.refreshBorders();
       }
     };
 
