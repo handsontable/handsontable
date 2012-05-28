@@ -198,6 +198,64 @@
 
     grid = {
       /**
+       * Alter grid
+       * @param {String} action
+       * @param {Object} coords
+       * @param {Object} [toCoords]
+       */
+      alter: function (action, coords, toCoords) {
+        var oldData, newData, changes, r, rlen, c, clen;
+        if (priv.settings.onChange) {
+          oldData = $.extend(true, [], datamap.getAll());
+        }
+
+        switch (action) {
+          case "row_above":
+            grid.createRow(coords);
+            datamap.createRow(coords);
+            break;
+
+          case "row_below":
+            grid.createRow({row: coords.row + 1, col: coords.col});
+            datamap.createRow({row: coords.row + 1, col: coords.col});
+            break;
+
+          case "col_left":
+            grid.createCol(coords);
+            datamap.createCol(coords);
+            break;
+
+          case "col_right":
+            grid.createCol({row: coords.row, col: coords.col + 1});
+            datamap.createCol({row: coords.row, col: coords.col + 1});
+            break;
+
+          case "remove_row":
+            grid.removeRow(coords, toCoords);
+            datamap.removeRow(coords, toCoords);
+            grid.keepEmptyRows();
+            break;
+
+          case "remove_col":
+            grid.removeCol(coords, toCoords);
+            datamap.removeCol(coords, toCoords);
+            grid.keepEmptyRows();
+            break;
+        }
+
+        if (priv.settings.onChange) {
+          changes = [];
+          newData = datamap.getAll();
+          for (r = 0, rlen = newData.length; r < rlen; r++) {
+            for (c = 0, clen = newData[r].length; c < clen; c++) {
+              changes.push([r, c, oldData[r] ? oldData[r][c] : null, newData[r][c]]);
+            }
+          }
+          priv.settings.onChange(changes);
+        }
+      },
+
+      /**
        * Creates row at the bottom of the <table>
        * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
        */
@@ -1569,55 +1627,23 @@
 
       if (priv.settings.contextMenu) {
         var onContextClick = function (key) {
-          var oldData, newData, changes, r, rlen, c, clen, coords;
-          if (priv.settings.onChange) {
-            oldData = $.extend(true, [], datamap.getAll());
-          }
-          coords = grid.getCornerCoords([priv.selStart, priv.selEnd]);
+          var coords = grid.getCornerCoords([priv.selStart, priv.selEnd]);
 
           switch (key) {
             case "row_above":
-              grid.createRow(coords.TL);
-              datamap.createRow(coords.TL);
+            case "col_left":
+              grid.alter(key, coords.TL);
               break;
 
             case "row_below":
-              grid.createRow({row: coords.BR.row + 1, col: coords.BR.col});
-              datamap.createRow({row: coords.BR.row + 1, col: coords.BR.col});
-              break;
-
-            case "col_left":
-              grid.createCol(coords.TL);
-              datamap.createCol(coords.TL);
-              break;
-
             case "col_right":
-              grid.createCol({row: coords.BR.row, col: coords.BR.col + 1});
-              datamap.createCol({row: coords.BR.row, col: coords.BR.col + 1});
+              grid.alter(key, coords.BR);
               break;
 
             case "remove_row":
-              grid.removeRow(coords.TL, coords.BR);
-              datamap.removeRow(coords.TL, coords.BR);
-              grid.keepEmptyRows();
-              break;
-
             case "remove_col":
-              grid.removeCol(coords.TL, coords.BR);
-              datamap.removeCol(coords.TL, coords.BR);
-              grid.keepEmptyRows();
+              grid.alter(key, coords.TL, coords.BR);
               break;
-          }
-
-          if (priv.settings.onChange) {
-            changes = [];
-            newData = datamap.getAll();
-            for (r = 0, rlen = newData.length; r < rlen; r++) {
-              for (c = 0, clen = newData[r].length; c < clen; c++) {
-                changes.push([r, c, oldData[r] ? oldData[r][c] : null, newData[r][c]]);
-              }
-            }
-            priv.settings.onChange(changes);
           }
         };
 
