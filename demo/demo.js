@@ -30,7 +30,7 @@ $(function () {
       rows: 5,
       cols: 5,
       fillHandle: false, //fillHandle can be turned off
-      contextMenu: ["row_above", "row_below"],
+      contextMenu: ["row_above", "row_below", "remove_row"], //only allow inserting and removing rows
       legend: [
         {
           match: function (row, col, data) {
