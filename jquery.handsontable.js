@@ -22,8 +22,8 @@
       editProxy: false,
       table: null,
       isPopulated: null,
-      rowCount: null,
-      colCount: null,
+      rowCount: 0,
+      colCount: 0,
       scrollable: null,
       hasLegend: null,
       lastAutoComplete: null
@@ -85,17 +85,35 @@
 
       /**
        * Removes row at the bottom of the data array
+       * @param {Object} [coords] Optional. Coords of the cell which row will be removed
+       * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all rows will be removed
        */
-      removeRow: function () {
-        datamap.data.pop();
+      removeRow: function (coords, toCoords) {
+        if (!coords || coords.row === priv.rowCount - 1) {
+          datamap.data.pop();
+        }
+        else {
+          datamap.data.splice(coords.row, toCoords.row - coords.row + 1);
+        }
       },
 
       /**
        * Removes col at the right of the data array
+       * @param {Object} [coords] Optional. Coords of the cell which col will be removed
+       * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all cols will be removed
        */
-      removeCol: function () {
-        for (var r = 0, rlen = datamap.data.length; r < rlen; r++) {
-          datamap.data[r].pop();
+      removeCol: function (coords, toCoords) {
+        var r = 0;
+        if (!coords || coords.col === priv.colCount - 1) {
+          for (; r < priv.rowCount; r++) {
+            datamap.data[r].pop();
+          }
+        }
+        else {
+          var howMany = toCoords.col - coords.col + 1;
+          for (; r < priv.rowCount; r++) {
+            datamap.data[r].splice(coords.col, howMany);
+          }
         }
       },
 
@@ -220,20 +238,42 @@
 
       /**
        * Removes row at the bottom of the <table>
+       * @param {Object} [coords] Optional. Coords of the cell which row will be removed
+       * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all rows will be removed
        */
-      removeRow: function () {
-        priv.rowCount = priv.tableBody.childNodes.length - 1;
-        $(priv.tableBody.childNodes[priv.rowCount]).remove();
+      removeRow: function (coords, toCoords) {
+        if (!coords || coords.row === priv.rowCount - 1) {
+          $(priv.tableBody.childNodes[priv.rowCount - 1]).remove();
+        }
+        else {
+          for (var i = toCoords.row; i >= coords.row; i--) {
+            $(priv.tableBody.childNodes[i]).remove();
+          }
+        }
+        priv.rowCount = priv.tableBody.childNodes.length;
       },
 
       /**
        * Removes col at the right of the <table>
+       * @param {Object} [coords] Optional. Coords of the cell which col will be removed
+       * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all cols will be removed
        */
-      removeCol: function () {
+      removeCol: function (coords, toCoords) {
         var trs = priv.tableBody.childNodes;
-        priv.colCount--;
-        for (var r = 0, rlen = trs.length; r < rlen; r++) {
-          $(trs[r].childNodes[priv.colCount]).remove();
+        var r = 0;
+        if (!coords || coords.col === priv.colCount - 1) {
+          for (; r < priv.rowCount; r++) {
+            $(trs[r].childNodes[priv.colCount - 1]).remove();
+          }
+          priv.colCount--;
+        }
+        else {
+          for (; r < priv.rowCount; r++) {
+            for (var i = toCoords.col; i >= coords.col; i--) {
+              $(trs[r].childNodes[i]).remove();
+            }
+          }
+          priv.colCount = trs[0] ? trs[0].childNodes.length : 0;
         }
       },
 
@@ -246,26 +286,24 @@
 
         var $tbody = $(priv.tableBody);
 
-        if (priv.settings.minSpareRows) {
-          //count currently empty rows
-          rows = datamap.getAll();
-          rlen = rows.length;
-          rows : for (r = rlen - 1; r >= 0; r--) {
-            for (c = 0, clen = rows[r].length; c < clen; c++) {
-              if (rows[r][c] !== '') {
-                break rows;
-              }
+        //count currently empty rows
+        rows = datamap.getAll();
+        rlen = rows.length;
+        rows : for (r = rlen - 1; r >= 0; r--) {
+          for (c = 0, clen = rows[r].length; c < clen; c++) {
+            if (rows[r][c] !== '') {
+              break rows;
             }
-            emptyRows++;
           }
+          emptyRows++;
+        }
 
-          //should I add empty rows to meet minSpareRows?
-          if (emptyRows < priv.settings.minSpareRows) {
-            for (; emptyRows < priv.settings.minSpareRows; emptyRows++) {
-              grid.createRow();
-              datamap.createRow();
-              recreateRows = true;
-            }
+        //should I add empty rows to meet minSpareRows?
+        if (priv.rowCount < priv.settings.rows || emptyRows < priv.settings.minSpareRows) {
+          for (; priv.rowCount < priv.settings.rows || emptyRows < priv.settings.minSpareRows; emptyRows++) {
+            grid.createRow();
+            datamap.createRow();
+            recreateRows = true;
           }
         }
 
@@ -281,29 +319,27 @@
           }
         }
 
-        if (priv.settings.minSpareCols) {
-          //count currently empty cols
-          rows = datamap.getAll();
-          rlen = rows.length;
-          if (rlen > 0) {
-            clen = rows[0].length;
-            cols : for (c = clen - 1; c >= 0; c--) {
-              for (r = 0; r < rlen; r++) {
-                if (rows[r][c] !== '') {
-                  break cols;
-                }
+        //count currently empty cols
+        rows = datamap.getAll();
+        rlen = rows.length;
+        if (rlen > 0) {
+          clen = rows[0].length;
+          cols : for (c = clen - 1; c >= 0; c--) {
+            for (r = 0; r < rlen; r++) {
+              if (rows[r][c] !== '') {
+                break cols;
               }
-              emptyCols++;
             }
+            emptyCols++;
           }
+        }
 
-          //should I add empty cols to meet minSpareCols?
-          if (emptyCols < priv.settings.minSpareCols) {
-            for (; emptyCols < priv.settings.minSpareCols; emptyCols++) {
-              grid.createCol();
-              datamap.createCol();
-              recreateCols = true;
-            }
+        //should I add empty cols to meet minSpareCols?
+        if (priv.colCount < priv.settings.cols || emptyCols < priv.settings.minSpareCols) {
+          for (; priv.colCount < priv.settings.cols || emptyCols < priv.settings.minSpareCols; emptyCols++) {
+            grid.createCol();
+            datamap.createCol();
+            recreateCols = true;
           }
         }
 
@@ -325,20 +361,19 @@
             datamap.removeRow();
             recreateRows = true;
           }
-          if (recreateRows && priv.selStart) {
-            //if selection is outside, move selection to last row
-            if (priv.selStart.row > priv.rowCount - 1) {
-              priv.selStart.row = priv.rowCount - 1;
-              if (priv.selEnd.row > priv.selStart.row) {
-                priv.selEnd.row = priv.selStart.row;
-              }
-              highlight.on();
-            } else if (priv.selEnd.row > priv.rowCount - 1) {
-              priv.selEnd.row = priv.rowCount - 1;
-              if (priv.selStart.row > priv.selEnd.row) {
-                priv.selStart.row = priv.selEnd.row;
-              }
-              highlight.on();
+        }
+
+        if (recreateRows && priv.selStart) {
+          //if selection is outside, move selection to last row
+          if (priv.selStart.row > priv.rowCount - 1) {
+            priv.selStart.row = priv.rowCount - 1;
+            if (priv.selEnd.row > priv.selStart.row) {
+              priv.selEnd.row = priv.selStart.row;
+            }
+          } else if (priv.selEnd.row > priv.rowCount - 1) {
+            priv.selEnd.row = priv.rowCount - 1;
+            if (priv.selStart.row > priv.selEnd.row) {
+              priv.selStart.row = priv.selEnd.row;
             }
           }
         }
@@ -349,26 +384,26 @@
             datamap.removeCol();
             recreateCols = true;
           }
-          if (priv.selStart) {
-            //if selection is outside, move selection to last row
-            if (priv.selStart.col > priv.colCount - 1) {
-              priv.selStart.col = priv.colCount - 1;
-              if (priv.selEnd.col > priv.selStart.col) {
-                priv.selEnd.col = priv.selStart.col;
-              }
-              highlight.on();
-            } else if (priv.selEnd.col > priv.colCount - 1) {
-              priv.selEnd.col = priv.colCount - 1;
-              if (priv.selStart.col > priv.selEnd.col) {
-                priv.selStart.col = priv.selEnd.col;
-              }
-              highlight.on();
+        }
+
+        if (recreateCols && priv.selStart) {
+          //if selection is outside, move selection to last row
+          if (priv.selStart.col > priv.colCount - 1) {
+            priv.selStart.col = priv.colCount - 1;
+            if (priv.selEnd.col > priv.selStart.col) {
+              priv.selEnd.col = priv.selStart.col;
+            }
+          } else if (priv.selEnd.col > priv.colCount - 1) {
+            priv.selEnd.col = priv.colCount - 1;
+            if (priv.selStart.col > priv.selEnd.col) {
+              priv.selStart.col = priv.selEnd.col;
             }
           }
         }
 
         if (recreateRows || recreateCols) {
           grid.createLegend();
+          selection.refreshBorders();
         }
 
         return (recreateRows || recreateCols);
@@ -502,7 +537,10 @@
           priv.settings.onChange(changes);
         }
         setTimeout(function () {
-          grid.keepEmptyRows();
+          var result = grid.keepEmptyRows();
+          if (!result) {
+            selection.refreshBorders();
+          }
         }, 100);
         return endTd || grid.getCellAtCoords(start);
       },
@@ -619,7 +657,6 @@
       setRangeStart: function (td) {
         selection.deselect();
         priv.selStart = grid.getCellCoords(td);
-        priv.currentBorder.appear([priv.selStart]);
         selection.setRangeEnd(td);
       },
 
@@ -630,16 +667,26 @@
       setRangeEnd: function (td) {
         var coords = grid.getCellCoords(td);
         selection.end(coords);
+        if (!priv.settings.multiSelect) {
+          priv.selStart = coords;
+        }
+        selection.refreshBorders();
+        highlight.scrollViewport(td);
+      },
+
+      /**
+       * Redraws borders around cells
+       */
+      refreshBorders: function () {
+        if (!selection.isSelected()) {
+          return;
+        }
         if (priv.fillHandle) {
           autofill.showHandle();
         }
-        if (!priv.settings.multiSelect) {
-          priv.selStart = coords;
-          priv.currentBorder.appear([priv.selStart]);
-        }
+        priv.currentBorder.appear([priv.selStart]);
         highlight.on();
         editproxy.prepare();
-        highlight.scrollViewport(td);
       },
 
       /**
@@ -701,6 +748,7 @@
 
       /**
        * Returns true if currently there is a selection on screen, false otherwise
+       * @return {Boolean}
        */
       isSelected: function () {
         var selEnd = selection.end();
@@ -708,6 +756,15 @@
           return false;
         }
         return true;
+      },
+
+      /**
+       * Returns true if coords is within current selection coords
+       * @return {Boolean}
+       */
+      inInSelection: function (coords) {
+        var sel = grid.getCornerCoords([priv.selStart, priv.selEnd]);
+        return (sel.TL.row <= coords.row && sel.BR.row >= coords.row && sel.TL.col <= coords.col && sel.BR.col >= coords.col);
       },
 
       /**
@@ -761,11 +818,11 @@
             changes.push([coords.row, coords.col, old, '']);
           }
         }
-        highlight.on();
         if (priv.settings.onChange && changes.length) {
           priv.settings.onChange(changes);
         }
         grid.keepEmptyRows();
+        selection.refreshBorders();
       }
     };
 
@@ -963,8 +1020,7 @@
         }
         else {
           //reset to avoid some range bug
-          selection.setRangeStart(grid.getCellAtCoords(priv.selStart));
-          selection.setRangeEnd(grid.getCellAtCoords(priv.selEnd));
+          selection.refreshBorders();
         }
       },
 
@@ -1388,12 +1444,10 @@
           priv.editProxyHolder.css({
             overflow: 'hidden'
           });
-
-          highlight.on();
         }
         if (typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
           if (isCancelled) {
-            selection.transformStart(0, 0); //don't move selection, but refresh routines
+            selection.refreshBorders();
           }
           else {
             selection.transformStart(moveRow, moveCol);
@@ -1405,7 +1459,10 @@
     interaction = {
       onMouseDown: function (event) {
         priv.isMouseDown = true;
-        if (event.shiftKey) {
+        if (event.button === 2 && selection.inInSelection(grid.getCellCoords(this))) { //right mouse button
+          //do nothing
+        }
+        else if (event.shiftKey) {
           selection.setRangeEnd(this);
         }
         else {
@@ -1425,8 +1482,6 @@
     };
 
     function init() {
-      var r;
-
       function onMouseEnterTable() {
         priv.isMouseOverTable = true;
       }
@@ -1437,15 +1492,8 @@
 
       priv.table = $('<table cellspacing="0" cellpadding="0"><tbody></tbody></table>');
       priv.tableBody = priv.table.find("tbody")[0];
-      priv.colCount = priv.settings.cols;
-      for (r = 0; r < priv.settings.rows; r++) {
-        grid.createRow();
-        datamap.createRow();
-      }
-
       priv.table.on('mousedown', 'td', interaction.onMouseDown);
       priv.table.on('mouseover', 'td', interaction.onMouseOver);
-
       container.append(priv.table);
 
       var recreated = grid.keepEmptyRows();
@@ -1521,30 +1569,43 @@
 
       if (priv.settings.contextMenu) {
         var onContextClick = function (key) {
-          var oldData, newData, changes, r, rlen, c, clen;
+          var oldData, newData, changes, r, rlen, c, clen, coords;
           if (priv.settings.onChange) {
             oldData = $.extend(true, [], datamap.getAll());
           }
+          coords = grid.getCornerCoords([priv.selStart, priv.selEnd]);
 
           switch (key) {
             case "row_above":
-              grid.createRow(priv.selStart);
-              datamap.createRow(priv.selStart);
+              grid.createRow(coords.TL);
+              datamap.createRow(coords.TL);
               break;
 
             case "row_below":
-              grid.createRow({row: priv.selStart.row + 1, col: priv.selStart.col});
-              datamap.createRow({row: priv.selStart.row + 1, col: priv.selStart.col});
+              grid.createRow({row: coords.BR.row + 1, col: coords.BR.col});
+              datamap.createRow({row: coords.BR.row + 1, col: coords.BR.col});
               break;
 
             case "col_left":
-              grid.createCol(priv.selStart);
-              datamap.createCol(priv.selStart);
+              grid.createCol(coords.TL);
+              datamap.createCol(coords.TL);
               break;
 
             case "col_right":
-              grid.createCol({row: priv.selStart.row, col: priv.selStart.col + 1});
-              datamap.createCol({row: priv.selStart.row, col: priv.selStart.col + 1});
+              grid.createCol({row: coords.BR.row, col: coords.BR.col + 1});
+              datamap.createCol({row: coords.BR.row, col: coords.BR.col + 1});
+              break;
+
+            case "remove_row":
+              grid.removeRow(coords.TL, coords.BR);
+              datamap.removeRow(coords.TL, coords.BR);
+              grid.keepEmptyRows();
+              break;
+
+            case "remove_col":
+              grid.removeCol(coords.TL, coords.BR);
+              datamap.removeCol(coords.TL, coords.BR);
+              grid.keepEmptyRows();
               break;
           }
 
@@ -1558,23 +1619,17 @@
             }
             priv.settings.onChange(changes);
           }
-        }
-
-        var isReadOnly = function (key) {
-          if ((key === "row_above" && priv.selStart.row === 0) || (key === "col_left" && priv.selStart.col === 0)) {
-            if ($(grid.getCellAtCoords(priv.selStart)).data("readOnly")) {
-              return true;
-            }
-          }
-          return false;
         };
 
         var defaultItems = {
-          "row_above": {name: "Insert row above", disabled: isReadOnly},
+          "row_above": {name: "Insert row above"},
           "row_below": {name: "Insert row below"},
           "sep1": "---------",
-          "col_left": {name: "Insert column on the left", disabled: isReadOnly},
-          "col_right": {name: "Insert column on the right"}
+          "col_left": {name: "Insert column on the left"},
+          "col_right": {name: "Insert column on the right"},
+          "sep2": "---------",
+          "remove_row": {name: "Remove row"},
+          "remove_col": {name: "Remove column"}
         };
 
         var items;
@@ -1654,6 +1709,7 @@
       var recreated = grid.keepEmptyRows();
       if (!recreated) {
         grid.createLegend();
+        selection.refreshBorders();
       }
     };
 
