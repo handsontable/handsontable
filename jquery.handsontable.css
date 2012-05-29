@@ -109,6 +109,7 @@ textarea.handsontableInput {
 /* typeahead rules. Needed only if you are using the autocomplete feature */
 .typeahead {
   position: absolute;
+  z-index: 10;
   top: 100%;
   left: 0;
   float: left;
