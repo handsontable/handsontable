@@ -1652,15 +1652,26 @@
           }
         };
 
+        var isReadOnly = function (key) {
+          var coords = grid.getCornerCoords([priv.selStart, priv.selEnd]);
+
+          if (((key === "row_above" || key === "remove_row") && coords.TL.row === 0) || ((key === "col_left" || key === "remove_col") && coords.TL.col === 0)) {
+            if ($(grid.getCellAtCoords(coords.TL)).data("readOnly")) {
+              return true;
+            }
+          }
+          return false;
+        };
+
         var defaultItems = {
-          "row_above": {name: "Insert row above"},
+          "row_above": {name: "Insert row above", disabled: isReadOnly},
           "row_below": {name: "Insert row below"},
           "sep1": "---------",
-          "col_left": {name: "Insert column on the left"},
+          "col_left": {name: "Insert column on the left", disabled: isReadOnly},
           "col_right": {name: "Insert column on the right"},
           "sep2": "---------",
-          "remove_row": {name: "Remove row"},
-          "remove_col": {name: "Remove column"}
+          "remove_row": {name: "Remove row", disabled: isReadOnly},
+          "remove_col": {name: "Remove column", disabled: isReadOnly}
         };
 
         var items;
