@@ -1937,7 +1937,7 @@
       options = action;
       return this.each(function () {
         var $this = $(this);
-        if (0 && $this.data("handsontable")) {
+        if ($this.data("handsontable")) {
           instance = $this.data("handsontable");
           instance.updateSettings(options);
         }
