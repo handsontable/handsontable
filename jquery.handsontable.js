@@ -1149,10 +1149,6 @@
           event.stopPropagation();
         }
 
-        function onDblClick() {
-          editproxy.beginEditing(true);
-        }
-
         function onCut() {
           editproxy.finishEditing();
           setTimeout(function () {
@@ -1321,7 +1317,6 @@
         }
 
         priv.editProxy.on('click', onClick);
-        priv.editProxy.on('dblclick', onDblClick);
         priv.editProxy.on('cut', onCut);
         priv.editProxy.on('paste', onPaste);
         priv.editProxy.on('keydown', onKeyDown);
@@ -1473,9 +1468,12 @@
           var td = grid.getCellAtCoords(priv.selStart),
               $td = $(td),
               val = $.trim(priv.editProxy.val());
-          if (!isCancelled && grid.isCellWriteable($td)) {
+          var oldVal = datamap.get(priv.selStart.row, priv.selStart.col);
+          if (oldVal === val || !grid.isCellWriteable($td)) {
+            isCancelled = true;
+          }
+          if (!isCancelled) {
             var result;
-            var oldVal = datamap.get(priv.selStart.row, priv.selStart.col);
             var change = [
               [priv.selStart.row, priv.selStart.col, oldVal, val]
             ];
@@ -1537,6 +1535,11 @@
           priv.fillHandle.isDragged++;
           autofill.showBorder(this);
         }
+      },
+
+      onDblClick: function () {
+        priv.editProxy[0].focus();
+        editproxy.beginEditing(true);
       }
     };
 
@@ -1553,6 +1556,7 @@
       priv.tableBody = priv.table.find("tbody")[0];
       priv.table.on('mousedown', 'td', interaction.onMouseDown);
       priv.table.on('mouseover', 'td', interaction.onMouseOver);
+      priv.table.on('dblclick', 'td', interaction.onDblClick);
       container.append(priv.table);
 
       var recreated = grid.keepEmptyRows();
@@ -1579,7 +1583,7 @@
         $(priv.fillBorder.main).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
       }
       $(priv.selectionBorder.main).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
-      $(priv.currentBorder.main).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
+      $(priv.currentBorder.main).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable).on('dblclick', interaction.onDblClick);
 
       function onMouseUp() {
         priv.isMouseDown = false;
@@ -1648,15 +1652,26 @@
           }
         };
 
+        var isReadOnly = function (key) {
+          var coords = grid.getCornerCoords([priv.selStart, priv.selEnd]);
+
+          if (((key === "row_above" || key === "remove_row") && coords.TL.row === 0) || ((key === "col_left" || key === "remove_col") && coords.TL.col === 0)) {
+            if ($(grid.getCellAtCoords(coords.TL)).data("readOnly")) {
+              return true;
+            }
+          }
+          return false;
+        };
+
         var defaultItems = {
-          "row_above": {name: "Insert row above"},
+          "row_above": {name: "Insert row above", disabled: isReadOnly},
           "row_below": {name: "Insert row below"},
           "sep1": "---------",
-          "col_left": {name: "Insert column on the left"},
+          "col_left": {name: "Insert column on the left", disabled: isReadOnly},
           "col_right": {name: "Insert column on the right"},
           "sep2": "---------",
-          "remove_row": {name: "Remove row"},
-          "remove_col": {name: "Remove column"}
+          "remove_row": {name: "Remove row", disabled: isReadOnly},
+          "remove_col": {name: "Remove column", disabled: isReadOnly}
         };
 
         var items;

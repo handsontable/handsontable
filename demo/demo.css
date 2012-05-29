@@ -131,14 +131,17 @@ pre {
   font-family: monospace;
   background: #000;
   color: #fff;
-  padding: 15px;
   margin: 0;
   overflow: auto;
 }
 
-.code {
-  font-family: monospace;
-  white-space: pre;
+div pre code {
+  background: #000000;
+}
+
+div pre .xml .css,
+div pre .xml .javascript {
+  opacity: 1;
 }
 
 .console {
