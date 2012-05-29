@@ -597,6 +597,7 @@
         setTimeout(function () {
           var result = grid.keepEmptyRows();
           if (!result) {
+            grid.createLegend();
             selection.refreshBorders();
           }
         }, 100);
