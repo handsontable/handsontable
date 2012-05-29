@@ -29,10 +29,13 @@ $(function () {
     $("#example2grid").handsontable({
       rows: 5,
       cols: 5,
-      //fillHandle can be turned off
+
       fillHandle: false,
-      //contextMenu will only allow inserting and removing rows
+      //fillHandle can be turned off
+
       contextMenu: ["row_above", "row_below", "remove_row"],
+      //contextMenu will only allow inserting and removing rows
+
       legend: [
         {
           match: function (row, col, data) {
@@ -235,6 +238,7 @@ $(function () {
   }
 
   loadExamples();
+  hljs.initHighlightingOnLoad();
 
   var examplesList = $('.examplesList');
   $('.example').each(function () {

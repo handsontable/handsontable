@@ -27,7 +27,9 @@
   -->
   <script src="demo/json2.min.js"></script>
   <script src="demo/demo.js"></script>
+  <script src="demo/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="demo/demo.css">
+  <link rel="stylesheet" media="screen" href="demo/highlight/styles/zenburn.css">
 </head>
 
 <body>
@@ -90,8 +92,7 @@
 
     <p>Code:</p>
 
-    <pre>
-&lt;div id="example1grid" class="dataTable"&gt;&lt;/div&gt;
+    <pre><code class="html">&lt;div id="example1grid" class="dataTable"&gt;&lt;/div&gt;
 
 &lt;script&gt;
   $("#example1grid").handsontable({
@@ -110,7 +111,7 @@
   ];
 
   $("#example1grid").handsontable("loadData", data);
-&lt;/script&gt;</pre>
+&lt;/script&gt;</code></pre>
   </div>
 </div>
 
@@ -127,17 +128,19 @@
 
     <p>Code:</p>
 
-    <pre>
-&lt;div id="example2grid" class="dataTable"&gt;&lt;/div&gt;
+    <pre><code class="html">&lt;div id="example2grid" class="dataTable"&gt;&lt;/div&gt;
 
 &lt;script&gt;
   $("#example2grid").handsontable({
   rows: 5,
   cols: 5,
-  //fillHandle can be turned off
+
   fillHandle: false,
-  //contextMenu will only allow inserting and removing rows
+  //fillHandle can be turned off
+
   contextMenu: ["row_above", "row_below", "remove_row"],
+  //contextMenu will only allow inserting and removing rows
+
   legend: [
     {
       match: function (row, col, data) {
@@ -170,7 +173,7 @@ var data = [
 ];
 
 $("#example2grid").handsontable("loadData", data);
-&lt;/script&gt;</pre>
+&lt;/script&gt;</code></pre>
   </div>
 </div>
 
@@ -190,8 +193,7 @@ $("#example2grid").handsontable("loadData", data);
 
     <p>Code:</p>
 
-    <pre>
-&lt;div id="example3grid" class="dataTable"&gt;&lt;/div&gt;
+    <pre><code class="html">&lt;div id="example3grid" class="dataTable"&gt;&lt;/div&gt;
 
 &lt;script&gt;
   $("#example3grid").handsontable({
@@ -237,7 +239,7 @@ var data = [
 ];
 
 $("#example3grid").handsontable("loadData", data);
-&lt;/script&gt;</pre>
+&lt;/script&gt;</code></pre>
   </div>
 </div>
 
@@ -253,8 +255,7 @@ $("#example3grid").handsontable("loadData", data);
 
     <p>Code:</p>
 
-    <pre>
-&lt;div id="example4grid" class="dataTable" style="width: 680px;
+    <pre><code class="html">&lt;div id="example4grid" class="dataTable" style="width: 680px;
   height: 300px; overflow: scroll"&gt;&lt;/div&gt;
 
 &lt;script&gt;
@@ -273,7 +274,7 @@ var data = [
 ];
 
 $("#example4grid").handsontable("loadData", data);
-&lt;/script&gt;</pre>
+&lt;/script&gt;</code></pre>
   </div>
 </div>
 
@@ -291,8 +292,7 @@ $("#example4grid").handsontable("loadData", data);
 
     <p>Code:</p>
 
-    <pre>
-&lt;div id="example5grid" class="dataTable"&gt;&lt;/div&gt;
+    <pre><code class="html">&lt;div id="example5grid" class="dataTable"&gt;&lt;/div&gt;
 
 &lt;script&gt;
 $("#example5grid").handsontable({
@@ -311,7 +311,7 @@ var data = [
 ];
 
 $("#example5grid").handsontable("loadData", data);
-&lt;/script&gt;</pre>
+&lt;/script&gt;</code></pre>
   </div>
 </div>
 
@@ -327,8 +327,7 @@ $("#example5grid").handsontable("loadData", data);
 
     <p>Code:</p>
 
-    <pre>
-&lt;div id="example7grid" class="dataTable"&gt;&lt;/div&gt;
+    <pre><code class="html">&lt;div id="example7grid" class="dataTable"&gt;&lt;/div&gt;
 
 &lt;script&gt;
 $("#example7grid").handsontable({
@@ -347,7 +346,7 @@ var data = [
 ];
 
 $("#example7grid").handsontable("loadData", data);
-&lt;/script&gt;</pre>
+&lt;/script&gt;</code></pre>
   </div>
 </div>
 
@@ -369,9 +368,9 @@ $("#example7grid").handsontable("loadData", data);
 
     <p>Code:</p>
 
-    <pre>
-&lt;div class="dataTable"&gt;&lt;/div&gt;
-&lt;pre class="console"&gt;
+    <pre><code class="html">&lt;div id="example6grid" class="dataTable"&gt;&lt;/div&gt;
+
+&lt;pre id="example6console" class="console"&gt;
   Edit the above grid to see callback
 &lt;/pre&gt;
 
@@ -416,7 +415,7 @@ var data = [
 ];
 
 $("#example6grid").handsontable("loadData", data);
-&lt;/script&gt;</pre>
+&lt;/script&gt;</code></pre>
   </div>
 </div>
 </div>
@@ -453,7 +452,7 @@ $("#example6grid").handsontable("loadData", data);
   by running:
 </p>
 
-<pre>$ git clone git://github.com/warpech/jquery-handsontable</pre>
+<pre class="console">$ git clone git://github.com/warpech/jquery-handsontable</pre>
 
 <div class="footer">
   get the source code on GitHub : <a
