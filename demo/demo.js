@@ -29,8 +29,10 @@ $(function () {
     $("#example2grid").handsontable({
       rows: 5,
       cols: 5,
-      fillHandle: false, //fillHandle can be turned off
-      contextMenu: ["row_above", "row_below", "remove_row"], //only allow inserting and removing rows
+      //fillHandle can be turned off
+      fillHandle: false,
+      //contextMenu will only allow inserting and removing rows
+      contextMenu: ["row_above", "row_below", "remove_row"],
       legend: [
         {
           match: function (row, col, data) {
@@ -87,7 +89,8 @@ $(function () {
       autoComplete: [
         {
           match: function (row, col, data) {
-            if (data()[0][col].indexOf("color") > -1) { //if column name contains word "color"
+            if (data()[0][col].indexOf("color") > -1) {
+              //if column name contains word "color"
               return true;
             }
             return false;
