@@ -617,13 +617,10 @@
        * Returns coordinates given td object
        */
       getCellCoords: function (td) {
-        var $td = $(td);
-        if ($td.length) {
-          return {
-            row: $td.parent().index(),
-            col: $td.index()
-          };
-        }
+        return {
+          row: td.parentNode.rowIndex,
+          col: td.cellIndex
+        };
       },
 
       /**
