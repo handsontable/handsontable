@@ -474,18 +474,17 @@
       createLegend: function () {
         grid.resetLegend();
         if (priv.settings.legend) {
-          var tds = grid.getAllCells(), col, row;
-          for (var i = 0, ilen = tds.length; i < ilen; i++) {
-            var td = $(tds[i]);
-            col = td.index();
-            row = td.parent().index();
-            for (var j = 0, jlen = priv.settings.legend.length; j < jlen; j++) {
-              var legend = priv.settings.legend[j];
-              if (legend.match(row, col, self.getData)) {
-                priv.hasLegend = true;
-                typeof legend.style !== "undefined" && td.css(legend.style);
-                typeof legend.readOnly !== "undefined" && td.data("readOnly", legend.readOnly);
-                typeof legend.title !== "undefined" && td.attr("title", legend.title);
+          for (var r = 0; r < priv.rowCount; r++) {
+            for (var c = 0; c < priv.colCount; c++) {
+              for (var j = 0, jlen = priv.settings.legend.length; j < jlen; j++) {
+                var legend = priv.settings.legend[j];
+                if (legend.match(r, c, self.getData)) {
+                  priv.hasLegend = true;
+                  var td = $(grid.getCellAtCoords({row: r, col: c}));
+                  typeof legend.style !== "undefined" && td.css(legend.style);
+                  typeof legend.readOnly !== "undefined" && td.data("readOnly", legend.readOnly);
+                  typeof legend.title !== "undefined" && td.attr("title", legend.title);
+                }
               }
             }
           }
