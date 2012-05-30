@@ -185,13 +185,16 @@ $(function () {
       onBeforeChange: function (data) {
         for (var i = 0, ilen = data.length; i < ilen; i++) {
           if (data[i][3] === "foo") {
-            data[i][3] = false; //gently don't accept the word "foo"
+            //gently don't accept the word "foo"
+            data[i][3] = false;
           }
           else if (data[i][3] === "bar") {
-            data[i][3] = data[i][3] + '!'; //if the word bar is given, add a ! at the end of it
+            //if the word bar is given, add a ! at the end of it
+            data[i][3] = data[i][3] + '!';
           }
           else if (data[i][3] === "nuke") {
-            return false; //if any of pasted cells contains the word "nuke", reject the whole paste
+            //if any of pasted cells contains the word "nuke", reject the whole paste
+            return false;
           }
         }
       },
@@ -235,10 +238,12 @@ $(function () {
     $("#example7grid").handsontable("loadData", data);
 
 
-  }
+      }
 
   loadExamples();
-  hljs.initHighlightingOnLoad();
+  $('pre.html').each(function (i, e) {
+    hljs.highlightBlock(e)
+  });
 
   var examplesList = $('.examplesList');
   $('.example').each(function () {
