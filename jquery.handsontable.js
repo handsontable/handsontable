@@ -272,7 +272,7 @@
           var oldTr = grid.getCellAtCoords(coords).parentNode;
           priv.tableBody.insertBefore(tr, oldTr);
         }
-        priv.rowCount = priv.tableBody.childNodes.length;
+        priv.rowCount++;
       },
 
       /**
@@ -291,7 +291,7 @@
             trs[r].insertBefore(document.createElement('td'), grid.getCellAtCoords({row: r, col: coords.col}));
           }
         }
-        priv.colCount = trs[0].childNodes.length;
+        priv.colCount++;
       },
 
       /**
@@ -302,13 +302,14 @@
       removeRow: function (coords, toCoords) {
         if (!coords || coords.row === priv.rowCount - 1) {
           $(priv.tableBody.childNodes[priv.rowCount - 1]).remove();
+          priv.rowCount--;
         }
         else {
           for (var i = toCoords.row; i >= coords.row; i--) {
             $(priv.tableBody.childNodes[i]).remove();
+            priv.rowCount--;
           }
         }
-        priv.rowCount = priv.tableBody.childNodes.length;
       },
 
       /**
@@ -330,8 +331,8 @@
             for (var i = toCoords.col; i >= coords.col; i--) {
               $(trs[r].childNodes[i]).remove();
             }
+            priv.colCount--;
           }
-          priv.colCount = trs[0] ? trs[0].childNodes.length : 0;
         }
       },
 
@@ -695,9 +696,9 @@
       getAllCells: function () {
         var tds = [], trs, r, rlen, c, clen;
         trs = priv.tableBody.childNodes;
-        rlen = trs.length;
+        rlen = priv.rowCount;
         if (rlen > 0) {
-          clen = trs[0].childNodes.length;
+          clen = priv.colCount;
           for (r = 0; r < rlen; r++) {
             for (c = 0; c < clen; c++) {
               tds.push(trs[r].childNodes[c]);
