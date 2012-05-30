@@ -135,8 +135,9 @@ pre {
   overflow: auto;
 }
 
-div pre code {
+div pre.html {
   background: #000000;
+  padding: 10px;
 }
 
 div pre .xml .css,
