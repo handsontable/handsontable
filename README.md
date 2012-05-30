@@ -8,50 +8,60 @@ See the live demo at: http://warpech.github.com/jquery-handsontable/
 
 First, include all the dependencies:
 
-    <script src="jquery.handsontable.js"></script>
-    <script src="lib/bootstrap-typeahead.js"></script><!-- only if you need the autocomplete feature -->
-    <script src="lib/jquery.autoresize.js"></script><!-- only if you need the sexy autoexpanding textarea feature -->
-    <link rel="stylesheet" media="screen" href="jquery.handsontable.css">
+```html
+<script src="jquery.handsontable.js"></script>
+<script src="lib/bootstrap-typeahead.js"></script><!-- only if you need the autocomplete feature -->
+<script src="lib/jquery.autoresize.js"></script><!-- only if you need the autoexpanding textarea -->
+<link rel="stylesheet" media="screen" href="jquery.handsontable.css">
+```
 
 Then, run `handsontable()` constructor on an empty div:
 
-    <div id="dataTable" class="dataTable"></div>
-    <script>
-      $("#dataTable").handsontable({
-        rows: 6,
-        cols: 8
-        onChange: function (change) {
-          //here put some code that saves current data
-          //this part is up to you (not a part of Handsontable)
-          var lastChange = change;
-          var allData = $("#dataTable").handsontable("getData");
-        }
-    });
-    </script>
+```html
+<div id="dataTable" class="dataTable"></div>
+<script>
+  $("#dataTable").handsontable({
+    rows: 6,
+    cols: 8
+    onChange: function (change) {
+      //here put some code that saves current data
+      //this part is up to you (not a part of Handsontable)
+      var lastChange = change;
+      var allData = $("#dataTable").handsontable("getData");
+    }
+});
+</script>
+```
     
 Maybe you want to show some default data. Use the `handsontable('loadData', data)` method:
 
-    <script>
-      var data = [
-        ["", "Kia", "Nissan", "Toyota", "Honda"],
-        ["2008", 10, 11, 12, 13],
-        ["2009", 20, 11, 14, 13],
-        ["2010", 30, 15, 12, 13]
-      ];
-      $("#dataTable").handsontable("loadData", data);
-    </script>
+```html
+<script>
+  var data = [
+    ["", "Kia", "Nissan", "Toyota", "Honda"],
+    ["2008", 10, 11, 12, 13],
+    ["2009", 20, 11, 14, 13],
+    ["2010", 30, 15, 12, 13]
+  ];
+  $("#dataTable").handsontable("loadData", data);
+</script>
+```
 
 ## Methods
 
-  Option                                        | Role        | Description
-------------------------------------------------|-------------|-------------
- handsontable(options)                          | Constructor | Accepts configuration object (see **Options**)
- handsontable('updateSettings', options)        | Method      | Use it if you need to change configuration after initialization
- handsontable('loadData', data)                 | Method      | Reset all cells in the grid to contain data from the `data` array
- handsontable('setDataAtCell', row, col, value) | Method      | Set new value to a cell
- handsontable('clear')                          | Method      | Empty all cells
- handsontable('getData')                        | Method      | Return 2-dimensional array with the current grid data
- 
+  Option                                                              | Role        | Description
+----------------------------------------------------------------------|-------------|-------------
+ handsontable(options)                                                | Constructor | Accepts configuration object (see **Options**)
+ handsontable('updateSettings', options)                              | Method      | Use it if you need to change configuration after initialization
+ handsontable('loadData', data)                                       | Method      | Reset all cells in the grid to contain data from the `data` array
+ handsontable('setDataAtCell', row, col, value)                       | Method      | Set new value to a cell
+ handsontable('clear')                                                | Method      | Empty all cells
+ handsontable('getData')                                              | Method      | Return 2-dimensional array with the current grid data
+ handsontable('alter', 'insert_row', index)                           | Method      | Insert new row above the row at given index
+ handsontable('alter', 'insert_col', index)                           | Method      | Insert new column before the column at given index
+ handsontable('alter',&nbsp;'remove_row',&nbsp;index,&nbsp;[toIndex]) | Method      | Remove the row at given index [optionally to another index]
+ handsontable('alter',&nbsp;'remove_col',&nbsp;index,&nbsp;[toIndex]) | Method      | Remove the column at given index [optionally to another index]
+
 ## Options
 
 The table below presents configuration options that are interpreted by `handsontable()` constructor:

@@ -71,6 +71,9 @@
   <li><a href="#example7">Context menu
     <div class="arr"></div>
   </a></li>
+  <li><a href="#example8">Custom buttons
+    <div class="arr"></div>
+  </a></li>
   <li><a href="#example6">Save
     <div class="arr"></div>
   </a></li>
@@ -92,7 +95,7 @@
 
     <p>Code:</p>
 
-    <pre><code class="html">&lt;div id="example1grid" class="dataTable"&gt;&lt;/div&gt;
+    <pre class="html">&lt;div id="example1grid" class="dataTable"&gt;&lt;/div&gt;
 
 &lt;script&gt;
   $("#example1grid").handsontable({
@@ -111,7 +114,7 @@
   ];
 
   $("#example1grid").handsontable("loadData", data);
-&lt;/script&gt;</code></pre>
+&lt;/script&gt;</pre>
   </div>
 </div>
 
@@ -128,52 +131,52 @@
 
     <p>Code:</p>
 
-    <pre><code class="html">&lt;div id="example2grid" class="dataTable"&gt;&lt;/div&gt;
+    <pre class="html">&lt;div id="example2grid" class="dataTable"&gt;&lt;/div&gt;
 
 &lt;script&gt;
   $("#example2grid").handsontable({
-  rows: 5,
-  cols: 5,
+    rows: 5,
+    cols: 5,
 
-  fillHandle: false,
-  //fillHandle can be turned off
+    fillHandle: false,
+    //fillHandle can be turned off
 
-  contextMenu: ["row_above", "row_below", "remove_row"],
-  //contextMenu will only allow inserting and removing rows
+    contextMenu: ["row_above", "row_below", "remove_row"],
+    //contextMenu will only allow inserting and removing rows
 
-  legend: [
-    {
-      match: function (row, col, data) {
-        return (row === 0); //if it is first row
+    legend: [
+      {
+        match: function (row, col, data) {
+          return (row === 0); //if it is first row
+        },
+        style: {
+          color: 'green', //make the text green and bold
+          fontWeight: 'bold'
+        },
+        title: 'Heading', //make some tooltip
+        readOnly: true //make it read-only
       },
-      style: {
-        color: 'green', //make the text green and bold
-        fontWeight: 'bold'
-      },
-      title: 'Heading', //make some tooltip
-      readOnly: true //make it read-only
-    },
-    {
-      match: function (row, col, data) {
-        //if first row in this column contains word "Nissan"
-        return (row &gt; 0 && data()[0][col].indexOf('Nissan') &gt; -1);
-      },
-      style: {
-        fontStyle: 'italic' //make cells text in this column written in italic
+      {
+        match: function (row, col, data) {
+          //if first row in this column contains word "Nissan"
+          return (row &gt; 0 && data()[0][col].indexOf('Nissan') &gt; -1);
+        },
+        style: {
+          fontStyle: 'italic' //make cells text in this column written in italic
+        }
       }
-    }
-  ]
-});
+    ]
+  });
 
-var data = [
-  ["", "Kia", "Nissan", "Toyota", "Honda"],
-  ["2008", 10, 11, 12, 13],
-  ["2009", 20, 11, 14, 13],
-  ["2010", 30, 15, 12, 13]
-];
+  var data = [
+    ["", "Kia", "Nissan", "Toyota", "Honda"],
+    ["2008", 10, 11, 12, 13],
+    ["2009", 20, 11, 14, 13],
+    ["2010", 30, 15, 12, 13]
+  ];
 
-$("#example2grid").handsontable("loadData", data);
-&lt;/script&gt;</code></pre>
+  $("#example2grid").handsontable("loadData", data);
+&lt;/script&gt;</pre>
   </div>
 </div>
 
@@ -193,53 +196,66 @@ $("#example2grid").handsontable("loadData", data);
 
     <p>Code:</p>
 
-    <pre><code class="html">&lt;div id="example3grid" class="dataTable"&gt;&lt;/div&gt;
+    <pre class="html">&lt;div id="example3grid" class="dataTable"&gt;&lt;/div&gt;
 
 &lt;script&gt;
   $("#example3grid").handsontable({
-  rows: 5,
-  cols: 5,
-  autoComplete: [
-    {
-      match: function (row, col, data) {
-        if (data()[0][col].indexOf("color") > -1) {
-          //if column name contains word "color"
-          return true;
+    rows: 7,
+    cols: 5,
+    legend: [
+      {
+        match: function (row, col, data) {
+          return (row === 0); //if it is first row
+        },
+        style: {
+          color: '#666', //make the text gray and bold
+          fontWeight: 'bold'
+        },
+        title: 'Heading', //make some tooltip
+        readOnly: true //make it read-only
+      }
+    ],
+    autoComplete: [
+      {
+        match: function (row, col, data) {
+          if (data()[0][col].indexOf("color") > -1) {
+            //if column name contains word "color"
+            return true;
+          }
+          return false;
+        },
+        highlighter: function (item) {
+          var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
+          var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+            return '&lt;strong&gt;' + match + '&lt;/strong&gt;';
+          });
+          return '&lt;span style="margin-right: 10px; background-color: ' + item + '"&gt;&nbsp;&nbsp;&nbsp;&lt;/span&gt;' + label;
+        },
+        source: function () {
+          return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
         }
-        return false;
       },
-      highlighter: function (item) {
-        var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
-        var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-          return '<strong>' + match + '</strong>';
-        });
-        return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
-      },
-      source: function () {
-        return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
+      {
+        match: function (row, col, data) {
+          return (col === 0); //if it is first column
+        },
+        source: function () {
+          return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
+        }
       }
-    },
-    {
-      match: function (row, col, data) {
-        return (col === 0); //if it is first column
-      },
-      source: function () {
-        return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
-      }
-    }
-  ]
-});
+    ]
+  });
 
-var data = [
-  ["Car", "Year", "Chassis color", "Bumper color"],
-  ["Nissan", 2009, "black", "black"],
-  ["Nissan", 2006, "blue", "blue"],
-  ["Chrysler", 2004, "yellow", "black"],
-  ["Volvo", 2012, "white", "gray"]
-];
+  var data = [
+    ["Car", "Year", "Chassis color", "Bumper color"],
+    ["Nissan", 2009, "black", "black"],
+    ["Nissan", 2006, "blue", "blue"],
+    ["Chrysler", 2004, "yellow", "black"],
+    ["Volvo", 2012, "white", "gray"]
+  ];
 
-$("#example3grid").handsontable("loadData", data);
-&lt;/script&gt;</code></pre>
+  $("#example3grid").handsontable("loadData", data);
+&lt;/script&gt;</pre>
   </div>
 </div>
 
@@ -255,26 +271,26 @@ $("#example3grid").handsontable("loadData", data);
 
     <p>Code:</p>
 
-    <pre><code class="html">&lt;div id="example4grid" class="dataTable" style="width: 680px;
-  height: 300px; overflow: scroll"&gt;&lt;/div&gt;
+    <pre class="html">&lt;div id="example4grid" class="dataTable" style="width: 680px;
+    height: 300px; overflow: scroll"&gt;&lt;/div&gt;
 
 &lt;script&gt;
-$("#example4grid").handsontable({
-  rows: 40,
-  cols: 40,
-  minSpareCols: 1, //always keep at least 1 spare row at the right
-  minSpareRows: 1 //always keep at least 1 spare row at the bottom
-});
+  $("#example4grid").handsontable({
+    rows: 40,
+    cols: 40,
+    minSpareCols: 1, //always keep at least 1 spare row at the right
+    minSpareRows: 1 //always keep at least 1 spare row at the bottom
+  });
 
-var data = [
-  ["", "Kia", "Nissan", "Toyota", "Honda"],
-  ["2008", 10, 11, 12, 13],
-  ["2009", 20, 11, 14, 13],
-  ["2010", 30, 15, 12, 13]
-];
+  var data = [
+    ["", "Kia", "Nissan", "Toyota", "Honda"],
+    ["2008", 10, 11, 12, 13],
+    ["2009", 20, 11, 14, 13],
+    ["2010", 30, 15, 12, 13]
+  ];
 
-$("#example4grid").handsontable("loadData", data);
-&lt;/script&gt;</code></pre>
+  $("#example4grid").handsontable("loadData", data);
+&lt;/script&gt;</pre>
   </div>
 </div>
 
@@ -284,7 +300,8 @@ $("#example4grid").handsontable("loadData", data);
   <div class="pad">
     <h3>Drag-down</h3>
 
-    <p>Notice the little square (<b>fill handle</b>) in the corner of the selected cell. You can drag it (drag-down) to repeat the values from the cell.</p>
+    <p>Notice the little square (<b>fill handle</b>) in the corner of the selected cell. You can drag it (drag-down) to repeat the values from the cell.
+    </p>
 
     <p>Double click the fill handle to fill the selection down to the last row.</p>
 
@@ -292,26 +309,26 @@ $("#example4grid").handsontable("loadData", data);
 
     <p>Code:</p>
 
-    <pre><code class="html">&lt;div id="example5grid" class="dataTable"&gt;&lt;/div&gt;
+    <pre class="html">&lt;div id="example5grid" class="dataTable"&gt;&lt;/div&gt;
 
 &lt;script&gt;
-$("#example5grid").handsontable({
-  rows: 8,
-  cols: 8,
-  minSpareCols: 1,
-  minSpareRows: 1,
-  fillHandle: true //possible values: true, false, "horizontal", "vertical"
-});
+  $("#example5grid").handsontable({
+    rows: 8,
+    cols: 8,
+    minSpareCols: 1,
+    minSpareRows: 1,
+    fillHandle: true //possible values: true, false, "horizontal", "vertical"
+  });
 
-var data = [
-  ["", "Kia", "Nissan", "Toyota", "Honda"],
-  ["2008", 10, 11, 12, 13],
-  ["2009", 20, 11, 14, 13],
-  ["2010", 30, 15, 12, 13]
-];
+  var data = [
+    ["", "Kia", "Nissan", "Toyota", "Honda"],
+    ["2008", 10, 11, 12, 13],
+    ["2009", 20, 11, 14, 13],
+    ["2010", 30, 15, 12, 13]
+  ];
 
-$("#example5grid").handsontable("loadData", data);
-&lt;/script&gt;</code></pre>
+  $("#example5grid").handsontable("loadData", data);
+&lt;/script&gt;</pre>
   </div>
 </div>
 
@@ -327,26 +344,96 @@ $("#example5grid").handsontable("loadData", data);
 
     <p>Code:</p>
 
-    <pre><code class="html">&lt;div id="example7grid" class="dataTable"&gt;&lt;/div&gt;
+    <pre class="html">&lt;div id="example7grid" class="dataTable"&gt;&lt;/div&gt;
 
 &lt;script&gt;
-$("#example7grid").handsontable({
-  rows: 5,
-  cols: 5,
-  minSpareCols: 1,
-  minSpareRows: 1,
-  contextMenu: true
-});
+  $("#example7grid").handsontable({
+    rows: 5,
+    cols: 5,
+    minSpareCols: 1,
+    minSpareRows: 1,
+    contextMenu: true
+  });
 
-var data = [
-  ["", "Kia", "Nissan", "Toyota", "Honda"],
-  ["2008", 10, 11, 12, 13],
-  ["2009", 20, 11, 14, 13],
-  ["2010", 30, 15, 12, 13]
-];
+  var data = [
+    ["", "Kia", "Nissan", "Toyota", "Honda"],
+    ["2008", 10, 11, 12, 13],
+    ["2009", 20, 11, 14, 13],
+    ["2010", 30, 15, 12, 13]
+  ];
 
-$("#example7grid").handsontable("loadData", data);
-&lt;/script&gt;</code></pre>
+  $("#example7grid").handsontable("loadData", data);
+&lt;/script&gt;</pre>
+  </div>
+</div>
+
+<a name="example8"></a>
+
+<div id="example8container" class="example">
+  <div class="pad">
+    <h3>Custom buttons</h3>
+
+    <p>Level: Advanced</p>
+
+    <p>The <b>alter</b> method can be used if you want insert or remove rows and columns using external buttons.
+      The below example uses the <b>onChange</b> method to add a button that removes a row.</p>
+
+    <div id="example8grid" class="dataTable"></div>
+
+    <p>Code:</p>
+
+    <pre class="html">&lt;div id="example8grid" class="dataTable"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  var container = $("#example8grid");
+  container.handsontable({
+    rows: 5,
+    cols: 5,
+    minSpareCols: 1,
+    minSpareRows: 1,
+    contextMenu: true,
+    onChange: function () {
+      //for each first cell in a row that does not have the button yet
+      container.find('td::first-child:not(:has(.btn))').each(function () {
+        var $td = $(this);
+        //create the button from template
+        var button = $('&lt;div class="cellRelative"&gt;' + ($td.html() || '&nbsp;') + '&lt;div class="btnContainer"&gt;&lt;div class="btn"&gt;x&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;');
+        button.find('.btn').
+          on('click', function (event) {
+            //remove the row when button is clicked
+            container.handsontable("alter", "remove_row", button.parents('tr').index());
+          }).
+          on('mousedown mouseup', function (event) {
+            //avoid mouse selection of the first cell in next row
+            event.stopPropagation();
+          });
+        $td.html(button);
+      });
+    }
+  });
+
+  container.
+    on('mouseover', 'td', function () {
+      //if this is not the first row, show the button
+      var $tr = $(this.parentNode);
+      if ($tr.index() &gt; 0) {
+        $tr.find('.btn').show();
+      }
+    }).
+    on('mouseout', 'td', function () {
+      //hide the button
+      $(this.parentNode).find('.btn').hide();
+    });
+
+  var data = [
+    ["", "Kia", "Nissan", "Toyota", "Honda"],
+    ["2008", 10, 11, 12, 13],
+    ["2009", 20, 11, 14, 13],
+    ["2010", 30, 15, 12, 13]
+  ];
+
+  container.handsontable("loadData", data);
+&lt;/script&gt;</pre>
   </div>
 </div>
 
@@ -356,9 +443,12 @@ $("#example7grid").handsontable("loadData", data);
   <div class="pad">
     <h3>Save</h3>
 
-    <p>Use the <b>onChange</b> callback to track changes made in the table. In the example below it is used to display the last changes.</p>
+    <p>Use the
+      <b>onChange</b> callback to track changes made in the table. In the example below it is used to display the last changes.
+    </p>
 
-    <p>There is also the NEW <b>onBeforeChange</b> callback, which can be used to validate changes before they are applied to the table.</p>
+    <p>There is also the NEW
+      <b>onBeforeChange</b> callback, which can be used to validate changes before they are applied to the table.</p>
 
     <div id="example6grid" class="dataTable"></div>
 
@@ -368,54 +458,54 @@ $("#example7grid").handsontable("loadData", data);
 
     <p>Code:</p>
 
-    <pre><code class="html">&lt;div id="example6grid" class="dataTable"&gt;&lt;/div&gt;
+    <pre class="html">&lt;div id="example6grid" class="dataTable"&gt;&lt;/div&gt;
 
 &lt;pre id="example6console" class="console"&gt;
   Edit the above grid to see callback
 &lt;/pre&gt;
 
 &lt;script&gt;
-var first = true;
-$("#example6grid").handsontable({
-  rows: 8,
-  cols: 8,
-  minSpareCols: 1,
-  minSpareRows: 1,
-  contextMenu: true,
-  onBeforeChange: function (data) {
-    for(var i = 0, ilen = data.length; i < ilen; i++) {
-      if(data[i][3] === "foo") {
-        //gently don't accept the word "foo"
-        data[i][3] = false;
+  var first = true;
+  $("#example6grid").handsontable({
+    rows: 8,
+    cols: 8,
+    minSpareCols: 1,
+    minSpareRows: 1,
+    contextMenu: true,
+    onBeforeChange: function (data) {
+      for (var i = 0, ilen = data.length; i < ilen; i++) {
+        if (data[i][3] === "foo") {
+          //gently don't accept the word "foo"
+          data[i][3] = false;
+        }
+        else if (data[i][3] === "bar") {
+          //if the word bar is given, add a ! at the end of it
+          data[i][3] = data[i][3] + '!';
+        }
+        else if (data[i][3] === "nuke") {
+          //if any of pasted cells contains the word "nuke", reject the whole paste
+          return false;
+        }
       }
-      else if(data[i][3] === "bar") {
-        //if the word bar is given, add a ! at the end of it
-        data[i][3] = data[i][3] + '!';
+    },
+    onChange: function (data) {
+      if (first) {
+        first = false;
+        return; //don't show this change in console
       }
-      else if(data[i][3] === "nuke") {
-        //if any of pasted cells contains the word "nuke", reject the whole paste
-        return false;
-      }
+      $("#example6console").text(JSON.stringify(data));
     }
-  },
-  onChange: function (data) {
-    if (first) {
-      first = false;
-      return; //don't show this change in console
-    }
-    $("#example6console").text(JSON.stringify(data));
-  }
-});
+  });
 
-var data = [
-  ["", "Kia", "Nissan", "Toyota", "Honda"],
-  ["2008", 10, 11, 12, 13],
-  ["2009", 20, 11, 14, 13],
-  ["2010", 30, 15, 12, 13]
-];
+  var data = [
+    ["", "Kia", "Nissan", "Toyota", "Honda"],
+    ["2008", 10, 11, 12, 13],
+    ["2009", 20, 11, 14, 13],
+    ["2010", 30, 15, 12, 13]
+  ];
 
-$("#example6grid").handsontable("loadData", data);
-&lt;/script&gt;</code></pre>
+  $("#example6grid").handsontable("loadData", data);
+&lt;/script&gt;</pre>
   </div>
 </div>
 </div>

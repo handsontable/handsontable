@@ -185,13 +185,16 @@ $(function () {
       onBeforeChange: function (data) {
         for (var i = 0, ilen = data.length; i < ilen; i++) {
           if (data[i][3] === "foo") {
-            data[i][3] = false; //gently don't accept the word "foo"
+            //gently don't accept the word "foo"
+            data[i][3] = false;
           }
           else if (data[i][3] === "bar") {
-            data[i][3] = data[i][3] + '!'; //if the word bar is given, add a ! at the end of it
+            //if the word bar is given, add a ! at the end of it
+            data[i][3] = data[i][3] + '!';
           }
           else if (data[i][3] === "nuke") {
-            return false; //if any of pasted cells contains the word "nuke", reject the whole paste
+            //if any of pasted cells contains the word "nuke", reject the whole paste
+            return false;
           }
         }
       },
@@ -235,10 +238,66 @@ $(function () {
     $("#example7grid").handsontable("loadData", data);
 
 
+    /**
+     * Example 8
+     */
+    var container = $("#example8grid");
+    container.handsontable({
+      rows: 5,
+      cols: 5,
+      minSpareCols: 1,
+      minSpareRows: 1,
+      contextMenu: true,
+      onChange: function () {
+        //for each first cell in a row that does not have the button yet
+        container.find('td::first-child:not(:has(.btn))').each(function () {
+          var $td = $(this);
+          var button = $('<div class="cellRelative">' + ($td.html() || '&nbsp;') + '<div class="btnContainer"><div class="btn">x</div></div></div>');
+          button.find('.btn').
+              on('click',
+              function (event) {
+                //remove the row when button is clicked
+                container.handsontable("alter", "remove_row", button.parents('tr').index());
+              }).
+              on('mousedown mouseup', function (event) {
+                //avoid mouse selection of the first cell in next row
+                event.stopPropagation();
+              });
+          $td.html(button);
+        });
+      }
+    });
+
+    container.
+        on('mouseover', 'td',
+        function () {
+          //if this is not the first row, show the button
+          var $tr = $(this.parentNode);
+          if ($tr.index() > 0) {
+            $tr.find('.btn').show();
+          }
+        }).
+        on('mouseout', 'td', function () {
+          //hide the button
+          $(this.parentNode).find('.btn').hide();
+        });
+
+    var data = [
+      ["", "Kia", "Nissan", "Toyota", "Honda"],
+      ["2008", 10, 11, 12, 13],
+      ["2009", 20, 11, 14, 13],
+      ["2010", 30, 15, 12, 13]
+    ];
+
+    container.handsontable("loadData", data);
+
+
   }
 
   loadExamples();
-  hljs.initHighlightingOnLoad();
+  $('pre.html').each(function (i, e) {
+    hljs.highlightBlock(e)
+  });
 
   var examplesList = $('.examplesList');
   $('.example').each(function () {

@@ -199,9 +199,9 @@
     grid = {
       /**
        * Alter grid
-       * @param {String} action
+       * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col"
        * @param {Object} coords
-       * @param {Object} [toCoords]
+       * @param {Object} [toCoords] Required only for actions "remove_row" and "remove_col"
        */
       alter: function (action, coords, toCoords) {
         var oldData, newData, changes, r, rlen, c, clen;
@@ -210,24 +210,14 @@
         }
 
         switch (action) {
-          case "row_above":
+          case "insert_row":
             grid.createRow(coords);
             datamap.createRow(coords);
             break;
 
-          case "row_below":
-            grid.createRow({row: coords.row + 1, col: coords.col});
-            datamap.createRow({row: coords.row + 1, col: coords.col});
-            break;
-
-          case "col_left":
+          case "insert_col":
             grid.createCol(coords);
             datamap.createCol(coords);
-            break;
-
-          case "col_right":
-            grid.createCol({row: coords.row, col: coords.col + 1});
-            datamap.createCol({row: coords.row, col: coords.col + 1});
             break;
 
           case "remove_row":
@@ -272,7 +262,7 @@
           var oldTr = grid.getCellAtCoords(coords).parentNode;
           priv.tableBody.insertBefore(tr, oldTr);
         }
-        priv.rowCount = priv.tableBody.childNodes.length;
+        priv.rowCount++;
       },
 
       /**
@@ -291,7 +281,7 @@
             trs[r].insertBefore(document.createElement('td'), grid.getCellAtCoords({row: r, col: coords.col}));
           }
         }
-        priv.colCount = trs[0].childNodes.length;
+        priv.colCount++;
       },
 
       /**
@@ -302,13 +292,14 @@
       removeRow: function (coords, toCoords) {
         if (!coords || coords.row === priv.rowCount - 1) {
           $(priv.tableBody.childNodes[priv.rowCount - 1]).remove();
+          priv.rowCount--;
         }
         else {
           for (var i = toCoords.row; i >= coords.row; i--) {
             $(priv.tableBody.childNodes[i]).remove();
+            priv.rowCount--;
           }
         }
-        priv.rowCount = priv.tableBody.childNodes.length;
       },
 
       /**
@@ -330,8 +321,8 @@
             for (var i = toCoords.col; i >= coords.col; i--) {
               $(trs[r].childNodes[i]).remove();
             }
+            priv.colCount--;
           }
-          priv.colCount = trs[0] ? trs[0].childNodes.length : 0;
         }
       },
 
@@ -473,18 +464,17 @@
       createLegend: function () {
         grid.resetLegend();
         if (priv.settings.legend) {
-          var tds = grid.getAllCells(), col, row;
-          for (var i = 0, ilen = tds.length; i < ilen; i++) {
-            var td = $(tds[i]);
-            col = td.index();
-            row = td.parent().index();
-            for (var j = 0, jlen = priv.settings.legend.length; j < jlen; j++) {
-              var legend = priv.settings.legend[j];
-              if (legend.match(row, col, self.getData)) {
-                priv.hasLegend = true;
-                typeof legend.style !== "undefined" && td.css(legend.style);
-                typeof legend.readOnly !== "undefined" && td.data("readOnly", legend.readOnly);
-                typeof legend.title !== "undefined" && td.attr("title", legend.title);
+          for (var r = 0; r < priv.rowCount; r++) {
+            for (var c = 0; c < priv.colCount; c++) {
+              for (var j = 0, jlen = priv.settings.legend.length; j < jlen; j++) {
+                var legend = priv.settings.legend[j];
+                if (legend.match(r, c, self.getData)) {
+                  priv.hasLegend = true;
+                  var td = $(grid.getCellAtCoords({row: r, col: c}));
+                  typeof legend.style !== "undefined" && td.css(legend.style);
+                  typeof legend.readOnly !== "undefined" && td.data("readOnly", legend.readOnly);
+                  typeof legend.title !== "undefined" && td.attr("title", legend.title);
+                }
               }
             }
           }
@@ -616,13 +606,10 @@
        * Returns coordinates given td object
        */
       getCellCoords: function (td) {
-        var $td = $(td);
-        if ($td.length) {
-          return {
-            row: $td.parent().index(),
-            col: $td.index()
-          };
-        }
+        return {
+          row: td.parentNode.rowIndex,
+          col: td.cellIndex
+        };
       },
 
       /**
@@ -695,9 +682,9 @@
       getAllCells: function () {
         var tds = [], trs, r, rlen, c, clen;
         trs = priv.tableBody.childNodes;
-        rlen = trs.length;
+        rlen = priv.rowCount;
         if (rlen > 0) {
-          clen = trs[0].childNodes.length;
+          clen = priv.colCount;
           for (r = 0; r < rlen; r++) {
             for (c = 0; c < clen; c++) {
               tds.push(trs[r].childNodes[c]);
@@ -822,6 +809,9 @@
        * @return {Boolean}
        */
       inInSelection: function (coords) {
+        if (!selection.isSelected()) {
+          return false;
+        }
         var sel = grid.getCornerCoords([priv.selStart, priv.selEnd]);
         return (sel.TL.row <= coords.row && sel.BR.row >= coords.row && sel.TL.col <= coords.col && sel.BR.col >= coords.col);
       },
@@ -1454,6 +1444,12 @@
           overflow: 'visible',
           zIndex: 4
         });
+
+        if (priv.settings.autoComplete) {
+          setTimeout(function(){
+            priv.editProxy.trigger('keyup');
+          }, 50);
+        }
       },
 
       /**
@@ -1636,13 +1632,19 @@
 
           switch (key) {
             case "row_above":
-            case "col_left":
-              grid.alter(key, coords.TL);
+              grid.alter("insert_row", coords.TL);
               break;
 
             case "row_below":
+              grid.alter("insert_row", {row: coords.BR.row + 1, col: 0});
+              break;
+
+            case "col_left":
+              grid.alter("insert_col", coords.TL);
+              break;
+
             case "col_right":
-              grid.alter(key, coords.BR);
+              grid.alter("insert_col", {row: 0, col: coords.BR.col + 1});
               break;
 
             case "remove_row":
@@ -1762,6 +1764,30 @@
     this.clear = function () {
       selection.selectAll();
       selection.empty();
+    };
+
+    /**
+     * Alters the grid
+     * @param {String} action See grid.alter for possible values
+     * @param {Number} from
+     * @param {Number} [to] Optional. Used only for actions "remove_row" and "remove_col"
+     * @public
+     */
+    this.alter = function (action, from, to) {
+      if(typeof to === "undefined") {
+        to = from;
+      }
+      switch(action) {
+        case "insert_row":
+        case "remove_row":
+          grid.alter(action, {row: from, col: 0}, {row: to, col: 0});
+          break;
+
+        case "insert_col":
+        case "remove_col":
+          grid.alter(action, {row: 0, col: from}, {row: 0, col: to});
+          break;
+      }
     };
 
     /**
