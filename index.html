@@ -71,6 +71,9 @@
   <li><a href="#example7">Context menu
     <div class="arr"></div>
   </a></li>
+  <li><a href="#example8">Custom buttons
+    <div class="arr"></div>
+  </a></li>
   <li><a href="#example6">Save
     <div class="arr"></div>
   </a></li>
@@ -156,7 +159,7 @@
       {
         match: function (row, col, data) {
           //if first row in this column contains word "Nissan"
-        return (row &gt; 0 && data()[0][col].indexOf('Nissan') &gt; -1);
+          return (row &gt; 0 && data()[0][col].indexOf('Nissan') &gt; -1);
         },
         style: {
           fontStyle: 'italic' //make cells text in this column written in italic
@@ -360,6 +363,76 @@
   ];
 
   $("#example7grid").handsontable("loadData", data);
+&lt;/script&gt;</pre>
+  </div>
+</div>
+
+<a name="example8"></a>
+
+<div id="example8container" class="example">
+  <div class="pad">
+    <h3>Custom buttons</h3>
+
+    <p>Level: Advanced</p>
+
+    <p>The <b>alter</b> method can be used if you want insert or remove rows and columns using external buttons.
+      The below example uses the <b>onChange</b> method to add a button that removes a row.</p>
+
+    <div id="example8grid" class="dataTable"></div>
+
+    <p>Code:</p>
+
+    <pre class="html">&lt;div id="example8grid" class="dataTable"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  var container = $("#example8grid");
+  container.handsontable({
+    rows: 5,
+    cols: 5,
+    minSpareCols: 1,
+    minSpareRows: 1,
+    contextMenu: true,
+    onChange: function () {
+      //for each first cell in a row that does not have the button yet
+      container.find('td::first-child:not(:has(.btn))').each(function () {
+        var $td = $(this);
+        //create the button from template
+        var button = $('&lt;div class="cellRelative"&gt;' + ($td.html() || '&nbsp;') + '&lt;div class="btnContainer"&gt;&lt;div class="btn"&gt;x&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;');
+        button.find('.btn').
+          on('click', function (event) {
+            //remove the row when button is clicked
+            container.handsontable("alter", "remove_row", button.parents('tr').index());
+          }).
+          on('mousedown mouseup', function (event) {
+            //avoid mouse selection of the first cell in next row
+            event.stopPropagation();
+          });
+        $td.html(button);
+      });
+    }
+  });
+
+  container.
+    on('mouseover', 'td', function () {
+      //if this is not the first row, show the button
+      var $tr = $(this.parentNode);
+      if ($tr.index() &gt; 0) {
+        $tr.find('.btn').show();
+      }
+    }).
+    on('mouseout', 'td', function () {
+      //hide the button
+      $(this.parentNode).find('.btn').hide();
+    });
+
+  var data = [
+    ["", "Kia", "Nissan", "Toyota", "Honda"],
+    ["2008", 10, 11, 12, 13],
+    ["2009", 20, 11, 14, 13],
+    ["2010", 30, 15, 12, 13]
+  ];
+
+  container.handsontable("loadData", data);
 &lt;/script&gt;</pre>
   </div>
 </div>
