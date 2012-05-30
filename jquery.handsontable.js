@@ -199,9 +199,9 @@
     grid = {
       /**
        * Alter grid
-       * @param {String} action
+       * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col"
        * @param {Object} coords
-       * @param {Object} [toCoords]
+       * @param {Object} [toCoords] Required only for actions "remove_row" and "remove_col"
        */
       alter: function (action, coords, toCoords) {
         var oldData, newData, changes, r, rlen, c, clen;
@@ -210,24 +210,14 @@
         }
 
         switch (action) {
-          case "row_above":
+          case "insert_row":
             grid.createRow(coords);
             datamap.createRow(coords);
             break;
 
-          case "row_below":
-            grid.createRow({row: coords.row + 1, col: coords.col});
-            datamap.createRow({row: coords.row + 1, col: coords.col});
-            break;
-
-          case "col_left":
+          case "insert_col":
             grid.createCol(coords);
             datamap.createCol(coords);
-            break;
-
-          case "col_right":
-            grid.createCol({row: coords.row, col: coords.col + 1});
-            datamap.createCol({row: coords.row, col: coords.col + 1});
             break;
 
           case "remove_row":
@@ -819,6 +809,9 @@
        * @return {Boolean}
        */
       inInSelection: function (coords) {
+        if (!selection.isSelected()) {
+          return false;
+        }
         var sel = grid.getCornerCoords([priv.selStart, priv.selEnd]);
         return (sel.TL.row <= coords.row && sel.BR.row >= coords.row && sel.TL.col <= coords.col && sel.BR.col >= coords.col);
       },
@@ -1633,13 +1626,19 @@
 
           switch (key) {
             case "row_above":
-            case "col_left":
-              grid.alter(key, coords.TL);
+              grid.alter("insert_row", coords.TL);
               break;
 
             case "row_below":
+              grid.alter("insert_row", {row: coords.BR.row + 1, col: 0});
+              break;
+
+            case "col_left":
+              grid.alter("insert_col", coords.TL);
+              break;
+
             case "col_right":
-              grid.alter(key, coords.BR);
+              grid.alter("insert_col", {row: 0, col: coords.BR.col + 1});
               break;
 
             case "remove_row":
@@ -1759,6 +1758,30 @@
     this.clear = function () {
       selection.selectAll();
       selection.empty();
+    };
+
+    /**
+     * Alters the grid
+     * @param {String} action See grid.alter for possible values
+     * @param {Number} from
+     * @param {Number} [to] Optional. Used only for actions "remove_row" and "remove_col"
+     * @public
+     */
+    this.alter = function (action, from, to) {
+      if(typeof to === "undefined") {
+        to = from;
+      }
+      switch(action) {
+        case "insert_row":
+        case "remove_row":
+          grid.alter(action, {row: from, col: 0}, {row: to, col: 0});
+          break;
+
+        case "insert_col":
+        case "remove_col":
+          grid.alter(action, {row: 0, col: from}, {row: 0, col: to});
+          break;
+      }
     };
 
     /**

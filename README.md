@@ -50,13 +50,17 @@ Maybe you want to show some default data. Use the `handsontable('loadData', data
 ## Methods
 
   Option                                                              | Role        | Description
-------------------------------------------------|-------------|-------------
+----------------------------------------------------------------------|-------------|-------------
  handsontable(options)                                                | Constructor | Accepts configuration object (see **Options**)
  handsontable('updateSettings', options)                              | Method      | Use it if you need to change configuration after initialization
  handsontable('loadData', data)                                       | Method      | Reset all cells in the grid to contain data from the `data` array
  handsontable('setDataAtCell', row, col, value)                       | Method      | Set new value to a cell
  handsontable('clear')                                                | Method      | Empty all cells
  handsontable('getData')                                              | Method      | Return 2-dimensional array with the current grid data
+ handsontable('alter', 'insert_row', index)                           | Method      | Insert new row above the row at given index
+ handsontable('alter', 'insert_col', index)                           | Method      | Insert new column before the column at given index
+ handsontable('alter',&nbsp;'remove_row',&nbsp;index,&nbsp;[toIndex]) | Method      | Remove the row at given index [optionally to another index]
+ handsontable('alter',&nbsp;'remove_col',&nbsp;index,&nbsp;[toIndex]) | Method      | Remove the column at given index [optionally to another index]
 
 ## Options
 
