@@ -1444,6 +1444,12 @@
           overflow: 'visible',
           zIndex: 4
         });
+
+        if (priv.settings.autoComplete) {
+          setTimeout(function(){
+            priv.editProxy.trigger('keyup');
+          }, 50);
+        }
       },
 
       /**
