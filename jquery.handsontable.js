@@ -1293,6 +1293,13 @@
           }
         }
 
+        function onKeyUp(event) {
+          if (priv.stopNextPropagation) {
+            event.stopImmediatePropagation();
+            priv.stopNextPropagation = false;
+          }
+        }
+
         function onChange() {
           if (isAutoComplete()) { //could this change be from autocomplete
             var val = priv.editProxy.val();
@@ -1308,8 +1315,18 @@
         priv.editProxy.on('cut', onCut);
         priv.editProxy.on('paste', onPaste);
         priv.editProxy.on('keydown', onKeyDown);
+        priv.editProxy.on('keyup', onKeyUp);
         priv.editProxy.on('change', onChange);
         container.append(priv.editProxyHolder);
+
+        if (priv.settings.autoComplete) {
+          priv.editProxy.typeahead({
+            updater: function (item) {
+              priv.lastAutoComplete = item;
+              return item
+            }
+          });
+        }
       },
 
       /**
@@ -1322,25 +1339,11 @@
 
         if (priv.settings.autoComplete) {
           var typeahead = priv.editProxy.data('typeahead');
-          if (typeahead) {
-            typeahead.source = [];
-          }
+          typeahead.source = [];
           for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
             if (priv.settings.autoComplete[i].match(priv.selStart.row, priv.selStart.col, self.getData)) {
-              if (typeahead) {
-                typeahead.source = priv.settings.autoComplete[i].source();
-                typeahead.highlighter = priv.settings.autoComplete[i].highlighter || defaultAutoCompleteHighlighter;
-              }
-              else {
-                priv.editProxy.typeahead({
-                  source: priv.settings.autoComplete[i].source(),
-                  updater: function (item) {
-                    priv.lastAutoComplete = item;
-                    return item
-                  },
-                  highlighter: priv.settings.autoComplete[i].highlighter || defaultAutoCompleteHighlighter
-                });
-              }
+              typeahead.source = priv.settings.autoComplete[i].source();
+              typeahead.highlighter = priv.settings.autoComplete[i].highlighter || defaultAutoCompleteHighlighter;
               break;
             }
           }
@@ -1445,7 +1448,8 @@
 
         if (priv.settings.autoComplete) {
           setTimeout(function () {
-            priv.editProxy.trigger('keyup');
+            priv.editProxy.data('typeahead').lookup();
+            priv.stopNextPropagation = true;
           }, 50);
         }
       },
