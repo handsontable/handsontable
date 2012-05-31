@@ -616,8 +616,6 @@
        * Returns td object given coordinates
        */
       getCellAtCoords: function (coords) {
-        //var td = container.find('tr:eq(' + coords.row + ') td:eq(' + coords.col + ')');
-        //return td;
         if (coords.row < 0 || coords.col < 0) {
           return null;
         }
@@ -1446,7 +1444,7 @@
         });
 
         if (priv.settings.autoComplete) {
-          setTimeout(function(){
+          setTimeout(function () {
             priv.editProxy.trigger('keyup');
           }, 50);
         }
@@ -1710,9 +1708,6 @@
       });
       td.innerHTML = value.replace(/\n/g, '<br/>');
       datamap.set(row, col, value);
-      /*if (priv.settings.onChange) {
-       priv.settings.onChange(); //this is empty by design, to avoid recursive changes in history
-       }*/
     };
 
     /**
@@ -1774,10 +1769,10 @@
      * @public
      */
     this.alter = function (action, from, to) {
-      if(typeof to === "undefined") {
+      if (typeof to === "undefined") {
         to = from;
       }
-      switch(action) {
+      switch (action) {
         case "insert_row":
         case "remove_row":
           grid.alter(action, {row: from, col: 0}, {row: to, col: 0});
