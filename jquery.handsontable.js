@@ -1447,10 +1447,8 @@
         });
 
         if (priv.settings.autoComplete) {
-          setTimeout(function () {
-            priv.editProxy.data('typeahead').lookup();
-            priv.stopNextPropagation = true;
-          }, 50);
+          priv.editProxy.data('typeahead').lookup();
+          priv.stopNextPropagation = true;
         }
       },
 
