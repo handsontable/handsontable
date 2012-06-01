@@ -196,7 +196,7 @@
       }
     };
 
-    grid = {
+    this.grid = grid = {
       /**
        * Alter grid
        * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col"
@@ -211,24 +211,24 @@
 
         switch (action) {
           case "insert_row":
-            grid.createRow(coords);
             datamap.createRow(coords);
+            grid.createRow(coords);
             break;
 
           case "insert_col":
-            grid.createCol(coords);
             datamap.createCol(coords);
+            grid.createCol(coords);
             break;
 
           case "remove_row":
-            grid.removeRow(coords, toCoords);
             datamap.removeRow(coords, toCoords);
+            grid.removeRow(coords, toCoords);
             grid.keepEmptyRows();
             break;
 
           case "remove_col":
-            grid.removeCol(coords, toCoords);
             datamap.removeCol(coords, toCoords);
+            grid.removeCol(coords, toCoords);
             grid.keepEmptyRows();
             break;
         }
@@ -250,19 +250,24 @@
        * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
        */
       createRow: function (coords) {
-        var tr, c;
+        var tr, c, r;
         tr = document.createElement('tr');
         for (c = 0; c < priv.colCount; c++) {
           tr.appendChild(document.createElement('td'));
         }
         if (!coords || coords.row >= priv.rowCount) {
           priv.tableBody.appendChild(tr);
+          r = priv.rowCount;
         }
         else {
           var oldTr = grid.getCellAtCoords(coords).parentNode;
           priv.tableBody.insertBefore(tr, oldTr);
+          r = coords.row;
         }
         priv.rowCount++;
+        for (c = 0; c < priv.colCount; c++) {
+          grid.updateLegend({row: r, col: c});
+        }
       },
 
       /**
@@ -270,18 +275,23 @@
        * @param {Object} [coords] Optional. Coords of the cell before which the new column will be inserted
        */
       createCol: function (coords) {
-        var trs = priv.tableBody.childNodes, r;
+        var trs = priv.tableBody.childNodes, r, c;
         if (!coords || coords.col >= priv.colCount) {
           for (r = 0; r < priv.rowCount; r++) {
             trs[r].appendChild(document.createElement('td'));
           }
+          c = priv.colCount;
         }
         else {
           for (r = 0; r < priv.rowCount; r++) {
             trs[r].insertBefore(document.createElement('td'), grid.getCellAtCoords({row: r, col: coords.col}));
           }
+          c = coords.col;
         }
         priv.colCount++;
+        for (r = 0; r < priv.rowCount; r++) {
+          grid.updateLegend({row: r, col: c});
+        }
       },
 
       /**
@@ -350,8 +360,8 @@
         //should I add empty rows to meet minSpareRows?
         if (priv.rowCount < priv.settings.rows || emptyRows < priv.settings.minSpareRows) {
           for (; priv.rowCount < priv.settings.rows || emptyRows < priv.settings.minSpareRows; emptyRows++) {
-            grid.createRow();
             datamap.createRow();
+            grid.createRow();
             recreateRows = true;
           }
         }
@@ -361,8 +371,8 @@
         if (priv.settings.minHeight) {
           if ($tbody.height() > 0 && $tbody.height() <= priv.settings.minHeight) {
             while ($tbody.height() <= priv.settings.minHeight) {
-              grid.createRow();
               datamap.createRow();
+              grid.createRow();
               recreateRows = true;
             }
           }
@@ -386,8 +396,8 @@
         //should I add empty cols to meet minSpareCols?
         if (priv.colCount < priv.settings.cols || emptyCols < priv.settings.minSpareCols) {
           for (; priv.colCount < priv.settings.cols || emptyCols < priv.settings.minSpareCols; emptyCols++) {
-            grid.createCol();
             datamap.createCol();
+            grid.createCol();
             recreateCols = true;
           }
         }
@@ -397,8 +407,8 @@
         if (priv.settings.minWidth) {
           if ($tbody.width() > 0 && $tbody.width() <= priv.settings.minWidth) {
             while ($tbody.width() <= priv.settings.minWidth) {
-              grid.createCol();
               datamap.createCol();
+              grid.createCol();
               recreateCols = true;
             }
           }
@@ -429,8 +439,8 @@
 
         if (!recreateCols) {
           for (; ((priv.settings.cols && priv.colCount > priv.settings.cols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (priv.settings.minWidth && $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
-            grid.removeCol();
             datamap.removeCol();
+            grid.removeCol();
             recreateCols = true;
           }
         }
@@ -451,7 +461,6 @@
         }
 
         if (recreateRows || recreateCols) {
-          grid.createLegend();
           selection.refreshBorders();
         }
 
@@ -459,36 +468,23 @@
       },
 
       /**
-       * Create legend
+       * Update legend
        */
-      createLegend: function () {
-        grid.resetLegend();
+      updateLegend: function (coords) {
         if (priv.settings.legend) {
-          for (var r = 0; r < priv.rowCount; r++) {
-            for (var c = 0; c < priv.colCount; c++) {
-              for (var j = 0, jlen = priv.settings.legend.length; j < jlen; j++) {
-                var legend = priv.settings.legend[j];
-                if (legend.match(r, c, self.getData)) {
-                  priv.hasLegend = true;
-                  var td = $(grid.getCellAtCoords({row: r, col: c}));
-                  typeof legend.style !== "undefined" && td.css(legend.style);
-                  typeof legend.readOnly !== "undefined" && td.data("readOnly", legend.readOnly);
-                  typeof legend.title !== "undefined" && td.attr("title", legend.title);
-                }
-              }
-            }
-          }
-        }
-      },
+          var $td = $(grid.getCellAtCoords(coords));
+          $td.removeAttr("style").removeAttr("title").removeData("readOnly");
+          $td[0].className = '';
 
-      /**
-       * Reset legend
-       */
-      resetLegend: function () {
-        if (priv.hasLegend) {
-          var tds = grid.getAllCells();
-          for (var j = 0, jlen = tds.length; j < jlen; j++) {
-            $(tds[j]).removeAttr("style").removeAttr("title").removeData("readOnly");
+          for (var j = 0, jlen = priv.settings.legend.length; j < jlen; j++) {
+            var legend = priv.settings.legend[j];
+            if (legend.match(coords.row, coords.col, self.getData)) {
+              priv.hasLegend = true;
+              typeof legend.style !== "undefined" && $td.css(legend.style);
+              typeof legend.readOnly !== "undefined" && $td.data("readOnly", legend.readOnly);
+              typeof legend.title !== "undefined" && $td.attr("title", legend.title);
+              typeof legend.className !== "undefined" && $td.addClass(legend.className);
+            }
           }
         }
       },
@@ -556,12 +552,12 @@
             continue;
           }
           while (changes[i][0] > priv.rowCount - 1) {
-            grid.createRow();
             datamap.createRow();
+            grid.createRow();
           }
           while (changes[i][1] > priv.colCount - 1) {
-            grid.createCol();
             datamap.createCol();
+            grid.createCol();
           }
           td = grid.getCellAtCoords({row: changes[i][0], col: changes[i][1]});
           if (grid.isCellWriteable($(td))) {
@@ -578,6 +574,7 @@
             }
             td.innerHTML = changes[i][3].replace(/\n/g, '<br/>');
             datamap.set(changes[i][0], changes[i][1], changes[i][3]);
+            grid.updateLegend({row: changes[i][0], col: changes[i][1]});
             endTd = td;
           }
         }
@@ -587,7 +584,6 @@
         setTimeout(function () {
           var result = grid.keepEmptyRows();
           if (!result) {
-            grid.createLegend();
             selection.refreshBorders();
           }
         }, 100);
@@ -599,7 +595,10 @@
        */
       clear: function () {
         var tds = grid.getAllCells();
-        $(tds).empty();
+        for (var i = 0, ilen = tds.length; i < ilen; i++) {
+          $(tds[i]).empty();
+          grid.updateLegend(grid.getCellCoords(tds[i]));
+        }
       },
 
       /**
@@ -863,6 +862,7 @@
             $td.empty();
             datamap.set(coords.row, coords.col, '');
             changes.push([coords.row, coords.col, old, '']);
+            grid.updateLegend(coords);
           }
         }
         if (priv.settings.onChange && changes.length) {
@@ -1482,6 +1482,7 @@
               if (priv.settings.onChange) {
                 priv.settings.onChange(change);
               }
+              grid.updateLegend(priv.selStart);
               grid.keepEmptyRows();
             }
             else {
@@ -1539,7 +1540,7 @@
       }
     };
 
-    function init() {
+    this.init = function () {
       function onMouseEnterTable() {
         priv.isMouseOverTable = true;
       }
@@ -1555,10 +1556,8 @@
       priv.table.on('dblclick', 'td', interaction.onDblClick);
       container.append(priv.table);
 
-      var recreated = grid.keepEmptyRows();
-      if (!recreated) {
-        grid.createLegend();
-      }
+      priv.colCount = priv.settings.cols;
+      grid.keepEmptyRows();
 
       highlight.init();
       priv.currentBorder = new Border(container, {
@@ -1704,12 +1703,10 @@
      * @param value {String}
      */
     this.setDataAtCell = function (row, col, value) {
-      var td = grid.getCellAtCoords({
-        row: row,
-        col: col
-      });
+      var td = grid.getCellAtCoords({row: row, col: col});
       td.innerHTML = value.replace(/\n/g, '<br/>');
       datamap.set(row, col, value);
+      grid.updateLegend({row: row, col: col});
     };
 
     /**
@@ -1749,7 +1746,6 @@
       }
       var recreated = grid.keepEmptyRows();
       if (!recreated) {
-        grid.createLegend();
         selection.refreshBorders();
       }
     };
@@ -1955,8 +1951,6 @@
         this.handle.style.display = 'none';
       }
     };
-
-    init(settings);
   }
 
   var settings = {
@@ -1987,6 +1981,7 @@
           }
           instance = new Handsontable($this, currentSettings);
           $this.data("handsontable", instance);
+          instance.init();
         }
       });
     }
