@@ -1,0 +1,143 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Custom buttons - jquery-handsontable</title>
+
+  <!--
+  Loading handsontable dependencies.
+  Please note that some dependencies are optional:
+   - bootstrap-typeahead.js - is required only if you need the sexy autoexpanding textarea feature
+   - jquery.autoresize.js   - is required only if you need the autocomplete feature
+   - jquery.contextMenu.js  - is required only if you need the context menu feature
+   - jquery.contextMenu.css - is required only if you need the context menu feature
+   - jquery.ui.position.js  - is required only if you need the context menu feature
+  -->
+  <script src="../lib/jquery.min.js"></script>
+  <script src="../jquery.handsontable.js"></script>
+  <script src="../lib/bootstrap-typeahead.js"></script>
+  <script src="../lib/jquery.autoresize.js"></script>
+  <script src="../lib/jQuery-contextMenu/jquery.contextMenu.js"></script>
+  <script src="../lib/jQuery-contextMenu/jquery.ui.position.js"></script>
+  <link rel="stylesheet" media="screen" href="../lib/jQuery-contextMenu/jquery.contextMenu.css">
+  <link rel="stylesheet" media="screen" href="../jquery.handsontable.css">
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link rel="stylesheet" media="screen" href="css/demo.css">
+</head>
+
+<body>
+<a href="http://github.com/warpech/jquery-handsontable"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"/></a>
+
+<div id="container">
+  <h1><a href="../index.html">jquery-handsontable</a></h1>
+
+  <div class="description">
+    Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery
+    <br><a href="../index.html">&lt; back to main</a>
+  </div>
+
+  <h2>Custom buttons</h2>
+
+  <p>The <b>alter</b> method can be used if you want insert or remove rows and columns using external buttons.
+    The below example uses the <b>onChange</b> method to add a button that removes a row.</p>
+
+  <p>Move your mouse cursor over a cell to see the button.</p>
+
+  <div id="exampleGrid" class="dataTable"></div>
+
+  <style>
+    #exampleGrid {
+      padding-left: 20px;
+    }
+
+    #exampleGrid .cellRelative {
+      position: relative;
+    }
+
+    #exampleGrid .cellRelative .btnContainer {
+      position: absolute;
+      top: 1px;
+      left: -26px;
+      width: 26px;
+      height: 22px;
+    }
+
+    #exampleGrid .cellRelative .btnContainer .btn {
+      background-color: #BBB;
+      border-radius: 9px;
+      padding: 0 4px 0 4px;
+      color: #FFF;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+      line-height: 16px;
+      display: none;
+      float: left;
+    }
+
+    #exampleGrid .cellRelative .btnContainer .btn:hover {
+      background-color: #777;
+    }
+  </style>
+  <script>
+    var container = $("#exampleGrid");
+    container.handsontable({
+      rows: 5,
+      cols: 5,
+      minSpareCols: 1,
+      minSpareRows: 1,
+      contextMenu: true,
+      onChange: function () {
+        //for each first cell in a row that does not have the button yet
+        container.find('td::first-child:not(:has(.btn))').each(function () {
+          var $td = $(this);
+          var button = $('<div class="cellRelative">' + ($td.html() || '&nbsp;') + '<div class="btnContainer"><div class="btn">x</div></div></div>');
+          button.find('.btn').
+            on('click',
+            function (event) {
+              //remove the row when button is clicked
+              container.handsontable("alter", "remove_row", button.parents('tr').index());
+            }).
+            on('mousedown mouseup', function (event) {
+              //avoid mouse selection of the first cell in next row
+              event.stopPropagation();
+            });
+          $td.html(button);
+        });
+      }
+    });
+
+    container.
+      on('mouseover', 'td',
+      function () {
+        //if this is not the first row, show the button
+        var $tr = $(this.parentNode);
+        if ($tr.index() > 0) {
+          $tr.find('.btn').show();
+        }
+      }).
+      on('mouseout', 'td', function () {
+        //hide the button
+        $(this.parentNode).find('.btn').hide();
+      });
+
+    var data = [
+      ["", "Kia", "Nissan", "Toyota", "Honda"],
+      ["2008", 10, 11, 12, 13],
+      ["2009", 20, 11, 14, 13],
+      ["2010", 30, 15, 12, 13]
+    ];
+
+    container.handsontable("loadData", data);
+  </script>
+
+  <h3>About</h3>
+
+  <p>This is advanced usage example of <a href="../index.html">Handsontable</a>. Check out the
+    <a href="../index.html">main page</a> for more demos.</p>
+</div>
+</body>
+</html>

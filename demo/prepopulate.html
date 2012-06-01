@@ -1,0 +1,146 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta charset='utf-8'>
+  <title>Pre-populate new rows from template - jquery-handsontable</title>
+
+  <!--
+  Loading handsontable dependencies.
+  Please note that some dependencies are optional:
+   - bootstrap-typeahead.js - is required only if you need the sexy autoexpanding textarea feature
+   - jquery.autoresize.js   - is required only if you need the autocomplete feature
+   - jquery.contextMenu.js  - is required only if you need the context menu feature
+   - jquery.contextMenu.css - is required only if you need the context menu feature
+   - jquery.ui.position.js  - is required only if you need the context menu feature
+  -->
+  <script src="../lib/jquery.min.js"></script>
+  <script src="../jquery.handsontable.js"></script>
+  <script src="../lib/bootstrap-typeahead.js"></script>
+  <script src="../lib/jquery.autoresize.js"></script>
+  <script src="../lib/jQuery-contextMenu/jquery.contextMenu.js"></script>
+  <script src="../lib/jQuery-contextMenu/jquery.ui.position.js"></script>
+  <link rel="stylesheet" media="screen" href="../lib/jQuery-contextMenu/jquery.contextMenu.css">
+  <link rel="stylesheet" media="screen" href="../jquery.handsontable.css">
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <script src="js/json2.min.js"></script>
+  <link rel="stylesheet" media="screen" href="css/demo.css">
+</head>
+
+<body>
+<a href="http://github.com/warpech/jquery-handsontable"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"/></a>
+
+<div id="container">
+  <h1><a href="../index.html">jquery-handsontable</a></h1>
+
+  <div class="description">
+    Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery
+    <br><a href="../index.html">&lt; back to main</a>
+  </div>
+
+  <h2>Pre-populate new rows from template</h2>
+
+  <p>Below example shows how <b>legend</b> match function can be used to present the template values for empty rows.</p>
+
+  <p>When any cell in the empty row is edited, the
+    <b>onChange</b> callback fills the row with the template values.</p>
+
+  <div id="exampleGrid" class="dataTable"></div>
+
+  <p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
+
+  <pre id="exampleConsole" class="console">Edit the above grid to see callback</pre>
+
+  <style>
+    .placeholder {
+      color: #777;
+      font-style: italic;
+    }
+  </style>
+  <script>
+    function countEmpty(arr) {
+      var empty = 0;
+      for (var i = 0, ilen = arr.length; i < ilen; i++) {
+        if (arr[i] === '') {
+          empty++;
+        }
+      }
+      return empty;
+    }
+
+    var tpl = ["one", "two", "three"];
+
+    var container = $("#exampleGrid");
+    container.handsontable({
+      rows: 8,
+      cols: 5,
+      minSpareRows: 1,
+      contextMenu: true,
+      legend: [
+        {
+          match: function (row, col, data) {
+            if (row === 0) {
+              return;
+            }
+
+            var data = data();
+            var empty = countEmpty(data[row]);
+            if (empty === data[row].length) {
+              //whole row is empty
+              for (var c = 0, clen = tpl.length; c < clen; c++) {
+                var td = container.handsontable('getCell', row, c);
+                td.innerHTML = tpl[c];
+                td.className = "placeholder";
+              }
+            }
+            else {
+              var td = container.handsontable('getCell', row, 0);
+              if (td.className === 'placeholder') {
+                for (var c = 0, clen = tpl.length; c < clen; c++) {
+                  var td = container.handsontable('getCell', row, c);
+                  td.className = "";
+                }
+              }
+            }
+          }
+        }
+      ],
+      onChange: function (changes) {
+        for (var i = 0, ilen = changes.length; i < ilen; i++) {
+          if (changes[i][2] === '') { //if oldVal is empty
+            var data = container.handsontable('getData');
+            var row = changes[i][0];
+            if (countEmpty(data[row]) === data[row].length - 1) {
+              //other cells in this row are empty
+              for (var c = 0, clen = tpl.length; c < clen; c++) {
+                if (changes[i][1] !== c) {
+                  container.handsontable('setDataAtCell', row, c, tpl[c]);
+                }
+              }
+            }
+          }
+        }
+
+        $("#exampleConsole").text(JSON.stringify(changes));
+      }
+    });
+
+    var data = [
+      ["", "Kia", "Nissan", "Toyota", "Honda"],
+      ["2008", 10, 11, 12, 13],
+      ["2009", 20, 11, 14, 13],
+      ["2010", 30, 15, 12, 13]
+    ];
+
+    container.handsontable("loadData", data);
+  </script>
+
+  <h3>About</h3>
+
+  <p>This is advanced usage example of <a href="../index.html">Handsontable</a>. Check out the
+    <a href="../index.html">main page</a> for more demos.</p>
+</div>
+</body>
+</html>

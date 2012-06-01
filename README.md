@@ -61,6 +61,7 @@ Maybe you want to show some default data. Use the `handsontable('loadData', data
  handsontable('alter', 'insert_col', index)                           | Method      | Insert new column before the column at given index
  handsontable('alter',&nbsp;'remove_row',&nbsp;index,&nbsp;[toIndex]) | Method      | Remove the row at given index [optionally to another index]
  handsontable('alter',&nbsp;'remove_col',&nbsp;index,&nbsp;[toIndex]) | Method      | Remove the column at given index [optionally to another index]
+ handsontable('getCell', row, col)                                    | Method      | Return <td> element for given row, col
 
 ## Options
 

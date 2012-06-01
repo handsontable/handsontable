@@ -108,8 +108,16 @@ h2#demos {
 h3 {
   font-size: 1.6em;
   color: #1B676B;
-  margin: 0 0 2px 0;
+  margin: 2em 0 2px 0;
   text-align: left;
+}
+
+#examples h3 {
+  margin-top: 0;
+}
+
+ol {
+  margin-bottom: 2em;
 }
 
 a {
@@ -163,40 +171,4 @@ hr {
   text-align: center;
   padding-top: 30px;
   font-style: italic;
-}
-
-/**
- * Example 8 - Custom buttons
- */
-#example8grid {
-  padding-left: 20px;
-}
-
-#example8grid .cellRelative {
-  position: relative;
-}
-
-#example8grid .cellRelative .btnContainer {
-  position: absolute;
-  top: 1px;
-  left: -26px;
-  width: 26px;
-  height: 22px;
-}
-
-#example8grid .cellRelative .btnContainer .btn {
-  background-color: #BBB;
-  border-radius: 9px;
-  padding: 0 4px 0 4px;
-  color: #FFF;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: bold;
-  line-height: 16px;
-  display: none;
-  float: left;
-}
-
-#example8grid .cellRelative .btnContainer .btn:hover {
-  background-color: #777;
 }
