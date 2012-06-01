@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Conditional formatting - jquery-handsontable</title>
+
+  <!--
+  Loading handsontable dependencies.
+  Please note that some dependencies are optional:
+   - bootstrap-typeahead.js - is required only if you need the sexy autoexpanding textarea feature
+   - jquery.autoresize.js   - is required only if you need the autocomplete feature
+   - jquery.contextMenu.js  - is required only if you need the context menu feature
+   - jquery.contextMenu.css - is required only if you need the context menu feature
+   - jquery.ui.position.js  - is required only if you need the context menu feature
+  -->
+  <script src="../lib/jquery.min.js"></script>
+  <script src="../jquery.handsontable.js"></script>
+  <script src="../lib/bootstrap-typeahead.js"></script>
+  <script src="../lib/jquery.autoresize.js"></script>
+  <script src="../lib/jQuery-contextMenu/jquery.contextMenu.js"></script>
+  <script src="../lib/jQuery-contextMenu/jquery.ui.position.js"></script>
+  <link rel="stylesheet" media="screen" href="../lib/jQuery-contextMenu/jquery.contextMenu.css">
+  <link rel="stylesheet" media="screen" href="../jquery.handsontable.css">
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link rel="stylesheet" media="screen" href="css/demo.css">
+</head>
+
+<body>
+<a href="http://github.com/warpech/jquery-handsontable"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"/></a>
+
+<div id="container">
+  <h1><a href="../index.html">jquery-handsontable</a></h1>
+
+  <div class="description">
+    Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery
+    <br><a href="../index.html">&lt; back to main</a>
+  </div>
+
+  <h2>Conditional formatting</h2>
+
+  <p>This demo shows how to use the <b>Legend</b> feature to make some conditional formatting:</p>
+
+  <ol>
+    <li>first row is <span style="font-weight: bold">read-only</span>, and formatted in <span style="color: green; font-weight: bold">green bold</span> text
+    </li>
+    <li>all cells in the Nissan column are written in <span style="font-style: italic">italic</span></li>
+    <li>empty cells have <span style="background: silver">silver</span> background</li>
+    <li>negative numbers are written in <span style="color: red">red</span></li>
+  </ol>
+
+  <div id="exampleGrid" class="dataTable"></div>
+
+  <style>
+    .negative {
+      color: red;
+    }
+  </style>
+  <script>
+    var container = $("#exampleGrid");
+    container.handsontable({
+      rows: 5,
+      cols: 5,
+      minSpareRows: 1,
+      minSpareCols: 1,
+      contextMenu: true,
+      legend: [
+      /**
+       * Legend 1
+       */
+        {
+          match: function (row, col, data) {
+            return (row === 0); //if it is first row
+          },
+          style: {
+            color: 'green', //make the text green and bold
+            fontWeight: 'bold'
+          },
+          title: 'Heading', //make some tooltip
+          readOnly: true //make it read-only
+        },
+
+      /**
+       * Legend 2
+       */
+        {
+          match: function (row, col, data) {
+            return !(data()[row][col]); //if the cell is empty
+          },
+          style: {
+            background: 'silver' //make the background yellow
+          }
+        },
+
+      /**
+       * Legend 3
+       */
+        {
+          match: function (row, col, data) {
+            //if first row in this column contains word "Nissan"
+            return (row > 0 && data()[0][col].indexOf('Nissan') > -1);
+          },
+          style: {
+            fontStyle: 'italic' //set font to italic
+          }
+        },
+
+      /**
+       * Legend 4
+       */
+        {
+          match: function (row, col, data) {
+            if (parseInt(data()[row][col], 10) < 0) { //if row contains negative number
+              container.handsontable('getCell', row, col).className = 'negative'; //add class "negative"
+            }
+            else {
+              container.handsontable('getCell', row, col).className = '';
+            }
+          }
+        }
+      ]
+    });
+
+    var data = [
+      ["", "Kia", "Nissan", "Toyota", "Honda"],
+      ["2008", -5, 11, 12, 13],
+      ["2009", 20, -11, 14, 13],
+      ["2010", 30, 15, -12, 13]
+    ];
+
+    container.handsontable("loadData", data);
+  </script>
+
+  <h3>About</h3>
+
+  <p>This is advanced usage example of <a href="../index.html">Handsontable</a>. Check out the
+    <a href="../index.html">main page</a> for more demos.</p>
+</div>
+</body>
+</html>

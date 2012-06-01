@@ -25,11 +25,11 @@
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
-  <script src="demo/json2.min.js"></script>
-  <script src="demo/demo.js"></script>
-  <script src="demo/highlight/highlight.pack.js"></script>
-  <link rel="stylesheet" media="screen" href="demo/demo.css">
-  <link rel="stylesheet" media="screen" href="demo/highlight/styles/zenburn.css">
+  <script src="demo/js/json2.min.js"></script>
+  <script src="demo/js/demo.js"></script>
+  <script src="demo/js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="demo/css/demo.css">
+  <link rel="stylesheet" media="screen" href="demo/js/highlight/styles/zenburn.css">
 </head>
 
 <body>
@@ -37,14 +37,7 @@
 
 <div id="container">
 
-<div class="download">
-  <a href="http://github.com/warpech/jquery-handsontable/zipball/master">
-    <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
-  <a href="http://github.com/warpech/jquery-handsontable/tarball/master">
-    <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
-</div>
-
-<h1><a href="http://github.com/warpech/jquery-handsontable">jquery-handsontable</a></h1>
+<h1><a href="index.html">jquery-handsontable</a></h1>
 
 <div class="description">
   Handsontable is a minimalistic (60 KB unminified) approach to Excel-like table editor in HTML & jQuery
@@ -71,10 +64,10 @@
   <li><a href="#example7">Context menu
     <div class="arr"></div>
   </a></li>
-  <li><a href="#example8">Custom buttons
+  <li><a href="#example6">Save
     <div class="arr"></div>
   </a></li>
-  <li><a href="#example6">Save
+  <li><a href="#example8">Advanced demos
     <div class="arr"></div>
   </a></li>
 </ul>
@@ -367,76 +360,6 @@
   </div>
 </div>
 
-<a name="example8"></a>
-
-<div id="example8container" class="example">
-  <div class="pad">
-    <h3>Custom buttons</h3>
-
-    <p>Level: Advanced</p>
-
-    <p>The <b>alter</b> method can be used if you want insert or remove rows and columns using external buttons.
-      The below example uses the <b>onChange</b> method to add a button that removes a row.</p>
-
-    <div id="example8grid" class="dataTable"></div>
-
-    <p>Code:</p>
-
-    <pre class="html">&lt;div id="example8grid" class="dataTable"&gt;&lt;/div&gt;
-
-&lt;script&gt;
-  var container = $("#example8grid");
-  container.handsontable({
-    rows: 5,
-    cols: 5,
-    minSpareCols: 1,
-    minSpareRows: 1,
-    contextMenu: true,
-    onChange: function () {
-      //for each first cell in a row that does not have the button yet
-      container.find('td::first-child:not(:has(.btn))').each(function () {
-        var $td = $(this);
-        //create the button from template
-        var button = $('&lt;div class="cellRelative"&gt;' + ($td.html() || '&nbsp;') + '&lt;div class="btnContainer"&gt;&lt;div class="btn"&gt;x&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;');
-        button.find('.btn').
-          on('click', function (event) {
-            //remove the row when button is clicked
-            container.handsontable("alter", "remove_row", button.parents('tr').index());
-          }).
-          on('mousedown mouseup', function (event) {
-            //avoid mouse selection of the first cell in next row
-            event.stopPropagation();
-          });
-        $td.html(button);
-      });
-    }
-  });
-
-  container.
-    on('mouseover', 'td', function () {
-      //if this is not the first row, show the button
-      var $tr = $(this.parentNode);
-      if ($tr.index() &gt; 0) {
-        $tr.find('.btn').show();
-      }
-    }).
-    on('mouseout', 'td', function () {
-      //hide the button
-      $(this.parentNode).find('.btn').hide();
-    });
-
-  var data = [
-    ["", "Kia", "Nissan", "Toyota", "Honda"],
-    ["2008", 10, 11, 12, 13],
-    ["2009", 20, 11, 14, 13],
-    ["2010", 30, 15, 12, 13]
-  ];
-
-  container.handsontable("loadData", data);
-&lt;/script&gt;</pre>
-  </div>
-</div>
-
 <a name="example6"></a>
 
 <div id="example6container" class="example">
@@ -506,6 +429,22 @@
 
   $("#example6grid").handsontable("loadData", data);
 &lt;/script&gt;</pre>
+  </div>
+</div>
+
+<a name="example8"></a>
+
+<div id="example8container" class="example">
+  <div class="pad" style="height: 300px;">
+    <h3>Advanced demos</h3>
+
+    <p>Check out some advanced usage examples:</p>
+
+    <ul>
+      <li><a href="demo/buttons.html">Custom buttons</a></li>
+      <li><a href="demo/conditional.html">Conditional formatting</a></li>
+      <li><a href="demo/prepopulate.html">Pre-populate new rows from template</a></li>
+    </ul>
   </div>
 </div>
 </div>

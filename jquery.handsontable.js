@@ -1693,7 +1693,7 @@
           items: items
         });
       }
-    }
+    };
 
     /**
      * Set data at given cell
@@ -1781,6 +1781,18 @@
           grid.alter(action, {row: 0, col: from}, {row: 0, col: to});
           break;
       }
+    };
+
+
+    /**
+     * Returns <td> element corresponding to params row, col
+     * @param {Number} row
+     * @param {Number} col
+     * @public
+     * @return {Element}
+     */
+    this.getCell = function (row, col) {
+      return grid.getCellAtCoords({row: row, col: col});
     };
 
     /**
