@@ -551,32 +551,7 @@
           if (changes[i][3] === false) {
             continue;
           }
-          while (changes[i][0] > priv.rowCount - 1) {
-            datamap.createRow();
-            grid.createRow();
-          }
-          while (changes[i][1] > priv.colCount - 1) {
-            datamap.createCol();
-            grid.createCol();
-          }
-          td = grid.getCellAtCoords({row: changes[i][0], col: changes[i][1]});
-          if (grid.isCellWriteable($(td))) {
-            switch (typeof changes[i][3]) {
-              case 'string':
-                break;
-
-              case 'number':
-                changes[i][3] += '';
-                break;
-
-              default:
-                changes[i][3] = '';
-            }
-            td.innerHTML = changes[i][3].replace(/\n/g, '<br/>');
-            datamap.set(changes[i][0], changes[i][1], changes[i][3]);
-            grid.updateLegend({row: changes[i][0], col: changes[i][1]});
-            endTd = td;
-          }
+          endTd = self.setDataAtCell(changes[i][0], changes[i][1], changes[i][3]);
         }
         if (priv.settings.onChange && changes.length) {
           priv.settings.onChange(changes);
@@ -1477,12 +1452,10 @@
               result = priv.settings.onBeforeChange(change);
             }
             if (result !== false && change[0][3] !== false) { //edit is not cancelled
-              td.innerHTML = change[0][3].replace(/\n/g, '<br/>');
-              datamap.set(change[0][0], change[0][1], change[0][3]);
+              self.setDataAtCell(change[0][0], change[0][1], change[0][3]);
               if (priv.settings.onChange) {
                 priv.settings.onChange(change);
               }
-              grid.updateLegend(priv.selStart);
               grid.keepEmptyRows();
             }
             else {
@@ -1716,9 +1689,23 @@
         }
       }
       var td = grid.getCellAtCoords({row: row, col: col});
-      td.innerHTML = value.replace(/\n/g, '<br/>');
-      datamap.set(row, col, value);
-      grid.updateLegend({row: row, col: col});
+      if (grid.isCellWriteable($(td))) {
+        switch (typeof value) {
+          case 'string':
+            break;
+
+          case 'number':
+            value += '';
+            break;
+
+          default:
+            value = '';
+        }
+        td.innerHTML = value.replace(/\n/g, '<br/>');
+        datamap.set(row, col, value);
+        grid.updateLegend({row: row, col: col});
+      }
+      return td;
     };
 
     /**
@@ -2022,6 +2009,4 @@
       return output;
     }
   };
-
-})
-    (jQuery);
+})(jQuery);
