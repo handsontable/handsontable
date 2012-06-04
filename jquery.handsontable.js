@@ -1703,6 +1703,18 @@
      * @param value {String}
      */
     this.setDataAtCell = function (row, col, value) {
+      if (priv.settings.minSpareRows) {
+        while (row > priv.rowCount - 1) {
+          datamap.createRow();
+          grid.createRow();
+        }
+      }
+      if (priv.settings.minSpareCols) {
+        while (col > priv.colCount - 1) {
+          datamap.createCol();
+          grid.createCol();
+        }
+      }
       var td = grid.getCellAtCoords({row: row, col: col});
       td.innerHTML = value.replace(/\n/g, '<br/>');
       datamap.set(row, col, value);
