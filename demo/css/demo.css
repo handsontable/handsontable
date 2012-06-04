@@ -7,6 +7,10 @@ body {
   font-size: 13px;
 }
 
+body.examplesListOffset {
+  padding: 0 130px;
+}
+
 #container {
   margin: 0 auto;
   width: 700px;

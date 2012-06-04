@@ -10,6 +10,8 @@
   "use strict";
 
   function Handsontable(container, settings) {
+    this.container = container;
+
     var priv, datamap, grid, selection, keyboard, editproxy, highlight, autofill, interaction, self = this;
 
     priv = {
@@ -26,7 +28,8 @@
       colCount: 0,
       scrollable: null,
       hasLegend: null,
-      lastAutoComplete: null
+      lastAutoComplete: null,
+      undoRedo: settings.undo ? new handsontable.UndoRedo(this) : null
     };
 
     var lastChange = '';
@@ -205,9 +208,7 @@
        */
       alter: function (action, coords, toCoords) {
         var oldData, newData, changes, r, rlen, c, clen;
-        if (priv.settings.onChange) {
-          oldData = $.extend(true, [], datamap.getAll());
-        }
+        oldData = $.extend(true, [], datamap.getAll());
 
         switch (action) {
           case "insert_row":
@@ -233,16 +234,14 @@
             break;
         }
 
-        if (priv.settings.onChange) {
-          changes = [];
-          newData = datamap.getAll();
-          for (r = 0, rlen = newData.length; r < rlen; r++) {
-            for (c = 0, clen = newData[r].length; c < clen; c++) {
-              changes.push([r, c, oldData[r] ? oldData[r][c] : null, newData[r][c]]);
-            }
+        changes = [];
+        newData = datamap.getAll();
+        for (r = 0, rlen = newData.length; r < rlen; r++) {
+          for (c = 0, clen = newData[r].length; c < clen; c++) {
+            changes.push([r, c, oldData[r] ? oldData[r][c] : null, newData[r][c]]);
           }
-          priv.settings.onChange(changes);
         }
+        self.container.triggerHandler("datachange.handsontable", [changes, 'alter']);
       },
 
       /**
@@ -331,8 +330,8 @@
             for (var i = toCoords.col; i >= coords.col; i--) {
               $(trs[r].childNodes[i]).remove();
             }
-            priv.colCount--;
           }
+          priv.colCount -= toCoords.col - coords.col + 1;
         }
       },
 
@@ -438,7 +437,7 @@
         }
 
         if (!recreateCols) {
-          for (; ((priv.settings.cols && priv.colCount > priv.settings.cols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (priv.settings.minWidth && $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
+          for (; ((priv.settings.cols && priv.colCount > priv.settings.cols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (!priv.settings.minWidth || $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
             datamap.removeCol();
             grid.removeCol();
             recreateCols = true;
@@ -551,35 +550,10 @@
           if (changes[i][3] === false) {
             continue;
           }
-          while (changes[i][0] > priv.rowCount - 1) {
-            datamap.createRow();
-            grid.createRow();
-          }
-          while (changes[i][1] > priv.colCount - 1) {
-            datamap.createCol();
-            grid.createCol();
-          }
-          td = grid.getCellAtCoords({row: changes[i][0], col: changes[i][1]});
-          if (grid.isCellWriteable($(td))) {
-            switch (typeof changes[i][3]) {
-              case 'string':
-                break;
-
-              case 'number':
-                changes[i][3] += '';
-                break;
-
-              default:
-                changes[i][3] = '';
-            }
-            td.innerHTML = changes[i][3].replace(/\n/g, '<br/>');
-            datamap.set(changes[i][0], changes[i][1], changes[i][3]);
-            grid.updateLegend({row: changes[i][0], col: changes[i][1]});
-            endTd = td;
-          }
+          endTd = self.setDataAtCell(changes[i][0], changes[i][1], changes[i][3]);
         }
-        if (priv.settings.onChange && changes.length) {
-          priv.settings.onChange(changes);
+        if (changes.length) {
+          self.container.triggerHandler("datachange.handsontable", [changes, 'populateFromArray']);
         }
         setTimeout(function () {
           var result = grid.keepEmptyRows();
@@ -865,8 +839,8 @@
             grid.updateLegend(coords);
           }
         }
-        if (priv.settings.onChange && changes.length) {
-          priv.settings.onChange(changes);
+        if (changes.length) {
+          self.container.triggerHandler("datachange.handsontable", [changes, 'empty']);
         }
         grid.keepEmptyRows();
         selection.refreshBorders();
@@ -1169,6 +1143,16 @@
               }
               else if (ctrlOnly && event.keyCode === 65) { //CTRL + A
                 selection.selectAll(); //select all cells
+              }
+              else if (ctrlOnly && (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90))) { //CTRL + Y or CTRL + SHIFT + Z
+                if (priv.undoRedo) {
+                  priv.undoRedo.redo();
+                }
+              }
+              else if (ctrlOnly && event.keyCode === 90) { //CTRL + Z
+                if (priv.undoRedo) {
+                  priv.undoRedo.undo();
+                }
               }
               return;
             }
@@ -1477,12 +1461,8 @@
               result = priv.settings.onBeforeChange(change);
             }
             if (result !== false && change[0][3] !== false) { //edit is not cancelled
-              td.innerHTML = change[0][3].replace(/\n/g, '<br/>');
-              datamap.set(change[0][0], change[0][1], change[0][3]);
-              if (priv.settings.onChange) {
-                priv.settings.onChange(change);
-              }
-              grid.updateLegend(priv.selStart);
+              self.setDataAtCell(change[0][0], change[0][1], change[0][3]);
+              self.container.triggerHandler("datachange.handsontable", [change, 'type']);
               grid.keepEmptyRows();
             }
             else {
@@ -1692,6 +1672,12 @@
           callback: onContextClick,
           items: items
         });
+
+        self.container.on("datachange.handsontable", function (event, changes) {
+          if (priv.settings.onChange) {
+            priv.settings.onChange(changes);
+          }
+        });
       }
     };
 
@@ -1703,10 +1689,36 @@
      * @param value {String}
      */
     this.setDataAtCell = function (row, col, value) {
+      if (priv.settings.minSpareRows) {
+        while (row > priv.rowCount - 1) {
+          datamap.createRow();
+          grid.createRow();
+        }
+      }
+      if (priv.settings.minSpareCols) {
+        while (col > priv.colCount - 1) {
+          datamap.createCol();
+          grid.createCol();
+        }
+      }
       var td = grid.getCellAtCoords({row: row, col: col});
-      td.innerHTML = value.replace(/\n/g, '<br/>');
-      datamap.set(row, col, value);
-      grid.updateLegend({row: row, col: col});
+      if (grid.isCellWriteable($(td))) {
+        switch (typeof value) {
+          case 'string':
+            break;
+
+          case 'number':
+            value += '';
+            break;
+
+          default:
+            value = '';
+        }
+        td.innerHTML = value.replace(/\n/g, '<br/>');
+        datamap.set(row, col, value);
+        grid.updateLegend({row: row, col: col});
+      }
+      return td;
     };
 
     /**
@@ -1973,7 +1985,8 @@
     'minHeight': 0,
     'minWidth': 0,
     'multiSelect': true,
-    'fillHandle': true
+    'fillHandle': true,
+    'undo': true
   };
 
   $.fn.handsontable = function (action, options) {
@@ -2010,6 +2023,68 @@
       return output;
     }
   };
+})(jQuery);
 
-})
-    (jQuery);
+var handsontable = {}; //plugin namespace
+
+/**
+ * Handsontable UndoRedo extension
+ */
+handsontable.UndoRedo = function (instance) {
+  var that = this;
+
+  this.data = [];
+  this.rev = -1;
+  this.instance = instance;
+
+  instance.container.on("datachange.handsontable", function (event, changes, origin) {
+    if (origin !== 'undo' && origin !== 'redo') {
+      that.add(changes);
+    }
+  });
+};
+
+/**
+ * Undo operation from current revision
+ */
+handsontable.UndoRedo.prototype.undo = function () {
+  var i, ilen, tmp;
+  if (this.rev > 0) {
+    var changes = $.extend(true, [], this.data[this.rev]); //deep clone
+    for (i = 0, ilen = changes.length; i < ilen; i++) {
+      this.instance.setDataAtCell(changes[i][0], changes[i][1], changes[i][2]);
+      tmp = changes[i][3];
+      changes[i][3] = changes[i][2];
+      changes[i][2] = tmp;
+    }
+    this.instance.container.triggerHandler("datachange.handsontable", [changes, 'undo']);
+    this.instance.grid.keepEmptyRows();
+    this.rev--;
+  }
+};
+
+/**
+ * Redo operation from current revision
+ */
+handsontable.UndoRedo.prototype.redo = function () {
+  var i, ilen;
+  if (this.rev < this.data.length - 1) {
+    this.rev++;
+    var changes = this.data[this.rev];
+    for (i = 0, ilen = changes.length; i < ilen; i++) {
+      this.instance.setDataAtCell(changes[i][0], changes[i][1], changes[i][3]);
+    }
+    this.instance.container.triggerHandler("datachange.handsontable", [changes, 'redo']);
+    this.instance.grid.keepEmptyRows();
+  }
+};
+
+/**
+ * Add new data revision
+ * @param changes
+ */
+handsontable.UndoRedo.prototype.add = function (changes) {
+  this.rev++;
+  this.data.splice(this.rev); //if we are in point abcdef(g)hijk in history, remove everything after (g)
+  this.data.push(changes);
+};

@@ -61,7 +61,7 @@ Maybe you want to show some default data. Use the `handsontable('loadData', data
  handsontable('alter', 'insert_col', index)                           | Method      | Insert new column before the column at given index
  handsontable('alter',&nbsp;'remove_row',&nbsp;index,&nbsp;[toIndex]) | Method      | Remove the row at given index [optionally to another index]
  handsontable('alter',&nbsp;'remove_col',&nbsp;index,&nbsp;[toIndex]) | Method      | Remove the column at given index [optionally to another index]
- handsontable('getCell', row, col)                                    | Method      | Return <td> element for given row, col
+ handsontable('getCell', row, col)                                    | Method      | Return &lt;td&gt; element for given row, col
 
 ## Options
 
@@ -78,6 +78,7 @@ The table below presents configuration options that are interpreted by `handsont
  `multiSelect`    | Boolean           | true        | If true, selection of multiple cells using keyboard or mouse is allowed
  `fillHandle`     | Boolean/String    | true        | Defines if the fill handle (drag-down and copy-down) functionality should be enabled. Possible values: `true` (to enable in all directions), `"vertical"` or `"horizontal"` (to enable in one direction), `false` (to disable completely).
  `contextMenu`    | Boolean/Array     | false       | Defines if the right-click context menu should be enabled. Context menu allows to create new row or column at any place in the grid. Possible values: `true` (to enable all context options), `false` (to disable completely) or array of available strings: `row_above`, `row_below`, `col_left`, `col_right`, `remove_row`, `remove_col`.
+ `undo`           | Boolean           | true        | If true, undo/redo functionality is enabled
  `legend`         | Array             | _undefined_ | Legend definitions. See **Defining legend**
  `autocomplete`   | Array             | _undefined_ | Autocomplete definitions. See **Defining autocomplete**
  `onBeforeChange` | Function(changes) | _undefined_ | Callback to be fired before one or more cells is changed (with changes array as an argument). Its main purpose is validation of the input. You can disregard a single change by setting `changes[i][3]` to false, or cancel all edit by returning false.
