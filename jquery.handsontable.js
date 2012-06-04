@@ -330,8 +330,8 @@
             for (var i = toCoords.col; i >= coords.col; i--) {
               $(trs[r].childNodes[i]).remove();
             }
-            priv.colCount--;
           }
+          priv.colCount -= toCoords.col - coords.col + 1;
         }
       },
 
@@ -437,7 +437,7 @@
         }
 
         if (!recreateCols) {
-          for (; ((priv.settings.cols && priv.colCount > priv.settings.cols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (priv.settings.minWidth && $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
+          for (; ((priv.settings.cols && priv.colCount > priv.settings.cols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (!priv.settings.minWidth || $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
             datamap.removeCol();
             grid.removeCol();
             recreateCols = true;
