@@ -1136,6 +1136,7 @@
             var ctrlOnly = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
             if ((event.keyCode >= 48 && event.keyCode <= 57) || //0-9
                 (event.keyCode >= 96 && event.keyCode <= 111) || //numpad
+                (event.keyCode >= 186 && event.keyCode <= 192) || //;=,-./`
                 (event.keyCode >= 65 && event.keyCode <= 90)) { //a-z
               /* alphanumeric */
               if (!ctrlOnly) { //disregard CTRL-key shortcuts

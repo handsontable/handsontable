@@ -10,8 +10,11 @@ First, include all the dependencies:
 
 ```html
 <script src="jquery.handsontable.js"></script>
-<script src="lib/bootstrap-typeahead.js"></script><!-- only if you need the autocomplete feature -->
-<script src="lib/jquery.autoresize.js"></script><!-- only if you need the autoexpanding textarea -->
+<script src="lib/bootstrap-typeahead.js"></script><!-- if you need the autocomplete feature -->
+<script src="lib/jquery.autoresize.js"></script><!-- if you need the autoexpanding textarea -->
+<script src="lib/jQuery-contextMenu/jquery.contextMenu.js"></script><!-- if you need the context menu -->
+<script src="lib/jQuery-contextMenu/jquery.ui.position.js"></script><!-- if you need the context menu -->
+<link rel="stylesheet" media="screen" href="lib/jQuery-contextMenu/jquery.contextMenu.css">
 <link rel="stylesheet" media="screen" href="jquery.handsontable.css">
 ```
 
@@ -23,12 +26,6 @@ Then, run `handsontable()` constructor on an empty div:
   $("#dataTable").handsontable({
     rows: 6,
     cols: 8
-    onChange: function (change) {
-      //here put some code that saves current data
-      //this part is up to you (not a part of Handsontable)
-      var lastChange = change;
-      var allData = $("#dataTable").handsontable("getData");
-    }
 });
 </script>
 ```
