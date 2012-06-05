@@ -74,7 +74,7 @@ The table below presents configuration options that are interpreted by `handsont
  `minSpareRows`   | Number            | 0           | When set to 1 (or more), Handsontable will add a new row at the end of grid if there are no more empty rows
  `multiSelect`    | Boolean           | true        | If true, selection of multiple cells using keyboard or mouse is allowed
  `fillHandle`     | Boolean/String    | true        | Defines if the fill handle (drag-down and copy-down) functionality should be enabled. Possible values: `true` (to enable in all directions), `"vertical"` or `"horizontal"` (to enable in one direction), `false` (to disable completely).
- `contextMenu`    | Boolean/Array     | false       | Defines if the right-click context menu should be enabled. Context menu allows to create new row or column at any place in the grid. Possible values: `true` (to enable all context options), `false` (to disable completely) or array of available strings: `row_above`, `row_below`, `col_left`, `col_right`, `remove_row`, `remove_col`.
+ `contextMenu`    | Boolean/Array     | false       | Defines if the right-click context menu should be enabled. Context menu allows to create new row or column at any place in the grid. Possible values: `true` (to enable basic options), `false` (to disable completely) or array of available strings: `row_above`, `row_below`, `col_left`, `col_right`, `remove_row`, `remove_col`, `undo`, `redo`, `sep1`, `sep2`, `sep3`.
  `undo`           | Boolean           | true        | If true, undo/redo functionality is enabled
  `legend`         | Array             | _undefined_ | Legend definitions. See **Defining legend**
  `autocomplete`   | Array             | _undefined_ | Autocomplete definitions. See **Defining autocomplete**

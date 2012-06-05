@@ -1631,6 +1631,14 @@
             case "remove_col":
               grid.alter(key, coords.TL, coords.BR);
               break;
+
+            case "undo":
+              priv.undoRedo.undo();
+              break;
+
+            case "redo":
+              priv.undoRedo.redo();
+              break;
           }
         };
 
@@ -1645,26 +1653,31 @@
           return false;
         };
 
-        var defaultItems = {
+        var allItems = {
+          "undo": {name: "Undo", disabled: function () {
+            return priv.undoRedo ? !priv.undoRedo.isUndoAvailable() : true
+          }},
+          "redo": {name: "Redo", disabled: function () {
+            return priv.undoRedo ? !priv.undoRedo.isRedoAvailable() : true
+          }},
+          "sep1": "---------",
           "row_above": {name: "Insert row above", disabled: isReadOnly},
           "row_below": {name: "Insert row below"},
-          "sep1": "---------",
+          "sep2": "---------",
           "col_left": {name: "Insert column on the left", disabled: isReadOnly},
           "col_right": {name: "Insert column on the right"},
-          "sep2": "---------",
+          "sep3": "---------",
           "remove_row": {name: "Remove row", disabled: isReadOnly},
           "remove_col": {name: "Remove column", disabled: isReadOnly}
         };
 
-        var items;
-        if (priv.settings.contextMenu.length) {
-          items = {};
-          for (var i = 0, ilen = priv.settings.contextMenu.length; i < ilen; i++) {
-            items[priv.settings.contextMenu[i]] = defaultItems[priv.settings.contextMenu[i]];
-          }
+        if (priv.settings.contextMenu === true) { //contextMenu is true, not an array
+          priv.settings.contextMenu = ["row_above", "row_below", "sep2", "col_left", "col_right", "sep3", "remove_row", "remove_col"]; //use default fields array
         }
-        else {
-          items = defaultItems;
+
+        var items = {};
+        for (var i = 0, ilen = priv.settings.contextMenu.length; i < ilen; i++) {
+          items[priv.settings.contextMenu[i]] = allItems[priv.settings.contextMenu[i]];
         }
 
         $.contextMenu({
@@ -2050,7 +2063,7 @@ handsontable.UndoRedo = function (instance) {
  */
 handsontable.UndoRedo.prototype.undo = function () {
   var i, ilen, tmp;
-  if (this.rev > 0) {
+  if (this.isUndoAvailable()) {
     var changes = $.extend(true, [], this.data[this.rev]); //deep clone
     for (i = 0, ilen = changes.length; i < ilen; i++) {
       this.instance.setDataAtCell(changes[i][0], changes[i][1], changes[i][2]);
@@ -2069,7 +2082,7 @@ handsontable.UndoRedo.prototype.undo = function () {
  */
 handsontable.UndoRedo.prototype.redo = function () {
   var i, ilen;
-  if (this.rev < this.data.length - 1) {
+  if (this.isRedoAvailable()) {
     this.rev++;
     var changes = this.data[this.rev];
     for (i = 0, ilen = changes.length; i < ilen; i++) {
@@ -2081,7 +2094,23 @@ handsontable.UndoRedo.prototype.redo = function () {
 };
 
 /**
- * Add new data revision
+ * Returns true if undo point is available
+ * @return {Boolean}
+ */
+handsontable.UndoRedo.prototype.isUndoAvailable = function () {
+  return (this.rev > 0);
+};
+
+/**
+ * Returns true if redo point is available
+ * @return {Boolean}
+ */
+handsontable.UndoRedo.prototype.isRedoAvailable = function () {
+  return (this.rev < this.data.length - 1);
+};
+
+/**
+ * Add new history poins
  * @param changes
  */
 handsontable.UndoRedo.prototype.add = function (changes) {
