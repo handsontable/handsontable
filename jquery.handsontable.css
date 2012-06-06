@@ -91,7 +91,7 @@ textarea.handsontableInput {
   resize: none;
 }
 
-.handsontableInputHolder.hidden textarea.handsontableInput {
+.handsontableInputHolder.htHidden textarea.handsontableInput {
   border-color: #5292F7;
   background: #5292F7;
   color: #5292F7;
