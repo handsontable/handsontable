@@ -1686,13 +1686,13 @@
           callback: onContextClick,
           items: items
         });
-
-        self.container.on("datachange.handsontable", function (event, changes) {
-          if (priv.settings.onChange) {
-            priv.settings.onChange(changes);
-          }
-        });
       }
+
+      self.container.on("datachange.handsontable", function (event, changes) {
+        if (priv.settings.onChange) {
+          priv.settings.onChange(changes);
+        }
+      });
     };
 
     /**
