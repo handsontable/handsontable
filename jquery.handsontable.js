@@ -6,7 +6,7 @@
  * http://warpech.github.com/jquery-handsontable/
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
-(function($) {
+(function ($) {
   "use strict";
 
   function Handsontable(container, settings) {
@@ -43,7 +43,7 @@
      */
     function defaultAutoCompleteHighlighter(item) {
       var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
-      return item.replace(new RegExp('(' + query + ')', 'ig'), function($1, match) {
+      return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
         return '<strong>' + match + '</strong>';
       })
     }
@@ -55,7 +55,7 @@
        * Creates row at the bottom of the data array
        * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
        */
-      createRow: function(coords) {
+      createRow: function (coords) {
         var row = [];
         for (var c = 0; c < priv.colCount; c++) {
           row.push('');
@@ -72,7 +72,7 @@
        * Creates col at the right of the data array
        * @param {Object} [coords] Optional. Coords of the cell before which the new column will be inserted
        */
-      createCol: function(coords) {
+      createCol: function (coords) {
         var r = 0;
         if (!coords || coords.col >= priv.colCount) {
           for (; r < priv.rowCount; r++) {
@@ -91,7 +91,7 @@
        * @param {Object} [coords] Optional. Coords of the cell which row will be removed
        * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all rows will be removed
        */
-      removeRow: function(coords, toCoords) {
+      removeRow: function (coords, toCoords) {
         if (!coords || coords.row === priv.rowCount - 1) {
           datamap.data.pop();
         }
@@ -105,7 +105,7 @@
        * @param {Object} [coords] Optional. Coords of the cell which col will be removed
        * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all cols will be removed
        */
-      removeCol: function(coords, toCoords) {
+      removeCol: function (coords, toCoords) {
         var r = 0;
         if (!coords || coords.col === priv.colCount - 1) {
           for (; r < priv.rowCount; r++) {
@@ -125,7 +125,7 @@
        * @param {Number} row
        * @param {Number} col
        */
-      get: function(row, col) {
+      get: function (row, col) {
         return datamap.data[row] ? datamap.data[row][col] : void 0; //void 0 produces undefined
       },
 
@@ -135,14 +135,14 @@
        * @param {Number} col
        * @param {String} value
        */
-      set: function(row, col, value) {
+      set: function (row, col, value) {
         datamap.data[row][col] = value;
       },
 
       /**
        * Clears the data array
        */
-      clear: function() {
+      clear: function () {
         for (var r = 0; r < priv.rowCount; r++) {
           for (var c = 0; c < priv.colCount; c++) {
             datamap.data[r][c] = '';
@@ -154,7 +154,7 @@
        * Returns the data array
        * @return {Array}
        */
-      getAll: function() {
+      getAll: function () {
         return datamap.data;
       },
 
@@ -164,7 +164,7 @@
        * @param {Object} end End selection position
        * @return {Array}
        */
-      getRange: function(start, end) {
+      getRange: function (start, end) {
         var r, rlen, c, clen, output = [], row;
         rlen = Math.max(start.row, end.row);
         clen = Math.max(start.col, end.col);
@@ -184,7 +184,7 @@
        * @param {Object} end (Optional) End selection position
        * @return {String}
        */
-      getText: function(start, end) {
+      getText: function (start, end) {
         var data = datamap.getRange(start, end), text = '', r, rlen, c, clen;
         for (r = 0, rlen = data.length; r < rlen; r++) {
           for (c = 0, clen = data[r].length; c < clen; c++) {
@@ -206,7 +206,7 @@
        * @param {Object} coords
        * @param {Object} [toCoords] Required only for actions "remove_row" and "remove_col"
        */
-      alter: function(action, coords, toCoords) {
+      alter: function (action, coords, toCoords) {
         var oldData, newData, changes, r, rlen, c, clen;
         oldData = $.extend(true, [], datamap.getAll());
 
@@ -248,7 +248,7 @@
        * Creates row at the bottom of the <table>
        * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
        */
-      createRow: function(coords) {
+      createRow: function (coords) {
         var tr, c, r;
         tr = document.createElement('tr');
         for (c = 0; c < priv.colCount; c++) {
@@ -273,7 +273,7 @@
        * Creates col at the right of the <table>
        * @param {Object} [coords] Optional. Coords of the cell before which the new column will be inserted
        */
-      createCol: function(coords) {
+      createCol: function (coords) {
         var trs = priv.tableBody.childNodes, r, c;
         if (!coords || coords.col >= priv.colCount) {
           for (r = 0; r < priv.rowCount; r++) {
@@ -298,7 +298,7 @@
        * @param {Object} [coords] Optional. Coords of the cell which row will be removed
        * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all rows will be removed
        */
-      removeRow: function(coords, toCoords) {
+      removeRow: function (coords, toCoords) {
         if (!coords || coords.row === priv.rowCount - 1) {
           $(priv.tableBody.childNodes[priv.rowCount - 1]).remove();
           priv.rowCount--;
@@ -316,7 +316,7 @@
        * @param {Object} [coords] Optional. Coords of the cell which col will be removed
        * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all cols will be removed
        */
-      removeCol: function(coords, toCoords) {
+      removeCol: function (coords, toCoords) {
         var trs = priv.tableBody.childNodes;
         var r = 0;
         if (!coords || coords.col === priv.colCount - 1) {
@@ -339,7 +339,7 @@
        * Makes sure there are empty rows at the bottom of the table
        * @return recreate {Boolean} TRUE if row or col was added or removed
        */
-      keepEmptyRows: function() {
+      keepEmptyRows: function () {
         var rows, r, c, clen, emptyRows = 0, emptyCols = 0, rlen, recreateRows = false, recreateCols = false;
 
         var $tbody = $(priv.tableBody);
@@ -469,7 +469,7 @@
       /**
        * Update legend
        */
-      updateLegend: function(coords) {
+      updateLegend: function (coords) {
         if (priv.settings.legend || priv.hasLegend) {
           var $td = $(grid.getCellAtCoords(coords));
           $td.removeAttr("style").removeAttr("title").removeData("readOnly");
@@ -492,7 +492,7 @@
       /**
        * Is cell writeable
        */
-      isCellWriteable: function($td) {
+      isCellWriteable: function ($td) {
         if (priv.isPopulated && $td.data("readOnly")) {
           return false;
         }
@@ -506,7 +506,7 @@
        * @param {Object} end End selection position (only for drag-down mode)
        * @return {Object} ending td in pasted area
        */
-      populateFromArray: function(start, input, end) {
+      populateFromArray: function (start, input, end) {
         var r, rlen, c, clen, td, endTd, changes = [], current = {};
         rlen = input.length;
         if (rlen === 0) {
@@ -556,7 +556,7 @@
         if (changes.length) {
           self.container.triggerHandler("datachange.handsontable", [changes, 'populateFromArray']);
         }
-        setTimeout(function() {
+        setTimeout(function () {
           var result = grid.keepEmptyRows();
           if (!result) {
             selection.refreshBorders();
@@ -568,7 +568,7 @@
       /**
        * Clears all cells in the grid
        */
-      clear: function() {
+      clear: function () {
         var tds = grid.getAllCells();
         for (var i = 0, ilen = tds.length; i < ilen; i++) {
           $(tds[i]).empty();
@@ -579,7 +579,7 @@
       /**
        * Returns coordinates given td object
        */
-      getCellCoords: function(td) {
+      getCellCoords: function (td) {
         return {
           row: td.parentNode.rowIndex,
           col: td.cellIndex
@@ -589,7 +589,7 @@
       /**
        * Returns td object given coordinates
        */
-      getCellAtCoords: function(coords) {
+      getCellAtCoords: function (coords) {
         if (coords.row < 0 || coords.col < 0) {
           return null;
         }
@@ -607,7 +607,7 @@
        * @param {Object[]} coordsArr
        * @returns {Object}
        */
-      getCornerCoords: function(coordsArr) {
+      getCornerCoords: function (coordsArr) {
         function mapProp(func, array, prop) {
           function getProp(el) {
             return el[prop];
@@ -634,7 +634,7 @@
       /**
        * Returns array of td objects given start and end coordinates
        */
-      getCellsAtCoords: function(start, end) {
+      getCellsAtCoords: function (start, end) {
         var corners = grid.getCornerCoords([start, end]);
         var r, c, output = [];
         for (r = corners.TL.row; r <= corners.BR.row; r++) {
@@ -651,7 +651,7 @@
       /**
        * Returns all td objects in grid
        */
-      getAllCells: function() {
+      getAllCells: function () {
         var tds = [], trs, r, rlen, c, clen;
         trs = priv.tableBody.childNodes;
         rlen = priv.rowCount;
@@ -672,7 +672,7 @@
        * Starts selection range on given td object
        * @param td element
        */
-      setRangeStart: function(td) {
+      setRangeStart: function (td) {
         selection.deselect();
         priv.selStart = grid.getCellCoords(td);
         selection.setRangeEnd(td);
@@ -682,7 +682,7 @@
        * Ends selection range on given td object
        * @param td element
        */
-      setRangeEnd: function(td) {
+      setRangeEnd: function (td) {
         var coords = grid.getCellCoords(td);
         selection.end(coords);
         if (!priv.settings.multiSelect) {
@@ -695,7 +695,7 @@
       /**
        * Redraws borders around cells
        */
-      refreshBorders: function() {
+      refreshBorders: function () {
         if (!selection.isSelected()) {
           return;
         }
@@ -710,7 +710,7 @@
       /**
        * Setter/getter for selection start
        */
-      start: function(coords) {
+      start: function (coords) {
         if (coords) {
           priv.selStart = coords;
         }
@@ -720,7 +720,7 @@
       /**
        * Setter/getter for selection end
        */
-      end: function(coords) {
+      end: function (coords) {
         if (coords) {
           priv.selEnd = coords;
         }
@@ -731,14 +731,14 @@
        * Returns information if we have a multiselection
        * @return {Boolean}
        */
-      isMultiple: function() {
+      isMultiple: function () {
         return !(priv.selEnd.col === priv.selStart.col && priv.selEnd.row === priv.selStart.row);
       },
 
       /**
        * Selects cell relative to current cell (if possible)
        */
-      transformStart: function(rowDelta, colDelta) {
+      transformStart: function (rowDelta, colDelta) {
         var td = grid.getCellAtCoords({
           row: (priv.selStart.row + rowDelta),
           col: priv.selStart.col + colDelta
@@ -754,7 +754,7 @@
       /**
        * Sets selection end cell relative to current selection end cell (if possible)
        */
-      transformEnd: function(rowDelta, colDelta) {
+      transformEnd: function (rowDelta, colDelta) {
         var td = grid.getCellAtCoords({
           row: (priv.selEnd.row + rowDelta),
           col: priv.selEnd.col + colDelta
@@ -768,7 +768,7 @@
        * Returns true if currently there is a selection on screen, false otherwise
        * @return {Boolean}
        */
-      isSelected: function() {
+      isSelected: function () {
         var selEnd = selection.end();
         if (!selEnd || typeof selEnd.row === "undefined") {
           return false;
@@ -780,7 +780,7 @@
        * Returns true if coords is within current selection coords
        * @return {Boolean}
        */
-      inInSelection: function(coords) {
+      inInSelection: function (coords) {
         if (!selection.isSelected()) {
           return false;
         }
@@ -791,7 +791,7 @@
       /**
        * Deselects all selected cells
        */
-      deselect: function() {
+      deselect: function () {
         if (!selection.isSelected()) {
           return;
         }
@@ -809,7 +809,7 @@
       /**
        * Select all cells
        */
-      selectAll: function() {
+      selectAll: function () {
         if (!priv.settings.multiSelect) {
           return;
         }
@@ -823,7 +823,7 @@
       /**
        * Deletes data from selected cells
        */
-      empty: function() {
+      empty: function () {
         if (!selection.isSelected()) {
           return;
         }
@@ -852,7 +852,7 @@
       /**
        * Create highlight border
        */
-      init: function() {
+      init: function () {
         priv.selectionBorder = new Border(container, {
           className: 'selection',
           bg: true
@@ -862,7 +862,7 @@
       /**
        * Show border around selected cells
        */
-      on: function() {
+      on: function () {
         if (!selection.isSelected()) {
           return false;
         }
@@ -877,7 +877,7 @@
       /**
        * Hide border around selected cells
        */
-      off: function() {
+      off: function () {
         if (!selection.isSelected()) {
           return false;
         }
@@ -888,7 +888,7 @@
        * Scroll viewport to selection
        * @param td
        */
-      scrollViewport: function(td) {
+      scrollViewport: function (td) {
         if (!selection.isSelected()) {
           return false;
         }
@@ -912,23 +912,23 @@
         var width = $td.outerWidth();
 
         if (scrollLeft + scrollWidth <= offsetLeft + width) {
-          setTimeout(function() {
+          setTimeout(function () {
             priv.scrollable.scrollLeft(offsetLeft + width - scrollWidth);
           }, 1);
         }
         else if (scrollLeft > offsetLeft) {
-          setTimeout(function() {
+          setTimeout(function () {
             priv.scrollable.scrollLeft(offsetLeft - 2);
           }, 1);
         }
 
         if (scrollTop + scrollHeight <= offsetTop + height) {
-          setTimeout(function() {
+          setTimeout(function () {
             priv.scrollable.scrollTop(offsetTop + height - scrollHeight);
           }, 1);
         }
         else if (scrollTop > offsetTop) {
-          setTimeout(function() {
+          setTimeout(function () {
             priv.scrollable.scrollTop(offsetTop - 2);
           }, 1);
         }
@@ -939,7 +939,7 @@
       /**
        * Create fill handle and fill border objects
        */
-      init: function() {
+      init: function () {
         priv.fillHandle = new FillHandle(container);
         priv.fillBorder = new Border(container, {
           className: 'htFillBorder'
@@ -951,7 +951,7 @@
       /**
        * Selects cells down to the last row in the left column, then fills down to that cell
        */
-      selectAdjacent: function() {
+      selectAdjacent: function () {
         var select, data, r, maxR, c;
 
         if (selection.isMultiple()) {
@@ -985,7 +985,7 @@
       /**
        * Apply fill values to the area in fill border, omitting the selection border
        */
-      apply: function() {
+      apply: function () {
         var drag, select, start, end;
 
         priv.fillHandle.isDragged = 0;
@@ -1049,21 +1049,21 @@
       /**
        * Show fill handle
        */
-      showHandle: function() {
+      showHandle: function () {
         priv.fillHandle.appear([priv.selStart, priv.selEnd]);
       },
 
       /**
        * Hide fill handle
        */
-      hideHandle: function() {
+      hideHandle: function () {
         priv.fillHandle.disappear();
       },
 
       /**
        * Show fill border
        */
-      showBorder: function(td) {
+      showBorder: function (td) {
         var coords = grid.getCellCoords(td);
         var corners = grid.getCornerCoords([priv.selStart, priv.selEnd]);
         if (priv.settings.fillHandle !== 'horizontal' && (corners.BR.row < coords.row || corners.TL.row > coords.row)) {
@@ -1085,7 +1085,7 @@
        * @param {String} input
        * @return {Array} 2d array
        */
-      parsePasteInput: function(input) {
+      parsePasteInput: function (input) {
         var rows, r, rlen;
         rows = input.split("\n");
         if (rows[rows.length - 1] === '') {
@@ -1103,7 +1103,7 @@
       /**
        * Create input field
        */
-      init: function() {
+      init: function () {
         priv.editProxy = $('<textarea class="handsontableInput">');
         priv.editProxyHolder = $('<div class="handsontableInputHolder">');
         priv.editProxyHolder.append(priv.editProxy);
@@ -1114,21 +1114,21 @@
 
         function onCut() {
           editproxy.finishEditing();
-          setTimeout(function() {
+          setTimeout(function () {
             selection.empty();
           }, 100);
         }
 
         function onPaste() {
           editproxy.finishEditing();
-          setTimeout(function() {
+          setTimeout(function () {
             var input = priv.editProxy.val().replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
-              inputArray = keyboard.parsePasteInput(input),
-              coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
-              endTd = grid.populateFromArray(coords.TL, inputArray, {
-                row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
-                col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
-              });
+                inputArray = keyboard.parsePasteInput(input),
+                coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
+                endTd = grid.populateFromArray(coords.TL, inputArray, {
+                  row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
+                  col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
+                });
             selection.setRangeEnd(endTd);
           }, 100);
         }
@@ -1137,9 +1137,9 @@
           if (selection.isSelected()) {
             var ctrlOnly = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
             if ((event.keyCode >= 48 && event.keyCode <= 57) || //0-9
-              (event.keyCode >= 96 && event.keyCode <= 111) || //numpad
-              (event.keyCode >= 186 && event.keyCode <= 192) || //;=,-./`
-              (event.keyCode >= 65 && event.keyCode <= 90)) { //a-z
+                (event.keyCode >= 96 && event.keyCode <= 111) || //numpad
+                (event.keyCode >= 186 && event.keyCode <= 192) || //;=,-./`
+                (event.keyCode >= 65 && event.keyCode <= 90)) { //a-z
               /* alphanumeric */
               if (!ctrlOnly) { //disregard CTRL-key shortcuts
                 editproxy.beginEditing();
@@ -1310,7 +1310,7 @@
       /**
        * Prepare text input to be displayed at given grid cell
        */
-      prepare: function() {
+      prepare: function () {
         priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
         priv.editProxy.val(datamap.getText(priv.selStart, priv.selEnd));
         setTimeout(editproxy.focus, 1);
@@ -1319,7 +1319,7 @@
           var typeahead = priv.editProxy.data('typeahead');
           if (!typeahead) {
             priv.editProxy.typeahead({
-              updater: function(item) {
+              updater: function (item) {
                 priv.lastAutoComplete = item;
                 return item
               }
@@ -1371,7 +1371,7 @@
       /**
        * Sets focus to textarea
        */
-      focus: function() {
+      focus: function () {
         priv.editProxy[0].select();
       },
 
@@ -1379,7 +1379,7 @@
        * Shows text input in grid cell
        * @param useOriginalValue {Boolean}
        */
-      beginEditing: function(useOriginalValue) {
+      beginEditing: function (useOriginalValue) {
         if (priv.isCellEdited) {
           return;
         }
@@ -1389,7 +1389,7 @@
         }
 
         var td = grid.getCellAtCoords(priv.selStart),
-          $td = $(td);
+            $td = $(td);
 
         priv.isCellEdited = true;
         lastChange = '';
@@ -1445,12 +1445,12 @@
        * @param {Number} [moveRow] Move selection row if edit is not cancelled
        * @param {Number} [moveCol] Move selection column if edit is not cancelled
        */
-      finishEditing: function(isCancelled, moveRow, moveCol) {
+      finishEditing: function (isCancelled, moveRow, moveCol) {
         if (priv.isCellEdited) {
           priv.isCellEdited = false;
           var td = grid.getCellAtCoords(priv.selStart),
-            $td = $(td),
-            val = $.trim(priv.editProxy.val());
+              $td = $(td),
+              val = $.trim(priv.editProxy.val());
           var oldVal = datamap.get(priv.selStart.row, priv.selStart.col);
           if (oldVal === val || !grid.isCellWriteable($td)) {
             isCancelled = true;
@@ -1463,7 +1463,7 @@
             if (priv.settings.onBeforeChange) {
               result = priv.settings.onBeforeChange(change);
             }
-            if (result !== false && change[0][3] !== false) { //edit is not cancelled
+            if (result !== false && change[0][3] !== false && grid.isCellWriteable($td)) { //edit is not cancelled
               self.setDataAtCell(change[0][0], change[0][1], change[0][3]);
               self.container.triggerHandler("datachange.handsontable", [change, 'type']);
               grid.keepEmptyRows();
@@ -1494,7 +1494,7 @@
     };
 
     interaction = {
-      onMouseDown: function(event) {
+      onMouseDown: function (event) {
         priv.isMouseDown = true;
         if (event.button === 2 && selection.inInSelection(grid.getCellCoords(this))) { //right mouse button
           //do nothing
@@ -1507,7 +1507,7 @@
         }
       },
 
-      onMouseOver: function() {
+      onMouseOver: function () {
         if (priv.isMouseDown) {
           selection.setRangeEnd(this);
         }
@@ -1517,13 +1517,13 @@
         }
       },
 
-      onDblClick: function() {
+      onDblClick: function () {
         priv.editProxy[0].focus();
         editproxy.beginEditing(true);
       }
     };
 
-    this.init = function() {
+    this.init = function () {
       function onMouseEnterTable() {
         priv.isMouseOverTable = true;
       }
@@ -1574,7 +1574,7 @@
       }
 
       function onOutsideClick() {
-        setTimeout(function() {//do async so all mouseenter, mouseleave events will fire before
+        setTimeout(function () {//do async so all mouseenter, mouseleave events will fire before
           if (!priv.isMouseOverTable) {
             selection.deselect();
           }
@@ -1588,7 +1588,7 @@
         priv.scrollable = container;
       }
       else {
-        container.parents().each(function() {
+        container.parents().each(function () {
           if (this.tagName.toLowerCase() !== "html" && this.tagName.toLowerCase() !== "body" && $(this).css('overflow') == 'scroll') {
             priv.scrollable = $(this);
             return false;
@@ -1604,12 +1604,12 @@
         priv.scrollable = $(window);
       }
 
-      priv.scrollable.on('scroll', function(e) {
+      priv.scrollable.on('scroll', function (e) {
         e.stopPropagation();
       });
 
       if (priv.settings.contextMenu) {
-        var onContextClick = function(key) {
+        var onContextClick = function (key) {
           var coords = grid.getCornerCoords([priv.selStart, priv.selEnd]);
 
           switch (key) {
@@ -1644,7 +1644,7 @@
           }
         };
 
-        var isReadOnly = function(key) {
+        var isReadOnly = function (key) {
           var coords = grid.getCornerCoords([priv.selStart, priv.selEnd]);
 
           if (((key === "row_above" || key === "remove_row") && coords.TL.row === 0) || ((key === "col_left" || key === "remove_col") && coords.TL.col === 0)) {
@@ -1656,10 +1656,10 @@
         };
 
         var allItems = {
-          "undo": {name: "Undo", disabled: function() {
+          "undo": {name: "Undo", disabled: function () {
             return priv.undoRedo ? !priv.undoRedo.isUndoAvailable() : true
           }},
-          "redo": {name: "Redo", disabled: function() {
+          "redo": {name: "Redo", disabled: function () {
             return priv.undoRedo ? !priv.undoRedo.isRedoAvailable() : true
           }},
           "sep1": "---------",
@@ -1690,7 +1690,7 @@
         });
       }
 
-      self.container.on("datachange.handsontable", function(event, changes) {
+      self.container.on("datachange.handsontable", function (event, changes) {
         if (priv.settings.onChange) {
           priv.settings.onChange(changes);
         }
@@ -1704,7 +1704,7 @@
      * @param col {Number}
      * @param value {String}
      */
-    this.setDataAtCell = function(row, col, value) {
+    this.setDataAtCell = function (row, col, value) {
       if (priv.settings.minSpareRows) {
         while (row > priv.rowCount - 1) {
           datamap.createRow();
@@ -1718,22 +1718,20 @@
         }
       }
       var td = grid.getCellAtCoords({row: row, col: col});
-      if (grid.isCellWriteable($(td))) {
-        switch (typeof value) {
-          case 'string':
-            break;
+      switch (typeof value) {
+        case 'string':
+          break;
 
-          case 'number':
-            value += '';
-            break;
+        case 'number':
+          value += '';
+          break;
 
-          default:
-            value = '';
-        }
-        td.innerHTML = value.replace(/\n/g, '<br/>');
-        datamap.set(row, col, value);
-        grid.updateLegend({row: row, col: col});
+        default:
+          value = '';
       }
+      td.innerHTML = value.replace(/\n/g, '<br/>');
+      datamap.set(row, col, value);
+      grid.updateLegend({row: row, col: col});
       return td;
     };
 
@@ -1742,7 +1740,7 @@
      * @public
      * @param {Array} data
      */
-    this.loadData = function(data) {
+    this.loadData = function (data) {
       priv.isPopulated = false;
       datamap.clear();
       grid.clear();
@@ -1758,7 +1756,7 @@
      * @public
      * @return {Array}
      */
-    this.getData = function() {
+    this.getData = function () {
       return datamap.getAll();
     };
 
@@ -1766,7 +1764,7 @@
      * Update settings
      * @public
      */
-    this.updateSettings = function(settings) {
+    this.updateSettings = function (settings) {
       for (var i in settings) {
         if (settings.hasOwnProperty(i)) {
           priv.settings[i] = settings[i];
@@ -1782,7 +1780,7 @@
      * Clears grid
      * @public
      */
-    this.clear = function() {
+    this.clear = function () {
       selection.selectAll();
       selection.empty();
     };
@@ -1794,7 +1792,7 @@
      * @param {Number} [to] Optional. Used only for actions "remove_row" and "remove_col"
      * @public
      */
-    this.alter = function(action, from, to) {
+    this.alter = function (action, from, to) {
       if (typeof to === "undefined") {
         to = from;
       }
@@ -1819,7 +1817,7 @@
      * @public
      * @return {Element}
      */
-    this.getCell = function(row, col) {
+    this.getCell = function (row, col) {
       return grid.getCellAtCoords({row: row, col: col});
     };
 
@@ -1863,7 +1861,7 @@
        * Show border around one or many cells
        * @param {Object[]} coordsArr
        */
-      appear: function(coordsArr) {
+      appear: function (coordsArr) {
         var $from, $to, fromOffset, toOffset, containerOffset, top, minTop, left, minLeft, height, width;
 
         this.corners = grid.getCornerCoords(coordsArr);
@@ -1931,7 +1929,7 @@
       /**
        * Hide border
        */
-      disappear: function() {
+      disappear: function () {
         this.main.style.display = 'none';
         if (this.bg) {
           this.bg.style.display = 'none';
@@ -1955,7 +1953,7 @@
       container.appendChild(this.handle);
 
       var that = this;
-      $(this.handle).mousedown(function() {
+      $(this.handle).mousedown(function () {
         that.isDragged = 1;
       });
     }
@@ -1965,7 +1963,7 @@
        * Show handle in cell corner
        * @param {Object[]} coordsArr
        */
-      appear: function(coordsArr) {
+      appear: function (coordsArr) {
         var $td, tdOffset, containerOffset, top, left, height, width;
 
         var corners = grid.getCornerCoords(coordsArr);
@@ -1987,7 +1985,7 @@
       /**
        * Hide handle
        */
-      disappear: function() {
+      disappear: function () {
         this.handle.style.display = 'none';
       }
     };
@@ -2005,11 +2003,11 @@
     'undo': true
   };
 
-  $.fn.handsontable = function(action, options) {
+  $.fn.handsontable = function (action, options) {
     var i, ilen, args, output = [];
     if (typeof action !== 'string') { //init
       options = action;
-      return this.each(function() {
+      return this.each(function () {
         var $this = $(this);
         if ($this.data("handsontable")) {
           instance = $this.data("handsontable");
@@ -2033,7 +2031,7 @@
           args.push(arguments[i]);
         }
       }
-      this.each(function() {
+      this.each(function () {
         output = $(this).data("handsontable")[action].apply(this, args);
       });
       return output;
@@ -2046,14 +2044,14 @@ var handsontable = {}; //plugin namespace
 /**
  * Handsontable UndoRedo extension
  */
-handsontable.UndoRedo = function(instance) {
+handsontable.UndoRedo = function (instance) {
   var that = this;
 
   this.data = [];
   this.rev = -1;
   this.instance = instance;
 
-  instance.container.on("datachange.handsontable", function(event, changes, origin) {
+  instance.container.on("datachange.handsontable", function (event, changes, origin) {
     if (origin !== 'undo' && origin !== 'redo') {
       that.add(changes);
     }
@@ -2063,7 +2061,7 @@ handsontable.UndoRedo = function(instance) {
 /**
  * Undo operation from current revision
  */
-handsontable.UndoRedo.prototype.undo = function() {
+handsontable.UndoRedo.prototype.undo = function () {
   var i, ilen, tmp;
   if (this.isUndoAvailable()) {
     var changes = $.extend(true, [], this.data[this.rev]); //deep clone
@@ -2082,7 +2080,7 @@ handsontable.UndoRedo.prototype.undo = function() {
 /**
  * Redo operation from current revision
  */
-handsontable.UndoRedo.prototype.redo = function() {
+handsontable.UndoRedo.prototype.redo = function () {
   var i, ilen;
   if (this.isRedoAvailable()) {
     this.rev++;
@@ -2099,7 +2097,7 @@ handsontable.UndoRedo.prototype.redo = function() {
  * Returns true if undo point is available
  * @return {Boolean}
  */
-handsontable.UndoRedo.prototype.isUndoAvailable = function() {
+handsontable.UndoRedo.prototype.isUndoAvailable = function () {
   return (this.rev > 0);
 };
 
@@ -2107,7 +2105,7 @@ handsontable.UndoRedo.prototype.isUndoAvailable = function() {
  * Returns true if redo point is available
  * @return {Boolean}
  */
-handsontable.UndoRedo.prototype.isRedoAvailable = function() {
+handsontable.UndoRedo.prototype.isRedoAvailable = function () {
   return (this.rev < this.data.length - 1);
 };
 
@@ -2115,7 +2113,7 @@ handsontable.UndoRedo.prototype.isRedoAvailable = function() {
  * Add new history poins
  * @param changes
  */
-handsontable.UndoRedo.prototype.add = function(changes) {
+handsontable.UndoRedo.prototype.add = function (changes) {
   this.rev++;
   this.data.splice(this.rev); //if we are in point abcdef(g)hijk in history, remove everything after (g)
   this.data.push(changes);
