@@ -1304,15 +1304,6 @@
         priv.editProxy.on('keyup', onKeyUp);
         priv.editProxy.on('change', onChange);
         container.append(priv.editProxyHolder);
-
-        if (priv.settings.autoComplete) {
-          priv.editProxy.typeahead({
-            updater: function (item) {
-              priv.lastAutoComplete = item;
-              return item
-            }
-          });
-        }
       },
 
       /**
@@ -1325,6 +1316,15 @@
 
         if (priv.settings.autoComplete) {
           var typeahead = priv.editProxy.data('typeahead');
+          if(!typeahead) {
+            priv.editProxy.typeahead({
+              updater: function (item) {
+                priv.lastAutoComplete = item;
+                return item
+              }
+            });
+            typeahead = priv.editProxy.data('typeahead');
+          }
           typeahead.source = [];
           for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
             if (priv.settings.autoComplete[i].match(priv.selStart.row, priv.selStart.col, self.getData)) {
