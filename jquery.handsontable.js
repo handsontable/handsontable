@@ -1134,6 +1134,7 @@
         }
 
         function onKeyDown(event) {
+          priv.lastKeyCode = event.keyCode;
           if (selection.isSelected()) {
             var ctrlOnly = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
             if ((event.keyCode >= 48 && event.keyCode <= 57) || //0-9
@@ -1183,7 +1184,9 @@
                     selection.transformEnd(0, 1);
                   }
                   else {
-                    editproxy.finishEditing(false, 0, 1);
+                    if (!isAutoComplete()) {
+                      editproxy.finishEditing(false, 0, 1);
+                    }
                   }
                   event.preventDefault();
                 }
@@ -1211,7 +1214,7 @@
 
               case 27: /* ESC */
               case 113: /* F2 */
-              case 13: /* return */
+              case 13: /* return/enter */
               case 40: /* arrow down */
                 if (!priv.isCellEdited) {
                   if (event.keyCode === 113 || event.keyCode === 13) {
@@ -1292,7 +1295,12 @@
             var val = priv.editProxy.val();
             if (val !== lastChange && val === priv.lastAutoComplete) { //is it change from source (don't trigger on partial)
               priv.isCellEdited = true;
-              editproxy.finishEditing(false, 1, 0);
+              if (priv.lastKeyCode === 9) { //tab
+                editproxy.finishEditing(false, 0, 1);
+              }
+              else { //return/enter
+                editproxy.finishEditing(false, 1, 0);
+              }
             }
             lastChange = val;
           }
