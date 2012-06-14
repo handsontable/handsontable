@@ -1137,9 +1137,11 @@
           priv.lastKeyCode = event.keyCode;
           if (selection.isSelected()) {
             var ctrlOnly = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-            if ((event.keyCode >= 48 && event.keyCode <= 57) || //0-9
+            if ((event.keyCode == 32) || //space
+                (event.keyCode >= 48 && event.keyCode <= 57) || //0-9
                 (event.keyCode >= 96 && event.keyCode <= 111) || //numpad
                 (event.keyCode >= 186 && event.keyCode <= 192) || //;=,-./`
+                (event.keyCode >= 219 && event.keyCode <= 222) || //[]{}\|"'
                 (event.keyCode >= 65 && event.keyCode <= 90)) { //a-z
               /* alphanumeric */
               if (!ctrlOnly) { //disregard CTRL-key shortcuts
@@ -1252,20 +1254,24 @@
                 break;
 
               case 36: /* home */
-                if (event.ctrlKey || event.metaKey) {
-                  rangeModifier(grid.getCellAtCoords({row: 0, col: priv.selStart.col}));
-                }
-                else {
-                  rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: 0}));
+                if (!priv.isCellEdited) {
+                  if (event.ctrlKey || event.metaKey) {
+                    rangeModifier(grid.getCellAtCoords({row: 0, col: priv.selStart.col}));
+                  }
+                  else {
+                    rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: 0}));
+                  }
                 }
                 break;
 
               case 35: /* end */
-                if (event.ctrlKey || event.metaKey) {
-                  rangeModifier(grid.getCellAtCoords({row: priv.rowCount - 1, col: priv.selStart.col}));
-                }
-                else {
-                  rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: priv.colCount - 1}));
+                if (!priv.isCellEdited) {
+                  if (event.ctrlKey || event.metaKey) {
+                    rangeModifier(grid.getCellAtCoords({row: priv.rowCount - 1, col: priv.selStart.col}));
+                  }
+                  else {
+                    rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: priv.colCount - 1}));
+                  }
                 }
                 break;
 
