@@ -1712,11 +1712,12 @@
     /**
      * Set data at given cell
      * @public
-     * @param row {Number}
-     * @param col {Number}
-     * @param value {String}
+     * @param {Number} row
+     * @param {Number} col
+     * @param {String} value
+     * @param {Boolean} allowHtml
      */
-    this.setDataAtCell = function (row, col, value) {
+    this.setDataAtCell = function (row, col, value, allowHtml) {
       if (priv.settings.minSpareRows) {
         while (row > priv.rowCount - 1) {
           datamap.createRow();
@@ -1741,7 +1742,11 @@
         default:
           value = '';
       }
-      td.innerHTML = value.replace(/\n/g, '<br/>').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
+      var html = value.replace(/\n/g, '<br/>');
+      if(!allowHtml) {
+        html = html.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
+      }
+      td.innerHTML = html;
       datamap.set(row, col, value);
       grid.updateLegend({row: row, col: col});
       return td;
