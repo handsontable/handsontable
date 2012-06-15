@@ -1740,7 +1740,7 @@
         default:
           value = '';
       }
-      td.innerHTML = value.replace(/\n/g, '<br/>');
+      td.innerHTML = value.replace(/\n/g, '<br/>').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
       datamap.set(row, col, value);
       grid.updateLegend({row: row, col: col});
       return td;
