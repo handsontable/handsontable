@@ -50,8 +50,8 @@ Maybe you want to show some default data. Use the `handsontable('loadData', data
 ---------------------------------------------------------------------------------------|-------------|-------------
  handsontable(options)                                                                 | Constructor | Accepts configuration object (see **Options**)
  handsontable('updateSettings', options)                                               | Method      | Use it if you need to change configuration after initialization
- handsontable('loadData', data)                                                        | Method      | Reset all cells in the grid to contain data from the `data` array
- handsontable('setDataAtCell',&nbsp;row,&nbsp;col,&nbsp;value,&nbsp;[allowHtml=false]) | Method      | Set new value to a cell [any HTML in value is escaped unless you set allowHtml to true]
+ handsontable('loadData', data, [allowHtml=false])                                     | Method      | Reset all cells in the grid to contain data from the `data` array. Any HTML in `data` is escaped unless you set `allowHtml` to true
+ handsontable('setDataAtCell',&nbsp;row,&nbsp;col,&nbsp;value,&nbsp;[allowHtml=false]) | Method      | Set new value to a cell. Any HTML in `value` is escaped unless you set `allowHtml` to true
  handsontable('clear')                                                                 | Method      | Empty all cells
  handsontable('getData')                                                               | Method      | Return 2-dimensional array with the current grid data
  handsontable('alter', 'insert_row', index)                                            | Method      | Insert new row above the row at given index

@@ -503,10 +503,11 @@
        * Populate cells at position with 2d array
        * @param {Object} start Start selection position
        * @param {Array} input 2d array
-       * @param {Object} end End selection position (only for drag-down mode)
+       * @param {Object} [end] End selection position (only for drag-down mode)
+       * @param {Boolean} [allowHtml]
        * @return {Object} ending td in pasted area
        */
-      populateFromArray: function (start, input, end) {
+      populateFromArray: function (start, input, end, allowHtml) {
         var r, rlen, c, clen, td, endTd, changes = [], current = {};
         rlen = input.length;
         if (rlen === 0) {
@@ -551,7 +552,7 @@
           if (changes[i][3] === false) {
             continue;
           }
-          endTd = self.setDataAtCell(changes[i][0], changes[i][1], changes[i][3]);
+          endTd = self.setDataAtCell(changes[i][0], changes[i][1], changes[i][3], allowHtml);
         }
         if (changes.length) {
           self.container.triggerHandler("datachange.handsontable", [changes, 'populateFromArray']);
@@ -1715,7 +1716,7 @@
      * @param {Number} row
      * @param {Number} col
      * @param {String} value
-     * @param {Boolean} allowHtml
+     * @param {Boolean} [allowHtml]
      */
     this.setDataAtCell = function (row, col, value, allowHtml) {
       if (priv.settings.minSpareRows) {
@@ -1743,7 +1744,7 @@
           value = '';
       }
       var html = value.replace(/\n/g, '<br/>');
-      if(!allowHtml) {
+      if (!allowHtml) {
         html = html.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
       }
       td.innerHTML = html;
@@ -1756,15 +1757,16 @@
      * Load data from array
      * @public
      * @param {Array} data
+     * @param {Boolean} [allowHtml]
      */
-    this.loadData = function (data) {
+    this.loadData = function (data, allowHtml) {
       priv.isPopulated = false;
       datamap.clear();
       grid.clear();
       grid.populateFromArray({
         row: 0,
         col: 0
-      }, data);
+      }, data, null, allowHtml);
       priv.isPopulated = true;
     };
 
