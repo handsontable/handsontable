@@ -1142,6 +1142,7 @@
                 (event.keyCode >= 96 && event.keyCode <= 111) || //numpad
                 (event.keyCode >= 186 && event.keyCode <= 192) || //;=,-./`
                 (event.keyCode >= 219 && event.keyCode <= 222) || //[]{}\|"'
+                event.keyCode >= 226 || //special chars (229 for Asian chars)
                 (event.keyCode >= 65 && event.keyCode <= 90)) { //a-z
               /* alphanumeric */
               if (!ctrlOnly) { //disregard CTRL-key shortcuts
