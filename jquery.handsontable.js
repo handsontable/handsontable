@@ -1810,7 +1810,7 @@
      * @param {Boolean} [allowHtml]
      */
     this.setDataAtCell = function (row, col, value, allowHtml) {
-      var refresh;
+      var refresh, escaped;
       if (priv.settings.minSpareRows) {
         refresh = false;
         while (row > self.rowCount - 1) {
@@ -1845,11 +1845,10 @@
         default:
           value = '';
       }
-      var html = value.replace(/\n/g, '<br/>');
       if (!allowHtml) {
-        html = html.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
+        escaped = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
       }
-      td.innerHTML = html;
+      td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
       datamap.set(row, col, value);
       grid.updateLegend({row: row, col: col});
       return td;
