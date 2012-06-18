@@ -30,8 +30,10 @@ $(function () {
       rows: 5,
       cols: 5,
 
-      fillHandle: false,
-      //fillHandle can be turned off
+      rowHeaders: true,
+      colHeaders: true,
+
+      fillHandle: false, //fillHandle can be turned off
 
       contextMenu: ["row_above", "row_below", "remove_row"],
       //contextMenu will only allow inserting and removing rows
@@ -45,8 +47,7 @@ $(function () {
             color: 'green', //make the text green and bold
             fontWeight: 'bold'
           },
-          title: 'Heading', //make some tooltip
-          readOnly: true //make it read-only
+          title: 'Heading' //make some tooltip
         },
         {
           match: function (row, col, data) {
@@ -75,25 +76,27 @@ $(function () {
      */
     $("#example3grid").handsontable({
       rows: 7,
-      cols: 5,
+      cols: 4,
+      rowHeaders: false, //turn off 1, 2, 3, ...
+      colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
       legend: [
         {
           match: function (row, col, data) {
-            return (row === 0); //if it is first row
+            if (col == 0 || col == 2 || col == 3) {
+              return true;
+            }
+            return false;
           },
           style: {
-            color: '#666', //make the text gray and bold
-            fontWeight: 'bold'
+            fontStyle: 'italic' //make the text italic
           },
-          title: 'Heading', //make some tooltip
-          readOnly: true //make it read-only
+          title: "Type to show the list of options"
         }
       ],
       autoComplete: [
         {
           match: function (row, col, data) {
-            if (data()[0][col].indexOf("color") > -1) {
-              //if column name contains word "color"
+            if (col == 2 || col == 3) {
               return true;
             }
             return false;
@@ -121,7 +124,6 @@ $(function () {
     });
 
     var data = [
-      ["Car", "Year", "Chassis color", "Bumper color"],
       ["Nissan", 2009, "black", "black"],
       ["Nissan", 2006, "blue", "blue"],
       ["Chrysler", 2004, "yellow", "black"],
@@ -137,6 +139,8 @@ $(function () {
     $("#example4grid").handsontable({
       rows: 40,
       cols: 40,
+      rowHeaders: true,
+      colHeaders: true,
       minSpareCols: 1, //always keep at least 1 spare row at the right
       minSpareRows: 1 //always keep at least 1 spare row at the bottom
     });
@@ -157,6 +161,8 @@ $(function () {
     $("#example5grid").handsontable({
       rows: 8,
       cols: 8,
+      rowHeaders: true,
+      colHeaders: true,
       minSpareCols: 1,
       minSpareRows: 1,
       fillHandle: true //possible values: true, false, "horizontal", "vertical"
@@ -179,6 +185,8 @@ $(function () {
     $("#example6grid").handsontable({
       rows: 8,
       cols: 8,
+      rowHeaders: true,
+      colHeaders: true,
       minSpareCols: 1,
       minSpareRows: 1,
       contextMenu: true,
@@ -223,6 +231,8 @@ $(function () {
     $("#example7grid").handsontable({
       rows: 5,
       cols: 5,
+      rowHeaders: true,
+      colHeaders: true,
       minSpareCols: 1,
       minSpareRows: 1,
       contextMenu: true
@@ -236,8 +246,6 @@ $(function () {
     ];
 
     $("#example7grid").handsontable("loadData", data);
-
-
   }
 
   loadExamples();
@@ -252,5 +260,4 @@ $(function () {
     $this.find('a[href~=#' + $this.attr('id').replace('container', '') + ']').addClass('active');
   });
   examplesList.remove();
-})
-;
+});

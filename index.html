@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html xmlns="http://www.w3.org/1999/html">
 <head>
   <meta charset='utf-8'>
   <title>Handsontable - jQuery grid editor. Excel-like grid editing with HTML &amp; JavaScript</title>
@@ -40,7 +40,8 @@
 <h1><a href="index.html">Handsontable</a></h1>
 
 <div class="description">
-  Handsontable is a minimalistic (60 KB unminified) approach to Excel-like table editor in HTML &amp; jQuery
+  Handsontable is a minimalistic (70 KB unminified) approach to Excel-like table editor in HTML &amp; jQuery.
+  <strong>Now with column and row headers!</strong>
 </div>
 
 <h2 id="demos">Demos</h2>
@@ -117,8 +118,11 @@
   <div class="pad">
     <h3>Legend</h3>
 
-    <p>The <b>legend</b> feature, which makes the first row uneditable and have an
+    <p>The <b>legend</b> feature, which makes the first row have an
       <span style="color: green; font-weight: bold">green</span> font.</p>
+
+    <p>In the below example, the <strong>column</strong> (A, B, C) and <strong>row</strong> (1, 2, 3) headers are on.
+    </p>
 
     <div id="example2grid" class="dataTable"></div>
 
@@ -131,8 +135,10 @@
     rows: 5,
     cols: 5,
 
-    fillHandle: false,
-    //fillHandle can be turned off
+    rowHeaders: true,
+    colHeaders: true,
+
+    fillHandle: false, //fillHandle can be turned off
 
     contextMenu: ["row_above", "row_below", "remove_row"],
     //contextMenu will only allow inserting and removing rows
@@ -146,13 +152,12 @@
           color: 'green', //make the text green and bold
           fontWeight: 'bold'
         },
-        title: 'Heading', //make some tooltip
-        readOnly: true //make it read-only
+        title: 'Heading' //make some tooltip
       },
       {
         match: function (row, col, data) {
           //if first row in this column contains word "Nissan"
-          return (row &gt; 0 && data()[0][col].indexOf('Nissan') &gt; -1);
+          return (row &gt; 0 &amp;&amp; data()[0][col].indexOf('Nissan') &gt; -1);
         },
         style: {
           fontStyle: 'italic' //make cells text in this column written in italic
@@ -194,35 +199,37 @@
 &lt;script&gt;
   $("#example3grid").handsontable({
     rows: 7,
-    cols: 5,
+    cols: 4,
+    rowHeaders: false, //turn off 1, 2, 3, ...
+    colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
     legend: [
       {
         match: function (row, col, data) {
-          return (row === 0); //if it is first row
+          if (col == 0 || col == 2 || col == 3) {
+            return true;
+          }
+          return false;
         },
         style: {
-          color: '#666', //make the text gray and bold
-          fontWeight: 'bold'
+          fontStyle: 'italic' //make the text italic
         },
-        title: 'Heading', //make some tooltip
-        readOnly: true //make it read-only
+        title: "Type to show the list of options"
       }
     ],
     autoComplete: [
       {
         match: function (row, col, data) {
-          if (data()[0][col].indexOf("color") > -1) {
-            //if column name contains word "color"
+          if (col == 2 || col == 3) {
             return true;
           }
           return false;
         },
         highlighter: function (item) {
-          var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
+          var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&amp;');
           var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
             return '&lt;strong&gt;' + match + '&lt;/strong&gt;';
           });
-          return '&lt;span style="margin-right: 10px; background-color: ' + item + '"&gt;&nbsp;&nbsp;&nbsp;&lt;/span&gt;' + label;
+          return '&lt;span style="margin-right: 10px; background-color: ' + item + '"&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;/span&gt;' + label;
         },
         source: function () {
           return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
@@ -240,7 +247,6 @@
   });
 
   var data = [
-    ["Car", "Year", "Chassis color", "Bumper color"],
     ["Nissan", 2009, "black", "black"],
     ["Nissan", 2006, "blue", "blue"],
     ["Chrysler", 2004, "yellow", "black"],
@@ -271,6 +277,8 @@
   $("#example4grid").handsontable({
     rows: 40,
     cols: 40,
+    rowHeaders: true,
+    colHeaders: true,
     minSpareCols: 1, //always keep at least 1 spare row at the right
     minSpareRows: 1 //always keep at least 1 spare row at the bottom
   });
@@ -308,6 +316,8 @@
   $("#example5grid").handsontable({
     rows: 8,
     cols: 8,
+    rowHeaders: true,
+    colHeaders: true,
     minSpareCols: 1,
     minSpareRows: 1,
     fillHandle: true //possible values: true, false, "horizontal", "vertical"
@@ -343,6 +353,8 @@
   $("#example7grid").handsontable({
     rows: 5,
     cols: 5,
+    rowHeaders: true,
+    colHeaders: true,
     minSpareCols: 1,
     minSpareRows: 1,
     contextMenu: true
@@ -392,11 +404,13 @@
   $("#example6grid").handsontable({
     rows: 8,
     cols: 8,
+    rowHeaders: true,
+    colHeaders: true,
     minSpareCols: 1,
     minSpareRows: 1,
     contextMenu: true,
     onBeforeChange: function (data) {
-      for (var i = 0, ilen = data.length; i < ilen; i++) {
+      for (var i = 0, ilen = data.length; i &lt; ilen; i++) {
         if (data[i][3] === "foo") {
           //gently don't accept the word "foo"
           data[i][3] = false;

@@ -9,7 +9,7 @@
 }
 
 .dataTable table {
-  border-collapse: collapse;
+  border-collapse: separate;
   position: relative;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -21,6 +21,7 @@
   border-left: 1px solid #CCC;
 }
 
+.dataTable th,
 .dataTable td {
   border-right: 1px solid #CCC;
   border-bottom: 1px solid #CCC;
@@ -28,6 +29,23 @@
   width: 50px;
   height: 22px;
   padding: 0 4px 0 4px;
+}
+
+.dataTable th {
+  background-color: #EEE;
+  font-size: 12px;
+  color: #222;
+  text-align: center;
+  font-weight: normal;
+  white-space: nowrap;
+}
+
+.dataTable thead th {
+  padding: 4px;
+}
+
+.dataTable th.active {
+  background-color: #CCC;
 }
 
 /* border background */

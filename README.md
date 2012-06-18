@@ -58,7 +58,9 @@ Maybe you want to show some default data. Use the `handsontable('loadData', data
  handsontable('alter', 'insert_col', index)                                            | Method      | Insert new column before the column at given index
  handsontable('alter',&nbsp;'remove_row',&nbsp;index,&nbsp;[toIndex])                  | Method      | Remove the row at given index [optionally to another index]
  handsontable('alter',&nbsp;'remove_col',&nbsp;index,&nbsp;[toIndex])                  | Method      | Remove the column at given index [optionally to another index]
- handsontable('getCell', row, col)                                                     | Method      | Return &lt;td&gt; element for given row, col
+ handsontable('getCell', row, col)                                                     | Method      | Return &lt;td&gt; element for given `row,col`
+ handsontable('selectCell', r, c, [r2, c2, scrollToSelection=true])                    | Method      | Select cell `r,c` or range finishing at `r2,c2`. By default, viewport will be scrolled to selection
+ handsontable('deselectCell')                                                          | Method      | Deselect current selection
 
 ## Options
 
@@ -68,6 +70,8 @@ The table below presents configuration options that are interpreted by `handsont
 ------------------|-------------------|-------------|-------------
  `rows`           | Number            | 5           | Initial number of rows
  `cols`           | Number            | 5           | Initial number of columns
+ `rowHeaders`     | Boolean/Array     | false       | Defines if the row headers (1, 2, 3, ...) should be displayed. You can just set it to `true` or specify custom a array `["First", "Second", "Third", ...]`
+ `colHeaders`     | Boolean/Array     | false       | Defines if the column headers (A, B, C, ...) should be displayed. You can just set it to `true` or specify custom a array `["First Name", "Last Name", "Address", ...]`
  `minWidth`       | Number            | 0           | Handsontable will add as many columns as needed to meet the given width in pixels
  `minHeight`      | Number            | 0           | Handsontable will add as many rows as needed to meet the given height in pixels
  `minSpareCols`   | Number            | 0           | When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns
@@ -102,14 +106,6 @@ legend: [
     },
     title: 'Heading', //make some tooltip
     readOnly: true //make it read-only
-  },
-  {
-    match: function (row, col, data) {
-      return (row > 0 && data()[0][col].indexOf('color') > 0); //if first cell in this column contains word "color"
-    },
-    style: {
-      fontStyle: 'italic' //make cells text in this column written in italic
-    }
   }
 ```
 
