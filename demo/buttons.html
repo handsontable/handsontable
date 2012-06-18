@@ -41,10 +41,12 @@
 
   <h2>Custom buttons</h2>
 
-  <p>The <b>alter</b> method can be used if you want insert or remove rows and columns using external buttons.
-    The below example uses the <b>onChange</b> method to add a button that removes a row.</p>
+  <p>The <b>alter</b> method can be used if you want to insert or remove rows and columns using external buttons.
+    The below example uses the <b>onChange</b> method to implement a custom <strong>remove row</strong> button. Move your mouse to see it.</p>
 
-  <p>Move your mouse cursor over a cell to see the button.</p>
+  <p>You can programically select a cell using the <b>selectCell</b> method. The below button implements it.</p>
+
+  <button id="selectFirst">Select first cell</button>
 
   <div id="exampleGrid" class="dataTable"></div>
 
@@ -80,6 +82,10 @@
 
     #exampleGrid .cellRelative .btnContainer .btn:hover {
       background-color: #777;
+    }
+
+    #selectFirst {
+      margin: 10px 0 20px 20px;
     }
   </style>
   <script>
@@ -132,6 +138,14 @@
     ];
 
     container.handsontable("loadData", data);
+
+    $("button#selectFirst").on('click', function () {
+      setTimeout(function () {
+        //timeout is needed because Handsontable normally deselects
+        //current cell when you click outside the table
+        container.handsontable("selectCell", 0, 0);
+      }, 10);
+    });
   </script>
 
   <h3>About</h3>
