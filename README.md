@@ -44,6 +44,12 @@ Maybe you want to show some default data. Use the `handsontable('loadData', data
 </script>
 ```
 
+## Changelog
+
+18 Jun 2012 - feature: row and column headers (`rowHeaders`, `colHeaders`); new public methods `selectCell`, `deselectCell`  
+15 Jun 2012 - new parameter `allowHtml` to public methods `setDataAtCell`, `loadData`  
+04 Jun 2012 - feature: undo/redo  
+
 ## Methods
 
   Option                                                                               | Role        | Description
