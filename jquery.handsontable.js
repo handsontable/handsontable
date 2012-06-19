@@ -1586,7 +1586,8 @@
       }
 
       if (priv.colHeaderCount && priv.rowHeaderCount) {
-        priv.cornerHeader = $('<div style="position: absolute; top: 0; left: 0; width: 50px;"><table cellspacing="0" cellpadding="0"><thead><tr><th>&nbsp;</th></tr></thead></table></div>');
+        var position = self.table.position();
+        priv.cornerHeader = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px; width: 50px;"><table cellspacing="0" cellpadding="0"><thead><tr><th>&nbsp;</th></tr></thead></table></div>');
         priv.cornerHeader.on('click', function () {
           selection.selectAll();
         });
@@ -2255,7 +2256,8 @@ handsontable.ColumnHeader = function (instance, labels, offset) {
   this.labels = labels || [];
   this.offset = offset || 0;
   this.create();
-  this.main = $('<div style="position: absolute; top: 0; left: 0"><table cellspacing="0" cellpadding="0"><thead><tr></tr></thead></table></div>');
+  var position = instance.table.position();
+  this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table cellspacing="0" cellpadding="0"><thead><tr></tr></thead></table></div>');
   this.main.on('mousedown', 'th', function () {
     that.instance.deselectCell();
     this.className = 'active';
@@ -2360,7 +2362,8 @@ handsontable.RowHeader = function (instance, labels, offset) {
   if (this.offset) {
     offsetStr = '<thead><tr><th>&nbsp;</th></tr></thead>';
   }
-  this.main = $('<div style="position: absolute; top: 0; left: 0; width: 50px;"><table cellspacing="0" cellpadding="0">' + offsetStr + '<tbody></tbody></table></div>');
+  var position = instance.table.position();
+  this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px; width: 50px;"><table cellspacing="0" cellpadding="0">' + offsetStr + '<tbody></tbody></table></div>');
   this.main.on('mousedown', 'th', function () {
     that.instance.deselectCell();
     this.className = 'active';
