@@ -1391,19 +1391,6 @@
         var editTop = currentOffset.top - containerOffset.top + container.scrollTop() - 1;
         var editLeft = currentOffset.left - containerOffset.left + container.scrollLeft() - 1;
 
-        if (!$.browser.mozilla) {
-          if ($.browser.msie) {
-            if (parseInt(($.browser.version)) < 8) {
-              editTop -= 2;
-            }
-            else if (parseInt(($.browser.version)) === 8) {
-              editTop -= 1;
-            }
-          }
-          editTop += 1;
-          editLeft += 1;
-        }
-
         priv.editProxyHolder.addClass('htHidden');
         priv.editProxyHolder.css({
           top: editTop,
@@ -2025,16 +2012,6 @@
 
         top = minTop - containerOffset.top + this.$container.scrollTop() - 1;
         left = minLeft - containerOffset.left + this.$container.scrollLeft() - 1;
-
-        if (!$.browser.mozilla) {
-          if ($.browser.msie) {
-            if (parseInt(($.browser.version)) < 9) {
-              top -= 1;
-            }
-          }
-          top += 1;
-          left += 1;
-        }
 
         if (top < 0) {
           top = 0;
