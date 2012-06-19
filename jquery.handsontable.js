@@ -341,18 +341,30 @@
        * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all cols will be removed
        */
       removeCol: function (coords, toCoords) {
-        var trs = priv.tableBody.childNodes;
+        var trs = priv.tableBody.childNodes, colThs, i;
+        if (priv.colHeaderCount) {
+          colThs = self.table.find('thead th');
+        }
         var r = 0;
         if (!coords || coords.col === self.colCount - 1) {
           for (; r < self.rowCount; r++) {
             $(trs[r].childNodes[self.colCount + priv.rowHeaderCount - 1]).remove();
+            if (colThs) {
+              colThs.eq(self.colCount + priv.rowHeaderCount - 1).remove();
+            }
           }
           self.colCount--;
         }
         else {
           for (; r < self.rowCount; r++) {
-            for (var i = toCoords.col; i >= coords.col; i--) {
+            for (i = toCoords.col; i >= coords.col; i--) {
               $(trs[r].childNodes[i + priv.rowHeaderCount]).remove();
+
+            }
+          }
+          if (colThs) {
+            for (i = toCoords.col; i >= coords.col; i--) {
+              colThs.eq(i + priv.rowHeaderCount).remove();
             }
           }
           self.colCount -= toCoords.col - coords.col + 1;
