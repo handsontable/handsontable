@@ -1577,12 +1577,14 @@
         priv.isMouseOverTable = false;
       }
 
-      self.table = $('<table cellspacing="0" cellpadding="0"><thead></thead><tbody></tbody></table>');
+      var div = $('<div><table cellspacing="0" cellpadding="0"><thead></thead><tbody></tbody></table></div>');
+      priv.tableContainer = div[0];
+      self.table = $(priv.tableContainer.firstChild);
       priv.tableBody = self.table.find("tbody")[0];
       self.table.on('mousedown', 'td', interaction.onMouseDown);
       self.table.on('mouseover', 'td', interaction.onMouseOver);
       self.table.on('dblclick', 'td', interaction.onDblClick);
-      container.append(self.table);
+      container.append(div);
 
       self.colCount = priv.settings.cols;
       self.rowCount = 0;
@@ -1618,19 +1620,8 @@
       }
       editproxy.init();
 
-      self.table.on('mouseenter', onMouseEnterTable);
-      self.table.on('mouseleave', onMouseLeaveTable);
-      priv.editProxy.on('mouseenter', onMouseEnterTable);
-      priv.editProxy.on('mouseleave', onMouseLeaveTable);
-      if (priv.fillHandle) {
-        $(priv.fillHandle.handle).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
-        $(priv.fillBorder.main).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
-      }
-      $(priv.selectionBorder.main).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
-      $(priv.currentBorder.main).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable).on('dblclick', interaction.onDblClick);
-      priv.rowHeader && $(priv.rowHeader.main).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
-      priv.columnHeader && $(priv.columnHeader.main).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
-      priv.cornerHeader && $(priv.cornerHeader).on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
+      container.on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
+      $(priv.currentBorder.main).on('dblclick', interaction.onDblClick);
 
       function onMouseUp() {
         priv.isMouseDown = false;
@@ -1642,9 +1633,9 @@
         }
       }
 
-      function onOutsideClick() {
+      function onOutsideClick(event) {
         setTimeout(function () {//do async so all mouseenter, mouseleave events will fire before
-          if (!priv.isMouseOverTable) {
+          if (!priv.isMouseOverTable || event.target === priv.tableContainer) { //if clicked outside the table or directly at container which also means outside
             selection.deselect();
           }
         }, 1);
@@ -1982,7 +1973,7 @@
       if (options.bg) {
         this.bg = document.createElement("div");
         this.bg.className = 'htBorderBg ' + options.className;
-        container.insertBefore(this.bg, container.getElementsByTagName('table')[0]);
+        container.insertBefore(this.bg, container.firstChild);
       }
 
       this.main = document.createElement("div");
