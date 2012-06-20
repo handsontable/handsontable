@@ -1405,8 +1405,7 @@
         priv.editProxyHolder.css({
           top: editTop,
           left: editLeft,
-          overflow: 'hidden',
-          zIndex: 1
+          overflow: 'hidden'
         });
         priv.editProxy.css({
           width: '1000px',
@@ -1475,8 +1474,7 @@
         }
         priv.editProxyHolder.removeClass('htHidden');
         priv.editProxyHolder.css({
-          overflow: 'visible',
-          zIndex: 4
+          overflow: 'visible'
         });
 
         if (priv.settings.autoComplete) {
@@ -1589,14 +1587,6 @@
 
       grid.keepEmptyRows();
 
-      if (priv.settings.colHeaders) {
-        this.updateSettings({colHeaders: priv.settings.colHeaders});
-      }
-
-      if (priv.settings.rowHeaders) {
-        this.updateSettings({rowHeaders: priv.settings.rowHeaders});
-      }
-
       highlight.init();
       priv.currentBorder = new Border(container, {
         className: 'current',
@@ -1606,6 +1596,14 @@
         autofill.init();
       }
       editproxy.init();
+
+      if (priv.settings.colHeaders) {
+        this.updateSettings({colHeaders: priv.settings.colHeaders});
+      }
+
+      if (priv.settings.rowHeaders) {
+        this.updateSettings({rowHeaders: priv.settings.rowHeaders});
+      }
 
       container.on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
       $(priv.currentBorder.main).on('dblclick', interaction.onDblClick);
