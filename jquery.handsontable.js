@@ -1132,13 +1132,12 @@
       parsePasteInput: function (input) {
         var rows, r, rlen;
         rows = input.split("\n");
-        if (rows[rows.length - 1] === '') {
+        if (rows.length > 1 && rows[rows.length - 1] === '') {
           rows.pop();
         }
         for (r = 0, rlen = rows.length; r < rlen; r++) {
           rows[r] = rows[r].split("\t");
         }
-
         return rows;
       }
     };
