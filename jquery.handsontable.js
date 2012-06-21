@@ -447,7 +447,7 @@
           }
         }
 
-        if (!recreateRows) {
+        if (!recreateRows && priv.settings.enterBeginsEditing) {
           for (; ((priv.settings.rows && self.rowCount > priv.settings.rows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows) && (!priv.settings.minHeight || $tbody.height() - $tbody.find('tr:last').height() - 4 > priv.settings.minHeight)); emptyRows--) {
             grid.removeRow();
             datamap.removeRow();
@@ -470,7 +470,7 @@
           }
         }
 
-        if (!recreateCols) {
+        if (!recreateCols && priv.settings.enterBeginsEditing) {
           for (; ((priv.settings.cols && self.colCount > priv.settings.cols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (!priv.settings.minWidth || $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
             datamap.removeCol();
             grid.removeCol();
@@ -778,7 +778,13 @@
       /**
        * Selects cell relative to current cell (if possible)
        */
-      transformStart: function (rowDelta, colDelta) {
+      transformStart: function (rowDelta, colDelta, force) {
+        if (force && priv.selStart.row + rowDelta > self.rowCount - 1) {
+          self.alter("insert_row", self.rowCount);
+        }
+        if (force && priv.selStart.col + colDelta > self.colCount - 1) {
+          self.alter("insert_col", self.colCount);
+        }
         var td = grid.getCellAtCoords({
           row: (priv.selStart.row + rowDelta),
           col: priv.selStart.col + colDelta
@@ -1223,16 +1229,25 @@
                 event.preventDefault();
                 break;
 
-              case 39: /* arrow right */
               case 9: /* tab */
-                if (!priv.isCellEdited || event.keyCode === 9) {
+                if (!isAutoComplete()) {
+                  if (event.shiftKey) {
+                    editproxy.finishEditing(false, 0, -1);
+                  }
+                  else {
+                    editproxy.finishEditing(false, 0, 1);
+                  }
+                }
+                event.preventDefault();
+                break;
+
+              case 39: /* arrow right */
+                if (!priv.isCellEdited) {
                   if (event.shiftKey) {
                     selection.transformEnd(0, 1);
                   }
                   else {
-                    if (!isAutoComplete()) {
-                      editproxy.finishEditing(false, 0, 1);
-                    }
+                    selection.transformStart(0, 1);
                   }
                   event.preventDefault();
                 }
@@ -1244,7 +1259,7 @@
                     selection.transformEnd(0, -1);
                   }
                   else {
-                    editproxy.finishEditing(false, 0, -1);
+                    selection.transformStart(0, -1);
                   }
                   event.preventDefault();
                 }
@@ -1258,40 +1273,60 @@
                 }
                 break;
 
-              case 27: /* ESC */
-              case 113: /* F2 */
-              case 13: /* return/enter */
               case 40: /* arrow down */
                 if (!priv.isCellEdited) {
-                  if (event.keyCode === 113 || event.keyCode === 13) {
-                    //begin editing
+                  if (event.shiftKey) {
+                    selection.transformEnd(1, 0); //expanding selection down with shift
+                  }
+                  else {
+                    selection.transformStart(1, 0); //move selection down
+                  }
+                }
+                else {
+                  if (isAutoComplete()) { //if browsing through autocomplete
+                    return true;
+                  }
+                  else {
+                    editproxy.finishEditing(false, 1, 0);
+                  }
+                }
+                break;
+
+              case 27: /* ESC */
+                if (priv.isCellEdited) {
+                  editproxy.finishEditing(true, 0, 0); //hide edit field, restore old value, don't move selection, but refresh routines
+                }
+                break;
+
+              case 113: /* F2 */
+                if (!priv.isCellEdited) {
+                  editproxy.beginEditing(true); //show edit field
+                }
+                break;
+
+              case 13: /* return/enter */
+                if (!priv.isCellEdited) {
+                  if (priv.settings.enterBeginsEditing) {
                     editproxy.beginEditing(true); //show edit field
-                    if (!(event.keyCode === 13 && event.shiftKey)) {
+                    if (!event.shiftKey) {
                       event.preventDefault(); //don't add newline to field
                     }
                   }
-                  else if (event.keyCode === 40) {
+                  else {
                     if (event.shiftKey) {
-                      selection.transformEnd(1, 0); //expanding selection down with shift
+                      selection.transformStart(-1, 0, !priv.settings.enterBeginsEditing); //move selection up
                     }
                     else {
-                      selection.transformStart(1, 0); //move selection down
+                      selection.transformStart(1, 0, !priv.settings.enterBeginsEditing); //move selection down
                     }
                   }
                 }
                 else {
-                  if (event.shiftKey || isAutoComplete() && event.keyCode === 40) { //if shift+enter or browsing through autocomplete
+                  if (event.shiftKey) { //if shift+enter
                     return true;
                   }
-                  if (event.keyCode === 27 || event.keyCode === 13 || event.keyCode === 40) {
-                    if (event.keyCode === 27) {
-                      editproxy.finishEditing(true, 0, 0); //hide edit field, restore old value, don't move selection, but refresh routines
-                    }
-                    else {
-                      if (!isAutoComplete()) {
-                        editproxy.finishEditing(false, 1, 0);
-                      }
-                    }
+                  else if (!isAutoComplete()) {
+                    editproxy.finishEditing(false, 1, 0);
                     event.preventDefault(); //don't add newline to field
                   }
                 }
@@ -1527,7 +1562,7 @@
             selection.refreshBorders();
           }
           else {
-            selection.transformStart(moveRow, moveCol);
+            selection.transformStart(moveRow, moveCol, !priv.settings.enterBeginsEditing);
           }
         }
       }
@@ -2162,7 +2197,8 @@
     'minWidth': 0,
     'multiSelect': true,
     'fillHandle': true,
-    'undo': true
+    'undo': true,
+    'enterBeginsEditing': true
   };
 
   $.fn.handsontable = function (action, options) {
