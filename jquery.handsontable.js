@@ -1488,9 +1488,6 @@
         if (useOriginalValue) {
           priv.editProxy.val(datamap.get(priv.selStart.row, priv.selStart.col));
         }
-        else {
-          priv.editProxy.val('');
-        }
 
         if (priv.editProxy.autoResize) {
           priv.editProxy.autoResize({
