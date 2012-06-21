@@ -1162,24 +1162,26 @@
         }
 
         function onCut() {
-          editproxy.finishEditing();
-          setTimeout(function () {
-            selection.empty();
-          }, 100);
+          if (!priv.isCellEdited) {
+            setTimeout(function () {
+              selection.empty();
+            }, 100);
+          }
         }
 
         function onPaste() {
-          editproxy.finishEditing();
-          setTimeout(function () {
-            var input = priv.editProxy.val().replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
-                inputArray = keyboard.parsePasteInput(input),
-                coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
-                endTd = grid.populateFromArray(coords.TL, inputArray, {
-                  row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
-                  col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
-                });
-            selection.setRangeEnd(endTd);
-          }, 100);
+          if (!priv.isCellEdited) {
+            setTimeout(function () {
+              var input = priv.editProxy.val().replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
+                  inputArray = keyboard.parsePasteInput(input),
+                  coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
+                  endTd = grid.populateFromArray(coords.TL, inputArray, {
+                    row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
+                    col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
+                  });
+              selection.setRangeEnd(endTd);
+            }, 100);
+          }
         }
 
         function onKeyDown(event) {
