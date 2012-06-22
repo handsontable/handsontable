@@ -2086,6 +2086,13 @@
         top = minTop - containerOffset.top + this.$container.scrollTop() - 1;
         left = minLeft - containerOffset.left + this.$container.scrollLeft() - 1;
 
+        if(this.$container.scrollTop() === 0 && this.corners.TL.row === 0) {
+          top++;
+        }
+        if(this.$container.scrollLeft() === 0 && this.corners.TL.col === 0) {
+          left++;
+        }
+
         if (top < 0) {
           top = 0;
         }
