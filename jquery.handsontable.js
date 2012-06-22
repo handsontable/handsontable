@@ -1784,11 +1784,8 @@
               break;
 
             case "undo":
-              priv.undoRedo.undo();
-              break;
-
             case "redo":
-              priv.undoRedo.redo();
+              priv.undoRedo[key]();
               break;
           }
         };
