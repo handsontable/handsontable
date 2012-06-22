@@ -1432,10 +1432,40 @@
         }
 
         var current = grid.getCellAtCoords(priv.selStart);
-        var currentOffset = $(current).offset();
+        var $current = $(current);
+        var currentOffset = $current.offset();
         var containerOffset = container.offset();
-        var editTop = currentOffset.top - containerOffset.top + container.scrollTop() - 1;
-        var editLeft = currentOffset.left - containerOffset.left + container.scrollLeft() - 1;
+        var scrollTop = container.scrollTop();
+        var scrollLeft = container.scrollLeft();
+        var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
+        var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
+
+        var width, height;
+        if (priv.editProxy.autoResize) {
+          width = $current.width();
+          height = $current.outerHeight() - 4;
+        }
+        else {
+          width = $current.width() * 1.5;
+          height = $current.height();
+        }
+
+        if (priv.editProxy.autoResize) {
+          priv.editProps = {
+            maxHeight: 200,
+            minHeight: height,
+            minWidth: width,
+            maxWidth: Math.max(168, width),
+            animate: false,
+            extraSpace: 0
+          };
+        }
+        else {
+          priv.editProps = {
+            width: width,
+            height: height
+          };
+        }
 
         priv.editProxyHolder.addClass('htHidden');
         priv.editProxyHolder.css({
@@ -1490,20 +1520,10 @@
         }
 
         if (priv.editProxy.autoResize) {
-          priv.editProxy.autoResize({
-            maxHeight: 200,
-            minHeight: $td.outerHeight() - 4,
-            minWidth: $td.width(),
-            maxWidth: Math.max(168, $td.width()),
-            animate: false,
-            extraSpace: 0
-          });
+          priv.editProxy.autoResize(priv.editProps);
         }
         else {
-          priv.editProxy.css({
-            width: $td.width() * 1.5,
-            height: $td.height()
-          });
+          priv.editProxy.css(priv.editProps);
         }
         priv.editProxyHolder.removeClass('htHidden');
         priv.editProxyHolder.css({
@@ -1678,32 +1698,59 @@
         priv.scrollable.scrollTop(0);
         priv.scrollable.scrollLeft(0);
 
-        var lastScrollTop = 0;
-        var curScrollTop;
-        var lastScrollLeft = 0;
-        var curScrollLeft;
+        var lastScrollTop, curScrollTop, lastScrollLeft, curScrollLeft;
 
-        priv.scrollable.on('scroll', function () {
+        priv.scrollable.on('scroll.handsontable', function () {
           curScrollTop = priv.scrollable[0].scrollTop;
           curScrollLeft = priv.scrollable[0].scrollLeft;
+
           if (priv.colHeader && curScrollTop !== lastScrollTop) {
+            if (curScrollTop === 0) {
+              priv.colHeader.ths.css('borderBottomWidth', 0);
+            }
+            else if (lastScrollTop === 0) {
+              priv.colHeader.ths.css('borderBottomWidth', '1px');
+            }
             priv.colHeader.main[0].style.top = curScrollTop + 'px';
-            if (priv.cornerHeader) {
-              priv.cornerHeader[0].style.top = curScrollTop + 'px';
-            }
-            lastScrollTop = curScrollTop;
           }
+
           if (priv.rowHeader && curScrollLeft !== lastScrollLeft) {
-            priv.rowHeader.main[0].style.left = curScrollLeft + 'px';
-            if (priv.cornerHeader) {
-              priv.cornerHeader[0].style.left = curScrollLeft + 'px';
+            if (curScrollLeft === 0) {
+              priv.rowHeader.ths.css('borderRightWidth', 0);
             }
-            lastScrollLeft = curScrollLeft;
+            else if (lastScrollLeft === 0) {
+              priv.rowHeader.ths.css('borderRightWidth', '1px');
+            }
+            priv.rowHeader.main[0].style.left = curScrollLeft + 'px';
           }
+
+          if (priv.cornerHeader && (curScrollTop !== lastScrollTop || curScrollLeft !== lastScrollLeft)) {
+            if (curScrollTop === 0 && curScrollLeft === 0) {
+              priv.cornerHeader.find('th').css({borderBottomWidth: 0, borderRightWidth: 0});
+            }
+            else if (lastScrollTop === 0 && lastScrollLeft === 0) {
+              priv.cornerHeader.find('th').css({borderBottomWidth: '1px', borderRightWidth: '1px'});
+            }
+            priv.cornerHeader[0].style.top = curScrollTop + 'px';
+            priv.cornerHeader[0].style.left = curScrollLeft + 'px';
+          }
+
+          lastScrollTop = curScrollTop;
+          lastScrollLeft = curScrollLeft;
         });
+        priv.scrollable.trigger('scroll.handsontable');
       }
       else {
         priv.scrollable = $(window);
+        if (priv.rowHeader) {
+          priv.rowHeader.ths.css('borderRightWidth', 0);
+        }
+        if (priv.colHeader) {
+          priv.colHeader.ths.css('borderBottomWidth', 0);
+        }
+        if (priv.cornerHeader) {
+          priv.cornerHeader.find("th").css({borderBottomWidth: 0, borderRightWidth: 0});
+        }
       }
 
       priv.scrollable.on('scroll', function (e) {
@@ -2086,13 +2133,6 @@
         top = minTop - containerOffset.top + this.$container.scrollTop() - 1;
         left = minLeft - containerOffset.left + this.$container.scrollLeft() - 1;
 
-        if(this.$container.scrollTop() === 0 && this.corners.TL.row === 0) {
-          top++;
-        }
-        if(this.$container.scrollLeft() === 0 && this.corners.TL.col === 0) {
-          left++;
-        }
-
         if (top < 0) {
           top = 0;
         }
@@ -2401,6 +2441,7 @@ handsontable.ColumnHeader.prototype.refresh = function () {
     th[0].style.minWidth = $this.width() + 'px';
     tr.append(th);
   });
+  this.ths = this.main.find('th');
 };
 
 /**
@@ -2479,9 +2520,8 @@ handsontable.RowHeader = function (instance, labels, offset) {
  * Create row header in the grid table
  */
 handsontable.RowHeader.prototype.create = function () {
-
   var trs = this.instance.table.find('tbody')[0].childNodes;
-  for (r = 0; r < this.instance.rowCount; r++) {
+  for (var r = 0; r < this.instance.rowCount; r++) {
     if (trs[r].getElementsByTagName('th').length === 0) {
       var th = document.createElement('th');
       trs[r].insertBefore(th, trs[r].firstChild);
@@ -2527,6 +2567,7 @@ handsontable.RowHeader.prototype.refresh = function () {
     });
     that.main.find('tbody').append(tr);
   });
+  this.ths = this.main.find('th');
 };
 
 /**
