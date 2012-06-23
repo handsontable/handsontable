@@ -1694,60 +1694,45 @@
         });
       }
 
+      self.curScrollTop = self.curScrollLeft = 0;
+      self.lastScrollTop = self.lastScrollLeft = null;
+
       if (priv.scrollable) {
         priv.scrollable.scrollTop(0);
         priv.scrollable.scrollLeft(0);
 
-        var lastScrollTop, curScrollTop, lastScrollLeft, curScrollLeft;
-
         priv.scrollable.on('scroll.handsontable', function () {
-          curScrollTop = priv.scrollable[0].scrollTop;
-          curScrollLeft = priv.scrollable[0].scrollLeft;
+          self.curScrollTop = priv.scrollable[0].scrollTop;
+          self.curScrollLeft = priv.scrollable[0].scrollLeft;
 
-          if (priv.colHeader && curScrollTop !== lastScrollTop) {
-            if (curScrollTop === 0) {
-              priv.colHeader.ths.css('borderBottomWidth', 0);
-            }
-            else if (lastScrollTop === 0) {
-              priv.colHeader.ths.css('borderBottomWidth', '1px');
-            }
-            priv.colHeader.main[0].style.top = curScrollTop + 'px';
+          if (priv.colHeader && self.curScrollTop !== self.lastScrollTop) {
+            priv.colHeader.refreshBorders();
+            priv.colHeader.main[0].style.top = self.curScrollTop + 'px';
           }
 
-          if (priv.rowHeader && curScrollLeft !== lastScrollLeft) {
-            if (curScrollLeft === 0) {
-              priv.rowHeader.ths.css('borderRightWidth', 0);
-            }
-            else if (lastScrollLeft === 0) {
-              priv.rowHeader.ths.css('borderRightWidth', '1px');
-            }
-            priv.rowHeader.main[0].style.left = curScrollLeft + 'px';
+          if (priv.rowHeader && self.curScrollLeft !== self.lastScrollLeft) {
+            priv.rowHeader.refreshBorders();
+            priv.rowHeader.main[0].style.left = self.curScrollLeft + 'px';
           }
 
-          if (priv.cornerHeader && (curScrollTop !== lastScrollTop || curScrollLeft !== lastScrollLeft)) {
-            if (curScrollTop === 0 && curScrollLeft === 0) {
+          if (priv.cornerHeader && (self.curScrollTop !== self.lastScrollTop || self.curScrollLeft !== self.lastScrollLeft)) {
+            if (self.curScrollTop === 0 && self.curScrollLeft === 0) {
               priv.cornerHeader.find('th').css({borderBottomWidth: 0, borderRightWidth: 0});
             }
-            else if (lastScrollTop === 0 && lastScrollLeft === 0) {
+            else if (self.lastScrollTop === 0 && self.lastScrollLeft === 0) {
               priv.cornerHeader.find('th').css({borderBottomWidth: '1px', borderRightWidth: '1px'});
             }
-            priv.cornerHeader[0].style.top = curScrollTop + 'px';
-            priv.cornerHeader[0].style.left = curScrollLeft + 'px';
+            priv.cornerHeader[0].style.top = self.curScrollTop + 'px';
+            priv.cornerHeader[0].style.left = self.curScrollLeft + 'px';
           }
 
-          lastScrollTop = curScrollTop;
-          lastScrollLeft = curScrollLeft;
+          self.lastScrollTop = self.curScrollTop;
+          self.lastScrollLeft = self.curScrollLeft;
         });
         priv.scrollable.trigger('scroll.handsontable');
       }
       else {
         priv.scrollable = $(window);
-        if (priv.rowHeader) {
-          priv.rowHeader.ths.css('borderRightWidth', 0);
-        }
-        if (priv.colHeader) {
-          priv.colHeader.ths.css('borderBottomWidth', 0);
-        }
         if (priv.cornerHeader) {
           priv.cornerHeader.find("th").css({borderBottomWidth: 0, borderRightWidth: 0});
         }
@@ -2439,6 +2424,19 @@ handsontable.ColumnHeader.prototype.refresh = function () {
     tr.append(th);
   });
   this.ths = this.main.find('th');
+  this.refreshBorders();
+};
+
+/**
+ * Refresh border width
+ */
+handsontable.ColumnHeader.prototype.refreshBorders = function () {
+  if (this.instance.curScrollTop === 0) {
+    this.ths.css('borderBottomWidth', 0);
+  }
+  else if (this.instance.lastScrollTop === 0) {
+    this.ths.css('borderBottomWidth', '1px');
+  }
 };
 
 /**
@@ -2565,6 +2563,19 @@ handsontable.RowHeader.prototype.refresh = function () {
     that.main.find('tbody').append(tr);
   });
   this.ths = this.main.find('th');
+  this.refreshBorders();
+};
+
+/**
+ * Refresh border width
+ */
+handsontable.RowHeader.prototype.refreshBorders = function () {
+  if (this.instance.curScrollLeft === 0) {
+    this.ths.css('borderRightWidth', 0);
+  }
+  else if (this.instance.lastScrollLeft === 0) {
+    this.ths.css('borderRightWidth', '1px');
+  }
 };
 
 /**
