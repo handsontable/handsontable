@@ -1626,6 +1626,9 @@
         priv.isMouseOverTable = false;
       }
 
+      self.curScrollTop = self.curScrollLeft = 0;
+      self.lastScrollTop = self.lastScrollLeft = null;
+
       var div = $('<div><table cellspacing="0" cellpadding="0"><thead></thead><tbody></tbody></table></div>');
       priv.tableContainer = div[0];
       self.table = $(priv.tableContainer.firstChild);
@@ -1693,9 +1696,6 @@
           }
         });
       }
-
-      self.curScrollTop = self.curScrollLeft = 0;
-      self.lastScrollTop = self.lastScrollLeft = null;
 
       if (priv.scrollable) {
         priv.scrollable.scrollTop(0);
@@ -1966,7 +1966,7 @@
       if (priv.colHeader && priv.rowHeader) {
         if (!priv.cornerHeader) {
           var position = self.table.position();
-          priv.cornerHeader = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px; width: 50px;"><table cellspacing="0" cellpadding="0"><thead><tr><th>&nbsp;</th></tr></thead></table></div>');
+          priv.cornerHeader = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px; width: 50px;"><table cellspacing="0" cellpadding="0"><thead><tr><th>&nbsp;<span class="small">&nbsp;</span>&nbsp;</th></tr></thead></table></div>');
           priv.cornerHeader.on('click', function () {
             selection.selectAll();
           });
@@ -2417,7 +2417,7 @@ handsontable.ColumnHeader.prototype.refresh = function () {
   var tr = this.main.find('tr');
   tr.empty();
   this.instance.table.find("thead th").each(function (index) {
-    this.innerHTML = that.columnLabel(index - that.offset);
+    this.innerHTML = '&nbsp;<span class="small">' + that.columnLabel(index - that.offset) + '</span>&nbsp;';
     var $this = $(this);
     var th = $this.clone();
     th[0].style.minWidth = $this.width() + 'px';
@@ -2493,11 +2493,13 @@ handsontable.RowHeader = function (instance, labels, offset) {
   this.instance = instance;
   var position = instance.table.position();
   this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px; width: 50px;"><table cellspacing="0" cellpadding="0"><thead></thead><tbody></tbody></table></div>');
-  this.main.on('mousedown', 'th', function () {
-    that.instance.deselectCell();
-    this.className = 'active';
-    that.lastActive = this;
-    that.instance.selectCell(this.parentNode.rowIndex - that.offset, 0, this.parentNode.rowIndex - that.offset, that.instance.colCount - 1, false);
+  this.main.on('mousedown', 'th', function (event) {
+    if (!$(event.target).hasClass('btn') && !$(event.target).hasClass('btnContainer')) {
+      that.instance.deselectCell();
+      this.className = 'active';
+      that.lastActive = this;
+      that.instance.selectCell(this.parentNode.rowIndex - that.offset, 0, this.parentNode.rowIndex - that.offset, that.instance.colCount - 1, false);
+    }
   });
   this.instance.container.on('deselect.handsontable', function () {
     that.deselect();
@@ -2543,7 +2545,7 @@ handsontable.RowHeader.prototype.refresh = function () {
   var that = this;
   var thead = this.main.find('thead');
   if (this.offset && thead[0].childNodes.length === 0) {
-    thead.html('<tr><th>&nbsp;</th></tr>');
+    thead.html('<tr><th>&nbsp;<span class="small">&nbsp;</span>&nbsp;</th></tr>');
   }
   else if (!this.offset && thead[0].childNodes.length > 0) {
     thead.empty();
@@ -2552,12 +2554,11 @@ handsontable.RowHeader.prototype.refresh = function () {
   this.instance.table.find('tbody tr').each(function (index) {
     var tr = $("<tr></tr>");
     $(this).find('th').each(function () {
-      this.innerHTML = that.columnLabel(index);
+      this.innerHTML = '&nbsp;<span class="small">' + that.columnLabel(index) + '</span>&nbsp;';
       var $this = $(this);
-      var height = $this.height();
+      var height = $.browser.mozilla ? $this.outerHeight() : $this.height();
       var th = $this.clone();
       th[0].style.height = height + 'px';
-      th[0].style.lineHeight = height + 'px';
       tr.append(th);
     });
     that.main.find('tbody').append(tr);
@@ -2586,9 +2587,8 @@ handsontable.RowHeader.prototype.dimensions = function (changes) {
   for (var i = 0, ilen = changes.length; i < ilen; i++) {
     var $th = $(this.instance.getCell(changes[i][0], changes[i][1]));
     if ($th.length) {
-      var height = $th.height();
+      var height = $.browser.mozilla ? $th.outerHeight() : $th.height();
       this.main.find('th').get(changes[i][0] + this.offset).style.height = height + 'px';
-      this.main.find('th').get(changes[i][0] + this.offset).style.lineHeight = height + 'px';
     }
   }
 };

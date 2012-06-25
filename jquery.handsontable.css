@@ -28,16 +28,20 @@
   min-width: 50px;
   width: 50px;
   height: 22px;
-  padding: 0 4px 0 4px;
+  padding: 0 4px 0 4px; /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
+  line-height: 16px;
 }
 
 .dataTable th {
   background-color: #EEE;
-  font-size: 12px;
   color: #222;
   text-align: center;
   font-weight: normal;
   white-space: nowrap;
+}
+
+.dataTable th .small {
+  font-size: 12px;
 }
 
 .dataTable thead th {

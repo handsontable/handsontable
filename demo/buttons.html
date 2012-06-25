@@ -42,7 +42,8 @@
   <h2>Custom buttons</h2>
 
   <p>The <b>alter</b> method can be used if you want to insert or remove rows and columns using external buttons.
-    The below example uses the <b>onChange</b> method to implement a custom <strong>remove row</strong> button. Move your mouse to see it.</p>
+    The below example uses the <b>onChange</b> method to implement a custom
+    <strong>remove row</strong> button. Move your mouse to see it.</p>
 
   <p>You can programically select a cell using the <b>selectCell</b> method. The below button implements it.</p>
 
@@ -90,44 +91,48 @@
   </style>
   <script>
     var container = $("#exampleGrid");
+    var button = $('<div class="cellRelative"><span>what</span>' + /*($td.html() || '&nbsp;') +*/ '<div class="btnContainer"><div class="btn">x</div></div></div>');
+
+    function createRowButtons() {
+      setTimeout(function () {
+        container.find('tbody tr').each(function () {
+          var $td = $(this).children().first().not(':has(.btn)');
+          if ($td.length) {
+            //for each first cell in a row that does not have the button yet
+            var but = button.clone();
+            but.find('span').html($td.html() || "&nbsp;");
+            $td.html(but);
+          }
+        });
+      }, 10);
+    }
+
     container.handsontable({
       rows: 5,
-      cols: 5,
+      cols: 6,
+      rowHeaders: true,
+      colHeaders: true,
       minSpareCols: 1,
       minSpareRows: 1,
       contextMenu: true,
       onChange: function () {
-        //for each first cell in a row that does not have the button yet
-        container.find('td::first-child:not(:has(.btn))').each(function () {
-          var $td = $(this);
-          var button = $('<div class="cellRelative">' + ($td.html() || '&nbsp;') + '<div class="btnContainer"><div class="btn">x</div></div></div>');
-          button.find('.btn').
-            on('click',
-            function (event) {
-              //remove the row when button is clicked
-              container.handsontable("alter", "remove_row", button.parents('tr').index());
-            }).
-            on('mousedown mouseup', function (event) {
-              //avoid mouse selection of the first cell in next row
-              event.stopPropagation();
-            });
-          $td.html(button);
-        });
+        createRowButtons();
       }
     });
 
     container.
-      on('mouseover', 'td',
+      on('mouseover', 'tbody th, tbody td',
       function () {
-        //if this is not the first row, show the button
-        var $tr = $(this.parentNode);
-        if ($tr.index() > 0) {
-          $tr.find('.btn').show();
-        }
+        //show the button
+        $(this.parentNode.firstChild).find('.btn').show();
       }).
-      on('mouseout', 'td', function () {
+      on('mouseout', 'tbody th, tbody td',function () {
         //hide the button
-        $(this.parentNode).find('.btn').hide();
+        $(this.parentNode.firstChild).find('.btn').hide();
+      }).
+      on('click', '.btn', function () {
+        //remove the row when button is clicked
+        container.handsontable("alter", "remove_row", $(this).parents('tr').index());
       });
 
     var data = [
@@ -138,6 +143,7 @@
     ];
 
     container.handsontable("loadData", data);
+    createRowButtons();
 
     $("button#selectFirst").on('click', function () {
       setTimeout(function () {
