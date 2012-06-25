@@ -1531,8 +1531,10 @@
         });
 
         if (priv.settings.autoComplete) {
-          priv.editProxy.data('typeahead').lookup();
-          priv.stopNextPropagation = true;
+          setTimeout(function() {
+            priv.editProxy.data('typeahead').lookup();
+            priv.stopNextPropagation = true;
+          }, 10);
         }
       },
 
