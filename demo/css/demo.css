@@ -14,6 +14,7 @@ body.examplesListOffset {
 #container {
   margin: 0 auto;
   width: 700px;
+  padding-bottom: 20px;
 }
 
 h1 {
@@ -169,10 +170,4 @@ hr {
   border: 0;
   width: 80%;
   border-bottom: 1px solid #aaa
-}
-
-.footer {
-  text-align: center;
-  padding-top: 30px;
-  font-style: italic;
 }
