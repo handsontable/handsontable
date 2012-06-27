@@ -581,6 +581,7 @@
             return grid.getCellAtCoords(start);
           }
         }
+        var setData = [];
         for (var i = 0, ilen = changes.length; i < ilen; i++) {
           if (end && (changes[i][0] > end.row || changes[i][1] > end.col)) {
             continue;
@@ -588,8 +589,9 @@
           if (changes[i][3] === false) {
             continue;
           }
-          endTd = self.setDataAtCell(changes[i][0], changes[i][1], changes[i][3], allowHtml);
+          setData.push([changes[i][0], changes[i][1], changes[i][3]]);
         }
+        endTd = self.setDataAtCell(0, 0, setData, allowHtml);
         if (changes.length) {
           self.container.triggerHandler("datachange.handsontable", [changes, 'populateFromArray']);
         }
@@ -1846,51 +1848,62 @@
      * @public
      * @param {Number} row
      * @param {Number} col
-     * @param {String} value
+     * @param {String|Array} values string or array of changes in format [[row, col, value], ...]
      * @param {Boolean} [allowHtml]
      */
-    this.setDataAtCell = function (row, col, value, allowHtml) {
-      var refresh, escaped;
-      if (priv.settings.minSpareRows) {
-        refresh = false;
-        while (row > self.rowCount - 1) {
-          datamap.createRow();
-          grid.createRow();
-          refresh = true;
-        }
-        if (refresh) {
-          priv.rowHeader && priv.rowHeader.refresh();
-        }
-      }
-      if (priv.settings.minSpareCols) {
-        refresh = false;
-        while (col > self.colCount - 1) {
-          datamap.createCol();
-          grid.createCol();
-          refresh = true;
-        }
-        if (refresh) {
-          priv.colHeader && priv.colHeader.refresh();
-        }
-      }
-      var td = grid.getCellAtCoords({row: row, col: col});
-      switch (typeof value) {
-        case 'string':
-          break;
+    this.setDataAtCell = function (row, col, values, allowHtml) {
+      var refreshRows = false, refreshCols = false, escaped, value;
 
-        case 'number':
-          value += '';
-          break;
+      if (typeof values !== "object") { //is stringish
+        values = [
+          [row, col, values]
+        ];
+      }
 
-        default:
-          value = '';
+      for (var i = 0, ilen = values.length; i < ilen; i++) {
+        row = values[i][0];
+        col = values[i][1];
+        value = values[i][2];
+
+        if (priv.settings.minSpareRows) {
+          while (row > self.rowCount - 1) {
+            datamap.createRow();
+            grid.createRow();
+            refreshRows = true;
+          }
+        }
+        if (priv.settings.minSpareCols) {
+          while (col > self.colCount - 1) {
+            datamap.createCol();
+            grid.createCol();
+            refreshCols = true;
+          }
+        }
+        var td = grid.getCellAtCoords({row: row, col: col});
+        switch (typeof value) {
+          case 'string':
+            break;
+
+          case 'number':
+            value += '';
+            break;
+
+          default:
+            value = '';
+        }
+        if (!allowHtml) {
+          escaped = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
+        }
+        td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
+        datamap.set(row, col, value);
+        grid.updateLegend({row: row, col: col});
       }
-      if (!allowHtml) {
-        escaped = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
+      if (refreshRows) {
+        priv.rowHeader && priv.rowHeader.refresh();
       }
-      td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
-      datamap.set(row, col, value);
-      grid.updateLegend({row: row, col: col});
+      if (refreshCols) {
+        priv.colHeader && priv.colHeader.refresh();
+      }
       return td;
     };
 
@@ -2293,8 +2306,8 @@ handsontable.UndoRedo.prototype.undo = function () {
   var i, ilen, tmp;
   if (this.isUndoAvailable()) {
     var changes = $.extend(true, [], this.data[this.rev]); //deep clone
+    this.instance.setDataAtCell(0, 0, changes);
     for (i = 0, ilen = changes.length; i < ilen; i++) {
-      this.instance.setDataAtCell(changes[i][0], changes[i][1], changes[i][2]);
       tmp = changes[i][3];
       changes[i][3] = changes[i][2];
       changes[i][2] = tmp;
@@ -2312,11 +2325,12 @@ handsontable.UndoRedo.prototype.redo = function () {
   var i, ilen;
   if (this.isRedoAvailable()) {
     this.rev++;
-    var changes = this.data[this.rev];
+    var changes = $.extend(true, [], this.data[this.rev]); //deep clone
     for (i = 0, ilen = changes.length; i < ilen; i++) {
-      this.instance.setDataAtCell(changes[i][0], changes[i][1], changes[i][3]);
+      changes[i][2] = changes[i][3]; //we need new data at index 2
     }
-    this.instance.container.triggerHandler("datachange.handsontable", [changes, 'redo']);
+    this.instance.setDataAtCell(0, 0, changes);
+    this.instance.container.triggerHandler("datachange.handsontable", [this.data[this.rev], 'redo']); //we need old data at index 2 and new data at index 3
     this.instance.grid.keepEmptyRows();
   }
 };
