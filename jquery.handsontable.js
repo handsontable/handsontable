@@ -2430,15 +2430,27 @@ handsontable.ColumnHeader.prototype.columnLabel = function (index) {
  */
 handsontable.ColumnHeader.prototype.refresh = function () {
   var that = this;
-  var tr = this.main.find('tr');
-  tr.empty();
-  this.instance.table.find("thead th").each(function (index) {
-    this.innerHTML = '&nbsp;<span class="small">' + that.columnLabel(index - that.offset) + '</span>&nbsp;';
-    var $this = $(this);
-    var th = $this.clone();
-    th[0].style.minWidth = $this.width() + 'px';
-    tr.append(th);
-  });
+
+  var tr = this.main.find('thead tr')[0];
+  var ths = tr.childNodes;
+  var thsLen = ths.length;
+  while (thsLen > this.instance.colCount + this.offset) {
+    //remove excessive cols
+    thsLen--;
+    $(tr.childNodes[thsLen]).remove();
+  }
+  while (thsLen < this.instance.colCount + this.offset) {
+    //add missing cols
+    thsLen++;
+    $(tr).append('<th></th>');
+  }
+
+  var realThs = this.instance.table.find('thead th');
+  for (var i = 0; i < thsLen; i++) {
+    ths[i].innerHTML = '&nbsp;<span class="small">' + that.columnLabel(i - that.offset) + '</span>&nbsp;';
+    ths[i].style.minWidth = realThs.eq(i).width() + 'px';
+  }
+
   this.ths = this.main.find('th');
   this.refreshBorders();
 };
