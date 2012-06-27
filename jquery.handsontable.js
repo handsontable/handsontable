@@ -1520,6 +1520,9 @@
         if (useOriginalValue) {
           priv.editProxy.val(datamap.get(priv.selStart.row, priv.selStart.col));
         }
+        else if (priv.isMouseDown) {
+          priv.editProxy.val('');
+        }
 
         if (priv.editProxy.autoResize) {
           priv.editProxy.autoResize(priv.editProps);
@@ -1669,6 +1672,9 @@
       $(priv.currentBorder.main).on('dblclick', interaction.onDblClick);
 
       function onMouseUp() {
+        if (priv.isMouseDown) {
+          setTimeout(editproxy.focus, 1);
+        }
         priv.isMouseDown = false;
         if (priv.fillHandle && priv.fillHandle.isDragged) {
           if (priv.fillHandle.isDragged > 1) {
