@@ -1531,7 +1531,7 @@
         });
 
         if (priv.settings.autoComplete) {
-          setTimeout(function() {
+          setTimeout(function () {
             priv.editProxy.data('typeahead').lookup();
             priv.stopNextPropagation = true;
           }, 10);
@@ -2492,6 +2492,7 @@ handsontable.ColumnHeader.prototype.destroy = function () {
  */
 handsontable.RowHeader = function (instance, labels, offset) {
   var that = this;
+  this.heightMethod = $.browser.mozilla ? "outerHeight" : "height";
   this.instance = instance;
   var position = instance.table.position();
   this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px; width: 50px;"><table cellspacing="0" cellpadding="0"><thead></thead><tbody></tbody></table></div>');
@@ -2552,19 +2553,29 @@ handsontable.RowHeader.prototype.refresh = function () {
   else if (!this.offset && thead[0].childNodes.length > 0) {
     thead.empty();
   }
-  this.main.find('tbody').empty();
-  this.instance.table.find('tbody tr').each(function (index) {
-    var tr = $("<tr></tr>");
-    $(this).find('th').each(function () {
-      this.innerHTML = '&nbsp;<span class="small">' + that.columnLabel(index) + '</span>&nbsp;';
-      var $this = $(this);
-      var height = $.browser.mozilla ? $this.outerHeight() : $this.height();
-      var th = $this.clone();
-      th[0].style.height = height + 'px';
-      tr.append(th);
-    });
-    that.main.find('tbody').append(tr);
-  });
+
+  var $tbody = this.main.find('tbody');
+  var tbody = $tbody[0];
+  var trs = tbody.childNodes;
+  var trsLen = trs.length;
+  while (trsLen > this.instance.rowCount) {
+    //remove excessive rows
+    trsLen--;
+    $(tbody.childNodes[trsLen]).remove();
+  }
+  while (trsLen < this.instance.rowCount) {
+    //add missing rows
+    trsLen++;
+    $tbody.append('<tr><th></th></tr>');
+  }
+
+  var realTrs = this.instance.table.find('tbody tr');
+  for (var i = 0; i < trsLen; i++) {
+    var th = trs[i].firstChild;
+    th.innerHTML = '&nbsp;<span class="small">' + that.columnLabel(i) + '</span>&nbsp;';
+    th.style.height = realTrs.eq(i).children().first()[this.heightMethod]() + 'px';
+  }
+
   this.ths = this.main.find('th');
   this.refreshBorders();
 };
@@ -2589,8 +2600,7 @@ handsontable.RowHeader.prototype.dimensions = function (changes) {
   for (var i = 0, ilen = changes.length; i < ilen; i++) {
     var $th = $(this.instance.getCell(changes[i][0], changes[i][1]));
     if ($th.length) {
-      var height = $.browser.mozilla ? $th.outerHeight() : $th.height();
-      this.main.find('th').get(changes[i][0] + this.offset).style.height = height + 'px';
+      this.ths.get(changes[i][0] + this.offset).style.height = $th[this.heightMethod]() + 'px';
     }
   }
 };
