@@ -1827,7 +1827,7 @@
         }
 
         $.contextMenu({
-          selector: container.attr('id') ? ("#" + container.attr('id')) : "." + container[0].className.replace(/[\s]+/g, ' .'),
+          selector: container.attr('id') ? ("#" + container.attr('id')) : "." + container[0].className.replace(/[\s]+/g, '.'),
           trigger: 'right',
           callback: onContextClick,
           items: items
