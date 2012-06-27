@@ -3,6 +3,7 @@
  *
  * rev                                      | date (dd.mm.yy) | performance                           | desc
  * -----------------------------------------|-----------------|---------------------------------------|------------------------------------------------------
+ * xxx | 27.06.12 12:47  | 0.72 ops/sec ±1.52% (23 runs sampled) | after removing rowHeaders.clone() and allowing array input to setDataAtCell
  * ddc33968f53a8767fb9e7e414bf09cd8bea8285e | 27.06.12 10:54  | XXX (crashes Firefox and Chrome)      | initial benchmark forked from paste.html, with row/col headers added
  *
  * cheers
@@ -16,7 +17,8 @@ $(window).load(function () {
 
   suite.add('Paste test', {
     'defer': true,
-    minSamples: 20,
+    minSamples: 1,
+    maxSamples: 1,
     'fn': function (deferred) {
       if (container) {
         container.remove();

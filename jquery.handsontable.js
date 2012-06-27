@@ -2400,6 +2400,7 @@ handsontable.ColumnHeader.prototype.create = function () {
   tr = document.createElement('tr');
   for (c = 0; c < this.instance.colCount + this.offset; c++) {
     var th = document.createElement('th');
+    th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
     tr.appendChild(th);
   }
   this.instance.table.find('thead').empty().append(tr);

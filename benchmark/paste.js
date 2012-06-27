@@ -3,6 +3,7 @@
  *
  * rev                                      | date (dd.mm.yy) | performance                           | desc
  * -----------------------------------------|-----------------|---------------------------------------|------------------------------------------------------
+ * b4b317377df93984d3c805299f99b9de89294a71 | 29.05.12 21:59  | 5.02 ops/sec ±1.56% (36 runs sampled) | add drag-down, copy-down, context menu
  * b4b317377df93984d3c805299f99b9de89294a71 | 29.05.12 21:59  | 5.20 ops/sec ±1.93% (33 runs sampled) | add drag-down, copy-down, context menu
  * d56dd43249a294d4838c97fad4bc92b27f4371b2 | 22.05.12 21:49  | 5.58 ops/sec ±1.43% (34 runs sampled) | optimize border appear
  * d3ca342fa4e68f7daefec13e8d2215c836c58b71 | 15.05.12 10:43  | 5.73 ops/sec ±1.69% (35 runs sampled) | not changing className of each highlighted cell; instead use a div element beyond the table
