@@ -1196,10 +1196,10 @@
                 event.keyCode >= 226 || //special chars (229 for Asian chars)
                 (event.keyCode >= 65 && event.keyCode <= 90)) { //a-z
               /* alphanumeric */
-              if (!ctrlOnly) { //disregard CTRL-key shortcuts
+              if (!priv.isCellEdited && !ctrlOnly) { //disregard CTRL-key shortcuts
                 editproxy.beginEditing();
               }
-              else if (ctrlOnly && event.keyCode === 65) { //CTRL + A
+              else if (!priv.isCellEdited && ctrlOnly && event.keyCode === 65) { //CTRL + A
                 selection.selectAll(); //select all cells
               }
               else if (ctrlOnly && (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90))) { //CTRL + Y or CTRL + SHIFT + Z
