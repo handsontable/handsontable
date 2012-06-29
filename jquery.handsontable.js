@@ -2454,7 +2454,7 @@ handsontable.ColumnHeader.prototype.refresh = function () {
 
   var realThs = this.instance.table.find('thead th');
   for (var i = 0; i < thsLen; i++) {
-    ths[i].innerHTML = '&nbsp;<span class="small">' + that.columnLabel(i - that.offset) + '</span>&nbsp;';
+    realThs[i].innerHTML = ths[i].innerHTML = '&nbsp;<span class="small">' + that.columnLabel(i - that.offset) + '</span>&nbsp;';
     ths[i].style.minWidth = realThs.eq(i).width() + 'px';
   }
 
