@@ -26,7 +26,9 @@
       scrollable: null,
       hasLegend: null,
       lastAutoComplete: null,
-      undoRedo: settings.undo ? new handsontable.UndoRedo(this) : null
+      undoRedo: settings.undo ? new handsontable.UndoRedo(this) : null,
+      rowBlockCount: 0,
+      colBlockCount: 0
     };
 
     var lastChange = '';
@@ -257,7 +259,7 @@
         var tr, c, r;
         tr = document.createElement('tr');
 
-        if (priv.rowHeader) {
+        for (c = 0; c < priv.colBlockCount; c++) {
           var th = document.createElement('th');
           tr.appendChild(th);
         }
@@ -620,8 +622,8 @@
        */
       getCellCoords: function (td) {
         return {
-          row: td.parentNode.rowIndex - (priv.colHeader ? 1 : 0),
-          col: td.cellIndex - (priv.rowHeader ? 1 : 0)
+          row: td.parentNode.rowIndex - priv.rowBlockCount,
+          col: td.cellIndex - priv.colBlockCount
         };
       },
 
@@ -634,7 +636,7 @@
         }
         var tr = priv.tableBody.childNodes[coords.row];
         if (tr) {
-          return tr.childNodes[coords.col + (priv.rowHeader ? 1 : 0)];
+          return tr.childNodes[coords.col + priv.colBlockCount];
         }
         else {
           return null;
@@ -698,7 +700,7 @@
           clen = self.colCount;
           for (r = 0; r < rlen; r++) {
             for (c = 0; c < clen; c++) {
-              tds.push(trs[r].childNodes[c + (priv.rowHeader ? 1 : 0)]);
+              tds.push(trs[r].childNodes[c + priv.colBlockCount]);
             }
           }
         }
@@ -1950,20 +1952,23 @@
         }
       }
 
+      priv.rowBlockCount = priv.settings.colHeaders ? 1 : 0;
+      priv.colBlockCount = priv.settings.rowHeaders ? 1 : 0;
+
       if (typeof settings.colHeaders !== "undefined") {
         if (priv.colHeader) {
           if (settings.colHeaders === false) {
             priv.colHeader.destroy();
             delete priv.colHeader;
-            priv.rowHeader && priv.rowHeader.update(priv.settings.rowHeaders, (priv.settings.colHeaders ? 1 : 0));
+            priv.rowHeader && priv.rowHeader.update(priv.settings.rowHeaders, priv.colBlockCount);
           }
           else {
-            priv.colHeader.update(priv.settings.colHeaders, (priv.settings.rowHeaders ? 1 : 0));
+            priv.colHeader.update(priv.settings.colHeaders, priv.rowBlockCount);
           }
         }
         else if (settings.colHeaders !== false) {
-          priv.colHeader = new handsontable.ColumnHeader(self, priv.settings.colHeaders, (priv.settings.rowHeaders ? 1 : 0));
-          priv.rowHeader && priv.rowHeader.update(priv.settings.rowHeaders, (priv.settings.colHeaders ? 1 : 0));
+          priv.colHeader = new handsontable.ColumnHeader(self, priv.settings.colHeaders, priv.colBlockCount);
+          priv.rowHeader && priv.rowHeader.update(priv.settings.rowHeaders, priv.rowBlockCount);
         }
       }
 
@@ -1972,15 +1977,15 @@
           if (settings.rowHeaders === false) {
             priv.rowHeader.destroy();
             delete priv.rowHeader;
-            priv.colHeader && priv.colHeader.update(priv.settings.colHeaders, (priv.settings.rowHeaders ? 1 : 0));
+            priv.colHeader && priv.colHeader.update(priv.settings.colHeaders, priv.colBlockCount);
           }
           else {
-            priv.rowHeader.update(priv.settings.rowHeaders, (priv.settings.colHeaders ? 1 : 0));
+            priv.rowHeader.update(priv.settings.rowHeaders, priv.rowBlockCount);
           }
         }
         else if (settings.rowHeaders !== false) {
-          priv.rowHeader = new handsontable.RowHeader(self, priv.settings.rowHeaders, (priv.settings.colHeaders ? 1 : 0));
-          priv.colHeader && priv.colHeader.update(priv.settings.colHeaders, (priv.settings.rowHeaders ? 1 : 0));
+          priv.rowHeader = new handsontable.RowHeader(self, priv.settings.rowHeaders, priv.rowBlockCount);
+          priv.colHeader && priv.colHeader.update(priv.settings.colHeaders, priv.colBlockCount);
         }
       }
 
