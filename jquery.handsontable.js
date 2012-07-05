@@ -1960,7 +1960,7 @@
           if (settings.colHeaders === false) {
             priv.colHeader.destroy();
             delete priv.colHeader;
-            priv.rowHeader && priv.rowHeader.update(priv.settings.rowHeaders, priv.colBlockCount);
+            priv.rowHeader && priv.rowHeader.update(priv.settings.rowHeaders, priv.rowBlockCount);
           }
           else {
             priv.colHeader.update(priv.settings.colHeaders, priv.rowBlockCount);
