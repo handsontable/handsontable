@@ -15,7 +15,8 @@ handsontable.RowHeader = function (instance, labels) {
         that.instance.deselectCell();
         $(this).addClass('active');
         that.lastActive = this;
-        that.instance.selectCell(this.parentNode.rowIndex - that.instance.blockedCols.headers.length, 0, this.parentNode.rowIndex - that.instance.blockedCols.headers.length, that.instance.colCount - 1, false);
+        var offset = that.instance.blockedCols.count();
+        that.instance.selectCell(this.parentNode.rowIndex - offset, 0, this.parentNode.rowIndex - offset, that.instance.colCount - 1, false);
       }
     });
     that.instance.container.on('deselect.handsontable', function () {

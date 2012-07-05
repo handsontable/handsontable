@@ -258,7 +258,7 @@
       createRow: function (coords) {
         var tr, c, r;
         tr = document.createElement('tr');
-        self.blockedCols.createRow(tr);
+        self.blockedCols && self.blockedCols.createRow(tr);
         for (c = 0; c < self.colCount; c++) {
           tr.appendChild(document.createElement('td'));
         }
@@ -283,7 +283,7 @@
        */
       createCol: function (coords) {
         var trs = priv.tableBody.childNodes, r, c;
-        self.blockedRows.createCol(self.table.find('thead tr')[0]);
+        self.blockedRows && self.blockedRows.createCol(self.table.find('thead tr')[0]);
         if (!coords || coords.col >= self.colCount) {
           for (r = 0; r < self.rowCount; r++) {
             trs[r].appendChild(document.createElement('td'));
@@ -1635,8 +1635,9 @@
       self.colCount = priv.settings.cols;
       self.rowCount = 0;
 
-      self.blockedRows = new handsontable.BlockedRows(self, priv.settings.colHeaders);
+
       self.blockedCols = new handsontable.BlockedCols(self, priv.settings.rowHeaders);
+      self.blockedRows = new handsontable.BlockedRows(self, priv.settings.colHeaders);
 
       grid.keepEmptyRows();
 
@@ -1949,15 +1950,15 @@
           if (settings.colHeaders === false) {
             self.blockedRows.destroy();
             delete self.blockedRows;
-            self.blockedCols && self.blockedCols.update(priv.settings.rowHeaders, priv.rowBlockCount);
+            self.blockedCols && self.blockedCols.update(priv.settings.rowHeaders);
           }
           else {
             self.blockedRows.update(priv.settings.colHeaders, priv.rowBlockCount);
           }
         }
         else if (settings.colHeaders !== false) {
-          self.blockedRows = new handsontable.BlockedRows(self, priv.settings.colHeaders, priv.colBlockCount);
-          self.blockedCols && self.blockedCols.update(priv.settings.rowHeaders, priv.rowBlockCount);
+          self.blockedRows = new handsontable.BlockedRows(self, priv.settings.colHeaders);
+          self.blockedCols && self.blockedCols.update(priv.settings.rowHeaders);
         }
       }
 
@@ -1966,15 +1967,15 @@
           if (settings.rowHeaders === false) {
             self.blockedCols.destroy();
             delete self.blockedCols;
-            self.blockedRows && self.blockedRows.update(priv.settings.colHeaders, priv.colBlockCount);
+            self.blockedRows && self.blockedRows.update(priv.settings.colHeaders);
           }
           else {
             self.blockedCols.update(priv.settings.rowHeaders, priv.rowBlockCount);
           }
         }
         else if (settings.rowHeaders !== false) {
-          self.blockedCols = new handsontable.BlockedCols(self, priv.settings.rowHeaders, priv.rowBlockCount);
-          self.blockedRows && self.blockedRows.update(priv.settings.colHeaders, priv.colBlockCount);
+          self.blockedCols = new handsontable.BlockedCols(self, priv.settings.rowHeaders);
+          self.blockedRows && self.blockedRows.update(priv.settings.colHeaders);
         }
       }
 
@@ -2367,9 +2368,8 @@ handsontable.UndoRedo.prototype.add = function (changes) {
  * Handsontable BlockedRows extension
  * @param {Object} instance
  * @param {Array|Boolean} [labels]
- * @param {Number} [offset]
  */
-handsontable.BlockedRows = function (instance, labels, offset) {
+handsontable.BlockedRows = function (instance, labels) {
   var that = this;
   this.instance = instance;
   this.headers = [new handsontable.ColHeader(instance, labels)];
@@ -2381,7 +2381,7 @@ handsontable.BlockedRows = function (instance, labels, offset) {
     }, 10);
   });
   this.instance.container.append(this.main);
-  this.update(labels, offset);
+  this.update(labels);
 };
 
 /**
@@ -2409,8 +2409,9 @@ handsontable.BlockedRows.prototype.create = function () {
   var tr, c;
   tr = document.createElement('tr');
   var hlen = this.count();
+  var offset = this.instance.blockedCols ? this.instance.blockedCols.count() : 0;
   for (var h = 0; h < hlen; h++) {
-    for (c = 0; c < this.instance.colCount + this.offset; c++) {
+    for (c = 0; c < this.instance.colCount + offset; c++) {
       var th = document.createElement('th');
       th.className = this.headers[h].className;
       th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
@@ -2431,13 +2432,14 @@ handsontable.BlockedRows.prototype.refresh = function () {
   var tr = $tr[0];
   var ths = tr.childNodes;
   var thsLen = ths.length;
+  var offset = this.instance.blockedCols ? this.instance.blockedCols.count() : 0;
 
-  while (thsLen > this.instance.colCount + this.offset) {
+  while (thsLen > this.instance.colCount + offset) {
     //remove excessive cols
     thsLen--;
     $(tr.childNodes[thsLen]).remove();
   }
-  while (thsLen < this.instance.colCount + this.offset) {
+  while (thsLen < this.instance.colCount + offset) {
     //add missing cols
     thsLen++;
     for (h = 0; h < hlen; h++) {
@@ -2448,7 +2450,7 @@ handsontable.BlockedRows.prototype.refresh = function () {
   for (h = 0; h < hlen; h++) {
     var realThs = this.instance.table.find('thead th.' + this.headers[h].className);
     for (var i = 0; i < thsLen; i++) {
-      realThs[i].innerHTML = ths[i].innerHTML = '&nbsp;<span class="small">' + that.headers[h].columnLabel(i - that.offset) + '</span>&nbsp;';
+      realThs[i].innerHTML = ths[i].innerHTML = '&nbsp;<span class="small">' + that.headers[h].columnLabel(i - offset) + '</span>&nbsp;';
       ths[i].style.minWidth = realThs.eq(i).width() + 'px';
     }
   }
@@ -2474,11 +2476,12 @@ handsontable.BlockedRows.prototype.refreshBorders = function () {
  * @param {Object} changes
  */
 handsontable.BlockedRows.prototype.dimensions = function (changes) {
+  var offset = this.instance.blockedCols ? this.instance.blockedCols.count() : 0;
   for (var i = 0, ilen = changes.length; i < ilen; i++) {
     var $th = $(this.instance.getCell(changes[i][0], changes[i][1]));
     if ($th.length) {
       var width = $th.width();
-      this.main.find('th').get(changes[i][1] + this.offset).style.minWidth = width + 'px';
+      this.main.find('th').get(changes[i][1] + offset).style.minWidth = width + 'px';
     }
   }
 };
@@ -2487,9 +2490,8 @@ handsontable.BlockedRows.prototype.dimensions = function (changes) {
 /**
  * Update settings of the column header
  */
-handsontable.BlockedRows.prototype.update = function (labels, offset) {
+handsontable.BlockedRows.prototype.update = function (labels) {
   this.labels = labels || [];
-  this.offset = offset || 0;
   this.create();
   this.refresh();
 };
@@ -2507,9 +2509,8 @@ handsontable.BlockedRows.prototype.destroy = function () {
  * Handsontable BlockedCols extension
  * @param {Object} instance
  * @param {Array|Boolean} [labels]
- * @param {Number} [offset]
  */
-handsontable.BlockedCols = function (instance, labels, offset) {
+handsontable.BlockedCols = function (instance, labels) {
   var that = this;
   this.heightMethod = $.browser.mozilla ? "outerHeight" : "height";
   this.instance = instance;
@@ -2522,7 +2523,7 @@ handsontable.BlockedCols = function (instance, labels, offset) {
     }, 10);
   });
   this.instance.container.append(this.main);
-  this.update(labels, offset);
+  this.update(labels);
 };
 
 /**
@@ -2564,10 +2565,11 @@ handsontable.BlockedCols.prototype.create = function () {
 handsontable.BlockedCols.prototype.refresh = function () {
   var that = this;
   var thead = this.main.find('thead');
-  if (this.offset && thead[0].childNodes.length === 0) {
+  var offset = this.instance.blockedRows ? this.instance.blockedRows.count() : 0;
+  if (offset && thead[0].childNodes.length === 0) {
     thead.html('<tr><th>&nbsp;<span class="small">&nbsp;</span>&nbsp;</th></tr>');
   }
-  else if (!this.offset && thead[0].childNodes.length > 0) {
+  else if (!offset && thead[0].childNodes.length > 0) {
     thead.empty();
   }
 
@@ -2619,10 +2621,11 @@ handsontable.BlockedCols.prototype.refreshBorders = function () {
  * @param {Object} changes
  */
 handsontable.BlockedCols.prototype.dimensions = function (changes) {
+  var offset = this.instance.blockedRows ? this.instance.blockedRows.count() : 0;
   for (var i = 0, ilen = changes.length; i < ilen; i++) {
     var $th = $(this.instance.getCell(changes[i][0], changes[i][1]));
     if ($th.length) {
-      this.ths.get(changes[i][0] + this.offset).style.height = $th[this.heightMethod]() + 'px';
+      this.ths.get(changes[i][0] + offset).style.height = $th[this.heightMethod]() + 'px';
     }
   }
 };
