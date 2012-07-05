@@ -2002,6 +2002,7 @@
       else {
         if (priv.cornerHeader) {
           priv.cornerHeader.remove();
+          priv.cornerHeader = null;
         }
       }
 
