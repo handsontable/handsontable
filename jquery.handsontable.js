@@ -1960,7 +1960,7 @@
           if (settings.colHeaders === false) {
             self.blockedRows.destroy();
             delete self.blockedRows;
-            self.blockedCols && self.blockedCols.update(priv.settings.rowHeaders, priv.colBlockCount);
+            self.blockedCols && self.blockedCols.update(priv.settings.rowHeaders, priv.rowBlockCount);
           }
           else {
             self.blockedRows.update(priv.settings.colHeaders, priv.rowBlockCount);
@@ -2002,6 +2002,7 @@
       else {
         if (priv.cornerHeader) {
           priv.cornerHeader.remove();
+          priv.cornerHeader = null;
         }
       }
 

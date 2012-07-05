@@ -50,6 +50,9 @@
 
   <button id="selectFirst">Select first cell</button>
 
+  <label><input type="checkbox" id="rowHeaders" checked="checked"> rowHeaders</label>
+  <label><input type="checkbox" id="colHeaders" checked="checked"> colHeaders</label>
+
   <div id="exampleGrid" class="dataTable"></div>
 
   <style>
@@ -152,6 +155,14 @@
         //current cell when you click outside the table
         container.handsontable("selectCell", 0, 0);
       }, 10);
+    });
+
+    $("input#rowHeaders").change(function(){
+      container.handsontable("updateSettings", {rowHeaders: $(this).is(':checked')});
+    });
+
+    $("input#colHeaders").change(function(){
+      container.handsontable("updateSettings", {colHeaders: $(this).is(':checked')});
     });
   </script>
 
