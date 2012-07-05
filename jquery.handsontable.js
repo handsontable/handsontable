@@ -213,13 +213,13 @@
           case "insert_row":
             datamap.createRow(coords);
             grid.createRow(coords);
-            priv.rowHeader && priv.rowHeader.refresh();
+            priv.blockedCols && priv.blockedCols.refresh();
             break;
 
           case "insert_col":
             datamap.createCol(coords);
             grid.createCol(coords);
-            priv.colHeader && priv.colHeader.refresh();
+            priv.blockedRows && priv.blockedRows.refresh();
             break;
 
           case "remove_row":
@@ -227,7 +227,7 @@
             grid.removeRow(coords, toCoords);
             result = grid.keepEmptyRows();
             if (!result) {
-              priv.rowHeader && priv.rowHeader.refresh();
+              priv.blockedCols && priv.blockedCols.refresh();
             }
             break;
 
@@ -236,7 +236,7 @@
             grid.removeCol(coords, toCoords);
             result = grid.keepEmptyRows();
             if (!result) {
-              priv.colHeader && priv.colHeader.refresh();
+              priv.blockedRows && priv.blockedRows.refresh();
             }
             break;
         }
@@ -289,7 +289,7 @@
       createCol: function (coords) {
         var trs = priv.tableBody.childNodes, r, c;
 
-        if (priv.colHeader) {
+        if (priv.blockedRows) {
           var tr = self.table.find('thead tr')[0];
           if (!coords || coords.col >= self.colCount) {
             tr.appendChild(document.createElement('th'));
@@ -342,15 +342,15 @@
        */
       removeCol: function (coords, toCoords) {
         var trs = priv.tableBody.childNodes, colThs, i;
-        if (priv.colHeader) {
+        if (priv.blockedRows) {
           colThs = self.table.find('thead th');
         }
         var r = 0;
         if (!coords || coords.col === self.colCount - 1) {
           for (; r < self.rowCount; r++) {
-            $(trs[r].childNodes[self.colCount + (priv.rowHeader ? 1 : 0) - 1]).remove();
+            $(trs[r].childNodes[self.colCount + (priv.blockedCols ? 1 : 0) - 1]).remove();
             if (colThs) {
-              colThs.eq(self.colCount + (priv.rowHeader ? 1 : 0) - 1).remove();
+              colThs.eq(self.colCount + (priv.blockedCols ? 1 : 0) - 1).remove();
             }
           }
           self.colCount--;
@@ -358,13 +358,13 @@
         else {
           for (; r < self.rowCount; r++) {
             for (i = toCoords.col; i >= coords.col; i--) {
-              $(trs[r].childNodes[i + (priv.rowHeader ? 1 : 0)]).remove();
+              $(trs[r].childNodes[i + (priv.blockedCols ? 1 : 0)]).remove();
 
             }
           }
           if (colThs) {
             for (i = toCoords.col; i >= coords.col; i--) {
-              colThs.eq(i + (priv.rowHeader ? 1 : 0)).remove();
+              colThs.eq(i + (priv.blockedCols ? 1 : 0)).remove();
             }
           }
           self.colCount -= toCoords.col - coords.col + 1;
@@ -497,8 +497,8 @@
 
         if (recreateRows || recreateCols) {
           selection.refreshBorders();
-          priv.rowHeader && priv.rowHeader.refresh();
-          priv.colHeader && priv.colHeader.refresh();
+          priv.blockedCols && priv.blockedCols.refresh();
+          priv.blockedRows && priv.blockedRows.refresh();
         }
 
         return (recreateRows || recreateCols);
@@ -952,8 +952,8 @@
         var scrollHeight = priv.scrollable.outerHeight() - 24; //24 = scrollbar
         var scrollOffset = priv.scrollable.offset();
 
-        var rowHeaderWidth = priv.rowHeader ? $(priv.rowHeader.main[0].firstChild).outerWidth() : 2;
-        var colHeaderHeight = priv.colHeader ? $(priv.colHeader.main[0].firstChild).outerHeight() : 2;
+        var rowHeaderWidth = priv.blockedCols ? $(priv.blockedCols.main[0].firstChild).outerWidth() : 2;
+        var colHeaderHeight = priv.blockedRows ? $(priv.blockedRows.main[0].firstChild).outerHeight() : 2;
 
         var offsetTop = tdOffset.top;
         var offsetLeft = tdOffset.left;
@@ -1717,14 +1717,14 @@
           self.curScrollTop = priv.scrollable[0].scrollTop;
           self.curScrollLeft = priv.scrollable[0].scrollLeft;
 
-          if (priv.colHeader && self.curScrollTop !== self.lastScrollTop) {
-            priv.colHeader.refreshBorders();
-            priv.colHeader.main[0].style.top = self.curScrollTop + 'px';
+          if (priv.blockedRows && self.curScrollTop !== self.lastScrollTop) {
+            priv.blockedRows.refreshBorders();
+            priv.blockedRows.main[0].style.top = self.curScrollTop + 'px';
           }
 
-          if (priv.rowHeader && self.curScrollLeft !== self.lastScrollLeft) {
-            priv.rowHeader.refreshBorders();
-            priv.rowHeader.main[0].style.left = self.curScrollLeft + 'px';
+          if (priv.blockedCols && self.curScrollLeft !== self.lastScrollLeft) {
+            priv.blockedCols.refreshBorders();
+            priv.blockedCols.main[0].style.left = self.curScrollLeft + 'px';
           }
 
           if (priv.cornerHeader && (self.curScrollTop !== self.lastScrollTop || self.curScrollLeft !== self.lastScrollLeft)) {
@@ -1788,11 +1788,11 @@
         };
 
         var isDisabled = function (key) {
-          if (priv.rowHeader && priv.rowHeader.lastActive && (key === "remove_col" || key === "col_left" || key === "col_right")) {
+          if (priv.blockedCols && priv.blockedCols.lastActive && (key === "remove_col" || key === "col_left" || key === "col_right")) {
             return true;
           }
 
-          if (priv.colHeader && priv.colHeader.lastActive && (key === "remove_row" || key === "row_above" || key === "row_below")) {
+          if (priv.blockedRows && priv.blockedRows.lastActive && (key === "remove_row" || key === "row_above" || key === "row_below")) {
             return true;
           }
 
@@ -1907,10 +1907,10 @@
         grid.updateLegend({row: row, col: col});
       }
       if (refreshRows) {
-        priv.rowHeader && priv.rowHeader.refresh();
+        priv.blockedCols && priv.blockedCols.refresh();
       }
       if (refreshCols) {
-        priv.colHeader && priv.colHeader.refresh();
+        priv.blockedRows && priv.blockedRows.refresh();
       }
       return td;
     };
@@ -1956,40 +1956,40 @@
       priv.colBlockCount = priv.settings.rowHeaders ? 1 : 0;
 
       if (typeof settings.colHeaders !== "undefined") {
-        if (priv.colHeader) {
+        if (priv.blockedRows) {
           if (settings.colHeaders === false) {
-            priv.colHeader.destroy();
-            delete priv.colHeader;
-            priv.rowHeader && priv.rowHeader.update(priv.settings.rowHeaders, priv.colBlockCount);
+            priv.blockedRows.destroy();
+            delete priv.blockedRows;
+            priv.blockedCols && priv.blockedCols.update(priv.settings.rowHeaders, priv.colBlockCount);
           }
           else {
-            priv.colHeader.update(priv.settings.colHeaders, priv.rowBlockCount);
+            priv.blockedRows.update(priv.settings.colHeaders, priv.rowBlockCount);
           }
         }
         else if (settings.colHeaders !== false) {
-          priv.colHeader = new handsontable.ColumnHeader(self, priv.settings.colHeaders, priv.colBlockCount);
-          priv.rowHeader && priv.rowHeader.update(priv.settings.rowHeaders, priv.rowBlockCount);
+          priv.blockedRows = new handsontable.BlockedRows(self, priv.settings.colHeaders, priv.colBlockCount);
+          priv.blockedCols && priv.blockedCols.update(priv.settings.rowHeaders, priv.rowBlockCount);
         }
       }
 
       if (typeof settings.rowHeaders !== "undefined") {
-        if (priv.rowHeader) {
+        if (priv.blockedCols) {
           if (settings.rowHeaders === false) {
-            priv.rowHeader.destroy();
-            delete priv.rowHeader;
-            priv.colHeader && priv.colHeader.update(priv.settings.colHeaders, priv.colBlockCount);
+            priv.blockedCols.destroy();
+            delete priv.blockedCols;
+            priv.blockedRows && priv.blockedRows.update(priv.settings.colHeaders, priv.colBlockCount);
           }
           else {
-            priv.rowHeader.update(priv.settings.rowHeaders, priv.rowBlockCount);
+            priv.blockedCols.update(priv.settings.rowHeaders, priv.rowBlockCount);
           }
         }
         else if (settings.rowHeaders !== false) {
-          priv.rowHeader = new handsontable.RowHeader(self, priv.settings.rowHeaders, priv.rowBlockCount);
-          priv.colHeader && priv.colHeader.update(priv.settings.colHeaders, priv.colBlockCount);
+          priv.blockedCols = new handsontable.BlockedCols(self, priv.settings.rowHeaders, priv.rowBlockCount);
+          priv.blockedRows && priv.blockedRows.update(priv.settings.colHeaders, priv.colBlockCount);
         }
       }
 
-      if (priv.colHeader && priv.rowHeader) {
+      if (priv.blockedRows && priv.blockedCols) {
         if (!priv.cornerHeader) {
           var position = self.table.position();
           priv.cornerHeader = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px; width: 50px;"><table cellspacing="0" cellpadding="0"><thead><tr><th>&nbsp;<span class="small">&nbsp;</span>&nbsp;</th></tr></thead></table></div>');
@@ -2374,12 +2374,12 @@ handsontable.UndoRedo.prototype.add = function (changes) {
 
 
 /**
- * Handsontable ColumnHeader extension
+ * Handsontable BlockedRows extension
  * @param {Object} instance
  * @param {Array|Boolean} [labels]
  * @param {Number} [offset]
  */
-handsontable.ColumnHeader = function (instance, labels, offset) {
+handsontable.BlockedRows = function (instance, labels, offset) {
   var that = this;
   this.instance = instance;
   var position = instance.table.position();
@@ -2406,7 +2406,7 @@ handsontable.ColumnHeader = function (instance, labels, offset) {
 /**
  * Create column header in the grid table
  */
-handsontable.ColumnHeader.prototype.create = function () {
+handsontable.BlockedRows.prototype.create = function () {
   var tr, c;
   tr = document.createElement('tr');
   for (c = 0; c < this.instance.colCount + this.offset; c++) {
@@ -2422,7 +2422,7 @@ handsontable.ColumnHeader.prototype.create = function () {
  * @param {Number} index Row index
  * @return {String}|{Number}
  */
-handsontable.ColumnHeader.prototype.columnLabel = function (index) {
+handsontable.BlockedRows.prototype.columnLabel = function (index) {
   if (this.labels[index]) {
     return this.labels[index];
   }
@@ -2440,7 +2440,7 @@ handsontable.ColumnHeader.prototype.columnLabel = function (index) {
 /**
  * Copy table column header onto the floating layer above the grid
  */
-handsontable.ColumnHeader.prototype.refresh = function () {
+handsontable.BlockedRows.prototype.refresh = function () {
   var that = this;
 
   var tr = this.main.find('thead tr')[0];
@@ -2470,7 +2470,7 @@ handsontable.ColumnHeader.prototype.refresh = function () {
 /**
  * Refresh border width
  */
-handsontable.ColumnHeader.prototype.refreshBorders = function () {
+handsontable.BlockedRows.prototype.refreshBorders = function () {
   if (this.instance.curScrollTop === 0) {
     this.ths.css('borderBottomWidth', 0);
   }
@@ -2483,7 +2483,7 @@ handsontable.ColumnHeader.prototype.refreshBorders = function () {
  * Recalculate column widths on the floating layer above the grid
  * @param {Object} changes
  */
-handsontable.ColumnHeader.prototype.dimensions = function (changes) {
+handsontable.BlockedRows.prototype.dimensions = function (changes) {
   for (var i = 0, ilen = changes.length; i < ilen; i++) {
     var $th = $(this.instance.getCell(changes[i][0], changes[i][1]));
     if ($th.length) {
@@ -2496,7 +2496,7 @@ handsontable.ColumnHeader.prototype.dimensions = function (changes) {
 /**
  * Remove current highlight of a currently selected column header
  */
-handsontable.ColumnHeader.prototype.deselect = function () {
+handsontable.BlockedRows.prototype.deselect = function () {
   if (this.lastActive) {
     this.lastActive.className = '';
     this.lastActive = null;
@@ -2506,7 +2506,7 @@ handsontable.ColumnHeader.prototype.deselect = function () {
 /**
  * Update settings of the column header
  */
-handsontable.ColumnHeader.prototype.update = function (labels, offset) {
+handsontable.BlockedRows.prototype.update = function (labels, offset) {
   this.labels = labels || [];
   this.offset = offset || 0;
   this.create();
@@ -2516,19 +2516,19 @@ handsontable.ColumnHeader.prototype.update = function (labels, offset) {
 /**
  * Remove column header from DOM
  */
-handsontable.ColumnHeader.prototype.destroy = function () {
+handsontable.BlockedRows.prototype.destroy = function () {
   this.main.remove();
   this.instance.table.find('thead').empty();
 };
 
 
 /**
- * Handsontable RowHeader extension
+ * Handsontable BlockedCols extension
  * @param {Object} instance
  * @param {Array|Boolean} [labels]
  * @param {Number} [offset]
  */
-handsontable.RowHeader = function (instance, labels, offset) {
+handsontable.BlockedCols = function (instance, labels, offset) {
   var that = this;
   this.heightMethod = $.browser.mozilla ? "outerHeight" : "height";
   this.instance = instance;
@@ -2557,7 +2557,7 @@ handsontable.RowHeader = function (instance, labels, offset) {
 /**
  * Create row header in the grid table
  */
-handsontable.RowHeader.prototype.create = function () {
+handsontable.BlockedCols.prototype.create = function () {
   var trs = this.instance.table.find('tbody')[0].childNodes;
   for (var r = 0; r < this.instance.rowCount; r++) {
     if (trs[r].getElementsByTagName('th').length === 0) {
@@ -2572,7 +2572,7 @@ handsontable.RowHeader.prototype.create = function () {
  * @param {Number} index Row index
  * @return {String}|{Number}
  */
-handsontable.RowHeader.prototype.columnLabel = function (index) {
+handsontable.BlockedCols.prototype.columnLabel = function (index) {
   if (this.labels[index]) {
     return this.labels[index];
   }
@@ -2582,7 +2582,7 @@ handsontable.RowHeader.prototype.columnLabel = function (index) {
 /**
  * Copy table row header onto the floating layer above the grid
  */
-handsontable.RowHeader.prototype.refresh = function () {
+handsontable.BlockedCols.prototype.refresh = function () {
   var that = this;
   var thead = this.main.find('thead');
   if (this.offset && thead[0].childNodes.length === 0) {
@@ -2621,7 +2621,7 @@ handsontable.RowHeader.prototype.refresh = function () {
 /**
  * Refresh border width
  */
-handsontable.RowHeader.prototype.refreshBorders = function () {
+handsontable.BlockedCols.prototype.refreshBorders = function () {
   if (this.instance.curScrollLeft === 0) {
     this.ths.css('borderRightWidth', 0);
   }
@@ -2634,7 +2634,7 @@ handsontable.RowHeader.prototype.refreshBorders = function () {
  * Recalculate row heights on the floating layer above the grid
  * @param {Object} changes
  */
-handsontable.RowHeader.prototype.dimensions = function (changes) {
+handsontable.BlockedCols.prototype.dimensions = function (changes) {
   for (var i = 0, ilen = changes.length; i < ilen; i++) {
     var $th = $(this.instance.getCell(changes[i][0], changes[i][1]));
     if ($th.length) {
@@ -2646,17 +2646,17 @@ handsontable.RowHeader.prototype.dimensions = function (changes) {
 /**
  * Remove current highlight of a currently selected row header
  */
-handsontable.RowHeader.prototype.deselect = handsontable.ColumnHeader.prototype.deselect;
+handsontable.BlockedCols.prototype.deselect = handsontable.BlockedRows.prototype.deselect;
 
 /**
  * Update settings of the row header
  */
-handsontable.RowHeader.prototype.update = handsontable.ColumnHeader.prototype.update;
+handsontable.BlockedCols.prototype.update = handsontable.BlockedRows.prototype.update;
 
 /**
  * Remove row header from DOM
  */
-handsontable.RowHeader.prototype.destroy = function () {
+handsontable.BlockedCols.prototype.destroy = function () {
   this.main.remove();
   this.instance.table.find('tbody th').remove();
 };
