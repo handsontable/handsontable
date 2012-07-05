@@ -1776,11 +1776,12 @@
         };
 
         var isDisabled = function (key) {
-          if (self.blockedCols && self.blockedCols.lastActive && (key === "remove_col" || key === "col_left" || key === "col_right")) {
+          console.log("disabled", key, arguments);
+          if (self.blockedCols && self.blockedCols.main.find('.htRowHeader.active').length && (key === "remove_col" || key === "col_left" || key === "col_right")) {
             return true;
           }
 
-          if (self.blockedRows && self.blockedRows.lastActive && (key === "remove_row" || key === "row_above" || key === "row_below")) {
+          if (self.blockedRows && self.blockedRows.main.find('.htColHeader.active').length && (key === "remove_row" || key === "row_above" || key === "row_below")) {
             return true;
           }
 
