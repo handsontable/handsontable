@@ -258,12 +258,7 @@
       createRow: function (coords) {
         var tr, c, r;
         tr = document.createElement('tr');
-
-        for (c = 0; c < priv.colBlockCount; c++) {
-          var th = document.createElement('th');
-          tr.appendChild(th);
-        }
-
+        self.blockedCols.createRow(tr);
         for (c = 0; c < self.colCount; c++) {
           tr.appendChild(document.createElement('td'));
         }
@@ -288,17 +283,7 @@
        */
       createCol: function (coords) {
         var trs = priv.tableBody.childNodes, r, c;
-
-        if (self.blockedRows) {
-          var tr = self.table.find('thead tr')[0];
-          if (!coords || coords.col >= self.colCount) {
-            tr.appendChild(document.createElement('th'));
-          }
-          else {
-            tr.insertBefore(document.createElement('th'), tr.childNodes[coords.col + 1]);
-          }
-        }
-
+        self.blockedRows.createCol(self.table.find('thead tr')[0]);
         if (!coords || coords.col >= self.colCount) {
           for (r = 0; r < self.rowCount; r++) {
             trs[r].appendChild(document.createElement('td'));
@@ -1650,6 +1635,9 @@
       self.colCount = priv.settings.cols;
       self.rowCount = 0;
 
+      self.blockedRows = new handsontable.BlockedRows(self, priv.settings.colHeaders);
+      self.blockedCols = new handsontable.BlockedCols(self, priv.settings.rowHeaders);
+
       grid.keepEmptyRows();
 
       highlight.init();
@@ -2383,18 +2371,9 @@ handsontable.UndoRedo.prototype.add = function (changes) {
 handsontable.BlockedRows = function (instance, labels, offset) {
   var that = this;
   this.instance = instance;
+  this.headers = [new handsontable.ColHeader(instance, labels)];
   var position = instance.table.position();
   this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table cellspacing="0" cellpadding="0"><thead><tr></tr></thead></table></div>');
-  this.main.on('mousedown', 'th', function () {
-    that.instance.deselectCell();
-    this.className = 'active';
-    that.lastActive = this;
-    var index = $(this).index();
-    that.instance.selectCell(0, index - that.offset, that.instance.rowCount - 1, index - that.offset, false);
-  });
-  this.instance.container.on('deselect.handsontable', function () {
-    that.deselect();
-  });
   this.instance.container.on('datachange.handsontable', function (event, changes) {
     setTimeout(function () {
       that.dimensions(changes);
@@ -2402,8 +2381,6 @@ handsontable.BlockedRows = function (instance, labels, offset) {
   });
   this.instance.container.append(this.main);
   this.update(labels, offset);
-
-  this.headers = [true];
 };
 
 /**
@@ -2416,35 +2393,30 @@ handsontable.BlockedRows.prototype.count = function () {
 /**
  * Create column header in the grid table
  */
-handsontable.BlockedRows.prototype.create = function () {
-  var tr, c;
-  tr = document.createElement('tr');
-  for (c = 0; c < this.instance.colCount + this.offset; c++) {
+handsontable.BlockedRows.prototype.createCol = function (tr) {
+  for (var h = 0, hlen = this.count(); h < hlen; h++) {
     var th = document.createElement('th');
-    th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
+    th.className = this.headers[h].className;
     tr.appendChild(th);
   }
-  this.instance.table.find('thead').empty().append(tr);
 };
 
 /**
- * Return custom column label or automatically generate one
- * @param {Number} index Row index
- * @return {String}|{Number}
+ * Create column header in the grid table
  */
-handsontable.BlockedRows.prototype.columnLabel = function (index) {
-  if (this.labels[index]) {
-    return this.labels[index];
+handsontable.BlockedRows.prototype.create = function () {
+  var tr, c;
+  tr = document.createElement('tr');
+  var hlen = this.count();
+  for (var h = 0; h < hlen; h++) {
+    for (c = 0; c < this.instance.colCount + this.offset; c++) {
+      var th = document.createElement('th');
+      th.className = this.headers[h].className;
+      th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
+      tr.appendChild(th);
+    }
   }
-  var dividend = index + 1;
-  var columnLabel = '';
-  var modulo;
-  while (dividend > 0) {
-    modulo = (dividend - 1) % 26;
-    columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-    dividend = parseInt((dividend - modulo) / 26);
-  }
-  return columnLabel;
+  this.instance.table.find('thead').empty().append(tr);
 };
 
 /**
@@ -2453,9 +2425,12 @@ handsontable.BlockedRows.prototype.columnLabel = function (index) {
 handsontable.BlockedRows.prototype.refresh = function () {
   var that = this;
 
-  var tr = this.main.find('thead tr')[0];
+  var hlen = this.count(), h;
+  var $tr = this.main.find('thead tr');
+  var tr = $tr[0];
   var ths = tr.childNodes;
   var thsLen = ths.length;
+
   while (thsLen > this.instance.colCount + this.offset) {
     //remove excessive cols
     thsLen--;
@@ -2464,13 +2439,17 @@ handsontable.BlockedRows.prototype.refresh = function () {
   while (thsLen < this.instance.colCount + this.offset) {
     //add missing cols
     thsLen++;
-    $(tr).append('<th></th>');
+    for (h = 0; h < hlen; h++) {
+      $tr.append('<th class="' + this.headers[h].className + '"></th>');
+    }
   }
 
-  var realThs = this.instance.table.find('thead th');
-  for (var i = 0; i < thsLen; i++) {
-    realThs[i].innerHTML = ths[i].innerHTML = '&nbsp;<span class="small">' + that.columnLabel(i - that.offset) + '</span>&nbsp;';
-    ths[i].style.minWidth = realThs.eq(i).width() + 'px';
+  for (h = 0; h < hlen; h++) {
+    var realThs = this.instance.table.find('thead th.' + this.headers[h].className);
+    for (var i = 0; i < thsLen; i++) {
+      realThs[i].innerHTML = ths[i].innerHTML = '&nbsp;<span class="small">' + that.headers[h].columnLabel(i - that.offset) + '</span>&nbsp;';
+      ths[i].style.minWidth = realThs.eq(i).width() + 'px';
+    }
   }
 
   this.ths = this.main.find('th');
@@ -2503,15 +2482,6 @@ handsontable.BlockedRows.prototype.dimensions = function (changes) {
   }
 };
 
-/**
- * Remove current highlight of a currently selected column header
- */
-handsontable.BlockedRows.prototype.deselect = function () {
-  if (this.lastActive) {
-    $(this.lastActive).removeClass('active');
-    this.lastActive = null;
-  }
-};
 
 /**
  * Update settings of the column header
@@ -2564,6 +2534,17 @@ handsontable.BlockedCols.prototype.count = function () {
 /**
  * Create row header in the grid table
  */
+handsontable.BlockedCols.prototype.createRow = function (tr) {
+  for (var h = 0, hlen = this.count(); h < hlen; h++) {
+    var th = document.createElement('th');
+    th.className = this.headers[h].className;
+    tr.appendChild(th);
+  }
+};
+
+/**
+ * Create row header in the grid table
+ */
 handsontable.BlockedCols.prototype.create = function () {
   var trs = this.instance.table.find('tbody')[0].childNodes;
   for (var r = 0; r < this.instance.rowCount; r++) {
@@ -2589,7 +2570,7 @@ handsontable.BlockedCols.prototype.refresh = function () {
     thead.empty();
   }
 
-  var hlen = this.count();
+  var hlen = this.count(), h;
   var $tbody = this.main.find('tbody');
   var tbody = $tbody[0];
   var trs = tbody.childNodes;
@@ -2602,14 +2583,14 @@ handsontable.BlockedCols.prototype.refresh = function () {
   while (trsLen < this.instance.rowCount) {
     //add missing rows
     trsLen++;
-    for (var h = 0; h < hlen; h++) {
+    for (h = 0; h < hlen; h++) {
       $tbody.append('<tr><th class="' + this.headers[h].className + '"></th></tr>');
     }
   }
 
   var realTrs = this.instance.table.find('tbody tr');
   for (var i = 0; i < trsLen; i++) {
-    for (var h = 0; h < hlen; h++) {
+    for (h = 0; h < hlen; h++) {
       var th = trs[i].getElementsByClassName(that.headers[h].className)[0];
       th.innerHTML = '&nbsp;<span class="small">' + that.headers[h].columnLabel(i) + '</span>&nbsp;';
       th.style.height = realTrs.eq(i).children().first()[this.heightMethod]() + 'px';

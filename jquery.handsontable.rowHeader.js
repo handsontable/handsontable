@@ -40,12 +40,9 @@ handsontable.RowHeader.prototype.columnLabel = function (index) {
 /**
  * Remove current highlight of a currently selected row header
  */
-handsontable.RowHeader.prototype.deselect = handsontable.BlockedRows.prototype.deselect;
-
-/**
- * Remove row header from DOM
- */
-handsontable.RowHeader.prototype.destroy = function () {
-  this.main.remove();
-  this.instance.table.find('tbody th').remove();
+handsontable.RowHeader.prototype.deselect = function () {
+  if (this.lastActive) {
+    $(this.lastActive).removeClass('active');
+    this.lastActive = null;
+  }
 };
