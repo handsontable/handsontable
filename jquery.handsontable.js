@@ -15,7 +15,7 @@
     var priv, datamap, grid, selection, keyboard, editproxy, highlight, autofill, interaction, self = this;
 
     priv = {
-      settings: settings,
+      settings: {},
       isMouseOverTable: false,
       isMouseDown: false,
       isCellEdited: false,
@@ -27,8 +27,7 @@
       hasLegend: null,
       lastAutoComplete: null,
       undoRedo: settings.undo ? new handsontable.UndoRedo(this) : null,
-      rowBlockCount: 0,
-      colBlockCount: 0
+      extensions: {}
     };
 
     var lastChange = '';
@@ -607,8 +606,8 @@
        */
       getCellCoords: function (td) {
         return {
-          row: td.parentNode.rowIndex - priv.rowBlockCount,
-          col: td.cellIndex - priv.colBlockCount
+          row: td.parentNode.rowIndex - self.blockedRows.count(),
+          col: td.cellIndex - self.blockedCols.count()
         };
       },
 
@@ -621,7 +620,7 @@
         }
         var tr = priv.tableBody.childNodes[coords.row];
         if (tr) {
-          return tr.childNodes[coords.col + priv.colBlockCount];
+          return tr.childNodes[coords.col + self.blockedCols.count()];
         }
         else {
           return null;
@@ -685,7 +684,7 @@
           clen = self.colCount;
           for (r = 0; r < rlen; r++) {
             for (c = 0; c < clen; c++) {
-              tds.push(trs[r].childNodes[c + priv.colBlockCount]);
+              tds.push(trs[r].childNodes[c + self.blockedCols.count()]);
             }
           }
         }
@@ -1632,14 +1631,13 @@
       self.table.on('dblclick', 'td', interaction.onDblClick);
       container.append(div);
 
-      self.colCount = priv.settings.cols;
+      self.colCount = settings.cols;
       self.rowCount = 0;
-
 
       self.blockedCols = new handsontable.BlockedCols(self);
       self.blockedRows = new handsontable.BlockedRows(self);
 
-      grid.keepEmptyRows();
+      this.updateSettings(settings);
 
       highlight.init();
       priv.currentBorder = new Border(container, {
@@ -1650,14 +1648,6 @@
         autofill.init();
       }
       editproxy.init();
-
-      if (priv.settings.colHeaders) {
-        this.updateSettings({colHeaders: priv.settings.colHeaders});
-      }
-
-      if (priv.settings.rowHeaders) {
-        this.updateSettings({rowHeaders: priv.settings.rowHeaders});
-      }
 
       container.on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
       $(priv.currentBorder.main).on('dblclick', interaction.onDblClick);
@@ -1939,28 +1929,29 @@
         if (settings.hasOwnProperty(i)) {
           priv.settings[i] = settings[i];
         }
+
+        //launch extensions
+        if (handsontable.extension[i]) {
+          priv.extensions[i] = new handsontable.extension[i](self, settings[i]);
+        }
       }
 
-      priv.rowBlockCount = priv.settings.colHeaders ? 1 : 0;
-      priv.colBlockCount = priv.settings.rowHeaders ? 1 : 0;
-
       if (typeof settings.colHeaders !== "undefined") {
-        if (settings.colHeaders === false) {
-          self.blockedRows.destroyHeader('htColHeader');
+        if (settings.colHeaders === false && priv.extensions["ColHeader"]) {
+          priv.extensions["ColHeader"].destroy();
         }
         else {
-          self.blockedRows.addHeader(new handsontable.ColHeader(self, settings.colHeaders));
+          priv.extensions["ColHeader"] = new handsontable.ColHeader(self, settings.colHeaders);
         }
         self.blockedCols && self.blockedCols.update();
       }
 
       if (typeof settings.rowHeaders !== "undefined") {
-        console.log("self.blockedCols");
-        if (settings.rowHeaders === false) {
-          self.blockedCols.destroyHeader('htRowHeader');
+        if (settings.rowHeaders === false && priv.extensions["RowHeader"]) {
+          priv.extensions["RowHeader"].destroy();
         }
         else {
-          self.blockedCols.addHeader(new handsontable.RowHeader(self, settings.rowHeaders));
+          priv.extensions["RowHeader"] = new handsontable.RowHeader(self, settings.rowHeaders);
         }
         self.blockedRows && self.blockedRows.update();
       }
@@ -2268,10 +2259,11 @@
   };
 })(jQuery);
 
-var handsontable = {}; //plugin namespace
+var handsontable = {}; //class namespace
+handsontable.extension = {}; //extenstion namespace
 
 /**
- * Handsontable UndoRedo extension
+ * Handsontable UndoRedo class
  */
 handsontable.UndoRedo = function (instance) {
   var that = this;
@@ -2351,7 +2343,7 @@ handsontable.UndoRedo.prototype.add = function (changes) {
 
 
 /**
- * Handsontable BlockedRows extension
+ * Handsontable BlockedRows class
  * @param {Object} instance
  */
 handsontable.BlockedRows = function (instance) {
@@ -2495,6 +2487,9 @@ handsontable.BlockedRows.prototype.addHeader = function (header) {
     }
   }
   this.headers.push(header);
+  this.headers.sort(function (a, b) {
+    return a.priority || 0 - b.priority || 0
+  });
   this.update();
 };
 
@@ -2513,7 +2508,7 @@ handsontable.BlockedRows.prototype.destroyHeader = function (className) {
 
 
 /**
- * Handsontable BlockedCols extension
+ * Handsontable BlockedCols class
  * @param {Object} instance
  */
 handsontable.BlockedCols = function (instance) {
@@ -2659,6 +2654,9 @@ handsontable.BlockedCols.prototype.addHeader = function (header) {
     }
   }
   this.headers.push(header);
+  this.headers.sort(function (a, b) {
+    return a.priority || 0 - b.priority || 0
+  });
   this.update();
 };
 
@@ -2677,29 +2675,26 @@ handsontable.BlockedCols.prototype.destroyHeader = function (className) {
 /**
  * Handsontable RowHeader extension
  * @param {Object} instance
+ * @param {Array|Boolean} [labels]
  */
 handsontable.RowHeader = function (instance, labels) {
   var that = this;
   this.className = 'htRowHeader';
-  this.instance = instance;
-  setTimeout(function () {
-    /*this.instance.blockedCols.addHeader("htRowHeader", function(index){
-     that.columnLabel(index);
-     });*/
-    that.instance.blockedCols.main.on('mousedown', 'th.htRowHeader', function (event) {
-      if (!$(event.target).hasClass('btn') && !$(event.target).hasClass('btnContainer')) {
-        that.instance.deselectCell();
-        $(this).addClass('active');
-        that.lastActive = this;
-        var offset = that.instance.blockedCols.count();
-        that.instance.selectCell(this.parentNode.rowIndex - offset, 0, this.parentNode.rowIndex - offset, that.instance.colCount - 1, false);
-      }
-    });
-    that.instance.container.on('deselect.handsontable', function () {
-      that.deselect();
-    });
-  }, 1);
+  instance.blockedCols.main.on('mousedown', 'th.htRowHeader', function (event) {
+    if (!$(event.target).hasClass('btn') && !$(event.target).hasClass('btnContainer')) {
+      instance.deselectCell();
+      $(this).addClass('active');
+      that.lastActive = this;
+      var offset = instance.blockedRows.count();
+      instance.selectCell(this.parentNode.rowIndex - offset, 0, this.parentNode.rowIndex - offset, instance.colCount - 1, false);
+    }
+  });
+  instance.container.on('deselect.handsontable', function () {
+    that.deselect();
+  });
   this.labels = labels;
+  this.instance = instance;
+  instance.blockedCols.addHeader(this);
 };
 
 /**
@@ -2723,29 +2718,36 @@ handsontable.RowHeader.prototype.deselect = function () {
     this.lastActive = null;
   }
 };
+
+/**
+ *
+ */
+handsontable.RowHeader.prototype.destroy = function () {
+  this.instance.blockedCols.destroyHeader(this.className);
+};
 /**
  * Handsontable ColHeader extension
  * @param {Object} instance
+ * @param {Array|Boolean} [labels]
  */
 handsontable.ColHeader = function (instance, labels) {
   var that = this;
   this.className = 'htColHeader';
+  instance.blockedRows.main.on('mousedown', 'th.htColHeader', function () {
+    instance.deselectCell();
+    var $th = $(this);
+    $th.addClass('active');
+    that.lastActive = this;
+    var index = $th.index();
+    var offset = instance.blockedCols ? instance.blockedCols.count() : 0;
+    instance.selectCell(0, index - offset, instance.rowCount - 1, index - offset, false);
+  });
+  instance.container.on('deselect.handsontable', function () {
+    that.deselect();
+  });
   this.instance = instance;
-  setTimeout(function () {
-    that.instance.blockedRows.main.on('mousedown', 'th.htColHeader', function () {
-      that.instance.deselectCell();
-      var $th = $(this);
-      $th.addClass('active');
-      that.lastActive = this;
-      var index = $th.index();
-      var offset = instance.blockedCols ? instance.blockedCols.count() : 0;
-      that.instance.selectCell(0, index - offset, that.instance.rowCount - 1, index - offset, false);
-    });
-    that.instance.container.on('deselect.handsontable', function () {
-      that.deselect();
-    });
-  }, 1);
   this.labels = labels;
+  instance.blockedRows.addHeader(this);
 };
 
 /**
@@ -2772,3 +2774,10 @@ handsontable.ColHeader.prototype.columnLabel = function (index) {
  * Remove current highlight of a currently selected column header
  */
 handsontable.ColHeader.prototype.deselect = handsontable.RowHeader.prototype.deselect;
+
+/**
+ *
+ */
+handsontable.ColHeader.prototype.destroy = function () {
+  this.instance.blockedRows.destroyHeader(this.className);
+};

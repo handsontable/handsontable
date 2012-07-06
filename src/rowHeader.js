@@ -11,7 +11,7 @@ handsontable.RowHeader = function (instance, labels) {
       instance.deselectCell();
       $(this).addClass('active');
       that.lastActive = this;
-      var offset = instance.blockedCols.count();
+      var offset = instance.blockedRows.count();
       instance.selectCell(this.parentNode.rowIndex - offset, 0, this.parentNode.rowIndex - offset, instance.colCount - 1, false);
     }
   });
@@ -19,6 +19,8 @@ handsontable.RowHeader = function (instance, labels) {
     that.deselect();
   });
   this.labels = labels;
+  this.instance = instance;
+  instance.blockedCols.addHeader(this);
 };
 
 /**
@@ -41,4 +43,11 @@ handsontable.RowHeader.prototype.deselect = function () {
     $(this.lastActive).removeClass('active');
     this.lastActive = null;
   }
+};
+
+/**
+ *
+ */
+handsontable.RowHeader.prototype.destroy = function () {
+  this.instance.blockedCols.destroyHeader(this.className);
 };

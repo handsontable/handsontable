@@ -18,7 +18,9 @@ handsontable.ColHeader = function (instance, labels) {
   instance.container.on('deselect.handsontable', function () {
     that.deselect();
   });
+  this.instance = instance;
   this.labels = labels;
+  instance.blockedRows.addHeader(this);
 };
 
 /**
@@ -45,3 +47,10 @@ handsontable.ColHeader.prototype.columnLabel = function (index) {
  * Remove current highlight of a currently selected column header
  */
 handsontable.ColHeader.prototype.deselect = handsontable.RowHeader.prototype.deselect;
+
+/**
+ *
+ */
+handsontable.ColHeader.prototype.destroy = function () {
+  this.instance.blockedRows.destroyHeader(this.className);
+};
