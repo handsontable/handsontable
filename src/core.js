@@ -1955,7 +1955,6 @@
       }
 
       if (typeof settings.rowHeaders !== "undefined") {
-        console.log("self.blockedCols");
         if (settings.rowHeaders === false) {
           self.blockedCols.destroyHeader('htRowHeader');
         }
