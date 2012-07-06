@@ -15,8 +15,6 @@
   -->
   <script src="../lib/jquery.min.js"></script>
   <script src="../jquery.handsontable.js"></script>
-  <script src="../jquery.handsontable.rowHeader.js"></script>
-  <script src="../jquery.handsontable.colHeader.js"></script>
   <script src="../lib/bootstrap-typeahead.js"></script>
   <script src="../lib/jquery.autoresize.js"></script>
   <script src="../lib/jQuery-contextMenu/jquery.contextMenu.js"></script>
@@ -99,7 +97,7 @@
     var button = $('<div class="cellRelative"><span>what</span>' + /*($td.html() || '&nbsp;') +*/ '<div class="btnContainer"><div class="btn">x</div></div></div>');
 
     function createRowButtons() {
-      setTimeout(function () {
+      /*setTimeout(function () {
         container.find('tbody tr').each(function () {
           var $td = $(this).children().first().not(':has(.btn)');
           if ($td.length) {
@@ -109,7 +107,7 @@
             $td.html(but);
           }
         });
-      }, 10);
+      }, 10);*/
     }
 
     container.handsontable({

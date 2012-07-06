@@ -2674,3 +2674,101 @@ handsontable.BlockedCols.prototype.destroyHeader = function (className) {
     }
   }
 };
+/**
+ * Handsontable RowHeader extension
+ * @param {Object} instance
+ */
+handsontable.RowHeader = function (instance, labels) {
+  var that = this;
+  this.className = 'htRowHeader';
+  this.instance = instance;
+  setTimeout(function () {
+    /*this.instance.blockedCols.addHeader("htRowHeader", function(index){
+     that.columnLabel(index);
+     });*/
+    that.instance.blockedCols.main.on('mousedown', 'th.htRowHeader', function (event) {
+      if (!$(event.target).hasClass('btn') && !$(event.target).hasClass('btnContainer')) {
+        that.instance.deselectCell();
+        $(this).addClass('active');
+        that.lastActive = this;
+        var offset = that.instance.blockedCols.count();
+        that.instance.selectCell(this.parentNode.rowIndex - offset, 0, this.parentNode.rowIndex - offset, that.instance.colCount - 1, false);
+      }
+    });
+    that.instance.container.on('deselect.handsontable', function () {
+      that.deselect();
+    });
+  }, 1);
+  this.labels = labels;
+};
+
+/**
+ * Return custom row label or automatically generate one
+ * @param {Number} index Row index
+ * @return {String}|{Number}
+ */
+handsontable.RowHeader.prototype.columnLabel = function (index) {
+  if (this.labels[index]) {
+    return this.labels[index];
+  }
+  return index + 1;
+};
+
+/**
+ * Remove current highlight of a currently selected row header
+ */
+handsontable.RowHeader.prototype.deselect = function () {
+  if (this.lastActive) {
+    $(this.lastActive).removeClass('active');
+    this.lastActive = null;
+  }
+};
+/**
+ * Handsontable ColHeader extension
+ * @param {Object} instance
+ */
+handsontable.ColHeader = function (instance, labels) {
+  var that = this;
+  this.className = 'htColHeader';
+  this.instance = instance;
+  setTimeout(function () {
+    that.instance.blockedRows.main.on('mousedown', 'th.htColHeader', function () {
+      that.instance.deselectCell();
+      var $th = $(this);
+      $th.addClass('active');
+      that.lastActive = this;
+      var index = $th.index();
+      var offset = instance.blockedCols ? instance.blockedCols.count() : 0;
+      that.instance.selectCell(0, index - offset, that.instance.rowCount - 1, index - offset, false);
+    });
+    that.instance.container.on('deselect.handsontable', function () {
+      that.deselect();
+    });
+  }, 1);
+  this.labels = labels;
+};
+
+/**
+ * Return custom column label or automatically generate one
+ * @param {Number} index Row index
+ * @return {String}|{Number}
+ */
+handsontable.ColHeader.prototype.columnLabel = function (index) {
+  if (this.labels[index]) {
+    return this.labels[index];
+  }
+  var dividend = index + 1;
+  var columnLabel = '';
+  var modulo;
+  while (dividend > 0) {
+    modulo = (dividend - 1) % 26;
+    columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
+    dividend = parseInt((dividend - modulo) / 26);
+  }
+  return columnLabel;
+};
+
+/**
+ * Remove current highlight of a currently selected column header
+ */
+handsontable.ColHeader.prototype.deselect = handsontable.RowHeader.prototype.deselect;
