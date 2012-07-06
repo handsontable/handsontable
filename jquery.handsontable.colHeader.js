@@ -7,7 +7,7 @@ handsontable.ColHeader = function (instance, labels) {
   this.className = 'htColHeader';
   this.instance = instance;
   setTimeout(function () {
-    that.instance.blockedRows.main.on('mousedown', '.htColHeader', function () {
+    that.instance.blockedRows.main.on('mousedown', 'th.htColHeader', function () {
       that.instance.deselectCell();
       var $th = $(this);
       $th.addClass('active');

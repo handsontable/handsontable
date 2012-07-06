@@ -10,7 +10,7 @@ handsontable.RowHeader = function (instance, labels) {
     /*this.instance.blockedCols.addHeader("htRowHeader", function(index){
      that.columnLabel(index);
      });*/
-    that.instance.blockedCols.main.on('mousedown', '.htRowHeader', function (event) {
+    that.instance.blockedCols.main.on('mousedown', 'th.htRowHeader', function (event) {
       if (!$(event.target).hasClass('btn') && !$(event.target).hasClass('btnContainer')) {
         that.instance.deselectCell();
         $(this).addClass('active');
