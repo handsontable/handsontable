@@ -6,16 +6,16 @@
 handsontable.ColHeader = function (instance, labels) {
   var that = this;
   this.className = 'htColHeader';
-  that.instance.blockedRows.main.on('mousedown', 'th.htColHeader', function () {
-    that.instance.deselectCell();
+  instance.blockedRows.main.on('mousedown', 'th.htColHeader', function () {
+    instance.deselectCell();
     var $th = $(this);
     $th.addClass('active');
     that.lastActive = this;
     var index = $th.index();
     var offset = instance.blockedCols ? instance.blockedCols.count() : 0;
-    that.instance.selectCell(0, index - offset, that.instance.rowCount - 1, index - offset, false);
+    instance.selectCell(0, index - offset, instance.rowCount - 1, index - offset, false);
   });
-  that.instance.container.on('deselect.handsontable', function () {
+  instance.container.on('deselect.handsontable', function () {
     that.deselect();
   });
   this.labels = labels;
