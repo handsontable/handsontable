@@ -2634,7 +2634,7 @@ handsontable.BlockedCols.prototype.refresh = function () {
       }
     }
 
-    this.ths = this.main.find('th');
+    this.ths = this.main.find('th:last-child');
     this.refreshBorders();
   }
 };
