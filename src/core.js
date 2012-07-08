@@ -2384,20 +2384,22 @@ handsontable.BlockedRows.prototype.createCol = function () {
  * Create column header in the grid table
  */
 handsontable.BlockedRows.prototype.create = function () {
-  var tr, c;
-  this.instance.table.find('thead').empty();
-  var headerCount = this.count();
-  var offset = this.instance.blockedCols ? this.instance.blockedCols.count() : 0;
-  for (var h = 0; h < headerCount; h++) {
-    tr = document.createElement('tr');
-    tr.className = this.headers[h].className;
-    for (c = 0; c < this.instance.colCount + offset; c++) {
-      var th = document.createElement('th');
-      th.className = this.headers[h].className;
-      th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
-      tr.appendChild(th);
+  if (this.count() > 0) {
+    var tr, c;
+    this.instance.table.find('thead').empty();
+    var headerCount = this.count();
+    var offset = this.instance.blockedCols ? this.instance.blockedCols.count() : 0;
+    for (var h = 0; h < headerCount; h++) {
+      tr = document.createElement('tr');
+      tr.className = this.headers[h].className;
+      for (c = 0; c < this.instance.colCount + offset; c++) {
+        var th = document.createElement('th');
+        th.className = this.headers[h].className;
+        th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
+        tr.appendChild(th);
+      }
+      this.instance.table.find('thead').append(tr);
     }
-    this.instance.table.find('thead').append(tr);
   }
 };
 
@@ -2405,52 +2407,56 @@ handsontable.BlockedRows.prototype.create = function () {
  * Copy table column header onto the floating layer above the grid
  */
 handsontable.BlockedRows.prototype.refresh = function () {
-  var that = this;
-  var hlen = this.count(), h;
-  for (h = 0; h < hlen; h++) {
-    var $tr = this.main.find('thead tr.' + this.headers[h].className);
-    if (!$tr.length) {
-      $tr = $('<tr class="' + this.headers[h].className + '"></tr>');
-      this.main.find('thead').append($tr);
-    }
-    var tr = $tr[0];
-    var ths = tr.childNodes;
-    var thsLen = ths.length;
-    var offset = this.instance.blockedCols ? this.instance.blockedCols.count() : 0;
-
-    while (thsLen > this.instance.colCount + offset) {
-      //remove excessive cols
-      thsLen--;
-      $(tr.childNodes[thsLen]).remove();
-    }
-    while (thsLen < this.instance.colCount + offset) {
-      //add missing cols
-      thsLen++;
-      $tr.append('<th class="' + this.headers[h].className + '"></th>');
-    }
-
+  if (this.count() > 0) {
+    var that = this;
+    var hlen = this.count(), h;
     for (h = 0; h < hlen; h++) {
-      var realThs = this.instance.table.find('thead th.' + this.headers[h].className);
-      for (var i = 0; i < thsLen; i++) {
-        realThs[i].innerHTML = ths[i].innerHTML = that.headers[h].columnLabel(i - offset);
-        ths[i].style.minWidth = realThs.eq(i).width() + 'px';
+      var $tr = this.main.find('thead tr.' + this.headers[h].className);
+      if (!$tr.length) {
+        $tr = $('<tr class="' + this.headers[h].className + '"></tr>');
+        this.main.find('thead').append($tr);
+      }
+      var tr = $tr[0];
+      var ths = tr.childNodes;
+      var thsLen = ths.length;
+      var offset = this.instance.blockedCols ? this.instance.blockedCols.count() : 0;
+
+      while (thsLen > this.instance.colCount + offset) {
+        //remove excessive cols
+        thsLen--;
+        $(tr.childNodes[thsLen]).remove();
+      }
+      while (thsLen < this.instance.colCount + offset) {
+        //add missing cols
+        thsLen++;
+        $tr.append('<th class="' + this.headers[h].className + '"></th>');
+      }
+
+      for (h = 0; h < hlen; h++) {
+        var realThs = this.instance.table.find('thead th.' + this.headers[h].className);
+        for (var i = 0; i < thsLen; i++) {
+          realThs[i].innerHTML = ths[i].innerHTML = that.headers[h].columnLabel(i - offset);
+          ths[i].style.minWidth = realThs.eq(i).width() + 'px';
+        }
       }
     }
-  }
 
-  this.ths = this.main.find('th');
-  this.refreshBorders();
+    this.ths = this.main.find('th');
+    this.refreshBorders();
+  }
 };
 
 /**
  * Refresh border width
  */
 handsontable.BlockedRows.prototype.refreshBorders = function () {
-  if (this.instance.curScrollTop === 0) {
-    this.ths.css('borderBottomWidth', 0);
-  }
-  else if (this.instance.lastScrollTop === 0) {
-    this.ths.css('borderBottomWidth', '1px');
+  if (this.count() > 0) {
+    if (this.instance.curScrollTop === 0) {
+      this.ths.css('borderBottomWidth', 0);
+    }
+    else if (this.instance.lastScrollTop === 0) {
+      this.ths.css('borderBottomWidth', '1px');
+    }
   }
 };
 
@@ -2459,12 +2465,14 @@ handsontable.BlockedRows.prototype.refreshBorders = function () {
  * @param {Object} changes
  */
 handsontable.BlockedRows.prototype.dimensions = function (changes) {
-  var offset = this.instance.blockedCols ? this.instance.blockedCols.count() : 0;
-  for (var i = 0, ilen = changes.length; i < ilen; i++) {
-    var $th = $(this.instance.getCell(changes[i][0], changes[i][1]));
-    if ($th.length) {
-      var width = $th.width();
-      this.main.find('th').get(changes[i][1] + offset).style.minWidth = width + 'px';
+  if (this.count() > 0) {
+    var offset = this.instance.blockedCols ? this.instance.blockedCols.count() : 0;
+    for (var i = 0, ilen = changes.length; i < ilen; i++) {
+      var $th = $(this.instance.getCell(changes[i][0], changes[i][1]));
+      if ($th.length) {
+        var width = $th.width();
+        this.main.find('th').get(changes[i][1] + offset).style.minWidth = width + 'px';
+      }
     }
   }
 };
@@ -2549,13 +2557,15 @@ handsontable.BlockedCols.prototype.createRow = function (tr) {
  * Create row header in the grid table
  */
 handsontable.BlockedCols.prototype.create = function () {
-  var trs = this.instance.table.find('tbody')[0].childNodes;
-  for (var r = 0; r < this.instance.rowCount; r++) {
-    if (trs[r].getElementsByTagName('th').length === 0) {
-      for (var i = 0, ilen = this.count(); i < ilen; i++) {
-        var th = document.createElement('th');
-        th.className = this.headers[i].className;
-        trs[r].insertBefore(th, trs[r].firstChild);
+  if (this.count() > 0) {
+    var trs = this.instance.table.find('tbody')[0].childNodes;
+    for (var r = 0; r < this.instance.rowCount; r++) {
+      if (trs[r].getElementsByTagName('th').length === 0) {
+        for (var i = 0, ilen = this.count(); i < ilen; i++) {
+          var th = document.createElement('th');
+          th.className = this.headers[i].className;
+          trs[r].insertBefore(th, trs[r].firstChild);
+        }
       }
     }
   }
@@ -2565,69 +2575,73 @@ handsontable.BlockedCols.prototype.create = function () {
  * Copy table row header onto the floating layer above the grid
  */
 handsontable.BlockedCols.prototype.refresh = function () {
-  var that = this;
-  var hlen = this.count(), h;
-  var $theadTr = this.main.find('thead tr');
-  var offset = this.instance.blockedRows ? this.instance.blockedRows.count() : 0;
-  if (offset && $theadTr[0].childNodes.length < hlen) {
-    for (h = 0; h < hlen; h++) {
-      var th = $theadTr[0].getElementsByClassName(that.headers[h].className)[0];
-      if (!th) {
-        th = document.createElement('th');
-        th.className = this.headers[h].className;
-        th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
-        $theadTr[0].insertBefore(th, $theadTr[0].firstChild);
+  if (this.count() > 0) {
+    var that = this;
+    var hlen = this.count(), h;
+    var $theadTr = this.main.find('thead tr');
+    var offset = this.instance.blockedRows ? this.instance.blockedRows.count() : 0;
+    if (offset && $theadTr[0].childNodes.length < hlen) {
+      for (h = 0; h < hlen; h++) {
+        var th = $theadTr[0].getElementsByClassName(that.headers[h].className)[0];
+        if (!th) {
+          th = document.createElement('th');
+          th.className = this.headers[h].className;
+          th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
+          $theadTr[0].insertBefore(th, $theadTr[0].firstChild);
+        }
       }
     }
-  }
-  else if (!offset && $theadTr[0].childNodes.length > 0) {
-    $theadTr.empty();
-  }
-
-  var $tbody = this.main.find('tbody');
-  var tbody = $tbody[0];
-  var trs = tbody.childNodes;
-  var trsLen = trs.length;
-  while (trsLen > this.instance.rowCount) {
-    //remove excessive rows
-    trsLen--;
-    $(tbody.childNodes[trsLen]).remove();
-  }
-  while (trsLen < this.instance.rowCount) {
-    //add missing rows
-    trsLen++;
-    for (h = 0; h < hlen; h++) {
-      $tbody.append('<tr></tr>');
+    else if (!offset && $theadTr[0].childNodes.length > 0) {
+      $theadTr.empty();
     }
-  }
 
-  var realTrs = this.instance.table.find('tbody tr');
-  for (var i = 0; i < trsLen; i++) {
-    for (h = 0; h < hlen; h++) {
-      var th = trs[i].getElementsByClassName(that.headers[h].className)[0];
-      if (!th) {
-        th = document.createElement('th');
-        th.className = this.headers[h].className;
-        trs[i].insertBefore(th, trs[i].firstChild);
+    var $tbody = this.main.find('tbody');
+    var tbody = $tbody[0];
+    var trs = tbody.childNodes;
+    var trsLen = trs.length;
+    while (trsLen > this.instance.rowCount) {
+      //remove excessive rows
+      trsLen--;
+      $(tbody.childNodes[trsLen]).remove();
+    }
+    while (trsLen < this.instance.rowCount) {
+      //add missing rows
+      trsLen++;
+      for (h = 0; h < hlen; h++) {
+        $tbody.append('<tr></tr>');
       }
-      th.innerHTML = that.headers[h].columnLabel(i);
-      th.style.height = realTrs.eq(i).children().first()[this.heightMethod]() + 'px';
     }
-  }
 
-  this.ths = this.main.find('th');
-  this.refreshBorders();
+    var realTrs = this.instance.table.find('tbody tr');
+    for (var i = 0; i < trsLen; i++) {
+      for (h = 0; h < hlen; h++) {
+        var th = trs[i].getElementsByClassName(that.headers[h].className)[0];
+        if (!th) {
+          th = document.createElement('th');
+          th.className = this.headers[h].className;
+          trs[i].insertBefore(th, trs[i].firstChild);
+        }
+        th.innerHTML = that.headers[h].columnLabel(i);
+        th.style.height = realTrs.eq(i).children().first()[this.heightMethod]() + 'px';
+      }
+    }
+
+    this.ths = this.main.find('th');
+    this.refreshBorders();
+  }
 };
 
 /**
  * Refresh border width
  */
 handsontable.BlockedCols.prototype.refreshBorders = function () {
-  if (this.instance.curScrollLeft === 0) {
-    this.ths.css('borderRightWidth', 0);
-  }
-  else if (this.instance.lastScrollLeft === 0) {
-    this.ths.css('borderRightWidth', '1px');
+  if (this.count() > 0) {
+    if (this.instance.curScrollLeft === 0) {
+      this.ths.css('borderRightWidth', 0);
+    }
+    else if (this.instance.lastScrollLeft === 0) {
+      this.ths.css('borderRightWidth', '1px');
+    }
   }
 };
 
@@ -2636,11 +2650,13 @@ handsontable.BlockedCols.prototype.refreshBorders = function () {
  * @param {Object} changes
  */
 handsontable.BlockedCols.prototype.dimensions = function (changes) {
-  var trs = this.main[0].firstChild.getElementsByTagName('tbody')[0].childNodes;
-  for (var i = 0, ilen = changes.length; i < ilen; i++) {
-    var $th = $(this.instance.getCell(changes[i][0], changes[i][1]));
-    if ($th.length) {
-      trs[changes[i][0]].firstChild.style.height = $th[this.heightMethod]() + 'px';
+  if (this.count() > 0) {
+    var trs = this.main[0].firstChild.getElementsByTagName('tbody')[0].childNodes;
+    for (var i = 0, ilen = changes.length; i < ilen; i++) {
+      var $th = $(this.instance.getCell(changes[i][0], changes[i][1]));
+      if ($th.length) {
+        trs[changes[i][0]].firstChild.style.height = $th[this.heightMethod]() + 'px';
+      }
     }
   }
 };
