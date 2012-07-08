@@ -30,7 +30,7 @@ handsontable.ColHeader = function (instance, labels) {
  */
 handsontable.ColHeader.prototype.columnLabel = function (index) {
   if (this.labels[index]) {
-    return this.labels[index];
+    return '&nbsp;<span class="small">' + this.labels[index] + '</span>&nbsp;';
   }
   var dividend = index + 1;
   var columnLabel = '';
@@ -40,7 +40,7 @@ handsontable.ColHeader.prototype.columnLabel = function (index) {
     columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
     dividend = parseInt((dividend - modulo) / 26);
   }
-  return columnLabel;
+  return '&nbsp;<span class="small">' + columnLabel + '</span>&nbsp;';
 };
 
 /**

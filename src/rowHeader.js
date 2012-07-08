@@ -30,9 +30,9 @@ handsontable.RowHeader = function (instance, labels) {
  */
 handsontable.RowHeader.prototype.columnLabel = function (index) {
   if (this.labels[index]) {
-    return this.labels[index];
+    return '&nbsp;<span class="small">' + this.labels[index] + '</span>&nbsp;';
   }
-  return index + 1;
+  return '&nbsp;<span class="small">' + (index + 1) + '</span>&nbsp;';
 };
 
 /**

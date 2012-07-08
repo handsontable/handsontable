@@ -1943,7 +1943,6 @@
         else {
           priv.extensions["ColHeader"] = new handsontable.ColHeader(self, settings.colHeaders);
         }
-        self.blockedCols && self.blockedCols.update();
       }
 
       if (typeof settings.rowHeaders !== "undefined") {
@@ -1953,7 +1952,6 @@
         else {
           priv.extensions["RowHeader"] = new handsontable.RowHeader(self, settings.rowHeaders);
         }
-        self.blockedRows && self.blockedRows.update();
       }
 
       if (self.blockedRows.count() && self.blockedCols.count()) {
@@ -1972,6 +1970,9 @@
           priv.cornerHeader = null;
         }
       }
+
+      self.blockedCols && self.blockedCols.update();
+      self.blockedRows && self.blockedRows.update();
 
       var recreated = grid.keepEmptyRows();
       if (!recreated) {
@@ -2371,11 +2372,11 @@ handsontable.BlockedRows.prototype.count = function () {
 /**
  * Create column header in the grid table
  */
-handsontable.BlockedRows.prototype.createCol = function (tr) {
+handsontable.BlockedRows.prototype.createCol = function () {
   for (var h = 0, hlen = this.count(); h < hlen; h++) {
     var th = document.createElement('th');
     th.className = this.headers[h].className;
-    this.main.find('tr.' + this.headers[h].className).append(th);
+    this.instance.table.find('thead tr.' + this.headers[h].className)[0].appendChild(th);
   }
 };
 
@@ -2431,7 +2432,7 @@ handsontable.BlockedRows.prototype.refresh = function () {
     for (h = 0; h < hlen; h++) {
       var realThs = this.instance.table.find('thead th.' + this.headers[h].className);
       for (var i = 0; i < thsLen; i++) {
-        realThs[i].innerHTML = ths[i].innerHTML = '&nbsp;<span class="small">' + that.headers[h].columnLabel(i - offset) + '</span>&nbsp;';
+        realThs[i].innerHTML = ths[i].innerHTML = that.headers[h].columnLabel(i - offset);
         ths[i].style.minWidth = realThs.eq(i).width() + 'px';
       }
     }
@@ -2524,7 +2525,6 @@ handsontable.BlockedCols = function (instance) {
     }, 10);
   });
   this.instance.container.append(this.main);
-  this.update();
 };
 
 /**
@@ -2541,7 +2541,7 @@ handsontable.BlockedCols.prototype.createRow = function (tr) {
   for (var h = 0, hlen = this.count(); h < hlen; h++) {
     var th = document.createElement('th');
     th.className = this.headers[h].className;
-    tr.appendChild(th);
+    tr.insertBefore(th, tr.firstChild);
   }
 };
 
@@ -2569,9 +2569,15 @@ handsontable.BlockedCols.prototype.refresh = function () {
   var hlen = this.count(), h;
   var $theadTr = this.main.find('thead tr');
   var offset = this.instance.blockedRows ? this.instance.blockedRows.count() : 0;
-  if (offset && $theadTr[0].childNodes.length === 0) {
+  if (offset && $theadTr[0].childNodes.length < hlen) {
     for (h = 0; h < hlen; h++) {
-      $theadTr.append('<th class="' + this.headers[h].className + '">&nbsp;<span class="small">&nbsp;</span>&nbsp;</th>');
+      var th = $theadTr[0].getElementsByClassName(that.headers[h].className)[0];
+      if (!th) {
+        th = document.createElement('th');
+        th.className = this.headers[h].className;
+        th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
+        $theadTr[0].insertBefore(th, $theadTr[0].firstChild);
+      }
     }
   }
   else if (!offset && $theadTr[0].childNodes.length > 0) {
@@ -2604,7 +2610,7 @@ handsontable.BlockedCols.prototype.refresh = function () {
         th.className = this.headers[h].className;
         trs[i].insertBefore(th, trs[i].firstChild);
       }
-      th.innerHTML = '&nbsp;<span class="small">' + that.headers[h].columnLabel(i) + '</span>&nbsp;';
+      th.innerHTML = that.headers[h].columnLabel(i);
       th.style.height = realTrs.eq(i).children().first()[this.heightMethod]() + 'px';
     }
   }
@@ -2657,7 +2663,6 @@ handsontable.BlockedCols.prototype.addHeader = function (header) {
   this.headers.sort(function (a, b) {
     return a.priority || 0 - b.priority || 0
   });
-  this.update();
 };
 
 /**
