@@ -1707,10 +1707,12 @@
 
           if (priv.cornerHeader && (self.curScrollTop !== self.lastScrollTop || self.curScrollLeft !== self.lastScrollLeft)) {
             if (self.curScrollTop === 0 && self.curScrollLeft === 0) {
-              priv.cornerHeader.find('th').css({borderBottomWidth: 0, borderRightWidth: 0});
+              priv.cornerHeader.find("th:last-child").css({borderRightWidth: 0});
+              priv.cornerHeader.find("tr:last-child th").css({borderBottomWidth: 0});
             }
             else if (self.lastScrollTop === 0 && self.lastScrollLeft === 0) {
-              priv.cornerHeader.find('th').css({borderBottomWidth: '1px', borderRightWidth: '1px'});
+              priv.cornerHeader.find("th:last-child").css({borderRightWidth: '1px'});
+              priv.cornerHeader.find("tr:last-child th").css({borderBottomWidth: '1px'});
             }
             priv.cornerHeader[0].style.top = self.curScrollTop + 'px';
             priv.cornerHeader[0].style.left = self.curScrollLeft + 'px';
@@ -1724,7 +1726,8 @@
       else {
         priv.scrollable = $(window);
         if (priv.cornerHeader) {
-          priv.cornerHeader.find("th").css({borderBottomWidth: 0, borderRightWidth: 0});
+          priv.cornerHeader.find("th:last-child").css({borderRightWidth: 0});
+          priv.cornerHeader.find("tr:last-child th").css({borderBottomWidth: 0});
         }
       }
 
@@ -1924,6 +1927,7 @@
      * @public
      */
     this.updateSettings = function (settings) {
+      var i, j;
       for (var i in settings) {
         if (settings.hasOwnProperty(i)) {
           priv.settings[i] = settings[i];
@@ -1953,10 +1957,21 @@
         }
       }
 
-      if (self.blockedRows.count() && self.blockedCols.count()) {
+      var blockedRowsCount = self.blockedRows.count();
+      var blockedColsCount = self.blockedCols.count();
+      if (blockedRowsCount && blockedColsCount) {
         if (!priv.cornerHeader) {
           var position = self.table.position();
-          priv.cornerHeader = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px; width: 50px;"><table cellspacing="0" cellpadding="0"><thead><tr><th>&nbsp;<span class="small">&nbsp;</span>&nbsp;</th></tr></thead></table></div>');
+          var html = '<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px; width: 50px;"><table cellspacing="0" cellpadding="0"><thead>';
+          for (i = 0; i < blockedRowsCount; i++) {
+            html += '<tr>';
+            for (j = blockedColsCount - 1; j >= 0; j--) {
+              html += '<th class="' + self.blockedCols.headers[j].className + '">&nbsp;<span class="small">&nbsp;</span>&nbsp;</th>';
+            }
+            html += '</tr>';
+          }
+          html += '</thead></table></div>';
+          priv.cornerHeader = $(html);
           priv.cornerHeader.on('click', function () {
             selection.selectAll();
           });
@@ -2109,11 +2124,11 @@
         top = minTop - containerOffset.top + this.$container.scrollTop() - 1;
         left = minLeft - containerOffset.left + this.$container.scrollLeft() - 1;
 
-        if(parseInt($from.css('border-top-width')) > 0) {
+        if (parseInt($from.css('border-top-width')) > 0) {
           top += 1;
           height -= 1;
         }
-        if(parseInt($from.css('border-left-width')) > 0) {
+        if (parseInt($from.css('border-left-width')) > 0) {
           left += 1;
           width -= 1;
         }
