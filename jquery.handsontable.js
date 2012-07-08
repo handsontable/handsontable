@@ -1634,11 +1634,6 @@
       self.colCount = settings.cols;
       self.rowCount = 0;
 
-      self.blockedCols = new handsontable.BlockedCols(self);
-      self.blockedRows = new handsontable.BlockedRows(self);
-
-      this.updateSettings(settings);
-
       highlight.init();
       priv.currentBorder = new Border(container, {
         className: 'current',
@@ -1648,6 +1643,10 @@
         autofill.init();
       }
       editproxy.init();
+
+      self.blockedCols = new handsontable.BlockedCols(self);
+      self.blockedRows = new handsontable.BlockedRows(self);
+      this.updateSettings(settings);
 
       container.on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
       $(priv.currentBorder.main).on('dblclick', interaction.onDblClick);
@@ -2109,6 +2108,15 @@
 
         top = minTop - containerOffset.top + this.$container.scrollTop() - 1;
         left = minLeft - containerOffset.left + this.$container.scrollLeft() - 1;
+
+        if(parseInt($from.css('border-top-width')) > 0) {
+          top += 1;
+          height -= 1;
+        }
+        if(parseInt($from.css('border-left-width')) > 0) {
+          left += 1;
+          width -= 1;
+        }
 
         if (top < 0) {
           top = 0;
