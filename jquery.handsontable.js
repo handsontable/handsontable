@@ -283,7 +283,6 @@
       createCol: function (coords) {
         var trs = priv.tableBody.childNodes, r, c;
         self.blockedRows && self.blockedRows.createCol();
-        console.log("raz dwa 3 53d");
         if (!coords || coords.col >= self.colCount) {
           for (r = 0; r < self.rowCount; r++) {
             trs[r].appendChild(document.createElement('td'));
@@ -2373,7 +2372,7 @@ handsontable.BlockedRows.prototype.count = function () {
 /**
  * Create column header in the grid table
  */
-handsontable.BlockedRows.prototype.createCol = function (trs) {
+handsontable.BlockedRows.prototype.createCol = function () {
   for (var h = 0, hlen = this.count(); h < hlen; h++) {
     var th = document.createElement('th');
     th.className = this.headers[h].className;
@@ -2637,11 +2636,11 @@ handsontable.BlockedCols.prototype.refreshBorders = function () {
  * @param {Object} changes
  */
 handsontable.BlockedCols.prototype.dimensions = function (changes) {
-  var offset = this.instance.blockedRows ? this.instance.blockedRows.count() : 0;
+  var trs = this.main[0].firstChild.getElementsByTagName('tbody')[0].childNodes;
   for (var i = 0, ilen = changes.length; i < ilen; i++) {
     var $th = $(this.instance.getCell(changes[i][0], changes[i][1]));
     if ($th.length) {
-      this.ths.get(changes[i][0] + offset).style.height = $th[this.heightMethod]() + 'px';
+      trs[changes[i][0]].firstChild.style.height = $th[this.heightMethod]() + 'px';
     }
   }
 };
