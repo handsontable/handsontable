@@ -2434,8 +2434,9 @@ handsontable.BlockedRows.prototype.createCol = function (className) {
 handsontable.BlockedRows.prototype.create = function () {
   if (this.count() > 0) {
     this.instance.table.find('thead').empty();
+    this.main.find('thead').empty();
     var offset = this.instance.blockedCols.count();
-    for (c = 0; c < offset; c++) {
+    for (c = offset - 1; c >= 0; c--) {
       this.createCol(this.instance.blockedCols.headers[c].className);
     }
     for (c = 0; c < this.instance.colCount; c++) {
