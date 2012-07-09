@@ -2366,7 +2366,6 @@
 
 var handsontable = {}; //class namespace
 handsontable.extension = {}; //extenstion namespace
-
 /**
  * Handsontable UndoRedo class
  */
@@ -2445,8 +2444,6 @@ handsontable.UndoRedo.prototype.add = function (changes) {
   this.data.splice(this.rev); //if we are in point abcdef(g)hijk in history, remove everything after (g)
   this.data.push(changes);
 };
-
-
 /**
  * Handsontable BlockedRows class
  * @param {Object} instance
@@ -2628,8 +2625,6 @@ handsontable.BlockedRows.prototype.destroyHeader = function (className) {
     }
   }
 };
-
-
 /**
  * Handsontable BlockedCols class
  * @param {Object} instance
