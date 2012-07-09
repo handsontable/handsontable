@@ -76,7 +76,7 @@
     var hasPositionProblem = ($.browser.msie && ($.browser.version == 7 || $.browser.version == 6));
     /**
      * Used to get over IE7 returning negative position in demo/buttons.html
-     * @param {Element} td
+     * @param {Object} position
      */
     this.positionFix = function (position) {
       if (hasPositionProblem) {
@@ -1991,11 +1991,11 @@
       for (i in settings) {
         if (settings.hasOwnProperty(i)) {
           priv.settings[i] = settings[i];
-        }
 
-        //launch extensions
-        if (handsontable.extension[i]) {
-          priv.extensions[i] = new handsontable.extension[i](self, settings[i]);
+          //launch extensions
+          if (handsontable.extension[i]) {
+            priv.extensions[i] = new handsontable.extension[i](self, settings[i]);
+          }
         }
       }
 
