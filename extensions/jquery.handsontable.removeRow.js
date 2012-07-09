@@ -1,5 +1,5 @@
 /**
- * Handsontable RemoveRow extension. Use demos/buttons.html for example usage
+ * Handsontable RemoveRow extension. See `demo/buttons.html` for example usage
  * @param {Object} instance
  * @param {Array|Boolean} [labels]
  */
@@ -10,13 +10,13 @@ handsontable.extension.RemoveRow = function (instance, labels) {
   this.instance = instance;
   this.labels = labels;
 
-  instance.blockedCols.main.on('mousedown', 'th.htRemoveRow .btn', function (event) {
+  instance.blockedCols.main.on('mousedown', 'th.htRemoveRow .btn', function () {
     instance.alter("remove_row", $(this.parentNode.parentNode).index());
   });
-  instance.container.on('mouseover', 'tbody th, tbody td', function (event) {
+  instance.container.on('mouseover', 'tbody th, tbody td', function () {
     that.getButton(this).show();
   });
-  instance.container.on('mouseout', 'tbody th, tbody td', function (event) {
+  instance.container.on('mouseout', 'tbody th, tbody td', function () {
     that.getButton(this).hide();
   });
 
@@ -81,11 +81,4 @@ handsontable.extension.RemoveRow.prototype.columnLabel = function (index) {
  */
 handsontable.extension.RemoveRow.prototype.getButton = function (td) {
   return this.instance.blockedCols.main.find('th.htRemoveRow .btn').eq($(td.parentNode).index());
-};
-
-/**
- *
- */
-handsontable.extension.RemoveRow.prototype.destroy = function () {
-  this.instance.blockedCols.destroyHeader(this.className);
 };
