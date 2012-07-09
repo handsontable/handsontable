@@ -1959,24 +1959,27 @@
 
       var blockedRowsCount = self.blockedRows.count();
       var blockedColsCount = self.blockedCols.count();
-      if (blockedRowsCount && blockedColsCount) {
-        if (!priv.cornerHeader) {
-          var position = self.table.position();
-          var html = '<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px; width: 50px;"><table cellspacing="0" cellpadding="0"><thead>';
-          for (i = 0; i < blockedRowsCount; i++) {
-            html += '<tr>';
-            for (j = blockedColsCount - 1; j >= 0; j--) {
-              html += '<th class="' + self.blockedCols.headers[j].className + '">&nbsp;<span class="small">&nbsp;</span>&nbsp;</th>';
-            }
-            html += '</tr>';
-          }
-          html += '</thead></table></div>';
-          priv.cornerHeader = $(html);
-          priv.cornerHeader.on('click', function () {
-            selection.selectAll();
-          });
-          container.append(priv.cornerHeader);
+      if (blockedRowsCount && blockedColsCount && (typeof settings.rowHeaders !== "undefined" || typeof settings.colHeaders !== "undefined")) {
+        if (priv.cornerHeader) {
+          priv.cornerHeader.remove();
+          priv.cornerHeader = null;
         }
+
+        var position = self.table.position();
+        var html = '<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table cellspacing="0" cellpadding="0"><thead>';
+        for (i = 0; i < blockedRowsCount; i++) {
+          html += '<tr>';
+          for (j = blockedColsCount - 1; j >= 0; j--) {
+            html += '<th class="' + self.blockedCols.headers[j].className + '">&nbsp;<span class="small">&nbsp;</span>&nbsp;</th>';
+          }
+          html += '</tr>';
+        }
+        html += '</thead></table></div>';
+        priv.cornerHeader = $(html);
+        priv.cornerHeader.on('click', function () {
+          selection.selectAll();
+        });
+        container.append(priv.cornerHeader);
       }
       else {
         if (priv.cornerHeader) {
@@ -2395,7 +2398,7 @@ handsontable.BlockedRows.prototype.count = function () {
 /**
  * Create column header in the grid table
  */
-handsontable.BlockedRows.prototype.createCol = function () {
+handsontable.BlockedRows.prototype.createCol = function (className) {
   for (var h = 0, hlen = this.count(); h < hlen; h++) {
     var $tr = this.main.find('thead tr.' + this.headers[h].className);
     if (!$tr.length) {
@@ -2410,11 +2413,17 @@ handsontable.BlockedRows.prototype.createCol = function () {
 
     var th = document.createElement('th');
     th.className = this.headers[h].className;
+    if(className) {
+      th.className += ' ' + className;
+    }
     th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
     this.instance.table.find('thead tr.' + this.headers[h].className)[0].appendChild(th);
 
     var th = document.createElement('th');
     th.className = this.headers[h].className;
+    if(className) {
+      th.className += ' ' + className;
+    }
     this.main.find('thead tr.' + this.headers[h].className)[0].appendChild(th);
   }
 };
@@ -2426,7 +2435,10 @@ handsontable.BlockedRows.prototype.create = function () {
   if (this.count() > 0) {
     this.instance.table.find('thead').empty();
     var offset = this.instance.blockedCols.count();
-    for (c = 0; c < this.instance.colCount + offset; c++) {
+    for (c = 0; c < offset; c++) {
+      this.createCol(this.instance.blockedCols.headers[c].className);
+    }
+    for (c = 0; c < this.instance.colCount; c++) {
       this.createCol();
     }
   }
@@ -2542,7 +2554,7 @@ handsontable.BlockedCols = function (instance) {
   this.instance = instance;
   this.headers = [];
   var position = instance.table.position();
-  this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px; width: 50px;"><table cellspacing="0" cellpadding="0"><thead><tr></tr></thead><tbody></tbody></table></div>');
+  this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table cellspacing="0" cellpadding="0"><thead><tr></tr></thead><tbody></tbody></table></div>');
   this.instance.container.on('datachange.handsontable', function (event, changes) {
     setTimeout(function () {
       that.dimensions(changes);
@@ -2564,7 +2576,6 @@ handsontable.BlockedCols.prototype.count = function () {
 handsontable.BlockedCols.prototype.createRow = function (tr) {
   var th;
   var mainTr = document.createElement('tr');
-  this.main.find('tbody')[0].appendChild(mainTr);
 
   for (var h = 0, hlen = this.count(); h < hlen; h++) {
     th = document.createElement('th');
@@ -2575,12 +2586,17 @@ handsontable.BlockedCols.prototype.createRow = function (tr) {
     th.className = this.headers[h].className;
     mainTr.insertBefore(th, mainTr.firstChild);
   }
+
+  this.main.find('tbody')[0].appendChild(mainTr);
 };
 
 /**
  * Create row header in the grid table
  */
 handsontable.BlockedCols.prototype.create = function () {
+  this.main.find('tbody').empty();
+  this.instance.table.find('tbody th').remove();
+
   if (this.count() > 0) {
     var trs = this.instance.table.find('tbody')[0].childNodes;
     for (var r = 0; r < this.instance.rowCount; r++) {
@@ -2694,8 +2710,6 @@ handsontable.BlockedCols.prototype.addHeader = function (header) {
 handsontable.BlockedCols.prototype.destroyHeader = function (className) {
   for (var h = this.count() - 1; h >= 0; h--) {
     if (this.headers[h].className === className) {
-      this.main.find('th.' + this.headers[h].className).remove();
-      this.instance.table.find('th.' + this.headers[h].className).remove();
       this.headers.splice(h, 1);
     }
   }
