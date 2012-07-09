@@ -2413,7 +2413,7 @@ handsontable.BlockedRows.prototype.createCol = function (className) {
 
     var th = document.createElement('th');
     th.className = this.headers[h].className;
-    if(className) {
+    if (className) {
       th.className += ' ' + className;
     }
     th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
@@ -2421,7 +2421,7 @@ handsontable.BlockedRows.prototype.createCol = function (className) {
 
     var th = document.createElement('th');
     th.className = this.headers[h].className;
-    if(className) {
+    if (className) {
       th.className += ' ' + className;
     }
     this.main.find('thead tr.' + this.headers[h].className)[0].appendChild(th);
@@ -2617,7 +2617,7 @@ handsontable.BlockedCols.prototype.refresh = function () {
     var offset = this.instance.blockedRows.count();
     if (offset && $theadTr[0].childNodes.length < hlen) {
       for (h = 0; h < hlen; h++) {
-        var th = $theadTr[0].getElementsByClassName(that.headers[h].className)[0];
+        var th = $theadTr[0].getElementsByClassName ? $theadTr[0].getElementsByClassName(that.headers[h].className)[0] : $theadTr.find('.' + that.headers[h].className.replace(/\s/i, '.'))[0];
         if (!th) {
           th = document.createElement('th');
           th.className = this.headers[h].className;
@@ -2644,7 +2644,7 @@ handsontable.BlockedCols.prototype.refresh = function () {
     var realTrs = this.instance.table.find('tbody tr');
     for (i = 0; i < trsLen; i++) {
       for (h = 0; h < hlen; h++) {
-        th = trs[i].getElementsByClassName(that.headers[h].className)[0];
+        th = trs[i].getElementsByClassName ? trs[i].getElementsByClassName(that.headers[h].className)[0] : $(trs[i]).find('.' + that.headers[h].className.replace(/\s/i, '.'))[0];
         th.innerHTML = that.headers[h].columnLabel(i);
         th.style.height = realTrs.eq(i).children().first()[this.heightMethod]() + 'px';
       }
@@ -2743,7 +2743,7 @@ handsontable.RowHeader = function (instance, labels) {
 /**
  * Return custom row label or automatically generate one
  * @param {Number} index Row index
- * @return {String}|{Number}
+ * @return {String}
  */
 handsontable.RowHeader.prototype.columnLabel = function (index) {
   if (this.labels[index]) {
@@ -2796,7 +2796,7 @@ handsontable.ColHeader = function (instance, labels) {
 /**
  * Return custom column label or automatically generate one
  * @param {Number} index Row index
- * @return {String}|{Number}
+ * @return {String}
  */
 handsontable.ColHeader.prototype.columnLabel = function (index) {
   if (this.labels[index]) {
