@@ -2566,10 +2566,18 @@ handsontable.BlockedCols.prototype.count = function () {
  * Create row header in the grid table
  */
 handsontable.BlockedCols.prototype.createRow = function (tr) {
+  var th;
+  var mainTr = document.createElement('tr');
+  this.main.find('tbody')[0].appendChild(mainTr);
+
   for (var h = 0, hlen = this.count(); h < hlen; h++) {
-    var th = document.createElement('th');
+    th = document.createElement('th');
     th.className = this.headers[h].className;
     tr.insertBefore(th, tr.firstChild);
+
+    th = document.createElement('th');
+    th.className = this.headers[h].className;
+    mainTr.insertBefore(th, mainTr.firstChild);
   }
 };
 
@@ -2580,13 +2588,7 @@ handsontable.BlockedCols.prototype.create = function () {
   if (this.count() > 0) {
     var trs = this.instance.table.find('tbody')[0].childNodes;
     for (var r = 0; r < this.instance.rowCount; r++) {
-      if (trs[r].getElementsByTagName('th').length === 0) {
-        for (var i = 0, ilen = this.count(); i < ilen; i++) {
-          var th = document.createElement('th');
-          th.className = this.headers[i].className;
-          trs[r].insertBefore(th, trs[r].firstChild);
-        }
-      }
+      this.createRow(trs[r]);
     }
   }
 };
@@ -2619,28 +2621,17 @@ handsontable.BlockedCols.prototype.refresh = function () {
     var tbody = $tbody[0];
     var trs = tbody.childNodes;
     var trsLen = trs.length;
+    var th, i;
     while (trsLen > this.instance.rowCount) {
       //remove excessive rows
       trsLen--;
       $(tbody.childNodes[trsLen]).remove();
     }
-    while (trsLen < this.instance.rowCount) {
-      //add missing rows
-      trsLen++;
-      for (h = 0; h < hlen; h++) {
-        $tbody.append('<tr></tr>');
-      }
-    }
 
     var realTrs = this.instance.table.find('tbody tr');
-    for (var i = 0; i < trsLen; i++) {
+    for (i = 0; i < trsLen; i++) {
       for (h = 0; h < hlen; h++) {
-        var th = trs[i].getElementsByClassName(that.headers[h].className)[0];
-        if (!th) {
-          th = document.createElement('th');
-          th.className = this.headers[h].className;
-          trs[i].insertBefore(th, trs[i].firstChild);
-        }
+        th = trs[i].getElementsByClassName(that.headers[h].className)[0];
         th.innerHTML = that.headers[h].columnLabel(i);
         th.style.height = realTrs.eq(i).children().first()[this.heightMethod]() + 'px';
       }
