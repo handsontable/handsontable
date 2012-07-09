@@ -26,7 +26,7 @@ handsontable.ColHeader = function (instance, labels) {
 /**
  * Return custom column label or automatically generate one
  * @param {Number} index Row index
- * @return {String}|{Number}
+ * @return {String}
  */
 handsontable.ColHeader.prototype.columnLabel = function (index) {
   if (this.labels[index]) {
