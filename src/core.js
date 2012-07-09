@@ -57,6 +57,38 @@
       }
     };
 
+    var hasMinWidthProblem = ($.browser.msie && ($.browser.version == 7 || $.browser.version == 6));
+    /**
+     * Used to get over IE7 not respecting CSS min-width
+     * @param {Element} td
+     */
+    this.minWidthProblemFix = function (td) {
+      if (hasMinWidthProblem) {
+        if (td.className) {
+          td.innerHTML = '<div class="minWidthProblemFix ' + td.className + '">' + td.innerHTML + '</div>';
+        }
+        else {
+          td.innerHTML = '<div class="minWidthProblemFix">' + td.innerHTML + '</div>';
+        }
+      }
+    };
+
+    var hasPositionProblem = ($.browser.msie && ($.browser.version == 7 || $.browser.version == 6));
+    /**
+     * Used to get over IE7 returning negative position in demo/buttons.html
+     * @param {Element} td
+     */
+    this.positionFix = function (position) {
+      if (hasPositionProblem) {
+        if (position.top < 0) {
+          position.top = 0;
+        }
+        if (position.left < 0) {
+          position.left = 0;
+        }
+      }
+    };
+
     datamap = {
       data: [],
 
@@ -272,6 +304,7 @@
         for (c = 0; c < self.colCount; c++) {
           tr.appendChild(td = document.createElement('td'));
           self.borderProblemFix(td);
+          self.minWidthProblemFix(td);
         }
         if (!coords || coords.row >= self.rowCount) {
           priv.tableBody.appendChild(tr);
@@ -299,6 +332,7 @@
           for (r = 0; r < self.rowCount; r++) {
             trs[r].appendChild(td = document.createElement('td'));
             self.borderProblemFix(td);
+            self.minWidthProblemFix(td);
           }
           c = self.colCount;
         }
@@ -306,6 +340,7 @@
           for (r = 0; r < self.rowCount; r++) {
             trs[r].insertBefore(td = document.createElement('td'), grid.getCellAtCoords({row: r, col: coords.col}));
             self.borderProblemFix(td);
+            self.minWidthProblemFix(td);
           }
           c = coords.col;
         }
@@ -612,6 +647,7 @@
         for (var i = 0, ilen = tds.length; i < ilen; i++) {
           $(tds[i]).empty();
           self.borderProblemFix(tds[i]);
+          self.minWidthProblemFix(tds[i]);
           grid.updateLegend(grid.getCellCoords(tds[i]));
         }
       },
@@ -886,6 +922,7 @@
           if (old !== '' && grid.isCellWriteable($td)) {
             $td.empty();
             self.borderProblemFix(tds[i]);
+            self.minWidthProblemFix(tds[i]);
             datamap.set(coords.row, coords.col, '');
             changes.push([coords.row, coords.col, old, '']);
             grid.updateLegend(coords);
@@ -1904,8 +1941,9 @@
           self.borderProblemFix(td);
         }
         else {
-          td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
+          td.innerHTML = '<div style="width: 50px">' + (escaped || value).replace(/\n/g, '<br/>') + '</div>';
         }
+        self.minWidthProblemFix(td);
         datamap.set(row, col, value);
         grid.updateLegend({row: row, col: col});
       }
@@ -1950,7 +1988,7 @@
      */
     this.updateSettings = function (settings) {
       var i, j;
-      for (var i in settings) {
+      for (i in settings) {
         if (settings.hasOwnProperty(i)) {
           priv.settings[i] = settings[i];
         }
@@ -1988,16 +2026,34 @@
         }
 
         var position = self.table.position();
-        var html = '<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table cellspacing="0" cellpadding="0"><thead>';
+        self.positionFix(position);
+
+        var div = document.createElement('div');
+        div.style.position = 'absolute';
+        div.style.top = position.top + 'px';
+        div.style.left = position.left + 'px';
+
+        var table = document.createElement('table');
+        table.cellPadding = 0;
+        table.cellSpacing = 0;
+        div.appendChild(table);
+
+        var thead = document.createElement('thead');
+        table.appendChild(thead);
+
+        var tr, th;
         for (i = 0; i < blockedRowsCount; i++) {
-          html += '<tr>';
+          tr = document.createElement('tr');
           for (j = blockedColsCount - 1; j >= 0; j--) {
-            html += '<th class="' + self.blockedCols.headers[j].className + '">&nbsp;<span class="small">&nbsp;</span>&nbsp;</th>';
+            th = document.createElement('th');
+            th.className = self.blockedCols.headers[j].className;
+            th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
+            self.minWidthProblemFix(th);
+            tr.appendChild(th);
           }
-          html += '</tr>';
+          thead.appendChild(tr);
         }
-        html += '</thead></table></div>';
-        priv.cornerHeader = $(html);
+        priv.cornerHeader = $(div);
         priv.cornerHeader.on('click', function () {
           selection.selectAll();
         });
@@ -2400,6 +2456,7 @@ handsontable.BlockedRows = function (instance) {
   this.instance = instance;
   this.headers = [];
   var position = instance.table.position();
+  instance.positionFix(position);
   this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table cellspacing="0" cellpadding="0"><thead></thead></table></div>');
   this.instance.container.on('datachange.handsontable', function (event, changes) {
     setTimeout(function () {
@@ -2421,32 +2478,35 @@ handsontable.BlockedRows.prototype.count = function () {
  * Create column header in the grid table
  */
 handsontable.BlockedRows.prototype.createCol = function (className) {
-  for (var h = 0, hlen = this.count(); h < hlen; h++) {
-    var $tr = this.main.find('thead tr.' + this.headers[h].className);
+  var $tr, th, h, hlen = this.count();
+  for (h = 0; h < hlen; h++) {
+    $tr = this.main.find('thead tr.' + this.headers[h].className);
     if (!$tr.length) {
       $tr = $('<tr class="' + this.headers[h].className + '"></tr>');
       this.main.find('thead').append($tr);
     }
-    var $tr = this.instance.table.find('thead tr.' + this.headers[h].className);
+    $tr = this.instance.table.find('thead tr.' + this.headers[h].className);
     if (!$tr.length) {
       $tr = $('<tr class="' + this.headers[h].className + '"></tr>');
       this.instance.table.find('thead').append($tr);
     }
 
-    var th = document.createElement('th');
+    th = document.createElement('th');
     th.className = this.headers[h].className;
     if (className) {
       th.className += ' ' + className;
     }
     th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
+    this.instance.minWidthProblemFix(th);
     this.instance.table.find('thead tr.' + this.headers[h].className)[0].appendChild(th);
 
-    var th = document.createElement('th');
+    th = document.createElement('th');
     th.className = this.headers[h].className;
     if (className) {
       th.className += ' ' + className;
     }
     this.instance.borderProblemFix(th);
+    this.instance.minWidthProblemFix(th);
     this.main.find('thead tr.' + this.headers[h].className)[0].appendChild(th);
   }
 };
@@ -2492,6 +2552,8 @@ handsontable.BlockedRows.prototype.refresh = function () {
         var realThs = this.instance.table.find('thead th.' + this.headers[h].className);
         for (var i = 0; i < thsLen; i++) {
           realThs[i].innerHTML = ths[i].innerHTML = that.headers[h].columnLabel(i - offset);
+          this.instance.minWidthProblemFix(realThs[i]);
+          this.instance.minWidthProblemFix(ths[i]);
           ths[i].style.minWidth = realThs.eq(i).width() + 'px';
         }
       }
@@ -2578,6 +2640,7 @@ handsontable.BlockedCols = function (instance) {
   this.instance = instance;
   this.headers = [];
   var position = instance.table.position();
+  instance.positionFix(position);
   this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table cellspacing="0" cellpadding="0"><thead><tr></tr></thead><tbody></tbody></table></div>');
   this.instance.container.on('datachange.handsontable', function (event, changes) {
     setTimeout(function () {
@@ -2605,6 +2668,7 @@ handsontable.BlockedCols.prototype.createRow = function (tr) {
     th = document.createElement('th');
     th.className = this.headers[h].className;
     this.instance.borderProblemFix(th);
+    this.instance.minWidthProblemFix(th);
     tr.insertBefore(th, tr.firstChild);
 
     th = document.createElement('th');
@@ -2636,16 +2700,17 @@ handsontable.BlockedCols.prototype.create = function () {
 handsontable.BlockedCols.prototype.refresh = function () {
   if (this.count() > 0) {
     var that = this;
-    var hlen = this.count(), h;
+    var hlen = this.count(), h, th, i;
     var $theadTr = this.main.find('thead tr');
     var offset = this.instance.blockedRows.count();
     if (offset && $theadTr[0].childNodes.length < hlen) {
       for (h = 0; h < hlen; h++) {
-        var th = $theadTr[0].getElementsByClassName ? $theadTr[0].getElementsByClassName(that.headers[h].className)[0] : $theadTr.find('.' + that.headers[h].className.replace(/\s/i, '.'))[0];
+        th = $theadTr[0].getElementsByClassName ? $theadTr[0].getElementsByClassName(that.headers[h].className)[0] : $theadTr.find('.' + that.headers[h].className.replace(/\s/i, '.'))[0];
         if (!th) {
           th = document.createElement('th');
           th.className = this.headers[h].className;
           th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
+          this.instance.minWidthProblemFix(th);
           $theadTr[0].insertBefore(th, $theadTr[0].firstChild);
         }
       }
@@ -2658,19 +2723,19 @@ handsontable.BlockedCols.prototype.refresh = function () {
     var tbody = $tbody[0];
     var trs = tbody.childNodes;
     var trsLen = trs.length;
-    var th, i;
     while (trsLen > this.instance.rowCount) {
       //remove excessive rows
       trsLen--;
       $(tbody.childNodes[trsLen]).remove();
     }
 
-    var realTrs = this.instance.table.find('tbody tr');
+    var realTrs = that.instance.table.find('tbody tr');
     for (i = 0; i < trsLen; i++) {
       for (h = 0; h < hlen; h++) {
         th = trs[i].getElementsByClassName ? trs[i].getElementsByClassName(that.headers[h].className)[0] : $(trs[i]).find('.' + that.headers[h].className.replace(/\s/i, '.'))[0];
         th.innerHTML = that.headers[h].columnLabel(i);
-        th.style.height = realTrs.eq(i).children().first()[this.heightMethod]() + 'px';
+        that.instance.minWidthProblemFix(th);
+        th.style.height = realTrs.eq(i).children().first()[that.heightMethod]() + 'px';
       }
     }
 

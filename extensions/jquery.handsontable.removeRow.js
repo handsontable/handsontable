@@ -34,6 +34,9 @@ handsontable.extension.RemoveRow = function (instance, labels) {
         border-left: 1px solid #FFF;\
         border-right: 1px solid #FFF;\
         min-width: 15px;\
+      }\
+      \
+      .dataTable.htRemoveRow th.htRemoveRow div.minWidthProblemFix {\
         width: 15px;\
       }\
       \

@@ -17,8 +17,6 @@
   -o-user-select: none;
   user-select: none;
   border-spacing: 0;
-  border-top: 1px solid #CCC;
-  border-left: 1px solid #CCC;
 }
 
 .dataTable th,
@@ -26,10 +24,29 @@
   border-right: 1px solid #CCC;
   border-bottom: 1px solid #CCC;
   min-width: 50px;
-  width: 50px;
   height: 22px;
   padding: 0 4px 0 4px; /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
   line-height: 16px;
+}
+
+.dataTable div.minWidthProblemFix {
+  width: 50px;
+}
+
+.dataTable th:first-child,
+.dataTable td:first-child,
+.dataTable .htNoFrame + th,
+.dataTable .htNoFrame + td{
+  border-left: 1px solid #CCC;
+}
+
+.dataTable tr:first-child th,
+.dataTable tr:first-child td {
+  border-top: 1px solid #CCC;
+}
+
+.dataTable thead tr:last-child th {
+  border-bottom-width: 0;
 }
 
 .dataTable th {
