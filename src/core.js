@@ -2397,9 +2397,25 @@ handsontable.BlockedRows.prototype.count = function () {
  */
 handsontable.BlockedRows.prototype.createCol = function () {
   for (var h = 0, hlen = this.count(); h < hlen; h++) {
+    var $tr = this.main.find('thead tr.' + this.headers[h].className);
+    if (!$tr.length) {
+      $tr = $('<tr class="' + this.headers[h].className + '"></tr>');
+      this.main.find('thead').append($tr);
+    }
+    var $tr = this.instance.table.find('thead tr.' + this.headers[h].className);
+    if (!$tr.length) {
+      $tr = $('<tr class="' + this.headers[h].className + '"></tr>');
+      this.instance.table.find('thead').append($tr);
+    }
+
     var th = document.createElement('th');
     th.className = this.headers[h].className;
+    th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
     this.instance.table.find('thead tr.' + this.headers[h].className)[0].appendChild(th);
+
+    var th = document.createElement('th');
+    th.className = this.headers[h].className;
+    this.main.find('thead tr.' + this.headers[h].className)[0].appendChild(th);
   }
 };
 
@@ -2408,20 +2424,10 @@ handsontable.BlockedRows.prototype.createCol = function () {
  */
 handsontable.BlockedRows.prototype.create = function () {
   if (this.count() > 0) {
-    var tr, c;
     this.instance.table.find('thead').empty();
-    var headerCount = this.count();
     var offset = this.instance.blockedCols ? this.instance.blockedCols.count() : 0;
-    for (var h = 0; h < headerCount; h++) {
-      tr = document.createElement('tr');
-      tr.className = this.headers[h].className;
-      for (c = 0; c < this.instance.colCount + offset; c++) {
-        var th = document.createElement('th');
-        th.className = this.headers[h].className;
-        th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
-        tr.appendChild(th);
-      }
-      this.instance.table.find('thead').append(tr);
+    for (c = 0; c < this.instance.colCount + offset; c++) {
+      this.createCol();
     }
   }
 };
@@ -2435,10 +2441,6 @@ handsontable.BlockedRows.prototype.refresh = function () {
     var hlen = this.count(), h;
     for (h = 0; h < hlen; h++) {
       var $tr = this.main.find('thead tr.' + this.headers[h].className);
-      if (!$tr.length) {
-        $tr = $('<tr class="' + this.headers[h].className + '"></tr>');
-        this.main.find('thead').append($tr);
-      }
       var tr = $tr[0];
       var ths = tr.childNodes;
       var thsLen = ths.length;
@@ -2448,11 +2450,6 @@ handsontable.BlockedRows.prototype.refresh = function () {
         //remove excessive cols
         thsLen--;
         $(tr.childNodes[thsLen]).remove();
-      }
-      while (thsLen < this.instance.colCount + offset) {
-        //add missing cols
-        thsLen++;
-        $tr.append('<th class="' + this.headers[h].className + '"></th>');
       }
 
       for (h = 0; h < hlen; h++) {
