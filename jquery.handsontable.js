@@ -2425,7 +2425,7 @@ handsontable.BlockedRows.prototype.createCol = function () {
 handsontable.BlockedRows.prototype.create = function () {
   if (this.count() > 0) {
     this.instance.table.find('thead').empty();
-    var offset = this.instance.blockedCols ? this.instance.blockedCols.count() : 0;
+    var offset = this.instance.blockedCols.count();
     for (c = 0; c < this.instance.colCount + offset; c++) {
       this.createCol();
     }
@@ -2444,7 +2444,7 @@ handsontable.BlockedRows.prototype.refresh = function () {
       var tr = $tr[0];
       var ths = tr.childNodes;
       var thsLen = ths.length;
-      var offset = this.instance.blockedCols ? this.instance.blockedCols.count() : 0;
+      var offset = this.instance.blockedCols.count();
 
       while (thsLen > this.instance.colCount + offset) {
         //remove excessive cols
@@ -2597,7 +2597,7 @@ handsontable.BlockedCols.prototype.refresh = function () {
     var that = this;
     var hlen = this.count(), h;
     var $theadTr = this.main.find('thead tr');
-    var offset = this.instance.blockedRows ? this.instance.blockedRows.count() : 0;
+    var offset = this.instance.blockedRows.count();
     if (offset && $theadTr[0].childNodes.length < hlen) {
       for (h = 0; h < hlen; h++) {
         var th = $theadTr[0].getElementsByClassName(that.headers[h].className)[0];
