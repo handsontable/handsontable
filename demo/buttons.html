@@ -27,6 +27,22 @@
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
   <link rel="stylesheet" media="screen" href="css/demo.css">
+  <style type="text/css">
+    #exampleGrid {
+      width: 680px;
+      height: 300px;
+      overflow: scroll
+    }
+
+    #toolbar {
+      margin: 20px 0 20px 24px;
+    }
+
+    button#selectFirst {
+      float: left;
+      margin-right: 10px;
+    }
+  </style>
 </head>
 
 <body>
@@ -43,22 +59,19 @@
   <h2>Custom buttons</h2>
 
   <p>The <b>alter</b> method can be used if you want to insert or remove rows and columns using external buttons.
-    The below example uses the a custom made <b>jquery.handsontable.removeRow.js</b> extension for that matter. Move your mouse over a row to see it.</p>
+    The below example uses the a custom made
+    <b>jquery.handsontable.removeRow.js</b> extension for that matter. Move your mouse over a row to see it.</p>
 
   <p>You can programically select a cell using the <b>selectCell</b> method. The below button implements it.</p>
 
-  <button id="selectFirst">Select first cell</button>
+  <div id="toolbar">
+    <button id="selectFirst">Select first cell</button>
+    <label><input type="checkbox" id="rowHeaders" checked="checked" autocomplete="off"> Show row headers</label>
+    <label><input type="checkbox" id="colHeaders" checked="checked" autocomplete="off"> Show col headers</label>
+  </div>
 
-  <label><input type="checkbox" id="rowHeaders" checked="checked" autocomplete="off"> rowHeaders</label>
-  <label><input type="checkbox" id="colHeaders" checked="checked" autocomplete="off"> colHeaders</label>
+  <div id="exampleGrid" class="dataTable"></div>
 
-  <div id="exampleGrid" class="dataTable" style="width: 680px; height: 300px; overflow: scroll"></div>
-
-  <style type="text/css">
-    #selectFirst {
-      margin: 10px 0 20px 20px;
-    }
-  </style>
   <script>
     var container = $("#exampleGrid");
 
@@ -90,11 +103,11 @@
       }, 10);
     });
 
-    $("input#rowHeaders").change(function(){
+    $("input#rowHeaders").change(function () {
       container.handsontable("updateSettings", {rowHeaders: $(this).is(':checked')});
     });
 
-    $("input#colHeaders").change(function(){
+    $("input#colHeaders").change(function () {
       container.handsontable("updateSettings", {colHeaders: $(this).is(':checked')});
     });
   </script>
