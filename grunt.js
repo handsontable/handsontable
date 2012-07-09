@@ -12,6 +12,10 @@ module.exports = function (grunt) {
         src: ['src/core.js', 'src/rowHeader.js', 'src/colHeader.js'],
         dest: 'jquery.handsontable.js'
       }
+    },
+    watch: {
+      files: ['<config:concat.dist.src>'],
+      tasks: 'concat'
     }
   });
 
