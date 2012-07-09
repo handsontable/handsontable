@@ -2461,7 +2461,7 @@ handsontable.BlockedRows.prototype.refresh = function () {
       }
     }
 
-    this.ths = this.main.find('th');
+    this.ths = this.main.find('tr:last-child th');
     this.refreshBorders();
   }
 };
@@ -2486,13 +2486,9 @@ handsontable.BlockedRows.prototype.refreshBorders = function () {
  */
 handsontable.BlockedRows.prototype.dimensions = function (changes) {
   if (this.count() > 0) {
-    var offset = this.instance.blockedCols ? this.instance.blockedCols.count() : 0;
+    var offset = this.instance.blockedCols.count();
     for (var i = 0, ilen = changes.length; i < ilen; i++) {
-      var $th = $(this.instance.getCell(changes[i][0], changes[i][1]));
-      if ($th.length) {
-        var width = $th.width();
-        this.main.find('th').get(changes[i][1] + offset).style.minWidth = width + 'px';
-      }
+      this.ths[changes[i][1] + offset].style.minWidth = $(this.instance.getCell(changes[i][0], changes[i][1])).width() + 'px';
     }
   }
 };
