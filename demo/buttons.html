@@ -15,6 +15,7 @@
   -->
   <script src="../lib/jquery.min.js"></script>
   <script src="../jquery.handsontable.js"></script>
+  <script src="../extensions/jquery.handsontable.removeRow.js"></script>
   <script src="../lib/bootstrap-typeahead.js"></script>
   <script src="../lib/jquery.autoresize.js"></script>
   <script src="../lib/jQuery-contextMenu/jquery.contextMenu.js"></script>
@@ -32,7 +33,7 @@
 <a href="http://github.com/warpech/jquery-handsontable"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"/></a>
 
 <div id="container">
-  <h1><a href="../index.html">jquery-handsontable</a></h1>
+  <h1><a href="../index.html">Handsontable</a></h1>
 
   <div class="description">
     Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery
@@ -42,101 +43,35 @@
   <h2>Custom buttons</h2>
 
   <p>The <b>alter</b> method can be used if you want to insert or remove rows and columns using external buttons.
-    The below example uses the <b>onChange</b> method to implement a custom
-    <strong>remove row</strong> button. Move your mouse to see it.</p>
+    The below example uses the a custom made <b>jquery.handsontable.removeRow.js</b> extension for that matter. Move your mouse over a row to see it.</p>
 
   <p>You can programically select a cell using the <b>selectCell</b> method. The below button implements it.</p>
 
   <button id="selectFirst">Select first cell</button>
 
-  <label><input type="checkbox" id="rowHeaders" checked="checked"> rowHeaders</label>
-  <label><input type="checkbox" id="colHeaders" checked="checked"> colHeaders</label>
+  <label><input type="checkbox" id="rowHeaders" checked="checked" autocomplete="off"> rowHeaders</label>
+  <label><input type="checkbox" id="colHeaders" checked="checked" autocomplete="off"> colHeaders</label>
 
-  <div id="exampleGrid" class="dataTable"></div>
+  <div id="exampleGrid" class="dataTable" style="width: 680px; height: 300px; overflow: scroll"></div>
 
-  <style>
-    #exampleGrid {
-      padding-left: 20px;
-    }
-
-    #exampleGrid .cellRelative {
-      position: relative;
-    }
-
-    #exampleGrid .cellRelative .btnContainer {
-      position: absolute;
-      top: 1px;
-      left: -26px;
-      width: 26px;
-      height: 22px;
-    }
-
-    #exampleGrid .cellRelative .btnContainer .btn {
-      background-color: #BBB;
-      border-radius: 9px;
-      padding: 0 4px 0 4px;
-      color: #FFF;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: bold;
-      line-height: 16px;
-      display: none;
-      float: left;
-    }
-
-    #exampleGrid .cellRelative .btnContainer .btn:hover {
-      background-color: #777;
-    }
-
+  <style type="text/css">
     #selectFirst {
       margin: 10px 0 20px 20px;
     }
   </style>
   <script>
     var container = $("#exampleGrid");
-    var button = $('<div class="cellRelative"><span>what</span>' + /*($td.html() || '&nbsp;') +*/ '<div class="btnContainer"><div class="btn">x</div></div></div>');
-
-    function createRowButtons() {
-      /*setTimeout(function () {
-        container.find('tbody tr').each(function () {
-          var $td = $(this).children().first().not(':has(.btn)');
-          if ($td.length) {
-            //for each first cell in a row that does not have the button yet
-            var but = button.clone();
-            but.find('span').html($td.html() || "&nbsp;");
-            $td.html(but);
-          }
-        });
-      }, 10);*/
-    }
 
     container.handsontable({
-      rows: 5,
-      cols: 6,
+      rows: 15,
+      cols: 16,
       rowHeaders: true,
       colHeaders: true,
       minSpareCols: 1,
       minSpareRows: 1,
       contextMenu: true,
-      onChange: function () {
-        createRowButtons();
-      }
+      RemoveRow: true
     });
-
-    container.
-      on('mouseover', 'tbody th, tbody td',
-      function () {
-        //show the button
-        $(this.parentNode.firstChild).find('.btn').show();
-      }).
-      on('mouseout', 'tbody th, tbody td',function () {
-        //hide the button
-        $(this.parentNode.firstChild).find('.btn').hide();
-      }).
-      on('click', '.btn', function () {
-        //remove the row when button is clicked
-        container.handsontable("alter", "remove_row", $(this).parents('tr').index());
-      });
 
     var data = [
       ["", "Kia", "Nissan", "Toyota", "Honda"],
@@ -146,7 +81,6 @@
     ];
 
     container.handsontable("loadData", data);
-    createRowButtons();
 
     $("button#selectFirst").on('click', function () {
       setTimeout(function () {
