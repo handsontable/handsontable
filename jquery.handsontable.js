@@ -1941,7 +1941,7 @@
           self.borderProblemFix(td);
         }
         else {
-          td.innerHTML = '<div style="width: 50px">' + (escaped || value).replace(/\n/g, '<br/>') + '</div>';
+          td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
         }
         self.minWidthProblemFix(td);
         datamap.set(row, col, value);
