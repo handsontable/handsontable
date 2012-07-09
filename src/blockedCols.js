@@ -51,10 +51,27 @@ handsontable.BlockedCols.prototype.createRow = function (tr) {
  * Create row header in the grid table
  */
 handsontable.BlockedCols.prototype.create = function () {
+  var hlen = this.count(), h, th;
   this.main.find('tbody').empty();
   this.instance.table.find('tbody th').remove();
+  var $theadTr = this.main.find('thead tr');
+  $theadTr.empty();
 
-  if (this.count() > 0) {
+  if (hlen > 0) {
+    var offset = this.instance.blockedRows.count();
+    if (offset) {
+      for (h = 0; h < hlen; h++) {
+        th = $theadTr[0].getElementsByClassName ? $theadTr[0].getElementsByClassName(this.headers[h].className)[0] : $theadTr.find('.' + this.headers[h].className.replace(/\s/i, '.'))[0];
+        if (!th) {
+          th = document.createElement('th');
+          th.className = this.headers[h].className;
+          th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
+          this.instance.minWidthProblemFix(th);
+          $theadTr[0].insertBefore(th, $theadTr[0].firstChild);
+        }
+      }
+    }
+
     var trs = this.instance.table.find('tbody')[0].childNodes;
     for (var r = 0; r < this.instance.rowCount; r++) {
       this.createRow(trs[r]);
@@ -66,27 +83,8 @@ handsontable.BlockedCols.prototype.create = function () {
  * Copy table row header onto the floating layer above the grid
  */
 handsontable.BlockedCols.prototype.refresh = function () {
-  if (this.count() > 0) {
-    var that = this;
-    var hlen = this.count(), h, th, i;
-    var $theadTr = this.main.find('thead tr');
-    var offset = this.instance.blockedRows.count();
-    if (offset && $theadTr[0].childNodes.length < hlen) {
-      for (h = 0; h < hlen; h++) {
-        th = $theadTr[0].getElementsByClassName ? $theadTr[0].getElementsByClassName(that.headers[h].className)[0] : $theadTr.find('.' + that.headers[h].className.replace(/\s/i, '.'))[0];
-        if (!th) {
-          th = document.createElement('th');
-          th.className = this.headers[h].className;
-          th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
-          this.instance.minWidthProblemFix(th);
-          $theadTr[0].insertBefore(th, $theadTr[0].firstChild);
-        }
-      }
-    }
-    else if (!offset && $theadTr[0].childNodes.length > 0) {
-      $theadTr.empty();
-    }
-
+  var hlen = this.count(), h, th, i;
+  if (hlen > 0) {
     var $tbody = this.main.find('tbody');
     var tbody = $tbody[0];
     var trs = tbody.childNodes;
@@ -97,13 +95,13 @@ handsontable.BlockedCols.prototype.refresh = function () {
       $(tbody.childNodes[trsLen]).remove();
     }
 
-    var realTrs = that.instance.table.find('tbody tr');
+    var realTrs = this.instance.table.find('tbody tr');
     for (i = 0; i < trsLen; i++) {
       for (h = 0; h < hlen; h++) {
-        th = trs[i].getElementsByClassName ? trs[i].getElementsByClassName(that.headers[h].className)[0] : $(trs[i]).find('.' + that.headers[h].className.replace(/\s/i, '.'))[0];
-        th.innerHTML = that.headers[h].columnLabel(i);
-        that.instance.minWidthProblemFix(th);
-        th.style.height = realTrs.eq(i).children().first()[that.heightMethod]() + 'px';
+        th = trs[i].getElementsByClassName ? trs[i].getElementsByClassName(this.headers[h].className)[0] : $(trs[i]).find('.' + this.headers[h].className.replace(/\s/i, '.'))[0];
+        th.innerHTML = this.headers[h].columnLabel(i);
+        this.instance.minWidthProblemFix(th);
+        th.style.height = realTrs.eq(i).children().first()[this.heightMethod]() + 'px';
       }
     }
 
