@@ -332,9 +332,9 @@
         var r = 0;
         if (!coords || coords.col === self.colCount - 1) {
           for (; r < self.rowCount; r++) {
-            $(trs[r].childNodes[self.colCount + (self.blockedCols ? 1 : 0) - 1]).remove();
+            $(trs[r].childNodes[self.colCount + self.blockedCols.count() - 1]).remove();
             if (colThs) {
-              colThs.eq(self.colCount + (self.blockedCols ? 1 : 0) - 1).remove();
+              colThs.eq(self.colCount + self.blockedCols.count() - 1).remove();
             }
           }
           self.colCount--;
@@ -342,13 +342,13 @@
         else {
           for (; r < self.rowCount; r++) {
             for (i = toCoords.col; i >= coords.col; i--) {
-              $(trs[r].childNodes[i + (self.blockedCols ? 1 : 0)]).remove();
+              $(trs[r].childNodes[i + self.blockedCols.count()]).remove();
 
             }
           }
           if (colThs) {
             for (i = toCoords.col; i >= coords.col; i--) {
-              colThs.eq(i + (self.blockedCols ? 1 : 0)).remove();
+              colThs.eq(i + self.blockedCols.count()).remove();
             }
           }
           self.colCount -= toCoords.col - coords.col + 1;
