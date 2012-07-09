@@ -46,6 +46,17 @@
       })
     }
 
+    var hasBorderProblem = ($.browser.msie && ($.browser.version == 7 || $.browser.version == 6));
+    /**
+     * Used to get over IE7 not showing border around empty cells
+     * @param {Element} td
+     */
+    this.borderProblemFix = function (td) {
+      if (hasBorderProblem) {
+        td.innerHTML = '<span style="zoom:1"></span>';
+      }
+    };
+
     datamap = {
       data: [],
 
@@ -255,11 +266,12 @@
        * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
        */
       createRow: function (coords) {
-        var tr, c, r;
+        var tr, c, r, td;
         tr = document.createElement('tr');
         self.blockedCols && self.blockedCols.createRow(tr);
         for (c = 0; c < self.colCount; c++) {
-          tr.appendChild(document.createElement('td'));
+          tr.appendChild(td = document.createElement('td'));
+          self.borderProblemFix(td);
         }
         if (!coords || coords.row >= self.rowCount) {
           priv.tableBody.appendChild(tr);
@@ -281,17 +293,19 @@
        * @param {Object} [coords] Optional. Coords of the cell before which the new column will be inserted
        */
       createCol: function (coords) {
-        var trs = priv.tableBody.childNodes, r, c;
+        var trs = priv.tableBody.childNodes, r, c, td;
         self.blockedRows && self.blockedRows.createCol();
         if (!coords || coords.col >= self.colCount) {
           for (r = 0; r < self.rowCount; r++) {
-            trs[r].appendChild(document.createElement('td'));
+            trs[r].appendChild(td = document.createElement('td'));
+            self.borderProblemFix(td);
           }
           c = self.colCount;
         }
         else {
           for (r = 0; r < self.rowCount; r++) {
-            trs[r].insertBefore(document.createElement('td'), grid.getCellAtCoords({row: r, col: coords.col}));
+            trs[r].insertBefore(td = document.createElement('td'), grid.getCellAtCoords({row: r, col: coords.col}));
+            self.borderProblemFix(td);
           }
           c = coords.col;
         }
@@ -597,6 +611,7 @@
         var tds = grid.getAllCells();
         for (var i = 0, ilen = tds.length; i < ilen; i++) {
           $(tds[i]).empty();
+          self.borderProblemFix(tds[i]);
           grid.updateLegend(grid.getCellCoords(tds[i]));
         }
       },
@@ -870,6 +885,7 @@
           $td = $(tds[i]);
           if (old !== '' && grid.isCellWriteable($td)) {
             $td.empty();
+            self.borderProblemFix(tds[i]);
             datamap.set(coords.row, coords.col, '');
             changes.push([coords.row, coords.col, old, '']);
             grid.updateLegend(coords);
@@ -1883,7 +1899,13 @@
         if (!allowHtml) {
           escaped = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
         }
-        td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
+        if (value === '') {
+          td.innerHTML = '';
+          self.borderProblemFix(td);
+        }
+        else {
+          td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
+        }
         datamap.set(row, col, value);
         grid.updateLegend({row: row, col: col});
       }
@@ -2424,6 +2446,7 @@ handsontable.BlockedRows.prototype.createCol = function (className) {
     if (className) {
       th.className += ' ' + className;
     }
+    this.instance.borderProblemFix(th);
     this.main.find('thead tr.' + this.headers[h].className)[0].appendChild(th);
   }
 };
@@ -2581,6 +2604,7 @@ handsontable.BlockedCols.prototype.createRow = function (tr) {
   for (var h = 0, hlen = this.count(); h < hlen; h++) {
     th = document.createElement('th');
     th.className = this.headers[h].className;
+    this.instance.borderProblemFix(th);
     tr.insertBefore(th, tr.firstChild);
 
     th = document.createElement('th');
