@@ -1381,6 +1381,30 @@
                     }
                   }
                 }
+                else if (event.ctrlKey) {
+                  if (selection.isMultiple()) {
+                    editproxy.finishEditing();
+
+                    var newValue, tds, i, ilen, changes = [], coords, old, $td;
+                    newValue = datamap.get(priv.selStart.row, priv.selStart.col);
+                    tds = grid.getCellsAtCoords(priv.selStart, selection.end());
+                    for (i = 0, ilen = tds.length; i < ilen; i++) {
+                      coords = grid.getCellCoords(tds[i]);
+                      old = datamap.get(coords.row, coords.col);
+                      $td = $(tds[i]);
+                      if (old !== newValue && grid.isCellWritable($td)) {
+                        self.setDataAtCell(coords.row, coords.col, newValue);
+                        changes.push([coords.row, coords.col, old, newValue]);
+                        grid.updateLegend(coords);
+                      }
+                    }
+                    if (changes.length) {
+                      self.container.triggerHandler("datachange.handsontable", [changes, 'alter']);
+                    }
+                    grid.keepEmptyRows();
+                    selection.refreshBorders();
+                  }
+                }
                 else {
                   if (event.shiftKey) { //if shift+enter
                     return true;
@@ -1633,9 +1657,11 @@
         lastChange = '';
 
         if (selection.isMultiple()) {
-          highlight.off();
-          priv.selEnd = priv.selStart;
-          highlight.on();
+          if (!priv.settings.multiEdit) {
+            highlight.off();
+            priv.selEnd = priv.selStart;
+            highlight.on();
+          }
         }
 
         if (useOriginalValue) {
@@ -2431,6 +2457,7 @@
     'minHeight': 0,
     'minWidth': 0,
     'multiSelect': true,
+    'multiEdit': true,
     'fillHandle': true,
     'undo': true,
     'enterBeginsEditing': true
