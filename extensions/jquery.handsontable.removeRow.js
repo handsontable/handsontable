@@ -11,7 +11,7 @@ handsontable.extension.RemoveRow = function (instance, labels) {
   this.labels = labels;
 
   instance.blockedCols.main.on('mousedown', 'th.htRemoveRow .btn', function () {
-    instance.alter("remove_row", $(this.parentNode.parentNode).index());
+    instance.alter("remove_row", $(this).parents('tr').index());
   });
   instance.container.on('mouseover', 'tbody th, tbody td', function () {
     that.getButton(this).show();
