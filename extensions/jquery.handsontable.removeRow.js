@@ -30,9 +30,7 @@ handsontable.extension.RemoveRow = function (instance, labels) {
       \
       .dataTable.htRemoveRow th.htRemoveRow {\
         background-color: white;\
-        border-bottom: 1px solid #FFF;\
-        border-left: 1px solid #FFF;\
-        border-right: 1px solid #FFF;\
+        border-color: #FFF;\
         min-width: 15px;\
       }\
       \
