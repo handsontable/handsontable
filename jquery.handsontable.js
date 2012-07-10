@@ -46,20 +46,9 @@
       })
     }
 
-    var hasBorderProblem = ($.browser.msie && ($.browser.version == 7 || $.browser.version == 6));
-    /**
-     * Used to get over IE7 not showing border around empty cells
-     * @param {Element} td
-     */
-    this.borderProblemFix = function (td) {
-      if (hasBorderProblem) {
-        td.innerHTML = '<span style="zoom:1"></span>';
-      }
-    };
-
     var hasMinWidthProblem = ($.browser.msie && (parseInt($.browser.version, 10) <= 7));
     /**
-     * Used to get over IE7 not respecting CSS min-width
+     * Used to get over IE7 not respecting CSS min-width (and also not showing border around empty cells)
      * @param {Element} td
      */
     this.minWidthFix = function (td) {
@@ -303,7 +292,6 @@
         self.blockedCols && self.blockedCols.createRow(tr);
         for (c = 0; c < self.colCount; c++) {
           tr.appendChild(td = document.createElement('td'));
-          self.borderProblemFix(td);
           self.minWidthFix(td);
         }
         if (!coords || coords.row >= self.rowCount) {
@@ -331,7 +319,6 @@
         if (!coords || coords.col >= self.colCount) {
           for (r = 0; r < self.rowCount; r++) {
             trs[r].appendChild(td = document.createElement('td'));
-            self.borderProblemFix(td);
             self.minWidthFix(td);
           }
           c = self.colCount;
@@ -339,7 +326,6 @@
         else {
           for (r = 0; r < self.rowCount; r++) {
             trs[r].insertBefore(td = document.createElement('td'), grid.getCellAtCoords({row: r, col: coords.col}));
-            self.borderProblemFix(td);
             self.minWidthFix(td);
           }
           c = coords.col;
@@ -646,7 +632,6 @@
         var tds = grid.getAllCells();
         for (var i = 0, ilen = tds.length; i < ilen; i++) {
           $(tds[i]).empty();
-          self.borderProblemFix(tds[i]);
           self.minWidthFix(tds[i]);
           grid.updateLegend(grid.getCellCoords(tds[i]));
         }
@@ -921,7 +906,6 @@
           $td = $(tds[i]);
           if (old !== '' && grid.isCellWriteable($td)) {
             $td.empty();
-            self.borderProblemFix(tds[i]);
             self.minWidthFix(tds[i]);
             datamap.set(coords.row, coords.col, '');
             changes.push([coords.row, coords.col, old, '']);
@@ -1931,13 +1915,7 @@
         if (!allowHtml) {
           escaped = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
         }
-        if (value === '') {
-          td.innerHTML = '';
-          self.borderProblemFix(td);
-        }
-        else {
-          td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
-        }
+        td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
         self.minWidthFix(td);
         datamap.set(row, col, value);
         grid.updateLegend({row: row, col: col});
@@ -2508,7 +2486,6 @@ handsontable.BlockedRows.prototype.createCol = function (className) {
     if (className) {
       th.className += ' ' + className;
     }
-    this.instance.borderProblemFix(th);
     this.instance.minWidthFix(th);
     this.main.find('thead tr.' + this.headers[h].className)[0].appendChild(th);
   }
@@ -2529,7 +2506,7 @@ handsontable.BlockedRows.prototype.create = function () {
       this.createCol();
     }
   }
-  if(!this.hasCSS3) {
+  if (!this.hasCSS3) {
     this.instance.container.find('thead tr.lastChild').not(':last-child').removeClass('lastChild');
     this.instance.container.find('thead tr:last-child').not('.lastChild').addClass('lastChild');
   }
@@ -2672,7 +2649,6 @@ handsontable.BlockedCols.prototype.createRow = function (tr) {
   for (var h = 0, hlen = this.count(); h < hlen; h++) {
     th = document.createElement('th');
     th.className = this.headers[h].className;
-    this.instance.borderProblemFix(th);
     this.instance.minWidthFix(th);
     tr.insertBefore(th, tr.firstChild);
 

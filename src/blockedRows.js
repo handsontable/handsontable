@@ -57,7 +57,6 @@ handsontable.BlockedRows.prototype.createCol = function (className) {
     if (className) {
       th.className += ' ' + className;
     }
-    this.instance.borderProblemFix(th);
     this.instance.minWidthFix(th);
     this.main.find('thead tr.' + this.headers[h].className)[0].appendChild(th);
   }
@@ -78,7 +77,7 @@ handsontable.BlockedRows.prototype.create = function () {
       this.createCol();
     }
   }
-  if(!this.hasCSS3) {
+  if (!this.hasCSS3) {
     this.instance.container.find('thead tr.lastChild').not(':last-child').removeClass('lastChild');
     this.instance.container.find('thead tr:last-child').not('.lastChild').addClass('lastChild');
   }

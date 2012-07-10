@@ -35,7 +35,6 @@ handsontable.BlockedCols.prototype.createRow = function (tr) {
   for (var h = 0, hlen = this.count(); h < hlen; h++) {
     th = document.createElement('th');
     th.className = this.headers[h].className;
-    this.instance.borderProblemFix(th);
     this.instance.minWidthFix(th);
     tr.insertBefore(th, tr.firstChild);
 
