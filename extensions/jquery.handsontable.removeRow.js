@@ -21,45 +21,6 @@ handsontable.extension.RemoveRow = function (instance, labels) {
   });
 
   instance.blockedCols.addHeader(this);
-
-  this.$style = $('\
-    <style type="text/css">\
-      .dataTable.htRemoveRow table {\
-        border-left-width: 0;\
-      }\
-      \
-      .dataTable.htRemoveRow th.htRemoveRow {\
-        background-color: white;\
-        border-color: #FFF;\
-        min-width: 15px;\
-      }\
-      \
-      .dataTable.htRemoveRow th.htRemoveRow div.minWidthProblemFix {\
-        width: 15px;\
-      }\
-      \
-      .dataTable.htRemoveRow tr:first-child th.htRemoveRow,\
-      .dataTable.htRemoveRow tr:first-child td.htRemoveRow {\
-       border-top: 1px solid #FFF;\
-      }\
-      \
-      .dataTable.htRemoveRow th.htRemoveRow .btn {\
-        background-color: #BBB;\
-        border-radius: 9px;\
-        padding: 0 4px 0 4px;\
-        color: #FFF;\
-        cursor: pointer;\
-        font-size: 12px;\
-        font-weight: bold;\
-        display: none;\
-      }\
-      \
-      .dataTable.htRemoveRow th.htRemoveRow .btn:hover {\
-        background-color: #777;\
-      }\
-    </style>\
-  ');
-  $('head').append(this.$style);
   instance.container.addClass('htRemoveRow');
 };
 

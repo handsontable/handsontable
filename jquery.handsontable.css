@@ -33,10 +33,18 @@
   width: 50px;
 }
 
+.dataTable tr:first-child th.htNoFrame,
+.dataTable th:first-child.htNoFrame,
+.dataTable th.htNoFrame {
+  border-left-width: 0;
+  background-color: white;
+  border-color: #FFF;
+}
+
 .dataTable th:first-child,
 .dataTable td:first-child,
 .dataTable .htNoFrame + th,
-.dataTable .htNoFrame + td{
+.dataTable .htNoFrame + td {
   border-left: 1px solid #CCC;
 }
 
