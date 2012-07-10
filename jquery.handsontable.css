@@ -67,7 +67,7 @@
 }
 
 .dataTable thead th {
-  padding: 4px;
+  padding: 2px 4px;
 }
 
 .dataTable th.active {
