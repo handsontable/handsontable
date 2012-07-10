@@ -3,7 +3,8 @@
  *
  * rev                                      | date (dd.mm.yy) | performance                           | desc
  * -----------------------------------------|-----------------|---------------------------------------|------------------------------------------------------
- * xxx | 27.06.12 12:47  | 0.72 ops/sec ±1.52% (23 runs sampled) | after removing rowHeaders.clone() and allowing array input to setDataAtCell
+ * 7076ebee93ccdf17803410e87f6815aa3eebecef | 11.07.12 00:25  | 0.65 ops/sec ±5.48% (4 runs sampled)  | after introducing blockedRows/Cols. offset() core.js is known for slowing up things
+ * ee05fe2faf7eecf76b6aa63d83785031aba2c007 | 27.06.12 12:47  | 0.72 ops/sec ±1.52% (23 runs sampled) | after removing rowHeaders.clone() and allowing array input to setDataAtCell
  * ddc33968f53a8767fb9e7e414bf09cd8bea8285e | 27.06.12 10:54  | XXX (crashes Firefox and Chrome)      | initial benchmark forked from paste.html, with row/col headers added
  *
  * cheers

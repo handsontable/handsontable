@@ -3,6 +3,7 @@
  *
  * rev                                      | date (dd.mm.yy) | performance                           | desc
  * -----------------------------------------|-----------------|---------------------------------------|------------------------------------------------------
+ * 7076ebee93ccdf17803410e87f6815aa3eebecef | 11.07.12 00:25  | 4.76 ops/sec ±1.55% (31 runs sampled) | after introducing blockedRows/Cols. offset() core.js is known for slowing up things
  * b4b317377df93984d3c805299f99b9de89294a71 | 29.05.12 21:59  | 5.02 ops/sec ±1.56% (36 runs sampled) | add drag-down, copy-down, context menu
  * b4b317377df93984d3c805299f99b9de89294a71 | 29.05.12 21:59  | 5.20 ops/sec ±1.93% (33 runs sampled) | add drag-down, copy-down, context menu
  * d56dd43249a294d4838c97fad4bc92b27f4371b2 | 22.05.12 21:49  | 5.58 ops/sec ±1.43% (34 runs sampled) | optimize border appear
