@@ -43,6 +43,7 @@
 .dataTable tr:first-child th,
 .dataTable tr:first-child td {
   border-top: 1px solid #CCC;
+  height: 23px;
 }
 
 .dataTable thead tr:last-child th {

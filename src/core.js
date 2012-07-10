@@ -1465,6 +1465,13 @@
         var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
         var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
 
+        if(editTop < 0) {
+          editTop = 0;
+        }
+        if(editLeft < 0) {
+          editLeft = 0;
+        }
+
         var width, height;
         if (priv.editProxy.autoResize) {
           width = $current.width();
