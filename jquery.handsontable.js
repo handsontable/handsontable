@@ -1692,9 +1692,6 @@
         className: 'current',
         bg: true
       });
-      if (priv.settings.fillHandle) {
-        autofill.init();
-      }
       editproxy.init();
 
       self.blockedCols = new handsontable.BlockedCols(self);
@@ -1997,6 +1994,10 @@
             priv.extensions[i] = new handsontable.extension[i](self, settings[i]);
           }
         }
+      }
+
+      if (settings.fillHandle && !priv.fillHandle) {
+        autofill.init();
       }
 
       if (typeof settings.colHeaders !== "undefined") {
