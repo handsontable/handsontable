@@ -57,23 +57,23 @@
       }
     };
 
-    var hasMinWidthProblem = ($.browser.msie && ($.browser.version == 7 || $.browser.version == 6));
+    var hasMinWidthProblem = ($.browser.msie && (parseInt($.browser.version, 10) <= 7));
     /**
      * Used to get over IE7 not respecting CSS min-width
      * @param {Element} td
      */
-    this.minWidthProblemFix = function (td) {
+    this.minWidthFix = function (td) {
       if (hasMinWidthProblem) {
         if (td.className) {
-          td.innerHTML = '<div class="minWidthProblemFix ' + td.className + '">' + td.innerHTML + '</div>';
+          td.innerHTML = '<div class="minWidthFix ' + td.className + '">' + td.innerHTML + '</div>';
         }
         else {
-          td.innerHTML = '<div class="minWidthProblemFix">' + td.innerHTML + '</div>';
+          td.innerHTML = '<div class="minWidthFix">' + td.innerHTML + '</div>';
         }
       }
     };
 
-    var hasPositionProblem = ($.browser.msie && ($.browser.version == 7 || $.browser.version == 6));
+    var hasPositionProblem = ($.browser.msie && (parseInt($.browser.version, 10) <= 7));
     /**
      * Used to get over IE7 returning negative position in demo/buttons.html
      * @param {Object} position
@@ -304,7 +304,7 @@
         for (c = 0; c < self.colCount; c++) {
           tr.appendChild(td = document.createElement('td'));
           self.borderProblemFix(td);
-          self.minWidthProblemFix(td);
+          self.minWidthFix(td);
         }
         if (!coords || coords.row >= self.rowCount) {
           priv.tableBody.appendChild(tr);
@@ -332,7 +332,7 @@
           for (r = 0; r < self.rowCount; r++) {
             trs[r].appendChild(td = document.createElement('td'));
             self.borderProblemFix(td);
-            self.minWidthProblemFix(td);
+            self.minWidthFix(td);
           }
           c = self.colCount;
         }
@@ -340,7 +340,7 @@
           for (r = 0; r < self.rowCount; r++) {
             trs[r].insertBefore(td = document.createElement('td'), grid.getCellAtCoords({row: r, col: coords.col}));
             self.borderProblemFix(td);
-            self.minWidthProblemFix(td);
+            self.minWidthFix(td);
           }
           c = coords.col;
         }
@@ -647,7 +647,7 @@
         for (var i = 0, ilen = tds.length; i < ilen; i++) {
           $(tds[i]).empty();
           self.borderProblemFix(tds[i]);
-          self.minWidthProblemFix(tds[i]);
+          self.minWidthFix(tds[i]);
           grid.updateLegend(grid.getCellCoords(tds[i]));
         }
       },
@@ -922,7 +922,7 @@
           if (old !== '' && grid.isCellWriteable($td)) {
             $td.empty();
             self.borderProblemFix(tds[i]);
-            self.minWidthProblemFix(tds[i]);
+            self.minWidthFix(tds[i]);
             datamap.set(coords.row, coords.col, '');
             changes.push([coords.row, coords.col, old, '']);
             grid.updateLegend(coords);
@@ -1694,8 +1694,6 @@
       });
       editproxy.init();
 
-      self.blockedCols = new handsontable.BlockedCols(self);
-      self.blockedRows = new handsontable.BlockedRows(self);
       this.updateSettings(settings);
 
       container.on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
@@ -1940,7 +1938,7 @@
         else {
           td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
         }
-        self.minWidthProblemFix(td);
+        self.minWidthFix(td);
         datamap.set(row, col, value);
         grid.updateLegend({row: row, col: col});
       }
@@ -1985,6 +1983,16 @@
      */
     this.updateSettings = function (settings) {
       var i, j;
+
+      if (settings.fillHandle && !priv.fillHandle) {
+        autofill.init();
+      }
+
+      if (!self.blockedCols) {
+        self.blockedCols = new handsontable.BlockedCols(self);
+        self.blockedRows = new handsontable.BlockedRows(self);
+      }
+
       for (i in settings) {
         if (settings.hasOwnProperty(i)) {
           priv.settings[i] = settings[i];
@@ -1994,10 +2002,6 @@
             priv.extensions[i] = new handsontable.extension[i](self, settings[i]);
           }
         }
-      }
-
-      if (settings.fillHandle && !priv.fillHandle) {
-        autofill.init();
       }
 
       if (typeof settings.colHeaders !== "undefined") {
@@ -2049,7 +2053,7 @@
             th = document.createElement('th');
             th.className = self.blockedCols.headers[j].className;
             th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
-            self.minWidthProblemFix(th);
+            self.minWidthFix(th);
             tr.appendChild(th);
           }
           thead.appendChild(tr);

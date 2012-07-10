@@ -29,7 +29,7 @@
   line-height: 16px;
 }
 
-.dataTable div.minWidthProblemFix {
+.dataTable div.minWidthFix {
   width: 50px;
 }
 
@@ -46,6 +46,10 @@
 }
 
 .dataTable thead tr:last-child th {
+  border-bottom-width: 0;
+}
+
+.dataTable thead tr.lastChild th {
   border-bottom-width: 0;
 }
 

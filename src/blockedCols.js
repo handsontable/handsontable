@@ -36,7 +36,7 @@ handsontable.BlockedCols.prototype.createRow = function (tr) {
     th = document.createElement('th');
     th.className = this.headers[h].className;
     this.instance.borderProblemFix(th);
-    this.instance.minWidthProblemFix(th);
+    this.instance.minWidthFix(th);
     tr.insertBefore(th, tr.firstChild);
 
     th = document.createElement('th');
@@ -66,7 +66,7 @@ handsontable.BlockedCols.prototype.create = function () {
           th = document.createElement('th');
           th.className = this.headers[h].className;
           th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
-          this.instance.minWidthProblemFix(th);
+          this.instance.minWidthFix(th);
           $theadTr[0].insertBefore(th, $theadTr[0].firstChild);
         }
       }
@@ -100,7 +100,7 @@ handsontable.BlockedCols.prototype.refresh = function () {
       for (h = 0; h < hlen; h++) {
         th = trs[i].getElementsByClassName ? trs[i].getElementsByClassName(this.headers[h].className)[0] : $(trs[i]).find('.' + this.headers[h].className.replace(/\s/i, '.'))[0];
         th.innerHTML = this.headers[h].columnLabel(i);
-        this.instance.minWidthProblemFix(th);
+        this.instance.minWidthFix(th);
         th.style.height = realTrs.eq(i).children().first()[this.heightMethod]() + 'px';
       }
     }

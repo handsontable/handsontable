@@ -15,6 +15,7 @@ handsontable.BlockedRows = function (instance) {
     }, 10);
   });
   this.instance.container.append(this.main);
+  this.hasCSS3 = !($.browser.msie && (parseInt($.browser.version, 10) <= 8)); //Used to get over IE8- not having :last-child selector
   this.update();
 };
 
@@ -48,7 +49,7 @@ handsontable.BlockedRows.prototype.createCol = function (className) {
       th.className += ' ' + className;
     }
     th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
-    this.instance.minWidthProblemFix(th);
+    this.instance.minWidthFix(th);
     this.instance.table.find('thead tr.' + this.headers[h].className)[0].appendChild(th);
 
     th = document.createElement('th');
@@ -57,7 +58,7 @@ handsontable.BlockedRows.prototype.createCol = function (className) {
       th.className += ' ' + className;
     }
     this.instance.borderProblemFix(th);
-    this.instance.minWidthProblemFix(th);
+    this.instance.minWidthFix(th);
     this.main.find('thead tr.' + this.headers[h].className)[0].appendChild(th);
   }
 };
@@ -76,6 +77,10 @@ handsontable.BlockedRows.prototype.create = function () {
     for (c = 0; c < this.instance.colCount; c++) {
       this.createCol();
     }
+  }
+  if(!this.hasCSS3) {
+    this.instance.container.find('thead tr.lastChild').not(':last-child').removeClass('lastChild');
+    this.instance.container.find('thead tr:last-child').not('.lastChild').addClass('lastChild');
   }
 };
 
@@ -103,8 +108,8 @@ handsontable.BlockedRows.prototype.refresh = function () {
         var realThs = this.instance.table.find('thead th.' + this.headers[h].className);
         for (var i = 0; i < thsLen; i++) {
           realThs[i].innerHTML = ths[i].innerHTML = that.headers[h].columnLabel(i - offset);
-          this.instance.minWidthProblemFix(realThs[i]);
-          this.instance.minWidthProblemFix(ths[i]);
+          this.instance.minWidthFix(realThs[i]);
+          this.instance.minWidthFix(ths[i]);
           ths[i].style.minWidth = realThs.eq(i).width() + 'px';
         }
       }
