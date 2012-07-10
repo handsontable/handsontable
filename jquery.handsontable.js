@@ -1499,12 +1499,16 @@
           return;
         }
 
+        var td = grid.getCellAtCoords(priv.selStart),
+            $td = $(td);
+
+        if (!grid.isCellWriteable($td)) {
+          return;
+        }
+
         if (priv.fillHandle) {
           autofill.hideHandle();
         }
-
-        var td = grid.getCellAtCoords(priv.selStart),
-            $td = $(td);
 
         priv.isCellEdited = true;
         lastChange = '';
@@ -1513,10 +1517,6 @@
           highlight.off();
           priv.selEnd = priv.selStart;
           highlight.on();
-        }
-
-        if (!grid.isCellWriteable($td)) {
-          return;
         }
 
         if (useOriginalValue) {
