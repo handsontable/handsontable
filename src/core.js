@@ -547,9 +547,9 @@
       },
 
       /**
-       * Is cell writeable
+       * Is cell writable
        */
-      isCellWriteable: function ($td) {
+      isCellWritable: function ($td) {
         if (priv.isPopulated && $td.data("readOnly")) {
           return false;
         }
@@ -583,7 +583,7 @@
               break;
             }
             td = grid.getCellAtCoords(current);
-            if (grid.isCellWriteable($(td))) {
+            if (grid.isCellWritable($(td))) {
               changes.push([current.row, current.col, datamap.get(current.row, current.col), input[r][c]]);
             }
             current.col++;
@@ -907,7 +907,7 @@
           coords = grid.getCellCoords(tds[i]);
           old = datamap.get(coords.row, coords.col);
           $td = $(tds[i]);
-          if (old !== '' && grid.isCellWriteable($td)) {
+          if (old !== '' && grid.isCellWritable($td)) {
             $td.empty();
             self.minWidthFix(tds[i]);
             datamap.set(coords.row, coords.col, '');
@@ -1560,7 +1560,7 @@
         var td = grid.getCellAtCoords(priv.selStart),
             $td = $(td);
 
-        if (!grid.isCellWriteable($td)) {
+        if (!grid.isCellWritable($td)) {
           return;
         }
 
@@ -1616,7 +1616,7 @@
               $td = $(td),
               val = $.trim(priv.editProxy.val());
           var oldVal = datamap.get(priv.selStart.row, priv.selStart.col);
-          if (oldVal !== val && grid.isCellWriteable($td)) {
+          if (oldVal !== val && grid.isCellWritable($td)) {
             var result;
             var change = [
               [priv.selStart.row, priv.selStart.col, oldVal, val]
@@ -2142,6 +2142,19 @@
      */
     this.getCell = function (row, col) {
       return grid.getCellAtCoords({row: row, col: col});
+    };
+
+    /**
+     * Returns cell meta data object corresponding to params row, col
+     * @param {Number} row
+     * @param {Number} col
+     * @public
+     * @return {Object}
+     */
+    this.getCellMeta = function (row, col) {
+      return {
+        isWritable: grid.isCellWritable($(grid.getCellAtCoords({row: row, col: col})))
+      }
     };
 
     /**
