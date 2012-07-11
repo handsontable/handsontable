@@ -4,6 +4,8 @@ Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQu
 
 See the live demo at: http://warpech.github.com/jquery-handsontable/
 
+Play on JSFiddle: http://jsfiddle.net/warpech/hU6Kz/
+
 ## Usage
 
 First, include all the dependencies:
