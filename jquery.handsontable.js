@@ -12,7 +12,7 @@
   function Handsontable(container, settings) {
     this.container = container;
 
-    var priv, datamap, grid, selection, keyboard, editproxy, highlight, autofill, interaction, self = this;
+    var priv, datamap, grid, selection, editproxy, highlight, autofill, interaction, self = this;
 
     priv = {
       settings: {},
@@ -90,17 +90,17 @@
       var arrData = [
         []
       ];
-      var arrMatches = null;
+      var arrMatches, strMatchedValue;
       while (arrMatches = objPattern.exec(strData)) {
         var strMatchedDelimiter = arrMatches[ 1 ];
         if (strMatchedDelimiter.length && (strMatchedDelimiter != strDelimiter)) {
           arrData.push([]);
         }
         if (arrMatches[2]) {
-          var strMatchedValue = arrMatches[2].replace(/""/g, '"');
+          strMatchedValue = arrMatches[2].replace(/""/g, '"');
         }
         else {
-          var strMatchedValue = arrMatches[3];
+          strMatchedValue = arrMatches[3];
 
         }
         arrData[arrData.length - 1].push(strMatchedValue);

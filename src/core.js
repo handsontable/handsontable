@@ -12,7 +12,7 @@
   function Handsontable(container, settings) {
     this.container = container;
 
-    var priv, datamap, grid, selection, keyboard, editproxy, highlight, autofill, interaction, self = this;
+    var priv, datamap, grid, selection, editproxy, highlight, autofill, interaction, self = this;
 
     priv = {
       settings: {},
@@ -77,6 +77,36 @@
         }
       }
     };
+
+    /**
+     * This will parse a delimited string into an array of arrays. The default delimiter is the comma, but this can be overriden in the second argument.
+     * @see http://www.bennadel.com/blog/1504-Ask-Ben-Parsing-CSV-Strings-With-Javascript-Exec-Regular-Expression-Command.htm
+     * @param strData
+     * @param strDelimiter
+     */
+    function CSVToArray(strData, strDelimiter) {
+      strDelimiter = (strDelimiter || ",");
+      var objPattern = new RegExp("(\\" + strDelimiter + "|\\r?\\n|\\r|^)(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|([^\"\\" + strDelimiter + "\\r\\n]*))", "gi");
+      var arrData = [
+        []
+      ];
+      var arrMatches, strMatchedValue;
+      while (arrMatches = objPattern.exec(strData)) {
+        var strMatchedDelimiter = arrMatches[ 1 ];
+        if (strMatchedDelimiter.length && (strMatchedDelimiter != strDelimiter)) {
+          arrData.push([]);
+        }
+        if (arrMatches[2]) {
+          strMatchedValue = arrMatches[2].replace(/""/g, '"');
+        }
+        else {
+          strMatchedValue = arrMatches[3];
+
+        }
+        arrData[arrData.length - 1].push(strMatchedValue);
+      }
+      return arrData;
+    }
 
     datamap = {
       data: [],
@@ -221,7 +251,12 @@
             if (c > 0) {
               text += "\t";
             }
-            text += data[r][c];
+            if (data[r][c].indexOf('\n') > -1) {
+              text += '"' + data[r][c].replace(/"/g, '""') + '"';
+            }
+            else {
+              text += data[r][c];
+            }
           }
           text += "\n";
         }
@@ -1120,7 +1155,7 @@
         }
 
         if (start) {
-          var inputArray = keyboard.parsePasteInput(priv.editProxy.val());
+          var inputArray = CSVToArray(priv.editProxy.val(), '\t');
           grid.populateFromArray(start, inputArray, end);
 
           selection.setRangeStart(grid.getCellAtCoords(drag.TL));
@@ -1165,25 +1200,6 @@
       }
     };
 
-    keyboard = {
-      /**
-       * Parse paste input
-       * @param {String} input
-       * @return {Array} 2d array
-       */
-      parsePasteInput: function (input) {
-        var rows, r, rlen;
-        rows = input.split("\n");
-        if (rows.length > 1 && rows[rows.length - 1] === '') {
-          rows.pop();
-        }
-        for (r = 0, rlen = rows.length; r < rlen; r++) {
-          rows[r] = rows[r].split("\t");
-        }
-        return rows;
-      }
-    };
-
     editproxy = {
       /**
        * Create input field
@@ -1209,7 +1225,7 @@
           if (!priv.isCellEdited) {
             setTimeout(function () {
               var input = priv.editProxy.val().replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
-                  inputArray = keyboard.parsePasteInput(input),
+                  inputArray = CSVToArray(input, '\t'),
                   coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
                   endTd = grid.populateFromArray(coords.TL, inputArray, {
                     row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
