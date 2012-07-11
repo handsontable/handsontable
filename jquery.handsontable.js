@@ -1482,6 +1482,19 @@
           height = $current.height();
         }
 
+        if (parseInt($current.css('border-top-width')) > 0) {
+          if(self.blockedRows.count() > 0) {
+            editTop += 1;
+          }
+          height -= 1;
+        }
+        if (parseInt($current.css('border-left-width')) > 0) {
+          if(self.blockedCols.count() > 0) {
+            editLeft += 1;
+          }
+          width -= 1;
+        }
+
         if (priv.editProxy.autoResize) {
           priv.editProps = {
             maxHeight: 200,
