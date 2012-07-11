@@ -1361,6 +1361,7 @@
               case 113: /* F2 */
                 if (!priv.isCellEdited) {
                   editproxy.beginEditing(true); //show edit field
+                  event.preventDefault(); //prevent Opera from opening Go to Page dialog
                 }
                 break;
 
