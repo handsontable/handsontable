@@ -1305,6 +1305,9 @@
                   }
                   event.preventDefault();
                 }
+                else if (editproxy.getCaretPosition() === priv.editProxy.val().length) {
+                  editproxy.finishEditing(false, 0, 1);
+                }
                 break;
 
               case 37: /* arrow left */
@@ -1316,6 +1319,9 @@
                     selection.transformStart(0, -1);
                   }
                   event.preventDefault();
+                }
+                else if (editproxy.getCaretPosition() === 0) {
+                  editproxy.finishEditing(false, 0, -1);
                 }
                 break;
 
@@ -1559,6 +1565,51 @@
       },
 
       /**
+       * Returns caret position in edit proxy
+       * @author http://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
+       * @return {Number}
+       */
+      getCaretPosition: function () {
+        var el = priv.editProxy[0];
+        if (el.selectionStart) {
+          return el.selectionStart;
+        }
+        else if (document.selection) {
+          el.focus();
+          var r = document.selection.createRange();
+          if (r == null) {
+            return 0;
+          }
+          var re = el.createTextRange(),
+              rc = re.duplicate();
+          re.moveToBookmark(r.getBookmark());
+          rc.setEndPoint('EndToStart', re);
+          return rc.text.length;
+        }
+        return 0;
+      },
+
+      /**
+       * Sets caret position in edit proxy
+       * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
+       * @param {Number}
+          */
+      setCaretPosition: function (pos) {
+        var el = priv.editProxy[0];
+        if (el.setSelectionRange) {
+          el.focus();
+          el.setSelectionRange(pos, pos);
+        }
+        else if (el.createTextRange) {
+          var range = el.createTextRange();
+          range.collapse(true);
+          range.moveEnd('character', pos);
+          range.moveStart('character', pos);
+          range.select();
+        }
+      },
+
+      /**
        * Shows text input in grid cell
        * @param useOriginalValue {Boolean}
        */
@@ -1588,7 +1639,9 @@
         }
 
         if (useOriginalValue) {
-          priv.editProxy.val(datamap.get(priv.selStart.row, priv.selStart.col));
+          var original = datamap.get(priv.selStart.row, priv.selStart.col);
+          priv.editProxy.val(original);
+          editproxy.setCaretPosition(original.length);
         }
         else if (priv.isMouseDown) {
           priv.editProxy.val('');
