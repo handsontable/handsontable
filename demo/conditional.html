@@ -66,6 +66,15 @@
       minSpareRows: 1,
       minSpareCols: 1,
       contextMenu: true,
+      onSelection: function(row, col, row2, col2) {
+        if($(container.handsontable('getCell', row2, col2)).data('readOnly') === true) {
+          container.handsontable('updateSettings', {fillHandle: false});
+        }
+        else {
+          container.handsontable('updateSettings', {fillHandle: true});
+        }
+
+      },
       legend: [
       /**
        * Legend 1
@@ -119,6 +128,21 @@
               container.handsontable('getCell', row, col).className = '';
             }
           }
+        },
+
+      /**
+       * Legend 4
+       */
+        {
+          match: function (row, col, data) {
+            if(data()[row][col] === 'readOnly') {
+              return true;
+            }
+          },
+          readOnly: true,
+          style: {
+            color: '#777'
+          }
         }
       ]
     });
@@ -127,7 +151,7 @@
       ["", "Kia", "Nissan", "Toyota", "Honda"],
       ["2008", -5, 11, 12, 13],
       ["2009", 20, -11, 14, 13],
-      ["2010", 30, 15, -12, 13]
+      ["2010", 30, 15, -12, "readOnly"]
     ];
 
     container.handsontable("loadData", data);

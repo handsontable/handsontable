@@ -750,6 +750,9 @@
         if (!priv.settings.multiSelect) {
           priv.selStart = coords;
         }
+        if (priv.settings.onSelection) {
+          priv.settings.onSelection(priv.selStart.row, priv.selStart.col, priv.selEnd.row, priv.selEnd.col);
+        }
         selection.refreshBorders();
         if (scrollToCell !== false) {
           highlight.scrollViewport(td);
@@ -1015,12 +1018,26 @@
        * Create fill handle and fill border objects
        */
       init: function () {
-        priv.fillHandle = new FillHandle(container);
-        priv.fillBorder = new Border(container, {
-          className: 'htFillBorder'
-        });
+        if (!priv.fillHandle) {
+          priv.fillHandle = new FillHandle(container);
+          priv.fillBorder = new Border(container, {
+            className: 'htFillBorder'
+          });
 
-        $(priv.fillHandle.handle).on('dblclick', autofill.selectAdjacent);
+          $(priv.fillHandle.handle).on('dblclick', autofill.selectAdjacent);
+        }
+        else {
+          priv.fillHandle.disabled = false;
+          priv.fillBorder.disabled = false;
+        }
+      },
+
+      /**
+       * Hide fill handle and fill border permanently
+       */
+      disable: function () {
+        priv.fillHandle.disabled = true;
+        priv.fillBorder.disabled = true;
       },
 
       /**
@@ -1465,10 +1482,10 @@
         var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
         var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
 
-        if(editTop < 0) {
+        if (editTop < 0) {
           editTop = 0;
         }
-        if(editLeft < 0) {
+        if (editLeft < 0) {
           editLeft = 0;
         }
 
@@ -1483,13 +1500,13 @@
         }
 
         if (parseInt($current.css('border-top-width')) > 0) {
-          if(self.blockedRows.count() > 0) {
+          if (self.blockedRows.count() > 0) {
             editTop += 1;
           }
           height -= 1;
         }
         if (parseInt($current.css('border-left-width')) > 0) {
-          if(self.blockedCols.count() > 0) {
+          if (self.blockedCols.count() > 0) {
             editLeft += 1;
           }
           width -= 1;
@@ -1982,8 +1999,13 @@
     this.updateSettings = function (settings) {
       var i, j;
 
-      if (settings.fillHandle && !priv.fillHandle) {
-        autofill.init();
+      if (typeof settings.fillHandle !== "undefined") {
+        if (priv.fillHandle && settings.fillHandle === false) {
+          autofill.disable();
+        }
+        else {
+          autofill.init();
+        }
       }
 
       if (!self.blockedCols) {
@@ -2191,6 +2213,9 @@
        */
       appear: function (coordsArr) {
         var $from, $to, fromOffset, toOffset, containerOffset, top, minTop, left, minLeft, height, width;
+        if (this.disabled) {
+          return;
+        }
 
         this.corners = grid.getCornerCoords(coordsArr);
 
@@ -2291,6 +2316,10 @@
        * @param {Object[]} coordsArr
        */
       appear: function (coordsArr) {
+        if (this.disabled) {
+          return;
+        }
+
         var $td, tdOffset, containerOffset, top, left, height, width;
 
         var corners = grid.getCornerCoords(coordsArr);
