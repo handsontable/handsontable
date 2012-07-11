@@ -244,13 +244,13 @@
           case "insert_row":
             datamap.createRow(coords);
             grid.createRow(coords);
-            self.blockedCols && self.blockedCols.refresh();
+            self.blockedCols.refresh();
             break;
 
           case "insert_col":
             datamap.createCol(coords);
             grid.createCol(coords);
-            self.blockedRows && self.blockedRows.refresh();
+            self.blockedRows.refresh();
             break;
 
           case "remove_row":
@@ -258,7 +258,7 @@
             grid.removeRow(coords, toCoords);
             result = grid.keepEmptyRows();
             if (!result) {
-              self.blockedCols && self.blockedCols.refresh();
+              self.blockedCols.refresh();
             }
             break;
 
@@ -267,7 +267,7 @@
             grid.removeCol(coords, toCoords);
             result = grid.keepEmptyRows();
             if (!result) {
-              self.blockedRows && self.blockedRows.refresh();
+              self.blockedRows.refresh();
             }
             break;
         }
@@ -289,7 +289,7 @@
       createRow: function (coords) {
         var tr, c, r, td;
         tr = document.createElement('tr');
-        self.blockedCols && self.blockedCols.createRow(tr);
+        self.blockedCols.createRow(tr);
         for (c = 0; c < self.colCount; c++) {
           tr.appendChild(td = document.createElement('td'));
           self.minWidthFix(td);
@@ -315,7 +315,7 @@
        */
       createCol: function (coords) {
         var trs = priv.tableBody.childNodes, r, c, td;
-        self.blockedRows && self.blockedRows.createCol();
+        self.blockedRows.createCol();
         if (!coords || coords.col >= self.colCount) {
           for (r = 0; r < self.rowCount; r++) {
             trs[r].appendChild(td = document.createElement('td'));
@@ -516,8 +516,8 @@
 
         if (recreateRows || recreateCols) {
           selection.refreshBorders();
-          self.blockedCols && self.blockedCols.refresh();
-          self.blockedRows && self.blockedRows.refresh();
+          self.blockedCols.refresh();
+          self.blockedRows.refresh();
         }
 
         return (recreateRows || recreateCols);
@@ -973,8 +973,8 @@
         var scrollHeight = priv.scrollable.outerHeight() - 24; //24 = scrollbar
         var scrollOffset = priv.scrollable.offset();
 
-        var rowHeaderWidth = self.blockedCols ? $(self.blockedCols.main[0].firstChild).outerWidth() : 2;
-        var colHeaderHeight = self.blockedRows ? $(self.blockedRows.main[0].firstChild).outerHeight() : 2;
+        var rowHeaderWidth = self.blockedCols.count() ? $(self.blockedCols.main[0].firstChild).outerWidth() : 2;
+        var colHeaderHeight = self.blockedRows.count() ? $(self.blockedRows.main[0].firstChild).outerHeight() : 2;
 
         var offsetTop = tdOffset.top;
         var offsetLeft = tdOffset.left;
@@ -1747,12 +1747,12 @@
           self.curScrollTop = priv.scrollable[0].scrollTop;
           self.curScrollLeft = priv.scrollable[0].scrollLeft;
 
-          if (self.blockedRows && self.curScrollTop !== self.lastScrollTop) {
+          if (self.curScrollTop !== self.lastScrollTop) {
             self.blockedRows.refreshBorders();
             self.blockedRows.main[0].style.top = self.curScrollTop + 'px';
           }
 
-          if (self.blockedCols && self.curScrollLeft !== self.lastScrollLeft) {
+          if (self.curScrollLeft !== self.lastScrollLeft) {
             self.blockedCols.refreshBorders();
             self.blockedCols.main[0].style.left = self.curScrollLeft + 'px';
           }
@@ -1821,11 +1821,11 @@
         };
 
         var isDisabled = function (key) {
-          if (self.blockedCols && self.blockedCols.main.find('th.htRowHeader.active').length && (key === "remove_col" || key === "col_left" || key === "col_right")) {
+          if (self.blockedCols.main.find('th.htRowHeader.active').length && (key === "remove_col" || key === "col_left" || key === "col_right")) {
             return true;
           }
 
-          if (self.blockedRows && self.blockedRows.main.find('th.htColHeader.active').length && (key === "remove_row" || key === "row_above" || key === "row_below")) {
+          if (self.blockedRows.main.find('th.htColHeader.active').length && (key === "remove_row" || key === "row_above" || key === "row_below")) {
             return true;
           }
 
@@ -1941,10 +1941,10 @@
         grid.updateLegend({row: row, col: col});
       }
       if (refreshRows) {
-        self.blockedCols && self.blockedCols.refresh();
+        self.blockedCols.refresh();
       }
       if (refreshCols) {
-        self.blockedRows && self.blockedRows.refresh();
+        self.blockedRows.refresh();
       }
       return td;
     };
@@ -2069,8 +2069,8 @@
         }
       }
 
-      self.blockedCols && self.blockedCols.update();
-      self.blockedRows && self.blockedRows.update();
+      self.blockedCols.update();
+      self.blockedRows.update();
 
       var recreated = grid.keepEmptyRows();
       if (!recreated) {
