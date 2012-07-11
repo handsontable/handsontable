@@ -229,7 +229,7 @@
       }
     };
 
-    this.grid = grid = {
+    grid = {
       /**
        * Alter grid
        * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col"
@@ -616,12 +616,6 @@
         if (changes.length) {
           self.container.triggerHandler("datachange.handsontable", [changes, 'populateFromArray']);
         }
-        setTimeout(function () {
-          var result = grid.keepEmptyRows();
-          if (!result) {
-            selection.refreshBorders();
-          }
-        }, 100);
         return endTd || grid.getCellAtCoords(start);
       },
 
@@ -1627,7 +1621,6 @@
             if (result !== false && change[0][3] !== false) { //edit is not cancelled
               self.setDataAtCell(change[0][0], change[0][1], change[0][3]);
               self.container.triggerHandler("datachange.handsontable", [change, 'type']);
-              grid.keepEmptyRows();
             }
             else {
               isCancelled = true;
@@ -1644,10 +1637,7 @@
           });
         }
         if (typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
-          if (isCancelled) {
-            selection.refreshBorders();
-          }
-          else {
+          if (!isCancelled) {
             selection.transformStart(moveRow, moveCol, !priv.settings.enterBeginsEditing);
           }
         }
@@ -1962,6 +1952,10 @@
       }
       if (refreshCols) {
         self.blockedRows.refresh();
+      }
+      var recreated = grid.keepEmptyRows();
+      if (!recreated) {
+        selection.refreshBorders();
       }
       return td;
     };
@@ -2442,7 +2436,6 @@ handsontable.UndoRedo.prototype.undo = function () {
       changes[i][2] = tmp;
     }
     this.instance.container.triggerHandler("datachange.handsontable", [changes, 'undo']);
-    this.instance.grid.keepEmptyRows();
     this.rev--;
   }
 };
@@ -2460,7 +2453,6 @@ handsontable.UndoRedo.prototype.redo = function () {
     }
     this.instance.setDataAtCell(0, 0, changes);
     this.instance.container.triggerHandler("datachange.handsontable", [this.data[this.rev], 'redo']); //we need old data at index 2 and new data at index 3
-    this.instance.grid.keepEmptyRows();
   }
 };
 

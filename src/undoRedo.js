@@ -29,7 +29,6 @@ handsontable.UndoRedo.prototype.undo = function () {
       changes[i][2] = tmp;
     }
     this.instance.container.triggerHandler("datachange.handsontable", [changes, 'undo']);
-    this.instance.grid.keepEmptyRows();
     this.rev--;
   }
 };
@@ -47,7 +46,6 @@ handsontable.UndoRedo.prototype.redo = function () {
     }
     this.instance.setDataAtCell(0, 0, changes);
     this.instance.container.triggerHandler("datachange.handsontable", [this.data[this.rev], 'redo']); //we need old data at index 2 and new data at index 3
-    this.instance.grid.keepEmptyRows();
   }
 };
 
