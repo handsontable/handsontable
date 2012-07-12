@@ -84,28 +84,43 @@
      * @param strData
      * @param strDelimiter
      */
-    function CSVToArray(strData, strDelimiter) {
-      strDelimiter = (strDelimiter || ",");
-      var objPattern = new RegExp("(\\" + strDelimiter + "|\\r?\\n|\\r|^)(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|([^\"\\" + strDelimiter + "\\r\\n]*))", "gi");
-      var arrData = [
-        []
-      ];
-      var arrMatches, strMatchedValue;
-      while (arrMatches = objPattern.exec(strData)) {
-        var strMatchedDelimiter = arrMatches[ 1 ];
-        if (strMatchedDelimiter.length && (strMatchedDelimiter != strDelimiter)) {
-          arrData.push([]);
-        }
-        if (arrMatches[2]) {
-          strMatchedValue = arrMatches[2].replace(/""/g, '"');
-        }
-        else {
-          strMatchedValue = arrMatches[3];
+    var strDelimiter = '\t';
+    var objPattern = new RegExp("(\\" + strDelimiter + "|\\r?\\n|\\r|^)(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|([^\"\\" + strDelimiter + "\\r\\n]*))", "gi");
+    var dblQuotePattern = /""/g;
 
+    function CSVToArray(strData) {
+      var rows;
+      if (strData.indexOf('"') === -1) { //if there is no " symbol, we don't have to use regexp to parse the input
+        var r, rlen;
+        rows = strData.split("\n");
+        if (rows.length > 1 && rows[rows.length - 1] === '') {
+          rows.pop();
         }
-        arrData[arrData.length - 1].push(strMatchedValue);
+        for (r = 0, rlen = rows.length; r < rlen; r++) {
+          rows[r] = rows[r].split("\t");
+        }
       }
-      return arrData;
+      else {
+        rows = [
+          []
+        ];
+        var arrMatches, strMatchedValue;
+        while (arrMatches = objPattern.exec(strData)) {
+          var strMatchedDelimiter = arrMatches[ 1 ];
+          if (strMatchedDelimiter.length && (strMatchedDelimiter != strDelimiter)) {
+            rows.push([]);
+          }
+          if (arrMatches[2]) {
+            strMatchedValue = arrMatches[2].replace(dblQuotePattern, '"');
+          }
+          else {
+            strMatchedValue = arrMatches[3];
+
+          }
+          rows[rows.length - 1].push(strMatchedValue);
+        }
+      }
+      return rows;
     }
 
     datamap = {
