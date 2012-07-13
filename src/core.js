@@ -1985,6 +1985,8 @@
           callback: onContextClick,
           items: items
         });
+
+        $('.context-menu-root').on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
       }
 
       self.container.on("datachange.handsontable", function (event, changes) {
