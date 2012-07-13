@@ -295,12 +295,26 @@
             datamap.createRow(coords);
             grid.createRow(coords);
             self.blockedCols.refresh();
+            if (priv.selStart.row >= coords.row) {
+              priv.selStart.row = priv.selStart.row + 1;
+              selection.transformEnd(1, 0);
+            }
+            else {
+              selection.transformEnd(0, 0); //refresh some routines, otherwise arrow movement does not work
+            }
             break;
 
           case "insert_col":
             datamap.createCol(coords);
             grid.createCol(coords);
             self.blockedRows.refresh();
+            if (priv.selStart.col >= coords.col) {
+              priv.selStart.col = priv.selStart.col + 1;
+              selection.transformEnd(0, 1);
+            }
+            else {
+              selection.transformEnd(0, 0); //refresh some routines, otherwise arrow movement does not work
+            }
             break;
 
           case "remove_row":
