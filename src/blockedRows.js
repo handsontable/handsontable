@@ -161,7 +161,7 @@ handsontable.BlockedRows.prototype.update = function () {
 handsontable.BlockedRows.prototype.addHeader = function (header) {
   for (var h = this.count() - 1; h >= 0; h--) {
     if (this.headers[h].className === header.className) {
-      throw new Error("You cannot add the same header twice");
+      delete this.headers.splice(h, 1); //if exists, remove then add to recreate
     }
   }
   this.headers.push(header);
