@@ -585,7 +585,7 @@
         if (priv.settings.legend) {
           for (var j = 0, jlen = priv.settings.legend.length; j < jlen; j++) {
             var legend = priv.settings.legend[j];
-            if (legend.match(coords.row, coords.col, self.getData)) {
+            if (legend.match(coords.row, coords.col, datamap.getAll)) {
               priv.hasLegend = true;
               typeof legend.style !== "undefined" && $td.css(legend.style);
               typeof legend.readOnly !== "undefined" && $td.data("readOnly", legend.readOnly);
@@ -1497,7 +1497,7 @@
           }
           typeahead.source = [];
           for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
-            if (priv.settings.autoComplete[i].match(priv.selStart.row, priv.selStart.col, self.getData)) {
+            if (priv.settings.autoComplete[i].match(priv.selStart.row, priv.selStart.col, datamap.getAll)) {
               typeahead.source = priv.settings.autoComplete[i].source();
               typeahead.highlighter = priv.settings.autoComplete[i].highlighter || defaultAutoCompleteHighlighter;
               break;
@@ -2063,12 +2063,18 @@
     };
 
     /**
-     * Return data as array
+     * Return 2-dimensional array with the current grid data
      * @public
+     * @param {Boolean} [asReference=false] If TRUE, function will return direct reference to the internal data array. That is faster but should be used only to READ data (otherwise you will mess up the DOM table). To write data, you should always use method `setDataAtCell`.
      * @return {Array}
      */
-    this.getData = function () {
-      return datamap.getAll();
+    this.getData = function (asReference) {
+      if (asReference === true) {
+        return datamap.getAll();
+      }
+      else {
+        return $.extend(true, [], datamap.getAll());
+      }
     };
 
     /**

@@ -61,7 +61,7 @@ Maybe you want to show some default data. Use the `handsontable('loadData', data
  handsontable('loadData', data, [allowHtml=false])                                     | Method      | Reset all cells in the grid to contain data from the `data` array. Any HTML in `data` is escaped unless you set `allowHtml` to true
  handsontable('setDataAtCell',&nbsp;row,&nbsp;col,&nbsp;value,&nbsp;[allowHtml=false]) | Method      | Set new value to a cell. Any HTML in `value` is escaped unless you set `allowHtml` to true
  handsontable('clear')                                                                 | Method      | Empty all cells
- handsontable('getData')                                                               | Method      | Return 2-dimensional array with the current grid data
+ handsontable('getData', [asReference=false])                                          | Method      | Returns 2-dimensional array with a copy of the current grid data. Optionally, set param `asReference` to true, to return the internal data array as reference. That is faster but should be used only to READ data (otherwise you will mess up the DOM table). To write data, you should always use method `setDataAtCell`.
  handsontable('alter', 'insert_row', index)                                            | Method      | Insert new row above the row at given index
  handsontable('alter', 'insert_col', index)                                            | Method      | Insert new column before the column at given index
  handsontable('alter',&nbsp;'remove_row',&nbsp;index,&nbsp;[toIndex])                  | Method      | Remove the row at given index [optionally to another index]
