@@ -26,7 +26,6 @@
   min-width: 50px;
   height: 22px;
   padding: 0 4px 0 4px; /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
-  line-height: 16px;
 }
 
 .dataTable div.minWidthFix {
@@ -51,7 +50,6 @@
 .dataTable tr:first-child th,
 .dataTable tr:first-child td {
   border-top: 1px solid #CCC;
-  height: 23px;
 }
 
 .dataTable thead tr:last-child th {
