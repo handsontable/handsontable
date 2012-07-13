@@ -310,6 +310,15 @@
             if (!result) {
               self.blockedCols.refresh();
             }
+            if (priv.selStart.row > coords.row) {
+              priv.selStart.row = priv.selStart.row - (toCoords.row - coords.row + 1);
+            }
+            if (priv.selEnd.row > coords.row) {
+              selection.transformEnd(-(toCoords.row - coords.row + 1), 0);
+            }
+            else {
+              selection.transformEnd(0, 0);
+            }
             break;
 
           case "remove_col":
@@ -318,6 +327,15 @@
             result = grid.keepEmptyRows();
             if (!result) {
               self.blockedRows.refresh();
+            }
+            if (priv.selStart.col > coords.col) {
+              priv.selStart.col = priv.selStart.col - (toCoords.col - coords.col + 1);
+            }
+            if (priv.selEnd.col > coords.col) {
+              selection.transformEnd(0, -(toCoords.col - coords.col + 1));
+            }
+            else {
+              selection.transformEnd(0, 0);
             }
             break;
         }
