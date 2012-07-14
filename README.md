@@ -1,10 +1,8 @@
 # Handsontable
 
-Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery
+Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery. Requires jQuery 1.7+. Runs in IE7, IE8, IE9, Firefox, Chrome, Safari and Opera.
 
-See the live demo at: http://warpech.github.com/jquery-handsontable/
-
-Play on JSFiddle: http://jsfiddle.net/warpech/hU6Kz/
+See the demos at http://warpech.github.com/jquery-handsontable/ or fork the example on [JSFiddle](http://jsfiddle.net/warpech/hU6Kz/).
 
 ## Usage
 
