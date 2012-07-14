@@ -273,7 +273,9 @@
               text += data[r][c];
             }
           }
-          text += "\n";
+          if (r !== rlen - 1) {
+            text += "\n";
+          }
         }
         return text;
       }
@@ -1426,31 +1428,39 @@
                 break;
 
               case 13: /* return/enter */
-                if (!priv.isCellEdited) {
-                  if (priv.settings.enterBeginsEditing) {
-                    editproxy.beginEditing(true); //show edit field
-                    if (!event.shiftKey) {
-                      event.preventDefault(); //don't add newline to field
+                if (priv.isCellEdited) {
+                  if ((event.ctrlKey && !selection.isMultiple()) || event.altKey) { //if ctrl+enter or alt+enter, add new line
+                    priv.editProxy.val(priv.editProxy.val() + '\n');
+                    priv.editProxy[0].focus();
+                  }
+                  else if (!isAutoComplete()) {
+                    if (event.shiftKey) { //if shift+enter, finish and move up
+                      editproxy.finishEditing(false, -1, 0);
+                    }
+                    else { //if enter, finish and move down
+                      editproxy.finishEditing(false, 1, 0);
                     }
                   }
+                }
+                else {
+                  if (event.shiftKey) {
+                    selection.transformStart(-1, 0); //move selection up
+                  }
                   else {
-                    if (event.shiftKey) {
-                      selection.transformStart(-1, 0); //move selection up
+                    if (priv.settings.enterBeginsEditing) {
+                      if ((event.ctrlKey && !selection.isMultiple()) || event.altKey) { //if ctrl+enter or alt+enter, add new line
+                        editproxy.beginEditing(true, '\n'); //show edit field
+                      }
+                      else {
+                        editproxy.beginEditing(true); //show edit field
+                      }
                     }
                     else {
                       selection.transformStart(1, 0, (!priv.settings.enterBeginsEditing && priv.settings.minSpareRows > 0)); //move selection down
                     }
                   }
                 }
-                else {
-                  if (event.shiftKey) { //if shift+enter
-                    return true;
-                  }
-                  else if (!isAutoComplete()) {
-                    editproxy.finishEditing(false, 1, 0);
-                    event.preventDefault(); //don't add newline to field
-                  }
-                }
+                event.preventDefault(); //don't add newline to field
                 break;
 
               case 36: /* home */
@@ -1672,9 +1682,10 @@
 
       /**
        * Shows text input in grid cell
-       * @param useOriginalValue {Boolean}
+       * @param {Boolean} useOriginalValue
+       * @param {String} suffix
        */
-      beginEditing: function (useOriginalValue) {
+      beginEditing: function (useOriginalValue, suffix) {
         if (priv.isCellEdited) {
           return;
         }
@@ -1700,7 +1711,7 @@
         }
 
         if (useOriginalValue) {
-          var original = datamap.get(priv.selStart.row, priv.selStart.col);
+          var original = datamap.get(priv.selStart.row, priv.selStart.col) + (suffix || '');
           priv.editProxy.val(original);
           editproxy.setCaretPosition(original.length);
         }
