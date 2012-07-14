@@ -1286,7 +1286,7 @@
         function onKeyDown(event) {
           priv.lastKeyCode = event.keyCode;
           if (selection.isSelected()) {
-            var ctrlOnly = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+            var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
             if ((event.keyCode == 32) || //space
                 (event.keyCode >= 48 && event.keyCode <= 57) || //0-9
                 (event.keyCode >= 96 && event.keyCode <= 111) || //numpad
@@ -1295,20 +1295,28 @@
                 event.keyCode >= 226 || //special chars (229 for Asian chars)
                 (event.keyCode >= 65 && event.keyCode <= 90)) { //a-z
               /* alphanumeric */
-              if (!priv.isCellEdited && !ctrlOnly) { //disregard CTRL-key shortcuts
+              if (!priv.isCellEdited && !ctrlDown) { //disregard CTRL-key shortcuts
                 editproxy.beginEditing();
               }
-              else if (!priv.isCellEdited && ctrlOnly && event.keyCode === 65) { //CTRL + A
-                selection.selectAll(); //select all cells
-              }
-              else if (ctrlOnly && (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90))) { //CTRL + Y or CTRL + SHIFT + Z
-                if (priv.undoRedo) {
-                  priv.undoRedo.redo();
+              else if (ctrlDown) {
+                if (!priv.isCellEdited && event.keyCode === 65) { //CTRL + A
+                  selection.selectAll(); //select all cells
                 }
-              }
-              else if (ctrlOnly && event.keyCode === 90) { //CTRL + Z
-                if (priv.undoRedo) {
-                  priv.undoRedo.undo();
+                else if (!priv.isCellEdited && event.keyCode === 88 && $.browser.opera) { //CTRL + X
+                  priv.editProxy.triggerHandler('cut'); //simulate oncut for Opera
+                }
+                else if (!priv.isCellEdited && event.keyCode === 86 && $.browser.opera) { //CTRL + V
+                  priv.editProxy.triggerHandler('paste'); //simulate onpaste for Opera
+                }
+                else if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
+                  if (priv.undoRedo) {
+                    priv.undoRedo.redo();
+                  }
+                }
+                else if (event.keyCode === 90) { //CTRL + Z
+                  if (priv.undoRedo) {
+                    priv.undoRedo.undo();
+                  }
                 }
               }
               return;
