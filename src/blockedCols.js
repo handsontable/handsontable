@@ -4,7 +4,7 @@
  */
 handsontable.BlockedCols = function (instance) {
   var that = this;
-  this.heightMethod = $.browser.mozilla ? "outerHeight" : "height";
+  this.heightMethod = ($.browser.mozilla || $.browser.opera) ? "outerHeight" : "height";
   this.instance = instance;
   this.headers = [];
   var position = instance.table.position();
