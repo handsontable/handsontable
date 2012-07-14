@@ -25,6 +25,7 @@
   border-bottom: 1px solid #CCC;
   min-width: 50px;
   height: 22px;
+  line-height: 16px;
   padding: 0 4px 0 4px; /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
 }
 
