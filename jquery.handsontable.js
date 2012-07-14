@@ -1321,13 +1321,18 @@
                 if (isAutoComplete()) {
                   return true;
                 }
-                if (event.shiftKey) {
-                  selection.transformEnd(-1, 0);
+                if (!priv.isCellEdited) {
+                  if (event.shiftKey) {
+                    selection.transformEnd(-1, 0);
+                  }
+                  else {
+                    selection.transformStart(-1, 0);
+                  }
+                  event.preventDefault();
                 }
                 else {
                   editproxy.finishEditing(false, -1, 0);
                 }
-                event.preventDefault();
                 break;
 
               case 9: /* tab */
