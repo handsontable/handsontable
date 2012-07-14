@@ -48,7 +48,7 @@ handsontable.BlockedRows.prototype.createCol = function (className) {
     if (className) {
       th.className += ' ' + className;
     }
-    th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
+    th.innerHTML = this.headerText('&nbsp;');
     this.instance.minWidthFix(th);
     this.instance.table.find('thead tr.' + this.headers[h].className)[0].appendChild(th);
 
@@ -182,4 +182,11 @@ handsontable.BlockedRows.prototype.destroyHeader = function (className) {
       this.headers.splice(h, 1);
     }
   }
+};
+
+/**
+ * Puts string to small text template
+ */
+handsontable.BlockedRows.prototype.headerText = function (str) {
+  return '&nbsp;<span class="small">' + str + '</span>&nbsp;';
 };

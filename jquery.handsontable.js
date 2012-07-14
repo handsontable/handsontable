@@ -2193,7 +2193,7 @@
           for (j = blockedColsCount - 1; j >= 0; j--) {
             th = document.createElement('th');
             th.className = self.blockedCols.headers[j].className;
-            th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
+            th.innerHTML = self.blockedCols.headerText('&nbsp;');
             self.minWidthFix(th);
             tr.appendChild(th);
           }
@@ -2658,7 +2658,7 @@ handsontable.BlockedRows.prototype.createCol = function (className) {
     if (className) {
       th.className += ' ' + className;
     }
-    th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
+    th.innerHTML = this.headerText('&nbsp;');
     this.instance.minWidthFix(th);
     this.instance.table.find('thead tr.' + this.headers[h].className)[0].appendChild(th);
 
@@ -2793,6 +2793,13 @@ handsontable.BlockedRows.prototype.destroyHeader = function (className) {
     }
   }
 };
+
+/**
+ * Puts string to small text template
+ */
+handsontable.BlockedRows.prototype.headerText = function (str) {
+  return '&nbsp;<span class="small">' + str + '</span>&nbsp;';
+};
 /**
  * Handsontable BlockedCols class
  * @param {Object} instance
@@ -2859,7 +2866,7 @@ handsontable.BlockedCols.prototype.create = function () {
         if (!th) {
           th = document.createElement('th');
           th.className = this.headers[h].className;
-          th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
+          th.innerHTML = this.headerText('&nbsp;');
           this.instance.minWidthFix(th);
           $theadTr[0].insertBefore(th, $theadTr[0].firstChild);
         }
@@ -2964,6 +2971,11 @@ handsontable.BlockedCols.prototype.destroyHeader = function (className) {
     }
   }
 };
+
+/**
+ * Puts string to small text template
+ */
+handsontable.BlockedCols.prototype.headerText = handsontable.BlockedRows.prototype.headerText;
 /**
  * Handsontable RowHeader extension
  * @param {Object} instance
@@ -2996,9 +3008,9 @@ handsontable.RowHeader = function (instance, labels) {
  */
 handsontable.RowHeader.prototype.columnLabel = function (index) {
   if (this.labels[index]) {
-    return '&nbsp;<span class="small">' + this.labels[index] + '</span>&nbsp;';
+    return this.instance.blockedRows.headerText(this.labels[index]);
   }
-  return '&nbsp;<span class="small">' + (index + 1) + '</span>&nbsp;';
+  return this.instance.blockedRows.headerText(index + 1);
 };
 
 /**
@@ -3049,7 +3061,7 @@ handsontable.ColHeader = function (instance, labels) {
  */
 handsontable.ColHeader.prototype.columnLabel = function (index) {
   if (this.labels[index]) {
-    return '&nbsp;<span class="small">' + this.labels[index] + '</span>&nbsp;';
+    return this.instance.blockedRows.headerText(this.labels[index]);
   }
   var dividend = index + 1;
   var columnLabel = '';
@@ -3059,7 +3071,7 @@ handsontable.ColHeader.prototype.columnLabel = function (index) {
     columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
     dividend = parseInt((dividend - modulo) / 26);
   }
-  return '&nbsp;<span class="small">' + columnLabel + '</span>&nbsp;';
+  return this.instance.blockedRows.headerText(columnLabel);
 };
 
 /**

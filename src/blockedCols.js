@@ -64,7 +64,7 @@ handsontable.BlockedCols.prototype.create = function () {
         if (!th) {
           th = document.createElement('th');
           th.className = this.headers[h].className;
-          th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
+          th.innerHTML = this.headerText('&nbsp;');
           this.instance.minWidthFix(th);
           $theadTr[0].insertBefore(th, $theadTr[0].firstChild);
         }
@@ -169,3 +169,8 @@ handsontable.BlockedCols.prototype.destroyHeader = function (className) {
     }
   }
 };
+
+/**
+ * Puts string to small text template
+ */
+handsontable.BlockedCols.prototype.headerText = handsontable.BlockedRows.prototype.headerText;

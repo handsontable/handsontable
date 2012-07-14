@@ -2193,7 +2193,7 @@
           for (j = blockedColsCount - 1; j >= 0; j--) {
             th = document.createElement('th');
             th.className = self.blockedCols.headers[j].className;
-            th.innerHTML = '&nbsp;<span class="small">&nbsp;</span>&nbsp;';
+            th.innerHTML = self.blockedCols.headerText('&nbsp;');
             self.minWidthFix(th);
             tr.appendChild(th);
           }
