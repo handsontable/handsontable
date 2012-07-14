@@ -1613,8 +1613,8 @@
           overflow: 'hidden'
         });
         priv.editProxy.css({
-          width: '1000px',
-          height: '1000px'
+          width: 0,
+          height: 0
         });
       },
 
@@ -1755,8 +1755,8 @@
           }
 
           priv.editProxy.css({
-            width: '1000px',
-            height: '1000px'
+            width: 0,
+            height: 0
           });
           priv.editProxyHolder.addClass('htHidden');
           priv.editProxyHolder.css({
