@@ -1422,10 +1422,10 @@
                   }
                   else {
                     if (event.shiftKey) {
-                      selection.transformStart(-1, 0, !priv.settings.enterBeginsEditing); //move selection up
+                      selection.transformStart(-1, 0); //move selection up
                     }
                     else {
-                      selection.transformStart(1, 0, !priv.settings.enterBeginsEditing); //move selection down
+                      selection.transformStart(1, 0, (!priv.settings.enterBeginsEditing && priv.settings.minSpareRows > 0)); //move selection down
                     }
                   }
                 }
@@ -1739,9 +1739,6 @@
               self.setDataAtCell(change[0][0], change[0][1], change[0][3]);
               self.container.triggerHandler("datachange.handsontable", [change, 'type']);
             }
-            else {
-              isCancelled = true;
-            }
           }
 
           priv.editProxy.css({
@@ -1755,7 +1752,7 @@
         }
         if (typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
           if (!isCancelled) {
-            selection.transformStart(moveRow, moveCol, !priv.settings.enterBeginsEditing);
+            selection.transformStart(moveRow, moveCol, (!priv.settings.enterBeginsEditing && ((moveRow && priv.settings.minSpareRows > 0) || (moveCol && priv.settings.minSpareCols > 0))));
           }
         }
       }
