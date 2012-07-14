@@ -655,13 +655,13 @@
         current.row = start.row;
         current.col = start.col;
         for (r = 0; r < rlen; r++) {
-          if ((end && current.row > end.row) || (current.row > self.rowCount - 1)) {
+          if ((end && current.row > end.row) || (!priv.settings.minSpareRows && current.row > self.rowCount - 1)) {
             break;
           }
           current.col = start.col;
           clen = input[r] ? input[r].length : 0;
           for (c = 0; c < clen; c++) {
-            if ((end && current.col > end.col) || (current.col > self.colCount - 1)) {
+            if ((end && current.col > end.col) || (!priv.settings.minSpareCols && current.col > self.colCount - 1)) {
               break;
             }
             td = grid.getCellAtCoords(current);
