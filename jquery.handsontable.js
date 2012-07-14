@@ -1719,10 +1719,10 @@
           overflow: 'visible'
         });
 
+        priv.stopNextPropagation = true;
         if (priv.settings.autoComplete) {
           setTimeout(function () {
             priv.editProxy.data('typeahead').lookup();
-            priv.stopNextPropagation = true;
           }, 10);
         }
       },
@@ -1798,6 +1798,7 @@
       onDblClick: function () {
         priv.editProxy[0].focus();
         editproxy.beginEditing(true);
+        priv.stopNextPropagation = false;
       }
     };
 
