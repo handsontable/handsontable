@@ -1435,10 +1435,10 @@
                   }
                   else if (!isAutoComplete()) {
                     if (event.shiftKey) { //if shift+enter, finish and move up
-                      editproxy.finishEditing(false, -1, 0);
+                      editproxy.finishEditing(false, -1, 0, ctrlDown);
                     }
                     else { //if enter, finish and move down
-                      editproxy.finishEditing(false, 1, 0);
+                      editproxy.finishEditing(false, 1, 0, ctrlDown);
                     }
                   }
                 }
@@ -1448,7 +1448,7 @@
                   }
                   else {
                     if (priv.settings.enterBeginsEditing) {
-                      if ((event.ctrlKey && !selection.isMultiple()) || event.altKey) { //if ctrl+enter or alt+enter, add new line
+                      if ((ctrlDown && !selection.isMultiple()) || event.altKey) { //if ctrl+enter or alt+enter, add new line
                         editproxy.beginEditing(true, '\n'); //show edit field
                       }
                       else {
@@ -1576,44 +1576,11 @@
           editLeft = 0;
         }
 
-        var width, height;
-        if (priv.editProxy.autoResize) {
-          width = $current.width();
-          height = $current.outerHeight() - 4;
+        if (self.blockedRows.count() > 0 && parseInt($current.css('border-top-width')) > 0) {
+          editTop += 1;
         }
-        else {
-          width = $current.width() * 1.5;
-          height = $current.height();
-        }
-
-        if (parseInt($current.css('border-top-width')) > 0) {
-          if (self.blockedRows.count() > 0) {
-            editTop += 1;
-          }
-          height -= 1;
-        }
-        if (parseInt($current.css('border-left-width')) > 0) {
-          if (self.blockedCols.count() > 0) {
-            editLeft += 1;
-            width -= 1;
-          }
-        }
-
-        if (priv.editProxy.autoResize) {
-          priv.editProps = {
-            maxHeight: 200,
-            minHeight: height,
-            minWidth: width,
-            maxWidth: Math.max(168, width),
-            animate: false,
-            extraSpace: 0
-          };
-        }
-        else {
-          priv.editProps = {
-            width: width,
-            height: height
-          };
+        if (self.blockedCols.count() > 0 && parseInt($current.css('border-left-width')) > 0) {
+          editLeft += 1;
         }
 
         priv.editProxyHolder.addClass('htHidden');
@@ -1704,26 +1671,50 @@
         priv.isCellEdited = true;
         lastChange = '';
 
-        if (selection.isMultiple()) {
-          highlight.off();
-          priv.selEnd = priv.selStart;
-          highlight.on();
-        }
-
         if (useOriginalValue) {
           var original = datamap.get(priv.selStart.row, priv.selStart.col) + (suffix || '');
           priv.editProxy.val(original);
           editproxy.setCaretPosition(original.length);
         }
-        else if (priv.isMouseDown) {
+        else {
           priv.editProxy.val('');
         }
 
+        var width, height;
         if (priv.editProxy.autoResize) {
-          priv.editProxy.autoResize(priv.editProps);
+          width = $td.width();
+          height = $td.outerHeight() - 4;
         }
         else {
-          priv.editProxy.css(priv.editProps);
+          width = $td.width() * 1.5;
+          height = $td.height();
+        }
+
+        if (parseInt($td.css('border-top-width')) > 0) {
+          height -= 1;
+        }
+        if (parseInt($td.css('border-left-width')) > 0) {
+          if (self.blockedCols.count() > 0) {
+            width -= 1;
+          }
+        }
+
+        if (priv.editProxy.autoResize) {
+          //console.log("hwhw", height, width, priv.editProxy.autoResize('check'), '->', priv.editProxy.data('AutoResizer').check());
+          priv.editProxy.autoResize({
+            maxHeight: 200,
+            minHeight: height,
+            minWidth: width,
+            maxWidth: Math.max(168, width),
+            animate: false,
+            extraSpace: 0
+          });
+        }
+        else {
+          priv.editProxy.css({
+            width: width,
+            height: height
+          });
         }
         priv.editProxyHolder.removeClass('htHidden');
         priv.editProxyHolder.css({
@@ -1739,30 +1730,38 @@
       },
 
       /**
-       * Shows text input in grid cell
+       * Finishes text input in selected cells
        * @param {Boolean} [isCancelled] If TRUE, restore old value instead of using current from editproxy
        * @param {Number} [moveRow] Move selection row if edit is not cancelled
        * @param {Number} [moveCol] Move selection column if edit is not cancelled
+       * @param {Boolean} [ctrlDown] If true, apply to all selected cells
        */
-      finishEditing: function (isCancelled, moveRow, moveCol) {
+      finishEditing: function (isCancelled, moveRow, moveCol, ctrlDown) {
         if (priv.isCellEdited) {
           priv.isCellEdited = false;
-          var td = grid.getCellAtCoords(priv.selStart),
-              $td = $(td),
-              val = $.trim(priv.editProxy.val());
-          var oldVal = datamap.get(priv.selStart.row, priv.selStart.col);
-          if (oldVal !== val && grid.isCellWritable($td)) {
-            var result;
-            var change = [
-              [priv.selStart.row, priv.selStart.col, oldVal, val]
-            ];
-            if (priv.settings.onBeforeChange) {
-              result = priv.settings.onBeforeChange(change);
+          var val = $.trim(priv.editProxy.val());
+          var changes = [], change;
+          if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
+            var corners = grid.getCornerCoords([priv.selStart, priv.selEnd]);
+            var r, c;
+            for (r = corners.TL.row; r <= corners.BR.row; r++) {
+              for (c = corners.TL.col; c <= corners.BR.col; c++) {
+                change = editproxy.finishEditingCells(r, c, val);
+                if (change) {
+                  changes.push(change);
+                }
+              }
             }
-            if (result !== false && change[0][3] !== false) { //edit is not cancelled
-              self.setDataAtCell(change[0][0], change[0][1], change[0][3]);
-              self.container.triggerHandler("datachange.handsontable", [change, 'type']);
+          }
+          else {
+            change = editproxy.finishEditingCells(priv.selStart.row, priv.selStart.col, val);
+            if (change) {
+              changes.push(change);
             }
+          }
+
+          if (changes.length) {
+            self.container.triggerHandler("datachange.handsontable", [changes, 'type']);
           }
 
           priv.editProxy.css({
@@ -1779,6 +1778,30 @@
             selection.transformStart(moveRow, moveCol, (!priv.settings.enterBeginsEditing && ((moveRow && priv.settings.minSpareRows > 0) || (moveCol && priv.settings.minSpareCols > 0))));
           }
         }
+      },
+
+      /**
+       * Finishes text input in a cell
+       * @param {Number} row
+       * @param {Number} col
+       * @param {String} val
+       * @return {Array} change
+       */
+      finishEditingCells: function (row, col, val) {
+        var td = grid.getCellAtCoords({row: row, col: col}),
+            $td = $(td),
+            oldVal = datamap.get(row, col);
+        if (oldVal !== val && grid.isCellWritable($td)) {
+          var result;
+          var change = [row, col, oldVal, val];
+          if (priv.settings.onBeforeChange) {
+            result = priv.settings.onBeforeChange(change);
+          }
+          if (result !== false && change[3] !== false) { //edit is not cancelled
+            self.setDataAtCell(change[0], change[1], change[3]);
+          }
+        }
+        return change;
       }
     };
 
