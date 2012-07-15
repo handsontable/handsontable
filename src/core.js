@@ -1583,6 +1583,10 @@
           editLeft += 1;
         }
 
+        if($.browser.msie && parseInt($.browser.version, 10) <= 7) {
+          editTop -= 1;
+        }
+
         priv.editProxyHolder.addClass('htHidden');
         priv.editProxyHolder.css({
           top: editTop,
