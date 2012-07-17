@@ -2,6 +2,7 @@
  * This file is used to build ``jquery.handsontable.js` from `src/*`
  *
  * Usage: Install Grunt, then go to repo main directory and execute `grunt`
+ * To execute automatically after each change, execute `grunt --force default watch`
  *
  * See https://github.com/cowboy/grunt for more information
  */
