@@ -646,9 +646,10 @@
        * @param {Array} input 2d array
        * @param {Object} [end] End selection position (only for drag-down mode)
        * @param {Boolean} [allowHtml]
+       * @param {String} [source="populateFromArray"]
        * @return {Object} ending td in pasted area
        */
-      populateFromArray: function (start, input, end, allowHtml) {
+      populateFromArray: function (start, input, end, allowHtml, source) {
         var r, rlen, c, clen, td, endTd, changes = [], current = {};
         rlen = input.length;
         if (rlen === 0) {
@@ -698,7 +699,7 @@
         }
         endTd = self.setDataAtCell(0, 0, setData, allowHtml);
         if (changes.length) {
-          self.container.triggerHandler("datachange.handsontable", [changes, 'populateFromArray']);
+          self.container.triggerHandler("datachange.handsontable", [changes, source || 'populateFromArray']);
         }
         return endTd || grid.getCellAtCoords(start);
       },
@@ -1205,7 +1206,7 @@
 
         if (start) {
           var inputArray = CSVToArray(priv.editProxy.val(), '\t');
-          grid.populateFromArray(start, inputArray, end);
+          grid.populateFromArray(start, inputArray, end, null, 'autofill');
 
           selection.setRangeStart(grid.getCellAtCoords(drag.TL));
           selection.setRangeEnd(grid.getCellAtCoords(drag.BR));
@@ -1279,7 +1280,7 @@
                   endTd = grid.populateFromArray(coords.TL, inputArray, {
                     row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
                     col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
-                  });
+                  }, null, 'paste');
               selection.setRangeEnd(endTd);
             }, 100);
           }
@@ -1583,7 +1584,7 @@
           editLeft += 1;
         }
 
-        if($.browser.msie && parseInt($.browser.version, 10) <= 7) {
+        if ($.browser.msie && parseInt($.browser.version, 10) <= 7) {
           editTop -= 1;
         }
 
@@ -1765,7 +1766,7 @@
           }
 
           if (changes.length) {
-            self.container.triggerHandler("datachange.handsontable", [changes, 'type']);
+            self.container.triggerHandler("datachange.handsontable", [changes, 'edit']);
           }
 
           priv.editProxy.css({
@@ -2052,9 +2053,9 @@
         $('.context-menu-root').on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
       }
 
-      self.container.on("datachange.handsontable", function (event, changes) {
+      self.container.on("datachange.handsontable", function (event, changes, source) {
         if (priv.settings.onChange) {
-          priv.settings.onChange(changes);
+          priv.settings.onChange(changes, source);
         }
       });
     };
@@ -2141,7 +2142,7 @@
       grid.populateFromArray({
         row: 0,
         col: 0
-      }, data, null, allowHtml);
+      }, data, null, allowHtml, 'loadData');
       priv.isPopulated = true;
     };
 

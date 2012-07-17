@@ -400,7 +400,6 @@
 &lt;/pre&gt;
 
 &lt;script&gt;
-  var first = true;
   $("#example6grid").handsontable({
     rows: 8,
     cols: 8,
@@ -425,9 +424,8 @@
         }
       }
     },
-    onChange: function (data) {
-      if (first) {
-        first = false;
+    onChange: function (data, source) {
+      if (source === 'loadData') {
         return; //don't show this change in console
       }
       $("#example6console").text(JSON.stringify(data));
@@ -481,7 +479,6 @@
 &lt;div id="example9grid" class="dataTable"&gt;&lt;/div&gt;
 
 &lt;script&gt;
-  var first;
   var $container = $("#example9grid");
   var $console = $("#example9console");
   var $parent = $container.parent();
@@ -494,60 +491,58 @@
     minSpareCols: 1,
     minSpareRows: 1,
     contextMenu: true,
-    onChange: function (change) {
-    if (first) {
-      first = false;
-      return; //don't show this change in console
-    }
-    if ($parent.find('input[name=autosave]').is(':checked')) {
-      clearTimeout(autosaveNotification);
-      $.ajax({
-      url: "demo/json/save.json",
-      dataType: "json",
-      type: "POST",
-      data: change, //contains changed cells' data
-      success: function (data) {
-        $console.text('Autosaved (' + change.length + ' cell' + (change.length &amp;gt; 1 ? 's' : '') + ')');
-        autosaveNotification = setTimeout(function(){
-          $console.text('Changes will be autosaved');
-        }, 1000);
+    onChange: function (change, source) {
+      if (source === 'loadData') {
+        return; //don't save this change
       }
-      });
-    }
+      if ($parent.find('input[name=autosave]').is(':checked')) {
+        clearTimeout(autosaveNotification);
+        $.ajax({
+          url: "demo/json/save.json",
+          dataType: "json",
+          type: "POST",
+          data: change, //contains changed cells' data
+          success: function (data) {
+            $console.text('Autosaved (' + change.length + ' cell' + (change.length &amp;gt; 1 ? 's' : '') + ')');
+            autosaveNotification = setTimeout(function(){
+              $console.text('Changes will be autosaved');
+            }, 1000);
+          }
+        });
+      }
     }
   });
   var handsontable = $container.data('handsontable');
 
   $parent.find('button[name=load]').click(function () {
-    first = true;
     $.ajax({
-    url: "demo/json/load.json",
-    dataType: 'json',
-    type: 'GET',
-    success: function (res) {
-      handsontable.loadData(res.data);
-      $console.text('Data loaded');
-    }
+      url: "demo/json/load.json",
+      dataType: 'json',
+      type: 'GET',
+      success: function (res) {
+        handsontable.loadData(res.data);
+        $console.text('Data loaded');
+      }
     });
   });
 
   $parent.find('button[name=save]').click(function () {
     $.ajax({
-    url: "demo/json/save.json",
-    data: {"data": handsontable.getData()}, //returns all cells' data
-    dataType: 'json',
-    type: 'POST',
-    success: function (res) {
-      if(res.result === 'ok') {
-        $console.text('Data saved');
-      }
-      else {
+      url: "demo/json/save.json",
+      data: {"data": handsontable.getData()}, //returns all cells' data
+      dataType: 'json',
+      type: 'POST',
+      success: function (res) {
+        if(res.result === 'ok') {
+          $console.text('Data saved');
+        }
+        else {
+          $console.text('Save error');
+        }
+      },
+      error: function () {
         $console.text('Save error');
       }
-    },
-    error: function () {
-      $console.text('Save error');
-    }
     });
   });
 

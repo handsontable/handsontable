@@ -181,7 +181,6 @@ $(function () {
     /**
      * Example 6
      */
-    var first = true;
     $("#example6grid").handsontable({
       rows: 8,
       cols: 8,
@@ -206,9 +205,8 @@ $(function () {
           }
         }
       },
-      onChange: function (data) {
-        if (first) {
-          first = false;
+      onChange: function (data, source) {
+        if (source === 'loadData') {
           return; //don't show this change in console
         }
         $("#example6console").text(JSON.stringify(data));
@@ -251,7 +249,6 @@ $(function () {
     /**
      * Example 9 - Load & Save
      */
-    var first;
     var $container = $("#example9grid");
     var $console = $("#example9console");
     var $parent = $container.parent();
@@ -264,10 +261,9 @@ $(function () {
       minSpareCols: 1,
       minSpareRows: 1,
       contextMenu: true,
-      onChange: function (change) {
-        if (first) {
-          first = false;
-          return; //don't show this change in console
+      onChange: function (change, source) {
+        if (source === 'loadData') {
+          return; //don't save this change
         }
         if ($parent.find('input[name=autosave]').is(':checked')) {
           clearTimeout(autosaveNotification);
@@ -289,7 +285,6 @@ $(function () {
     var handsontable = $container.data('handsontable');
 
     $parent.find('button[name=load]').click(function () {
-      first = true;
       $.ajax({
         url: "demo/json/load.json",
         dataType: 'json',
