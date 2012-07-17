@@ -65,7 +65,10 @@
   <li><a href="#example7">Context menu
     <div class="arr"></div>
   </a></li>
-  <li><a href="#example6">Save
+  <li><a href="#example6">Validation
+    <div class="arr"></div>
+  </a></li>
+  <li><a href="#example9">Load &amp; Save
     <div class="arr"></div>
   </a></li>
   <li><a href="#example8">Advanced demos
@@ -376,14 +379,11 @@
 
 <div id="example6container" class="example">
   <div class="pad">
-    <h3>Save</h3>
+    <h3>Validation</h3>
 
     <p>Use the
-      <b>onChange</b> callback to track changes made in the table. In the example below it is used to display the last changes.
+      <b>onBeforeChange</b> callback to validate changes before they are applied to the table.
     </p>
-
-    <p>There is also the NEW
-      <b>onBeforeChange</b> callback, which can be used to validate changes before they are applied to the table.</p>
 
     <div id="example6grid" class="dataTable"></div>
 
@@ -442,6 +442,123 @@
   ];
 
   $("#example6grid").handsontable("loadData", data);
+&lt;/script&gt;</pre>
+  </div>
+</div>
+
+<a name="example9"></a>
+
+<div id="example9container" class="example">
+  <div class="pad">
+    <h3>Load &amp; Save</h3>
+
+    <p>Use the
+      <b>onChange</b> callback to track changes made in the table. In the example below, $.ajax is used to load and save grid data.
+    </p>
+
+    <p>Note: this is a mockup. Nothing is acually saved. You have to implement that part server-side.</p>
+
+    <p>
+      <button name="load">Load</button>
+      <button name="save">Save</button>
+      <label><input type="checkbox" name="autosave" checked="checked" autocomplete="off"> Autosave</label>
+    </p>
+
+    <div id="example9console" class="console">Click "Load" to load data from server</div>
+
+    <div id="example9grid" class="dataTable"></div>
+
+    <p>Code:</p>
+
+    <pre class="html">&lt;p&gt;
+  &lt;button name="load"&gt;Load&lt;/button&gt;
+  &lt;button name="save"&gt;Save&lt;/button&gt;
+  &lt;label&gt;&lt;input type="checkbox" name="autosave" checked="checked" autocomplete="off"&gt; Autosave&lt;/label&gt;
+&lt;/p&gt;
+
+&lt;div id="example9console" class="console"&gt;Click "Load" to load data from server&lt;/div&gt;
+
+&lt;div id="example9grid" class="dataTable"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  var first;
+  var $container = $("#example9grid");
+  var $console = $("#example9console");
+  var $parent = $container.parent();
+  var autosaveNotification;
+  $container.handsontable({
+    rows: 8,
+    cols: 8,
+    rowHeaders: true,
+    colHeaders: true,
+    minSpareCols: 1,
+    minSpareRows: 1,
+    contextMenu: true,
+    onChange: function (change) {
+    if (first) {
+      first = false;
+      return; //don't show this change in console
+    }
+    if ($parent.find('input[name=autosave]').is(':checked')) {
+      clearTimeout(autosaveNotification);
+      $.ajax({
+      url: "demo/json/save.json",
+      dataType: "json",
+      type: "POST",
+      data: change, //contains changed cells' data
+      success: function (data) {
+        $console.text('Autosaved (' + change.length + ' cell' + (change.length &amp;gt; 1 ? 's' : '') + ')');
+        autosaveNotification = setTimeout(function(){
+          $console.text('Changes will be autosaved');
+        }, 1000);
+      }
+      });
+    }
+    }
+  });
+  var handsontable = $container.data('handsontable');
+
+  $parent.find('button[name=load]').click(function () {
+    first = true;
+    $.ajax({
+    url: "demo/json/load.json",
+    dataType: 'json',
+    type: 'GET',
+    success: function (res) {
+      handsontable.loadData(res.data);
+      $console.text('Data loaded');
+    }
+    });
+  });
+
+  $parent.find('button[name=save]').click(function () {
+    $.ajax({
+    url: "demo/json/save.json",
+    data: {"data": handsontable.getData()}, //returns all cells' data
+    dataType: 'json',
+    type: 'POST',
+    success: function (res) {
+      if(res.result === 'ok') {
+        $console.text('Data saved');
+      }
+      else {
+        $console.text('Save error');
+      }
+    },
+    error: function () {
+      $console.text('Save error');
+    }
+    });
+  });
+
+  $parent.find('input[name=autosave]').click(function () {
+    if($(this).is(':checked')) {
+      $console.text('Changes will be autosaved');
+    }
+    else{
+      $console.text('Changes will not be autosaved');
+    }
+  });
 &lt;/script&gt;</pre>
   </div>
 </div>

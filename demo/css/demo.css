@@ -110,6 +110,10 @@ h2#demos {
   padding: 14px 10px 10px 10px;
 }
 
+.example label {
+  color: #777;
+}
+
 h3 {
   font-size: 1.6em;
   color: #1B676B;
@@ -164,6 +168,7 @@ div pre .xml .javascript {
   padding: 10px;
   font-size: 90%;
   white-space: normal;
+  margin-bottom: 1em;
 }
 
 hr {

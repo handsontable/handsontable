@@ -246,6 +246,89 @@ $(function () {
     ];
 
     $("#example7grid").handsontable("loadData", data);
+
+
+    /**
+     * Example 9 - Load & Save
+     */
+    var first;
+    var $container = $("#example9grid");
+    var $console = $("#example9console");
+    var $parent = $container.parent();
+    var autosaveNotification;
+    $container.handsontable({
+      rows: 8,
+      cols: 8,
+      rowHeaders: true,
+      colHeaders: true,
+      minSpareCols: 1,
+      minSpareRows: 1,
+      contextMenu: true,
+      onChange: function (change) {
+        if (first) {
+          first = false;
+          return; //don't show this change in console
+        }
+        if ($parent.find('input[name=autosave]').is(':checked')) {
+          clearTimeout(autosaveNotification);
+          $.ajax({
+            url: "demo/json/save.json",
+            dataType: "json",
+            type: "POST",
+            data: change, //contains changed cells' data
+            success: function (data) {
+              $console.text('Autosaved (' + change.length + ' cell' + (change.length > 1 ? 's' : '') + ')');
+              autosaveNotification = setTimeout(function(){
+                $console.text('Changes will be autosaved');
+              }, 1000);
+            }
+          });
+        }
+      }
+    });
+    var handsontable = $container.data('handsontable');
+
+    $parent.find('button[name=load]').click(function () {
+      first = true;
+      $.ajax({
+        url: "demo/json/load.json",
+        dataType: 'json',
+        type: 'GET',
+        success: function (res) {
+          handsontable.loadData(res.data);
+          $console.text('Data loaded');
+        }
+      });
+    });
+
+    $parent.find('button[name=save]').click(function () {
+      $.ajax({
+        url: "demo/json/save.json",
+        data: {"data": handsontable.getData()}, //returns all cells' data
+        dataType: 'json',
+        type: 'POST',
+        success: function (res) {
+          if(res.result === 'ok') {
+            $console.text('Data saved');
+          }
+          else {
+            $console.text('Save error');
+          }
+        },
+        error: function () {
+          $console.text('Save error');
+        }
+      });
+    });
+
+    $parent.find('input[name=autosave]').click(function () {
+      if($(this).is(':checked')) {
+        $console.text('Changes will be autosaved');
+      }
+      else{
+        $console.text('Changes will not be autosaved');
+      }
+    });
   }
 
   loadExamples();
