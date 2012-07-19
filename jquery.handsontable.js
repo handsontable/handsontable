@@ -33,7 +33,13 @@
     var lastChange = '';
 
     function isAutoComplete() {
-      return (priv.editProxy.data("typeahead") && priv.editProxy.data("typeahead").$menu.is(":visible"));
+      var typeahead = priv.editProxy.data("typeahead");
+      if (typeahead && typeahead.$menu.is(":visible")) {
+        return typeahead;
+      }
+      else {
+        return false;
+      }
     }
 
     /**
@@ -1370,6 +1376,9 @@
                 }
                 else if (editproxy.getCaretPosition() === priv.editProxy.val().length) {
                   editproxy.finishEditing(false, 0, 1);
+                  if (isAutoComplete() && isAutoComplete().shown) {
+                    isAutoComplete().hide();
+                  }
                 }
                 break;
 
@@ -1385,6 +1394,9 @@
                 }
                 else if (editproxy.getCaretPosition() === 0) {
                   editproxy.finishEditing(false, 0, -1);
+                  if (isAutoComplete() && isAutoComplete().shown) {
+                    isAutoComplete().hide();
+                  }
                 }
                 break;
 
