@@ -891,11 +891,31 @@
        * Selects cell relative to current cell (if possible)
        */
       transformStart: function (rowDelta, colDelta, force) {
-        if (force && priv.selStart.row + rowDelta > self.rowCount - 1) {
-          self.alter("insert_row", self.rowCount);
+        if (priv.selStart.row + rowDelta > self.rowCount - 1) {
+          if (force && priv.settings.minSpareRows > 0) {
+            self.alter("insert_row", self.rowCount);
+          }
+          else if (priv.selStart.col + colDelta < self.colCount - 1) {
+            rowDelta = 1 - self.rowCount;
+            colDelta = 1;
+          }
         }
-        if (force && priv.selStart.col + colDelta > self.colCount - 1) {
-          self.alter("insert_col", self.colCount);
+        else if (priv.selStart.row + rowDelta < 0 && priv.selStart.col + colDelta >= 0) {
+          rowDelta = self.rowCount - 1;
+          colDelta = -1;
+        }
+        if (priv.selStart.col + colDelta > self.colCount - 1) {
+          if (force && priv.settings.minSpareCols > 0) {
+            self.alter("insert_col", self.colCount);
+          }
+          else if (priv.selStart.row + rowDelta < self.rowCount - 1) {
+            rowDelta = 1;
+            colDelta = 1 - self.colCount;
+          }
+        }
+        else if (priv.selStart.col + colDelta < 0 && priv.selStart.row + rowDelta >= 0) {
+          rowDelta = -1;
+          colDelta = self.colCount - 1;
         }
         var td = grid.getCellAtCoords({
           row: (priv.selStart.row + rowDelta),
@@ -1293,6 +1313,7 @@
         }
 
         function onKeyDown(event) {
+          var r, c;
           priv.lastKeyCode = event.keyCode;
           if (selection.isSelected()) {
             var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
@@ -1353,12 +1374,14 @@
                 break;
 
               case 9: /* tab */
+                r = priv.settings.tabMoves.row;
+                c = priv.settings.tabMoves.col;
                 if (!isAutoComplete()) {
                   if (event.shiftKey) {
-                    editproxy.finishEditing(false, 0, -1);
+                    editproxy.finishEditing(false, -r, -c);
                   }
                   else {
-                    editproxy.finishEditing(false, 0, 1);
+                    editproxy.finishEditing(false, r, c);
                   }
                 }
                 event.preventDefault();
@@ -1441,6 +1464,8 @@
                 break;
 
               case 13: /* return/enter */
+                r = priv.settings.enterMoves.row;
+                c = priv.settings.enterMoves.col;
                 if (priv.isCellEdited) {
                   if ((event.ctrlKey && !selection.isMultiple()) || event.altKey) { //if ctrl+enter or alt+enter, add new line
                     priv.editProxy.val(priv.editProxy.val() + '\n');
@@ -1448,16 +1473,16 @@
                   }
                   else if (!isAutoComplete()) {
                     if (event.shiftKey) { //if shift+enter, finish and move up
-                      editproxy.finishEditing(false, -1, 0, ctrlDown);
+                      editproxy.finishEditing(false, -r, -c, ctrlDown);
                     }
                     else { //if enter, finish and move down
-                      editproxy.finishEditing(false, 1, 0, ctrlDown);
+                      editproxy.finishEditing(false, r, c, ctrlDown);
                     }
                   }
                 }
                 else {
                   if (event.shiftKey) {
-                    selection.transformStart(-1, 0); //move selection up
+                    selection.transformStart(-r, -c); //move selection up
                   }
                   else {
                     if (priv.settings.enterBeginsEditing) {
@@ -1469,7 +1494,7 @@
                       }
                     }
                     else {
-                      selection.transformStart(1, 0, (!priv.settings.enterBeginsEditing && priv.settings.minSpareRows > 0)); //move selection down
+                      selection.transformStart(r, c); //move selection down
                     }
                   }
                 }
@@ -1717,7 +1742,6 @@
         }
 
         if (priv.editProxy.autoResize) {
-          //console.log("hwhw", height, width, priv.editProxy.autoResize('check'), '->', priv.editProxy.data('AutoResizer').check());
           priv.editProxy.autoResize({
             maxHeight: 200,
             minHeight: height,
@@ -1792,7 +1816,7 @@
         }
         if (typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
           if (!isCancelled) {
-            selection.transformStart(moveRow, moveCol, (!priv.settings.enterBeginsEditing && ((moveRow && priv.settings.minSpareRows > 0) || (moveCol && priv.settings.minSpareCols > 0))));
+            selection.transformStart(moveRow, moveCol, !priv.settings.enterBeginsEditing);
           }
         }
       },
@@ -2552,7 +2576,9 @@
     'multiSelect': true,
     'fillHandle': true,
     'undo': true,
-    'enterBeginsEditing': true
+    'enterBeginsEditing': true,
+    'enterMoves': {row: 1, col: 0},
+    'tabMoves': {row: 0, col: 1}
   };
 
   $.fn.handsontable = function (action, options) {
