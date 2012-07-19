@@ -1816,9 +1816,10 @@
           }
           if (result !== false && change[3] !== false) { //edit is not cancelled
             self.setDataAtCell(change[0], change[1], change[3]);
+            return change;
           }
         }
-        return change;
+        return false;
       }
     };
 
