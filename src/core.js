@@ -1812,7 +1812,7 @@
           var result;
           var change = [row, col, oldVal, val];
           if (priv.settings.onBeforeChange) {
-            result = priv.settings.onBeforeChange(change);
+            result = priv.settings.onBeforeChange([change]);
           }
           if (result !== false && change[3] !== false) { //edit is not cancelled
             self.setDataAtCell(change[0], change[1], change[3]);
