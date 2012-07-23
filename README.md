@@ -140,13 +140,15 @@ autoComplete: [
       return false;
     },
     highlighter: function (item) {
+      //only define this function if you want a different behavior
+      //than the original (defaultAutoCompleteHighlighter in core.js)
       var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
       var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
         return '<strong>' + match + '</strong>';
       });
       return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
     },
-    source: function () {
+    source: function (row, col) {
       return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
     }
   },
@@ -154,7 +156,7 @@ autoComplete: [
     match: function (row, col, data) {
       return (col === 0); //if it is first column
     },
-    source: function () {
+    source: function (row, col) {
       return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
     }
   }
