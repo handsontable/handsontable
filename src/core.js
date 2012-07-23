@@ -1593,7 +1593,7 @@
           typeahead.source = [];
           for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
             if (priv.settings.autoComplete[i].match(priv.selStart.row, priv.selStart.col, datamap.getAll)) {
-              typeahead.source = priv.settings.autoComplete[i].source();
+              typeahead.source = priv.settings.autoComplete[i].source(priv.selStart.row, priv.selStart.col);
               typeahead.highlighter = priv.settings.autoComplete[i].highlighter || defaultAutoCompleteHighlighter;
               break;
             }
