@@ -1545,20 +1545,18 @@
         }
 
         function onChange() {
-		var r,c;
+          var move;
           if (isAutoComplete()) { //could this change be from autocomplete
             var val = priv.editProxy.val();
             if (val !== lastChange && val === priv.lastAutoComplete) { //is it change from source (don't trigger on partial)
               priv.isCellEdited = true;
               if (priv.lastKeyCode === 9) { //tab
-				r = priv.settings.tabMoves.row;
-				c = priv.settings.tabMoves.col;
+                move = priv.settings.tabMoves;
               }
               else { //return/enter
-                r = priv.settings.enterMoves.row;
-                c = priv.settings.enterMoves.col;
+                move = priv.settings.enterMoves;
               }
-			  editproxy.finishEditing(false, r, c);
+              editproxy.finishEditing(false, move.row, move.col);
             }
             lastChange = val;
           }
