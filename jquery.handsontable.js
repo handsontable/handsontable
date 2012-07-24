@@ -2338,6 +2338,10 @@
         case "remove_col":
           grid.alter(action, {row: 0, col: from}, {row: 0, col: to});
           break;
+
+        default:
+          throw Error('There is no such action "' + action + '"');
+          break;
       }
     };
 
