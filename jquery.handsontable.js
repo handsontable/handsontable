@@ -1494,7 +1494,7 @@
                       }
                     }
                     else {
-                      selection.transformStart(r, c); //move selection down
+                      selection.transformStart(r, c, true); //move selection down or create new row
                     }
                   }
                 }
