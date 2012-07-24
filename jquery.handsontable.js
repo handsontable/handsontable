@@ -2178,7 +2178,7 @@
 		var x2 = selection.end().row;
 		var y2 = selection.end().col;
 		
-		if( (x1 <= x2 && y1 < y2) || (x1 < x2 && y1 <= y2) ) {
+		if( (x1 <= x2 && y1 < y2) || (x1 < x2 && y1 <= y2) || (x1 == x2 && y1 == y2)) {
 			return [x1,y1,x2,y2];
 		}
 		else if( (x1 >= x2 && y1 > y2) || (x1 > x2 && y1 >= y2)) {
