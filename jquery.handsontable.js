@@ -2169,6 +2169,30 @@
     };
 
     /**
+     * Gets selection
+     * @public
+     */
+	this.getSelected = function() { //https://github.com/warpech/jquery-handsontable/issues/44  //cjl
+		var x1 = selection.start().row;
+		var y1 = selection.start().col;
+		var x2 = selection.end().row;
+		var y2 = selection.end().col;
+		
+		if( (x1 <= x2 && y1 < y2) || (x1 < x2 && y1 <= y2) ) {
+			return [x1,y1,x2,y2];
+		}
+		else if( (x1 >= x2 && y1 > y2) || (x1 > x2 && y1 >= y2)) {
+			return [x2,y2,x1,y1];
+		}
+		else if(x1 < x2 && y1 > y2) {
+			return [x1,y2,x2,y2];
+		}
+		else if(x1 > x2 && y1 < y2) {
+			return [x2,y1,x1,y2];
+		}
+	};
+		
+    /**
      * Load data from array
      * @public
      * @param {Array} data
