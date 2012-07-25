@@ -1494,7 +1494,7 @@
                       }
                     }
                     else {
-                      selection.transformStart(r, c); //move selection down
+                      selection.transformStart(r, c, true); //move selection down or create new row
                     }
                   }
                 }
@@ -2361,6 +2361,10 @@
         case "insert_col":
         case "remove_col":
           grid.alter(action, {row: 0, col: from}, {row: 0, col: to});
+          break;
+
+        default:
+          throw Error('There is no such action "' + action + '"');
           break;
       }
     };
