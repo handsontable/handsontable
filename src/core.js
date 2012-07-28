@@ -2169,6 +2169,18 @@
     };
 
     /**
+     * Returns current selection. Returns undefined if there is no selection.
+     * @public
+     * @return {Array} [topLeftRow, topLeftCol, bottomRightRow, bottomRoghtCol]
+     */
+    this.getSelected = function () { //https://github.com/warpech/jquery-handsontable/issues/44  //cjl
+      if (selection.isSelected()) {
+        var coords = grid.getCornerCoords([priv.selStart, priv.selEnd]);
+        return [coords.TL.row, coords.TL.col, coords.BR.row, coords.BR.col];
+      }
+    };
+
+    /**
      * Load data from array
      * @public
      * @param {Array} data
