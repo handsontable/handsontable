@@ -68,7 +68,7 @@ Maybe you want to show some default data. Use the `handsontable('loadData', data
  handsontable('getCellMeta', row, col)                                                 | Method      | Return meta data for given `row,col`. Currently has one property: isReadOnly (Boolean)
  handsontable('selectCell', r, c, [r2, c2, scrollToSelection=true])                    | Method      | Select cell `r,c` or range finishing at `r2,c2`. By default, viewport will be scrolled to selection
  handsontable('deselectCell')                                                          | Method      | Deselect current selection
- handsontable('getSelected')                                                           | Method      | Returns the currently selected cells as an array.[row1,col1,row2,col2]
+ handsontable('getSelected')                                                           | Method      | Returns index of the currently selected cells as an array [`topLeftRow`, `topLeftCol`, `bottomRightRow`, `bottomRightCol`]
 
 ## Options
 

@@ -2171,7 +2171,7 @@
     /**
      * Returns current selection. Returns undefined if there is no selection.
      * @public
-     * @return {Array} [topLeftRow, topLeftCol, bottomRightRow, bottomRoghtCol]
+     * @return {Array} [topLeftRow, topLeftCol, bottomRightRow, bottomRightCol]
      */
     this.getSelected = function () { //https://github.com/warpech/jquery-handsontable/issues/44  //cjl
       if (selection.isSelected()) {
