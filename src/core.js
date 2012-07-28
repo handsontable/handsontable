@@ -895,12 +895,12 @@
           if (force && priv.settings.minSpareRows > 0) {
             self.alter("insert_row", self.rowCount);
           }
-          else if (priv.selStart.col + colDelta < self.colCount - 1) {
+          else if (priv.settings.autoWrapCol && priv.selStart.col + colDelta < self.colCount - 1) {
             rowDelta = 1 - self.rowCount;
             colDelta = 1;
           }
         }
-        else if (priv.selStart.row + rowDelta < 0 && priv.selStart.col + colDelta >= 0) {
+        else if (priv.settings.autoWrapCol && priv.selStart.row + rowDelta < 0 && priv.selStart.col + colDelta >= 0) {
           rowDelta = self.rowCount - 1;
           colDelta = -1;
         }
@@ -908,12 +908,12 @@
           if (force && priv.settings.minSpareCols > 0) {
             self.alter("insert_col", self.colCount);
           }
-          else if (priv.selStart.row + rowDelta < self.rowCount - 1) {
+          else if (priv.settings.autoWrapRow && priv.selStart.row + rowDelta < self.rowCount - 1) {
             rowDelta = 1;
             colDelta = 1 - self.colCount;
           }
         }
-        else if (priv.selStart.col + colDelta < 0 && priv.selStart.row + rowDelta >= 0) {
+        else if (priv.settings.autoWrapRow && priv.selStart.col + colDelta < 0 && priv.selStart.row + rowDelta >= 0) {
           rowDelta = -1;
           colDelta = self.colCount - 1;
         }
@@ -2584,7 +2584,9 @@
     'undo': true,
     'enterBeginsEditing': true,
     'enterMoves': {row: 1, col: 0},
-    'tabMoves': {row: 0, col: 1}
+    'tabMoves': {row: 0, col: 1},
+    'autoWrapRow': true,
+    'autoWrapCol': true
   };
 
   $.fn.handsontable = function (action, options) {
