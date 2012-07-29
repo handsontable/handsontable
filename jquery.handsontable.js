@@ -27,7 +27,8 @@
       hasLegend: null,
       lastAutoComplete: null,
       undoRedo: settings.undo ? new handsontable.UndoRedo(this) : null,
-      extensions: {}
+      extensions: {},
+      stopNextPropagation: 0
     };
 
     var lastChange = '';
@@ -1348,8 +1349,12 @@
                     priv.undoRedo.undo();
                   }
                 }
+                priv.stopNextPropagation++; //don't want autosuggest to show ctrl-shortcut
               }
               return;
+            }
+            else if(event.keyCode === 17) { //ctrl is down
+              priv.stopNextPropagation++; //don't want autosuggest to show ctrl-shortcut
             }
 
             var rangeModifier = event.shiftKey ? selection.setRangeEnd : selection.setRangeStart;
@@ -1540,7 +1545,7 @@
         function onKeyUp(event) {
           if (priv.stopNextPropagation) {
             event.stopImmediatePropagation();
-            priv.stopNextPropagation = false;
+            priv.stopNextPropagation--;
           }
         }
 
@@ -1764,7 +1769,7 @@
           overflow: 'visible'
         });
 
-        priv.stopNextPropagation = true;
+        priv.stopNextPropagation++;
         if (priv.settings.autoComplete) {
           setTimeout(function () {
             priv.editProxy.data('typeahead').lookup();
@@ -1876,7 +1881,7 @@
       onDblClick: function () {
         priv.editProxy[0].focus();
         editproxy.beginEditing(true);
-        priv.stopNextPropagation = false;
+        priv.stopNextPropagation--;
       }
     };
 
