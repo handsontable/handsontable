@@ -2620,8 +2620,8 @@
     'enterBeginsEditing': true,
     'enterMoves': {row: 1, col: 0},
     'tabMoves': {row: 0, col: 1},
-    'autoWrapRow': true,
-    'autoWrapCol': true
+    'autoWrapRow': false,
+    'autoWrapCol': false
   };
 
   $.fn.handsontable = function (action, options) {
