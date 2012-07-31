@@ -1597,6 +1597,10 @@
        * Prepare text input to be displayed at given grid cell
        */
       prepare: function () {
+        if (priv.isCellEdited) {
+          return;
+        }
+
         priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
         priv.editProxy.val(datamap.getText(priv.selStart, priv.selEnd));
         setTimeout(editproxy.focus, 1);
