@@ -1040,6 +1040,10 @@
         }
         if (changes.length) {
           self.container.triggerHandler("datachange.handsontable", [changes, 'empty']);
+          setTimeout(function () {
+            self.blockedRows.dimensions(changes);
+            self.blockedCols.dimensions(changes);
+          }, 10);
         }
         grid.keepEmptyRows();
         selection.refreshBorders();
@@ -2192,6 +2196,14 @@
       if (!recreated) {
         selection.refreshBorders();
       }
+      setTimeout(function () {
+        if (!refreshRows) {
+          self.blockedRows.dimensions(values);
+        }
+        if (!refreshCols) {
+          self.blockedCols.dimensions(values);
+        }
+      }, 10);
       return td;
     };
 

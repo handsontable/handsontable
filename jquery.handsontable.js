@@ -1040,6 +1040,10 @@
         }
         if (changes.length) {
           self.container.triggerHandler("datachange.handsontable", [changes, 'empty']);
+          setTimeout(function () {
+            self.blockedRows.dimensions(changes);
+            self.blockedCols.dimensions(changes);
+          }, 10);
         }
         grid.keepEmptyRows();
         selection.refreshBorders();
@@ -2192,6 +2196,14 @@
       if (!recreated) {
         selection.refreshBorders();
       }
+      setTimeout(function () {
+        if (!refreshRows) {
+          self.blockedRows.dimensions(values);
+        }
+        if (!refreshCols) {
+          self.blockedCols.dimensions(values);
+        }
+      }, 10);
       return td;
     };
 
@@ -2747,17 +2759,11 @@ handsontable.UndoRedo.prototype.add = function (changes) {
  * @param {Object} instance
  */
 handsontable.BlockedRows = function (instance) {
-  var that = this;
   this.instance = instance;
   this.headers = [];
   var position = instance.table.position();
   instance.positionFix(position);
   this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table cellspacing="0" cellpadding="0"><thead></thead></table></div>');
-  this.instance.container.on('datachange.handsontable', function (event, changes) {
-    setTimeout(function () {
-      that.dimensions(changes);
-    }, 10);
-  });
   this.instance.container.append(this.main);
   this.hasCSS3 = !($.browser.msie && (parseInt($.browser.version, 10) <= 8)); //Used to get over IE8- not having :last-child selector
   this.update();
@@ -2939,18 +2945,12 @@ handsontable.BlockedRows.prototype.headerText = function (str) {
  * @param {Object} instance
  */
 handsontable.BlockedCols = function (instance) {
-  var that = this;
   this.heightMethod = ($.browser.mozilla || $.browser.opera) ? "outerHeight" : "height";
   this.instance = instance;
   this.headers = [];
   var position = instance.table.position();
   instance.positionFix(position);
   this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table cellspacing="0" cellpadding="0"><thead><tr></tr></thead><tbody></tbody></table></div>');
-  this.instance.container.on('datachange.handsontable', function (event, changes) {
-    setTimeout(function () {
-      that.dimensions(changes);
-    }, 10);
-  });
   this.instance.container.append(this.main);
 };
 
