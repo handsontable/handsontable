@@ -44,6 +44,23 @@
     }
 
     /**
+     * Measure the width and height of browser scrollbar
+     * @return {Object}
+     */
+    function measureScrollbar() {
+      var div = $('<div style="width:150px;height:150px;overflow:hidden;position:absolute;top:200px;left:200px"><div style="width:100%;height:100%;position:absolute">x</div>');
+      $('body').append(div);
+      var subDiv = $(div[0].firstChild);
+      var w1 = subDiv.innerWidth();
+      var h1 = subDiv.innerHeight();
+      div[0].style.overflow = 'scroll';
+      w1 -= subDiv.innerWidth();
+      h1 -= subDiv.innerHeight();
+      div.remove();
+      return {width: w1, height: h1};
+    }
+
+    /**
      * Copied from bootstrap-typeahead.js for reference
      */
     function defaultAutoCompleteHighlighter(item) {
@@ -1078,8 +1095,8 @@
         var tdOffset = $td.offset();
         var scrollLeft = priv.scrollable.scrollLeft(); //scrollbar position
         var scrollTop = priv.scrollable.scrollTop(); //scrollbar position
-        var scrollWidth = priv.scrollable.outerWidth() - 24; //24 = scrollbar
-        var scrollHeight = priv.scrollable.outerHeight() - 24; //24 = scrollbar
+        var scrollWidth = priv.scrollable.outerWidth() - priv.scrollbarSize.width;
+        var scrollHeight = priv.scrollable.outerHeight() - priv.scrollbarSize.height;
         var scrollOffset = priv.scrollable.offset();
 
         var rowHeaderWidth = self.blockedCols.count() ? $(self.blockedCols.main[0].firstChild).outerWidth() : 2;
@@ -1353,7 +1370,7 @@
               }
               return;
             }
-            else if(event.keyCode === 17) { //ctrl is down
+            else if (event.keyCode === 17) { //ctrl is down
               priv.stopNextPropagation++; //don't want autosuggest to show ctrl-shortcut
             }
 
@@ -1896,6 +1913,7 @@
 
       self.curScrollTop = self.curScrollLeft = 0;
       self.lastScrollTop = self.lastScrollLeft = null;
+      priv.scrollbarSize = measureScrollbar();
 
       var div = $('<div><table cellspacing="0" cellpadding="0"><thead></thead><tbody></tbody></table></div>');
       priv.tableContainer = div[0];
