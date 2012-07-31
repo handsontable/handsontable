@@ -321,7 +321,7 @@
             datamap.createRow(coords);
             grid.createRow(coords);
             self.blockedCols.refresh();
-            if (priv.selStart.row >= coords.row) {
+            if (priv.selStart && priv.selStart.row >= coords.row) {
               priv.selStart.row = priv.selStart.row + 1;
               selection.transformEnd(1, 0);
             }
@@ -334,7 +334,7 @@
             datamap.createCol(coords);
             grid.createCol(coords);
             self.blockedRows.refresh();
-            if (priv.selStart.col >= coords.col) {
+            if (priv.selStart && priv.selStart.col >= coords.col) {
               priv.selStart.col = priv.selStart.col + 1;
               selection.transformEnd(0, 1);
             }
@@ -350,10 +350,10 @@
             if (!result) {
               self.blockedCols.refresh();
             }
-            if (priv.selStart.row > coords.row) {
+            if (priv.selStart && priv.selStart.row > coords.row) {
               priv.selStart.row = priv.selStart.row - (toCoords.row - coords.row + 1);
             }
-            if (priv.selEnd.row > coords.row) {
+            if (priv.selEnd && priv.selEnd.row > coords.row) {
               selection.transformEnd(-(toCoords.row - coords.row + 1), 0);
             }
             else {
@@ -368,10 +368,10 @@
             if (!result) {
               self.blockedRows.refresh();
             }
-            if (priv.selStart.col > coords.col) {
+            if (priv.selStart && priv.selStart.col > coords.col) {
               priv.selStart.col = priv.selStart.col - (toCoords.col - coords.col + 1);
             }
-            if (priv.selEnd.col > coords.col) {
+            if (priv.selEnd && priv.selEnd.col > coords.col) {
               selection.transformEnd(0, -(toCoords.col - coords.col + 1));
             }
             else {
@@ -951,12 +951,14 @@
        * Sets selection end cell relative to current selection end cell (if possible)
        */
       transformEnd: function (rowDelta, colDelta) {
-        var td = grid.getCellAtCoords({
-          row: (priv.selEnd.row + rowDelta),
-          col: priv.selEnd.col + colDelta
-        });
-        if (td) {
-          selection.setRangeEnd(td);
+        if (priv.selEnd) {
+          var td = grid.getCellAtCoords({
+            row: (priv.selEnd.row + rowDelta),
+            col: priv.selEnd.col + colDelta
+          });
+          if (td) {
+            selection.setRangeEnd(td);
+          }
         }
       },
 
