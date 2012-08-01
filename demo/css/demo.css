@@ -17,14 +17,31 @@ body.examplesListOffset {
   padding-bottom: 20px;
 }
 
+h1, h2, h3 {
+  font-family: Tahoma, Helvetica, Arial, FreeSans, sans-serif;
+}
+
 h1 {
   font-size: 3.8em;
   color: #7AB317;
   margin-bottom: 3px;
+  position: relative;
 }
 
 h1 a {
-  text-decoration: none
+  text-decoration: none;
+}
+
+#githubWatch {
+  position: absolute;
+  top: 31px;
+  right: 100px;
+}
+
+#githubFork {
+  position: absolute;
+  top: 31px;
+  right: 0;
 }
 
 h2 {
@@ -137,7 +154,23 @@ a {
   font-size: 1.2em;
   margin-bottom: 30px;
   margin-top: 30px;
-  font-style: italic;
+  clear: right;
+}
+
+.tickList {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 20px;
+}
+
+.tickList li {
+  float: left;
+  width: 340px;
+}
+
+.tickList .tick {
+  color: #7AB317;
+  margin-right: 10px;
 }
 
 .download {

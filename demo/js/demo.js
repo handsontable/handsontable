@@ -274,7 +274,7 @@ $(function () {
             data: change, //contains changed cells' data
             success: function (data) {
               $console.text('Autosaved (' + change.length + ' cell' + (change.length > 1 ? 's' : '') + ')');
-              autosaveNotification = setTimeout(function(){
+              autosaveNotification = setTimeout(function () {
                 $console.text('Changes will be autosaved');
               }, 1000);
             }
@@ -303,7 +303,7 @@ $(function () {
         dataType: 'json',
         type: 'POST',
         success: function (res) {
-          if(res.result === 'ok') {
+          if (res.result === 'ok') {
             $console.text('Data saved');
           }
           else {
@@ -317,19 +317,21 @@ $(function () {
     });
 
     $parent.find('input[name=autosave]').click(function () {
-      if($(this).is(':checked')) {
+      if ($(this).is(':checked')) {
         $console.text('Changes will be autosaved');
       }
-      else{
+      else {
         $console.text('Changes will not be autosaved');
       }
     });
   }
 
   loadExamples();
-  $('pre.html').each(function (i, e) {
-    hljs.highlightBlock(e)
-  });
+  if (!$.browser.msie || parseInt($.browser.version, 10) > 7) { //syntax coloring does not work well with IE7
+    $('pre.html').each(function (i, e) {
+      hljs.highlightBlock(e)
+    });
+  }
 
   var examplesList = $('.examplesList');
   $('.example').each(function () {
