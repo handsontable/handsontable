@@ -1814,29 +1814,13 @@
       finishEditing: function (isCancelled, moveRow, moveCol, ctrlDown) {
         if (priv.isCellEdited) {
           priv.isCellEdited = false;
-          var val = $.trim(priv.editProxy.val());
-          var changes = [], change;
+          var val = [[$.trim(priv.editProxy.val())]];
           if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
             var corners = grid.getCornerCoords([priv.selStart, priv.selEnd]);
-            var r, c;
-            for (r = corners.TL.row; r <= corners.BR.row; r++) {
-              for (c = corners.TL.col; c <= corners.BR.col; c++) {
-                change = editproxy.finishEditingCells(r, c, val);
-                if (change) {
-                  changes.push(change);
-                }
-              }
-            }
+            grid.populateFromArray(corners.TL, val, corners.BR, false, 'edit');
           }
           else {
-            change = editproxy.finishEditingCells(priv.selStart.row, priv.selStart.col, val);
-            if (change) {
-              changes.push(change);
-            }
-          }
-
-          if (changes.length) {
-            self.container.triggerHandler("datachange.handsontable", [changes, 'edit']);
+            grid.populateFromArray(priv.selStart, val, null, false, 'edit');
           }
 
           priv.editProxy.css({
@@ -1853,31 +1837,6 @@
             selection.transformStart(moveRow, moveCol, !priv.settings.enterBeginsEditing);
           }
         }
-      },
-
-      /**
-       * Finishes text input in a cell
-       * @param {Number} row
-       * @param {Number} col
-       * @param {String} val
-       * @return {Array} change
-       */
-      finishEditingCells: function (row, col, val) {
-        var td = grid.getCellAtCoords({row: row, col: col}),
-            $td = $(td),
-            oldVal = datamap.get(row, col);
-        if (oldVal !== val && grid.isCellWritable($td)) {
-          var result;
-          var change = [row, col, oldVal, val];
-          if (priv.settings.onBeforeChange) {
-            result = priv.settings.onBeforeChange([change]);
-          }
-          if (result !== false && change[3] !== false) { //edit is not cancelled
-            self.setDataAtCell(change[0], change[1], change[3]);
-            return change;
-          }
-        }
-        return false;
       }
     };
 
