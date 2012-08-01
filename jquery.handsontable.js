@@ -705,11 +705,8 @@
             r = -1;
           }
         }
-        if (priv.settings.onBeforeChange && changes.length) {
-          var result = priv.settings.onBeforeChange(changes);
-          if (result === false) {
-            return grid.getCellAtCoords(start);
-          }
+        if (changes.length) {
+          self.container.triggerHandler("databeforechange.handsontable", [changes]);
         }
         var setData = [];
         for (var i = 0, ilen = changes.length; i < ilen; i++) {
@@ -2084,6 +2081,14 @@
         $('.context-menu-root').on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
       }
 
+      self.container.on("databeforechange.handsontable", function (event, changes) {
+        if (priv.settings.onBeforeChange) {
+          var result = priv.settings.onBeforeChange(changes);
+          if(result === false) {
+            changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
+          }
+        }
+      });
       self.container.on("datachange.handsontable", function (event, changes, source) {
         if (priv.settings.onChange) {
           priv.settings.onChange(changes, source);
