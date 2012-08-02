@@ -1787,12 +1787,6 @@
         priv.editProxyHolder.css({
           overflow: 'visible'
         });
-
-        if (priv.settings.autoComplete) {
-          setTimeout(function () {
-            priv.editProxy.data('typeahead').lookup();
-          }, 10);
-        }
       },
 
       /**
@@ -1859,6 +1853,9 @@
       onDblClick: function () {
         priv.editProxy[0].focus();
         editproxy.beginEditing(true);
+        if(priv.settings.autoComplete) {
+          priv.editProxy.data('typeahead').lookup();
+        }
       }
     };
 
