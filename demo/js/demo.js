@@ -110,7 +110,8 @@ $(function () {
           },
           source: function () {
             return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
-          }
+          },
+          strict: false //allows other values that defined in array above
         },
         {
           match: function (row, col, data) {
@@ -118,7 +119,8 @@ $(function () {
           },
           source: function () {
             return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
-          }
+          },
+          strict: true //only accept predefined values (from array above)
         }
       ]
     });

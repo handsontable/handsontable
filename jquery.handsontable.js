@@ -2077,6 +2077,31 @@
       }
 
       self.container.on("beforedatachange.handsontable", function (event, changes) {
+        if (priv.settings.autoComplete) { //validate strict autocompletes
+          var typeahead = priv.editProxy.data('typeahead'), found;
+          loop : for (var c = 0, clen = changes.length; c < clen; c++) {
+            for (var a = 0, alen = priv.settings.autoComplete.length; a < alen; a++) {
+              var autoComplete = priv.settings.autoComplete[a];
+              var source = autoComplete.source();
+              if (autoComplete.match(changes[c][0], changes[c][1])) {
+                var lowercaseVal = changes[c][3].toLowerCase();
+                for (var s = 0, slen = source.length; s < slen; s++) {
+                  if (changes[c][3] === source[s]) {
+                    continue loop; //perfect match
+                  }
+                  else if (lowercaseVal === source[s].toLowerCase()) {
+                    changes[c][3] = source[s]; //good match, fix the case
+                    continue loop;
+                  }
+                }
+                if (autoComplete.strict) {
+                  changes[c][3] = false; //no match, invalidate this change
+                }
+              }
+            }
+          }
+        }
+
         if (priv.settings.onBeforeChange) {
           var result = priv.settings.onBeforeChange(changes);
           if (result === false) {

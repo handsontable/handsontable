@@ -153,7 +153,8 @@ autoComplete: [
     },
     source: function (row, col) {
       return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
-    }
+    },
+    strict: false //allows other values that defined in array above
   },
   {
     match: function (row, col, data) {
@@ -161,7 +162,8 @@ autoComplete: [
     },
     source: function (row, col) {
       return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
-    }
+    },
+    strict: true //only accept predefined values (from array above)
   }
 ],
 ```

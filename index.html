@@ -212,10 +212,15 @@
   <div class="pad">
     <h3>Autocomplete</h3>
 
-    <p>You can define rules for <b>autocompletition</b>. The below example will suggest you some colors as you type.</p>
+    <p>You can define rules for <b>autocompletition</b>. The below example shows 2 possible modes of operation:</p>
 
-    <p>To keep this plugin lightweight, this feature has a dependency on another jQuery plugin:
-      <a href="https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js">bootstrap-typeahead</a>. It is included in the repo.
+    <ul>
+      <li>First column (Cars) is configured in <b>strict</b> mode, which accepts only predefined vaules</li>
+      <li>Last 2 columns (Chassis color, Bumper color) are configured in <b>non-strict</b> mode, that allows any value for the cells</li>
+    </ul>
+
+    <p>To keep this plugin lightweight, Autocomplete feature has a dependency on modified
+      <a href="https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js">bootstrap-typeahead</a> plugin. It is included in the repo.
     </p>
 
     <div id="example3grid" class="dataTable"></div>
@@ -261,7 +266,8 @@
         },
         source: function () {
           return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
-        }
+        },
+        strict: false //allows other values that defined in array above
       },
       {
         match: function (row, col, data) {
@@ -269,7 +275,8 @@
         },
         source: function () {
           return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
-        }
+        },
+        strict: true //only accept predefined values (from array above)
       }
     ]
   });
