@@ -340,7 +340,7 @@
               selection.transformEnd(1, 0);
             }
             else {
-              selection.transformEnd(0, 0); //refresh some routines, otherwise arrow movement does not work
+              selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
             }
             break;
 
@@ -353,7 +353,7 @@
               selection.transformEnd(0, 1);
             }
             else {
-              selection.transformEnd(0, 0); //refresh some routines, otherwise arrow movement does not work
+              selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
             }
             break;
 
@@ -364,15 +364,7 @@
             if (!result) {
               self.blockedCols.refresh();
             }
-            if (priv.selStart && priv.selStart.row > coords.row) {
-              priv.selStart.row = priv.selStart.row - (toCoords.row - coords.row + 1);
-            }
-            if (priv.selEnd && priv.selEnd.row > coords.row) {
-              selection.transformEnd(-(toCoords.row - coords.row + 1), 0);
-            }
-            else {
-              selection.transformEnd(0, 0);
-            }
+            selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
             break;
 
           case "remove_col":
@@ -382,15 +374,7 @@
             if (!result) {
               self.blockedRows.refresh();
             }
-            if (priv.selStart && priv.selStart.col > coords.col) {
-              priv.selStart.col = priv.selStart.col - (toCoords.col - coords.col + 1);
-            }
-            if (priv.selEnd && priv.selEnd.col > coords.col) {
-              selection.transformEnd(0, -(toCoords.col - coords.col + 1));
-            }
-            else {
-              selection.transformEnd(0, 0);
-            }
+            selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
             break;
         }
 
@@ -1909,7 +1893,7 @@
 
       function onOutsideClick(event) {
         setTimeout(function () {//do async so all mouseenter, mouseleave events will fire before
-          if (!priv.isMouseOverTable || event.target === priv.tableContainer) { //if clicked outside the table or directly at container which also means outside
+          if (!priv.isMouseOverTable && event.target !== priv.tableContainer && $(event.target).attr('id') !== 'context-menu-layer') { //if clicked outside the table or directly at container which also means outside
             selection.deselect();
           }
         }, 1);
