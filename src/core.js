@@ -2242,7 +2242,7 @@
         if (priv.fillHandle && settings.fillHandle === false) {
           autofill.disable();
         }
-        else {
+        else if (!priv.fillHandle && settings.fillHandle === true) {
           autofill.init();
         }
       }
