@@ -29,7 +29,7 @@ handsontable.RowHeader = function (instance, labels) {
  * @return {String}
  */
 handsontable.RowHeader.prototype.columnLabel = function (index) {
-  if (this.labels[index]) {
+  if (typeof this.labels[index] !== 'undefined') {
     return this.instance.blockedRows.headerText(this.labels[index]);
   }
   return this.instance.blockedRows.headerText(index + 1);

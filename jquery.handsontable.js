@@ -3126,7 +3126,7 @@ handsontable.RowHeader = function (instance, labels) {
  * @return {String}
  */
 handsontable.RowHeader.prototype.columnLabel = function (index) {
-  if (this.labels[index]) {
+  if (typeof this.labels[index] !== 'undefined') {
     return this.instance.blockedRows.headerText(this.labels[index]);
   }
   return this.instance.blockedRows.headerText(index + 1);
@@ -3179,7 +3179,7 @@ handsontable.ColHeader = function (instance, labels) {
  * @return {String}
  */
 handsontable.ColHeader.prototype.columnLabel = function (index) {
-  if (this.labels[index]) {
+  if (typeof this.labels[index] !== 'undefined') {
     return this.instance.blockedRows.headerText(this.labels[index]);
   }
   var dividend = index + 1;
