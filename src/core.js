@@ -1195,22 +1195,20 @@
 
         priv.fillBorder.disappear();
 
-        if (select.TL.col > 0) {
-          data = datamap.getAll();
-          rows : for (r = select.BR.row + 1; r < self.rowCount; r++) {
-            for (c = select.TL.col; c <= select.BR.col; c++) {
-              if (data[r][c]) {
-                break rows;
-              }
-            }
-            if (!!data[r][select.TL.col - 1]) {
-              maxR = r;
+        data = datamap.getAll();
+        rows : for (r = select.BR.row + 1; r < self.rowCount; r++) {
+          for (c = select.TL.col; c <= select.BR.col; c++) {
+            if (data[r][c]) {
+              break rows;
             }
           }
-          if (maxR) {
-            autofill.showBorder(grid.getCellAtCoords({row: maxR, col: select.BR.col}));
-            autofill.apply();
+          if (!!data[r][select.TL.col - 1] || !!data[r][select.BR.col + 1]) {
+            maxR = r;
           }
+        }
+        if (maxR) {
+          autofill.showBorder(grid.getCellAtCoords({row: maxR, col: select.BR.col}));
+          autofill.apply();
         }
       },
 
@@ -1853,7 +1851,7 @@
       onDblClick: function () {
         priv.editProxy[0].focus();
         editproxy.beginEditing(true);
-        if(priv.settings.autoComplete) {
+        if (priv.settings.autoComplete) {
           priv.editProxy.data('typeahead').lookup();
         }
       }
