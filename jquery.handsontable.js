@@ -1096,19 +1096,25 @@
         var tdOffset = $td.offset();
         var scrollLeft = priv.scrollable.scrollLeft(); //scrollbar position
         var scrollTop = priv.scrollable.scrollTop(); //scrollbar position
-        var scrollWidth = priv.scrollable.outerWidth() - priv.scrollbarSize.width;
-        var scrollHeight = priv.scrollable.outerHeight() - priv.scrollbarSize.height;
         var scrollOffset = priv.scrollable.offset();
-
         var rowHeaderWidth = self.blockedCols.count() ? $(self.blockedCols.main[0].firstChild).outerWidth() : 2;
         var colHeaderHeight = self.blockedRows.count() ? $(self.blockedRows.main[0].firstChild).outerHeight() : 2;
 
         var offsetTop = tdOffset.top;
         var offsetLeft = tdOffset.left;
+        var scrollWidth, scrollHeight;
         if (scrollOffset) { //if is not the window
+          scrollWidth = priv.scrollable.outerWidth();
+          scrollHeight = priv.scrollable.outerHeight();
           offsetTop += scrollTop - scrollOffset.top;
           offsetLeft += scrollLeft - scrollOffset.left;
         }
+        else {
+          scrollWidth = priv.scrollable.width(); //don't use outerWidth with window (http://api.jquery.com/outerWidth/)
+          scrollHeight = priv.scrollable.height();
+        }
+        scrollWidth -= priv.scrollbarSize.width;
+        scrollHeight -= priv.scrollbarSize.height;
 
         var height = $td.outerHeight();
         var width = $td.outerWidth();
