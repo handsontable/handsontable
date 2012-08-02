@@ -685,7 +685,7 @@
        * @param {Object} [end] End selection position (only for drag-down mode)
        * @param {Boolean} [allowHtml]
        * @param {String} [source="populateFromArray"]
-       * @return {Object} ending td in pasted area
+       * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
        */
       populateFromArray: function (start, input, end, allowHtml, source) {
         var r, rlen, c, clen, td, endTd, changes = [], current = {};
@@ -736,7 +736,7 @@
         if (changes.length) {
           self.container.triggerHandler("datachange.handsontable", [changes, source || 'populateFromArray']);
         }
-        return endTd || grid.getCellAtCoords(start);
+        return endTd;
       },
 
       /**
@@ -1808,12 +1808,13 @@
           var val = [
             [$.trim(priv.editProxy.val())]
           ];
+          var endTd;
           if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
             var corners = grid.getCornerCoords([priv.selStart, priv.selEnd]);
-            grid.populateFromArray(corners.TL, val, corners.BR, false, 'edit');
+            endTd = grid.populateFromArray(corners.TL, val, corners.BR, false, 'edit');
           }
           else {
-            grid.populateFromArray(priv.selStart, val, null, false, 'edit');
+            endTd = grid.populateFromArray(priv.selStart, val, null, false, 'edit');
           }
 
           priv.editProxy.css({
@@ -1825,10 +1826,8 @@
             overflow: 'hidden'
           });
         }
-        if (typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
-          if (!isCancelled) {
-            selection.transformStart(moveRow, moveCol, !priv.settings.enterBeginsEditing);
-          }
+        if (!isCancelled && endTd && typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
+          selection.transformStart(moveRow, moveCol, !priv.settings.enterBeginsEditing);
         }
       }
     };
@@ -2078,7 +2077,7 @@
 
       self.container.on("beforedatachange.handsontable", function (event, changes) {
         if (priv.settings.autoComplete) { //validate strict autocompletes
-          var typeahead = priv.editProxy.data('typeahead'), found;
+          var typeahead = priv.editProxy.data('typeahead');
           loop : for (var c = 0, clen = changes.length; c < clen; c++) {
             for (var a = 0, alen = priv.settings.autoComplete.length; a < alen; a++) {
               var autoComplete = priv.settings.autoComplete[a];
