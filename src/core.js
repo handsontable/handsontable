@@ -27,8 +27,7 @@
       hasLegend: null,
       lastAutoComplete: null,
       undoRedo: settings.undo ? new handsontable.UndoRedo(this) : null,
-      extensions: {},
-      stopNextPropagation: 0
+      extensions: {}
     };
 
     var lastChange = '';
@@ -146,6 +145,21 @@
       }
       return rows;
     }
+
+    /**
+     * Returns true if keyCode represents a printable character
+     * @param {Number} keyCode
+     * @return {Boolean}
+     */
+    window.handsontable.isPrintableChar = function (keyCode) {
+      return ((keyCode == 32) || //space
+          (keyCode >= 48 && keyCode <= 57) || //0-9
+          (keyCode >= 96 && keyCode <= 111) || //numpad
+          (keyCode >= 186 && keyCode <= 192) || //;=,-./`
+          (keyCode >= 219 && keyCode <= 222) || //[]{}\|"'
+          keyCode >= 226 || //special chars (229 for Asian chars)
+          (keyCode >= 65 && keyCode <= 90)); //a-z
+    };
 
     datamap = {
       data: [],
@@ -1338,14 +1352,7 @@
           priv.lastKeyCode = event.keyCode;
           if (selection.isSelected()) {
             var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-            if ((event.keyCode == 32) || //space
-                (event.keyCode >= 48 && event.keyCode <= 57) || //0-9
-                (event.keyCode >= 96 && event.keyCode <= 111) || //numpad
-                (event.keyCode >= 186 && event.keyCode <= 192) || //;=,-./`
-                (event.keyCode >= 219 && event.keyCode <= 222) || //[]{}\|"'
-                event.keyCode >= 226 || //special chars (229 for Asian chars)
-                (event.keyCode >= 65 && event.keyCode <= 90)) { //a-z
-              /* alphanumeric */
+            if (window.handsontable.isPrintableChar(event.keyCode)) {
               if (!priv.isCellEdited && !ctrlDown) { //disregard CTRL-key shortcuts
                 editproxy.beginEditing();
               }
@@ -1369,12 +1376,8 @@
                     priv.undoRedo.undo();
                   }
                 }
-                priv.stopNextPropagation++; //don't want autosuggest to show ctrl-shortcut
               }
               return;
-            }
-            else if (event.keyCode === 17) { //ctrl is down
-              priv.stopNextPropagation++; //don't want autosuggest to show ctrl-shortcut
             }
 
             var rangeModifier = event.shiftKey ? selection.setRangeEnd : selection.setRangeStart;
@@ -1562,13 +1565,6 @@
           }
         }
 
-        function onKeyUp(event) {
-          if (priv.stopNextPropagation) {
-            event.stopImmediatePropagation();
-            priv.stopNextPropagation--;
-          }
-        }
-
         function onChange() {
           var move;
           if (isAutoComplete()) { //could this change be from autocomplete
@@ -1591,7 +1587,6 @@
         priv.editProxy.on('cut', onCut);
         priv.editProxy.on('paste', onPaste);
         priv.editProxy.on('keydown', onKeyDown);
-        priv.editProxy.on('keyup', onKeyUp);
         priv.editProxy.on('change', onChange);
         container.append(priv.editProxyHolder);
       },
@@ -1793,7 +1788,6 @@
           overflow: 'visible'
         });
 
-        priv.stopNextPropagation++;
         if (priv.settings.autoComplete) {
           setTimeout(function () {
             priv.editProxy.data('typeahead').lookup();
@@ -1811,7 +1805,9 @@
       finishEditing: function (isCancelled, moveRow, moveCol, ctrlDown) {
         if (priv.isCellEdited) {
           priv.isCellEdited = false;
-          var val = [[$.trim(priv.editProxy.val())]];
+          var val = [
+            [$.trim(priv.editProxy.val())]
+          ];
           if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
             var corners = grid.getCornerCoords([priv.selStart, priv.selEnd]);
             grid.populateFromArray(corners.TL, val, corners.BR, false, 'edit');
@@ -1864,7 +1860,6 @@
       onDblClick: function () {
         priv.editProxy[0].focus();
         editproxy.beginEditing(true);
-        priv.stopNextPropagation--;
       }
     };
 
@@ -2084,7 +2079,7 @@
       self.container.on("beforedatachange.handsontable", function (event, changes) {
         if (priv.settings.onBeforeChange) {
           var result = priv.settings.onBeforeChange(changes);
-          if(result === false) {
+          if (result === false) {
             changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
           }
         }
