@@ -1899,12 +1899,12 @@
       $("html").on('mouseup', onMouseUp);
       $("html").on('click', onOutsideClick);
 
-      if (container[0].tagName.toLowerCase() !== "html" && container[0].tagName.toLowerCase() !== "body" && container.css('overflow') === 'scroll') {
+      if (container[0].tagName.toLowerCase() !== "html" && container[0].tagName.toLowerCase() !== "body" && (container.css('overflow') === 'scroll' || container.css('overflow') === 'auto')) {
         priv.scrollable = container;
       }
       else {
         container.parents().each(function () {
-          if (this.tagName.toLowerCase() !== "html" && this.tagName.toLowerCase() !== "body" && $(this).css('overflow') == 'scroll') {
+          if (this.tagName.toLowerCase() !== "html" && this.tagName.toLowerCase() !== "body" && ($(this).css('overflow') === 'scroll' || $(this).css('overflow') === 'auto')) {
             priv.scrollable = $(this);
             return false;
           }
