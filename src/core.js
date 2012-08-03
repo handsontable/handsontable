@@ -26,7 +26,7 @@
       scrollable: null,
       hasLegend: null,
       lastAutoComplete: null,
-      undoRedo: settings.undo ? new handsontable.UndoRedo(this) : null,
+      undoRedo: null,
       extensions: {}
     };
 
@@ -1348,14 +1348,10 @@
                   priv.editProxy.triggerHandler('paste'); //simulate onpaste for Opera
                 }
                 else if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
-                  if (priv.undoRedo) {
-                    priv.undoRedo.redo();
-                  }
+                  priv.undoRedo && priv.undoRedo.redo();
                 }
                 else if (event.keyCode === 90) { //CTRL + Z
-                  if (priv.undoRedo) {
-                    priv.undoRedo.undo();
-                  }
+                  priv.undoRedo && priv.undoRedo.undo();
                 }
               }
               return;
@@ -2221,6 +2217,7 @@
         col: 0
       }, data, null, allowHtml, 'loadData');
       priv.isPopulated = true;
+      self.clearUndo();
     };
 
     /**
@@ -2251,6 +2248,15 @@
         }
         else if (!priv.fillHandle && settings.fillHandle === true) {
           autofill.init();
+        }
+      }
+
+      if (typeof settings.undo !== "undefined") {
+        if (priv.undoRedo && settings.undo === false) {
+          priv.undoRedo = null;
+        }
+        else if (!priv.undoRedo && settings.undo === true) {
+          priv.undoRedo = new handsontable.UndoRedo(self);
         }
       }
 
@@ -2353,6 +2359,14 @@
     this.clear = function () {
       selection.selectAll();
       selection.empty();
+    };
+
+    /**
+     * Clears undo history
+     * @public
+     */
+    this.clearUndo = function () {
+      priv.undoRedo && priv.undoRedo.clear();
     };
 
     /**

@@ -26,7 +26,7 @@
       scrollable: null,
       hasLegend: null,
       lastAutoComplete: null,
-      undoRedo: settings.undo ? new handsontable.UndoRedo(this) : null,
+      undoRedo: null,
       extensions: {}
     };
 
@@ -1348,14 +1348,10 @@
                   priv.editProxy.triggerHandler('paste'); //simulate onpaste for Opera
                 }
                 else if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
-                  if (priv.undoRedo) {
-                    priv.undoRedo.redo();
-                  }
+                  priv.undoRedo && priv.undoRedo.redo();
                 }
                 else if (event.keyCode === 90) { //CTRL + Z
-                  if (priv.undoRedo) {
-                    priv.undoRedo.undo();
-                  }
+                  priv.undoRedo && priv.undoRedo.undo();
                 }
               }
               return;
@@ -2221,6 +2217,7 @@
         col: 0
       }, data, null, allowHtml, 'loadData');
       priv.isPopulated = true;
+      self.clearUndo();
     };
 
     /**
@@ -2251,6 +2248,15 @@
         }
         else if (!priv.fillHandle && settings.fillHandle === true) {
           autofill.init();
+        }
+      }
+
+      if (typeof settings.undo !== "undefined") {
+        if (priv.undoRedo && settings.undo === false) {
+          priv.undoRedo = null;
+        }
+        else if (!priv.undoRedo && settings.undo === true) {
+          priv.undoRedo = new handsontable.UndoRedo(self);
         }
       }
 
@@ -2353,6 +2359,14 @@
     this.clear = function () {
       selection.selectAll();
       selection.empty();
+    };
+
+    /**
+     * Clears undo history
+     * @public
+     */
+    this.clearUndo = function () {
+      priv.undoRedo && priv.undoRedo.clear();
     };
 
     /**
@@ -2670,11 +2684,8 @@ handsontable.extension = {}; //extenstion namespace
  */
 handsontable.UndoRedo = function (instance) {
   var that = this;
-
-  this.data = [];
-  this.rev = -1;
   this.instance = instance;
-
+  this.clear();
   instance.container.on("datachange.handsontable", function (event, changes, origin) {
     if (origin !== 'undo' && origin !== 'redo') {
       that.add(changes);
@@ -2717,7 +2728,7 @@ handsontable.UndoRedo.prototype.redo = function () {
  * @return {Boolean}
  */
 handsontable.UndoRedo.prototype.isUndoAvailable = function () {
-  return (this.rev > 0);
+  return (this.rev >= 0);
 };
 
 /**
@@ -2736,6 +2747,14 @@ handsontable.UndoRedo.prototype.add = function (changes) {
   this.rev++;
   this.data.splice(this.rev); //if we are in point abcdef(g)hijk in history, remove everything after (g)
   this.data.push(changes);
+};
+
+/**
+ * Clears undo history
+ */
+handsontable.UndoRedo.prototype.clear = function () {
+  this.data = [];
+  this.rev = -1;
 };
 /**
  * Handsontable BlockedRows class

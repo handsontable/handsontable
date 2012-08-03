@@ -3,11 +3,8 @@
  */
 handsontable.UndoRedo = function (instance) {
   var that = this;
-
-  this.data = [];
-  this.rev = -1;
   this.instance = instance;
-
+  this.clear();
   instance.container.on("datachange.handsontable", function (event, changes, origin) {
     if (origin !== 'undo' && origin !== 'redo') {
       that.add(changes);
@@ -50,7 +47,7 @@ handsontable.UndoRedo.prototype.redo = function () {
  * @return {Boolean}
  */
 handsontable.UndoRedo.prototype.isUndoAvailable = function () {
-  return (this.rev > 0);
+  return (this.rev >= 0);
 };
 
 /**
@@ -69,4 +66,12 @@ handsontable.UndoRedo.prototype.add = function (changes) {
   this.rev++;
   this.data.splice(this.rev); //if we are in point abcdef(g)hijk in history, remove everything after (g)
   this.data.push(changes);
+};
+
+/**
+ * Clears undo history
+ */
+handsontable.UndoRedo.prototype.clear = function () {
+  this.data = [];
+  this.rev = -1;
 };

@@ -59,6 +59,7 @@ Maybe you want to show some default data. Use the `handsontable('loadData', data
  handsontable('loadData', data, [allowHtml=false])                                     | Method      | Reset all cells in the grid to contain data from the `data` array. Any HTML in `data` is escaped unless you set `allowHtml` to true
  handsontable('setDataAtCell',&nbsp;row,&nbsp;col,&nbsp;value,&nbsp;[allowHtml=false]) | Method      | Set new value to a cell. Any HTML in `value` is escaped unless you set `allowHtml` to true. To change many cells at once, pass an array of changes in format [[row, col, value, allowHtml], ...] as the only parameter.
  handsontable('clear')                                                                 | Method      | Empty all cells
+ handsontable('clearUndo')                                                             | Method      | Clear undo history
  handsontable('getData', [asReference=false])                                          | Method      | Returns 2-dimensional array with a copy of the current grid data. Optionally, set param `asReference` to true, to return the internal data array as reference. That is faster but should be used only to READ data (otherwise you will mess up the DOM table). To write data, you should always use method `setDataAtCell`.
  handsontable('alter', 'insert_row', index)                                            | Method      | Insert new row above the row at given index
  handsontable('alter', 'insert_col', index)                                            | Method      | Insert new column before the column at given index
@@ -68,7 +69,7 @@ Maybe you want to show some default data. Use the `handsontable('loadData', data
  handsontable('getCellMeta', row, col)                                                 | Method      | Return meta data for given `row,col`. Currently has one property: isReadOnly (Boolean)
  handsontable('selectCell', r, c, [r2, c2, scrollToSelection=true])                    | Method      | Select cell `r,c` or range finishing at `r2,c2`. By default, viewport will be scrolled to selection
  handsontable('deselectCell')                                                          | Method      | Deselect current selection
- handsontable('getSelected')                                                           | Method      | Returns index of the currently selected cells as an array [`topLeftRow`, `topLeftCol`, `bottomRightRow`, `bottomRightCol`]
+ handsontable('getSelected')                                                           | Method      | Return index of the currently selected cells as an array [`topLeftRow`, `topLeftCol`, `bottomRightRow`, `bottomRightCol`]
 
 ## Options
 
