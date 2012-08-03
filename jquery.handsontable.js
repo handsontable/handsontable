@@ -298,23 +298,24 @@
        * @return {String}
        */
       getText: function (start, end) {
-        var data = datamap.getRange(start, end), text = '', r, rlen, c, clen;
+        var data = datamap.getRange(start, end), text = '', r, rlen, c, clen, stripHtml = /<(?:.|\n)*?>/gm;
         for (r = 0, rlen = data.length; r < rlen; r++) {
           for (c = 0, clen = data[r].length; c < clen; c++) {
             if (c > 0) {
               text += "\t";
             }
             if (data[r][c].indexOf('\n') > -1) {
-              text += '"' + data[r][c].replace(/"/g, '""') + '"';
+              text += '"' + data[r][c].replace(stripHtml, '').replace(/"/g, '""') + '"';
             }
             else {
-              text += data[r][c];
+              text += data[r][c].replace(stripHtml, '');
             }
           }
           if (r !== rlen - 1) {
             text += "\n";
           }
         }
+        text = text.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&amp;/g, "&"); //unescape html special chars
         return text;
       }
     };
@@ -2104,7 +2105,7 @@
      * @param {String} [source='edit'] String that identifies how this change will be described in changes array (useful in onChange callback)
      */
     this.setDataAtCell = function (row, col, value, allowHtml, source) {
-      var refreshRows = false, refreshCols = false, escaped, changes, i, ilen;
+      var refreshRows = false, refreshCols = false, changes, i, ilen;
 
       if (typeof row === "object") { //is stringish
         changes = row;
@@ -2162,9 +2163,9 @@
             value = '';
         }
         if (!allowHtml) {
-          escaped = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
+          value = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
         }
-        td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
+        td.innerHTML = value.replace(/\n/g, '<br/>');
         self.minWidthFix(td);
         datamap.set(row, col, value);
         grid.updateLegend({row: row, col: col});
