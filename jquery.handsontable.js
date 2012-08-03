@@ -1790,13 +1790,15 @@
           var val = [
             [$.trim(priv.editProxy.val())]
           ];
-          var endTd;
-          if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
-            var corners = grid.getCornerCoords([priv.selStart, priv.selEnd]);
-            endTd = grid.populateFromArray(corners.TL, val, corners.BR, false, 'edit');
-          }
-          else {
-            endTd = grid.populateFromArray(priv.selStart, val, null, false, 'edit');
+          if (!isCancelled) {
+            var endTd;
+            if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
+              var corners = grid.getCornerCoords([priv.selStart, priv.selEnd]);
+              endTd = grid.populateFromArray(corners.TL, val, corners.BR, false, 'edit');
+            }
+            else {
+              endTd = grid.populateFromArray(priv.selStart, val, null, false, 'edit');
+            }
           }
 
           priv.editProxy.css({
@@ -1808,7 +1810,7 @@
             overflow: 'hidden'
           });
         }
-        if (!isCancelled && endTd && typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
+        if (endTd && typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
           selection.transformStart(moveRow, moveCol, !priv.settings.enterBeginsEditing);
         }
       }
