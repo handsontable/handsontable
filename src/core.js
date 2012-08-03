@@ -672,7 +672,7 @@
        * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
        */
       populateFromArray: function (start, input, end, allowHtml, source) {
-        var r, rlen, c, clen, td, endTd, changes = [], current = {};
+        var r, rlen, c, clen, i, ilen, td, endTd, changes = [], current = {};
         rlen = input.length;
         if (rlen === 0) {
           return false;
@@ -691,7 +691,13 @@
             }
             td = grid.getCellAtCoords(current);
             if (grid.isCellWritable($(td))) {
-              changes.push([current.row, current.col, datamap.get(current.row, current.col), input[r][c]]);
+              var childCount = 0;
+              for (i = 0, ilen = td.childNodes.length; i < ilen; i++) {
+                if (td.childNodes[i].nodeType != 3) {
+                  childCount++;
+                }
+              }
+              changes.push([current.row, current.col, datamap.get(current.row, current.col), input[r][c], !!childCount]);
             }
             current.col++;
             if (end && c === clen - 1) {
@@ -707,16 +713,16 @@
           self.container.triggerHandler("beforedatachange.handsontable", [changes]);
         }
         var setData = [];
-        for (var i = 0, ilen = changes.length; i < ilen; i++) {
+        for (i = 0, ilen = changes.length; i < ilen; i++) {
           if (end && (changes[i][0] > end.row || changes[i][1] > end.col)) {
             continue;
           }
           if (changes[i][3] === false) {
             continue;
           }
-          setData.push([changes[i][0], changes[i][1], changes[i][3]]);
+          setData.push([changes[i][0], changes[i][1], changes[i][3], allowHtml]);
         }
-        endTd = self.setDataAtCell(0, 0, setData, allowHtml);
+        endTd = self.setDataAtCell(setData);
         if (changes.length) {
           self.container.triggerHandler("datachange.handsontable", [changes, source || 'populateFromArray']);
         }
@@ -2105,24 +2111,31 @@
     /**
      * Set data at given cell
      * @public
-     * @param {Number} row
+     * @param {Number|Array} row or array of changes in format [[row, col, value, allowHtml], ...]
      * @param {Number} col
-     * @param {String|Array} values string or array of changes in format [[row, col, value], ...]
-     * @param {Boolean} [allowHtml]
+     * @param {String} value string
+     * @param {Boolean} allowHtml
      */
-    this.setDataAtCell = function (row, col, values, allowHtml) {
-      var refreshRows = false, refreshCols = false, escaped, value;
+    this.setDataAtCell = function (row, col, value, allowHtml) {
+      var refreshRows = false, refreshCols = false, escaped, values, val;
 
-      if (typeof values !== "object") { //is stringish
+      if (typeof row === "object") { //is stringish
+        values = row;
+      }
+      else if (typeof value === "object") { //backwards compatibility
+        values = value;
+      }
+      else {
         values = [
-          [row, col, values]
+          [row, col, value, allowHtml]
         ];
       }
 
       for (var i = 0, ilen = values.length; i < ilen; i++) {
         row = values[i][0];
         col = values[i][1];
-        value = values[i][2];
+        val = values[i][2];
+        allowHtml = values[i][3];
 
         if (priv.settings.minSpareRows) {
           while (row > self.rowCount - 1) {
@@ -2139,23 +2152,23 @@
           }
         }
         var td = grid.getCellAtCoords({row: row, col: col});
-        switch (typeof value) {
+        switch (typeof val) {
           case 'string':
             break;
 
           case 'number':
-            value += '';
+            val += '';
             break;
 
           default:
-            value = '';
+            val = '';
         }
         if (!allowHtml) {
-          escaped = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
+          escaped = val.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
         }
-        td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
+        td.innerHTML = (escaped || val).replace(/\n/g, '<br/>');
         self.minWidthFix(td);
-        datamap.set(row, col, value);
+        datamap.set(row, col, val);
         grid.updateLegend({row: row, col: col});
       }
       if (refreshRows) {

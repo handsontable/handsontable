@@ -22,7 +22,11 @@ handsontable.UndoRedo.prototype.undo = function () {
   var i, ilen, tmp;
   if (this.isUndoAvailable()) {
     var changes = $.extend(true, [], this.data[this.rev]); //deep clone
-    this.instance.setDataAtCell(0, 0, changes);
+    var setData = $.extend(true, [], this.data[this.rev]);
+    for (i = 0, ilen = setData.length; i < ilen; i++) {
+      setData[i].splice(3, 1);
+    }
+    this.instance.setDataAtCell(setData);
     for (i = 0, ilen = changes.length; i < ilen; i++) {
       tmp = changes[i][3];
       changes[i][3] = changes[i][2];
@@ -40,11 +44,11 @@ handsontable.UndoRedo.prototype.redo = function () {
   var i, ilen;
   if (this.isRedoAvailable()) {
     this.rev++;
-    var changes = $.extend(true, [], this.data[this.rev]); //deep clone
-    for (i = 0, ilen = changes.length; i < ilen; i++) {
-      changes[i][2] = changes[i][3]; //we need new data at index 2
+    var setData = $.extend(true, [], this.data[this.rev]);
+    for (i = 0, ilen = setData.length; i < ilen; i++) {
+      setData[i].splice(2, 1);
     }
-    this.instance.setDataAtCell(0, 0, changes);
+    this.instance.setDataAtCell(setData);
     this.instance.container.triggerHandler("datachange.handsontable", [this.data[this.rev], 'redo']); //we need old data at index 2 and new data at index 3
   }
 };
