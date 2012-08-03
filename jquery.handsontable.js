@@ -672,7 +672,7 @@
        * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
        */
       populateFromArray: function (start, input, end, allowHtml, source) {
-        var r, rlen, c, clen, i, ilen, td, endTd, changes = [], current = {};
+        var r, rlen, c, clen, i, ilen, td, endTd, setData = [], current = {}, childCount;
         rlen = input.length;
         if (rlen === 0) {
           return false;
@@ -691,13 +691,15 @@
             }
             td = grid.getCellAtCoords(current);
             if (grid.isCellWritable($(td))) {
-              var childCount = 0;
-              for (i = 0, ilen = td.childNodes.length; i < ilen; i++) {
-                if (td.childNodes[i].nodeType != 3) {
-                  childCount++;
+              childCount = 0;
+              if (td) {
+                for (i = 0, ilen = td.childNodes.length; i < ilen; i++) {
+                  if (td.childNodes[i].nodeType != 3) {
+                    childCount++;
+                  }
                 }
               }
-              changes.push([current.row, current.col, datamap.get(current.row, current.col), input[r][c], !!childCount]);
+              setData.push([current.row, current.col, input[r][c], !!childCount || allowHtml]);
             }
             current.col++;
             if (end && c === clen - 1) {
@@ -709,23 +711,7 @@
             r = -1;
           }
         }
-        if (changes.length) {
-          self.container.triggerHandler("beforedatachange.handsontable", [changes]);
-        }
-        var setData = [];
-        for (i = 0, ilen = changes.length; i < ilen; i++) {
-          if (end && (changes[i][0] > end.row || changes[i][1] > end.col)) {
-            continue;
-          }
-          if (changes[i][3] === false) {
-            continue;
-          }
-          setData.push([changes[i][0], changes[i][1], changes[i][3], allowHtml]);
-        }
-        endTd = self.setDataAtCell(setData);
-        if (changes.length) {
-          self.container.triggerHandler("datachange.handsontable", [changes, source || 'populateFromArray']);
-        }
+        endTd = self.setDataAtCell(setData, null, null, null, source || 'populateFromArray');
         return endTd;
       },
 
@@ -2113,29 +2099,40 @@
      * @public
      * @param {Number|Array} row or array of changes in format [[row, col, value, allowHtml], ...]
      * @param {Number} col
-     * @param {String} value string
+     * @param {String} value
      * @param {Boolean} allowHtml
+     * @param {String} [source='edit'] String that identifies how this change will be described in changes array (useful in onChange callback)
      */
-    this.setDataAtCell = function (row, col, value, allowHtml) {
-      var refreshRows = false, refreshCols = false, escaped, values, val;
+    this.setDataAtCell = function (row, col, value, allowHtml, source) {
+      var refreshRows = false, refreshCols = false, escaped, changes, i, ilen;
 
       if (typeof row === "object") { //is stringish
-        values = row;
+        changes = row;
       }
       else if (typeof value === "object") { //backwards compatibility
-        values = value;
+        changes = value;
       }
       else {
-        values = [
+        changes = [
           [row, col, value, allowHtml]
         ];
       }
 
-      for (var i = 0, ilen = values.length; i < ilen; i++) {
-        row = values[i][0];
-        col = values[i][1];
-        val = values[i][2];
-        allowHtml = values[i][3];
+      for (i = 0, ilen = changes.length; i < ilen; i++) {
+        changes[i].splice(2, 0, datamap.get(changes[i][0], changes[i][1])); //add old value at index 2
+      }
+
+      self.container.triggerHandler("beforedatachange.handsontable", [changes]);
+
+      for (i = 0, ilen = changes.length; i < ilen; i++) {
+        if (changes[i][3] === false) {
+          continue;
+        }
+
+        row = changes[i][0];
+        col = changes[i][1];
+        value = changes[i][3];
+        allowHtml = changes[i][4];
 
         if (priv.settings.minSpareRows) {
           while (row > self.rowCount - 1) {
@@ -2151,24 +2148,25 @@
             refreshCols = true;
           }
         }
+
         var td = grid.getCellAtCoords({row: row, col: col});
-        switch (typeof val) {
+        switch (typeof value) {
           case 'string':
             break;
 
           case 'number':
-            val += '';
+            value += '';
             break;
 
           default:
-            val = '';
+            value = '';
         }
         if (!allowHtml) {
-          escaped = val.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
+          escaped = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
         }
-        td.innerHTML = (escaped || val).replace(/\n/g, '<br/>');
+        td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
         self.minWidthFix(td);
-        datamap.set(row, col, val);
+        datamap.set(row, col, value);
         grid.updateLegend({row: row, col: col});
       }
       if (refreshRows) {
@@ -2183,12 +2181,15 @@
       }
       setTimeout(function () {
         if (!refreshRows) {
-          self.blockedRows.dimensions(values);
+          self.blockedRows.dimensions(changes);
         }
         if (!refreshCols) {
-          self.blockedCols.dimensions(values);
+          self.blockedCols.dimensions(changes);
         }
       }, 10);
+      if (changes.length) {
+        self.container.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
+      }
       return td;
     };
 
@@ -2684,20 +2685,13 @@ handsontable.UndoRedo = function (instance) {
  * Undo operation from current revision
  */
 handsontable.UndoRedo.prototype.undo = function () {
-  var i, ilen, tmp;
+  var i, ilen;
   if (this.isUndoAvailable()) {
-    var changes = $.extend(true, [], this.data[this.rev]); //deep clone
     var setData = $.extend(true, [], this.data[this.rev]);
     for (i = 0, ilen = setData.length; i < ilen; i++) {
       setData[i].splice(3, 1);
     }
-    this.instance.setDataAtCell(setData);
-    for (i = 0, ilen = changes.length; i < ilen; i++) {
-      tmp = changes[i][3];
-      changes[i][3] = changes[i][2];
-      changes[i][2] = tmp;
-    }
-    this.instance.container.triggerHandler("datachange.handsontable", [changes, 'undo']);
+    this.instance.setDataAtCell(setData, null, null, null, 'undo');
     this.rev--;
   }
 };
@@ -2713,8 +2707,7 @@ handsontable.UndoRedo.prototype.redo = function () {
     for (i = 0, ilen = setData.length; i < ilen; i++) {
       setData[i].splice(2, 1);
     }
-    this.instance.setDataAtCell(setData);
-    this.instance.container.triggerHandler("datachange.handsontable", [this.data[this.rev], 'redo']); //we need old data at index 2 and new data at index 3
+    this.instance.setDataAtCell(setData, null, null, null, 'redo');
   }
 };
 

@@ -19,20 +19,13 @@ handsontable.UndoRedo = function (instance) {
  * Undo operation from current revision
  */
 handsontable.UndoRedo.prototype.undo = function () {
-  var i, ilen, tmp;
+  var i, ilen;
   if (this.isUndoAvailable()) {
-    var changes = $.extend(true, [], this.data[this.rev]); //deep clone
     var setData = $.extend(true, [], this.data[this.rev]);
     for (i = 0, ilen = setData.length; i < ilen; i++) {
       setData[i].splice(3, 1);
     }
-    this.instance.setDataAtCell(setData);
-    for (i = 0, ilen = changes.length; i < ilen; i++) {
-      tmp = changes[i][3];
-      changes[i][3] = changes[i][2];
-      changes[i][2] = tmp;
-    }
-    this.instance.container.triggerHandler("datachange.handsontable", [changes, 'undo']);
+    this.instance.setDataAtCell(setData, null, null, null, 'undo');
     this.rev--;
   }
 };
@@ -48,8 +41,7 @@ handsontable.UndoRedo.prototype.redo = function () {
     for (i = 0, ilen = setData.length; i < ilen; i++) {
       setData[i].splice(2, 1);
     }
-    this.instance.setDataAtCell(setData);
-    this.instance.container.triggerHandler("datachange.handsontable", [this.data[this.rev], 'redo']); //we need old data at index 2 and new data at index 3
+    this.instance.setDataAtCell(setData, null, null, null, 'redo');
   }
 };
 
