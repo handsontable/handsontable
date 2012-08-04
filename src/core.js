@@ -2422,6 +2422,46 @@
     };
 
     /**
+     * Returns headers (if they are enabled)
+     * @param {Object} obj Instance of rowHeader or colHeader
+     * @param {Number} count Number of rows or cols
+     * @param {Number} index (Optional) Will return only header at given index
+     * @return {Array|String}
+     */
+    var getHeaderText = function (obj, count, index) {
+      if (obj) {
+        if (typeof index !== 'undefined') {
+          return obj.columnLabel(index);
+        }
+        else {
+          var headers = [];
+          for (var i = 0, ilen = count; i < ilen; i++) {
+            headers.push(obj.columnLabel(i));
+          }
+          return headers;
+        }
+      }
+    }
+
+    /**
+     * Return array of row headers (if they are enabled). If param `row` given, return header at given row as string
+     * @param {Number} row (Optional)
+     * @return {Array|String}
+     */
+    this.getRowHeader = function (row) {
+      return getHeaderText(self.rowHeader, self.rowCount, row);
+    };
+
+    /**
+     * Return array of col headers (if they are enabled). If param `col` given, return header at given col as string
+     * @param {Number} col (Optional)
+     * @return {Array|String}
+     */
+    this.getColHeader = function (col) {
+      return getHeaderText(self.colHeader, self.colCount, col);
+    };
+
+    /**
      * Selects cell on grid. Optionally selects range to another cell
      * @param {Number} row
      * @param {Number} col

@@ -93,9 +93,15 @@ handsontable.BlockedCols.prototype.refresh = function () {
       for (h = 0; h < hlen; h++) {
         label = this.headers[h].columnLabel(i);
         realTh = realTrs[i].getElementsByClassName ? realTrs[i].getElementsByClassName(this.headers[h].className)[0] : $(realTrs[i]).find('.' + this.headers[h].className.replace(/\s/i, '.'))[0];
-        realTh.innerHTML = label;
         th = trs[i].getElementsByClassName ? trs[i].getElementsByClassName(this.headers[h].className)[0] : $(trs[i]).find('.' + this.headers[h].className.replace(/\s/i, '.'))[0];
-        th.innerHTML = label;
+        if (this.headers[h].format && this.headers[h].format === 'small') {
+          realTh.innerHTML = this.headerText(label);
+          th.innerHTML = this.headerText(label);
+        }
+        else {
+          realTh.innerHTML = label;
+          th.innerHTML = label;
+        }
         this.instance.minWidthFix(th);
         th.style.height = $(realTh)[this.heightMethod]() + 'px';
       }

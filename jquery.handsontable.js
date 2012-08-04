@@ -2422,6 +2422,46 @@
     };
 
     /**
+     * Returns headers (if they are enabled)
+     * @param {Object} obj Instance of rowHeader or colHeader
+     * @param {Number} count Number of rows or cols
+     * @param {Number} index (Optional) Will return only header at given index
+     * @return {Array|String}
+     */
+    var getHeaderText = function (obj, count, index) {
+      if (obj) {
+        if (typeof index !== 'undefined') {
+          return obj.columnLabel(index);
+        }
+        else {
+          var headers = [];
+          for (var i = 0, ilen = count; i < ilen; i++) {
+            headers.push(obj.columnLabel(i));
+          }
+          return headers;
+        }
+      }
+    }
+
+    /**
+     * Return array of row headers (if they are enabled). If param `row` given, return header at given row as string
+     * @param {Number} row (Optional)
+     * @return {Array|String}
+     */
+    this.getRowHeader = function (row) {
+      return getHeaderText(self.rowHeader, self.rowCount, row);
+    };
+
+    /**
+     * Return array of col headers (if they are enabled). If param `col` given, return header at given col as string
+     * @param {Number} col (Optional)
+     * @return {Array|String}
+     */
+    this.getColHeader = function (col) {
+      return getHeaderText(self.colHeader, self.colCount, col);
+    };
+
+    /**
      * Selects cell on grid. Optionally selects range to another cell
      * @param {Number} row
      * @param {Number} col
@@ -2839,6 +2879,7 @@ handsontable.BlockedRows.prototype.create = function () {
  * Copy table column header onto the floating layer above the grid
  */
 handsontable.BlockedRows.prototype.refresh = function () {
+  var label;
   if (this.count() > 0) {
     var that = this;
     var hlen = this.count(), h;
@@ -2858,7 +2899,15 @@ handsontable.BlockedRows.prototype.refresh = function () {
       for (h = 0; h < hlen; h++) {
         var realThs = this.instance.table.find('thead th.' + this.headers[h].className);
         for (var i = 0; i < thsLen; i++) {
-          realThs[i].innerHTML = ths[i].innerHTML = that.headers[h].columnLabel(i - offset);
+          label = that.headers[h].columnLabel(i - offset);
+          if (this.headers[h].format && this.headers[h].format === 'small') {
+            realThs[i].innerHTML = this.headerText(label);
+            ths[i].innerHTML = this.headerText(label);
+          }
+          else {
+            realThs[i].innerHTML = label;
+            ths[i].innerHTML = label;
+          }
           this.instance.minWidthFix(realThs[i]);
           this.instance.minWidthFix(ths[i]);
           ths[i].style.minWidth = realThs.eq(i).width() + 'px';
@@ -3037,9 +3086,15 @@ handsontable.BlockedCols.prototype.refresh = function () {
       for (h = 0; h < hlen; h++) {
         label = this.headers[h].columnLabel(i);
         realTh = realTrs[i].getElementsByClassName ? realTrs[i].getElementsByClassName(this.headers[h].className)[0] : $(realTrs[i]).find('.' + this.headers[h].className.replace(/\s/i, '.'))[0];
-        realTh.innerHTML = label;
         th = trs[i].getElementsByClassName ? trs[i].getElementsByClassName(this.headers[h].className)[0] : $(trs[i]).find('.' + this.headers[h].className.replace(/\s/i, '.'))[0];
-        th.innerHTML = label;
+        if (this.headers[h].format && this.headers[h].format === 'small') {
+          realTh.innerHTML = this.headerText(label);
+          th.innerHTML = this.headerText(label);
+        }
+        else {
+          realTh.innerHTML = label;
+          th.innerHTML = label;
+        }
         this.instance.minWidthFix(th);
         th.style.height = $(realTh)[this.heightMethod]() + 'px';
       }
@@ -3137,6 +3192,8 @@ handsontable.RowHeader = function (instance, labels) {
   });
   this.labels = labels;
   this.instance = instance;
+  this.instance.rowHeader = this;
+  this.format = 'small';
   instance.blockedCols.addHeader(this);
 };
 
@@ -3147,9 +3204,9 @@ handsontable.RowHeader = function (instance, labels) {
  */
 handsontable.RowHeader.prototype.columnLabel = function (index) {
   if (typeof this.labels[index] !== 'undefined') {
-    return this.instance.blockedRows.headerText(this.labels[index]);
+    return this.labels[index];
   }
-  return this.instance.blockedRows.headerText(index + 1);
+  return index + 1;
 };
 
 /**
@@ -3190,6 +3247,8 @@ handsontable.ColHeader = function (instance, labels) {
   });
   this.instance = instance;
   this.labels = labels;
+  this.instance.colHeader = this;
+  this.format = 'small';
   instance.blockedRows.addHeader(this);
 };
 
@@ -3200,7 +3259,7 @@ handsontable.ColHeader = function (instance, labels) {
  */
 handsontable.ColHeader.prototype.columnLabel = function (index) {
   if (typeof this.labels[index] !== 'undefined') {
-    return this.instance.blockedRows.headerText(this.labels[index]);
+    return this.labels[index];
   }
   var dividend = index + 1;
   var columnLabel = '';
@@ -3210,7 +3269,7 @@ handsontable.ColHeader.prototype.columnLabel = function (index) {
     columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
     dividend = parseInt((dividend - modulo) / 26);
   }
-  return this.instance.blockedRows.headerText(columnLabel);
+  return columnLabel;
 };
 
 /**

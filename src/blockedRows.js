@@ -81,6 +81,7 @@ handsontable.BlockedRows.prototype.create = function () {
  * Copy table column header onto the floating layer above the grid
  */
 handsontable.BlockedRows.prototype.refresh = function () {
+  var label;
   if (this.count() > 0) {
     var that = this;
     var hlen = this.count(), h;
@@ -100,7 +101,15 @@ handsontable.BlockedRows.prototype.refresh = function () {
       for (h = 0; h < hlen; h++) {
         var realThs = this.instance.table.find('thead th.' + this.headers[h].className);
         for (var i = 0; i < thsLen; i++) {
-          realThs[i].innerHTML = ths[i].innerHTML = that.headers[h].columnLabel(i - offset);
+          label = that.headers[h].columnLabel(i - offset);
+          if (this.headers[h].format && this.headers[h].format === 'small') {
+            realThs[i].innerHTML = this.headerText(label);
+            ths[i].innerHTML = this.headerText(label);
+          }
+          else {
+            realThs[i].innerHTML = label;
+            ths[i].innerHTML = label;
+          }
           this.instance.minWidthFix(realThs[i]);
           this.instance.minWidthFix(ths[i]);
           ths[i].style.minWidth = realThs.eq(i).width() + 'px';

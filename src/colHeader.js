@@ -20,6 +20,8 @@ handsontable.ColHeader = function (instance, labels) {
   });
   this.instance = instance;
   this.labels = labels;
+  this.instance.colHeader = this;
+  this.format = 'small';
   instance.blockedRows.addHeader(this);
 };
 
@@ -30,7 +32,7 @@ handsontable.ColHeader = function (instance, labels) {
  */
 handsontable.ColHeader.prototype.columnLabel = function (index) {
   if (typeof this.labels[index] !== 'undefined') {
-    return this.instance.blockedRows.headerText(this.labels[index]);
+    return this.labels[index];
   }
   var dividend = index + 1;
   var columnLabel = '';
@@ -40,7 +42,7 @@ handsontable.ColHeader.prototype.columnLabel = function (index) {
     columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
     dividend = parseInt((dividend - modulo) / 26);
   }
-  return this.instance.blockedRows.headerText(columnLabel);
+  return columnLabel;
 };
 
 /**

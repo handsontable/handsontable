@@ -20,6 +20,8 @@ handsontable.RowHeader = function (instance, labels) {
   });
   this.labels = labels;
   this.instance = instance;
+  this.instance.rowHeader = this;
+  this.format = 'small';
   instance.blockedCols.addHeader(this);
 };
 
@@ -30,9 +32,9 @@ handsontable.RowHeader = function (instance, labels) {
  */
 handsontable.RowHeader.prototype.columnLabel = function (index) {
   if (typeof this.labels[index] !== 'undefined') {
-    return this.instance.blockedRows.headerText(this.labels[index]);
+    return this.labels[index];
   }
-  return this.instance.blockedRows.headerText(index + 1);
+  return index + 1;
 };
 
 /**
