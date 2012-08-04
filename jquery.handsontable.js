@@ -2430,7 +2430,7 @@
      */
     var getHeaderText = function (obj, count, index) {
       if (obj) {
-        if (typeof index !== 'undefined') {
+        if (typeof index != 'undefined') {
           return obj.columnLabel(index);
         }
         else {
