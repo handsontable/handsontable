@@ -2430,18 +2430,18 @@
      */
     var getHeaderText = function (obj, count, index) {
       if (obj) {
-        if (typeof index != 'undefined') {
+        if (typeof index !== 'undefined') {
           return obj.columnLabel(index);
         }
         else {
           var headers = [];
-          for (var i = 0, ilen = count; i < ilen; i++) {
+          for (var i = 0; i < count; i++) {
             headers.push(obj.columnLabel(i));
           }
           return headers;
         }
       }
-    }
+    };
 
     /**
      * Return array of row headers (if they are enabled). If param `row` given, return header at given row as string
