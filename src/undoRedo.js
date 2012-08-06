@@ -22,7 +22,7 @@ handsontable.UndoRedo.prototype.undo = function () {
     for (i = 0, ilen = setData.length; i < ilen; i++) {
       setData[i].splice(3, 1);
     }
-    this.instance.setDataAtCell(setData, null, null, null, 'undo');
+    this.instance.setDataAtCell(setData, null, null, true, 'undo');
     this.rev--;
   }
 };
@@ -38,7 +38,7 @@ handsontable.UndoRedo.prototype.redo = function () {
     for (i = 0, ilen = setData.length; i < ilen; i++) {
       setData[i].splice(2, 1);
     }
-    this.instance.setDataAtCell(setData, null, null, null, 'redo');
+    this.instance.setDataAtCell(setData, null, null, true, 'redo');
   }
 };
 

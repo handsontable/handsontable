@@ -673,7 +673,7 @@
        * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
        */
       populateFromArray: function (start, input, end, allowHtml, source) {
-        var r, rlen, c, clen, i, ilen, td, endTd, setData = [], current = {}, childCount;
+        var r, rlen, c, clen, td, endTd, setData = [], current = {};
         rlen = input.length;
         if (rlen === 0) {
           return false;
@@ -692,15 +692,7 @@
             }
             td = grid.getCellAtCoords(current);
             if (grid.isCellWritable($(td))) {
-              childCount = 0;
-              if (td) {
-                for (i = 0, ilen = td.childNodes.length; i < ilen; i++) {
-                  if (td.childNodes[i].nodeType != 3) {
-                    childCount++;
-                  }
-                }
-              }
-              setData.push([current.row, current.col, input[r][c], !!childCount || allowHtml]);
+              setData.push([current.row, current.col, input[r][c], allowHtml]);
             }
             current.col++;
             if (end && c === clen - 1) {
@@ -2129,7 +2121,7 @@
         row = changes[i][0];
         col = changes[i][1];
         value = changes[i][3];
-        allowHtml = changes[i][4];
+        allowHtml = changes[i][4] || allowHtml;
 
         if (priv.settings.minSpareRows) {
           while (row > self.rowCount - 1) {
@@ -2743,7 +2735,7 @@ handsontable.UndoRedo.prototype.undo = function () {
     for (i = 0, ilen = setData.length; i < ilen; i++) {
       setData[i].splice(3, 1);
     }
-    this.instance.setDataAtCell(setData, null, null, null, 'undo');
+    this.instance.setDataAtCell(setData, null, null, true, 'undo');
     this.rev--;
   }
 };
@@ -2759,7 +2751,7 @@ handsontable.UndoRedo.prototype.redo = function () {
     for (i = 0, ilen = setData.length; i < ilen; i++) {
       setData[i].splice(2, 1);
     }
-    this.instance.setDataAtCell(setData, null, null, null, 'redo');
+    this.instance.setDataAtCell(setData, null, null, true, 'redo');
   }
 };
 
