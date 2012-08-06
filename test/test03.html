@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://localhost/" />
+<title>Undo/Redo preserves allowHtml: true</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">Undo/Redo preserves allowHtml: true</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>/jquery-handsontable/index.html</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>100</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>//div[@id=&quot;example4grid&quot;]//tbody/tr[2]/td[5]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>window.handsonDeleteRow = function() {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var table = $(&quot;#example4grid&quot;);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var selected = table.handsontable('getSelected');&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (selected) {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;table.handsontable('alter', 'remove_row', selected[0]);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertEval</td>
+	<td>typeof window.handsonDeleteRow</td>
+	<td>function</td>
+</tr>
+<tr>
+	<td>runScript</td>
+	<td>$('#example4grid').handsontable(&quot;loadData&quot;, [ [&quot;1&quot;, &quot;100&quot;, &quot;x&quot;, &quot;-&quot;, &quot;&lt;a href='#' onclick='handsonDeleteRow();return false;'&gt;Delete&lt;/a&gt;&quot;], [&quot;2&quot;, &quot;20&quot;, &quot;y&quot;, &quot;-&quot;, &quot;&lt;a href='#' onclick='handsonDeleteRow();return false;'&gt;Delete&lt;/a&gt;&quot;], ], true);</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>100</td>
+	<td></td>
+</tr>
+<tr>
+	<td>fireEvent</td>
+	<td>//div[@id=&quot;example4grid&quot;]//tbody/tr[2]/td[5]/a</td>
+	<td>mousedown</td>
+</tr>
+<tr>
+	<td>mouseDown</td>
+	<td>//div[@id=&quot;example4grid&quot;]//tbody/tr[2]/td[5]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>mouseUp</td>
+	<td>//div[@id=&quot;example4grid&quot;]//tbody/tr[2]/td[5]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>fireEvent</td>
+	<td>//div[@id=&quot;example4grid&quot;]//tbody/tr[2]/td[5]/a</td>
+	<td>click</td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>100</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementNotPresent</td>
+	<td>//div[@id=&quot;example4grid&quot;]//tbody/tr[2]/td[5]/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>100</td>
+	<td></td>
+</tr>
+<tr>
+	<td>controlKeyDown</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>keyDown</td>
+	<td>//div[@id=&quot;example4grid&quot;]//*[@class=&quot;handsontableInput&quot;][1]</td>
+	<td>\90</td>
+</tr>
+<tr>
+	<td>keyUp</td>
+	<td>//div[@id=&quot;example4grid&quot;]//*[@class=&quot;handsontableInput&quot;][1]</td>
+	<td>\90</td>
+</tr>
+<tr>
+	<td>controlKeyUp</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>pause</td>
+	<td>100</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyElementPresent</td>
+	<td>//div[@id=&quot;example4grid&quot;]//tbody/tr[2]/td[5]/a</td>
+	<td></td>
+</tr>
+
+</tbody></table>
+</body>
+</html>
