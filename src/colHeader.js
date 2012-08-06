@@ -3,7 +3,7 @@
  * @param {Object} instance
  * @param {Array|Boolean} [labels]
  */
-handsontable.ColHeader = function (instance, labels) {
+Handsontable.ColHeader = function (instance, labels) {
   var that = this;
   this.className = 'htColHeader';
   instance.blockedRows.main.on('mousedown', 'th.htColHeader', function () {
@@ -30,7 +30,7 @@ handsontable.ColHeader = function (instance, labels) {
  * @param {Number} index Row index
  * @return {String}
  */
-handsontable.ColHeader.prototype.columnLabel = function (index) {
+Handsontable.ColHeader.prototype.columnLabel = function (index) {
   if (typeof this.labels[index] !== 'undefined') {
     return this.labels[index];
   }
@@ -48,11 +48,11 @@ handsontable.ColHeader.prototype.columnLabel = function (index) {
 /**
  * Remove current highlight of a currently selected column header
  */
-handsontable.ColHeader.prototype.deselect = handsontable.RowHeader.prototype.deselect;
+Handsontable.ColHeader.prototype.deselect = Handsontable.RowHeader.prototype.deselect;
 
 /**
  *
  */
-handsontable.ColHeader.prototype.destroy = function () {
+Handsontable.ColHeader.prototype.destroy = function () {
   this.instance.blockedRows.destroyHeader(this.className);
 };

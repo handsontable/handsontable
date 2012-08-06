@@ -2,7 +2,7 @@
  * Handsontable BlockedCols class
  * @param {Object} instance
  */
-handsontable.BlockedCols = function (instance) {
+Handsontable.BlockedCols = function (instance) {
   this.heightMethod = ($.browser.mozilla || $.browser.opera) ? "outerHeight" : "height";
   this.instance = instance;
   this.headers = [];
@@ -15,14 +15,14 @@ handsontable.BlockedCols = function (instance) {
 /**
  * Returns number of blocked cols
  */
-handsontable.BlockedCols.prototype.count = function () {
+Handsontable.BlockedCols.prototype.count = function () {
   return this.headers.length;
 };
 
 /**
  * Create row header in the grid table
  */
-handsontable.BlockedCols.prototype.createRow = function (tr) {
+Handsontable.BlockedCols.prototype.createRow = function (tr) {
   var th;
   var mainTr = document.createElement('tr');
 
@@ -43,7 +43,7 @@ handsontable.BlockedCols.prototype.createRow = function (tr) {
 /**
  * Create row header in the grid table
  */
-handsontable.BlockedCols.prototype.create = function () {
+Handsontable.BlockedCols.prototype.create = function () {
   var hlen = this.count(), h, th;
   this.main.find('tbody').empty();
   this.instance.table.find('tbody th').remove();
@@ -75,7 +75,7 @@ handsontable.BlockedCols.prototype.create = function () {
 /**
  * Copy table row header onto the floating layer above the grid
  */
-handsontable.BlockedCols.prototype.refresh = function () {
+Handsontable.BlockedCols.prototype.refresh = function () {
   var hlen = this.count(), h, th, realTh, i, label;
   if (hlen > 0) {
     var $tbody = this.main.find('tbody');
@@ -115,7 +115,7 @@ handsontable.BlockedCols.prototype.refresh = function () {
 /**
  * Refresh border width
  */
-handsontable.BlockedCols.prototype.refreshBorders = function () {
+Handsontable.BlockedCols.prototype.refreshBorders = function () {
   if (this.count() > 0) {
     if (this.instance.curScrollLeft === 0) {
       this.ths.css('borderRightWidth', 0);
@@ -130,7 +130,7 @@ handsontable.BlockedCols.prototype.refreshBorders = function () {
  * Recalculate row heights on the floating layer above the grid
  * @param {Object} changes
  */
-handsontable.BlockedCols.prototype.dimensions = function (changes) {
+Handsontable.BlockedCols.prototype.dimensions = function (changes) {
   if (this.count() > 0) {
     var trs = this.main[0].firstChild.getElementsByTagName('tbody')[0].childNodes;
     for (var i = 0, ilen = changes.length; i < ilen; i++) {
@@ -145,15 +145,15 @@ handsontable.BlockedCols.prototype.dimensions = function (changes) {
 /**
  * Update settings of the row header
  */
-handsontable.BlockedCols.prototype.update = handsontable.BlockedRows.prototype.update;
+Handsontable.BlockedCols.prototype.update = Handsontable.BlockedRows.prototype.update;
 
 /**
  * Add row header to DOM
  */
-handsontable.BlockedCols.prototype.addHeader = function (header) {
+Handsontable.BlockedCols.prototype.addHeader = function (header) {
   for (var h = this.count() - 1; h >= 0; h--) {
     if (this.headers[h].className === header.className) {
-      delete this.headers.splice(h, 1); //if exists, remove then add to recreate
+      this.headers.splice(h, 1); //if exists, remove then add to recreate
     }
   }
   this.headers.push(header);
@@ -165,7 +165,7 @@ handsontable.BlockedCols.prototype.addHeader = function (header) {
 /**
  * Remove row header from DOM
  */
-handsontable.BlockedCols.prototype.destroyHeader = function (className) {
+Handsontable.BlockedCols.prototype.destroyHeader = function (className) {
   for (var h = this.count() - 1; h >= 0; h--) {
     if (this.headers[h].className === className) {
       this.headers.splice(h, 1);
@@ -176,4 +176,4 @@ handsontable.BlockedCols.prototype.destroyHeader = function (className) {
 /**
  * Puts string to small text template
  */
-handsontable.BlockedCols.prototype.headerText = handsontable.BlockedRows.prototype.headerText;
+Handsontable.BlockedCols.prototype.headerText = Handsontable.BlockedRows.prototype.headerText;

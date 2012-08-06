@@ -7,13 +7,14 @@
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
-var handsontable = {}; //class namespace
-handsontable.extension = {}; //extenstion namespace
+"use strict";
+var Handsontable = { //class namespace
+  extension: {}, //extenstion namespace
+  helper: {} //helper namespace
+};
 
-(function ($) {
-  "use strict";
-
-  function Handsontable(container, settings) {
+(function ($, window, Handsontable) {
+  Handsontable.Core = function (container, settings) {
     this.container = container;
 
     var priv, datamap, grid, selection, editproxy, highlight, autofill, interaction, self = this;
@@ -149,21 +150,6 @@ handsontable.extension = {}; //extenstion namespace
       }
       return rows;
     }
-
-    /**
-     * Returns true if keyCode represents a printable character
-     * @param {Number} keyCode
-     * @return {Boolean}
-     */
-    window.handsontable.isPrintableChar = function (keyCode) {
-      return ((keyCode == 32) || //space
-          (keyCode >= 48 && keyCode <= 57) || //0-9
-          (keyCode >= 96 && keyCode <= 111) || //numpad
-          (keyCode >= 186 && keyCode <= 192) || //;=,-./`
-          (keyCode >= 219 && keyCode <= 222) || //[]{}\|"'
-          keyCode >= 226 || //special chars (229 for Asian chars)
-          (keyCode >= 65 && keyCode <= 90)); //a-z
-    };
 
     datamap = {
       data: [],
@@ -1329,7 +1315,7 @@ handsontable.extension = {}; //extenstion namespace
           priv.lastKeyCode = event.keyCode;
           if (selection.isSelected()) {
             var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-            if (window.handsontable.isPrintableChar(event.keyCode)) {
+            if (Handsontable.helper.isPrintableChar(event.keyCode)) {
               if (!priv.isCellEdited && !ctrlDown) { //disregard CTRL-key shortcuts
                 editproxy.beginEditing();
               }
@@ -2252,13 +2238,13 @@ handsontable.extension = {}; //extenstion namespace
           priv.undoRedo = null;
         }
         else if (!priv.undoRedo && settings.undo === true) {
-          priv.undoRedo = new handsontable.UndoRedo(self);
+          priv.undoRedo = new Handsontable.UndoRedo(self);
         }
       }
 
       if (!self.blockedCols) {
-        self.blockedCols = new handsontable.BlockedCols(self);
-        self.blockedRows = new handsontable.BlockedRows(self);
+        self.blockedCols = new Handsontable.BlockedCols(self);
+        self.blockedRows = new Handsontable.BlockedRows(self);
       }
 
       for (i in settings) {
@@ -2266,8 +2252,8 @@ handsontable.extension = {}; //extenstion namespace
           priv.settings[i] = settings[i];
 
           //launch extensions
-          if (handsontable.extension[i]) {
-            priv.extensions[i] = new handsontable.extension[i](self, settings[i]);
+          if (Handsontable.extension[i]) {
+            priv.extensions[i] = new Handsontable.extension[i](self, settings[i]);
           }
         }
       }
@@ -2277,7 +2263,7 @@ handsontable.extension = {}; //extenstion namespace
           priv.extensions["ColHeader"].destroy();
         }
         else {
-          priv.extensions["ColHeader"] = new handsontable.ColHeader(self, settings.colHeaders);
+          priv.extensions["ColHeader"] = new Handsontable.ColHeader(self, settings.colHeaders);
         }
       }
 
@@ -2286,7 +2272,7 @@ handsontable.extension = {}; //extenstion namespace
           priv.extensions["RowHeader"].destroy();
         }
         else {
-          priv.extensions["RowHeader"] = new handsontable.RowHeader(self, settings.rowHeaders);
+          priv.extensions["RowHeader"] = new Handsontable.RowHeader(self, settings.rowHeaders);
         }
       }
 
@@ -2658,7 +2644,7 @@ handsontable.extension = {}; //extenstion namespace
         this.handle.style.display = 'none';
       }
     };
-  }
+  };
 
   var settings = {
     'rows': 5,
@@ -2692,7 +2678,7 @@ handsontable.extension = {}; //extenstion namespace
           if (options) {
             $.extend(currentSettings, options);
           }
-          instance = new Handsontable($this, currentSettings);
+          instance = new Handsontable.Core($this, currentSettings);
           $this.data("handsontable", instance);
           instance.init();
         }
@@ -2711,4 +2697,19 @@ handsontable.extension = {}; //extenstion namespace
       return output;
     }
   };
-})(jQuery);
+})(jQuery, window, Handsontable);
+
+/**
+ * Returns true if keyCode represents a printable character
+ * @param {Number} keyCode
+ * @return {Boolean}
+ */
+Handsontable.helper.isPrintableChar = function (keyCode) {
+  return ((keyCode == 32) || //space
+      (keyCode >= 48 && keyCode <= 57) || //0-9
+      (keyCode >= 96 && keyCode <= 111) || //numpad
+      (keyCode >= 186 && keyCode <= 192) || //;=,-./`
+      (keyCode >= 219 && keyCode <= 222) || //[]{}\|"'
+      keyCode >= 226 || //special chars (229 for Asian chars)
+      (keyCode >= 65 && keyCode <= 90)); //a-z
+};

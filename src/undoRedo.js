@@ -1,7 +1,7 @@
 /**
  * Handsontable UndoRedo class
  */
-handsontable.UndoRedo = function (instance) {
+Handsontable.UndoRedo = function (instance) {
   var that = this;
   this.instance = instance;
   this.clear();
@@ -15,7 +15,7 @@ handsontable.UndoRedo = function (instance) {
 /**
  * Undo operation from current revision
  */
-handsontable.UndoRedo.prototype.undo = function () {
+Handsontable.UndoRedo.prototype.undo = function () {
   var i, ilen;
   if (this.isUndoAvailable()) {
     var setData = $.extend(true, [], this.data[this.rev]);
@@ -30,7 +30,7 @@ handsontable.UndoRedo.prototype.undo = function () {
 /**
  * Redo operation from current revision
  */
-handsontable.UndoRedo.prototype.redo = function () {
+Handsontable.UndoRedo.prototype.redo = function () {
   var i, ilen;
   if (this.isRedoAvailable()) {
     this.rev++;
@@ -46,7 +46,7 @@ handsontable.UndoRedo.prototype.redo = function () {
  * Returns true if undo point is available
  * @return {Boolean}
  */
-handsontable.UndoRedo.prototype.isUndoAvailable = function () {
+Handsontable.UndoRedo.prototype.isUndoAvailable = function () {
   return (this.rev >= 0);
 };
 
@@ -54,7 +54,7 @@ handsontable.UndoRedo.prototype.isUndoAvailable = function () {
  * Returns true if redo point is available
  * @return {Boolean}
  */
-handsontable.UndoRedo.prototype.isRedoAvailable = function () {
+Handsontable.UndoRedo.prototype.isRedoAvailable = function () {
   return (this.rev < this.data.length - 1);
 };
 
@@ -62,7 +62,7 @@ handsontable.UndoRedo.prototype.isRedoAvailable = function () {
  * Add new history poins
  * @param changes
  */
-handsontable.UndoRedo.prototype.add = function (changes) {
+Handsontable.UndoRedo.prototype.add = function (changes) {
   this.rev++;
   this.data.splice(this.rev); //if we are in point abcdef(g)hijk in history, remove everything after (g)
   this.data.push(changes);
@@ -71,7 +71,7 @@ handsontable.UndoRedo.prototype.add = function (changes) {
 /**
  * Clears undo history
  */
-handsontable.UndoRedo.prototype.clear = function () {
+Handsontable.UndoRedo.prototype.clear = function () {
   this.data = [];
   this.rev = -1;
 };

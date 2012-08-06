@@ -7,13 +7,14 @@
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
-var handsontable = {}; //class namespace
-handsontable.extension = {}; //extenstion namespace
+"use strict";
+var Handsontable = { //class namespace
+  extension: {}, //extenstion namespace
+  helper: {} //helper namespace
+};
 
-(function ($) {
-  "use strict";
-
-  function Handsontable(container, settings) {
+(function ($, window, Handsontable) {
+  Handsontable.Core = function (container, settings) {
     this.container = container;
 
     var priv, datamap, grid, selection, editproxy, highlight, autofill, interaction, self = this;
@@ -149,21 +150,6 @@ handsontable.extension = {}; //extenstion namespace
       }
       return rows;
     }
-
-    /**
-     * Returns true if keyCode represents a printable character
-     * @param {Number} keyCode
-     * @return {Boolean}
-     */
-    window.handsontable.isPrintableChar = function (keyCode) {
-      return ((keyCode == 32) || //space
-          (keyCode >= 48 && keyCode <= 57) || //0-9
-          (keyCode >= 96 && keyCode <= 111) || //numpad
-          (keyCode >= 186 && keyCode <= 192) || //;=,-./`
-          (keyCode >= 219 && keyCode <= 222) || //[]{}\|"'
-          keyCode >= 226 || //special chars (229 for Asian chars)
-          (keyCode >= 65 && keyCode <= 90)); //a-z
-    };
 
     datamap = {
       data: [],
@@ -1329,7 +1315,7 @@ handsontable.extension = {}; //extenstion namespace
           priv.lastKeyCode = event.keyCode;
           if (selection.isSelected()) {
             var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-            if (window.handsontable.isPrintableChar(event.keyCode)) {
+            if (Handsontable.helper.isPrintableChar(event.keyCode)) {
               if (!priv.isCellEdited && !ctrlDown) { //disregard CTRL-key shortcuts
                 editproxy.beginEditing();
               }
@@ -2252,13 +2238,13 @@ handsontable.extension = {}; //extenstion namespace
           priv.undoRedo = null;
         }
         else if (!priv.undoRedo && settings.undo === true) {
-          priv.undoRedo = new handsontable.UndoRedo(self);
+          priv.undoRedo = new Handsontable.UndoRedo(self);
         }
       }
 
       if (!self.blockedCols) {
-        self.blockedCols = new handsontable.BlockedCols(self);
-        self.blockedRows = new handsontable.BlockedRows(self);
+        self.blockedCols = new Handsontable.BlockedCols(self);
+        self.blockedRows = new Handsontable.BlockedRows(self);
       }
 
       for (i in settings) {
@@ -2266,8 +2252,8 @@ handsontable.extension = {}; //extenstion namespace
           priv.settings[i] = settings[i];
 
           //launch extensions
-          if (handsontable.extension[i]) {
-            priv.extensions[i] = new handsontable.extension[i](self, settings[i]);
+          if (Handsontable.extension[i]) {
+            priv.extensions[i] = new Handsontable.extension[i](self, settings[i]);
           }
         }
       }
@@ -2277,7 +2263,7 @@ handsontable.extension = {}; //extenstion namespace
           priv.extensions["ColHeader"].destroy();
         }
         else {
-          priv.extensions["ColHeader"] = new handsontable.ColHeader(self, settings.colHeaders);
+          priv.extensions["ColHeader"] = new Handsontable.ColHeader(self, settings.colHeaders);
         }
       }
 
@@ -2286,7 +2272,7 @@ handsontable.extension = {}; //extenstion namespace
           priv.extensions["RowHeader"].destroy();
         }
         else {
-          priv.extensions["RowHeader"] = new handsontable.RowHeader(self, settings.rowHeaders);
+          priv.extensions["RowHeader"] = new Handsontable.RowHeader(self, settings.rowHeaders);
         }
       }
 
@@ -2658,7 +2644,7 @@ handsontable.extension = {}; //extenstion namespace
         this.handle.style.display = 'none';
       }
     };
-  }
+  };
 
   var settings = {
     'rows': 5,
@@ -2692,7 +2678,7 @@ handsontable.extension = {}; //extenstion namespace
           if (options) {
             $.extend(currentSettings, options);
           }
-          instance = new Handsontable($this, currentSettings);
+          instance = new Handsontable.Core($this, currentSettings);
           $this.data("handsontable", instance);
           instance.init();
         }
@@ -2711,11 +2697,26 @@ handsontable.extension = {}; //extenstion namespace
       return output;
     }
   };
-})(jQuery);
+})(jQuery, window, Handsontable);
+
+/**
+ * Returns true if keyCode represents a printable character
+ * @param {Number} keyCode
+ * @return {Boolean}
+ */
+Handsontable.helper.isPrintableChar = function (keyCode) {
+  return ((keyCode == 32) || //space
+      (keyCode >= 48 && keyCode <= 57) || //0-9
+      (keyCode >= 96 && keyCode <= 111) || //numpad
+      (keyCode >= 186 && keyCode <= 192) || //;=,-./`
+      (keyCode >= 219 && keyCode <= 222) || //[]{}\|"'
+      keyCode >= 226 || //special chars (229 for Asian chars)
+      (keyCode >= 65 && keyCode <= 90)); //a-z
+};
 /**
  * Handsontable UndoRedo class
  */
-handsontable.UndoRedo = function (instance) {
+Handsontable.UndoRedo = function (instance) {
   var that = this;
   this.instance = instance;
   this.clear();
@@ -2729,7 +2730,7 @@ handsontable.UndoRedo = function (instance) {
 /**
  * Undo operation from current revision
  */
-handsontable.UndoRedo.prototype.undo = function () {
+Handsontable.UndoRedo.prototype.undo = function () {
   var i, ilen;
   if (this.isUndoAvailable()) {
     var setData = $.extend(true, [], this.data[this.rev]);
@@ -2744,7 +2745,7 @@ handsontable.UndoRedo.prototype.undo = function () {
 /**
  * Redo operation from current revision
  */
-handsontable.UndoRedo.prototype.redo = function () {
+Handsontable.UndoRedo.prototype.redo = function () {
   var i, ilen;
   if (this.isRedoAvailable()) {
     this.rev++;
@@ -2760,7 +2761,7 @@ handsontable.UndoRedo.prototype.redo = function () {
  * Returns true if undo point is available
  * @return {Boolean}
  */
-handsontable.UndoRedo.prototype.isUndoAvailable = function () {
+Handsontable.UndoRedo.prototype.isUndoAvailable = function () {
   return (this.rev >= 0);
 };
 
@@ -2768,7 +2769,7 @@ handsontable.UndoRedo.prototype.isUndoAvailable = function () {
  * Returns true if redo point is available
  * @return {Boolean}
  */
-handsontable.UndoRedo.prototype.isRedoAvailable = function () {
+Handsontable.UndoRedo.prototype.isRedoAvailable = function () {
   return (this.rev < this.data.length - 1);
 };
 
@@ -2776,7 +2777,7 @@ handsontable.UndoRedo.prototype.isRedoAvailable = function () {
  * Add new history poins
  * @param changes
  */
-handsontable.UndoRedo.prototype.add = function (changes) {
+Handsontable.UndoRedo.prototype.add = function (changes) {
   this.rev++;
   this.data.splice(this.rev); //if we are in point abcdef(g)hijk in history, remove everything after (g)
   this.data.push(changes);
@@ -2785,7 +2786,7 @@ handsontable.UndoRedo.prototype.add = function (changes) {
 /**
  * Clears undo history
  */
-handsontable.UndoRedo.prototype.clear = function () {
+Handsontable.UndoRedo.prototype.clear = function () {
   this.data = [];
   this.rev = -1;
 };
@@ -2793,7 +2794,7 @@ handsontable.UndoRedo.prototype.clear = function () {
  * Handsontable BlockedRows class
  * @param {Object} instance
  */
-handsontable.BlockedRows = function (instance) {
+Handsontable.BlockedRows = function (instance) {
   this.instance = instance;
   this.headers = [];
   var position = instance.table.position();
@@ -2807,14 +2808,14 @@ handsontable.BlockedRows = function (instance) {
 /**
  * Returns number of blocked cols
  */
-handsontable.BlockedRows.prototype.count = function () {
+Handsontable.BlockedRows.prototype.count = function () {
   return this.headers.length;
 };
 
 /**
  * Create column header in the grid table
  */
-handsontable.BlockedRows.prototype.createCol = function (className) {
+Handsontable.BlockedRows.prototype.createCol = function (className) {
   var $tr, th, h, hlen = this.count();
   for (h = 0; h < hlen; h++) {
     $tr = this.main.find('thead tr.' + this.headers[h].className);
@@ -2850,7 +2851,8 @@ handsontable.BlockedRows.prototype.createCol = function (className) {
 /**
  * Create column header in the grid table
  */
-handsontable.BlockedRows.prototype.create = function () {
+Handsontable.BlockedRows.prototype.create = function () {
+  var c;
   if (this.count() > 0) {
     this.instance.table.find('thead').empty();
     this.main.find('thead').empty();
@@ -2871,7 +2873,7 @@ handsontable.BlockedRows.prototype.create = function () {
 /**
  * Copy table column header onto the floating layer above the grid
  */
-handsontable.BlockedRows.prototype.refresh = function () {
+Handsontable.BlockedRows.prototype.refresh = function () {
   var label;
   if (this.count() > 0) {
     var that = this;
@@ -2916,7 +2918,7 @@ handsontable.BlockedRows.prototype.refresh = function () {
 /**
  * Refresh border width
  */
-handsontable.BlockedRows.prototype.refreshBorders = function () {
+Handsontable.BlockedRows.prototype.refreshBorders = function () {
   if (this.count() > 0) {
     if (this.instance.curScrollTop === 0) {
       this.ths.css('borderBottomWidth', 0);
@@ -2931,7 +2933,7 @@ handsontable.BlockedRows.prototype.refreshBorders = function () {
  * Recalculate column widths on the floating layer above the grid
  * @param {Object} changes
  */
-handsontable.BlockedRows.prototype.dimensions = function (changes) {
+Handsontable.BlockedRows.prototype.dimensions = function (changes) {
   if (this.count() > 0) {
     var offset = this.instance.blockedCols.count();
     for (var i = 0, ilen = changes.length; i < ilen; i++) {
@@ -2944,7 +2946,7 @@ handsontable.BlockedRows.prototype.dimensions = function (changes) {
 /**
  * Update settings of the column header
  */
-handsontable.BlockedRows.prototype.update = function () {
+Handsontable.BlockedRows.prototype.update = function () {
   this.create();
   this.refresh();
 };
@@ -2952,10 +2954,10 @@ handsontable.BlockedRows.prototype.update = function () {
 /**
  * Add column header to DOM
  */
-handsontable.BlockedRows.prototype.addHeader = function (header) {
+Handsontable.BlockedRows.prototype.addHeader = function (header) {
   for (var h = this.count() - 1; h >= 0; h--) {
     if (this.headers[h].className === header.className) {
-      delete this.headers.splice(h, 1); //if exists, remove then add to recreate
+      this.headers.splice(h, 1); //if exists, remove then add to recreate
     }
   }
   this.headers.push(header);
@@ -2968,7 +2970,7 @@ handsontable.BlockedRows.prototype.addHeader = function (header) {
 /**
  * Remove column header from DOM
  */
-handsontable.BlockedRows.prototype.destroyHeader = function (className) {
+Handsontable.BlockedRows.prototype.destroyHeader = function (className) {
   for (var h = this.count() - 1; h >= 0; h--) {
     if (this.headers[h].className === className) {
       this.main.find('thead tr.' + this.headers[h].className).remove();
@@ -2981,14 +2983,14 @@ handsontable.BlockedRows.prototype.destroyHeader = function (className) {
 /**
  * Puts string to small text template
  */
-handsontable.BlockedRows.prototype.headerText = function (str) {
+Handsontable.BlockedRows.prototype.headerText = function (str) {
   return '&nbsp;<span class="small">' + str + '</span>&nbsp;';
 };
 /**
  * Handsontable BlockedCols class
  * @param {Object} instance
  */
-handsontable.BlockedCols = function (instance) {
+Handsontable.BlockedCols = function (instance) {
   this.heightMethod = ($.browser.mozilla || $.browser.opera) ? "outerHeight" : "height";
   this.instance = instance;
   this.headers = [];
@@ -3001,14 +3003,14 @@ handsontable.BlockedCols = function (instance) {
 /**
  * Returns number of blocked cols
  */
-handsontable.BlockedCols.prototype.count = function () {
+Handsontable.BlockedCols.prototype.count = function () {
   return this.headers.length;
 };
 
 /**
  * Create row header in the grid table
  */
-handsontable.BlockedCols.prototype.createRow = function (tr) {
+Handsontable.BlockedCols.prototype.createRow = function (tr) {
   var th;
   var mainTr = document.createElement('tr');
 
@@ -3029,7 +3031,7 @@ handsontable.BlockedCols.prototype.createRow = function (tr) {
 /**
  * Create row header in the grid table
  */
-handsontable.BlockedCols.prototype.create = function () {
+Handsontable.BlockedCols.prototype.create = function () {
   var hlen = this.count(), h, th;
   this.main.find('tbody').empty();
   this.instance.table.find('tbody th').remove();
@@ -3061,7 +3063,7 @@ handsontable.BlockedCols.prototype.create = function () {
 /**
  * Copy table row header onto the floating layer above the grid
  */
-handsontable.BlockedCols.prototype.refresh = function () {
+Handsontable.BlockedCols.prototype.refresh = function () {
   var hlen = this.count(), h, th, realTh, i, label;
   if (hlen > 0) {
     var $tbody = this.main.find('tbody');
@@ -3101,7 +3103,7 @@ handsontable.BlockedCols.prototype.refresh = function () {
 /**
  * Refresh border width
  */
-handsontable.BlockedCols.prototype.refreshBorders = function () {
+Handsontable.BlockedCols.prototype.refreshBorders = function () {
   if (this.count() > 0) {
     if (this.instance.curScrollLeft === 0) {
       this.ths.css('borderRightWidth', 0);
@@ -3116,7 +3118,7 @@ handsontable.BlockedCols.prototype.refreshBorders = function () {
  * Recalculate row heights on the floating layer above the grid
  * @param {Object} changes
  */
-handsontable.BlockedCols.prototype.dimensions = function (changes) {
+Handsontable.BlockedCols.prototype.dimensions = function (changes) {
   if (this.count() > 0) {
     var trs = this.main[0].firstChild.getElementsByTagName('tbody')[0].childNodes;
     for (var i = 0, ilen = changes.length; i < ilen; i++) {
@@ -3131,15 +3133,15 @@ handsontable.BlockedCols.prototype.dimensions = function (changes) {
 /**
  * Update settings of the row header
  */
-handsontable.BlockedCols.prototype.update = handsontable.BlockedRows.prototype.update;
+Handsontable.BlockedCols.prototype.update = Handsontable.BlockedRows.prototype.update;
 
 /**
  * Add row header to DOM
  */
-handsontable.BlockedCols.prototype.addHeader = function (header) {
+Handsontable.BlockedCols.prototype.addHeader = function (header) {
   for (var h = this.count() - 1; h >= 0; h--) {
     if (this.headers[h].className === header.className) {
-      delete this.headers.splice(h, 1); //if exists, remove then add to recreate
+      this.headers.splice(h, 1); //if exists, remove then add to recreate
     }
   }
   this.headers.push(header);
@@ -3151,7 +3153,7 @@ handsontable.BlockedCols.prototype.addHeader = function (header) {
 /**
  * Remove row header from DOM
  */
-handsontable.BlockedCols.prototype.destroyHeader = function (className) {
+Handsontable.BlockedCols.prototype.destroyHeader = function (className) {
   for (var h = this.count() - 1; h >= 0; h--) {
     if (this.headers[h].className === className) {
       this.headers.splice(h, 1);
@@ -3162,13 +3164,13 @@ handsontable.BlockedCols.prototype.destroyHeader = function (className) {
 /**
  * Puts string to small text template
  */
-handsontable.BlockedCols.prototype.headerText = handsontable.BlockedRows.prototype.headerText;
+Handsontable.BlockedCols.prototype.headerText = Handsontable.BlockedRows.prototype.headerText;
 /**
  * Handsontable RowHeader extension
  * @param {Object} instance
  * @param {Array|Boolean} [labels]
  */
-handsontable.RowHeader = function (instance, labels) {
+Handsontable.RowHeader = function (instance, labels) {
   var that = this;
   this.className = 'htRowHeader';
   instance.blockedCols.main.on('mousedown', 'th.htRowHeader', function (event) {
@@ -3195,7 +3197,7 @@ handsontable.RowHeader = function (instance, labels) {
  * @param {Number} index Row index
  * @return {String}
  */
-handsontable.RowHeader.prototype.columnLabel = function (index) {
+Handsontable.RowHeader.prototype.columnLabel = function (index) {
   if (typeof this.labels[index] !== 'undefined') {
     return this.labels[index];
   }
@@ -3205,7 +3207,7 @@ handsontable.RowHeader.prototype.columnLabel = function (index) {
 /**
  * Remove current highlight of a currently selected row header
  */
-handsontable.RowHeader.prototype.deselect = function () {
+Handsontable.RowHeader.prototype.deselect = function () {
   if (this.lastActive) {
     $(this.lastActive).removeClass('active');
     this.lastActive = null;
@@ -3215,7 +3217,7 @@ handsontable.RowHeader.prototype.deselect = function () {
 /**
  *
  */
-handsontable.RowHeader.prototype.destroy = function () {
+Handsontable.RowHeader.prototype.destroy = function () {
   this.instance.blockedCols.destroyHeader(this.className);
 };
 /**
@@ -3223,7 +3225,7 @@ handsontable.RowHeader.prototype.destroy = function () {
  * @param {Object} instance
  * @param {Array|Boolean} [labels]
  */
-handsontable.ColHeader = function (instance, labels) {
+Handsontable.ColHeader = function (instance, labels) {
   var that = this;
   this.className = 'htColHeader';
   instance.blockedRows.main.on('mousedown', 'th.htColHeader', function () {
@@ -3250,7 +3252,7 @@ handsontable.ColHeader = function (instance, labels) {
  * @param {Number} index Row index
  * @return {String}
  */
-handsontable.ColHeader.prototype.columnLabel = function (index) {
+Handsontable.ColHeader.prototype.columnLabel = function (index) {
   if (typeof this.labels[index] !== 'undefined') {
     return this.labels[index];
   }
@@ -3268,11 +3270,11 @@ handsontable.ColHeader.prototype.columnLabel = function (index) {
 /**
  * Remove current highlight of a currently selected column header
  */
-handsontable.ColHeader.prototype.deselect = handsontable.RowHeader.prototype.deselect;
+Handsontable.ColHeader.prototype.deselect = Handsontable.RowHeader.prototype.deselect;
 
 /**
  *
  */
-handsontable.ColHeader.prototype.destroy = function () {
+Handsontable.ColHeader.prototype.destroy = function () {
   this.instance.blockedRows.destroyHeader(this.className);
 };

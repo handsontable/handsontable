@@ -3,7 +3,7 @@
  * @param {Object} instance
  * @param {Array|Boolean} [labels]
  */
-handsontable.extension.RemoveRow = function (instance, labels) {
+Handsontable.extension.RemoveRow = function (instance, labels) {
   var that = this;
   this.priority = 1;
   this.className = 'htRemoveRow htNoFrame';
@@ -29,7 +29,7 @@ handsontable.extension.RemoveRow = function (instance, labels) {
  * @param {Number} index Row index
  * @return {String}
  */
-handsontable.extension.RemoveRow.prototype.columnLabel = function (index) {
+Handsontable.extension.RemoveRow.prototype.columnLabel = function (index) {
   return '<div class="btn">x</div>';
 };
 
@@ -38,6 +38,6 @@ handsontable.extension.RemoveRow.prototype.columnLabel = function (index) {
  * @param {Element} td
  * @return {jQuery}
  */
-handsontable.extension.RemoveRow.prototype.getButton = function (td) {
+Handsontable.extension.RemoveRow.prototype.getButton = function (td) {
   return this.instance.blockedCols.main.find('th.htRemoveRow .btn').eq($(td.parentNode).index());
 };
