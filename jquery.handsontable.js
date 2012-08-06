@@ -6,6 +6,10 @@
  * http://warpech.github.com/jquery-handsontable/
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
+
+var handsontable = {}; //class namespace
+handsontable.extension = {}; //extenstion namespace
+
 (function ($) {
   "use strict";
 
@@ -2708,9 +2712,6 @@
     }
   };
 })(jQuery);
-
-var handsontable = {}; //class namespace
-handsontable.extension = {}; //extenstion namespace
 /**
  * Handsontable UndoRedo class
  */
