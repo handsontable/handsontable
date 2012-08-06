@@ -2418,6 +2418,14 @@ handsontable.extension = {}; //extenstion namespace
     };
 
     /**
+     * Sets the cell to readonly
+     */
+     this.setCellReadOnly = function(row, col) {
+     	var $td = $(grid.getCellAtCoords({row: row, col: col}));
+	$td.data("readOnly",true);
+    };
+
+    /**
      * Returns headers (if they are enabled)
      * @param {Object} obj Instance of rowHeader or colHeader
      * @param {Number} count Number of rows or cols
