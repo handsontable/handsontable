@@ -1,5 +1,5 @@
 <!doctype html>
-<html xmlns="http://www.w3.org/1999/html">
+<html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
 <head>
   <meta charset='utf-8'>
   <title>Handsontable - jQuery grid editor. Excel-like grid editing with HTML &amp; JavaScript</title>
@@ -216,11 +216,14 @@
 
     <ul>
       <li>First column (Cars) is configured in <b>strict</b> mode, which accepts only predefined vaules</li>
-      <li>Last 2 columns (Chassis color, Bumper color) are configured in <b>non-strict</b> mode, that allows any value for the cells</li>
+      <li>Last 2 columns (Chassis color, Bumper color) are configured in
+      <b>non-strict</b> mode, that allows any value for the cells
+      </li>
     </ul>
 
-    <p>To keep this plugin lightweight, Autocomplete feature has a dependency on modified
-      <a href="https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js">bootstrap-typeahead</a> plugin. It is included in the repo.
+    <p>
+      <b>Note:</b> Make sure you include the dependency (bootstrap-typeahead.js) as presented in
+      <a href="https://github.com/warpech/jquery-handsontable">README.md</a>. This is a&nbsp;<em>modified</em> file from Bootstrap library.
     </p>
 
     <div id="example3grid" class="dataTable"></div>
@@ -379,6 +382,11 @@
     <h3>Context menu</h3>
 
     <p>Right click to see the context menu.</p>
+
+    <p>
+      <b>Note:</b> Make sure you include the dependencies (jquery.contextMenu.js, jquery.contextMenu.css, jquery.ui.position.js) as presented in
+      <a href="https://github.com/warpech/jquery-handsontable">README.md</a>.
+    </p>
 
     <div id="example7grid" class="dataTable"></div>
 
