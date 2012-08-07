@@ -1,4 +1,5 @@
 (function ($) {
+  "use strict";
   /**
    * Handsontable ColHeader extension
    * @param {Object} instance

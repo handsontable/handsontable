@@ -1,4 +1,5 @@
 (function ($) {
+  "use strict";
   /**
    * Handsontable BlockedRows class
    * @param {Object} instance

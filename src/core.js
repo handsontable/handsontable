@@ -7,13 +7,13 @@
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
-"use strict";
 var Handsontable = { //class namespace
   extension: {}, //extenstion namespace
   helper: {} //helper namespace
 };
 
 (function ($, window, Handsontable) {
+  "use strict";
   Handsontable.Core = function (container, settings) {
     this.container = container;
 

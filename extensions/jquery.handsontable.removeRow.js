@@ -1,4 +1,5 @@
 (function ($) {
+  "use strict";
   /**
    * Handsontable RemoveRow extension. See `demo/buttons.html` for example usage
    * @param {Object} instance

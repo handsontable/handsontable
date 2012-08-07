@@ -7,13 +7,13 @@
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
-"use strict";
 var Handsontable = { //class namespace
   extension: {}, //extenstion namespace
   helper: {} //helper namespace
 };
 
 (function ($, window, Handsontable) {
+  "use strict";
   Handsontable.Core = function (container, settings) {
     this.container = container;
 
@@ -2747,6 +2747,7 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
 
 
 (function ($) {
+  "use strict";
   /**
    * Handsontable UndoRedo class
    */
@@ -2826,6 +2827,7 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
   };
 })(jQuery);
 (function ($) {
+  "use strict";
   /**
    * Handsontable BlockedRows class
    * @param {Object} instance
@@ -3024,6 +3026,7 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
   };
 })(jQuery);
 (function ($) {
+  "use strict";
   /**
    * Handsontable BlockedCols class
    * @param {Object} instance
@@ -3205,6 +3208,7 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
   Handsontable.BlockedCols.prototype.headerText = Handsontable.BlockedRows.prototype.headerText;
 })(jQuery);
 (function ($) {
+  "use strict";
   /**
    * Handsontable RowHeader extension
    * @param {Object} instance
@@ -3262,6 +3266,7 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
   };
 })(jQuery);
 (function ($) {
+  "use strict";
   /**
    * Handsontable ColHeader extension
    * @param {Object} instance
