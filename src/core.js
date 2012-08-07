@@ -2389,7 +2389,17 @@ var Handsontable = { //class namespace
     this.getCell = function (row, col) {
       return grid.getCellAtCoords({row: row, col: col});
     };
-
+	
+    /**
+     * Returns value corresponding to params row, col
+     * @param {Number} row
+     * @param {Number} col
+     * @public
+     * @return {string}
+     */
+    this.getDataAtCell = function (row, col) {
+      return datamap.get(row,col);
+    };
     /**
      * Returns cell meta data object corresponding to params row, col
      * @param {Number} row
@@ -2403,6 +2413,22 @@ var Handsontable = { //class namespace
       }
     };
 
+   /**
+    * Sets the cell to readonly
+    */
+    this.setCellReadOnly = function(row, col) {
+       var $td = $(grid.getCellAtCoords({row: row, col: col}));
+       $td.data("readOnly",true);
+   };
+
+	  /**
+	   * Set Cell as Editable
+	   */
+	 this.setCellEditable =  function(rowdata, coldata)
+	   {
+			var $td = $(grid.getCellAtCoords({row: rowdata, col: coldata}));
+            $td.data("readOnly", false);
+	   };
     /**
      * Returns headers (if they are enabled)
      * @param {Object} obj Instance of rowHeader or colHeader
@@ -2713,3 +2739,4 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
       keyCode >= 226 || //special chars (229 for Asian chars)
       (keyCode >= 65 && keyCode <= 90)); //a-z
 };
+
