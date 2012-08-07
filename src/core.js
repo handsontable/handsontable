@@ -2389,17 +2389,18 @@ var Handsontable = { //class namespace
     this.getCell = function (row, col) {
       return grid.getCellAtCoords({row: row, col: col});
     };
-	
+
     /**
-     * Returns value corresponding to params row, col
+     * Returns value corresponding to cell at row, col
      * @param {Number} row
      * @param {Number} col
      * @public
      * @return {string}
      */
     this.getDataAtCell = function (row, col) {
-      return datamap.get(row,col);
+      return datamap.get(row, col);
     };
+
     /**
      * Returns cell meta data object corresponding to params row, col
      * @param {Number} row
@@ -2413,22 +2414,26 @@ var Handsontable = { //class namespace
       }
     };
 
-   /**
-    * Sets the cell to readonly
-    */
-    this.setCellReadOnly = function(row, col) {
-       var $td = $(grid.getCellAtCoords({row: row, col: col}));
-       $td.data("readOnly",true);
-   };
+    /**
+     * Sets cell to be readonly
+     * @param {Number} row
+     * @param {Number} col
+     * @public
+     */
+    this.setCellReadOnly = function (row, col) {
+      $(grid.getCellAtCoords({row: row, col: col})).data("readOnly", true);
+    };
 
-	  /**
-	   * Set Cell as Editable
-	   */
-	 this.setCellEditable =  function(rowdata, coldata)
-	   {
-			var $td = $(grid.getCellAtCoords({row: rowdata, col: coldata}));
-            $td.data("readOnly", false);
-	   };
+    /**
+     * Sets cell to be editable (removes readonly)
+     * @param {Number} row
+     * @param {Number} col
+     * @public
+     */
+    this.setCellEditable = function (row, col) {
+      $(grid.getCellAtCoords({row: row, col: col})).data("readOnly", false);
+    };
+
     /**
      * Returns headers (if they are enabled)
      * @param {Object} obj Instance of rowHeader or colHeader

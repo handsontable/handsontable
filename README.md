@@ -58,6 +58,7 @@ Maybe you want to show some default data. Use the `handsontable('loadData', data
  handsontable('updateSettings', options)                                               | Method      | Use it if you need to change configuration after initialization
  handsontable('loadData', data, [allowHtml=false])                                     | Method      | Reset all cells in the grid to contain data from the `data` array. Any HTML in `data` is escaped unless you set `allowHtml` to true
  handsontable('setDataAtCell',&nbsp;row,&nbsp;col,&nbsp;value,&nbsp;[allowHtml=false]) | Method      | Set new value to a cell. Any HTML in `value` is escaped unless you set `allowHtml` to true. To change many cells at once, pass an array of changes in format [[row, col, value, allowHtml], ...] as the only parameter.
+ handsontable('getDataAtCell', row, col)                                               | Method      | Returns value corresponding to cell at `row`, `col`
  handsontable('clear')                                                                 | Method      | Empty all cells
  handsontable('clearUndo')                                                             | Method      | Clear undo history
  handsontable('getData', [asReference=false])                                          | Method      | Returns 2-dimensional array with a copy of the current grid data. Optionally, set param `asReference` to true, to return the internal data array as reference. That is faster but should be used only to READ data (otherwise you will mess up the DOM table). To write data, you should always use method `setDataAtCell`.
@@ -72,6 +73,8 @@ Maybe you want to show some default data. Use the `handsontable('loadData', data
  handsontable('getSelected')                                                           | Method      | Return index of the currently selected cells as an array [`topLeftRow`, `topLeftCol`, `bottomRightRow`, `bottomRightCol`]
  handsontable('getRowHeader', [row])                                                   | Method      | Return array of row headers (if they are enabled). If param `row` given, return header at given row as string
  handsontable('getColHeader', [col])                                                   | Method      | Return array of col headers (if they are enabled). If param `col` given, return header at given col as string
+ handsontable('setCellReadOnly', row, col)                                             | Method      | Sets cell to be readonly
+ handsontable('setCellEditable', row, col)                                             | Method      | Sets cell to be editable (removes readonly)
 
 ## Options
 
