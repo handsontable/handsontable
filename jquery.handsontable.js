@@ -19,21 +19,22 @@ var Handsontable = { //class namespace
 
     var priv, datamap, grid, selection, editproxy, highlight, autofill, interaction, self = this;
 
-    priv = {
-      settings: {},
-      isMouseOverTable: false,
-      isMouseDown: false,
-      isCellEdited: false,
-      selStart: null,
-      selEnd: null,
-      editProxy: false,
-      isPopulated: null,
-      scrollable: null,
-      hasLegend: null,
-      lastAutoComplete: null,
-      undoRedo: null,
-      extensions: {}
-    };
+        priv = {
+            settings: {},
+            isMouseOverTable: false,
+            isMouseDown: false,
+            isCellEdited: false,
+            selStart: null,
+            selEnd: null,
+            editProxy: false,
+            isPopulated: null,
+            scrollable: null,
+            hasLegend: null,
+            lastAutoComplete: null,
+            undoRedo: null,
+            locking: null,
+            extensions: {}
+        };
 
     var lastChange = '';
 
@@ -1971,6 +1972,12 @@ var Handsontable = { //class namespace
             case "redo":
               priv.undoRedo[key]();
               break;
+                        case "lock_cell":
+                            priv.locking.lockCells(coords.TL, coords.BR);
+                            break;
+                        case "unlock_cell":
+                            priv.locking.unlockCells(coords.TL, coords.BR);
+                            break;
           }
         };
 
@@ -2011,7 +2018,16 @@ var Handsontable = { //class namespace
           "col_right": {name: "Insert column on the right", disabled: isDisabled},
           "sep3": "---------",
           "remove_row": {name: "Remove row", disabled: isDisabled},
-          "remove_col": {name: "Remove column", disabled: isDisabled}
+                    "remove_col": { name: "Remove column", disabled: isDisabled },
+                    "sep4": "---------",
+                    "lock_cell": { name: "Lock", disabled: function () {
+                        return priv.locking ? !priv.locking.anyCellsUnlocked() : true
+                    } 
+                    },
+                    "unlock_cell": { name: "Unlock", disabled: function () {
+                        return priv.locking ? !priv.locking.anyCellsLocked() : true
+                    } 
+                    }
         };
 
         if (priv.settings.contextMenu === true) { //contextMenu is true, not an array
@@ -2242,6 +2258,14 @@ var Handsontable = { //class namespace
         }
       }
 
+            if (typeof settings.locking !== "undefined") {
+                if (priv.locking && settings.locking === false) {
+                    priv.locking = null;
+                }
+                else if (!priv.locking && settings.locking === true) {
+                    priv.locking = new Handsontable.Locking(self, grid, selection);
+                }
+            }
       if (!self.blockedCols) {
         self.blockedCols = new Handsontable.BlockedCols(self);
         self.blockedRows = new Handsontable.BlockedRows(self);
@@ -2402,16 +2426,35 @@ var Handsontable = { //class namespace
     };
 
     /**
-     * Returns cell meta data object corresponding to params row, col
-     * @param {Number} row
-     * @param {Number} col
+        * Returns cell meta data object corresponding to params rowOrCell, col
+        * @param {Number} or {td DOM object} rowOrCell
+        * @param {Number} col Optional if rowOrCell is a td
      * @public
      * @return {Object}
      */
-    this.getCellMeta = function (row, col) {
-      return {
-        isWritable: grid.isCellWritable($(grid.getCellAtCoords({row: row, col: col})))
-      }
+        this.getCellMeta = function (rowOrCell, col) {
+            var cell = $(typeof rowOrCell == "number" ? self.getCell(rowOrCell, col) : rowOrCell);
+            var locked = cell.data('readOnly');
+            //var formula = cell.data('formula');
+            var result = {};
+            if (locked)
+                result.locked = true;
+            //        if (formula) {
+            //            result.formula = formula;
+            //        }
+            return result;
+        };
+        /**
+        * Returns 2-dimensional array with meta data object corresponding to params row, col
+        * @public
+        * @return {Array}
+        */
+        this.getMeta = function () {
+            return $.map(priv.tableBody.childNodes, function (tr) {
+                return [$.map($(tr.childNodes).slice(self.blockedCols.count()), self.getCellMeta)];
+            });
+        };
+        this.setMeta = function (meta) {
     };
 
     /**
@@ -3325,4 +3368,47 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
   Handsontable.ColHeader.prototype.destroy = function () {
     this.instance.blockedRows.destroyHeader(this.className);
   };
+})(jQuery);
+﻿(function ($) {
+    /**
+    * Handsontable Locking extension
+   * @param {Object} instance
+   * @param {Object} grid
+   * @param {Object} selection
+   */
+    Handsontable.Locking = function (instance, grid, selection) {
+        var that = this;
+        this.instance = instance;
+        this.grid = grid;
+        this.selection = selection;
+    };
+
+
+    Handsontable.Locking.prototype.anyCellsLocked = function () {
+        var cells = this.grid.getCellsAtCoords(this.selection.start(), this.selection.end());
+        var any = false;
+        $.each(cells, function () {
+            return !(any = $(this).data('readOnly'));
+        });
+        return any;
+    };
+
+    Handsontable.Locking.prototype.anyCellsUnlocked = function () {
+        var cells = this.grid.getCellsAtCoords(this.selection.start(), this.selection.end());
+        var any = false;
+        $.each(cells, function () {
+            return !(any = !$(this).data('readOnly'));
+        });
+        return any;
+    };
+
+    Handsontable.Locking.prototype.lockCells = function (to, from) {
+        var cells = this.grid.getCellsAtCoords(to, from);
+        $(cells).data("readOnly", true).toggleClass('locked', true);
+    };
+
+    Handsontable.Locking.prototype.unlockCells = function (to, from) {
+        var cells = this.grid.getCellsAtCoords(to, from);
+        $(cells).data("readOnly", false).toggleClass('locked', false);
+    };
 })(jQuery);
