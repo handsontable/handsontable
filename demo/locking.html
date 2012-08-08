@@ -57,10 +57,10 @@
     <br><a href="../index.html">&lt; back to main</a>
   </div>
 
-  <h2>Formulas</h2>
+  <h2>Locking</h2>
 
-  <p>Extension to provide very basic cell calculations - very beta, lots of work left to do.</p>
-  <p>Enter the formula "=B2+B3+B4" in cell B5 to see the sum of the cells</p>
+  <p>Context menu with lock/unlock options to toggle selected cell(s).</p>
+  <p>Lock some cells and then click the Show Meta button to see the meta data provided by the getMeta method.</p>
 
   
   <div id="exampleGrid" class="dataTable"></div>
@@ -69,32 +69,32 @@
 	<textarea id="meta" style="width:400px;height:100px;"></textarea>
 
 	<script>
-    var container = $("#exampleGrid");
+		var container = $("#exampleGrid");
 
-    container.handsontable({
-      rows: 10,
-      cols: 8,
-      rowHeaders: true,
-      colHeaders: true,
-      minSpareCols: 1,
-      minSpareRows: 1,
-      contextMenu: true,
-      Formulas: true
-    });
+		container.handsontable({
+			rows: 10,
+			cols: 8,
+			rowHeaders: true,
+			colHeaders: true,
+			minSpareCols: 1,
+			minSpareRows: 1,
+			contextMenu: ["lock_cell", "unlock_cell", "sep1", "row_above", "row_below", "sep2", "col_left", "col_right", "sep3", "remove_row", "remove_col"],
+			locking: true
+		});
 
-    var data = [
+		var data = [
       ["", "Kia", "Nissan", "Toyota", "Honda"],
       ["2008", 10, 11, 12, 13],
       ["2009", 20, 11, 14, 13],
       ["2010", 30, 15, 12, 13]
     ];
 
-    container.handsontable("loadData", data);
+		container.handsontable("loadData", data);
 
-    $('#showMeta').click(function () {
-    	var meta = $("#exampleGrid").handsontable('getMeta');
-        $('#meta').val(JSON.stringify(meta));
-    });
+		$('#showMeta').click(function () {
+			var meta = $("#exampleGrid").handsontable('getMeta');
+			$('#meta').val(JSON.stringify(meta));
+		});
   </script>
 
   <h3>About</h3>
