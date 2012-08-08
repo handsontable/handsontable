@@ -2454,8 +2454,7 @@ var Handsontable = { //class namespace
                 return [$.map($(tr.childNodes).slice(self.blockedCols.count()), self.getCellMeta)];
             });
         };
-        this.setMeta = function (meta) {
-    };
+      
 
     /**
      * Sets cell to be readonly
