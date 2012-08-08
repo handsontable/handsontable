@@ -1,5 +1,5 @@
 <!doctype html>
-<html xmlns="http://www.w3.org/1999/html">
+<html>
 <head>
   <meta charset='utf-8'>
   <title>Pre-populate new rows from template - Handsontable</title>
@@ -100,26 +100,27 @@
       contextMenu: true,
       legend: [
         {
-          match: function (row, col, data) {
+          match: function (row, col, dataFn) {
             if (row === 0) {
               return;
             }
 
-            var data = data();
+            var data = dataFn();
             var empty = countEmpty(data[row]);
+            var c, clen, td;
             if (empty === data[row].length) {
               //whole row is empty
-              for (var c = 0, clen = tpl.length; c < clen; c++) {
-                var td = container.handsontable('getCell', row, c);
+              for (c = 0, clen = tpl.length; c < clen; c++) {
+                td = container.handsontable('getCell', row, c);
                 td.innerHTML = tpl[c];
                 td.className = "placeholder";
               }
             }
             else {
-              var td = container.handsontable('getCell', row, 0);
+              td = container.handsontable('getCell', row, 0);
               if (td.className === 'placeholder') {
-                for (var c = 0, clen = tpl.length; c < clen; c++) {
-                  var td = container.handsontable('getCell', row, c);
+                for (c = 0, clen = tpl.length; c < clen; c++) {
+                  td = container.handsontable('getCell', row, c);
                   td.className = "";
                 }
               }
