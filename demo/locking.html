@@ -12,8 +12,6 @@
    - jquery.contextMenu.js  - is required only if you need the context menu feature
    - jquery.contextMenu.css - is required only if you need the context menu feature
    - jquery.ui.position.js  - is required only if you need the context menu feature
-   - jquery.handsontable.removeRow.js  - is required only if you need the RemoveRow button
-   - jquery.handsontable.removeRow.css - is required only if you need the RemoveRow button
    - json2.min  - is required only to use JSON.stringify to display the meta
   -->
   <script src="../lib/jquery.min.js"></script>
@@ -22,7 +20,7 @@
   <script src="../lib/jquery.autoresize.js"></script>
   <script src="../lib/jQuery-contextMenu/jquery.contextMenu.js"></script>
   <script src="../lib/jQuery-contextMenu/jquery.ui.position.js"></script>
-  <script src="demo/js/json2.min.js"></script>
+  <script src="js/json2.min.js"></script>
   <link rel="stylesheet" media="screen" href="../lib/jQuery-contextMenu/jquery.contextMenu.css">
   <link rel="stylesheet" media="screen" href="../jquery.handsontable.css">
 
@@ -59,10 +57,10 @@
     <br><a href="../index.html">&lt; back to main</a>
   </div>
 
-  <h2>Locking</h2>
+  <h2>Formulas</h2>
 
-  <p>Context menu with lock/unlock options to toggle selected cell(s).</p>
-  <p>Lock some cells and then click the Show Meta button to see the meta data provided by the getMeta method.</p>
+  <p>Extension to provide very basic cell calculations - very beta, lots of work left to do.</p>
+  <p>Enter the formula "=B2+B3+B4" in cell B5 to see the sum of the cells</p>
 
   
   <div id="exampleGrid" class="dataTable"></div>
@@ -80,8 +78,8 @@
       colHeaders: true,
       minSpareCols: 1,
       minSpareRows: 1,
-      contextMenu: ["lock_cell","unlock_cell","sep1", "row_above", "row_below", "sep2", "col_left", "col_right", "sep3", "remove_row", "remove_col"],
-      locking: true
+      contextMenu: true,
+      Formulas: true
     });
 
     var data = [
