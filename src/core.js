@@ -695,8 +695,10 @@ var Handsontable = { //class namespace
             r = -1;
           }
         }
-        endTd = self.setDataAtCell(setData, null, null, null, source || 'populateFromArray');
-        return endTd;
+        if (setData.length>0) {
+            endTd = self.setDataAtCell(setData, null, null, null, source || 'populateFromArray');
+            return endTd;
+        }
       },
 
       /**
@@ -1306,7 +1308,8 @@ var Handsontable = { //class namespace
                     row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
                     col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
                   }, null, 'paste');
-              selection.setRangeEnd(endTd);
+                if (endTd)
+                  selection.setRangeEnd(endTd);
             }, 100);
           }
         }
