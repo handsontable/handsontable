@@ -276,7 +276,7 @@ $(function () {
             dataType: "json",
             type: "POST",
             data: change, //contains changed cells' data
-            success: function (data) {
+            complete: function (data) {
               $console.text('Autosaved (' + change.length + ' cell' + (change.length > 1 ? 's' : '') + ')');
               autosaveNotification = setTimeout(function () {
                 $console.text('Changes will be autosaved');
@@ -315,7 +315,7 @@ $(function () {
           }
         },
         error: function () {
-          $console.text('Save error');
+          $console.text('Save error. POST method is not allowed on GitHub Pages. Run this example on your own server to see the success message.');
         }
       });
     });
