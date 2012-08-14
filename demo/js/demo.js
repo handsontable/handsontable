@@ -57,6 +57,17 @@ $(function () {
           style: {
             fontStyle: 'italic' //make cells text in this column written in italic
           }
+        },
+        {
+          match: function (row, col, data) {
+            return (col === 0 && data()[row][col]); //if it is first column
+          },
+          icon: {
+            src: "http://upload.wikimedia.org/wikipedia/commons/7/75/Information-silk.png",
+            click: function (row, col, data, icon) {
+              alert("The icon in row " + row + " and column " + col + " was clicked.");
+            }
+          }
         }
       ]
     });
