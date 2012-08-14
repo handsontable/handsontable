@@ -157,6 +157,20 @@ textarea.handsontableInput {
   overflow: hidden;
 }
 
+/* legend icons. Needed only if you are using icons in your legend */
+.dataTable td {
+  line-height: 21px;
+}
+
+.dataTable .icon {
+  cursor: pointer;
+  margin-left: 1px;
+  padding-left: 2px;
+  margin-top: 5px;
+  vertical-align: bottom;
+  float: right;
+}
+
 /* typeahead rules. Needed only if you are using the autocomplete feature */
 .typeahead {
   position: absolute;
