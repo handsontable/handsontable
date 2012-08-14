@@ -123,7 +123,11 @@ legend: [
       fontWeight: 'bold'
     },
     title: 'Heading', //make some tooltip
-    readOnly: true //make it read-only
+    readOnly: true, //make it read-only
+    icon: {
+      src: "/calendar.png", // url to icon (16 x 16)
+      click: initCalendar // function to call when the icon is clicked
+    }
   }
 ```
 
