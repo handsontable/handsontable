@@ -32,7 +32,8 @@ var Handsontable = { //class namespace
       hasLegend: null,
       lastAutoComplete: null,
       undoRedo: null,
-      extensions: {}
+      extensions: {},
+      legendDirty: null
     };
 
     var lastChange = '';
