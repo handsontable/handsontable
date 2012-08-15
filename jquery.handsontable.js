@@ -644,10 +644,13 @@ var Handsontable = { //class namespace
               if (typeof legend.icon !== "undefined" &&
                   typeof legend.icon.src !== "undefined" &&
                   typeof legend.icon.click !== "undefined") {
-                $img = $('<img />').attr('src', legend.icon.src).addClass('icon');                $img.on("click", function (e) {
-                  var func = legend.icon.click;
-                  func.call(self, priv.selStart.row, priv.selStart.col, datamap.getAll, e.target);
-                });
+                $img = $('<img />').attr('src', legend.icon.src).addClass('icon');
+                $img.on("click", (function (legend) {
+                  return function (e) {
+                    var func = legend.icon.click;
+                    func.call(self, priv.selStart.row, priv.selStart.col, datamap.getAll, e.target);
+                  }
+                })(legend));
                 $td.append($img);
               }
             }

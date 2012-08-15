@@ -68,6 +68,17 @@ $(function () {
               alert("The icon in row " + row + " and column " + col + " was clicked.");
             }
           }
+        },
+        {
+          match: function (row, col, data) {
+            return (col === 1 && data()[row][col]); //if it is first column
+          },
+          icon: {
+            src: "http://upload.wikimedia.org/wikipedia/commons/7/75/Information-silk.png",
+            click: function (row, col, data, icon) {
+              alert("The aicon in row " + row + " and column " + col + " was clicked." + icon);
+            }
+          }
         }
       ]
     });

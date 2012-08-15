@@ -629,16 +629,30 @@ var Handsontable = { //class namespace
           var $td = $(grid.getCellAtCoords(coords));
           $td.removeAttr("style").removeAttr("title").removeData("readOnly");
           $td[0].className = '';
+          $td.find("img").remove();
         }
         if (priv.settings.legend) {
           for (var j = 0, jlen = priv.settings.legend.length; j < jlen; j++) {
-            var legend = priv.settings.legend[j];
+            var legend = priv.settings.legend[j],
+                $img;
             if (legend.match(coords.row, coords.col, datamap.getAll)) {
               priv.hasLegend = true;
               typeof legend.style !== "undefined" && $td.css(legend.style);
               typeof legend.readOnly !== "undefined" && $td.data("readOnly", legend.readOnly);
               typeof legend.title !== "undefined" && $td.attr("title", legend.title);
               typeof legend.className !== "undefined" && $td.addClass(legend.className);
+              if (typeof legend.icon !== "undefined" &&
+                  typeof legend.icon.src !== "undefined" &&
+                  typeof legend.icon.click !== "undefined") {
+                $img = $('<img />').attr('src', legend.icon.src).addClass('icon');
+                $img.on("click", (function (legend) {
+                  return function (e) {
+                    var func = legend.icon.click;
+                    func.call(self, priv.selStart.row, priv.selStart.col, datamap.getAll, e.target);
+                  }
+                })(legend));
+                $td.append($img);
+              }
             }
           }
         }
@@ -2041,7 +2055,7 @@ var Handsontable = { //class namespace
             for (var a = 0, alen = priv.settings.autoComplete.length; a < alen; a++) {
               var autoComplete = priv.settings.autoComplete[a];
               var source = autoComplete.source();
-              if (autoComplete.match(changes[c][0], changes[c][1])) {
+              if (autoComplete.match(changes[c][0], changes[c][1], datamap.getAll)) {
                 var lowercaseVal = changes[c][3].toLowerCase();
                 for (var s = 0, slen = source.length; s < slen; s++) {
                   if (changes[c][3] === source[s]) {
