@@ -101,6 +101,8 @@ The table below presents configuration options that are interpreted by `handsont
  `autoWrapCol`        | Boolean                               | false            | If true, pressing ENTER or down arrow in the last row will move to first row in next column
  `legend`             | Array                                 | _undefined_      | Legend definitions. See **Defining legend**
  `autocomplete`       | Array                                 | _undefined_      | Autocomplete definitions. See **Defining autocomplete**
+ `formatting`         | Array                                 | null             | Formatting definitions. See **Defining formatting**
+ `formattingSettings` | Array                                 | ->               | See **formattingSettings** for the defaults.  You can override them as needed.
  `onSelection`        | Function(r,&nbsp;c,&nbsp;r2,&nbsp;c2) | _undefined_      | Callback to be fired before one or more cells is selected. Params `r, c` are the coordinates of the selection start, params `r2, c2` are the selection end. You can call updateSettings from inside, e.g. if you want to disable fillHandle in one column.
  `onBeforeChange`     | Function(changes)                     | _undefined_      | Callback to be fired before one or more cells is changed (with changes array as an argument). Its main purpose is validation of the input. You can disregard a single change by setting `changes[i][3]` to false, or cancel all edit by returning false.
  `onChange`           | Function(changes)                     | _undefined_      | Callback to be fired after one or more cells is changed (with changes array as an argument). Its main purpose is saving the input.
@@ -173,6 +175,116 @@ autoComplete: [
   }
 ],
 ```
+
+### Defining formatting
+
+The `formatting` option is an array of mixins that define formatting for the grid.
+
+  Available Formats    | Defaults (see below)                  | Description
+-----------------------|---------------------------------------|------------
+ `boolean`             | `["Yes", "No"]`                       | Changes `''`, `0`, `f`, `false`, `n`, and `no` to the false value and everything else to the true value.
+ `currency`            | `["$#,###,##0.00", "-$#,###,##0.00"]` | Formats numbers into currency.  If the number has more decimal places than in the format it will rounded.
+ `date`                | `"MM/dd/yyyy"`                        | Formats dates
+ `number`              | `["#,###,##0.###", "-#,###,##0.###"]` | Formats numbers.  If the number has more decimal places than in the format it will rounded.
+ `time`                | `"h:mm ap"`                           | Formats times
+
+You can also specify your own format with a custom function.
+
+Example:
+
+```js
+formatting: [
+  {
+    match: function (row, col, data) {
+      return (col === 0 && row > 0); //if it is first column not including row 0
+    },
+    format : "Currency"
+  },
+  {
+    match: function (row, col, data) {
+      return (col === 1 && row > 0); //if it is second column not including row 0
+    },
+    format : customFunction // call customFunction as the formatter
+  }
+
+```
+
+```js
+  // In this function "this" is the same object as when you call $("#dataTable").data('handsontable');
+  function customFunction(row, col, value, data) {
+    // do something to the value
+
+    return value; // return the formatted value
+
+  }
+```
+
+#### formattingSettings Legend
+
+ Legend  | Description
+---------|------------
+ `0`     | Required Number
+ `#`     | Optional Number
+ `-`     | Negative Symbol
+ `,`     | Digit Grouping Symbol
+ `$`     | Currency Symbol
+ `yy`    | 2 Digit Year
+ `yyyy`  | 4 Digit Year
+ `M`     | Month
+ `MM`    | Month (leading zero)
+ `d`     | Day
+ `dd`    | Day (leading zero)
+ `h`     | 12 Hour Time
+ `hh`    | 12 Hour Time (leading zero)
+ `H`     | 24 Hour Time
+ `HH`    | 24 Hour Time (leading zero)
+ `m`     | Minute
+ `mm`    | Minute (leading zero)
+ `s`     | Second
+ `ss`    | Second (leading zero)
+ `ap`    | Meridiem (AM/PM)
+
+#### formattingSettings
+
+ formattingSettings     | Default                               | Description
+------------------------|---------------------------------------|------------
+ numberDecimalSymbol    | `"."`                                 | The character used for the decimal symbol by number
+ numberNegativeSymbol   | `"-"`                                 | The character used for the negative symbol by number
+ numberGroupingSymbol   | `","`                                 | The character used for the grouping symbol by number
+ numberFormat           | `["#,###,##0.###", "-#,###,##0.###"]` | [Positive, Negative] formats used by number
+ currencySymbol         | `"$"`                                 | The character used for the currency symbol by currency
+ currencyDecimalSymbol  | `"."`                                 | The character used for the decimal symbol by currency
+ currencyNegativeSymbol | `"-"`                                 | The character used for the negative symbol by currency
+ currencyGroupingSymbol | `","`                                 | The character used for the grouping symbol by currency
+ currencyFormat         | `["$#,###,##0.00", "-$#,###,##0.00"]` | [Positive, Negative] formats used by currency
+ dateFormat             | `"MM/dd/yyyy"`                        | The format used by date
+ timeFormat             | `"h:mm ap"`                           | The format used by time
+ booleanValues          | `["Yes", "No"]`                       | [Positive, Negative] values used by boolean
+
+To customize the formattingSettings you can either specify them in the config:
+
+```js
+formattingSettings: {"timeFormat" : "HH:mm:ss"}
+```
+
+or
+
+use updateSettings:
+```js
+var options = {
+  formattingSettings: {
+    numberFormat : ["#,###,##0.0", "-#,###,##0.0"]
+  }
+};
+
+$("#dataTable").handsontable('updateSettings', options);
+```
+
+**Notes about formatting**
+
+* #,###,##0 will allow a maximum number of 9,999,999. If you type in 11,000,000 it will get cut off and be 1,000,000. If you need numbers larger than a million you must make the format larger.
+* Javascript cannot handle dates in the format `dd/MM/yyyy` and `yyyy/MM/dd`.
+* Javascript times must be similar to the format `h:m:s`.
 
 ## Similar projects
 

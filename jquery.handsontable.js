@@ -32,7 +32,213 @@ var Handsontable = { //class namespace
       hasLegend: null,
       lastAutoComplete: null,
       undoRedo: null,
-      extensions: {}
+      extensions: {},
+      formatting: null,
+      formattingSettings: {
+        /**
+          * 0    Required Number
+          * #    Optional Number
+          * -    Negative Symbol
+          * ,    Digit Grouping Symbol
+          * $    Currency Symbol
+          * yy   2 Digit Year
+          * yyyy 4 Digit Year
+          * M    Month
+          * MM   Month (leading zero)
+          * d    Day
+          * dd   Day (leading zero)
+          * h    12 Hour Time
+          * hh   12 Hour Time (leading zero)
+          * H    24 Hour Time
+          * HH   24 Hour Time (leading zero)
+          * m    Minute
+          * mm   Minute (leading zero)
+          * s    Second
+          * ss   Second (leading zero)
+          * ap   Meridiem (AM/PM)
+        */
+        numberDecimalSymbol: ".",
+        numberNegativeSymbol: "-",
+        numberGroupingSymbol: ",",
+        // Numbers will cut off if greater than the format
+        numberFormat: ["#,###,##0.###", "-#,###,##0.###"], // [Positive, Negative]
+        currencySymbol: "$",
+        currencyDecimalSymbol: ".",
+        currencyNegativeSymbol: "-",
+        currencyGroupingSymbol: ",",
+        currencyFormat: ["$#,###,##0.00", "-$#,###,##0.00"], // [Positive, Negative]
+        dateFormat: "MM/dd/yyyy", // javascript cannot handle dd/MM/yyyy and yyyy/MM/dd
+        timeFormat: "h:mm ap",
+        booleanValues: ["Yes", "No"] // [Positive, Negative]
+      },
+      availableFormatting: {
+        boolean: function formatBoolean(row, col, value) {
+          var values = priv.formattingSettings.booleanValues;
+          switch (value.toLowerCase()) {
+            case "":
+            case "0":
+            case "f":
+            case "false":
+            case "n":
+            case "no":
+              return values[1];
+          }
+          return values[0];
+        },
+        currency: function formatCurrency(row, col, value) {
+          var numberFormat = priv.formattingSettings.currencyFormat,
+              decimalSymbol = priv.formattingSettings.currencyDecimalSymbol,
+              negativeSymbol = priv.formattingSettings.currencyNegativeSymbol,
+              groupingSymbol = priv.formattingSettings.currencyGroupingSymbol,
+              currencySymbol = priv.formattingSettings.currencySymbol,
+              isNegative;
+          value = value.toString();
+          value = value.replace(groupingSymbol, "");
+          value = value.replace(currencySymbol, "");
+          if ($.isNumeric(value)) { // Formats like "123.45-" or "(123.45)" will currently fail
+            isNegative = parseFloat(value) < 0;
+            if (isNegative) {
+              numberFormat = numberFormat[1].toString();
+              value = value.replace(negativeSymbol, "");
+            } else {
+              numberFormat = numberFormat[0].toString();
+            }
+            value = formatANumber(value, numberFormat, isNegative, decimalSymbol, negativeSymbol, groupingSymbol);
+            value = value.replace("$", currencySymbol);
+          }
+          return value;
+        },
+        date: function formatDate(row, col, value) {
+          var date, dateFormat, isLongYear, isLeadingZeroMonth, isLeadingZeroDay, year, month, day;
+          date = new Date(value);
+          if (isNaN(date.getTime())) { // Valid Date?
+            return value;
+          }
+          dateFormat = priv.formattingSettings.dateFormat.toString();
+          isLongYear = dateFormat.search("yyyy") != -1;
+          isLeadingZeroMonth = dateFormat.search("MM") != -1;
+          isLeadingZeroDay = dateFormat.search("dd") != -1;
+          if (isLongYear) {
+            year = date.getFullYear();
+          } else {
+            year = date.getYear();
+          }
+          month = date.getMonth();
+          month = month + 1; // Months start at 0
+          month = month.toString();
+          if (isLeadingZeroMonth && month.length === 1) {
+            month = "0" + month;
+          }
+          day = date.getDate();
+          day = day.toString();
+          if (isLeadingZeroDay && day.length === 1) {
+            day = "0" + day;
+          }
+          if (isLongYear) {
+            dateFormat = dateFormat.replace("yyyy", year);
+          } else {
+            dateFormat = dateFormat.replace("yy", year);
+          }
+          if (isLeadingZeroMonth) {
+            dateFormat = dateFormat.replace("MM", month);
+          } else {
+            dateFormat = dateFormat.replace("M", month);
+          }
+          if (isLeadingZeroMonth) {
+            dateFormat = dateFormat.replace("dd", day);
+          } else {
+            dateFormat = dateFormat.replace("d", day);
+          }
+          return dateFormat;
+        },
+        number: function formatNumber(row, col, value) {
+          var numberFormat = priv.formattingSettings.numberFormat,
+              decimalSymbol = priv.formattingSettings.numberDecimalSymbol,
+              negativeSymbol = priv.formattingSettings.numberNegativeSymbol,
+              groupingSymbol = priv.formattingSettings.numberGroupingSymbol,
+              isNegative;
+          value = value.toString();
+          value = value.replace(groupingSymbol, "");
+          if ($.isNumeric(value)) { // Formats like "123.45-" or "(123.45)" will currently fail
+            isNegative = parseFloat(value) < 0;
+            if (isNegative) {
+              numberFormat = numberFormat[1].toString();
+              value = value.replace(negativeSymbol, "");
+            } else {
+              numberFormat = numberFormat[0].toString();
+            }
+            return formatANumber(value, numberFormat, isNegative, decimalSymbol, negativeSymbol, groupingSymbol);
+          }
+          return value;
+        },
+        time: function formatTime(row, col, value) {
+          var date, timeFormat, is24Hours, isPM, isLeadingZeroHour, isLeadingZeroMinute, isLeadingZeroSecond, hour, minute, second;
+          date = new Date("2000/01/01 " + value);
+          if (isNaN(date.getTime())) { // "2000/01/01 1" is not valid but add a colon and it is
+            date = new Date("2000/01/01 " + value + ":");
+          }
+          if (isNaN(date.getTime())) { // Valid Date?
+            return value;
+          }
+          timeFormat = priv.formattingSettings.timeFormat.toString();
+          is24Hours = timeFormat.search("H") != -1;
+          if (is24Hours) {
+            isLeadingZeroHour = timeFormat.search("HH") != -1;
+          } else {
+            isLeadingZeroHour = timeFormat.search("hh") != -1;
+          }
+          isLeadingZeroMinute = timeFormat.search("mm") != -1;
+          isLeadingZeroSecond = timeFormat.search("ss") != -1;
+          hour = date.getHours();
+          if (!is24Hours && hour > 11) {
+            isPM = true;
+            hour = (hour - 12);
+          }
+          if (!is24Hours && hour === 0) {
+            hour = 12;
+          }
+          hour = hour.toString();
+          minute = date.getMinutes();
+          minute = minute.toString();
+          if (isLeadingZeroMinute && minute.length === 1) {
+            minute = "0" + minute;
+          }
+          second = date.getDate();
+          second = second.toString();
+          if (isLeadingZeroSecond && second.length === 1) {
+            second = "0" + second;
+          }
+          if (is24Hours) {
+            if (isLeadingZeroHour) {
+              timeFormat = timeFormat.replace("HH", hour);
+            } else {
+              timeFormat = timeFormat.replace("H", hour);
+            }
+          } else {
+            if (isLeadingZeroHour) {
+              timeFormat = timeFormat.replace("hh", hour);
+            } else {
+              timeFormat = timeFormat.replace("h", hour);
+            }
+          }
+          if (isLeadingZeroMinute) {
+            timeFormat = timeFormat.replace("mm", minute);
+          } else {
+            timeFormat = timeFormat.replace("m", minute);
+          }
+          if (isLeadingZeroSecond) {
+            timeFormat = timeFormat.replace("ss", second);
+          } else {
+            timeFormat = timeFormat.replace("s", second);
+          }
+          if (isPM) {
+            timeFormat = timeFormat.replace("ap", "PM");
+          } else {
+            timeFormat = timeFormat.replace("ap", "AM");
+          }
+          return timeFormat;
+        }
+      }
     };
 
     var lastChange = '';
@@ -149,6 +355,109 @@ var Handsontable = { //class namespace
         }
       }
       return rows;
+    }
+
+    function formatANumber(value, numberFormat, isNegative, decimalSymbol, negativeSymbol, groupingSymbol) {
+      var tempValue, wholeFormat, decimalFormat, wholeUnits, decimalUnits, roundedUp, zeros, x, xlen;
+      tempValue = value.toString();
+      wholeFormat = numberFormat.split(".");
+      decimalFormat = (wholeFormat.length === 2 ? wholeFormat[1] : "");
+      wholeFormat = wholeFormat[0];
+
+      wholeUnits = tempValue.split(decimalSymbol);
+      decimalUnits = (wholeUnits.length === 2 ? wholeUnits[1] : "");
+      wholeUnits = wholeUnits[0];
+
+      // Decimal Units
+      roundedUp = false;
+      zeros = "";
+      if (decimalUnits.length > decimalFormat.length) {
+        tempValue = decimalUnits.slice(0, decimalFormat.length) + decimalSymbol + decimalUnits.slice(decimalFormat.length);
+        for (x = 0, xlen = tempValue.length; x < xlen; x += 1) {
+          if (tempValue[x] === "0") {
+            zeros = zeros + tempValue[x];
+          } else {
+            break;
+          }
+        }
+        decimalUnits = Math.round(tempValue);
+      }
+      decimalFormat = decimalFormat.split("").reverse();
+      if (decimalUnits === Math.pow(10, decimalFormat.length)) {
+        roundedUp = true;
+        decimalUnits = "";
+      }
+      decimalUnits = decimalUnits.toString();
+      for (x = 0, xlen = zeros.length; x < xlen; x += 1) {
+        if (decimalUnits.length < decimalFormat.length) {
+          decimalUnits = zeros[x] + decimalUnits;
+        }
+      }
+      decimalUnits = decimalUnits.split("").reverse();
+      decimalUnits = decimalUnits.join("");
+      if (decimalUnits) {
+        decimalUnits = parseInt(decimalUnits, 10).toString();
+      }
+      if (decimalUnits === "0") {
+        decimalUnits = "";
+      }
+      decimalUnits = decimalUnits.split("");
+      tempValue = "";
+      for (x = 0, xlen = decimalFormat.length ; x < xlen; x += 1) {
+        if (decimalFormat[x] === "0") { // Required
+          if (decimalUnits.length >= (x + 1)) {
+            tempValue = decimalUnits[x] + tempValue;
+          } else {
+            tempValue = tempValue + "0";
+          }
+        } else if (decimalFormat[x] === "#") {
+          if (decimalUnits.length > x) {
+              tempValue = decimalUnits[x] + tempValue;
+          }
+        }
+      }
+      decimalUnits = tempValue.toString();
+
+      // Whole Units
+      if (!wholeUnits) {
+        wholeUnits = 0;
+      }
+      wholeUnits = parseInt(wholeUnits, 10);
+      wholeUnits = Math.abs(wholeUnits);
+      if (roundedUp) {
+        wholeUnits = wholeUnits + 1;
+      }
+      wholeUnits = wholeUnits.toString();
+      wholeFormat = wholeFormat.split("").reverse();
+      wholeUnits = wholeUnits.split("").reverse();
+      tempValue = "";
+      for (x = 0, xlen = wholeFormat.length ; x < xlen; x += 1) {
+        if (wholeFormat[x] === "0") { // Required
+          if (wholeUnits.length >= (x + 1)) {
+            tempValue = wholeUnits[x] + tempValue;
+          } else {
+            tempValue = "0" + tempValue;
+          }
+        } else if (wholeFormat[x] === "#") {
+          if (wholeUnits.length >= (x + 1)) {
+            tempValue = wholeUnits[x] + tempValue;
+          }
+        } else if (wholeFormat[x] === ",") {
+          if (wholeUnits.length >= (x + 1)) {
+            tempValue = groupingSymbol + tempValue;
+            wholeUnits.splice(x, 0, ",");
+          }
+        } else if (wholeFormat[x] === "-") {
+          tempValue = negativeSymbol + tempValue;
+        } else {
+          tempValue = wholeFormat[x] + tempValue;
+        }
+      }
+      wholeUnits = tempValue.toString();
+      if (decimalUnits) {
+        return [wholeUnits, decimalUnits].join(decimalSymbol);
+      }
+      return wholeUnits;
     }
 
     datamap = {
@@ -2034,6 +2343,12 @@ var Handsontable = { //class namespace
       }
 
       self.container.on("beforedatachange.handsontable", function (event, changes) {
+        var c, clen;
+        if (priv.settings.formatting) { // format values first in case formatting affects autocomplete
+          for (c = 0, clen = changes.length; c < clen; c += 1) {
+            changes[c][3] = self.getFormattedValue(changes[c][0], changes[c][1], changes[c][3]);
+          }
+        }
         if (priv.settings.autoComplete) { //validate strict autocompletes
           var typeahead = priv.editProxy.data('typeahead');
           loop : for (var c = 0, clen = changes.length; c < clen; c++) {
@@ -2218,6 +2533,33 @@ var Handsontable = { //class namespace
     };
 
     /**
+     * Returns a formatted value for a row and col
+     * Useful to call before using setDataAtCell directly
+     * @param {Number} row
+     * @param {Number} col
+     * @param {String} value
+     * @returns {String}
+     */
+    this.getFormattedValue = function (row, col, value) {
+      var f, flen, formatting;
+      if (priv.settings.formatting) {
+        for (f = 0, flen = priv.settings.formatting.length; f < flen; f += 1) {
+          formatting = priv.settings.formatting[f];
+          if (formatting.match(row, col, datamap.getAll)) {
+            if (typeof formatting.format !== "undefined") {
+              if ($.isFunction(formatting.format)) {
+                return formatting.format.call(self, row, col, value, datamap.getAll);
+              } else if (priv.availableFormatting[formatting.format.toLowerCase()]) {
+                return priv.availableFormatting[formatting.format.toLowerCase()].call(self, row, col, value, datamap.getAll);
+              }
+            }
+          }
+        }
+      }
+      return value;
+    }
+
+    /**
      * Update settings
      * @public
      */
@@ -2245,6 +2587,15 @@ var Handsontable = { //class namespace
       if (!self.blockedCols) {
         self.blockedCols = new Handsontable.BlockedCols(self);
         self.blockedRows = new Handsontable.BlockedRows(self);
+      }
+
+      if (typeof settings.formattingSettings !== "undefined") {
+        for (i in settings.formattingSettings) {
+          if (settings.formattingSettings.hasOwnProperty(i)) {
+            priv.formattingSettings[i] = settings.formattingSettings[i];
+          }
+        }
+        delete settings.formattingSettings;
       }
 
       for (i in settings) {

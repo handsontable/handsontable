@@ -116,6 +116,9 @@
   <li><a href="#example9">Load &amp; Save
     <div class="arr"></div>
   </a></li>
+  <li><a href="#example10">Formatting
+    <div class="arr"></div>
+  </a></li>
   <li><a href="#example8">Advanced demos
     <div class="arr"></div>
   </a></li>
@@ -616,6 +619,103 @@
       $console.text('Changes will not be autosaved');
     }
   });
+&lt;/script&gt;</pre>
+  </div>
+</div>
+
+<a name="example10"></a>
+
+<div id="example10container" class="example">
+  <div class="pad">
+    <h3>Formatting</h3>
+
+    <p>The <b>formatting</b> feature allows for data to be formatted as required.</p>
+
+    <p>In the below example the following columns are formatted as:</p>
+
+    <ol start="2">
+      <li>Boolean</li>
+      <li>Number</li>
+      <li>Currency</li>
+      <li>Currency</li>
+      <li>Date</li>
+      <li>A Custom Function - adds &quot;#&quot; to the beginning of the content.</li>
+    </ol>
+
+    <p>If you take a look below you will notice that the data is being fed to the handsontable unformatted.  Also to demonstrate rounding the Beer Stein has a weight of 0.99999 but only 3 decimal places are allowed.</p>
+
+    <div id="example10grid" class="dataTable"></div>
+
+    <p>Code:</p>
+
+    <pre class="html">&lt;div id="example10grid" class="dataTable"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  // In this function "this" is the same object as when you call $("#example10grid").data('handsontable');
+  function customFormattingFunction(row, col, value, data) {
+    value = value.trim();
+    if (value[0] !== "#") {
+      value = "#" + value;
+    }
+    return value;
+  }
+
+  $("#example10grid").handsontable({
+    rows: 5,
+    cols: 5,
+
+    rowHeaders: true,
+    colHeaders: true,
+
+    fillHandle: false, //fillHandle can be turned off
+
+    formatting: [
+      {
+        match : function (row, col, data) {
+          // The second column from row 2 on
+          return row >= 1 && col === 1;
+        },
+        format : "boolean"
+      },
+      {
+        match : function (row, col, data) {
+          // The third column from row 2 on
+          return row >= 1 && col === 2;
+        },
+        format : "number"
+      },
+      {
+        match : function (row, col, data) {
+          // The fourth and fifth columns from row 2 on
+          return row >= 1 && (col === 3 || col === 4);
+        },
+        format : "currency"
+      },
+      {
+        match : function (row, col, data) {
+          // The sixth columns from row 2 on
+          return row >= 1 && col === 5;
+        },
+        format : "date"
+      },
+      {
+        match : function (row, col, data) {
+          // The seventh columns from row 2 on
+          return row >= 1 && col === 6;
+        },
+        format : customFormattingFunction
+      }
+    ],
+  });
+
+  var data = [
+    ["Product Name", "Is Purchasable?", "Weight", "Price", "Sale Price", "On Sale Till Date", "Product Rank"],
+    ["Coffee Mug", "t", "0.500", "$10", "9.30", "2012/20/09", "2"],
+    ["Beer Stein", "f", "0.99999", "30", "", "", "1"],
+    ["Wine Glass", "1", "0.75", "25", "22.5", "1/1/2013", "3"]
+  ];
+
+  $("#example10grid").handsontable("loadData", data);
 &lt;/script&gt;</pre>
   </div>
 </div>

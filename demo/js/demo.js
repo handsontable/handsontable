@@ -328,6 +328,90 @@ $(function () {
         $console.text('Changes will not be autosaved');
       }
     });
+
+
+
+    /**
+     * Example 10
+     */
+    // In this function "this" is the same object as when you call $("#example10grid").data('handsontable');
+    function customFormattingFunction(row, col, value, data) {
+        value = value.trim();
+        if (value[0] !== "#") {
+            value = "#" + value;
+        }
+        return value;
+    }
+
+    $("#example10grid").handsontable({
+      rows: 8,
+      cols: 7,
+
+      rowHeaders: true,
+      colHeaders: true,
+
+      fillHandle: false, //fillHandle can be turned off
+
+      legend: [
+        {
+          match : function (row, col, data) {
+            // The second column from row 2 on
+            return row == 0;
+          },
+          style: {
+            "font-weight" : "bold",
+            "color" : "green"
+          }
+        }
+      ],
+
+      formatting: [
+        {
+          match : function (row, col, data) {
+            // The second column from row 2 on
+            return row >= 1 && col === 1;
+          },
+          format : "boolean"
+        },
+        {
+          match : function (row, col, data) {
+            // The third column from row 2 on
+            return row >= 1 && col === 2;
+          },
+          format : "number"
+        },
+        {
+          match : function (row, col, data) {
+            // The fourth and fifth columns from row 2 on
+            return row >= 1 && (col === 3 || col === 4);
+          },
+          format : "currency"
+        },
+        {
+          match : function (row, col, data) {
+            // The sixth columns from row 2 on
+            return row >= 1 && col === 5;
+          },
+          format : "date"
+        },
+        {
+          match : function (row, col, data) {
+            // The seventh columns from row 2 on
+            return row >= 1 && col === 6;
+          },
+          format : customFormattingFunction
+        }
+      ],
+    });
+
+    var data = [
+      ["Product Name", "Is Purchasable?", "Weight", "Price", "Sale Price", "On Sale Till Date", "Product Rank"],
+      ["Coffee Mug", "t", "0.500", "$10", "9.30", "2012/20/09", "2"],
+      ["Beer Stein", "f", "0.99999", "30", "", "", "1"],
+      ["Wine Glass", "1", "0.75", "25", "22.5", "1/1/2013", "3"]
+    ];
+
+    $("#example10grid").handsontable("loadData", data);
   }
 
   loadExamples();
