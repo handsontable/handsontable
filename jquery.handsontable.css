@@ -29,6 +29,9 @@
   padding: 0 4px 0 4px; /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
 }
 
+.dataTable td.locked {
+  background-color: #EEE;	
+}
 .dataTable div.minWidthFix {
   width: 50px;
 }
