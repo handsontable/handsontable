@@ -33,7 +33,8 @@ var Handsontable = { //class namespace
       hasLegend: null,
       lastAutoComplete: null,
       undoRedo: null,
-      extensions: {}
+      extensions: {},
+      legendDirty: null
     };
 
     var lastChange = '';
@@ -2233,6 +2234,34 @@ var Handsontable = { //class namespace
     };
 
     /**
+     * Refreshes the legend for a cell, row, col, or entire table
+     * @public
+     * @param {Number} [row] - Optional to update a single row
+     * @param {Number} [col] - Optional to update a single col
+     */
+    this.refreshLegend = function (row, col) {
+      var rowLen, colLen, x, xLen, y, yLen;
+      if (typeof row !== "undefined" && row !== null) {
+        rowLen = row + 1;
+      } else {
+        row = 0;
+        rowLen = self.rowCount;
+      }
+      if (typeof col !== "undefined" && col !== null) {
+        colLen = col + 1;
+      } else {
+        col = 0;
+        colLen = self.colCount;
+      }
+      for (x = row, xLen = rowLen; x < xLen; x += 1) {
+        for (y = col, yLen = colLen; y < yLen; y += 1) {
+          grid.updateLegend({row: x, col: y});
+        }
+      }
+      priv.legendDirty = false;
+    };
+
+    /**
      * Update settings
      * @public
      */
@@ -2260,6 +2289,10 @@ var Handsontable = { //class namespace
       if (!self.blockedCols) {
         self.blockedCols = new Handsontable.BlockedCols(self);
         self.blockedRows = new Handsontable.BlockedRows(self);
+      }
+
+      if (typeof settings.legend !== "undefined") {
+        priv.legendDirty = true;
       }
 
       for (i in settings) {
@@ -2346,6 +2379,10 @@ var Handsontable = { //class namespace
       var recreated = grid.keepEmptyRows();
       if (!recreated) {
         selection.refreshBorders();
+      }
+
+      if (priv.isPopulated && priv.legendDirty) {
+        self.refreshLegend();
       }
     };
 
