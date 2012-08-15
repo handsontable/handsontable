@@ -46,9 +46,7 @@ Maybe you want to show some default data. Use the `handsontable('loadData', data
 
 ## Changelog
 
-18 Jun 2012 - feature: row and column headers (`rowHeaders`, `colHeaders`); new public methods `selectCell`, `deselectCell`  
-15 Jun 2012 - new parameter `allowHtml` to public methods `setDataAtCell`, `loadData`  
-04 Jun 2012 - feature: undo/redo  
+To see the list of recent changes, see the [Changelog](https://github.com/warpech/jquery-handsontable/wiki/Changelog) wiki page.
 
 ## Methods
 
