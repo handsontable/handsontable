@@ -384,7 +384,7 @@ var Handsontable = { //class namespace
        * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
        */
       createRow: function (coords) {
-        var tr, c, r, td;
+        var tr, c, r, td, data;
         tr = document.createElement('tr');
         self.blockedCols.createRow(tr);
         for (c = 0; c < self.colCount; c++) {
@@ -404,6 +404,26 @@ var Handsontable = { //class namespace
         for (c = 0; c < self.colCount; c++) {
           grid.updateLegend({row: r, col: c});
         }
+        if ($.isFunction(priv.settings.onCreateRow)) {
+          data = {'cols' : self.colCount,
+                  'rows' : self.rowCount};
+          if (coords) {
+              data.coords = coords;
+          }
+          priv.settings.onCreateRow.call(this, data);
+        } else if ($.isPlainObject(priv.settings.onCreateRow)) {
+          data = {'cols' : self.colCount,
+                  'rows' : self.rowCount};
+          if (coords) {
+              data.coords = coords;
+          }
+          if (priv.settings.onCreateRow.scope) {
+              priv.settings.onCreateRow.fn.call(priv.settings.onCreateRow.scope, data);
+          } else {
+              priv.settings.onCreateRow.fn.call(this, data);
+          }
+        }
+
       },
 
       /**
@@ -411,7 +431,7 @@ var Handsontable = { //class namespace
        * @param {Object} [coords] Optional. Coords of the cell before which the new column will be inserted
        */
       createCol: function (coords) {
-        var trs = priv.tableBody.childNodes, r, c, td;
+        var trs = priv.tableBody.childNodes, r, c, td, data;
         self.blockedRows.createCol();
         if (!coords || coords.col >= self.colCount) {
           for (r = 0; r < self.rowCount; r++) {
@@ -430,6 +450,25 @@ var Handsontable = { //class namespace
         self.colCount++;
         for (r = 0; r < self.rowCount; r++) {
           grid.updateLegend({row: r, col: c});
+        }
+        if ($.isFunction(priv.settings.onCreateCol)) {
+          data = {'cols' : self.colCount,
+                  'rows' : self.rowCount};
+          if (coords) {
+              data.coords = coords;
+          }
+          priv.settings.onCreateCol.call(this, data);
+        } else if ($.isPlainObject(priv.settings.onCreateCol)) {
+          data = {'cols' : self.colCount,
+                  'rows' : self.rowCount};
+          if (coords) {
+              data.coords = coords;
+          }
+          if (priv.settings.onCreateCol.scope) {
+              priv.settings.onCreateCol.fn.call(priv.settings.onCreateCol.scope, data);
+          } else {
+              priv.settings.onCreateCol.fn.call(this, data);
+          }
         }
       },
 

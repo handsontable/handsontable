@@ -104,6 +104,8 @@ The table below presents configuration options that are interpreted by `handsont
  `onSelection`        | Function(r,&nbsp;c,&nbsp;r2,&nbsp;c2) | _undefined_      | Callback to be fired before one or more cells is selected. Params `r, c` are the coordinates of the selection start, params `r2, c2` are the selection end. You can call updateSettings from inside, e.g. if you want to disable fillHandle in one column.
  `onBeforeChange`     | Function(changes)                     | _undefined_      | Callback to be fired before one or more cells is changed (with changes array as an argument). Its main purpose is validation of the input. You can disregard a single change by setting `changes[i][3]` to false, or cancel all edit by returning false.
  `onChange`           | Function(changes)                     | _undefined_      | Callback to be fired after one or more cells is changed (with changes array as an argument). Its main purpose is saving the input.
+ `onCreateRow`        | Function/Object                       | _undefined_      | Callback to be fired after a row has been created.  Can take in a function name or object defined as `{fn: functionName, scope: object this becomes}`.  The function is passed an object which contains the number of `cols`, `rows`, and if available `coords` of where the row was added.
+ `onCreateCol`        | Function/Object                       | _undefined_      | Callback to be fired after a col has been created.  Can take in a function name or object defined as `{fn: functionName, scope: object this becomes}`.  The function is passed an object which contains the number of `cols`, `rows`, and if available `coords` of where the col was added.
 
 ### Defining legend
 
