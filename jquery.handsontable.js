@@ -1366,12 +1366,12 @@ var Handsontable = { //class namespace
           if (!priv.isCellEdited) {
             setTimeout(function () {
               var input = priv.editProxy.val().replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
-                inputArray = CSVToArray(input, '\t'),
-                coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
-                endTd = grid.populateFromArray(coords.TL, inputArray, {
-                  row:Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
-                  col:Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
-                }, null, 'paste');
+                  inputArray = CSVToArray(input, '\t'),
+                  coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
+                  endTd = grid.populateFromArray(coords.TL, inputArray, {
+                    row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
+                    col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
+                  }, null, 'paste');
               selection.setRangeEnd(endTd);
             }, 100);
           }
@@ -1384,7 +1384,6 @@ var Handsontable = { //class namespace
             var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
             if (Handsontable.helper.isPrintableChar(event.keyCode)) {
               if (!priv.isCellEdited && !ctrlDown) { //disregard CTRL-key shortcuts
-                //TODO: remove
                 editproxy.beginEditing();
               }
               else if (ctrlDown) {
@@ -1559,10 +1558,10 @@ var Handsontable = { //class namespace
               case 36: /* home */
                 if (!priv.isCellEdited) {
                   if (event.ctrlKey || event.metaKey) {
-                    rangeModifier(grid.getCellAtCoords({row:0, col:priv.selStart.col}));
+                    rangeModifier(grid.getCellAtCoords({row: 0, col: priv.selStart.col}));
                   }
                   else {
-                    rangeModifier(grid.getCellAtCoords({row:priv.selStart.row, col:0}));
+                    rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: 0}));
                   }
                 }
                 break;
@@ -1570,20 +1569,20 @@ var Handsontable = { //class namespace
               case 35: /* end */
                 if (!priv.isCellEdited) {
                   if (event.ctrlKey || event.metaKey) {
-                    rangeModifier(grid.getCellAtCoords({row:self.rowCount - 1, col:priv.selStart.col}));
+                    rangeModifier(grid.getCellAtCoords({row: self.rowCount - 1, col: priv.selStart.col}));
                   }
                   else {
-                    rangeModifier(grid.getCellAtCoords({row:priv.selStart.row, col:self.colCount - 1}));
+                    rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: self.colCount - 1}));
                   }
                 }
                 break;
 
               case 33: /* pg up */
-                rangeModifier(grid.getCellAtCoords({row:0, col:priv.selStart.col}));
+                rangeModifier(grid.getCellAtCoords({row: 0, col: priv.selStart.col}));
                 break;
 
               case 34: /* pg dn */
-                rangeModifier(grid.getCellAtCoords({row:self.rowCount - 1, col:priv.selStart.col}));
+                rangeModifier(grid.getCellAtCoords({row: self.rowCount - 1, col: priv.selStart.col}));
                 break;
 
               default:
@@ -1871,7 +1870,6 @@ var Handsontable = { //class namespace
         else {
           if (selection.inInSelection(grid.getCellCoords(this))) {
             //second tap - start edit
-            //interaction.onDblClick();
             editproxy.beginEditing(true);
           }
           else {
