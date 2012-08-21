@@ -10,7 +10,8 @@ $(function () {
       cols: 5,
       minSpareCols: 1, //always keep at least 1 spare row at the right
       minSpareRows: 1, //always keep at least 1 spare row at the bottom
-      contextMenu: true
+      contextMenu: true,
+      Controller: true
     });
 
     var data = [

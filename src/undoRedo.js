@@ -24,8 +24,8 @@
       for (i = 0, ilen = setData.length; i < ilen; i++) {
         setData[i].splice(3, 1);
       }
-      this.instance.setDataAtCell(setData, null, null, true, 'undo');
       this.rev--;
+      this.instance.setDataAtCell(setData, null, null, true, 'undo');
     }
   };
 
@@ -76,5 +76,6 @@
   Handsontable.UndoRedo.prototype.clear = function () {
     this.data = [];
     this.rev = -1;
+    this.instance.container.trigger("undoclear.handsontable");
   };
 })(jQuery);

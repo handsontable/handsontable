@@ -23,10 +23,12 @@ var Handsontable = { //class namespace
       settings: {},
       isMouseOverTable: false,
       isMouseDown: false,
+      isTouchDown: false,
       isCellEdited: false,
       selStart: null,
       selEnd: null,
       editProxy: false,
+      editField: null,
       isPopulated: null,
       scrollable: null,
       hasLegend: null,
@@ -75,6 +77,8 @@ var Handsontable = { //class namespace
     }
 
     var hasMinWidthProblem = ($.browser.msie && (parseInt($.browser.version, 10) <= 7));
+    var isTouchScreen = typeof window.ontouchstart !== "undefined";
+    var iPad = /iPad/.test(navigator.userAgent);
     /**
      * Used to get over IE7 not respecting CSS min-width (and also not showing border around empty cells)
      * @param {Element} td
@@ -826,6 +830,7 @@ var Handsontable = { //class namespace
         if (priv.settings.onSelection) {
           priv.settings.onSelection(priv.selStart.row, priv.selStart.col, priv.selEnd.row, priv.selEnd.col);
         }
+        self.container.trigger('changeselection.handsontable');
         selection.refreshBorders();
         if (scrollToCell !== false) {
           highlight.scrollViewport(td);
@@ -1274,12 +1279,74 @@ var Handsontable = { //class namespace
       }
     };
 
+    /**
+     * Defines which control will be used for table edit - input or textarea.
+     * Input has advantages for iPad because it is possible to specify content type by 'type=' argument
+     * so iPad will show the appropriate keyboard.
+     * For other cases the textarea will be used
+     */
+    var editfield = {
+      INPUT: {
+        /**
+         * Creates field with specified class
+         * @param cssClass
+         * @return {*}
+         */
+        create: function(cssClass) {
+          return $('<input class="' + cssClass + '">');
+        },
+        /**
+         * Sets the focus to the element
+         * @param element
+         */
+        focus: function(element) {
+          try {
+            element[0].focus();
+          }
+          catch (e) {
+            //handle exceptions on IE
+          }
+        },
+        detectType: function (value) {
+          if ($.isNumeric(value)) {
+            return "number";
+          }
+          return "text";
+        },
+        /**
+         * Changes the input's type according to the input's value
+         * @param input
+         * @param value
+         */
+        changeType: function(input, value) {
+          if ($.msie) return;
+          var newType = this.detectType(value);
+          var oldType = input[0].type;
+          if (newType != oldType) {
+            input[0].type = newType;
+            //force iPad to switch keyboard
+            input[0].blur();
+          }
+        }
+      },
+      TEXTAREA: {
+        create: function(cssClass) {
+          return $('<textarea class="' + cssClass + '">');
+        },
+        focus: function(element) {
+           element[0].select();
+        },
+        changeType: function(value) {/*do nothing*/}
+      }
+    };
+
     editproxy = {
       /**
        * Create input field
        */
       init: function () {
-        priv.editProxy = $('<textarea class="handsontableInput">');
+        priv.editField = iPad && isTouchScreen ? editfield.INPUT : editfield.TEXTAREA;
+        priv.editProxy = priv.editField.create('handsontableInput');
         priv.editProxyHolder = $('<div class="handsontableInputHolder">');
         priv.editProxyHolder.append(priv.editProxy);
 
@@ -1299,12 +1366,12 @@ var Handsontable = { //class namespace
           if (!priv.isCellEdited) {
             setTimeout(function () {
               var input = priv.editProxy.val().replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
-                  inputArray = CSVToArray(input, '\t'),
-                  coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
-                  endTd = grid.populateFromArray(coords.TL, inputArray, {
-                    row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
-                    col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
-                  }, null, 'paste');
+                inputArray = CSVToArray(input, '\t'),
+                coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
+                endTd = grid.populateFromArray(coords.TL, inputArray, {
+                  row:Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
+                  col:Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
+                }, null, 'paste');
               selection.setRangeEnd(endTd);
             }, 100);
           }
@@ -1317,6 +1384,7 @@ var Handsontable = { //class namespace
             var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
             if (Handsontable.helper.isPrintableChar(event.keyCode)) {
               if (!priv.isCellEdited && !ctrlDown) { //disregard CTRL-key shortcuts
+                //TODO: remove
                 editproxy.beginEditing();
               }
               else if (ctrlDown) {
@@ -1491,10 +1559,10 @@ var Handsontable = { //class namespace
               case 36: /* home */
                 if (!priv.isCellEdited) {
                   if (event.ctrlKey || event.metaKey) {
-                    rangeModifier(grid.getCellAtCoords({row: 0, col: priv.selStart.col}));
+                    rangeModifier(grid.getCellAtCoords({row:0, col:priv.selStart.col}));
                   }
                   else {
-                    rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: 0}));
+                    rangeModifier(grid.getCellAtCoords({row:priv.selStart.row, col:0}));
                   }
                 }
                 break;
@@ -1502,20 +1570,20 @@ var Handsontable = { //class namespace
               case 35: /* end */
                 if (!priv.isCellEdited) {
                   if (event.ctrlKey || event.metaKey) {
-                    rangeModifier(grid.getCellAtCoords({row: self.rowCount - 1, col: priv.selStart.col}));
+                    rangeModifier(grid.getCellAtCoords({row:self.rowCount - 1, col:priv.selStart.col}));
                   }
                   else {
-                    rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: self.colCount - 1}));
+                    rangeModifier(grid.getCellAtCoords({row:priv.selStart.row, col:self.colCount - 1}));
                   }
                 }
                 break;
 
               case 33: /* pg up */
-                rangeModifier(grid.getCellAtCoords({row: 0, col: priv.selStart.col}));
+                rangeModifier(grid.getCellAtCoords({row:0, col:priv.selStart.col}));
                 break;
 
               case 34: /* pg dn */
-                rangeModifier(grid.getCellAtCoords({row: self.rowCount - 1, col: priv.selStart.col}));
+                rangeModifier(grid.getCellAtCoords({row:self.rowCount - 1, col:priv.selStart.col}));
                 break;
 
               default:
@@ -1623,10 +1691,10 @@ var Handsontable = { //class namespace
       },
 
       /**
-       * Sets focus to textarea
+       * Sets focus to input
        */
       focus: function () {
-        priv.editProxy[0].select();
+        priv.editField.focus(priv.editProxy);
       },
 
       /**
@@ -1700,10 +1768,12 @@ var Handsontable = { //class namespace
 
         if (useOriginalValue) {
           var original = datamap.get(priv.selStart.row, priv.selStart.col) + (suffix || '');
+          priv.editField.changeType(priv.editProxy, original);
           priv.editProxy.val(original);
           editproxy.setCaretPosition(original.length);
         }
         else {
+          priv.editField.changeType(priv.editProxy, '');
           priv.editProxy.val('');
         }
 
@@ -1746,6 +1816,7 @@ var Handsontable = { //class namespace
         priv.editProxyHolder.css({
           overflow: 'visible'
         });
+        editproxy.focus();
       },
 
       /**
@@ -1789,6 +1860,7 @@ var Handsontable = { //class namespace
 
     interaction = {
       onMouseDown: function (event) {
+        if (priv.isTouchDown) return;
         priv.isMouseDown = true;
         if (event.button === 2 && selection.inInSelection(grid.getCellCoords(this))) { //right mouse button
           //do nothing
@@ -1797,8 +1869,28 @@ var Handsontable = { //class namespace
           selection.setRangeEnd(this);
         }
         else {
-          selection.setRangeStart(this);
+          if (selection.inInSelection(grid.getCellCoords(this))) {
+            //second tap - start edit
+            //interaction.onDblClick();
+            editproxy.beginEditing(true);
+          }
+          else {
+            selection.setRangeStart(this);
+          }
         }
+      },
+
+      onTouchStart: function (event) {
+        priv.isTouchDown = true;
+      },
+
+      onTouchLeave: function(event) {
+        priv.isTouchDown = false;
+      },
+
+      onTouchEnd: function(event) {
+        selection.setRangeStart(this);
+        editproxy.beginEditing(true);
       },
 
       onMouseOver: function () {
@@ -1840,6 +1932,11 @@ var Handsontable = { //class namespace
       self.table.on('mousedown', 'td', interaction.onMouseDown);
       self.table.on('mouseover', 'td', interaction.onMouseOver);
       self.table.on('dblclick', 'td', interaction.onDblClick);
+      if (isTouchScreen) {
+        self.table.on('touchstart', 'td', interaction.onTouchStart);
+        self.table.on('touchend', 'td', interaction.onTouchEnd);
+        self.table.on('touchleave', 'td', interaction.onTouchLeave);
+      }
       container.append(div);
 
       self.colCount = settings.cols;
@@ -1871,11 +1968,14 @@ var Handsontable = { //class namespace
       }
 
       function onOutsideClick(event) {
-        setTimeout(function () {//do async so all mouseenter, mouseleave events will fire before
-          if (!priv.isMouseOverTable && event.target !== priv.tableContainer && $(event.target).attr('id') !== 'context-menu-layer') { //if clicked outside the table or directly at container which also means outside
-            selection.deselect();
+          if (!priv.isMouseOverTable
+            && event.target !== priv.tableContainer
+            && !$(event.target).is(".dataTableRelated")
+            && $(event.target).attr('id') !== 'context-menu-layer') { //if clicked outside the table or directly at container which also means outside
+            setTimeout(function () {//do async so all mouseenter, mouseleave events will fire before
+              selection.deselect();
+            }, 1);
           }
-        }, 1);
       }
 
       $("html").on('mouseup', onMouseUp);
@@ -2185,6 +2285,31 @@ var Handsontable = { //class namespace
     };
 
     /**
+     * Returns true if currently selected cell is edited right now
+     * @return {Boolean}
+     */
+    this.isCellEdited = function() {
+      return priv.isCellEdited;
+    }
+
+    /**
+     * Shows editor for the specified cell.
+     * If cell is not specified then shows editor for current cell (@see #getSelected).
+     * If other cell is alraedy edited then finish its edition.
+     * @param row
+     * @param col
+     */
+    this.editCell = function(row, col) {
+      if (priv.isCellEdited) {
+        editproxy.finishEditing();
+      }
+      if (typeof row !== 'undefined') {
+        selection.setRangeStart(this.getCell(row, col));
+      }
+      editproxy.beginEditing(true);
+    }
+
+    /**
      * Load data from array
      * @public
      * @param {Array} data
@@ -2350,6 +2475,27 @@ var Handsontable = { //class namespace
     this.clearUndo = function () {
       priv.undoRedo && priv.undoRedo.clear();
     };
+
+    /**
+     * Performs undo
+     */
+    this.undo = function() {
+      priv.undoRedo && priv.undoRedo.undo();
+    }
+
+    /**
+     * Performs redo
+     */
+    this.redo = function() {
+      priv.undoRedo && priv.undoRedo.redo();
+    }
+
+    this.isUndoRedoAvailable = function() {
+      return {
+        undo: priv.undoRedo && priv.undoRedo.isUndoAvailable(),
+        redo: priv.undoRedo && priv.undoRedo.isRedoAvailable()
+      }
+    }
 
     /**
      * Alters the grid
@@ -2772,8 +2918,8 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
       for (i = 0, ilen = setData.length; i < ilen; i++) {
         setData[i].splice(3, 1);
       }
-      this.instance.setDataAtCell(setData, null, null, true, 'undo');
       this.rev--;
+      this.instance.setDataAtCell(setData, null, null, true, 'undo');
     }
   };
 
@@ -2824,6 +2970,7 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
   Handsontable.UndoRedo.prototype.clear = function () {
     this.data = [];
     this.rev = -1;
+    this.instance.container.trigger("undoclear.handsontable");
   };
 })(jQuery);
 (function ($) {
