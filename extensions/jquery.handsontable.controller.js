@@ -9,7 +9,6 @@
    * @param (jQuery) options
    *  - ui
    *  - buttons
-   *  - container
    *  - showFor:
    *    "tablet"
    *    "expage"
@@ -30,13 +29,17 @@
     this.instance = instance;
     instance.controller = this;
     if (options.ui) {
-      if (!options.container) options.container = instance.container;
+      options.controlled = instance.container;
       this.ui = new Handsontable.extension.Controller.UI(this, options);
     }
-    instance.container.on("datachange.handsontable undoclear.handsontable changeselection.handsontable", $.proxy(this.ui.update, this.ui));
+    instance.container.on("datachange.handsontable undoclear.handsontable changeselection.handsontable ", $.proxy(this.ui.update, this.ui));
     this.autoAdd = options.autoAdd;
-    instance.container.on("changeselection.handsontable", $.proxy(this.ui.show, this.ui));
+    instance.container.on("changeselection.handsontable edit.handsontable", $.proxy(this.ui.show, this.ui));
     instance.container.on("deselect.handsontable", $.proxy(this.ui.hide, this.ui));
+    instance.container.on("expage.expand expage.collapse", function() {
+      instance.blockedCols.refresh();
+      instance.blockedRows.refresh();
+    });
   }
 
   Handsontable.extension.Controller.prototype = {
@@ -107,14 +110,12 @@
 
     },
     undo: function() {
-      this.instance.deselectCell();
       this.instance.undo();
     },
     canUndo: function() {
       return this.instance.isUndoRedoAvailable().undo;
     },
     redo: function() {
-      this.instance.deselectCell();
       this.instance.redo();
     },
     canRedo: function() {
@@ -160,7 +161,8 @@
 
   Handsontable.extension.Controller.UI = function(controller, options) {
     this.controller = controller;
-    if (options.ui === true) options.ui = "top";
+    this.controlled = options.controlled;
+    if (options.ui === true) options.ui = "float";
     if (typeof options.ui == 'string') {
       var buttons = options.buttons;
       if (!buttons) {
@@ -168,11 +170,12 @@
         if ($.fn.draggable || isTablet()) buttons.push("drag");
         if ($.fn.expage) buttons.push("expand")
       }
-      this.ui = this.createUI(options.ui, buttons, options.container);
+      this.ui = this.createUI(options.ui, buttons, options.controlled);
     }
     else {
       this.ui = $(options.ui);
     }
+    this.ui.addClass("dataTableRelated expageVisible");
     var eventName = typeof window.ontouchstart === 'undefined' ? 'click' : 'touchstart';
     for (var prop in controller) {
       if (typeof controller[prop] == 'function') {
@@ -219,22 +222,23 @@
       prependRow: "Add row before",
       prependCol: "Add col before"
     },
-    delete: {
+    "delete": {
       deleteRow: "Delete row",
       deleteCol: "Delete col"
     }
   }
   Handsontable.extension.Controller.UI.prototype = {
-    createUI: function(type, buttons, container) {
+    createUI: function(type, buttons, controlled) {
       var main = $("<div></div>");
       main.addClass("handsontable-controller " + type);
       var arrowPad = $("<div></div>").addClass("arrow-pad").appendTo(main);
       var buttonsCollection = Handsontable.extension.Controller.UI.buttons;
       this.addButtons(arrowPad, buttonsCollection.move);
-      if (buttons.indexOf("edit") > -1) {
+
+      if ($.inArray("edit", buttons) > -1) {
         this.addButtons(arrowPad, buttonsCollection.edit)
       }
-      if (buttons.indexOf("undo") > -1) {
+      if ($.inArray("undo", buttons) > -1) {
         this.addButtons(main, buttonsCollection.undo);
       }
       function toggleList() {
@@ -246,7 +250,7 @@
           $(this).prev(".toggle-btn").addClass("pressed");
         }
       }
-      if (buttons.indexOf("add") > -1) {
+      if ($.inArray("add", buttons) > -1) {
         var addBtn = $("<div></div>")
           .addClass("action add-btn toggle-btn atLeft atBottom")
           .append("<i>Add</i>")
@@ -256,7 +260,7 @@
         addBtn.click($.proxy(toggleList, addList));
         this.addButtons(addList, buttonsCollection.add);
       }
-      if (buttons.indexOf("delete") > -1) {
+      if ($.inArray("delete", buttons) > -1) {
         var deleteBtn = $("<div></div>")
           .addClass("action delete-btn toggle-btn atRight atBottom")
           .append("<i>Delete</i>")
@@ -264,26 +268,32 @@
           .appendTo(main);
         var deleteList = $("<div></div>").addClass("list delete-list").hide().appendTo(main);
         deleteBtn.click($.proxy(toggleList, deleteList));
-        this.addButtons(deleteList, buttonsCollection.delete);
+        this.addButtons(deleteList, buttonsCollection['delete']);
       }
-      main.appendTo(container);
+      main.appendTo($("body"));
       main.css({right: "0"});
-      if (buttons.indexOf("drag") > -1) {
+      if ($.inArray("drag", buttons) > -1) {
         if (!isTablet() && typeof $.fn.draggable == 'undefined') throw "jQuery draggable module is required for 'drag' button in controller";
         var method = isTablet() ? "tabletDraggable" : "draggable";
         var handler = $("<div></div>").addClass("float-handler move").appendTo(main);
         main[method]({handler: handler}).css({"right": "auto", left: main.offset().left})
       }
       main.hide();
-      if (buttons.indexOf("expand") > -1) {
+      if ($.inArray("expand", buttons) > -1) {
         if (typeof $.fn.expage == 'undefined') throw "jQuery.expage plugin is required for 'expand' button in controller";
         var expandCollapse = $("<div></div>").addClass("expandCollapse").appendTo(main);
-        container.expage({
+        controlled.expage({
           expanded: false,
           expandButton: expandCollapse,
           collapseButton: expandCollapse
-        });
-        if (container.expage('isExpanded')) {
+        }).on("expage.expand expage.collapse", $.proxy(function() {
+          if (this.ui.is(":visible")) {
+            this.ui.hide();
+            this.show();
+          }
+        }, this));
+
+        if (controlled.expage('isExpanded')) {
           this.shallShow = true;
         }
       }
@@ -320,11 +330,11 @@
       clearTimeout(this.doHide);
       if (!this.ui.is(":visible")) {
         if (this.ui.is(".float")) {
-          this.ui.css({top: this.ui.parent().offset().top});
+          this.ui.css({top: this.controlled.offset().top});
           if (typeof this.offset == 'undefined') {
             this.offset = Math.max(this.ui.find(".move").width(), this.ui.find(".expandCollapse").width()) + 10;
           }
-          var rightEdge = this.ui.parent().offset().left + this.ui.parent().find("table").width() + this.offset;
+          var rightEdge = this.controlled.offset().left + this.controlled.find("table").width() + this.offset;
           if (rightEdge < parseFloat(this.ui.css("left"))) {
             this.ui.css({left: rightEdge});
           }

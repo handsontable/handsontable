@@ -4,8 +4,10 @@
 .handsontable-controller  {
     z-index:6;
     background-color: rgba(221, 221, 221, 0.30);
+    *background-color: rgb(231,231,231); /* for ie */
     padding-bottom: 10px;
     border-radius: 10px;
+
 }
 .handsontable-controller .arrow-pad {
     padding: 10px;
@@ -13,6 +15,7 @@
     width: 150px;
     height: 150px;
     position: relative;
+
 }
 
 .handsontable-controller div.action {
@@ -22,6 +25,7 @@
     border: 1px transparent solid;
     display: inline-block;
     border-radius: 10px;
+    overflow-x: hidden;
 }
 
 .handsontable-controller > div.action {
@@ -30,7 +34,7 @@
 .handsontable-controller .arrow-pad > div.action {
     position: absolute;
     background-color: rgba(212,212,212,0.9);
-
+    *background-color: rgb(208,208,208); /* for ie */
 }
 
 .handsontable-controller div.action i {
@@ -47,21 +51,7 @@
     opacity: 0.3;
 }
 
-/* Great buttons styles were get from here - http://hellohappy.org/css3-buttons/
-.handsontable-controller div.action:not(.disabled):hover {
-    background-color: #dddddd;
-    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #dddddd), color-stop(100%, #bbbbbb));
-    background-image: -webkit-linear-gradient(top, #dddddd, #bbbbbb);
-    background-image: -moz-linear-gradient(top, #dddddd, #bbbbbb);
-    background-image: -ms-linear-gradient(top, #dddddd, #bbbbbb);
-    background-image: -o-linear-gradient(top, #dddddd, #bbbbbb);
-    background-image: linear-gradient(top, #dddddd, #bbbbbb);
-    border: 1px solid #bbb;
-    border-bottom: 1px solid #999;
-    cursor: pointer;
-    text-shadow: 0 1px 0 #ddd;
-}
-/**/
+
 .handsontable-controller div.action.atLeft {
     left: 10px;
 }
@@ -179,9 +169,12 @@
     width: 100%;
 }
 
-.handsontable-controller.top,
-.handsontable-controller.float {
+.handsontable-controller.top {
     position: fixed;
+    top: 0;
+}
+.handsontable-controller.float {
+    position: absolute;
     top: 0;
     /*right: 0;*/
 }

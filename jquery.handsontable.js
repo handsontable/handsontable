@@ -28,7 +28,6 @@ var Handsontable = { //class namespace
       selStart: null,
       selEnd: null,
       editProxy: false,
-      editField: null,
       isPopulated: null,
       scrollable: null,
       hasLegend: null,
@@ -1279,74 +1278,12 @@ var Handsontable = { //class namespace
       }
     };
 
-    /**
-     * Defines which control will be used for table edit - input or textarea.
-     * Input has advantages for iPad because it is possible to specify content type by 'type=' argument
-     * so iPad will show the appropriate keyboard.
-     * For other cases the textarea will be used
-     */
-    var editfield = {
-      INPUT: {
-        /**
-         * Creates field with specified class
-         * @param cssClass
-         * @return {*}
-         */
-        create: function(cssClass) {
-          return $('<input class="' + cssClass + '">');
-        },
-        /**
-         * Sets the focus to the element
-         * @param element
-         */
-        focus: function(element) {
-          try {
-            element[0].focus();
-          }
-          catch (e) {
-            //handle exceptions on IE
-          }
-        },
-        detectType: function (value) {
-          if ($.isNumeric(value)) {
-            return "number";
-          }
-          return "text";
-        },
-        /**
-         * Changes the input's type according to the input's value
-         * @param input
-         * @param value
-         */
-        changeType: function(input, value) {
-          if ($.msie) return;
-          var newType = this.detectType(value);
-          var oldType = input[0].type;
-          if (newType != oldType) {
-            input[0].type = newType;
-            //force iPad to switch keyboard
-            input[0].blur();
-          }
-        }
-      },
-      TEXTAREA: {
-        create: function(cssClass) {
-          return $('<textarea class="' + cssClass + '">');
-        },
-        focus: function(element) {
-           element[0].select();
-        },
-        changeType: function(value) {/*do nothing*/}
-      }
-    };
-
     editproxy = {
       /**
        * Create input field
        */
       init: function () {
-        priv.editField = iPad && isTouchScreen ? editfield.INPUT : editfield.TEXTAREA;
-        priv.editProxy = priv.editField.create('handsontableInput');
+        priv.editProxy = $('<textarea class="handsontableInput">');
         priv.editProxyHolder = $('<div class="handsontableInputHolder">');
         priv.editProxyHolder.append(priv.editProxy);
 
@@ -1690,10 +1627,10 @@ var Handsontable = { //class namespace
       },
 
       /**
-       * Sets focus to input
+       * Sets focus to textarea
        */
       focus: function () {
-        priv.editField.focus(priv.editProxy);
+        priv.editProxy[0].select();
       },
 
       /**
@@ -1767,19 +1704,17 @@ var Handsontable = { //class namespace
 
         if (useOriginalValue) {
           var original = datamap.get(priv.selStart.row, priv.selStart.col) + (suffix || '');
-          priv.editField.changeType(priv.editProxy, original);
           priv.editProxy.val(original);
           editproxy.setCaretPosition(original.length);
         }
         else {
-          priv.editField.changeType(priv.editProxy, '');
           priv.editProxy.val('');
         }
 
         var width, height;
         if (priv.editProxy.autoResize) {
           width = $td.width();
-          height = $td.outerHeight() - 4;
+          height = $td.outerHeight() - 3 - (priv.editProxy.innerHeight() - priv.editProxy.height());
         }
         else {
           width = $td.width() * 1.5;
@@ -1816,6 +1751,7 @@ var Handsontable = { //class namespace
           overflow: 'visible'
         });
         editproxy.focus();
+        self.container.trigger("edit.handsontable");
       },
 
       /**
@@ -1968,7 +1904,7 @@ var Handsontable = { //class namespace
       function onOutsideClick(event) {
           if (!priv.isMouseOverTable
             && event.target !== priv.tableContainer
-            && !$(event.target).is(".dataTableRelated")
+            && !$(event.target).parents().andSelf().is(".dataTableRelated")
             && $(event.target).attr('id') !== 'context-menu-layer') { //if clicked outside the table or directly at container which also means outside
             setTimeout(function () {//do async so all mouseenter, mouseleave events will fire before
               selection.deselect();

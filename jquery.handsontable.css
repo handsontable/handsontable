@@ -227,5 +227,9 @@ and (max-device-width : 1024px) {
         -webkit-user-select: none;
         -webkit-highlight: none;
     }
+
+    .handsontableInput {
+        padding-top: 10px;
+    }
 }
 
