@@ -29,6 +29,7 @@
     <script src="../extensions/jquery.handsontable.removeRow.js"></script>
     <link rel="stylesheet" media="screen" href="../lib/jQuery-contextMenu/jquery.contextMenu.css">
     <link rel="stylesheet" media="screen" href="../jquery.handsontable.css">
+    <link rel="stylesheet" media="screen" href="css/demo.css">
     <link rel="stylesheet" media="screen" href="../extensions/jquery.handsontable.removeRow.css">
     <link rel="stylesheet" media="screen" href="../extensions/jquery.handsontable.controller.css">
 
@@ -158,32 +159,66 @@
 
     <h3>Controller options</h3>
     <p>The following options may be specified when adding Controller plugin</p>
-    <table>
+    <table class="options">
         <tr>
-            <th>Option</th><td>Description</td><td>Usage example</td>
-        </tr>
-        <tr>
-            <td>Controller itself</td>
-            <td>
-                May be <b>true</b> or <b>options object</b>
-            </td>
-            <td>
-                <code>
-                    container.handsontable({Controller: true});
-                </code>
-            </td>
+            <th>Option</th><th>Description</th><th>Default</th>
         </tr>
         <tr>
             <td>ui</td>
             <td>
-
+                Specifies the UI for the controller.
+                <ul>
+                    <li><b>false</b> - no UI will be created</li>
+                    <li><b>'top'</b> - standard UI fixed on top right corner will be created</li>
+                    <li><b>true</b> or <b>'float'</b> - standard UI which floats near table's right edge will be created</li>
+                    <li><b>jQuery object</b> - it will be linked with controller as UI.
+                        The elements with the following classes will be bound with correponding actions:
+                    <ul>
+                        <li>moveLeft</li>
+                        <li>moveRight</li>
+                        <li>moveUp</li>
+                        <li>moveDown</li>
+                        <li>edit</li>
+                        <li>undo</li>
+                        <li>redo</li>
+                        <li>addRowAfter</li>
+                        <li>addColumnAfter</li>
+                        <li>prependRow</li>
+                        <li>prependColumn</li>
+                        <li>deleteRow</li>
+                        <li>deleteColumn</li>
+                    </ul></li>
+                </ul>
+            </td>
+            <td>
+                true
             </td>
         </tr>
         <tr>
-            <td>buttons</td><td></td>
+            <td>buttons</td>
+            <td>Set of buttons for standard UI. May include the following:
+                <ul>
+                    <li><b>'add'</b> - shows the 'Add row/column' buttons</li>
+                    <li><b>'delete'</b> - shows the 'Delete row/column' buttons</li>
+                    <li><b>'undo'</b> - shows the Undo/Redo buttons</li>
+                    <li><b>'move'</b> - shows the navigation buttons</li>
+                    <li><b>'edit'</b> - shows the Edit button</li>
+                    <li><b>'drag'</b> - shows the 'move' handler, allows to drag controller UI. Requires 'jquery.draggable' plugin</li>
+                    <li><b>'expand'</b> - shows the 'expand/collapse' button, allows to expand the table on the whole screen. Requires 'jquery.expage' plugin </li>
+                </ul>
+            </td>
+            <td>all of them, but 'drag' and 'expand' - only if corresponding plugins are installed</td>
         </tr>
         <tr>
-            <td>showfor</td><td></td>
+            <td>showfor</td>
+            <td>Specifies when the UI shall be shown:
+            <ul>
+                <li><b>'tablet'</b> - for tablets only. Will be hidden for desktop</li>
+                <li><b>'expage'</b> - when expanded. Will be usually hidden</li>
+                <li><b>'tablet expage'</b> - for tablets when expanded</li>
+            </ul>
+            </td>
+            <td>'' (empty string)</td>
         </tr>
     </table>
     <p>Also plug-in may use the following additional libraries - just include them to the page:</p>
@@ -195,6 +230,52 @@
             <b>jquery.expage</b>
         </li>
     </ul>
+    <h3>Example</h3>
+    <div class="dataTable" id="exampleGrid2"></div>
+    <script>
+    var container = $("#exampleGrid2");
+
+    container.handsontable({
+    rows: 5,
+    cols: 5,
+    Controller: {
+        buttons: ['move', 'add'],
+        ui: 'top'
+        }
+    });
+
+    var data = [
+    ["", "Kia", "Nissan", "Toyota", "Honda"],
+    ["2008", 10, 11, 12, 13],
+    ["2009", 20, 11, 14, 13],
+    ["2010", 30, 15, 12, 13]
+    ];
+
+    container.handsontable("loadData", data);
+    </script>
+    <p>Code: </p>
+    <pre class="html">  &lt;script&gt;
+        var container = $("#exampleGrid2");
+
+        container.handsontable({
+            rows: 5,
+            cols: 5,
+            <b><u>Controller:</u></b> {
+                <b><u>buttons: ['move', 'add']</u></b>,
+                <b><u>ui: 'top'</u></b>
+                }
+        });
+
+        var data = [
+            ["", "Kia", "Nissan", "Toyota", "Honda"],
+            ["2008", 10, 11, 12, 13],
+            ["2009", 20, 11, 14, 13],
+            ["2010", 30, 15, 12, 13]
+        ];
+
+        container.handsontable("loadData", data);
+
+    &lt;/script&gt;</pre>
     <h3>About</h3>
 
     <p>This is advanced usage example of <a href="../index.html">Handsontable</a>. Check out the
