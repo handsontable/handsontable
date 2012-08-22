@@ -84,14 +84,18 @@
     });
   }
 
-
+  var Controller = {
+    shown: undefined
+  };
   Handsontable.extension.Controller.prototype = {
+
     /**
      * Hides the associated UI
      */
     hide: function() {
       if (this.ui) {
         this.ui.hide();
+        Controller.shown = undefined;
       }
     },
     /**
@@ -99,7 +103,11 @@
      */
     show: function() {
       if (this.ui) {
+        if (Controller.shown) {
+          Controller.shown.hide();
+        }
         this.ui.show();
+        Controller.shown = this;
       }
     },
     /**
@@ -203,7 +211,6 @@
      */
     edit: function() {
       this.instance.editCell();
-
     },
 
     /**
