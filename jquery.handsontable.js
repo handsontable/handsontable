@@ -1804,13 +1804,7 @@ var Handsontable = { //class namespace
           selection.setRangeEnd(this);
         }
         else {
-          if (selection.inInSelection(grid.getCellCoords(this))) {
-            //second tap - start edit
-            editproxy.beginEditing(true);
-          }
-          else {
-            selection.setRangeStart(this);
-          }
+          selection.setRangeStart(this);
         }
       },
 
