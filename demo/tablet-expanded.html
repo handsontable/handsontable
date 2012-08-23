@@ -221,15 +221,7 @@
             <td>'' (empty string)</td>
         </tr>
     </table>
-    <p>Also plug-in may use the following additional libraries - just include them to the page:</p>
-    <ul>
-        <li>
-           <b><a href="http://jqueryui.com/demos/draggable/">jquery.draggable</a></b> - if you need to drag the controller <i>on desktop</i>. Drag support for touchscreen devices is already included into controller
-        </li>
-        <li>
-            <b><a href="https://github.com/AlexeyGrishin/jquery.expage">jquery.expage</a></b> - if you want to expand table on the whole screen.
-        </li>
-    </ul>
+
     <h3>Example</h3>
     <div class="dataTable" id="exampleGrid2"></div>
     <script>
@@ -276,6 +268,22 @@
         container.handsontable("loadData", data);
 
     &lt;/script&gt;</pre>
+    <p>Standard controller may be resized - just specify font-size for .handsontable-controller class</p>
+    <pre class="html">
+&lt;style>
+        /* Makes controller two times bigger */
+        .handsontable-controller { font-size: 20px; }
+&lt;/style>
+    </pre>
+    <p>Also plug-in may use the following additional libraries - just include them to the page:</p>
+    <ul>
+        <li>
+            <b><a href="http://jqueryui.com/demos/draggable/">jquery.draggable</a></b> - if you need to drag the controller <i>on desktop</i>. Drag support for touchscreen devices is already included into controller
+        </li>
+        <li>
+            <b><a href="https://github.com/AlexeyGrishin/jquery.expage">jquery.expage</a></b> - if you want to expand table on the whole screen.
+        </li>
+    </ul>
     <h3>About</h3>
 
     <p>This is advanced usage example of <a href="../index.html">Handsontable</a>. Check out the
