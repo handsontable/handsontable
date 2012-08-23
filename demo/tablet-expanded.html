@@ -1,0 +1,293 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset='utf-8'>
+    <title>Tablet editor - Handsontable</title>
+
+    <!--
+    Loading handsontable dependencies.
+    Please note that some dependencies are optional:
+     - bootstrap-typeahead.js - is required only if you need the sexy autoexpanding textarea feature
+     - jquery.autoresize.js   - is required only if you need the autocomplete feature
+     - jquery.expage.js       - is required only if you need to expand table to the whole screen
+     - jquery.handsontable.controller.js - is required only if you need the table navigation buttons
+     - jquery.contextMenu.js  - is required only if you need the context menu feature
+     - jquery.contextMenu.css - is required only if you need the context menu feature
+     - jquery.ui.position.js  - is required only if you need the context menu feature
+     - jquery.handsontable.removeRow.js  - is required only if you need the RemoveRow button
+     - jquery.handsontable.removeRow.css - is required only if you need the RemoveRow button
+    -->
+    <script src="../lib/jquery.min.js"></script>
+    <script src="../jquery.handsontable.js"></script>
+    <script src="../lib/bootstrap-typeahead.js"></script>
+    <script src="../lib/jquery.autoresize.js"></script>
+    <script src="../lib/jquery.expage.js"></script>
+    <script src="../extensions/jquery-ui-1.8.23.draggable.min.js"></script>
+    <script src="../extensions/jquery.handsontable.controller.js"></script>
+    <script src="../lib/jQuery-contextMenu/jquery.contextMenu.js"></script>
+    <script src="../lib/jQuery-contextMenu/jquery.ui.position.js"></script>
+    <script src="../extensions/jquery.handsontable.removeRow.js"></script>
+    <link rel="stylesheet" media="screen" href="../lib/jQuery-contextMenu/jquery.contextMenu.css">
+    <link rel="stylesheet" media="screen" href="../jquery.handsontable.css">
+    <link rel="stylesheet" media="screen" href="css/demo.css">
+    <link rel="stylesheet" media="screen" href="../extensions/jquery.handsontable.removeRow.css">
+    <link rel="stylesheet" media="screen" href="../extensions/jquery.handsontable.controller.css">
+
+    <!--
+    Loading demo dependencies. They are used here only to enhance the examples on this page
+    -->
+    <link rel="stylesheet" media="screen" href="css/demo.css">
+    <style type="text/css">
+        #exampleGrid {
+            width: 680px;
+            height: 300px;
+            overflow: scroll
+        }
+
+        #toolbar {
+            margin: 20px 0 20px 24px;
+        }
+
+        button#selectFirst {
+            float: left;
+            margin-right: 10px;
+        }
+    </style>
+
+    <!--
+    Google Analytics for GitHub Page. Don't copy this to your project :)
+    -->
+    <script type="text/javascript">
+        if (window.location.hostname === 'warpech.github.com') {
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-33932793-1']);
+            _gaq.push(['_trackPageview']);
+
+            (function () {
+                var ga = document.createElement('script');
+                ga.type = 'text/javascript';
+                ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(ga, s);
+            })();
+        }
+    </script>
+    <script src="js/highlight/highlight.pack.js"></script>
+    <link rel="stylesheet" media="screen" href="js/highlight/styles/zenburn.css">
+    <script>
+        if (!$.browser.msie || parseInt($.browser.version, 10) > 7) { //syntax coloring does not work well with IE7
+            $(function() {
+                $('pre.html').each(function (i, e) {
+                    hljs.highlightBlock(e)
+                });
+            });
+        }
+    </script>
+</head>
+
+<body>
+<a href="http://github.com/warpech/jquery-handsontable"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"/></a>
+
+<div id="container">
+    <h1><a href="../index.html">Handsontable</a></h1>
+
+    <div class="description">
+        Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery
+        <br><a href="../index.html">&lt; back to main</a>
+    </div>
+
+    <h2>Tablet support</h2>
+
+    <p>Handsontable itself has a basic support of touchscreen devices (like iPad) - you may try to touch the table cells on the main examples page from your tablet.</p>
+
+    <p>However it is not convenient to navigate between cells due to navigation buttons absence on the standard iPad/Android keyboard.
+        You may include the <b>Controller</b> extension in order to show the navigation buttons near the table when its being edited</p>
+    <p>Try to touch the cell of the table below:</p>
+
+    <div style="overflow: auto; width: 700px; height: 300px">
+        <div id="exampleGrid1" class="dataTable"></div>
+    </div>
+
+    <script>
+        var container = $("#exampleGrid1");
+
+        container.handsontable({
+            rows: 12,
+            cols: 12,
+            rowHeaders: true,
+            colHeaders: true,
+            minSpareCols: 1,
+            minSpareRows: 1,
+            Controller: true
+        });
+
+        var data = [
+            ["", "Kia", "Nissan", "Toyota", "Honda"],
+            ["2008", 10, 11, 12, 13],
+            ["2009", 20, 11, 14, 13],
+            ["2010", 30, 15, 12, 13]
+        ];
+
+        container.handsontable("loadData", data);
+
+    </script>
+    <p>Code: </p>
+    <pre class="html">  &lt;script&gt;
+        var container = $("#exampleGrid1");
+
+        container.handsontable({
+            rows: 12,
+            cols: 12,
+            rowHeaders: true,
+            colHeaders: true,
+            minSpareCols: 1,
+            minSpareRows: 1,
+            <b><u>Controller: true</u></b>
+        });
+
+        var data = [
+            ["", "Kia", "Nissan", "Toyota", "Honda"],
+            ["2008", 10, 11, 12, 13],
+            ["2009", 20, 11, 14, 13],
+            ["2010", 30, 15, 12, 13]
+        ];
+
+        container.handsontable("loadData", data);
+
+    &lt;/script&gt;</pre>
+
+    <h3>Controller options</h3>
+    <p>The following options may be specified when adding Controller plugin</p>
+    <table class="options">
+        <tr>
+            <th>Option</th><th>Description</th><th>Default</th>
+        </tr>
+        <tr>
+            <td>ui</td>
+            <td>
+                Specifies the UI for the controller.
+                <ul>
+                    <li><b>false</b> - no UI will be created</li>
+                    <li><b>'top'</b> - standard UI fixed on top right corner will be created</li>
+                    <li><b>true</b> or <b>'float'</b> - standard UI which floats near table's right edge will be created</li>
+                    <li><b>jQuery object</b> - it will be linked with controller as UI.
+                        The elements with the following classes will be bound with correponding actions:
+                    <ul>
+                        <li>moveLeft</li>
+                        <li>moveRight</li>
+                        <li>moveUp</li>
+                        <li>moveDown</li>
+                        <li>edit</li>
+                        <li>undo</li>
+                        <li>redo</li>
+                        <li>addRowAfter</li>
+                        <li>addColumnAfter</li>
+                        <li>prependRow</li>
+                        <li>prependColumn</li>
+                        <li>deleteRow</li>
+                        <li>deleteColumn</li>
+                    </ul></li>
+                </ul>
+            </td>
+            <td>
+                true
+            </td>
+        </tr>
+        <tr>
+            <td>buttons</td>
+            <td>Set of buttons for standard UI. May include the following:
+                <ul>
+                    <li><b>'add'</b> - shows the 'Add row/column' buttons</li>
+                    <li><b>'delete'</b> - shows the 'Delete row/column' buttons</li>
+                    <li><b>'undo'</b> - shows the Undo/Redo buttons</li>
+                    <li><b>'move'</b> - shows the navigation buttons</li>
+                    <li><b>'edit'</b> - shows the Edit button</li>
+                    <li><b>'drag'</b> - shows the 'move' handler, allows to drag controller UI. Requires 'jquery.draggable' plugin</li>
+                    <li><b>'expand'</b> - shows the 'expand/collapse' button, allows to expand the table on the whole screen. Requires 'jquery.expage' plugin </li>
+                </ul>
+            </td>
+            <td>all of them, but 'drag' and 'expand' - only if corresponding plugins are installed</td>
+        </tr>
+        <tr>
+            <td>showfor</td>
+            <td>Specifies when the UI shall be shown:
+            <ul>
+                <li><b>'tablet'</b> - for tablets only. Will be hidden for desktop</li>
+                <li><b>'expage'</b> - when expanded. Will be usually hidden</li>
+                <li><b>'tablet expage'</b> - for tablets when expanded</li>
+            </ul>
+            </td>
+            <td>'' (empty string)</td>
+        </tr>
+    </table>
+
+    <h3>Example</h3>
+    <div class="dataTable" id="exampleGrid2"></div>
+    <script>
+    var container = $("#exampleGrid2");
+
+    container.handsontable({
+    rows: 5,
+    cols: 5,
+    Controller: {
+        buttons: ['move', 'add'],
+        ui: 'float'
+        }
+    });
+
+    var data = [
+    ["", "Kia", "Nissan", "Toyota", "Honda"],
+    ["2008", 10, 11, 12, 13],
+    ["2009", 20, 11, 14, 13],
+    ["2010", 30, 15, 12, 13]
+    ];
+
+    container.handsontable("loadData", data);
+    </script>
+    <p>Code: </p>
+    <pre class="html">  &lt;script&gt;
+        var container = $("#exampleGrid2");
+
+        container.handsontable({
+            rows: 5,
+            cols: 5,
+            <b><u>Controller:</u></b> {
+                <b><u>buttons: ['move', 'add']</u></b>,
+                <b><u>ui: 'float'</u></b>
+                }
+        });
+
+        var data = [
+            ["", "Kia", "Nissan", "Toyota", "Honda"],
+            ["2008", 10, 11, 12, 13],
+            ["2009", 20, 11, 14, 13],
+            ["2010", 30, 15, 12, 13]
+        ];
+
+        container.handsontable("loadData", data);
+
+    &lt;/script&gt;</pre>
+    <p>Standard controller may be resized - just specify font-size for .handsontable-controller class</p>
+    <pre class="html">
+&lt;style>
+        /* Makes controller two times bigger */
+        .handsontable-controller { font-size: 20px; }
+&lt;/style>
+    </pre>
+    <p>Also plug-in may use the following additional libraries - just include them to the page:</p>
+    <ul>
+        <li>
+            <b><a href="http://jqueryui.com/demos/draggable/">jquery.draggable</a></b> - if you need to drag the controller <i>on desktop</i>. Drag support for touchscreen devices is already included into controller
+        </li>
+        <li>
+            <b><a href="https://github.com/AlexeyGrishin/jquery.expage">jquery.expage</a></b> - if you want to expand table on the whole screen.
+        </li>
+    </ul>
+    <h3>About</h3>
+
+    <p>This is advanced usage example of <a href="../index.html">Handsontable</a>. Check out the
+        <a href="../index.html">main page</a> for more demos.</p>
+</div>
+</body>
+</html>

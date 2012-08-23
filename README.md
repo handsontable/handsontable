@@ -74,6 +74,11 @@ To see the list of recent changes, see the [Changelog](https://github.com/warpec
  handsontable('getColHeader', [col])                                                   | Method      | Return array of col headers (if they are enabled). If param `col` given, return header at given col as string
  handsontable('setCellReadOnly', row, col)                                             | Method      | Sets cell to be readonly
  handsontable('setCellEditable', row, col)                                             | Method      | Sets cell to be editable (removes readonly)
+ handsontable('isCellEdited')                                                          | Method      | Returns true if some cell is edited right now
+ handsontable('editCell', row, col)                                                    | Method      | Sets focus to the specified cell and shows editor
+ handsontable('undo')                                                                  | Method      | Performs undo
+ handsontable('redo')                                                                  | Method      | Performs redo
+ handsontable('isUndoRedoAvailable')                                                   | Method      | Return object with two boolean fields: 'undo' and 'redo'. 'True' means that corresponding operation is available
 
 ## Options
 

@@ -24,6 +24,7 @@ var Handsontable = { //class namespace
       settings: {},
       isMouseOverTable: false,
       isMouseDown: false,
+      isTouchDown: false,
       isCellEdited: false,
       selStart: null,
       selEnd: null,
@@ -77,6 +78,8 @@ var Handsontable = { //class namespace
     }
 
     var hasMinWidthProblem = ($.browser.msie && (parseInt($.browser.version, 10) <= 7));
+    var isTouchScreen = typeof window.ontouchstart !== "undefined";
+    var iPad = /iPad/.test(navigator.userAgent);
     /**
      * Used to get over IE7 not respecting CSS min-width (and also not showing border around empty cells)
      * @param {Element} td
@@ -842,6 +845,7 @@ var Handsontable = { //class namespace
         if (priv.settings.onSelection) {
           priv.settings.onSelection(priv.selStart.row, priv.selStart.col, priv.selEnd.row, priv.selEnd.col);
         }
+        self.container.trigger('changeselection.handsontable');
         selection.refreshBorders();
         if (scrollToCell !== false) {
           highlight.scrollViewport(td);
@@ -1726,7 +1730,7 @@ var Handsontable = { //class namespace
         var width, height;
         if (priv.editProxy.autoResize) {
           width = $td.width();
-          height = $td.outerHeight() - 4;
+          height = $td.outerHeight() - 3 - (priv.editProxy.innerHeight() - priv.editProxy.height());
         }
         else {
           width = $td.width() * 1.5;
@@ -1762,6 +1766,8 @@ var Handsontable = { //class namespace
         priv.editProxyHolder.css({
           overflow: 'visible'
         });
+        editproxy.focus();
+        self.container.trigger("edit.handsontable");
       },
 
       /**
@@ -1805,6 +1811,7 @@ var Handsontable = { //class namespace
 
     interaction = {
       onMouseDown: function (event) {
+        if (priv.isTouchDown) return;
         priv.isMouseDown = true;
         if (event.button === 2 && selection.inInSelection(grid.getCellCoords(this))) { //right mouse button
           //do nothing
@@ -1815,6 +1822,19 @@ var Handsontable = { //class namespace
         else {
           selection.setRangeStart(this);
         }
+      },
+
+      onTouchStart: function (event) {
+        priv.isTouchDown = true;
+      },
+
+      onTouchLeave: function(event) {
+        priv.isTouchDown = false;
+      },
+
+      onTouchEnd: function(event) {
+        selection.setRangeStart(this);
+        editproxy.beginEditing(true);
       },
 
       onMouseOver: function () {
@@ -1856,6 +1876,11 @@ var Handsontable = { //class namespace
       self.table.on('mousedown', 'td', interaction.onMouseDown);
       self.table.on('mouseover', 'td', interaction.onMouseOver);
       self.table.on('dblclick', 'td', interaction.onDblClick);
+      if (isTouchScreen) {
+        self.table.on('touchstart', 'td', interaction.onTouchStart);
+        self.table.on('touchend', 'td', interaction.onTouchEnd);
+        self.table.on('touchleave', 'td', interaction.onTouchLeave);
+      }
       container.append(div);
 
       self.colCount = settings.cols;
@@ -1887,11 +1912,14 @@ var Handsontable = { //class namespace
       }
 
       function onOutsideClick(event) {
-        setTimeout(function () {//do async so all mouseenter, mouseleave events will fire before
-          if (!priv.isMouseOverTable && event.target !== priv.tableContainer && $(event.target).attr('id') !== 'context-menu-layer') { //if clicked outside the table or directly at container which also means outside
-            selection.deselect();
+          if (!priv.isMouseOverTable
+            && event.target !== priv.tableContainer
+            && !$(event.target).parents().andSelf().is(".dataTableRelated")
+            && $(event.target).attr('id') !== 'context-menu-layer') { //if clicked outside the table or directly at container which also means outside
+            setTimeout(function () {//do async so all mouseenter, mouseleave events will fire before
+              selection.deselect();
+            }, 1);
           }
-        }, 1);
       }
 
       $("html").on('mouseup', onMouseUp);
@@ -2201,6 +2229,31 @@ var Handsontable = { //class namespace
     };
 
     /**
+     * Returns true if currently selected cell is edited right now
+     * @return {Boolean}
+     */
+    this.isCellEdited = function() {
+      return priv.isCellEdited;
+    }
+
+    /**
+     * Shows editor for the specified cell.
+     * If cell is not specified then shows editor for current cell (@see #getSelected).
+     * If other cell is alraedy edited then finish its edition.
+     * @param row
+     * @param col
+     */
+    this.editCell = function(row, col) {
+      if (priv.isCellEdited) {
+        editproxy.finishEditing();
+      }
+      if (typeof row !== 'undefined') {
+        selection.setRangeStart(this.getCell(row, col));
+      }
+      editproxy.beginEditing(true);
+    }
+
+    /**
      * Load data from array
      * @public
      * @param {Array} data
@@ -2402,6 +2455,27 @@ var Handsontable = { //class namespace
     this.clearUndo = function () {
       priv.undoRedo && priv.undoRedo.clear();
     };
+
+    /**
+     * Performs undo
+     */
+    this.undo = function() {
+      priv.undoRedo && priv.undoRedo.undo();
+    }
+
+    /**
+     * Performs redo
+     */
+    this.redo = function() {
+      priv.undoRedo && priv.undoRedo.redo();
+    }
+
+    this.isUndoRedoAvailable = function() {
+      return {
+        undo: priv.undoRedo && priv.undoRedo.isUndoAvailable(),
+        redo: priv.undoRedo && priv.undoRedo.isRedoAvailable()
+      }
+    }
 
     /**
      * Alters the grid
@@ -2824,8 +2898,8 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
       for (i = 0, ilen = setData.length; i < ilen; i++) {
         setData[i].splice(3, 1);
       }
-      this.instance.setDataAtCell(setData, null, null, true, 'undo');
       this.rev--;
+      this.instance.setDataAtCell(setData, null, null, true, 'undo');
     }
   };
 
@@ -2876,6 +2950,7 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
   Handsontable.UndoRedo.prototype.clear = function () {
     this.data = [];
     this.rev = -1;
+    this.instance.container.trigger("undoclear.handsontable");
   };
 })(jQuery);
 (function ($) {

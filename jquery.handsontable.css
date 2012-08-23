@@ -130,7 +130,7 @@
 }
 
 /* textarea border color */
-textarea.handsontableInput {
+.handsontableInput {
   border: 2px solid #5292F7;
   outline-width: 0;
   margin: 0;
@@ -142,7 +142,7 @@ textarea.handsontableInput {
   resize: none;
 }
 
-.handsontableInputHolder.htHidden textarea.handsontableInput {
+.handsontableInputHolder.htHidden .handsontableInput {
   border-color: #5292F7;
   background: #5292F7;
   color: #5292F7;
@@ -225,3 +225,25 @@ textarea.handsontableInput {
   color: #08C;
   text-decoration: none;
 }
+
+/* Tablet options */
+@media only screen
+and (min-device-width : 768px)
+and (max-device-width : 1024px) {
+    /* Styles */
+    .dataTable td {
+        height: 40px;
+        min-width: 60px;
+    }
+    /* Disable certain interactions on touch devices*/
+    body {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -webkit-highlight: none;
+    }
+
+    .handsontableInput {
+        padding-top: 10px;
+    }
+}
+

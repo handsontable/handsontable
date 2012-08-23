@@ -1,0 +1,213 @@
+
+
+/* Controller */
+.handsontable-controller  {
+    font-size: 10px;
+    z-index:6;
+    background-color: rgba(221, 221, 221, 0.30);
+    *background-color: rgb(231,231,231); /* for ie */
+    padding-bottom: 1em;
+    border-radius: 1em;
+
+}
+.handsontable-controller .arrow-pad {
+    padding: 1em;
+    padding-bottom: 0;
+    width: 15em;
+    height: 15em;
+    position: relative;
+
+}
+
+.handsontable-controller div.action {
+    width: 4em;
+    height: 4em;
+    padding: 0.4em;
+    border: 0.1em transparent solid;
+    display: inline-block;
+    border-radius: 1em;
+    overflow-x: hidden;
+}
+
+.handsontable-controller > div.action {
+    position: absolute;
+}
+.handsontable-controller .arrow-pad > div.action {
+    position: absolute;
+    background-color: rgba(212,212,212,0.9);
+    *background-color: rgb(208,208,208); /* for ie */
+}
+
+/* Uses widths/height in px due to image size 40x40 */
+.handsontable-controller div.action i {
+    width: 40px;
+    height: 40px;
+    display: block;
+    background-image: url("icons/icons.png");
+    background-repeat: no-repeat;
+    text-indent: 9000px;
+    background-position: -20px -20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -20px;
+    margin-top: -20px;
+}
+
+.handsontable-controller div.action.disabled i {
+    opacity: 0.3;
+}
+
+
+.handsontable-controller div.action.atLeft {
+    left: 1em;
+}
+.handsontable-controller div.action.atRight {
+    left: 11em;
+}
+.handsontable-controller div.action.atCenter {
+    left: 6em;
+}
+.handsontable-controller div.action.atTop {
+    top: 1em;
+}
+.handsontable-controller div.action.atBottom {
+    top: 11em;
+}
+.handsontable-controller div.action.atVCenter {
+    top: 6em;
+}
+.handsontable-controller div.action.moveLeft {
+    border-radius: 1em 0 0 1em;
+}
+.handsontable-controller div.action.moveRight {
+    border-radius: 0 1em 1em 0;
+}
+.handsontable-controller div.action.moveUp {
+    border-radius: 1em 1em 0 0;
+}
+.handsontable-controller div.action.moveDown {
+    border-radius: 0 0 1em 1em;
+}
+.handsontable-controller div.action.edit {
+    border-radius: 0;
+}
+.handsontable-controller div.action.moveLeft i {
+    background-position: -80px -40px;
+}
+.handsontable-controller div.action.moveRight i {
+    background-position: -40px 0px;
+}
+.handsontable-controller div.action.moveUp i {
+    background-position: -40px -40px;
+}
+.handsontable-controller div.action.moveDown i {
+    background-position: -80px 0px;
+}
+.handsontable-controller div.action.delete-btn i {
+    background-position: 0px -40px;
+}
+.handsontable-controller div.action.add-btn i {
+    background-position: 0px 0px;
+}
+.handsontable-controller div.action.undo i {
+    background-position: -120px 0px;
+}
+.handsontable-controller div.action.redo i {
+    background-position: -120px -40px;
+}
+.handsontable-controller div.action.edit i {
+    background-position: -160px 0px;
+}
+.handsontable-controller div.move {
+    background: url("icons/icons.png") no-repeat -160px -40px;
+    width: 40px;
+    height: 40px;
+}
+.handsontable-controller div.expandCollapse {
+    background: url("icons/icons.png") no-repeat -200px 0;
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    top: 1em;
+    left: -40px;
+    cursor: pointer;
+}
+.handsontable-controller > div.action:not(.disabled):hover,
+.handsontable-controller .arrow-pad > div.action:not(.disabled):hover {
+    background-color:  #dddddd;
+    border: 1px solid #333333;
+    border-radius: 0;
+    cursor: pointer;
+}
+/* action lists */
+
+.handsontable-controller div.action.toggle-btn.pressed {
+    background-color:  #dddddd;
+    border-radius: 0;
+    border: 1px solid #333333;
+    border-bottom-color: #dddddd;
+    z-index: 2;
+    -webkit-box-shadow: 0px 0px 2px 0px #000000;
+    box-shadow: 0px -2px 2px 0px #000000;
+
+}
+.handsontable-controller .list {
+    width: 14.8em;
+    background-color: #dddddd;
+    margin-left: 1em;
+    border: 1px solid #333333;
+    position: relative;
+    top: -1px;
+    padding-top: 5px;
+    -webkit-box-shadow: 0px 0px 2px 0px #000000;
+    box-shadow: 0px 0px 2px 0px #000000;
+}
+
+.handsontable-controller .list div.action{
+    position: static;
+    background-image: none;
+    display: block;
+    width: 13.8em;
+    border: none;
+    border-radius: 0;
+}
+
+.handsontable-controller .list div.action:hover {
+    cursor: pointer;
+
+    background-color: #c5c5c5;
+}
+
+.handsontable-controller .list div.action i{
+    text-indent: 0;
+    background-image: none;
+    font-style: normal;
+    width: 100%;
+    font-size: 1.5em;
+    position: static;
+    margin-left: 0;
+    margin-top: 0;
+}
+
+.handsontable-controller.top {
+    position: fixed;
+    top: 0;
+}
+.handsontable-controller.float {
+    position: absolute;
+    top: 0;
+    /*right: 0;*/
+}
+
+.handsontable-controller .move {
+    position: absolute;
+    left: -40px;
+    top: 6em;
+    opacity: 0.3;
+}
+
+.handsontable-controller .move:hover {
+    cursor: move;
+    opacity: 1;
+}

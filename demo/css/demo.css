@@ -209,3 +209,17 @@ hr {
   width: 80%;
   border-bottom: 1px solid #aaa
 }
+
+.options {
+    border-collapse: collapse;
+}
+.options th,
+.options td {
+    vertical-align: top;
+    border: 1px solid #cccccc;
+    padding: 5px;
+}
+
+.options tr:nth-child(2n) td {
+    background-color: #f2f2f2;
+}
