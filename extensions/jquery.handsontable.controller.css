@@ -2,29 +2,30 @@
 
 /* Controller */
 .handsontable-controller  {
+    font-size: 10px;
     z-index:6;
     background-color: rgba(221, 221, 221, 0.30);
     *background-color: rgb(231,231,231); /* for ie */
-    padding-bottom: 10px;
-    border-radius: 10px;
+    padding-bottom: 1em;
+    border-radius: 1em;
 
 }
 .handsontable-controller .arrow-pad {
-    padding: 10px;
+    padding: 1em;
     padding-bottom: 0;
-    width: 150px;
-    height: 150px;
+    width: 15em;
+    height: 15em;
     position: relative;
 
 }
 
 .handsontable-controller div.action {
-    width: 40px;
-    height: 40px;
-    padding: 4px;
-    border: 1px transparent solid;
+    width: 4em;
+    height: 4em;
+    padding: 0.4em;
+    border: 0.1em transparent solid;
     display: inline-block;
-    border-radius: 10px;
+    border-radius: 1em;
     overflow-x: hidden;
 }
 
@@ -37,6 +38,7 @@
     *background-color: rgb(208,208,208); /* for ie */
 }
 
+/* Uses widths/height in px due to image size 40x40 */
 .handsontable-controller div.action i {
     width: 40px;
     height: 40px;
@@ -45,6 +47,11 @@
     background-repeat: no-repeat;
     text-indent: 9000px;
     background-position: -20px -20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -20px;
+    margin-top: -20px;
 }
 
 .handsontable-controller div.action.disabled i {
@@ -53,34 +60,34 @@
 
 
 .handsontable-controller div.action.atLeft {
-    left: 10px;
+    left: 1em;
 }
 .handsontable-controller div.action.atRight {
-    left: 110px;
+    left: 11em;
 }
 .handsontable-controller div.action.atCenter {
-    left: 60px;
+    left: 6em;
 }
 .handsontable-controller div.action.atTop {
-    top: 10px;
+    top: 1em;
 }
 .handsontable-controller div.action.atBottom {
-    top: 110px;
+    top: 11em;
 }
 .handsontable-controller div.action.atVCenter {
-    top: 60px;
+    top: 6em;
 }
 .handsontable-controller div.action.moveLeft {
-    border-radius: 10px 0 0 10px;
+    border-radius: 1em 0 0 1em;
 }
 .handsontable-controller div.action.moveRight {
-    border-radius: 0 10px 10px 0;
+    border-radius: 0 1em 1em 0;
 }
 .handsontable-controller div.action.moveUp {
-    border-radius: 10px 10px 0 0px;
+    border-radius: 1em 1em 0 0;
 }
 .handsontable-controller div.action.moveDown {
-    border-radius: 0 0 10px 10px;
+    border-radius: 0 0 1em 1em;
 }
 .handsontable-controller div.action.edit {
     border-radius: 0;
@@ -122,14 +129,16 @@
     width: 40px;
     height: 40px;
     position: absolute;
-    top: 10px;
+    top: 1em;
     left: -40px;
     cursor: pointer;
 }
-.handsontable-controller div.action:not(.disabled):hover {
+.handsontable-controller > div.action:not(.disabled):hover,
+.handsontable-controller .arrow-pad > div.action:not(.disabled):hover {
     background-color:  #dddddd;
     border: 1px solid #333333;
     border-radius: 0;
+    cursor: pointer;
 }
 /* action lists */
 
@@ -144,9 +153,9 @@
 
 }
 .handsontable-controller .list {
-    width: 148px;
+    width: 14.8em;
     background-color: #dddddd;
-    margin-left: 10px;
+    margin-left: 1em;
     border: 1px solid #333333;
     position: relative;
     top: -1px;
@@ -159,7 +168,15 @@
     position: static;
     background-image: none;
     display: block;
-    width: 138px;
+    width: 13.8em;
+    border: none;
+    border-radius: 0;
+}
+
+.handsontable-controller .list div.action:hover {
+    cursor: pointer;
+
+    background-color: #c5c5c5;
 }
 
 .handsontable-controller .list div.action i{
@@ -167,6 +184,10 @@
     background-image: none;
     font-style: normal;
     width: 100%;
+    font-size: 1.5em;
+    position: static;
+    margin-left: 0;
+    margin-top: 0;
 }
 
 .handsontable-controller.top {
@@ -182,7 +203,7 @@
 .handsontable-controller .move {
     position: absolute;
     left: -40px;
-    top: 60px;
+    top: 6em;
     opacity: 0.3;
 }
 
