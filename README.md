@@ -80,6 +80,7 @@ Maybe you want to show some default data. Use the `handsontable('loadData', data
  handsontable('undo')                                                                  | Method      | Performs undo
  handsontable('redo')                                                                  | Method      | Performs redo
  handsontable('isUndoRedoAvailable')                                                   | Method      | Return object with two boolean fields: 'undo' and 'redo'. 'True' means that corresponding operation is available
+
 ## Options
 
 The table below presents configuration options that are interpreted by `handsontable()` constructor:
