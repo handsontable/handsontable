@@ -2272,7 +2272,7 @@ var Handsontable = { //class namespace
         if (priv.fillHandle && settings.fillHandle === false) {
           autofill.disable();
         }
-        else if (!priv.fillHandle && settings.fillHandle === true) {
+        else if (!priv.fillHandle && settings.fillHandle !== false) {
           autofill.init();
         }
       }
