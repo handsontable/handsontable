@@ -9,6 +9,7 @@ See the demos at http://warpech.github.com/jquery-handsontable/ or fork the exam
 First, include all the dependencies:
 
 ```html
+<script src="lib/jquery.min.js"></script>
 <script src="jquery.handsontable.js"></script>
 <script src="lib/bootstrap-typeahead.js"></script><!-- if you need the autocomplete feature -->
 <script src="lib/jquery.autoresize.js"></script><!-- if you need the autoexpanding textarea -->
@@ -18,7 +19,7 @@ First, include all the dependencies:
 <link rel="stylesheet" media="screen" href="jquery.handsontable.css">
 ```
 
-Then, run `handsontable()` constructor on an empty div:
+Then, run `handsontable()` constructor on an empty div. After that, load some data if you wish:
 
 ```html
 <div id="dataTable" class="dataTable"></div>
@@ -26,14 +27,7 @@ Then, run `handsontable()` constructor on an empty div:
   $("#dataTable").handsontable({
     rows: 6,
     cols: 8
-});
-</script>
-```
-    
-Maybe you want to show some default data. Use the `handsontable('loadData', data)` method:
-
-```html
-<script>
+  });
   var data = [
     ["", "Kia", "Nissan", "Toyota", "Honda"],
     ["2008", 10, 11, 12, 13],
@@ -79,30 +73,30 @@ To see the list of recent changes, see the [Changelog](https://github.com/warpec
 
 The table below presents configuration options that are interpreted by `handsontable()` constructor:
 
-  Option              | Type                                  | Default          | Description
-----------------------|---------------------------------------|------------------|-------------
- `rows`               | Number                                | 5                | Initial number of rows
- `cols`               | Number                                | 5                | Initial number of columns
- `rowHeaders`         | Boolean/Array                         | false            | Defines if the row headers (1, 2, 3, ...) should be displayed. You can just set it to `true` or specify custom a array `["First", "Second", "Third", ...]`
- `colHeaders`         | Boolean/Array                         | false            | Defines if the column headers (A, B, C, ...) should be displayed. You can just set it to `true` or specify custom a array `["First Name", "Last Name", "Address", ...]`
- `minWidth`           | Number                                | 0                | Handsontable will add as many columns as needed to meet the given width in pixels
- `minHeight`          | Number                                | 0                | Handsontable will add as many rows as needed to meet the given height in pixels
- `minSpareCols`       | Number                                | 0                | When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns
- `minSpareRows`       | Number                                | 0                | When set to 1 (or more), Handsontable will add a new row at the end of grid if there are no more empty rows
- `multiSelect`        | Boolean                               | true             | If true, selection of multiple cells using keyboard or mouse is allowed
- `fillHandle`         | Boolean/String                        | true             | Defines if the fill handle (drag-down and copy-down) functionality should be enabled. Possible values: `true` (to enable in all directions), `"vertical"` or `"horizontal"` (to enable in one direction), `false` (to disable completely).
- `contextMenu`        | Boolean/Array                         | false            | Defines if the right-click context menu should be enabled. Context menu allows to create new row or column at any place in the grid. Possible values: `true` (to enable basic options), `false` (to disable completely) or array of available strings: `row_above`, `row_below`, `col_left`, `col_right`, `remove_row`, `remove_col`, `undo`, `redo`, `sep1`, `sep2`, `sep3`.
- `undo`               | Boolean                               | true             | If true, undo/redo functionality is enabled
- `enterBeginsEditing` | Boolean                               | true             | If true, ENTER begins editing mode (like Google Docs). If false, ENTER moves to next row (like Excel) and adds new row if necessary. TAB adds new column if necessary.
- `enterMoves`         | Object                                | {row: 1, col: 0} | Defines cursor move after Enter is pressed (Shift+Enter uses negative vector)
- `tabMoves`           | Object                                | {row: 0, col: 1} | Defines cursor move after Tab is pressed (Shift+Tab uses negative vector)
- `autoWrapRow`        | Boolean                               | false            | If true, pressing TAB or right arrow in the last column will move to first column in next row
- `autoWrapCol`        | Boolean                               | false            | If true, pressing ENTER or down arrow in the last row will move to first row in next column
- `legend`             | Array                                 | _undefined_      | Legend definitions. See **Defining legend**
- `autocomplete`       | Array                                 | _undefined_      | Autocomplete definitions. See **Defining autocomplete**
- `onSelection`        | Function(r,&nbsp;c,&nbsp;r2,&nbsp;c2) | _undefined_      | Callback to be fired before one or more cells is selected. Params `r, c` are the coordinates of the selection start, params `r2, c2` are the selection end. You can call updateSettings from inside, e.g. if you want to disable fillHandle in one column.
- `onBeforeChange`     | Function(changes)                     | _undefined_      | Callback to be fired before one or more cells is changed (with changes array as an argument). Its main purpose is validation of the input. You can disregard a single change by setting `changes[i][3]` to false, or cancel all edit by returning false.
- `onChange`           | Function(changes)                     | _undefined_      | Callback to be fired after one or more cells is changed (with changes array as an argument). Its main purpose is saving the input.
+  Option              | Type                           | Default          | Description
+----------------------|--------------------------------|------------------|-------------
+ `rows`               | number                         | 5                | Initial number of rows
+ `cols`               | number                         | 5                | Initial number of columns
+ `rowHeaders`         | boolean/array                  | false            | Defines if the row headers (1, 2, 3, ...) should be displayed. You can just set it to `true` or specify custom a array `["First", "Second", "Third", ...]`
+ `colHeaders`         | boolean/array                  | false            | Defines if the column headers (A, B, C, ...) should be displayed. You can just set it to `true` or specify custom a array `["First Name", "Last Name", "Address", ...]`
+ `minWidth`           | number                         | 0                | Handsontable will add as many columns as needed to meet the given width in pixels
+ `minHeight`          | number                         | 0                | Handsontable will add as many rows as needed to meet the given height in pixels
+ `minSpareCols`       | number                         | 0                | When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns
+ `minSpareRows`       | number                         | 0                | When set to 1 (or more), Handsontable will add a new row at the end of grid if there are no more empty rows
+ `multiSelect`        | boolean                        | true             | If true, selection of multiple cells using keyboard or mouse is allowed
+ `fillHandle`         | boolean/string                 | true             | Defines if the fill handle (drag-down and copy-down) functionality should be enabled. Possible values: `true` (to enable in all directions), `"vertical"` or `"horizontal"` (to enable in one direction), `false` (to disable completely).
+ `contextMenu`        | boolean/array                  | false            | Defines if the right-click context menu should be enabled. Context menu allows to create new row or column at any place in the grid. Possible values: `true` (to enable basic options), `false` (to disable completely) or array of available strings: `row_above`, `row_below`, `col_left`, `col_right`, `remove_row`, `remove_col`, `undo`, `redo`, `sep1`, `sep2`, `sep3`.
+ `undo`               | boolean                        | true             | If true, undo/redo functionality is enabled
+ `enterBeginsEditing` | boolean                        | true             | If true, ENTER begins editing mode (like Google Docs). If false, ENTER moves to next row (like Excel) and adds new row if necessary. TAB adds new column if necessary.
+ `enterMoves`         | object                         | {row: 1, col: 0} | Defines cursor move after Enter is pressed (Shift+Enter uses negative vector)
+ `tabMoves`           | object                         | {row: 0, col: 1} | Defines cursor move after Tab is pressed (Shift+Tab uses negative vector)
+ `autoWrapRow`        | boolean                        | false            | If true, pressing TAB or right arrow in the last column will move to first column in next row
+ `autoWrapCol`        | boolean                        | false            | If true, pressing ENTER or down arrow in the last row will move to first row in next column
+ `legend`             | array                          | _undefined_      | Legend definitions. See **Defining legend**
+ `autocomplete`       | array                          | _undefined_      | Autocomplete definitions. See **Defining autocomplete**
+ `onSelection`        | function(`r`, `c`, `r2`, `c2`) | _undefined_      | Callback fired before one or more cells is selected. You can call `updateSettings` from inside, e.g. if you want to disable fillHandle for a specific cell. Parameters: <ul><li>`r` selection start row</li><li>`c` selection start column</li><li>`r2` selection end column</li><li>`c2` selection end column</li></ul>
+ `onBeforeChange`     | function(`changes`)            | _undefined_      | Callback fired before one or more cells is changed. Its main purpose is to validate the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, col, oldVal, newVal], ... ]`. You can disregard a single change by setting `changes[i][3]` to false, or cancel all edit by returning false.</li></ul>
+ `onChange`           | function(`changes`, `source`)  | _undefined_      | Callback fired after one or more cells is changed. Its main use case is to save the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, col, oldVal, newVal], ... ]`. </li><li>`source` is one of the strings: `"alter"`, `"empty"`, `"edit"`, `"populateFromArray"`, `"loadData"`, `"autofill"`, `"paste"`.</li></ul>
 
 ### Defining legend
 
