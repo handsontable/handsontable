@@ -1887,11 +1887,13 @@ var Handsontable = { //class namespace
       }
 
       function onOutsideClick(event) {
-        setTimeout(function () {//do async so all mouseenter, mouseleave events will fire before
-          if (!priv.isMouseOverTable && event.target !== priv.tableContainer && $(event.target).attr('id') !== 'context-menu-layer') { //if clicked outside the table or directly at container which also means outside
-            selection.deselect();
-          }
-        }, 1);
+        if (priv.settings.outsideClickDeselects) {
+          setTimeout(function () {//do async so all mouseenter, mouseleave events will fire before
+            if (!priv.isMouseOverTable && event.target !== priv.tableContainer && $(event.target).attr('id') !== 'context-menu-layer') { //if clicked outside the table or directly at container which also means outside
+              selection.deselect();
+            }
+          }, 1);
+        }
       }
 
       $("html").on('mouseup', onMouseUp);
@@ -2739,6 +2741,7 @@ var Handsontable = { //class namespace
     'multiSelect': true,
     'fillHandle': true,
     'undo': true,
+    'outsideClickDeselects': true,
     'enterBeginsEditing': true,
     'enterMoves': {row: 1, col: 0},
     'tabMoves': {row: 0, col: 1},
