@@ -62,6 +62,12 @@ var Handsontable = { //class namespace
       div[0].style.overflow = 'scroll';
       w1 -= subDiv.innerWidth();
       h1 -= subDiv.innerHeight();
+      if (w1 === 0) {
+        w1 = 17;
+      }
+      if (h1 === 0) {
+        h1 = 17;
+      }
       div.remove();
       return {width: w1, height: h1};
     }
@@ -1402,9 +1408,6 @@ var Handsontable = { //class namespace
                 }
                 else if (editproxy.getCaretPosition() === priv.editProxy.val().length) {
                   editproxy.finishEditing(false, 0, 1);
-                  if (isAutoComplete() && isAutoComplete().shown) {
-                    isAutoComplete().hide();
-                  }
                 }
                 break;
 
@@ -1420,9 +1423,6 @@ var Handsontable = { //class namespace
                 }
                 else if (editproxy.getCaretPosition() === 0) {
                   editproxy.finishEditing(false, 0, -1);
-                  if (isAutoComplete() && isAutoComplete().shown) {
-                    isAutoComplete().hide();
-                  }
                 }
                 break;
 
@@ -1796,6 +1796,10 @@ var Handsontable = { //class namespace
           priv.editProxyHolder.css({
             overflow: 'hidden'
           });
+
+          if (isAutoComplete() && isAutoComplete().shown) {
+            isAutoComplete().hide();
+          }
         }
         if (endTd && typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
           selection.transformStart(moveRow, moveCol, !priv.settings.enterBeginsEditing);
@@ -1833,6 +1837,18 @@ var Handsontable = { //class namespace
         if (priv.settings.autoComplete) {
           priv.editProxy.data('typeahead').lookup();
         }
+      },
+
+      onMouseWheel: function (event, delta, deltaX, deltaY) {
+        if (priv.virtualScroll) {
+          if (deltaY) {
+            priv.virtualScroll.scrollTop(priv.virtualScroll.scrollTop() + 44 * -deltaY);
+          }
+          else if (deltaX) {
+            priv.virtualScroll.scrollLeft(priv.virtualScroll.scrollLeft() + 100 * deltaX);
+          }
+          event.preventDefault();
+        }
       }
     };
 
@@ -1856,6 +1872,7 @@ var Handsontable = { //class namespace
       self.table.on('mousedown', 'td', interaction.onMouseDown);
       self.table.on('mouseover', 'td', interaction.onMouseOver);
       self.table.on('dblclick', 'td', interaction.onDblClick);
+      self.table.on('mousewheel', 'td', interaction.onMouseWheel);
       container.append(div);
 
       self.colCount = settings.cols;
@@ -1912,6 +1929,29 @@ var Handsontable = { //class namespace
       }
 
       if (priv.scrollable) {
+        //create fake scrolling div
+        priv.virtualScroll = $('<div class="virtualScroll"><div class="spacer"></div></div>');
+        priv.scrollable = priv.virtualScroll;
+        this.container.before(priv.virtualScroll);
+        container[0].style.overflow = 'hidden';
+        self.table[0].style.position = 'absolute';
+        priv.virtualScroll.css({
+          width: this.container.width() + 'px',
+          height: this.container.height() + 'px',
+          overflow: 'scroll'
+        });
+        this.container.css({
+          position: 'absolute',
+          top: priv.virtualScroll.position().top + 'px',
+          left: priv.virtualScroll.position().left + 'px'
+        });
+        this.container.width(priv.virtualScroll.innerWidth() - priv.scrollbarSize.width);
+        this.container.height(priv.virtualScroll.innerHeight() - priv.scrollbarSize.height);
+        setInterval(function () {
+          priv.virtualScroll.find('.spacer').height(self.table.height());
+          priv.virtualScroll.find('.spacer').width(self.table.width());
+        }, 100);
+
         priv.scrollable.scrollTop(0);
         priv.scrollable.scrollLeft(0);
 
@@ -1921,29 +1961,35 @@ var Handsontable = { //class namespace
 
           if (self.curScrollTop !== self.lastScrollTop) {
             self.blockedRows.refreshBorders();
-            self.blockedRows.main[0].style.top = self.curScrollTop + 'px';
+            self.blockedCols.main[0].style.top = -self.curScrollTop + 'px';
+            self.table[0].style.top = -self.curScrollTop + 'px';
           }
 
           if (self.curScrollLeft !== self.lastScrollLeft) {
             self.blockedCols.refreshBorders();
-            self.blockedCols.main[0].style.left = self.curScrollLeft + 'px';
+            self.blockedRows.main[0].style.left = -self.curScrollLeft + 'px';
+            self.table[0].style.left = -self.curScrollLeft + 'px';
           }
 
-          if (priv.cornerHeader && (self.curScrollTop !== self.lastScrollTop || self.curScrollLeft !== self.lastScrollLeft)) {
-            if (self.curScrollTop === 0 && self.curScrollLeft === 0) {
-              priv.cornerHeader.find("th:last-child").css({borderRightWidth: 0});
-              priv.cornerHeader.find("tr:last-child th").css({borderBottomWidth: 0});
+          if (self.curScrollTop !== self.lastScrollTop || self.curScrollLeft !== self.lastScrollLeft) {
+            selection.refreshBorders();
+
+            if (priv.cornerHeader) {
+              if (self.curScrollTop === 0 && self.curScrollLeft === 0) {
+                priv.cornerHeader.find("th:last-child").css({borderRightWidth: 0});
+                priv.cornerHeader.find("tr:last-child th").css({borderBottomWidth: 0});
+              }
+              else if (self.lastScrollTop === 0 && self.lastScrollLeft === 0) {
+                priv.cornerHeader.find("th:last-child").css({borderRightWidth: '1px'});
+                priv.cornerHeader.find("tr:last-child th").css({borderBottomWidth: '1px'});
+              }
             }
-            else if (self.lastScrollTop === 0 && self.lastScrollLeft === 0) {
-              priv.cornerHeader.find("th:last-child").css({borderRightWidth: '1px'});
-              priv.cornerHeader.find("tr:last-child th").css({borderBottomWidth: '1px'});
-            }
-            priv.cornerHeader[0].style.top = self.curScrollTop + 'px';
-            priv.cornerHeader[0].style.left = self.curScrollLeft + 'px';
           }
 
           self.lastScrollTop = self.curScrollTop;
           self.lastScrollLeft = self.curScrollLeft;
+
+          editproxy.finishEditing();
         });
         priv.scrollable.trigger('scroll.handsontable');
       }
@@ -2626,13 +2672,6 @@ var Handsontable = { //class namespace
           width -= 1;
         }
 
-        if (top < 0) {
-          top = 0;
-        }
-        if (left < 0) {
-          left = 0;
-        }
-
         if (this.bg) {
           this.bg.style.top = top + 'px';
           this.bg.style.left = left + 'px';
@@ -2799,7 +2838,6 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
       keyCode >= 226 || //special chars (229 for Asian chars)
       (keyCode >= 65 && keyCode <= 90)); //a-z
 };
-
 
 (function ($) {
   "use strict";
@@ -3380,4 +3418,88 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
   Handsontable.ColHeader.prototype.destroy = function () {
     this.instance.blockedRows.destroyHeader(this.className);
   };
+})(jQuery);
+/*! Copyright (c) 2011 Brandon Aaron (http://brandonaaron.net)
+ * Licensed under the MIT License (LICENSE.txt).
+ *
+ * Thanks to: http://adomas.org/javascript-mouse-wheel/ for some pointers.
+ * Thanks to: Mathias Bank(http://www.mathias-bank.de) for a scope bug fix.
+ * Thanks to: Seamus Leahy for adding deltaX and deltaY
+ *
+ * Version: 3.0.6
+ * 
+ * Requires: 1.2.2+
+ */
+
+(function($) {
+
+var types = ['DOMMouseScroll', 'mousewheel'];
+
+if ($.event.fixHooks) {
+    for ( var i=types.length; i; ) {
+        $.event.fixHooks[ types[--i] ] = $.event.mouseHooks;
+    }
+}
+
+$.event.special.mousewheel = {
+    setup: function() {
+        if ( this.addEventListener ) {
+            for ( var i=types.length; i; ) {
+                this.addEventListener( types[--i], handler, false );
+            }
+        } else {
+            this.onmousewheel = handler;
+        }
+    },
+    
+    teardown: function() {
+        if ( this.removeEventListener ) {
+            for ( var i=types.length; i; ) {
+                this.removeEventListener( types[--i], handler, false );
+            }
+        } else {
+            this.onmousewheel = null;
+        }
+    }
+};
+
+$.fn.extend({
+    mousewheel: function(fn) {
+        return fn ? this.bind("mousewheel", fn) : this.trigger("mousewheel");
+    },
+    
+    unmousewheel: function(fn) {
+        return this.unbind("mousewheel", fn);
+    }
+});
+
+
+function handler(event) {
+    var orgEvent = event || window.event, args = [].slice.call( arguments, 1 ), delta = 0, returnValue = true, deltaX = 0, deltaY = 0;
+    event = $.event.fix(orgEvent);
+    event.type = "mousewheel";
+    
+    // Old school scrollwheel delta
+    if ( orgEvent.wheelDelta ) { delta = orgEvent.wheelDelta/120; }
+    if ( orgEvent.detail     ) { delta = -orgEvent.detail/3; }
+    
+    // New school multidimensional scroll (touchpads) deltas
+    deltaY = delta;
+    
+    // Gecko
+    if ( orgEvent.axis !== undefined && orgEvent.axis === orgEvent.HORIZONTAL_AXIS ) {
+        deltaY = 0;
+        deltaX = -1*delta;
+    }
+    
+    // Webkit
+    if ( orgEvent.wheelDeltaY !== undefined ) { deltaY = orgEvent.wheelDeltaY/120; }
+    if ( orgEvent.wheelDeltaX !== undefined ) { deltaX = -1*orgEvent.wheelDeltaX/120; }
+    
+    // Add event and delta to the front of the arguments
+    args.unshift(event, delta, deltaX, deltaY);
+    
+    return ($.event.dispatch || $.event.handle).apply(this, args);
+}
+
 })(jQuery);
