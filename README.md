@@ -55,7 +55,7 @@ To see the list of recent changes, see the [Changelog](https://github.com/warpec
  handsontable('clear')                                                                 | Method      | Empty all cells
  handsontable('clearUndo')                                                             | Method      | Clear undo history
  handsontable('getData', [r, c, r2, c2])                                               | Method      | Return 2-dimensional array with all grid data as copy (preferred but slower than `getDataReference`). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to get only a fragment of grid data
- handsontable('getDataReference', [r, c, r2, c2])                                      | Method      | Return 2-dimensional array with all grid data as reference (faster than `getData`). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to extract only a fragment of grid
+ handsontable('getDataReference', [r, c, r2, c2])                                      | Method      | Return 2-dimensional array with all grid data as reference (faster than `getData` but can mess up - use it only for reading data). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to extract only a fragment of grid
  handsontable('alter', 'insert_row', index)                                            | Method      | Insert new row above the row at given index
  handsontable('alter', 'insert_col', index)                                            | Method      | Insert new column before the column at given index
  handsontable('alter',&nbsp;'remove_row',&nbsp;index,&nbsp;[toIndex])                  | Method      | Remove the row at given index [optionally to another index]

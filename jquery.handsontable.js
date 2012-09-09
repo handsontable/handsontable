@@ -2280,7 +2280,7 @@ var Handsontable = { //class namespace
     };
 
     /**
-     * Return 2-dimensional array with all grid data as reference (faster than `getData`). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to extract only a fragment of grid
+     * Return 2-dimensional array with all grid data as reference (faster than `getData` but can mess up - use it only for reading data). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to extract only a fragment of grid
      * @public
      * @param {Number} r (Optional) From row
      * @param {Number} c (Optional) From col
