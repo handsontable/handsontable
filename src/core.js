@@ -1,5 +1,5 @@
 /**
- * Handsontable 0.5.1
+ * Handsontable 0.5.2-beta
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
@@ -2267,17 +2267,33 @@ var Handsontable = { //class namespace
     };
 
     /**
-     * Return 2-dimensional array with the current grid data
+     * Return 2-dimensional array with all grid data as copy (preferred but slower than `getDataReference`). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to get only a fragment of grid data
      * @public
-     * @param {Boolean} [asReference=false] If TRUE, function will return direct reference to the internal data array. That is faster but should be used only to READ data (otherwise you will mess up the DOM table). To write data, you should always use method `setDataAtCell`.
+     * @param {Number} r (Optional) From row
+     * @param {Number} c (Optional) From col
+     * @param {Number} r2 (Optional) To row
+     * @param {Number} c2 (Optional) To col
      * @return {Array}
      */
-    this.getData = function (asReference) {
-      if (asReference === true) {
+    this.getData = function (r, c, r2, c2) {
+      return $.extend(true, [], self.getDataReference.apply(self, arguments));
+    };
+
+    /**
+     * Return 2-dimensional array with all grid data as reference (faster than `getData`). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to extract only a fragment of grid
+     * @public
+     * @param {Number} r (Optional) From row
+     * @param {Number} c (Optional) From col
+     * @param {Number} r2 (Optional) To row
+     * @param {Number} c2 (Optional) To col
+     * @return {Array}
+     */
+    this.getDataReference = function (r, c, r2, c2) {
+      if (typeof r === 'undefined') {
         return datamap.getAll();
       }
       else {
-        return $.extend(true, [], datamap.getAll());
+        return datamap.getRange({row: r, col: c}, {row: r2, col: c2});
       }
     };
 
@@ -2491,14 +2507,14 @@ var Handsontable = { //class namespace
     };
 
     /**
-     * Returns value corresponding to cell at row, col
+     * Return copy of cell value at `row`, `col`
      * @param {Number} row
      * @param {Number} col
      * @public
      * @return {string}
      */
     this.getDataAtCell = function (row, col) {
-      return datamap.get(row, col);
+      return datamap.get(row, col) + '';
     };
 
     /**
