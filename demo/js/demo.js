@@ -366,4 +366,8 @@ $(function () {
     $this.find('a[href~=#' + $this.attr('id').replace('container', '') + ']').addClass('active');
   });
   examplesList.remove();
+
+  if (window.location.hostname !== 'warpech.github.com') {
+    $('#domainNotice').show();
+  }
 });

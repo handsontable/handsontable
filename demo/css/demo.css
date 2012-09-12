@@ -150,6 +150,15 @@ a {
   color: #1B676B;
 }
 
+.notice {
+  border: 1px solid red;
+  color: #100;
+  padding: 4px 6px;
+  font-size: 1.2em;
+  margin-top: 2em;
+  display: none;
+}
+
 .description {
   font-size: 1.2em;
   margin-bottom: 30px;
