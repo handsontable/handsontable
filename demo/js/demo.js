@@ -367,7 +367,7 @@ $(function () {
   });
   examplesList.remove();
 
-  if (window.location.hostname !== 'warpech.github.com') {
+  if (window.location.hostname === 'warpech.github.com') {
     $('#domainNotice').show();
   }
 });
