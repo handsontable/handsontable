@@ -181,7 +181,7 @@
     <h3>Legend</h3>
 
     <p>The <b>legend</b> feature, which makes the first row have an
-      <span style="color: green; font-weight: bold">green</span> font.</p>
+      <span style="color: green; font-weight: bold">green</span> font and an <strong>icon</strong>.</p>
 
     <p>In the below example, the <strong>column</strong> (A, B, C) and <strong>row</strong> (1, 2, 3) headers are on.
     </p>
@@ -227,7 +227,7 @@
       },
       {
         match: function (row, col, data) {
-          return (col === 0 && data()[row][col]); //if it is first column with data
+          return (row === 0 && data()[row][col]); //if it is first row with data
         },
         icon: {
           src: "http://upload.wikimedia.org/wikipedia/commons/7/75/Information-silk.png",

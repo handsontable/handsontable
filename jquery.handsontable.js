@@ -658,6 +658,15 @@ var Handsontable = { //class namespace
                     func.call(self, priv.selStart.row, priv.selStart.col, datamap.getAll, e.target);
                   }
                 })(legend));
+                $img.on("load", function () {
+                  setTimeout(function () {
+                    var changes = [
+                      [coords.row, coords.col]
+                    ];
+                    self.blockedRows.dimensions(changes);
+                    self.blockedCols.dimensions(changes);
+                  }, 10);
+                });
                 $td.append($img);
               }
             }
