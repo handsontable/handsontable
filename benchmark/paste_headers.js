@@ -32,7 +32,7 @@ $(window).load(function () {
         cols: 5,
         rowHeaders: true,
         colHeaders: true,
-        minSpareCols: 1, //always keep at least 1 spare row at the right
+        minSpareCols: 1, //always keep at least 1 spare col at the right
         minSpareRows: 1, //always keep at least 1 spare row at the bottom
         contextMenu: true,
         onChange: function () {

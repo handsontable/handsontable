@@ -8,7 +8,7 @@ $(function () {
     $("#example1grid").handsontable({
       rows: 5,
       cols: 5,
-      minSpareCols: 1, //always keep at least 1 spare row at the right
+      minSpareCols: 1, //always keep at least 1 spare col at the right
       minSpareRows: 1, //always keep at least 1 spare row at the bottom
       contextMenu: true
     });
@@ -154,7 +154,7 @@ $(function () {
       cols: 40,
       rowHeaders: true,
       colHeaders: true,
-      minSpareCols: 1, //always keep at least 1 spare row at the right
+      minSpareCols: 1, //always keep at least 1 spare col at the right
       minSpareRows: 1 //always keep at least 1 spare row at the bottom
     });
 
