@@ -2375,7 +2375,7 @@ var Handsontable = { //class namespace
         if (settings.colHeaders === false && priv.extensions["ColHeader"]) {
           priv.extensions["ColHeader"].destroy();
         }
-        else {
+        else if(settings.colHeaders !== false) {
           priv.extensions["ColHeader"] = new Handsontable.ColHeader(self, settings.colHeaders);
         }
       }
@@ -2384,7 +2384,7 @@ var Handsontable = { //class namespace
         if (settings.rowHeaders === false && priv.extensions["RowHeader"]) {
           priv.extensions["RowHeader"].destroy();
         }
-        else {
+        else if(settings.rowHeaders !== false) {
           priv.extensions["RowHeader"] = new Handsontable.RowHeader(self, settings.rowHeaders);
         }
       }
