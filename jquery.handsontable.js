@@ -2655,7 +2655,7 @@ var Handsontable = { //class namespace
      * @return {string}
      */
     this.getDataAtCell = function (row, col) {
-      return datamap.get(row, col) + '';
+      return datamap.get(row, datamap.colToProp(col)) + '';
     };
 
     /**
