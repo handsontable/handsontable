@@ -17,7 +17,7 @@
         instance.selectCell(this.parentNode.rowIndex - offset, 0, this.parentNode.rowIndex - offset, instance.colCount - 1, false);
       }
     });
-    instance.container.on('deselect.handsontable', function () {
+    instance.rootElement.on('deselect.handsontable', function () {
       that.deselect();
     });
     this.labels = labels;

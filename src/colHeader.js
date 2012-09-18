@@ -17,7 +17,7 @@
       var offset = instance.blockedCols ? instance.blockedCols.count() : 0;
       instance.selectCell(0, index - offset, instance.rowCount - 1, index - offset, false);
     });
-    instance.container.on('deselect.handsontable', function () {
+    instance.rootElement.on('deselect.handsontable', function () {
       that.deselect();
     });
     this.instance = instance;

@@ -15,7 +15,7 @@ describe('Core_selection', function () {
 
     runs(function () {
       $container.handsontable({
-        onSelection:function (r, c) {
+        onSelection: function (r, c) {
           output = [r, c];
         }
       });

@@ -30,7 +30,6 @@ describe('ColHeader', function () {
     });
     var ths = $container.find('th.htColHeader');
     expect(ths.length).toEqual(2 * startCols); //2x startCols because they are duplicated on layer above grid
-    console.log(ths.eq(0));
     expect(ths.eq(0).text().trim()).toEqual('A');
     expect(ths.eq(1).text().trim()).toEqual('B');
     expect(ths.eq(2).text().trim()).toEqual('C');
