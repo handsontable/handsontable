@@ -2771,7 +2771,7 @@ var Handsontable = { //class namespace
       if (typeof col !== 'number' || col < 0 || col >= self.colCount) {
         return false;
       }
-      if (typeof endRow === "undefined") {
+      if (typeof endRow !== "undefined") {
         if (typeof endRow !== 'number' || endRow < 0 || endRow >= self.rowCount) {
           return false;
         }
