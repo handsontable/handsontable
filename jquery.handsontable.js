@@ -463,7 +463,7 @@ var Handsontable = { //class namespace
             changes.push([r, c, oldData[r] ? oldData[r][c] : null, newData[r][c]]);
           }
         }
-        self.container.triggerHandler("datachange.handsontable", [changes, 'alter']);
+        self.rootElement.triggerHandler("datachange.handsontable", [changes, 'alter']);
       },
 
       /**
@@ -1146,7 +1146,7 @@ var Handsontable = { //class namespace
           }
         }
         if (changes.length) {
-          self.container.triggerHandler("datachange.handsontable", [changes, 'empty']);
+          self.rootElement.triggerHandler("datachange.handsontable", [changes, 'empty']);
           setTimeout(function () {
             self.blockedRows.dimensions(changes);
             self.blockedCols.dimensions(changes);
@@ -2206,7 +2206,7 @@ var Handsontable = { //class namespace
         $('.context-menu-root').on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
       }
 
-      self.container.on("beforedatachange.handsontable", function (event, changes) {
+      self.rootElement.on("beforedatachange.handsontable", function (event, changes) {
         if (priv.settings.autoComplete) { //validate strict autocompletes
           var typeahead = priv.editProxy.data('typeahead');
           loop : for (var c = 0, clen = changes.length; c < clen; c++) {
@@ -2239,7 +2239,7 @@ var Handsontable = { //class namespace
           }
         }
       });
-      self.container.on("datachange.handsontable", function (event, changes, source) {
+      self.rootElement.on("datachange.handsontable", function (event, changes, source) {
         if (priv.settings.onChange) {
           priv.settings.onChange(changes, source);
         }
@@ -2284,7 +2284,7 @@ var Handsontable = { //class namespace
         changes[i].splice(2, 0, datamap.get(changes[i][0], changes[i][1])); //add old value at index 2
       }
 
-      self.container.triggerHandler("beforedatachange.handsontable", [changes]);
+      self.rootElement.triggerHandler("beforedatachange.handsontable", [changes]);
 
       for (i = 0, ilen = changes.length; i < ilen; i++) {
         if (changes[i][3] === false) {
@@ -2326,7 +2326,7 @@ var Handsontable = { //class namespace
         selection.refreshBorders();
       }
       if (changes.length) {
-        self.container.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
+        self.rootElement.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
         self.container.triggerHandler("datachangebycol.handsontable", [changesByCol, source || 'edit']);
       }
       return td;
