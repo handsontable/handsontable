@@ -14,7 +14,7 @@
     this.instance.container.append(this.main);
     this.hasCSS3 = !($.browser.msie && (parseInt($.browser.version, 10) <= 8)); //Used to get over IE8- not having :last-child selector
     this.update();
-    this.instance.container.on("datachangebycol.handsontable", function (event, changes, source) {
+    this.instance.rootElement.on("datachangebycol.handsontable", function (event, changes, source) {
       setTimeout(function () {
         that.dimensions(changes, source);
       }, 10);

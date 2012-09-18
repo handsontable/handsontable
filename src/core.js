@@ -958,8 +958,8 @@ var Handsontable = { //class namespace
         if (!priv.settings.multiSelect) {
           priv.selStart = coords;
         }
-        self.container.triggerHandler("selection.handsontable", [priv.selStart.row, priv.selStart.col, priv.selEnd.row, priv.selEnd.col]);
-        self.container.triggerHandler("selectionbyprop.handsontable", [priv.selStart.row, datamap.colToProp(priv.selStart.col), priv.selEnd.row, datamap.colToProp(priv.selEnd.col)]);
+        self.rootElement.triggerHandler("selection.handsontable", [priv.selStart.row, priv.selStart.col, priv.selEnd.row, priv.selEnd.col]);
+        self.rootElement.triggerHandler("selectionbyprop.handsontable", [priv.selStart.row, datamap.colToProp(priv.selStart.col), priv.selEnd.row, datamap.colToProp(priv.selEnd.col)]);
         selection.refreshBorders();
         if (scrollToCell !== false) {
           highlight.scrollViewport(td);
@@ -2244,12 +2244,12 @@ var Handsontable = { //class namespace
           priv.settings.onChange(changes, source);
         }
       });
-      self.container.on("selection.handsontable", function (event, row, col, endRow, endCol) {
+      self.rootElement.on("selection.handsontable", function (event, row, col, endRow, endCol) {
         if (priv.settings.onSelection) {
           priv.settings.onSelection(row, col, endRow, endCol);
         }
       });
-      self.container.on("selectionbyprop.handsontable", function (event, row, prop, endRow, endProp) {
+      self.rootElement.on("selectionbyprop.handsontable", function (event, row, prop, endRow, endProp) {
         if (priv.settings.onSelectionByProp) {
           priv.settings.onSelectionByProp(row, prop, endRow, endProp);
         }
@@ -2327,7 +2327,7 @@ var Handsontable = { //class namespace
       }
       if (changes.length) {
         self.rootElement.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
-        self.container.triggerHandler("datachangebycol.handsontable", [changesByCol, source || 'edit']);
+        self.rootElement.triggerHandler("datachangebycol.handsontable", [changesByCol, source || 'edit']);
       }
       return td;
     };

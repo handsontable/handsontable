@@ -13,7 +13,7 @@
     instance.positionFix(position);
     this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table cellspacing="0" cellpadding="0"><thead><tr></tr></thead><tbody></tbody></table></div>');
     this.instance.container.append(this.main);
-    this.instance.container.on("datachangebycol.handsontable", function (event, changes, source) {
+    this.instance.rootElement.on("datachangebycol.handsontable", function (event, changes, source) {
       setTimeout(function () {
         that.dimensions(changes, source);
       }, 10);
