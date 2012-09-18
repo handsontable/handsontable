@@ -2359,11 +2359,11 @@ var Handsontable = { //class namespace
       }
     };
 
-    var recursiveDuckSchema = function(obj) {
+    var recursiveDuckSchema = function (obj) {
       var schema = {};
       for (var i in obj) {
         if (obj.hasOwnProperty(i)) {
-          if(typeof obj[i] === 'object') {
+          if (typeof obj[i] === 'object') {
             schema[i] = recursiveDuckSchema(obj[i]);
           }
           else {
@@ -2765,6 +2765,20 @@ var Handsontable = { //class namespace
      * @public
      */
     this.selectCell = function (row, col, endRow, endCol, scrollToCell) {
+      if (typeof row !== 'number' || row < 0 || row >= self.rowCount) {
+        return false;
+      }
+      if (typeof col !== 'number' || col < 0 || col >= self.colCount) {
+        return false;
+      }
+      if (typeof endRow === "undefined") {
+        if (typeof endRow !== 'number' || endRow < 0 || endRow >= self.rowCount) {
+          return false;
+        }
+        if (typeof endCol !== 'number' || endCol < 0 || endCol >= self.colCount) {
+          return false;
+        }
+      }
       selection.start({row: row, col: col});
       if (typeof endRow === "undefined") {
         selection.setRangeEnd(self.getCell(row, col), scrollToCell);
@@ -2779,7 +2793,7 @@ var Handsontable = { //class namespace
       if (typeof arguments[3] !== "undefined") {
         arguments[3] = datamap.propToCol(arguments[3]);
       }
-      self.selectCell.apply(self, arguments);
+      return self.selectCell.apply(self, arguments);
     };
 
     /**
