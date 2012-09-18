@@ -18,10 +18,19 @@ var Handsontable = { //class namespace
   Handsontable.Core = function (rootElement, settings) {
     this.rootElement = rootElement;
     this.container = $('<div class="handsontable dataTable"></div>');
-    this.container.css('overflow', this.rootElement.css('overflow'));
-    this.container.css('width', this.rootElement.css('width'));
-    this.container.css('height', this.rootElement.css('height'));
-    this.rootElement.css('overflow', 'hidden');
+    var overflow = this.rootElement.css('overflow');
+    if (overflow === 'auto' || overflow === 'scroll') {
+      this.container.css('overflow', overflow);
+      var w = this.rootElement.css('width');
+      if (w) {
+        this.container.css('width', w);
+      }
+      var h = this.rootElement.css('height');
+      if (h) {
+        this.container.css('height', h);
+      }
+      this.rootElement.css('overflow', 'hidden');
+    }
     this.rootElement.append(this.container);
 
     var priv, datamap, grid, selection, editproxy, highlight, autofill, interaction, self = this;
