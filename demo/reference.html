@@ -77,26 +77,38 @@
   <div id="exampleGrid" class="dataTable" style="width: 680px; height: 300px; overflow: auto"></div>
 
   <script>
-    var data = [
-      {id: 1, name: "Marcin", address: "Warsaw"},
-      {id: 2, name: "Marcin", address: "Warsaw"},
-      {id: 3, name: "Marcin", address: "Warsaw"}
+    var arrayOfNestedObjects = [
+      {id: 1, name: {
+        first: "Ted",
+        last: "Right"
+      }},
+      {id: 2, name: {
+        first: "Frank",
+        last: "Honest"
+      }},
+      {id: 3, name: {
+        first: "Joan",
+        last: "Well"
+      }}
     ];
 
     $("#exampleGrid").handsontable({
       rows: 5,
       cols: 3,
-      minSpareCols: 0, //always keep at least 1 spare row at the right
+      minSpareCols: 0, //always keep at least 1 spare col at the right
       minSpareRows: 1, //always keep at least 1 spare row at the bottom
       contextMenu: true,
       columns: [
-        {data: "name"},
+        {data: "name.first"},
         {data: "id"},
-        {data: "address"}
-      ]
+        {data: "name.last"}
+      ],
+      onChange: function(changes, source) {
+        console.log("full data", arrayOfNestedObjects);
+      }
     });
 
-    $("#exampleGrid").handsontable("loadData", data);
+    $("#exampleGrid").handsontable("loadData", arrayOfNestedObjects);
   </script>
 
   <h3>About</h3>

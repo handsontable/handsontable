@@ -3,11 +3,12 @@ describe('Core_loadData', function () {
     id = 'testContainer';
 
   beforeEach(function () {
+    $('#' + id).remove();
     $container = $('<div id="' + id + '"></div>');
   });
 
   afterEach(function () {
-    $('#' + id).remove();
+
   });
 
   var arrayOfArrays = [
@@ -60,6 +61,7 @@ describe('Core_loadData', function () {
 
   it('should allow array of nested objects', function () {
     $container.handsontable({
+      colHeaders: true,
       columns: [
         {data: "id"},
         {data: "name.last"},

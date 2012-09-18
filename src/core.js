@@ -238,7 +238,7 @@ var Handsontable = { //class namespace
           }
         }
         else {
-          row = $.extend({}, datamap.getSchema());
+          row = $.extend(true, {}, datamap.getSchema());
         }
         if (!coords || coords.row >= self.rowCount) {
           datamap.data.push(row);
@@ -306,20 +306,40 @@ var Handsontable = { //class namespace
       /**
        * Returns single value from the data array
        * @param {Number} row
-       * @param {Number} col
+       * @param {Number} prop
        */
-      get: function (row, col) {
-        return datamap.data[row] ? datamap.data[row][col] : null;
+      get: function (row, prop) {
+        if (typeof prop === 'string' && prop.indexOf('.') > -1) {
+          var sliced = prop.split(".");
+          var out = datamap.data[row];
+          for (var i = 0, ilen = sliced.length; i < ilen; i++) {
+            out = out[sliced[i]];
+          }
+          return out;
+        }
+        else {
+          return datamap.data[row] ? datamap.data[row][prop] : null;
+        }
       },
 
       /**
        * Saves single value to the data array
        * @param {Number} row
-       * @param {Number} col
+       * @param {Number} prop
        * @param {String} value
        */
-      set: function (row, col, value) {
-        datamap.data[row][col] = value;
+      set: function (row, prop, value) {
+        if (typeof prop === 'string' && prop.indexOf('.') > -1) {
+          var sliced = prop.split(".");
+          var out = datamap.data[row];
+          for (var i = 0, ilen = sliced.length - 1; i < ilen; i++) {
+            out = out[sliced[i]];
+          }
+          out[sliced[i]] = value;
+        }
+        else {
+          datamap.data[row][prop] = value;
+        }
       },
 
       /**
@@ -328,7 +348,7 @@ var Handsontable = { //class namespace
       clear: function () {
         for (var r = 0; r < self.rowCount; r++) {
           for (var c = 0; c < self.colCount; c++) {
-            datamap.data[r][c] = '';
+            datamap.set(r, datamap.colToProp(c), '');
           }
         }
       },
@@ -354,7 +374,7 @@ var Handsontable = { //class namespace
         for (r = Math.min(start.row, end.row); r <= rlen; r++) {
           row = [];
           for (c = Math.min(start.col, end.col); c <= clen; c++) {
-            row.push(datamap.data[r][datamap.colToProp(c)]);
+            row.push(datamap.get(r, datamap.colToProp(c)));
           }
           output.push(row);
         }
@@ -383,7 +403,7 @@ var Handsontable = { //class namespace
                 text += val.replace(stripHtml, '');
               }
             }
-            else if(val == null || typeof val === 'undefined') {
+            else if (val == null || typeof val === 'undefined') {
               text += '';
             }
             else {
@@ -584,11 +604,9 @@ var Handsontable = { //class namespace
         var $tbody = $(priv.tableBody);
 
         //count currently empty rows
-        rows = datamap.getAll();
-        rlen = rows.length;
-        rows : for (r = rlen - 1; r >= 0; r--) {
+        rows : for (r = self.rowCount - 1; r >= 0; r--) {
           for (c = 0, clen = self.colCount - 1; c < clen; c++) {
-            val = rows[r][datamap.colToProp(c)];
+            val = datamap.get(r, datamap.colToProp(c));
             if (val !== '' && val !== null) {
               break rows;
             }
@@ -618,13 +636,10 @@ var Handsontable = { //class namespace
         }
 
         //count currently empty cols
-        rows = datamap.getAll();
-        rlen = rows.length;
-        if (rlen > 0) {
-          clen = rows[0].length;
-          cols : for (c = clen - 1; c >= 0; c--) {
-            for (r = 0; r < rlen; r++) {
-              val = rows[r][datamap.colToProp(c)];
+        if (self.rowCount - 1 > 0) {
+          cols : for (c = self.colCount - 1; c >= 0; c--) {
+            for (r = 0; r < self.rowCount - 1; r++) {
+              val = datamap.get(r, datamap.colToProp(c));
               if (val !== '' && val !== null) {
                 break cols;
               }
@@ -2344,6 +2359,21 @@ var Handsontable = { //class namespace
       }
     };
 
+    var recursiveDuckSchema = function(obj) {
+      var schema = {};
+      for (var i in obj) {
+        if (obj.hasOwnProperty(i)) {
+          if(typeof obj[i] === 'object') {
+            schema[i] = recursiveDuckSchema(obj[i]);
+          }
+          else {
+            schema[i] = null;
+          }
+        }
+      }
+      return schema;
+    }
+
     /**
      * Load data from array
      * @public
@@ -2355,14 +2385,8 @@ var Handsontable = { //class namespace
       priv.isPopulated = false;
       datamap.data = data;
       if (typeof data === 'object' && typeof data[0] === 'object' && typeof data[0].push !== 'function') {
-        var cols = 0;
         priv.dataType = 'object';
-        priv.duckDataSchema = {};
-        for (i in data[0]) {
-          if (data[0].hasOwnProperty(i)) {
-            priv.duckDataSchema[i] = null;
-          }
-        }
+        priv.duckDataSchema = recursiveDuckSchema(data[0]);
         datamap.createMap();
       }
       else {
@@ -2384,7 +2408,7 @@ var Handsontable = { //class namespace
       for (var r = 0; r < priv.settings.startRows; r++) {
         for (var c = 0; c < priv.settings.startCols; c++) {
           var p = datamap.colToProp(c);
-          grid.render(r, c, data[r][p], allowHtml);
+          grid.render(r, c, datamap.get(r, p), allowHtml);
           changes.push([r, c])
         }
       }
@@ -2973,9 +2997,9 @@ var Handsontable = { //class namespace
           instance.updateSettings(options);
         }
         else {
-          var currentSettings = $.extend({}, settings), instance;
+          var currentSettings = $.extend(true, {}, settings), instance;
           if (options) {
-            $.extend(currentSettings, options);
+            $.extend(true, currentSettings, options);
           }
           instance = new Handsontable.Core($this, currentSettings);
           $this.data("handsontable", instance);
