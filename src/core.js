@@ -1018,7 +1018,7 @@ var Handsontable = { //class namespace
           autofill.hideHandle();
         }
         selection.end(false);
-        self.container.trigger('deselect.handsontable');
+        self.rootElement.triggerHandler('deselect.handsontable');
       },
 
       /**
