@@ -1106,7 +1106,7 @@ var Handsontable = { //class namespace
           autofill.hideHandle();
         }
         selection.end(false);
-        self.container.trigger('deselect.handsontable');
+        self.rootElement.triggerHandler('deselect.handsontable');
       },
 
       /**
@@ -3022,7 +3022,7 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
     var that = this;
     this.instance = instance;
     this.clear();
-    instance.container.on("datachange.handsontable", function (event, changes, origin) {
+    instance.rootElement.on("datachange.handsontable", function (event, changes, origin) {
       if (origin !== 'undo' && origin !== 'redo') {
         that.add(changes);
       }
@@ -3505,7 +3505,7 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
         instance.selectCell(this.parentNode.rowIndex - offset, 0, this.parentNode.rowIndex - offset, instance.colCount - 1, false);
       }
     });
-    instance.container.on('deselect.handsontable', function () {
+    instance.rootElement.on('deselect.handsontable', function () {
       that.deselect();
     });
     this.labels = labels;
@@ -3563,7 +3563,7 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
       var offset = instance.blockedCols ? instance.blockedCols.count() : 0;
       instance.selectCell(0, index - offset, instance.rowCount - 1, index - offset, false);
     });
-    instance.container.on('deselect.handsontable', function () {
+    instance.rootElement.on('deselect.handsontable', function () {
       that.deselect();
     });
     this.instance = instance;
