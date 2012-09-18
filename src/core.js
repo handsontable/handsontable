@@ -15,8 +15,14 @@ var Handsontable = { //class namespace
 
 (function ($, window, Handsontable) {
   "use strict";
-  Handsontable.Core = function (container, settings) {
-    this.container = container;
+  Handsontable.Core = function (rootElement, settings) {
+    this.rootElement = rootElement;
+    this.container = $('<div class="handsontable dataTable"></div>');
+    this.container.css('overflow', this.rootElement.css('overflow'));
+    this.container.css('width', this.rootElement.css('width'));
+    this.container.css('height', this.rootElement.css('height'));
+    this.rootElement.css('overflow', 'hidden');
+    this.rootElement.append(this.container);
 
     var priv, datamap, grid, selection, editproxy, highlight, autofill, interaction, self = this;
 
@@ -1058,7 +1064,7 @@ var Handsontable = { //class namespace
        * Create highlight border
        */
       init: function () {
-        priv.selectionBorder = new Border(container, {
+        priv.selectionBorder = new Border(self.container, {
           className: 'selection',
           bg: true
         });
@@ -1155,8 +1161,8 @@ var Handsontable = { //class namespace
        */
       init: function () {
         if (!priv.fillHandle) {
-          priv.fillHandle = new FillHandle(container);
-          priv.fillBorder = new Border(container, {
+          priv.fillHandle = new FillHandle(self.container);
+          priv.fillBorder = new Border(self.container, {
             className: 'htFillBorder'
           });
 
@@ -1572,7 +1578,7 @@ var Handsontable = { //class namespace
         priv.editProxy.on('paste', onPaste);
         priv.editProxy.on('keydown', onKeyDown);
         priv.editProxy.on('change', onChange);
-        container.append(priv.editProxyHolder);
+        self.container.append(priv.editProxyHolder);
       },
 
       /**
@@ -1611,9 +1617,9 @@ var Handsontable = { //class namespace
         var current = grid.getCellAtCoords(priv.selStart);
         var $current = $(current);
         var currentOffset = $current.offset();
-        var containerOffset = container.offset();
-        var scrollTop = container.scrollTop();
-        var scrollLeft = container.scrollLeft();
+        var containerOffset = self.container.offset();
+        var scrollTop = self.container.scrollTop();
+        var scrollLeft = self.container.scrollLeft();
         var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
         var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
 
@@ -1882,13 +1888,13 @@ var Handsontable = { //class namespace
       self.table.on('mouseover', 'td', interaction.onMouseOver);
       self.table.on('dblclick', 'td', interaction.onDblClick);
       self.table.on('mousewheel', 'td', interaction.onMouseWheel);
-      container.append(div);
+      self.container.append(div);
 
       self.colCount = settings.cols;
       self.rowCount = 0;
 
       highlight.init();
-      priv.currentBorder = new Border(container, {
+      priv.currentBorder = new Border(self.container, {
         className: 'current',
         bg: true
       });
@@ -1896,7 +1902,7 @@ var Handsontable = { //class namespace
 
       this.updateSettings(settings);
 
-      container.on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
+      self.container.on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
       $(priv.currentBorder.main).on('dblclick', interaction.onDblClick);
 
       function onMouseUp() {
@@ -1925,29 +1931,29 @@ var Handsontable = { //class namespace
       $("html").on('mouseup', onMouseUp);
       $("html").on('click', onOutsideClick);
 
-      if (container[0].tagName.toLowerCase() !== "html" && container[0].tagName.toLowerCase() !== "body" && (container.css('overflow') === 'scroll' || container.css('overflow') === 'auto')) {
-        priv.scrollable = container;
+      if (self.container[0].tagName.toLowerCase() !== "html" && self.container[0].tagName.toLowerCase() !== "body" && (self.container.css('overflow') === 'scroll' || self.container.css('overflow') === 'auto')) {
+        priv.scrollable = self.container;
       }
 
       if (priv.scrollable) {
         //create fake scrolling div
         priv.virtualScroll = $('<div class="virtualScroll"><div class="spacer"></div></div>');
         priv.scrollable = priv.virtualScroll;
-        this.container.before(priv.virtualScroll);
-        container[0].style.overflow = 'hidden';
+        self.container.before(priv.virtualScroll);
         self.table[0].style.position = 'absolute';
         priv.virtualScroll.css({
-          width: this.container.width() + 'px',
-          height: this.container.height() + 'px',
-          overflow: 'scroll'
+          width: self.container.width() + 'px',
+          height: self.container.height() + 'px',
+          overflow: self.container.css('overflow')
         });
-        this.container.css({
+        self.container.css({
+          overflow: 'hidden',
           position: 'absolute',
           top: priv.virtualScroll.position().top + 'px',
           left: priv.virtualScroll.position().left + 'px'
         });
-        this.container.width(priv.virtualScroll.innerWidth() - priv.scrollbarSize.width);
-        this.container.height(priv.virtualScroll.innerHeight() - priv.scrollbarSize.height);
+        self.container.width(priv.virtualScroll.innerWidth() - priv.scrollbarSize.width);
+        self.container.height(priv.virtualScroll.innerHeight() - priv.scrollbarSize.height);
         setInterval(function () {
           priv.virtualScroll.find('.spacer').height(self.table.height());
           priv.virtualScroll.find('.spacer').width(self.table.width());
@@ -2089,7 +2095,7 @@ var Handsontable = { //class namespace
         }
 
         $.contextMenu({
-          selector: container.attr('id') ? ("#" + container.attr('id')) : "." + container[0].className.replace(/[\s]+/g, '.'),
+          selector: self.container.attr('id') ? ("#" + self.container.attr('id')) : "." + self.container[0].className.replace(/[\s]+/g, '.'),
           trigger: 'right',
           callback: onContextClick,
           items: items
@@ -2429,7 +2435,7 @@ var Handsontable = { //class namespace
         priv.cornerHeader.on('click', function () {
           selection.selectAll();
         });
-        container.append(priv.cornerHeader);
+        self.container.append(priv.cornerHeader);
       }
       else {
         if (priv.cornerHeader) {
@@ -2616,6 +2622,15 @@ var Handsontable = { //class namespace
      */
     this.deselectCell = function () {
       selection.deselect();
+    };
+
+    /**
+     * Remove grid from DOM
+     * @public
+     */
+    this.destroy = function () {
+      self.rootElement.empty();
+      self.rootElement.removeData('handsontable');
     };
 
     /**
