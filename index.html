@@ -156,8 +156,8 @@
 
 &lt;script&gt;
   $("#example1grid").handsontable({
-    rows: 5,
-    cols: 5,
+    startRows: 5,
+    startCols: 5,
     minSpareCols: 1, //always keep at least 1 spare col at the right
     minSpareRows: 1, //always keep at least 1 spare row at the bottom
     contextMenu: true
@@ -195,8 +195,8 @@
 
 &lt;script&gt;
   $("#example2grid").handsontable({
-    rows: 5,
-    cols: 5,
+    startRows: 5,
+    startCols: 5,
 
     rowHeaders: true,
     colHeaders: true,
@@ -280,8 +280,8 @@
 
 &lt;script&gt;
   $("#example3grid").handsontable({
-    rows: 7,
-    cols: 4,
+    startRows: 7,
+    startCols: 4,
     rowHeaders: false, //turn off 1, 2, 3, ...
     colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
     legend: [
@@ -359,8 +359,8 @@
 
 &lt;script&gt;
   $("#example4grid").handsontable({
-    rows: 40,
-    cols: 40,
+    startRows: 40,
+    startCols: 40,
     rowHeaders: true,
     colHeaders: true,
     minSpareCols: 1, //always keep at least 1 spare col at the right
@@ -398,8 +398,8 @@
 
 &lt;script&gt;
   $("#example5grid").handsontable({
-    rows: 8,
-    cols: 8,
+    startRows: 8,
+    startCols: 8,
     rowHeaders: true,
     colHeaders: true,
     minSpareCols: 1,
@@ -442,8 +442,8 @@
 
 &lt;script&gt;
   $("#example7grid").handsontable({
-    rows: 5,
-    cols: 5,
+    startRows: 5,
+    startCols: 5,
     rowHeaders: true,
     colHeaders: true,
     minSpareCols: 1,
@@ -489,8 +489,8 @@
 
 &lt;script&gt;
   $("#example6grid").handsontable({
-    rows: 8,
-    cols: 8,
+    startRows: 8,
+    startCols: 8,
     rowHeaders: true,
     colHeaders: true,
     minSpareCols: 1,
@@ -572,8 +572,8 @@
   var $parent = $container.parent();
   var autosaveNotification;
   $container.handsontable({
-    rows: 8,
-    cols: 8,
+    startRows: 8,
+    startCols: 8,
     rowHeaders: true,
     colHeaders: true,
     minSpareCols: 1,

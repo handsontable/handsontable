@@ -25,8 +25,8 @@ Then, run `handsontable()` constructor on an empty div. After that, load some da
 <div id="dataTable" class="dataTable"></div>
 <script>
   $("#dataTable").handsontable({
-    rows: 6,
-    cols: 8
+    startRows: 6,
+    startCols: 8
   });
   var data = [
     ["", "Kia", "Nissan", "Toyota", "Honda"],
@@ -77,8 +77,8 @@ The table below presents configuration options that are interpreted by `handsont
 
   Option                 | Type                           | Default          | Description
 -------------------------|--------------------------------|------------------|-------------
- `rows`                  | number                         | 5                | Initial number of rows
- `cols`                  | number                         | 5                | Initial number of columns
+ `startRows`             | number                         | 5                | Initial number of rows
+ `startCols`             | number                         | 5                | Initial number of columns
  `rowHeaders`            | boolean/array                  | false            | Defines if the row headers (1, 2, 3, ...) should be displayed. You can just set it to `true` or specify custom a array `["First", "Second", "Third", ...]`
  `colHeaders`            | boolean/array                  | false            | Defines if the column headers (A, B, C, ...) should be displayed. You can just set it to `true` or specify custom a array `["First Name", "Last Name", "Address", ...]`
  `minWidth`              | number                         | 0                | Handsontable will add as many columns as needed to meet the given width in pixels

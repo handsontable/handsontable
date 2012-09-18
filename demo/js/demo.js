@@ -6,9 +6,9 @@ $(function () {
      */
 
     $("#example1grid").handsontable({
-      rows: 5,
-      cols: 5,
-      minSpareCols: 1, //always keep at least 1 spare col at the right
+      startRows: 5,
+      startCols: 5,
+      minSpareCols: 1, //always keep at least 1 spare row at the right
       minSpareRows: 1, //always keep at least 1 spare row at the bottom
       contextMenu: true
     });
@@ -27,8 +27,8 @@ $(function () {
      * Example 2
      */
     $("#example2grid").handsontable({
-      rows: 5,
-      cols: 5,
+      startRows: 5,
+      startCols: 5,
 
       rowHeaders: true,
       colHeaders: true,
@@ -86,8 +86,8 @@ $(function () {
      * Example 3
      */
     $("#example3grid").handsontable({
-      rows: 7,
-      cols: 4,
+      startRows: 7,
+      startCols: 4,
       rowHeaders: false, //turn off 1, 2, 3, ...
       colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
       legend: [
@@ -150,8 +150,8 @@ $(function () {
      * Example 4
      */
     $("#example4grid").handsontable({
-      rows: 40,
-      cols: 40,
+      startRows: 40,
+      startCols: 40,
       rowHeaders: true,
       colHeaders: true,
       minSpareCols: 1, //always keep at least 1 spare col at the right
@@ -172,8 +172,8 @@ $(function () {
      * Example 5
      */
     $("#example5grid").handsontable({
-      rows: 8,
-      cols: 8,
+      startRows: 8,
+      startCols: 8,
       rowHeaders: true,
       colHeaders: true,
       minSpareCols: 1,
@@ -197,8 +197,8 @@ $(function () {
      * Example 6
      */
     $("#example6grid").handsontable({
-      rows: 8,
-      cols: 8,
+      startRows: 8,
+      startCols: 8,
       rowHeaders: true,
       colHeaders: true,
       minSpareCols: 1,
@@ -242,8 +242,8 @@ $(function () {
      * Example 7
      */
     $("#example7grid").handsontable({
-      rows: 5,
-      cols: 5,
+      startRows: 5,
+      startCols: 5,
       rowHeaders: true,
       colHeaders: true,
       minSpareCols: 1,
@@ -269,8 +269,8 @@ $(function () {
     var $parent = $container.parent();
     var autosaveNotification;
     $container.handsontable({
-      rows: 8,
-      cols: 8,
+      startRows: 8,
+      startCols: 8,
       rowHeaders: true,
       colHeaders: true,
       minSpareCols: 1,

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Custom buttons - Handsontable</title>
+  <title>Binding to object data source - Handsontable</title>
 
   <!--
   Loading handsontable dependencies.
@@ -30,22 +30,6 @@
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
   <link rel="stylesheet" media="screen" href="css/demo.css">
-  <style type="text/css">
-    #exampleGrid {
-      width: 680px;
-      height: 300px;
-      overflow: scroll
-    }
-
-    #toolbar {
-      margin: 20px 0 20px 24px;
-    }
-
-    button#selectFirst {
-      float: left;
-      margin-right: 10px;
-    }
-  </style>
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
@@ -54,7 +38,6 @@
     if (window.location.hostname === 'handsontable.com' || window.location.hostname === 'www.handsontable.com' || window.location.hostname === 'warpech.github.com') {
       var _gaq = _gaq || [];
       _gaq.push(['_setAccount', 'UA-33932793-1']);
-      _gaq.push(['_setDomainName', window.location.hostname]);
       _gaq.push(['_trackPageview']);
 
       (function () {
@@ -68,9 +51,9 @@
     }
   </script>
 
-  <meta property="og:title" content="Custom buttons - Handsontable">
-  <meta property="og:description" content="The alter method can be used if you want to insert or remove rows and columns using external buttons">
-  <meta property="og:url" content="http://handsontable.com/demo/buttons.html">
+  <meta property="og:title" content="Binding to object data source">
+  <meta property="og:description" content="">
+  <meta property="og:url" content="http://handsontable.com/demo/reference.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
@@ -89,60 +72,31 @@
     <br><a href="../index.html">&lt; back to main</a>
   </div>
 
-  <h2>Custom buttons</h2>
+  <h2>Binding to object data source</h2>
 
-  <p>The <b>alter</b> method can be used if you want to insert or remove rows and columns using external buttons.
-    The below example uses the a custom made
-    <b>jquery.handsontable.removeRow.js</b> extension for that matter. Move your mouse over a row to see it.</p>
-
-  <p>You can programically select a cell using the <b>selectCell</b> method. The below button implements it.</p>
-
-  <div id="toolbar">
-    <button id="selectFirst">Select first cell</button>
-    <label><input type="checkbox" id="rowHeaders" checked="checked" autocomplete="off"> Show row headers</label>
-    <label><input type="checkbox" id="colHeaders" checked="checked" autocomplete="off"> Show col headers</label>
-  </div>
-
-  <div id="exampleGrid" class="dataTable"></div>
+  <div id="exampleGrid" class="dataTable" style="width: 680px; height: 300px; overflow: auto"></div>
 
   <script>
-    var container = $("#exampleGrid");
-
-    container.handsontable({
-      startRows: 15,
-      startCols: 16,
-      rowHeaders: true,
-      colHeaders: true,
-      minSpareCols: 1,
-      minSpareRows: 1,
-      contextMenu: true,
-      RemoveRow: true
-    });
-
     var data = [
-      ["", "Kia", "Nissan", "Toyota", "Honda"],
-      ["2008", 10, 11, 12, 13],
-      ["2009", 20, 11, 14, 13],
-      ["2010", 30, 15, 12, 13]
+      {id: 1, name: "Marcin", address: "Warsaw"},
+      {id: 2, name: "Marcin", address: "Warsaw"},
+      {id: 3, name: "Marcin", address: "Warsaw"}
     ];
 
-    container.handsontable("loadData", data);
-
-    $("button#selectFirst").on('click', function () {
-      setTimeout(function () {
-        //timeout is needed because Handsontable normally deselects
-        //current cell when you click outside the table
-        container.handsontable("selectCell", 0, 0);
-      }, 10);
+    $("#exampleGrid").handsontable({
+      rows: 5,
+      cols: 3,
+      minSpareCols: 0, //always keep at least 1 spare row at the right
+      minSpareRows: 1, //always keep at least 1 spare row at the bottom
+      contextMenu: true,
+      columns: [
+        {data: "name"},
+        {data: "id"},
+        {data: "address"}
+      ]
     });
 
-    $("input#rowHeaders").change(function () {
-      container.handsontable("updateSettings", {rowHeaders: $(this).is(':checked')});
-    });
-
-    $("input#colHeaders").change(function () {
-      container.handsontable("updateSettings", {colHeaders: $(this).is(':checked')});
-    });
+    $("#exampleGrid").handsontable("loadData", data);
   </script>
 
   <h3>About</h3>

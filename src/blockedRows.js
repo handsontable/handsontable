@@ -5,6 +5,7 @@
    * @param {Object} instance
    */
   Handsontable.BlockedRows = function (instance) {
+    var that = this;
     this.instance = instance;
     this.headers = [];
     var position = instance.table.position();
@@ -13,6 +14,11 @@
     this.instance.container.append(this.main);
     this.hasCSS3 = !($.browser.msie && (parseInt($.browser.version, 10) <= 8)); //Used to get over IE8- not having :last-child selector
     this.update();
+    this.instance.container.on("datachangebycol.handsontable", function (event, changes, source) {
+      setTimeout(function () {
+        that.dimensions(changes, source);
+      }, 10);
+    });
   };
 
   /**
