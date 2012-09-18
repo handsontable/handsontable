@@ -383,13 +383,14 @@ var Handsontable = { //class namespace
                 text += val.replace(stripHtml, '');
               }
             }
+            else if(val == null || typeof val === 'undefined') {
+              text += '';
+            }
             else {
               text += val;
             }
           }
-          if (r !== rlen - 1) {
-            text += "\n";
-          }
+          text += "\n";
         }
         text = text.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&amp;/g, "&"); //unescape html special chars
         return text;
@@ -1129,17 +1130,18 @@ var Handsontable = { //class namespace
         if (!selection.isSelected()) {
           return;
         }
-        var tds, i, ilen, changes = [], coords, old, $td;
+        var tds, i, ilen, changes = [], coords, old, $td, prop;
         tds = grid.getCellsAtCoords(priv.selStart, selection.end());
         for (i = 0, ilen = tds.length; i < ilen; i++) {
           coords = grid.getCellCoords(tds[i]);
-          old = datamap.get(coords.row, datamap.colToProp(coords.col));
+          prop = datamap.colToProp(coords.col);
+          old = datamap.get(coords.row, prop);
           $td = $(tds[i]);
           if (old !== '' && grid.isCellWritable($td)) {
             $td.empty();
             self.minWidthFix(tds[i]);
-            datamap.set(coords.row, coords.col, '');
-            changes.push([coords.row, coords.col, old, '']);
+            datamap.set(coords.row, prop, '');
+            changes.push([coords.row, prop, old, '']);
             grid.updateLegend(coords);
           }
         }
