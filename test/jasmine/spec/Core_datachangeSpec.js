@@ -36,7 +36,6 @@ describe('Core_datachange', function () {
 
   it('should trigger datachange event', function () {
     var output = null;
-    console.log("?");
 
     runs(function () {
       $container.handsontable();
