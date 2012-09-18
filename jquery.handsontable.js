@@ -18,10 +18,19 @@ var Handsontable = { //class namespace
   Handsontable.Core = function (rootElement, settings) {
     this.rootElement = rootElement;
     this.container = $('<div class="handsontable dataTable"></div>');
-    this.container.css('overflow', this.rootElement.css('overflow'));
-    this.container.css('width', this.rootElement.css('width'));
-    this.container.css('height', this.rootElement.css('height'));
-    this.rootElement.css('overflow', 'hidden');
+    var overflow = this.rootElement.css('overflow');
+    if (overflow === 'auto' || overflow === 'scroll') {
+      this.container.css('overflow', overflow);
+      var w = this.rootElement.css('width');
+      if (w) {
+        this.container.css('width', w);
+      }
+      var h = this.rootElement.css('height');
+      if (h) {
+        this.container.css('height', h);
+      }
+      this.rootElement.css('overflow', 'hidden');
+    }
     this.rootElement.append(this.container);
 
     var priv, datamap, grid, selection, editproxy, highlight, autofill, interaction, self = this;
@@ -647,7 +656,7 @@ var Handsontable = { //class namespace
         if (priv.settings.legend) {
           for (var j = 0, jlen = priv.settings.legend.length; j < jlen; j++) {
             var legend = priv.settings.legend[j],
-                $img;
+              $img;
             if (legend.match(coords.row, coords.col, datamap.getAll)) {
               priv.hasLegend = true;
               typeof legend.style !== "undefined" && $td.css(legend.style);
@@ -655,8 +664,8 @@ var Handsontable = { //class namespace
               typeof legend.title !== "undefined" && $td.attr("title", legend.title);
               typeof legend.className !== "undefined" && $td.addClass(legend.className);
               if (typeof legend.icon !== "undefined" &&
-                  typeof legend.icon.src !== "undefined" &&
-                  typeof legend.icon.click !== "undefined") {
+                typeof legend.icon.src !== "undefined" &&
+                typeof legend.icon.click !== "undefined") {
                 $img = $('<img />').attr('src', legend.icon.src).addClass('icon');
                 $img.on("click", (function (legend) {
                   return function (e) {
@@ -1336,12 +1345,12 @@ var Handsontable = { //class namespace
           if (!priv.isCellEdited) {
             setTimeout(function () {
               var input = priv.editProxy.val().replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
-                  inputArray = CSVToArray(input, '\t'),
-                  coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
-                  endTd = grid.populateFromArray(coords.TL, inputArray, {
-                    row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
-                    col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
-                  }, null, 'paste');
+                inputArray = CSVToArray(input, '\t'),
+                coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
+                endTd = grid.populateFromArray(coords.TL, inputArray, {
+                  row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
+                  col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
+                }, null, 'paste');
               selection.setRangeEnd(endTd);
             }, 100);
           }
@@ -1677,7 +1686,7 @@ var Handsontable = { //class namespace
             return 0;
           }
           var re = el.createTextRange(),
-              rc = re.duplicate();
+            rc = re.duplicate();
           re.moveToBookmark(r.getBookmark());
           rc.setEndPoint('EndToStart', re);
           return rc.text.length;
@@ -1689,7 +1698,7 @@ var Handsontable = { //class namespace
        * Sets caret position in edit proxy
        * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
        * @param {Number}
-          */
+        */
       setCaretPosition: function (pos) {
         var el = priv.editProxy[0];
         if (el.setSelectionRange) {
@@ -1716,7 +1725,7 @@ var Handsontable = { //class namespace
         }
 
         var td = grid.getCellAtCoords(priv.selStart),
-            $td = $(td);
+          $td = $(td);
 
         if (!grid.isCellWritable($td)) {
           return;
@@ -2381,7 +2390,7 @@ var Handsontable = { //class namespace
         if (settings.colHeaders === false && priv.extensions["ColHeader"]) {
           priv.extensions["ColHeader"].destroy();
         }
-        else if(settings.colHeaders !== false) {
+        else if (settings.colHeaders !== false) {
           priv.extensions["ColHeader"] = new Handsontable.ColHeader(self, settings.colHeaders);
         }
       }
@@ -2390,7 +2399,7 @@ var Handsontable = { //class namespace
         if (settings.rowHeaders === false && priv.extensions["RowHeader"]) {
           priv.extensions["RowHeader"].destroy();
         }
-        else if(settings.rowHeaders !== false) {
+        else if (settings.rowHeaders !== false) {
           priv.extensions["RowHeader"] = new Handsontable.RowHeader(self, settings.rowHeaders);
         }
       }
@@ -2863,12 +2872,12 @@ var Handsontable = { //class namespace
  */
 Handsontable.helper.isPrintableChar = function (keyCode) {
   return ((keyCode == 32) || //space
-      (keyCode >= 48 && keyCode <= 57) || //0-9
-      (keyCode >= 96 && keyCode <= 111) || //numpad
-      (keyCode >= 186 && keyCode <= 192) || //;=,-./`
-      (keyCode >= 219 && keyCode <= 222) || //[]{}\|"'
-      keyCode >= 226 || //special chars (229 for Asian chars)
-      (keyCode >= 65 && keyCode <= 90)); //a-z
+    (keyCode >= 48 && keyCode <= 57) || //0-9
+    (keyCode >= 96 && keyCode <= 111) || //numpad
+    (keyCode >= 186 && keyCode <= 192) || //;=,-./`
+    (keyCode >= 219 && keyCode <= 222) || //[]{}\|"'
+    keyCode >= 226 || //special chars (229 for Asian chars)
+    (keyCode >= 65 && keyCode <= 90)); //a-z
 };
 
 (function ($) {
