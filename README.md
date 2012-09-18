@@ -69,6 +69,7 @@ To see the list of recent changes, see the [Changelog](https://github.com/warpec
  handsontable('getColHeader', [col])                                                   | Method      | Return array of col headers (if they are enabled). If param `col` given, return header at given col as string
  handsontable('setCellReadOnly', row, col)                                             | Method      | Sets cell to be readonly
  handsontable('setCellEditable', row, col)                                             | Method      | Sets cell to be editable (removes readonly)
+ handsontable('destroy')                                                               | Method      | Remove grid from DOM
 
 ## Options
 
