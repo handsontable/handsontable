@@ -929,7 +929,7 @@ var Handsontable = { //class namespace
       },
 
       render: function (row, col, value, allowHtml) {
-        var td = grid.getCellAtCoords({row: row, col: col});
+        var td = grid.getCellAtCoords({row: row, col: col}), escaped;
         switch (typeof value) {
           case 'string':
             break;
@@ -942,9 +942,9 @@ var Handsontable = { //class namespace
             value = '';
         }
         if (!allowHtml) {
-          value = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
+          escaped = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
         }
-        td.innerHTML = value.replace(/\n/g, '<br/>');
+        td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
         self.minWidthFix(td);
         grid.updateLegend({row: row, col: col});
         return td;
