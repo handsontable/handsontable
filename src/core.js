@@ -15,6 +15,13 @@ var Handsontable = { //class namespace
 
 (function ($, window, Handsontable) {
   "use strict";
+
+  /**
+   * Handsontable constructor
+   * @param rootElement The jQuery element in which Handsontable DOM will be inserted
+   * @param settings
+   * @constructor
+   */
   Handsontable.Core = function (rootElement, settings) {
     this.rootElement = rootElement;
     this.container = $('<div class="handsontable dataTable"></div>');
