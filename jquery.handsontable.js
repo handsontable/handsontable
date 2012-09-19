@@ -2163,7 +2163,7 @@ var Handsontable = { //class namespace
      * @param {String} [source='edit'] String that identifies how this change will be described in changes array (useful in onChange callback)
      */
     this.setDataAtCell = function (row, col, value, allowHtml, source) {
-      var refreshRows = false, refreshCols = false, changes, i, ilen;
+      var refreshRows = false, refreshCols = false, changes, i, ilen, escaped;
 
       if (typeof row === "object") { //is stringish
         changes = row;
@@ -2221,9 +2221,9 @@ var Handsontable = { //class namespace
             value = '';
         }
         if (!allowHtml) {
-          value = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
+          escaped = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
         }
-        td.innerHTML = value.replace(/\n/g, '<br/>');
+        td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
         self.minWidthFix(td);
         datamap.set(row, col, value);
         grid.updateLegend({row: row, col: col});
