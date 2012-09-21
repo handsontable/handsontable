@@ -177,7 +177,6 @@ var Handsontable = { //class namespace
           }
           else {
             strMatchedValue = arrMatches[3];
-
           }
           rows[rows.length - 1].push(strMatchedValue);
         }
@@ -211,21 +210,11 @@ var Handsontable = { //class namespace
       },
 
       colToProp: function (col) {
-        if (priv.dataType === 'object') {
-          return priv.colToProp[col];
-        }
-        else {
-          return col;
-        }
+        return priv.colToProp[col];
       },
 
       propToCol: function (col) {
-        if (priv.dataType === 'object') {
-          return priv.propToCol[col];
-        }
-        else {
-          return col;
-        }
+        return priv.propToCol[col];
       },
 
       getSchema: function () {
@@ -2388,17 +2377,16 @@ var Handsontable = { //class namespace
      * @param {Boolean} [allowHtml]
      */
     this.loadData = function (data, allowHtml) {
-      var i;
       priv.isPopulated = false;
       datamap.data = data;
       if (typeof data === 'object' && typeof data[0] === 'object' && typeof data[0].push !== 'function') {
         priv.dataType = 'object';
-        priv.duckDataSchema = recursiveDuckSchema(data[0]);
-        datamap.createMap();
       }
       else {
         priv.dataType = 'array';
       }
+      priv.duckDataSchema = recursiveDuckSchema(data[0]);
+      datamap.createMap();
 
       var dlen = datamap.data.length;
       while (priv.settings.startRows > dlen) {
@@ -2416,7 +2404,7 @@ var Handsontable = { //class namespace
         for (var c = 0; c < priv.settings.startCols; c++) {
           var p = datamap.colToProp(c);
           grid.render(r, c, datamap.get(r, p), allowHtml);
-          changes.push([r, c])
+          changes.push([r, c, "", datamap.get(r, p)])
         }
       }
       setTimeout(function () {
