@@ -81,6 +81,8 @@ The table below presents configuration options that are interpreted by `handsont
  `startCols`             | number                         | 5                | Initial number of columns
  `rowHeaders`            | boolean/array                  | false            | Defines if the row headers (1, 2, 3, ...) should be displayed. You can just set it to `true` or specify custom a array `["First", "Second", "Third", ...]`
  `colHeaders`            | boolean/array                  | false            | Defines if the column headers (A, B, C, ...) should be displayed. You can just set it to `true` or specify custom a array `["First Name", "Last Name", "Address", ...]`
+ `columns`               | boolean/array                  | false            | *TODO describe me*
+ `schema`                | boolean/array                  | false            | *TODO describe me*
  `minWidth`              | number                         | 0                | Handsontable will add as many columns as needed to meet the given width in pixels
  `minHeight`             | number                         | 0                | Handsontable will add as many rows as needed to meet the given height in pixels
  `minSpareCols`          | number                         | 0                | When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns
@@ -98,6 +100,7 @@ The table below presents configuration options that are interpreted by `handsont
  `legend`                | array                          | _undefined_      | Legend definitions. See **Defining legend**
  `autocomplete`          | array                          | _undefined_      | Autocomplete definitions. See **Defining autocomplete**
  `onSelection`           | function(`r`, `c`, `r2`, `c2`) | _undefined_      | Callback fired before one or more cells is selected. You can call `updateSettings` from inside, e.g. if you want to disable fillHandle for a specific cell. Parameters: <ul><li>`r` selection start row</li><li>`c` selection start column</li><li>`r2` selection end column</li><li>`c2` selection end column</li></ul>
+ `onSelectionByProp`     | function(`r`, `p`, `r2`, `p2`) | _undefined_      | *TODO describe me*
  `onBeforeChange`        | function(`changes`)            | _undefined_      | Callback fired before one or more cells is changed. Its main purpose is to validate the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, col, oldVal, newVal], ... ]`. You can disregard a single change by setting `changes[i][3]` to false, or cancel all edit by returning false.</li></ul>
  `onChange`              | function(`changes`, `source`)  | _undefined_      | Callback fired after one or more cells is changed. Its main use case is to save the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, col, oldVal, newVal], ... ]`. </li><li>`source` is one of the strings: `"alter"`, `"empty"`, `"edit"`, `"populateFromArray"`, `"loadData"`, `"autofill"`, `"paste"`.</li></ul>
 
