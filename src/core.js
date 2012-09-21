@@ -688,7 +688,15 @@ var Handsontable = { //class namespace
           }
         }
 
-        if (!recreateCols && priv.settings.enterBeginsEditing) {
+        if (priv.settings.columns && priv.settings.columns.length) {
+          var clen = priv.settings.columns.length;
+          while (self.colCount > clen) {
+            datamap.removeCol();
+            grid.removeCol();
+            recreateCols = true;
+          }
+        }
+        else if (!recreateCols && priv.settings.enterBeginsEditing) {
           for (; ((priv.settings.startCols && self.colCount > priv.settings.startCols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (!priv.settings.minWidth || $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
             datamap.removeCol();
             grid.removeCol();
@@ -751,13 +759,7 @@ var Handsontable = { //class namespace
                   }
                 })(legend));
                 $img.on("load", function () {
-                  setTimeout(function () {
-                    var changes = [
-                      [coords.row, coords.col]
-                    ];
-                    self.blockedRows.dimensions(changes);
-                    self.blockedCols.dimensions(changes);
-                  }, 10);
+                  self.rootElement.triggerHandler('cellrender.handsontable', changes);
                 });
                 $td.append($img);
               }
@@ -1158,10 +1160,6 @@ var Handsontable = { //class namespace
         }
         if (changes.length) {
           self.rootElement.triggerHandler("datachange.handsontable", [changes, 'empty']);
-          setTimeout(function () {
-            self.blockedRows.dimensions(changes);
-            self.blockedCols.dimensions(changes);
-          }, 10);
         }
         grid.keepEmptyRows();
         selection.refreshBorders();
@@ -2254,6 +2252,7 @@ var Handsontable = { //class namespace
         if (priv.settings.onChange) {
           priv.settings.onChange(changes, source);
         }
+        self.rootElement.triggerHandler("cellrender.handsontable", [changes, source]);
       });
       self.rootElement.on("selection.handsontable", function (event, row, col, endRow, endCol) {
         if (priv.settings.onSelection) {
@@ -2338,7 +2337,6 @@ var Handsontable = { //class namespace
       }
       if (changes.length) {
         self.rootElement.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
-        self.rootElement.triggerHandler("datachangebycol.handsontable", [changesByCol, source || 'edit']);
       }
       return td;
     };
@@ -2404,13 +2402,10 @@ var Handsontable = { //class namespace
         for (var c = 0; c < priv.settings.startCols; c++) {
           var p = datamap.colToProp(c);
           grid.render(r, c, datamap.get(r, p), allowHtml);
-          changes.push([r, c, "", datamap.get(r, p)])
+          changes.push([r, p, "", datamap.get(r, p)])
         }
       }
-      setTimeout(function () {
-        self.blockedRows.dimensions(changes);
-        self.blockedCols.dimensions(changes);
-      }, 10);
+      self.rootElement.triggerHandler('datachange.handsontable', [changes, 'loadData']);
       priv.isPopulated = true;
       self.clearUndo();
     };
@@ -2664,6 +2659,16 @@ var Handsontable = { //class namespace
      */
     this.getCell = function (row, col) {
       return grid.getCellAtCoords({row: row, col: col});
+    };
+
+    /**
+     * Returns column number associated with property name
+     * @param {String} prop
+     * @public
+     * @return {Number}
+     */
+    this.propToCol = function (prop) {
+      return datamap.propToCol(prop);
     };
 
     /**

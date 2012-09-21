@@ -14,7 +14,7 @@
     this.instance.container.append(this.main);
     this.hasCSS3 = !($.browser.msie && (parseInt($.browser.version, 10) <= 8)); //Used to get over IE8- not having :last-child selector
     this.update();
-    this.instance.rootElement.on("datachangebycol.handsontable", function (event, changes, source) {
+    this.instance.rootElement.on('cellrender.handsontable', function (event, changes, source) {
       setTimeout(function () {
         that.dimensions(changes, source);
       }, 10);
@@ -153,7 +153,8 @@
     if (this.count() > 0) {
       var offset = this.instance.blockedCols.count();
       for (var i = 0, ilen = changes.length; i < ilen; i++) {
-        this.ths[changes[i][1] + offset].style.minWidth = $(this.instance.getCell(changes[i][0], changes[i][1])).width() + 'px';
+        var col = this.instance.propToCol(changes[i][1]);
+        this.ths[col + offset].style.minWidth = $(this.instance.getCell(changes[i][0], col)).width() + 'px';
       }
     }
   };

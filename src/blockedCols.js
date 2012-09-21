@@ -13,7 +13,7 @@
     instance.positionFix(position);
     this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table cellspacing="0" cellpadding="0"><thead><tr></tr></thead><tbody></tbody></table></div>');
     this.instance.container.append(this.main);
-    this.instance.rootElement.on("datachangebycol.handsontable", function (event, changes, source) {
+    this.instance.rootElement.on('cellrender.handsontable', function (event, changes, source) {
       setTimeout(function () {
         that.dimensions(changes, source);
       }, 10);
@@ -142,7 +142,8 @@
     if (this.count() > 0) {
       var trs = this.main[0].firstChild.getElementsByTagName('tbody')[0].childNodes;
       for (var i = 0, ilen = changes.length; i < ilen; i++) {
-        var $th = $(this.instance.getCell(changes[i][0], changes[i][1]));
+        var col = this.instance.propToCol(changes[i][1]);
+        var $th = $(this.instance.getCell(changes[i][0], col));
         if ($th.length) {
           trs[changes[i][0]].firstChild.style.height = $th[this.heightMethod]() + 'px';
         }
