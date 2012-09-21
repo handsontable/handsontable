@@ -72,4 +72,29 @@ describe('Core_loadData', function () {
     var output = $container.handsontable('getDataAtCell', 0, 2);
     expect(output).toEqual("Ted");
   });
+
+  it('should trigger onChange callback', function () {
+    var calls = 0;
+
+    runs(function(){
+      $container.handsontable({
+        onChange: function(changes, source){
+          if(source === 'loadData') {
+            calls++;
+          }
+        }
+      });
+      $container.handsontable('loadData', arrayOfArrays);
+      $container.handsontable('loadData', arrayOfObjects);
+      $container.handsontable('loadData', arrayOfNestedObjects);
+    });
+
+    waitsFor(function () {
+      return (calls === 3)
+    }, "onChange callback called", 100);
+
+    runs(function () {
+      expect(calls).toEqual(3);
+    });
+  });
 });

@@ -210,11 +210,22 @@ var Handsontable = { //class namespace
       },
 
       colToProp: function (col) {
-        return priv.colToProp[col];
+        if(typeof priv.colToProp[col] !== 'undefined') {
+          return priv.colToProp[col];
+        }
+        else {
+          return col;
+        }
       },
 
-      propToCol: function (col) {
-        return priv.propToCol[col];
+      propToCol: function (prop) {
+        if(typeof priv.propToCol[prop] !== 'undefined') {
+          return priv.propToCol[prop];
+        }
+        else {
+          return prop;
+        }
+
       },
 
       getSchema: function () {
@@ -249,6 +260,9 @@ var Handsontable = { //class namespace
        * @param {Object} [coords] Optional. Coords of the cell before which the new column will be inserted
        */
       createCol: function (coords) {
+        if(priv.dataType === 'object') {
+          throw new Error("cannot create column with object data source");
+        }
         var r = 0;
         if (!coords || coords.col >= self.colCount) {
           for (; r < self.rowCount; r++) {
@@ -285,6 +299,9 @@ var Handsontable = { //class namespace
        * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all cols will be removed
        */
       removeCol: function (coords, toCoords) {
+        if(priv.dataType === 'object') {
+          throw new Error("cannot remove column with object data source");
+        }
         var r = 0;
         if (!coords || coords.col === self.colCount - 1) {
           for (; r < self.rowCount; r++) {
@@ -647,7 +664,9 @@ var Handsontable = { //class namespace
         //should I add empty cols to meet minSpareCols?
         if (self.colCount < priv.settings.startCols || (priv.dataType === 'array' && emptyCols < priv.settings.minSpareCols)) {
           for (; self.colCount < priv.settings.startCols || emptyCols < priv.settings.minSpareCols; emptyCols++) {
-            datamap.createCol();
+            if(priv.dataType !== 'object') {
+              datamap.createCol();
+            }
             grid.createCol();
             recreateCols = true;
           }
@@ -658,7 +677,9 @@ var Handsontable = { //class namespace
         if (priv.settings.minWidth) {
           if ($tbody.width() > 0 && $tbody.width() <= priv.settings.minWidth) {
             while ($tbody.width() <= priv.settings.minWidth) {
-              datamap.createCol();
+              if(priv.dataType !== 'object') {
+                datamap.createCol();
+              }
               grid.createCol();
               recreateCols = true;
             }
@@ -691,14 +712,18 @@ var Handsontable = { //class namespace
         if (priv.settings.columns && priv.settings.columns.length) {
           var clen = priv.settings.columns.length;
           while (self.colCount > clen) {
-            datamap.removeCol();
+            if(priv.dataType !== 'object') {
+              datamap.removeCol();
+            }
             grid.removeCol();
             recreateCols = true;
           }
         }
         else if (!recreateCols && priv.settings.enterBeginsEditing) {
           for (; ((priv.settings.startCols && self.colCount > priv.settings.startCols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (!priv.settings.minWidth || $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
-            datamap.removeCol();
+            if(priv.dataType !== 'object') {
+              datamap.removeCol();
+            }
             grid.removeCol();
             recreateCols = true;
           }
@@ -2398,8 +2423,9 @@ var Handsontable = { //class namespace
       grid.keepEmptyRows();
       grid.clear();
       var changes = [];
+      var clen = (priv.settings.columns && priv.settings.columns.length) || priv.settings.startCols;
       for (var r = 0; r < priv.settings.startRows; r++) {
-        for (var c = 0; c < priv.settings.startCols; c++) {
+        for (var c = 0; c < clen; c++) {
           var p = datamap.colToProp(c);
           grid.render(r, c, datamap.get(r, p), allowHtml);
           changes.push([r, p, "", datamap.get(r, p)])
