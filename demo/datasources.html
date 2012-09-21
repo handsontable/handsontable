@@ -155,95 +155,97 @@
         $container.handsontable("loadData", hiddenData);
       </script>
     </div>
+  </div>
 
-    <div class="rowLayout">
-      <div class="descLayout">
-        <a name="object-data-source"></a>
+  <div class="rowLayout">
+    <div class="descLayout">
+      <a name="object-data-source"></a>
 
-        <h2>Object data source</h2>
-      </div>
+      <h2>Object data source</h2>
+    </div>
+  </div>
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <p>With version 0.6.0, comes possibility to use <strong>array of objects</strong> data source.</p>
+
+      <div id="example3" class="dataTable"></div>
     </div>
 
-    <div class="rowLayout">
-      <div class="descLayout">
-        <p>With version 0.6.0, comes possibility to use <strong>array of objects</strong> data source.</p>
+    <div class="codeLayout">
+      <script>
+        var objectData = [
+          {id: 1, name: "Ted Right", address: ""},
+          {id: 2, name: "Frank Honest", address: ""},
+          {id: 3, name: "Joan Well", address: ""}
+        ];
 
-        <div id="example3" class="dataTable"></div>
-      </div>
+        var $container = $("#example3");
+        $container.handsontable({
+          startRows: 5,
+          startCols: 3,
+          colHeaders: true,
+          minSpareRows: 1
+        });
 
-      <div class="codeLayout">
-        <script>
-          var objectData = [
-            {id: 1, name: "Ted Right", address: ""},
-            {id: 2, name: "Frank Honest", address: ""},
-            {id: 3, name: "Joan Well", address: ""}
-          ];
-
-          var $container = $("#example3");
-          $container.handsontable({
-            startRows: 5,
-            startCols: 3,
-            colHeaders: true,
-            minSpareRows: 1
-          });
-
-          $container.handsontable("loadData", objectData);
-        </script>
-      </div>
-
-      <div class="rowLayout">
-        <div class="descLayout">
-          <a name="nested-object-data-source"></a>
-
-          <h2>Nested object data source</h2>
-        </div>
-      </div>
-
-      <div class="rowLayout">
-        <div class="descLayout">
-          <p>Some people have nested objects. They can also be used at the data source with a little bit of column
-            mapping.</p>
-
-          <p>The mapping is done using the <b>columns</b> option.</p>
-
-          <div id="example4" class="dataTable"></div>
-        </div>
-
-        <div class="codeLayout">
-          <script>
-            var nestedObjects = [
-              {id: 1, name: {first: "Ted", last: "Right"}, address: ""},
-              {id: 2, name: {first: "Frank", last: "Honest"}, address: ""},
-              {id: 3, name: {first: "Joan", last: "Well"}, address: ""}
-            ];
-
-            var $container = $("#example4");
-            $container.handsontable({
-              startRows: 5,
-              startCols: 4,
-              colHeaders: true,
-              columns: [
-                {data: "id"},
-                {data: "name.first"},
-                {data: "name.last"},
-                {data: "address"}
-              ],
-              minSpareRows: 1
-            });
-
-            $container.handsontable("loadData", nestedObjects);
-          </script>
-        </div>
-      </div>
-
-      <div class="rowLayout">
-        <div class="descLayout">
-          <h3>About</h3>
-
-          <p>This is advanced usage example of <a href="../index.html">Handsontable</a>. Check out the
-            <a href="../index.html">main page</a> for more demos.</p>
-        </div>
-      </div>
+        $container.handsontable("loadData", objectData);
+      </script>
     </div>
+  </div>
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <a name="nested-object-data-source"></a>
+
+      <h2>Nested object data source</h2>
+    </div>
+  </div>
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <p>Some people have nested objects. They can also be used at the data source with a little bit of column
+        mapping.</p>
+
+      <p>The mapping is done using the <b>columns</b> option.</p>
+
+      <div id="example4" class="dataTable"></div>
+    </div>
+
+    <div class="codeLayout">
+      <script>
+        var nestedObjects = [
+          {id: 1, name: {first: "Ted", last: "Right"}, address: ""},
+          {id: 2, name: {first: "Frank", last: "Honest"}, address: ""},
+          {id: 3, name: {first: "Joan", last: "Well"}, address: ""}
+        ];
+
+        var $container = $("#example4");
+        $container.handsontable({
+          startRows: 5,
+          startCols: 4,
+          colHeaders: true,
+          columns: [
+            {data: "id"},
+            {data: "name.first"},
+            {data: "name.last"},
+            {data: "address"}
+          ],
+          minSpareRows: 1
+        });
+
+        $container.handsontable("loadData", nestedObjects);
+      </script>
+    </div>
+  </div>
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <h3>About</h3>
+
+      <p>This is advanced usage example of <a href="../index.html">Handsontable</a>. Check out the
+        <a href="../index.html">main page</a> for more demos.</p>
+    </div>
+  </div>
+</div>
 </body>
 </html>
