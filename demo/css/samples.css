@@ -9,6 +9,7 @@ body {
 
 #container {
     display: table;
+    width: 890px;
 }
 
 .description {
