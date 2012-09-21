@@ -24,4 +24,10 @@ $(function () {
       hljs.highlightBlock($pre[0])
     });
   }
+
+  $('button').on('click', function () {
+    var dump = $(this).data('dump');
+    var $container = $(dump);
+    console.log('data of ' + dump, $container.handsontable('getData'));
+  });
 });

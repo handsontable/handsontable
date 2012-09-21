@@ -90,6 +90,8 @@
       <p>Most of the people use <strong>array of arrays</strong> data source with Handsontable.</p>
 
       <div id="example1" class="dataTable"></div>
+
+      <p><button data-dump="#example1">Dump to console</button></p>
     </div>
 
     <div class="codeLayout">
@@ -103,13 +105,12 @@
 
         var $container = $("#example1");
         $container.handsontable({
+          data: data,
           startRows: 5,
           startCols: 5,
           colHeaders: true,
           minSpareRows: 1
         });
-
-        $container.handsontable("loadData", data);
       </script>
     </div>
   </div>
@@ -127,6 +128,8 @@
       <p>Let's say, you want the same data source, but without the <b>Kia</b> column.</p>
 
       <div id="example2" class="dataTable"></div>
+
+      <p><button data-dump="#example2">Dump to console</button></p>
     </div>
 
     <div class="codeLayout">
@@ -140,6 +143,7 @@
 
         var $container = $("#example2");
         $container.handsontable({
+          data: hiddenData,
           startRows: 5,
           startCols: 5,
           colHeaders: true,
@@ -151,8 +155,6 @@
           ],
           minSpareRows: 1
         });
-
-        $container.handsontable("loadData", hiddenData);
       </script>
     </div>
   </div>
@@ -170,6 +172,8 @@
       <p>With version 0.6.0, comes possibility to use <strong>array of objects</strong> data source.</p>
 
       <div id="example3" class="dataTable"></div>
+
+      <p><button data-dump="#example3">Dump to console</button></p>
     </div>
 
     <div class="codeLayout">
@@ -182,13 +186,12 @@
 
         var $container = $("#example3");
         $container.handsontable({
+          data: objectData,
           startRows: 5,
           startCols: 3,
           colHeaders: true,
           minSpareRows: 1
         });
-
-        $container.handsontable("loadData", objectData);
       </script>
     </div>
   </div>
@@ -209,6 +212,8 @@
       <p>The mapping is done using the <b>columns</b> option.</p>
 
       <div id="example4" class="dataTable"></div>
+
+      <p><button data-dump="#example4">Dump to console</button></p>
     </div>
 
     <div class="codeLayout">
@@ -221,6 +226,7 @@
 
         var $container = $("#example4");
         $container.handsontable({
+          data: nestedObjects,
           startRows: 5,
           startCols: 4,
           colHeaders: true,
@@ -232,8 +238,6 @@
           ],
           minSpareRows: 1
         });
-
-        $container.handsontable("loadData", nestedObjects);
       </script>
     </div>
   </div>
