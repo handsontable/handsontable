@@ -1,4 +1,4 @@
-describe('Handsontable', function () {
+describe('RowHeader', function () {
   var $container,
     id = 'testContainer';
 
