@@ -24,17 +24,17 @@ Then, run `handsontable()` constructor on an empty div. After that, load some da
 ```html
 <div id="dataTable" class="dataTable"></div>
 <script>
-  $("#dataTable").handsontable({
-    startRows: 6,
-    startCols: 8
-  });
   var data = [
     ["", "Kia", "Nissan", "Toyota", "Honda"],
     ["2008", 10, 11, 12, 13],
     ["2009", 20, 11, 14, 13],
     ["2010", 30, 15, 12, 13]
   ];
-  $("#dataTable").handsontable("loadData", data);
+  $("#dataTable").handsontable({
+    data: data,
+    startRows: 6,
+    startCols: 8
+  });
 </script>
 ```
 
@@ -77,12 +77,13 @@ The table below presents configuration options that are interpreted by `handsont
 
   Option                 | Type                           | Default          | Description
 -------------------------|--------------------------------|------------------|-------------
+ `data`                  | array/object                   | []               | Initial data set that will be bound to the data grid by reference
  `startRows`             | number                         | 5                | Initial number of rows
  `startCols`             | number                         | 5                | Initial number of columns
  `rowHeaders`            | boolean/array                  | false            | Defines if the row headers (1, 2, 3, ...) should be displayed. You can just set it to `true` or specify custom a array `["First", "Second", "Third", ...]`
  `colHeaders`            | boolean/array                  | false            | Defines if the column headers (A, B, C, ...) should be displayed. You can just set it to `true` or specify custom a array `["First Name", "Last Name", "Address", ...]`
- `columns`               | boolean/array                  | false            | *TODO describe me*
- `schema`                | boolean/array                  | false            | *TODO describe me*
+ `columns`               | boolean/array                  | false            | Defines the biding of data properties to certain columns. See [demo/datasources.html](https://github.com/warpech/jquery-handsontable/blob/reference/demo/datasources.html) for examples
+ `schema`                | object                         | _like first row_ | Defines the structure of a new row when data source is an object. See [demo/datasources.html](https://github.com/warpech/jquery-handsontable/blob/reference/demo/datasources.html) for examples
  `minWidth`              | number                         | 0                | Handsontable will add as many columns as needed to meet the given width in pixels
  `minHeight`             | number                         | 0                | Handsontable will add as many rows as needed to meet the given height in pixels
  `minSpareCols`          | number                         | 0                | When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns
@@ -100,7 +101,7 @@ The table below presents configuration options that are interpreted by `handsont
  `legend`                | array                          | _undefined_      | Legend definitions. See **Defining legend**
  `autoComplete`          | array                          | _undefined_      | Autocomplete definitions. See **Defining autocomplete**
  `onSelection`           | function(`r`, `c`, `r2`, `c2`) | _undefined_      | Callback fired before one or more cells is selected. You can call `updateSettings` from inside, e.g. if you want to disable fillHandle for a specific cell. Parameters: <ul><li>`r` selection start row</li><li>`c` selection start column</li><li>`r2` selection end column</li><li>`c2` selection end column</li></ul>
- `onSelectionByProp`     | function(`r`, `p`, `r2`, `p2`) | _undefined_      | *TODO describe me*
+ `onSelectionByProp`     | function(`r`, `p`, `r2`, `p2`) | _undefined_      | The same as above, but data source object property name is used instead of the column number
  `onBeforeChange`        | function(`changes`)            | _undefined_      | Callback fired before one or more cells is changed. Its main purpose is to validate the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, col, oldVal, newVal], ... ]`. You can disregard a single change by setting `changes[i][3]` to false, or cancel all edit by returning false.</li></ul>
  `onChange`              | function(`changes`, `source`)  | _undefined_      | Callback fired after one or more cells is changed. Its main use case is to save the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, col, oldVal, newVal], ... ]`. </li><li>`source` is one of the strings: `"alter"`, `"empty"`, `"edit"`, `"populateFromArray"`, `"loadData"`, `"autofill"`, `"paste"`.</li></ul>
 

@@ -61,6 +61,7 @@ describe('Core_loadData', function () {
 
   it('should allow array of nested objects', function () {
     $container.handsontable({
+      data: arrayOfNestedObjects,
       colHeaders: true,
       columns: [
         {data: "id"},
@@ -68,33 +69,76 @@ describe('Core_loadData', function () {
         {data: "name.first"}
       ]
     });
-    $container.handsontable('loadData', arrayOfNestedObjects);
     var output = $container.handsontable('getDataAtCell', 0, 2);
     expect(output).toEqual("Ted");
   });
 
-  it('should trigger onChange callback', function () {
-    var calls = 0;
+  it('should trigger onChange callback when loaded array of arrays', function () {
+    var called = false;
 
     runs(function(){
       $container.handsontable({
         onChange: function(changes, source){
           if(source === 'loadData') {
-            calls++;
+            called = true;
           }
         }
       });
       $container.handsontable('loadData', arrayOfArrays);
+    });
+
+    waitsFor(function () {
+      return (called === true)
+    }, "onChange callback called", 100);
+
+    runs(function () {
+      expect(called).toEqual(true);
+    });
+  });
+
+  it('should trigger onChange callback when loaded array of objects', function () {
+    var called = false;
+
+    runs(function(){
+      $container.handsontable({
+        onChange: function(changes, source){
+          if(source === 'loadData') {
+            called = true;
+          }
+        }
+      });
       $container.handsontable('loadData', arrayOfObjects);
+    });
+
+    waitsFor(function () {
+      return (called === true)
+    }, "onChange callback called", 100);
+
+    runs(function () {
+      expect(called).toEqual(true);
+    });
+  });
+
+  it('should trigger onChange callback when loaded array of nested objects', function () {
+    var called = false;
+
+    runs(function(){
+      $container.handsontable({
+        onChange: function(changes, source){
+          if(source === 'loadData') {
+            called = true;
+          }
+        }
+      });
       $container.handsontable('loadData', arrayOfNestedObjects);
     });
 
     waitsFor(function () {
-      return (calls === 3)
+      return (called === true)
     }, "onChange callback called", 100);
 
     runs(function () {
-      expect(calls).toEqual(3);
+      expect(called).toEqual(true);
     });
   });
 });
