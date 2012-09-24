@@ -56,4 +56,25 @@ describe('Core_datachange', function () {
       expect(output[0][3]).toEqual("test");
     });
   });
+
+  it('this should point to handsontable rootElement', function () {
+    var output = null;
+
+    runs(function () {
+      $container.handsontable({
+        onChange: function () {
+          output = this;
+        }
+      });
+      $container.handsontable('setDataAtCell', 0, 0, "test");
+    });
+
+    waitsFor(function () {
+      return (output != null)
+    }, "onChange callback called", 100);
+
+    runs(function () {
+      expect(output).toEqual($container.get(0));
+    });
+  });
 });

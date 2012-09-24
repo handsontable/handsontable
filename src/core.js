@@ -870,7 +870,7 @@ var Handsontable = { //class namespace
           priv.selStart = coords;
         }
         if (priv.settings.onSelection) {
-          priv.settings.onSelection(priv.selStart.row, priv.selStart.col, priv.selEnd.row, priv.selEnd.col);
+          priv.settings.onSelection.apply(self.rootElement[0], [priv.selStart.row, priv.selStart.col, priv.selEnd.row, priv.selEnd.col]);
         }
         selection.refreshBorders();
         if (scrollToCell !== false) {
@@ -2150,7 +2150,7 @@ var Handsontable = { //class namespace
         }
 
         if (priv.settings.onBeforeChange) {
-          var result = priv.settings.onBeforeChange(changes);
+          var result = priv.settings.onBeforeChange.apply(self.rootElement[0], [changes]);
           if (result === false) {
             changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
           }
@@ -2158,7 +2158,7 @@ var Handsontable = { //class namespace
       });
       self.rootElement.on("datachange.handsontable", function (event, changes, source) {
         if (priv.settings.onChange) {
-          priv.settings.onChange(changes, source);
+          priv.settings.onChange.apply(self.rootElement[0], [changes, source]);
         }
       });
     };

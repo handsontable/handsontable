@@ -31,4 +31,25 @@ describe('Core_selection', function () {
       expect(output[1]).toEqual(2);
     });
   });
+
+  it('this should point to handsontable rootElement', function () {
+    var output = null;
+
+    runs(function () {
+      $container.handsontable({
+        onSelection: function () {
+          output = this;
+        }
+      });
+      $container.handsontable('selectCell', 0, 0);
+    });
+
+    waitsFor(function () {
+      return (output != null)
+    }, "onChange callback called", 100);
+
+    runs(function () {
+      expect(output).toEqual($container.get(0));
+    });
+  });
 });
