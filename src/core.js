@@ -328,6 +328,9 @@ var Handsontable = { //class namespace
           var out = settings.data[row];
           for (var i = 0, ilen = sliced.length; i < ilen; i++) {
             out = out[sliced[i]];
+            if (typeof out === 'undefined') {
+              return null;
+            }
           }
           return out;
         }
@@ -712,11 +715,13 @@ var Handsontable = { //class namespace
 
         if (priv.settings.columns && priv.settings.columns.length) {
           clen = priv.settings.columns.length;
-          while (self.colCount > clen) {
-            if (!priv.settings.columns) {
-              datamap.removeCol();
+          if (self.colCount !== clen) {
+            while (self.colCount > clen) {
+              grid.removeCol();
             }
-            grid.removeCol();
+            while (self.colCount < clen) {
+              grid.createCol();
+            }
             recreateCols = true;
           }
         }
