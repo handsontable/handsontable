@@ -58,10 +58,6 @@ h1 {
     padding-top: 20px;
 }
 
-h1 a:hover {
-    text-decoration: none;
-}
-
 h2 {
     margin-top: 30px;
 }
@@ -80,6 +76,11 @@ a:hover {
 
 .big {
     font-size: 17px;
+}
+
+.small {
+    font-size: 13px;
+    margin-top: 60px;
 }
 
 .nobreak {

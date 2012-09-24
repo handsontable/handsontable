@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Binding to object data source - Handsontable</title>
+  <title>Binding the data grid to array and object data sources - Handsontable</title>
 
   <!--
   Loading handsontable dependencies.
@@ -37,8 +37,8 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Binding to object data source">
-  <meta property="og:description" content="">
+  <meta property="og:title" content="Binding the data grid to array and object data sources">
+  <meta property="og:description" content="This page shows how to use Handsontable with various data sources: array data source (also with hidden columns), object data source, nested object data source.">
   <meta property="og:url" content="http://handsontable.com/demo/reference.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -71,15 +71,14 @@
         <p class="big">This page shows how to use Handsontable with various data sources:</p>
 
         <ul>
-          <li><a href="#array-data-source">array data source</a></li>
-          <li><a href="#object-data-source">object data source</a></li>
-          <li><a href="#nested-object-data-source">nested object data source</a></li>
+          <li><a href="#array">array data source</a></li>
+          <li><a href="#array-hidden">array data source (with hidden columns)</a></li>
+          <li><a href="#object">object data source</a></li>
+          <li><a href="#nested">nested object data source</a></li>
         </ul>
-
-        <p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
       </div>
 
-      <a name="array-data-source"></a>
+      <a name="array"></a>
 
       <h2>Array data source</h2>
     </div>
@@ -91,7 +90,9 @@
 
       <div id="example1" class="dataTable"></div>
 
-      <p><button data-dump="#example1">Dump to console</button></p>
+      <p>
+        <button data-dump="#example1">Dump to console</button>
+      </p>
     </div>
 
     <div class="codeLayout">
@@ -117,7 +118,7 @@
 
   <div class="rowLayout">
     <div class="descLayout">
-      <a name="array-data-source-columns"></a>
+      <a name="array-columns"></a>
 
       <h2>Array data source (with hidden columns)</h2>
     </div>
@@ -129,7 +130,9 @@
 
       <div id="example2" class="dataTable"></div>
 
-      <p><button data-dump="#example2">Dump to console</button></p>
+      <p>
+        <button data-dump="#example2">Dump to console</button>
+      </p>
     </div>
 
     <div class="codeLayout">
@@ -161,7 +164,7 @@
 
   <div class="rowLayout">
     <div class="descLayout">
-      <a name="object-data-source"></a>
+      <a name="object"></a>
 
       <h2>Object data source</h2>
     </div>
@@ -173,7 +176,9 @@
 
       <div id="example3" class="dataTable"></div>
 
-      <p><button data-dump="#example3">Dump to console</button></p>
+      <p>
+        <button data-dump="#example3">Dump to console</button>
+      </p>
     </div>
 
     <div class="codeLayout">
@@ -198,7 +203,7 @@
 
   <div class="rowLayout">
     <div class="descLayout">
-      <a name="nested-object-data-source"></a>
+      <a name="nested"></a>
 
       <h2>Nested object data source</h2>
     </div>
@@ -213,7 +218,9 @@
 
       <div id="example4" class="dataTable"></div>
 
-      <p><button data-dump="#example4">Dump to console</button></p>
+      <p>
+        <button data-dump="#example4">Dump to console</button>
+      </p>
     </div>
 
     <div class="codeLayout">
@@ -244,10 +251,9 @@
 
   <div class="rowLayout">
     <div class="descLayout">
-      <h3>About</h3>
+      <p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
-      <p>This is advanced usage example of <a href="../index.html">Handsontable</a>. Check out the
-        <a href="../index.html">main page</a> for more demos.</p>
+      <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation licensed under the The MIT License.</p>
     </div>
   </div>
 </div>
