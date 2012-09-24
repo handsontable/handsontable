@@ -1538,12 +1538,22 @@ var Handsontable = { //class namespace
               case 9: /* tab */
                 r = priv.settings.tabMoves.row;
                 c = priv.settings.tabMoves.col;
-                if (!isAutoComplete()) {
+                if (priv.isCellEdited) {
+                  if (!isAutoComplete()) {
+                    if (event.shiftKey) {
+                      editproxy.finishEditing(false, -r, -c);
+                    }
+                    else {
+                      editproxy.finishEditing(false, r, c);
+                    }
+                  }
+                }
+                else {
                   if (event.shiftKey) {
-                    editproxy.finishEditing(false, -r, -c);
+                    selection.transformStart(-r, -c);
                   }
                   else {
-                    editproxy.finishEditing(false, r, c);
+                    selection.transformStart(r, c);
                   }
                 }
                 event.preventDefault();
