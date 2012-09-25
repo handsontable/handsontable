@@ -3067,8 +3067,10 @@ var Handsontable = { //class namespace
         }
         else {
           var currentSettings = $.extend(true, {}, settings), instance;
-          if (options) {
-            $.extend(true, currentSettings, options);
+          for (i in options) {
+            if (options.hasOwnProperty(i)) {
+              currentSettings[i] = options[i];
+            }
           }
           instance = new Handsontable.Core($this, currentSettings);
           $this.data("handsontable", instance);
