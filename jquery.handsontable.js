@@ -1793,9 +1793,13 @@ var Handsontable = { //class namespace
           });
         }
         priv.editProxyHolder.removeClass('htHidden');
-        priv.editProxyHolder.css({
-          overflow: 'visible'
-        });
+
+        setTimeout(function () {
+          //async fix for Firefox 3.6.28 (needs manual testing)
+          priv.editProxyHolder.css({
+            overflow: 'visible'
+          });
+        }, 1);
       },
 
       /**
