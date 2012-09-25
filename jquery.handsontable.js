@@ -631,9 +631,17 @@ var Handsontable = { //class namespace
           emptyRows++;
         }
 
+        //should I add empty rows to meet startRows?
+        if (self.rowCount < priv.settings.startRows) {
+          for (; self.rowCount < priv.settings.startRows; emptyRows++) {
+            grid.createRow();
+            recreateRows = true;
+          }
+        }
+
         //should I add empty rows to meet minSpareRows?
-        if (self.rowCount < priv.settings.startRows || emptyRows < priv.settings.minSpareRows) {
-          for (; self.rowCount < priv.settings.startRows || emptyRows < priv.settings.minSpareRows; emptyRows++) {
+        if (emptyRows < priv.settings.minSpareRows) {
+          for (;emptyRows < priv.settings.minSpareRows; emptyRows++) {
             datamap.createRow();
             grid.createRow();
             recreateRows = true;

@@ -11,37 +11,43 @@ describe('Core_loadData', function () {
 
   });
 
-  var arrayOfArrays = [
-    ["", "Kia", "Nissan", "Toyota", "Honda"],
-    ["2008", 10, 11, 12, 13],
-    ["2009", 20, 11, 14, 13],
-    ["2010", 30, 15, 12, 13]
-  ];
+  var arrayOfArrays = function () {
+    return [
+      ["", "Kia", "Nissan", "Toyota", "Honda"],
+      ["2008", 10, 11, 12, 13],
+      ["2009", 20, 11, 14, 13],
+      ["2010", 30, 15, 12, 13]
+    ];
+  }
 
-  var arrayOfObjects = [
-    {id: 1, name: "Ted", lastName: "Right"},
-    {id: 2, name: "Frank", lastName: "Honest"},
-    {id: 3, name: "Joan", lastName: "Well"}
-  ];
+  var arrayOfObjects = function () {
+    return [
+      {id: 1, name: "Ted", lastName: "Right"},
+      {id: 2, name: "Frank", lastName: "Honest"},
+      {id: 3, name: "Joan", lastName: "Well"}
+    ];
+  }
 
-  var arrayOfNestedObjects = [
-    {id: 1, name: {
-      first: "Ted",
-      last: "Right"
-    }},
-    {id: 2, name: {
-      first: "Frank",
-      last: "Honest"
-    }},
-    {id: 3, name: {
-      first: "Joan",
-      last: "Well"
-    }}
-  ];
+  var arrayOfNestedObjects = function () {
+    return [
+      {id: 1, name: {
+        first: "Ted",
+        last: "Right"
+      }},
+      {id: 2, name: {
+        first: "Frank",
+        last: "Honest"
+      }},
+      {id: 3, name: {
+        first: "Joan",
+        last: "Well"
+      }}
+    ]
+  };
 
   it('should allow array of arrays', function () {
     $container.handsontable();
-    $container.handsontable('loadData', arrayOfArrays);
+    $container.handsontable('loadData', arrayOfArrays());
     var output = $container.handsontable('getDataAtCell', 0, 2);
     expect(output).toEqual("Nissan");
   });
@@ -54,14 +60,14 @@ describe('Core_loadData', function () {
         {data: "name"}
       ]
     });
-    $container.handsontable('loadData', arrayOfObjects);
+    $container.handsontable('loadData', arrayOfObjects());
     var output = $container.handsontable('getDataAtCell', 0, 2);
     expect(output).toEqual("Ted");
   });
 
   it('should allow array of nested objects', function () {
     $container.handsontable({
-      data: arrayOfNestedObjects,
+      data: arrayOfNestedObjects(),
       colHeaders: true,
       columns: [
         {data: "id"},
@@ -76,15 +82,15 @@ describe('Core_loadData', function () {
   it('should trigger onChange callback when loaded array of arrays', function () {
     var called = false;
 
-    runs(function(){
+    runs(function () {
       $container.handsontable({
-        onChange: function(changes, source){
-          if(source === 'loadData') {
+        onChange: function (changes, source) {
+          if (source === 'loadData') {
             called = true;
           }
         }
       });
-      $container.handsontable('loadData', arrayOfArrays);
+      $container.handsontable('loadData', arrayOfArrays());
     });
 
     waitsFor(function () {
@@ -99,15 +105,15 @@ describe('Core_loadData', function () {
   it('should trigger onChange callback when loaded array of objects', function () {
     var called = false;
 
-    runs(function(){
+    runs(function () {
       $container.handsontable({
-        onChange: function(changes, source){
-          if(source === 'loadData') {
+        onChange: function (changes, source) {
+          if (source === 'loadData') {
             called = true;
           }
         }
       });
-      $container.handsontable('loadData', arrayOfObjects);
+      $container.handsontable('loadData', arrayOfObjects());
     });
 
     waitsFor(function () {
@@ -122,15 +128,15 @@ describe('Core_loadData', function () {
   it('should trigger onChange callback when loaded array of nested objects', function () {
     var called = false;
 
-    runs(function(){
+    runs(function () {
       $container.handsontable({
-        onChange: function(changes, source){
-          if(source === 'loadData') {
+        onChange: function (changes, source) {
+          if (source === 'loadData') {
             called = true;
           }
         }
       });
-      $container.handsontable('loadData', arrayOfNestedObjects);
+      $container.handsontable('loadData', arrayOfNestedObjects());
     });
 
     waitsFor(function () {
@@ -140,5 +146,41 @@ describe('Core_loadData', function () {
     runs(function () {
       expect(called).toEqual(true);
     });
+  });
+
+  it('should create new rows for startRows (array of arrays)', function () {
+    var called = false;
+    var myData = arrayOfArrays();
+    var expectedRows = myData.length * 2;
+
+    $container.handsontable({
+      startRows: expectedRows,
+      data: myData,
+      onChange: function (changes, source) {
+        if (source === 'loadData') {
+          called = true;
+        }
+      }
+    });
+
+    expect(myData.length).toEqual(expectedRows);
+  });
+
+  it('should create new rows for startRows (array of nested objects)', function () {
+    var called = false;
+    var myData = arrayOfNestedObjects();
+    var expectedRows = myData.length * 2;
+
+    $container.handsontable({
+      startRows: expectedRows,
+      data: myData,
+      onChange: function (changes, source) {
+        if (source === 'loadData') {
+          called = true;
+        }
+      }
+    });
+
+    expect(myData.length).toEqual(expectedRows);
   });
 });
