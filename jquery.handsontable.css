@@ -173,6 +173,9 @@ textarea.handsontableInput {
 /* typeahead rules. Needed only if you are using the autocomplete feature */
 .typeahead {
   position: absolute;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.3em;
+  font-size: 13px;
   z-index: 10;
   top: 100%;
   left: 0;
