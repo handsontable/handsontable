@@ -3,11 +3,13 @@ describe('Core_datachange', function () {
     id = 'testContainer';
 
   beforeEach(function () {
-    $container = $('<div id="' + id + '"></div>');
+    $container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
   afterEach(function () {
-    $('#' + id).remove();
+    if($container) {
+      $container.remove();
+    }
   });
 
   it('should call onChange callback', function () {
