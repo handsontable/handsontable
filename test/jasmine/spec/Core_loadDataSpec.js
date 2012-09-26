@@ -3,12 +3,13 @@ describe('Core_loadData', function () {
     id = 'testContainer';
 
   beforeEach(function () {
-    $('#' + id).remove();
-    $container = $('<div id="' + id + '"></div>');
+    $container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
   afterEach(function () {
-
+    if($container) {
+      $container.remove();
+    }
   });
 
   var arrayOfArrays = function () {
