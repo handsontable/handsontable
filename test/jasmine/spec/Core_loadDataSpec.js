@@ -80,6 +80,15 @@ describe('Core_loadData', function () {
     expect(output).toEqual("Ted");
   });
 
+  it('should figure out default column names for array of nested objects', function () {
+    $container.handsontable({
+      data: arrayOfNestedObjects(),
+      colHeaders: true
+    });
+    var output = $container.handsontable('getDataAtCell', 0, 2);
+    expect(output).toEqual("Right");
+  });
+
   it('should trigger onChange callback when loaded array of arrays', function () {
     var called = false;
 

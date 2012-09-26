@@ -185,6 +185,43 @@ var Handsontable = { //class namespace
     }
 
     datamap = {
+      recursiveDuckSchema: function (obj) {
+        var schema = {};
+        for (var i in obj) {
+          if (obj.hasOwnProperty(i)) {
+            if (Object.prototype.toString.call(obj[i]) === '[object Object]') {
+              schema[i] = datamap.recursiveDuckSchema(obj[i]);
+            }
+            else {
+              schema[i] = null;
+            }
+          }
+        }
+        return schema;
+      },
+
+      recursiveDuckColumns: function (schema, lastCol, parent) {
+        var prop, i;
+        if (typeof lastCol === 'undefined') {
+          lastCol = 0;
+          parent = '';
+        }
+        for (i in schema) {
+          if (schema.hasOwnProperty(i)) {
+            if (schema[i] === null) {
+              prop = parent + i;
+              priv.colToProp.push(prop);
+              priv.propToCol[prop] = lastCol;
+              lastCol++;
+            }
+            else {
+              lastCol = datamap.recursiveDuckColumns(schema[i], lastCol, i + '.');
+            }
+          }
+        }
+        return lastCol;
+      },
+
       createMap: function () {
         if (typeof datamap.getSchema() === "undefined") {
           throw new Error("trying to create `columns` definition but you didnt' provide `schema` nor `data`");
@@ -200,13 +237,7 @@ var Handsontable = { //class namespace
           }
         }
         else {
-          for (i in schema) {
-            if (schema.hasOwnProperty(i)) {
-              priv.colToProp.push(i);
-              priv.propToCol[i] = cols;
-              cols++;
-            }
-          }
+          datamap.recursiveDuckColumns(schema);
         }
       },
 
@@ -641,7 +672,7 @@ var Handsontable = { //class namespace
 
         //should I add empty rows to meet minSpareRows?
         if (emptyRows < priv.settings.minSpareRows) {
-          for (;emptyRows < priv.settings.minSpareRows; emptyRows++) {
+          for (; emptyRows < priv.settings.minSpareRows; emptyRows++) {
             datamap.createRow();
             grid.createRow();
             recreateRows = true;
@@ -2412,21 +2443,6 @@ var Handsontable = { //class namespace
       }
     };
 
-    var recursiveDuckSchema = function (obj) {
-      var schema = {};
-      for (var i in obj) {
-        if (obj.hasOwnProperty(i)) {
-          if (typeof obj[i] === 'object') {
-            schema[i] = recursiveDuckSchema(obj[i]);
-          }
-          else {
-            schema[i] = null;
-          }
-        }
-      }
-      return schema;
-    };
-
     /**
      * Load data from array
      * @public
@@ -2442,7 +2458,7 @@ var Handsontable = { //class namespace
       else {
         priv.dataType = 'array';
       }
-      priv.duckDataSchema = recursiveDuckSchema(data[0]);
+      priv.duckDataSchema = datamap.recursiveDuckSchema(data[0]);
       datamap.createMap();
       var dlen = settings.data.length;
       while (priv.settings.startRows > dlen) {
