@@ -3,11 +3,13 @@ describe('Core_onKeyDown', function () {
     id = 'testContainer';
 
   beforeEach(function () {
-    $container = $('<div id="' + id + '"></div>');
+    $container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
   afterEach(function () {
-    $('#' + id).remove();
+    if($container) {
+      $container.remove();
+    }
   });
 
   it('should advance to next cell when TAB is pressed', function () {

@@ -3,11 +3,13 @@ describe('RowHeader', function () {
     id = 'testContainer';
 
   beforeEach(function () {
-    $container = $('<div id="' + id + '"></div>');
+    $container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
   afterEach(function () {
-    $('#' + id).remove();
+    if($container) {
+      $container.remove();
+    }
   });
 
   it('should not show row headers by default', function () {
