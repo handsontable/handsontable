@@ -1903,7 +1903,7 @@ var Handsontable = { //class namespace
       self.lastScrollTop = self.lastScrollLeft = null;
       priv.scrollbarSize = measureScrollbar();
 
-      var div = $('<div><table cellspacing="0" cellpadding="0"><thead></thead><tbody></tbody></table></div>');
+      var div = $('<div><table class="htCore" cellspacing="0" cellpadding="0"><thead></thead><tbody></tbody></table></div>');
       priv.tableContainer = div[0];
       self.table = $(priv.tableContainer.firstChild);
       priv.tableBody = self.table.find("tbody")[0];
