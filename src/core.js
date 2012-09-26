@@ -798,7 +798,10 @@ var Handsontable = { //class namespace
                   }
                 })(legend));
                 $img.on("load", function () {
-                  self.rootElement.triggerHandler('cellrender.handsontable', changes);
+                  var changes = [
+                    [coords.row, datamap.colToProp(coords.col)]
+                  ];
+                  self.rootElement.triggerHandler('cellrender.handsontable', [changes]);
                 });
                 $td.append($img);
               }
