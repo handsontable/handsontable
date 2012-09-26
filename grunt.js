@@ -10,7 +10,15 @@ module.exports = function (grunt) {
   grunt.initConfig({
     concat: {
       dist: {
-        src: ['src/core.js', 'src/undoRedo.js', 'src/blockedRows.js', 'src/blockedCols.js', 'src/rowHeader.js', 'src/colHeader.js', 'src/jquery.mousewheel.js'],
+        src: [
+          'src/core.js',
+          'src/undoRedo.js',
+          'src/blockedRows.js',
+          'src/blockedCols.js',
+          'src/rowHeader.js',
+          'src/colHeader.js',
+          'src/jquery.mousewheel.js'
+        ],
         dest: 'jquery.handsontable.js'
       }
     },
