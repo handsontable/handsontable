@@ -11,13 +11,15 @@ module.exports = function (grunt) {
     concat: {
       dist: {
         src: [
+          'src/intro.js',
           'src/core.js',
           'src/undoRedo.js',
           'src/blockedRows.js',
           'src/blockedCols.js',
           'src/rowHeader.js',
           'src/colHeader.js',
-          'src/jquery.mousewheel.js'
+          'src/jquery.mousewheel.js',
+          'src/outro.js'
         ],
         dest: 'jquery.handsontable.js'
       }
