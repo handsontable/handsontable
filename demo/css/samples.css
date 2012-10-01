@@ -1,4 +1,5 @@
 /*This file is only needed for demo purposes in demo/ subdirectory */
+
 body {
   margin: 0;
   background-color: #F5F5FF;
@@ -8,8 +9,7 @@ body {
 }
 
 #container {
-  display: table;
-  width: 890px;
+  min-width: 1000px;
 }
 
 .description {
@@ -17,43 +17,49 @@ body {
 }
 
 .rowLayout {
-  display: table-row;
-  float: left;
+  position: relative;
+  width: 100%;
   clear: both;
 }
 
 .descLayout {
+  width: 50%;
+  float: left;
   background-color: #FFF;
-  width: 400px;
-  padding: 0 40px 0 20px;
   border-right: 1px solid #E5E5EE;
-  display: table-cell;
-  table-layout: fixed;
 }
 
 .codeLayout {
-  display: table-cell;
+  position: absolute;
+  left: 50%;
+  top: 0;
 }
 
-.codeLayout pre.javascript {
+/**
+ * pad
+ */
+
+.pad {
   width: 400px;
-  padding: 0 0 0 20px;
+  margin: 0 40px 0 40px;
 }
 
-.codeLayout pre code {
-  padding: 0;
-  background: none;
+.descLayout .pad {
+  float: right;
 }
 
-.dataTable {
-  background-color: #FFF;
-  float: left;
-  color: #000;
+.pad.mediumBottomSpace {
+  padding-bottom: 100px;
+}
+
+.pad.bigBottomSpace {
+  padding-bottom: 150px;
 }
 
 /**
  * headers
  */
+
 h1, h2, h3 {
   font-family: Tahoma, Helvetica, Arial, FreeSans, sans-serif;
 }
@@ -70,6 +76,7 @@ h2 {
 /**
  * text
  */
+
 a {
   text-decoration: none;
   color: #1B676B;
@@ -100,6 +107,25 @@ p {
   clear: left;
 }
 
+/**
+ * Handsontable
+ */
+
 .handsontable {
   margin-bottom: 10px;
+  color: #000;
+}
+
+/**
+ * Highlight.js
+ */
+
+.codeLayout pre {
+  width: 400px;
+  font-size: 1em;
+}
+
+.codeLayout pre code {
+  padding: 0;
+  background: none;
 }

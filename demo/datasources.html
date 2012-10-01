@@ -38,7 +38,8 @@
   Facebook open graph. Don't copy this to your project :)
   -->
   <meta property="og:title" content="Binding the data grid to array and object data sources">
-  <meta property="og:description" content="This page shows how to use Handsontable with various data sources: array data source (also with hidden columns), object data source, nested object data source.">
+  <meta property="og:description"
+        content="This page shows how to use Handsontable with various data sources: array data source (also with hidden columns), object data source, nested object data source.">
   <meta property="og:url" content="http://handsontable.com/demo/reference.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -60,8 +61,9 @@
 
 <div id="container">
 
-  <div class="rowLayout">
-    <div class="descLayout">
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
       <h1><a href="../index.html">Handsontable</a></h1>
 
       <div class="description">
@@ -83,9 +85,11 @@
       <h2>Array data source</h2>
     </div>
   </div>
+</div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad mediumBottomSpace">
       <p>Most of the people use <strong>array of arrays</strong> data source with Handsontable.</p>
 
       <div id="example1" class="dataTable"></div>
@@ -94,8 +98,10 @@
         <button data-dump="#example1">Dump to console</button>
       </p>
     </div>
+  </div>
 
-    <div class="codeLayout">
+  <div class="codeLayout">
+    <div class="pad">
       <script>
         var data = [
           ["", "Kia", "Nissan", "Toyota", "Honda"],
@@ -115,17 +121,21 @@
       </script>
     </div>
   </div>
+</div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <a name="array-columns"></a>
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
+      <a name="array-hidden"></a>
 
       <h2>Array data source (with hidden columns)</h2>
     </div>
   </div>
+</div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad bigBottomSpace">
       <p>Let's say, you want the same data source, but without the <b>Kia</b> column.</p>
 
       <div id="example2" class="dataTable"></div>
@@ -134,8 +144,10 @@
         <button data-dump="#example2">Dump to console</button>
       </p>
     </div>
+  </div>
 
-    <div class="codeLayout">
+  <div class="codeLayout">
+    <div class="pad">
       <script>
         var hiddenData = [
           ["", "Kia", "Nissan", "Toyota", "Honda"],
@@ -161,17 +173,21 @@
       </script>
     </div>
   </div>
+</div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
       <a name="object"></a>
 
       <h2>Object data source</h2>
     </div>
   </div>
+</div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad mediumBottomSpace">
       <p>With version 0.6.0, comes possibility to use <strong>array of objects</strong> data source.</p>
 
       <div id="example3" class="dataTable"></div>
@@ -180,8 +196,10 @@
         <button data-dump="#example3">Dump to console</button>
       </p>
     </div>
+  </div>
 
-    <div class="codeLayout">
+  <div class="codeLayout">
+    <div class="pad">
       <script>
         var objectData = [
           {id: 1, name: "Ted Right", address: ""},
@@ -200,17 +218,21 @@
       </script>
     </div>
   </div>
+</div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
       <a name="nested"></a>
 
       <h2>Nested object data source</h2>
     </div>
   </div>
+</div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad mediumBottomSpace">
       <p>Some people have nested objects. They can also be used at the data source with a little bit of column
         mapping.</p>
 
@@ -222,8 +244,10 @@
         <button data-dump="#example4">Dump to console</button>
       </p>
     </div>
+  </div>
 
-    <div class="codeLayout">
+  <div class="codeLayout">
+    <div class="pad">
       <script>
         var nestedObjects = [
           {id: 1, name: {first: "Ted", last: "Right"}, address: ""},
@@ -231,7 +255,7 @@
           {id: 3, name: {first: "Joan", last: "Well"}, address: ""}
         ];
 
-        var $container = $("#example4");
+        var $container =   $("#example4");
         $container.handsontable({
           data: nestedObjects,
           startRows: 5,
@@ -248,14 +272,17 @@
       </script>
     </div>
   </div>
+</div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
-      <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation licensed under the The MIT License.</p>
+      <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+        licensed under the The MIT License.</p>
     </div>
   </div>
+</div>
 </div>
 </body>
 </html>
