@@ -19,7 +19,7 @@ describe('Core_loadData', function () {
       ["2009", 20, 11, 14, 13],
       ["2010", 30, 15, 12, 13]
     ];
-  }
+  };
 
   var arrayOfObjects = function () {
     return [
@@ -27,7 +27,7 @@ describe('Core_loadData', function () {
       {id: 2, name: "Frank", lastName: "Honest"},
       {id: 3, name: "Joan", lastName: "Well"}
     ];
-  }
+  };
 
   var arrayOfNestedObjects = function () {
     return [
@@ -45,6 +45,10 @@ describe('Core_loadData', function () {
       }}
     ]
   };
+
+  var htmlData = [
+    ['<b>H&M</b>']
+  ];
 
   it('should allow array of arrays', function () {
     $container.handsontable();
@@ -192,5 +196,26 @@ describe('Core_loadData', function () {
     });
 
     expect(myData.length).toEqual(expectedRows);
+  });
+
+  it('HTML special chars should be escaped by default', function () {
+    $container.handsontable();
+    $container.handsontable('loadData', htmlData);
+    var output = $container.handsontable('getCell', 0, 0).innerHTML;
+    expect(output).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
+  });
+
+  it('HTML special chars should be escaped when allowHtml == false', function () {
+    $container.handsontable();
+    $container.handsontable('loadData', htmlData, false);
+    var output = $container.handsontable('getCell', 0, 0).innerHTML;
+    expect(output).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
+  });
+
+  it('HTML special chars should not be escaped when allowHtml == true', function () {
+    $container.handsontable();
+    $container.handsontable('loadData', htmlData, true);
+    var output = $container.handsontable('getCell', 0, 0).innerHTML;
+    expect(output).toEqual('<b>H&amp;M</b>');
   });
 });

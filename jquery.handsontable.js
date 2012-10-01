@@ -1238,6 +1238,7 @@ Handsontable.Core = function (rootElement, settings) {
           grid.updateLegend(coords);
         }
         self.rootElement.triggerHandler("datachange.handsontable", [changes, 'empty']);
+        self.rootElement.triggerHandler("cellrender.handsontable", [changes, 'empty']);
       }
       grid.keepEmptyRows();
       selection.refreshBorders();
@@ -2347,7 +2348,6 @@ Handsontable.Core = function (rootElement, settings) {
       if (priv.settings.onChange) {
         priv.settings.onChange.apply(self.rootElement[0], [changes, source]);
       }
-      self.rootElement.triggerHandler("cellrender.handsontable", [changes, source]);
     });
     self.rootElement.on("selection.handsontable", function (event, row, col, endRow, endCol) {
       if (priv.settings.onSelection) {
@@ -2432,6 +2432,7 @@ Handsontable.Core = function (rootElement, settings) {
     }
     if (changes.length) {
       self.rootElement.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
+      self.rootElement.triggerHandler("cellrender.handsontable", [changes, source || 'edit']);
     }
     return td;
   };
@@ -2446,6 +2447,30 @@ Handsontable.Core = function (rootElement, settings) {
       var coords = grid.getCornerCoords([priv.selStart, priv.selEnd]);
       return [coords.TL.row, coords.TL.col, coords.BR.row, coords.BR.col];
     }
+  };
+
+  /**
+   * Render visible data
+   * @public
+   * @param {Array} changes (Optional) If not given, all visible grid will be rerendered
+   * @param {String} source (Optional)
+   */
+  this.render = function (changes, source) {
+    if(typeof changes === "undefined") {
+      changes = [];
+      var r, c, p, val, clen = (priv.settings.columns && priv.settings.columns.length) || priv.settings.startCols;
+      for (r = 0; r < priv.settings.startRows; r++) {
+        for (c = 0; c < clen; c++) {
+          p = datamap.colToProp(c);
+          val = datamap.get(r, p);
+          changes.push([r, p, val, val]);
+        }
+      }
+    }
+    for(var i= 0, ilen=changes.length; i<ilen; i++) {
+      grid.render(changes[i][0], datamap.propToCol(changes[i][1]), changes[i][3], true);
+    }
+    self.rootElement.triggerHandler('cellrender.handsontable', [changes, source || 'render']);
   };
 
   /**
@@ -2481,11 +2506,11 @@ Handsontable.Core = function (rootElement, settings) {
     for (var r = 0; r < priv.settings.startRows; r++) {
       for (var c = 0; c < clen; c++) {
         var p = datamap.colToProp(c);
-        grid.render(r, c, datamap.get(r, p), allowHtml);
         changes.push([r, p, "", datamap.get(r, p)])
       }
     }
     self.rootElement.triggerHandler('datachange.handsontable', [changes, 'loadData']);
+    self.render(changes, 'loadData');
     priv.isPopulated = true;
     self.clearUndo();
   };
