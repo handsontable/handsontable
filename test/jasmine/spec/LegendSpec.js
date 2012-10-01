@@ -59,7 +59,7 @@ describe('Legend', function () {
       expect(widthBeforeLoad).not.toEqual(widthAfterLoad);
       expect(widthBeforeLoad).toBeGreaterThan(300);
       expect(widthAfterLoad).toBeGreaterThan(300);
-      expect($container.find('table.htCore').width()).toEqual($container.find('table.htBlockedRows').width());
+      expect(widthAfterLoad).toEqual($container.find('table.htBlockedRows').width());
     });
   });
 });
