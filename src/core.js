@@ -1205,14 +1205,21 @@ Handsontable.Core = function (rootElement, settings) {
         old = datamap.get(coords.row, prop);
         $td = $(tds[i]);
         if (old !== '' && grid.isCellWritable($td)) {
-          $td.empty();
-          self.minWidthFix(tds[i]);
-          datamap.set(coords.row, prop, '');
           changes.push([coords.row, prop, old, '']);
-          grid.updateLegend(coords);
         }
       }
       if (changes.length) {
+        self.rootElement.triggerHandler("beforedatachange.handsontable", [changes]);
+      }
+      if (changes.length) {
+        for (i = 0, ilen = changes.length; i < ilen; i++) {
+          var coords = {row: changes[i][0], col: datamap.propToCol(changes[i][1])};
+          $td = $(grid.getCellAtCoords(coords));
+          $td.empty();
+          self.minWidthFix(tds[i]);
+          datamap.set(changes[i][0], changes[i][1], '');
+          grid.updateLegend(coords);
+        }
         self.rootElement.triggerHandler("datachange.handsontable", [changes, 'empty']);
       }
       grid.keepEmptyRows();
