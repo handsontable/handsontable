@@ -226,10 +226,9 @@ var Handsontable = { //class namespace
         if (typeof datamap.getSchema() === "undefined") {
           throw new Error("trying to create `columns` definition but you didnt' provide `schema` nor `data`");
         }
-        var cols = 0, i, ilen;
+        var i, ilen, schema = datamap.getSchema();
         priv.colToProp = [];
         priv.propToCol = {};
-        var schema = datamap.getSchema();
         if (priv.settings.columns) {
           for (i = 0, ilen = priv.settings.columns.length; i < ilen; i++) {
             priv.colToProp[i] = priv.settings.columns[i].data;
