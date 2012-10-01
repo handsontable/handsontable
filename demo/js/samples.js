@@ -5,22 +5,26 @@ $(function () {
       var $pre = $('<pre class="javascript"></pre>');
       var $code = $('<code></code>');
       var code = $script[0].innerHTML;
-      code = code.replace(/\t/g, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); //escape html special chars
+      code = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); //escape html special chars
       code = code.split('\n');
+      if ($.trim(code[0]) === '') {
+        code.splice(0, 1);
+      }
       if ($.trim(code[0]) === '') {
         code.splice(0, 1);
       }
       var offset = 0;
       for (var i = 0, ilen = code[0].length; i < ilen; i++) {
-        if (code[0][i] != " ") {
+        if (code[0].charAt(i) != " ") {
           break;
         }
         offset++;
       }
       for (var i = 0, ilen = code.length; i < ilen; i++) {
-        code[i] = code[i].slice(offset);
+        code[i] = code[i].substring(offset);
       }
-      $code.html(code.join('<br>'));
+      code = code.join('<br>').replace(/  /g, "&nbsp;&nbsp;");
+      $code[0].innerHTML = code;
       $pre.append($code);
       $pre.insertAfter($script);
     });
