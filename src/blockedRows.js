@@ -14,7 +14,7 @@ Handsontable.BlockedRows = function (instance) {
   this.update();
   this.instance.rootElement.on('cellrender.handsontable', function (event, changes, source) {
     setTimeout(function () {
-      that.dimensions(changes, source);
+      that.dimensions();
     }, 10);
   });
 };
@@ -145,14 +145,12 @@ Handsontable.BlockedRows.prototype.refreshBorders = function () {
 
 /**
  * Recalculate column widths on the floating layer above the grid
- * @param {Object} changes
  */
-Handsontable.BlockedRows.prototype.dimensions = function (changes) {
+Handsontable.BlockedRows.prototype.dimensions = function () {
   if (this.count() > 0) {
-    var offset = this.instance.blockedCols.count();
-    for (var i = 0, ilen = changes.length; i < ilen; i++) {
-      var col = this.instance.propToCol(changes[i][1]);
-      this.ths[col + offset].style.minWidth = $(this.instance.getCell(changes[i][0], col)).width() + 'px';
+    var realThs = this.instance.table.find('thead th');
+    for (var i = 0, ilen = realThs.length; i < ilen; i++) {
+      this.ths[i].style.minWidth = $(realThs[i]).width() + 'px';
     }
   }
 };

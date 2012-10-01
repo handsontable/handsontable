@@ -70,4 +70,29 @@ describe('RowHeader', function () {
     });
     expect($container.find('.htRowHeader').length).toEqual(0);
   });
+
+  //https://github.com/warpech/jquery-handsontable/issues/164
+  it('should resize all row headers when cell height changes', function () {
+    var long = "465465465465 4654654654654 654654654654654 654654654654654 65465465 465 46565 465";
+    $container.width(500);
+
+    runs(function () {
+      $container.handsontable({
+        rowHeaders: true
+      });
+      $container.handsontable('setDataAtCell', 2, 2, long);
+    });
+
+    waits(10);
+
+    runs(function () {
+      $container.handsontable('setDataAtCell', 1, 1, long);
+    });
+
+    waits(10);
+
+    runs(function(){
+      expect($container.find('table.htCore').height()).toEqual($container.find('table.htBlockedCols').height());
+    });
+  });
 });
