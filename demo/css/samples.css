@@ -78,12 +78,12 @@ h2 {
  */
 
 a {
-  text-decoration: none;
+  text-decoration: underline;
   color: #1B676B;
 }
 
 a:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .tagline {
