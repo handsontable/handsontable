@@ -1,10 +1,11 @@
 $(function () {
-  if (!$.browser.msie || parseInt($.browser.version, 10) > 7) { //syntax coloring does not work well with IE7
+  if (!$.browser.msie || parseInt($.browser.version, 10) > 6) { //syntax coloring does not work well with IE7
     $('.codeLayout script').each(function (i, e) {
       var $script = $(this);
-      var $pre = $('<pre class="code"></pre>');
-      var code = $script.html();
-      code = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); //escape html special chars
+      var $pre = $('<pre class="javascript"></pre>');
+      var $code = $('<code></code>');
+      var code = $script[0].innerHTML;
+      code = code.replace(/\t/g, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); //escape html special chars
       code = code.split('\n');
       if ($.trim(code[0]) === '') {
         code.splice(0, 1);
@@ -19,10 +20,11 @@ $(function () {
       for (var i = 0, ilen = code.length; i < ilen; i++) {
         code[i] = code[i].slice(offset);
       }
-      $pre.text(code.join('\n'))
+      $code.html(code.join('<br>'));
+      $pre.append($code);
       $pre.insertAfter($script);
-      hljs.highlightBlock($pre[0])
     });
+    hljs.initHighlighting();
   }
 
   $('button').on('click', function () {

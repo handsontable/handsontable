@@ -1,100 +1,105 @@
 /*This file is only needed for demo purposes in demo/ subdirectory */
 body {
-    margin: 0;
-    background-color: #F5F5FF;
-    font-family: Helvetica, Arial, FreeSans, sans-serif;
-    color: #454545;
-    font-size: 15px;
+  margin: 0;
+  background-color: #F5F5FF;
+  font-family: Helvetica, Arial, FreeSans, sans-serif;
+  color: #454545;
+  font-size: 15px;
 }
 
 #container {
-    display: table;
-    width: 890px;
+  display: table;
+  width: 890px;
 }
 
 .description {
-    padding-bottom: 20px;
+  padding-bottom: 20px;
 }
 
 .rowLayout {
-    display: table-row;
-    float: left;
-    clear: both;
+  display: table-row;
+  float: left;
+  clear: both;
 }
 
 .descLayout {
-    background-color: #FFF;
-    width: 400px;
-    padding: 0 40px 0 20px;
-    border-right: 1px solid #E5E5EE;
-    display: table-cell;
-    table-layout: fixed;
+  background-color: #FFF;
+  width: 400px;
+  padding: 0 40px 0 20px;
+  border-right: 1px solid #E5E5EE;
+  display: table-cell;
+  table-layout: fixed;
 }
 
 .codeLayout {
-    display: table-cell;
+  display: table-cell;
 }
 
-.codeLayout pre.code.javascript {
-    width: 400px;
-    padding: 0 0 0 20px;
+.codeLayout pre.javascript {
+  width: 400px;
+  padding: 0 0 0 20px;
+}
+
+.codeLayout pre code {
+  padding: 0;
+  background: none;
 }
 
 .dataTable {
-    background-color: #FFF;
-    float: left;
-    color: #000;
+  background-color: #FFF;
+  float: left;
+  color: #000;
 }
 
 /**
  * headers
  */
 h1, h2, h3 {
-    font-family: Tahoma, Helvetica, Arial, FreeSans, sans-serif;
+  font-family: Tahoma, Helvetica, Arial, FreeSans, sans-serif;
 }
 
 h1 {
-    margin-top: 0;
-    padding-top: 20px;
+  margin-top: 0;
+  padding-top: 20px;
 }
 
 h2 {
-    margin-top: 30px;
+  margin-top: 30px;
 }
 
 /**
  * text
  */
 a {
-    text-decoration: none;
-    color: #1B676B;
+  text-decoration: none;
+  color: #1B676B;
 }
 
 a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 .big {
-    font-size: 17px;
+  font-size: 17px;
 }
 
 .small {
-    font-size: 13px;
-    margin-top: 60px;
+  font-size: 13px;
+  margin-top: 60px;
 }
 
 .nobreak {
-    white-space: nowrap;
+  white-space: nowrap;
 }
 
 pre {
-    clear: left;
+  clear: left;
 }
 
 p {
-    clear: left;
+  clear: left;
 }
 
 .handsontable {
-    margin-bottom: 10px;
+  margin-bottom: 10px;
 }
