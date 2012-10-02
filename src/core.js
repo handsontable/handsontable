@@ -980,23 +980,28 @@ Handsontable.Core = function (rootElement, settings) {
       return tds;
     },
 
-    render: function (row, col, value, allowHtml) {
-      var td = grid.getCellAtCoords({row: row, col: col}), escaped;
-      switch (typeof value) {
-        case 'string':
-          break;
-
-        case 'number':
-          value += '';
-          break;
-
-        default:
-          value = '';
+    render: function (row, col, prop, value, allowHtml) {
+      var td = grid.getCellAtCoords({row: row, col: col})
+        , renderer
+        , renderOptions
+        , colSettings;
+      if (priv.settings.renderers) {
+        renderer = priv.settings.renderers(row, col, prop);
       }
-      if (!allowHtml) {
-        escaped = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
+      if (typeof renderer !== "function") {
+        colSettings = priv.settings.columns && priv.settings.columns[col];
+        if (colSettings && colSettings.renderer) {
+          renderer = colSettings.renderer;
+          if (colSettings.renderOptions) {
+            renderOptions = colSettings.renderOptions;
+          }
+        }
+        else {
+          renderer = Handsontable.TextRenderer;
+          renderOptions = {allowHtml: allowHtml};
+        }
       }
-      td.innerHTML = (escaped || value).replace(/\n/g, '<br/>');
+      renderer(self, td, row, col, prop, value, renderOptions);
       self.minWidthFix(td);
       grid.updateLegend({row: row, col: col});
       return td;
@@ -2400,7 +2405,7 @@ Handsontable.Core = function (rootElement, settings) {
           refreshCols = true;
         }
       }
-      td = grid.render(row, col, value, allowHtml);
+      td = grid.render(row, col, prop, value, allowHtml);
       datamap.set(row, prop, value);
     }
     if (refreshRows) {
@@ -2439,7 +2444,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {String} source (Optional)
    */
   this.render = function (changes, source) {
-    if(typeof changes === "undefined") {
+    if (typeof changes === "undefined") {
       changes = [];
       var r, c, p, val, clen = (priv.settings.columns && priv.settings.columns.length) || priv.settings.startCols;
       for (r = 0; r < priv.settings.startRows; r++) {
@@ -2450,8 +2455,8 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
     }
-    for(var i= 0, ilen=changes.length; i<ilen; i++) {
-      grid.render(changes[i][0], datamap.propToCol(changes[i][1]), changes[i][3], true);
+    for (var i = 0, ilen = changes.length; i < ilen; i++) {
+      grid.render(changes[i][0], datamap.propToCol(changes[i][1]), changes[i][1], changes[i][3], true);
     }
     self.rootElement.triggerHandler('cellrender.handsontable', [changes, source || 'render']);
   };

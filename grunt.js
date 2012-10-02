@@ -18,6 +18,8 @@ module.exports = function (grunt) {
           'src/blockedCols.js',
           'src/rowHeader.js',
           'src/colHeader.js',
+          'src/renderers/text.js',
+          'src/renderers/checkbox.js',
           'src/jquery.mousewheel.js',
           'src/outro.js'
         ],
