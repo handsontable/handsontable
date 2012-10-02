@@ -20,6 +20,9 @@ module.exports = function (grunt) {
           'src/colHeader.js',
           'src/renderers/text.js',
           'src/renderers/checkbox.js',
+          'src/editors/textEditor.js',
+          'src/editors/autocompleteEditor.js',
+          'src/editors/checkboxEditor.js',
           'src/jquery.mousewheel.js',
           'src/outro.js'
         ],

@@ -45,14 +45,13 @@ Handsontable.Core = function (rootElement, settings) {
     settings: {},
     isMouseOverTable: false,
     isMouseDown: false,
-    isCellEdited: false,
+    //isCellEdited: false,
     selStart: null,
     selEnd: null,
     editProxy: false,
     isPopulated: null,
     scrollable: null,
     hasLegend: null,
-    lastAutoComplete: null,
     undoRedo: null,
     extensions: {},
     legendDirty: null,
@@ -61,18 +60,6 @@ Handsontable.Core = function (rootElement, settings) {
     dataSchema: null,
     dataType: 'array'
   };
-
-  var lastChange = '';
-
-  function isAutoComplete() {
-    var typeahead = priv.editProxy.data("typeahead");
-    if (typeahead && typeahead.$menu.is(":visible")) {
-      return typeahead;
-    }
-    else {
-      return false;
-    }
-  }
 
   /**
    * Measure the width and height of browser scrollbar
@@ -95,16 +82,6 @@ Handsontable.Core = function (rootElement, settings) {
     }
     div.remove();
     return {width: w1, height: h1};
-  }
-
-  /**
-   * Copied from bootstrap-typeahead.js for reference
-   */
-  function defaultAutoCompleteHighlighter(item) {
-    var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
-    return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-      return '<strong>' + match + '</strong>';
-    })
   }
 
   var hasMinWidthProblem = ($.browser.msie && (parseInt($.browser.version, 10) <= 7));
@@ -463,7 +440,7 @@ Handsontable.Core = function (rootElement, settings) {
     }
   };
 
-  grid = {
+  self.grid = grid = {
     /**
      * Alter grid
      * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col"
@@ -1186,8 +1163,8 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
-      if (priv.isCellEdited) {
-        editproxy.finishEditing();
+      if (typeof priv.editorDestroyer === "function") {
+        priv.editorDestroyer();
       }
       highlight.off();
       priv.currentBorder.disappear();
@@ -1235,7 +1212,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
       if (changes.length) {
         for (i = 0, ilen = changes.length; i < ilen; i++) {
-          var coords = {row: changes[i][0], col: datamap.propToCol(changes[i][1])};
+          coords = {row: changes[i][0], col: datamap.propToCol(changes[i][1])};
           $td = $(grid.getCellAtCoords(coords));
           $td.empty();
           self.minWidthFix(tds[i]);
@@ -1516,26 +1493,27 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       function onCut() {
-        if (!priv.isCellEdited) {
-          setTimeout(function () {
-            selection.empty();
-          }, 100);
-        }
+        //if (!priv.isCellEdited) {
+        setTimeout(function () {
+          selection.empty();
+        }, 100);
+        //}
       }
 
       function onPaste() {
-        if (!priv.isCellEdited) {
-          setTimeout(function () {
-            var input = priv.editProxy.val().replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
-              inputArray = CSVToArray(input, '\t'),
-              coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
-              endTd = grid.populateFromArray(coords.TL, inputArray, {
-                row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
-                col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
-              }, null, 'paste');
-            selection.setRangeEnd(endTd);
-          }, 100);
-        }
+        //if (!priv.isCellEdited) {
+        setTimeout(function () {
+          console.log("paste", priv.editProxy.val());
+          var input = priv.editProxy.val().replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
+            inputArray = CSVToArray(input, '\t'),
+            coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
+            endTd = grid.populateFromArray(coords.TL, inputArray, {
+              row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
+              col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
+            }, null, 'paste');
+          selection.setRangeEnd(endTd);
+        }, 100);
+        //}
       }
 
       function onKeyDown(event) {
@@ -1545,7 +1523,7 @@ Handsontable.Core = function (rootElement, settings) {
           var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
           if (Handsontable.helper.isPrintableChar(event.keyCode)) {
             if (!priv.isCellEdited && !ctrlDown) { //disregard CTRL-key shortcuts
-              editproxy.beginEditing();
+              //editproxy.beginEditing();
             }
             else if (ctrlDown) {
               if (!priv.isCellEdited && event.keyCode === 65) { //CTRL + A
@@ -1571,9 +1549,6 @@ Handsontable.Core = function (rootElement, settings) {
 
           switch (event.keyCode) {
             case 38: /* arrow up */
-              if (isAutoComplete()) {
-                return true;
-              }
               if (!priv.isCellEdited) {
                 if (event.shiftKey) {
                   selection.transformEnd(-1, 0);
@@ -1584,161 +1559,88 @@ Handsontable.Core = function (rootElement, settings) {
                 event.preventDefault();
               }
               else {
-                editproxy.finishEditing(false, -1, 0);
+                //editproxy.finish//Editing(false, -1, 0);
               }
               break;
 
             case 9: /* tab */
               r = priv.settings.tabMoves.row;
               c = priv.settings.tabMoves.col;
-              if (priv.isCellEdited) {
-                if (!isAutoComplete()) {
-                  if (event.shiftKey) {
-                    editproxy.finishEditing(false, -r, -c);
-                  }
-                  else {
-                    editproxy.finishEditing(false, r, c);
-                  }
-                }
+              if (event.shiftKey) {
+                selection.transformStart(-r, -c);
               }
               else {
-                if (event.shiftKey) {
-                  selection.transformStart(-r, -c);
-                }
-                else {
-                  selection.transformStart(r, c);
-                }
+                selection.transformStart(r, c);
               }
               event.preventDefault();
               break;
 
             case 39: /* arrow right */
-              if (!priv.isCellEdited) {
-                if (event.shiftKey) {
-                  selection.transformEnd(0, 1);
-                }
-                else {
-                  selection.transformStart(0, 1);
-                }
-                event.preventDefault();
+              if (event.shiftKey) {
+                selection.transformEnd(0, 1);
               }
-              else if (editproxy.getCaretPosition() === priv.editProxy.val().length) {
-                editproxy.finishEditing(false, 0, 1);
+              else {
+                selection.transformStart(0, 1);
               }
+              event.preventDefault();
               break;
 
             case 37: /* arrow left */
-              if (!priv.isCellEdited) {
-                if (event.shiftKey) {
-                  selection.transformEnd(0, -1);
-                }
-                else {
-                  selection.transformStart(0, -1);
-                }
-                event.preventDefault();
+              if (event.shiftKey) {
+                selection.transformEnd(0, -1);
               }
-              else if (editproxy.getCaretPosition() === 0) {
-                editproxy.finishEditing(false, 0, -1);
+              else {
+                selection.transformStart(0, -1);
               }
+              event.preventDefault();
               break;
 
             case 8: /* backspace */
             case 46: /* delete */
-              if (!priv.isCellEdited) {
-                selection.empty(event);
-                event.preventDefault();
-              }
+              selection.empty(event);
+              event.preventDefault();
               break;
 
             case 40: /* arrow down */
-              if (!priv.isCellEdited) {
-                if (event.shiftKey) {
-                  selection.transformEnd(1, 0); //expanding selection down with shift
-                }
-                else {
-                  selection.transformStart(1, 0); //move selection down
-                }
+              if (event.shiftKey) {
+                selection.transformEnd(1, 0); //expanding selection down with shift
               }
               else {
-                if (isAutoComplete()) { //if browsing through autocomplete
-                  return true;
-                }
-                else {
-                  editproxy.finishEditing(false, 1, 0);
-                }
-              }
-              break;
-
-            case 27: /* ESC */
-              if (priv.isCellEdited) {
-                editproxy.finishEditing(true, 0, 0); //hide edit field, restore old value, don't move selection, but refresh routines
+                selection.transformStart(1, 0); //move selection down
               }
               break;
 
             case 113: /* F2 */
-              if (!priv.isCellEdited) {
-                editproxy.beginEditing(true); //show edit field
-                event.preventDefault(); //prevent Opera from opening Go to Page dialog
-              }
+              event.preventDefault(); //prevent Opera from opening Go to Page dialog
               break;
 
             case 13: /* return/enter */
               r = priv.settings.enterMoves.row;
               c = priv.settings.enterMoves.col;
-              if (priv.isCellEdited) {
-                if ((event.ctrlKey && !selection.isMultiple()) || event.altKey) { //if ctrl+enter or alt+enter, add new line
-                  priv.editProxy.val(priv.editProxy.val() + '\n');
-                  priv.editProxy[0].focus();
-                }
-                else if (!isAutoComplete()) {
-                  if (event.shiftKey) { //if shift+enter, finish and move up
-                    editproxy.finishEditing(false, -r, -c, ctrlDown);
-                  }
-                  else { //if enter, finish and move down
-                    editproxy.finishEditing(false, r, c, ctrlDown);
-                  }
-                }
+              if (event.shiftKey) {
+                selection.transformStart(-r, -c); //move selection up
               }
               else {
-                if (event.shiftKey) {
-                  selection.transformStart(-r, -c); //move selection up
-                }
-                else {
-                  if (priv.settings.enterBeginsEditing) {
-                    if ((ctrlDown && !selection.isMultiple()) || event.altKey) { //if ctrl+enter or alt+enter, add new line
-                      editproxy.beginEditing(true, '\n'); //show edit field
-                    }
-                    else {
-                      editproxy.beginEditing(true); //show edit field
-                    }
-                  }
-                  else {
-                    selection.transformStart(r, c, true); //move selection down or create new row
-                  }
-                }
+                selection.transformStart(r, c); //move selection down
               }
               event.preventDefault(); //don't add newline to field
               break;
 
             case 36: /* home */
-              if (!priv.isCellEdited) {
-                if (event.ctrlKey || event.metaKey) {
-                  rangeModifier(grid.getCellAtCoords({row: 0, col: priv.selStart.col}));
-                }
-                else {
-                  rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: 0}));
-                }
+              if (event.ctrlKey || event.metaKey) {
+                rangeModifier(grid.getCellAtCoords({row: 0, col: priv.selStart.col}));
+              }
+              else {
+                rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: 0}));
               }
               break;
 
             case 35: /* end */
-              if (!priv.isCellEdited) {
-                if (event.ctrlKey || event.metaKey) {
-                  rangeModifier(grid.getCellAtCoords({row: self.rowCount - 1, col: priv.selStart.col}));
-                }
-                else {
-                  rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: self.colCount - 1}));
-                }
+              if (event.ctrlKey || event.metaKey) {
+                rangeModifier(grid.getCellAtCoords({row: self.rowCount - 1, col: priv.selStart.col}));
+              }
+              else {
+                rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: self.colCount - 1}));
               }
               break;
 
@@ -1756,29 +1658,10 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
 
-      function onChange() {
-        var move;
-        if (isAutoComplete()) { //could this change be from autocomplete
-          var val = priv.editProxy.val();
-          if (val !== lastChange && val === priv.lastAutoComplete) { //is it change from source (don't trigger on partial)
-            priv.isCellEdited = true;
-            if (priv.lastKeyCode === 9) { //tab
-              move = priv.settings.tabMoves;
-            }
-            else { //return/enter
-              move = priv.settings.enterMoves;
-            }
-            editproxy.finishEditing(false, move.row, move.col);
-          }
-          lastChange = val;
-        }
-      }
-
       priv.editProxy.on('click', onClick);
-      priv.editProxy.on('cut', onCut);
-      priv.editProxy.on('paste', onPaste);
-      priv.editProxy.on('keydown', onKeyDown);
-      priv.editProxy.on('change', onChange);
+      priv.editProxyHolder.on('cut', onCut);
+      priv.editProxyHolder.on('paste', onPaste);
+      priv.editProxyHolder.on('keydown', onKeyDown);
       self.container.append(priv.editProxyHolder);
     },
 
@@ -1786,72 +1669,45 @@ Handsontable.Core = function (rootElement, settings) {
      * Prepare text input to be displayed at given grid cell
      */
     prepare: function () {
-      if (priv.isCellEdited) {
-        return;
-      }
-
       priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
       priv.editProxy.val(datamap.getText(priv.selStart, priv.selEnd));
       setTimeout(editproxy.focus, 1);
 
-      if (priv.settings.autoComplete) {
-        var typeahead = priv.editProxy.data('typeahead');
-        if (!typeahead) {
-          priv.editProxy.typeahead({
-            updater: function (item) {
-              priv.lastAutoComplete = item;
-              return item
-            }
-          });
-          typeahead = priv.editProxy.data('typeahead');
-        }
-        typeahead.source = [];
-        for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
-          if (priv.settings.autoComplete[i].match(priv.selStart.row, priv.selStart.col, datamap.getAll)) {
-            typeahead.source = priv.settings.autoComplete[i].source(priv.selStart.row, priv.selStart.col);
-            typeahead.highlighter = priv.settings.autoComplete[i].highlighter || defaultAutoCompleteHighlighter;
-            break;
+      var current = grid.getCellAtCoords(priv.selStart);
+
+      var editor
+        , editorOptions
+        , colSettings;
+
+      if (priv.settings.editors) {
+        editor = priv.settings.editors(priv.selStart.row, priv.selStart.col, datamap.colToProp(priv.selStart.col));
+      }
+      if (typeof editor !== "function") {
+        colSettings = priv.settings.columns && priv.settings.columns[priv.selStart.col];
+        if (colSettings && colSettings.editor) {
+          editor = colSettings.editor;
+          if (colSettings.editorOptions) {
+            editorOptions = colSettings.editorOptions;
           }
         }
+        else if (priv.settings.autoComplete) {
+          for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
+            if (priv.settings.autoComplete[i].match(priv.selStart.row, priv.selStart.col, datamap.getAll)) {
+              editor = Handsontable.AutocompleteEditor;
+              editorOptions = {
+                autoComplete: priv.settings.autoComplete[i]
+              };
+              break;
+            }
+          }
+        }
+        if (!editor) {
+          editor = Handsontable.TextEditor;
+          editorOptions = {};
+        }
       }
 
-      var current = grid.getCellAtCoords(priv.selStart);
-      var $current = $(current);
-      var currentOffset = $current.offset();
-      var containerOffset = self.container.offset();
-      var scrollTop = self.container.scrollTop();
-      var scrollLeft = self.container.scrollLeft();
-      var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
-      var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
-
-      if (editTop < 0) {
-        editTop = 0;
-      }
-      if (editLeft < 0) {
-        editLeft = 0;
-      }
-
-      if (self.blockedRows.count() > 0 && parseInt($current.css('border-top-width')) > 0) {
-        editTop += 1;
-      }
-      if (self.blockedCols.count() > 0 && parseInt($current.css('border-left-width')) > 0) {
-        editLeft += 1;
-      }
-
-      if ($.browser.msie && parseInt($.browser.version, 10) <= 7) {
-        editTop -= 1;
-      }
-
-      priv.editProxyHolder.addClass('htHidden');
-      priv.editProxyHolder.css({
-        top: editTop,
-        left: editLeft,
-        overflow: 'hidden'
-      });
-      priv.editProxy.css({
-        width: 0,
-        height: 0
-      });
+      priv.editorDestroyer = editor(self, current, priv.selStart.row, priv.selStart.col, datamap.colToProp(priv.selStart.col), priv.editProxy, editorOptions);
     },
 
     /**
@@ -1859,171 +1715,6 @@ Handsontable.Core = function (rootElement, settings) {
      */
     focus: function () {
       priv.editProxy[0].select();
-    },
-
-    /**
-     * Returns caret position in edit proxy
-     * @author http://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
-     * @return {Number}
-     */
-    getCaretPosition: function () {
-      var el = priv.editProxy[0];
-      if (el.selectionStart) {
-        return el.selectionStart;
-      }
-      else if (document.selection) {
-        el.focus();
-        var r = document.selection.createRange();
-        if (r == null) {
-          return 0;
-        }
-        var re = el.createTextRange(),
-          rc = re.duplicate();
-        re.moveToBookmark(r.getBookmark());
-        rc.setEndPoint('EndToStart', re);
-        return rc.text.length;
-      }
-      return 0;
-    },
-
-    /**
-     * Sets caret position in edit proxy
-     * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
-     * @param {Number}
-      */
-    setCaretPosition: function (pos) {
-      var el = priv.editProxy[0];
-      if (el.setSelectionRange) {
-        el.focus();
-        el.setSelectionRange(pos, pos);
-      }
-      else if (el.createTextRange) {
-        var range = el.createTextRange();
-        range.collapse(true);
-        range.moveEnd('character', pos);
-        range.moveStart('character', pos);
-        range.select();
-      }
-    },
-
-    /**
-     * Shows text input in grid cell
-     * @param {Boolean} useOriginalValue
-     * @param {String} suffix
-     */
-    beginEditing: function (useOriginalValue, suffix) {
-      if (priv.isCellEdited) {
-        return;
-      }
-
-      var td = grid.getCellAtCoords(priv.selStart),
-        $td = $(td);
-
-      if (!grid.isCellWritable($td)) {
-        return;
-      }
-
-      if (priv.fillHandle) {
-        autofill.hideHandle();
-      }
-
-      priv.isCellEdited = true;
-      lastChange = '';
-
-      if (useOriginalValue) {
-        var original = datamap.get(priv.selStart.row, datamap.colToProp(priv.selStart.col)) + (suffix || '');
-        priv.editProxy.val(original);
-        editproxy.setCaretPosition(original.length);
-      }
-      else {
-        priv.editProxy.val('');
-      }
-
-      var width, height;
-      if (priv.editProxy.autoResize) {
-        width = $td.width();
-        height = $td.outerHeight() - 4;
-      }
-      else {
-        width = $td.width() * 1.5;
-        height = $td.height();
-      }
-
-      if (parseInt($td.css('border-top-width')) > 0) {
-        height -= 1;
-      }
-      if (parseInt($td.css('border-left-width')) > 0) {
-        if (self.blockedCols.count() > 0) {
-          width -= 1;
-        }
-      }
-
-      if (priv.editProxy.autoResize) {
-        priv.editProxy.autoResize({
-          maxHeight: 200,
-          minHeight: height,
-          minWidth: width,
-          maxWidth: Math.max(168, width),
-          animate: false,
-          extraSpace: 0
-        });
-      }
-      else {
-        priv.editProxy.css({
-          width: width,
-          height: height
-        });
-      }
-      priv.editProxyHolder.removeClass('htHidden');
-
-      setTimeout(function () {
-        //async fix for Firefox 3.6.28 (needs manual testing)
-        priv.editProxyHolder.css({
-          overflow: 'visible'
-        });
-      }, 1);
-    },
-
-    /**
-     * Finishes text input in selected cells
-     * @param {Boolean} [isCancelled] If TRUE, restore old value instead of using current from editproxy
-     * @param {Number} [moveRow] Move selection row if edit is not cancelled
-     * @param {Number} [moveCol] Move selection column if edit is not cancelled
-     * @param {Boolean} [ctrlDown] If true, apply to all selected cells
-     */
-    finishEditing: function (isCancelled, moveRow, moveCol, ctrlDown) {
-      if (priv.isCellEdited) {
-        priv.isCellEdited = false;
-        var val = [
-          [$.trim(priv.editProxy.val())]
-        ];
-        if (!isCancelled) {
-          var endTd;
-          if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
-            var corners = grid.getCornerCoords([priv.selStart, priv.selEnd]);
-            endTd = grid.populateFromArray(corners.TL, val, corners.BR, false, 'edit');
-          }
-          else {
-            endTd = grid.populateFromArray(priv.selStart, val, null, false, 'edit');
-          }
-        }
-
-        priv.editProxy.css({
-          width: 0,
-          height: 0
-        });
-        priv.editProxyHolder.addClass('htHidden');
-        priv.editProxyHolder.css({
-          overflow: 'hidden'
-        });
-
-        if (isAutoComplete() && isAutoComplete().shown) {
-          isAutoComplete().hide();
-        }
-      }
-      if (endTd && typeof moveRow !== "undefined" && typeof moveCol !== "undefined") {
-        selection.transformStart(moveRow, moveCol, !priv.settings.enterBeginsEditing);
-      }
     }
   };
 
@@ -2048,14 +1739,6 @@ Handsontable.Core = function (rootElement, settings) {
       else if (priv.fillHandle && priv.fillHandle.isDragged) {
         priv.fillHandle.isDragged++;
         autofill.showBorder(this);
-      }
-    },
-
-    onDblClick: function () {
-      priv.editProxy[0].focus();
-      editproxy.beginEditing(true);
-      if (priv.settings.autoComplete) {
-        priv.editProxy.data('typeahead').lookup();
       }
     },
 
@@ -2091,7 +1774,6 @@ Handsontable.Core = function (rootElement, settings) {
     priv.tableBody = self.table.find("tbody")[0];
     self.table.on('mousedown', 'td', interaction.onMouseDown);
     self.table.on('mouseover', 'td', interaction.onMouseOver);
-    self.table.on('dblclick', 'td', interaction.onDblClick);
     self.table.on('mousewheel', 'td', interaction.onMouseWheel);
     self.container.append(div);
 
@@ -2113,7 +1795,6 @@ Handsontable.Core = function (rootElement, settings) {
     this.updateSettings(settings);
 
     self.container.on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
-    $(priv.currentBorder.main).on('dblclick', interaction.onDblClick);
 
     function onMouseUp() {
       if (priv.isMouseDown) {
@@ -2206,7 +1887,9 @@ Handsontable.Core = function (rootElement, settings) {
         self.lastScrollTop = self.curScrollTop;
         self.lastScrollLeft = self.curScrollLeft;
 
-        editproxy.finishEditing();
+        if (typeof priv.editorDestroyer === "function") {
+          priv.editorDestroyer();
+        }
       });
       priv.scrollable.trigger('scroll.handsontable');
     }
@@ -3837,6 +3520,448 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, r
   });
 
   return td;
+};
+var priv = {
+  settings: {
+    enterBeginsEditing: true
+  }
+};
+
+var texteditor = {
+
+  /**
+   * Returns caret position in edit proxy
+   * @author http://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
+   * @return {Number}
+   */
+  getCaretPosition: function (keyboardProxy) {
+    var el = keyboardProxy[0];
+    if (el.selectionStart) {
+      return el.selectionStart;
+    }
+    else if (document.selection) {
+      el.focus();
+      var r = document.selection.createRange();
+      if (r == null) {
+        return 0;
+      }
+      var re = el.createTextRange(),
+        rc = re.duplicate();
+      re.moveToBookmark(r.getBookmark());
+      rc.setEndPoint('EndToStart', re);
+      return rc.text.length;
+    }
+    return 0;
+  },
+
+  /**
+   * Sets caret position in edit proxy
+   * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
+   * @param {Number}
+    */
+  setCaretPosition: function (keyboardProxy, pos) {
+    var el = keyboardProxy[0];
+    if (el.setSelectionRange) {
+      el.focus();
+      el.setSelectionRange(pos, pos);
+    }
+    else if (el.createTextRange) {
+      var range = el.createTextRange();
+      range.collapse(true);
+      range.moveEnd('character', pos);
+      range.moveStart('character', pos);
+      range.select();
+    }
+  },
+
+  /**
+   * Shows text input in grid cell
+   * @param {Boolean} useOriginalValue
+   * @param {String} suffix
+   */
+  beginEditing: function (instance, td, row, col, prop, keyboardProxy, useOriginalValue, suffix) {
+    if (priv.isCellEdited) {
+      return;
+    }
+
+    keyboardProxy.on('cut.editor', function (event) {
+      event.stopPropagation();
+    });
+
+    keyboardProxy.on('paste.editor', function (event) {
+      event.stopPropagation();
+    });
+
+    var $td = $(td);
+
+    if (!instance.grid.isCellWritable($td)) {
+      return;
+    }
+
+    if (priv.fillHandle) {
+      autofill.hideHandle();
+    }
+
+    priv.isCellEdited = true;
+
+    if (useOriginalValue) {
+      var original = instance.getDataAtCell(row, prop) + (suffix || '');
+      keyboardProxy.val(original);
+      texteditor.setCaretPosition(keyboardProxy, original.length);
+    }
+    else {
+      keyboardProxy.val('');
+    }
+
+    var width, height;
+    if (keyboardProxy.autoResize) {
+      width = $td.width();
+      height = $td.outerHeight() - 4;
+    }
+    else {
+      width = $td.width() * 1.5;
+      height = $td.height();
+    }
+
+    if (parseInt($td.css('border-top-width')) > 0) {
+      height -= 1;
+    }
+    if (parseInt($td.css('border-left-width')) > 0) {
+      if (instance.blockedCols.count() > 0) {
+        width -= 1;
+      }
+    }
+
+    if (keyboardProxy.autoResize) {
+      keyboardProxy.autoResize({
+        maxHeight: 200,
+        minHeight: height,
+        minWidth: width,
+        maxWidth: Math.max(168, width),
+        animate: false,
+        extraSpace: 0
+      });
+    }
+    else {
+      keyboardProxy.css({
+        width: width,
+        height: height
+      });
+    }
+    keyboardProxy.parent().removeClass('htHidden');
+
+    setTimeout(function () {
+      //async fix for Firefox 3.6.28 (needs manual testing)
+      keyboardProxy.parent().css({
+        overflow: 'visible'
+      });
+    }, 1);
+  },
+
+  /**
+   * Finishes text input in selected cells
+   * @param {Boolean} [isCancelled] If TRUE, restore old value instead of using current from editproxy
+   * @param {Number} [moveRow] Move selection row if edit is not cancelled
+   * @param {Number} [moveCol] Move selection column if edit is not cancelled
+   * @param {Boolean} [ctrlDown] If true, apply to all selected cells
+   */
+  finishEditing: function (instance, td, row, col, prop, keyboardProxy, isCancelled, ctrlDown) {
+    priv.isCellEdited = false;
+    var val = [
+      [$.trim(keyboardProxy.val())]
+    ];
+    if (!isCancelled) {
+      if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
+        var corners = instance.grid.getCornerCoords([priv.selStart, priv.selEnd]);
+        instance.grid.populateFromArray(corners.TL, val, corners.BR, false, 'edit');
+      }
+      else {
+        instance.grid.populateFromArray(priv.selStart, val, null, false, 'edit');
+      }
+    }
+
+    keyboardProxy.css({
+      width: 0,
+      height: 0
+    });
+    keyboardProxy.parent().addClass('htHidden').css({
+      overflow: 'hidden'
+    });
+
+    keyboardProxy.off(".editor");
+    $(td).off('.editor');
+    instance.container.find('.htBorder.current').off('.editor');
+  }
+};
+
+Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy, editorOptions) {
+  priv.isCellEdited = false;
+  priv.selStart = {row: row, col: col};
+
+  var $current = $(td);
+  var currentOffset = $current.offset();
+  var containerOffset = instance.container.offset();
+  var scrollTop = instance.container.scrollTop();
+  var scrollLeft = instance.container.scrollLeft();
+  var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
+  var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
+
+  if (editTop < 0) {
+    editTop = 0;
+  }
+  if (editLeft < 0) {
+    editLeft = 0;
+  }
+
+  if (instance.blockedRows.count() > 0 && parseInt($current.css('border-top-width')) > 0) {
+    editTop += 1;
+  }
+  if (instance.blockedCols.count() > 0 && parseInt($current.css('border-left-width')) > 0) {
+    editLeft += 1;
+  }
+
+  if ($.browser.msie && parseInt($.browser.version, 10) <= 7) {
+    editTop -= 1;
+  }
+
+  keyboardProxy.parent().addClass('htHidden').css({
+    top: editTop,
+    left: editLeft,
+    overflow: 'hidden'
+  });
+  keyboardProxy.css({
+    width: 0,
+    height: 0
+  });
+
+  keyboardProxy.on("keydown.editor", function (event) {
+    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+    if (Handsontable.helper.isPrintableChar(event.keyCode)) {
+      if (!priv.isCellEdited && !ctrlDown) { //disregard CTRL-key shortcuts
+        texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy);
+        event.stopPropagation();
+      }
+      return;
+    }
+
+    switch (event.keyCode) {
+      case 38: /* arrow up */
+        if (priv.isCellEdited) {
+          texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
+          event.stopPropagation();
+        }
+        break;
+
+      case 9: /* tab */
+        if (priv.isCellEdited) {
+          texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
+          event.stopPropagation();
+        }
+        event.preventDefault();
+        break;
+
+      case 39: /* arrow right */
+        if (priv.isCellEdited) {
+          if (texteditor.getCaretPosition(keyboardProxy) === keyboardProxy.val().length) {
+            texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
+
+          }
+          else {
+            event.stopPropagation();
+          }
+        }
+        break;
+
+      case 37: /* arrow left */
+        if (priv.isCellEdited) {
+          if (texteditor.getCaretPosition(keyboardProxy) === 0) {
+            texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
+          }
+          else {
+            event.stopPropagation();
+          }
+        }
+        break;
+
+      case 8: /* backspace */
+      case 46: /* delete */
+        if (priv.isCellEdited) {
+          event.stopPropagation();
+        }
+        break;
+
+      case 40: /* arrow down */
+        if (priv.isCellEdited) {
+          texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
+          event.stopPropagation();
+        }
+        break;
+
+      case 27: /* ESC */
+        if (priv.isCellEdited) {
+          texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, true); //hide edit field, restore old value, don't move selection, but refresh routines
+          event.stopPropagation();
+        }
+        break;
+
+      case 113: /* F2 */
+        if (!priv.isCellEdited) {
+          texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true); //show edit field
+          event.stopPropagation();
+          event.preventDefault(); //prevent Opera from opening Go to Page dialog
+        }
+        break;
+
+      case 13: /* return/enter */
+        if (priv.isCellEdited) {
+          var selected = instance.getSelected();
+          var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
+          if ((event.ctrlKey && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
+            keyboardProxy.val(keyboardProxy.val() + '\n');
+            keyboardProxy[0].focus();
+            event.stopPropagation();
+          }
+          else {
+            texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false, ctrlDown);
+          }
+        }
+        else if (priv.settings.enterBeginsEditing) {
+          if ((ctrlDown && !selection.isMultiple()) || event.altKey) { //if ctrl+enter or alt+enter, add new line
+            texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true, '\n'); //show edit field
+          }
+          else {
+            texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true); //show edit field
+          }
+          event.stopPropagation();
+        }
+        event.preventDefault(); //don't add newline to field
+        break;
+
+      case 36: /* home */
+        event.stopPropagation();
+        break;
+
+      case 35: /* end */
+        event.stopPropagation();
+        break;
+    }
+  });
+
+  function onDblClick() {
+    keyboardProxy[0].focus();
+    texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true);
+  }
+
+  $(td).on('dblclick.editor', onDblClick);
+  instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
+
+  return function () {
+    texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
+  }
+};
+var priv = {
+  lastAutoComplete: null,
+  lastChange: null
+};
+
+function isAutoComplete(keyboardProxy) {
+  var typeahead = keyboardProxy.data("typeahead");
+  if (typeahead && typeahead.$menu.is(":visible")) {
+    return typeahead;
+  }
+  else {
+    return false;
+  }
+}
+
+/**
+ * Copied from bootstrap-typeahead.js for reference
+ */
+function defaultAutoCompleteHighlighter(item) {
+  var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
+  return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+    return '<strong>' + match + '</strong>';
+  })
+}
+
+Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboardProxy, editorOptions) {
+  var typeahead = keyboardProxy.data('typeahead');
+  if (!typeahead) {
+    keyboardProxy.typeahead({
+      updater: function (item) {
+        priv.lastAutoComplete = item;
+        return item
+      }
+    });
+    typeahead = keyboardProxy.data('typeahead');
+  }
+  typeahead.source = editorOptions.autoComplete.source(row, col);
+  typeahead.highlighter = editorOptions.autoComplete.highlighter || defaultAutoCompleteHighlighter;
+
+  keyboardProxy.on("keydown.editor", function (event) {
+    switch (event.keyCode) {
+      case 38: /* arrow up */
+      case 40: /* arrow down */
+      case 9: /* tab */
+      case 13: /* return/enter */
+        if (isAutoComplete(keyboardProxy)) {
+          event.stopImmediatePropagation();
+        }
+        event.preventDefault();
+        break;
+    }
+  });
+
+  keyboardProxy.on('change.editor', function () {
+    if (isAutoComplete(keyboardProxy)) { //could this change be from autocomplete
+      var val = keyboardProxy.val();
+      if (val !== priv.lastChange && val === priv.lastAutoComplete) { //is it change from source (don't trigger on partial)
+        texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
+      }
+      priv.lastChange = val;
+    }
+  });
+
+  function onDblClick(event) {
+    keyboardProxy.data('typeahead').lookup();
+    event.stopImmediatePropagation();
+  }
+
+  $(td).on('dblclick.editor', onDblClick);
+  instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
+
+  var destroyer = Handsontable.TextEditor(instance, td, row, col, prop, keyboardProxy, editorOptions);
+
+
+  return function () {
+    destroyer();
+
+    if (isAutoComplete(keyboardProxy) && isAutoComplete(keyboardProxy).shown) {
+      isAutoComplete(keyboardProxy).hide();
+    }
+  }
+};
+Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardProxy, editorOptions) {
+  if (typeof editorOptions === "undefined") {
+    editorOptions = {};
+  }
+  if (typeof editorOptions.checked === "undefined") {
+    editorOptions.checked = true;
+  }
+  if (typeof editorOptions.unchecked === "undefined") {
+    editorOptions.unchecked = false;
+  }
+
+  keyboardProxy.on("keydown.editor", function(event) {
+    if (instance.getDataAtCell(row, prop) === editorOptions.unchecked) {
+      instance.setDataAtCell(row, prop, editorOptions.checked);
+    }
+    else {
+      instance.setDataAtCell(row, prop, editorOptions.unchecked);
+    }
+  });
+
+
 };
 /*! Copyright (c) 2011 Brandon Aaron (http://brandonaaron.net)
  * Licensed under the MIT License (LICENSE.txt).

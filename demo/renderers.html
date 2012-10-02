@@ -105,27 +105,27 @@
       <div class="pad">
         <script>
           var data = [
-            {id: 1, name: "Ted", isActive: true},
-            {id: 2, name: "John", isActive: true},
-            {id: 3, name: "Al", isActive: true},
-            {id: 4, name: "Ben", isActive: true}
+            {id: 1, name: "Ted", isActive: true, color: "orange"},
+            {id: 2, name: "John", isActive: true, color: "black"},
+            {id: 3, name: "Al", isActive: true, color: "red"},
+            {id: 4, name: "Ben", isActive: true, color: "blue"}
           ];
 
-          yellowRenderer = function (instance, td, row, col, prop, value, renderOptions) {
+          var yellowRenderer = function (instance, td, row, col, prop, value, renderOptions) {
             var td = Handsontable.TextRenderer.apply(this, arguments);
             $(td).css({
               background: 'yellow'
             });
             return td;
-          }
+          };
 
-          greenRenderer = function (instance, td, row, col, prop, value, renderOptions) {
+          var greenRenderer = function (instance, td, row, col, prop, value, renderOptions) {
             var td = Handsontable.TextRenderer.apply(this, arguments);
             $(td).css({
               background: 'green'
             });
             return td;
-          }
+          };
 
           var $container = $("#example1");
           $container.handsontable({
@@ -137,13 +137,35 @@
             columns: [
               {data: "id"},
               {data: "name", renderer: yellowRenderer},
-              {data: "isActive", renderer: Handsontable.CheckboxRenderer}
+              {data: "isActive", renderer: Handsontable.CheckboxRenderer, editor: Handsontable.CheckboxEditor},
+              {data: "color"}
             ],
             renderers: function(row, col, prop) {
               if(row === 0 && col === 0) {
                 return greenRenderer;
               }
-            }
+            },
+            autoComplete: [
+              {
+                match: function (row, col, data) {
+                  if (col == 3) {
+                    return true;
+                  }
+                  return false;
+                },
+                highlighter: function (item) {
+                  var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
+                  var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+                    return '<strong>' + match + '</strong>';
+                  });
+                  return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
+                },
+                source: function () {
+                  return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
+                },
+                strict: false //allows other values that defined in array above
+              }
+            ]
           });
         </script>
       </div>
