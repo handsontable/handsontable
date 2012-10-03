@@ -61,16 +61,14 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
     }
   });
 
+  var destroyer = Handsontable.TextEditor(instance, td, row, col, prop, keyboardProxy, editorOptions);
+
   function onDblClick(event) {
     keyboardProxy.data('typeahead').lookup();
-    event.stopImmediatePropagation();
   }
 
   $(td).on('dblclick.editor', onDblClick);
   instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
-
-  var destroyer = Handsontable.TextEditor(instance, td, row, col, prop, keyboardProxy, editorOptions);
-
 
   return function () {
     destroyer();
