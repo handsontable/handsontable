@@ -1832,7 +1832,7 @@ Handsontable.Core = function (rootElement, settings) {
           for (var a = 0, alen = priv.settings.autoComplete.length; a < alen; a++) {
             var autoComplete = priv.settings.autoComplete[a];
             var source = autoComplete.source();
-            if (autoComplete.match(changes[c][0], changes[c][1], datamap.getAll)) {
+            if (changes[c][3] && autoComplete.match(changes[c][0], changes[c][1], datamap.getAll)) {
               var lowercaseVal = changes[c][3].toLowerCase();
               for (var s = 0, slen = source.length; s < slen; s++) {
                 if (changes[c][3] === source[s]) {
