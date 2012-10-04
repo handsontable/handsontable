@@ -46,4 +46,51 @@ describe('TextEditor', function () {
       expect(isEditorVisible()).toEqual(false);
     });
   });
+
+  it('should trigger beginediting', function () {
+    var called;
+
+    runs(function () {
+      handsontable({
+        enterBeginsEditing: true
+      });
+      selectCell(2, 2);
+      this.$container.on('beginediting.handsontable', function () {
+        called = true;
+      });
+      keyDown('enter');
+    });
+
+    waitsFor(function () {
+      return (called === true)
+    }, 100);
+
+    runs(function () {
+      expect(called).toEqual(true);
+    });
+  });
+
+  it('should trigger finishediting', function () {
+    var called;
+
+    runs(function () {
+      handsontable({
+        enterBeginsEditing: true
+      });
+      selectCell(2, 2);
+      keyDown('enter');
+      this.$container.on('finishediting.handsontable', function () {
+        called = true;
+      });
+      keyDown('enter');
+    });
+
+    waitsFor(function () {
+      return (called === true)
+    }, 100);
+
+    runs(function () {
+      expect(called).toEqual(true);
+    });
+  });
 });

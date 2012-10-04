@@ -1323,6 +1323,14 @@ Handsontable.Core = function (rootElement, settings) {
         priv.fillHandle.disabled = false;
         priv.fillBorder.disabled = false;
       }
+
+      self.rootElement.on('beginediting.handsontable', function(){
+        autofill.hideHandle();
+      });
+
+      self.rootElement.on('finishediting.handsontable', function(){
+        autofill.showHandle();
+      });
     },
 
     /**

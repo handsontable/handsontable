@@ -16,6 +16,10 @@ var isEditorVisible = function () {
   return false;
 };
 
+var isFillHandleVisible = function () {
+  return jasmine.getEnv().currentSpec.$container.find('.htFillHandle').is(':visible');
+};
+
 /**
  * Simulates keydown event on element
  * @string key
