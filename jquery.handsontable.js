@@ -45,7 +45,6 @@ Handsontable.Core = function (rootElement, settings) {
     settings: {},
     isMouseOverTable: false,
     isMouseDown: false,
-    //isCellEdited: false,
     selStart: null,
     selEnd: null,
     editProxy: false,
@@ -1339,11 +1338,11 @@ Handsontable.Core = function (rootElement, settings) {
         priv.fillBorder.disabled = false;
       }
 
-      self.rootElement.on('beginediting.handsontable', function(){
+      self.rootElement.on('beginediting.handsontable', function () {
         autofill.hideHandle();
       });
 
-      self.rootElement.on('finishediting.handsontable', function(){
+      self.rootElement.on('finishediting.handsontable', function () {
         autofill.showHandle();
       });
     },
@@ -1499,17 +1498,13 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       function onCut() {
-        //if (!priv.isCellEdited) {
         setTimeout(function () {
           selection.empty();
         }, 100);
-        //}
       }
 
       function onPaste() {
-        //if (!priv.isCellEdited) {
         setTimeout(function () {
-          console.log("paste", priv.editProxy.val());
           var input = priv.editProxy.val().replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
             inputArray = CSVToArray(input, '\t'),
             coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
@@ -1519,7 +1514,6 @@ Handsontable.Core = function (rootElement, settings) {
             }, null, 'paste');
           selection.setRangeEnd(endTd);
         }, 100);
-        //}
       }
 
       function onKeyDown(event) {
@@ -1527,26 +1521,21 @@ Handsontable.Core = function (rootElement, settings) {
         priv.lastKeyCode = event.keyCode;
         if (selection.isSelected()) {
           var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-          if (Handsontable.helper.isPrintableChar(event.keyCode)) {
-            if (!priv.isCellEdited && !ctrlDown) { //disregard CTRL-key shortcuts
-              //editproxy.beginEditing();
+          if (Handsontable.helper.isPrintableChar(event.keyCode) && ctrlDown) {
+            if (event.keyCode === 65) { //CTRL + A
+              selection.selectAll(); //select all cells
             }
-            else if (ctrlDown) {
-              if (!priv.isCellEdited && event.keyCode === 65) { //CTRL + A
-                selection.selectAll(); //select all cells
-              }
-              else if (!priv.isCellEdited && event.keyCode === 88 && $.browser.opera) { //CTRL + X
-                priv.editProxy.triggerHandler('cut'); //simulate oncut for Opera
-              }
-              else if (!priv.isCellEdited && event.keyCode === 86 && $.browser.opera) { //CTRL + V
-                priv.editProxy.triggerHandler('paste'); //simulate onpaste for Opera
-              }
-              else if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
-                priv.undoRedo && priv.undoRedo.redo();
-              }
-              else if (event.keyCode === 90) { //CTRL + Z
-                priv.undoRedo && priv.undoRedo.undo();
-              }
+            else if (event.keyCode === 88 && $.browser.opera) { //CTRL + X
+              priv.editProxy.triggerHandler('cut'); //simulate oncut for Opera
+            }
+            else if (event.keyCode === 86 && $.browser.opera) { //CTRL + V
+              priv.editProxy.triggerHandler('paste'); //simulate onpaste for Opera
+            }
+            else if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
+              priv.undoRedo && priv.undoRedo.redo();
+            }
+            else if (event.keyCode === 90) { //CTRL + Z
+              priv.undoRedo && priv.undoRedo.undo();
             }
             return;
           }
@@ -1555,18 +1544,13 @@ Handsontable.Core = function (rootElement, settings) {
 
           switch (event.keyCode) {
             case 38: /* arrow up */
-              if (!priv.isCellEdited) {
-                if (event.shiftKey) {
-                  selection.transformEnd(-1, 0);
-                }
-                else {
-                  selection.transformStart(-1, 0);
-                }
-                event.preventDefault();
+              if (event.shiftKey) {
+                selection.transformEnd(-1, 0);
               }
               else {
-                //editproxy.finish//Editing(false, -1, 0);
+                selection.transformStart(-1, 0);
               }
+              event.preventDefault();
               break;
 
             case 9: /* tab */
@@ -1674,7 +1658,7 @@ Handsontable.Core = function (rootElement, settings) {
     /**
      * Destroy current editor, if exists
      */
-    destroy: function() {
+    destroy: function () {
       if (typeof priv.editorDestroyer === "function") {
         priv.editorDestroyer();
         priv.editorDestroyer = null;
@@ -3749,6 +3733,17 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
       if (!texteditor.isCellEdited && !ctrlDown) { //disregard CTRL-key shortcuts
         texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy);
         event.stopPropagation();
+      }
+      else if (ctrlDown) {
+        if (texteditor.isCellEdited && event.keyCode === 65) { //CTRL + A
+          event.stopPropagation();
+        }
+        else if (texteditor.isCellEdited && event.keyCode === 88 && $.browser.opera) { //CTRL + X
+          event.stopPropagation();
+        }
+        else if (texteditor.isCellEdited && event.keyCode === 86 && $.browser.opera) { //CTRL + V
+          event.stopPropagation();
+        }
       }
       return;
     }

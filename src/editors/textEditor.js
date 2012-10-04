@@ -214,6 +214,17 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
         texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy);
         event.stopPropagation();
       }
+      else if (ctrlDown) {
+        if (texteditor.isCellEdited && event.keyCode === 65) { //CTRL + A
+          event.stopPropagation();
+        }
+        else if (texteditor.isCellEdited && event.keyCode === 88 && $.browser.opera) { //CTRL + X
+          event.stopPropagation();
+        }
+        else if (texteditor.isCellEdited && event.keyCode === 86 && $.browser.opera) { //CTRL + V
+          event.stopPropagation();
+        }
+      }
       return;
     }
 
