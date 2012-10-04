@@ -1689,6 +1689,7 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
 
+      editproxy.destroy();
       priv.editorDestroyer = editor(self, current, priv.selStart.row, priv.selStart.col, datamap.colToProp(priv.selStart.col), priv.editProxy, editorOptions);
     },
 
@@ -2060,7 +2061,7 @@ Handsontable.Core = function (rootElement, settings) {
     self.rootElement.triggerHandler("beforedatachange.handsontable", [changes]);
 
     for (i = 0, ilen = changes.length; i < ilen; i++) {
-      if (changes[i][3] === false) {
+      if (typeof changes[i][3] === "undefined") {
         continue;
       }
 

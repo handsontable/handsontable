@@ -1706,6 +1706,7 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
 
+      editproxy.destroy();
       priv.editorDestroyer = editor(self, current, priv.selStart.row, priv.selStart.col, datamap.colToProp(priv.selStart.col), priv.editProxy, editorOptions);
     },
 
@@ -2077,7 +2078,7 @@ Handsontable.Core = function (rootElement, settings) {
     self.rootElement.triggerHandler("beforedatachange.handsontable", [changes]);
 
     for (i = 0, ilen = changes.length; i < ilen; i++) {
-      if (changes[i][3] === false) {
+      if (typeof changes[i][3] === "undefined") {
         continue;
       }
 
@@ -3468,7 +3469,7 @@ Handsontable.TextRenderer = function (instance, td, row, col, prop, value, rende
       break;
 
     default:
-      escaped = value;
+      escaped = value.toString();
   }
   td.innerHTML = escaped.replace(/\n/g, '<br/>');
   return td;
@@ -3501,7 +3502,7 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, r
     td.innerHTML = "<input type='checkbox' autocomplete='no'>";
   }
   else if (value === null) { //default value
-    td.innerHTML = "<input type='checkbox' autocomplete='no'>";
+    td.innerHTML = "<input type='checkbox' autocomplete='no' style='opacity: 0.5'>";
   }
   else {
     td.innerHTML = "#bad value#";
@@ -3921,6 +3922,16 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
     }
   }
 };
+function toggleCheckboxCell(instance, row, prop, editorOptions) {
+  if (instance.getDataAtCell(row, prop).toString() === editorOptions.unchecked.toString()) {
+    instance.setDataAtCell(row, prop, editorOptions.checked);
+  }
+  else {
+    instance.setDataAtCell(row, prop, editorOptions.unchecked);
+  }
+}
+
+
 Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardProxy, editorOptions) {
   if (typeof editorOptions === "undefined") {
     editorOptions = {};
@@ -3932,16 +3943,26 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardPr
     editorOptions.unchecked = false;
   }
 
-  keyboardProxy.on("keydown.editor", function(event) {
-    if (instance.getDataAtCell(row, prop) === editorOptions.unchecked) {
-      instance.setDataAtCell(row, prop, editorOptions.checked);
-    }
-    else {
-      instance.setDataAtCell(row, prop, editorOptions.unchecked);
+  keyboardProxy.on("keydown.editor", function (event) {
+    if (Handsontable.helper.isPrintableChar(event.keyCode)) {
+      toggleCheckboxCell(instance, row, prop, editorOptions);
+      event.stopPropagation();
     }
   });
 
+  function onDblClick() {
+    toggleCheckboxCell(instance, row, prop, editorOptions);
+  }
 
+  var $td = $(td);
+  $td.on('dblclick.editor', onDblClick);
+  instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
+
+  return function () {
+    keyboardProxy.off(".editor");
+    $td.off(".editor");
+    instance.container.find('.htBorder.current').off(".editor");
+  }
 };
 /*
  * jQuery.fn.autoResize 1.1
