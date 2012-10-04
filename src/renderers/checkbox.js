@@ -26,7 +26,7 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, r
     td.innerHTML = "<input type='checkbox' autocomplete='no'>";
   }
   else if (value === null) { //default value
-    td.innerHTML = "<input type='checkbox' autocomplete='no'>";
+    td.innerHTML = "<input type='checkbox' autocomplete='no' style='opacity: 0.5'>";
   }
   else {
     td.innerHTML = "#bad value#";
