@@ -136,17 +136,19 @@ var texteditor = {
    * @param {Boolean} [ctrlDown] If true, apply to all selected cells
    */
   finishEditing: function (instance, td, row, col, prop, keyboardProxy, isCancelled, ctrlDown) {
-    texteditor.isCellEdited = false;
-    var val = [
-      [$.trim(keyboardProxy.val())]
-    ];
-    if (!isCancelled) {
-      if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
-        var sel = instance.handsontable('getSelected');
-        instance.grid.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
-      }
-      else {
-        instance.grid.populateFromArray({row: row, col: col}, val, null, false, 'edit');
+    if (texteditor.isCellEdited) {
+      texteditor.isCellEdited = false;
+      var val = [
+        [$.trim(keyboardProxy.val())]
+      ];
+      if (!isCancelled) {
+        if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
+          var sel = instance.handsontable('getSelected');
+          instance.grid.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
+        }
+        else {
+          instance.grid.populateFromArray({row: row, col: col}, val, null, false, 'edit');
+        }
       }
     }
 
