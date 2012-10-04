@@ -1,9 +1,3 @@
-var priv = {
-  settings: {
-    enterBeginsEditing: true
-  }
-};
-
 var texteditor = {
 
   /**
@@ -302,7 +296,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
             texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false, ctrlDown);
           }
         }
-        else if (priv.settings.enterBeginsEditing) {
+        else if (editorOptions.enterBeginsEditing) {
           if ((ctrlDown && !selection.isMultiple()) || event.altKey) { //if ctrl+enter or alt+enter, add new line
             texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true, '\n'); //show edit field
           }

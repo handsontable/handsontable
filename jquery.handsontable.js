@@ -1676,7 +1676,9 @@ Handsontable.Core = function (rootElement, settings) {
       var current = grid.getCellAtCoords(priv.selStart);
 
       var editor
-        , editorOptions
+        , editorOptions = {
+          enterBeginsEditing: priv.settings.enterBeginsEditing
+        }
         , colSettings;
 
       if (priv.settings.editors) {
@@ -1687,23 +1689,20 @@ Handsontable.Core = function (rootElement, settings) {
         if (colSettings && colSettings.editor) {
           editor = colSettings.editor;
           if (colSettings.editorOptions) {
-            editorOptions = colSettings.editorOptions;
+            editorOptions = $.expand(true, editorOptions, colSettings.editorOptions);
           }
         }
         else if (priv.settings.autoComplete) {
           for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
             if (priv.settings.autoComplete[i].match(priv.selStart.row, priv.selStart.col, datamap.getAll)) {
               editor = Handsontable.AutocompleteEditor;
-              editorOptions = {
-                autoComplete: priv.settings.autoComplete[i]
-              };
+              editorOptions.autoComplete = priv.settings.autoComplete[i];
               break;
             }
           }
         }
         if (!editor) {
           editor = Handsontable.TextEditor;
-          editorOptions = {};
         }
       }
 
@@ -3521,12 +3520,6 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, r
 
   return td;
 };
-var priv = {
-  settings: {
-    enterBeginsEditing: true
-  }
-};
-
 var texteditor = {
 
   /**
@@ -3825,7 +3818,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
             texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false, ctrlDown);
           }
         }
-        else if (priv.settings.enterBeginsEditing) {
+        else if (editorOptions.enterBeginsEditing) {
           if ((ctrlDown && !selection.isMultiple()) || event.altKey) { //if ctrl+enter or alt+enter, add new line
             texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true, '\n'); //show edit field
           }
@@ -3926,12 +3919,10 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
 
   function onDblClick(event) {
     keyboardProxy.data('typeahead').lookup();
-    //event.stopImmediatePropagation();
   }
 
   $(td).on('dblclick.editor', onDblClick);
   instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
-
 
   return function () {
     destroyer();

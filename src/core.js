@@ -1659,7 +1659,9 @@ Handsontable.Core = function (rootElement, settings) {
       var current = grid.getCellAtCoords(priv.selStart);
 
       var editor
-        , editorOptions
+        , editorOptions = {
+          enterBeginsEditing: priv.settings.enterBeginsEditing
+        }
         , colSettings;
 
       if (priv.settings.editors) {
@@ -1670,23 +1672,20 @@ Handsontable.Core = function (rootElement, settings) {
         if (colSettings && colSettings.editor) {
           editor = colSettings.editor;
           if (colSettings.editorOptions) {
-            editorOptions = colSettings.editorOptions;
+            editorOptions = $.expand(true, editorOptions, colSettings.editorOptions);
           }
         }
         else if (priv.settings.autoComplete) {
           for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
             if (priv.settings.autoComplete[i].match(priv.selStart.row, priv.selStart.col, datamap.getAll)) {
               editor = Handsontable.AutocompleteEditor;
-              editorOptions = {
-                autoComplete: priv.settings.autoComplete[i]
-              };
+              editorOptions.autoComplete = priv.settings.autoComplete[i];
               break;
             }
           }
         }
         if (!editor) {
           editor = Handsontable.TextEditor;
-          editorOptions = {};
         }
       }
 
