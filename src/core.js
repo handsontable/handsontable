@@ -1146,9 +1146,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
-      if (typeof priv.editorDestroyer === "function") {
-        priv.editorDestroyer();
-      }
+      editproxy.destroy();
       highlight.off();
       priv.currentBorder.disappear();
       if (priv.fillHandle) {
@@ -1657,6 +1655,16 @@ Handsontable.Core = function (rootElement, settings) {
     },
 
     /**
+     * Destroy current editor, if exists
+     */
+    destroy: function() {
+      if (typeof priv.editorDestroyer === "function") {
+        priv.editorDestroyer();
+        priv.editorDestroyer = null;
+      }
+    },
+
+    /**
      * Prepare text input to be displayed at given grid cell
      */
     prepare: function () {
@@ -1877,9 +1885,7 @@ Handsontable.Core = function (rootElement, settings) {
         self.lastScrollTop = self.curScrollTop;
         self.lastScrollLeft = self.curScrollLeft;
 
-        if (typeof priv.editorDestroyer === "function") {
-          priv.editorDestroyer();
-        }
+        editproxy.destroy();
       });
       priv.scrollable.trigger('scroll.handsontable');
     }
