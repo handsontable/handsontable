@@ -70,10 +70,6 @@ var texteditor = {
       return;
     }
 
-    if (priv.fillHandle) {
-      autofill.hideHandle();
-    }
-
     texteditor.isCellEdited = true;
 
     if (useOriginalValue) {

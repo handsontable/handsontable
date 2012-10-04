@@ -1,8 +1,3 @@
-var priv = {
-  lastAutoComplete: null,
-  lastChange: null
-};
-
 function isAutoComplete(keyboardProxy) {
   var typeahead = keyboardProxy.data("typeahead");
   if (typeahead && typeahead.$menu.is(":visible")) {
@@ -26,44 +21,42 @@ function defaultAutoCompleteHighlighter(item) {
 Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboardProxy, editorOptions) {
   var typeahead = keyboardProxy.data('typeahead');
   if (!typeahead) {
-    keyboardProxy.typeahead({
-      updater: function (item) {
-        priv.lastAutoComplete = item;
-        return item
-      }
-    });
+    keyboardProxy.typeahead();
     typeahead = keyboardProxy.data('typeahead');
   }
   typeahead.source = editorOptions.autoComplete.source(row, col);
   typeahead.highlighter = editorOptions.autoComplete.highlighter || defaultAutoCompleteHighlighter;
 
-  keyboardProxy.on("keydown.editor", function (event) {
-    switch (event.keyCode) {
-      case 38: /* arrow up */
-      case 40: /* arrow down */
-      case 9: /* tab */
-      case 13: /* return/enter */
-        if (isAutoComplete(keyboardProxy)) {
-          event.stopImmediatePropagation();
-        }
-        event.preventDefault();
-        break;
+  var oneChange = function () {
+    if (isAutoComplete(keyboardProxy)) {
+      isAutoComplete(keyboardProxy).hide();
     }
-  });
+    var ev = $.Event('keydown');
+    ev.keyCode = event.keyCode;
+    keyboardProxy.trigger(ev);
+  };
 
-  keyboardProxy.on('change.editor', function () {
-    if (isAutoComplete(keyboardProxy)) { //could this change be from autocomplete
-      var val = keyboardProxy.val();
-      if (val !== priv.lastChange && val === priv.lastAutoComplete) { //is it change from source (don't trigger on partial)
-        texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
+  keyboardProxy.on("keydown.editor", function (event) {
+      switch (event.keyCode) {
+        case 38: /* arrow up */
+        case 40: /* arrow down */
+        case 9: /* tab */
+        case 13: /* return/enter */
+          if (isAutoComplete(keyboardProxy)) {
+            if (event.keyCode === 9 || event.keyCode === 13) {
+              keyboardProxy.one('change.editor', oneChange);
+            }
+            event.stopImmediatePropagation();
+          }
+          event.preventDefault();
+          break;
       }
-      priv.lastChange = val;
     }
-  });
+  );
 
   var destroyer = Handsontable.TextEditor(instance, td, row, col, prop, keyboardProxy, editorOptions);
 
-  function onDblClick(event) {
+  function onDblClick() {
     keyboardProxy.data('typeahead').lookup();
   }
 
@@ -72,7 +65,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
 
   return function () {
     destroyer();
-
+    typeahead.source = [];
     if (isAutoComplete(keyboardProxy) && isAutoComplete(keyboardProxy).shown) {
       isAutoComplete(keyboardProxy).hide();
     }
