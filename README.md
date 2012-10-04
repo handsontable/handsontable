@@ -12,7 +12,6 @@ First, include all the dependencies:
 <script src="lib/jquery.min.js"></script>
 <script src="jquery.handsontable.js"></script>
 <script src="lib/bootstrap-typeahead.js"></script><!-- if you need the autocomplete feature -->
-<script src="lib/jquery.autoresize.js"></script><!-- if you need the autoexpanding textarea -->
 <script src="lib/jQuery-contextMenu/jquery.contextMenu.js"></script><!-- if you need the context menu -->
 <script src="lib/jQuery-contextMenu/jquery.ui.position.js"></script><!-- if you need the context menu -->
 <link rel="stylesheet" media="screen" href="lib/jQuery-contextMenu/jquery.contextMenu.css">

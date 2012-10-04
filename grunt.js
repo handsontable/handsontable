@@ -23,6 +23,7 @@ module.exports = function (grunt) {
           'src/editors/textEditor.js',
           'src/editors/autocompleteEditor.js',
           'src/editors/checkboxEditor.js',
+          'src/jquery.autoresize.js',
           'src/jquery.mousewheel.js',
           'src/outro.js'
         ],

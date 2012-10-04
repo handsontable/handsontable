@@ -81,15 +81,8 @@ var texteditor = {
       keyboardProxy.val('');
     }
 
-    var width, height;
-    if (keyboardProxy.autoResize) {
-      width = $td.width();
-      height = $td.outerHeight() - 4;
-    }
-    else {
-      width = $td.width() * 1.5;
-      height = $td.height();
-    }
+    var width = $td.width()
+      , height = $td.outerHeight() - 4;
 
     if (parseInt($td.css('border-top-width')) > 0) {
       height -= 1;
@@ -100,22 +93,14 @@ var texteditor = {
       }
     }
 
-    if (keyboardProxy.autoResize) {
-      keyboardProxy.autoResize({
-        maxHeight: 200,
-        minHeight: height,
-        minWidth: width,
-        maxWidth: Math.max(168, width),
-        animate: false,
-        extraSpace: 0
-      });
-    }
-    else {
-      keyboardProxy.css({
-        width: width,
-        height: height
-      });
-    }
+    keyboardProxy.autoResize({
+      maxHeight: 200,
+      minHeight: height,
+      minWidth: width,
+      maxWidth: Math.max(168, width),
+      animate: false,
+      extraSpace: 0
+    });
     keyboardProxy.parent().removeClass('htHidden');
 
     instance.rootElement.triggerHandler('beginediting.handsontable');
