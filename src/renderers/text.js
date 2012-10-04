@@ -39,7 +39,7 @@ Handsontable.TextRenderer = function (instance, td, row, col, prop, value, rende
       break;
 
     default:
-      escaped = value;
+      escaped = value.toString();
   }
   td.innerHTML = escaped.replace(/\n/g, '<br/>');
   return td;

@@ -56,3 +56,5 @@ var handsontableMethodFactory = function (method) {
 
 var selectCell = handsontableMethodFactory('selectCell');
 var getSelected = handsontableMethodFactory('getSelected');
+var setDataAtCell = handsontableMethodFactory('setDataAtCell');
+var getCell = handsontableMethodFactory('getCell');

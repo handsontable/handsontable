@@ -2045,7 +2045,7 @@ Handsontable.Core = function (rootElement, settings) {
     if (typeof row === "object") { //is stringish
       changes = row;
     }
-    else if (typeof value === "object") { //backwards compatibility
+    else if (Object.prototype.toString.call(value) === '[object Object]') { //backwards compatibility
       changes = value;
     }
     else {
