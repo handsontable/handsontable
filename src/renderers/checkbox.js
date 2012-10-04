@@ -19,10 +19,10 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, r
     renderOptions.unchecked = false;
   }
 
-  if (value === renderOptions.checked || value === renderOptions.checked.toString()) {
+  if (value === renderOptions.checked || value === Handsontable.helper.stringify(renderOptions.checked)) {
     td.innerHTML = "<input type='checkbox' checked autocomplete='no'>";
   }
-  else if (value === renderOptions.unchecked || value === renderOptions.unchecked.toString()) {
+  else if (value === renderOptions.unchecked || value === Handsontable.helper.stringify(renderOptions.unchecked)) {
     td.innerHTML = "<input type='checkbox' autocomplete='no'>";
   }
   else if (value === null) { //default value

@@ -2473,14 +2473,14 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
-   * Return copy of cell value at `row`, `col`
+   * Return cell value at `row`, `col`
    * @param {Number} row
    * @param {Number} col
    * @public
    * @return {string}
    */
   this.getDataAtCell = function (row, col) {
-    return datamap.get(row, datamap.colToProp(col)) + '';
+    return datamap.get(row, datamap.colToProp(col));
   };
 
   /**
@@ -2838,8 +2838,6 @@ $.fn.handsontable = function (action, options) {
     return output;
   }
 };
-
-
 /**
  * Returns true if keyCode represents a printable character
  * @param {Number} keyCode
@@ -2853,6 +2851,36 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
     (keyCode >= 219 && keyCode <= 222) || //[]{}\|"'
     keyCode >= 226 || //special chars (229 for Asian chars)
     (keyCode >= 65 && keyCode <= 90)); //a-z
+};
+
+/**
+ * Converts a value to string
+ * @param value
+ * @return {String}
+ */
+Handsontable.helper.stringify = function (value) {
+  switch (typeof value) {
+    case 'string':
+    case 'number':
+      return value + '';
+      break;
+
+    case 'object':
+      if (value === null) {
+        return '';
+      }
+      else {
+        return value.toString();
+      }
+      break;
+
+    case 'undefined':
+      return '';
+      break;
+
+    default:
+      return value.toString();
+  }
 };
 
 /**
@@ -3439,37 +3467,12 @@ Handsontable.ColHeader.prototype.destroy = function () {
  * @param {Object} renderOptions Render options
  */
 Handsontable.TextRenderer = function (instance, td, row, col, prop, value, renderOptions) {
-  if(typeof renderOptions === "undefined") {
+  if (typeof renderOptions === "undefined") {
     renderOptions = {};
   }
-
-  var escaped;
-  switch (typeof value) {
-    case 'string':
-      if (!renderOptions.allowHtml) {
-        escaped = value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
-      }
-      else {
-        escaped = value;
-      }
-      break;
-
-    case 'number':
-      escaped = value + '';
-      break;
-
-    case 'object':
-      if (value === null) {
-        escaped = '';
-      }
-      break;
-
-    case 'undefined':
-      escaped = '';
-      break;
-
-    default:
-      escaped = value.toString();
+  var escaped = Handsontable.helper.stringify(value);
+  if (!renderOptions.allowHtml) {
+    escaped = escaped.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
   }
   td.innerHTML = escaped.replace(/\n/g, '<br/>');
   return td;
@@ -3495,10 +3498,10 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, r
     renderOptions.unchecked = false;
   }
 
-  if (value === renderOptions.checked || value === renderOptions.checked.toString()) {
+  if (value === renderOptions.checked || value === Handsontable.helper.stringify(renderOptions.checked)) {
     td.innerHTML = "<input type='checkbox' checked autocomplete='no'>";
   }
-  else if (value === renderOptions.unchecked || value === renderOptions.unchecked.toString()) {
+  else if (value === renderOptions.unchecked || value === Handsontable.helper.stringify(renderOptions.unchecked)) {
     td.innerHTML = "<input type='checkbox' autocomplete='no'>";
   }
   else if (value === null) { //default value
@@ -3594,7 +3597,8 @@ var texteditor = {
     texteditor.isCellEdited = true;
 
     if (useOriginalValue) {
-      var original = instance.getDataAtCell(row, prop) + (suffix || '');
+      var original = instance.getDataAtCell(row, prop);
+      original = Handsontable.helper.stringify(original) + (suffix || '');
       keyboardProxy.val(original);
       texteditor.setCaretPosition(keyboardProxy, original.length);
     }
@@ -3923,11 +3927,11 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   }
 };
 function toggleCheckboxCell(instance, row, prop, editorOptions) {
-  if (instance.getDataAtCell(row, prop).toString() === editorOptions.unchecked.toString()) {
-    instance.setDataAtCell(row, prop, editorOptions.checked);
+  if (Handsontable.helper.stringify(instance.getDataAtCell(row, prop)) === Handsontable.helper.stringify(editorOptions.checked)) {
+    instance.setDataAtCell(row, prop, editorOptions.unchecked);
   }
   else {
-    instance.setDataAtCell(row, prop, editorOptions.unchecked);
+    instance.setDataAtCell(row, prop, editorOptions.checked);
   }
 }
 

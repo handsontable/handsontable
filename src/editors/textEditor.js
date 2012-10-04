@@ -73,7 +73,8 @@ var texteditor = {
     texteditor.isCellEdited = true;
 
     if (useOriginalValue) {
-      var original = instance.getDataAtCell(row, prop) + (suffix || '');
+      var original = instance.getDataAtCell(row, prop);
+      original = Handsontable.helper.stringify(original) + (suffix || '');
       keyboardProxy.val(original);
       texteditor.setCaretPosition(keyboardProxy, original.length);
     }

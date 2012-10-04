@@ -93,4 +93,52 @@ describe('TextEditor', function () {
       expect(called).toEqual(true);
     });
   });
+
+  it('should render string in textarea', function () {
+    handsontable();
+    setDataAtCell(2, 2, "string");
+    selectCell(2, 2);
+    keyDown('enter');
+    expect(keyProxy()).toEqual("string");
+  });
+
+  it('should render number in textarea', function () {
+    handsontable();
+    setDataAtCell(2, 2, 13);
+    selectCell(2, 2);
+    keyDown('enter');
+    expect(keyProxy()).toEqual("13");
+  });
+
+  it('should render boolean true in textarea', function () {
+    handsontable();
+    setDataAtCell(2, 2, true);
+    selectCell(2, 2);
+    keyDown('enter');
+    expect(keyProxy()).toEqual("true");
+  });
+
+  it('should render boolean false in textarea', function () {
+    handsontable();
+    setDataAtCell(2, 2, false);
+    selectCell(2, 2);
+    keyDown('enter');
+    expect(keyProxy()).toEqual("false");
+  });
+
+  it('should render null in textarea', function () {
+    handsontable();
+    setDataAtCell(2, 2, null);
+    selectCell(2, 2);
+    keyDown('enter');
+    expect(keyProxy()).toEqual("");
+  });
+
+  it('should render undefined in textarea', function () {
+    handsontable();
+    setDataAtCell(2, 2, (function(){})());
+    selectCell(2, 2);
+    keyDown('enter');
+    expect(keyProxy()).toEqual("");
+  });
 });

@@ -40,6 +40,14 @@ var keyDown = function (key) {
 };
 
 /**
+ * Returns current value of the keyboard proxy textarea
+ * @return {String}
+ */
+var keyProxy = function() {
+  return jasmine.getEnv().currentSpec.$keyboardProxy.val();
+};
+
+/**
  * Calls a method in current Handsontable instance, returns its output
  * @param method
  * @return {Function}

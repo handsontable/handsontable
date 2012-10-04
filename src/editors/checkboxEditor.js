@@ -1,9 +1,9 @@
 function toggleCheckboxCell(instance, row, prop, editorOptions) {
-  if (instance.getDataAtCell(row, prop).toString() === editorOptions.unchecked.toString()) {
-    instance.setDataAtCell(row, prop, editorOptions.checked);
+  if (Handsontable.helper.stringify(instance.getDataAtCell(row, prop)) === Handsontable.helper.stringify(editorOptions.checked)) {
+    instance.setDataAtCell(row, prop, editorOptions.unchecked);
   }
   else {
-    instance.setDataAtCell(row, prop, editorOptions.unchecked);
+    instance.setDataAtCell(row, prop, editorOptions.checked);
   }
 }
 
