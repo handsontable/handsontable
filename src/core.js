@@ -496,7 +496,7 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
      */
     createRow: function (coords) {
-      var tr, c, r, td;
+      var tr, c, r, td, p;
       tr = document.createElement('tr');
       self.blockedCols.createRow(tr);
       for (c = 0; c < self.colCount; c++) {
@@ -514,6 +514,8 @@ Handsontable.Core = function (rootElement, settings) {
       }
       self.rowCount++;
       for (c = 0; c < self.colCount; c++) {
+        p = datamap.colToProp(c);
+        grid.render(r, c, p, datamap.get(r, p));
         grid.updateLegend({row: r, col: c});
       }
     },
@@ -523,7 +525,7 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Object} [coords] Optional. Coords of the cell before which the new column will be inserted
      */
     createCol: function (coords) {
-      var trs = priv.tableBody.childNodes, r, c, td;
+      var trs = priv.tableBody.childNodes, r, c, td, p;
       self.blockedRows.createCol();
       if (!coords || coords.col >= self.colCount) {
         for (r = 0; r < self.rowCount; r++) {
@@ -541,6 +543,8 @@ Handsontable.Core = function (rootElement, settings) {
       }
       self.colCount++;
       for (r = 0; r < self.rowCount; r++) {
+        p = datamap.colToProp(c);
+        grid.render(r, c, p, datamap.get(r, p));
         grid.updateLegend({row: r, col: c});
       }
     },
@@ -2164,7 +2168,7 @@ Handsontable.Core = function (rootElement, settings) {
       datamap.createRow();
       dlen++;
     }
-    while (priv.rowCount < dlen) {
+    while (self.rowCount < dlen) {
       grid.createRow();
     }
 
@@ -2365,9 +2369,6 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
 
-    self.blockedCols.update();
-    self.blockedRows.update();
-
     if (typeof settings.data !== 'undefined') {
       self.loadData(settings.data);
       recreated = true;
@@ -2383,6 +2384,9 @@ Handsontable.Core = function (rootElement, settings) {
     if (!recreated) {
       selection.refreshBorders();
     }
+
+    self.blockedCols.update();
+    self.blockedRows.update();
 
     if (priv.isPopulated && priv.legendDirty) {
       self.refreshLegend();
