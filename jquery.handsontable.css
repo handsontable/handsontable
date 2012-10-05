@@ -8,6 +8,13 @@
   font-size: 13px;
 }
 
+.dataTable * {
+  box-sizing: content-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  vertical-align: middle;
+}
+
 .dataTable table {
   border-collapse: separate;
   position: relative;
