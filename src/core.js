@@ -1991,8 +1991,12 @@ Handsontable.Core = function (rootElement, settings) {
         items[priv.settings.contextMenu[i]] = allItems[priv.settings.contextMenu[i]];
       }
 
+      if(!self.rootElement.attr('id')) {
+        throw new Error("Handsontable container must have an id");
+      }
+
       $.contextMenu({
-        selector: self.container.attr('id') ? ("#" + self.container.attr('id')) : "." + self.container[0].className.replace(/[\s]+/g, '.'),
+        selector: "#" + self.rootElement.attr('id'),
         trigger: 'right',
         callback: onContextClick,
         items: items
