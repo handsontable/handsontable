@@ -1,14 +1,14 @@
 /**
  * It may be useful to copy the below styles and use on your page
  */
-.dataTable {
+.handsontable {
   position: relative;
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1.3em;
   font-size: 13px;
 }
 
-.dataTable table {
+.handsontable table {
   border-collapse: separate;
   position: relative;
   -webkit-user-select: none;
@@ -19,8 +19,8 @@
   border-spacing: 0;
 }
 
-.dataTable th,
-.dataTable td {
+.handsontable th,
+.handsontable td {
   border-right: 1px solid #CCC;
   border-bottom: 1px solid #CCC;
   min-width: 50px;
@@ -29,39 +29,39 @@
   padding: 0 4px 0 4px; /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
 }
 
-.dataTable div.minWidthFix {
+.handsontable div.minWidthFix {
   width: 50px;
 }
 
-.dataTable tr:first-child th.htNoFrame,
-.dataTable th:first-child.htNoFrame,
-.dataTable th.htNoFrame {
+.handsontable tr:first-child th.htNoFrame,
+.handsontable th:first-child.htNoFrame,
+.handsontable th.htNoFrame {
   border-left-width: 0;
   background-color: white;
   border-color: #FFF;
 }
 
-.dataTable th:first-child,
-.dataTable td:first-child,
-.dataTable .htNoFrame + th,
-.dataTable .htNoFrame + td {
+.handsontable th:first-child,
+.handsontable td:first-child,
+.handsontable .htNoFrame + th,
+.handsontable .htNoFrame + td {
   border-left: 1px solid #CCC;
 }
 
-.dataTable tr:first-child th,
-.dataTable tr:first-child td {
+.handsontable tr:first-child th,
+.handsontable tr:first-child td {
   border-top: 1px solid #CCC;
 }
 
-.dataTable thead tr:last-child th {
+.handsontable thead tr:last-child th {
   border-bottom-width: 0;
 }
 
-.dataTable thead tr.lastChild th {
+.handsontable thead tr.lastChild th {
   border-bottom-width: 0;
 }
 
-.dataTable th {
+.handsontable th {
   background-color: #EEE;
   color: #222;
   text-align: center;
@@ -69,30 +69,30 @@
   white-space: nowrap;
 }
 
-.dataTable th .small {
+.handsontable th .small {
   font-size: 12px;
 }
 
-.dataTable thead th {
+.handsontable thead th {
   padding: 2px 4px;
 }
 
-.dataTable th.active {
+.handsontable th.active {
   background-color: #CCC;
 }
 
 /* border background */
-.dataTable .htBorderBg {
+.handsontable .htBorderBg {
   position: absolute;
   font-size: 0;
 }
 
-.dataTable .htBorderBg.selection {
+.handsontable .htBorderBg.selection {
   background-color: #EEF4FF;
 }
 
 /* border line */
-.dataTable .htBorder {
+.handsontable .htBorder {
   position: absolute;
   width: 2px;
   height: 2px;
@@ -100,20 +100,20 @@
   font-size: 0;
 }
 
-.dataTable .htBorder.current {
+.handsontable .htBorder.current {
   background: #5292F7;
   width: 2px;
   height: 2px;
 }
 
-.dataTable .htBorder.selection {
+.handsontable .htBorder.selection {
   background: #89AFF9;
   width: 1px;
   height: 1px;
 }
 
 /* fill handle */
-.dataTable .htFillHandle {
+.handsontable .htFillHandle {
   position: absolute;
   width: 4px;
   height: 4px;
@@ -123,7 +123,7 @@
   cursor: crosshair;
 }
 
-.dataTable .htBorder.htFillBorder {
+.handsontable .htBorder.htFillBorder {
   background: red;
   width: 1px;
   height: 1px;
@@ -135,7 +135,7 @@ textarea.handsontableInput {
   outline-width: 0;
   margin: 0;
   padding: 1px 4px 0 2px;
-  font-family: Arial, Helvetica, sans-serif; /*repeat from .dataTable (inherit doesn't work with IE<8) */
+  font-family: Arial, Helvetica, sans-serif; /*repeat from .handsontable (inherit doesn't work with IE<8) */
   line-height: 1.3em;
   font-size: 13px;
   box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
@@ -158,11 +158,11 @@ textarea.handsontableInput {
 }
 
 /* legend icons. Needed only if you are using icons in your legend */
-.dataTable td {
+.handsontable td {
   line-height: 21px;
 }
 
-.dataTable .icon {
+.handsontable .icon {
   cursor: pointer;
   margin-left: 1px;
   padding-left: 2px;

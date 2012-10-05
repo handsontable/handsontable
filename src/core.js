@@ -6,7 +6,7 @@
  */
 Handsontable.Core = function (rootElement, settings) {
   this.rootElement = rootElement;
-  this.container = $('<div class="handsontable dataTable"></div>');
+  this.container = $('<div class="handsontable"></div>');
   var overflow = this.rootElement.css('overflow');
   if (overflow === 'auto' || overflow === 'scroll') {
     this.container.css('overflow', overflow);

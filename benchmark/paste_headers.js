@@ -13,7 +13,7 @@
 $(window).load(function () {
   var suite = new Benchmark.Suite;
   var container;
-  container = $('<div class="dataTable">');
+  container = $('<div>');
   $("body").append(container);
 
   suite.add('Paste test', {
@@ -24,7 +24,7 @@ $(window).load(function () {
       if (container) {
         container.remove();
       }
-      container = $('<div class="dataTable">');
+      container = $('<div>');
       $("body").append(container);
 
       container.handsontable({

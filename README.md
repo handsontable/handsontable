@@ -21,7 +21,7 @@ First, include all the dependencies:
 Then, run `handsontable()` constructor on an empty div. After that, load some data if you wish:
 
 ```html
-<div id="dataTable" class="dataTable"></div>
+<div id="dataTable"></div>
 <script>
   var data = [
     ["", "Kia", "Nissan", "Toyota", "Honda"],
