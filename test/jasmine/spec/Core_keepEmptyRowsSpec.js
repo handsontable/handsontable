@@ -1,14 +1,13 @@
 describe('Core_keepEmptyRows', function () {
-  var $container,
-    id = 'testContainer';
+  var id = 'testContainer';
 
   beforeEach(function () {
-    $container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
   afterEach(function () {
-    if($container) {
-      $container.remove();
+    if (this.$container) {
+      this.$container.remove();
     }
   });
 
@@ -28,18 +27,18 @@ describe('Core_keepEmptyRows', function () {
   ];
 
   it('should remove columns if needed', function () {
-    $container.handsontable({
+    handsontable({
       data: arrayOfNestedObjects,
       columns: [
         {data: "id"},
         {data: "name.first"}
       ]
     });
-    expect($container.find('tbody tr:first td').length).toEqual(2);
+    expect(this.$container.find('tbody tr:first td').length).toEqual(2);
   });
 
   it('should create columns if needed', function () {
-    $container.handsontable({
+    handsontable({
       data: arrayOfNestedObjects,
       columns: [
         {data: "id"},
@@ -50,6 +49,22 @@ describe('Core_keepEmptyRows', function () {
         {data: "city"}
       ]
     });
-    expect($container.find('tbody tr:first td').length).toEqual(6);
+    expect(this.$container.find('tbody tr:first td').length).toEqual(6);
+  });
+
+  it('should create spare cols and rows on init', function () {
+    handsontable({
+      data: [
+        ["one", "two"],
+        ["three", "four"]
+      ],
+      startCols: 4,
+      startRows: 4,
+      minSpareRows: 4,
+      minSpareCols: 4
+    });
+
+    var $tds = this.$container.find('.htCore tbody td');
+    expect($tds.length).toEqual(36);
   });
 });

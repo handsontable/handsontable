@@ -161,16 +161,22 @@ Handsontable.Core = function (rootElement, settings) {
 
   datamap = {
     recursiveDuckSchema: function (obj) {
-      var schema = {};
-      for (var i in obj) {
-        if (obj.hasOwnProperty(i)) {
-          if (Object.prototype.toString.call(obj[i]) === '[object Object]') {
-            schema[i] = datamap.recursiveDuckSchema(obj[i]);
-          }
-          else {
-            schema[i] = null;
+      var schema;
+      if (Object.prototype.toString.call(obj) === '[object Object]') {
+        schema = {};
+        for (var i in obj) {
+          if (obj.hasOwnProperty(i)) {
+            if (Object.prototype.toString.call(obj[i]) === '[object Object]') {
+              schema[i] = datamap.recursiveDuckSchema(obj[i]);
+            }
+            else {
+              schema[i] = null;
+            }
           }
         }
+      }
+      else {
+        schema = [];
       }
       return schema;
     },
@@ -181,16 +187,18 @@ Handsontable.Core = function (rootElement, settings) {
         lastCol = 0;
         parent = '';
       }
-      for (i in schema) {
-        if (schema.hasOwnProperty(i)) {
-          if (schema[i] === null) {
-            prop = parent + i;
-            priv.colToProp.push(prop);
-            priv.propToCol[prop] = lastCol;
-            lastCol++;
-          }
-          else {
-            lastCol = datamap.recursiveDuckColumns(schema[i], lastCol, i + '.');
+      if (Object.prototype.toString.call(schema) === '[object Object]') {
+        for (i in schema) {
+          if (schema.hasOwnProperty(i)) {
+            if (schema[i] === null) {
+              prop = parent + i;
+              priv.colToProp.push(prop);
+              priv.propToCol[prop] = lastCol;
+              lastCol++;
+            }
+            else {
+              lastCol = datamap.recursiveDuckColumns(schema[i], lastCol, i + '.');
+            }
           }
         }
       }
@@ -674,7 +682,7 @@ Handsontable.Core = function (rootElement, settings) {
         cols : for (c = self.colCount - 1; c >= 0; c--) {
           for (r = 0; r < self.rowCount - 1; r++) {
             val = datamap.get(r, datamap.colToProp(c));
-            if (val !== '' && val !== null) {
+            if (val !== '' && val !== null && typeof val !== 'undefined') {
               break cols;
             }
           }
@@ -682,9 +690,20 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
 
+      //should I add empty cols to meet startCols?
+      if (self.colCount < priv.settings.startCols) {
+        for (; self.colCount < priv.settings.startCols; emptyCols++) {
+          if (!priv.settings.columns) {
+            datamap.createCol();
+          }
+          grid.createCol();
+          recreateCols = true;
+        }
+      }
+
       //should I add empty cols to meet minSpareCols?
-      if (self.colCount < priv.settings.startCols || (priv.dataType === 'array' && emptyCols < priv.settings.minSpareCols)) {
-        for (; self.colCount < priv.settings.startCols || emptyCols < priv.settings.minSpareCols; emptyCols++) {
+      if (priv.dataType === 'array' && emptyCols < priv.settings.minSpareCols) {
+        for (; emptyCols < priv.settings.minSpareCols; emptyCols++) {
           if (!priv.settings.columns) {
             datamap.createCol();
           }
