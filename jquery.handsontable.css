@@ -174,15 +174,22 @@ textarea.handsontableInput {
 AutocompleteRenderer down arrow
 */
 .handsontable .htAutocomplete {
-  color: #EEE;
-  position: absolute;
-  top: 0px;
-  right: 2px;
-  font-size: 10px;
-  cursor: default;
+  position: relative;
+  padding-right: 20px;
 }
 
-.handsontable td .htAutocomplete:hover {
+.handsontable .htAutocompleteArrow {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 10px;
+  color: #EEE;
+  cursor: default;
+  width: 16px;
+  text-align: center;
+}
+
+.handsontable td .htAutocompleteArrow:hover {
   color: #777;
 }
 

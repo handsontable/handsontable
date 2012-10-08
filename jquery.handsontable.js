@@ -3525,8 +3525,8 @@ Handsontable.TextRenderer = function (instance, td, row, col, prop, value, rende
  */
 Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, value, renderOptions) {
   var $td = $(td);
-  var $text = $('<div style="position: relative;"></div>');
-  var $arrow = $('<div class="htAutocomplete">&#x25BC;</div>');
+  var $text = $('<div class="htAutocomplete"></div>');
+  var $arrow = $('<div class="htAutocompleteArrow">&#x25BC;</div>');
   $arrow.mouseup(function(){
     $td.triggerHandler('dblclick.editor');
   });
