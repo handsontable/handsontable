@@ -179,6 +179,7 @@ AutocompleteRenderer down arrow
   top: 0px;
   right: 2px;
   font-size: 10px;
+  cursor: default;
 }
 
 .handsontable td .htAutocomplete:hover {

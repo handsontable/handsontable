@@ -3974,7 +3974,13 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
     }
   );
 
-  var destroyer = Handsontable.TextEditor(instance, td, row, col, prop, keyboardProxy, editorOptions);
+  var textDestroyer = Handsontable.TextEditor(instance, td, row, col, prop, keyboardProxy, editorOptions);
+
+  keyboardProxy.data("typeahead").$menu.off('click.editor', 'li').on('click.editor', 'li', function(){
+    setTimeout(function(){
+      destroyer();
+    }, 1);
+  });
 
   function onDblClick() {
     keyboardProxy.data('typeahead').lookup();
@@ -3983,13 +3989,15 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   $(td).on('dblclick.editor', onDblClick);
   instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
 
-  return function () {
-    destroyer();
+  var destroyer = function () {
+    textDestroyer();
     typeahead.source = [];
     if (isAutoComplete(keyboardProxy) && isAutoComplete(keyboardProxy).shown) {
       isAutoComplete(keyboardProxy).hide();
     }
-  }
+  };
+
+  return destroyer;
 };
 function toggleCheckboxCell(instance, row, prop, editorOptions) {
   if (Handsontable.helper.stringify(instance.getDataAtCell(row, prop)) === Handsontable.helper.stringify(editorOptions.checked)) {

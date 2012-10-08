@@ -21,30 +21,44 @@ var isFillHandleVisible = function () {
 };
 
 /**
- * Simulates keydown event on element
- * @string key
+ * Returns a function that triggers a key event
+ * @param {String} type Event type
+ * @return {Function}
  */
-var keyDown = function (key) {
-  var spec = jasmine.getEnv().currentSpec;
-  var keydown = $.Event('keydown');
-  switch (key) {
-    case 'tab':
-      keydown.keyCode = 9;
-      break;
+var handsontableKeyTriggerFactory = function (type) {
+  return function (key) {
+    var spec = jasmine.getEnv().currentSpec;
+    var ev = $.Event(type);
+    switch (key) {
+      case 'tab':
+        ev.keyCode = 9;
+        break;
 
-    case 'enter':
-      keydown.keyCode = 13;
-      break;
+      case 'enter':
+        ev.keyCode = 13;
+        break;
+    }
+    spec.$keyboardProxy.trigger(ev);
   }
-  spec.$keyboardProxy.trigger(keydown);
 };
+
+var keyDown = handsontableKeyTriggerFactory('keydown');
+var keyUp = handsontableKeyTriggerFactory('keyup');
 
 /**
  * Returns current value of the keyboard proxy textarea
  * @return {String}
  */
-var keyProxy = function() {
+var keyProxy = function () {
   return jasmine.getEnv().currentSpec.$keyboardProxy.val();
+};
+
+/**
+ * Returns autocomplete instance
+ */
+var autocomplete = function () {
+  var spec = jasmine.getEnv().currentSpec;
+  return spec.$container.find('.handsontableInput').data("typeahead");
 };
 
 /**
@@ -66,3 +80,4 @@ var selectCell = handsontableMethodFactory('selectCell');
 var getSelected = handsontableMethodFactory('getSelected');
 var setDataAtCell = handsontableMethodFactory('setDataAtCell');
 var getCell = handsontableMethodFactory('getCell');
+var getDataAtCell = handsontableMethodFactory('getDataAtCell');
