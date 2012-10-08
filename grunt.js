@@ -12,6 +12,7 @@ module.exports = function (grunt) {
       dist: {
         src: [
           'src/intro.js',
+
           'src/core.js',
           'src/helpers.js',
           'src/undoRedo.js',
@@ -19,13 +20,18 @@ module.exports = function (grunt) {
           'src/blockedCols.js',
           'src/rowHeader.js',
           'src/colHeader.js',
+
           'src/renderers/textRenderer.js',
+          'src/renderers/autocompleteRenderer.js',
           'src/renderers/checkboxRenderer.js',
+
           'src/editors/textEditor.js',
           'src/editors/autocompleteEditor.js',
           'src/editors/checkboxEditor.js',
+
           'src/jquery.autoresize.js',
           'src/jquery.mousewheel.js',
+
           'src/outro.js'
         ],
         dest: 'jquery.handsontable.js'

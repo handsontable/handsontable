@@ -995,7 +995,16 @@ Handsontable.Core = function (rootElement, settings) {
             renderOptions = colSettings.renderOptions;
           }
         }
-        else {
+        else if (priv.settings.autoComplete) {
+          for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
+            if (priv.settings.autoComplete[i].match(row, col, datamap.getAll)) {
+              renderer = Handsontable.AutocompleteRenderer;
+              renderOptions = {allowHtml: allowHtml};
+              break;
+            }
+          }
+        }
+        if (typeof renderer !== "function") {
           renderer = Handsontable.TextRenderer;
           renderOptions = {allowHtml: allowHtml};
         }
@@ -1707,7 +1716,7 @@ Handsontable.Core = function (rootElement, settings) {
             }
           }
         }
-        if (!editor) {
+        if (typeof editor !== "function") {
           editor = Handsontable.TextEditor;
         }
       }
@@ -1991,7 +2000,7 @@ Handsontable.Core = function (rootElement, settings) {
         items[priv.settings.contextMenu[i]] = allItems[priv.settings.contextMenu[i]];
       }
 
-      if(!self.rootElement.attr('id')) {
+      if (!self.rootElement.attr('id')) {
         throw new Error("Handsontable container must have an id");
       }
 

@@ -1012,7 +1012,16 @@ Handsontable.Core = function (rootElement, settings) {
             renderOptions = colSettings.renderOptions;
           }
         }
-        else {
+        else if (priv.settings.autoComplete) {
+          for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
+            if (priv.settings.autoComplete[i].match(row, col, datamap.getAll)) {
+              renderer = Handsontable.AutocompleteRenderer;
+              renderOptions = {allowHtml: allowHtml};
+              break;
+            }
+          }
+        }
+        if (typeof renderer !== "function") {
           renderer = Handsontable.TextRenderer;
           renderOptions = {allowHtml: allowHtml};
         }
@@ -1724,7 +1733,7 @@ Handsontable.Core = function (rootElement, settings) {
             }
           }
         }
-        if (!editor) {
+        if (typeof editor !== "function") {
           editor = Handsontable.TextEditor;
         }
       }
@@ -2008,7 +2017,7 @@ Handsontable.Core = function (rootElement, settings) {
         items[priv.settings.contextMenu[i]] = allItems[priv.settings.contextMenu[i]];
       }
 
-      if(!self.rootElement.attr('id')) {
+      if (!self.rootElement.attr('id')) {
         throw new Error("Handsontable container must have an id");
       }
 
@@ -3502,6 +3511,35 @@ Handsontable.TextRenderer = function (instance, td, row, col, prop, value, rende
     escaped = escaped.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
   }
   td.innerHTML = escaped.replace(/\n/g, '<br/>');
+  return td;
+};
+/**
+ * Autocomplete renderer
+ * @param {Object} instance Handsontable instance
+ * @param {Element} td Table cell where to render
+ * @param {Number} row
+ * @param {Number} col
+ * @param {String|Number} prop Row object property name
+ * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
+ * @param {Object} renderOptions Render options
+ */
+Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, value, renderOptions) {
+  var $td = $(td);
+  var $text = $('<div style="position: relative;"></div>');
+  var $arrow = $('<div class="htAutocomplete">&#x25BC;</div>');
+  $arrow.mouseup(function(){
+    $td.triggerHandler('dblclick.editor');
+  });
+
+  Handsontable.TextRenderer(instance, $text[0], row, col, prop, value, renderOptions);
+
+  if($text.html() === '') {
+    $text.html('&nbsp;');
+  }
+
+  $text.append($arrow);
+  $td.empty().append($text);
+
   return td;
 };
 /**

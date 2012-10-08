@@ -170,6 +170,21 @@ textarea.handsontableInput {
   float: right;
 }
 
+/*
+AutocompleteRenderer down arrow
+*/
+.handsontable .htAutocomplete {
+  color: #EEE;
+  position: absolute;
+  top: 0px;
+  right: 2px;
+  font-size: 10px;
+}
+
+.handsontable td .htAutocomplete:hover {
+  color: #777;
+}
+
 /* typeahead rules. Needed only if you are using the autocomplete feature */
 .typeahead {
   position: absolute;
