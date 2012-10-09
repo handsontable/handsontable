@@ -1,0 +1,242 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Rendering custom HTML in cells and headers - Handsontable</title>
+
+  <!--
+  Loading handsontable dependencies.
+  Please note that some dependencies are optional:
+   - bootstrap-typeahead.js - is required only if you need the autocomplete feature
+   - jquery.contextMenu.js  - is required only if you need the context menu feature
+   - jquery.contextMenu.css - is required only if you need the context menu feature
+   - jquery.ui.position.js  - is required only if you need the context menu feature
+   - jquery.handsontable.removeRow.js  - is required only if you need the RemoveRow button
+   - jquery.handsontable.removeRow.css - is required only if you need the RemoveRow button
+  -->
+  <script src="../lib/jquery.min.js"></script>
+  <script src="../jquery.handsontable.js"></script>
+  <script src="../lib/bootstrap-typeahead.js"></script>
+  <script src="../lib/jQuery-contextMenu/jquery.contextMenu.js"></script>
+  <script src="../lib/jQuery-contextMenu/jquery.ui.position.js"></script>
+  <script src="../extensions/jquery.handsontable.removeRow.js"></script>
+  <link rel="stylesheet" media="screen" href="../lib/jQuery-contextMenu/jquery.contextMenu.css">
+  <link rel="stylesheet" media="screen" href="../jquery.handsontable.css">
+  <link rel="stylesheet" media="screen" href="../extensions/jquery.handsontable.removeRow.css">
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link rel="stylesheet" media="screen" href="css/samples.css">
+  <script src="js/samples.js"></script>
+  <script src="js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+
+  <!--
+  Facebook open graph. Don't copy this to your project :)
+  -->
+  <meta property="og:title" content="Rendering custom HTML in cells and headers">
+  <meta property="og:description"
+        content="This example shows how to use custom cell renderers to display HTML content in a cell and header.">
+  <meta property="og:url" content="http://handsontable.com/demo/reference_html.html">
+  <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="409">
+  <meta property="og:image:height" content="164">
+  <link rel="canonical" href="http://handsontable.com/demo/reference_html.html">
+
+  <!--
+  Google Analytics for GitHub Page. Don't copy this to your project :)
+  -->
+  <script src="js/ga.js"></script>
+</head>
+
+<body>
+<a href="http://github.com/warpech/jquery-handsontable">
+  <img style="position: absolute; top: 0; right: 0; border: 0;"
+       src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"/>
+</a>
+
+<div id="container">
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <div class="pad">
+        <h1><a href="../index.html">Handsontable</a></h1>
+
+        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+          for HTML, JavaScript &amp; jQuery
+        </div>
+
+        <div class="description">
+          <p class="big">On this page:</p>
+
+          <ul>
+            <li><a href="#cell">Rendering custom HTML in cells</a></li>
+            <li><a href="#header">Rendering custom HTML in header</a></li>
+          </ul>
+        </div>
+
+        <a name="cell"></a>
+
+        <h2>Rendering custom HTML in cells</h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <div class="pad bottomSpace450">
+        <p>This example shows how to use custom cell renderers to display HTML content in a cell.</p>
+
+        <p>This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS
+          attacks.</p>
+
+        <div id="example1"></div>
+
+        <p>
+          <button data-dump="#example1">Dump to console</button>
+        </p>
+      </div>
+    </div>
+
+    <div class="codeLayout">
+      <div class="pad">
+        <script>
+          var data = [
+            {
+              title: "Professional JavaScript for Web Developers",
+              description: "This <a href='http://bit.ly/sM1bDf'>book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.",
+              cover: "http://ecx.images-amazon.com/images/I/51bRhyVTVGL._SL50_.jpg"
+            },
+            {
+              title: "JavaScript: The Good Parts",
+              description: "This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.",
+              cover: "http://ecx.images-amazon.com/images/I/51gdVAEfPUL._SL50_.jpg"
+            },
+            {
+              title: "JavaScript: The Definitive Guide",
+              description: "<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.",
+              cover: "http://ecx.images-amazon.com/images/I/51VFNL4T7kL._SL50_.jpg"
+            }
+          ];
+
+          var descriptionRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
+            var escaped = Handsontable.helper.stringify(value);
+            escaped = strip_tags(escaped, '<em><b><a>'); //be sure you only allow certain HTML tags to avoid XSS threats (you should also remove unwanted HTML attributes)
+            td.innerHTML = escaped;
+            return td;
+          };
+
+          var coverRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
+            var escaped = Handsontable.helper.stringify(value);
+            if (escaped.indexOf('http') === 0) {
+              var $img = $('<img>');
+              $img.attr('src', value);
+              $img.on('mousedown', function (event) {
+                event.preventDefault(); //prevent selection quirk
+              });
+              $img.appendTo(td); //render as img
+            }
+            else {
+              Handsontable.TextRenderer.apply(this, arguments); //render as text
+            }
+            return td;
+          };
+
+          var $container = $("#example1");
+          $container.handsontable({
+            data: data,
+            colHeaders: ["Plain text title", "HTML Description", "Cover"],
+            columns: [
+              {data: "title"},
+              {data: "description", renderer: descriptionRenderer},
+              {data: "cover", renderer: coverRenderer}
+            ]
+          });
+        </script>
+      </div>
+    </div>
+  </div>
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <div class="pad">
+        <a name="header"></a>
+
+        <h2>Rendering custom HTML in header</h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <div class="pad bottomSpace300">
+        <p>You can also put HTML into row and column headers.</p>
+
+        <p>If you need to attach events to DOM elements like the checkbox below, just remember to identify the element
+          by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id
+          attribute must be unique.</p>
+
+        <div id="example2"></div>
+
+        <p>
+          <button data-dump="#example1">Dump to console</button>
+        </p>
+      </div>
+    </div>
+
+    <div class="codeLayout">
+      <div class="pad">
+        <script>
+          var isChecked;
+
+          var customRenderer = function (instance, td) {
+            Handsontable.TextRenderer.apply(this, arguments);
+            if (isChecked) {
+              td.style.backgroundColor = 'yellow';
+            }
+            else {
+              td.style.backgroundColor = 'white';
+            }
+            return td;
+          };
+
+          var $container = $("#example2");
+          $container.handsontable({
+            startCols: 2,
+            columns: [
+              {},
+              {renderer: customRenderer}
+            ],
+            colHeaders: [
+              "<b>Bold</b> and <em>Beautiful</em>",
+              "Some <input type='checkbox' class='checker'> checkbox"
+            ]
+          });
+
+          $container.on('mousedown', 'input.checker', function (event) {
+            event.stopPropagation();
+          });
+
+          $container.on('change', 'input.checker', function (event) {
+            isChecked = $(this).is(':checked');
+            $container.handsontable('render');
+          });
+        </script>
+      </div>
+    </div>
+  </div>
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+
+        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+          licensed under the The MIT License.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

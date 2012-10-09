@@ -418,7 +418,7 @@ Handsontable.Core = function (rootElement, settings) {
      * @return {String}
      */
     getText: function (start, end) {
-      var data = datamap.getRange(start, end), text = '', r, rlen, c, clen, stripHtml = /<(?:.|\n)*?>/gm, val;
+      var data = datamap.getRange(start, end), text = '', r, rlen, c, clen, val;
       for (r = 0, rlen = data.length; r < rlen; r++) {
         for (c = 0, clen = data[r].length; c < clen; c++) {
           if (c > 0) {
@@ -427,10 +427,10 @@ Handsontable.Core = function (rootElement, settings) {
           val = data[r][c];
           if (typeof val === 'string') {
             if (val.indexOf('\n') > -1) {
-              text += '"' + val.replace(stripHtml, '').replace(/"/g, '""') + '"';
+              text += '"' + val.replace(/"/g, '""') + '"';
             }
             else {
-              text += val.replace(stripHtml, '');
+              text += val;
             }
           }
           else if (val == null || typeof val === 'undefined') {
@@ -442,7 +442,6 @@ Handsontable.Core = function (rootElement, settings) {
         }
         text += "\n";
       }
-      text = text.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&amp;/g, "&"); //unescape html special chars
       return text;
     }
   };
@@ -853,11 +852,10 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Object} start Start selection position
      * @param {Array} input 2d array
      * @param {Object} [end] End selection position (only for drag-down mode)
-     * @param {Boolean} [allowHtml]
      * @param {String} [source="populateFromArray"]
      * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
      */
-    populateFromArray: function (start, input, end, allowHtml, source) {
+    populateFromArray: function (start, input, end, source) {
       var r, rlen, c, clen, td, endTd, setData = [], current = {};
       rlen = input.length;
       if (rlen === 0) {
@@ -878,7 +876,7 @@ Handsontable.Core = function (rootElement, settings) {
           td = grid.getCellAtCoords(current);
           if (grid.isCellWritable($(td))) {
             var p = datamap.colToProp(current.col);
-            setData.push([current.row, p, input[r][c], allowHtml]);
+            setData.push([current.row, p, input[r][c]]);
           }
           current.col++;
           if (end && c === clen - 1) {
@@ -890,7 +888,7 @@ Handsontable.Core = function (rootElement, settings) {
           r = -1;
         }
       }
-      endTd = self.setDataAtCell(setData, null, null, null, source || 'populateFromArray');
+      endTd = self.setDataAtCell(setData, null, null, source || 'populateFromArray');
       return endTd;
     },
 
@@ -996,10 +994,10 @@ Handsontable.Core = function (rootElement, settings) {
       return tds;
     },
 
-    render: function (row, col, prop, value, allowHtml) {
+    render: function (row, col, prop, value) {
       var td = grid.getCellAtCoords({row: row, col: col})
         , renderer
-        , rendererOptions
+        , rendererOptions = {}
         , colSettings;
       if (priv.settings.renderers) {
         renderer = priv.settings.renderers(row, col, prop);
@@ -1016,14 +1014,12 @@ Handsontable.Core = function (rootElement, settings) {
           for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
             if (priv.settings.autoComplete[i].match(row, col, datamap.getAll)) {
               renderer = Handsontable.AutocompleteRenderer;
-              rendererOptions = {allowHtml: allowHtml};
               break;
             }
           }
         }
         if (typeof renderer !== "function") {
           renderer = Handsontable.TextRenderer;
-          rendererOptions = {allowHtml: allowHtml};
         }
       }
       renderer(self, td, row, col, prop, value, rendererOptions);
@@ -1472,7 +1468,7 @@ Handsontable.Core = function (rootElement, settings) {
 
       if (start) {
         var inputArray = CSVToArray(priv.editProxy.val(), '\t');
-        grid.populateFromArray(start, inputArray, end, null, 'autofill');
+        grid.populateFromArray(start, inputArray, end, 'autofill');
 
         selection.setRangeStart(grid.getCellAtCoords(drag.TL));
         selection.setRangeEnd(grid.getCellAtCoords(drag.BR));
@@ -1543,7 +1539,7 @@ Handsontable.Core = function (rootElement, settings) {
             endTd = grid.populateFromArray(coords.TL, inputArray, {
               row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
               col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
-            }, null, 'paste');
+            }, 'paste');
           selection.setRangeEnd(endTd);
         }, 100);
       }
@@ -2086,13 +2082,12 @@ Handsontable.Core = function (rootElement, settings) {
   /**
    * Set data at given cell
    * @public
-   * @param {Number|Array} row or array of changes in format [[row, col, value, allowHtml], ...]
+   * @param {Number|Array} row or array of changes in format [[row, col, value], ...]
    * @param {Number} prop
    * @param {String} value
-   * @param {Boolean} allowHtml
    * @param {String} [source='edit'] String that identifies how this change will be described in changes array (useful in onChange callback)
    */
-  this.setDataAtCell = function (row, prop, value, allowHtml, source) {
+  this.setDataAtCell = function (row, prop, value, source) {
     var refreshRows = false, refreshCols = false, changes, i, ilen, td, changesByCol = [];
 
     if (typeof row === "object") { //is stringish
@@ -2103,7 +2098,7 @@ Handsontable.Core = function (rootElement, settings) {
     }
     else {
       changes = [
-        [row, prop, value, allowHtml]
+        [row, prop, value]
       ];
     }
 
@@ -2122,7 +2117,6 @@ Handsontable.Core = function (rootElement, settings) {
       prop = changes[i][1];
       var col = datamap.propToCol(prop);
       value = changes[i][3];
-      allowHtml = changes[i][4] || allowHtml;
       changesByCol.push([changes[i][0], col, changes[i][2], changes[i][3], changes[i][4]]);
 
       if (priv.settings.minSpareRows) {
@@ -2139,7 +2133,7 @@ Handsontable.Core = function (rootElement, settings) {
           refreshCols = true;
         }
       }
-      td = grid.render(row, col, prop, value, allowHtml);
+      td = grid.render(row, col, prop, value);
       datamap.set(row, prop, value);
     }
     if (refreshRows) {
@@ -2190,7 +2184,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
     for (var i = 0, ilen = changes.length; i < ilen; i++) {
-      grid.render(changes[i][0], datamap.propToCol(changes[i][1]), changes[i][1], changes[i][3], true);
+      grid.render(changes[i][0], datamap.propToCol(changes[i][1]), changes[i][1], changes[i][3]);
     }
     self.rootElement.triggerHandler('cellrender.handsontable', [changes, source || 'render']);
   };
@@ -2199,9 +2193,8 @@ Handsontable.Core = function (rootElement, settings) {
    * Load data from array
    * @public
    * @param {Array} data
-   * @param {Boolean} [allowHtml]
    */
-  this.loadData = function (data, allowHtml) {
+  this.loadData = function (data) {
     priv.isPopulated = false;
     priv.settings.data = data;
     if (typeof data === 'object' && typeof data[0] === 'object' && typeof data[0].push !== 'function') {
@@ -3503,13 +3496,8 @@ Handsontable.ColHeader.prototype.destroy = function () {
  * @param {Object} rendererOptions Render options
  */
 Handsontable.TextRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
-  if (typeof rendererOptions === "undefined") {
-    rendererOptions = {};
-  }
   var escaped = Handsontable.helper.stringify(value);
-  if (!rendererOptions.allowHtml) {
-    escaped = escaped.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
-  }
+  escaped = escaped.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
   td.innerHTML = escaped.replace(/\n/g, '<br/>');
   return td;
 };

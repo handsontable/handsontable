@@ -48,8 +48,8 @@ To see the list of recent changes, see the [Changelog](https://github.com/warpec
  handsontable(options)                                                                 | Constructor | Accepts configuration object (see **Options**)
  handsontable('updateSettings', options)                                               | Method      | Use it if you need to change configuration after initialization
  handsontable('refreshLegend', [row, col])                                             | Method      | If you redefine legend in `updateSettings`, new legend is not applied immediately. To force reapplying new legend rules, run `refreshLegend` method. Params `row`, `col` are optional
- handsontable('loadData', data, [allowHtml=false])                                     | Method      | Reset all cells in the grid to contain data from the `data` array. Any HTML in `data` is escaped unless you set `allowHtml` to true
- handsontable('setDataAtCell',&nbsp;row,&nbsp;col,&nbsp;value,&nbsp;[allowHtml=false]) | Method      | Set new value to a cell. Any HTML in `value` is escaped unless you set `allowHtml` to true. To change many cells at once, pass an array of changes in format [[row, col, value, allowHtml], ...] as the only parameter.
+ handsontable('loadData', data)                                                        | Method      | Reset all cells in the grid to contain data from the `data` array
+ handsontable('setDataAtCell',&nbsp;row,&nbsp;col,&nbsp;value)                         | Method      | Set new value to a cell. To change many cells at once, pass an array of changes in format [[row, col, value], ...] as the only parameter
  handsontable('getDataAtCell', row, col)                                               | Method      | Return cell value at `row`, `col`
  handsontable('clear')                                                                 | Method      | Empty all cells
  handsontable('clearUndo')                                                             | Method      | Clear undo history

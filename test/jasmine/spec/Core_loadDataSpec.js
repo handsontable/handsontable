@@ -204,18 +204,4 @@ describe('Core_loadData', function () {
     var output = $container.handsontable('getCell', 0, 0).innerHTML;
     expect(output).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
   });
-
-  it('HTML special chars should be escaped when allowHtml == false', function () {
-    $container.handsontable();
-    $container.handsontable('loadData', htmlData, false);
-    var output = $container.handsontable('getCell', 0, 0).innerHTML;
-    expect(output).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
-  });
-
-  it('HTML special chars should not be escaped when allowHtml == true', function () {
-    $container.handsontable();
-    $container.handsontable('loadData', htmlData, true);
-    var output = $container.handsontable('getCell', 0, 0).innerHTML;
-    expect(output).toEqual('<b>H&amp;M</b>');
-  });
 });

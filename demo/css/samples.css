@@ -48,12 +48,20 @@ body {
   float: right;
 }
 
-.pad.mediumBottomSpace {
+.pad.bottomSpace100 {
   padding-bottom: 100px;
 }
 
-.pad.bigBottomSpace {
+.pad.bottomSpace150 {
   padding-bottom: 150px;
+}
+
+.pad.bottomSpace300 {
+  padding-bottom: 300px;
+}
+
+.pad.bottomSpace450 {
+  padding-bottom: 450px;
 }
 
 /**
@@ -148,7 +156,7 @@ p {
 
 .codeLayout pre {
   width: 400px;
-  font-size: 1em;
+  font-size: 14px;
 }
 
 .codeLayout pre code {

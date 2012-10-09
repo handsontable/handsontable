@@ -9,13 +9,8 @@
  * @param {Object} rendererOptions Render options
  */
 Handsontable.TextRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
-  if (typeof rendererOptions === "undefined") {
-    rendererOptions = {};
-  }
   var escaped = Handsontable.helper.stringify(value);
-  if (!rendererOptions.allowHtml) {
-    escaped = escaped.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
-  }
+  escaped = escaped.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
   td.innerHTML = escaped.replace(/\n/g, '<br/>');
   return td;
 };
