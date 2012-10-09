@@ -999,7 +999,7 @@ Handsontable.Core = function (rootElement, settings) {
     render: function (row, col, prop, value, allowHtml) {
       var td = grid.getCellAtCoords({row: row, col: col})
         , renderer
-        , renderOptions
+        , rendererOptions
         , colSettings;
       if (priv.settings.renderers) {
         renderer = priv.settings.renderers(row, col, prop);
@@ -1008,25 +1008,25 @@ Handsontable.Core = function (rootElement, settings) {
         colSettings = priv.settings.columns && priv.settings.columns[col];
         if (colSettings && colSettings.renderer) {
           renderer = colSettings.renderer;
-          if (colSettings.renderOptions) {
-            renderOptions = colSettings.renderOptions;
+          if (colSettings.rendererOptions) {
+            rendererOptions = colSettings.rendererOptions;
           }
         }
         else if (priv.settings.autoComplete) {
           for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
             if (priv.settings.autoComplete[i].match(row, col, datamap.getAll)) {
               renderer = Handsontable.AutocompleteRenderer;
-              renderOptions = {allowHtml: allowHtml};
+              rendererOptions = {allowHtml: allowHtml};
               break;
             }
           }
         }
         if (typeof renderer !== "function") {
           renderer = Handsontable.TextRenderer;
-          renderOptions = {allowHtml: allowHtml};
+          rendererOptions = {allowHtml: allowHtml};
         }
       }
-      renderer(self, td, row, col, prop, value, renderOptions);
+      renderer(self, td, row, col, prop, value, rendererOptions);
       self.minWidthFix(td);
       grid.updateLegend({row: row, col: col});
       return td;
@@ -3500,14 +3500,14 @@ Handsontable.ColHeader.prototype.destroy = function () {
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
- * @param {Object} renderOptions Render options
+ * @param {Object} rendererOptions Render options
  */
-Handsontable.TextRenderer = function (instance, td, row, col, prop, value, renderOptions) {
-  if (typeof renderOptions === "undefined") {
-    renderOptions = {};
+Handsontable.TextRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
+  if (typeof rendererOptions === "undefined") {
+    rendererOptions = {};
   }
   var escaped = Handsontable.helper.stringify(value);
-  if (!renderOptions.allowHtml) {
+  if (!rendererOptions.allowHtml) {
     escaped = escaped.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
   }
   td.innerHTML = escaped.replace(/\n/g, '<br/>');
@@ -3521,9 +3521,9 @@ Handsontable.TextRenderer = function (instance, td, row, col, prop, value, rende
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
- * @param {Object} renderOptions Render options
+ * @param {Object} rendererOptions Render options
  */
-Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, value, renderOptions) {
+Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
   var $td = $(td);
   var $text = $('<div class="htAutocomplete"></div>');
   var $arrow = $('<div class="htAutocompleteArrow">&#x25BC;</div>');
@@ -3531,7 +3531,7 @@ Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, valu
     $td.triggerHandler('dblclick.editor');
   });
 
-  Handsontable.TextRenderer(instance, $text[0], row, col, prop, value, renderOptions);
+  Handsontable.TextRenderer(instance, $text[0], row, col, prop, value, rendererOptions);
 
   if($text.html() === '') {
     $text.html('&nbsp;');
@@ -3550,23 +3550,23 @@ Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, valu
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
- * @param {Object} renderOptions Render options
+ * @param {Object} rendererOptions Render options
  */
-Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, renderOptions) {
-  if (typeof renderOptions === "undefined") {
-    renderOptions = {};
+Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
+  if (typeof rendererOptions === "undefined") {
+    rendererOptions = {};
   }
-  if (typeof renderOptions.checked === "undefined") {
-    renderOptions.checked = true;
+  if (typeof rendererOptions.checked === "undefined") {
+    rendererOptions.checked = true;
   }
-  if (typeof renderOptions.unchecked === "undefined") {
-    renderOptions.unchecked = false;
+  if (typeof rendererOptions.unchecked === "undefined") {
+    rendererOptions.unchecked = false;
   }
 
-  if (value === renderOptions.checked || value === Handsontable.helper.stringify(renderOptions.checked)) {
+  if (value === rendererOptions.checked || value === Handsontable.helper.stringify(rendererOptions.checked)) {
     td.innerHTML = "<input type='checkbox' checked autocomplete='no'>";
   }
-  else if (value === renderOptions.unchecked || value === Handsontable.helper.stringify(renderOptions.unchecked)) {
+  else if (value === rendererOptions.unchecked || value === Handsontable.helper.stringify(rendererOptions.unchecked)) {
     td.innerHTML = "<input type='checkbox' autocomplete='no'>";
   }
   else if (value === null) { //default value
@@ -3578,10 +3578,10 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, r
 
   $(td).find('input').change(function () {
     if ($(this).is(':checked')) {
-      instance.setDataAtCell(row, prop, renderOptions.checked);
+      instance.setDataAtCell(row, prop, rendererOptions.checked);
     }
     else {
-      instance.setDataAtCell(row, prop, renderOptions.unchecked);
+      instance.setDataAtCell(row, prop, rendererOptions.unchecked);
     }
   });
 

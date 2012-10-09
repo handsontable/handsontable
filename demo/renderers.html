@@ -109,7 +109,7 @@
             {id: 4, name: "Ben", isActive: false, color: "blue"}
           ];
 
-          var yellowRenderer = function (instance, td, row, col, prop, value, renderOptions) {
+          var yellowRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
             var td = Handsontable.TextRenderer.apply(this, arguments);
             $(td).css({
               background: 'yellow'
@@ -117,7 +117,7 @@
             return td;
           };
 
-          var greenRenderer = function (instance, td, row, col, prop, value, renderOptions) {
+          var greenRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
             var td = Handsontable.TextRenderer.apply(this, arguments);
             $(td).css({
               background: 'green'

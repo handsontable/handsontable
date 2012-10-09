@@ -982,7 +982,7 @@ Handsontable.Core = function (rootElement, settings) {
     render: function (row, col, prop, value, allowHtml) {
       var td = grid.getCellAtCoords({row: row, col: col})
         , renderer
-        , renderOptions
+        , rendererOptions
         , colSettings;
       if (priv.settings.renderers) {
         renderer = priv.settings.renderers(row, col, prop);
@@ -991,25 +991,25 @@ Handsontable.Core = function (rootElement, settings) {
         colSettings = priv.settings.columns && priv.settings.columns[col];
         if (colSettings && colSettings.renderer) {
           renderer = colSettings.renderer;
-          if (colSettings.renderOptions) {
-            renderOptions = colSettings.renderOptions;
+          if (colSettings.rendererOptions) {
+            rendererOptions = colSettings.rendererOptions;
           }
         }
         else if (priv.settings.autoComplete) {
           for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
             if (priv.settings.autoComplete[i].match(row, col, datamap.getAll)) {
               renderer = Handsontable.AutocompleteRenderer;
-              renderOptions = {allowHtml: allowHtml};
+              rendererOptions = {allowHtml: allowHtml};
               break;
             }
           }
         }
         if (typeof renderer !== "function") {
           renderer = Handsontable.TextRenderer;
-          renderOptions = {allowHtml: allowHtml};
+          rendererOptions = {allowHtml: allowHtml};
         }
       }
-      renderer(self, td, row, col, prop, value, renderOptions);
+      renderer(self, td, row, col, prop, value, rendererOptions);
       self.minWidthFix(td);
       grid.updateLegend({row: row, col: col});
       return td;
