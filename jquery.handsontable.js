@@ -262,10 +262,10 @@ Handsontable.Core = function (rootElement, settings) {
         row = $.extend(true, {}, datamap.getSchema());
       }
       if (!coords || coords.row >= self.rowCount) {
-        settings.data.push(row);
+        priv.settings.data.push(row);
       }
       else {
-        settings.data.splice(coords.row, 0, row);
+        priv.settings.data.splice(coords.row, 0, row);
       }
     },
 
@@ -280,15 +280,15 @@ Handsontable.Core = function (rootElement, settings) {
       var r = 0;
       if (!coords || coords.col >= self.colCount) {
         for (; r < self.rowCount; r++) {
-          if (typeof settings.data[r] === 'undefined') {
-            settings.data[r] = [];
+          if (typeof priv.settings.data[r] === 'undefined') {
+            priv.settings.data[r] = [];
           }
-          settings.data[r].push('');
+          priv.settings.data[r].push('');
         }
       }
       else {
         for (; r < self.rowCount; r++) {
-          settings.data[r].splice(coords.col, 0, '');
+          priv.settings.data[r].splice(coords.col, 0, '');
         }
       }
     },
@@ -300,10 +300,10 @@ Handsontable.Core = function (rootElement, settings) {
      */
     removeRow: function (coords, toCoords) {
       if (!coords || coords.row === self.rowCount - 1) {
-        settings.data.pop();
+        priv.settings.data.pop();
       }
       else {
-        settings.data.splice(coords.row, toCoords.row - coords.row + 1);
+        priv.settings.data.splice(coords.row, toCoords.row - coords.row + 1);
       }
     },
 
@@ -319,13 +319,13 @@ Handsontable.Core = function (rootElement, settings) {
       var r = 0;
       if (!coords || coords.col === self.colCount - 1) {
         for (; r < self.rowCount; r++) {
-          settings.data[r].pop();
+          priv.settings.data[r].pop();
         }
       }
       else {
         var howMany = toCoords.col - coords.col + 1;
         for (; r < self.rowCount; r++) {
-          settings.data[r].splice(coords.col, howMany);
+          priv.settings.data[r].splice(coords.col, howMany);
         }
       }
     },
@@ -338,7 +338,7 @@ Handsontable.Core = function (rootElement, settings) {
     get: function (row, prop) {
       if (typeof prop === 'string' && prop.indexOf('.') > -1) {
         var sliced = prop.split(".");
-        var out = settings.data[row];
+        var out = priv.settings.data[row];
         for (var i = 0, ilen = sliced.length; i < ilen; i++) {
           out = out[sliced[i]];
           if (typeof out === 'undefined') {
@@ -348,7 +348,7 @@ Handsontable.Core = function (rootElement, settings) {
         return out;
       }
       else {
-        return settings.data[row] ? settings.data[row][prop] : null;
+        return priv.settings.data[row] ? priv.settings.data[row][prop] : null;
       }
     },
 
@@ -361,14 +361,14 @@ Handsontable.Core = function (rootElement, settings) {
     set: function (row, prop, value) {
       if (typeof prop === 'string' && prop.indexOf('.') > -1) {
         var sliced = prop.split(".");
-        var out = settings.data[row];
+        var out = priv.settings.data[row];
         for (var i = 0, ilen = sliced.length - 1; i < ilen; i++) {
           out = out[sliced[i]];
         }
         out[sliced[i]] = value;
       }
       else {
-        settings.data[row][prop] = value;
+        priv.settings.data[row][prop] = value;
       }
     },
 
@@ -388,7 +388,7 @@ Handsontable.Core = function (rootElement, settings) {
      * @return {Array}
      */
     getAll: function () {
-      return settings.data;
+      return priv.settings.data;
     },
 
     /**
@@ -2203,7 +2203,7 @@ Handsontable.Core = function (rootElement, settings) {
    */
   this.loadData = function (data, allowHtml) {
     priv.isPopulated = false;
-    settings.data = data;
+    priv.settings.data = data;
     if (typeof data === 'object' && typeof data[0] === 'object' && typeof data[0].push !== 'function') {
       priv.dataType = 'object';
     }
@@ -2212,7 +2212,7 @@ Handsontable.Core = function (rootElement, settings) {
     }
     priv.duckDataSchema = datamap.recursiveDuckSchema(data[0]);
     datamap.createMap();
-    var dlen = settings.data.length;
+    var dlen = priv.settings.data.length;
     while (priv.settings.startRows > dlen) {
       datamap.createRow();
       dlen++;
