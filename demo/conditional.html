@@ -5,7 +5,7 @@
   <title>Conditional formatting - Handsontable</title>
 
   <!--
-  Loading handsontable dependencies.
+  Loading Handsontable dependencies.
   Please note that some dependencies are optional:
    - bootstrap-typeahead.js - is required only if you need the autocomplete feature
    - jquery.contextMenu.js  - is required only if you need the context menu feature
@@ -23,172 +23,193 @@
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
-  <link rel="stylesheet" media="screen" href="css/demo.css">
+  <link rel="stylesheet" media="screen" href="css/samples.css">
+  <script src="js/samples.js"></script>
+  <script src="js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
 
   <!--
-  Google Analytics for GitHub Page. Don't copy this to your project :)
+  Facebook open graph. Don't copy this to your project :)
   -->
-  <script type="text/javascript">
-    if (window.location.hostname === 'handsontable.com' || window.location.hostname === 'www.handsontable.com' || window.location.hostname === 'warpech.github.com') {
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-33932793-1']);
-      _gaq.push(['_setDomainName', window.location.hostname]);
-      _gaq.push(['_trackPageview']);
-
-      (function () {
-        var ga = document.createElement('script');
-        ga.type = 'text/javascript';
-        ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0];
-        s.parentNode.insertBefore(ga, s);
-      })();
-    }
-  </script>
-
   <meta property="og:title" content="Conditional formatting - Handsontable">
-  <meta property="og:description" content="This demo shows how to use the Legend feature to make some conditional formatting">
+  <meta property="og:description"
+        content="This demo shows how to use the Legend feature to make some conditional formatting">
   <meta property="og:url" content="http://handsontable.com/demo/conditional.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
   <link rel="canonical" href="http://handsontable.com/demo/conditional.html">
+
+  <!--
+  Google Analytics for GitHub Page. Don't copy this to your project :)
+  -->
+  <script src="js/ga.js"></script>
 </head>
 
 <body>
-<a href="http://github.com/warpech/jquery-handsontable"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"/></a>
+<a href="http://github.com/warpech/jquery-handsontable">
+  <img style="position: absolute; top: 0; right: 0; border: 0;"
+       src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"/>
+</a>
 
 <div id="container">
-  <h1><a href="../index.html">Handsontable</a></h1>
 
-  <div class="description">
-    Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery
-    <br><a href="../index.html">&lt; back to main</a>
+  <div class="rowLayout">
+    <div class="descLayout">
+      <div class="pad">
+        <h1><a href="../index.html">Handsontable</a></h1>
+
+        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+          for HTML, JavaScript &amp; jQuery
+        </div>
+
+        <h2>Conditional formatting</h2>
+      </div>
+    </div>
   </div>
 
-  <h2>Conditional formatting</h2>
+  <div class="rowLayout">
+    <div class="descLayout">
+      <div class="pad bottomSpace850">
+        <p>This demo shows how to use the <b>Legend</b> feature to make some conditional formatting:</p>
 
-  <p>This demo shows how to use the <b>Legend</b> feature to make some conditional formatting:</p>
+        <ol>
+          <li>first row is <span style="font-weight: bold">read-only</span>, and formatted in <span
+              style="color: green; font-weight: bold">green bold</span> text
+          </li>
+          <li>all cells in the Nissan column are written in <span style="font-style: italic">italic</span></li>
+          <li>empty cells have <span style="background: silver">silver</span> background</li>
+          <li>negative numbers are written in <span style="color: red">red</span></li>
+        </ol>
 
-  <ol>
-    <li>first row is <span style="font-weight: bold">read-only</span>, and formatted in <span style="color: green; font-weight: bold">green bold</span> text
-    </li>
-    <li>all cells in the Nissan column are written in <span style="font-style: italic">italic</span></li>
-    <li>empty cells have <span style="background: silver">silver</span> background</li>
-    <li>negative numbers are written in <span style="color: red">red</span></li>
-  </ol>
+        <div id="example1"></div>
 
-  <div id="exampleGrid"></div>
-
-  <style>
-    .negative {
-      color: red;
-    }
-  </style>
-  <script>
-    var container = $("#exampleGrid");
-    container.handsontable({
-      startRows: 5,
-      startCols: 5,
-      minSpareRows: 1,
-      minSpareCols: 1,
-      contextMenu: true,
-      onSelection: function(row, col, row2, col2) {
-        var meta = container.handsontable('getCellMeta', row2, col2);
-        if(meta.isWritable == false) {
-          container.handsontable('updateSettings', {fillHandle: false});
-        }
-        else {
-          container.handsontable('updateSettings', {fillHandle: true});
-        }
-      },
-      legend: [
-      /**
-       * Legend 1
-       */
-        {
-          match: function (row, col, data) {
-            return (row === 0); //if it is first row
-          },
-          style: {
-            color: 'green', //make the text green and bold
-            fontWeight: 'bold'
-          },
-          title: 'Heading', //make some tooltip
-          readOnly: true //make it read-only
-        },
-
-      /**
-       * Legend 2
-       */
-        {
-          match: function (row, col, data) {
-            return !(data()[row][col]); //if the cell is empty
-          },
-          style: {
-            background: 'silver' //make the background yellow
+        <style>
+          .negative {
+            color: red;
           }
-        },
+        </style>
 
-      /**
-       * Legend 3
-       */
-        {
-          match: function (row, col, data) {
-            //if first row in this column contains word "Nissan"
-            return (row > 0 && data()[0][col].indexOf('Nissan') > -1);
-          },
-          style: {
-            fontStyle: 'italic' //set font to italic
-          }
-        },
+        <p>
+          <button data-dump="#example1">Dump to console</button>
+        </p>
+      </div>
+    </div>
 
-      /**
-       * Legend 4
-       */
-        {
-          match: function (row, col, data) {
-            if (parseInt(data()[row][col], 10) < 0) { //if row contains negative number
-              container.handsontable('getCell', row, col).className = 'negative'; //add class "negative"
-            }
-            else {
-              container.handsontable('getCell', row, col).className = '';
-            }
-          }
-        },
+    <div class="codeLayout">
+      <div class="pad">
+        <script>
+          var container = $("#example1");
+          container.handsontable({
+            startRows: 5,
+            startCols: 5,
+            minSpareRows: 1,
+            minSpareCols: 1,
+            contextMenu: true,
+            onSelection: function (row, col, row2, col2) {
+              var meta = container.handsontable('getCellMeta', row2, col2);
+              if (meta.isWritable == false) {
+                container.handsontable('updateSettings', {fillHandle: false});
+              }
+              else {
+                container.handsontable('updateSettings', {fillHandle: true});
+              }
+            },
+            legend: [
+            /**
+             * Legend 1
+             */
+              {
+                match: function (row, col, data) {
+                  return (row === 0); //if it is first row
+                },
+                style: {
+                  color: 'green', //make the text green and bold
+                  fontWeight: 'bold'
+                },
+                title: 'Heading', //make some tooltip
+                readOnly: true //make it read-only
+              },
 
-      /**
-       * Legend 4
-       */
-        {
-          match: function (row, col, data) {
-            if(data()[row][col] === 'readOnly') {
-              return true;
-            }
-          },
-          readOnly: true,
-          style: {
-            color: '#777'
-          }
-        }
-      ]
-    });
+            /**
+             * Legend 2
+             */
+              {
+                match: function (row, col, data) {
+                  return !(data()[row][col]); //if the cell is empty
+                },
+                style: {
+                  background: 'silver' //make the background yellow
+                }
+              },
 
-    var data = [
-      ["", "Kia", "Nissan", "Toyota", "Honda"],
-      ["2008", -5, 11, 12, 13],
-      ["2009", 20, -11, 14, 13],
-      ["2010", 30, 15, -12, "readOnly"]
-    ];
+            /**
+             * Legend 3
+             */
+              {
+                match: function (row, col, data) {
+                  //if first row in this column contains word "Nissan"
+                  return (row > 0 && data()[0][col].indexOf('Nissan') > -1);
+                },
+                style: {
+                  fontStyle: 'italic' //set font to italic
+                }
+              },
 
-    container.handsontable("loadData", data);
-  </script>
+            /**
+             * Legend 4
+             */
+              {
+                match: function (row, col, data) {
+                  if (parseInt(data()[row][col], 10) < 0) { //if row contains negative number
+                    container.handsontable('getCell', row, col).className = 'negative'; //add class "negative"
+                  }
+                  else {
+                    container.handsontable('getCell', row, col).className = '';
+                  }
+                }
+              },
 
-  <h3>About</h3>
+            /**
+             * Legend 4
+             */
+              {
+                match: function (row, col, data) {
+                  if (data()[row][col] === 'readOnly') {
+                    return true;
+                  }
+                },
+                readOnly: true,
+                style: {
+                  color: '#777'
+                }
+              }
+            ]
+          });
 
-  <p>This is advanced usage example of <a href="../index.html">Handsontable</a>. Check out the
-    <a href="../index.html">main page</a> for more demos.</p>
+          var data = [
+            ["", "Kia", "Nissan", "Toyota", "Honda"],
+            ["2008", -5, 11, 12, 13],
+            ["2009", 20, -11, 14, 13],
+            ["2010", 30, 15, -12, "readOnly"]
+          ];
+
+          container.handsontable("loadData", data);
+        </script>
+      </div>
+    </div>
+  </div>
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+
+        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+          licensed under the The MIT License.</p>
+      </div>
+    </div>
+  </div>
 </div>
 </body>
 </html>

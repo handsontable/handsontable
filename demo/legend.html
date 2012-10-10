@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Renderers - Handsontable</title>
+  <title>Legend - Handsontable</title>
 
   <!--
   Loading Handsontable dependencies.
@@ -31,15 +31,15 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Binding the data grid to array and object data sources">
+  <meta property="og:title" content="Legend">
   <meta property="og:description"
-        content="This page shows how to use Handsontable with various data sources: array data source (also with hidden columns), object data source, nested object data source.">
-  <meta property="og:url" content="http://handsontable.com/demo/reference.html">
+        content="This example shows the usage of the Legend feature. Please bear in mind that this feature is likely to be dropped in future versions in favor of cell renderers.">
+  <meta property="og:url" content="http://handsontable.com/demo/legend.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
-  <link rel="canonical" href="http://handsontable.com/demo/reference.html">
+  <link rel="canonical" href="http://handsontable.com/demo/legend.html">
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
@@ -64,28 +64,16 @@
           for HTML, JavaScript &amp; jQuery
         </div>
 
-        <div class="description">
-          <p class="warning"><strong>Warning!</strong> Since Handsontable version 0.7.0 data is bound by reference.
-            This means that if you change data source outside Handsontable, you must rerender the grid.</p>
-
-          <p class="big">This page shows how to use Handsontable with various data sources:</p>
-
-          <ul>
-            <li><a href="#array">renderers</a></li>
-          </ul>
-        </div>
-
-        <a name="array"></a>
-
-        <h2>Renderers</h2>
+        <h2>Legend</h2>
       </div>
     </div>
   </div>
 
   <div class="rowLayout">
     <div class="descLayout">
-      <div class="pad bottomSpace100">
-        <p>This example shows the default renderers available in Handsontable.</p>
+      <div class="pad bottomSpace650">
+        <p>This example shows the usage of the Legend feature. Please bear in mind that this feature is likely to be
+          dropped in future versions in favor of cell renderers.</p>
 
         <div id="example1"></div>
 
@@ -98,69 +86,60 @@
     <div class="codeLayout">
       <div class="pad">
         <script>
-          var data = [
-            {id: 1, name: "Ted", isActive: true, color: "orange"},
-            {id: 2, name: "John", isActive: false, color: "black"},
-            {id: 3, name: "Al", isActive: true, color: "red"},
-            {id: 4, name: "Ben", isActive: false, color: "blue"}
-          ];
-
-          var yellowRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
-            var td = Handsontable.TextRenderer.apply(this, arguments);
-            $(td).css({
-              background: 'yellow'
-            });
-            return td;
-          };
-
-          var greenRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
-            var td = Handsontable.TextRenderer.apply(this, arguments);
-            $(td).css({
-              background: 'green'
-            });
-            return td;
-          };
-
-          var $container = $("#example1");
-          $container.handsontable({
-            data: data,
+          $("#example1").handsontable({
             startRows: 5,
             startCols: 5,
+
+            rowHeaders: true,
             colHeaders: true,
-            minSpareRows: 1,
-            columns: [
-              {data: "id"},
-              {data: "name", renderer: yellowRenderer},
-              {data: "isActive", renderer: Handsontable.CheckboxRenderer, editor: Handsontable.CheckboxEditor},
-              {data: "color"}
-            ],
-            renderers: function(row, col, prop) {
-              if(row === 0 && col === 0) {
-                return greenRenderer;
-              }
-            },
-            autoComplete: [
+
+            fillHandle: false, //fillHandle can be turned off
+
+            contextMenu: ["row_above", "row_below", "remove_row"],
+            //contextMenu will only allow inserting and removing rows
+
+            legend: [
               {
                 match: function (row, col, data) {
-                  if (col == 3) {
-                    return true;
+                  return (row === 0); //if it is first row
+                },
+                style: {
+                  color: 'green', //make the text green and bold
+                  fontWeight: 'bold'
+                },
+                title: 'Heading' //make some tooltip
+              },
+              {
+                match: function (row, col, data) {
+                  //if first row in this column contains word "Nissan"
+                  return (row > 0 && data()[0][col].indexOf('Nissan') > -1);
+                },
+                style: {
+                  fontStyle: 'italic' //make cells text in this column written in italic
+                }
+              },
+              {
+                match: function (row, col, data) {
+                  return (row === 0 && data()[row][col]); //if it is first row with data
+                },
+                icon: {
+                  src: "http://upload.wikimedia.org/wikipedia/commons/7/75/Information-silk.png",
+                  click: function (row, col, data, icon) {
+                    alert("The icon in row " + row + " and column " + col + " was clicked.");
                   }
-                  return false;
-                },
-                highlighter: function (item) {
-                  var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
-                  var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-                    return '<strong>' + match + '</strong>';
-                  });
-                  return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
-                },
-                source: function () {
-                  return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
-                },
-                strict: false //allows other values that defined in array above
+                }
               }
             ]
           });
+
+          var data = [
+            ["", "Kia", "Nissan", "Toyota", "Honda"],
+            ["2008", 10, 11, 12, 13],
+            ["2009", 20, 11, 14, 13],
+            ["2010", 30, 15, 12, 13]
+          ];
+
+          $("#example1").handsontable("loadData", data);
         </script>
       </div>
     </div>

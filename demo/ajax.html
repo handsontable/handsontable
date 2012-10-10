@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>PHP example - Handsontable</title>
+  <title>Load &amp; Save (Ajax) - Handsontable</title>
 
   <!--
   Loading Handsontable dependencies.
@@ -31,14 +31,15 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="PHP example - Handsontable">
-  <meta property="og:description" content="This page loads and saves data on server. In this example, client side uses $.ajax. Server side uses PHP with PDO (SQLite)">
-  <meta property="og:url" content="http://handsontable.com/demo/php.html">
+  <meta property="og:title" content="Load &amp; Save (Ajax)">
+  <meta property="og:description"
+        content="">
+  <meta property="og:url" content="http://handsontable.com/demo/ajax.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
-  <link rel="canonical" href="http://handsontable.com/demo/php.html">
+  <link rel="canonical" href="http://handsontable.com/demo/ajax.html">
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
@@ -63,7 +64,7 @@
           for HTML, JavaScript &amp; jQuery
         </div>
 
-        <h2>PHP example</h2>
+        <h2>Load &amp; Save (Ajax)</h2>
       </div>
     </div>
   </div>
@@ -71,9 +72,11 @@
   <div class="rowLayout">
     <div class="descLayout">
       <div class="pad bottomSpace850">
-        <p>This page loads and saves data on server. In this example, client side uses <b>$.ajax</b>. Server side uses <b>PHP with PDO (SQLite)</b>.</p>
+        <p>Use the
+          <b>onChange</b> callback to track changes made in the table. In the example below, $.ajax is used to load and save grid data.
+        </p>
 
-        <p>Please note. This page and the PHP scripts are a work in progress. They are not yet configured on GitHub. Please run it on your own localhost.</p>
+        <p>Note: this is a mockup. Nothing is acually saved. You have to implement that part server-side.</p>
 
         <p>
           <button name="load">Load</button>
@@ -81,7 +84,7 @@
           <label><input type="checkbox" name="autosave" checked="checked" autocomplete="off"> Autosave</label>
         </p>
 
-        <div id="exampleConsole" class="console">Click "Load" to load data from server</div>
+        <div id="example1console" class="console">Click "Load" to load data from server</div>
 
         <div id="example1"></div>
 
@@ -95,15 +98,15 @@
       <div class="pad">
         <script>
           var $container = $("#example1");
-          var $console = $("#exampleConsole");
+          var $console = $("#example1console");
           var $parent = $container.parent();
           var autosaveNotification;
           $container.handsontable({
             startRows: 8,
-            startCols: 3,
+            startCols: 6,
             rowHeaders: true,
-            colHeaders: ['Manufacturer', 'Year', 'Price'],
-            minSpareCols: 0,
+            colHeaders: true,
+            minSpareCols: 1,
             minSpareRows: 1,
             contextMenu: true,
             onChange: function (change, source) {
@@ -113,11 +116,11 @@
               if ($parent.find('input[name=autosave]').is(':checked')) {
                 clearTimeout(autosaveNotification);
                 $.ajax({
-                  url: "php/save.php",
+                  url: "json/save.json",
                   dataType: "json",
                   type: "POST",
-                  data: {changes: change}, //contains changed cells' data
-                  success: function (data) {
+                  data: change, //contains changed cells' data
+                  complete: function (data) {
                     $console.text('Autosaved (' + change.length + ' cell' + (change.length > 1 ? 's' : '') + ')');
                     autosaveNotification = setTimeout(function () {
                       $console.text('Changes will be autosaved');
@@ -131,27 +134,19 @@
 
           $parent.find('button[name=load]').click(function () {
             $.ajax({
-              url: "php/load.php",
+              url: "json/load.json",
               dataType: 'json',
               type: 'GET',
               success: function (res) {
-                var data = [], row;
-                for (var i = 0, ilen = res.cars.length; i < ilen; i++) {
-                  row = [];
-                  row[0] = res.cars[i].manufacturer;
-                  row[1] = res.cars[i].year;
-                  row[2] = res.cars[i].price;
-                  data[res.cars[i].id - 1] = row;
-                }
-                handsontable.loadData(data);
+                handsontable.loadData(res.data);
                 $console.text('Data loaded');
               }
             });
-          }).click(); //execute immediately
+          });
 
           $parent.find('button[name=save]').click(function () {
             $.ajax({
-              url: "php/save.php",
+              url: "json/save.json",
               data: {"data": handsontable.getData()}, //returns all cells' data
               dataType: 'json',
               type: 'POST',
@@ -164,7 +159,7 @@
                 }
               },
               error: function () {
-                $console.text('Save error');
+                $console.text('Save error. POST method is not allowed on GitHub Pages. Run this example on your own server to see the success message.');
               }
             });
           });

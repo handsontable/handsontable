@@ -2,27 +2,23 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Custom buttons - Handsontable</title>
+  <title>Scroll - Handsontable</title>
 
   <!--
-  Loading handsontable dependencies.
+  Loading Handsontable dependencies.
   Please note that some dependencies are optional:
    - bootstrap-typeahead.js - is required only if you need the autocomplete feature
    - jquery.contextMenu.js  - is required only if you need the context menu feature
    - jquery.contextMenu.css - is required only if you need the context menu feature
    - jquery.ui.position.js  - is required only if you need the context menu feature
-   - jquery.handsontable.removeRow.js  - is required only if you need the RemoveRow button
-   - jquery.handsontable.removeRow.css - is required only if you need the RemoveRow button
   -->
   <script src="../lib/jquery.min.js"></script>
   <script src="../jquery.handsontable.js"></script>
   <script src="../lib/bootstrap-typeahead.js"></script>
   <script src="../lib/jQuery-contextMenu/jquery.contextMenu.js"></script>
   <script src="../lib/jQuery-contextMenu/jquery.ui.position.js"></script>
-  <script src="../extensions/jquery.handsontable.removeRow.js"></script>
   <link rel="stylesheet" media="screen" href="../lib/jQuery-contextMenu/jquery.contextMenu.css">
   <link rel="stylesheet" media="screen" href="../jquery.handsontable.css">
-  <link rel="stylesheet" media="screen" href="../extensions/jquery.handsontable.removeRow.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -35,15 +31,15 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Custom buttons">
+  <meta property="og:title" content="Scroll">
   <meta property="og:description"
-        content="The alter method can be used if you want to insert or remove rows and columns using external buttons">
-  <meta property="og:url" content="http://handsontable.com/demo/buttons.html">
+        content="">
+  <meta property="og:url" content="http://handsontable.com/demo/scroll.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
-  <link rel="canonical" href="http://handsontable.com/demo/buttons.html">
+  <link rel="canonical" href="http://handsontable.com/demo/scroll.html">
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
@@ -68,27 +64,17 @@
           for HTML, JavaScript &amp; jQuery
         </div>
 
-        <h2>Custom buttons</h2>
+        <h2>Scroll</h2>
       </div>
     </div>
   </div>
 
   <div class="rowLayout">
     <div class="descLayout">
-      <div class="pad bottomSpace850">
-        <p>The <b>alter</b> method can be used if you want to insert or remove rows and columns using external buttons.
-          The below example uses the a custom made
-          <b>jquery.handsontable.removeRow.js</b> extension for that matter. Move your mouse over a row to see it.</p>
+      <div class="pad bottomSpace100">
+        <p>If you want scrollbars, just set it in the container CSS.</p>
 
-        <p>You can programically select a cell using the <b>selectCell</b> method. The below button implements it.</p>
-
-        <div id="toolbar">
-          <button id="selectFirst">Select first cell</button>
-          <label><input type="checkbox" id="rowHeaders" checked="checked" autocomplete="off"> Show row headers</label>
-          <label><input type="checkbox" id="colHeaders" checked="checked" autocomplete="off"> Show col headers</label>
-        </div>
-
-        <div id="exampleGrid"></div>
+        <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
         <p>
           <button data-dump="#example1">Dump to console</button>
@@ -99,17 +85,19 @@
     <div class="codeLayout">
       <div class="pad">
         <script>
-          var container = $("#example1");
+          /*
+           Container looks like this:
 
-          container.handsontable({
-            startRows: 15,
-            startCols: 16,
+           <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
+           */
+
+          $("#example1").handsontable({
+            startRows: 40,
+            startCols: 40,
             rowHeaders: true,
             colHeaders: true,
             minSpareCols: 1,
-            minSpareRows: 1,
-            contextMenu: true,
-            RemoveRow: true
+            minSpareRows: 1
           });
 
           var data = [
@@ -119,23 +107,7 @@
             ["2010", 30, 15, 12, 13]
           ];
 
-          container.handsontable("loadData", data);
-
-          $("button#selectFirst").on('click', function () {
-            setTimeout(function () {
-              //timeout is needed because Handsontable normally deselects
-              //current cell when you click outside the table
-              container.handsontable("selectCell", 0, 0);
-            }, 10);
-          });
-
-          $("input#rowHeaders").change(function () {
-            container.handsontable("updateSettings", {rowHeaders: $(this).is(':checked')});
-          });
-
-          $("input#colHeaders").change(function () {
-            container.handsontable("updateSettings", {colHeaders: $(this).is(':checked')});
-          });
+          $("#example1").handsontable("loadData", data);
         </script>
       </div>
     </div>

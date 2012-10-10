@@ -5,7 +5,11 @@ body {
   background-color: #F5F5FF;
   font-family: Helvetica, Arial, FreeSans, sans-serif;
   color: #454545;
-  font-size: 15px;
+  font-size: 14px;
+}
+
+.clear {
+  clear: left;
 }
 
 #container {
@@ -64,6 +68,18 @@ body {
   padding-bottom: 450px;
 }
 
+.pad.bottomSpace650 {
+  padding-bottom: 650px;
+}
+
+.pad.bottomSpace750 {
+  padding-bottom: 750px;
+}
+
+.pad.bottomSpace850 {
+  padding-bottom: 850px;
+}
+
 /**
  * headers
  */
@@ -75,10 +91,23 @@ h1, h2, h3, .tagline {
 h1 {
   margin: 0;
   padding-top: 20px;
+  font-size: 45px;
+  font-weight: 700;
+  font-style: normal;
 }
 
 h2 {
-  margin-top: 30px;
+  margin-top: 40px;
+  font-size: 20px;
+  font-weight: 700;
+  font-style: normal;
+}
+
+h3 {
+  margin-top: 15px;
+  font-size: 14px;
+  font-weight: 400;
+  font-style: normal;
 }
 
 /**
@@ -86,12 +115,12 @@ h2 {
  */
 
 a {
-  text-decoration: underline;
-  color: #1B676B;
+  text-decoration: none;
+  color: #4267B6;
 }
 
 a:hover {
-  text-decoration: none;
+  text-decoration: underline;
 }
 
 .tagline {
@@ -162,4 +191,63 @@ p {
 .codeLayout pre code {
   padding: 0;
   background: none;
+}
+
+/**
+ * home page
+ */
+body.home {
+  background: #FFF;
+}
+
+body.home h1 {
+  position: relative;
+  width: 800px;
+}
+
+body.home #githubWatch {
+  position: absolute;
+  top: 31px;
+  right: 100px;
+}
+
+body.home #githubFork {
+  position: absolute;
+  top: 31px;
+  right: 0;
+}
+
+body.home #domainNotice {
+  display: none;
+}
+
+body.home .centerLayout {
+  width: 880px;
+  margin: 0 auto;
+}
+
+body.home .linkColumn {
+  width: 266px;
+  float: left;
+}
+
+body.home ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+body.home ul li {
+  margin: 0 0 10px 0;
+}
+
+boxdy.home ul li a {
+  display: block;
+  background-color: #EEE;
+  padding: 4px;
+  width: 130px;
+  height: 40px;
+}
+
+boxdy.home ul li a:hover {
+  background-color: #DDD;
 }

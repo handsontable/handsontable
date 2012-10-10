@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Pre-populate new rows from template - Handsontable</title>
+  <title>Context Menu - Handsontable</title>
 
   <!--
   Loading Handsontable dependencies.
@@ -31,14 +31,15 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Pre-populate new rows from template - Handsontable">
-  <meta property="og:description" content="Below example shows how Legend match function can be used to present the template values for empty rows">
-  <meta property="og:url" content="http://handsontable.com/demo/prepopulate.html">
+  <meta property="og:title" content="Context Menu">
+  <meta property="og:description"
+        content="">
+  <meta property="og:url" content="http://handsontable.com/demo/contextmenu.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
-  <link rel="canonical" href="http://handsontable.com/demo/prepopulate.html">
+  <link rel="canonical" href="http://handsontable.com/demo/contextmenu.html">
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
@@ -63,27 +64,22 @@
           for HTML, JavaScript &amp; jQuery
         </div>
 
-        <h2>Pre-populate new rows from template</h2>
+        <h2>Context Menu</h2>
       </div>
     </div>
   </div>
 
   <div class="rowLayout">
     <div class="descLayout">
-      <div class="pad bottomSpace850">
-        <p>Below example shows how <b>Legend</b> match function can be used to present the template values for empty rows.</p>
+      <div class="pad bottomSpace100">
+        <p>Right click to see the context menu.</p>
 
-        <p>When any cell in the empty row is edited, the
-          <b>onChange</b> callback fills the row with the template values.</p>
+        <p>
+          <b>Note:</b> Make sure you include the dependencies (jquery.contextMenu.js, jquery.contextMenu.css, jquery.ui.position.js) as presented in
+          <a href="https://github.com/warpech/jquery-handsontable">README.md</a>.
+        </p>
 
         <div id="example1"></div>
-
-        <style>
-          .placeholder {
-            color: #777;
-            font-style: italic;
-          }
-        </style>
 
         <p>
           <button data-dump="#example1">Dump to console</button>
@@ -94,70 +90,14 @@
     <div class="codeLayout">
       <div class="pad">
         <script>
-          function countEmpty(arr) {
-            var empty = 0;
-            for (var i = 0, ilen = arr.length; i < ilen; i++) {
-              if (arr[i] === '') {
-                empty++;
-              }
-            }
-            return empty;
-          }
-
-          var tpl = ["one", "two", "three"];
-
-          var container = $("#example1");
-          container.handsontable({
-            startRows: 8,
+          $("#example1").handsontable({
+            startRows: 5,
             startCols: 5,
+            rowHeaders: true,
+            colHeaders: true,
+            minSpareCols: 1,
             minSpareRows: 1,
-            contextMenu: true,
-            legend: [
-              {
-                match: function (row, col, dataFn) {
-                  if (row === 0) {
-                    return;
-                  }
-
-                  var data = dataFn();
-                  var empty = countEmpty(data[row]);
-                  var c, clen, td;
-                  if (empty === data[row].length) {
-                    //whole row is empty
-                    for (c = 0, clen = tpl.length; c < clen; c++) {
-                      td = container.handsontable('getCell', row, c);
-                      td.innerHTML = tpl[c];
-                      td.className = "placeholder";
-                    }
-                  }
-                  else {
-                    td = container.handsontable('getCell', row, 0);
-                    if (td.className === 'placeholder') {
-                      for (c = 0, clen = tpl.length; c < clen; c++) {
-                        td = container.handsontable('getCell', row, c);
-                        td.className = "";
-                      }
-                    }
-                  }
-                }
-              }
-            ],
-            onChange: function (changes) {
-              for (var i = 0, ilen = changes.length; i < ilen; i++) {
-                if (changes[i][2] === '') { //if oldVal is empty
-                  var data = container.handsontable('getData');
-                  var row = changes[i][0];
-                  if (countEmpty(data[row]) === data[row].length - 1) {
-                    //other cells in this row are empty
-                    for (var c = 0, clen = tpl.length; c < clen; c++) {
-                      if (changes[i][1] !== c) {
-                        container.handsontable('setDataAtCell', row, c, tpl[c]);
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            contextMenu: true
           });
 
           var data = [
@@ -167,7 +107,7 @@
             ["2010", 30, 15, 12, 13]
           ];
 
-          container.handsontable("loadData", data);
+          $("#example1").handsontable("loadData", data);
         </script>
       </div>
     </div>
