@@ -33,7 +33,7 @@
   -->
   <meta property="og:title" content="Load &amp; Save (Ajax)">
   <meta property="og:description"
-        content="">
+        content="Use the onChange callback to track changes made in the table. In the example below, $.ajax is used to load and save grid data.">
   <meta property="og:url" content="http://handsontable.com/demo/ajax.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -84,12 +84,12 @@
           <label><input type="checkbox" name="autosave" checked="checked" autocomplete="off"> Autosave</label>
         </p>
 
-        <div id="example1console" class="console">Click "Load" to load data from server</div>
+        <pre id="example1console" class="console">Click "Load" to load data from server</pre>
 
         <div id="example1"></div>
 
         <p>
-          <button data-dump="#example1">Dump to console</button>
+          <button name="dump" data-dump="#example1">Dump to console</button>
         </p>
       </div>
     </div>
@@ -106,7 +106,6 @@
             startCols: 6,
             rowHeaders: true,
             colHeaders: true,
-            minSpareCols: 1,
             minSpareRows: 1,
             contextMenu: true,
             onChange: function (change, source) {
