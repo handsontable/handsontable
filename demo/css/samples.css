@@ -80,6 +80,10 @@ body {
   padding-bottom: 850px;
 }
 
+.pad.bottomSpace1400 {
+  padding-bottom: 1400px;
+}
+
 /**
  * headers
  */
@@ -130,10 +134,6 @@ a:hover {
   color: #646464;
 }
 
-.big {
-  font-size: 17px;
-}
-
 .small {
   font-size: 13px;
   margin-top: 60px;
@@ -148,7 +148,12 @@ pre {
 }
 
 p {
+  margin-bottom: 2em;
   clear: left;
+}
+
+ol {
+  margin-bottom: 2em;
 }
 
 /**
@@ -238,16 +243,4 @@ body.home ul {
 
 body.home ul li {
   margin: 0 0 10px 0;
-}
-
-boxdy.home ul li a {
-  display: block;
-  background-color: #EEE;
-  padding: 4px;
-  width: 130px;
-  height: 40px;
-}
-
-boxdy.home ul li a:hover {
-  background-color: #DDD;
 }

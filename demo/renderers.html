@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Renderers - Handsontable</title>
+  <title>Cell renderers - Handsontable</title>
 
   <!--
   Loading Handsontable dependencies.
@@ -31,15 +31,15 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Binding the data grid to array and object data sources">
+  <meta property="og:title" content="Cell renderers">
   <meta property="og:description"
-        content="This page shows how to use Handsontable with various data sources: array data source (also with hidden columns), object data source, nested object data source.">
-  <meta property="og:url" content="http://handsontable.com/demo/reference.html">
+        content="This example shows the default renderers available in Handsontable.">
+  <meta property="og:url" content="http://handsontable.com/demo/renderers.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
-  <link rel="canonical" href="http://handsontable.com/demo/reference.html">
+  <link rel="canonical" href="http://handsontable.com/demo/renderers.html">
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
@@ -64,27 +64,14 @@
           for HTML, JavaScript &amp; jQuery
         </div>
 
-        <div class="description">
-          <p class="warning"><strong>Warning!</strong> Since Handsontable version 0.7.0 data is bound by reference.
-            This means that if you change data source outside Handsontable, you must rerender the grid.</p>
-
-          <p class="big">This page shows how to use Handsontable with various data sources:</p>
-
-          <ul>
-            <li><a href="#array">renderers</a></li>
-          </ul>
-        </div>
-
-        <a name="array"></a>
-
-        <h2>Renderers</h2>
+        <h2>Cell renderers</h2>
       </div>
     </div>
   </div>
 
   <div class="rowLayout">
     <div class="descLayout">
-      <div class="pad bottomSpace100">
+      <div class="pad bottomSpace650">
         <p>This example shows the default renderers available in Handsontable.</p>
 
         <div id="example1"></div>
@@ -134,30 +121,19 @@
               {data: "isActive", renderer: Handsontable.CheckboxRenderer, editor: Handsontable.CheckboxEditor},
               {data: "color"}
             ],
-            renderers: function(row, col, prop) {
-              if(row === 0 && col === 0) {
+            renderers: function (row, col, prop) {
+              if (row === 0 && col === 0) {
                 return greenRenderer;
               }
             },
             autoComplete: [
               {
                 match: function (row, col, data) {
-                  if (col == 3) {
-                    return true;
-                  }
-                  return false;
-                },
-                highlighter: function (item) {
-                  var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
-                  var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-                    return '<strong>' + match + '</strong>';
-                  });
-                  return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
+                  return (col == 3); //returns true if column index is 3
                 },
                 source: function () {
                   return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
-                },
-                strict: false //allows other values that defined in array above
+                }
               }
             ]
           });

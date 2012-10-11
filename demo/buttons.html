@@ -75,24 +75,28 @@
 
   <div class="rowLayout">
     <div class="descLayout">
-      <div class="pad bottomSpace850">
+      <div class="pad bottomSpace150">
         <p>The <b>alter</b> method can be used if you want to insert or remove rows and columns using external buttons.
           The below example uses the a custom made
           <b>jquery.handsontable.removeRow.js</b> extension for that matter. Move your mouse over a row to see it.</p>
 
         <p>You can programically select a cell using the <b>selectCell</b> method. The below button implements it.</p>
 
-        <div id="toolbar">
+        <p>
           <button id="selectFirst">Select first cell</button>
           <label><input type="checkbox" id="rowHeaders" checked="checked" autocomplete="off"> Show row headers</label>
           <label><input type="checkbox" id="colHeaders" checked="checked" autocomplete="off"> Show col headers</label>
-        </div>
+        </p>
 
-        <div id="exampleGrid"></div>
+        <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
         <p>
           <button data-dump="#example1">Dump to console</button>
         </p>
+
+        <style>
+
+        </style>
       </div>
     </div>
 
