@@ -1,20 +1,20 @@
 /**
  * Handsontable RemoveRow extension. See `demo/buttons.html` for example usage
  */
-.dataTable.htRemoveRow th.htRemoveRow {
+.handsontable.htRemoveRow th.htRemoveRow {
   min-width: 15px;
 }
 
-.dataTable.htRemoveRow th.htRemoveRow div.minWidthProblemFix {
+.handsontable.htRemoveRow th.htRemoveRow div.minWidthProblemFix {
   width: 15px;
 }
 
-.dataTable.htRemoveRow tr:first-child th.htRemoveRow,
-.dataTable.htRemoveRow tr:first-child td.htRemoveRow {
+.handsontable.htRemoveRow tr:first-child th.htRemoveRow,
+.handsontable.htRemoveRow tr:first-child td.htRemoveRow {
   border-top: 1px solid #FFF;
 }
 
-.dataTable.htRemoveRow th.htRemoveRow .btn {
+.handsontable.htRemoveRow th.htRemoveRow .btn {
   background-color: #BBB;
   border-radius: 9px;
   padding: 0 4px 0 4px;
@@ -25,6 +25,6 @@
   display: none;
 }
 
-.dataTable.htRemoveRow th.htRemoveRow .btn:hover {
+.handsontable.htRemoveRow th.htRemoveRow .btn:hover {
   background-color: #777;
 }
