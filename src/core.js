@@ -621,7 +621,7 @@ Handsontable.Core = function (rootElement, settings) {
 
       //count currently empty rows
       rows : for (r = self.rowCount - 1; r >= 0; r--) {
-        for (c = 0, clen = self.colCount - 1; c < clen; c++) {
+        for (c = 0, clen = self.colCount; c < clen; c++) {
           val = datamap.get(r, datamap.colToProp(c));
           if (val !== '' && val !== null) {
             break rows;
@@ -662,7 +662,7 @@ Handsontable.Core = function (rootElement, settings) {
       //count currently empty cols
       if (self.rowCount - 1 > 0) {
         cols : for (c = self.colCount - 1; c >= 0; c--) {
-          for (r = 0; r < self.rowCount - 1; r++) {
+          for (r = 0; r < self.rowCount; r++) {
             val = datamap.get(r, datamap.colToProp(c));
             if (val !== '' && val !== null && typeof val !== 'undefined') {
               break cols;

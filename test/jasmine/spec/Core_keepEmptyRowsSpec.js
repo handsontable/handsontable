@@ -63,8 +63,38 @@ describe('Core_keepEmptyRows', function () {
       minSpareRows: 4,
       minSpareCols: 4
     });
+    expect(countCells()).toEqual(36);
+  });
 
-    var $tds = this.$container.find('.htCore tbody td');
-    expect($tds.length).toEqual(36);
+  it('should create new row when last cell in last row is edited', function () {
+    var data = [
+      ["one", "two"],
+      ["three", "four"]
+    ];
+
+    handsontable({
+      data: data,
+      startCols: 4,
+      startRows: 4,
+      minSpareRows: 1
+    });
+    setDataAtCell(3, 3, "test");
+    expect(data.length).toEqual(5);
+  });
+
+  it('should create new col when last cell in last row is edited', function () {
+    var data = [
+      ["one", "two"],
+      ["three", "four"]
+    ];
+
+    handsontable({
+      data: data,
+      startCols: 4,
+      startRows: 4,
+      minSpareCols: 1
+    });
+    setDataAtCell(3, 3, "test");
+    expect(countCols()).toEqual(5);
   });
 });

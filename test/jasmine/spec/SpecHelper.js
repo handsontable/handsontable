@@ -1,12 +1,23 @@
+var spec = function() {
+  return jasmine.getEnv().currentSpec;
+};
+
 var handsontable = function (options) {
-  var spec = jasmine.getEnv().currentSpec;
-  spec.$container.handsontable(options);
-  spec.$keyboardProxy = spec.$container.find('textarea.handsontableInput');
+  var currentSpec = spec();
+  currentSpec.$container.handsontable(options);
+  currentSpec.$keyboardProxy = currentSpec.$container.find('textarea.handsontableInput');
+};
+
+var countCols = function() {
+  return spec().$container.find('.htCore tbody tr:eq(0) td').length;
+};
+
+var countCells = function() {
+  return spec().$container.find('.htCore tbody td').length;
 };
 
 var isEditorVisible = function () {
-  var spec = jasmine.getEnv().currentSpec;
-  var overflow = spec.$keyboardProxy.parent().css('overflow');
+  var overflow = spec().$keyboardProxy.parent().css('overflow');
   if (overflow === 'visible') {
     return true;
   }
@@ -17,7 +28,7 @@ var isEditorVisible = function () {
 };
 
 var isFillHandleVisible = function () {
-  return jasmine.getEnv().currentSpec.$container.find('.htFillHandle').is(':visible');
+  return spec().$container.find('.htFillHandle').is(':visible');
 };
 
 /**
@@ -27,7 +38,6 @@ var isFillHandleVisible = function () {
  */
 var handsontableKeyTriggerFactory = function (type) {
   return function (key) {
-    var spec = jasmine.getEnv().currentSpec;
     var ev = $.Event(type);
     switch (key) {
       case 'tab':
@@ -38,7 +48,7 @@ var handsontableKeyTriggerFactory = function (type) {
         ev.keyCode = 13;
         break;
     }
-    spec.$keyboardProxy.trigger(ev);
+    spec().$keyboardProxy.trigger(ev);
   }
 };
 
@@ -50,15 +60,14 @@ var keyUp = handsontableKeyTriggerFactory('keyup');
  * @return {String}
  */
 var keyProxy = function () {
-  return jasmine.getEnv().currentSpec.$keyboardProxy.val();
+  return spec().$keyboardProxy.val();
 };
 
 /**
  * Returns autocomplete instance
  */
 var autocomplete = function () {
-  var spec = jasmine.getEnv().currentSpec;
-  return spec.$container.find('.handsontableInput').data("typeahead");
+  return spec().$container.find('.handsontableInput').data("typeahead");
 };
 
 /**
@@ -69,10 +78,9 @@ var autocomplete = function () {
 
 var handsontableMethodFactory = function (method) {
   return function () {
-    var spec = jasmine.getEnv().currentSpec;
     var args = $.extend(true, [], arguments);
     args.unshift(method);
-    return spec.$container.handsontable.apply(spec.$container, args);
+    return spec().$container.handsontable.apply(spec().$container, args);
   }
 };
 
