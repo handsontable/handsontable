@@ -29,6 +29,8 @@ module.exports = function (grunt) {
           'src/editors/autocompleteEditor.js',
           'src/editors/checkboxEditor.js',
 
+          'src/cellTypes.js',
+
           'src/jquery.autoresize.js',
           'src/jquery.mousewheel.js',
 

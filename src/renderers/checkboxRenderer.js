@@ -6,23 +6,19 @@
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
- * @param {Object} rendererOptions Render options
+ * @param {Object} cellOptions Cell options (shared by cell renderer and editor)
  */
-Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
-  if (typeof rendererOptions === "undefined") {
-    rendererOptions = {};
+Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, cellOptions) {
+  if (typeof cellOptions.checked === "undefined") {
+    cellOptions.checked = true;
   }
-  if (typeof rendererOptions.checked === "undefined") {
-    rendererOptions.checked = true;
+  if (typeof cellOptions.unchecked === "undefined") {
+    cellOptions.unchecked = false;
   }
-  if (typeof rendererOptions.unchecked === "undefined") {
-    rendererOptions.unchecked = false;
-  }
-
-  if (value === rendererOptions.checked || value === Handsontable.helper.stringify(rendererOptions.checked)) {
+  if (value === cellOptions.checked || value === Handsontable.helper.stringify(cellOptions.checked)) {
     td.innerHTML = "<input type='checkbox' checked autocomplete='no'>";
   }
-  else if (value === rendererOptions.unchecked || value === Handsontable.helper.stringify(rendererOptions.unchecked)) {
+  else if (value === cellOptions.unchecked || value === Handsontable.helper.stringify(cellOptions.unchecked)) {
     td.innerHTML = "<input type='checkbox' autocomplete='no'>";
   }
   else if (value === null) { //default value
@@ -34,10 +30,10 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, r
 
   $(td).find('input').change(function () {
     if ($(this).is(':checked')) {
-      instance.setDataAtCell(row, prop, rendererOptions.checked);
+      instance.setDataAtCell(row, prop, cellOptions.checked);
     }
     else {
-      instance.setDataAtCell(row, prop, rendererOptions.unchecked);
+      instance.setDataAtCell(row, prop, cellOptions.unchecked);
     }
   });
 

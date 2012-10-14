@@ -48,8 +48,6 @@ var texteditor = {
 
   /**
    * Shows text input in grid cell
-   * @param {Boolean} useOriginalValue
-   * @param {String} suffix
    */
   beginEditing: function (instance, td, row, col, prop, keyboardProxy, useOriginalValue, suffix) {
     if (texteditor.isCellEdited) {
@@ -116,10 +114,6 @@ var texteditor = {
 
   /**
    * Finishes text input in selected cells
-   * @param {Boolean} [isCancelled] If TRUE, restore old value instead of using current from editproxy
-   * @param {Number} [moveRow] Move selection row if edit is not cancelled
-   * @param {Number} [moveCol] Move selection column if edit is not cancelled
-   * @param {Boolean} [ctrlDown] If true, apply to all selected cells
    */
   finishEditing: function (instance, td, row, col, prop, keyboardProxy, isCancelled, ctrlDown) {
     if (texteditor.isCellEdited) {
@@ -154,7 +148,17 @@ var texteditor = {
   }
 };
 
-Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy, editorOptions) {
+/**
+ * Default text editor
+ * @param {Object} instance Handsontable instance
+ * @param {Element} td Table cell where to render
+ * @param {Number} row
+ * @param {Number} col
+ * @param {String|Number} prop Row object property name
+ * @param {Object} keyboardProxy jQuery element of keyboard proxy that contains current editing value
+ * @param {Object} cellOptions Cell options (shared by cell renderer and editor)
+ */
+Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy, cellOptions) {
   texteditor.isCellEdited = false;
 
   var $current = $(td);
@@ -295,7 +299,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
             texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false, ctrlDown);
           }
         }
-        else if (editorOptions.enterBeginsEditing) {
+        else if (cellOptions.enterBeginsEditing) {
           if ((ctrlDown && !selection.isMultiple()) || event.altKey) { //if ctrl+enter or alt+enter, add new line
             texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true, '\n'); //show edit field
           }

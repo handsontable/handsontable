@@ -6,9 +6,9 @@
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
- * @param {Object} rendererOptions Render options
+ * @param {Object} cellOptions Cell options (shared by cell renderer and editor)
  */
-Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
+Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, value, cellOptions) {
   var $td = $(td);
   var $text = $('<div class="htAutocomplete"></div>');
   var $arrow = $('<div class="htAutocompleteArrow">&#x25BC;</div>');
@@ -16,7 +16,7 @@ Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, valu
     $td.triggerHandler('dblclick.editor');
   });
 
-  Handsontable.TextRenderer(instance, $text[0], row, col, prop, value, rendererOptions);
+  Handsontable.TextCell.renderer(instance, $text[0], row, col, prop, value, cellOptions);
 
   if($text.html() === '') {
     $text.html('&nbsp;');
@@ -24,6 +24,4 @@ Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, valu
 
   $text.append($arrow);
   $td.empty().append($text);
-
-  return td;
 };

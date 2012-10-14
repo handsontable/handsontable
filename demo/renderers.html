@@ -92,20 +92,18 @@
             {id: 4, name: "Ben", isActive: false, color: "blue"}
           ];
 
-          var yellowRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
-            var td = Handsontable.TextRenderer.apply(this, arguments);
+          var yellowRenderer = function (instance, td, row, col, prop, value, cellOptions) {
+            Handsontable.TextCell.renderer.apply(this, arguments);
             $(td).css({
               background: 'yellow'
             });
-            return td;
           };
 
-          var greenRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
-            var td = Handsontable.TextRenderer.apply(this, arguments);
+          var greenRenderer = function (instance, td, row, col, prop, value, cellOptions) {
+            Handsontable.TextCell.renderer.apply(this, arguments);
             $(td).css({
               background: 'green'
             });
-            return td;
           };
 
           var $container = $("#example1");
@@ -117,13 +115,13 @@
             minSpareRows: 1,
             columns: [
               {data: "id"},
-              {data: "name", renderer: yellowRenderer},
-              {data: "isActive", renderer: Handsontable.CheckboxRenderer, editor: Handsontable.CheckboxEditor},
+              {data: "name", cellType: {renderer: yellowRenderer}},
+              {data: "isActive", cellType: Handsontable.CheckboxCell},
               {data: "color"}
             ],
             renderers: function (row, col, prop) {
               if (row === 0 && col === 0) {
-                return greenRenderer;
+                return {renderer: greenRenderer};
               }
             },
             autoComplete: [

@@ -117,14 +117,14 @@
             }
           ];
 
-          var descriptionRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
+          var descriptionRenderer = function (instance, td, row, col, prop, value, cellOptions) {
             var escaped = Handsontable.helper.stringify(value);
             escaped = strip_tags(escaped, '<em><b><a>'); //be sure you only allow certain HTML tags to avoid XSS threats (you should also remove unwanted HTML attributes)
             td.innerHTML = escaped;
             return td;
           };
 
-          var coverRenderer = function (instance, td, row, col, prop, value, rendererOptions) {
+          var coverRenderer = function (instance, td, row, col, prop, value, cellOptions) {
             var escaped = Handsontable.helper.stringify(value);
             if (escaped.indexOf('http') === 0) {
               var $img = $('<img>');
@@ -135,7 +135,7 @@
               $img.appendTo(td); //render as img
             }
             else {
-              Handsontable.TextRenderer.apply(this, arguments); //render as text
+              Handsontable.TextCell.renderer.apply(this, arguments); //render as text
             }
             return td;
           };
@@ -146,8 +146,8 @@
             colHeaders: ["Plain text title", "HTML Description", "Cover"],
             columns: [
               {data: "title"},
-              {data: "description", renderer: descriptionRenderer},
-              {data: "cover", renderer: coverRenderer}
+              {data: "description", cellType: {renderer: descriptionRenderer}},
+              {data: "cover", cellType: {renderer: coverRenderer}}
             ]
           });
         </script>
@@ -188,7 +188,7 @@
           var isChecked;
 
           var customRenderer = function (instance, td) {
-            Handsontable.TextRenderer.apply(this, arguments);
+            Handsontable.TextCell.apply(this, arguments);
             if (isChecked) {
               td.style.backgroundColor = 'yellow';
             }
@@ -203,7 +203,7 @@
             startCols: 2,
             columns: [
               {},
-              {renderer: customRenderer}
+              {cellType: {renderer: customRenderer}}
             ],
             colHeaders: [
               "<b>Bold</b> and <em>Beautiful</em>",

@@ -18,14 +18,24 @@ function defaultAutoCompleteHighlighter(item) {
   })
 }
 
-Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboardProxy, editorOptions) {
+/**
+ * Autocomplete editor
+ * @param {Object} instance Handsontable instance
+ * @param {Element} td Table cell where to render
+ * @param {Number} row
+ * @param {Number} col
+ * @param {String|Number} prop Row object property name
+ * @param {Object} keyboardProxy jQuery element of keyboard proxy that contains current editing value
+ * @param {Object} cellOptions Cell options (shared by cell renderer and editor)
+ */
+Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboardProxy, cellOptions) {
   var typeahead = keyboardProxy.data('typeahead');
   if (!typeahead) {
     keyboardProxy.typeahead();
     typeahead = keyboardProxy.data('typeahead');
   }
-  typeahead.source = editorOptions.autoComplete.source(row, col);
-  typeahead.highlighter = editorOptions.autoComplete.highlighter || defaultAutoCompleteHighlighter;
+  typeahead.source = cellOptions.autoComplete.source(row, col);
+  typeahead.highlighter = cellOptions.autoComplete.highlighter || defaultAutoCompleteHighlighter;
 
   var oneChange = function () {
     if (isAutoComplete(keyboardProxy)) {
@@ -54,7 +64,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
     }
   );
 
-  var textDestroyer = Handsontable.TextEditor(instance, td, row, col, prop, keyboardProxy, editorOptions);
+  var textDestroyer = Handsontable.TextEditor(instance, td, row, col, prop, keyboardProxy, cellOptions);
 
   keyboardProxy.data("typeahead").$menu.off('click.editor', 'li').on('click.editor', 'li', function(){
     setTimeout(function(){
