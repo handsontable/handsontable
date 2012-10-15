@@ -85,25 +85,32 @@
     <div class="codeLayout">
       <div class="pad">
         <script>
+          function myAutocompleteRenderer(instance, td, row, col, prop, value, cellProperties) {
+            Handsontable.AutocompleteCell.renderer.apply(this, arguments);
+            td.style.fontStyle = 'italic';
+            td.title = 'Type to show the list of options';
+          }
+
+          var data = [
+            ["Nissan", 2009, "black", "black"],
+            ["Nissan", 2006, "blue", "blue"],
+            ["Chrysler", 2004, "yellow", "black"],
+            ["Volvo", 2012, "white", "gray"]
+          ];
+
           $("#example1").handsontable({
+            data: data,
             startRows: 7,
             startCols: 4,
             rowHeaders: false, //turn off 1, 2, 3, ...
             colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
-            legend: [
-              {
-                match: function (row, col, data) {
-                  if (col == 0 || col == 2 || col == 3) {
-                    return true;
-                  }
-                  return false;
-                },
-                style: {
-                  fontStyle: 'italic' //make the text italic
-                },
-                title: "Type to show the list of options"
+            cells: function(row, col, prop) {
+              var cellProperties = {};
+              if (col == 0 || col == 2 || col == 3) {
+                cellProperties.type = {renderer: myAutocompleteRenderer}
               }
-            ],
+              return cellProperties;
+            },
             autoComplete: [
               {
                 match: function (row, col, data) {
@@ -135,15 +142,6 @@
               }
             ]
           });
-
-          var data = [
-            ["Nissan", 2009, "black", "black"],
-            ["Nissan", 2006, "blue", "blue"],
-            ["Chrysler", 2004, "yellow", "black"],
-            ["Volvo", 2012, "white", "gray"]
-          ];
-
-          $("#example1").handsontable("loadData", data);
         </script>
       </div>
     </div>

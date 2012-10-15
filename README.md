@@ -98,39 +98,11 @@ The table below presents configuration options that are interpreted by `handsont
  `tabMoves`              | object                         | {row: 0, col: 1} | Defines cursor move after Tab is pressed (Shift+Tab uses negative vector)
  `autoWrapRow`           | boolean                        | false            | If true, pressing TAB or right arrow in the last column will move to first column in next row
  `autoWrapCol`           | boolean                        | false            | If true, pressing ENTER or down arrow in the last row will move to first row in next column
- `legend`                | array                          | _undefined_      | Legend definitions. See **Defining legend**
  `autoComplete`          | array                          | _undefined_      | Autocomplete definitions. See **Defining autocomplete**
  `onSelection`           | function(`r`, `c`, `r2`, `c2`) | _undefined_      | Callback fired before one or more cells is selected. You can call `updateSettings` from inside, e.g. if you want to disable fillHandle for a specific cell. Parameters: <ul><li>`r` selection start row</li><li>`c` selection start column</li><li>`r2` selection end column</li><li>`c2` selection end column</li></ul>
  `onSelectionByProp`     | function(`r`, `p`, `r2`, `p2`) | _undefined_      | The same as above, but data source object property name is used instead of the column number
  `onBeforeChange`        | function(`changes`)            | _undefined_      | Callback fired before one or more cells is changed. Its main purpose is to validate the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, col, oldVal, newVal], ... ]`. You can disregard a single change by setting `changes[i][3]` to false, or cancel all edit by returning false.</li></ul>
  `onChange`              | function(`changes`, `source`)  | _undefined_      | Callback fired after one or more cells is changed. Its main use case is to save the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, col, oldVal, newVal], ... ]`. </li><li>`source` is one of the strings: `"alter"`, `"empty"`, `"edit"`, `"populateFromArray"`, `"loadData"`, `"autofill"`, `"paste"`.</li></ul>
-
-### Defining legend
-
-The `legend` option is an array of mixins that define multiple legends for the grid. 
-
-With your imagination, legend can be used to make any of the grid cells read-only, use different 
-text color, or show a tooltip (title) when hovered with mouse cursor.
-
-Example:
-
-```js
-legend: [
-  {
-    match: function (row, col, data) {
-      return (row === 0); //if it is first row
-    },
-    style: {
-      color: '#666', //make the text gray and bold
-      fontWeight: 'bold'
-    },
-    title: 'Heading', //make some tooltip
-    icon: {
-      src: "/calendar.png", // url to icon (16 x 16)
-      click: initCalendar // function to call when the icon is clicked
-    }
-  }
-```
 
 ### Defining autocomplete
 

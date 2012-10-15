@@ -33,7 +33,7 @@
   -->
   <meta property="og:title" content="Conditional formatting - Handsontable">
   <meta property="og:description"
-        content="This demo shows how to use the Legend feature to make some conditional formatting">
+        content="This demo shows how to use the cell type renderer feature to make some conditional formatting">
   <meta property="og:url" content="http://handsontable.com/demo/conditional.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -71,8 +71,8 @@
 
   <div class="rowLayout">
     <div class="descLayout">
-      <div class="pad bottomSpace1400">
-        <p>This demo shows how to use the <b>Legend</b> feature to make some conditional formatting:</p>
+      <div class="pad bottomSpace650">
+        <p>This demo shows how to use the cell type renderer feature to make some conditional formatting:</p>
 
         <ol>
           <li>first row is <span style="font-weight: bold">read-only</span>, and formatted in <span
@@ -100,8 +100,43 @@
     <div class="codeLayout">
       <div class="pad">
         <script>
+          function negativeValueRenderer(instance, td, row, col, prop, value, cellProperties) {
+            Handsontable.TextCell.renderer.apply(this, arguments);
+            if (parseInt(value, 10) < 0) { //if row contains negative number
+              td.className = 'negative'; //add class "negative"
+            }
+            else {
+              td.className = '';
+            }
+            if(row === 0) {
+              td.style.fontWeight = 'bold';
+              td.style.color = 'green';
+            }
+            if(cellProperties.readOnly) {
+              td.style.opacity = 0.7;
+            }
+            if(value === 'Nissan') {
+              td.style.fontStyle = 'italic';
+            }
+
+            if(!value || value === '') {
+              td.style.background = '#EEE';
+            }
+            else {
+              td.style.background = '';
+            }
+          }
+
+          var data = [
+            ["", "Kia", "Nissan", "Toyota", "Honda"],
+            ["2008", -5, 11, 12, 13],
+            ["2009", 20, -11, 14, 13],
+            ["2010", 30, 15, -12, "readOnly"]
+          ];
+
           var container = $("#example1");
           container.handsontable({
+            data: data,
             startRows: 5,
             startCols: 5,
             minSpareRows: 1,
@@ -116,88 +151,16 @@
               }
             },
             cells: function (row, col, prop) {
+              var cellProperties = {};
               if (row === 0 || container.handsontable('getData')[row][col] === 'readOnly') {
-                return {readOnly: true}; //make cell read-only if it is first row or the text reads 'readOnly'
+                cellProperties.readOnly = true; //make cell read-only if it is first row or the text reads 'readOnly'
               }
-            },
-            legend: [
-            /**
-             * Legend 1
-             */
-              {
-                match: function (row, col, data) {
-                  return (row === 0); //if it is first row
-                },
-                style: {
-                  color: 'green', //make the text green and bold
-                  fontWeight: 'bold'
-                },
-                title: 'Heading' //make some tooltip
-              },
-
-            /**
-             * Legend 2
-             */
-              {
-                match: function (row, col, data) {
-                  return !(data()[row][col]); //if the cell is empty
-                },
-                style: {
-                  background: 'silver' //make the background yellow
-                }
-              },
-
-            /**
-             * Legend 3
-             */
-              {
-                match: function (row, col, data) {
-                  //if first row in this column contains word "Nissan"
-                  return (row > 0 && data()[0][col].indexOf('Nissan') > -1);
-                },
-                style: {
-                  fontStyle: 'italic' //set font to italic
-                }
-              },
-
-            /**
-             * Legend 4
-             */
-              {
-                match: function (row, col, data) {
-                  if (parseInt(data()[row][col], 10) < 0) { //if row contains negative number
-                    container.handsontable('getCell', row, col).className = 'negative'; //add class "negative"
-                  }
-                  else {
-                    container.handsontable('getCell', row, col).className = '';
-                  }
-                }
-              },
-
-            /**
-             * Legend 4
-             */
-              {
-                match: function (row, col, data) {
-                  if (data()[row][col] === 'readOnly') {
-                    return true;
-                  }
-                },
-                style: {
-                  color: '#777'
-                }
+              cellProperties.type = {
+                renderer: negativeValueRenderer
               }
-            ]
+              return cellProperties;
+            }
           });
-
-          var data = [
-            ["", "Kia", "Nissan", "Toyota", "Honda"],
-            ["2008", -5, 11, 12, 13],
-            ["2009", 20, -11, 14, 13],
-            ["2010", 30, 15, -12, "readOnly"]
-          ];
-
-          container.handsontable("loadData", data);
         </script>
       </div>
     </div>
