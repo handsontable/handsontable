@@ -1224,34 +1224,16 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
-      var tds, i, ilen, changes = [], coords, old, $td, prop;
-      tds = grid.getCellsAtCoords(priv.selStart, selection.end());
-      for (i = 0, ilen = tds.length; i < ilen; i++) {
-        coords = grid.getCellCoords(tds[i]);
-        prop = datamap.colToProp(coords.col);
-        old = datamap.get(coords.row, prop);
-        $td = $(tds[i]);
-        if (old !== '' && self.getCellMeta(coords.row, coords.col).isWritable) {
-          changes.push([coords.row, prop, old, '']);
+      var corners = grid.getCornerCoords([priv.selStart, selection.end()]);
+      var r, c, changes = [];
+      for (r = corners.TL.row; r <= corners.BR.row; r++) {
+        for (c = corners.TL.col; c <= corners.BR.col; c++) {
+          if (self.getCellMeta(r, c).isWritable) {
+            changes.push([r, datamap.colToProp(c), '']);
+          }
         }
       }
-      if (changes.length) {
-        self.rootElement.triggerHandler("beforedatachange.handsontable", [changes]);
-      }
-      if (changes.length) {
-        for (i = 0, ilen = changes.length; i < ilen; i++) {
-          coords = {row: changes[i][0], col: datamap.propToCol(changes[i][1])};
-          $td = $(grid.getCellAtCoords(coords));
-          $td.empty();
-          self.minWidthFix(tds[i]);
-          datamap.set(changes[i][0], changes[i][1], '');
-          grid.updateLegend(coords);
-        }
-        self.rootElement.triggerHandler("datachange.handsontable", [changes, 'empty']);
-        self.rootElement.triggerHandler("cellrender.handsontable", [changes, 'empty']);
-      }
-      grid.keepEmptyRows();
-      selection.refreshBorders();
+      self.setDataAtCell(changes);
     }
   };
 
