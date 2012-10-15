@@ -27,9 +27,9 @@ describe('Core_render', function () {
       startRows: 4,
       minSpareRows: 4,
       minSpareCols: 4,
-      renderers: function () {
+      cells: function () {
         return {
-          renderer: greenCell
+          cellType: {renderer: greenCell}
         };
       }
     });
