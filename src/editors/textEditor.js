@@ -64,7 +64,7 @@ var texteditor = {
 
     var $td = $(td);
 
-    if (!instance.grid.isCellWritable($td)) {
+    if (!instance.getCellMeta(row, col).isWritable) {
       return;
     }
 

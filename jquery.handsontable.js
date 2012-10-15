@@ -800,7 +800,7 @@ Handsontable.Core = function (rootElement, settings) {
     updateLegend: function (coords) {
       if (priv.settings.legend || priv.hasLegend) {
         var $td = $(grid.getCellAtCoords(coords));
-        $td.removeAttr("style").removeAttr("title").removeData("readOnly");
+        $td.removeAttr("style").removeAttr("title");
         $td[0].className = '';
         $td.find("img").remove();
       }
@@ -811,7 +811,6 @@ Handsontable.Core = function (rootElement, settings) {
           if (legend.match(coords.row, coords.col, datamap.getAll)) {
             priv.hasLegend = true;
             typeof legend.style !== "undefined" && $td.css(legend.style);
-            typeof legend.readOnly !== "undefined" && $td.data("readOnly", legend.readOnly);
             typeof legend.title !== "undefined" && $td.attr("title", legend.title);
             typeof legend.className !== "undefined" && $td.addClass(legend.className);
             if (typeof legend.icon !== "undefined" &&
@@ -840,9 +839,15 @@ Handsontable.Core = function (rootElement, settings) {
     /**
      * Is cell writable
      */
-    isCellWritable: function ($td) {
-      if (priv.isPopulated && $td.data("readOnly")) {
-        return false;
+    isCellWritable: function ($td, cellProperties) {
+      if (priv.isPopulated) {
+        var data = $td.data('readOnly');
+        if (typeof data === 'undefined') {
+          return !cellProperties.readOnly;
+        }
+        else {
+          return data;
+        }
       }
       return true;
     },
@@ -874,7 +879,7 @@ Handsontable.Core = function (rootElement, settings) {
             break;
           }
           td = grid.getCellAtCoords(current);
-          if (grid.isCellWritable($(td))) {
+          if (self.getCellMeta(current.row, current.col).isWritable) {
             var p = datamap.colToProp(current.col);
             setData.push([current.row, p, input[r][c]]);
           }
@@ -1006,36 +1011,22 @@ Handsontable.Core = function (rootElement, settings) {
     applyCellTypeMethod: function (methodName, td, coords, extraParam) {
       var prop = datamap.colToProp(coords.col)
         , method
-        , cellType
-        , cellProperties = {
-          enterBeginsEditing: priv.settings.enterBeginsEditing
-        }
-        , columnProperties
+        , cellProperties = self.getCellMeta(coords.row, coords.col);
 
-      if (priv.settings.renderers) {
-        cellType = priv.settings.renderers(coords.row, coords.col, prop);
+      if (cellProperties.cellType && typeof cellProperties.cellType[methodName] === "function") {
+        method = cellProperties.cellType[methodName];
       }
-      if (cellType && typeof cellType[methodName] === "function") {
-        method = cellType[methodName];
-      }
-      else {
-        columnProperties = priv.settings.columns && priv.settings.columns[coords.col];
-        if (columnProperties && columnProperties.cellType) {
-          method = columnProperties.cellType[methodName];
-          cellProperties = $.extend(true, cellProperties, columnProperties);
-        }
-        else if (priv.settings.autoComplete) {
-          for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
-            if (priv.settings.autoComplete[i].match(coords.row, coords.col, datamap.getAll)) {
-              method = Handsontable.AutocompleteCell[methodName];
-              cellProperties.autoComplete = priv.settings.autoComplete[i];
-              break;
-            }
+      else if (priv.settings.autoComplete) {
+        for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
+          if (priv.settings.autoComplete[i].match(coords.row, coords.col, datamap.getAll)) {
+            method = Handsontable.AutocompleteCell[methodName];
+            cellProperties.autoComplete = priv.settings.autoComplete[i];
+            break;
           }
         }
-        if (typeof method !== "function") {
-          method = Handsontable.TextCell[methodName];
-        }
+      }
+      if (typeof method !== "function") {
+        method = Handsontable.TextCell[methodName];
       }
       return method(self, td, coords.row, coords.col, prop, extraParam, cellProperties);
     }
@@ -1240,7 +1231,7 @@ Handsontable.Core = function (rootElement, settings) {
         prop = datamap.colToProp(coords.col);
         old = datamap.get(coords.row, prop);
         $td = $(tds[i]);
-        if (old !== '' && grid.isCellWritable($td)) {
+        if (old !== '' && self.getCellMeta(current.row, current.col).isWritable) {
           changes.push([coords.row, prop, old, '']);
         }
       }
@@ -2506,9 +2497,16 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Object}
    */
   this.getCellMeta = function (row, col) {
-    return {
-      isWritable: grid.isCellWritable($(grid.getCellAtCoords({row: row, col: col})))
+    var cellProperites = {}
+      , prop = datamap.colToProp(col);
+    if (priv.settings.cells) {
+      cellProperites = $.extend(true, cellProperites, priv.settings.cells(row, col, prop) || {});
     }
+    if (priv.settings.columns) {
+      cellProperites = $.extend(true, cellProperites, priv.settings.columns[col] || {});
+    }
+    cellProperites.isWritable = grid.isCellWritable($(grid.getCellAtCoords({row: row, col: col})), cellProperites);
+    return cellProperites;
   };
 
   /**
@@ -3620,7 +3618,7 @@ var texteditor = {
 
     var $td = $(td);
 
-    if (!instance.grid.isCellWritable($td)) {
+    if (!instance.getCellMeta(row, col).isWritable) {
       return;
     }
 

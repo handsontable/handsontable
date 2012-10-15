@@ -60,7 +60,7 @@ To see the list of recent changes, see the [Changelog](https://github.com/warpec
  handsontable('alter',&nbsp;'remove_row',&nbsp;index,&nbsp;[toIndex])                  | Method      | Remove the row at given index [optionally to another index]
  handsontable('alter',&nbsp;'remove_col',&nbsp;index,&nbsp;[toIndex])                  | Method      | Remove the column at given index [optionally to another index]
  handsontable('getCell', row, col)                                                     | Method      | Return &lt;td&gt; element for given `row,col`
- handsontable('getCellMeta', row, col)                                                 | Method      | Return meta data for given `row,col`. Currently has one property: isWritable (Boolean)
+ handsontable('getCellMeta', row, col)                                                 | Method      | Return cell properties for given `row`, `col` coordinates
  handsontable('selectCell', r, c, [r2, c2, scrollToSelection=true])                    | Method      | Select cell `r,c` or range finishing at `r2,c2`. By default, viewport will be scrolled to selection
  handsontable('deselectCell')                                                          | Method      | Deselect current selection
  handsontable('getSelected')                                                           | Method      | Return index of the currently selected cells as an array [`topLeftRow`, `topLeftCol`, `bottomRightRow`, `bottomRightCol`]
@@ -81,7 +81,8 @@ The table below presents configuration options that are interpreted by `handsont
  `startCols`             | number                         | 5                | Initial number of columns
  `rowHeaders`            | boolean/array                  | false            | Defines if the row headers (1, 2, 3, ...) should be displayed. You can just set it to `true` or specify custom a array `["First", "Second", "Third", ...]`
  `colHeaders`            | boolean/array                  | false            | Defines if the column headers (A, B, C, ...) should be displayed. You can just set it to `true` or specify custom a array `["First Name", "Last Name", "Address", ...]`
- `columns`               | boolean/array                  | false            | Defines the biding of data properties to certain columns. See [demo/datasources.html](https://github.com/warpech/jquery-handsontable/blob/reference/demo/datasources.html) for examples
+ `columns`               | array                          | _undefined_      | Defines the cell properties and data binding for certain columns. See [demo/datasources.html](https://github.com/warpech/jquery-handsontable/blob/reference/demo/datasources.html) for examples
+ `cells`                 | function(`row`, `col`)         | _undefined_      | Defines the cell properties for given `row`, `col` coordinates
  `schema`                | object                         | _like first row_ | Defines the structure of a new row when data source is an object. See [demo/datasources.html](https://github.com/warpech/jquery-handsontable/blob/reference/demo/datasources.html) for examples
  `minWidth`              | number                         | 0                | Handsontable will add as many columns as needed to meet the given width in pixels
  `minHeight`             | number                         | 0                | Handsontable will add as many rows as needed to meet the given height in pixels
@@ -125,7 +126,6 @@ legend: [
       fontWeight: 'bold'
     },
     title: 'Heading', //make some tooltip
-    readOnly: true, //make it read-only
     icon: {
       src: "/calendar.png", // url to icon (16 x 16)
       click: initCalendar // function to call when the icon is clicked

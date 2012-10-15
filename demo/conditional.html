@@ -115,6 +115,11 @@
                 container.handsontable('updateSettings', {fillHandle: true});
               }
             },
+            cells: function (row, col, prop) {
+              if (row === 0 || container.handsontable('getData')[row][col] === 'readOnly') {
+                return {readOnly: true}; //make cell read-only if it is first row or the text reads 'readOnly'
+              }
+            },
             legend: [
             /**
              * Legend 1
@@ -127,8 +132,7 @@
                   color: 'green', //make the text green and bold
                   fontWeight: 'bold'
                 },
-                title: 'Heading', //make some tooltip
-                readOnly: true //make it read-only
+                title: 'Heading' //make some tooltip
               },
 
             /**
@@ -179,7 +183,6 @@
                     return true;
                   }
                 },
-                readOnly: true,
                 style: {
                   color: '#777'
                 }
