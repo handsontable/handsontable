@@ -31,7 +31,7 @@ describe('Core_datachange', function () {
     runs(function () {
       expect(output[0][0]).toEqual(1);
       expect(output[0][1]).toEqual(2);
-      expect(output[0][2]).toEqual("");
+      expect(output[0][2]).toEqual(null);
       expect(output[0][3]).toEqual("test");
     });
   });
@@ -54,7 +54,7 @@ describe('Core_datachange', function () {
     runs(function () {
       expect(output[0][0]).toEqual(1);
       expect(output[0][1]).toEqual(2);
-      expect(output[0][2]).toEqual("");
+      expect(output[0][2]).toEqual(null);
       expect(output[0][3]).toEqual("test");
     });
   });

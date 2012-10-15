@@ -255,7 +255,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (priv.dataType === 'array') {
         row = [];
         for (var c = 0; c < self.colCount; c++) {
-          row.push('');
+          row.push(null);
         }
       }
       else {
