@@ -996,8 +996,8 @@ Handsontable.Core = function (rootElement, settings) {
         , method
         , cellProperties = self.getCellMeta(coords.row, coords.col);
 
-      if (cellProperties.cellType && typeof cellProperties.cellType[methodName] === "function") {
-        method = cellProperties.cellType[methodName];
+      if (cellProperties.type && typeof cellProperties.type[methodName] === "function") {
+        method = cellProperties.type[methodName];
       }
       else if (priv.settings.autoComplete) {
         for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {

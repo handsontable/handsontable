@@ -1,9 +1,9 @@
 function toggleCheckboxCell(instance, row, prop, cellProperties) {
-  if (Handsontable.helper.stringify(instance.getDataAtCell(row, prop)) === Handsontable.helper.stringify(cellProperties.checked)) {
-    instance.setDataAtCell(row, prop, cellProperties.unchecked);
+  if (Handsontable.helper.stringify(instance.getDataAtCell(row, prop)) === Handsontable.helper.stringify(cellProperties.checkedTemplate)) {
+    instance.setDataAtCell(row, prop, cellProperties.uncheckedTemplate);
   }
   else {
-    instance.setDataAtCell(row, prop, cellProperties.checked);
+    instance.setDataAtCell(row, prop, cellProperties.checkedTemplate);
   }
 }
 
@@ -21,11 +21,11 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardPr
   if (typeof cellProperties === "undefined") {
     cellProperties = {};
   }
-  if (typeof cellProperties.checked === "undefined") {
-    cellProperties.checked = true;
+  if (typeof cellProperties.checkedTemplate === "undefined") {
+    cellProperties.checkedTemplate = true;
   }
-  if (typeof cellProperties.unchecked === "undefined") {
-    cellProperties.unchecked = false;
+  if (typeof cellProperties.uncheckedTemplate === "undefined") {
+    cellProperties.uncheckedTemplate = false;
   }
 
   keyboardProxy.on("keydown.editor", function (event) {

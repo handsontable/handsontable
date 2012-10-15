@@ -146,8 +146,8 @@
             colHeaders: ["Plain text title", "HTML Description", "Cover"],
             columns: [
               {data: "title"},
-              {data: "description", cellType: {renderer: descriptionRenderer}},
-              {data: "cover", cellType: {renderer: coverRenderer}}
+              {data: "description", type: {renderer: descriptionRenderer}},
+              {data: "cover", type: {renderer: coverRenderer}}
             ]
           });
         </script>
@@ -203,7 +203,7 @@
             startCols: 2,
             columns: [
               {},
-              {cellType: {renderer: customRenderer}}
+              {type: {renderer: customRenderer}}
             ],
             colHeaders: [
               "<b>Bold</b> and <em>Beautiful</em>",

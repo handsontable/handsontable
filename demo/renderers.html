@@ -115,8 +115,8 @@
             minSpareRows: 1,
             columns: [
               {data: "id"},
-              {data: "name", cellType: {renderer: yellowRenderer}},
-              {data: "isActive", cellType: Handsontable.CheckboxCell},
+              {data: "name", type: {renderer: yellowRenderer}},
+              {data: "isActive", type: Handsontable.CheckboxCell},
               {data: "color"}
             ],
             renderers: function (row, col, prop) {

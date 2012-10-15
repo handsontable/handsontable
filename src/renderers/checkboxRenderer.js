@@ -9,16 +9,16 @@
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
 Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, cellProperties) {
-  if (typeof cellProperties.checked === "undefined") {
-    cellProperties.checked = true;
+  if (typeof cellProperties.checkedTemplate === "undefined") {
+    cellProperties.checkedTemplate = true;
   }
-  if (typeof cellProperties.unchecked === "undefined") {
-    cellProperties.unchecked = false;
+  if (typeof cellProperties.uncheckedTemplate === "undefined") {
+    cellProperties.uncheckedTemplate = false;
   }
-  if (value === cellProperties.checked || value === Handsontable.helper.stringify(cellProperties.checked)) {
+  if (value === cellProperties.checkedTemplate || value === Handsontable.helper.stringify(cellProperties.checkedTemplate)) {
     td.innerHTML = "<input type='checkbox' checked autocomplete='no'>";
   }
-  else if (value === cellProperties.unchecked || value === Handsontable.helper.stringify(cellProperties.unchecked)) {
+  else if (value === cellProperties.uncheckedTemplate || value === Handsontable.helper.stringify(cellProperties.uncheckedTemplate)) {
     td.innerHTML = "<input type='checkbox' autocomplete='no'>";
   }
   else if (value === null) { //default value
@@ -30,10 +30,10 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, c
 
   $(td).find('input').change(function () {
     if ($(this).is(':checked')) {
-      instance.setDataAtCell(row, prop, cellProperties.checked);
+      instance.setDataAtCell(row, prop, cellProperties.checkedTemplate);
     }
     else {
-      instance.setDataAtCell(row, prop, cellProperties.unchecked);
+      instance.setDataAtCell(row, prop, cellProperties.uncheckedTemplate);
     }
   });
 
