@@ -6,19 +6,19 @@
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
- * @param {Object} cellOptions Cell options (shared by cell renderer and editor)
+ * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, cellOptions) {
-  if (typeof cellOptions.checked === "undefined") {
-    cellOptions.checked = true;
+Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+  if (typeof cellProperties.checked === "undefined") {
+    cellProperties.checked = true;
   }
-  if (typeof cellOptions.unchecked === "undefined") {
-    cellOptions.unchecked = false;
+  if (typeof cellProperties.unchecked === "undefined") {
+    cellProperties.unchecked = false;
   }
-  if (value === cellOptions.checked || value === Handsontable.helper.stringify(cellOptions.checked)) {
+  if (value === cellProperties.checked || value === Handsontable.helper.stringify(cellProperties.checked)) {
     td.innerHTML = "<input type='checkbox' checked autocomplete='no'>";
   }
-  else if (value === cellOptions.unchecked || value === Handsontable.helper.stringify(cellOptions.unchecked)) {
+  else if (value === cellProperties.unchecked || value === Handsontable.helper.stringify(cellProperties.unchecked)) {
     td.innerHTML = "<input type='checkbox' autocomplete='no'>";
   }
   else if (value === null) { //default value
@@ -30,10 +30,10 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, c
 
   $(td).find('input').change(function () {
     if ($(this).is(':checked')) {
-      instance.setDataAtCell(row, prop, cellOptions.checked);
+      instance.setDataAtCell(row, prop, cellProperties.checked);
     }
     else {
-      instance.setDataAtCell(row, prop, cellOptions.unchecked);
+      instance.setDataAtCell(row, prop, cellProperties.unchecked);
     }
   });
 

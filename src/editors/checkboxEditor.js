@@ -1,9 +1,9 @@
-function toggleCheckboxCell(instance, row, prop, cellOptions) {
-  if (Handsontable.helper.stringify(instance.getDataAtCell(row, prop)) === Handsontable.helper.stringify(cellOptions.checked)) {
-    instance.setDataAtCell(row, prop, cellOptions.unchecked);
+function toggleCheckboxCell(instance, row, prop, cellProperties) {
+  if (Handsontable.helper.stringify(instance.getDataAtCell(row, prop)) === Handsontable.helper.stringify(cellProperties.checked)) {
+    instance.setDataAtCell(row, prop, cellProperties.unchecked);
   }
   else {
-    instance.setDataAtCell(row, prop, cellOptions.checked);
+    instance.setDataAtCell(row, prop, cellProperties.checked);
   }
 }
 
@@ -15,28 +15,28 @@ function toggleCheckboxCell(instance, row, prop, cellOptions) {
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param {Object} keyboardProxy jQuery element of keyboard proxy that contains current editing value
- * @param {Object} cellOptions Cell options (shared by cell renderer and editor)
+ * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardProxy, cellOptions) {
-  if (typeof cellOptions === "undefined") {
-    cellOptions = {};
+Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
+  if (typeof cellProperties === "undefined") {
+    cellProperties = {};
   }
-  if (typeof cellOptions.checked === "undefined") {
-    cellOptions.checked = true;
+  if (typeof cellProperties.checked === "undefined") {
+    cellProperties.checked = true;
   }
-  if (typeof cellOptions.unchecked === "undefined") {
-    cellOptions.unchecked = false;
+  if (typeof cellProperties.unchecked === "undefined") {
+    cellProperties.unchecked = false;
   }
 
   keyboardProxy.on("keydown.editor", function (event) {
     if (Handsontable.helper.isPrintableChar(event.keyCode)) {
-      toggleCheckboxCell(instance, row, prop, cellOptions);
+      toggleCheckboxCell(instance, row, prop, cellProperties);
       event.stopPropagation();
     }
   });
 
   function onDblClick() {
-    toggleCheckboxCell(instance, row, prop, cellOptions);
+    toggleCheckboxCell(instance, row, prop, cellProperties);
   }
 
   var $td = $(td);

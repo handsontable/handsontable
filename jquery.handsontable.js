@@ -1003,43 +1003,41 @@ Handsontable.Core = function (rootElement, settings) {
       return td;
     },
 
-    applyCellTypeMethod: function (method, td, coords, extraParam) {
+    applyCellTypeMethod: function (methodName, td, coords, extraParam) {
       var prop = datamap.colToProp(coords.col)
-        , cellTypeMethod
+        , method
         , cellType
-        , cellOptions = {
+        , cellProperties = {
           enterBeginsEditing: priv.settings.enterBeginsEditing
         }
-        , colSettings;
+        , columnProperties
 
       if (priv.settings.renderers) {
         cellType = priv.settings.renderers(coords.row, coords.col, prop);
       }
-      if (cellType && typeof cellType[method] === "function") {
-        cellTypeMethod = cellType[method];
+      if (cellType && typeof cellType[methodName] === "function") {
+        method = cellType[methodName];
       }
       else {
-        colSettings = priv.settings.columns && priv.settings.columns[coords.col];
-        if (colSettings && colSettings.cellType && typeof colSettings.cellType[method] === "function") {
-          cellTypeMethod = colSettings.cellType[method];
-          if (colSettings.cellOptions) {
-            cellOptions = $.expand(true, cellOptions, colSettings.cellOptions);
-          }
+        columnProperties = priv.settings.columns && priv.settings.columns[coords.col];
+        if (columnProperties && columnProperties.cellType) {
+          method = columnProperties.cellType[methodName];
+          cellProperties = $.extend(true, cellProperties, columnProperties);
         }
         else if (priv.settings.autoComplete) {
           for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
             if (priv.settings.autoComplete[i].match(coords.row, coords.col, datamap.getAll)) {
-              cellTypeMethod = Handsontable.AutocompleteCell[method];
-              cellOptions.autoComplete = priv.settings.autoComplete[i];
+              method = Handsontable.AutocompleteCell[methodName];
+              cellProperties.autoComplete = priv.settings.autoComplete[i];
               break;
             }
           }
         }
-        if (typeof cellTypeMethod !== "function") {
-          cellTypeMethod = Handsontable.TextCell[method];
+        if (typeof method !== "function") {
+          method = Handsontable.TextCell[methodName];
         }
       }
-      return cellTypeMethod(self, td, coords.row, coords.col, prop, extraParam, cellOptions);
+      return method(self, td, coords.row, coords.col, prop, extraParam, cellProperties);
     }
   };
 
@@ -2416,6 +2414,14 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
+   * Returns current settings object
+   * @return {Object}
+   */
+  this.getSettings = function () {
+    return priv.settings;
+  };
+
+  /**
    * Clears grid
    * @public
    */
@@ -3473,9 +3479,9 @@ Handsontable.ColHeader.prototype.destroy = function () {
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
- * @param {Object} cellOptions Cell options (shared by cell renderer and editor)
+ * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.TextRenderer = function (instance, td, row, col, prop, value, cellOptions) {
+Handsontable.TextRenderer = function (instance, td, row, col, prop, value, cellProperties) {
   var escaped = Handsontable.helper.stringify(value);
   escaped = escaped.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
   td.innerHTML = escaped.replace(/\n/g, '<br/>');
@@ -3488,9 +3494,9 @@ Handsontable.TextRenderer = function (instance, td, row, col, prop, value, cellO
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
- * @param {Object} cellOptions Cell options (shared by cell renderer and editor)
+ * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, value, cellOptions) {
+Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, value, cellProperties) {
   var $td = $(td);
   var $text = $('<div class="htAutocomplete"></div>');
   var $arrow = $('<div class="htAutocompleteArrow">&#x25BC;</div>');
@@ -3498,7 +3504,7 @@ Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, valu
     $td.triggerHandler('dblclick.editor');
   });
 
-  Handsontable.TextCell.renderer(instance, $text[0], row, col, prop, value, cellOptions);
+  Handsontable.TextCell.renderer(instance, $text[0], row, col, prop, value, cellProperties);
 
   if($text.html() === '') {
     $text.html('&nbsp;');
@@ -3515,19 +3521,19 @@ Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, valu
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
- * @param {Object} cellOptions Cell options (shared by cell renderer and editor)
+ * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, cellOptions) {
-  if (typeof cellOptions.checked === "undefined") {
-    cellOptions.checked = true;
+Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+  if (typeof cellProperties.checked === "undefined") {
+    cellProperties.checked = true;
   }
-  if (typeof cellOptions.unchecked === "undefined") {
-    cellOptions.unchecked = false;
+  if (typeof cellProperties.unchecked === "undefined") {
+    cellProperties.unchecked = false;
   }
-  if (value === cellOptions.checked || value === Handsontable.helper.stringify(cellOptions.checked)) {
+  if (value === cellProperties.checked || value === Handsontable.helper.stringify(cellProperties.checked)) {
     td.innerHTML = "<input type='checkbox' checked autocomplete='no'>";
   }
-  else if (value === cellOptions.unchecked || value === Handsontable.helper.stringify(cellOptions.unchecked)) {
+  else if (value === cellProperties.unchecked || value === Handsontable.helper.stringify(cellProperties.unchecked)) {
     td.innerHTML = "<input type='checkbox' autocomplete='no'>";
   }
   else if (value === null) { //default value
@@ -3539,10 +3545,10 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, c
 
   $(td).find('input').change(function () {
     if ($(this).is(':checked')) {
-      instance.setDataAtCell(row, prop, cellOptions.checked);
+      instance.setDataAtCell(row, prop, cellProperties.checked);
     }
     else {
-      instance.setDataAtCell(row, prop, cellOptions.unchecked);
+      instance.setDataAtCell(row, prop, cellProperties.unchecked);
     }
   });
 
@@ -3706,9 +3712,9 @@ var texteditor = {
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param {Object} keyboardProxy jQuery element of keyboard proxy that contains current editing value
- * @param {Object} cellOptions Cell options (shared by cell renderer and editor)
+ * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy, cellOptions) {
+Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
   texteditor.isCellEdited = false;
 
   var $current = $(td);
@@ -3752,7 +3758,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
     if (Handsontable.helper.isPrintableChar(event.keyCode)) {
       if (!texteditor.isCellEdited && !ctrlDown) { //disregard CTRL-key shortcuts
         texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy);
-        event.stopPropagation();
+        event.stopImmediatePropagation();
       }
       else if (ctrlDown) {
         if (texteditor.isCellEdited && event.keyCode === 65) { //CTRL + A
@@ -3849,7 +3855,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
             texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false, ctrlDown);
           }
         }
-        else if (cellOptions.enterBeginsEditing) {
+        else if (instance.getSettings().enterBeginsEditing) {
           if ((ctrlDown && !selection.isMultiple()) || event.altKey) { //if ctrl+enter or alt+enter, add new line
             texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true, '\n'); //show edit field
           }
@@ -3911,16 +3917,16 @@ function defaultAutoCompleteHighlighter(item) {
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param {Object} keyboardProxy jQuery element of keyboard proxy that contains current editing value
- * @param {Object} cellOptions Cell options (shared by cell renderer and editor)
+ * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboardProxy, cellOptions) {
+Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
   var typeahead = keyboardProxy.data('typeahead');
   if (!typeahead) {
     keyboardProxy.typeahead();
     typeahead = keyboardProxy.data('typeahead');
   }
-  typeahead.source = cellOptions.autoComplete.source(row, col);
-  typeahead.highlighter = cellOptions.autoComplete.highlighter || defaultAutoCompleteHighlighter;
+  typeahead.source = cellProperties.autoComplete.source(row, col);
+  typeahead.highlighter = cellProperties.autoComplete.highlighter || defaultAutoCompleteHighlighter;
 
   var oneChange = function () {
     if (isAutoComplete(keyboardProxy)) {
@@ -3949,7 +3955,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
     }
   );
 
-  var textDestroyer = Handsontable.TextEditor(instance, td, row, col, prop, keyboardProxy, cellOptions);
+  var textDestroyer = Handsontable.TextEditor(instance, td, row, col, prop, keyboardProxy, cellProperties);
 
   keyboardProxy.data("typeahead").$menu.off('click.editor', 'li').on('click.editor', 'li', function(){
     setTimeout(function(){
@@ -3974,12 +3980,12 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
 
   return destroyer;
 };
-function toggleCheckboxCell(instance, row, prop, cellOptions) {
-  if (Handsontable.helper.stringify(instance.getDataAtCell(row, prop)) === Handsontable.helper.stringify(cellOptions.checked)) {
-    instance.setDataAtCell(row, prop, cellOptions.unchecked);
+function toggleCheckboxCell(instance, row, prop, cellProperties) {
+  if (Handsontable.helper.stringify(instance.getDataAtCell(row, prop)) === Handsontable.helper.stringify(cellProperties.checked)) {
+    instance.setDataAtCell(row, prop, cellProperties.unchecked);
   }
   else {
-    instance.setDataAtCell(row, prop, cellOptions.checked);
+    instance.setDataAtCell(row, prop, cellProperties.checked);
   }
 }
 
@@ -3991,28 +3997,28 @@ function toggleCheckboxCell(instance, row, prop, cellOptions) {
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param {Object} keyboardProxy jQuery element of keyboard proxy that contains current editing value
- * @param {Object} cellOptions Cell options (shared by cell renderer and editor)
+ * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardProxy, cellOptions) {
-  if (typeof cellOptions === "undefined") {
-    cellOptions = {};
+Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
+  if (typeof cellProperties === "undefined") {
+    cellProperties = {};
   }
-  if (typeof cellOptions.checked === "undefined") {
-    cellOptions.checked = true;
+  if (typeof cellProperties.checked === "undefined") {
+    cellProperties.checked = true;
   }
-  if (typeof cellOptions.unchecked === "undefined") {
-    cellOptions.unchecked = false;
+  if (typeof cellProperties.unchecked === "undefined") {
+    cellProperties.unchecked = false;
   }
 
   keyboardProxy.on("keydown.editor", function (event) {
     if (Handsontable.helper.isPrintableChar(event.keyCode)) {
-      toggleCheckboxCell(instance, row, prop, cellOptions);
+      toggleCheckboxCell(instance, row, prop, cellProperties);
       event.stopPropagation();
     }
   });
 
   function onDblClick() {
-    toggleCheckboxCell(instance, row, prop, cellOptions);
+    toggleCheckboxCell(instance, row, prop, cellProperties);
   }
 
   var $td = $(td);

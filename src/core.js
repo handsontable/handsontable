@@ -986,43 +986,41 @@ Handsontable.Core = function (rootElement, settings) {
       return td;
     },
 
-    applyCellTypeMethod: function (method, td, coords, extraParam) {
+    applyCellTypeMethod: function (methodName, td, coords, extraParam) {
       var prop = datamap.colToProp(coords.col)
-        , cellTypeMethod
+        , method
         , cellType
-        , cellOptions = {
+        , cellProperties = {
           enterBeginsEditing: priv.settings.enterBeginsEditing
         }
-        , colSettings;
+        , columnProperties
 
       if (priv.settings.renderers) {
         cellType = priv.settings.renderers(coords.row, coords.col, prop);
       }
-      if (cellType && typeof cellType[method] === "function") {
-        cellTypeMethod = cellType[method];
+      if (cellType && typeof cellType[methodName] === "function") {
+        method = cellType[methodName];
       }
       else {
-        colSettings = priv.settings.columns && priv.settings.columns[coords.col];
-        if (colSettings && colSettings.cellType && typeof colSettings.cellType[method] === "function") {
-          cellTypeMethod = colSettings.cellType[method];
-          if (colSettings.cellOptions) {
-            cellOptions = $.expand(true, cellOptions, colSettings.cellOptions);
-          }
+        columnProperties = priv.settings.columns && priv.settings.columns[coords.col];
+        if (columnProperties && columnProperties.cellType) {
+          method = columnProperties.cellType[methodName];
+          cellProperties = $.extend(true, cellProperties, columnProperties);
         }
         else if (priv.settings.autoComplete) {
           for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
             if (priv.settings.autoComplete[i].match(coords.row, coords.col, datamap.getAll)) {
-              cellTypeMethod = Handsontable.AutocompleteCell[method];
-              cellOptions.autoComplete = priv.settings.autoComplete[i];
+              method = Handsontable.AutocompleteCell[methodName];
+              cellProperties.autoComplete = priv.settings.autoComplete[i];
               break;
             }
           }
         }
-        if (typeof cellTypeMethod !== "function") {
-          cellTypeMethod = Handsontable.TextCell[method];
+        if (typeof method !== "function") {
+          method = Handsontable.TextCell[methodName];
         }
       }
-      return cellTypeMethod(self, td, coords.row, coords.col, prop, extraParam, cellOptions);
+      return method(self, td, coords.row, coords.col, prop, extraParam, cellProperties);
     }
   };
 
@@ -2396,6 +2394,14 @@ Handsontable.Core = function (rootElement, settings) {
     if (priv.isPopulated && priv.legendDirty) {
       self.refreshLegend();
     }
+  };
+
+  /**
+   * Returns current settings object
+   * @return {Object}
+   */
+  this.getSettings = function () {
+    return priv.settings;
   };
 
   /**

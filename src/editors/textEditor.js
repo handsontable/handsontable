@@ -156,9 +156,9 @@ var texteditor = {
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param {Object} keyboardProxy jQuery element of keyboard proxy that contains current editing value
- * @param {Object} cellOptions Cell options (shared by cell renderer and editor)
+ * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy, cellOptions) {
+Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
   texteditor.isCellEdited = false;
 
   var $current = $(td);
@@ -202,7 +202,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
     if (Handsontable.helper.isPrintableChar(event.keyCode)) {
       if (!texteditor.isCellEdited && !ctrlDown) { //disregard CTRL-key shortcuts
         texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy);
-        event.stopPropagation();
+        event.stopImmediatePropagation();
       }
       else if (ctrlDown) {
         if (texteditor.isCellEdited && event.keyCode === 65) { //CTRL + A
@@ -299,7 +299,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
             texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false, ctrlDown);
           }
         }
-        else if (cellOptions.enterBeginsEditing) {
+        else if (instance.getSettings().enterBeginsEditing) {
           if ((ctrlDown && !selection.isMultiple()) || event.altKey) { //if ctrl+enter or alt+enter, add new line
             texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true, '\n'); //show edit field
           }

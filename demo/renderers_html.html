@@ -117,14 +117,14 @@
             }
           ];
 
-          var descriptionRenderer = function (instance, td, row, col, prop, value, cellOptions) {
+          var descriptionRenderer = function (instance, td, row, col, prop, value, cellProperties) {
             var escaped = Handsontable.helper.stringify(value);
             escaped = strip_tags(escaped, '<em><b><a>'); //be sure you only allow certain HTML tags to avoid XSS threats (you should also remove unwanted HTML attributes)
             td.innerHTML = escaped;
             return td;
           };
 
-          var coverRenderer = function (instance, td, row, col, prop, value, cellOptions) {
+          var coverRenderer = function (instance, td, row, col, prop, value, cellProperties) {
             var escaped = Handsontable.helper.stringify(value);
             if (escaped.indexOf('http') === 0) {
               var $img = $('<img>');
