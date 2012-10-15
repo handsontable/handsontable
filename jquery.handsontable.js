@@ -1231,7 +1231,7 @@ Handsontable.Core = function (rootElement, settings) {
         prop = datamap.colToProp(coords.col);
         old = datamap.get(coords.row, prop);
         $td = $(tds[i]);
-        if (old !== '' && self.getCellMeta(current.row, current.col).isWritable) {
+        if (old !== '' && self.getCellMeta(coords.row, coords.col).isWritable) {
           changes.push([coords.row, prop, old, '']);
         }
       }
