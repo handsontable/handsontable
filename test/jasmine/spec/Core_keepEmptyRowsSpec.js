@@ -11,24 +11,26 @@ describe('Core_keepEmptyRows', function () {
     }
   });
 
-  var arrayOfNestedObjects = [
-    {id: 1, name: {
-      first: "Ted",
-      last: "Right"
-    }, address: "Street Name", zip: "80410", city: "City Name"},
-    {id: 2, name: {
-      first: "Frank",
-      last: "Honest"
-    }, address: "Street Name", zip: "80410", city: "City Name"},
-    {id: 3, name: {
-      first: "Joan",
-      last: "Well"
-    }, address: "Street Name", zip: "80410", city: "City Name"}
-  ];
+  var arrayOfNestedObjects = function () {
+    return [
+      {id: 1, name: {
+        first: "Ted",
+        last: "Right"
+      }, address: "Street Name", zip: "80410", city: "City Name"},
+      {id: 2, name: {
+        first: "Frank",
+        last: "Honest"
+      }, address: "Street Name", zip: "80410", city: "City Name"},
+      {id: 3, name: {
+        first: "Joan",
+        last: "Well"
+      }, address: "Street Name", zip: "80410", city: "City Name"}
+    ]
+  };
 
   it('should remove columns if needed', function () {
     handsontable({
-      data: arrayOfNestedObjects,
+      data: arrayOfNestedObjects(),
       columns: [
         {data: "id"},
         {data: "name.first"}
@@ -39,7 +41,7 @@ describe('Core_keepEmptyRows', function () {
 
   it('should create columns if needed', function () {
     handsontable({
-      data: arrayOfNestedObjects,
+      data: arrayOfNestedObjects(),
       columns: [
         {data: "id"},
         {data: "name.first"},
@@ -52,7 +54,7 @@ describe('Core_keepEmptyRows', function () {
     expect(this.$container.find('tbody tr:first td').length).toEqual(6);
   });
 
-  it('should create spare cols and rows on init', function () {
+  it('should create spare cols and rows on init (array data source)', function () {
     handsontable({
       data: [
         ["one", "two"],
@@ -64,6 +66,16 @@ describe('Core_keepEmptyRows', function () {
       minSpareCols: 4
     });
     expect(countCells()).toEqual(36);
+  });
+
+  it('should create spare cols and rows on init (object data source)', function () {
+    handsontable({
+      data: arrayOfNestedObjects(),
+      startRows: 4,
+      startCols: 10,
+      minSpareRows: 1
+    });
+    expect(countRows()).toEqual(4);
   });
 
   it('should create new row when last cell in last row is edited', function () {

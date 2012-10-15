@@ -8,6 +8,10 @@ var handsontable = function (options) {
   currentSpec.$keyboardProxy = currentSpec.$container.find('textarea.handsontableInput');
 };
 
+var countRows = function() {
+  return spec().$container.find('.htCore tbody tr').length;
+};
+
 var countCols = function() {
   return spec().$container.find('.htCore tbody tr:eq(0) td').length;
 };
@@ -88,4 +92,5 @@ var selectCell = handsontableMethodFactory('selectCell');
 var getSelected = handsontableMethodFactory('getSelected');
 var setDataAtCell = handsontableMethodFactory('setDataAtCell');
 var getCell = handsontableMethodFactory('getCell');
+var getData = handsontableMethodFactory('getData');
 var getDataAtCell = handsontableMethodFactory('getDataAtCell');

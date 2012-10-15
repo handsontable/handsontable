@@ -110,7 +110,6 @@
           $container.handsontable({
             data: data,
             startRows: 5,
-            startCols: 5,
             colHeaders: true,
             minSpareRows: 1,
             columns: [
@@ -119,9 +118,9 @@
               {data: "isActive", type: Handsontable.CheckboxCell},
               {data: "color"}
             ],
-            renderers: function (row, col, prop) {
+            cells: function (row, col, prop) {
               if (row === 0 && col === 0) {
-                return {renderer: greenRenderer};
+                return {type: {renderer: greenRenderer}};
               }
             },
             autoComplete: [

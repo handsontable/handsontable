@@ -640,7 +640,7 @@ Handsontable.Core = function (rootElement, settings) {
       rows : for (r = self.rowCount - 1; r >= 0; r--) {
         for (c = 0, clen = self.colCount; c < clen; c++) {
           val = datamap.get(r, datamap.colToProp(c));
-          if (val !== '' && val !== null) {
+          if (val !== '' && val !== null && typeof val !== 'undefined') {
             break rows;
           }
         }
@@ -2499,11 +2499,11 @@ Handsontable.Core = function (rootElement, settings) {
   this.getCellMeta = function (row, col) {
     var cellProperites = {}
       , prop = datamap.colToProp(col);
-    if (priv.settings.cells) {
-      cellProperites = $.extend(true, cellProperites, priv.settings.cells(row, col, prop) || {});
-    }
     if (priv.settings.columns) {
       cellProperites = $.extend(true, cellProperites, priv.settings.columns[col] || {});
+    }
+    if (priv.settings.cells) {
+      cellProperites = $.extend(true, cellProperites, priv.settings.cells(row, col, prop) || {});
     }
     cellProperites.isWritable = grid.isCellWritable($(grid.getCellAtCoords({row: row, col: col})), cellProperites);
     return cellProperites;
