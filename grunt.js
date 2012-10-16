@@ -31,6 +31,9 @@ module.exports = function (grunt) {
 
           'src/cellTypes.js',
 
+          'src/pluginHooks.js',
+          'src/plugins/contextMenu.js',
+
           'src/jquery.autoresize.js',
           'src/jquery.mousewheel.js',
 

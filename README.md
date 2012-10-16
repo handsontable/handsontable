@@ -69,6 +69,10 @@ To see the list of recent changes, see the [Changelog](https://github.com/warpec
  handsontable('setCellReadOnly', row, col)                                             | Method      | Sets cell to be readonly
  handsontable('setCellEditable', row, col)                                             | Method      | Sets cell to be editable (removes readonly)
  handsontable('destroy')                                                               | Method      | Remove grid from DOM
+ handsontable('isUndoAvailable')                                                       | Method      | Return true if undo can be performed, false otherwise
+ handsontable('isRedoAvailable')                                                       | Method      | Return true if redo can be performed, false otherwise
+ handsontable('undo')                                                                  | Method      | Undo last edit
+ handsontable('redo')                                                                  | Method      | Redo edit (used to reverse an undo)
 
 ## Options
 

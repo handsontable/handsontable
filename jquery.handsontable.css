@@ -237,3 +237,8 @@ AutocompleteRenderer down arrow
   color: #08C;
   text-decoration: none;
 }
+
+/*context menu rules*/
+ul.context-menu-list {
+  color: black;
+}

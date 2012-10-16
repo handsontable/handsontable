@@ -1817,101 +1817,9 @@ Handsontable.Core = function (rootElement, settings) {
       e.stopPropagation();
     });
 
-    if (priv.settings.contextMenu) {
-      var onContextClick = function (key) {
-        var coords = grid.getCornerCoords([priv.selStart, priv.selEnd]);
+    Handsontable.PluginHooks.run(self, 'afterInit');
 
-        switch (key) {
-          case "row_above":
-            grid.alter("insert_row", coords.TL);
-            break;
-
-          case "row_below":
-            grid.alter("insert_row", {row: coords.BR.row + 1, col: 0});
-            break;
-
-          case "col_left":
-            grid.alter("insert_col", coords.TL);
-            break;
-
-          case "col_right":
-            grid.alter("insert_col", {row: 0, col: coords.BR.col + 1});
-            break;
-
-          case "remove_row":
-          case "remove_col":
-            grid.alter(key, coords.TL, coords.BR);
-            break;
-
-          case "undo":
-          case "redo":
-            priv.undoRedo[key]();
-            break;
-        }
-      };
-
-      var isDisabled = function (key) {
-        if (self.blockedCols.main.find('th.htRowHeader.active').length && (key === "remove_col" || key === "col_left" || key === "col_right")) {
-          return true;
-        }
-
-        if (self.blockedRows.main.find('th.htColHeader.active').length && (key === "remove_row" || key === "row_above" || key === "row_below")) {
-          return true;
-        }
-
-        if (priv.selStart) {
-          var coords = grid.getCornerCoords([priv.selStart, priv.selEnd]);
-          if (((key === "row_above" || key === "remove_row") && coords.TL.row === 0) || ((key === "col_left" || key === "remove_col") && coords.TL.col === 0)) {
-            if ($(grid.getCellAtCoords(coords.TL)).data("readOnly")) {
-              return true;
-            }
-          }
-          return false;
-        }
-
-        return true;
-      };
-
-      var allItems = {
-        "undo": {name: "Undo", disabled: function () {
-          return priv.undoRedo ? !priv.undoRedo.isUndoAvailable() : true
-        }},
-        "redo": {name: "Redo", disabled: function () {
-          return priv.undoRedo ? !priv.undoRedo.isRedoAvailable() : true
-        }},
-        "sep1": "---------",
-        "row_above": {name: "Insert row above", disabled: isDisabled},
-        "row_below": {name: "Insert row below", disabled: isDisabled},
-        "sep2": "---------",
-        "col_left": {name: "Insert column on the left", disabled: isDisabled},
-        "col_right": {name: "Insert column on the right", disabled: isDisabled},
-        "sep3": "---------",
-        "remove_row": {name: "Remove row", disabled: isDisabled},
-        "remove_col": {name: "Remove column", disabled: isDisabled}
-      };
-
-      if (priv.settings.contextMenu === true) { //contextMenu is true, not an array
-        priv.settings.contextMenu = ["row_above", "row_below", "sep2", "col_left", "col_right", "sep3", "remove_row", "remove_col"]; //use default fields array
-      }
-
-      var items = {};
-      for (var i = 0, ilen = priv.settings.contextMenu.length; i < ilen; i++) {
-        items[priv.settings.contextMenu[i]] = allItems[priv.settings.contextMenu[i]];
-      }
-
-      if (!self.rootElement.attr('id')) {
-        throw new Error("Handsontable container must have an id");
-      }
-
-      $.contextMenu({
-        selector: "#" + self.rootElement.attr('id'),
-        trigger: 'right',
-        callback: onContextClick,
-        items: items
-      });
-
-      $('.context-menu-root').on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
-    }
+    $('.context-menu-root').on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
   };
 
   var bindEvents = function () {
@@ -2300,6 +2208,38 @@ Handsontable.Core = function (rootElement, settings) {
   this.clear = function () {
     selection.selectAll();
     selection.empty();
+  };
+
+  /**
+   * Return true if undo can be performed, false otherwise
+   * @public
+   */
+  this.isUndoAvailable = function () {
+    return priv.undoRedo && priv.undoRedo.isUndoAvailable();
+  };
+
+  /**
+   * Return true if redo can be performed, false otherwise
+   * @public
+   */
+  this.isRedoAvailable = function () {
+    return priv.undoRedo && priv.undoRedo.isRedoAvailable();
+  };
+
+  /**
+   * Undo last edit
+   * @public
+   */
+  this.undo = function () {
+    priv.undoRedo && priv.undoRedo.undo();
+  };
+
+  /**
+   * Redo edit (used to reverse an undo)
+   * @public
+   */
+  this.redo = function () {
+    priv.undoRedo && priv.undoRedo.redo();
   };
 
   /**
