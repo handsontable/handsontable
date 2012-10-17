@@ -3018,18 +3018,35 @@ Handsontable.BlockedRows.prototype.headerText = function (str) {
  */
 Handsontable.BlockedCols = function (instance) {
   var that = this;
-  this.heightMethod = ($.browser.mozilla || $.browser.opera) ? "outerHeight" : "height";
   this.instance = instance;
   this.headers = [];
   var position = instance.table.position();
   instance.positionFix(position);
   this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table class="htBlockedCols" cellspacing="0" cellpadding="0"><thead><tr></tr></thead><tbody></tbody></table></div>');
   this.instance.container.append(this.main);
-  this.instance.rootElement.on('cellrender.handsontable', function (event, changes, source) {
+  this.heightMethod = this.determineCellHeightMethod();
+  this.instance.rootElement.on('cellrender.handsontable', function (/*event, changes, source*/) {
     setTimeout(function () {
       that.dimensions();
     }, 10);
   });
+};
+
+/**
+ * Determine cell height method
+ * @return {String}
+ */
+Handsontable.BlockedCols.prototype.determineCellHeightMethod = function () {
+  var $td = $('<td>x</td>').appendTo(this.main.find('tr:eq(0'));
+  $td.height(28);
+  if ($td.height() != 28 && $td.outerHeight() == 28) {
+    $td.remove();
+    return 'outerHeight'; //Opera 12, Firefox 15
+  }
+  else {
+    $td.remove();
+    return 'height'; //Firefox 16+, other browsers
+  }
 };
 
 /**
