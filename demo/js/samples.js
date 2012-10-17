@@ -78,8 +78,4 @@ $(function () {
     var $container = $(dump);
     console.log('data of ' + dump, $container.handsontable('getData'));
   });
-
-  if (window.location.hostname === 'warpech.github.com') {
-    $('#domainNotice').show();
-  }
 });
