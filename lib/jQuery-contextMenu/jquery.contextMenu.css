@@ -1,7 +1,7 @@
 /*!
  * jQuery contextMenu - Plugin for simple contextMenu handling
  *
- * Version: 1.5.14
+ * Version: 1.5.25
  *
  * Authors: Rodney Rehm, Addy Osmani (patches for FF)
  * Web: http://medialize.github.com/jQuery-contextMenu/
@@ -39,7 +39,10 @@
     padding: 2px 2px 2px 24px;
     background-color: #EEE;
     position: relative;
-    -moz-user-select: -moz-none;
+    -webkit-user-select: none;
+       -moz-user-select: -moz-none;
+        -ms-user-select: none;
+            user-select: none;
 }
 
 .context-menu-separator {
@@ -47,8 +50,12 @@
     border-bottom: 1px solid #DDD;
 }
 
-.context-menu-item > label {
-    -moz-user-select: text;
+.context-menu-item > label > input,
+.context-menu-item > label > textarea {
+    -webkit-user-select: text;
+       -moz-user-select: text;
+        -ms-user-select: text;
+            user-select: text;
 }
 
 .context-menu-item.hover {
@@ -87,6 +94,7 @@
 .context-menu-item.icon-copy { background-image: url(images/page_white_copy.png); }
 .context-menu-item.icon-paste { background-image: url(images/page_white_paste.png); }
 .context-menu-item.icon-delete { background-image: url(images/page_white_delete.png); }
+.context-menu-item.icon-add { background-image: url(images/page_white_add.png); }
 .context-menu-item.icon-quit { background-image: url(images/door.png); }
 
 /* vertically align inside labels */
