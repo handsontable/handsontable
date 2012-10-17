@@ -1,14 +1,13 @@
 describe('Core_selection', function () {
-  var $container,
-    id = 'testContainer';
+  var id = 'testContainer';
 
   beforeEach(function () {
-    $container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
   afterEach(function () {
-    if($container) {
-      $container.remove();
+    if (this.$container) {
+      this.$container.remove();
     }
   });
 
@@ -16,12 +15,12 @@ describe('Core_selection', function () {
     var output = null;
 
     runs(function () {
-      $container.handsontable({
+      handsontable({
         onSelection: function (r, c) {
           output = [r, c];
         }
       });
-      $container.handsontable('selectCell', 1, 2);
+      selectCell(1, 2);
     });
 
     waitsFor(function () {
@@ -38,11 +37,11 @@ describe('Core_selection', function () {
     var output = null;
 
     runs(function () {
-      $container.handsontable();
-      $container.on("selection.handsontable", function (event, r, c) {
+      handsontable();
+      this.$container.on("selection.handsontable", function (event, r, c) {
         output = [r, c];
       });
-      $container.handsontable('selectCell', 1, 2);
+      selectCell(1, 2);
     });
 
     waitsFor(function () {
@@ -59,12 +58,12 @@ describe('Core_selection', function () {
     var output = null;
 
     runs(function () {
-      $container.handsontable({
+      handsontable({
         onSelection: function () {
           output = this;
         }
       });
-      $container.handsontable('selectCell', 0, 0);
+      selectCell(0, 0);
     });
 
     waitsFor(function () {
@@ -72,7 +71,7 @@ describe('Core_selection', function () {
     }, "onSelection callback called", 100);
 
     runs(function () {
-      expect(output).toEqual($container.get(0));
+      expect(output).toEqual(this.$container.get(0));
     });
   });
 
@@ -80,12 +79,12 @@ describe('Core_selection', function () {
     var output = null;
 
     runs(function () {
-      $container.handsontable({
+      handsontable({
         onSelectionByProp: function () {
           output = this;
         }
       });
-      $container.handsontable('selectCell', 0, 0);
+      selectCell(0, 0);
     });
 
     waitsFor(function () {
@@ -93,7 +92,36 @@ describe('Core_selection', function () {
     }, "onSelectionByProp callback called", 100);
 
     runs(function () {
-      expect(output).toEqual($container.get(0));
+      expect(output).toEqual(this.$container.get(0));
+    });
+  });
+
+  it('this should focus external textarea when clicked during editing', function () {
+    var output = null;
+    var textarea = $('<input>').appendTo($('body'));
+
+    runs(function () {
+      handsontable({
+        onSelectionByProp: function () {
+          output = this;
+        }
+      });
+      selectCell(0, 0);
+    });
+
+    waits(10);
+
+    runs(function () {
+      keyDown('enter');
+      $("html").triggerHandler('click');
+      textarea.focus();
+    });
+
+    waits(10);
+
+    runs(function () {
+      expect(textarea.is(":focus")).toEqual(true);
+      textarea.remove();
     });
   });
 });

@@ -1033,7 +1033,7 @@ Handsontable.Core = function (rootElement, settings) {
      * Setter/getter for selection start
      */
     start: function (coords) {
-      if (coords) {
+      if (typeof coords !== 'undefined') {
         priv.selStart = coords;
       }
       return priv.selStart;
@@ -1043,7 +1043,7 @@ Handsontable.Core = function (rootElement, settings) {
      * Setter/getter for selection end
      */
     end: function (coords) {
-      if (coords) {
+      if (typeof coords !== 'undefined') {
         priv.selEnd = coords;
       }
       return priv.selEnd;
@@ -1145,13 +1145,13 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
+      selection.end(false);
       editproxy.destroy();
       highlight.off();
       priv.currentBorder.disappear();
       if (priv.fillHandle) {
         autofill.hideHandle();
       }
-      selection.end(false);
       self.rootElement.triggerHandler('deselect.handsontable');
     },
 
@@ -1308,7 +1308,9 @@ Handsontable.Core = function (rootElement, settings) {
       });
 
       self.rootElement.on('finishediting.handsontable', function () {
-        autofill.showHandle();
+        if(selection.isSelected()) {
+          autofill.showHandle();
+        }
       });
     },
 
