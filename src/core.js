@@ -1291,7 +1291,7 @@ Handsontable.Core = function (rootElement, settings) {
       });
 
       self.rootElement.on('finishediting.handsontable', function () {
-        if(selection.isSelected()) {
+        if (selection.isSelected()) {
           autofill.showHandle();
         }
       });
@@ -2579,6 +2579,12 @@ Handsontable.Core = function (rootElement, settings) {
     var that = this;
     $(this.handle).mousedown(function () {
       that.isDragged = 1;
+    });
+
+    this.$container.find('table').on('selectstart', function (event) {
+      //https://github.com/warpech/jquery-handsontable/issues/160
+      //selectstart is IE only event. Prevent text from being selected when performing drag down in IE8
+      event.preventDefault();
     });
   }
 
