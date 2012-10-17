@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html xmlns="http://www.w3.org/1999/html">
 <head>
   <meta charset='utf-8'>
   <title>Context Menu - Handsontable</title>
@@ -33,7 +33,7 @@
   -->
   <meta property="og:title" content="Context Menu">
   <meta property="og:description"
-        content="Right click to see the context menu.">
+        content="This page shows how to use and configure right-click context menu with Handsontable">
   <meta property="og:url" content="http://handsontable.com/demo/contextmenu.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -55,72 +55,227 @@
 
 <div id="container">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
+      <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
-        </div>
-
-        <h2>Context Menu</h2>
+      <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+        for HTML, JavaScript &amp; jQuery
       </div>
+
+      <h2>Context Menu</h2>
+
+      <p>This page shows how to use and configure right-click context menu with Handsontable:</p>
+
+      <ul>
+        <li><a href="#dependencies">dependencies</a></li>
+        <li><a href="#default">context menu with default options</a></li>
+        <li><a href="#specific">context menu with specific options</a></li>
+        <li><a href="#custom">context menu with fully custom configuration</a></li>
+      </ul>
+
+      <a name="dependencies"></a>
+
+      <h2>Dependencies</h2>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
+
+      <p>Context Menu feature requires <a
+          href="http://medialize.github.com/jQuery-contextMenu/">jQuery-contextMenu</a>
+        plugin (tested with version 1.5.14), which itself has dependency on <a
+            href="http://docs.jquery.com/UI/Position">jQuery UI Position</a> (1.8.13).</p>
+
+      <p>All files are available in the Handsontable repo, just remember to include them in your HTML.</p>
     </div>
   </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad bottomSpace100">
-        <p>Right click to see the context menu.</p>
-
-        <p>
-          <b>Note:</b> Make sure you include the dependencies (jquery.contextMenu.js, jquery.contextMenu.css, jquery.ui.position.js) as presented in
-          <a href="https://github.com/warpech/jquery-handsontable">README.md</a>.
-        </p>
-
-        <div id="example1"></div>
-
-        <p>
-          <button name="dump" data-dump="#example1">Dump to console</button>
-        </p>
-      </div>
+  <div class="codeLayout">
+    <div class="pad">
+        <pre class="html"><code>&lt;script src="lib/jQuery-contextMenu/jquery.contextMenu.js"&gt;&lt;/script&gt;
+          &lt;script src="lib/jQuery-contextMenu/jquery.ui.position.js"&gt;&lt;/script&gt;
+          &lt;link rel="stylesheet" media="screen"
+          href="lib/jQuery-contextMenu/jquery.contextMenu.css"&gt;
+        </code></pre>
     </div>
+  </div>
+</div>
 
-    <div class="codeLayout">
-      <div class="pad">
-        <script>
-          $("#example1").handsontable({
-            startRows: 5,
-            startCols: 5,
-            rowHeaders: true,
-            colHeaders: true,
-            minSpareRows: 1,
-            contextMenu: true
-          });
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
+      <a name="default"></a>
 
-          var data = [
+      <h2>Context Menu with default options</h2>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad bottomSpace100">
+      <p>Tu run the basic configuration of the Context Menu, just set the contextMenu option to true.</p>
+
+      <div id="example1"></div>
+
+      <p>
+        <button name="dump" data-dump="#example1">Dump to console</button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <script>
+        function getData() {
+          return [
             ["", "Kia", "Nissan", "Toyota", "Honda"],
             ["2008", 10, 11, 12, 13],
             ["2009", 20, 11, 14, 13],
             ["2010", 30, 15, 12, 13]
           ];
+        }
 
-          $("#example1").handsontable("loadData", data);
-        </script>
-      </div>
+        $("#example1").handsontable({
+          data: getData(),
+          startRows: 5,
+          startCols: 5,
+          rowHeaders: true,
+          colHeaders: true,
+          minSpareRows: 1,
+          contextMenu: true
+        });
+      </script>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
+      <a name="specific"></a>
+
+      <h2>Context Menu with specific options</h2>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad bottomSpace100">
+      <p>You can limit options available in the context menu using contextMenu option as an array of strings:</p>
+
+      <ul>
+        <li>row_above</li>
+        <li>row_below</li>
+        <li>hsep1</li>
+        <li>col_left</li>
+        <li>col_right</li>
+        <li>hsep2</li>
+        <li>remove_row</li>
+        <li>remove_col</li>
+        <li>hsep3</li>
+        <li>undo</li>
+        <li>redo</li>
+      </ul>
+
+      <div id="example2"></div>
+
+      <p>
+        <button name="dump" data-dump="#example1">Dump to console</button>
+      </p>
     </div>
   </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
-
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
-      </div>
+  <div class="codeLayout">
+    <div class="pad">
+      <script>
+        $("#example2").handsontable({
+          data: getData(),
+          startRows: 5,
+          startCols: 5,
+          rowHeaders: true,
+          colHeaders: true,
+          minSpareRows: 1,
+          contextMenu: ['row_above', 'row_below', 'remove_row']
+        });
+      </script>
     </div>
   </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
+      <a name="custom"></a>
+
+      <h2>Context Menu with with fully custom configuration</h2>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad bottomSpace100">
+      <p>For greatest configurability, you use contextMenu option as a configuration object as described in <a
+          href="http://medialize.github.com/jQuery-contextMenu/docs.html">jQuery-contextMenu documentation</a>:</p>
+
+      <div id="example3"></div>
+
+      <p>
+        <button name="dump" data-dump="#example1">Dump to console</button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <script>
+        $("#example3").handsontable({
+          data: getData(),
+          startRows: 5,
+          startCols: 5,
+          rowHeaders: true,
+          colHeaders: true,
+          minSpareRows: 1,
+          contextMenu: {
+            callback: function (key, options) {
+              if (key === 'about') {
+                setTimeout(function(){
+                  //timeout is used to make sure the menu collapsed before alert is shown
+                  alert("This is a context menu with default and custom options mixed");
+                }, 100);
+              }
+            },
+            items: {
+              "row_above": {},
+              "row_below": {},
+              "hsep1": "---------",
+              "remove_row": {name: 'Would you please remove this row?'},
+              "hsep2": "---------",
+              "about": {name: 'About this menu'}
+            }
+          }
+        });
+      </script>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+
+      <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+        licensed under the The MIT License.</p>
+    </div>
+  </div>
+</div>
 </div>
 </body>
 </html>

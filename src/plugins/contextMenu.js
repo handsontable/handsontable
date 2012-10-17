@@ -1,7 +1,33 @@
 function createContextMenu() {
-  var instance = this;
+  var instance = this
+    , defaultOptions = {
+      selector: "#" + instance.rootElement.attr('id'),
+      trigger: 'right',
+      callback: onContextClick
+    },
+    allItems = {
+      "row_above": {name: "Insert row above", disabled: isDisabled},
+      "row_below": {name: "Insert row below", disabled: isDisabled},
+      "hsep1": "---------",
+      "col_left": {name: "Insert column on the left", disabled: isDisabled},
+      "col_right": {name: "Insert column on the right", disabled: isDisabled},
+      "hsep2": "---------",
+      "remove_row": {name: "Remove row", disabled: isDisabled},
+      "remove_col": {name: "Remove column", disabled: isDisabled},
+      "hsep3": "---------",
+      "undo": {name: "Undo", disabled: function () {
+        return !instance.isUndoAvailable();
+      }},
+      "redo": {name: "Redo", disabled: function () {
+        return !instance.isRedoAvailable();
+      }}
+    }
+    , options = {}
+    , i
+    , ilen
+    , settings = instance.getSettings();
 
-  var onContextClick = function (key) {
+  function onContextClick(key) {
     var corners = instance.getSelected(); //[top left row, top left col, bottom right row, bottom right col]
 
     switch (key) {
@@ -37,10 +63,9 @@ function createContextMenu() {
         instance.redo();
         break;
     }
-  };
+  }
 
-  var isDisabled = function (key) {
-
+  function isDisabled(key) {
     if (instance.blockedCols.main.find('th.htRowHeader.active').length && (key === "remove_col" || key === "col_left" || key === "col_right")) {
       return true;
     }
@@ -60,49 +85,57 @@ function createContextMenu() {
     }
 
     return true;
-  };
+  }
 
-  var allItems = {
-    "undo": {name: "Undo", disabled: function () {
-      return !instance.isUndoAvailable();
-    }},
-    "redo": {name: "Redo", disabled: function () {
-      return !instance.isRedoAvailable();
-    }},
-    "sep1": "---------",
-    "row_above": {name: "Insert row above", disabled: isDisabled},
-    "row_below": {name: "Insert row below", disabled: isDisabled},
-    "sep2": "---------",
-    "col_left": {name: "Insert column on the left", disabled: isDisabled},
-    "col_right": {name: "Insert column on the right", disabled: isDisabled},
-    "sep3": "---------",
-    "remove_row": {name: "Remove row", disabled: isDisabled},
-    "remove_col": {name: "Remove column", disabled: isDisabled}
-  };
-
-  var settings = instance.getSettings();
   if (!settings.contextMenu) {
     return;
   }
-  if (settings.contextMenu === true) { //contextMenu is true, not an array
-    settings.contextMenu = ["row_above", "row_below", "sep1", "col_left", "col_right", "sep2", "remove_row", "remove_col", "sep3", "undo", "redo"]; //use default fields array
+  else if (settings.contextMenu === true) { //contextMenu is true
+    options.items = allItems;
   }
+  else if (Object.prototype.toString.apply(settings.contextMenu) === '[object Array]') { //contextMenu is an array
+    options.items = {};
+    for (i = 0, ilen = settings.contextMenu.length; i < ilen; i++) {
+      var key = settings.contextMenu[i];
+      if (typeof allItems[key] === 'undefined') {
+        throw new Error('Context menu key "' + key + '" is not recognised');
+      }
+      options.items[key] = allItems[key];
+    }
+  }
+  else if (Object.prototype.toString.apply(settings.contextMenu) === '[object Object]') { //contextMenu is an options object as defined in http://medialize.github.com/jQuery-contextMenu/docs.html
+    options = settings.contextMenu;
+    if (options.items) {
+      for (i in options.items) {
+        if (options.items.hasOwnProperty(i) && allItems[i]) {
+          if (typeof options.items[i] === 'string') {
+            options.items[i] = allItems[i];
+          }
+          else {
+            options.items[i] = $.extend(true, allItems[i], options.items[i]);
+          }
+        }
+      }
+    }
+    else {
+      options.items = allItems;
+    }
 
-  var items = {};
-  for (var i = 0, ilen = settings.contextMenu.length; i < ilen; i++) {
-    items[settings.contextMenu[i]] = allItems[settings.contextMenu[i]];
+    if (options.callback) {
+      var handsontableCallback = defaultOptions.callback;
+      var customCallback = options.callback;
+      options.callback = function (key, options) {
+        handsontableCallback(key, options);
+        customCallback(key, options);
+      }
+    }
   }
 
   if (!instance.rootElement.attr('id')) {
     throw new Error("Handsontable container must have an id");
   }
 
-  $.contextMenu({
-    selector: "#" + instance.rootElement.attr('id'),
-    trigger: 'right',
-    callback: onContextClick,
-    items: items
-  });
+  $.contextMenu($.extend(true, defaultOptions, options));
 }
 
 Handsontable.PluginHooks.push('afterInit', createContextMenu);
