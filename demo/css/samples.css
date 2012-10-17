@@ -134,7 +134,12 @@ a:hover {
   color: #646464;
 }
 
-.small {
+h1 .small {
+  font-size: 16px;
+  font-weight: normal;
+}
+
+p .small {
   font-size: 13px;
   margin-top: 60px;
 }
