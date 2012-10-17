@@ -147,13 +147,9 @@ pre {
   clear: left;
 }
 
-p {
+ul, ol, p {
   margin-bottom: 2em;
   clear: left;
-}
-
-ol {
-  margin-bottom: 2em;
 }
 
 /**
