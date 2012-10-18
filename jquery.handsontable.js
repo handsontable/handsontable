@@ -2044,28 +2044,15 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
-   * Return 2-dimensional array with all grid data as copy (preferred but slower than `getDataReference`). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to get only a fragment of grid data
+   * Return the current data object (the same that was passed by `data` configuration option or `loadData` method). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to get only a fragment of grid data
    * @public
    * @param {Number} r (Optional) From row
    * @param {Number} c (Optional) From col
    * @param {Number} r2 (Optional) To row
    * @param {Number} c2 (Optional) To col
-   * @return {Array}
+   * @return {Array|Object}
    */
   this.getData = function (r, c, r2, c2) {
-    return $.extend(true, [], self.getDataReference.apply(self, arguments));
-  };
-
-  /**
-   * Return 2-dimensional array with all grid data as reference (faster than `getData` but can mess up - use it only for reading data). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to extract only a fragment of grid
-   * @public
-   * @param {Number} r (Optional) From row
-   * @param {Number} c (Optional) From col
-   * @param {Number} r2 (Optional) To row
-   * @param {Number} c2 (Optional) To col
-   * @return {Array}
-   */
-  this.getDataReference = function (r, c, r2, c2) {
     if (typeof r === 'undefined') {
       return datamap.getAll();
     }

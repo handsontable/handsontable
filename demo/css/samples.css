@@ -60,6 +60,10 @@ body {
   padding-bottom: 150px;
 }
 
+.pad.bottomSpace200 {
+  padding-bottom: 200px;
+}
+
 .pad.bottomSpace300 {
   padding-bottom: 300px;
 }
