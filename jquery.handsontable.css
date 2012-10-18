@@ -12,7 +12,6 @@
   box-sizing: content-box;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
-  vertical-align: middle;
 }
 
 .handsontable table {
