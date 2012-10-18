@@ -3923,7 +3923,7 @@ Handsontable.PluginHooks = {
 function createContextMenu() {
   var instance = this
     , defaultOptions = {
-      selector: "#" + instance.rootElement.attr('id'),
+      selector: "#" + instance.rootElement.attr('id') + ' table',
       trigger: 'right',
       callback: onContextClick
     },
