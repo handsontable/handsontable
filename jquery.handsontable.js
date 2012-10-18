@@ -3043,7 +3043,7 @@ Handsontable.BlockedCols = function (instance) {
  * @return {String}
  */
 Handsontable.BlockedCols.prototype.determineCellHeightMethod = function () {
-  var $td = $('<td>x</td>').appendTo(this.main.find('tr:eq(0'));
+  var $td = $('<td>x</td>').appendTo(this.main.find('tr:eq(0)'));
   $td.height(28);
   if ($td.height() != 28 && $td.outerHeight() == 28) {
     $td.remove();
