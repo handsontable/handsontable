@@ -51,6 +51,14 @@ var handsontableKeyTriggerFactory = function (type) {
       case 'enter':
         ev.keyCode = 13;
         break;
+
+      case 'esc':
+        ev.keyCode = 27;
+        break;
+
+      case 'f2':
+        ev.keyCode = 113;
+        break;
     }
     spec().$keyboardProxy.trigger(ev);
   }

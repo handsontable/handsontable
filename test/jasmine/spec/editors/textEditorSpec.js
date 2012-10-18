@@ -141,4 +141,30 @@ describe('TextEditor', function () {
     keyDown('enter');
     expect(keyProxy()).toEqual("");
   });
+
+  it('should open editor after cancelling edit and beginning it again', function () {
+    runs(function(){
+      handsontable();
+      selectCell(2, 2);
+      keyDown('f2');
+    });
+
+    waits(10);
+
+    runs(function(){
+      keyDown('esc');
+    });
+
+    waits(10);
+
+    runs(function(){
+      keyDown('f2');
+    });
+
+    waits(10);
+
+    runs(function(){
+      expect(isEditorVisible()).toEqual(true);
+    });
+  });
 });

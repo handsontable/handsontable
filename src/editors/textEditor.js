@@ -129,7 +129,13 @@ var texteditor = {
         else {
           instance.grid.populateFromArray({row: row, col: col}, val, null, false, 'edit');
         }
+        keyboardProxy.off(".editor");
+        $(td).off('.editor');
       }
+    }
+    else {
+      keyboardProxy.off(".editor");
+      $(td).off('.editor');
     }
 
     keyboardProxy.css({
@@ -140,10 +146,7 @@ var texteditor = {
       overflow: 'hidden'
     });
 
-    keyboardProxy.off(".editor");
-    $(td).off('.editor');
     instance.container.find('.htBorder.current').off('.editor');
-
     instance.rootElement.triggerHandler('finishediting.handsontable');
   }
 };
