@@ -188,7 +188,7 @@
           var isChecked;
 
           var customRenderer = function (instance, td) {
-            Handsontable.TextCell.apply(this, arguments);
+            Handsontable.TextCell.renderer.apply(this, arguments);
             if (isChecked) {
               td.style.backgroundColor = 'yellow';
             }
