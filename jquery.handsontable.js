@@ -1483,7 +1483,12 @@ Handsontable.Core = function (rootElement, settings) {
         }, 100);
       }
 
+      var $body = $(document.body);
       function onKeyDown(event) {
+        if ($body.children('.context-menu-list:visible').length) {
+          return;
+        }
+
         var r, c;
         priv.lastKeyCode = event.keyCode;
         if (selection.isSelected()) {
