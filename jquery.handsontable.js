@@ -1841,6 +1841,12 @@ Handsontable.Core = function (rootElement, settings) {
       e.stopPropagation();
     });
 
+    $(window).on('resize', function () {
+      //https://github.com/warpech/jquery-handsontable/issues/193
+      self.blockedCols.update();
+      self.blockedRows.update();
+    });
+
     Handsontable.PluginHooks.run(self, 'afterInit');
 
     $('.context-menu-root').on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
