@@ -15,6 +15,8 @@ module.exports = function (grunt) {
 
           'src/core.js',
           'src/helpers.js',
+          'src/border.js',
+          'src/fillHandle.js',
           'src/undoRedo.js',
           'src/blockedRows.js',
           'src/blockedCols.js',
