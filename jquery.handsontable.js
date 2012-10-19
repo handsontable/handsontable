@@ -444,7 +444,7 @@ Handsontable.Core = function (rootElement, settings) {
     }
   };
 
-  self.grid = grid = {
+  grid = {
     /**
      * Alter grid
      * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col"
@@ -1484,6 +1484,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       var $body = $(document.body);
+
       function onKeyDown(event) {
         if ($body.children('.context-menu-list:visible').length) {
           return;
@@ -1975,6 +1976,27 @@ Handsontable.Core = function (rootElement, settings) {
       self.rootElement.triggerHandler("cellrender.handsontable", [changes, source || 'edit']);
     }
     return td;
+  };
+
+  /**
+   * Populate cells at position with 2d array
+   * @param {Object} start Start selection position
+   * @param {Array} input 2d array
+   * @param {Object} [end] End selection position (only for drag-down mode)
+   * @param {String} [source="populateFromArray"]
+   * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
+   */
+  this.populateFromArray = function (start, input, end, source) {
+    return grid.populateFromArray(start, input, end, source);
+  };
+
+  /**
+   * Returns the top left (TL) and bottom right (BR) selection coordinates
+   * @param {Object[]} coordsArr
+   * @returns {Object}
+   */
+  this.getCornerCoords = function (coordsArr) {
+    return grid.getCornerCoords(coordsArr);
   };
 
   /**
@@ -2613,7 +2635,7 @@ Handsontable.Border.prototype = {
       return;
     }
 
-    this.corners = this.instance.grid.getCornerCoords(coordsArr);
+    this.corners = this.instance.getCornerCoords(coordsArr);
 
     $from = $(this.instance.getCell(this.corners.TL.row, this.corners.TL.col));
     $to = (coordsArr.length > 1) ? $(this.instance.getCell(this.corners.BR.row, this.corners.BR.col)) : $from;
@@ -2717,7 +2739,7 @@ Handsontable.FillHandle.prototype = {
 
     var $td, tdOffset, containerOffset, top, left, height, width;
 
-    var corners = this.instance.grid.getCornerCoords(coordsArr);
+    var corners = this.instance.getCornerCoords(coordsArr);
 
     $td = $(this.instance.getCell(corners.BR.row, corners.BR.col));
     tdOffset = $td.offset();
@@ -3539,10 +3561,10 @@ var texteditor = {
       if (!isCancelled) {
         if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
           var sel = instance.handsontable('getSelected');
-          instance.grid.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
+          instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
         }
         else {
-          instance.grid.populateFromArray({row: row, col: col}, val, null, false, 'edit');
+          instance.populateFromArray({row: row, col: col}, val, null, false, 'edit');
         }
         keyboardProxy.off(".editor");
         $(td).off('.editor');

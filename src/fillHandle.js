@@ -37,7 +37,7 @@ Handsontable.FillHandle.prototype = {
 
     var $td, tdOffset, containerOffset, top, left, height, width;
 
-    var corners = this.instance.grid.getCornerCoords(coordsArr);
+    var corners = this.instance.getCornerCoords(coordsArr);
 
     $td = $(this.instance.getCell(corners.BR.row, corners.BR.col));
     tdOffset = $td.offset();

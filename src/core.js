@@ -427,7 +427,7 @@ Handsontable.Core = function (rootElement, settings) {
     }
   };
 
-  self.grid = grid = {
+  grid = {
     /**
      * Alter grid
      * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col"
@@ -1467,6 +1467,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       var $body = $(document.body);
+
       function onKeyDown(event) {
         if ($body.children('.context-menu-list:visible').length) {
           return;
@@ -1958,6 +1959,27 @@ Handsontable.Core = function (rootElement, settings) {
       self.rootElement.triggerHandler("cellrender.handsontable", [changes, source || 'edit']);
     }
     return td;
+  };
+
+  /**
+   * Populate cells at position with 2d array
+   * @param {Object} start Start selection position
+   * @param {Array} input 2d array
+   * @param {Object} [end] End selection position (only for drag-down mode)
+   * @param {String} [source="populateFromArray"]
+   * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
+   */
+  this.populateFromArray = function (start, input, end, source) {
+    return grid.populateFromArray(start, input, end, source);
+  };
+
+  /**
+   * Returns the top left (TL) and bottom right (BR) selection coordinates
+   * @param {Object[]} coordsArr
+   * @returns {Object}
+   */
+  this.getCornerCoords = function (coordsArr) {
+    return grid.getCornerCoords(coordsArr);
   };
 
   /**

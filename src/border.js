@@ -45,7 +45,7 @@ Handsontable.Border.prototype = {
       return;
     }
 
-    this.corners = this.instance.grid.getCornerCoords(coordsArr);
+    this.corners = this.instance.getCornerCoords(coordsArr);
 
     $from = $(this.instance.getCell(this.corners.TL.row, this.corners.TL.col));
     $to = (coordsArr.length > 1) ? $(this.instance.getCell(this.corners.BR.row, this.corners.BR.col)) : $from;

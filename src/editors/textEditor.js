@@ -124,10 +124,10 @@ var texteditor = {
       if (!isCancelled) {
         if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
           var sel = instance.handsontable('getSelected');
-          instance.grid.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
+          instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
         }
         else {
-          instance.grid.populateFromArray({row: row, col: col}, val, null, false, 'edit');
+          instance.populateFromArray({row: row, col: col}, val, null, false, 'edit');
         }
         keyboardProxy.off(".editor");
         $(td).off('.editor');
