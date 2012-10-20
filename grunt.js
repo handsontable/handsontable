@@ -14,6 +14,7 @@ module.exports = function (grunt) {
           'src/intro.js',
 
           'src/core.js',
+          'src/tableView.js',
           'src/helpers.js',
           'src/border.js',
           'src/fillHandle.js',

@@ -6,27 +6,12 @@
  */
 Handsontable.Core = function (rootElement, settings) {
   this.rootElement = rootElement;
-  this.container = $('<div class="handsontable"></div>');
-  var overflow = this.rootElement.css('overflow');
-  if (overflow === 'auto' || overflow === 'scroll') {
-    this.container.css('overflow', overflow);
-    var w = this.rootElement.css('width');
-    if (w) {
-      this.container.css('width', w);
-    }
-    var h = this.rootElement.css('height');
-    if (h) {
-      this.container.css('height', h);
-    }
-    this.rootElement.css('overflow', 'hidden');
-  }
-  this.rootElement.append(this.container);
+  this.view = new Handsontable.TableView(this);
 
-  var priv, datamap, grid, selection, editproxy, highlight, autofill, interaction, self = this;
+  var priv, datamap, grid, selection, editproxy, highlight, autofill, self = this;
 
   priv = {
     settings: {},
-    isMouseOverTable: false,
     isMouseDown: false,
     selStart: null,
     selEnd: null,
@@ -40,29 +25,6 @@ Handsontable.Core = function (rootElement, settings) {
     dataSchema: null,
     dataType: 'array'
   };
-
-  /**
-   * Measure the width and height of browser scrollbar
-   * @return {Object}
-   */
-  function measureScrollbar() {
-    var div = $('<div style="width:150px;height:150px;overflow:hidden;position:absolute;top:200px;left:200px"><div style="width:100%;height:100%;position:absolute">x</div>');
-    $('body').append(div);
-    var subDiv = $(div[0].firstChild);
-    var w1 = subDiv.innerWidth();
-    var h1 = subDiv.innerHeight();
-    div[0].style.overflow = 'scroll';
-    w1 -= subDiv.innerWidth();
-    h1 -= subDiv.innerHeight();
-    if (w1 === 0) {
-      w1 = 17;
-    }
-    if (h1 === 0) {
-      h1 = 17;
-    }
-    div.remove();
-    return {width: w1, height: h1};
-  }
 
   var hasMinWidthProblem = ($.browser.msie && (parseInt($.browser.version, 10) <= 7));
   /**
@@ -441,7 +403,7 @@ Handsontable.Core = function (rootElement, settings) {
       switch (action) {
         case "insert_row":
           datamap.createRow(coords);
-          grid.createRow(coords);
+          self.view.createRow(coords);
           self.blockedCols.refresh();
           if (priv.selStart && priv.selStart.row >= coords.row) {
             priv.selStart.row = priv.selStart.row + 1;
@@ -454,7 +416,7 @@ Handsontable.Core = function (rootElement, settings) {
 
         case "insert_col":
           datamap.createCol(coords);
-          grid.createCol(coords);
+          self.view.createCol(coords);
           self.blockedRows.refresh();
           if (priv.selStart && priv.selStart.col >= coords.col) {
             priv.selStart.col = priv.selStart.col + 1;
@@ -467,7 +429,7 @@ Handsontable.Core = function (rootElement, settings) {
 
         case "remove_row":
           datamap.removeRow(coords, toCoords);
-          grid.removeRow(coords, toCoords);
+          self.view.removeRow(coords, toCoords);
           result = grid.keepEmptyRows();
           if (!result) {
             self.blockedCols.refresh();
@@ -477,7 +439,7 @@ Handsontable.Core = function (rootElement, settings) {
 
         case "remove_col":
           datamap.removeCol(coords, toCoords);
-          grid.removeCol(coords, toCoords);
+          self.view.removeCol(coords, toCoords);
           result = grid.keepEmptyRows();
           if (!result) {
             self.blockedRows.refresh();
@@ -494,116 +456,6 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
       self.rootElement.triggerHandler("datachange.handsontable", [changes, 'alter']);
-    },
-
-    /**
-     * Creates row at the bottom of the <table>
-     * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
-     */
-    createRow: function (coords) {
-      var tr, c, r, td, p;
-      tr = document.createElement('tr');
-      self.blockedCols.createRow(tr);
-      for (c = 0; c < self.colCount; c++) {
-        tr.appendChild(td = document.createElement('td'));
-        self.minWidthFix(td);
-      }
-      if (!coords || coords.row >= self.rowCount) {
-        priv.tableBody.appendChild(tr);
-        r = self.rowCount;
-      }
-      else {
-        var oldTr = grid.getCellAtCoords(coords).parentNode;
-        priv.tableBody.insertBefore(tr, oldTr);
-        r = coords.row;
-      }
-      self.rowCount++;
-      for (c = 0; c < self.colCount; c++) {
-        p = datamap.colToProp(c);
-        grid.render(r, c, p, datamap.get(r, p));
-      }
-    },
-
-    /**
-     * Creates col at the right of the <table>
-     * @param {Object} [coords] Optional. Coords of the cell before which the new column will be inserted
-     */
-    createCol: function (coords) {
-      var trs = priv.tableBody.childNodes, r, c, td, p;
-      self.blockedRows.createCol();
-      if (!coords || coords.col >= self.colCount) {
-        for (r = 0; r < self.rowCount; r++) {
-          trs[r].appendChild(td = document.createElement('td'));
-          self.minWidthFix(td);
-        }
-        c = self.colCount;
-      }
-      else {
-        for (r = 0; r < self.rowCount; r++) {
-          trs[r].insertBefore(td = document.createElement('td'), grid.getCellAtCoords({row: r, col: coords.col}));
-          self.minWidthFix(td);
-        }
-        c = coords.col;
-      }
-      self.colCount++;
-      for (r = 0; r < self.rowCount; r++) {
-        p = datamap.colToProp(c);
-        grid.render(r, c, p, datamap.get(r, p));
-      }
-    },
-
-    /**
-     * Removes row at the bottom of the <table>
-     * @param {Object} [coords] Optional. Coords of the cell which row will be removed
-     * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all rows will be removed
-     */
-    removeRow: function (coords, toCoords) {
-      if (!coords || coords.row === self.rowCount - 1) {
-        $(priv.tableBody.childNodes[self.rowCount - 1]).remove();
-        self.rowCount--;
-      }
-      else {
-        for (var i = toCoords.row; i >= coords.row; i--) {
-          $(priv.tableBody.childNodes[i]).remove();
-          self.rowCount--;
-        }
-      }
-    },
-
-    /**
-     * Removes col at the right of the <table>
-     * @param {Object} [coords] Optional. Coords of the cell which col will be removed
-     * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all cols will be removed
-     */
-    removeCol: function (coords, toCoords) {
-      var trs = priv.tableBody.childNodes, colThs, i;
-      if (self.blockedRows) {
-        colThs = self.table.find('thead th');
-      }
-      var r = 0;
-      if (!coords || coords.col === self.colCount - 1) {
-        for (; r < self.rowCount; r++) {
-          $(trs[r].childNodes[self.colCount + self.blockedCols.count() - 1]).remove();
-          if (colThs) {
-            colThs.eq(self.colCount + self.blockedCols.count() - 1).remove();
-          }
-        }
-        self.colCount--;
-      }
-      else {
-        for (; r < self.rowCount; r++) {
-          for (i = toCoords.col; i >= coords.col; i--) {
-            $(trs[r].childNodes[i + self.blockedCols.count()]).remove();
-
-          }
-        }
-        if (colThs) {
-          for (i = toCoords.col; i >= coords.col; i--) {
-            colThs.eq(i + self.blockedCols.count()).remove();
-          }
-        }
-        self.colCount -= toCoords.col - coords.col + 1;
-      }
     },
 
     /**
@@ -629,7 +481,7 @@ Handsontable.Core = function (rootElement, settings) {
       //should I add empty rows to meet startRows?
       if (self.rowCount < priv.settings.startRows) {
         for (; self.rowCount < priv.settings.startRows; emptyRows++) {
-          grid.createRow();
+          self.view.createRow();
           recreateRows = true;
         }
       }
@@ -638,7 +490,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (emptyRows < priv.settings.minSpareRows) {
         for (; emptyRows < priv.settings.minSpareRows; emptyRows++) {
           datamap.createRow();
-          grid.createRow();
+          self.view.createRow();
           recreateRows = true;
         }
       }
@@ -649,7 +501,7 @@ Handsontable.Core = function (rootElement, settings) {
         if ($tbody.height() > 0 && $tbody.height() <= priv.settings.minHeight) {
           while ($tbody.height() <= priv.settings.minHeight) {
             datamap.createRow();
-            grid.createRow();
+            self.view.createRow();
             recreateRows = true;
           }
         }
@@ -674,7 +526,7 @@ Handsontable.Core = function (rootElement, settings) {
           if (!priv.settings.columns) {
             datamap.createCol();
           }
-          grid.createCol();
+          self.view.createCol();
           recreateCols = true;
         }
       }
@@ -685,7 +537,7 @@ Handsontable.Core = function (rootElement, settings) {
           if (!priv.settings.columns) {
             datamap.createCol();
           }
-          grid.createCol();
+          self.view.createCol();
           recreateCols = true;
         }
       }
@@ -698,7 +550,7 @@ Handsontable.Core = function (rootElement, settings) {
             if (!priv.settings.columns) {
               datamap.createCol();
             }
-            grid.createCol();
+            self.view.createCol();
             recreateCols = true;
           }
         }
@@ -706,7 +558,7 @@ Handsontable.Core = function (rootElement, settings) {
 
       if (!recreateRows && priv.settings.enterBeginsEditing) {
         for (; ((priv.settings.startRows && self.rowCount > priv.settings.startRows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows) && (!priv.settings.minHeight || $tbody.height() - $tbody.find('tr:last').height() - 4 > priv.settings.minHeight)); emptyRows--) {
-          grid.removeRow();
+          self.view.removeRow();
           datamap.removeRow();
           recreateRows = true;
         }
@@ -731,10 +583,10 @@ Handsontable.Core = function (rootElement, settings) {
         clen = priv.settings.columns.length;
         if (self.colCount !== clen) {
           while (self.colCount > clen) {
-            grid.removeCol();
+            self.view.removeCol();
           }
           while (self.colCount < clen) {
-            grid.createCol();
+            self.view.createCol();
           }
           recreateCols = true;
         }
@@ -744,7 +596,7 @@ Handsontable.Core = function (rootElement, settings) {
           if (!priv.settings.columns) {
             datamap.removeCol();
           }
-          grid.removeCol();
+          self.view.removeCol();
           recreateCols = true;
         }
       }
@@ -815,7 +667,7 @@ Handsontable.Core = function (rootElement, settings) {
           if ((end && current.col > end.col) || (!priv.settings.minSpareCols && current.col > self.colCount - 1)) {
             break;
           }
-          td = grid.getCellAtCoords(current);
+          td = self.view.getCellAtCoords(current);
           if (self.getCellMeta(current.row, current.col).isWritable) {
             var p = datamap.colToProp(current.col);
             setData.push([current.row, p, input[r][c]]);
@@ -838,36 +690,10 @@ Handsontable.Core = function (rootElement, settings) {
      * Clears all cells in the grid
      */
     clear: function () {
-      var tds = grid.getAllCells();
+      var tds = self.view.getAllCells();
       for (var i = 0, ilen = tds.length; i < ilen; i++) {
         $(tds[i]).empty();
         self.minWidthFix(tds[i]);
-      }
-    },
-
-    /**
-     * Returns coordinates given td object
-     */
-    getCellCoords: function (td) {
-      return {
-        row: td.parentNode.rowIndex - self.blockedRows.count(),
-        col: td.cellIndex - self.blockedCols.count()
-      };
-    },
-
-    /**
-     * Returns td object given coordinates
-     */
-    getCellAtCoords: function (coords) {
-      if (coords.row < 0 || coords.col < 0) {
-        return null;
-      }
-      var tr = priv.tableBody.childNodes[coords.row];
-      if (tr) {
-        return tr.childNodes[coords.col + self.blockedCols.count()];
-      }
-      else {
-        return null;
       }
     },
 
@@ -908,73 +734,24 @@ Handsontable.Core = function (rootElement, settings) {
       var r, c, output = [];
       for (r = corners.TL.row; r <= corners.BR.row; r++) {
         for (c = corners.TL.col; c <= corners.BR.col; c++) {
-          output.push(grid.getCellAtCoords({
+          output.push(self.view.getCellAtCoords({
             row: r,
             col: c
           }));
         }
       }
       return output;
-    },
-
-    /**
-     * Returns all td objects in grid
-     */
-    getAllCells: function () {
-      var tds = [], trs, r, rlen, c, clen;
-      trs = priv.tableBody.childNodes;
-      rlen = self.rowCount;
-      if (rlen > 0) {
-        clen = self.colCount;
-        for (r = 0; r < rlen; r++) {
-          for (c = 0; c < clen; c++) {
-            tds.push(trs[r].childNodes[c + self.blockedCols.count()]);
-          }
-        }
-      }
-      return tds;
-    },
-
-    render: function (row, col, prop, value) {
-      var coords = {row: row, col: col};
-      var td = grid.getCellAtCoords(coords);
-      grid.applyCellTypeMethod('renderer', td, coords, value);
-      self.minWidthFix(td);
-      return td;
-    },
-
-    applyCellTypeMethod: function (methodName, td, coords, extraParam) {
-      var prop = datamap.colToProp(coords.col)
-        , method
-        , cellProperties = self.getCellMeta(coords.row, coords.col);
-
-      if (cellProperties.type && typeof cellProperties.type[methodName] === "function") {
-        method = cellProperties.type[methodName];
-      }
-      else if (priv.settings.autoComplete) {
-        for (var i = 0, ilen = priv.settings.autoComplete.length; i < ilen; i++) {
-          if (priv.settings.autoComplete[i].match(coords.row, coords.col, datamap.getAll)) {
-            method = Handsontable.AutocompleteCell[methodName];
-            cellProperties.autoComplete = priv.settings.autoComplete[i];
-            break;
-          }
-        }
-      }
-      if (typeof method !== "function") {
-        method = Handsontable.TextCell[methodName];
-      }
-      return method(self, td, coords.row, coords.col, prop, extraParam, cellProperties);
     }
   };
 
-  selection = {
+  this.selection = selection = { //this public assignment is only temporary
     /**
      * Starts selection range on given td object
      * @param td element
      */
     setRangeStart: function (td) {
       selection.deselect();
-      priv.selStart = grid.getCellCoords(td);
+      priv.selStart = self.view.getCellCoords(td);
       selection.setRangeEnd(td);
     },
 
@@ -984,7 +761,7 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to range end
      */
     setRangeEnd: function (td, scrollToCell) {
-      var coords = grid.getCellCoords(td);
+      var coords = self.view.getCellCoords(td);
       selection.end(coords);
       if (!priv.settings.multiSelect) {
         priv.selStart = coords;
@@ -993,7 +770,7 @@ Handsontable.Core = function (rootElement, settings) {
       self.rootElement.triggerHandler("selectionbyprop.handsontable", [priv.selStart.row, datamap.colToProp(priv.selStart.col), priv.selEnd.row, datamap.colToProp(priv.selEnd.col)]);
       selection.refreshBorders();
       if (scrollToCell !== false) {
-        highlight.scrollViewport(td);
+        self.view.scrollViewport(td);
       }
     },
 
@@ -1070,7 +847,7 @@ Handsontable.Core = function (rootElement, settings) {
         rowDelta = -1;
         colDelta = self.colCount - 1;
       }
-      var td = grid.getCellAtCoords({
+      var td = self.view.getCellAtCoords({
         row: (priv.selStart.row + rowDelta),
         col: priv.selStart.col + colDelta
       });
@@ -1078,7 +855,7 @@ Handsontable.Core = function (rootElement, settings) {
         selection.setRangeStart(td);
       }
       else {
-        selection.setRangeStart(grid.getCellAtCoords(priv.selStart)); //rerun some routines
+        selection.setRangeStart(self.view.getCellAtCoords(priv.selStart)); //rerun some routines
       }
     },
 
@@ -1087,7 +864,7 @@ Handsontable.Core = function (rootElement, settings) {
      */
     transformEnd: function (rowDelta, colDelta) {
       if (priv.selEnd) {
-        var td = grid.getCellAtCoords({
+        var td = self.view.getCellAtCoords({
           row: (priv.selEnd.row + rowDelta),
           col: priv.selEnd.col + colDelta
         });
@@ -1145,7 +922,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (!priv.settings.multiSelect) {
         return;
       }
-      var tds = grid.getAllCells();
+      var tds = self.view.getAllCells();
       if (tds.length) {
         selection.setRangeStart(tds[0]);
         selection.setRangeEnd(tds[tds.length - 1], false);
@@ -1206,65 +983,6 @@ Handsontable.Core = function (rootElement, settings) {
         return false;
       }
       priv.selectionBorder.disappear();
-    },
-
-    /**
-     * Scroll viewport to selection
-     * @param td
-     */
-    scrollViewport: function (td) {
-      if (!selection.isSelected()) {
-        return false;
-      }
-
-      var $td = $(td);
-      var tdOffset = $td.offset();
-      var scrollLeft = priv.scrollable.scrollLeft(); //scrollbar position
-      var scrollTop = priv.scrollable.scrollTop(); //scrollbar position
-      var scrollOffset = priv.scrollable.offset();
-      var rowHeaderWidth = self.blockedCols.count() ? $(self.blockedCols.main[0].firstChild).outerWidth() : 2;
-      var colHeaderHeight = self.blockedRows.count() ? $(self.blockedRows.main[0].firstChild).outerHeight() : 2;
-
-      var offsetTop = tdOffset.top;
-      var offsetLeft = tdOffset.left;
-      var scrollWidth, scrollHeight;
-      if (scrollOffset) { //if is not the window
-        scrollWidth = priv.scrollable.outerWidth();
-        scrollHeight = priv.scrollable.outerHeight();
-        offsetTop += scrollTop - scrollOffset.top;
-        offsetLeft += scrollLeft - scrollOffset.left;
-      }
-      else {
-        scrollWidth = priv.scrollable.width(); //don't use outerWidth with window (http://api.jquery.com/outerWidth/)
-        scrollHeight = priv.scrollable.height();
-      }
-      scrollWidth -= priv.scrollbarSize.width;
-      scrollHeight -= priv.scrollbarSize.height;
-
-      var height = $td.outerHeight();
-      var width = $td.outerWidth();
-
-      if (scrollLeft + scrollWidth <= offsetLeft + width) {
-        setTimeout(function () {
-          priv.scrollable.scrollLeft(offsetLeft + width - scrollWidth);
-        }, 1);
-      }
-      else if (scrollLeft > offsetLeft - rowHeaderWidth) {
-        setTimeout(function () {
-          priv.scrollable.scrollLeft(offsetLeft - rowHeaderWidth);
-        }, 1);
-      }
-
-      if (scrollTop + scrollHeight <= offsetTop + height) {
-        setTimeout(function () {
-          priv.scrollable.scrollTop(offsetTop + height - scrollHeight);
-        }, 1);
-      }
-      else if (scrollTop > offsetTop - colHeaderHeight) {
-        setTimeout(function () {
-          priv.scrollable.scrollTop(offsetTop - colHeaderHeight);
-        }, 1);
-      }
     }
   };
 
@@ -1332,7 +1050,7 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
       if (maxR) {
-        autofill.showBorder(grid.getCellAtCoords({row: maxR, col: select.BR.col}));
+        autofill.showBorder(self.view.getCellAtCoords({row: maxR, col: select.BR.col}));
         autofill.apply();
       }
     },
@@ -1392,8 +1110,8 @@ Handsontable.Core = function (rootElement, settings) {
         var inputArray = CSVToArray(priv.editProxy.val(), '\t');
         grid.populateFromArray(start, inputArray, end, 'autofill');
 
-        selection.setRangeStart(grid.getCellAtCoords(drag.TL));
-        selection.setRangeEnd(grid.getCellAtCoords(drag.BR));
+        selection.setRangeStart(self.view.getCellAtCoords(drag.TL));
+        selection.setRangeEnd(self.view.getCellAtCoords(drag.BR));
       }
       else {
         //reset to avoid some range bug
@@ -1419,7 +1137,7 @@ Handsontable.Core = function (rootElement, settings) {
      * Show fill border
      */
     showBorder: function (td) {
-      var coords = grid.getCellCoords(td);
+      var coords = self.view.getCellCoords(td);
       var corners = grid.getCornerCoords([priv.selStart, priv.selEnd]);
       if (priv.settings.fillHandle !== 'horizontal' && (corners.BR.row < coords.row || corners.TL.row > coords.row)) {
         coords = {row: coords.row, col: corners.BR.col};
@@ -1434,7 +1152,7 @@ Handsontable.Core = function (rootElement, settings) {
     }
   };
 
-  editproxy = {
+  this.editproxy = editproxy = { //this public assignment is only temporary
     /**
      * Create input field
      */
@@ -1574,28 +1292,28 @@ Handsontable.Core = function (rootElement, settings) {
 
             case 36: /* home */
               if (event.ctrlKey || event.metaKey) {
-                rangeModifier(grid.getCellAtCoords({row: 0, col: priv.selStart.col}));
+                rangeModifier(self.view.getCellAtCoords({row: 0, col: priv.selStart.col}));
               }
               else {
-                rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: 0}));
+                rangeModifier(self.view.getCellAtCoords({row: priv.selStart.row, col: 0}));
               }
               break;
 
             case 35: /* end */
               if (event.ctrlKey || event.metaKey) {
-                rangeModifier(grid.getCellAtCoords({row: self.rowCount - 1, col: priv.selStart.col}));
+                rangeModifier(self.view.getCellAtCoords({row: self.rowCount - 1, col: priv.selStart.col}));
               }
               else {
-                rangeModifier(grid.getCellAtCoords({row: priv.selStart.row, col: self.colCount - 1}));
+                rangeModifier(self.view.getCellAtCoords({row: priv.selStart.row, col: self.colCount - 1}));
               }
               break;
 
             case 33: /* pg up */
-              rangeModifier(grid.getCellAtCoords({row: 0, col: priv.selStart.col}));
+              rangeModifier(self.view.getCellAtCoords({row: 0, col: priv.selStart.col}));
               break;
 
             case 34: /* pg dn */
-              rangeModifier(grid.getCellAtCoords({row: self.rowCount - 1, col: priv.selStart.col}));
+              rangeModifier(self.view.getCellAtCoords({row: self.rowCount - 1, col: priv.selStart.col}));
               break;
 
             default:
@@ -1629,7 +1347,7 @@ Handsontable.Core = function (rootElement, settings) {
       priv.editProxy.val(datamap.getText(priv.selStart, priv.selEnd));
       setTimeout(editproxy.focus, 1);
       editproxy.destroy();
-      priv.editorDestroyer = grid.applyCellTypeMethod('editor', grid.getCellAtCoords(priv.selStart), priv.selStart, priv.editProxy);
+      priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart), priv.selStart, priv.editProxy);
     },
 
     /**
@@ -1640,65 +1358,7 @@ Handsontable.Core = function (rootElement, settings) {
     }
   };
 
-  interaction = {
-    onMouseDown: function (event) {
-      priv.isMouseDown = true;
-      if (event.button === 2 && selection.inInSelection(grid.getCellCoords(this))) { //right mouse button
-        //do nothing
-      }
-      else if (event.shiftKey) {
-        selection.setRangeEnd(this);
-      }
-      else {
-        selection.setRangeStart(this);
-      }
-    },
-
-    onMouseOver: function () {
-      if (priv.isMouseDown) {
-        selection.setRangeEnd(this);
-      }
-      else if (priv.fillHandle && priv.fillHandle.isDragged) {
-        priv.fillHandle.isDragged++;
-        autofill.showBorder(this);
-      }
-    },
-
-    onMouseWheel: function (event, delta, deltaX, deltaY) {
-      if (priv.virtualScroll) {
-        if (deltaY) {
-          priv.virtualScroll.scrollTop(priv.virtualScroll.scrollTop() + 44 * -deltaY);
-        }
-        else if (deltaX) {
-          priv.virtualScroll.scrollLeft(priv.virtualScroll.scrollLeft() + 100 * deltaX);
-        }
-        event.preventDefault();
-      }
-    }
-  };
-
   this.init = function () {
-    function onMouseEnterTable() {
-      priv.isMouseOverTable = true;
-    }
-
-    function onMouseLeaveTable() {
-      priv.isMouseOverTable = false;
-    }
-
-    self.curScrollTop = self.curScrollLeft = 0;
-    self.lastScrollTop = self.lastScrollLeft = null;
-    priv.scrollbarSize = measureScrollbar();
-
-    var div = $('<div><table class="htCore" cellspacing="0" cellpadding="0"><thead></thead><tbody></tbody></table></div>');
-    priv.tableContainer = div[0];
-    self.table = $(priv.tableContainer.firstChild);
-    priv.tableBody = self.table.find("tbody")[0];
-    self.table.on('mousedown', 'td', interaction.onMouseDown);
-    self.table.on('mouseover', 'td', interaction.onMouseOver);
-    self.table.on('mousewheel', 'td', interaction.onMouseWheel);
-    self.container.append(div);
-
     if (typeof settings.cols !== 'undefined') {
       settings.startCols = settings.cols; //backwards compatibility
     }
@@ -1716,124 +1376,7 @@ Handsontable.Core = function (rootElement, settings) {
     bindEvents();
     this.updateSettings(settings);
 
-    self.container.on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
-
-    function onMouseUp() {
-      if (priv.isMouseDown) {
-        setTimeout(editproxy.focus, 1);
-      }
-      priv.isMouseDown = false;
-      if (priv.fillHandle && priv.fillHandle.isDragged) {
-        if (priv.fillHandle.isDragged > 1) {
-          autofill.apply();
-        }
-        priv.fillHandle.isDragged = 0;
-      }
-    }
-
-    function onOutsideClick(event) {
-      if (priv.settings.outsideClickDeselects) {
-        setTimeout(function () {//do async so all mouseenter, mouseleave events will fire before
-          if (!priv.isMouseOverTable && event.target !== priv.tableContainer && $(event.target).attr('id') !== 'context-menu-layer') { //if clicked outside the table or directly at container which also means outside
-            selection.deselect();
-          }
-        }, 1);
-      }
-    }
-
-    $("html").on('mouseup', onMouseUp).
-      on('click', onOutsideClick);
-
-    if (self.container[0].tagName.toLowerCase() !== "html" && self.container[0].tagName.toLowerCase() !== "body" && (self.container.css('overflow') === 'scroll' || self.container.css('overflow') === 'auto')) {
-      priv.scrollable = self.container;
-    }
-
-    if (priv.scrollable) {
-      //create fake scrolling div
-      priv.virtualScroll = $('<div class="virtualScroll"><div class="spacer"></div></div>');
-      priv.scrollable = priv.virtualScroll;
-      self.container.before(priv.virtualScroll);
-      self.table[0].style.position = 'absolute';
-      priv.virtualScroll.css({
-        width: self.container.width() + 'px',
-        height: self.container.height() + 'px',
-        overflow: self.container.css('overflow')
-      });
-      self.container.css({
-        overflow: 'hidden',
-        position: 'absolute',
-        top: priv.virtualScroll.position().top + 'px',
-        left: priv.virtualScroll.position().left + 'px'
-      });
-      self.container.width(priv.virtualScroll.innerWidth() - priv.scrollbarSize.width);
-      self.container.height(priv.virtualScroll.innerHeight() - priv.scrollbarSize.height);
-      setInterval(function () {
-        priv.virtualScroll.find('.spacer').height(self.table.height());
-        priv.virtualScroll.find('.spacer').width(self.table.width());
-      }, 100);
-
-      priv.scrollable.scrollTop(0);
-      priv.scrollable.scrollLeft(0);
-
-      priv.scrollable.on('scroll.handsontable', function () {
-        self.curScrollTop = priv.scrollable[0].scrollTop;
-        self.curScrollLeft = priv.scrollable[0].scrollLeft;
-
-        if (self.curScrollTop !== self.lastScrollTop) {
-          self.blockedRows.refreshBorders();
-          self.blockedCols.main[0].style.top = -self.curScrollTop + 'px';
-          self.table[0].style.top = -self.curScrollTop + 'px';
-        }
-
-        if (self.curScrollLeft !== self.lastScrollLeft) {
-          self.blockedCols.refreshBorders();
-          self.blockedRows.main[0].style.left = -self.curScrollLeft + 'px';
-          self.table[0].style.left = -self.curScrollLeft + 'px';
-        }
-
-        if (self.curScrollTop !== self.lastScrollTop || self.curScrollLeft !== self.lastScrollLeft) {
-          selection.refreshBorders();
-
-          if (priv.cornerHeader) {
-            if (self.curScrollTop === 0 && self.curScrollLeft === 0) {
-              priv.cornerHeader.find("th:last-child").css({borderRightWidth: 0});
-              priv.cornerHeader.find("tr:last-child th").css({borderBottomWidth: 0});
-            }
-            else if (self.lastScrollTop === 0 && self.lastScrollLeft === 0) {
-              priv.cornerHeader.find("th:last-child").css({borderRightWidth: '1px'});
-              priv.cornerHeader.find("tr:last-child th").css({borderBottomWidth: '1px'});
-            }
-          }
-        }
-
-        self.lastScrollTop = self.curScrollTop;
-        self.lastScrollLeft = self.curScrollLeft;
-
-        editproxy.destroy();
-      });
-      priv.scrollable.trigger('scroll.handsontable');
-    }
-    else {
-      priv.scrollable = $(window);
-      if (priv.cornerHeader) {
-        priv.cornerHeader.find("th:last-child").css({borderRightWidth: 0});
-        priv.cornerHeader.find("tr:last-child th").css({borderBottomWidth: 0});
-      }
-    }
-
-    priv.scrollable.on('scroll', function (e) {
-      e.stopPropagation();
-    });
-
-    $(window).on('resize', function () {
-      //https://github.com/warpech/jquery-handsontable/issues/193
-      self.blockedCols.update();
-      self.blockedRows.update();
-    });
-
     Handsontable.PluginHooks.run(self, 'afterInit');
-
-    $('.context-menu-root').on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
   };
 
   var bindEvents = function () {
@@ -1930,18 +1473,18 @@ Handsontable.Core = function (rootElement, settings) {
       if (priv.settings.minSpareRows) {
         while (row > self.rowCount - 1) {
           datamap.createRow();
-          grid.createRow();
+          self.view.createRow();
           refreshRows = true;
         }
       }
       if (priv.dataType === 'array' && priv.settings.minSpareCols) {
         while (col > self.colCount - 1) {
           datamap.createCol();
-          grid.createCol();
+          self.view.createCol();
           refreshCols = true;
         }
       }
-      td = grid.render(row, col, prop, value);
+      td = self.view.render(row, col, prop, value);
       datamap.set(row, prop, value);
     }
     if (refreshRows) {
@@ -2013,7 +1556,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
     for (var i = 0, ilen = changes.length; i < ilen; i++) {
-      grid.render(changes[i][0], datamap.propToCol(changes[i][1]), changes[i][1], changes[i][3]);
+      self.view.render(changes[i][0], datamap.propToCol(changes[i][1]), changes[i][1], changes[i][3]);
     }
     self.rootElement.triggerHandler('cellrender.handsontable', [changes, source || 'render']);
   };
@@ -2040,7 +1583,7 @@ Handsontable.Core = function (rootElement, settings) {
       dlen++;
     }
     while (self.rowCount < dlen) {
-      grid.createRow();
+      self.view.createRow();
     }
 
     grid.keepEmptyRows();
@@ -2308,7 +1851,17 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Element}
    */
   this.getCell = function (row, col) {
-    return grid.getCellAtCoords({row: row, col: col});
+    return self.view.getCellAtCoords({row: row, col: col});
+  };
+
+  /**
+   * Returns property name associated with column number
+   * @param {Number} col
+   * @public
+   * @return {String}
+   */
+  this.colToProp = function (col) {
+    return datamap.colToProp(col);
   };
 
   /**
@@ -2348,7 +1901,7 @@ Handsontable.Core = function (rootElement, settings) {
     if (priv.settings.cells) {
       cellProperites = $.extend(true, cellProperites, priv.settings.cells(row, col, prop) || {});
     }
-    cellProperites.isWritable = grid.isCellWritable($(grid.getCellAtCoords({row: row, col: col})), cellProperites);
+    cellProperites.isWritable = grid.isCellWritable($(self.view.getCellAtCoords({row: row, col: col})), cellProperites);
     return cellProperites;
   };
 
@@ -2359,7 +1912,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @public
    */
   this.setCellReadOnly = function (row, col) {
-    $(grid.getCellAtCoords({row: row, col: col})).data("readOnly", true);
+    $(self.view.getCellAtCoords({row: row, col: col})).data("readOnly", true);
   };
 
   /**
@@ -2369,7 +1922,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @public
    */
   this.setCellEditable = function (row, col) {
-    $(grid.getCellAtCoords({row: row, col: col})).data("readOnly", false);
+    $(self.view.getCellAtCoords({row: row, col: col})).data("readOnly", false);
   };
 
   /**
