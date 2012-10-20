@@ -7,7 +7,6 @@ Handsontable.TableView = function (instance) {
   this.instance = instance;
   var priv = {};
 
-
   var interaction = {
     onMouseDown: function (event) {
       priv.isMouseDown = true;
@@ -26,9 +25,9 @@ Handsontable.TableView = function (instance) {
       if (priv.isMouseDown) {
         that.instance.selection.setRangeEnd(this);
       }
-      else if (priv.fillHandle && priv.fillHandle.isDragged) {
-        priv.fillHandle.isDragged++;
-        autofill.showBorder(this);
+      else if (that.instance.autofill.handle && that.instance.autofill.handle.isDragged) {
+        that.instance.autofill.handle.isDragged++;
+        that.instance.autofill.showBorder(this);
       }
     },
 
@@ -96,11 +95,11 @@ Handsontable.TableView = function (instance) {
       setTimeout(that.instance.editproxy.focus, 1);
     }
     priv.isMouseDown = false;
-    if (priv.fillHandle && priv.fillHandle.isDragged) {
-      if (priv.fillHandle.isDragged > 1) {
-        autofill.apply();
+    if (that.instance.autofill.handle && that.instance.autofill.handle.isDragged) {
+      if (that.instance.autofill.handle.isDragged > 1) {
+        that.instance.autofill.apply();
       }
-      priv.fillHandle.isDragged = 0;
+      that.instance.autofill.handle.isDragged = 0;
     }
   }
 
@@ -167,14 +166,14 @@ Handsontable.TableView = function (instance) {
       if (that.instance.curScrollTop !== that.instance.lastScrollTop || that.instance.curScrollLeft !== that.instance.lastScrollLeft) {
         that.instance.selection.refreshBorders();
 
-        if (priv.cornerHeader) {
+        if (that.instance.blockedCorner) {
           if (that.instance.curScrollTop === 0 && that.instance.curScrollLeft === 0) {
-            priv.cornerHeader.find("th:last-child").css({borderRightWidth: 0});
-            priv.cornerHeader.find("tr:last-child th").css({borderBottomWidth: 0});
+            that.instance.blockedCorner.find("th:last-child").css({borderRightWidth: 0});
+            that.instance.blockedCorner.find("tr:last-child th").css({borderBottomWidth: 0});
           }
           else if (that.instance.lastScrollTop === 0 && that.instance.lastScrollLeft === 0) {
-            priv.cornerHeader.find("th:last-child").css({borderRightWidth: '1px'});
-            priv.cornerHeader.find("tr:last-child th").css({borderBottomWidth: '1px'});
+            that.instance.blockedCorner.find("th:last-child").css({borderRightWidth: '1px'});
+            that.instance.blockedCorner.find("tr:last-child th").css({borderBottomWidth: '1px'});
           }
         }
       }
@@ -184,13 +183,16 @@ Handsontable.TableView = function (instance) {
 
       that.instance.editproxy.destroy();
     });
-    that.scrollable.trigger('scroll.handsontable');
+
+    Handsontable.PluginHooks.push('afterInit', function () {
+      that.scrollable.trigger('scroll.handsontable');
+    });
   }
   else {
     that.scrollable = $(window);
-    if (priv.cornerHeader) {
-      priv.cornerHeader.find("th:last-child").css({borderRightWidth: 0});
-      priv.cornerHeader.find("tr:last-child th").css({borderBottomWidth: 0});
+    if (that.instance.blockedCorner) {
+      that.instance.blockedCorner.find("th:last-child").css({borderRightWidth: 0});
+      that.instance.blockedCorner.find("tr:last-child th").css({borderBottomWidth: 0});
     }
   }
 
@@ -374,7 +376,6 @@ Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td,
   }
   return method(this.instance, td, coords.row, coords.col, prop, extraParam, cellProperties);
 };
-
 
 /**
  * Returns coordinates given td object

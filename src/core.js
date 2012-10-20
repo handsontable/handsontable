@@ -6,13 +6,11 @@
  */
 Handsontable.Core = function (rootElement, settings) {
   this.rootElement = rootElement;
-  this.view = new Handsontable.TableView(this);
 
   var priv, datamap, grid, selection, editproxy, highlight, autofill, self = this;
 
   priv = {
     settings: {},
-    isMouseDown: false,
     selStart: null,
     selEnd: null,
     editProxy: false,
@@ -781,7 +779,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
-      if (priv.fillHandle) {
+      if (autofill.handle) {
         autofill.showHandle();
       }
       priv.currentBorder.appear([priv.selStart]);
@@ -909,7 +907,7 @@ Handsontable.Core = function (rootElement, settings) {
       editproxy.destroy();
       highlight.off();
       priv.currentBorder.disappear();
-      if (priv.fillHandle) {
+      if (autofill.handle) {
         autofill.hideHandle();
       }
       self.rootElement.triggerHandler('deselect.handsontable');
@@ -986,22 +984,25 @@ Handsontable.Core = function (rootElement, settings) {
     }
   };
 
-  autofill = {
+  this.autofill = autofill = { //this public assignment is only temporary
+    handle: null,
+    fillBorder: null,
+
     /**
      * Create fill handle and fill border objects
      */
     init: function () {
-      if (!priv.fillHandle) {
-        priv.fillHandle = new Handsontable.FillHandle(self);
-        priv.fillBorder = new Handsontable.Border(self, {
+      if (!autofill.handle) {
+        autofill.handle = new Handsontable.FillHandle(self);
+        autofill.fillBorder = new Handsontable.Border(self, {
           className: 'htFillBorder'
         });
 
-        $(priv.fillHandle.handle).on('dblclick', autofill.selectAdjacent);
+        $(autofill.handle.handle).on('dblclick', autofill.selectAdjacent);
       }
       else {
-        priv.fillHandle.disabled = false;
-        priv.fillBorder.disabled = false;
+        autofill.handle.disabled = false;
+        autofill.fillBorder.disabled = false;
       }
 
       self.rootElement.on('beginediting.handsontable', function () {
@@ -1019,8 +1020,8 @@ Handsontable.Core = function (rootElement, settings) {
      * Hide fill handle and fill border permanently
      */
     disable: function () {
-      priv.fillHandle.disabled = true;
-      priv.fillBorder.disabled = true;
+      autofill.handle.disabled = true;
+      autofill.fillBorder.disabled = true;
     },
 
     /**
@@ -1036,7 +1037,7 @@ Handsontable.Core = function (rootElement, settings) {
         select = priv.currentBorder.corners;
       }
 
-      priv.fillBorder.disappear();
+      autofill.fillBorder.disappear();
 
       data = datamap.getAll();
       rows : for (r = select.BR.row + 1; r < self.rowCount; r++) {
@@ -1061,14 +1062,14 @@ Handsontable.Core = function (rootElement, settings) {
     apply: function () {
       var drag, select, start, end;
 
-      priv.fillHandle.isDragged = 0;
+      autofill.handle.isDragged = 0;
 
-      drag = priv.fillBorder.corners;
+      drag = autofill.fillBorder.corners;
       if (!drag) {
         return;
       }
 
-      priv.fillBorder.disappear();
+      autofill.fillBorder.disappear();
 
       if (selection.isMultiple()) {
         select = priv.selectionBorder.corners;
@@ -1123,14 +1124,14 @@ Handsontable.Core = function (rootElement, settings) {
      * Show fill handle
      */
     showHandle: function () {
-      priv.fillHandle.appear([priv.selStart, priv.selEnd]);
+      autofill.handle.appear([priv.selStart, priv.selEnd]);
     },
 
     /**
      * Hide fill handle
      */
     hideHandle: function () {
-      priv.fillHandle.disappear();
+      autofill.handle.disappear();
     },
 
     /**
@@ -1148,7 +1149,7 @@ Handsontable.Core = function (rootElement, settings) {
       else {
         return; //wrong direction
       }
-      priv.fillBorder.appear([priv.selStart, priv.selEnd, coords]);
+      autofill.fillBorder.appear([priv.selStart, priv.selEnd, coords]);
     }
   };
 
@@ -1359,6 +1360,8 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   this.init = function () {
+    this.view = new Handsontable.TableView(this);
+
     if (typeof settings.cols !== 'undefined') {
       settings.startCols = settings.cols; //backwards compatibility
     }
@@ -1635,10 +1638,10 @@ Handsontable.Core = function (rootElement, settings) {
     }
 
     if (typeof settings.fillHandle !== "undefined") {
-      if (priv.fillHandle && settings.fillHandle === false) {
+      if (autofill.handle && settings.fillHandle === false) {
         autofill.disable();
       }
-      else if (!priv.fillHandle && settings.fillHandle !== false) {
+      else if (!autofill.handle && settings.fillHandle !== false) {
         autofill.init();
       }
     }
@@ -1692,9 +1695,9 @@ Handsontable.Core = function (rootElement, settings) {
     var blockedRowsCount = self.blockedRows.count();
     var blockedColsCount = self.blockedCols.count();
     if (blockedRowsCount && blockedColsCount && (typeof settings.rowHeaders !== "undefined" || typeof settings.colHeaders !== "undefined")) {
-      if (priv.cornerHeader) {
-        priv.cornerHeader.remove();
-        priv.cornerHeader = null;
+      if (self.blockedCorner) {
+        self.blockedCorner.remove();
+        self.blockedCorner = null;
       }
 
       var position = self.table.position();
@@ -1725,16 +1728,16 @@ Handsontable.Core = function (rootElement, settings) {
         }
         thead.appendChild(tr);
       }
-      priv.cornerHeader = $(div);
-      priv.cornerHeader.on('click', function () {
+      self.blockedCorner = $(div);
+      self.blockedCorner.on('click', function () {
         selection.selectAll();
       });
-      self.container.append(priv.cornerHeader);
+      self.container.append(self.blockedCorner);
     }
     else {
-      if (priv.cornerHeader) {
-        priv.cornerHeader.remove();
-        priv.cornerHeader = null;
+      if (self.blockedCorner) {
+        self.blockedCorner.remove();
+        self.blockedCorner = null;
       }
     }
 
