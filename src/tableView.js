@@ -48,16 +48,17 @@ Handsontable.TableView = function (instance) {
   that.instance.container = $('<div class="handsontable"></div>');
   var overflow = that.instance.rootElement.css('overflow');
   if (overflow === 'auto' || overflow === 'scroll') {
-    that.instance.container.css('overflow', overflow);
+    that.instance.container[0].style.overflow = overflow;
     var w = that.instance.rootElement.css('width');
     if (w) {
-      that.instance.container.css('width', w);
+      that.instance.container[0].style.width = w;
     }
     var h = that.instance.rootElement.css('height');
     if (h) {
-      that.instance.container.css('height', h);
+      that.instance.container[0].style.height = h;
     }
-    that.instance.rootElement.css('overflow', 'hidden');
+    that.instance.rootElement[0].style.overflow = 'hidden';
+    that.instance.rootElement[0].style.position = 'relative';
   }
   that.instance.rootElement.append(that.instance.container);
 
@@ -134,8 +135,8 @@ Handsontable.TableView = function (instance) {
     that.instance.container.css({
       overflow: 'hidden',
       position: 'absolute',
-      top: priv.virtualScroll.position().top + 'px',
-      left: priv.virtualScroll.position().left + 'px'
+      top: '0px',
+      left: '0px'
     });
     that.instance.container.width(priv.virtualScroll.innerWidth() - this.scrollbarSize.width);
     that.instance.container.height(priv.virtualScroll.innerHeight() - this.scrollbarSize.height);
