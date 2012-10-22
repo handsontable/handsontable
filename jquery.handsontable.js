@@ -3981,7 +3981,7 @@ Handsontable.PluginHooks = {
 function createContextMenu() {
   var instance = this
     , defaultOptions = {
-      selector: "#" + instance.rootElement.attr('id') + ' table',
+      selector: "#" + instance.rootElement.attr('id') + ' table, #' + instance.rootElement.attr('id') + ' div',
       trigger: 'right',
       callback: onContextClick
     },
@@ -4020,7 +4020,7 @@ function createContextMenu() {
         break;
 
       case "col_left":
-        instance.alter("insert_col", corners[0]);
+        instance.alter("insert_col", corners[1]);
         break;
 
       case "col_right":
