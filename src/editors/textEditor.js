@@ -332,7 +332,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
   $current.on('dblclick.editor', onDblClick);
   instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
 
-  return function () {
-    texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
+  return function (isCancelled) {
+    texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, isCancelled);
   }
 };

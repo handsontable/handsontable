@@ -17,10 +17,7 @@ describe('AutocompleteEditor', function () {
         autoComplete: [
           {
             match: function (row, col, data) {
-              if (col == 2) {
-                return true;
-              }
-              return false;
+              return (col === 2);
             },
             source: function () {
               return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
@@ -35,6 +32,38 @@ describe('AutocompleteEditor', function () {
       var li = autocomplete().$menu.find('li[data-value="green"]');
       li.trigger('mouseenter');
       li.trigger('click');
+    });
+
+    waitsFor(function () {
+      return (getDataAtCell(2, 2) === 'green');
+    }, 10);
+  });
+
+  it('should destroy editor when value change with enter on suggestion', function () {
+    runs(function () {
+      handsontable({
+        autoComplete: [
+          {
+            match: function (row, col, data) {
+              return (col === 2);
+            },
+            source: function () {
+              return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
+            }
+          }
+        ]
+      });
+      selectCell(2, 2);
+      keyDown('enter');
+      keyUp('enter');
+      keyDown('arrow_down');
+      keyUp('arrow_down');
+      keyDown('arrow_down');
+      keyUp('arrow_down');
+      keyDown('arrow_down');
+      keyUp('arrow_down');
+      keyDown('enter');
+      keyUp('enter');
     });
 
     waitsFor(function () {
