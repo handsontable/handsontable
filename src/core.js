@@ -461,7 +461,7 @@ Handsontable.Core = function (rootElement, settings) {
      * @return recreate {Boolean} TRUE if row or col was added or removed
      */
     keepEmptyRows: function () {
-      var r, c, clen, emptyRows = 0, emptyCols = 0, recreateRows = false, recreateCols = false, val;
+      var r, c, rlen, clen, emptyRows = 0, emptyCols = 0, recreateRows = false, recreateCols = false, val;
 
       var $tbody = $(priv.tableBody);
 
@@ -476,7 +476,15 @@ Handsontable.Core = function (rootElement, settings) {
         emptyRows++;
       }
 
-      //should I add empty rows to meet startRows?
+      //should I add empty rows to data source to meet startRows?
+      rlen = priv.settings.data.length;
+      if (rlen < priv.settings.startRows) {
+        for (r = 0; r < priv.settings.startRows - rlen; r++) {
+          datamap.createRow();
+        }
+      }
+
+      //should I add empty rows to table view to meet startRows?
       if (self.rowCount < priv.settings.startRows) {
         for (; self.rowCount < priv.settings.startRows; emptyRows++) {
           self.view.createRow();

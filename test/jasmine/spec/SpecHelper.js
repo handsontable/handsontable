@@ -102,3 +102,4 @@ var setDataAtCell = handsontableMethodFactory('setDataAtCell');
 var getCell = handsontableMethodFactory('getCell');
 var getData = handsontableMethodFactory('getData');
 var getDataAtCell = handsontableMethodFactory('getDataAtCell');
+var alter = handsontableMethodFactory('alter');
