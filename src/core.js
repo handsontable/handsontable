@@ -1281,6 +1281,7 @@ Handsontable.Core = function (rootElement, settings) {
               else {
                 selection.transformStart(1, 0); //move selection down
               }
+              event.preventDefault();
               break;
 
             case 113: /* F2 */
