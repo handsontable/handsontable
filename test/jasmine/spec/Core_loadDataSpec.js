@@ -25,7 +25,14 @@ describe('Core_loadData', function () {
     return [
       {id: 1, name: "Ted", lastName: "Right"},
       {id: 2, name: "Frank", lastName: "Honest"},
-      {id: 3, name: "Joan", lastName: "Well"}
+      {id: 3, name: "Joan", lastName: "Well"},
+      {id: 4, name: "Sid", lastName: "Strong"},
+      {id: 5, name: "Jane", lastName: "Neat"},
+      {id: 6, name: "Chuck", lastName: "Jackson"},
+      {id: 7, name: "Meg", lastName: "Jansen"},
+      {id: 8, name: "Rob", lastName: "Norris"},
+      {id: 9, name: "Sean", lastName: "O'Hara"},
+      {id: 10, name: "Eve", lastName: "Branson"}
     ];
   };
 
@@ -203,5 +210,14 @@ describe('Core_loadData', function () {
     $container.handsontable('loadData', htmlData);
     var output = $container.handsontable('getCell', 0, 0).innerHTML;
     expect(output).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
+  });
+
+  it('HTML special chars should be escaped by default', function () {
+    $container.handsontable({
+      startRows: 6,
+      data: arrayOfObjects()
+    });
+    var output = $container.handsontable('getCell', 9, 1).innerHTML;
+    expect(output).toEqual('Eve');
   });
 });

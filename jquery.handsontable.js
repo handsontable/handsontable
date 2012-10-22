@@ -1619,7 +1619,7 @@ Handsontable.Core = function (rootElement, settings) {
     grid.clear();
     var changes = [];
     var clen = (priv.settings.columns && priv.settings.columns.length) || priv.settings.startCols;
-    for (var r = 0; r < priv.settings.startRows; r++) {
+    for (var r = 0; r < dlen; r++) {
       for (var c = 0; c < clen; c++) {
         var p = datamap.colToProp(c);
         changes.push([r, p, "", datamap.get(r, p)])
