@@ -59,6 +59,22 @@ var handsontableKeyTriggerFactory = function (type) {
       case 'f2':
         ev.keyCode = 113;
         break;
+
+      case 'arrow_left':
+        ev.keyCode = 37;
+        break;
+
+      case 'arrow_up':
+        ev.keyCode = 38;
+        break;
+
+      case 'arrow_right':
+        ev.keyCode = 39;
+        break;
+
+      case 'arrow_down':
+        ev.keyCode = 40;
+        break;
     }
     spec().$keyboardProxy.trigger(ev);
   }

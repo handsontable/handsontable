@@ -182,7 +182,7 @@ Handsontable.TableView = function (instance) {
       that.instance.lastScrollTop = that.instance.curScrollTop;
       that.instance.lastScrollLeft = that.instance.curScrollLeft;
 
-      that.instance.editproxy.destroy();
+      that.instance.selection.refreshBorders();
     });
 
     Handsontable.PluginHooks.push('afterInit', function () {

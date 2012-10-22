@@ -801,6 +801,7 @@ Handsontable.Core = function (rootElement, settings) {
      * Redraws borders around cells
      */
     refreshBorders: function () {
+      editproxy.destroy();
       if (!selection.isSelected()) {
         return;
       }
@@ -1373,7 +1374,6 @@ Handsontable.Core = function (rootElement, settings) {
       priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
       priv.editProxy.val(datamap.getText(priv.selStart, priv.selEnd));
       setTimeout(editproxy.focus, 1);
-      editproxy.destroy();
       priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart), priv.selStart, priv.editProxy);
     },
 
@@ -2292,7 +2292,7 @@ Handsontable.TableView = function (instance) {
       that.instance.lastScrollTop = that.instance.curScrollTop;
       that.instance.lastScrollLeft = that.instance.curScrollLeft;
 
-      that.instance.editproxy.destroy();
+      that.instance.selection.refreshBorders();
     });
 
     Handsontable.PluginHooks.push('afterInit', function () {
