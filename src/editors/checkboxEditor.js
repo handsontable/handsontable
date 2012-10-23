@@ -29,7 +29,8 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardPr
   }
 
   keyboardProxy.on("keydown.editor", function (event) {
-    if (Handsontable.helper.isPrintableChar(event.keyCode)) {
+    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+    if (!ctrlDown && Handsontable.helper.isPrintableChar(event.keyCode)) {
       toggleCheckboxCell(instance, row, prop, cellProperties);
       event.stopPropagation();
     }
