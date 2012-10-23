@@ -49,13 +49,19 @@ describe('AutocompleteEditor', function () {
             },
             source: function () {
               return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
-            }
+            },
+            strict: true
           }
         ]
       });
       selectCell(2, 2);
       keyDown('enter');
       keyUp('enter');
+    });
+
+    waits(51);
+
+    runs(function(){
       keyDown('arrow_down');
       keyUp('arrow_down');
       keyDown('arrow_down');

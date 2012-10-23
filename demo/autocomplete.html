@@ -45,6 +45,17 @@
   Google Analytics for GitHub Page. Don't copy this to your project :)
   -->
   <script src="js/ga.js"></script>
+
+  <script>
+    function getCarData() {
+      return [
+        ["Nissan", 2009, "black", "black"],
+        ["Nissan", 2006, "blue", "blue"],
+        ["Chrysler", 2004, "yellow", "black"],
+        ["Volvo", 2012, "white", "gray"]
+      ];
+    }
+  </script>
 </head>
 
 <body>
@@ -65,13 +76,24 @@
         </div>
 
         <h2>Autocomplete</h2>
+
+        <p>This page shows how to use Handsontable with various data sources:</p>
+
+        <ul>
+          <li><a href="#lazy">Autocomplete lazy mode</a></li>
+          <li><a href="#strict">Autocomplete strict mode</a></li>
+        </ul>
+
+        <a name="lazy"></a>
+
+        <h2>Autocomplete lazy mode</h2>
       </div>
     </div>
   </div>
 
   <div class="rowLayout">
     <div class="descLayout">
-      <div class="pad bottomSpace750">
+      <div class="pad bottomSpace550">
         <p>This example shows the usage of the Autocomplete feature.</p>
 
         <div id="example1"></div>
@@ -91,20 +113,12 @@
             td.title = 'Type to show the list of options';
           }
 
-          var data = [
-            ["Nissan", 2009, "black", "black"],
-            ["Nissan", 2006, "blue", "blue"],
-            ["Chrysler", 2004, "yellow", "black"],
-            ["Volvo", 2012, "white", "gray"]
-          ];
-
           $("#example1").handsontable({
-            data: data,
+            data: getCarData(),
             startRows: 7,
             startCols: 4,
-            rowHeaders: false, //turn off 1, 2, 3, ...
             colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
-            cells: function(row, col, prop) {
+            cells: function (row, col, prop) {
               var cellProperties = {};
               if (col == 0 || col == 2 || col == 3) {
                 cellProperties.type = {renderer: myAutocompleteRenderer}
@@ -129,7 +143,7 @@
                 source: function () {
                   return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
                 },
-                strict: false //allows other values that defined in array above
+                strict: false //allows other values that defined in the source array above
               },
               {
                 match: function (row, col, data) {
@@ -138,7 +152,85 @@
                 source: function () {
                   return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
                 },
-                strict: true //only accept predefined values (from array above)
+                strict: false //allows other values that defined in the source array above
+              }
+            ]
+          });
+        </script>
+      </div>
+    </div>
+  </div>
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <div class="pad">
+        <a name="strict"></a>
+
+        <h2>Autocomplete strict mode</h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <div class="pad bottomSpace450">
+        <p>This is the same example as above with a difference that autocomplete now runs in <strong>strict
+          mode</strong>.</p>
+
+        <p>In this mode, the autocomplete cells will only accept values that are defined in the source
+          array.</p>
+
+        <div id="example2"></div>
+
+        <p>
+          <button name="dump" data-dump="#example1">Dump to console</button>
+        </p>
+      </div>
+    </div>
+
+    <div class="codeLayout">
+      <div class="pad">
+        <script>
+          $("#example2").handsontable({
+            data: getCarData(),
+            startRows: 7,
+            startCols: 4,
+            colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+            cells: function (row, col, prop) {
+              var cellProperties = {};
+              if (col == 0 || col == 2 || col == 3) {
+                cellProperties.type = {renderer: myAutocompleteRenderer}
+              }
+              return cellProperties;
+            },
+            autoComplete: [
+              {
+                match: function (row, col, data) {
+                  if (col == 2 || col == 3) {
+                    return true;
+                  }
+                  return false;
+                },
+                highlighter: function (item) {
+                  var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
+                  var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+                    return '<strong>' + match + '</strong>';
+                  });
+                  return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
+                },
+                source: function () {
+                  return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
+                },
+                strict: true //only accept predefined values (from source array above)
+              },
+              {
+                match: function (row, col, data) {
+                  return (col === 0); //if it is first column
+                },
+                source: function () {
+                  return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
+                },
+                strict: true //only accept predefined values (from source array above)
               }
             ]
           });

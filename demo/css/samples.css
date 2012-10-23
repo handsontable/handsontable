@@ -72,6 +72,10 @@ body {
   padding-bottom: 450px;
 }
 
+.pad.bottomSpace550 {
+  padding-bottom: 550px;
+}
+
 .pad.bottomSpace650 {
   padding-bottom: 650px;
 }

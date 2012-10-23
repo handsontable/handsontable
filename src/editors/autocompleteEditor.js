@@ -44,19 +44,20 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   if (!typeahead._show) {
     typeahead._show = typeahead.show;
     typeahead._hide = typeahead.hide;
+    typeahead._render = typeahead.render;
   }
 
   typeahead.show = function () {
     if (keyboardProxy.parent().hasClass('htHidden')) {
       return;
     }
-    return typeahead._show();
+    return typeahead._show.call(this);
   };
 
   typeahead.hide = function () {
     if (!dontHide) {
       dontHide = false;
-      return typeahead._hide();
+      return typeahead._hide.call(this);
     }
   };
 
@@ -72,10 +73,18 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   };
 
   typeahead.select = function () {
-    var val = this.$menu.find('.active').attr('data-value');
+    var val = this.$menu.find('.active').attr('data-value') || keyboardProxy.val();
     destroyer(true);
     instance.setDataAtCell(row, prop, typeahead.updater(val));
     return this.hide();
+  };
+
+  typeahead.render = function (items) {
+    typeahead._render.call(this, items);
+    if (cellProperties.autoComplete.strict) {
+      this.$menu.find('li:eq(0)').removeClass('active');
+    }
+    return this;
   };
 
   keyboardProxy.on("keydown.editor", function (event) {
@@ -86,13 +95,6 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
       case 13: /* return/enter */
         if (isAutoComplete(keyboardProxy)) {
           event.stopImmediatePropagation();
-          if (event.keyCode === 9 || event.keyCode === 13) {
-            setTimeout(function () { //so pressing enter will move one row down after change is applied by 'select' above
-              var ev = $.Event('keydown');
-              ev.keyCode = event.keyCode;
-              keyboardProxy.parent().trigger(ev);
-            }, 10);
-          }
         }
         event.preventDefault();
     }
@@ -106,6 +108,13 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
             var ev = $.Event('keyup');
             ev.keyCode = 113; //113 triggers lookup, in contrary to 13 or 9 which only trigger hide
             keyboardProxy.trigger(ev);
+          }
+          else {
+            setTimeout(function () { //so pressing enter will move one row down after change is applied by 'select' above
+              var ev = $.Event('keydown');
+              ev.keyCode = event.keyCode;
+              keyboardProxy.parent().trigger(ev);
+            }, 10);
           }
           break;
 

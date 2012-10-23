@@ -91,7 +91,15 @@
     <div class="codeLayout">
       <div class="pad">
         <script>
+          var data = [
+            ["", "Kia", "Nissan", "Toyota", "Honda"],
+            ["2008", 10, 11, 12, 13],
+            ["2009", 20, 11, 14, 13],
+            ["2010", 30, 15, 12, 13]
+          ];
+
           $("#example1").handsontable({
+            data: data,
             startRows: 8,
             startCols: 6,
             rowHeaders: true,
@@ -99,10 +107,9 @@
             minSpareRows: 1,
             contextMenu: true,
             onBeforeChange: function (data) {
-              for (var i = 0, ilen = data.length; i < ilen; i++) {
+              for (var i = data.length - 1; i >= 0; i--) {
                 if (data[i][3] === "foo") {
-                  //gently don't accept the word "foo"
-                  data[i][3] = false;
+                  data.splice(i, 1); //gently don't accept the word "foo" (remove the change at index i)
                 }
                 else if (data[i][3] === "bar") {
                   //if the word bar is given, add a ! at the end of it
@@ -121,15 +128,6 @@
               $("#example1console").text(JSON.stringify(data));
             }
           });
-
-          var data = [
-            ["", "Kia", "Nissan", "Toyota", "Honda"],
-            ["2008", 10, 11, 12, 13],
-            ["2009", 20, 11, 14, 13],
-            ["2010", 30, 15, 12, 13]
-          ];
-
-          $("#example1").handsontable("loadData", data);
         </script>
       </div>
     </div>

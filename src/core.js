@@ -1190,6 +1190,9 @@ Handsontable.Core = function (rootElement, settings) {
               row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
               col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
             }, 'paste');
+          if (!endTd) {
+            endTd = self.view.getCellAtCoords(coords.BR);
+          }
           selection.setRangeEnd(endTd);
         }, 100);
       }
@@ -1395,7 +1398,7 @@ Handsontable.Core = function (rootElement, settings) {
     self.rootElement.on("beforedatachange.handsontable", function (event, changes) {
       if (priv.settings.autoComplete) { //validate strict autocompletes
         var typeahead = priv.editProxy.data('typeahead');
-        loop : for (var c = 0, clen = changes.length; c < clen; c++) {
+        loop : for (var c = changes.length - 1; c >= 0; c--) {
           for (var a = 0, alen = priv.settings.autoComplete.length; a < alen; a++) {
             var autoComplete = priv.settings.autoComplete[a];
             var source = autoComplete.source();
@@ -1411,7 +1414,8 @@ Handsontable.Core = function (rootElement, settings) {
                 }
               }
               if (autoComplete.strict) {
-                changes[c][3] = false; //no match, invalidate this change
+                changes.splice(c, 1); //no match, invalidate this change
+                continue loop;
               }
             }
           }
@@ -1472,10 +1476,6 @@ Handsontable.Core = function (rootElement, settings) {
     self.rootElement.triggerHandler("beforedatachange.handsontable", [changes]);
 
     for (i = 0, ilen = changes.length; i < ilen; i++) {
-      if (typeof changes[i][3] === "undefined") {
-        continue;
-      }
-
       row = changes[i][0];
       prop = changes[i][1];
       var col = datamap.propToCol(prop);
