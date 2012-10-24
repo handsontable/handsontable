@@ -4,7 +4,7 @@
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
- * http://warpech.github.com/jquery-handsontable/
+ * http://handsontable.com/
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
