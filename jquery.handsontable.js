@@ -4,7 +4,7 @@
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
- * http://warpech.github.com/jquery-handsontable/
+ * http://handsontable.com/
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1161,10 +1161,10 @@ Handsontable.Core = function (rootElement, settings) {
               selection.selectAll(); //select all cells
             }
             else if (event.keyCode === 88 && $.browser.opera) { //CTRL + X
-              priv.editProxy.triggerHandler('cut'); //simulate oncut for Opera
+              priv.editProxyHolder.triggerHandler('cut'); //simulate oncut for Opera
             }
             else if (event.keyCode === 86 && $.browser.opera) { //CTRL + V
-              priv.editProxy.triggerHandler('paste'); //simulate onpaste for Opera
+              priv.editProxyHolder.triggerHandler('paste'); //simulate onpaste for Opera
             }
             else if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
               priv.undoRedo && priv.undoRedo.redo();
