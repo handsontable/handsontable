@@ -861,13 +861,13 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
-      selection.end(false);
-      editproxy.destroy();
       highlight.off();
       priv.currentBorder.disappear();
       if (autofill.handle) {
         autofill.hideHandle();
       }
+      selection.end(false);
+      editproxy.destroy();
       self.rootElement.triggerHandler('deselect.handsontable');
     },
 
