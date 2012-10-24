@@ -37,8 +37,8 @@ module.exports = function (grunt) {
           'src/pluginHooks.js',
           'src/plugins/contextMenu.js',
 
-          'src/jquery.autoresize.js',
-          'src/jquery.mousewheel.js',
+          'src/3rdparty/jquery.autoresize.js',
+          'src/3rdparty/jquery.mousewheel.js',
 
           'src/outro.js'
         ],
