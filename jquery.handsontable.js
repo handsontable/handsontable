@@ -73,50 +73,6 @@ Handsontable.Core = function (rootElement, settings) {
     }
   };
 
-  /**
-   * This will parse a delimited string into an array of arrays. The default delimiter is the comma, but this can be overriden in the second argument.
-   * @see http://www.bennadel.com/blog/1504-Ask-Ben-Parsing-CSV-Strings-With-Javascript-Exec-Regular-Expression-Command.htm
-   * @param strData
-   * @param strDelimiter
-   */
-  var strDelimiter = '\t';
-  var objPattern = new RegExp("(\\" + strDelimiter + "|\\r?\\n|\\r|^)(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|([^\"\\" + strDelimiter + "\\r\\n]*))", "gi");
-  var dblQuotePattern = /""/g;
-
-  function CSVToArray(strData) {
-    var rows;
-    if (strData.indexOf('"') === -1) { //if there is no " symbol, we don't have to use regexp to parse the input
-      var r, rlen;
-      rows = strData.split("\n");
-      if (rows.length > 1 && rows[rows.length - 1] === '') {
-        rows.pop();
-      }
-      for (r = 0, rlen = rows.length; r < rlen; r++) {
-        rows[r] = rows[r].split("\t");
-      }
-    }
-    else {
-      rows = [
-        []
-      ];
-      var arrMatches, strMatchedValue;
-      while (arrMatches = objPattern.exec(strData)) {
-        var strMatchedDelimiter = arrMatches[ 1 ];
-        if (strMatchedDelimiter.length && (strMatchedDelimiter != strDelimiter)) {
-          rows.push([]);
-        }
-        if (arrMatches[2]) {
-          strMatchedValue = arrMatches[2].replace(dblQuotePattern, '"');
-        }
-        else {
-          strMatchedValue = arrMatches[3];
-        }
-        rows[rows.length - 1].push(strMatchedValue);
-      }
-    }
-    return rows;
-  }
-
   datamap = {
     recursiveDuckSchema: function (obj) {
       var schema;
@@ -376,31 +332,7 @@ Handsontable.Core = function (rootElement, settings) {
      * @return {String}
      */
     getText: function (start, end) {
-      var data = datamap.getRange(start, end), text = '', r, rlen, c, clen, val;
-      for (r = 0, rlen = data.length; r < rlen; r++) {
-        for (c = 0, clen = data[r].length; c < clen; c++) {
-          if (c > 0) {
-            text += "\t";
-          }
-          val = data[r][c];
-          if (typeof val === 'string') {
-            if (val.indexOf('\n') > -1) {
-              text += '"' + val.replace(/"/g, '""') + '"';
-            }
-            else {
-              text += val;
-            }
-          }
-          else if (val == null || typeof val === 'undefined') {
-            text += '';
-          }
-          else {
-            text += val;
-          }
-        }
-        text += "\n";
-      }
-      return text;
+      return SheetClip.stringify(datamap.getRange(start, end));
     }
   };
 
@@ -1134,8 +1066,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       if (start) {
-        var inputArray = CSVToArray(priv.editProxy.val(), '\t');
-        grid.populateFromArray(start, inputArray, end, 'autofill');
+        grid.populateFromArray(start, SheetClip.parse(priv.editProxy.val()), end, 'autofill');
 
         selection.setRangeStart(self.view.getCellAtCoords(drag.TL));
         selection.setRangeEnd(self.view.getCellAtCoords(drag.BR));
@@ -1201,7 +1132,7 @@ Handsontable.Core = function (rootElement, settings) {
       function onPaste() {
         setTimeout(function () {
           var input = priv.editProxy.val().replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
-            inputArray = CSVToArray(input, '\t'),
+            inputArray = SheetClip.parse(input),
             coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
             endTd = grid.populateFromArray(coords.TL, inputArray, {
               row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
@@ -4505,4 +4436,94 @@ function handler(event) {
 
 })(jQuery);
 
+/**
+ * SheetClip - Spreadsheet Clipboard Parser
+ * version 0.1
+ *
+ * This tiny library transforms JavaScript arrays to strings that are pasteable by LibreOffice, OpenOffice,
+ * Google Docs and Microsoft Excel.
+ *
+ * Copyright 2012, Marcin Warpechowski
+ * Licensed under the MIT license.
+ * http://github.com/warpech/sheetclip/
+ */
+/*jslint white: true*/
+(function (global) {
+  "use strict";
+
+  var UNDEFINED = (function () {
+  }());
+
+  function countQuotes(str) {
+    return str.split('"').length - 1;
+  }
+
+  global.SheetClip = {
+    parse: function (str) {
+      var r, rlen, rows, arr = [], a = 0, c, clen, multiline, last;
+      rows = str.split('\n');
+      if (rows.length > 1 && rows[rows.length - 1] === '') {
+        rows.pop();
+      }
+      for (r = 0, rlen = rows.length; r < rlen; r += 1) {
+        rows[r] = rows[r].split('\t');
+        for (c = 0, clen = rows[r].length; c < clen; c += 1) {
+          if (!arr[a]) {
+            arr[a] = [];
+          }
+          if (multiline && c === 0) {
+            last = arr[a].length - 1;
+            arr[a][last] = arr[a][last] + '\n' + rows[r][0];
+            if (multiline && countQuotes(rows[r][0]) % 2 === 1) {
+              multiline = false;
+              arr[a][last] = arr[a][last].substring(0, arr[a][last].length - 1).replace(/""/g, '"');
+            }
+          }
+          else {
+            if (c === clen - 1 && rows[r][c].indexOf('"') === 0) {
+              arr[a].push(rows[r][c].substring(1).replace(/""/g, '"'));
+              multiline = true;
+            }
+            else {
+              arr[a].push(rows[r][c].replace(/""/g, '"'));
+              multiline = false;
+            }
+          }
+        }
+        if(!multiline) {
+          a += 1;
+        }
+      }
+      return arr;
+    },
+
+    stringify: function (arr) {
+      var r, rlen, c, clen, str = '', val;
+      for (r = 0, rlen = arr.length; r < rlen; r += 1) {
+        for (c = 0, clen = arr[r].length; c < clen; c += 1) {
+          if (c > 0) {
+            str += '\t';
+          }
+          val = arr[r][c];
+          if (typeof val === 'string') {
+            if (val.indexOf('\n') > -1) {
+              str += '"' + val.replace(/"/g, '""') + '"';
+            }
+            else {
+              str += val;
+            }
+          }
+          else if (val === null || val === UNDEFINED) {
+            str += '';
+          }
+          else {
+            str += val;
+          }
+        }
+        str += '\n';
+      }
+      return str;
+    }
+  };
+}(window));
 })(jQuery, window, Handsontable);

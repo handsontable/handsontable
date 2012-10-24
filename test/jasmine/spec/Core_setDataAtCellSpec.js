@@ -1,14 +1,13 @@
 describe('Core_setDataAtCell', function () {
-  var $container,
-    id = 'testContainer';
+  var id = 'testContainer';
 
   beforeEach(function () {
-    $container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
   afterEach(function () {
-    if($container) {
-      $container.remove();
+    if (this.$container) {
+      this.$container.remove();
     }
   });
 
@@ -16,12 +15,29 @@ describe('Core_setDataAtCell', function () {
 
   it('HTML special chars should be preserved in data map but escaped in DOM', function () {
     //https://github.com/warpech/jquery-handsontable/issues/147
-    $container.handsontable();
-    var td = $container.handsontable('setDataAtCell', 0, 0, htmlText);
-    $container.handsontable("selectCell", 0, 0);
+    handsontable();
+    var td = setDataAtCell(0, 0, htmlText);
+    selectCell(0, 0);
     $(td).trigger("dblclick");
-    $container.handsontable("deselectCell");
-    var output = $container.handsontable('getDataAtCell', 0, 0);
-    expect(output).toEqual(htmlText);
+    deselectCell();
+    expect(getDataAtCell(0, 0)).toEqual(htmlText);
+  });
+
+  it('should correctly paste string that contains "quotes"', function () {
+    //https://github.com/warpech/jquery-handsontable/issues/205
+    runs(function(){
+      handsontable();
+      selectCell(0, 0);
+      this.$keyboardProxy.val('1\nThis is a "test" and a test\n2');
+      this.$keyboardProxy.parent().triggerHandler('paste');
+    });
+
+    waits(110);
+
+    runs(function(){
+      expect(getDataAtCell(0, 0)).toEqual('1');
+      expect(getDataAtCell(1, 0)).toEqual('This is a "test" and a test');
+      expect(getDataAtCell(2, 0)).toEqual('2');
+    });
   });
 });

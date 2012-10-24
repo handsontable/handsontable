@@ -113,6 +113,7 @@ var handsontableMethodFactory = function (method) {
 };
 
 var selectCell = handsontableMethodFactory('selectCell');
+var deselectCell = handsontableMethodFactory('deselectCell');
 var getSelected = handsontableMethodFactory('getSelected');
 var setDataAtCell = handsontableMethodFactory('setDataAtCell');
 var getCell = handsontableMethodFactory('getCell');
