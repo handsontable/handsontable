@@ -35,6 +35,10 @@ var isFillHandleVisible = function () {
   return spec().$container.find('.htFillHandle').is(':visible');
 };
 
+var isAutocompleteVisible = function () {
+  return spec().$keyboardProxy.data("typeahead").$menu.is(":visible");
+};
+
 /**
  * Returns a function that triggers a key event
  * @param {String} type Event type
@@ -82,6 +86,15 @@ var handsontableKeyTriggerFactory = function (type) {
 
 var keyDown = handsontableKeyTriggerFactory('keydown');
 var keyUp = handsontableKeyTriggerFactory('keyup');
+
+/**
+ * Presses keyDown, then keyUp
+ * @return {String}
+ */
+var keyDownUp = function (key) {
+  keyDown(key);
+  keyUp(key);
+};
 
 /**
  * Returns current value of the keyboard proxy textarea

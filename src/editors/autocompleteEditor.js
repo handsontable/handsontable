@@ -56,7 +56,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
 
   typeahead.hide = function () {
     if (!dontHide) {
-      dontHide = false;
+      dontHide = false; //set to true by dblclick handler, otherwise appears and disappears immediately after double click
       return typeahead._hide.call(this);
     }
   };
@@ -89,6 +89,10 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
 
   keyboardProxy.on("keydown.editor", function (event) {
     switch (event.keyCode) {
+      case 27: /* ESC */
+        dontHide = false;
+        break;
+
       case 38: /* arrow up */
       case 40: /* arrow down */
       case 9: /* tab */
@@ -141,7 +145,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   var destroyer = function (isCancelled) {
     textDestroyer(isCancelled);
     typeahead.source = [];
-    if (isAutoComplete(keyboardProxy) && isAutoComplete(keyboardProxy).shown) {
+    if (isAutoComplete(keyboardProxy)) {
       isAutoComplete(keyboardProxy).hide();
     }
   };
