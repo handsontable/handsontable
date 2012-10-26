@@ -26,7 +26,10 @@ describe('Core_dataSchema', function () {
       ],
       minSpareRows: 1
     });
-    setDataAtCell(0, 1, 'Ted');
+    selectCell(0, 1);
+    keyDownUp('enter');
+    this.$keyboardProxy.val('Ted');
+    keyDownUp('enter');
     expect(getData()[0].name.first).toEqual('Ted');
   });
 });
