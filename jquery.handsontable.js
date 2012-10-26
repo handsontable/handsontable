@@ -3895,6 +3895,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   var destroyer = function (isCancelled) {
     textDestroyer(isCancelled);
     typeahead.source = [];
+    dontHide = false;
     if (isAutoComplete(keyboardProxy)) {
       isAutoComplete(keyboardProxy).hide();
     }

@@ -104,4 +104,26 @@ describe('AutocompleteEditor', function () {
       expect(isAutocompleteVisible()).toEqual(false);
     });
   });
+
+  it('should destroy editor when clicked outside the table', function () {
+    runs(function () {
+      handsontable({
+        autoComplete: getAutocompleteConfig(false)
+      });
+      selectCell(2, 2);
+      $(getCell(2, 2)).trigger("dblclick");
+    });
+
+    waits(10);
+
+    runs(function () {
+      $('body').click();
+    });
+
+    waits(10);
+
+    runs(function () {
+      expect(isAutocompleteVisible()).toEqual(false);
+    });
+  });
 });
