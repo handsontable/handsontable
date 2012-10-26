@@ -1,14 +1,13 @@
 describe('Core_loadData', function () {
-  var $container,
-    id = 'testContainer';
+  var id = 'testContainer';
 
   beforeEach(function () {
-    $container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
   afterEach(function () {
-    if($container) {
-      $container.remove();
+    if (this.$container) {
+      this.$container.remove();
     }
   });
 
@@ -58,27 +57,25 @@ describe('Core_loadData', function () {
   ];
 
   it('should allow array of arrays', function () {
-    $container.handsontable();
-    $container.handsontable('loadData', arrayOfArrays());
-    var output = $container.handsontable('getDataAtCell', 0, 2);
-    expect(output).toEqual("Nissan");
+    handsontable();
+    loadData(arrayOfArrays());
+    expect(getDataAtCell(0, 2)).toEqual("Nissan");
   });
 
   it('should allow array of objects', function () {
-    $container.handsontable({
+    handsontable({
       columns: [
         {data: "id"},
         {data: "lastName"},
         {data: "name"}
       ]
     });
-    $container.handsontable('loadData', arrayOfObjects());
-    var output = $container.handsontable('getDataAtCell', 0, 2);
-    expect(output).toEqual("Ted");
+    loadData(arrayOfObjects());
+    expect(getDataAtCell(0, 2)).toEqual("Ted");
   });
 
   it('should allow array of nested objects', function () {
-    $container.handsontable({
+    handsontable({
       data: arrayOfNestedObjects(),
       colHeaders: true,
       columns: [
@@ -87,31 +84,29 @@ describe('Core_loadData', function () {
         {data: "name.first"}
       ]
     });
-    var output = $container.handsontable('getDataAtCell', 0, 2);
-    expect(output).toEqual("Ted");
+    expect(getDataAtCell(0, 2)).toEqual("Ted");
   });
 
   it('should figure out default column names for array of nested objects', function () {
-    $container.handsontable({
+    handsontable({
       data: arrayOfNestedObjects(),
       colHeaders: true
     });
-    var output = $container.handsontable('getDataAtCell', 0, 2);
-    expect(output).toEqual("Right");
+    expect(getDataAtCell(0, 2)).toEqual("Right");
   });
 
   it('should trigger onChange callback when loaded array of arrays', function () {
     var called = false;
 
     runs(function () {
-      $container.handsontable({
+      handsontable({
         onChange: function (changes, source) {
           if (source === 'loadData') {
             called = true;
           }
         }
       });
-      $container.handsontable('loadData', arrayOfArrays());
+      loadData(arrayOfArrays());
     });
 
     waitsFor(function () {
@@ -127,14 +122,14 @@ describe('Core_loadData', function () {
     var called = false;
 
     runs(function () {
-      $container.handsontable({
+      handsontable({
         onChange: function (changes, source) {
           if (source === 'loadData') {
             called = true;
           }
         }
       });
-      $container.handsontable('loadData', arrayOfObjects());
+      loadData(arrayOfObjects());
     });
 
     waitsFor(function () {
@@ -150,14 +145,14 @@ describe('Core_loadData', function () {
     var called = false;
 
     runs(function () {
-      $container.handsontable({
+      handsontable({
         onChange: function (changes, source) {
           if (source === 'loadData') {
             called = true;
           }
         }
       });
-      $container.handsontable('loadData', arrayOfNestedObjects());
+      loadData(arrayOfNestedObjects());
     });
 
     waitsFor(function () {
@@ -174,7 +169,7 @@ describe('Core_loadData', function () {
     var myData = arrayOfArrays();
     var expectedRows = myData.length * 2;
 
-    $container.handsontable({
+    handsontable({
       startRows: expectedRows,
       data: myData,
       onChange: function (changes, source) {
@@ -192,7 +187,7 @@ describe('Core_loadData', function () {
     var myData = arrayOfNestedObjects();
     var expectedRows = myData.length * 2;
 
-    $container.handsontable({
+    handsontable({
       startRows: expectedRows,
       data: myData,
       onChange: function (changes, source) {
@@ -206,18 +201,16 @@ describe('Core_loadData', function () {
   });
 
   it('HTML special chars should be escaped by default', function () {
-    $container.handsontable();
-    $container.handsontable('loadData', htmlData);
-    var output = $container.handsontable('getCell', 0, 0).innerHTML;
-    expect(output).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
+    handsontable();
+    loadData(htmlData);
+    expect(getCell(0, 0).innerHTML).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
   });
 
   it('HTML special chars should be escaped by default', function () {
-    $container.handsontable({
+    handsontable({
       startRows: 6,
       data: arrayOfObjects()
     });
-    var output = $container.handsontable('getCell', 9, 1).innerHTML;
-    expect(output).toEqual('Eve');
+    expect(getCell(9, 1).innerHTML).toEqual('Eve');
   });
 });

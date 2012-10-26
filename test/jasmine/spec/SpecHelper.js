@@ -1,4 +1,4 @@
-var spec = function() {
+var spec = function () {
   return jasmine.getEnv().currentSpec;
 };
 
@@ -8,15 +8,15 @@ var handsontable = function (options) {
   currentSpec.$keyboardProxy = currentSpec.$container.find('textarea.handsontableInput');
 };
 
-var countRows = function() {
+var countRows = function () {
   return spec().$container.find('.htCore tbody tr').length;
 };
 
-var countCols = function() {
+var countCols = function () {
   return spec().$container.find('.htCore tbody tr:eq(0) td').length;
 };
 
-var countCells = function() {
+var countCells = function () {
   return spec().$container.find('.htCore tbody td').length;
 };
 
@@ -133,3 +133,4 @@ var getCell = handsontableMethodFactory('getCell');
 var getData = handsontableMethodFactory('getData');
 var getDataAtCell = handsontableMethodFactory('getDataAtCell');
 var alter = handsontableMethodFactory('alter');
+var loadData = handsontableMethodFactory('loadData');
