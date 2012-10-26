@@ -73,9 +73,11 @@
         <li><a href="#array-hidden">array data source (with hidden columns)</a></li>
         <li><a href="#object">object data source</a></li>
         <li><a href="#nested">nested object data source (with column mapping)</a></li>
+        <li><a href="#dataschema">automatic and custom data schema</a></li>
       </ul>
 
-      <p>Please take note that Handsontable will change the original data source. More about this here: <a href="understanding_reference.html">Understanding binding as reference</a>.</p>
+      <p>Please take note that Handsontable will change the original data source. More about this here: <a
+          href="understanding_reference.html">Understanding binding as reference</a>.</p>
 
       <a name="array"></a>
 
@@ -258,6 +260,61 @@
           startRows: 5,
           startCols: 4,
           colHeaders: true,
+          columns: [
+            {data: "id"},
+            {data: "name.first"},
+            {data: "name.last"},
+            {data: "address"}
+          ],
+          minSpareRows: 1
+        });
+      </script>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
+      <a name="dataschema"></a>
+
+      <h2>Automatic and custom data schema</h2>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad bottomSpace100">
+      <p>When you use object data binding, Handsontable needs to know the data structure to create when you add a new
+        row.</p>
+
+      <p>If your data source contains at least one row, Handsontable will figure out the data structure based on the
+        first row.</p>
+
+      <p>In case you want to start with an empty data source, you will need to provide the <strong>dataSchema</strong>
+        option that contains the data structure for any new row added to the grid.</p>
+
+      <p>The below example shows custom data schema with an empty data source:</p>
+
+      <div id="example5"></div>
+
+      <p>
+        <button name="dump" data-dump="#example5">Dump to console</button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <script>
+        var $container = $("#example5");
+        $container.handsontable({
+          data: [],
+          dataSchema: {id: null, name: {first: null, last: null}, address: null},
+          startRows: 5,
+          startCols: 4,
+          colHeaders: ['ID', 'First Name', 'Last Name', 'Address'],
           columns: [
             {data: "id"},
             {data: "name.first"},

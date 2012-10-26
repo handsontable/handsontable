@@ -76,11 +76,11 @@ Handsontable.Core = function (rootElement, settings) {
   datamap = {
     recursiveDuckSchema: function (obj) {
       var schema;
-      if (Object.prototype.toString.call(obj) === '[object Object]') {
+      if ($.isPlainObject(obj)) {
         schema = {};
         for (var i in obj) {
           if (obj.hasOwnProperty(i)) {
-            if (Object.prototype.toString.call(obj[i]) === '[object Object]') {
+            if ($.isPlainObject(obj[i])) {
               schema[i] = datamap.recursiveDuckSchema(obj[i]);
             }
             else {
@@ -101,7 +101,7 @@ Handsontable.Core = function (rootElement, settings) {
         lastCol = 0;
         parent = '';
       }
-      if (Object.prototype.toString.call(schema) === '[object Object]') {
+      if ($.isPlainObject(schema)) {
         for (i in schema) {
           if (schema.hasOwnProperty(i)) {
             if (schema[i] === null) {
@@ -1405,10 +1405,10 @@ Handsontable.Core = function (rootElement, settings) {
   this.setDataAtCell = function (row, prop, value, source) {
     var refreshRows = false, refreshCols = false, changes, i, ilen, td, changesByCol = [];
 
-    if (typeof row === "object") { //is stringish
+    if (typeof row === "object") { //is it an array of changes
       changes = row;
     }
-    else if (Object.prototype.toString.call(value) === '[object Object]') { //backwards compatibility
+    else if ($.isPlainObject(value)) { //backwards compatibility
       changes = value;
     }
     else {
@@ -1529,13 +1529,18 @@ Handsontable.Core = function (rootElement, settings) {
   this.loadData = function (data) {
     priv.isPopulated = false;
     priv.settings.data = data;
-    if (typeof data === 'object' && typeof data[0] === 'object' && typeof data[0].push !== 'function') {
+    if ($.isPlainObject(priv.settings.dataSchema) || $.isPlainObject(data[0])) {
       priv.dataType = 'object';
     }
     else {
       priv.dataType = 'array';
     }
-    priv.duckDataSchema = datamap.recursiveDuckSchema(data[0]);
+    if(data[0]) {
+      priv.duckDataSchema = datamap.recursiveDuckSchema(data[0]);
+    }
+    else {
+      priv.duckDataSchema = {};
+    }
     datamap.createMap();
     var dlen = priv.settings.data.length;
     while (priv.settings.startRows > dlen) {
