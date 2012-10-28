@@ -4245,7 +4245,7 @@ Handsontable.PluginHooks.push('afterInit', createContextMenu);
       if (config.minWidth !== 'original' || config.maxWidth !== 'original') {
         this.wClone = $('<div/>').width('auto').css({
           whiteSpace: 'nowrap',
-          float: 'left'
+          'float': 'left'
         });
         this.clones = this.clones.add(this.wClone);
       }
