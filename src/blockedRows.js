@@ -8,7 +8,7 @@ Handsontable.BlockedRows = function (instance) {
   this.headers = [];
   var position = instance.table.position();
   instance.positionFix(position);
-  this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table class="htBlockedRows" cellspacing="0" cellpadding="0"><thead></thead></table></div>');
+  this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table class="htBlockedRows htTable" cellspacing="0" cellpadding="0"><thead></thead></table></div>');
   this.instance.container.append(this.main);
   this.hasCSS3 = !($.browser.msie && (parseInt($.browser.version, 10) <= 8)); //Used to get over IE8- not having :last-child selector
   this.update();

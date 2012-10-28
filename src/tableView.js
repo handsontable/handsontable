@@ -76,7 +76,7 @@ Handsontable.TableView = function (instance) {
   that.instance.lastScrollTop = that.instance.lastScrollLeft = null;
   this.scrollbarSize = this.measureScrollbar();
 
-  var div = $('<div><table class="htCore" cellspacing="0" cellpadding="0"><thead></thead><tbody></tbody></table></div>');
+  var div = $('<div><table class="htCore htTable" cellspacing="0" cellpadding="0"><thead></thead><tbody></tbody></table></div>');
   priv.tableContainer = div[0];
   that.instance.table = $(priv.tableContainer.firstChild);
   this.$tableBody = that.instance.table.find("tbody")[0];
@@ -360,7 +360,7 @@ Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td,
     , cellProperties = this.instance.getCellMeta(coords.row, coords.col)
     , settings = this.instance.getSettings();
 
-  if (cellProperties.type && typeof cellProperties.type[methodName] === "function") {
+  if (typeof cellProperties.type !== 'undefined' && typeof cellProperties.type[methodName] === "function") {
     method = cellProperties.type[methodName];
   }
   else if (settings.autoComplete) {

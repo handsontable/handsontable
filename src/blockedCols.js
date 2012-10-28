@@ -8,7 +8,7 @@ Handsontable.BlockedCols = function (instance) {
   this.headers = [];
   var position = instance.table.position();
   instance.positionFix(position);
-  this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table class="htBlockedCols" cellspacing="0" cellpadding="0"><thead><tr></tr></thead><tbody></tbody></table></div>');
+  this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table class="htBlockedCols htTable" cellspacing="0" cellpadding="0"><thead><tr></tr></thead><tbody></tbody></table></div>');
   this.instance.container.append(this.main);
   this.heightMethod = this.determineCellHeightMethod();
   this.instance.rootElement.on('cellrender.handsontable', function (/*event, changes, source*/) {

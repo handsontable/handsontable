@@ -1654,6 +1654,7 @@ Handsontable.Core = function (rootElement, settings) {
       div.style.left = position.left + 'px';
 
       var table = document.createElement('table');
+      table.className = 'htBlockedCorner htTable';
       table.cellPadding = 0;
       table.cellSpacing = 0;
       div.appendChild(table);

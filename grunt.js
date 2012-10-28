@@ -31,6 +31,7 @@ module.exports = function (grunt) {
           'src/editors/textEditor.js',
           'src/editors/autocompleteEditor.js',
           'src/editors/checkboxEditor.js',
+          'src/editors/dateEditor.js',
 
           'src/cellTypes.js',
 

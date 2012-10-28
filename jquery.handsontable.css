@@ -14,7 +14,7 @@
   -moz-box-sizing: content-box;
 }
 
-.handsontable table {
+.handsontable .htTable {
   border-collapse: separate;
   position: relative;
   -webkit-user-select: none;
@@ -25,8 +25,8 @@
   border-spacing: 0;
 }
 
-.handsontable th,
-.handsontable td {
+.handsontable .htTable th,
+.handsontable .htTable td {
   border-right: 1px solid #CCC;
   border-bottom: 1px solid #CCC;
   min-width: 50px;
@@ -39,35 +39,35 @@
   width: 50px;
 }
 
-.handsontable tr:first-child th.htNoFrame,
-.handsontable th:first-child.htNoFrame,
-.handsontable th.htNoFrame {
+.handsontable .htTable tr:first-child th.htNoFrame,
+.handsontable .htTable th:first-child.htNoFrame,
+.handsontable .htTable th.htNoFrame {
   border-left-width: 0;
   background-color: white;
   border-color: #FFF;
 }
 
-.handsontable th:first-child,
-.handsontable td:first-child,
-.handsontable .htNoFrame + th,
-.handsontable .htNoFrame + td {
+.handsontable .htTable th:first-child,
+.handsontable .htTable td:first-child,
+.handsontable .htTable .htNoFrame + th,
+.handsontable .htTable .htNoFrame + td {
   border-left: 1px solid #CCC;
 }
 
-.handsontable tr:first-child th,
-.handsontable tr:first-child td {
+.handsontable .htTable tr:first-child th,
+.handsontable .htTable tr:first-child td {
   border-top: 1px solid #CCC;
 }
 
-.handsontable thead tr:last-child th {
+.handsontable .htTable thead tr:last-child th {
   border-bottom-width: 0;
 }
 
-.handsontable thead tr.lastChild th {
+.handsontable .htTable thead tr.lastChild th {
   border-bottom-width: 0;
 }
 
-.handsontable th {
+.handsontable .htTable th {
   background-color: #EEE;
   color: #222;
   text-align: center;
@@ -75,15 +75,15 @@
   white-space: nowrap;
 }
 
-.handsontable th .small {
+.handsontable .htTable th .small {
   font-size: 12px;
 }
 
-.handsontable thead th {
+.handsontable .htTable thead th {
   padding: 2px 4px;
 }
 
-.handsontable th.active {
+.handsontable .htTable th.active {
   background-color: #CCC;
 }
 
@@ -137,6 +137,7 @@
 
 /* textarea border color */
 textarea.handsontableInput {
+  color: #000;
   border: 2px solid #5292F7;
   outline-width: 0;
   margin: 0;

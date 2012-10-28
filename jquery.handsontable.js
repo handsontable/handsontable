@@ -1671,6 +1671,7 @@ Handsontable.Core = function (rootElement, settings) {
       div.style.left = position.left + 'px';
 
       var table = document.createElement('table');
+      table.className = 'htBlockedCorner htTable';
       table.cellPadding = 0;
       table.cellSpacing = 0;
       div.appendChild(table);
@@ -2122,7 +2123,7 @@ Handsontable.TableView = function (instance) {
   that.instance.lastScrollTop = that.instance.lastScrollLeft = null;
   this.scrollbarSize = this.measureScrollbar();
 
-  var div = $('<div><table class="htCore" cellspacing="0" cellpadding="0"><thead></thead><tbody></tbody></table></div>');
+  var div = $('<div><table class="htCore htTable" cellspacing="0" cellpadding="0"><thead></thead><tbody></tbody></table></div>');
   priv.tableContainer = div[0];
   that.instance.table = $(priv.tableContainer.firstChild);
   this.$tableBody = that.instance.table.find("tbody")[0];
@@ -2406,7 +2407,7 @@ Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td,
     , cellProperties = this.instance.getCellMeta(coords.row, coords.col)
     , settings = this.instance.getSettings();
 
-  if (cellProperties.type && typeof cellProperties.type[methodName] === "function") {
+  if (typeof cellProperties.type !== 'undefined' && typeof cellProperties.type[methodName] === "function") {
     method = cellProperties.type[methodName];
   }
   else if (settings.autoComplete) {
@@ -2833,7 +2834,7 @@ Handsontable.BlockedRows = function (instance) {
   this.headers = [];
   var position = instance.table.position();
   instance.positionFix(position);
-  this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table class="htBlockedRows" cellspacing="0" cellpadding="0"><thead></thead></table></div>');
+  this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table class="htBlockedRows htTable" cellspacing="0" cellpadding="0"><thead></thead></table></div>');
   this.instance.container.append(this.main);
   this.hasCSS3 = !($.browser.msie && (parseInt($.browser.version, 10) <= 8)); //Used to get over IE8- not having :last-child selector
   this.update();
@@ -3034,7 +3035,7 @@ Handsontable.BlockedCols = function (instance) {
   this.headers = [];
   var position = instance.table.position();
   instance.positionFix(position);
-  this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table class="htBlockedCols" cellspacing="0" cellpadding="0"><thead><tr></tr></thead><tbody></tbody></table></div>');
+  this.main = $('<div style="position: absolute; top: ' + position.top + 'px; left: ' + position.left + 'px"><table class="htBlockedCols htTable" cellspacing="0" cellpadding="0"><thead><tr></tr></thead><tbody></tbody></table></div>');
   this.instance.container.append(this.main);
   this.heightMethod = this.determineCellHeightMethod();
   this.instance.rootElement.on('cellrender.handsontable', function (/*event, changes, source*/) {
@@ -3955,6 +3956,93 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardPr
     instance.container.find('.htBorder.current').off(".editor");
   }
 };
+/**
+ * Date editor (uses jQuery UI Datepicker)
+ * @param {Object} instance Handsontable instance
+ * @param {Element} td Table cell where to render
+ * @param {Number} row
+ * @param {Number} col
+ * @param {String|Number} prop Row object property name
+ * @param {Object} keyboardProxy jQuery element of keyboard proxy that contains current editing value
+ * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
+ */
+Handsontable.DateEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
+
+  //1. Editor preparation. Called when cell is selected.
+  var $td = $(td);
+
+  var textDestroyer = Handsontable.TextEditor(instance, td, row, col, prop, keyboardProxy, cellProperties);
+
+  var datePickerdiv = $("<div>");
+  datePickerdiv[0].style.position = 'absolute';
+  datePickerdiv[0].style.top = 0;
+  datePickerdiv[0].style.left = 0;
+  datePickerdiv[0].style.zIndex = 99;
+  instance.container[0].appendChild(datePickerdiv[0]);
+
+
+  //2. Event bindings. Listens when user uses key or mouse on cell.
+  function showDatepicker() {
+    var position = $td.position();
+    datePickerdiv[0].style.top = (position.top + $td.height()) + 'px';
+    datePickerdiv[0].style.left = position.left + 'px';
+
+    if (!datePickerdiv.data('datepicker')) {
+      var dateoptions = {
+        dateFormat: "yy-mm-dd",
+        defaultDate: instance.getDataAtCell(row, col),
+        dshowButtonPanel: true,
+        changeMonth: true,
+        changeYear: true,
+        altField: keyboardProxy,
+        onSelect: function () {
+          instance.selectCell(row, col);
+        }
+      };
+      datePickerdiv.datepicker(dateoptions);
+    }
+    else {
+      datePickerdiv.show();
+    }
+    console.log(datePickerdiv.data('datepicker'));
+  }
+
+  keyboardProxy.on("keydown.editor", function (event) {
+    switch (event.keyCode) {
+      case 27: /* ESC */
+        hideCalendar();
+        break;
+
+      case 9: /* tab */
+      case 13: /* return/enter */
+        showDatepicker();
+        event.stopPropagation();
+        event.preventDefault();
+    }
+  });
+
+  function onDblClick() {
+    setTimeout(function () { //otherwise is misaligned in IE9
+      showDatepicker();
+    }, 1);
+  }
+
+  $td.on('dblclick.editor', onDblClick);
+  instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
+
+
+  //3. Return destroyer function. Will be executed when cell is deselected.
+  function hideCalendar() {
+    datePickerdiv.hide();
+  }
+
+  return function () {
+    textDestroyer();
+    datePickerdiv.remove();
+    $td.off(".editor");
+    instance.container.find('.htBorder.current').off(".editor");
+  };
+};
 Handsontable.AutocompleteCell = {
   renderer: Handsontable.AutocompleteRenderer,
   editor: Handsontable.AutocompleteEditor
@@ -3968,6 +4056,11 @@ Handsontable.CheckboxCell = {
 Handsontable.TextCell = {
   renderer: Handsontable.TextRenderer,
   editor: Handsontable.TextEditor
+};
+
+Handsontable.DateCell = {
+  renderer: Handsontable.AutocompleteRenderer, //displays small gray arrow on right side of the cell
+  editor: Handsontable.DateEditor
 };
 Handsontable.PluginHooks = {
   hooks: {

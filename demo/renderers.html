@@ -7,10 +7,12 @@
   <!--
   Loading Handsontable dependencies.
   Please note that some dependencies are optional:
-   - bootstrap-typeahead.js - is required only if you need the autocomplete feature
-   - jquery.contextMenu.js  - is required only if you need the context menu feature
-   - jquery.contextMenu.css - is required only if you need the context menu feature
-   - jquery.ui.position.js  - is required only if you need the context menu feature
+   - bootstrap-typeahead.js  - is required only if you need the autocomplete feature
+   - jquery.contextMenu.js   - is required only if you need the context menu feature
+   - jquery.contextMenu.css  - is required only if you need the context menu feature
+   - jquery-ui.custom.min.js - is required only if you need the context menu feature
+   - jquery.ui.position.js   - is required only if you need the date editor
+   - jquery-ui.custom.css    - is required only if you need the date editor
   -->
   <script src="../lib/jquery.min.js"></script>
   <script src="../jquery.handsontable.js"></script>
@@ -18,6 +20,8 @@
   <script src="../lib/jQuery-contextMenu/jquery.contextMenu.js"></script>
   <script src="../lib/jQuery-contextMenu/jquery.ui.position.js"></script>
   <link rel="stylesheet" media="screen" href="../lib/jQuery-contextMenu/jquery.contextMenu.css">
+  <script src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
+  <link rel="stylesheet" media="screen" href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
   <link rel="stylesheet" media="screen" href="../jquery.handsontable.css">
 
   <!--
@@ -86,10 +90,10 @@
       <div class="pad">
         <script>
           var data = [
-            {id: 1, name: "Ted", isActive: true, color: "orange"},
-            {id: 2, name: "John", isActive: false, color: "black"},
-            {id: 3, name: "Al", isActive: true, color: "red"},
-            {id: 4, name: "Ben", isActive: false, color: "blue"}
+            {id: 1, name: "Ted", isActive: true, color: "orange", date: "2008-01-01"},
+            {id: 2, name: "John", isActive: false, color: "black", date: null},
+            {id: 3, name: "Al", isActive: true, color: "red", date: null},
+            {id: 4, name: "Ben", isActive: false, color: "blue", date: null}
           ];
 
           var yellowRenderer = function (instance, td, row, col, prop, value, cellProperties) {
@@ -116,6 +120,7 @@
               {data: "id"},
               {data: "name", type: {renderer: yellowRenderer}},
               {data: "isActive", type: Handsontable.CheckboxCell},
+              {data: "date", type: Handsontable.DateCell},
               {data: "color"}
             ],
             cells: function (row, col, prop) {
@@ -126,7 +131,7 @@
             autoComplete: [
               {
                 match: function (row, col, data) {
-                  return (col == 3); //returns true if column index is 3
+                  return (col == 4); //returns true if column index is 3
                 },
                 source: function () {
                   return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
