@@ -51,6 +51,8 @@ To see the list of recent changes, see the [Changelog](https://github.com/warpec
  handsontable('loadData', data)                                                        | Method      | Reset all cells in the grid to contain data from the `data` array
  handsontable('setDataAtCell',&nbsp;row,&nbsp;col,&nbsp;value)                         | Method      | Set new value to a cell. To change many cells at once, pass an array of changes in format [[row, col, value], ...] as the only parameter
  handsontable('getDataAtCell', row, col)                                               | Method      | Return cell value at `row`, `col`
+ handsontable('countRows')                                                             | Method      | Return total number of rows in the grid
+ handsontable('countCols')                                                             | Method      | Return total number of columns in the grid
  handsontable('clear')                                                                 | Method      | Empty all cells
  handsontable('clearUndo')                                                             | Method      | Clear undo history
  handsontable('getData', [r, c, r2, c2])                                               | Method      | Return the current data object (the same that was passed by `data` configuration option or `loadData` method). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to get only a fragment of grid data

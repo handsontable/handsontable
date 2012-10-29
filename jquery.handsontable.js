@@ -415,7 +415,7 @@ Handsontable.Core = function (rootElement, settings) {
       var $tbody = $(priv.tableBody);
 
       //count currently empty rows
-      rows : for (r = self.rowCount - 1; r >= 0; r--) {
+      rows : for (r = self.countRows() - 1; r >= 0; r--) {
         for (c = 0, clen = self.colCount; c < clen; c++) {
           val = datamap.get(r, datamap.colToProp(c));
           if (val !== '' && val !== null && typeof val !== 'undefined') {
@@ -426,7 +426,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       //should I add empty rows to data source to meet startRows?
-      rlen = priv.settings.data.length;
+      rlen = self.countRows();
       if (rlen < priv.settings.startRows) {
         for (r = 0; r < priv.settings.startRows - rlen; r++) {
           datamap.createRow();
@@ -463,9 +463,9 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       //count currently empty cols
-      if (self.rowCount - 1 > 0) {
+      if (self.countRows() - 1 > 0) {
         cols : for (c = self.colCount - 1; c >= 0; c--) {
-          for (r = 0; r < self.rowCount; r++) {
+          for (r = 0; r < self.countRows(); r++) {
             val = datamap.get(r, datamap.colToProp(c));
             if (val !== '' && val !== null && typeof val !== 'undefined') {
               break cols;
@@ -1932,6 +1932,22 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
+   * Return total number of rows in grid
+   * @return {Number}
+   */
+  this.countRows = function () {
+    return priv.settings.data.length;
+  };
+
+  /**
+   * Return total number of columns in grid
+   * @return {Number}
+   */
+  this.countCols = function () {
+    return self.colCount;
+  };
+
+  /**
    * Selects cell on grid. Optionally selects range to another cell
    * @param {Number} row
    * @param {Number} col
@@ -3285,7 +3301,7 @@ Handsontable.ColHeader = function (instance, labels) {
     that.lastActive = this;
     var index = $th.index();
     var offset = instance.blockedCols ? instance.blockedCols.count() : 0;
-    instance.selectCell(0, index - offset, instance.rowCount - 1, index - offset, false);
+    instance.selectCell(0, index - offset, instance.countRows() - 1, index - offset, false);
   });
   instance.rootElement.on('deselect.handsontable', function () {
     that.deselect();
@@ -4213,9 +4229,20 @@ function createContextMenu() {
 
 Handsontable.PluginHooks.push('afterInit', createContextMenu);
 /*
- * jQuery.fn.autoResize 1.1
+ * jQuery.fn.autoResize 1.1+
  * --
+ * https://github.com/warpech/jQuery.fn.autoResize
+ *
+ * This fork differs from others in a way that it autoresizes textarea in 2-dimensions (horizontally and vertically).
+ * It was originally forked from alexbardas's repo but maybe should be merged with dpashkevich's repo in future.
+ *
+ * originally forked from:
  * https://github.com/jamespadolsey/jQuery.fn.autoResize
+ * which is now located here:
+ * https://github.com/alexbardas/jQuery.fn.autoResize
+ * though the mostly maintained for is here:
+ * https://github.com/dpashkevich/jQuery.fn.autoResize/network
+ *
  * --
  * This program is free software. It comes without any warranty, to
  * the extent permitted by applicable law. You can redistribute it
