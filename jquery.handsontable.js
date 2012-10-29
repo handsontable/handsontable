@@ -4020,7 +4020,6 @@ Handsontable.DateEditor = function (instance, td, row, col, prop, keyboardProxy,
     else {
       datePickerdiv.show();
     }
-    console.log(datePickerdiv.data('datepicker'));
   }
 
   keyboardProxy.on("keydown.editor", function (event) {
