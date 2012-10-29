@@ -1,7 +1,18 @@
 /*
- * jQuery.fn.autoResize 1.1
+ * jQuery.fn.autoResize 1.1+
  * --
+ * https://github.com/warpech/jQuery.fn.autoResize
+ *
+ * This fork differs from others in a way that it autoresizes textarea in 2-dimensions (horizontally and vertically).
+ * It was originally forked from alexbardas's repo but maybe should be merged with dpashkevich's repo in future.
+ *
+ * originally forked from:
  * https://github.com/jamespadolsey/jQuery.fn.autoResize
+ * which is now located here:
+ * https://github.com/alexbardas/jQuery.fn.autoResize
+ * though the mostly maintained for is here:
+ * https://github.com/dpashkevich/jQuery.fn.autoResize/network
+ *
  * --
  * This program is free software. It comes without any warranty, to
  * the extent permitted by applicable law. You can redistribute it
