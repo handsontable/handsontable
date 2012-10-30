@@ -1172,13 +1172,12 @@ Handsontable.Core = function (rootElement, settings) {
               break;
 
             case 9: /* tab */
-              r = priv.settings.tabMoves.row;
-              c = priv.settings.tabMoves.col;
+              var tabMoves = typeof priv.settings.tabMoves === 'function' ? priv.settings.tabMoves() : priv.settings.tabMoves;
               if (event.shiftKey) {
-                selection.transformStart(-r, -c);
+                selection.transformStart(-tabMoves.row, -tabMoves.col);
               }
               else {
-                selection.transformStart(r, c);
+                selection.transformStart(tabMoves.row, tabMoves.col);
               }
               event.preventDefault();
               break;
@@ -1224,13 +1223,12 @@ Handsontable.Core = function (rootElement, settings) {
               break;
 
             case 13: /* return/enter */
-              r = priv.settings.enterMoves.row;
-              c = priv.settings.enterMoves.col;
+              var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves() : priv.settings.enterMoves;
               if (event.shiftKey) {
-                selection.transformStart(-r, -c); //move selection up
+                selection.transformStart(-enterMoves.row, -enterMoves.col); //move selection up
               }
               else {
-                selection.transformStart(r, c); //move selection down
+                selection.transformStart(enterMoves.row, enterMoves.col); //move selection down
               }
               event.preventDefault(); //don't add newline to field
               break;
