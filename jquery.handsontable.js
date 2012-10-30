@@ -3459,7 +3459,7 @@ var texteditor = {
    * Sets caret position in edit proxy
    * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
    * @param {Number}
-    */
+   */
   setCaretPosition: function (keyboardProxy, pos) {
     var el = keyboardProxy[0];
     if (el.setSelectionRange) {
@@ -3654,14 +3654,12 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
       case 38: /* arrow up */
         if (texteditor.isCellEdited) {
           texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
-          event.stopPropagation();
         }
         break;
 
       case 9: /* tab */
         if (texteditor.isCellEdited) {
           texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
-          event.stopPropagation();
         }
         event.preventDefault();
         break;
@@ -3699,7 +3697,6 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
       case 40: /* arrow down */
         if (texteditor.isCellEdited) {
           texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
-          event.stopPropagation();
         }
         break;
 
@@ -4567,7 +4564,7 @@ function handler(event) {
 
 /**
  * SheetClip - Spreadsheet Clipboard Parser
- * version 0.1
+ * version 0.2
  *
  * This tiny library transforms JavaScript arrays to strings that are pasteable by LibreOffice, OpenOffice,
  * Google Docs and Microsoft Excel.
@@ -4579,9 +4576,6 @@ function handler(event) {
 /*jslint white: true*/
 (function (global) {
   "use strict";
-
-  var UNDEFINED = (function () {
-  }());
 
   function countQuotes(str) {
     return str.split('"').length - 1;
@@ -4619,7 +4613,7 @@ function handler(event) {
             }
           }
         }
-        if(!multiline) {
+        if (!multiline) {
           a += 1;
         }
       }
@@ -4642,7 +4636,7 @@ function handler(event) {
               str += val;
             }
           }
-          else if (val === null || val === UNDEFINED) {
+          else if (val === null || val === void 0) { //void 0 resolves to undefined
             str += '';
           }
           else {

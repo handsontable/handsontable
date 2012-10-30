@@ -30,7 +30,7 @@ var texteditor = {
    * Sets caret position in edit proxy
    * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
    * @param {Number}
-    */
+   */
   setCaretPosition: function (keyboardProxy, pos) {
     var el = keyboardProxy[0];
     if (el.setSelectionRange) {
@@ -225,14 +225,12 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
       case 38: /* arrow up */
         if (texteditor.isCellEdited) {
           texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
-          event.stopPropagation();
         }
         break;
 
       case 9: /* tab */
         if (texteditor.isCellEdited) {
           texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
-          event.stopPropagation();
         }
         event.preventDefault();
         break;
@@ -270,7 +268,6 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
       case 40: /* arrow down */
         if (texteditor.isCellEdited) {
           texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
-          event.stopPropagation();
         }
         break;
 

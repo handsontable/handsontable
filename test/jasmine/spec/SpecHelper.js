@@ -89,7 +89,6 @@ var keyUp = handsontableKeyTriggerFactory('keyup');
 
 /**
  * Presses keyDown, then keyUp
- * @return {String}
  */
 var keyDownUp = function (key) {
   keyDown(key);
@@ -102,6 +101,24 @@ var keyDownUp = function (key) {
  */
 var keyProxy = function () {
   return spec().$keyboardProxy.val();
+};
+
+/**
+ * Sets text cursor inside keyboard proxy
+ */
+var setCaretPosition = function (pos) {
+  var el = spec().$keyboardProxy[0];
+  if (el.setSelectionRange) {
+    el.focus();
+    el.setSelectionRange(pos, pos);
+  }
+  else if (el.createTextRange) {
+    var range = el.createTextRange();
+    range.collapse(true);
+    range.moveEnd('character', pos);
+    range.moveStart('character', pos);
+    range.select();
+  }
 };
 
 /**

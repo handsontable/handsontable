@@ -1,6 +1,6 @@
 /**
  * SheetClip - Spreadsheet Clipboard Parser
- * version 0.1
+ * version 0.2
  *
  * This tiny library transforms JavaScript arrays to strings that are pasteable by LibreOffice, OpenOffice,
  * Google Docs and Microsoft Excel.
@@ -12,9 +12,6 @@
 /*jslint white: true*/
 (function (global) {
   "use strict";
-
-  var UNDEFINED = (function () {
-  }());
 
   function countQuotes(str) {
     return str.split('"').length - 1;
@@ -52,7 +49,7 @@
             }
           }
         }
-        if(!multiline) {
+        if (!multiline) {
           a += 1;
         }
       }
@@ -75,7 +72,7 @@
               str += val;
             }
           }
-          else if (val === null || val === UNDEFINED) {
+          else if (val === null || val === void 0) { //void 0 resolves to undefined
             str += '';
           }
           else {
