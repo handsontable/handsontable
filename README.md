@@ -99,8 +99,8 @@ The table below presents configuration options that are interpreted by `handsont
  `undo`                  | boolean                        | true             | If true, undo/redo functionality is enabled
  `outsideClickDeselects` | boolean                        | true             | If true, mouse click outside the grid will deselect the current selection
  `enterBeginsEditing`    | boolean                        | true             | If true, ENTER begins editing mode (like Google Docs). If false, ENTER moves to next row (like Excel) and adds new row if necessary. TAB adds new column if necessary.
- `enterMoves`            | object                         | {row: 1, col: 0} | Defines cursor move after Enter is pressed (Shift+Enter uses negative vector)
- `tabMoves`              | object                         | {row: 0, col: 1} | Defines cursor move after Tab is pressed (Shift+Tab uses negative vector)
+ `enterMoves`            | object/function                | {row: 1, col: 0} | Defines cursor move after Enter is pressed (Shift+Enter uses negative vector). Can be an object or a function that returns an object
+ `tabMoves`              | object/function                | {row: 0, col: 1} | Defines cursor move after Tab is pressed (Shift+Tab uses negative vector). Can be an object or a function that returns an object
  `autoWrapRow`           | boolean                        | false            | If true, pressing TAB or right arrow in the last column will move to first column in next row
  `autoWrapCol`           | boolean                        | false            | If true, pressing ENTER or down arrow in the last row will move to first row in next column
  `autoComplete`          | array                          | _undefined_      | Autocomplete definitions. See **Defining autocomplete**
