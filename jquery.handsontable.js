@@ -1189,7 +1189,7 @@ Handsontable.Core = function (rootElement, settings) {
               break;
 
             case 9: /* tab */
-              var tabMoves = typeof priv.settings.tabMoves === 'function' ? priv.settings.tabMoves() : priv.settings.tabMoves;
+              var tabMoves = typeof priv.settings.tabMoves === 'function' ? priv.settings.tabMoves(event) : priv.settings.tabMoves;
               if (event.shiftKey) {
                 selection.transformStart(-tabMoves.row, -tabMoves.col);
               }
@@ -1240,7 +1240,7 @@ Handsontable.Core = function (rootElement, settings) {
               break;
 
             case 13: /* return/enter */
-              var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves() : priv.settings.enterMoves;
+              var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
               if (event.shiftKey) {
                 selection.transformStart(-enterMoves.row, -enterMoves.col); //move selection up
               }
