@@ -151,3 +151,4 @@ var getData = handsontableMethodFactory('getData');
 var getDataAtCell = handsontableMethodFactory('getDataAtCell');
 var alter = handsontableMethodFactory('alter');
 var loadData = handsontableMethodFactory('loadData');
+var destroyEditor = handsontableMethodFactory('destroyEditor');
