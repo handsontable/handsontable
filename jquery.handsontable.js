@@ -731,9 +731,10 @@ Handsontable.Core = function (rootElement, settings) {
 
     /**
      * Redraws borders around cells
+     * @param {Boolean} revertOriginal
      */
-    refreshBorders: function () {
-      editproxy.destroy();
+    refreshBorders: function (revertOriginal) {
+      editproxy.destroy(revertOriginal);
       if (!selection.isSelected()) {
         return;
       }
@@ -1152,7 +1153,6 @@ Handsontable.Core = function (rootElement, settings) {
           return;
         }
 
-        var r, c;
         priv.lastKeyCode = event.keyCode;
         if (selection.isSelected()) {
           var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
@@ -1291,10 +1291,11 @@ Handsontable.Core = function (rootElement, settings) {
 
     /**
      * Destroy current editor, if exists
+     * @param {Boolean} revertOriginal
      */
-    destroy: function () {
+    destroy: function (revertOriginal) {
       if (typeof priv.editorDestroyer === "function") {
-        priv.editorDestroyer();
+        priv.editorDestroyer(revertOriginal);
         priv.editorDestroyer = null;
       }
     },
@@ -1463,10 +1464,11 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
-   * Destroys current editor, renders and selects current cell. Edited data is saved as if user finished editing by pressing Enter
+   * Destroys current editor, renders and selects current cell. If revertOriginal != true, edited data is saved
+   * @param {Boolean} revertOriginal
    */
-  this.destroyEditor = function () {
-    selection.refreshBorders();
+  this.destroyEditor = function (revertOriginal) {
+    selection.refreshBorders(revertOriginal);
   };
 
   /**
@@ -3551,25 +3553,27 @@ var texteditor = {
   finishEditing: function (instance, td, row, col, prop, keyboardProxy, isCancelled, ctrlDown) {
     if (texteditor.isCellEdited) {
       texteditor.isCellEdited = false;
-      var val = [
-        [$.trim(keyboardProxy.val())]
-      ];
-      if (!isCancelled) {
-        if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
-          var sel = instance.handsontable('getSelected');
-          instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
-        }
-        else {
-          instance.populateFromArray({row: row, col: col}, val, null, false, 'edit');
-        }
-        keyboardProxy.off(".editor");
-        $(td).off('.editor');
+      var val;
+      if (isCancelled) {
+        val = [
+          [texteditor.originalValue]
+        ];
+      }
+      else {
+        val = [
+          [$.trim(keyboardProxy.val())]
+        ];
+      }
+      if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
+        var sel = instance.handsontable('getSelected');
+        instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
+      }
+      else {
+        instance.populateFromArray({row: row, col: col}, val, null, false, 'edit');
       }
     }
-    else {
-      keyboardProxy.off(".editor");
-      $(td).off('.editor');
-    }
+    keyboardProxy.off(".editor");
+    $(td).off('.editor');
 
     keyboardProxy.css({
       width: 0,
@@ -3596,6 +3600,7 @@ var texteditor = {
  */
 Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
   texteditor.isCellEdited = false;
+  texteditor.originalValue = instance.getDataAtCell(row, prop);
 
   var $current = $(td);
   var currentOffset = $current.offset();
@@ -3706,7 +3711,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
 
       case 27: /* ESC */
         if (texteditor.isCellEdited) {
-          texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, true); //hide edit field, restore old value, don't move selection, but refresh routines
+          instance.destroyEditor(true);
           event.stopPropagation();
         }
         break;

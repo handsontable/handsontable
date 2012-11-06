@@ -56,4 +56,20 @@ describe('Core_destroyEditor', function () {
       expect(getSelected()).toEqual([1, 1, 1, 1]);
     });
   });
+
+  it('should revert original value when param set to true', function () {
+    runs(function () {
+      handsontable();
+      selectCell(1, 1);
+      keyDownUp('enter');
+      this.$keyboardProxy.val('Ted');
+    });
+
+    waits(1);
+
+    runs(function () {
+      destroyEditor(true);
+      expect(getDataAtCell(1, 1)).toEqual(null);
+    });
+  });
 });

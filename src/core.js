@@ -714,9 +714,10 @@ Handsontable.Core = function (rootElement, settings) {
 
     /**
      * Redraws borders around cells
+     * @param {Boolean} revertOriginal
      */
-    refreshBorders: function () {
-      editproxy.destroy();
+    refreshBorders: function (revertOriginal) {
+      editproxy.destroy(revertOriginal);
       if (!selection.isSelected()) {
         return;
       }
@@ -1273,10 +1274,11 @@ Handsontable.Core = function (rootElement, settings) {
 
     /**
      * Destroy current editor, if exists
+     * @param {Boolean} revertOriginal
      */
-    destroy: function () {
+    destroy: function (revertOriginal) {
       if (typeof priv.editorDestroyer === "function") {
-        priv.editorDestroyer();
+        priv.editorDestroyer(revertOriginal);
         priv.editorDestroyer = null;
       }
     },
@@ -1445,10 +1447,11 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
-   * Destroys current editor, renders and selects current cell. Edited data is saved as if user finished editing by pressing Enter
+   * Destroys current editor, renders and selects current cell. If revertOriginal != true, edited data is saved
+   * @param {Boolean} revertOriginal
    */
-  this.destroyEditor = function () {
-    selection.refreshBorders();
+  this.destroyEditor = function (revertOriginal) {
+    selection.refreshBorders(revertOriginal);
   };
 
   /**
