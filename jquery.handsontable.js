@@ -3551,6 +3551,9 @@ var texteditor = {
    * Finishes text input in selected cells
    */
   finishEditing: function (instance, td, row, col, prop, keyboardProxy, isCancelled, ctrlDown) {
+    if (texteditor.triggerOnlyByDestroyer) {
+      return;
+    }
     if (texteditor.isCellEdited) {
       texteditor.isCellEdited = false;
       var val;
@@ -3601,6 +3604,7 @@ var texteditor = {
 Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
   texteditor.isCellEdited = false;
   texteditor.originalValue = instance.getDataAtCell(row, prop);
+  texteditor.triggerOnlyByDestroyer = cellProperties.strict;
 
   var $current = $(td);
   var currentOffset = $current.offset();
@@ -3768,6 +3772,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
   instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
 
   return function (isCancelled) {
+    texteditor.triggerOnlyByDestroyer = false;
     texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, isCancelled);
   }
 };
