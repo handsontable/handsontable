@@ -1,6 +1,7 @@
 Handsontable.PluginHooks = {
   hooks: {
-    afterInit: []
+    afterInit: [],
+    afterGetCellMeta: []
   },
 
   push: function(hook, fn){
@@ -11,9 +12,9 @@ Handsontable.PluginHooks = {
     this.hooks[hook].unshift(fn);
   },
 
-  run: function(instance, hook){
+  run: function(instance, hook, args){
     for(var i = 0, ilen = this.hooks[hook].length; i<ilen; i++) {
-      this.hooks[hook][i].apply(instance);
+      this.hooks[hook][i].apply(instance, args);
     }
   }
 };

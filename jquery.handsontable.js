@@ -1874,6 +1874,7 @@ Handsontable.Core = function (rootElement, settings) {
       cellProperites = $.extend(true, cellProperites, priv.settings.cells(row, col, prop) || {});
     }
     cellProperites.isWritable = grid.isCellWritable($(self.view.getCellAtCoords({row: row, col: col})), cellProperites);
+    Handsontable.PluginHooks.run(self, 'afterGetCellMeta', [row, col, cellProperites]);
     return cellProperites;
   };
 
@@ -2426,20 +2427,10 @@ Handsontable.TableView.prototype.render = function (row, col, prop, value) {
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, coords, extraParam) {
   var prop = this.instance.colToProp(coords.col)
     , method
-    , cellProperties = this.instance.getCellMeta(coords.row, coords.col)
-    , settings = this.instance.getSettings();
+    , cellProperties = this.instance.getCellMeta(coords.row, coords.col);
 
   if (cellProperties.type && typeof cellProperties.type[methodName] === "function") {
     method = cellProperties.type[methodName];
-  }
-  else if (settings.autoComplete) {
-    for (var i = 0, ilen = settings.autoComplete.length; i < ilen; i++) {
-      if (settings.autoComplete[i].match(coords.row, coords.col, this.instance.getData())) {
-        method = Handsontable.AutocompleteCell[methodName];
-        cellProperties.autoComplete = settings.autoComplete[i];
-        break;
-      }
-    }
   }
   if (typeof method !== "function") {
     method = Handsontable.TextCell[methodName];
@@ -3787,16 +3778,6 @@ function isAutoComplete(keyboardProxy) {
 }
 
 /**
- * Copied from bootstrap-typeahead.js for reference
- */
-function defaultAutoCompleteHighlighter(item) {
-  var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
-  return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-    return '<strong>' + match + '</strong>';
-  })
-}
-
-/**
  * Autocomplete editor
  * @param {Object} instance Handsontable instance
  * @param {Element} td Table cell where to render
@@ -3813,6 +3794,10 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   if (!typeahead) {
     keyboardProxy.typeahead();
     typeahead = keyboardProxy.data('typeahead');
+    typeahead._show = typeahead.show;
+    typeahead._hide = typeahead.hide;
+    typeahead._render = typeahead.render;
+    typeahead._highlighter = typeahead.highlighter;
   }
   else {
     typeahead.$menu.off(); //remove previous typeahead bindings
@@ -3821,14 +3806,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   }
 
   typeahead.minLength = 0;
-  typeahead.source = cellProperties.autoComplete.source(row, col);
-  typeahead.highlighter = cellProperties.autoComplete.highlighter || defaultAutoCompleteHighlighter;
-
-  if (!typeahead._show) {
-    typeahead._show = typeahead.show;
-    typeahead._hide = typeahead.hide;
-    typeahead._render = typeahead.render;
-  }
+  typeahead.highlighter = typeahead._highlighter;
 
   typeahead.show = function () {
     if (keyboardProxy.parent().hasClass('htHidden')) {
@@ -3864,7 +3842,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
 
   typeahead.render = function (items) {
     typeahead._render.call(this, items);
-    if (cellProperties.autoComplete.strict) {
+    if (cellProperties.strict) {
       this.$menu.find('li:eq(0)').removeClass('active');
     }
     return this;
@@ -4013,7 +3991,8 @@ Handsontable.TextCell = {
 };
 Handsontable.PluginHooks = {
   hooks: {
-    afterInit: []
+    afterInit: [],
+    afterGetCellMeta: []
   },
 
   push: function(hook, fn){
@@ -4024,9 +4003,9 @@ Handsontable.PluginHooks = {
     this.hooks[hook].unshift(fn);
   },
 
-  run: function(instance, hook){
+  run: function(instance, hook, args){
     for(var i = 0, ilen = this.hooks[hook].length; i<ilen; i++) {
-      this.hooks[hook][i].apply(instance);
+      this.hooks[hook][i].apply(instance, args);
     }
   }
 };
@@ -4161,6 +4140,45 @@ function createContextMenu() {
 }
 
 Handsontable.PluginHooks.push('afterInit', createContextMenu);
+/**
+ * This plugin adds support for legacy features, deprecated APIs, etc.
+ */
+
+/**
+ * Support for old autocomplete syntax
+ * For old syntax, see: https://github.com/warpech/jquery-handsontable/blob/8c9e701d090ea4620fe08b6a1a048672fadf6c7e/README.md#defining-autocomplete
+ */
+Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProperties) {
+  var settings = this.getSettings(), data = this.getData(), i, ilen, a;
+  if (settings.autoComplete) {
+    for (i = 0, ilen = settings.autoComplete.length; i < ilen; i++) {
+      if (settings.autoComplete[i].match(row, col, data)) {
+        if (typeof cellProperties.type === 'undefined') {
+          cellProperties.type = Handsontable.AutocompleteCell;
+        }
+        else {
+          if (typeof cellProperties.type.renderer === 'undefined') {
+            cellProperties.type.renderer = Handsontable.AutocompleteCell.renderer;
+          }
+          if (typeof cellProperties.type.editor === 'undefined') {
+            cellProperties.type.editor = Handsontable.AutocompleteCell.editor;
+          }
+        }
+        for (a in settings.autoComplete[i]) {
+          if (settings.autoComplete[i].hasOwnProperty(a) && a !== 'match' && typeof cellProperties[i] === 'undefined') {
+            if(a === 'source') {
+              cellProperties[a] = settings.autoComplete[i][a](row, col);
+            }
+            else {
+              cellProperties[a] = settings.autoComplete[i][a];
+            }
+          }
+        }
+        break;
+      }
+    }
+  }
+});
 /*
  * jQuery.fn.autoResize 1.1+
  * --

@@ -93,7 +93,7 @@
 
   <div class="rowLayout">
     <div class="descLayout">
-      <div class="pad bottomSpace550">
+      <div class="pad bottomSpace450">
         <p>This example shows the usage of the Autocomplete feature.</p>
 
         <div id="example1"></div>
@@ -113,46 +113,37 @@
             td.title = 'Type to show the list of options';
           }
 
+          function colorHighlighter(item){
+            var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
+            var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+              return '<strong>' + match + '</strong>';
+            });
+            return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
+          }
+
           $("#example1").handsontable({
             data: getCarData(),
             startRows: 7,
             startCols: 4,
             colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
-            cells: function (row, col, prop) {
-              var cellProperties = {};
-              if (col == 0 || col == 2 || col == 3) {
-                cellProperties.type = {renderer: myAutocompleteRenderer}
-              }
-              return cellProperties;
-            },
-            autoComplete: [
+            columns: [
               {
-                match: function (row, col, data) {
-                  if (col == 2 || col == 3) {
-                    return true;
-                  }
-                  return false;
-                },
-                highlighter: function (item) {
-                  var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
-                  var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-                    return '<strong>' + match + '</strong>';
-                  });
-                  return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
-                },
-                source: function () {
-                  return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
-                },
-                strict: false //allows other values that defined in the source array above
+                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+                source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
+                strict: false
+              },
+              {},
+              {
+                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+                source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
+                highlighter: colorHighlighter,
+                strict: false
               },
               {
-                match: function (row, col, data) {
-                  return (col === 0); //if it is first column
-                },
-                source: function () {
-                  return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
-                },
-                strict: false //allows other values that defined in the source array above
+                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+                source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
+                highlighter: colorHighlighter,
+                strict: false
               }
             ]
           });
@@ -173,7 +164,7 @@
 
   <div class="rowLayout">
     <div class="descLayout">
-      <div class="pad bottomSpace450">
+      <div class="pad bottomSpace200">
         <p>This is the same example as above with a difference that autocomplete now runs in <strong>strict
           mode</strong>.</p>
 
@@ -196,41 +187,24 @@
             startRows: 7,
             startCols: 4,
             colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
-            cells: function (row, col, prop) {
-              var cellProperties = {};
-              if (col == 0 || col == 2 || col == 3) {
-                cellProperties.type = {renderer: myAutocompleteRenderer}
-              }
-              return cellProperties;
-            },
-            autoComplete: [
+            columns: [
               {
-                match: function (row, col, data) {
-                  if (col == 2 || col == 3) {
-                    return true;
-                  }
-                  return false;
-                },
-                highlighter: function (item) {
-                  var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
-                  var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-                    return '<strong>' + match + '</strong>';
-                  });
-                  return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
-                },
-                source: function () {
-                  return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
-                },
-                strict: true //only accept predefined values (from source array above)
+                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+                source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
+                strict: false
+              },
+              {},
+              {
+                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+                source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
+                highlighter: colorHighlighter,
+                strict: false
               },
               {
-                match: function (row, col, data) {
-                  return (col === 0); //if it is first column
-                },
-                source: function () {
-                  return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
-                },
-                strict: true //only accept predefined values (from source array above)
+                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+                source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
+                highlighter: colorHighlighter,
+                strict: false
               }
             ]
           });
