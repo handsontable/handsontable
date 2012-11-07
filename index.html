@@ -53,7 +53,7 @@
 
   <div class="centerLayout">
     <h1>
-      <a href="index.html">Handsontable <span class="small">0.7.0-beta</span></a>
+      <a href="index.html">Handsontable <span id="ver" class="small"></span></a>
 
       <iframe id="githubWatch"
               src="http://ghbtns.com/github-btn.html?user=warpech&repo=jquery-handsontable&type=watch&count=true"
@@ -88,6 +88,8 @@
         startCols: 6,
         colHeaders: true
       });
+
+      $('#ver').html($('#example').data('handsontable').version);
     </script>
 
     <h2>Examples and how-to's</h2>

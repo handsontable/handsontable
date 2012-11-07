@@ -1,13 +1,14 @@
 /**
  * This file is used to build ``jquery.handsontable.js` from `src/*`
  *
- * Usage: Install Grunt, then go to repo main directory and execute `grunt`
- * To execute automatically after each change, execute `grunt --force default watch`
+ * Installation: Install Grunt (`npm install -g grunt`), them go to repo main directory and install local dependencies (`npm install`)
+ * Build: Go to repo main directory and execute `grunt`. To execute automatically after each change, execute `grunt --force default watch`
  *
  * See https://github.com/cowboy/grunt for more information
  */
 module.exports = function (grunt) {
   grunt.initConfig({
+    pkg: '<json:package.json>',
     concat: {
       dist: {
         src: [
@@ -50,9 +51,24 @@ module.exports = function (grunt) {
     watch: {
       files: ['<config:concat.dist.src>'],
       tasks: 'concat'
+    },
+    replace: {
+      dist: {
+        options: {
+          variables: {
+            version: '<%= pkg.version %>',
+            timestamp: '<%= (new Date()).toString() %>'
+          }
+        },
+        files: {
+          'jquery.handsontable.js': 'jquery.handsontable.js'
+        }
+      }
     }
   });
 
   // Default task.
-  grunt.registerTask('default', 'concat');
+  grunt.registerTask('default', 'concat replace');
+
+  grunt.loadNpmTasks('grunt-replace');
 };

@@ -1994,6 +1994,11 @@ Handsontable.Core = function (rootElement, settings) {
     self.rootElement.empty();
     self.rootElement.removeData('handsontable');
   };
+
+  /**
+   * Handsontable version
+   */
+  this.version = '@@version'; //inserted by grunt from package.json
 };
 
 var settings = {
