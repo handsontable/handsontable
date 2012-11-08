@@ -73,7 +73,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
 
   typeahead.render = function (items) {
     typeahead._render.call(this, items);
-    if (cellProperties.strict) {
+    if (!cellProperties.strict) {
       this.$menu.find('li:eq(0)').removeClass('active');
     }
     return this;
