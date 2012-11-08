@@ -1498,10 +1498,8 @@ Handsontable.Core = function (rootElement, settings) {
       if (!recreated) {
         selection.refreshBorders();
       }
-      if (changes.length) {
-        self.rootElement.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
-        self.rootElement.triggerHandler("cellrender.handsontable", [changes, source || 'edit']);
-      }
+      self.rootElement.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
+      self.rootElement.triggerHandler("cellrender.handsontable", [changes, source || 'edit']);
     });
   };
 
