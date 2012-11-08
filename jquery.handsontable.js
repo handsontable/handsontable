@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.7.1
+ * Handsontable @@version
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Nov 07 2012 01:57:36 GMT+0100 (Central European Standard Time)
+ * Date: @@timestamp
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -26,7 +26,7 @@ var Handsontable = { //class namespace
 Handsontable.Core = function (rootElement, settings) {
   this.rootElement = rootElement;
 
-  var priv, datamap, grid, selection, editproxy, highlight, autofill, self = this;
+  var priv, datamap, grid, selection, editproxy, highlight, autofill, validate, self = this;
 
   priv = {
     settings: {},
@@ -607,7 +607,7 @@ Handsontable.Core = function (rootElement, settings) {
      * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
      */
     populateFromArray: function (start, input, end, source) {
-      var r, rlen, c, clen, td, endTd, setData = [], current = {};
+      var r, rlen, c, clen, td, setData = [], current = {};
       rlen = input.length;
       if (rlen === 0) {
         return false;
@@ -639,8 +639,7 @@ Handsontable.Core = function (rootElement, settings) {
           r = -1;
         }
       }
-      endTd = self.setDataAtCell(setData, null, null, source || 'populateFromArray');
-      return endTd;
+      self.setDataAtCell(setData, null, null, source || 'populateFromArray');
     },
 
     /**
@@ -1134,17 +1133,22 @@ Handsontable.Core = function (rootElement, settings) {
 
       function onPaste() {
         setTimeout(function () {
+          self.rootElement.one("datachange.handsontable", function (event, changes, source) {
+            if (changes.length) {
+              var last = changes[changes.length - 1];
+              var endTd = self.view.getCellAtCoords({row: last[0], col: last[1]});
+              selection.setRangeEnd(endTd);
+            }
+          });
+
           var input = priv.editProxy.val().replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
             inputArray = SheetClip.parse(input),
-            coords = grid.getCornerCoords([priv.selStart, priv.selEnd]),
-            endTd = grid.populateFromArray(coords.TL, inputArray, {
-              row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
-              col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
-            }, 'paste');
-          if (!endTd) {
-            endTd = self.view.getCellAtCoords(coords.BR);
-          }
-          selection.setRangeEnd(endTd);
+            coords = grid.getCornerCoords([priv.selStart, priv.selEnd]);
+
+          grid.populateFromArray(coords.TL, inputArray, {
+            row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
+            col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
+          }, 'paste');
         }, 100);
       }
 
@@ -1343,41 +1347,78 @@ Handsontable.Core = function (rootElement, settings) {
     Handsontable.PluginHooks.run(self, 'afterInit');
   };
 
-  var bindEvents = function () {
-    self.rootElement.on("beforedatachange.handsontable", function (event, changes) {
-      if (priv.settings.autoComplete) { //validate strict autocompletes
-        var typeahead = priv.editProxy.data('typeahead');
-        loop : for (var c = changes.length - 1; c >= 0; c--) {
-          for (var a = 0, alen = priv.settings.autoComplete.length; a < alen; a++) {
-            var autoComplete = priv.settings.autoComplete[a];
-            var source = autoComplete.source();
-            if (changes[c][3] && autoComplete.match(changes[c][0], changes[c][1], datamap.getAll)) {
-              var lowercaseVal = changes[c][3].toLowerCase();
-              for (var s = 0, slen = source.length; s < slen; s++) {
-                if (changes[c][3] === source[s]) {
-                  continue loop; //perfect match
-                }
-                else if (lowercaseVal === source[s].toLowerCase()) {
-                  changes[c][3] = source[s]; //good match, fix the case
-                  continue loop;
-                }
-              }
-              if (autoComplete.strict) {
-                changes.splice(c, 1); //no match, invalidate this change
-                continue loop;
-              }
+  validate = function (changes, source) {
+    var validated = $.Deferred();
+    var deferreds = [];
+
+    if (source === 'paste') {
+      //validate strict autocompletes
+      var process = function (i) {
+        var deferred = $.Deferred();
+        deferreds.push(deferred);
+
+        var originalVal = changes[i][3];
+        var lowercaseVal = typeof originalVal === 'string' ? originalVal.toLowerCase() : null;
+
+        return function (source) {
+          var found = false;
+          for (var s = 0, slen = source.length; s < slen; s++) {
+            if (originalVal === source[s]) {
+              found = true; //perfect match
+              break;
             }
+            else if (lowercaseVal === source[s].toLowerCase()) {
+              changes[i][3] = source[s]; //good match, fix the case
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            changes[i] = null;
+          }
+          deferred.resolve();
+        }
+      };
+
+      for (var i = changes.length - 1; i >= 0; i--) {
+        var cellProperties = self.getCellMeta(changes[i][0], changes[i][1]);
+        if (cellProperties.strict && cellProperties.source) {
+          var items = $.isFunction(cellProperties.source) ? cellProperties.source(changes[i][3], process(i)) : cellProperties.source;
+          if (items) {
+            process(i)(items)
           }
         }
       }
+    }
 
-      if (priv.settings.onBeforeChange) {
-        var result = priv.settings.onBeforeChange.apply(self.rootElement[0], [changes]);
-        if (result === false) {
-          changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
+    $.when(deferreds).then(function () {
+      for (var i = changes.length - 1; i >= 0; i--) {
+        if (changes[i] === null) {
+          changes.splice(i, 1);
         }
       }
+
+      if (priv.settings.onBeforeChange && changes.length) {
+        var result = priv.settings.onBeforeChange.apply(self.rootElement[0], [changes, source]);
+        if (result === false) {
+          changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
+          validated.resolve();
+        }
+        else if (typeof result === 'function') {
+          $.when(result).then(function () {
+            validated.resolve();
+          });
+        }
+      }
+      else {
+        validated.resolve();
+      }
     });
+
+    return $.when(validated);
+  };
+
+  var bindEvents = function () {
     self.rootElement.on("datachange.handsontable", function (event, changes, source) {
       if (priv.settings.onChange) {
         priv.settings.onChange.apply(self.rootElement[0], [changes, source]);
@@ -1404,7 +1445,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {String} [source='edit'] String that identifies how this change will be described in changes array (useful in onChange callback)
    */
   this.setDataAtCell = function (row, prop, value, source) {
-    var refreshRows = false, refreshCols = false, changes, i, ilen, td, changesByCol = [];
+    var refreshRows = false, refreshCols = false, changes, i, ilen, changesByCol = [];
 
     if (typeof row === "object") { //is it an array of changes
       changes = row;
@@ -1422,47 +1463,46 @@ Handsontable.Core = function (rootElement, settings) {
       changes[i].splice(2, 0, datamap.get(changes[i][0], changes[i][1])); //add old value at index 2
     }
 
-    self.rootElement.triggerHandler("beforedatachange.handsontable", [changes]);
+    validate(changes, source).then(function () { //when validate is resolved...
+      for (i = 0, ilen = changes.length; i < ilen; i++) {
+        row = changes[i][0];
+        prop = changes[i][1];
+        var col = datamap.propToCol(prop);
+        value = changes[i][3];
+        changesByCol.push([changes[i][0], col, changes[i][2], changes[i][3], changes[i][4]]);
 
-    for (i = 0, ilen = changes.length; i < ilen; i++) {
-      row = changes[i][0];
-      prop = changes[i][1];
-      var col = datamap.propToCol(prop);
-      value = changes[i][3];
-      changesByCol.push([changes[i][0], col, changes[i][2], changes[i][3], changes[i][4]]);
-
-      if (priv.settings.minSpareRows) {
-        while (row > self.rowCount - 1) {
-          datamap.createRow();
-          self.view.createRow();
-          refreshRows = true;
+        if (priv.settings.minSpareRows) {
+          while (row > self.rowCount - 1) {
+            datamap.createRow();
+            self.view.createRow();
+            refreshRows = true;
+          }
         }
-      }
-      if (priv.dataType === 'array' && priv.settings.minSpareCols) {
-        while (col > self.colCount - 1) {
-          datamap.createCol();
-          self.view.createCol();
-          refreshCols = true;
+        if (priv.dataType === 'array' && priv.settings.minSpareCols) {
+          while (col > self.colCount - 1) {
+            datamap.createCol();
+            self.view.createCol();
+            refreshCols = true;
+          }
         }
+        self.view.render(row, col, prop, value);
+        datamap.set(row, prop, value);
       }
-      td = self.view.render(row, col, prop, value);
-      datamap.set(row, prop, value);
-    }
-    if (refreshRows) {
-      self.blockedCols.refresh();
-    }
-    if (refreshCols) {
-      self.blockedRows.refresh();
-    }
-    var recreated = grid.keepEmptyRows();
-    if (!recreated) {
-      selection.refreshBorders();
-    }
-    if (changes.length) {
-      self.rootElement.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
-      self.rootElement.triggerHandler("cellrender.handsontable", [changes, source || 'edit']);
-    }
-    return td;
+      if (refreshRows) {
+        self.blockedCols.refresh();
+      }
+      if (refreshCols) {
+        self.blockedRows.refresh();
+      }
+      var recreated = grid.keepEmptyRows();
+      if (!recreated) {
+        selection.refreshBorders();
+      }
+      if (changes.length) {
+        self.rootElement.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
+        self.rootElement.triggerHandler("cellrender.handsontable", [changes, source || 'edit']);
+      }
+    });
   };
 
   /**
@@ -2017,7 +2057,7 @@ Handsontable.Core = function (rootElement, settings) {
   /**
    * Handsontable version
    */
-  this.version = '0.7.1'; //inserted by grunt from package.json
+  this.version = '@@version'; //inserted by grunt from package.json
 };
 
 var settings = {
