@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Nov 09 2012 12:11:21 GMT+0100 (Central European Standard Time)
+ * Date: Fri Nov 09 2012 15:41:54 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3902,6 +3902,8 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
     }
   }
 
+  var wasDestroyed = false;
+
   keyboardProxy.on("keydown.editor", function (event) {
     switch (event.keyCode) {
       case 27: /* ESC */
@@ -3922,6 +3924,10 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   });
 
   keyboardProxy.on("keyup.editor", function (event) {
+      if (wasDestroyed) {
+        return;
+      }
+
       switch (event.keyCode) {
         case 9: /* tab */
         case 13: /* return/enter */
@@ -3960,6 +3966,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
 
   var destroyer = function (isCancelled) {
+    wasDestroyed = true;
     keyboardProxy.off(); //remove typeahead bindings
     textDestroyer(isCancelled);
     dontHide = false;
