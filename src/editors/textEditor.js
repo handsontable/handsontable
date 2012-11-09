@@ -116,27 +116,32 @@ var texteditor = {
    * Finishes text input in selected cells
    */
   finishEditing: function (instance, td, row, col, prop, keyboardProxy, isCancelled, ctrlDown) {
+    if (texteditor.triggerOnlyByDestroyer) {
+      return;
+    }
     if (texteditor.isCellEdited) {
       texteditor.isCellEdited = false;
-      var val = [
-        [$.trim(keyboardProxy.val())]
-      ];
-      if (!isCancelled) {
-        if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
-          var sel = instance.handsontable('getSelected');
-          instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
-        }
-        else {
-          instance.populateFromArray({row: row, col: col}, val, null, false, 'edit');
-        }
-        keyboardProxy.off(".editor");
-        $(td).off('.editor');
+      var val;
+      if (isCancelled) {
+        val = [
+          [texteditor.originalValue]
+        ];
+      }
+      else {
+        val = [
+          [$.trim(keyboardProxy.val())]
+        ];
+      }
+      if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
+        var sel = instance.handsontable('getSelected');
+        instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
+      }
+      else {
+        instance.populateFromArray({row: row, col: col}, val, null, false, 'edit');
       }
     }
-    else {
-      keyboardProxy.off(".editor");
-      $(td).off('.editor');
-    }
+    keyboardProxy.off(".editor");
+    $(td).off('.editor');
 
     keyboardProxy.css({
       width: 0,
@@ -163,6 +168,8 @@ var texteditor = {
  */
 Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
   texteditor.isCellEdited = false;
+  texteditor.originalValue = instance.getDataAtCell(row, prop);
+  texteditor.triggerOnlyByDestroyer = cellProperties.strict;
 
   var $current = $(td);
   var currentOffset = $current.offset();
@@ -273,7 +280,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
 
       case 27: /* ESC */
         if (texteditor.isCellEdited) {
-          texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, true); //hide edit field, restore old value, don't move selection, but refresh routines
+          instance.destroyEditor(true);
           event.stopPropagation();
         }
         break;
@@ -330,6 +337,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
   instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
 
   return function (isCancelled) {
+    texteditor.triggerOnlyByDestroyer = false;
     texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, isCancelled);
   }
 };

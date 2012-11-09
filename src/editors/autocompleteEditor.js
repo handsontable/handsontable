@@ -9,16 +9,6 @@ function isAutoComplete(keyboardProxy) {
 }
 
 /**
- * Copied from bootstrap-typeahead.js for reference
- */
-function defaultAutoCompleteHighlighter(item) {
-  var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
-  return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-    return '<strong>' + match + '</strong>';
-  })
-}
-
-/**
  * Autocomplete editor
  * @param {Object} instance Handsontable instance
  * @param {Element} td Table cell where to render
@@ -35,17 +25,19 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   if (!typeahead) {
     keyboardProxy.typeahead();
     typeahead = keyboardProxy.data('typeahead');
-  }
-
-  typeahead.minLength = 0;
-  typeahead.source = cellProperties.autoComplete.source(row, col);
-  typeahead.highlighter = cellProperties.autoComplete.highlighter || defaultAutoCompleteHighlighter;
-
-  if (!typeahead._show) {
     typeahead._show = typeahead.show;
     typeahead._hide = typeahead.hide;
     typeahead._render = typeahead.render;
+    typeahead._highlighter = typeahead.highlighter;
   }
+  else {
+    typeahead.$menu.off(); //remove previous typeahead bindings
+    keyboardProxy.off(); //remove previous typeahead bindings. Removing this will cause prepare to register 2 keydown listeners in typeahead
+    typeahead.listen(); //add typeahead bindings
+  }
+
+  typeahead.minLength = 0;
+  typeahead.highlighter = typeahead._highlighter;
 
   typeahead.show = function () {
     if (keyboardProxy.parent().hasClass('htHidden')) {
@@ -81,11 +73,18 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
 
   typeahead.render = function (items) {
     typeahead._render.call(this, items);
-    if (cellProperties.autoComplete.strict) {
+    if (!cellProperties.strict) {
       this.$menu.find('li:eq(0)').removeClass('active');
     }
     return this;
   };
+
+  /* overwrite typeahead methods (matcher, sorter, highlighter, updater, etc) if provided in cellProperties */
+  for (var i in cellProperties) {
+    if ((typeahead.hasOwnProperty(i) || i === 'render') && i !== 'options') {
+      typeahead[i] = cellProperties[i];
+    }
+  }
 
   keyboardProxy.on("keydown.editor", function (event) {
     switch (event.keyCode) {
@@ -93,11 +92,13 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
         dontHide = false;
         break;
 
+      case 37: /* arrow left */
+      case 39: /* arrow right */
       case 38: /* arrow up */
       case 40: /* arrow down */
       case 9: /* tab */
       case 13: /* return/enter */
-        if (isAutoComplete(keyboardProxy)) {
+        if (!keyboardProxy.parent().hasClass('htHidden')) {
           event.stopImmediatePropagation();
         }
         event.preventDefault();
@@ -143,8 +144,8 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
 
   var destroyer = function (isCancelled) {
+    keyboardProxy.off(); //remove typeahead bindings
     textDestroyer(isCancelled);
-    typeahead.source = [];
     dontHide = false;
     if (isAutoComplete(keyboardProxy)) {
       isAutoComplete(keyboardProxy).hide();

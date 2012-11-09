@@ -357,20 +357,10 @@ Handsontable.TableView.prototype.render = function (row, col, prop, value) {
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, coords, extraParam) {
   var prop = this.instance.colToProp(coords.col)
     , method
-    , cellProperties = this.instance.getCellMeta(coords.row, coords.col)
-    , settings = this.instance.getSettings();
+    , cellProperties = this.instance.getCellMeta(coords.row, coords.col);
 
   if (typeof cellProperties.type !== 'undefined' && typeof cellProperties.type[methodName] === "function") {
     method = cellProperties.type[methodName];
-  }
-  else if (settings.autoComplete) {
-    for (var i = 0, ilen = settings.autoComplete.length; i < ilen; i++) {
-      if (settings.autoComplete[i].match(coords.row, coords.col, this.instance.getData())) {
-        method = Handsontable.AutocompleteCell[methodName];
-        cellProperties.autoComplete = settings.autoComplete[i];
-        break;
-      }
-    }
   }
   if (typeof method !== "function") {
     method = Handsontable.TextCell[methodName];

@@ -66,188 +66,223 @@
 
 <div id="container">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
+      <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
-        </div>
-
-        <h2>Autocomplete</h2>
-
-        <p>This page shows how to use Handsontable with various data sources:</p>
-
-        <ul>
-          <li><a href="#lazy">Autocomplete lazy mode</a></li>
-          <li><a href="#strict">Autocomplete strict mode</a></li>
-        </ul>
-
-        <a name="lazy"></a>
-
-        <h2>Autocomplete lazy mode</h2>
+      <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+        for HTML, JavaScript &amp; jQuery
       </div>
+
+      <h2>Autocomplete</h2>
+
+      <p>This page shows how to use Handsontable with various data sources:</p>
+
+      <ul>
+        <li><a href="#lazy">Autocomplete lazy mode</a></li>
+        <li><a href="#strict">Autocomplete strict mode</a></li>
+        <li><a href="#strict-ajax">Autocomplete strict mode (Ajax)</a></li>
+      </ul>
+
+      <a name="lazy"></a>
+
+      <h2>Autocomplete lazy mode</h2>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad bottomSpace450">
+      <p>This example shows the usage of the Autocomplete feature.</p>
+
+      <div id="example1"></div>
+
+      <p>
+        <button name="dump" data-dump="#example1">Dump to console</button>
+      </p>
     </div>
   </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad bottomSpace550">
-        <p>This example shows the usage of the Autocomplete feature.</p>
+  <div class="codeLayout">
+    <div class="pad">
+      <script>
+        function myAutocompleteRenderer(instance, td, row, col, prop, value, cellProperties) {
+          Handsontable.AutocompleteCell.renderer.apply(this, arguments);
+          td.style.fontStyle = 'italic';
+          td.title = 'Type to show the list of options';
+        }
 
-        <div id="example1"></div>
-
-        <p>
-          <button name="dump" data-dump="#example1">Dump to console</button>
-        </p>
-      </div>
-    </div>
-
-    <div class="codeLayout">
-      <div class="pad">
-        <script>
-          function myAutocompleteRenderer(instance, td, row, col, prop, value, cellProperties) {
-            Handsontable.AutocompleteCell.renderer.apply(this, arguments);
-            td.style.fontStyle = 'italic';
-            td.title = 'Type to show the list of options';
-          }
-
-          $("#example1").handsontable({
-            data: getCarData(),
-            startRows: 7,
-            startCols: 4,
-            colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
-            cells: function (row, col, prop) {
-              var cellProperties = {};
-              if (col == 0 || col == 2 || col == 3) {
-                cellProperties.type = {renderer: myAutocompleteRenderer}
-              }
-              return cellProperties;
-            },
-            autoComplete: [
-              {
-                match: function (row, col, data) {
-                  if (col == 2 || col == 3) {
-                    return true;
-                  }
-                  return false;
-                },
-                highlighter: function (item) {
-                  var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
-                  var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-                    return '<strong>' + match + '</strong>';
-                  });
-                  return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
-                },
-                source: function () {
-                  return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
-                },
-                strict: false //allows other values that defined in the source array above
-              },
-              {
-                match: function (row, col, data) {
-                  return (col === 0); //if it is first column
-                },
-                source: function () {
-                  return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
-                },
-                strict: false //allows other values that defined in the source array above
-              }
-            ]
+        function colorHighlighter(item) {
+          var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
+          var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+            return '<strong>' + match + '</strong>';
           });
-        </script>
-      </div>
-    </div>
-  </div>
+          return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
+        }
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <a name="strict"></a>
-
-        <h2>Autocomplete strict mode</h2>
-      </div>
-    </div>
-  </div>
-
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad bottomSpace450">
-        <p>This is the same example as above with a difference that autocomplete now runs in <strong>strict
-          mode</strong>.</p>
-
-        <p>In this mode, the autocomplete cells will only accept values that are defined in the source
-          array.</p>
-
-        <div id="example2"></div>
-
-        <p>
-          <button name="dump" data-dump="#example1">Dump to console</button>
-        </p>
-      </div>
-    </div>
-
-    <div class="codeLayout">
-      <div class="pad">
-        <script>
-          $("#example2").handsontable({
-            data: getCarData(),
-            startRows: 7,
-            startCols: 4,
-            colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
-            cells: function (row, col, prop) {
-              var cellProperties = {};
-              if (col == 0 || col == 2 || col == 3) {
-                cellProperties.type = {renderer: myAutocompleteRenderer}
-              }
-              return cellProperties;
+        $("#example1").handsontable({
+          data: getCarData(),
+          startRows: 7,
+          startCols: 4,
+          colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+          columns: [
+            {
+              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
+              strict: false
             },
-            autoComplete: [
-              {
-                match: function (row, col, data) {
-                  if (col == 2 || col == 3) {
-                    return true;
+            {},
+            {
+              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
+              highlighter: colorHighlighter,
+              strict: false
+            },
+            {
+              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
+              highlighter: colorHighlighter,
+              strict: false
+            }
+          ]
+        });
+      </script>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
+      <a name="strict"></a>
+
+      <h2>Autocomplete strict mode</h2>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad bottomSpace200">
+      <p>This is the same example as above with a difference that autocomplete now runs in <strong>strict
+        mode</strong>.</p>
+
+      <p>In this mode, the autocomplete cells will only accept values that are defined in the source
+        array.</p>
+
+      <div id="example2"></div>
+
+      <p>
+        <button name="dump" data-dump="#example1">Dump to console</button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <script>
+        $("#example2").handsontable({
+          data: getCarData(),
+          startRows: 7,
+          startCols: 4,
+          colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+          columns: [
+            {
+              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
+              strict: true
+            },
+            {},
+            {
+              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
+              highlighter: colorHighlighter,
+              strict: true
+            },
+            {
+              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
+              highlighter: colorHighlighter,
+              strict: true
+            }
+          ]
+        });
+      </script>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
+      <a name="strict-ajax"></a>
+
+      <h2>Autocomplete strict mode (Ajax)</h2>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad bottomSpace200">
+      <p>Autocomplete can be also used with Ajax data source. In the below example, suggestions for the "Car" column are loaded from server.</p>
+
+      <p>To load data from remote (asynchrous) source, assign a function to the 'source' property. Function should perform the server side request and call the callback function when the result is available.</p>
+
+      <div id="example3"></div>
+
+      <p>
+        <button name="dump" data-dump="#example1">Dump to console</button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <script>
+        $("#example3").handsontable({
+          data: getCarData(),
+          startRows: 7,
+          startCols: 4,
+          colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+          columns: [
+            {
+              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              source: function (query, process) {
+                $.ajax({
+                  url: 'php/cars.php',
+                  data: {
+                    query: query
+                  },
+                  success: function (response) {
+                    console.log("response", response);
+                    process(response);
                   }
-                  return false;
-                },
-                highlighter: function (item) {
-                  var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
-                  var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-                    return '<strong>' + match + '</strong>';
-                  });
-                  return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
-                },
-                source: function () {
-                  return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
-                },
-                strict: true //only accept predefined values (from source array above)
+                });
               },
-              {
-                match: function (row, col, data) {
-                  return (col === 0); //if it is first column
-                },
-                source: function () {
-                  return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
-                },
-                strict: true //only accept predefined values (from source array above)
-              }
-            ]
-          });
-        </script>
-      </div>
+              strict: true
+            },
+            {}, //Year is a default text column
+            {}, //Chassis color is a default text column
+            {} //Bumper color is a default text column
+          ]
+        });
+      </script>
     </div>
   </div>
+</div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
-      </div>
+      <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+        licensed under the The MIT License.</p>
     </div>
   </div>
+</div>
 </div>
 </body>
 </html>
