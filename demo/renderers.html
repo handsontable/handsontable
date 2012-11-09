@@ -116,23 +116,16 @@
               {data: "id"},
               {data: "name", type: {renderer: yellowRenderer}},
               {data: "isActive", type: Handsontable.CheckboxCell},
-              {data: "color"}
+              {data: "color",
+                type: Handsontable.AutocompleteCell,
+                source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
+              }
             ],
             cells: function (row, col, prop) {
               if (row === 0 && col === 0) {
                 return {type: {renderer: greenRenderer}};
               }
-            },
-            autoComplete: [
-              {
-                match: function (row, col, data) {
-                  return (col == 3); //returns true if column index is 3
-                },
-                source: function () {
-                  return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
-                }
-              }
-            ]
+            }
           });
         </script>
       </div>
