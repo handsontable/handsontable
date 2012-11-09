@@ -1381,14 +1381,16 @@ Handsontable.Core = function (rootElement, settings) {
 
       if (priv.settings.onBeforeChange && changes.length) {
         var result = priv.settings.onBeforeChange.apply(self.rootElement[0], [changes, source]);
-        if (result === false) {
-          changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
-          validated.resolve();
-        }
-        else if (typeof result === 'function') {
+        if (typeof result === 'function') {
           $.when(result).then(function () {
             validated.resolve();
           });
+        }
+        else {
+          if (result === false) {
+            changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
+          }
+          validated.resolve();
         }
       }
       else {
