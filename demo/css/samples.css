@@ -126,12 +126,15 @@ h3 {
  * text
  */
 
-a {
+a,
+.jsFiddleLink {
   text-decoration: none;
   color: #4267B6;
+  cursor: pointer;
 }
 
-a:hover {
+a:hover,
+.jsFiddleLink:hover {
   text-decoration: underline;
 }
 
@@ -163,6 +166,11 @@ pre {
 ul, ol, p {
   margin-bottom: 2em;
   clear: left;
+}
+
+.jsFiddle {
+  margin-top: 48px;
+  margin-bottom: 16px;
 }
 
 /**
