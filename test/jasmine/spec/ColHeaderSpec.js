@@ -32,16 +32,16 @@ describe('ColHeader', function () {
     });
     var ths = $container.find('th.htColHeader');
     expect(ths.length).toEqual(2 * startCols); //2x startCols because they are duplicated on layer above grid
-    expect(ths.eq(0).text().trim()).toEqual('A');
-    expect(ths.eq(1).text().trim()).toEqual('B');
-    expect(ths.eq(2).text().trim()).toEqual('C');
-    expect(ths.eq(3).text().trim()).toEqual('D');
-    expect(ths.eq(4).text().trim()).toEqual('E');
-    expect(ths.eq(5).text().trim()).toEqual('A');
-    expect(ths.eq(6).text().trim()).toEqual('B');
-    expect(ths.eq(7).text().trim()).toEqual('C');
-    expect(ths.eq(8).text().trim()).toEqual('D');
-    expect(ths.eq(9).text().trim()).toEqual('E');
+    expect($.trim(ths.eq(0).text())).toEqual('A');
+    expect($.trim(ths.eq(1).text())).toEqual('B');
+    expect($.trim(ths.eq(2).text())).toEqual('C');
+    expect($.trim(ths.eq(3).text())).toEqual('D');
+    expect($.trim(ths.eq(4).text())).toEqual('E');
+    expect($.trim(ths.eq(5).text())).toEqual('A');
+    expect($.trim(ths.eq(6).text())).toEqual('B');
+    expect($.trim(ths.eq(7).text())).toEqual('C');
+    expect($.trim(ths.eq(8).text())).toEqual('D');
+    expect($.trim(ths.eq(9).text())).toEqual('E');
   });
 
   it('should show col headers with custom label', function () {
@@ -52,16 +52,16 @@ describe('ColHeader', function () {
     });
     var ths = $container.find('th.htColHeader');
     expect(ths.length).toEqual(2 * startCols); //2x startCols because they are duplicated on layer above grid
-    expect(ths.eq(0).text().trim()).toEqual('First');
-    expect(ths.eq(1).text().trim()).toEqual('Second');
-    expect(ths.eq(2).text().trim()).toEqual('Third');
-    expect(ths.eq(3).text().trim()).toEqual('D');
-    expect(ths.eq(4).text().trim()).toEqual('E');
-    expect(ths.eq(5).text().trim()).toEqual('First');
-    expect(ths.eq(6).text().trim()).toEqual('Second');
-    expect(ths.eq(7).text().trim()).toEqual('Third');
-    expect(ths.eq(8).text().trim()).toEqual('D');
-    expect(ths.eq(9).text().trim()).toEqual('E');
+    expect($.trim(ths.eq(0).text())).toEqual('First');
+    expect($.trim(ths.eq(1).text())).toEqual('Second');
+    expect($.trim(ths.eq(2).text())).toEqual('Third');
+    expect($.trim(ths.eq(3).text())).toEqual('D');
+    expect($.trim(ths.eq(4).text())).toEqual('E');
+    expect($.trim(ths.eq(5).text())).toEqual('First');
+    expect($.trim(ths.eq(6).text())).toEqual('Second');
+    expect($.trim(ths.eq(7).text())).toEqual('Third');
+    expect($.trim(ths.eq(8).text())).toEqual('D');
+    expect($.trim(ths.eq(9).text())).toEqual('E');
   });
 
   it('should not show col headers if false', function () {
@@ -73,25 +73,25 @@ describe('ColHeader', function () {
 
   //https://github.com/warpech/jquery-handsontable/issues/164
   it('should resize all col headers when cell width changes', function () {
-    var long = "465465465465 4654654654654 654654654654654 654654654654654 65465465 465 46565 465";
+    var longstr = "465465465465 4654654654654 654654654654654 654654654654654 65465465 465 46565 465";
     $container.width(500);
 
     runs(function () {
       $container.handsontable({
         colHeaders: true
       });
-      $container.handsontable('setDataAtCell', 2, 2, long);
+      $container.handsontable('setDataAtCell', 2, 2, longstr);
     });
 
     waits(10);
 
     runs(function () {
-      $container.handsontable('setDataAtCell', 1, 1, long);
+      $container.handsontable('setDataAtCell', 1, 1, longstr);
     });
 
     waits(10);
 
-    runs(function(){
+    runs(function () {
       expect($container.find('table.htCore').width()).toEqual($container.find('table.htBlockedRows').width());
     });
   });

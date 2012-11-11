@@ -7,7 +7,7 @@ describe('RowHeader', function () {
   });
 
   afterEach(function () {
-    if($container) {
+    if ($container) {
       $container.remove();
     }
   });
@@ -32,16 +32,16 @@ describe('RowHeader', function () {
     });
     var ths = $container.find('.htRowHeader');
     expect(ths.length).toEqual(2 * startRows); //2x startRows because they are duplicated on layer above grid
-    expect(ths.eq(0).text().trim()).toEqual('1');
-    expect(ths.eq(1).text().trim()).toEqual('2');
-    expect(ths.eq(2).text().trim()).toEqual('3');
-    expect(ths.eq(3).text().trim()).toEqual('4');
-    expect(ths.eq(4).text().trim()).toEqual('5');
-    expect(ths.eq(5).text().trim()).toEqual('1');
-    expect(ths.eq(6).text().trim()).toEqual('2');
-    expect(ths.eq(7).text().trim()).toEqual('3');
-    expect(ths.eq(8).text().trim()).toEqual('4');
-    expect(ths.eq(9).text().trim()).toEqual('5');
+    expect($.trim(ths.eq(0).text())).toEqual('1');
+    expect($.trim(ths.eq(1).text())).toEqual('2');
+    expect($.trim(ths.eq(2).text())).toEqual('3');
+    expect($.trim(ths.eq(3).text())).toEqual('4');
+    expect($.trim(ths.eq(4).text())).toEqual('5');
+    expect($.trim(ths.eq(5).text())).toEqual('1');
+    expect($.trim(ths.eq(6).text())).toEqual('2');
+    expect($.trim(ths.eq(7).text())).toEqual('3');
+    expect($.trim(ths.eq(8).text())).toEqual('4');
+    expect($.trim(ths.eq(9).text())).toEqual('5');
   });
 
   it('should show row headers with custom label', function () {
@@ -52,16 +52,16 @@ describe('RowHeader', function () {
     });
     var ths = $container.find('.htRowHeader');
     expect(ths.length).toEqual(2 * startRows); //2x startRows because they are duplicated on layer above grid
-    expect(ths.eq(0).text().trim()).toEqual('First');
-    expect(ths.eq(1).text().trim()).toEqual('Second');
-    expect(ths.eq(2).text().trim()).toEqual('Third');
-    expect(ths.eq(3).text().trim()).toEqual('4');
-    expect(ths.eq(4).text().trim()).toEqual('5');
-    expect(ths.eq(5).text().trim()).toEqual('First');
-    expect(ths.eq(6).text().trim()).toEqual('Second');
-    expect(ths.eq(7).text().trim()).toEqual('Third');
-    expect(ths.eq(8).text().trim()).toEqual('4');
-    expect(ths.eq(9).text().trim()).toEqual('5');
+    expect($.trim(ths.eq(0).text())).toEqual('First');
+    expect($.trim(ths.eq(1).text())).toEqual('Second');
+    expect($.trim(ths.eq(2).text())).toEqual('Third');
+    expect($.trim(ths.eq(3).text())).toEqual('4');
+    expect($.trim(ths.eq(4).text())).toEqual('5');
+    expect($.trim(ths.eq(5).text())).toEqual('First');
+    expect($.trim(ths.eq(6).text())).toEqual('Second');
+    expect($.trim(ths.eq(7).text())).toEqual('Third');
+    expect($.trim(ths.eq(8).text())).toEqual('4');
+    expect($.trim(ths.eq(9).text())).toEqual('5');
   });
 
   it('should not show row headers if false', function () {
@@ -73,25 +73,25 @@ describe('RowHeader', function () {
 
   //https://github.com/warpech/jquery-handsontable/issues/164
   it('should resize all row headers when cell height changes', function () {
-    var long = "465465465465 4654654654654 654654654654654 654654654654654 65465465 465 46565 465";
+    var longstr = "465465465465 4654654654654 654654654654654 654654654654654 65465465 465 46565 465";
     $container.width(500);
 
     runs(function () {
       $container.handsontable({
         rowHeaders: true
       });
-      $container.handsontable('setDataAtCell', 2, 2, long);
+      $container.handsontable('setDataAtCell', 2, 2, longstr);
     });
 
     waits(10);
 
     runs(function () {
-      $container.handsontable('setDataAtCell', 1, 1, long);
+      $container.handsontable('setDataAtCell', 1, 1, longstr);
     });
 
     waits(10);
 
-    runs(function(){
+    runs(function () {
       expect($container.find('table.htCore').height()).toEqual($container.find('table.htBlockedCols').height());
     });
   });
