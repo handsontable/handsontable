@@ -155,6 +155,10 @@ autoComplete: [
 ],
 ```
 
+## Reporting bugs and feature requests
+
+Please use GitHub Issues board to report bugs and feature requests (not my email address). When providing a bug report, please give me a way to reporoduce the error. The best practice is to add a JSFiddle link that shows the erroneous behavior (start by forking [this fiddle](http://jsfiddle.net/warpech/hU6Kz/)). That way I can focus on fixing the bug, not scratching my had how to reproduce it. Thanks for understanding!
+
 ## Similar projects
 
 If you are interested in more complicated data grid solutions, consider:
