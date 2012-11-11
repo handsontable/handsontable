@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.7.1
+ * Handsontable 0.7.2
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Nov 09 2012 02:35:01 GMT+0100 (Central European Standard Time)
+ * Date: Mon Nov 12 2012 00:25:41 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2058,7 +2058,7 @@ Handsontable.Core = function (rootElement, settings) {
   /**
    * Handsontable version
    */
-  this.version = '0.7.1'; //inserted by grunt from package.json
+  this.version = '0.7.2'; //inserted by grunt from package.json
 };
 
 var settings = {
@@ -3903,6 +3903,8 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
     }
   }
 
+  var wasDestroyed = false;
+
   keyboardProxy.on("keydown.editor", function (event) {
     switch (event.keyCode) {
       case 27: /* ESC */
@@ -3923,6 +3925,10 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   });
 
   keyboardProxy.on("keyup.editor", function (event) {
+      if (wasDestroyed) {
+        return;
+      }
+
       switch (event.keyCode) {
         case 9: /* tab */
         case 13: /* return/enter */
@@ -3961,6 +3967,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
 
   var destroyer = function (isCancelled) {
+    wasDestroyed = true;
     keyboardProxy.off(); //remove typeahead bindings
     textDestroyer(isCancelled);
     dontHide = false;
@@ -4134,17 +4141,22 @@ Handsontable.PluginHooks = {
     afterGetCellMeta: []
   },
 
-  push: function(hook, fn){
+  push: function (hook, fn) {
     this.hooks[hook].push(fn);
   },
 
-  unshift: function(hook, fn){
+  unshift: function (hook, fn) {
     this.hooks[hook].unshift(fn);
   },
 
-  run: function(instance, hook, args){
-    for(var i = 0, ilen = this.hooks[hook].length; i<ilen; i++) {
-      this.hooks[hook][i].apply(instance, args);
+  run: function (instance, hook, args) {
+    for (var i = 0, ilen = this.hooks[hook].length; i < ilen; i++) {
+      if (args) {
+        this.hooks[hook][i].apply(instance, args);
+      }
+      else {
+        this.hooks[hook][i].call(instance);
+      }
     }
   }
 };

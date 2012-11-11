@@ -39,32 +39,40 @@ function strip_tags(input, allowed) {
   });
 }
 
+/**
+ * Removes unnecessary spaces from left side of the code block
+ * @param {String} code
+ * @return {Array}
+ */
+function trimCodeBlock(code) {
+  var i;
+  code = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); //escape html special chars
+  code = code.split('\n');
+  for (i = 0; i < 10; i++) {
+    if ($.trim(code[0]) === '') {
+      code.splice(0, 1);
+    }
+  }
+  var offset = 0;
+  for (i = 0, ilen = code[0].length; i < ilen; i++) {
+    if (code[0].charAt(i) != " ") {
+      break;
+    }
+    offset++;
+  }
+  for (i = 0, ilen = code.length; i < ilen; i++) {
+    code[i] = code[i].substring(offset);
+  }
+  return code;
+}
+
 $(function () {
   if (!$.browser.msie || parseInt($.browser.version, 10) > 6) { //syntax coloring does not work well with IE7
     $('.codeLayout script').each(function () {
-      var i;
       var $script = $(this);
       var $pre = $('<pre class="javascript"></pre>');
       var $code = $('<code></code>');
-      var code = $script[0].innerHTML;
-      code = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); //escape html special chars
-      code = code.split('\n');
-      if ($.trim(code[0]) === '') {
-        code.splice(0, 1);
-      }
-      if ($.trim(code[0]) === '') {
-        code.splice(0, 1);
-      }
-      var offset = 0;
-      for (i = 0, ilen = code[0].length; i < ilen; i++) {
-        if (code[0].charAt(i) != " ") {
-          break;
-        }
-        offset++;
-      }
-      for (i = 0, ilen = code.length; i < ilen; i++) {
-        code[i] = code[i].substring(offset);
-      }
+      var code = trimCodeBlock($script[0].innerHTML);
       code = code.join('<br>').replace(/  /g, "&nbsp;&nbsp;");
       $code[0].innerHTML = code;
       $pre.append($code);
@@ -73,9 +81,38 @@ $(function () {
     hljs.initHighlighting();
   }
 
-  $('button[name=dump]').on('click', function () {
-    var dump = $(this).data('dump');
-    var $container = $(dump);
-    console.log('data of ' + dump, $container.handsontable('getData'));
+  $('.jsFiddleLink').on('click', function () {
+    var css = '</style><!-- Ugly Hack due to jsFiddle issue: http://goo.gl/BUfGZ -->\n\
+<script src="http://handsontable.com/lib/jquery.min.js"></script>\n\
+<script src="http://handsontable.com/jquery.handsontable.js"></script>\n\
+<script src="http://handsontable.com/lib/bootstrap-typeahead.js"></script>\n\
+<script src="http://handsontable.com/lib/jQuery-contextMenu/jquery.contextMenu.js"></script>\n\
+<script src="http://handsontable.com/lib/jQuery-contextMenu/jquery.ui.position.js"></script>\n\
+<link rel="stylesheet" media="screen" href="http://handsontable.com/lib/jQuery-contextMenu/jquery.contextMenu.css">\n\
+<link rel="stylesheet" media="screen" href="http://handsontable.com/jquery.handsontable.css">\n\
+<link rel="stylesheet" media="screen" href="http://handsontable.com/demo/css/samples.css">\n\
+<style type="text/css">\n\
+body {background: white}';
+
+    var js = '';
+    if ($('script.common').length) {
+      js += trimCodeBlock($('script.common').html()).join('\n') + '\n';
+    }
+    js += trimCodeBlock($(this).parents('.codeLayout').find('script').html()).join('\n');
+
+    var clone = $(this).parents('.rowLayout').find('.descLayout .pad').clone();
+    clone.find('div[id^="example"]').html('');
+    clone.find('a[name]').remove();
+    var html = trimCodeBlock(clone.html()).join('\n');
+
+    var form = $('<form action="http://jsfiddle.net/api/post/library/pure/" method="post">' +
+      '<input type="text" name="title" value="Handsontable example">' +
+      '<textarea name="html">' + html.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea>' +
+      '<textarea name="js">' + js.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea>' +
+      '<textarea name="css">' + css.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea>' +
+      '</form>');
+    $('body').append(form);
+    $(form).submit();
   });
+
 });
