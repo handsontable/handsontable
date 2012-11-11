@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Nov 09 2012 15:41:54 GMT+0100 (Central European Standard Time)
+ * Date: Mon Nov 12 2012 00:17:49 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -4049,17 +4049,22 @@ Handsontable.PluginHooks = {
     afterGetCellMeta: []
   },
 
-  push: function(hook, fn){
+  push: function (hook, fn) {
     this.hooks[hook].push(fn);
   },
 
-  unshift: function(hook, fn){
+  unshift: function (hook, fn) {
     this.hooks[hook].unshift(fn);
   },
 
-  run: function(instance, hook, args){
-    for(var i = 0, ilen = this.hooks[hook].length; i<ilen; i++) {
-      this.hooks[hook][i].apply(instance, args);
+  run: function (instance, hook, args) {
+    for (var i = 0, ilen = this.hooks[hook].length; i < ilen; i++) {
+      if (args) {
+        this.hooks[hook][i].apply(instance, args);
+      }
+      else {
+        this.hooks[hook][i].call(instance);
+      }
     }
   }
 };
