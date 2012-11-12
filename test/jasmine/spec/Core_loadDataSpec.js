@@ -213,4 +213,24 @@ describe('Core_loadData', function () {
     });
     expect(getCell(9, 1).innerHTML).toEqual('Eve');
   });
+
+  it('Should not invoke the cells callback multiple times with the same row/col', function(){
+    var allRows = {};
+    var dupsFound = 0;
+    var myData = arrayOfNestedObjects();
+    handsontable({
+      data: myData,
+      cells: function(row, col, prop) {
+        if (allRows[row + '']) {
+          if (0 <= allRows[row].indexOf(col)) {
+            dupsFound++;
+          }
+        }
+        allRows[row + ''] = allRows[row + ''] || [];
+        allRows[row + ''].push(col);
+      }
+    })
+    expect(dupsFound).toEqual(0);
+  });
+
 });
