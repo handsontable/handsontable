@@ -115,9 +115,9 @@
 
   <div class="codeLayout">
     <div class="pad">
-      <div class="jsFiddle"><span class="jsFiddleLink">Edit in jsFiddle</span></div>
+      <div class="jsFiddle"><div class="jsFiddleLink">Edit in jsFiddle</div></div>
 
-      <script>
+      <script class="common">
         function myAutocompleteRenderer(instance, td, row, col, prop, value, cellProperties) {
           Handsontable.AutocompleteCell.renderer.apply(this, arguments);
           td.style.fontStyle = 'italic';
@@ -131,7 +131,9 @@
           });
           return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
         }
+      </script>
 
+      <script>
         $(document).ready(function () {
           $("#example1").handsontable({
             data: getCarData(),
@@ -188,34 +190,36 @@
 
   <div class="codeLayout">
     <div class="pad">
-      <div class="jsFiddle"><span class="jsFiddleLink">Edit in jsFiddle</span></div>
+      <div class="jsFiddle"><div class="jsFiddleLink">Edit in jsFiddle</div></div>
 
       <script>
-        $("#example2").handsontable({
-          data: getCarData(),
-          startRows: 7,
-          startCols: 4,
-          colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
-          columns: [
-            {
-              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
-              source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
-              strict: true
-            },
-            {},
-            {
-              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
-              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
-              highlighter: colorHighlighter,
-              strict: true
-            },
-            {
-              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
-              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
-              highlighter: colorHighlighter,
-              strict: true
-            }
-          ]
+        $(document).ready(function () {
+          $("#example2").handsontable({
+            data: getCarData(),
+            startRows: 7,
+            startCols: 4,
+            colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+            columns: [
+              {
+                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+                source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
+                strict: true
+              },
+              {},
+              {
+                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+                source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
+                highlighter: colorHighlighter,
+                strict: true
+              },
+              {
+                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+                source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
+                highlighter: colorHighlighter,
+                strict: true
+              }
+            ]
+          });
         });
       </script>
     </div>
@@ -245,35 +249,42 @@
 
   <div class="codeLayout">
     <div class="pad">
-      <div class="jsFiddle"><span class="jsFiddleLink">Edit in jsFiddle</span></div>
+      <div class="jsFiddle">
+        <!--
+        Ajax example will not work with JSFiddle at the moment because `php/cars.php` does not implement CORS.
+        <div class="jsFiddleLink">Edit in jsFiddle</div>
+      -->
+      </div>
 
       <script>
-        $("#example3").handsontable({
-          data: getCarData(),
-          startRows: 7,
-          startCols: 4,
-          colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
-          columns: [
-            {
-              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
-              source: function (query, process) {
-                $.ajax({
-                  url: 'php/cars.php',
-                  data: {
-                    query: query
-                  },
-                  success: function (response) {
-                    console.log("response", response);
-                    process(response);
-                  }
-                });
+        $(document).ready(function () {
+          $("#example3").handsontable({
+            data: getCarData(),
+            startRows: 7,
+            startCols: 4,
+            colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+            columns: [
+              {
+                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+                source: function (query, process) {
+                  $.ajax({
+                    url: 'php/cars.php',
+                    data: {
+                      query: query
+                    },
+                    success: function (response) {
+                      console.log("response", response);
+                      process(response);
+                    }
+                  });
+                },
+                strict: true
               },
-              strict: true
-            },
-            {} /*Year is a default text column*/,
-            {} /*Chassis color is a default text column*/,
-            {} /*Bumper color is a default text column*/
-          ]
+              {} /*Year is a default text column*/,
+              {} /*Chassis color is a default text column*/,
+              {} /*Bumper color is a default text column*/
+            ]
+          });
         });
       </script>
     </div>

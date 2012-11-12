@@ -92,25 +92,31 @@ $(function () {
 <link rel="stylesheet" media="screen" href="http://handsontable.com/jquery.handsontable.css">\n\
 <link rel="stylesheet" media="screen" href="http://handsontable.com/demo/css/samples.css">\n\
 <style type="text/css">\n\
-body {background: white}';
+body {background: white; margin: 20px;}\n\
+h2 {margin: 20px 0;}';
 
     var js = '';
-    if ($('script.common').length) {
-      js += trimCodeBlock($('script.common').html()).join('\n') + '\n';
-    }
-    js += trimCodeBlock($(this).parents('.codeLayout').find('script').html()).join('\n');
+    $('script.common').each(function () {
+      js += trimCodeBlock($(this).html()).join('\n') + '\n';
+    });
+    $(this).parents('.codeLayout').find('script').not('.common').each(function () {
+      js += trimCodeBlock($(this).html()).join('\n') + '\n';
+    });
 
     var clone = $(this).parents('.rowLayout').find('.descLayout .pad').clone();
     clone.find('div[id^="example"]').html('');
     clone.find('a[name]').remove();
     var html = trimCodeBlock(clone.html()).join('\n');
 
-    var form = $('<form action="http://jsfiddle.net/api/post/library/pure/" method="post">' +
+    var form = $('<form action="http://jsfiddle.net/api/post/library/pure/" method="post" target="_blank">' +
       '<input type="text" name="title" value="Handsontable example">' +
       '<textarea name="html">' + html.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea>' +
       '<textarea name="js">' + js.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea>' +
       '<textarea name="css">' + css.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea>' +
       '</form>');
+    form.css({
+      visibility: 'hidden'
+    });
     $('body').append(form);
     $(form).submit();
   });
