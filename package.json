@@ -8,6 +8,7 @@
   "author": "Marcin Warpechowski <marcin@nextgen.pl>",
   "version": "0.7.3-dev",
   "devDependencies": {
-    "grunt-replace": "~0.3.1"
+    "grunt-replace": "~0.3.1",
+    "grunt-contrib-clean": "~0.3.0"
   }
 }
