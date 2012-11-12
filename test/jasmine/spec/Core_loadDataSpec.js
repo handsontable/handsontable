@@ -229,8 +229,26 @@ describe('Core_loadData', function () {
         allRows[row + ''] = allRows[row + ''] || [];
         allRows[row + ''].push(col);
       }
-    })
+    });
     expect(dupsFound).toEqual(0);
   });
+
+
+  it('Should not invoke the cells callback with bogus / non existing columns', function(){
+    var bogusFound = 0;
+    var myData = arrayOfObjects();
+    handsontable({
+      data: myData,
+      cells: function(row, col, prop) {
+        // out data have 3 columns so index should not be larger than 2.
+        if (2 < col) {
+          bogusFound++;
+        }
+      }
+    });
+    expect(bogusFound).toEqual(0);
+  });
+
+
 
 });
