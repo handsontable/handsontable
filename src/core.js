@@ -582,7 +582,7 @@ Handsontable.Core = function (rootElement, settings) {
           return !cellProperties.readOnly;
         }
         else {
-          return data;
+          return !data;
         }
       }
       return true;
