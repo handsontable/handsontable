@@ -334,6 +334,7 @@ Handsontable.Core = function (rootElement, settings) {
         case "insert_row":
           datamap.createRow(coords);
           self.view.createRow(coords);
+          self.view.renderRow(coords.row);
           self.blockedCols.refresh();
           if (priv.selStart && priv.selStart.row >= coords.row) {
             priv.selStart.row = priv.selStart.row + 1;
@@ -347,6 +348,7 @@ Handsontable.Core = function (rootElement, settings) {
         case "insert_col":
           datamap.createCol(coords);
           self.view.createCol(coords);
+          self.view.renderCol(coords.col);
           self.blockedRows.refresh();
           if (priv.selStart && priv.selStart.col >= coords.col) {
             priv.selStart.col = priv.selStart.col + 1;
@@ -420,6 +422,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (self.rowCount < priv.settings.startRows) {
         for (; self.rowCount < priv.settings.startRows; emptyRows++) {
           self.view.createRow();
+          self.view.renderRow(self.rowCount - 1);
           recreateRows = true;
         }
       }
@@ -429,6 +432,7 @@ Handsontable.Core = function (rootElement, settings) {
         for (; emptyRows < priv.settings.minSpareRows; emptyRows++) {
           datamap.createRow();
           self.view.createRow();
+          self.view.renderRow(self.rowCount - 1);
           recreateRows = true;
         }
       }
@@ -440,6 +444,7 @@ Handsontable.Core = function (rootElement, settings) {
           while ($tbody.height() <= priv.settings.minHeight) {
             datamap.createRow();
             self.view.createRow();
+            self.view.renderRow(self.rowCount - 1);
             recreateRows = true;
           }
         }
@@ -465,6 +470,7 @@ Handsontable.Core = function (rootElement, settings) {
             datamap.createCol();
           }
           self.view.createCol();
+          self.view.renderCol(self.colCount - 1);
           recreateCols = true;
         }
       }
@@ -476,6 +482,7 @@ Handsontable.Core = function (rootElement, settings) {
             datamap.createCol();
           }
           self.view.createCol();
+          self.view.renderCol(self.colCount - 1);
           recreateCols = true;
         }
       }
@@ -489,6 +496,7 @@ Handsontable.Core = function (rootElement, settings) {
               datamap.createCol();
             }
             self.view.createCol();
+            self.view.renderCol(self.colCount - 1);
             recreateCols = true;
           }
         }
@@ -525,6 +533,7 @@ Handsontable.Core = function (rootElement, settings) {
           }
           while (self.colCount < clen) {
             self.view.createCol();
+            self.view.renderCol(self.colCount - 1);
           }
           recreateCols = true;
         }
@@ -1458,6 +1467,7 @@ Handsontable.Core = function (rootElement, settings) {
           while (row > self.rowCount - 1) {
             datamap.createRow();
             self.view.createRow();
+            self.view.renderRow(self.rowCount - 1);
             refreshRows = true;
           }
         }
@@ -1465,6 +1475,7 @@ Handsontable.Core = function (rootElement, settings) {
           while (col > self.colCount - 1) {
             datamap.createCol();
             self.view.createCol();
+            self.view.renderCol(self.colCount - 1);
             refreshCols = true;
           }
         }

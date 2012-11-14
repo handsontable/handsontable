@@ -77,7 +77,7 @@ module.exports = function (grunt) {
       }
     },
     watch: {
-      files: ['<config:concat.dist.src>'],
+      files: ['src/*.js'],
       tasks: 'replace concat clean'
     },
     clean: {
