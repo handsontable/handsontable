@@ -6,16 +6,12 @@ See the demos at http://handsontable.com/ or fork the example on [JSFiddle](http
 
 ## Usage
 
-First, include all the dependencies:
+First, include all the dependencies. All the files that you need (apart from jQuery) are in the `dist\` directory:
 
 ```html
-<script src="lib/jquery.min.js"></script>
-<script src="jquery.handsontable.js"></script>
-<script src="lib/bootstrap-typeahead.js"></script><!-- if you need the autocomplete feature -->
-<script src="lib/jQuery-contextMenu/jquery.contextMenu.js"></script><!-- if you need the context menu -->
-<script src="lib/jQuery-contextMenu/jquery.ui.position.js"></script><!-- if you need the context menu -->
-<link rel="stylesheet" media="screen" href="lib/jQuery-contextMenu/jquery.contextMenu.css">
-<link rel="stylesheet" media="screen" href="jquery.handsontable.css">
+<script src="../lib/jquery.min.js"></script>
+<script src="dist/jquery.handsontable.full.js"></script>
+<link rel="stylesheet" media="screen" href="dist/jquery.handsontable.full.css">
 ```
 
 Then, run `handsontable()` constructor on an empty div. After that, load some data if you wish:

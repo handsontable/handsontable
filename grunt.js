@@ -1,8 +1,20 @@
 /**
- * This file is used to build ``jquery.handsontable.js` from `src/*`
+ * This file is used to build Handsontable from `src/*`
  *
- * Installation: Install Grunt (`npm install -g grunt`), them go to repo main directory and install local dependencies (`npm install`)
- * Build: Go to repo main directory and execute `grunt`. To execute automatically after each change, execute `grunt --force default watch`
+ * Installation:
+ * 1. Install Grunt (`npm install -g grunt`)
+ * 2. Install NPM packages from `devDependencies` section in package.json (`npm install`)
+ *
+ * Build:
+ * Execute `grunt` from root directory of this directory (where grunt.js is)
+ * To execute automatically after each change, execute `grunt --force default watch`
+ *
+ * Result:
+ * building Handsontable will create files:
+ *  - jquery.handsontable.js
+ *  - jquery.handsontable.css
+ *  - dist/jquery.handsontable.full.js
+ *  - dist/jquery.handsontable.full.css
  *
  * See https://github.com/cowboy/grunt for more information
  */
@@ -12,9 +24,9 @@ module.exports = function (grunt) {
     concat: {
       dist: {
         src: [
-          'src/intro.js',
+          'tmp/intro.js',
 
-          'src/core.js',
+          'tmp/core.js',
           'src/tableView.js',
           'src/helpers.js',
           'src/border.js',
@@ -47,11 +59,30 @@ module.exports = function (grunt) {
           'src/outro.js'
         ],
         dest: 'jquery.handsontable.js'
+      },
+      full_js: {
+        src: [
+          'jquery.handsontable.js',
+          'lib/bootstrap-typeahead.js',
+          'lib/jQuery-contextMenu/jquery.contextMenu.js',
+          'lib/jQuery-contextMenu/jquery.ui.position.js'
+        ],
+        dest: 'dist/jquery.handsontable.full.js'
+      },
+      full_css: {
+        src: [
+          'jquery.handsontable.css',
+          'lib/jQuery-contextMenu/jquery.contextMenu.css'
+        ],
+        dest: 'dist/jquery.handsontable.full.css'
       }
     },
     watch: {
-      files: ['<config:concat.dist.src>'],
-      tasks: 'concat replace'
+      files: ['src/*.js'],
+      tasks: 'replace concat clean'
+    },
+    clean: {
+      dist: ['tmp']
     },
     replace: {
       dist: {
@@ -62,14 +93,16 @@ module.exports = function (grunt) {
           }
         },
         files: {
-          'jquery.handsontable.js': 'jquery.handsontable.js'
+          'tmp/intro.js': 'src/intro.js',
+          'tmp/core.js': 'src/core.js'
         }
       }
     }
   });
 
   // Default task.
-  grunt.registerTask('default', 'concat replace');
+  grunt.registerTask('default', 'replace concat clean');
 
   grunt.loadNpmTasks('grunt-replace');
+  grunt.loadNpmTasks('grunt-contrib-clean');
 };
