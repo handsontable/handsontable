@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Nov 15 2012 13:33:33 GMT+0100 (Central European Standard Time)
+ * Date: Thu Nov 15 2012 13:46:12 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
