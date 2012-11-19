@@ -1126,7 +1126,7 @@ Handsontable.Core = function (rootElement, settings) {
           self.rootElement.one("datachange.handsontable", function (event, changes, source) {
             if (changes.length) {
               var last = changes[changes.length - 1];
-              var endTd = self.view.getCellAtCoords({row: last[0], col: last[1]});
+              var endTd = self.view.getCellAtCoords({row: last[0], col: self.propToCol(last[1])});
               selection.setRangeEnd(endTd);
             }
           });

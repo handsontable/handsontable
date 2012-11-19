@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Nov 15 2012 13:46:12 GMT+0100 (Central European Standard Time)
+ * Date: Mon Nov 19 2012 12:28:23 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1145,7 +1145,7 @@ Handsontable.Core = function (rootElement, settings) {
           self.rootElement.one("datachange.handsontable", function (event, changes, source) {
             if (changes.length) {
               var last = changes[changes.length - 1];
-              var endTd = self.view.getCellAtCoords({row: last[0], col: last[1]});
+              var endTd = self.view.getCellAtCoords({row: last[0], col: self.propToCol(last[1])});
               selection.setRangeEnd(endTd);
             }
           });

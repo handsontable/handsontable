@@ -25,7 +25,7 @@ describe('Core_setDataAtCell', function () {
 
   it('should correctly paste string that contains "quotes"', function () {
     //https://github.com/warpech/jquery-handsontable/issues/205
-    runs(function(){
+    runs(function () {
       handsontable();
       selectCell(0, 0);
       this.$keyboardProxy.val('1\nThis is a "test" and a test\n2');
@@ -34,10 +34,35 @@ describe('Core_setDataAtCell', function () {
 
     waits(110);
 
-    runs(function(){
+    runs(function () {
       expect(getDataAtCell(0, 0)).toEqual('1');
       expect(getDataAtCell(1, 0)).toEqual('This is a "test" and a test');
       expect(getDataAtCell(2, 0)).toEqual('2');
+    });
+  });
+
+  it('should correctly paste string when dataSchema is used', function () {
+    //https://github.com/warpech/jquery-handsontable/issues/237
+    runs(function () {
+      handsontable({
+        colHeaders: true,
+        dataSchema: {
+          col1: null,
+          col2: null,
+          col3: null
+        }
+      });
+      selectCell(0, 0);
+      this.$keyboardProxy.val('1\tTest\t2');
+      this.$keyboardProxy.parent().triggerHandler('paste');
+    });
+
+    waits(110);
+
+    runs(function () {
+      expect(getDataAtCell(0, 0)).toEqual('1');
+      expect(getDataAtCell(0, 1)).toEqual('Test');
+      expect(getDataAtCell(0, 2)).toEqual('2');
     });
   });
 });
