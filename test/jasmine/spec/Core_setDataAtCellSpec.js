@@ -43,18 +43,24 @@ describe('Core_setDataAtCell', function () {
 
   it('should correctly paste string when dataSchema is used', function () {
     //https://github.com/warpech/jquery-handsontable/issues/237
+    var err;
     runs(function () {
-      handsontable({
-        colHeaders: true,
-        dataSchema: {
-          col1: null,
-          col2: null,
-          col3: null
-        }
-      });
-      selectCell(0, 0);
-      this.$keyboardProxy.val('1\tTest\t2');
-      this.$keyboardProxy.parent().triggerHandler('paste');
+      try {
+        handsontable({
+          colHeaders: true,
+          dataSchema: {
+            col1: null,
+            col2: null,
+            col3: null
+          }
+        });
+        selectCell(0, 0);
+        this.$keyboardProxy.val('1\tTest\t2');
+        this.$keyboardProxy.parent().triggerHandler('paste');
+      }
+      catch (e) {
+        err = e;
+      }
     });
 
     waits(110);
@@ -64,7 +70,7 @@ describe('Core_setDataAtCell', function () {
       expect(getDataAtCell(0, 1)).toEqual('Test');
       expect(getDataAtCell(0, 2)).toEqual('2');
 
-      //should not throw error
+      expect(err).toBeUndefined();
     });
   });
 });
