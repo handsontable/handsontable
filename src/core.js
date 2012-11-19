@@ -1559,6 +1559,7 @@ Handsontable.Core = function (rootElement, settings) {
     for (var i = 0, ilen = changes.length; i < ilen; i++) {
       self.view.render(changes[i][0], datamap.propToCol(changes[i][1]), changes[i][1], changes[i][3]);
     }
+    priv.editProxy.triggerHandler('refreshBorder');
     self.rootElement.triggerHandler('cellrender.handsontable', [changes, source || 'render']);
   };
 

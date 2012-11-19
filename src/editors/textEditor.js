@@ -80,6 +80,23 @@ var texteditor = {
       keyboardProxy.val('');
     }
 
+    texteditor.refreshDimensions(instance, $td, keyboardProxy);
+    keyboardProxy.parent().removeClass('htHidden');
+
+    instance.rootElement.triggerHandler('beginediting.handsontable');
+
+    setTimeout(function () {
+      //async fix for Firefox 3.6.28 (needs manual testing)
+      keyboardProxy.parent().css({
+        overflow: 'visible'
+      });
+    }, 1);
+  },
+
+  refreshDimensions: function (instance, $td, keyboardProxy) {
+    if (!texteditor.isCellEdited) {
+      return;
+    }
     var width = $td.width()
       , height = $td.outerHeight() - 4;
 
@@ -100,16 +117,6 @@ var texteditor = {
       animate: false,
       extraSpace: 0
     });
-    keyboardProxy.parent().removeClass('htHidden');
-
-    instance.rootElement.triggerHandler('beginediting.handsontable');
-
-    setTimeout(function () {
-      //async fix for Firefox 3.6.28 (needs manual testing)
-      keyboardProxy.parent().css({
-        overflow: 'visible'
-      });
-    }, 1);
   },
 
   /**
@@ -205,6 +212,14 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
   keyboardProxy.css({
     width: 0,
     height: 0
+  });
+
+  keyboardProxy.on('refreshBorder.editor', function () {
+    setTimeout(function () {
+      if (texteditor.isCellEdited) {
+        texteditor.refreshDimensions(instance, $(td), keyboardProxy);
+      }
+    }, 0);
   });
 
   keyboardProxy.on("keydown.editor", function (event) {
