@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Nov 19 2012 22:52:48 GMT+0100 (Central European Standard Time)
+ * Date: Mon Nov 19 2012 23:16:33 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -740,11 +740,23 @@ Handsontable.Core = function (rootElement, settings) {
     },
 
     /**
-     * Redraws borders around cells
+     * Destroys editor, redraws borders around cells, prepares editor
      * @param {Boolean} revertOriginal
      */
     refreshBorders: function (revertOriginal) {
       editproxy.destroy(revertOriginal);
+      if (!selection.isSelected()) {
+        return;
+      }
+      selection.refreshBorderDimensions();
+      editproxy.prepare();
+    },
+
+    /**
+     * Redraws borders around cells
+     * @param {Boolean} revertOriginal
+     */
+    refreshBorderDimensions: function () {
       if (!selection.isSelected()) {
         return;
       }
@@ -753,7 +765,6 @@ Handsontable.Core = function (rootElement, settings) {
       }
       priv.currentBorder.appear([priv.selStart]);
       highlight.on();
-      editproxy.prepare();
     },
 
     /**
@@ -1578,6 +1589,7 @@ Handsontable.Core = function (rootElement, settings) {
     for (var i = 0, ilen = changes.length; i < ilen; i++) {
       self.view.render(changes[i][0], datamap.propToCol(changes[i][1]), changes[i][1], changes[i][3]);
     }
+    selection.refreshBorderDimensions();
     priv.editProxy.triggerHandler('refreshBorder');
     self.rootElement.triggerHandler('cellrender.handsontable', [changes, source || 'render']);
   };

@@ -39,4 +39,26 @@ describe('Core_render', function () {
       expect(this.style.backgroundColor).toEqual('green');
     });
   });
+
+  it('render should update border dimensions', function () {
+    var data = [
+      ["a", "b"],
+      ["c", "d"]
+    ];
+
+    handsontable({
+      data: data,
+      startCols: 4,
+      startRows: 4,
+      minSpareRows: 4,
+      minSpareCols: 4
+    });
+
+    selectCell(1, 1);
+    data[1][1] = "dddddddddddddddddddd";
+    render();
+
+    var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
+    expect(this.$container.find('.htBorderBg.current').width()).toBeGreaterThan($td.width());
+  });
 });
