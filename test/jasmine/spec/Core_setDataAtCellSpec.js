@@ -63,6 +63,8 @@ describe('Core_setDataAtCell', function () {
       expect(getDataAtCell(0, 0)).toEqual('1');
       expect(getDataAtCell(0, 1)).toEqual('Test');
       expect(getDataAtCell(0, 2)).toEqual('2');
+
+      //should not throw error
     });
   });
 });
