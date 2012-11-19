@@ -233,4 +233,33 @@ describe('Core_loadData', function () {
     });
     expect(dupsFound).toEqual(0);
   });
+
+  https://github.com/warpech/jquery-handsontable/issues/239
+    it('loadData should remove empty row if source data has more empty rows than allowed by minSpareRows', function () {
+      var err;
+      try {
+        var blanks = [
+          [],
+          []
+        ];
+
+        handsontable({
+          rows: 1,
+          cols: 1,
+          minSpareCols: 1,
+          minSpareRows: 1,
+          rowHeaders: true,
+          colHeaders: true,
+          contextMenu: false
+        });
+
+        loadData(blanks);
+      }
+      catch (e) {
+        err = e;
+      }
+
+      expect(err).toBeUndefined();
+      expect(countRows()).toBe(1);
+    });
 });

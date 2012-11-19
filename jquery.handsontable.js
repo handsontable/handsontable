@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Nov 19 2012 12:28:23 GMT+0100 (Central European Standard Time)
+ * Date: Mon Nov 19 2012 14:25:20 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1614,6 +1614,7 @@ Handsontable.Core = function (rootElement, settings) {
     grid.keepEmptyRows();
     grid.clear();
     var changes = [];
+    dlen = priv.settings.data.length; //recount number of rows in case some row was removed by keepEmptyRows
     var clen = (priv.settings.columns && priv.settings.columns.length) || priv.settings.startCols;
     for (var r = 0; r < dlen; r++) {
       for (var c = 0; c < clen; c++) {

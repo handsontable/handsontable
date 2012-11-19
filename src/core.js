@@ -1595,6 +1595,7 @@ Handsontable.Core = function (rootElement, settings) {
     grid.keepEmptyRows();
     grid.clear();
     var changes = [];
+    dlen = priv.settings.data.length; //recount number of rows in case some row was removed by keepEmptyRows
     var clen = (priv.settings.columns && priv.settings.columns.length) || priv.settings.startCols;
     for (var r = 0; r < dlen; r++) {
       for (var c = 0; c < clen; c++) {
