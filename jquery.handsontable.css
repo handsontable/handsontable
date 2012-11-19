@@ -1,6 +1,14 @@
 /**
- * It may be useful to copy the below styles and use on your page
+ * Handsontable 0.7.4-dev
+ * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
+ *
+ * Copyright 2012, Marcin Warpechowski
+ * Licensed under the MIT license.
+ * http://handsontable.com/
+ *
+ * Date: Mon Nov 19 2012 22:36:53 GMT+0100 (Central European Standard Time)
  */
+
 .handsontable {
   position: relative;
   font-family: Arial, Helvetica, sans-serif;

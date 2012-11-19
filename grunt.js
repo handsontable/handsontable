@@ -93,7 +93,8 @@ module.exports = function (grunt) {
         },
         files: {
           'tmp/intro.js': 'src/intro.js',
-          'tmp/core.js': 'src/core.js'
+          'tmp/core.js': 'src/core.js',
+          'jquery.handsontable.css': 'src/css/jquery.handsontable.css'
         }
       }
     }
