@@ -126,4 +126,65 @@ describe('AutocompleteEditor', function () {
       expect(isAutocompleteVisible()).toEqual(false);
     });
   });
+
+  it('autocomplete textarea should have cell dimensions', function () {
+    var data = [
+      ["a", "b"],
+      ["c", "d"]
+    ];
+
+    handsontable({
+      data: data,
+      startCols: 4,
+      startRows: 4,
+      minSpareRows: 4,
+      minSpareCols: 4,
+      cells: function () {
+        return {
+          type: Handsontable.AutocompleteCell
+        };
+      }
+    });
+
+    selectCell(1, 1);
+    keyDownUp('enter');
+
+    var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
+    expect(this.$keyboardProxy.width()).toEqual($td.width());
+  });
+
+  it('autocomplete textarea should have cell dimensions (after render)', function () {
+    runs(function () {
+      var data = [
+        ["a", "b"],
+        ["c", "d"]
+      ];
+
+      handsontable({
+        data: data,
+        startCols: 4,
+        startRows: 4,
+        minSpareRows: 4,
+        minSpareCols: 4,
+        cells: function () {
+          return {
+            type: Handsontable.AutocompleteCell
+          };
+        }
+      });
+
+      selectCell(1, 1);
+      keyDownUp('enter');
+
+      data[1][1] = "dddddddddddddddddddd";
+      render();
+    });
+
+    waits(1);
+
+    runs(function () {
+      var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
+      expect(this.$keyboardProxy.width()).toEqual($td.width());
+    });
+  });
 });

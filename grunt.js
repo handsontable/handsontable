@@ -78,7 +78,7 @@ module.exports = function (grunt) {
       }
     },
     watch: {
-      files: ['src/*.js'],
+      files: ['src/*.js', 'src/editors/*.js', 'src/plugins/*.js', 'src/renderers/*.js'],
       tasks: 'replace concat clean'
     },
     clean: {
@@ -94,7 +94,8 @@ module.exports = function (grunt) {
         },
         files: {
           'tmp/intro.js': 'src/intro.js',
-          'tmp/core.js': 'src/core.js'
+          'tmp/core.js': 'src/core.js',
+          'jquery.handsontable.css': 'src/css/jquery.handsontable.css'
         }
       }
     }

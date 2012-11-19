@@ -1126,7 +1126,7 @@ Handsontable.Core = function (rootElement, settings) {
           self.rootElement.one("datachange.handsontable", function (event, changes, source) {
             if (changes.length) {
               var last = changes[changes.length - 1];
-              var endTd = self.view.getCellAtCoords({row: last[0], col: last[1]});
+              var endTd = self.view.getCellAtCoords({row: last[0], col: self.propToCol(last[1])});
               selection.setRangeEnd(endTd);
             }
           });
@@ -1559,6 +1559,7 @@ Handsontable.Core = function (rootElement, settings) {
     for (var i = 0, ilen = changes.length; i < ilen; i++) {
       self.view.render(changes[i][0], datamap.propToCol(changes[i][1]), changes[i][1], changes[i][3]);
     }
+    priv.editProxy.triggerHandler('refreshBorder');
     self.rootElement.triggerHandler('cellrender.handsontable', [changes, source || 'render']);
   };
 
@@ -1595,6 +1596,7 @@ Handsontable.Core = function (rootElement, settings) {
     grid.keepEmptyRows();
     grid.clear();
     var changes = [];
+    dlen = priv.settings.data.length; //recount number of rows in case some row was removed by keepEmptyRows
     var clen = (priv.settings.columns && priv.settings.columns.length) || priv.settings.startCols;
     for (var r = 0; r < dlen; r++) {
       for (var c = 0; c < clen; c++) {

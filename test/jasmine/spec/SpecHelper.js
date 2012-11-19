@@ -154,3 +154,4 @@ var loadData = handsontableMethodFactory('loadData');
 var destroyEditor = handsontableMethodFactory('destroyEditor');
 var setCellReadOnly = handsontableMethodFactory('setCellReadOnly');
 var setCellEditable = handsontableMethodFactory('setCellEditable');
+var render = handsontableMethodFactory('render');
