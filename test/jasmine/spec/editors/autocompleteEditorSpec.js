@@ -135,8 +135,8 @@ describe('AutocompleteEditor', function () {
 
     handsontable({
       data: data,
-      startCols: 4,
-      startRows: 4,
+      minRows: 4,
+      minCols: 4,
       minSpareRows: 4,
       minSpareCols: 4,
       cells: function () {
@@ -162,8 +162,8 @@ describe('AutocompleteEditor', function () {
 
       handsontable({
         data: data,
-        startCols: 4,
-        startRows: 4,
+        minRows: 4,
+        minCols: 4,
         minSpareRows: 4,
         minSpareCols: 4,
         cells: function () {

@@ -2108,30 +2108,30 @@ var settings = {
   'autoWrapCol': false
 };
 
-$.fn.handsontable = function (action, options) {
-  var i, ilen, args, output = [];
+$.fn.handsontable = function (action) {
+  var i, ilen, args, output = [], userSettings;
   if (typeof action !== 'string') { //init
-    options = action;
+    userSettings = action || {};
     return this.each(function () {
       var $this = $(this);
       if ($this.data("handsontable")) {
         instance = $this.data("handsontable");
-        instance.updateSettings(options);
+        instance.updateSettings(userSettings);
       }
       else {
-        if (settings.data !== void 0) {
-          if (typeof settings.startRows !== "undefined") {
+        if (userSettings.data !== void 0) {
+          if (typeof userSettings.startRows !== "undefined") {
             throw new Error("'startRows' cannot be used with 'data' property. Maybe you mean to use 'data' and 'minRows' instead?");
           }
-          if (typeof settings.startCols !== "undefined") {
+          if (typeof userSettings.startCols !== "undefined") {
             throw new Error("'startCols' cannot be used with 'data' property. Maybe you mean to use 'data' and 'minCols' instead?");
           }
         }
 
         var currentSettings = $.extend(true, {}, settings), instance;
-        for (i in options) {
-          if (options.hasOwnProperty(i)) {
-            currentSettings[i] = options[i];
+        for (i in userSettings) {
+          if (userSettings.hasOwnProperty(i)) {
+            currentSettings[i] = userSettings[i];
           }
         }
         instance = new Handsontable.Core($this, currentSettings);

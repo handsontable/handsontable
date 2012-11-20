@@ -15,8 +15,8 @@ describe('Core_dataSchema', function () {
     handsontable({
       data: [],
       dataSchema: {id: null, name: {first: null, last: null}, address: null},
-      startRows: 5,
-      startCols: 4,
+      minRows: 5,
+      minCols: 4,
       colHeaders: ['ID', 'First Name', 'Last Name', 'Address'],
       columns: [
         {data: "id"},
