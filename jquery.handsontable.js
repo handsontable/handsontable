@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Nov 20 2012 15:23:08 GMT+0100 (Central European Standard Time)
+ * Date: Tue Nov 20 2012 19:03:06 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -442,15 +442,15 @@ Handsontable.Core = function (rootElement, settings) {
 
       //should I add empty rows to data source to meet startRows?
       rlen = self.countRows();
-      if (rlen < priv.settings.startRows) {
-        for (r = 0; r < priv.settings.startRows - rlen; r++) {
+      if (rlen < priv.settings.minRows) {
+        for (r = 0; r < priv.settings.minRows - rlen; r++) {
           datamap.createRow();
         }
       }
 
       //should I add empty rows to table view to meet startRows?
-      if (self.rowCount < priv.settings.startRows) {
-        for (; self.rowCount < priv.settings.startRows; emptyRows++) {
+      if (self.rowCount < priv.settings.minRows) {
+        for (; self.rowCount < priv.settings.minRows; emptyRows++) {
           self.view.createRow();
           self.view.renderRow(self.rowCount - 1);
           recreateRows = true;
@@ -493,9 +493,9 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
 
-      //should I add empty cols to meet startCols?
-      if (self.colCount < priv.settings.startCols) {
-        for (; self.colCount < priv.settings.startCols; emptyCols++) {
+      //should I add empty cols to meet minCols?
+      if (self.colCount < priv.settings.minCols) {
+        for (; self.colCount < priv.settings.minCols; emptyCols++) {
           if (!priv.settings.columns) {
             datamap.createCol();
           }
@@ -533,7 +533,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       if (!recreateRows && priv.settings.enterBeginsEditing) {
-        for (; ((priv.settings.startRows && self.rowCount > priv.settings.startRows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows) && (!priv.settings.minHeight || $tbody.height() - $tbody.find('tr:last').height() - 4 > priv.settings.minHeight)); emptyRows--) {
+        for (; ((priv.settings.minRows && self.rowCount > priv.settings.minRows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows) && (!priv.settings.minHeight || $tbody.height() - $tbody.find('tr:last').height() - 4 > priv.settings.minHeight)); emptyRows--) {
           self.view.removeRow();
           datamap.removeRow();
           recreateRows = true;
@@ -1588,8 +1588,13 @@ Handsontable.Core = function (rootElement, settings) {
   this.render = function (changes, source) {
     if (typeof changes === "undefined") {
       changes = [];
-      var r, c, p, val, clen = (priv.settings.columns && priv.settings.columns.length) || priv.settings.startCols;
-      for (r = 0; r < priv.settings.startRows; r++) {
+      var r
+        , c
+        , p
+        , val
+        , rlen = self.countRows()
+        , clen = (priv.settings.columns && priv.settings.columns.length) || priv.settings.startCols;
+      for (r = 0; r < rlen; r++) {
         for (c = 0; c < clen; c++) {
           p = datamap.colToProp(c);
           val = datamap.get(r, p);
@@ -1628,7 +1633,7 @@ Handsontable.Core = function (rootElement, settings) {
     datamap.createMap();
 
     var dlen = priv.settings.data.length;
-    while (priv.settings.startRows > dlen) {
+    while (priv.settings.minRows > dlen) {
       datamap.createRow();
       dlen++;
     }
@@ -1786,15 +1791,26 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
 
-    if (typeof settings.data !== 'undefined') {
+    if (priv.settings.data === void 0 && settings.data === void 0) {
+      settings.data = [];
+      var row;
+      for (var r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
+        row = [];
+        for (var c = 0, clen = priv.settings.startCols; c < clen; c++) {
+          row.push(null);
+        }
+        settings.data.push(row);
+      }
+    }
+
+    if (settings.data !== void 0) {
       self.loadData(settings.data);
       recreated = true;
     }
-    else if (typeof settings.columns !== "undefined") {
+    else if (settings.columns !== void 0) {
       datamap.createMap();
     }
-
-    if (!recreated) {
+    else if (!recreated) {
       recreated = grid.keepEmptyRows();
     }
 
@@ -2095,9 +2111,11 @@ Handsontable.Core = function (rootElement, settings) {
 };
 
 var settings = {
-  'data': [],
+  'data': void 0,
   'startRows': 5,
   'startCols': 5,
+  'minRows': 0,
+  'minCols': 0,
   'minSpareRows': 0,
   'minSpareCols': 0,
   'minHeight': 0,
