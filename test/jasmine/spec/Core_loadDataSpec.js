@@ -164,23 +164,6 @@ describe('Core_loadData', function () {
     });
   });
 
-  it('should create new rows for array of arrays (and disregard startRows)', function () {
-    var called = false;
-    var myData = arrayOfArrays();
-
-    handsontable({
-      startRows: 20, //startRows should be disregarded
-      data: myData,
-      onChange: function (changes, source) {
-        if (source === 'loadData') {
-          called = true;
-        }
-      }
-    });
-
-    expect(countRows()).toEqual(myData.length);
-  });
-
   it('should create new rows for array of arrays (and respect minRows)', function () {
     var called = false;
     var myData = arrayOfArrays();
@@ -196,23 +179,6 @@ describe('Core_loadData', function () {
     });
 
     expect(countRows()).toEqual(20);
-  });
-
-  it('should create new rows for array of nested objects (and disregard startRows)', function () {
-    var called = false;
-    var myData = arrayOfNestedObjects();
-
-    handsontable({
-      startRows: 20, //startRows should be disregarded
-      data: myData,
-      onChange: function (changes, source) {
-        if (source === 'loadData') {
-          called = true;
-        }
-      }
-    });
-
-    expect(countRows()).toEqual(myData.length);
   });
 
   it('should create new rows for array of nested objects (and respect minRows)', function () {
@@ -240,7 +206,7 @@ describe('Core_loadData', function () {
 
   it('HTML special chars should be escaped by default', function () {
     handsontable({
-      startRows: 6,
+      minRows: 6,
       data: arrayOfObjects()
     });
     expect(getCell(9, 1).innerHTML).toEqual('Eve');

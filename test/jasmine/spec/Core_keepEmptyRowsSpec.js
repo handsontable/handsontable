@@ -60,8 +60,8 @@ describe('Core_keepEmptyRows', function () {
         ["one", "two"],
         ["three", "four"]
       ],
-      startCols: 4,
-      startRows: 4,
+      minCols: 4,
+      minRows: 4,
       minSpareRows: 4,
       minSpareCols: 4
     });
@@ -71,8 +71,8 @@ describe('Core_keepEmptyRows', function () {
   it('should create spare cols and rows on init (object data source)', function () {
     handsontable({
       data: arrayOfNestedObjects(),
-      startRows: 4,
-      startCols: 10,
+      minRows: 4,
+      minCols: 10,
       minSpareRows: 1
     });
     expect(countRows()).toEqual(4);
@@ -86,8 +86,8 @@ describe('Core_keepEmptyRows', function () {
 
     handsontable({
       data: data,
-      startCols: 4,
-      startRows: 4,
+      minRows: 4,
+      minCols: 4,
       minSpareRows: 1
     });
     setDataAtCell(3, 3, "test");
@@ -102,8 +102,8 @@ describe('Core_keepEmptyRows', function () {
 
     handsontable({
       data: data,
-      startCols: 4,
-      startRows: 4,
+      minRows: 4,
+      minCols: 4,
       minSpareCols: 1
     });
     setDataAtCell(3, 3, "test");
