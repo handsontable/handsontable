@@ -72,10 +72,11 @@ describe('Core_keepEmptyRows', function () {
     handsontable({
       data: arrayOfNestedObjects(),
       minRows: 4,
-      minCols: 10,
       minSpareRows: 1
     });
     expect(countRows()).toEqual(4);
+    expect(countCols()).toEqual(6); //because arrayOfNestedObjects has 6 nested properites and they should be figured out if dataSchema/columns is not given
+    expect(this.$container.find('tbody tr:first td:last').text()).toEqual('City Name');
   });
 
   it('should create new row when last cell in last row is edited', function () {
