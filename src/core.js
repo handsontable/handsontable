@@ -1662,10 +1662,10 @@ Handsontable.Core = function (rootElement, settings) {
     var i, j, recreated;
 
     if (typeof settings.rows !== "undefined") {
-      settings.startRows = settings.rows; //backwards compatibility
+      throw new Error("'rows' setting is no longer supported. do you mean startRows, minRows or maxRows?");
     }
     if (typeof settings.cols !== "undefined") {
-      settings.startCols = settings.cols; //backwards compatibility
+      throw new Error("'cols' setting is no longer supported. do you mean startCols, minCols or maxCols?");
     }
 
     if (typeof settings.fillHandle !== "undefined") {
