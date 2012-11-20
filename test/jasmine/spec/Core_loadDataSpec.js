@@ -331,4 +331,31 @@ describe('Core_loadData', function () {
     expect(countRows()).toBe(data2.length + 1); //+1 because of minSpareRows
     expect(getSelected()).toEqual([5, 0, 5, 0]);
   });
+
+  it('loading empty data should remove all rows', function () {
+    var data1 = [
+      ["a"],
+      ["b"],
+      ["c"],
+      ["d"],
+      ["e"],
+      ["f"],
+      ["g"],
+      ["h"]
+    ];
+
+    var data2 = [];
+
+    handsontable({
+      data: data1,
+      rowHeaders: true,
+      colHeaders: true
+    });
+    selectCell(7, 0);
+    loadData(data2);
+
+    expect(countRows()).toBe(data2.length);
+    expect(countRows()).toBe(0);
+    expect(getSelected()).toEqual(null);
+  });
 });
