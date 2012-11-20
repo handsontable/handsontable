@@ -221,7 +221,7 @@ describe('Core_loadData', function () {
       data: myData,
       cells: function (row, col, prop) {
         if (allRows[row + '']) {
-          if (0 <= allRows[row].indexOf(col)) {
+          if ($.inArray(col, allRows[row]) !== -1) {
             dupsFound++;
           }
         }
