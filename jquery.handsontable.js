@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Nov 21 2012 00:03:03 GMT+0100 (Central European Standard Time)
+ * Date: Wed Nov 21 2012 00:24:56 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -430,6 +430,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
       while (self.colCount < self.countCols()) {
         self.view.createCol();
+        self.view.renderCol(self.colCount - 1);
         recreateRows = true;
       }
       while (self.colCount > self.countCols()) {
@@ -548,21 +549,8 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
 
-      if (priv.settings.columns && priv.settings.columns.length) {
-        clen = priv.settings.columns.length;
-        if (colCount !== clen) {
-          while (colCount > clen) {
-            self.view.removeCol();
-          }
-          while (colCount < clen) {
-            self.view.createCol();
-            self.view.renderCol(colCount - 1);
-          }
-          recreateCols = true;
-        }
-      }
-      else if (!recreateCols && priv.settings.enterBeginsEditing) {
-        for (; ((priv.settings.startCols && colCount > priv.settings.startCols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (!priv.settings.minWidth || $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
+      if (!recreateCols && priv.settings.enterBeginsEditing) {
+        for (; ((priv.settings.startCols && self.countCols() > priv.settings.startCols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (!priv.settings.minWidth || $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
           if (!priv.settings.columns) {
             datamap.removeCol();
           }
