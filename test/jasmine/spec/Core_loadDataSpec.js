@@ -164,13 +164,12 @@ describe('Core_loadData', function () {
     });
   });
 
-  it('should create new rows for startRows (array of arrays)', function () {
+  it('should create new rows for array of arrays (and disregard startRows)', function () {
     var called = false;
     var myData = arrayOfArrays();
-    var expectedRows = myData.length * 2;
 
     handsontable({
-      startRows: expectedRows,
+      startRows: 20, //startRows should be disregarded
       data: myData,
       onChange: function (changes, source) {
         if (source === 'loadData') {
@@ -179,16 +178,15 @@ describe('Core_loadData', function () {
       }
     });
 
-    expect(myData.length).toEqual(expectedRows);
+    expect(countRows()).toEqual(myData.length);
   });
 
-  it('should create new rows for startRows (array of nested objects)', function () {
+  it('should create new rows for array of arrays (and respect minRows)', function () {
     var called = false;
-    var myData = arrayOfNestedObjects();
-    var expectedRows = myData.length * 2;
+    var myData = arrayOfArrays();
 
     handsontable({
-      startRows: expectedRows,
+      minRows: 20, //minRows should be respected
       data: myData,
       onChange: function (changes, source) {
         if (source === 'loadData') {
@@ -197,7 +195,41 @@ describe('Core_loadData', function () {
       }
     });
 
-    expect(myData.length).toEqual(expectedRows);
+    expect(countRows()).toEqual(20);
+  });
+
+  it('should create new rows for array of nested objects (and disregard startRows)', function () {
+    var called = false;
+    var myData = arrayOfNestedObjects();
+
+    handsontable({
+      startRows: 20, //startRows should be disregarded
+      data: myData,
+      onChange: function (changes, source) {
+        if (source === 'loadData') {
+          called = true;
+        }
+      }
+    });
+
+    expect(countRows()).toEqual(myData.length);
+  });
+
+  it('should create new rows for array of nested objects (and respect minRows)', function () {
+    var called = false;
+    var myData = arrayOfNestedObjects();
+
+    handsontable({
+      minRows: 20, //minRows should be respected
+      data: myData,
+      onChange: function (changes, source) {
+        if (source === 'loadData') {
+          called = true;
+        }
+      }
+    });
+
+    expect(countRows()).toEqual(20);
   });
 
   it('HTML special chars should be escaped by default', function () {
@@ -244,8 +276,6 @@ describe('Core_loadData', function () {
       ];
 
       handsontable({
-        rows: 1,
-        cols: 1,
         minSpareCols: 1,
         minSpareRows: 1,
         rowHeaders: true,
@@ -285,8 +315,6 @@ describe('Core_loadData', function () {
 
     handsontable({
       data: data1,
-      rows: 1,
-      cols: 1,
       rowHeaders: true,
       colHeaders: true
     });
@@ -318,8 +346,6 @@ describe('Core_loadData', function () {
 
     handsontable({
       data: data1,
-      rows: 1,
-      cols: 1,
       minSpareCols: 1,
       minSpareRows: 1,
       rowHeaders: true,
@@ -354,7 +380,6 @@ describe('Core_loadData', function () {
     selectCell(7, 0);
     loadData(data2);
 
-    expect(countRows()).toBe(data2.length);
     expect(countRows()).toBe(0);
     expect(getSelected()).toEqual(null);
   });
