@@ -75,8 +75,11 @@
       ];
 
       $('#example').handsontable({
-        //data: data,
-        //startCols: 6,
+        data: data,
+        minRows: 5,
+        minCols: 6,
+        minSpareRows: 1,
+        minSpareCols: 1,
         colHeaders: true
       });
 
