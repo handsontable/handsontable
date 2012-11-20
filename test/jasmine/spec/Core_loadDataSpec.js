@@ -235,7 +235,7 @@ describe('Core_loadData', function () {
   });
 
   //https://github.com/warpech/jquery-handsontable/issues/239
-  it('loadData should remove empty row if source data has more empty rows than allowed by minSpareRows', function () {
+  it('should remove empty row if source data has more empty rows than allowed by minSpareRows', function () {
     var err;
     try {
       var blanks = [
@@ -260,6 +260,75 @@ describe('Core_loadData', function () {
     }
 
     expect(err).toBeUndefined();
-    expect(countRows()).toBe(1);
+    expect(countRows()).toBe(2);
+  });
+
+  it('should remove grid rows if new data source has less of them', function () {
+    var data1 = [
+      ["a"],
+      ["b"],
+      ["c"],
+      ["d"],
+      ["e"],
+      ["f"],
+      ["g"],
+      ["h"]
+    ];
+
+    var data2 = [
+      ["a"],
+      ["b"],
+      ["c"],
+      ["d"],
+      ["e"]
+    ];
+
+    handsontable({
+      data: data1,
+      rows: 1,
+      cols: 1,
+      rowHeaders: true,
+      colHeaders: true
+    });
+    selectCell(7, 0);
+    loadData(data2);
+
+    expect(countRows()).toBe(data2.length);
+    expect(getSelected()).toEqual([4, 0, 4, 0]);
+  });
+
+  it('should remove grid rows if new data source has less of them (with minSpareRows)', function () {
+    var data1 = [
+      ["a"],
+      ["b"],
+      ["c"],
+      ["d"],
+      ["e"],
+      ["f"],
+      ["g"],
+      ["h"]
+    ];
+    var data2 = [
+      ["a"],
+      ["b"],
+      ["c"],
+      ["d"],
+      ["e"]
+    ];
+
+    handsontable({
+      data: data1,
+      rows: 1,
+      cols: 1,
+      minSpareCols: 1,
+      minSpareRows: 1,
+      rowHeaders: true,
+      colHeaders: true
+    });
+    selectCell(8, 0);
+    loadData(data2);
+
+    expect(countRows()).toBe(data2.length + 1); //+1 because of minSpareRows
+    expect(getSelected()).toEqual([5, 0, 5, 0]);
   });
 });
