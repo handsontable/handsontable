@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Nov 20 2012 23:06:31 GMT+0100 (Central European Standard Time)
+ * Date: Wed Nov 21 2012 00:03:03 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1738,15 +1738,25 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
 
-    if (priv.settings.data === void 0 && settings.data === void 0) {
-      settings.data = [];
-      var row;
-      for (var r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
-        row = [];
-        for (var c = 0, clen = priv.settings.startCols; c < clen; c++) {
-          row.push(null);
+    if (priv.settings.data === void 0) {
+      if (settings.data === void 0) {
+        settings.data = [];
+        var row;
+        for (var r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
+          row = [];
+          for (var c = 0, clen = priv.settings.startCols; c < clen; c++) {
+            row.push(null);
+          }
+          settings.data.push(row);
         }
-        settings.data.push(row);
+      }
+      else{
+        if(settings.startRows !== void 0 && settings.minRows === void 0) {
+          settings.minRows = settings.startRows;
+        }
+        if(settings.startCols !== void 0 && settings.minCols === void 0) {
+          settings.minCols = settings.startCols;
+        }
       }
     }
 
@@ -2164,15 +2174,6 @@ $.fn.handsontable = function (action) {
         instance.updateSettings(userSettings);
       }
       else {
-        if (userSettings.data !== void 0) {
-          if (typeof userSettings.startRows !== "undefined") {
-            throw new Error("'startRows' cannot be used with 'data' property. Maybe you mean to use 'data' and 'minRows' instead?");
-          }
-          if (typeof userSettings.startCols !== "undefined") {
-            throw new Error("'startCols' cannot be used with 'data' property. Maybe you mean to use 'data' and 'minCols' instead?");
-          }
-        }
-
         var currentSettings = $.extend(true, {}, settings), instance;
         for (i in userSettings) {
           if (userSettings.hasOwnProperty(i)) {
