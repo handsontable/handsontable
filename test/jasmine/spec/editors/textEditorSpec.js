@@ -7,7 +7,7 @@ describe('TextEditor', function () {
 
   afterEach(function () {
     if (this.$container) {
-      this.$container.remove();
+      //this.$container.remove();
     }
   });
 
@@ -162,6 +162,26 @@ describe('TextEditor', function () {
     });
 
     waits(10);
+
+    runs(function(){
+      expect(isEditorVisible()).toEqual(true);
+    });
+  });
+
+  it('loadData should not destroy editor', function () {
+    runs(function(){
+      handsontable();
+      selectCell(2, 2);
+      keyDown('f2');
+    });
+
+    waits(100);
+
+    runs(function(){
+      loadData(getData());
+    });
+
+    waits(100);
 
     runs(function(){
       expect(isEditorVisible()).toEqual(true);
