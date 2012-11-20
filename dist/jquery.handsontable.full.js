@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Nov 20 2012 19:13:19 GMT+0100 (Central European Standard Time)
+ * Date: Tue Nov 20 2012 20:06:47 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1358,10 +1358,6 @@ Handsontable.Core = function (rootElement, settings) {
   this.init = function () {
     this.view = new Handsontable.TableView(this);
 
-    if (typeof settings.cols !== 'undefined') {
-      settings.startCols = settings.cols; //backwards compatibility
-    }
-
     self.colCount = settings.startCols;
     self.rowCount = 0;
 
@@ -2142,6 +2138,15 @@ $.fn.handsontable = function (action, options) {
         instance.updateSettings(options);
       }
       else {
+        if (settings.data !== void 0) {
+          if (typeof settings.startRows !== "undefined") {
+            throw new Error("'startRows' cannot be used with 'data' property. Maybe you mean to use 'data' and 'minRows' instead?");
+          }
+          if (typeof settings.startCols !== "undefined") {
+            throw new Error("'startCols' cannot be used with 'data' property. Maybe you mean to use 'data' and 'minCols' instead?");
+          }
+        }
+
         var currentSettings = $.extend(true, {}, settings), instance;
         for (i in options) {
           if (options.hasOwnProperty(i)) {
