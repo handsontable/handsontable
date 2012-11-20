@@ -1,4 +1,4 @@
-describe('Core_keepEmptyRows', function () {
+describe('Core_onKeyDown', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
