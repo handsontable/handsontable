@@ -246,7 +246,7 @@ Handsontable.TableView.prototype.createRow = function (coords) {
     tr.appendChild(td = document.createElement('td'));
     this.instance.minWidthFix(td);
   }
-  if (!coords || coords.row >= this.instance.rowCount) {
+  if (!coords || coords.row >= this.instance.countRows()) {
     this.$tableBody.appendChild(tr);
   }
   else {
@@ -263,7 +263,7 @@ Handsontable.TableView.prototype.createRow = function (coords) {
 Handsontable.TableView.prototype.createCol = function (coords) {
   var trs = this.$tableBody.childNodes, r, c, td;
   this.instance.blockedRows.createCol();
-  if (!coords || coords.col >= this.instance.colCount) {
+  if (!coords || coords.col >= this.instance.countCols()) {
     for (r = 0; r < this.instance.rowCount; r++) {
       trs[r].appendChild(td = document.createElement('td'));
       this.instance.minWidthFix(td);
