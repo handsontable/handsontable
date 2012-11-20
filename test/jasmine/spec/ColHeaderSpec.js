@@ -27,7 +27,7 @@ describe('ColHeader', function () {
   it('should show col headers numbered 1-10 by default', function () {
     var startCols = 5;
     $container.handsontable({
-      cols: startCols,
+      startCols: startCols,
       colHeaders: true
     });
     var ths = $container.find('th.htColHeader');
@@ -47,7 +47,7 @@ describe('ColHeader', function () {
   it('should show col headers with custom label', function () {
     var startCols = 5;
     $container.handsontable({
-      cols: startCols,
+      startCols: startCols,
       colHeaders: ['First', 'Second', 'Third']
     });
     var ths = $container.find('th.htColHeader');

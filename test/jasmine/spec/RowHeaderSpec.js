@@ -27,7 +27,7 @@ describe('RowHeader', function () {
   it('should show row headers numbered 1-10 by default', function () {
     var startRows = 5;
     $container.handsontable({
-      rows: startRows,
+      startRows: startRows,
       rowHeaders: true
     });
     var ths = $container.find('.htRowHeader');
@@ -47,7 +47,7 @@ describe('RowHeader', function () {
   it('should show row headers with custom label', function () {
     var startRows = 5;
     $container.handsontable({
-      rows: startRows,
+      startRows: startRows,
       rowHeaders: ['First', 'Second', 'Third']
     });
     var ths = $container.find('.htRowHeader');

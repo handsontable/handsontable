@@ -30,7 +30,7 @@ describe('Core_alter', function () {
 
   it('should remove remove row', function () {
     handsontable({
-      startRows: 5,
+      minRows: 5,
       data: arrayOfNestedObjects(),
       columns: [
         {data: "id"},
