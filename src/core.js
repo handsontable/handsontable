@@ -591,8 +591,8 @@ Handsontable.Core = function (rootElement, settings) {
 
       if (recreateRows || recreateCols) {
         selection.refreshBorders();
-        self.blockedCols.refresh();
-        self.blockedRows.refresh();
+        self.blockedCols.update();
+        self.blockedRows.update();
       }
 
       return (recreateRows || recreateCols);

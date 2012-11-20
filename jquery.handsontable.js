@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Nov 20 2012 22:46:53 GMT+0100 (Central European Standard Time)
+ * Date: Tue Nov 20 2012 23:06:31 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -610,8 +610,8 @@ Handsontable.Core = function (rootElement, settings) {
 
       if (recreateRows || recreateCols) {
         selection.refreshBorders();
-        self.blockedCols.refresh();
-        self.blockedRows.refresh();
+        self.blockedCols.update();
+        self.blockedRows.update();
       }
 
       return (recreateRows || recreateCols);
