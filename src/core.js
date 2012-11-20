@@ -399,6 +399,17 @@ Handsontable.Core = function (rootElement, settings) {
 
       var $tbody = $(priv.tableBody);
 
+      //fix changes that may have come from loadData
+      var dlen = priv.settings.data.length;
+      while (self.rowCount < dlen) {
+        self.view.createRow();
+        recreateRows = true;
+      }
+      while (self.rowCount > dlen) {
+        self.view.removeRow();
+        recreateRows = true;
+      }
+
       //count currently empty rows
       rows : for (r = self.countRows() - 1; r >= 0; r--) {
         for (c = 0, clen = self.colCount; c < clen; c++) {
@@ -1596,13 +1607,11 @@ Handsontable.Core = function (rootElement, settings) {
       priv.duckDataSchema = {};
     }
     datamap.createMap();
+
     var dlen = priv.settings.data.length;
     while (priv.settings.startRows > dlen) {
       datamap.createRow();
       dlen++;
-    }
-    while (self.rowCount < dlen) {
-      self.view.createRow();
     }
 
     grid.keepEmptyRows();
