@@ -204,7 +204,7 @@ describe('Core_loadData', function () {
     expect(getCell(0, 0).innerHTML).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
   });
 
-  it('HTML special chars should be escaped by default', function () {
+  it('should create as many rows as needed by array of objects', function () {
     handsontable({
       minRows: 6,
       data: arrayOfObjects()
