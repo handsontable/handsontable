@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Nov 20 2012 20:27:57 GMT+0100 (Central European Standard Time)
+ * Date: Tue Nov 20 2012 21:23:06 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -37,8 +37,8 @@ Handsontable.Core = function (rootElement, settings) {
     scrollable: null,
     undoRedo: null,
     extensions: {},
-    colToProp: [],
-    propToCol: {},
+    colToProp: null,
+    propToCol: null,
     dataSchema: null,
     dataType: 'array'
   };
@@ -191,7 +191,7 @@ Handsontable.Core = function (rootElement, settings) {
      */
     createCol: function (coords) {
       if (priv.dataType === 'object' || priv.settings.columns) {
-        throw new Error("cannot create column with object data source or columns option specified");
+        throw new Error("Cannot create new column. When data source in an object, you can only have as much columns as defined in first data row, data schema or in the 'columns' setting");
       }
       var r = 0;
       if (!coords || coords.col >= self.colCount) {
@@ -1358,7 +1358,6 @@ Handsontable.Core = function (rootElement, settings) {
   this.init = function () {
     this.view = new Handsontable.TableView(this);
 
-    self.colCount = settings.startCols;
     self.rowCount = 0;
 
     highlight.init();
@@ -1628,6 +1627,18 @@ Handsontable.Core = function (rootElement, settings) {
     }
     datamap.createMap();
 
+    if( priv.dataType === 'object') {
+      if(priv.settings.columns && priv.settings.columns.length) {
+        self.colCount = priv.settings.columns.length;
+      }
+      else {
+        self.colCount = priv.colToProp.length;
+      }
+    }
+    else { //array
+      self.colCount = Math.max((priv.settings.columns && priv.settings.columns.length) || 0, (data[0] && data[0].length) || 0);
+    }
+
     var dlen = priv.settings.data.length;
     while (priv.settings.minRows > dlen) {
       datamap.createRow();
@@ -1638,9 +1649,8 @@ Handsontable.Core = function (rootElement, settings) {
     grid.clear();
     var changes = [];
     dlen = priv.settings.data.length; //recount number of rows in case some row was removed by keepEmptyRows
-    var clen = (priv.settings.columns && priv.settings.columns.length) || priv.settings.startCols;
     for (var r = 0; r < dlen; r++) {
-      for (var c = 0; c < clen; c++) {
+      for (var c = 0; c < self.colCount; c++) {
         var p = datamap.colToProp(c);
         changes.push([r, p, "", datamap.get(r, p)])
       }
@@ -1720,6 +1730,26 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
 
+    if (priv.settings.data === void 0 && settings.data === void 0) {
+      settings.data = [];
+      var row;
+      for (var r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
+        row = [];
+        for (var c = 0, clen = priv.settings.startCols; c < clen; c++) {
+          row.push(null);
+        }
+        settings.data.push(row);
+      }
+    }
+
+    if (settings.data !== void 0) {
+      self.loadData(settings.data);
+      recreated = true;
+    }
+    else if (settings.columns !== void 0) {
+      datamap.createMap();
+    }
+
     if (typeof settings.colHeaders !== "undefined") {
       if (settings.colHeaders === false && priv.extensions["ColHeader"]) {
         priv.extensions["ColHeader"].destroy();
@@ -1787,29 +1817,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
 
-    if (priv.settings.data === void 0 && settings.data === void 0) {
-      settings.data = [];
-      var row;
-      for (var r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
-        row = [];
-        for (var c = 0, clen = priv.settings.startCols; c < clen; c++) {
-          row.push(null);
-        }
-        settings.data.push(row);
-      }
-    }
-
-    if (settings.data !== void 0) {
-      self.loadData(settings.data);
-      recreated = true;
-    }
-    else if (settings.columns !== void 0) {
-      datamap.createMap();
-    }
-    else if (!recreated) {
-      recreated = grid.keepEmptyRows();
-    }
-
+    recreated = grid.keepEmptyRows();
     if (!recreated) {
       selection.refreshBorders();
     }
