@@ -136,14 +136,15 @@ describe('TextEditor', function () {
 
   it('should render undefined in textarea', function () {
     handsontable();
-    setDataAtCell(2, 2, (function(){})());
+    setDataAtCell(2, 2, (function () {
+    })());
     selectCell(2, 2);
     keyDown('enter');
     expect(keyProxy()).toEqual("");
   });
 
   it('should open editor after cancelling edit and beginning it again', function () {
-    runs(function(){
+    runs(function () {
       handsontable();
       selectCell(2, 2);
       keyDown('f2');
@@ -151,25 +152,25 @@ describe('TextEditor', function () {
 
     waits(10);
 
-    runs(function(){
+    runs(function () {
       keyDown('esc');
     });
 
     waits(10);
 
-    runs(function(){
+    runs(function () {
       keyDown('f2');
     });
 
     waits(10);
 
-    runs(function(){
+    runs(function () {
       expect(isEditorVisible()).toEqual(true);
     });
   });
 
   it('loadData should not destroy editor', function () {
-    runs(function(){
+    runs(function () {
       handsontable();
       selectCell(2, 2);
       keyDown('f2');
@@ -177,13 +178,33 @@ describe('TextEditor', function () {
 
     waits(100);
 
-    runs(function(){
+    runs(function () {
       loadData(getData());
     });
 
     waits(100);
 
-    runs(function(){
+    runs(function () {
+      expect(isEditorVisible()).toEqual(true);
+    });
+  });
+
+  it('updateSettings should not destroy editor', function () {
+    runs(function () {
+      handsontable();
+      selectCell(2, 2);
+      keyDown('f2');
+    });
+
+    waits(100);
+
+    runs(function () {
+      updateSettings({data: getData()});
+    });
+
+    waits(100);
+
+    runs(function () {
       expect(isEditorVisible()).toEqual(true);
     });
   });

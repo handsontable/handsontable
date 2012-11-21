@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Nov 21 2012 00:24:56 GMT+0100 (Central European Standard Time)
+ * Date: Wed Nov 21 2012 01:06:58 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -756,14 +756,19 @@ Handsontable.Core = function (rootElement, settings) {
     /**
      * Destroys editor, redraws borders around cells, prepares editor
      * @param {Boolean} revertOriginal
+     * @param {Boolean} keepEditor
      */
-    refreshBorders: function (revertOriginal) {
-      editproxy.destroy(revertOriginal);
+    refreshBorders: function (revertOriginal, keepEditor) {
+      if (!keepEditor) {
+        editproxy.destroy(revertOriginal);
+      }
       if (!selection.isSelected()) {
         return;
       }
       selection.refreshBorderDimensions();
-      editproxy.prepare();
+      if (!keepEditor) {
+        editproxy.prepare();
+      }
     },
 
     /**
@@ -1738,11 +1743,11 @@ Handsontable.Core = function (rootElement, settings) {
           settings.data.push(row);
         }
       }
-      else{
-        if(settings.startRows !== void 0 && settings.minRows === void 0) {
+      else {
+        if (settings.startRows !== void 0 && settings.minRows === void 0) {
           settings.minRows = settings.startRows;
         }
-        if(settings.startCols !== void 0 && settings.minCols === void 0) {
+        if (settings.startCols !== void 0 && settings.minCols === void 0) {
           settings.minCols = settings.startCols;
         }
       }
@@ -1825,7 +1830,7 @@ Handsontable.Core = function (rootElement, settings) {
 
     recreated = grid.keepEmptyRows();
     if (!recreated) {
-      selection.refreshBorders();
+      selection.refreshBorders(null, true);
     }
 
     self.blockedCols.update();
