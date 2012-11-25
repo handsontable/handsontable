@@ -110,4 +110,28 @@ describe('Core_keepEmptyRows', function () {
     setDataAtCell(3, 3, "test");
     expect(countCols()).toEqual(5);
   });
+
+  it('should not create more rows that maxRows', function () {
+    handsontable({
+      startRows: 4,
+      maxRows: 6,
+      minSpareRows: 1
+    });
+    setDataAtCell(3, 0, "test");
+    setDataAtCell(4, 0, "test");
+    setDataAtCell(5, 0, "test");
+    expect(countRows()).toEqual(6);
+  });
+
+  it('should not create more cols that maxCols', function () {
+    handsontable({
+      startCols: 4,
+      maxCols: 6,
+      minSpareCols: 1
+    });
+    setDataAtCell(0, 3, "test");
+    setDataAtCell(0, 4, "test");
+    setDataAtCell(0, 5, "test");
+    expect(countCols()).toEqual(6);
+  });
 });

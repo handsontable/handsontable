@@ -81,8 +81,10 @@ The table below presents configuration options that are interpreted by `handsont
  `data`                  | array/object                   | []               | Initial data set that will be bound to the data grid by reference
  `minRows`               | number                         | 0                | Minimum number of rows. At least that many of rows will be created during initialization
  `minCols`               | number                         | 0                | Minimum number of columns. At least that many of columns will be created during initialization
- `startRows`             | number                         | 5                | Initial number of rows. Only used if `data` is NOT provided. If `data` is provided, this value equals `minRows`
- `startCols`             | number                         | 5                | Initial number of columns. Only used if `data` is NOT provided. If `data` is provided, this value equals `minCols`
+ `maxRows`               | number                         | _Infinity_       | Maximum number of rows
+ `maxCols`               | number                         | _Infinity_       | Maximum number of columns
+ `startRows`             | number                         | 5                | Initial number of rows
+ `startCols`             | number                         | 5                | Initial number of columns
  `rowHeaders`            | boolean/array                  | false            | Defines if the row headers (1, 2, 3, ...) should be displayed. You can just set it to `true` or specify custom a array `["First", "Second", "Third", ...]`
  `colHeaders`            | boolean/array                  | false            | Defines if the column headers (A, B, C, ...) should be displayed. You can just set it to `true` or specify custom a array `["First Name", "Last Name", "Address", ...]`
  `columns`               | array                          | _undefined_      | Defines the cell properties and data binding for certain columns. See [demo/datasources.html](https://github.com/warpech/jquery-handsontable/blob/reference/demo/datasources.html) for examples
