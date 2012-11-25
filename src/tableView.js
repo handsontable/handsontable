@@ -350,7 +350,8 @@ Handsontable.TableView.prototype.renderRow = function (row) {
 
 Handsontable.TableView.prototype.renderCol = function (col) {
   var r, p;
-  for (r = 0; r < this.instance.rowCount; r++) {
+  var rowCount=this.instance.getData().length;
+  for (r = 0; r < rowCount; r++) {
     p = this.instance.colToProp(col);
     this.render(r, col, p, this.instance.getData()[r][p]);
   }
