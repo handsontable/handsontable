@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Nov 21 2012 01:06:58 GMT+0100 (Central European Standard Time)
+ * Date: Mon Nov 26 2012 00:01:35 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2433,7 +2433,7 @@ Handsontable.TableView.prototype.measureScrollbar = function () {
  * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
  */
 Handsontable.TableView.prototype.createRow = function (coords) {
-  var tr, c, r, td;
+  var tr, c, td;
   tr = document.createElement('tr');
   this.instance.blockedCols.createRow(tr);
   for (c = 0; c < this.instance.colCount; c++) {
@@ -2455,7 +2455,7 @@ Handsontable.TableView.prototype.createRow = function (coords) {
  * @param {Object} [coords] Optional. Coords of the cell before which the new column will be inserted
  */
 Handsontable.TableView.prototype.createCol = function (coords) {
-  var trs = this.$tableBody.childNodes, r, c, td;
+  var trs = this.$tableBody.childNodes, r, td;
   this.instance.blockedRows.createCol();
   if (!coords || coords.col >= this.instance.countCols()) {
     for (r = 0; r < this.instance.rowCount; r++) {
@@ -2543,8 +2543,10 @@ Handsontable.TableView.prototype.renderRow = function (row) {
 };
 
 Handsontable.TableView.prototype.renderCol = function (col) {
-  var r, p;
-  for (r = 0; r < this.instance.rowCount; r++) {
+  var r
+    , rlen = this.instance.countRows()
+    , p;
+  for (r = 0; r < rlen; r++) {
     p = this.instance.colToProp(col);
     this.render(r, col, p, this.instance.getData()[r][p]);
   }
