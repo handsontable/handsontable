@@ -449,7 +449,7 @@ Handsontable.Core = function (rootElement, settings) {
 
       //should I add empty rows to meet minSpareRows?
       if (emptyRows < priv.settings.minSpareRows) {
-        for (; emptyRows < priv.settings.minSpareRows; emptyRows++) {
+        for (; emptyRows < priv.settings.minSpareRows && self.countRows() < priv.settings.maxRows; emptyRows++) {
           datamap.createRow();
           self.view.createRow();
           self.view.renderRow(self.countRows() - 1);
@@ -461,7 +461,7 @@ Handsontable.Core = function (rootElement, settings) {
       //WARNING! jQuery returns 0 as height() for container which is not :visible. this will lead to a infinite loop
       if (priv.settings.minHeight) {
         if ($tbody.height() > 0 && $tbody.height() <= priv.settings.minHeight) {
-          while ($tbody.height() <= priv.settings.minHeight) {
+          while ($tbody.height() <= priv.settings.minHeight && self.countRows() < priv.settings.maxRows) {
             datamap.createRow();
             self.view.createRow();
             self.view.renderRow(self.countRows() - 1);
@@ -497,7 +497,7 @@ Handsontable.Core = function (rootElement, settings) {
 
       //should I add empty cols to meet minSpareCols?
       if (priv.dataType === 'array' && emptyCols < priv.settings.minSpareCols) {
-        for (; emptyCols < priv.settings.minSpareCols; emptyCols++) {
+        for (; emptyCols < priv.settings.minSpareCols && self.countCols() < priv.settings.maxCols; emptyCols++) {
           if (!priv.settings.columns) {
             datamap.createCol();
           }
@@ -511,7 +511,7 @@ Handsontable.Core = function (rootElement, settings) {
       //WARNING! jQuery returns 0 as width() for container which is not :visible. this will lead to a infinite loop
       if (priv.settings.minWidth) {
         if ($tbody.width() > 0 && $tbody.width() <= priv.settings.minWidth) {
-          while ($tbody.width() <= priv.settings.minWidth) {
+          while ($tbody.width() <= priv.settings.minWidth && self.countCols() < priv.settings.maxCols) {
             if (!priv.settings.columns) {
               datamap.createCol();
             }
@@ -619,13 +619,13 @@ Handsontable.Core = function (rootElement, settings) {
       current.row = start.row;
       current.col = start.col;
       for (r = 0; r < rlen; r++) {
-        if ((end && current.row > end.row) || (!priv.settings.minSpareRows && current.row > self.countRows() - 1)) {
+        if ((end && current.row > end.row) || (!priv.settings.minSpareRows && current.row > self.countRows() - 1) || (current.row >= priv.settings.maxRows)) {
           break;
         }
         current.col = start.col;
         clen = input[r] ? input[r].length : 0;
         for (c = 0; c < clen; c++) {
-          if ((end && current.col > end.col) || (!priv.settings.minSpareCols && current.col > self.colCount - 1)) {
+          if ((end && current.col > end.col) || (!priv.settings.minSpareCols && current.col > self.colCount - 1) || (current.col >= priv.settings.maxCols)) {
             break;
           }
           td = self.view.getCellAtCoords(current);
@@ -2122,6 +2122,8 @@ var settings = {
   'startCols': 5,
   'minRows': 0,
   'minCols': 0,
+  'maxRows': Infinity,
+  'maxCols': Infinity,
   'minSpareRows': 0,
   'minSpareCols': 0,
   'minHeight': 0,

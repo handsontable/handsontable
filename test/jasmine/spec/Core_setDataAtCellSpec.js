@@ -73,4 +73,92 @@ describe('Core_setDataAtCell', function () {
       expect(err).toBeUndefined();
     });
   });
+
+  it('should paste not more rows than maxRows', function () {
+    var err;
+    runs(function () {
+      try {
+        handsontable({
+          minSpareRows: 1,
+          startRows: 5,
+          maxRows: 10
+        });
+        selectCell(4, 0);
+        this.$keyboardProxy.val('1\n2\n3\n4\n5\n6\n7\n8\n9\n10');
+        this.$keyboardProxy.parent().triggerHandler('paste');
+      }
+      catch (e) {
+        err = e;
+      }
+    });
+
+    waits(110);
+
+    runs(function () {
+      expect(countRows()).toEqual(10);
+      expect(getDataAtCell(9, 0)).toEqual('6');
+
+      expect(err).toBeUndefined();
+    });
+  });
+
+  it('should paste not more cols than maxCols', function () {
+    var err;
+    runs(function () {
+      try {
+        handsontable({
+          minSpareCols: 1,
+          startCols: 5,
+          maxCols: 10
+        });
+        selectCell(0, 4);
+        this.$keyboardProxy.val('1\t2\t3\t4\t5\t6\t7\t8\t9\t10');
+        this.$keyboardProxy.parent().triggerHandler('paste');
+      }
+      catch (e) {
+        err = e;
+      }
+    });
+
+    waits(110);
+
+    runs(function () {
+      expect(countCols()).toEqual(10);
+      expect(getDataAtCell(0, 9)).toEqual('6');
+
+      expect(err).toBeUndefined();
+    });
+  });
+
+  it('should paste not more rows & cols than maxRows & maxCols', function () {
+    var err;
+    runs(function () {
+      try {
+        handsontable({
+          minSpareRows: 1,
+          minSpareCols: 1,
+          startRows: 5,
+          startCols: 5,
+          maxRows: 6,
+          maxCols: 6
+        });
+        selectCell(4, 4);
+        this.$keyboardProxy.val('1\t2\t3\n4\t5\t6\n7\t8\t9');
+        this.$keyboardProxy.parent().triggerHandler('paste');
+      }
+      catch (e) {
+        err = e;
+      }
+    });
+
+    waits(110);
+
+    runs(function () {
+      expect(countRows()).toEqual(6);
+      expect(countCols()).toEqual(6);
+      expect(getDataAtCell(5, 5)).toEqual('5');
+
+      expect(err).toBeUndefined();
+    });
+  });
 });
