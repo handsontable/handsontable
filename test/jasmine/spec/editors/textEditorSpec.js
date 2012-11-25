@@ -7,7 +7,7 @@ describe('TextEditor', function () {
 
   afterEach(function () {
     if (this.$container) {
-      //this.$container.remove();
+      this.$container.remove();
     }
   });
 
