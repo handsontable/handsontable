@@ -754,7 +754,6 @@ Handsontable.Core = function (rootElement, settings) {
 
     /**
      * Redraws borders around cells
-     * @param {Boolean} revertOriginal
      */
     refreshBorderDimensions: function () {
       if (!selection.isSelected()) {
@@ -1462,7 +1461,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {String} [source='edit'] String that identifies how this change will be described in changes array (useful in onChange callback)
    */
   this.setDataAtCell = function (row, prop, value, source) {
-    var refreshRows = false, refreshCols = false, changes, i, ilen, changesByCol = [];
+    var refreshRows = false, refreshCols = false, changes, i, ilen;
 
     if (typeof row === "object") { //is it an array of changes
       changes = row;
@@ -1486,7 +1485,6 @@ Handsontable.Core = function (rootElement, settings) {
         prop = changes[i][1];
         var col = datamap.propToCol(prop);
         value = changes[i][3];
-        changesByCol.push([changes[i][0], col, changes[i][2], changes[i][3], changes[i][4]]);
 
         if (priv.settings.minSpareRows) {
           while (row > self.rowCount - 1) {
@@ -1736,7 +1734,6 @@ Handsontable.Core = function (rootElement, settings) {
 
     if (settings.data !== void 0) {
       self.loadData(settings.data);
-      recreated = true;
     }
     else if (settings.columns !== void 0) {
       datamap.createMap();
