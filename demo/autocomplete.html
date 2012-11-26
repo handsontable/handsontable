@@ -106,7 +106,9 @@
 
   <div class="codeLayout">
     <div class="pad">
-      <div class="jsFiddle"><div class="jsFiddleLink">Edit in jsFiddle</div></div>
+      <div class="jsFiddle">
+        <div class="jsFiddleLink">Edit in jsFiddle</div>
+      </div>
 
       <script class="common">
         function myAutocompleteRenderer(instance, td, row, col, prop, value, cellProperties) {
@@ -181,7 +183,9 @@
 
   <div class="codeLayout">
     <div class="pad">
-      <div class="jsFiddle"><div class="jsFiddleLink">Edit in jsFiddle</div></div>
+      <div class="jsFiddle">
+        <div class="jsFiddleLink">Edit in jsFiddle</div>
+      </div>
 
       <script>
         $(document).ready(function () {
@@ -230,6 +234,9 @@
       <p>To load data from remote (asynchrous) source, assign a function to the 'source' property. Function should
         perform the server side request and call the callback function when the result is available.</p>
 
+      <p>The property <strong>options</strong> overrides `defaults` defined in Bootstrap Typeahead. It may be useful to
+        configure the number of displayed suggestions.</p>
+
       <div id="example3"></div>
 
       <p>
@@ -257,6 +264,7 @@
             columns: [
               {
                 type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+                options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
                 source: function (query, process) {
                   $.ajax({
                     url: 'php/cars.php',
