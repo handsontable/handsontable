@@ -11,6 +11,23 @@ describe('Core_setDataAtCell', function () {
     }
   });
 
+  var arrayOfNestedObjects = function () {
+    return [
+      {id: 1, name: {
+        first: "Ted",
+        last: "Right"
+      }},
+      {id: 2, name: {
+        first: "Frank",
+        last: "Honest"
+      }},
+      {id: 3, name: {
+        first: "Joan",
+        last: "Well"
+      }}
+    ]
+  };
+
   var htmlText = "Ben & Jerry's";
 
   it('HTML special chars should be preserved in data map but escaped in DOM', function () {
@@ -157,6 +174,40 @@ describe('Core_setDataAtCell', function () {
       expect(countRows()).toEqual(6);
       expect(countCols()).toEqual(6);
       expect(getDataAtCell(5, 5)).toEqual('5');
+
+      expect(err).toBeUndefined();
+    });
+  });
+
+  //https://github.com/warpech/jquery-handsontable/issues/250
+  it('should create new rows when pasting into grid with object data source', function () {
+    var err;
+    runs(function () {
+      try {
+        handsontable({
+          data: arrayOfNestedObjects(),
+          colHeaders: true,
+          columns: [
+            {data: "id"},
+            {data: "name.last"},
+            {data: "name.first"}
+          ],
+          minSpareRows: 1
+        });
+        selectCell(3, 0);
+        this.$keyboardProxy.val('a\tb\tc\nd\te\tf\ng\th\ti');
+        this.$keyboardProxy.parent().triggerHandler('paste');
+      }
+      catch (e) {
+        err = e;
+      }
+    });
+
+    waits(110);
+
+    runs(function () {
+      expect(countRows()).toEqual(7);
+      expect(getDataAtCell(5, 2)).toEqual('i');
 
       expect(err).toBeUndefined();
     });
