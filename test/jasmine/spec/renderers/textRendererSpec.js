@@ -1,4 +1,4 @@
-describe('TextCell', function () {
+describe('TextRenderer', function () {
   var id = 'testContainer';
 
   beforeEach(function () {

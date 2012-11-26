@@ -43,7 +43,6 @@ To see the list of recent changes, see the [Changelog](https://github.com/warpec
 ---------------------------------------------------------------------------------------|-------------|-------------
  handsontable(options)                                                                 | Constructor | Accepts configuration object (see **Options**)
  handsontable('updateSettings', options)                                               | Method      | Use it if you need to change configuration after initialization
- handsontable('refreshLegend', [row, col])                                             | Method      | If you redefine legend in `updateSettings`, new legend is not applied immediately. To force reapplying new legend rules, run `refreshLegend` method. Params `row`, `col` are optional
  handsontable('loadData', data)                                                        | Method      | Reset all cells in the grid to contain data from the `data` array
  handsontable('setDataAtCell',&nbsp;row,&nbsp;col,&nbsp;value)                         | Method      | Set new value to a cell. To change many cells at once, pass an array of changes in format [[row, col, value], ...] as the only parameter
  handsontable('getDataAtCell', row, col)                                               | Method      | Return cell value at `row`, `col`
@@ -79,6 +78,10 @@ The table below presents configuration options that are interpreted by `handsont
   Option                 | Type                           | Default          | Description
 -------------------------|--------------------------------|------------------|-------------
  `data`                  | array/object                   | []               | Initial data set that will be bound to the data grid by reference
+ `minRows`               | number                         | 0                | Minimum number of rows. At least that many of rows will be created during initialization
+ `minCols`               | number                         | 0                | Minimum number of columns. At least that many of columns will be created during initialization
+ `maxRows`               | number                         | _Infinity_       | Maximum number of rows
+ `maxCols`               | number                         | _Infinity_       | Maximum number of columns
  `startRows`             | number                         | 5                | Initial number of rows
  `startCols`             | number                         | 5                | Initial number of columns
  `rowHeaders`            | boolean/array                  | false            | Defines if the row headers (1, 2, 3, ...) should be displayed. You can just set it to `true` or specify custom a array `["First", "Second", "Third", ...]`

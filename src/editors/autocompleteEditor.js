@@ -20,10 +20,11 @@ function isAutoComplete(keyboardProxy) {
  */
 Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
   var typeahead = keyboardProxy.data('typeahead')
+    , i
     , dontHide = false;
 
   if (!typeahead) {
-    keyboardProxy.typeahead();
+    keyboardProxy.typeahead(cellProperties.options || {});
     typeahead = keyboardProxy.data('typeahead');
     typeahead._show = typeahead.show;
     typeahead._hide = typeahead.hide;
@@ -31,6 +32,14 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
     typeahead._highlighter = typeahead.highlighter;
   }
   else {
+    if (cellProperties.options) {
+      /* overwrite typeahead options (most importantly `items`) */
+      for (i in cellProperties) {
+        if (cellProperties.hasOwnProperty(i)) {
+          typeahead.options[i] = cellProperties.options[i];
+        }
+      }
+    }
     typeahead.$menu.off(); //remove previous typeahead bindings
     keyboardProxy.off(); //remove previous typeahead bindings. Removing this will cause prepare to register 2 keydown listeners in typeahead
     typeahead.listen(); //add typeahead bindings
@@ -80,8 +89,8 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   };
 
   /* overwrite typeahead methods (matcher, sorter, highlighter, updater, etc) if provided in cellProperties */
-  for (var i in cellProperties) {
-    if ((typeahead.hasOwnProperty(i) || i === 'render') && i !== 'options') {
+  for (i in cellProperties) {
+    if (cellProperties.hasOwnProperty(i)) {
       typeahead[i] = cellProperties[i];
     }
   }

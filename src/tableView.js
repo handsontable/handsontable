@@ -239,14 +239,14 @@ Handsontable.TableView.prototype.measureScrollbar = function () {
  * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
  */
 Handsontable.TableView.prototype.createRow = function (coords) {
-  var tr, c, r, td;
+  var tr, c, td;
   tr = document.createElement('tr');
   this.instance.blockedCols.createRow(tr);
   for (c = 0; c < this.instance.colCount; c++) {
     tr.appendChild(td = document.createElement('td'));
     this.instance.minWidthFix(td);
   }
-  if (!coords || coords.row >= this.instance.rowCount) {
+  if (!coords || coords.row >= this.instance.countRows()) {
     this.$tableBody.appendChild(tr);
   }
   else {
@@ -261,9 +261,9 @@ Handsontable.TableView.prototype.createRow = function (coords) {
  * @param {Object} [coords] Optional. Coords of the cell before which the new column will be inserted
  */
 Handsontable.TableView.prototype.createCol = function (coords) {
-  var trs = this.$tableBody.childNodes, r, c, td;
+  var trs = this.$tableBody.childNodes, r, td;
   this.instance.blockedRows.createCol();
-  if (!coords || coords.col >= this.instance.colCount) {
+  if (!coords || coords.col >= this.instance.countCols()) {
     for (r = 0; r < this.instance.rowCount; r++) {
       trs[r].appendChild(td = document.createElement('td'));
       this.instance.minWidthFix(td);
@@ -349,8 +349,10 @@ Handsontable.TableView.prototype.renderRow = function (row) {
 };
 
 Handsontable.TableView.prototype.renderCol = function (col) {
-  var r, p;
-  for (r = 0; r < this.instance.rowCount; r++) {
+  var r
+    , rlen = this.instance.countRows()
+    , p;
+  for (r = 0; r < rlen; r++) {
     p = this.instance.colToProp(col);
     this.render(r, col, p, this.instance.getData()[r][p]);
   }

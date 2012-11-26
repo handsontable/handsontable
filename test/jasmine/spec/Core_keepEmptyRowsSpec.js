@@ -60,8 +60,8 @@ describe('Core_keepEmptyRows', function () {
         ["one", "two"],
         ["three", "four"]
       ],
-      startCols: 4,
-      startRows: 4,
+      minCols: 4,
+      minRows: 4,
       minSpareRows: 4,
       minSpareCols: 4
     });
@@ -71,11 +71,12 @@ describe('Core_keepEmptyRows', function () {
   it('should create spare cols and rows on init (object data source)', function () {
     handsontable({
       data: arrayOfNestedObjects(),
-      startRows: 4,
-      startCols: 10,
+      minRows: 4,
       minSpareRows: 1
     });
     expect(countRows()).toEqual(4);
+    expect(countCols()).toEqual(6); //because arrayOfNestedObjects has 6 nested properites and they should be figured out if dataSchema/columns is not given
+    expect(this.$container.find('tbody tr:first td:last').text()).toEqual('City Name');
   });
 
   it('should create new row when last cell in last row is edited', function () {
@@ -86,8 +87,8 @@ describe('Core_keepEmptyRows', function () {
 
     handsontable({
       data: data,
-      startCols: 4,
-      startRows: 4,
+      minRows: 4,
+      minCols: 4,
       minSpareRows: 1
     });
     setDataAtCell(3, 3, "test");
@@ -102,11 +103,35 @@ describe('Core_keepEmptyRows', function () {
 
     handsontable({
       data: data,
-      startCols: 4,
-      startRows: 4,
+      minRows: 4,
+      minCols: 4,
       minSpareCols: 1
     });
     setDataAtCell(3, 3, "test");
     expect(countCols()).toEqual(5);
+  });
+
+  it('should not create more rows that maxRows', function () {
+    handsontable({
+      startRows: 4,
+      maxRows: 6,
+      minSpareRows: 1
+    });
+    setDataAtCell(3, 0, "test");
+    setDataAtCell(4, 0, "test");
+    setDataAtCell(5, 0, "test");
+    expect(countRows()).toEqual(6);
+  });
+
+  it('should not create more cols that maxCols', function () {
+    handsontable({
+      startCols: 4,
+      maxCols: 6,
+      minSpareCols: 1
+    });
+    setDataAtCell(0, 3, "test");
+    setDataAtCell(0, 4, "test");
+    setDataAtCell(0, 5, "test");
+    expect(countCols()).toEqual(6);
   });
 });

@@ -40,6 +40,17 @@ var isAutocompleteVisible = function () {
 };
 
 /**
+ * Shows context menu
+ */
+var contextMenu = function () {
+  var ev = $.Event('contextmenu');
+  ev.button = 2;
+  var instance = spec().$container.data('handsontable');
+  var selector = "#" + instance.rootElement.attr('id') + ' table, #' + instance.rootElement.attr('id') + ' div';
+  $(selector).trigger(ev);
+};
+
+/**
  * Returns a function that triggers a key event
  * @param {String} type Event type
  * @return {Function}
@@ -155,3 +166,4 @@ var destroyEditor = handsontableMethodFactory('destroyEditor');
 var setCellReadOnly = handsontableMethodFactory('setCellReadOnly');
 var setCellEditable = handsontableMethodFactory('setCellEditable');
 var render = handsontableMethodFactory('render');
+var updateSettings = handsontableMethodFactory('updateSettings');

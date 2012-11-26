@@ -76,7 +76,10 @@
 
       $('#example').handsontable({
         data: data,
-        startCols: 6,
+        minRows: 5,
+        minCols: 6,
+        minSpareRows: 1,
+        minSpareCols: 1,
         colHeaders: true
       });
 
