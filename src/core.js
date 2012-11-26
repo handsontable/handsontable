@@ -236,6 +236,9 @@ Handsontable.Core = function (rootElement, settings) {
       if (typeof prop === 'string' && prop.indexOf('.') > -1) {
         var sliced = prop.split(".");
         var out = priv.settings.data[row];
+        if (!out) {
+          return null;
+        }
         for (var i = 0, ilen = sliced.length; i < ilen; i++) {
           out = out[sliced[i]];
           if (typeof out === 'undefined') {
