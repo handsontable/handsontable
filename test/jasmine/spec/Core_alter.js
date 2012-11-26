@@ -28,7 +28,7 @@ describe('Core_alter', function () {
     ]
   };
 
-  it('should remove remove row', function () {
+  it('should remove row', function () {
     handsontable({
       minRows: 5,
       data: arrayOfNestedObjects(),
@@ -40,5 +40,27 @@ describe('Core_alter', function () {
     alter('remove_row', 1);
     expect(getDataAtCell(1, 1)).toEqual('Joan'); //Joan should be moved up
     expect(getData().length).toEqual(5); //new row should be added by keepEmptyRows
+  });
+
+  it('should add not more rows than maxRows', function () {
+    handsontable({
+      startRows: 5,
+      maxRows: 7
+    });
+    alter('insert_row', 1);
+    alter('insert_row', 1);
+    alter('insert_row', 1);
+    expect(countRows()).toEqual(7);
+  });
+
+  it('should add not more cols than maxCols', function () {
+    handsontable({
+      startCols: 5,
+      maxCols: 7
+    });
+    alter('insert_col', 1);
+    alter('insert_col', 1);
+    alter('insert_col', 1);
+    expect(countCols()).toEqual(7);
   });
 });

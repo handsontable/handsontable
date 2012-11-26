@@ -332,30 +332,34 @@ Handsontable.Core = function (rootElement, settings) {
 
       switch (action) {
         case "insert_row":
-          datamap.createRow(coords);
-          self.view.createRow(coords);
-          self.view.renderRow(coords.row);
-          self.blockedCols.refresh();
-          if (priv.selStart && priv.selStart.row >= coords.row) {
-            priv.selStart.row = priv.selStart.row + 1;
-            selection.transformEnd(1, 0);
-          }
-          else {
-            selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
+          if (self.countRows() < priv.settings.maxRows) {
+            datamap.createRow(coords);
+            self.view.createRow(coords);
+            self.view.renderRow(coords.row);
+            self.blockedCols.refresh();
+            if (priv.selStart && priv.selStart.row >= coords.row) {
+              priv.selStart.row = priv.selStart.row + 1;
+              selection.transformEnd(1, 0);
+            }
+            else {
+              selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
+            }
           }
           break;
 
         case "insert_col":
-          datamap.createCol(coords);
-          self.view.createCol(coords);
-          self.view.renderCol(coords.col);
-          self.blockedRows.refresh();
-          if (priv.selStart && priv.selStart.col >= coords.col) {
-            priv.selStart.col = priv.selStart.col + 1;
-            selection.transformEnd(0, 1);
-          }
-          else {
-            selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
+          if (self.countCols() < priv.settings.maxCols) {
+            datamap.createCol(coords);
+            self.view.createCol(coords);
+            self.view.renderCol(coords.col);
+            self.blockedRows.refresh();
+            if (priv.selStart && priv.selStart.col >= coords.col) {
+              priv.selStart.col = priv.selStart.col + 1;
+              selection.transformEnd(0, 1);
+            }
+            else {
+              selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
+            }
           }
           break;
 
