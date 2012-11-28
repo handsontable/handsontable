@@ -58,6 +58,10 @@ var contextMenu = function () {
 var handsontableKeyTriggerFactory = function (type) {
   return function (key) {
     var ev = $.Event(type);
+    if (key.indexOf('shift+') > -1) {
+      key = key.substring(6);
+      ev.shiftKey = true;
+    }
     switch (key) {
       case 'tab':
         ev.keyCode = 9;
@@ -90,6 +94,9 @@ var handsontableKeyTriggerFactory = function (type) {
       case 'arrow_down':
         ev.keyCode = 40;
         break;
+
+      default:
+        throw new Error('unknown key');
     }
     spec().$keyboardProxy.trigger(ev);
   }

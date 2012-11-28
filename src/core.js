@@ -714,21 +714,20 @@ Handsontable.Core = function (rootElement, settings) {
   this.selection = selection = { //this public assignment is only temporary
     /**
      * Starts selection range on given td object
-     * @param td element
+     * @param {Object} coords
      */
-    setRangeStart: function (td) {
+    setRangeStart: function (coords) {
       selection.deselect();
-      priv.selStart = self.view.getCellCoords(td);
-      selection.setRangeEnd(td);
+      priv.selStart = coords;
+      selection.setRangeEnd(coords);
     },
 
     /**
      * Ends selection range on given td object
-     * @param {Element} td
+     * @param {Object} coords
      * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to range end
      */
-    setRangeEnd: function (td, scrollToCell) {
-      var coords = self.view.getCellCoords(td);
+    setRangeEnd: function (coords, scrollToCell) {
       selection.end(coords);
       if (!priv.settings.multiSelect) {
         priv.selStart = coords;
@@ -737,7 +736,7 @@ Handsontable.Core = function (rootElement, settings) {
       self.rootElement.triggerHandler("selectionbyprop.handsontable", [priv.selStart.row, datamap.colToProp(priv.selStart.col), priv.selEnd.row, datamap.colToProp(priv.selEnd.col)]);
       selection.refreshBorders();
       if (scrollToCell !== false) {
-        self.view.scrollViewport(td);
+        self.view.scrollViewport(coords);
       }
     },
 
@@ -831,16 +830,29 @@ Handsontable.Core = function (rootElement, settings) {
         rowDelta = -1;
         colDelta = self.colCount - 1;
       }
-      var td = self.view.getCellAtCoords({
+
+      var totalRows = self.countRows();
+      var totalCols = self.countCols();
+      var coords = {
         row: (priv.selStart.row + rowDelta),
         col: priv.selStart.col + colDelta
-      });
-      if (td) {
-        selection.setRangeStart(td);
+      };
+
+      if (coords.row < 0) {
+        coords.row = 0;
       }
-      else {
-        selection.setRangeStart(self.view.getCellAtCoords(priv.selStart)); //rerun some routines
+      else if (coords.row > 0 && coords.row >= totalRows) {
+        coords.row = totalRows - 1;
       }
+
+      if (coords.col < 0) {
+        coords.col = 0;
+      }
+      else if (coords.col > 0 && coords.col >= totalCols) {
+        coords.col = totalCols - 1;
+      }
+
+      selection.setRangeStart(coords);
     },
 
     /**
@@ -848,13 +860,28 @@ Handsontable.Core = function (rootElement, settings) {
      */
     transformEnd: function (rowDelta, colDelta) {
       if (priv.selEnd) {
-        var td = self.view.getCellAtCoords({
+        var totalRows = self.countRows();
+        var totalCols = self.countCols();
+        var coords = {
           row: (priv.selEnd.row + rowDelta),
           col: priv.selEnd.col + colDelta
-        });
-        if (td) {
-          selection.setRangeEnd(td);
+        };
+
+        if (coords.row < 0) {
+          coords.row = 0;
         }
+        else if (coords.row > 0 && coords.row >= totalRows) {
+          coords.row = totalRows - 1;
+        }
+
+        if (coords.col < 0) {
+          coords.col = 0;
+        }
+        else if (coords.col > 0 && coords.col >= totalCols) {
+          coords.col = totalCols - 1;
+        }
+
+        selection.setRangeEnd(coords);
       }
     },
 
@@ -906,11 +933,14 @@ Handsontable.Core = function (rootElement, settings) {
       if (!priv.settings.multiSelect) {
         return;
       }
-      var tds = self.view.getAllCells();
-      if (tds.length) {
-        selection.setRangeStart(tds[0]);
-        selection.setRangeEnd(tds[tds.length - 1], false);
-      }
+      selection.setRangeStart({
+        row: 0,
+        col: 0
+      });
+      selection.setRangeEnd({
+        row: self.countRows(),
+        col: self.countCols()
+      }, false);
     },
 
     /**
@@ -1096,8 +1126,8 @@ Handsontable.Core = function (rootElement, settings) {
       if (start) {
         grid.populateFromArray(start, SheetClip.parse(priv.editProxy.val()), end, 'autofill');
 
-        selection.setRangeStart(self.view.getCellAtCoords(drag.TL));
-        selection.setRangeEnd(self.view.getCellAtCoords(drag.BR));
+        selection.setRangeStart(drag.TL);
+        selection.setRangeEnd(drag.BR);
       }
       else {
         //reset to avoid some range bug
@@ -1162,8 +1192,7 @@ Handsontable.Core = function (rootElement, settings) {
           self.rootElement.one("datachange.handsontable", function (event, changes, source) {
             if (changes.length) {
               var last = changes[changes.length - 1];
-              var endTd = self.view.getCellAtCoords({row: last[0], col: self.propToCol(last[1])});
-              selection.setRangeEnd(endTd);
+              selection.setRangeEnd({row: last[0], col: self.propToCol(last[1])});
             }
           });
 
@@ -2082,10 +2111,10 @@ Handsontable.Core = function (rootElement, settings) {
     }
     selection.start({row: row, col: col});
     if (typeof endRow === "undefined") {
-      selection.setRangeEnd(self.getCell(row, col), scrollToCell);
+      selection.setRangeEnd({row: row, col: col}, scrollToCell);
     }
     else {
-      selection.setRangeEnd(self.getCell(endRow, endCol), scrollToCell);
+      selection.setRangeEnd({row: row, col: col}, scrollToCell);
     }
   };
 
@@ -2140,7 +2169,8 @@ var settings = {
   'enterMoves': {row: 1, col: 0},
   'tabMoves': {row: 0, col: 1},
   'autoWrapRow': false,
-  'autoWrapCol': false
+  'autoWrapCol': false,
+  'viewEngine': 'walkontable'
 };
 
 $.fn.handsontable = function (action) {

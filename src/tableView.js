@@ -14,16 +14,16 @@ Handsontable.TableView = function (instance) {
         //do nothing
       }
       else if (event.shiftKey) {
-        that.instance.selection.setRangeEnd(this);
+        that.instance.selection.setRangeEnd(that.getCellCoords(this));
       }
       else {
-        that.instance.selection.setRangeStart(this);
+        that.instance.selection.setRangeStart(that.getCellCoords(this));
       }
     },
 
     onMouseOver: function () {
       if (priv.isMouseDown) {
-        that.instance.selection.setRangeEnd(this);
+        that.instance.selection.setRangeEnd(that.getCellCoords(this));
       }
       else if (that.instance.autofill.handle && that.instance.autofill.handle.isDragged) {
         that.instance.autofill.handle.isDragged++;
@@ -418,13 +418,14 @@ Handsontable.TableView.prototype.getAllCells = function () {
 
 /**
  * Scroll viewport to selection
- * @param td
+ * @param coords
  */
-Handsontable.TableView.prototype.scrollViewport = function (td) {
+Handsontable.TableView.prototype.scrollViewport = function (coords) {
   if (!this.instance.selection.isSelected()) {
     return false;
   }
 
+  var td = this.getCellAtCoords(coords);
   var $td = $(td);
   var tdOffset = $td.offset();
   var scrollLeft = this.scrollable.scrollLeft(); //scrollbar position
