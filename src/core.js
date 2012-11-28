@@ -2052,7 +2052,16 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
     else if (priv.dataType === 'array') {
-      return Math.max((priv.settings.columns && priv.settings.columns.length) || 0, (priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length) || 0);
+      if(priv.settings.columns && priv.settings.columns.length) {
+            return priv.settings.columns.length;
+        }
+        else if(priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length) {
+            return priv.settings.data[0].length;
+        }
+        else {
+            return 0;
+        }
+      
     }
   };
 
