@@ -349,4 +349,18 @@ describe('Core_loadData', function () {
     expect(countRows()).toBe(0);
     expect(getSelected()).toEqual(null);
   });
+  it('should only have as many columns as in settings', function () {
+        var data1 = arrayOfArrays()
+
+        handsontable({
+            data: data1,
+            columns: [
+            { data: 1 },
+            { data: 3 }
+        ]
+        });
+        
+
+        expect(countCols()).toBe(2); //+1 because of minSpareRows    
+    });
 });
