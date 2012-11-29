@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Thu Nov 29 2012 12:59:53 GMT+0100 (Central European Standard Time)
+ * Date: Thu Nov 29 2012 15:28:40 GMT+0100 (Central European Standard Time)
 */
 
 function Walkontable(settings) {
@@ -16,17 +16,8 @@ function Walkontable(settings) {
     offsetColumn: 0,
     rowHeaders: false,
     columnHeaders: false,
-    totalRows: function () {
-      return that.settings.data.length;
-    },
-    totalColumns: function () {
-      if (that.settings.data[0]) {
-        return that.settings.data[0].length;
-      }
-      else {
-        throw new Error('Cannot estimate total number of columns because the data source is empty. Please provide totalColumns in settings');
-      }
-    },
+    totalRows: void 0,
+    totalColumns: void 0,
     displayRows: function () {
       return that.getSetting('totalRows'); //display all rows by default
     },
@@ -38,7 +29,7 @@ function Walkontable(settings) {
         return that.getSetting('totalColumns'); //display all columns by default
       }
     },
-    onCurrentChange: void 0
+    onCurrentChange: null
   };
 
   //reference to settings
@@ -47,6 +38,9 @@ function Walkontable(settings) {
     if (defaults.hasOwnProperty(i)) {
       if (settings[i] !== void 0) {
         this.settings[i] = settings[i];
+      }
+      else if (defaults[i] === void 0) {
+        throw new Error('A required setting "' + i + '" was not provided');
       }
       else {
         this.settings[i] = defaults[i];
@@ -111,7 +105,7 @@ Walkontable.prototype.update = function (settings) {
 };
 
 Walkontable.prototype.scrollVertical = function (delta) {
-  var max = this.settings.data.length - 1 - this.settings.displayRows;
+  var max = this.getSetting('totalRows') - 1 - this.settings.displayRows;
   this.settings.offsetRow = this.settings.offsetRow + delta;
   if (this.settings.offsetRow < 0) {
     this.settings.offsetRow = 0;
@@ -123,7 +117,7 @@ Walkontable.prototype.scrollVertical = function (delta) {
 };
 
 Walkontable.prototype.scrollHorizontal = function (delta) {
-  var max = this.settings.data[0].length - this.settings.displayColumns;
+  var max = this.getSetting('totalColumns') - this.settings.displayColumns;
   if (this.hasSetting('rowHeaders')) {
     max++;
   }
@@ -137,9 +131,9 @@ Walkontable.prototype.scrollHorizontal = function (delta) {
   return this;
 };
 
-Walkontable.prototype.getSetting = function (key, param1) {
+Walkontable.prototype.getSetting = function (key, param1, param2) {
   if (typeof this.settings[key] === 'function') {
-    return this.settings[key](param1);
+    return this.settings[key](param1, param2);
   }
   else {
     return this.settings[key];
@@ -622,7 +616,6 @@ WalkontableTable.prototype.draw = function () {
     , TR
     , TH
     , TD
-    , rowData
     , cellData;
   this.adjustAvailableNodes();
 
@@ -656,8 +649,7 @@ WalkontableTable.prototype.draw = function () {
     }
     for (c = 0; c < displayTds; c++) {
       TD = TR.childNodes[c + offsetTd];
-      rowData = this.instance.settings.data[offsetRow + r];
-      cellData = rowData && rowData[offsetColumn + c];
+      cellData = this.instance.getSetting('data', offsetRow + r, offsetColumn + c);
       if (cellData !== void 0) {
         TD.innerHTML = cellData;
       }

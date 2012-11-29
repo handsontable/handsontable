@@ -8,8 +8,8 @@
  */
 Handsontable.Border = function (instance, options) {
   this.instance = instance;
-  this.$container = instance.container;
-  var container = this.$container[0];
+  this.rootElement = instance.rootElement;
+  var container = this.rootElement[0];
 
   if (options.bg) {
     this.bg = document.createElement("div");
@@ -58,8 +58,8 @@ Handsontable.Border.prototype = {
     minLeft = fromOffset.left;
     width = toOffset.left + $to.outerWidth() - minLeft;
 
-    top = minTop - containerOffset.top + this.$container.scrollTop() - 1;
-    left = minLeft - containerOffset.left + this.$container.scrollLeft() - 1;
+    top = minTop - containerOffset.top + this.rootElement.scrollTop() - 1;
+    left = minLeft - containerOffset.left + this.rootElement.scrollLeft() - 1;
 
     if (parseInt($from.css('border-top-width')) > 0) {
       top += 1;

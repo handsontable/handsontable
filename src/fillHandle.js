@@ -5,8 +5,8 @@
  */
 Handsontable.FillHandle = function (instance) {
   this.instance = instance;
-  this.$container = instance.container;
-  var container = this.$container[0];
+  this.rootElement = instance.rootElement;
+  var container = this.rootElement[0];
 
   this.handle = document.createElement("div");
   this.handle.className = "htFillHandle";
@@ -18,7 +18,7 @@ Handsontable.FillHandle = function (instance) {
     that.isDragged = 1;
   });
 
-  this.$container.find('table').on('selectstart', function (event) {
+  this.rootElement.find('table').on('selectstart', function (event) {
     //https://github.com/warpech/jquery-handsontable/issues/160
     //selectstart is IE only event. Prevent text from being selected when performing drag down in IE8
     event.preventDefault();
@@ -43,8 +43,8 @@ Handsontable.FillHandle.prototype = {
     tdOffset = $td.offset();
     containerOffset = this.$container.offset();
 
-    top = tdOffset.top - containerOffset.top + this.$container.scrollTop() - 1;
-    left = tdOffset.left - containerOffset.left + this.$container.scrollLeft() - 1;
+    top = tdOffset.top - containerOffset.top + this.rootElement.scrollTop() - 1;
+    left = tdOffset.left - containerOffset.left + this.rootElement.scrollLeft() - 1;
     height = $td.outerHeight();
     width = $td.outerWidth();
 

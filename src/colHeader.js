@@ -6,7 +6,7 @@
 Handsontable.ColHeader = function (instance, labels) {
   var that = this;
   this.className = 'htColHeader';
-  instance.blockedRows.main.on('mousedown', 'th.htColHeader', function () {
+  instance.rootElement.on('mousedown', 'th.htColHeader', function () {
     instance.deselectCell();
     var $th = $(this);
     $th.addClass('active');

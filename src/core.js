@@ -121,7 +121,7 @@ Handsontable.Core = function (rootElement, settings) {
     },
 
     colToProp: function (col) {
-      if (typeof priv.colToProp[col] !== 'undefined') {
+      if (priv.colToProp && typeof priv.colToProp[col] !== 'undefined') {
         return priv.colToProp[col];
       }
       else {
@@ -174,9 +174,9 @@ Handsontable.Core = function (rootElement, settings) {
       if (priv.dataType === 'object' || priv.settings.columns) {
         throw new Error("Cannot create new column. When data source in an object, you can only have as much columns as defined in first data row, data schema or in the 'columns' setting");
       }
-      var r = 0;
-      if (!coords || coords.col >= self.colCount) {
-        for (; r < self.rowCount; r++) {
+      var r = 0, rlen = self.countRows();
+      if (!coords || coords.col >= self.countCols()) {
+        for (; r < rlen; r++) {
           if (typeof priv.settings.data[r] === 'undefined') {
             priv.settings.data[r] = [];
           }
@@ -184,7 +184,7 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
       else {
-        for (; r < self.rowCount; r++) {
+        for (; r < rlen; r++) {
           priv.settings.data[r].splice(coords.col, 0, '');
         }
       }
@@ -406,26 +406,6 @@ Handsontable.Core = function (rootElement, settings) {
 
       var $tbody = $(priv.tableBody);
 
-      //fix changes that may have come from loadData
-      var dlen = priv.settings.data.length;
-      while (self.rowCount < dlen) {
-        self.view.createRow();
-        recreateRows = true;
-      }
-      while (self.rowCount > dlen) {
-        self.view.removeRow();
-        recreateRows = true;
-      }
-      while (self.colCount < self.countCols()) {
-        self.view.createCol();
-        self.view.renderCol(self.colCount - 1);
-        recreateRows = true;
-      }
-      while (self.colCount > self.countCols()) {
-        self.view.removeCol();
-        recreateRows = true;
-      }
-
       //count currently empty rows
       rows : for (r = self.countRows() - 1; r >= 0; r--) {
         for (c = 0, clen = self.colCount; c < clen; c++) {
@@ -464,19 +444,6 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
 
-      //should I add empty rows to meet minHeight
-      //WARNING! jQuery returns 0 as height() for container which is not :visible. this will lead to a infinite loop
-      if (priv.settings.minHeight) {
-        if ($tbody.height() > 0 && $tbody.height() <= priv.settings.minHeight) {
-          while ($tbody.height() <= priv.settings.minHeight && self.countRows() < priv.settings.maxRows) {
-            datamap.createRow();
-            self.view.createRow();
-            self.view.renderRow(self.countRows() - 1);
-            recreateRows = true;
-          }
-        }
-      }
-
       //count currently empty cols
       if (self.countRows() - 1 > 0) {
         cols : for (c = self.countCols() - 1; c >= 0; c--) {
@@ -511,21 +478,6 @@ Handsontable.Core = function (rootElement, settings) {
           self.view.createCol();
           self.view.renderCol(self.colCount - 1);
           recreateCols = true;
-        }
-      }
-
-      //should I add empty rows to meet minWidth
-      //WARNING! jQuery returns 0 as width() for container which is not :visible. this will lead to a infinite loop
-      if (priv.settings.minWidth) {
-        if ($tbody.width() > 0 && $tbody.width() <= priv.settings.minWidth) {
-          while ($tbody.width() <= priv.settings.minWidth && self.countCols() < priv.settings.maxCols) {
-            if (!priv.settings.columns) {
-              datamap.createCol();
-            }
-            self.view.createCol();
-            self.view.renderCol(self.colCount - 1);
-            recreateCols = true;
-          }
         }
       }
 
@@ -657,11 +609,7 @@ Handsontable.Core = function (rootElement, settings) {
      * Clears all cells in the grid
      */
     clear: function () {
-      var tds = self.view.getAllCells();
-      for (var i = 0, ilen = tds.length; i < ilen; i++) {
-        $(tds[i]).empty();
-        self.minWidthFix(tds[i]);
-      }
+
     },
 
     /**
@@ -1347,7 +1295,7 @@ Handsontable.Core = function (rootElement, settings) {
       priv.editProxyHolder.on('cut', onCut);
       priv.editProxyHolder.on('paste', onPaste);
       priv.editProxyHolder.on('keydown', onKeyDown);
-      self.container.append(priv.editProxyHolder);
+      self.rootElement.append(priv.editProxyHolder);
     },
 
     /**
@@ -1380,19 +1328,19 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   this.init = function () {
+    editproxy.init();
     this.view = new Handsontable.TableView(this);
 
     self.rowCount = 0;
+
+    bindEvents();
+    this.updateSettings(settings);
 
     highlight.init();
     priv.currentBorder = new Handsontable.Border(self, {
       className: 'current',
       bg: true
     });
-    editproxy.init();
-
-    bindEvents();
-    this.updateSettings(settings);
 
     Handsontable.PluginHooks.run(self, 'afterInit');
   };
@@ -1709,15 +1657,6 @@ Handsontable.Core = function (rootElement, settings) {
       throw new Error("'cols' setting is no longer supported. do you mean startCols, minCols or maxCols?");
     }
 
-    if (typeof settings.fillHandle !== "undefined") {
-      if (autofill.handle && settings.fillHandle === false) {
-        autofill.disable();
-      }
-      else if (!autofill.handle && settings.fillHandle !== false) {
-        autofill.init();
-      }
-    }
-
     if (typeof settings.undo !== "undefined") {
       if (priv.undoRedo && settings.undo === false) {
         priv.undoRedo = null;
@@ -1773,6 +1712,15 @@ Handsontable.Core = function (rootElement, settings) {
     }
     else if (settings.columns !== void 0) {
       datamap.createMap();
+    }
+
+    if (typeof settings.fillHandle !== "undefined") {
+      if (autofill.handle && settings.fillHandle === false) {
+        autofill.disable();
+      }
+      else if (!autofill.handle && settings.fillHandle !== false) {
+        autofill.init();
+      }
     }
 
     if (typeof settings.colHeaders !== "undefined") {
