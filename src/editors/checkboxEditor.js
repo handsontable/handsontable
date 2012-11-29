@@ -1,5 +1,5 @@
-function toggleCheckboxCell(instance, row, prop, cellProperties) {
-  if (Handsontable.helper.stringify(instance.getDataAtCell(row, prop)) === Handsontable.helper.stringify(cellProperties.checkedTemplate)) {
+function toggleCheckboxCell(instance, row, col, prop, cellProperties) {
+  if (Handsontable.helper.stringify(instance.getDataAtCell(row, col)) === Handsontable.helper.stringify(cellProperties.checkedTemplate)) {
     instance.setDataAtCell(row, prop, cellProperties.uncheckedTemplate);
   }
   else {
@@ -31,13 +31,13 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardPr
   keyboardProxy.on("keydown.editor", function (event) {
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     if (!ctrlDown && Handsontable.helper.isPrintableChar(event.keyCode)) {
-      toggleCheckboxCell(instance, row, prop, cellProperties);
+      toggleCheckboxCell(instance, row, col, prop, cellProperties);
       event.stopPropagation();
     }
   });
 
   function onDblClick() {
-    toggleCheckboxCell(instance, row, prop, cellProperties);
+    toggleCheckboxCell(instance, row, col, prop, cellProperties);
   }
 
   var $td = $(td);
