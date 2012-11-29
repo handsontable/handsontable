@@ -71,7 +71,7 @@ var texteditor = {
     texteditor.isCellEdited = true;
 
     if (useOriginalValue) {
-      var original = instance.getDataAtCell(row, prop);
+      var original = instance.getDataAtCell(row, col);
       original = Handsontable.helper.stringify(original) + (suffix || '');
       keyboardProxy.val(original);
       texteditor.setCaretPosition(keyboardProxy, original.length);
@@ -175,7 +175,7 @@ var texteditor = {
  */
 Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
   texteditor.isCellEdited = false;
-  texteditor.originalValue = instance.getDataAtCell(row, prop);
+  texteditor.originalValue = instance.getDataAtCell(row, col);
   texteditor.triggerOnlyByDestroyer = cellProperties.strict;
 
   var $current = $(td);
