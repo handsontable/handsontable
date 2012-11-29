@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Tue Nov 27 2012 18:18:19 GMT+0100 (Central European Standard Time)
+ * Date: Thu Nov 29 2012 12:59:53 GMT+0100 (Central European Standard Time)
 */
 
 function Walkontable(settings) {
@@ -15,14 +15,7 @@ function Walkontable(settings) {
     offsetRow: 0,
     offsetColumn: 0,
     rowHeaders: false,
-    columnHeaders: function (column) {
-      if (originalHeaders) {
-        return originalHeaders[column];
-      }
-      else {
-        throw new Error('You must either provide columnHeaders setting or define THEAD THs in table before initialization');
-      }
-    },
+    columnHeaders: false,
     totalRows: function () {
       return that.settings.data.length;
     },
@@ -68,11 +61,19 @@ function Walkontable(settings) {
   this.wtWheel = new WalkontableWheel(this);
   this.wtEvent = new WalkontableEvent(this);
   this.wtDom = new WalkontableDom();
-  if (this.wtTable.THEAD.childNodes[0].childNodes.length) {
+
+  //find original headers
+  if (this.wtTable.THEAD.childNodes.length && this.wtTable.THEAD.childNodes[0].childNodes.length) {
     for (var c = 0, clen = this.wtTable.THEAD.childNodes[0].childNodes.length; c < clen; c++) {
       originalHeaders.push(this.wtTable.THEAD.childNodes[0].childNodes[c].innerHTML);
     }
+    if (!this.hasSetting('columnHeaders')) {
+      this.settings.columnHeaders = function (column) {
+        return originalHeaders[column];
+      }
+    }
   }
+
   this.drawn = false;
 
   this.currentSelection = new WalkontableSelection(function (coords) {
@@ -544,8 +545,23 @@ function WalkontableTable(instance) {
   this.TABLE = this.instance.getSetting('table');
   this.wtDom = new WalkontableDom();
   this.wtDom.removeTextNodes(this.TABLE);
-  this.THEAD = this.TABLE.childNodes[0];
-  this.TBODY = this.TABLE.childNodes[1];
+  this.TBODY = this.TABLE.getElementsByTagName('TBODY')[0];
+  if (!this.TBODY) {
+    this.TBODY = document.createElement('TBODY');
+    this.TABLE.appendChild(this.TBODY);
+  }
+  this.THEAD = this.TABLE.getElementsByTagName('THEAD')[0];
+  if (!this.THEAD) {
+    this.THEAD = document.createElement('THEAD');
+    this.TABLE.insertBefore(this.THEAD, this.TBODY);
+  }
+
+  if (this.instance.hasSetting('columnHeaders')) {
+    if (!this.THEAD.childNodes.length) {
+      var TR = document.createElement('TR');
+      this.THEAD.appendChild(TR);
+    }
+  }
 
   this.availableTRs = 0;
 }
@@ -553,20 +569,32 @@ function WalkontableTable(instance) {
 WalkontableTable.prototype.adjustAvailableNodes = function () {
   var displayRows = this.instance.getSetting('displayRows')
     , displayColumns = this.instance.getSetting('displayColumns')
-    , displayTds = displayColumns;
+    , displayTds = displayColumns
+    , TR
+    , TH
+    , TD;
 
   if (this.instance.hasSetting('rowHeaders')) {
     displayTds--;
   }
 
+  if (this.instance.hasSetting('columnHeaders')) {
+    var availableTHs = this.THEAD.childNodes[0].childNodes.length;
+    while (availableTHs < displayColumns) {
+      TH = document.createElement('TH');
+      this.THEAD.firstChild.appendChild(TH);
+      availableTHs++;
+    }
+  }
+
   while (this.availableTRs < displayRows) {
-    var TR = document.createElement('TR');
+    TR = document.createElement('TR');
     if (this.instance.hasSetting('rowHeaders')) {
-      var TH = document.createElement('TH');
+      TH = document.createElement('TH');
       TR.appendChild(TH);
     }
     for (var c = 0; c < displayTds; c++) {
-      var TD = document.createElement('TD');
+      TD = document.createElement('TD');
       TR.appendChild(TD);
     }
     this.TBODY.appendChild(TR);
@@ -601,12 +629,16 @@ WalkontableTable.prototype.draw = function () {
   if (this.instance.hasSetting('rowHeaders')) {
     displayTds--;
     offsetTd++;
-    this.THEAD.childNodes[0].childNodes[0].innerHTML = '';
+    if (this.instance.hasSetting('columnHeaders')) {
+      this.THEAD.childNodes[0].childNodes[0].innerHTML = '';
+    }
   }
 
   //draw THEAD
-  for (c = 0; c < displayTds; c++) {
-    this.THEAD.childNodes[0].childNodes[offsetTd + c].innerHTML = this.instance.getSetting('columnHeaders', offsetColumn + c);
+  if (this.instance.hasSetting('columnHeaders')) {
+    for (c = 0; c < displayTds; c++) {
+      this.THEAD.childNodes[0].childNodes[offsetTd + c].innerHTML = this.instance.getSetting('columnHeaders', offsetColumn + c);
+    }
   }
 
   //draw TBODY
@@ -673,7 +705,7 @@ function WalkontableWheel(instance) {
   });
 }
 /**
- * Dragdealer JS v0.9.5
+ * Dragdealer JS v0.9.5 - patched by Walkontable at line 66
  * http://code.ovidiu.ch/dragdealer-js
  *
  * Copyright (c) 2010, Ovidiu Chereches
@@ -737,7 +769,7 @@ var Position =
 {
 	get: function(obj)
 	{
-		var curleft = curtop = 0;
+		var curtop = 0, curleft = 0; //Walkontable patch. Original (var curleft = curtop = 0;) created curtop in global scope
 		if(obj.offsetParent)
 		{
 			do
