@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Sun Dec 02 2012 22:51:34 GMT+0100 (Central European Standard Time)
+ * Date: Sun Dec 02 2012 23:06:09 GMT+0100 (Central European Standard Time)
 */
 
 function Walkontable(settings) {
@@ -308,7 +308,7 @@ WalkontableScroll.prototype.refreshScrollbars = function () {
 
 WalkontableScroll.prototype.scrollVertical = function (delta) {
   var offsetRow = this.instance.getSetting('offsetRow')
-    , max = this.instance.getSetting('totalRows') - 1 - this.instance.getSetting('displayRows');
+    , max = this.instance.getSetting('totalRows') - this.instance.getSetting('displayRows');
   if (max < 0) {
     max = 0;
   }

@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Dec 02 2012 22:57:00 GMT+0100 (Central European Standard Time)
+ * Date: Sun Dec 02 2012 23:11:59 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -4120,7 +4120,7 @@ function handler(event) {
 /**
  * walkontable 0.1
  * 
- * Date: Sun Dec 02 2012 22:51:34 GMT+0100 (Central European Standard Time)
+ * Date: Sun Dec 02 2012 23:06:09 GMT+0100 (Central European Standard Time)
 */
 
 function Walkontable(settings) {
@@ -4427,7 +4427,7 @@ WalkontableScroll.prototype.refreshScrollbars = function () {
 
 WalkontableScroll.prototype.scrollVertical = function (delta) {
   var offsetRow = this.instance.getSetting('offsetRow')
-    , max = this.instance.getSetting('totalRows') - 1 - this.instance.getSetting('displayRows');
+    , max = this.instance.getSetting('totalRows') - this.instance.getSetting('displayRows');
   if (max < 0) {
     max = 0;
   }
