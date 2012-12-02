@@ -17,9 +17,9 @@ Handsontable.TableView = function (instance) {
     totalColumns: instance.countCols,
     offsetRow: 0,
     offsetColumn: 0,
-    displayRows: 10,
-    displayColumns: 5,
-    rowHeaders: function (row) {
+    displayRows: 2,
+    displayColumns: 3,
+    _rowHeaders: function (row) {
       return row + 1
     },
     columnHeaders: function (column) {
@@ -29,7 +29,7 @@ Handsontable.TableView = function (instance) {
       current: {
         border: {
           width: 2,
-          color: 'blue',
+          color: '#5292F7',
           style: 'solid'
         }
       }
@@ -45,9 +45,6 @@ Handsontable.TableView = function (instance) {
       else {
         instance.selection.setRangeStart(coordsObj);
       }
-
-      that.wt.selections.current.clear();
-      that.wt.selections.current.add(coords, TD);
     }
   });
 
@@ -152,5 +149,5 @@ Handsontable.TableView.prototype.getAllCells = function () {
  * @param coords
  */
 Handsontable.TableView.prototype.scrollViewport = function (coords) {
-
+  this.wt.scrollViewport([coords.row, coords.col]).draw();
 };
