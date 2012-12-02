@@ -3,11 +3,15 @@
  * @param {Object} instance
  */
 Handsontable.TableView = function (instance) {
+  var that = this;
+
+  this.instance = instance;
   instance.rootElement.addClass('handsontable');
-  instance.rootElement[0].innerHTML = '<table><thead></thead><tbody></tbody></table>';
+  var $table = $('<table><thead></thead><tbody></tbody></table>');
+  instance.rootElement.prepend($table);
 
   this.wt = new Walkontable({
-    table: instance.rootElement[0].firstChild,
+    table: $table[0],
     data: instance.getDataAtCell,
     totalRows: instance.countRows,
     totalColumns: instance.countCols,
@@ -20,6 +24,30 @@ Handsontable.TableView = function (instance) {
     },
     columnHeaders: function (column) {
       return column + 1
+    },
+    selections: {
+      current: {
+        border: {
+          width: 2,
+          color: 'blue',
+          style: 'solid'
+        }
+      }
+    },
+    onCellMouseDown: function (event, coords, TD) {
+      var coordsObj = {row: coords[0], col: coords[1]};
+      if (event.button === 2 && instance.selection.inInSelection(coordsObj)) { //right mouse button
+        //do nothing
+      }
+      else if (event.shiftKey) {
+        instance.selection.setRangeEnd(coordsObj);
+      }
+      else {
+        instance.selection.setRangeStart(coordsObj);
+      }
+
+      that.wt.selections.current.clear();
+      that.wt.selections.current.add(coords, TD);
     }
   });
 
@@ -109,7 +137,7 @@ Handsontable.TableView.prototype.getCellCoords = function (td) {
  * Returns td object given coordinates
  */
 Handsontable.TableView.prototype.getCellAtCoords = function (coords) {
-
+  return this.wt.wtTable.getCell([coords.row, coords.col]);
 };
 
 /**

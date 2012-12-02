@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Sat Dec 01 2012 17:29:18 GMT+0100 (Central European Standard Time)
+ * Date: Sun Dec 02 2012 12:42:34 GMT+0100 (Central European Standard Time)
 */
 
 function Walkontable(settings) {
@@ -690,8 +690,27 @@ WalkontableTable.prototype.draw = function () {
       else {
         TD.innerHTML = '';
       }
+      TD.className = '';
+      TD.style.outline = ''; //temporary code to remove outline
     }
   }
+
+  //redraw selections
+  if (this.instance.selections) {
+    for (r in this.instance.selections) {
+      if (this.instance.selections.hasOwnProperty(r)) {
+        for (c in this.instance.selections[r].selected) {
+          if (this.instance.selections[r].selected.hasOwnProperty(c)) {
+            TD = this.getCell(this.instance.selections[r].selected[c]);
+            if (TD) {
+              this.instance.selections[r].onAdd(this.instance.selections[r].selected[c], TD);
+            }
+          }
+        }
+      }
+    }
+  }
+
   return this;
 };
 
@@ -699,20 +718,22 @@ WalkontableTable.prototype.getCell = function (coords) {
   var offsetRow = this.instance.getSetting('offsetRow')
     , offsetColumn = this.instance.getSetting('offsetColumn')
     , displayRows = this.instance.getSetting('displayRows')
-    , displayColumns = this.instance.getSetting('displayColumns');
+    , displayColumns = this.instance.getSetting('displayColumns')
+    , rowHeaderOffset = this.instance.hasSetting('rowHeaders') ? 1 : 0;
 
   if (coords[0] >= offsetRow && coords[0] <= offsetRow + displayRows) {
-    if (coords[1] >= offsetColumn && coords[1] <= offsetColumn + displayColumns) {
-      return this.TBODY.childNodes[coords[0] - offsetRow].childNodes[coords[1] - offsetColumn];
+    if (coords[1] >= offsetColumn && coords[1] < offsetColumn + displayColumns - rowHeaderOffset) {
+      return this.TBODY.childNodes[coords[0] - offsetRow].childNodes[coords[1] - offsetColumn + rowHeaderOffset];
     }
   }
   return null;
 };
 
 WalkontableTable.prototype.getCoords = function (TD) {
+  var rowHeaderOffset = this.instance.hasSetting('rowHeaders') ? 1 : 0;
   return [
     this.wtDom.prevSiblings(TD.parentNode).length + this.instance.getSetting('offsetRow'),
-    TD.cellIndex + this.instance.getSetting('offsetColumn')
+    TD.cellIndex + this.instance.getSetting('offsetColumn') - rowHeaderOffset
   ];
 };
 function WalkontableWheel(instance) {

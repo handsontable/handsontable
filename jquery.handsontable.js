@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Dec 01 2012 17:43:29 GMT+0100 (Central European Standard Time)
+ * Date: Sun Dec 02 2012 12:43:26 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -603,7 +603,7 @@ Handsontable.Core = function (rootElement, settings) {
         current.col = start.col;
         clen = input[r] ? input[r].length : 0;
         for (c = 0; c < clen; c++) {
-          if ((end && current.col > end.col) || (!priv.settings.minSpareCols && current.col > self.colCount - 1) || (current.col >= priv.settings.maxCols)) {
+          if ((end && current.col > end.col) || (!priv.settings.minSpareCols && current.col > self.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
             break;
           }
           td = self.view.getCellAtCoords(current);
@@ -1315,6 +1315,7 @@ Handsontable.Core = function (rootElement, settings) {
       priv.editProxyHolder.on('paste', onPaste);
       priv.editProxyHolder.on('keydown', onKeyDown);
       self.rootElement.append(priv.editProxyHolder);
+      console.log("rpoxy is", self.rootElement, priv.editProxyHolder);
     },
 
     /**
@@ -1490,7 +1491,7 @@ Handsontable.Core = function (rootElement, settings) {
         value = changes[i][3];
 
         if (priv.settings.minSpareRows) {
-          while (row > self.rowCount - 1) {
+          while (row > self.countRows() - 1) {
             datamap.createRow();
             self.view.createRow();
             self.view.renderRow(self.rowCount - 1);
@@ -1498,7 +1499,7 @@ Handsontable.Core = function (rootElement, settings) {
           }
         }
         if (priv.dataType === 'array' && priv.settings.minSpareCols) {
-          while (col > self.colCount - 1) {
+          while (col > self.countCols() - 1) {
             datamap.createCol();
             self.view.createCol();
             self.view.renderCol(self.colCount - 1);
@@ -2181,11 +2182,15 @@ $.fn.handsontable = function (action) {
  * @param {Object} instance
  */
 Handsontable.TableView = function (instance) {
+  var that = this;
+
+  this.instance = instance;
   instance.rootElement.addClass('handsontable');
-  instance.rootElement[0].innerHTML = '<table><thead></thead><tbody></tbody></table>';
+  var $table = $('<table><thead></thead><tbody></tbody></table>');
+  instance.rootElement.prepend($table);
 
   this.wt = new Walkontable({
-    table: instance.rootElement[0].firstChild,
+    table: $table[0],
     data: instance.getDataAtCell,
     totalRows: instance.countRows,
     totalColumns: instance.countCols,
@@ -2198,6 +2203,30 @@ Handsontable.TableView = function (instance) {
     },
     columnHeaders: function (column) {
       return column + 1
+    },
+    selections: {
+      current: {
+        border: {
+          width: 2,
+          color: 'blue',
+          style: 'solid'
+        }
+      }
+    },
+    onCellMouseDown: function (event, coords, TD) {
+      var coordsObj = {row: coords[0], col: coords[1]};
+      if (event.button === 2 && instance.selection.inInSelection(coordsObj)) { //right mouse button
+        //do nothing
+      }
+      else if (event.shiftKey) {
+        instance.selection.setRangeEnd(coordsObj);
+      }
+      else {
+        instance.selection.setRangeStart(coordsObj);
+      }
+
+      that.wt.selections.current.clear();
+      that.wt.selections.current.add(coords, TD);
     }
   });
 
@@ -2287,7 +2316,7 @@ Handsontable.TableView.prototype.getCellCoords = function (td) {
  * Returns td object given coordinates
  */
 Handsontable.TableView.prototype.getCellAtCoords = function (coords) {
-
+  return this.wt.wtTable.getCell([coords.row, coords.col]);
 };
 
 /**
@@ -2358,31 +2387,6 @@ Handsontable.helper.stringify = function (value) {
  * @param {String} [options.className] CSS class for border elements
  */
 Handsontable.Border = function (instance, options) {
-  this.instance = instance;
-  this.rootElement = instance.rootElement;
-  var container = this.rootElement[0];
-
-  if (options.bg) {
-    this.bg = document.createElement("div");
-    this.bg.className = 'htBorderBg ' + options.className;
-    container.insertBefore(this.bg, container.firstChild);
-  }
-
-  this.main = document.createElement("div");
-  this.main.style.position = 'absolute';
-  this.main.style.top = 0;
-  this.main.style.left = 0;
-  this.main.innerHTML = (new Array(5)).join('<div class="htBorder ' + options.className + '"></div>');
-  this.disappear();
-  container.appendChild(this.main);
-
-  var nodes = this.main.childNodes;
-  this.top = nodes[0];
-  this.left = nodes[1];
-  this.bottom = nodes[2];
-  this.right = nodes[3];
-
-  this.borderWidth = $(this.left).width();
 };
 
 Handsontable.Border.prototype = {
@@ -2391,74 +2395,12 @@ Handsontable.Border.prototype = {
    * @param {Object[]} coordsArr
    */
   appear: function (coordsArr) {
-    var $from, $to, fromOffset, toOffset, containerOffset, top, minTop, left, minLeft, height, width;
-    if (this.disabled) {
-      return;
-    }
-
-    this.corners = this.instance.getCornerCoords(coordsArr);
-
-    $from = $(this.instance.getCell(this.corners.TL.row, this.corners.TL.col));
-    $to = (coordsArr.length > 1) ? $(this.instance.getCell(this.corners.BR.row, this.corners.BR.col)) : $from;
-    fromOffset = $from.offset();
-    toOffset = (coordsArr.length > 1) ? $to.offset() : fromOffset;
-    containerOffset = this.$container.offset();
-
-    minTop = fromOffset.top;
-    height = toOffset.top + $to.outerHeight() - minTop;
-    minLeft = fromOffset.left;
-    width = toOffset.left + $to.outerWidth() - minLeft;
-
-    top = minTop - containerOffset.top + this.rootElement.scrollTop() - 1;
-    left = minLeft - containerOffset.left + this.rootElement.scrollLeft() - 1;
-
-    if (parseInt($from.css('border-top-width')) > 0) {
-      top += 1;
-      height -= 1;
-    }
-    if (parseInt($from.css('border-left-width')) > 0) {
-      left += 1;
-      width -= 1;
-    }
-
-    if (this.bg) {
-      this.bg.style.top = top + 'px';
-      this.bg.style.left = left + 'px';
-      this.bg.style.width = width + 'px';
-      this.bg.style.height = height + 'px';
-      this.bg.style.display = 'block';
-    }
-
-    this.top.style.top = top + 'px';
-    this.top.style.left = left + 'px';
-    this.top.style.width = width + 'px';
-
-    this.left.style.top = top + 'px';
-    this.left.style.left = left + 'px';
-    this.left.style.height = height + 'px';
-
-    var delta = Math.floor(this.borderWidth / 2);
-
-    this.bottom.style.top = top + height - delta + 'px';
-    this.bottom.style.left = left + 'px';
-    this.bottom.style.width = width + 'px';
-
-    this.right.style.top = top + 'px';
-    this.right.style.left = left + width - delta + 'px';
-    this.right.style.height = height + 1 + 'px';
-
-    this.main.style.display = 'block';
   },
 
   /**
    * Hide border
    */
   disappear: function () {
-    this.main.style.display = 'none';
-    if (this.bg) {
-      this.bg.style.display = 'none';
-    }
-    this.corners = null;
   }
 };
 /**
@@ -3115,7 +3057,7 @@ var texteditor = {
       overflow: 'hidden'
     });
 
-    instance.container.find('.htBorder.current').off('.editor');
+    instance.rootElement.find('.htBorder.current').off('.editor');
     instance.rootElement.triggerHandler('finishediting.handsontable');
   }
 };
@@ -3137,9 +3079,9 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
 
   var $current = $(td);
   var currentOffset = $current.offset();
-  var containerOffset = instance.container.offset();
-  var scrollTop = instance.container.scrollTop();
-  var scrollLeft = instance.container.scrollLeft();
+  var containerOffset = instance.rootElement.offset();
+  var scrollTop = instance.rootElement.scrollTop();
+  var scrollLeft = instance.rootElement.scrollLeft();
   var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
   var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
 
@@ -3306,7 +3248,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
   }
 
   $current.on('dblclick.editor', onDblClick);
-  instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
+  instance.rootElement.find('.htBorder.current').on('dblclick.editor', onDblClick);
 
   return function (isCancelled) {
     texteditor.triggerOnlyByDestroyer = false;
@@ -4180,7 +4122,7 @@ function handler(event) {
 /**
  * walkontable 0.1
  * 
- * Date: Sat Dec 01 2012 17:29:18 GMT+0100 (Central European Standard Time)
+ * Date: Sun Dec 02 2012 12:42:34 GMT+0100 (Central European Standard Time)
 */
 
 function Walkontable(settings) {
@@ -4869,8 +4811,27 @@ WalkontableTable.prototype.draw = function () {
       else {
         TD.innerHTML = '';
       }
+      TD.className = '';
+      TD.style.outline = ''; //temporary code to remove outline
     }
   }
+
+  //redraw selections
+  if (this.instance.selections) {
+    for (r in this.instance.selections) {
+      if (this.instance.selections.hasOwnProperty(r)) {
+        for (c in this.instance.selections[r].selected) {
+          if (this.instance.selections[r].selected.hasOwnProperty(c)) {
+            TD = this.getCell(this.instance.selections[r].selected[c]);
+            if (TD) {
+              this.instance.selections[r].onAdd(this.instance.selections[r].selected[c], TD);
+            }
+          }
+        }
+      }
+    }
+  }
+
   return this;
 };
 
@@ -4878,20 +4839,22 @@ WalkontableTable.prototype.getCell = function (coords) {
   var offsetRow = this.instance.getSetting('offsetRow')
     , offsetColumn = this.instance.getSetting('offsetColumn')
     , displayRows = this.instance.getSetting('displayRows')
-    , displayColumns = this.instance.getSetting('displayColumns');
+    , displayColumns = this.instance.getSetting('displayColumns')
+    , rowHeaderOffset = this.instance.hasSetting('rowHeaders') ? 1 : 0;
 
   if (coords[0] >= offsetRow && coords[0] <= offsetRow + displayRows) {
-    if (coords[1] >= offsetColumn && coords[1] <= offsetColumn + displayColumns) {
-      return this.TBODY.childNodes[coords[0] - offsetRow].childNodes[coords[1] - offsetColumn];
+    if (coords[1] >= offsetColumn && coords[1] < offsetColumn + displayColumns - rowHeaderOffset) {
+      return this.TBODY.childNodes[coords[0] - offsetRow].childNodes[coords[1] - offsetColumn + rowHeaderOffset];
     }
   }
   return null;
 };
 
 WalkontableTable.prototype.getCoords = function (TD) {
+  var rowHeaderOffset = this.instance.hasSetting('rowHeaders') ? 1 : 0;
   return [
     this.wtDom.prevSiblings(TD.parentNode).length + this.instance.getSetting('offsetRow'),
-    TD.cellIndex + this.instance.getSetting('offsetColumn')
+    TD.cellIndex + this.instance.getSetting('offsetColumn') - rowHeaderOffset
   ];
 };
 function WalkontableWheel(instance) {

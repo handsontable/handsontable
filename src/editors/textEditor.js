@@ -158,7 +158,7 @@ var texteditor = {
       overflow: 'hidden'
     });
 
-    instance.container.find('.htBorder.current').off('.editor');
+    instance.rootElement.find('.htBorder.current').off('.editor');
     instance.rootElement.triggerHandler('finishediting.handsontable');
   }
 };
@@ -180,9 +180,9 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
 
   var $current = $(td);
   var currentOffset = $current.offset();
-  var containerOffset = instance.container.offset();
-  var scrollTop = instance.container.scrollTop();
-  var scrollLeft = instance.container.scrollLeft();
+  var containerOffset = instance.rootElement.offset();
+  var scrollTop = instance.rootElement.scrollTop();
+  var scrollLeft = instance.rootElement.scrollLeft();
   var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
   var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
 
@@ -349,7 +349,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
   }
 
   $current.on('dblclick.editor', onDblClick);
-  instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
+  instance.rootElement.find('.htBorder.current').on('dblclick.editor', onDblClick);
 
   return function (isCancelled) {
     texteditor.triggerOnlyByDestroyer = false;

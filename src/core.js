@@ -584,7 +584,7 @@ Handsontable.Core = function (rootElement, settings) {
         current.col = start.col;
         clen = input[r] ? input[r].length : 0;
         for (c = 0; c < clen; c++) {
-          if ((end && current.col > end.col) || (!priv.settings.minSpareCols && current.col > self.colCount - 1) || (current.col >= priv.settings.maxCols)) {
+          if ((end && current.col > end.col) || (!priv.settings.minSpareCols && current.col > self.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
             break;
           }
           td = self.view.getCellAtCoords(current);
@@ -1296,6 +1296,7 @@ Handsontable.Core = function (rootElement, settings) {
       priv.editProxyHolder.on('paste', onPaste);
       priv.editProxyHolder.on('keydown', onKeyDown);
       self.rootElement.append(priv.editProxyHolder);
+      console.log("rpoxy is", self.rootElement, priv.editProxyHolder);
     },
 
     /**
@@ -1471,7 +1472,7 @@ Handsontable.Core = function (rootElement, settings) {
         value = changes[i][3];
 
         if (priv.settings.minSpareRows) {
-          while (row > self.rowCount - 1) {
+          while (row > self.countRows() - 1) {
             datamap.createRow();
             self.view.createRow();
             self.view.renderRow(self.rowCount - 1);
@@ -1479,7 +1480,7 @@ Handsontable.Core = function (rootElement, settings) {
           }
         }
         if (priv.dataType === 'array' && priv.settings.minSpareCols) {
-          while (col > self.colCount - 1) {
+          while (col > self.countCols() - 1) {
             datamap.createCol();
             self.view.createCol();
             self.view.renderCol(self.colCount - 1);
