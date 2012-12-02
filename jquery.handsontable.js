@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Dec 02 2012 12:43:26 GMT+0100 (Central European Standard Time)
+ * Date: Sun Dec 02 2012 13:36:25 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -4122,7 +4122,7 @@ function handler(event) {
 /**
  * walkontable 0.1
  * 
- * Date: Sun Dec 02 2012 12:42:34 GMT+0100 (Central European Standard Time)
+ * Date: Sun Dec 02 2012 13:34:57 GMT+0100 (Central European Standard Time)
 */
 
 function Walkontable(settings) {
@@ -4244,7 +4244,10 @@ Walkontable.prototype.update = function (settings, value) {
 };
 
 Walkontable.prototype.scrollVertical = function (delta) {
-  var max = this.getSetting('totalRows') - 1 - this.settings.displayRows;
+  var max = this.getSetting('totalRows') - 1 - this.getSetting('displayRows');
+  if (max < 0) {
+    max = 0;
+  }
   this.settings.offsetRow = this.settings.offsetRow + delta;
   if (this.settings.offsetRow < 0) {
     this.settings.offsetRow = 0;
@@ -4259,6 +4262,9 @@ Walkontable.prototype.scrollHorizontal = function (delta) {
   var max = this.getSetting('totalColumns') - this.settings.displayColumns;
   if (this.hasSetting('rowHeaders')) {
     max++;
+  }
+  if (max < 0) {
+    max = 0;
   }
   this.settings.offsetColumn = this.settings.offsetColumn + delta;
   if (this.settings.offsetColumn < 0) {
@@ -4867,7 +4873,7 @@ function WalkontableWheel(instance) {
       that.instance.scrollVertical(-deltaY).draw();
     }
     else if (deltaX) {
-
+      that.instance.scrollHorizontal(deltaX).draw();
     }
     event.preventDefault();
   });
