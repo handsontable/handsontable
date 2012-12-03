@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Dec 02 2012 23:11:59 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 03 2012 10:17:02 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2407,6 +2407,8 @@ Handsontable.Border.prototype = {
  * @param {Object} instance Handsontable instance
  */
 Handsontable.FillHandle = function (instance) {
+  return;
+
   this.instance = instance;
   this.rootElement = instance.rootElement;
   var container = this.rootElement[0];
@@ -2434,6 +2436,8 @@ Handsontable.FillHandle.prototype = {
    * @param {Object[]} coordsArr
    */
   appear: function (coordsArr) {
+    return;
+
     if (this.disabled) {
       return;
     }
@@ -2460,6 +2464,8 @@ Handsontable.FillHandle.prototype = {
    * Hide handle
    */
   disappear: function () {
+    return;
+
     this.handle.style.display = 'none';
   }
 };

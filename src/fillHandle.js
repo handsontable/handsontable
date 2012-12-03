@@ -4,6 +4,8 @@
  * @param {Object} instance Handsontable instance
  */
 Handsontable.FillHandle = function (instance) {
+  return;
+
   this.instance = instance;
   this.rootElement = instance.rootElement;
   var container = this.rootElement[0];
@@ -31,6 +33,8 @@ Handsontable.FillHandle.prototype = {
    * @param {Object[]} coordsArr
    */
   appear: function (coordsArr) {
+    return;
+
     if (this.disabled) {
       return;
     }
@@ -57,6 +61,8 @@ Handsontable.FillHandle.prototype = {
    * Hide handle
    */
   disappear: function () {
+    return;
+
     this.handle.style.display = 'none';
   }
 };
