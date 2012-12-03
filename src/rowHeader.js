@@ -6,7 +6,7 @@
 Handsontable.RowHeader = function (instance, labels) {
   var that = this;
   this.className = 'htRowHeader';
-  instance.blockedCols.main.on('mousedown', 'th.htRowHeader', function (event) {
+  /*instance.blockedCols.main.on('mousedown', 'th.htRowHeader', function (event) {
     if (!$(event.target).hasClass('btn') && !$(event.target).hasClass('btnContainer')) {
       instance.deselectCell();
       $(this).addClass('active');
@@ -18,6 +18,7 @@ Handsontable.RowHeader = function (instance, labels) {
   instance.rootElement.on('deselect.handsontable', function () {
     that.deselect();
   });
+   */
   this.labels = labels;
   this.instance = instance;
   this.instance.rowHeader = this;
