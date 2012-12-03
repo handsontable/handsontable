@@ -25,6 +25,9 @@ Handsontable.TableView = function (instance) {
     columnHeaders: function (column) {
       return column + 1
     },
+    cellRenderer: function (row, column, TD) {
+      that.applyCellTypeMethod('renderer', TD, {row: row, col: column}, instance.getDataAtCell(row, column));
+    },
     selections: {
       current: {
         border: {

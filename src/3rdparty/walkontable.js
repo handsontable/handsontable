@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Sun Dec 02 2012 23:06:09 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 03 2012 11:03:34 GMT+0100 (Central European Standard Time)
 */
 
 function Walkontable(settings) {
@@ -28,6 +28,17 @@ function Walkontable(settings) {
       else {
         return that.getSetting('totalColumns'); //display all columns by default
       }
+    },
+    cellRenderer: function (row, column, TD) {
+      var cellData = that.getSetting('data', row, column);
+      if (cellData !== void 0) {
+        TD.innerHTML = cellData;
+      }
+      else {
+        TD.innerHTML = '';
+      }
+      TD.className = '';
+      TD.style.outline = ''; //temporary code to remove outline
     },
     selections: null,
     onCellMouseDown: null
@@ -752,16 +763,7 @@ WalkontableTable.prototype.draw = function () {
       }
     }
     for (c = 0; c < displayTds; c++) {
-      TD = TR.childNodes[c + offsetTd];
-      cellData = this.instance.getSetting('data', offsetRow + r, offsetColumn + c);
-      if (cellData !== void 0) {
-        TD.innerHTML = cellData;
-      }
-      else {
-        TD.innerHTML = '';
-      }
-      TD.className = '';
-      TD.style.outline = ''; //temporary code to remove outline
+      this.instance.getSetting('cellRenderer', offsetRow + r, offsetColumn + c, TR.childNodes[c + offsetTd]);
     }
   }
 

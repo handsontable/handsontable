@@ -1297,7 +1297,6 @@ Handsontable.Core = function (rootElement, settings) {
       priv.editProxyHolder.on('paste', onPaste);
       priv.editProxyHolder.on('keydown', onKeyDown);
       self.rootElement.append(priv.editProxyHolder);
-      console.log("rpoxy is", self.rootElement, priv.editProxyHolder);
     },
 
     /**
@@ -1488,8 +1487,8 @@ Handsontable.Core = function (rootElement, settings) {
             refreshCols = true;
           }
         }
-        self.view.render(row, col, prop, value);
         datamap.set(row, prop, value);
+        self.view.render(row, col, prop, value);
       }
       if (refreshRows) {
         self.blockedCols.refresh();
