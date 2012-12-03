@@ -156,7 +156,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   }
 
   $(td).on('dblclick.editor', onDblClick);
-  instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
+  //instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick); //needs to be changed for firtual renderer
 
   var destroyer = function (isCancelled) {
     wasDestroyed = true;

@@ -1743,55 +1743,6 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
 
-    var blockedRowsCount = self.blockedRows.count();
-    var blockedColsCount = self.blockedCols.count();
-    if (blockedRowsCount && blockedColsCount && (typeof settings.rowHeaders !== "undefined" || typeof settings.colHeaders !== "undefined")) {
-      if (self.blockedCorner) {
-        self.blockedCorner.remove();
-        self.blockedCorner = null;
-      }
-
-      var position = self.table.position();
-      self.positionFix(position);
-
-      var div = document.createElement('div');
-      div.style.position = 'absolute';
-      div.style.top = position.top + 'px';
-      div.style.left = position.left + 'px';
-
-      var table = document.createElement('table');
-      table.cellPadding = 0;
-      table.cellSpacing = 0;
-      div.appendChild(table);
-
-      var thead = document.createElement('thead');
-      table.appendChild(thead);
-
-      var tr, th;
-      for (i = 0; i < blockedRowsCount; i++) {
-        tr = document.createElement('tr');
-        for (j = blockedColsCount - 1; j >= 0; j--) {
-          th = document.createElement('th');
-          th.className = self.blockedCols.headers[j].className;
-          th.innerHTML = self.blockedCols.headerText('&nbsp;');
-          self.minWidthFix(th);
-          tr.appendChild(th);
-        }
-        thead.appendChild(tr);
-      }
-      self.blockedCorner = $(div);
-      self.blockedCorner.on('click', function () {
-        selection.selectAll();
-      });
-      self.container.append(self.blockedCorner);
-    }
-    else {
-      if (self.blockedCorner) {
-        self.blockedCorner.remove();
-        self.blockedCorner = null;
-      }
-    }
-
     recreated = grid.keepEmptyRows();
     if (!recreated) {
       selection.refreshBorders(null, true);

@@ -42,11 +42,11 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardPr
 
   var $td = $(td);
   $td.on('dblclick.editor', onDblClick);
-  instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
+  //instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
 
   return function () {
     keyboardProxy.off(".editor");
     $td.off(".editor");
-    instance.container.find('.htBorder.current').off(".editor");
+    //instance.container.find('.htBorder.current').off(".editor");
   }
 };
