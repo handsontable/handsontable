@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Mon Dec 03 2012 11:03:34 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 03 2012 13:09:41 GMT+0100 (Central European Standard Time)
 */
 
 function Walkontable(settings) {
@@ -87,19 +87,23 @@ function Walkontable(settings) {
         this.selections[i] = (function (setting) {
           return new WalkontableSelection(function (coords) {
             var TD = that.wtTable.getCell(coords);
-            if (setting.className) {
-              that.wtDom.addClass(TD, setting.className);
-            }
-            if (setting.border) {
-              TD.style.outline = setting.border.width + 'px ' + setting.border.style + ' ' + setting.border.color;
+            if (TD) {
+              if (setting.className) {
+                that.wtDom.addClass(TD, setting.className);
+              }
+              if (setting.border) {
+                TD.style.outline = setting.border.width + 'px ' + setting.border.style + ' ' + setting.border.color;
+              }
             }
           }, function (coords) {
             var TD = that.wtTable.getCell(coords);
-            if (setting.className) {
-              that.wtDom.removeClass(TD, setting.className);
-            }
-            if (setting.border) {
-              TD.style.outline = '';
+            if (TD) {
+              if (setting.className) {
+                that.wtDom.removeClass(TD, setting.className);
+              }
+              if (setting.border) {
+                TD.style.outline = '';
+              }
             }
           });
         })(this.settings.selections[i])
@@ -443,8 +447,11 @@ WalkontableScrollbar.prototype.onScroll = function (delta) {
   if (this.instance.drawn) {
     var keys = this.type === 'vertical' ? ['offsetRow', 'totalRows', 'displayRows'] : ['offsetColumn', 'totalColumns', 'displayColumns'];
     var total = this.instance.getSetting(keys[1]);
+    if (this.type === 'horizontal') {
+      total += this.instance.hasSetting('rowHeaders') ? 1 : 0; //rowHeadersCount
+    }
     var display = this.instance.getSetting(keys[2]);
-    if(total > display) {
+    if (total > display) {
       var newOffset = Math.max(0, Math.round((total - display) * delta));
       if (newOffset !== this.instance.getSetting(keys[0])) { //is new offset different than old offset
         this.instance.update(keys[0], newOffset);
@@ -457,6 +464,9 @@ WalkontableScrollbar.prototype.onScroll = function (delta) {
 WalkontableScrollbar.prototype.refresh = function () {
   var ratio = 1
     , handleSize
+    , handlePosition
+    , offsetRow = this.instance.getSetting('offsetRow')
+    , offsetColumn = this.instance.getSetting('offsetColumn')
     , totalRows = this.instance.getSetting('totalRows')
     , totalColumns = this.instance.getSetting('totalColumns')
     , tableWidth = this.$table.outerWidth()
@@ -484,20 +494,37 @@ WalkontableScrollbar.prototype.refresh = function () {
       handleSize = 30;
     }
     this.handle.style.height = handleSize + 'px';
+
+    handlePosition = tableHeight * (offsetRow / totalRows);
+    if (handlePosition > tableHeight - handleSize) {
+      handlePosition = tableHeight - handleSize;
+    }
+    this.handle.style.top = handlePosition + 'px';
   }
   else if (this.type === 'horizontal') {
     this.slider.style.left = this.$table.position().left + 'px';
     this.slider.style.top = tableHeight - 1 + 'px'; //1 is sliders border-width
     this.slider.style.width = tableWidth - 2 + 'px'; //2 is sliders border-width
 
+    var rowHeadersCount = this.instance.hasSetting('rowHeaders') ? 1 : 0;
+
     if (totalColumns) {
-      ratio = displayColumns / totalColumns;
+      ratio = displayColumns / (totalColumns + rowHeadersCount);
     }
     handleSize = Math.round($(this.slider).width() * ratio);
     if (handleSize < 10) {
       handleSize = 30;
     }
     this.handle.style.width = handleSize + 'px';
+
+    handlePosition = tableWidth * (offsetColumn / (totalColumns + rowHeadersCount));
+    if (handlePosition > tableWidth - handleSize) {
+      handlePosition = tableWidth - handleSize;
+    }
+    else if (handlePosition < 0) {
+      handlePosition = 0;
+    }
+    this.handle.style.left = handlePosition + 'px';
   }
 
   this.dragdealer.setWrapperOffset();
