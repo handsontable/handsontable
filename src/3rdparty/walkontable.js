@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Mon Dec 03 2012 13:09:41 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 03 2012 13:30:35 GMT+0100 (Central European Standard Time)
 */
 
 function Walkontable(settings) {
@@ -733,6 +733,10 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
     }
     this.TBODY.appendChild(TR);
     this.availableTRs++;
+  }
+  while (this.availableTRs > displayRows) {
+    this.TBODY.removeChild(this.TBODY.lastChild);
+    this.availableTRs--;
   }
 
   var TRs = this.TABLE.getElementsByTagName('TR');

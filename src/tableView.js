@@ -10,6 +10,8 @@ Handsontable.TableView = function (instance) {
   var $table = $('<table><thead></thead><tbody></tbody></table>');
   instance.rootElement.prepend($table);
 
+  var settings = this.instance.getSettings();
+
   this.wt = new Walkontable({
     table: $table[0],
     data: instance.getDataAtCell,
@@ -17,14 +19,10 @@ Handsontable.TableView = function (instance) {
     totalColumns: instance.countCols,
     offsetRow: 0,
     offsetColumn: 0,
-    displayRows: 2,
-    displayColumns: 3,
-    _rowHeaders: function (row) {
-      return row + 1
-    },
-    columnHeaders: function (column) {
-      return column + 1
-    },
+    displayRows: 200,
+    displayColumns: 6,
+    rowHeaders: settings.rowHeaders ? instance.getRowHeader : null,
+    columnHeaders: settings.colHeaders ? instance.getColHeader : null,
     cellRenderer: function (row, column, TD) {
       that.applyCellTypeMethod('renderer', TD, {row: row, col: column}, instance.getDataAtCell(row, column));
     },
@@ -50,6 +48,7 @@ Handsontable.TableView = function (instance) {
       }
     }
   });
+  this.wt.draw();
 
   var interaction = {
     onMouseDown: function (event) {
