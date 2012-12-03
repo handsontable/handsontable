@@ -1488,7 +1488,7 @@ Handsontable.Core = function (rootElement, settings) {
           }
         }
         datamap.set(row, prop, value);
-        self.view.render(row, col, prop, value);
+        //self.view.render(row, col, prop, value);
       }
       if (refreshRows) {
         self.blockedCols.refresh();
@@ -1500,6 +1500,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (!recreated) {
         selection.refreshBorders();
       }
+      self.view.render();
       self.rootElement.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
       self.rootElement.triggerHandler("cellrender.handsontable", [changes, source || 'edit']);
     });
@@ -1553,26 +1554,27 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {String} source (Optional)
    */
   this.render = function (changes, source) {
-    if (typeof changes === "undefined") {
-      changes = [];
-      var r
-        , c
-        , p
-        , val
-        , rlen = self.countRows()
-        , clen = (priv.settings.columns && priv.settings.columns.length) || priv.settings.startCols;
-      for (r = 0; r < rlen; r++) {
-        for (c = 0; c < clen; c++) {
-          p = datamap.colToProp(c);
-          val = datamap.get(r, p);
-          changes.push([r, p, val, val]);
-        }
-      }
-    }
+    /*if (typeof changes === "undefined") {
+     changes = [];
+     var r
+     , c
+     , p
+     , val
+     , rlen = self.countRows()
+     , clen = (priv.settings.columns && priv.settings.columns.length) || priv.settings.startCols;
+     for (r = 0; r < rlen; r++) {
+     for (c = 0; c < clen; c++) {
+     p = datamap.colToProp(c);
+     val = datamap.get(r, p);
+     changes.push([r, p, val, val]);
+     }
+     }
+     }*/
     if (self.view) {
-      for (var i = 0, ilen = changes.length; i < ilen; i++) {
-        self.view.render(changes[i][0], datamap.propToCol(changes[i][1]), changes[i][1], changes[i][3]);
-      }
+      /*for (var i = 0, ilen = changes.length; i < ilen; i++) {
+       self.view.render(changes[i][0], datamap.propToCol(changes[i][1]), changes[i][1], changes[i][3]);
+       }*/
+      self.view.render();
     }
     selection.refreshBorderDimensions();
     priv.editProxy.triggerHandler('refreshBorder');
