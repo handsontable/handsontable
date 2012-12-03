@@ -52,7 +52,6 @@ module.exports = function (grunt) {
           'src/plugins/legacy.js',
 
           'src/3rdparty/jquery.autoresize.js',
-          'src/3rdparty/jquery.mousewheel.js',
           'src/3rdparty/sheetclip.js',
           'src/3rdparty/walkontable.js',
 

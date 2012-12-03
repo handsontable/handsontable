@@ -58,10 +58,6 @@ Handsontable.TableView = function (instance) {
 
     onMouseOver: function () {
 
-    },
-
-    onMouseWheel: function (event, delta, deltaX, deltaY) {
-
     }
   };
 };
