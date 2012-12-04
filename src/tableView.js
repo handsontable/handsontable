@@ -21,6 +21,8 @@ Handsontable.TableView = function (instance) {
     offsetColumn: 0,
     displayRows: null,
     displayColumns: null,
+    width: settings.width,
+    height: settings.height,
     rowHeaders: settings.rowHeaders ? instance.getRowHeader : null,
     columnHeaders: settings.colHeaders ? instance.getColHeader : null,
     cellRenderer: function (row, column, TD) {
