@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 05 2012 22:32:42 GMT+0100 (Central European Standard Time)
+ * Date: Wed Dec 05 2012 23:06:37 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2122,6 +2122,12 @@ Handsontable.TableView = function (instance) {
 
   var settings = this.instance.getSettings();
 
+  var isMouseDown = false;
+
+  $(document.body).on('mouseup', function () {
+    isMouseDown = false;
+  });
+
   this.wt = new Walkontable({
     table: $table[0],
     data: instance.getDataAtCell,
@@ -2157,6 +2163,7 @@ Handsontable.TableView = function (instance) {
       }
     },
     onCellMouseDown: function (event, coords, TD) {
+      isMouseDown = true;
       var coordsObj = {row: coords[0], col: coords[1]};
       if (event.button === 2 && instance.selection.inInSelection(coordsObj)) { //right mouse button
         //do nothing
@@ -2167,19 +2174,19 @@ Handsontable.TableView = function (instance) {
       else {
         instance.selection.setRangeStart(coordsObj);
       }
+    },
+    onCellMouseOver: function (event, coords, TD) {
+      var coordsObj = {row: coords[0], col: coords[1]};
+      if (isMouseDown) {
+        instance.selection.setRangeEnd(coordsObj);
+      }
+      else if (that.instance.autofill.handle && that.instance.autofill.handle.isDragged) {
+        that.instance.autofill.handle.isDragged++;
+        that.instance.autofill.showBorder(this);
+      }
     }
   });
   this.wt.draw();
-
-  var interaction = {
-    onMouseDown: function (event) {
-
-    },
-
-    onMouseOver: function () {
-
-    }
-  };
 };
 
 /**
@@ -3966,7 +3973,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Wed Dec 05 2012 22:30:48 GMT+0100 (Central European Standard Time)
+ * Date: Wed Dec 05 2012 23:05:41 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -4152,7 +4159,8 @@ function Walkontable(settings) {
     },
     columnWidth: null,
     selections: null,
-    onCellMouseDown: null
+    onCellMouseDown: null,
+    onCellMouseOver: null
   };
 
   //reference to settings
@@ -4389,6 +4397,13 @@ function WalkontableEvent(instance) {
     if (that.instance.settings.onCellMouseDown) {
       var TD = that.wtDom.closest(event.target, ['TD', 'TH']);
       that.instance.getSetting('onCellMouseDown', event, that.instance.wtTable.getCoords(TD), TD);
+    }
+  });
+
+  $(this.instance.settings.table).on('mouseover', function (event) {
+    if (that.instance.settings.onCellMouseOver) {
+      var TD = that.wtDom.closest(event.target, ['TD', 'TH']);
+      that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(TD), TD);
     }
   });
 }

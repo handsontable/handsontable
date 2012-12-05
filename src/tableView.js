@@ -12,6 +12,12 @@ Handsontable.TableView = function (instance) {
 
   var settings = this.instance.getSettings();
 
+  var isMouseDown = false;
+
+  $(document.body).on('mouseup', function () {
+    isMouseDown = false;
+  });
+
   this.wt = new Walkontable({
     table: $table[0],
     data: instance.getDataAtCell,
@@ -47,6 +53,7 @@ Handsontable.TableView = function (instance) {
       }
     },
     onCellMouseDown: function (event, coords, TD) {
+      isMouseDown = true;
       var coordsObj = {row: coords[0], col: coords[1]};
       if (event.button === 2 && instance.selection.inInSelection(coordsObj)) { //right mouse button
         //do nothing
@@ -57,19 +64,19 @@ Handsontable.TableView = function (instance) {
       else {
         instance.selection.setRangeStart(coordsObj);
       }
+    },
+    onCellMouseOver: function (event, coords, TD) {
+      var coordsObj = {row: coords[0], col: coords[1]};
+      if (isMouseDown) {
+        instance.selection.setRangeEnd(coordsObj);
+      }
+      else if (that.instance.autofill.handle && that.instance.autofill.handle.isDragged) {
+        that.instance.autofill.handle.isDragged++;
+        that.instance.autofill.showBorder(this);
+      }
     }
   });
   this.wt.draw();
-
-  var interaction = {
-    onMouseDown: function (event) {
-
-    },
-
-    onMouseOver: function () {
-
-    }
-  };
 };
 
 /**
