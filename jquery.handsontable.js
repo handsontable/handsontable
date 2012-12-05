@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 05 2012 14:47:13 GMT+0100 (Central European Standard Time)
+ * Date: Wed Dec 05 2012 15:48:08 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -904,7 +904,6 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
-      priv.currentBorder.disappear();
       if (autofill.handle) {
         autofill.hideHandle();
       }
@@ -960,9 +959,9 @@ Handsontable.Core = function (rootElement, settings) {
     init: function () {
       if (!autofill.handle) {
         autofill.handle = new Handsontable.FillHandle(self);
-        autofill.fillBorder = new Handsontable.Border(self, {
+        /*autofill.fillBorder = new Handsontable.Border(self, {
           className: 'htFillBorder'
-        });
+        });*/
 
         $(autofill.handle.handle).on('dblclick', autofill.selectAdjacent);
       }
@@ -1337,11 +1336,6 @@ Handsontable.Core = function (rootElement, settings) {
     bindEvents();
     this.updateSettings(settings);
     this.view = new Handsontable.TableView(this);
-
-    priv.currentBorder = new Handsontable.Border(self, {
-      className: 'current',
-      bg: true
-    });
 
     Handsontable.PluginHooks.run(self, 'afterInit');
   };
@@ -2321,31 +2315,6 @@ Handsontable.helper.stringify = function (value) {
   }
 };
 
-/**
- * Create DOM elements for selection border lines (top, right, bottom, left) and optionally background
- * @constructor
- * @param {Object} instance Handsontable instance
- * @param {Object} options Configurable options
- * @param {Boolean} [options.bg] Should include a background
- * @param {String} [options.className] CSS class for border elements
- */
-Handsontable.Border = function (instance, options) {
-};
-
-Handsontable.Border.prototype = {
-  /**
-   * Show border around one or many cells
-   * @param {Object[]} coordsArr
-   */
-  appear: function (coordsArr) {
-  },
-
-  /**
-   * Hide border
-   */
-  disappear: function () {
-  }
-};
 /**
  * Create DOM element for drag-down handle
  * @constructor

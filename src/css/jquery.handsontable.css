@@ -96,16 +96,6 @@
   background-color: #CCC;
 }
 
-/* border background */
-.handsontable .htBorderBg {
-  position: absolute;
-  font-size: 0;
-}
-
-.handsontable .htBorderBg.selection {
-  background-color: #EEF4FF;
-}
-
 /* border line */
 .handsontable .wtBorder {
   position: absolute;

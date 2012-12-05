@@ -29,7 +29,6 @@ module.exports = function (grunt) {
           'tmp/core.js',
           'src/tableView.js',
           'src/helpers.js',
-          'src/border.js',
           'src/fillHandle.js',
           'src/undoRedo.js',
           'src/blockedRows.js',

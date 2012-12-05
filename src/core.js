@@ -885,7 +885,6 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
-      priv.currentBorder.disappear();
       if (autofill.handle) {
         autofill.hideHandle();
       }
@@ -941,9 +940,9 @@ Handsontable.Core = function (rootElement, settings) {
     init: function () {
       if (!autofill.handle) {
         autofill.handle = new Handsontable.FillHandle(self);
-        autofill.fillBorder = new Handsontable.Border(self, {
+        /*autofill.fillBorder = new Handsontable.Border(self, {
           className: 'htFillBorder'
-        });
+        });*/
 
         $(autofill.handle.handle).on('dblclick', autofill.selectAdjacent);
       }
@@ -1318,11 +1317,6 @@ Handsontable.Core = function (rootElement, settings) {
     bindEvents();
     this.updateSettings(settings);
     this.view = new Handsontable.TableView(this);
-
-    priv.currentBorder = new Handsontable.Border(self, {
-      className: 'current',
-      bg: true
-    });
 
     Handsontable.PluginHooks.run(self, 'afterInit');
   };
