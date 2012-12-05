@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Dec 04 2012 11:53:01 GMT+0100 (Central European Standard Time)
+ * Date: Wed Dec 05 2012 11:07:36 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -936,10 +936,6 @@ Handsontable.Core = function (rootElement, settings) {
      * Create highlight border
      */
     init: function () {
-      priv.selectionBorder = new Handsontable.Border(self, {
-        className: 'selection',
-        bg: true
-      });
     },
 
     /**
@@ -950,10 +946,12 @@ Handsontable.Core = function (rootElement, settings) {
         return false;
       }
       if (selection.isMultiple()) {
-        priv.selectionBorder.appear([priv.selStart, selection.end()]);
+        self.view.wt.selections.area.clear();
+        self.view.wt.selections.area.add([priv.selStart.row, priv.selStart.col], self.view.wt.wtTable.getCell(priv.selStart.row, priv.selStart.col));
+        self.view.wt.selections.area.add([selection.end().row, selection.end().col], self.view.wt.wtTable.getCell(selection.end().row, selection.end().col));
       }
       else {
-        priv.selectionBorder.disappear();
+        self.view.wt.selections.area.clear();
       }
     },
 
@@ -964,7 +962,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return false;
       }
-      priv.selectionBorder.disappear();
+      self.view.wt.selections.area.clear();
     }
   };
 
@@ -2165,9 +2163,18 @@ Handsontable.TableView = function (instance) {
     },
     selections: {
       current: {
+        className: 'current',
         border: {
           width: 2,
           color: '#5292F7',
+          style: 'solid'
+        }
+      },
+      area: {
+        className: 'area',
+        border: {
+          width: 1,
+          color: '#89AFF9',
           style: 'solid'
         }
       }
@@ -3997,9 +4004,163 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Mon Dec 03 2012 20:30:58 GMT+0100 (Central European Standard Time)
+ * Date: Tue Dec 04 2012 17:43:43 GMT+0100 (Central European Standard Time)
 */
 
+function WalkontableBorder(instance, settings) {
+  //reference to instance
+  this.instance = instance;
+  this.settings = settings;
+
+  this.main = document.createElement("div");
+  this.main.style.position = 'absolute';
+  this.main.style.top = 0;
+  this.main.style.left = 0;
+
+  for (var i = 0; i < 4; i++) {
+    var DIV = document.createElement('DIV');
+    DIV.className = 'wtBorder ' + settings.className;
+    DIV.style.backgroundColor = settings.border.color;
+    DIV.style.height = settings.border.width + 'px';
+    DIV.style.width = settings.border.width + 'px';
+    this.main.appendChild(DIV);
+  }
+
+  this.top = this.main.childNodes[0];
+  this.left = this.main.childNodes[1];
+  this.bottom = this.main.childNodes[2];
+  this.right = this.main.childNodes[3];
+
+  this.disappear();
+  instance.wtTable.TABLE.parentNode.appendChild(this.main);
+}
+
+/**
+ * Show border around one or many cells
+ * @param {Array} corners
+ */
+WalkontableBorder.prototype.appear = function (corners) {
+  var $from, $to, fromOffset, toOffset, containerOffset, top, minTop, left, minLeft, height, width;
+  if (this.disabled) {
+    return;
+  }
+
+  var offsetRow = this.instance.getSetting('offsetRow')
+    , offsetColumn = this.instance.getSetting('offsetColumn')
+    , displayRows = this.instance.getSetting('displayRows')
+    , displayColumns = this.instance.getSetting('displayColumns');
+
+  var hideTop, hideLeft, hideBottom, hideRight;
+
+  if (this.instance.hasSetting('displayRows')) {
+    if (corners[0] > offsetRow + displayRows - 1 || corners[2] < offsetRow) {
+      hideTop = hideLeft = hideBottom = hideRight = true;
+    }
+    else {
+      if (corners[0] < offsetRow) {
+        corners[0] = offsetRow;
+        hideTop = true;
+      }
+      if (corners[2] > offsetRow + displayRows - 1) {
+        corners[2] = offsetRow + displayRows - 1;
+        hideBottom = true;
+      }
+    }
+  }
+
+  if (this.instance.hasSetting('displayColumns')) {
+    if (corners[1] > offsetColumn + displayColumns - 1 || corners[3] < offsetColumn) {
+      hideTop = hideLeft = hideBottom = hideRight = true;
+    }
+    else {
+      if (corners[1] < offsetColumn) {
+        corners[1] = offsetColumn;
+        hideLeft = true;
+      }
+      if (corners[3] > offsetColumn + displayColumns - 1) {
+        corners[3] = offsetColumn + displayColumns - 1;
+        hideRight = true;
+      }
+    }
+  }
+
+  if (!(hideTop == hideLeft == hideBottom == hideRight == true)) {
+    $from = $(this.instance.wtTable.getCell([corners[0], corners[1]]));
+    $to = (corners.length > 2) ? $(this.instance.wtTable.getCell([corners[2], corners[3]])) : $from;
+    fromOffset = $from.offset();
+    toOffset = (corners.length > 2) ? $to.offset() : fromOffset;
+    containerOffset = $(this.instance.wtTable.TABLE).offset();
+
+    minTop = fromOffset.top;
+    height = toOffset.top + $to.outerHeight() - minTop;
+    minLeft = fromOffset.left;
+    width = toOffset.left + $to.outerWidth() - minLeft;
+
+    top = minTop - containerOffset.top - 1;
+    left = minLeft - containerOffset.left - 1;
+
+    if (parseInt($from.css('border-top-width')) > 0) {
+      top += 1;
+      //height -= 1;
+    }
+    if (parseInt($from.css('border-left-width')) > 0) {
+      left += 1;
+      //width -= 1;
+    }
+  }
+
+  if (hideTop) {
+    this.top.style.display = 'none';
+  }
+  else {
+    this.top.style.top = top + 'px';
+    this.top.style.left = left + 'px';
+    this.top.style.width = width + 'px';
+    this.top.style.display = 'block';
+  }
+
+  if (hideLeft) {
+    this.left.style.display = 'none';
+  }
+  else {
+    this.left.style.top = top + 'px';
+    this.left.style.left = left + 'px';
+    this.left.style.height = height + 'px';
+    this.left.style.display = 'block';
+  }
+
+  var delta = Math.floor(this.settings.border.width / 2);
+
+  if (hideBottom) {
+    this.bottom.style.display = 'none';
+  }
+  else {
+    this.bottom.style.top = top + height - delta + 'px';
+    this.bottom.style.left = left + 'px';
+    this.bottom.style.width = width + 'px';
+    this.bottom.style.display = 'block';
+  }
+
+  if (hideRight) {
+    this.right.style.display = 'none';
+  }
+  else {
+    this.right.style.top = top + 'px';
+    this.right.style.left = left + width - delta + 'px';
+    this.right.style.height = height + 1 + 'px';
+    this.right.style.display = 'block';
+  }
+};
+
+/**
+ * Hide border
+ */
+WalkontableBorder.prototype.disappear = function () {
+  this.top.style.display = 'none';
+  this.left.style.display = 'none';
+  this.bottom.style.display = 'none';
+  this.right.style.display = 'none';
+};
 function Walkontable(settings) {
   var that = this;
   var originalHeaders = [];
@@ -4029,6 +4190,7 @@ function Walkontable(settings) {
       TD.className = '';
       TD.style.outline = ''; //temporary code to remove outline
     },
+    columnWidth: null,
     selections: null,
     onCellMouseDown: null
   };
@@ -4073,29 +4235,7 @@ function Walkontable(settings) {
   if (this.settings.selections) {
     for (i in this.settings.selections) {
       if (this.settings.selections.hasOwnProperty(i)) {
-        this.selections[i] = (function (setting) {
-          return new WalkontableSelection(function (coords) {
-            var TD = that.wtTable.getCell(coords);
-            if (TD) {
-              if (setting.className) {
-                that.wtDom.addClass(TD, setting.className);
-              }
-              if (setting.border) {
-                TD.style.outline = setting.border.width + 'px ' + setting.border.style + ' ' + setting.border.color;
-              }
-            }
-          }, function (coords) {
-            var TD = that.wtTable.getCell(coords);
-            if (TD) {
-              if (setting.className) {
-                that.wtDom.removeClass(TD, setting.className);
-              }
-              if (setting.border) {
-                TD.style.outline = '';
-              }
-            }
-          });
-        })(this.settings.selections[i])
+        this.selections[i] = new WalkontableSelection(this, this.settings.selections[i]);
       }
     }
   }
@@ -4528,28 +4668,42 @@ WalkontableScrollbar.prototype.refresh = function () {
   this.dragdealer.setBounds();
   //this.dragdealer.setSteps();
 };
-function WalkontableSelection(onAdd, onRemove) {
+function WalkontableSelection(instance, settings) {
+  var that = this;
+  this.instance = instance;
   this.selected = [];
-  this.onAdd = onAdd; //optional
-  this.onRemove = onRemove; //optional
-  //this.wtCell = new WalkontableCell();
-  //this.wtDom = new WalkontableDom();
+  if (settings.border) {
+    this.border = new WalkontableBorder(instance, settings);
+  }
+  this.onAdd = function (coords) {
+    var TD = instance.wtTable.getCell(coords);
+    if (TD) {
+      if (settings.className) {
+        instance.wtDom.addClass(TD, settings.className);
+      }
+    }
+  };
+  this.onRemove = function (coords) {
+    var TD = instance.wtTable.getCell(coords);
+    if (TD) {
+      if (settings.className) {
+        instance.wtDom.removeClass(TD, settings.className);
+      }
+    }
+  };
 }
 
 WalkontableSelection.prototype.add = function (coords) {
   this.selected.push(coords);
-  if (this.onAdd) {
-    this.onAdd(coords);
-  }
+  this.onAdd(coords);
+  this.draw();
 };
 
 WalkontableSelection.prototype.remove = function (coords) {
   var index = this.isSelected(coords);
   if (index > -1) {
     this.selected.splice(index, 1);
-    if (this.onRemove) {
-      this.onRemove(coords);
-    }
+    this.onRemove(coords);
   }
 };
 
@@ -4561,7 +4715,7 @@ WalkontableSelection.prototype.clear = function () {
 
 WalkontableSelection.prototype.isSelected = function (coords) {
   for (var i = 0, ilen = this.selected.length; i < ilen; i++) {
-    if(this.selected[i][0] === coords[0] && this.selected[i][1] === coords[1]) {
+    if (this.selected[i][0] === coords[0] && this.selected[i][1] === coords[1]) {
       return i;
     }
   }
@@ -4572,99 +4726,155 @@ WalkontableSelection.prototype.getSelected = function () {
   return this.selected;
 };
 
-/*WalkontableSelection.prototype.rectangleSize = function () {
-  var that = this
-    , rowLengths = {}
-    , rowBegins = {}
-    , rowEnds = {}
-    , row
-    , col
-    , rowSpan
-    , colSpan
-    , lastRow
+/**
+ * Returns the top left (TL) and bottom right (BR) selection coordinates
+ * @returns {Object}
+ */
+WalkontableSelection.prototype.getCorners = function () {
+  var minRow
+    , minColumn
+    , maxRow
+    , maxColumn
     , i
-    , ilen
-    , j
-    , height = 0
-    , tableSection
-    , lastTableSection;
+    , ilen = this.selected.length;
 
-  this.selected.sort(function (a, b) {
-    return that.wtCell.colIndex(a) - that.wtCell.colIndex(b);
-  });
+  if (ilen > 0) {
+    minRow = maxRow = this.selected[0][0];
+    minColumn = maxColumn = this.selected[0][1];
 
-  this.selected.sort(function (a, b) {
-    return that.wtCell.rowIndex(a) - that.wtCell.rowIndex(b);
-  });
+    if (ilen > 1) {
+      for (i = 1; i < ilen; i++) {
+        if (this.selected[i][0] < minRow) {
+          minRow = this.selected[i][0];
+        }
+        else if (this.selected[i][0] > maxRow) {
+          maxRow = this.selected[i][0];
+        }
 
-  for (i = 0, ilen = this.selected.length; i < ilen; i++) {
-    tableSection = this.wtDom.closestParent(this.selected[i], ['THEAD', 'TBODY', 'TFOOT', 'TABLE']);
-    if(lastTableSection && lastTableSection !== tableSection) {
-      return null; //can only select cells that are in the same section (thead, tbody, tfoot or table if none of them is defined)
-    }
-    lastTableSection = tableSection;
-
-    row = this.wtCell.rowIndex(this.selected[i]);
-    col = this.wtCell.colIndex(this.selected[i]);
-    rowSpan = this.selected[i].rowSpan;
-    colSpan = this.selected[i].colSpan;
-    for (j = 0; j < rowSpan; j++) {
-      if (typeof rowBegins[row + j] === 'undefined' || col < rowBegins[row + j]) {
-        rowBegins[row + j] = col;
+        if (this.selected[i][1] < minColumn) {
+          minColumn = this.selected[i][1];
+        }
+        else if (this.selected[i][1] > maxColumn) {
+          maxColumn = this.selected[i][1];
+        }
       }
-      if (typeof rowEnds[row + j] === 'undefined' || col + colSpan - 1 > rowEnds[row + j]) {
-        rowEnds[row + j] = col + colSpan - 1;
-      }
-      if (typeof rowLengths[row + j] === 'undefined') {
-        rowLengths[row + j] = 0;
-        height++;
-      }
-      rowLengths[row + j] += colSpan;
     }
   }
 
-  if (!ilen) {
-    return null; //empty selection
-  }
+  return [minRow, minColumn, maxRow, maxColumn];
+};
 
-  lastRow = -1;
-  for (i in rowBegins) {
-    if (rowBegins.hasOwnProperty(i)) {
-      if (lastRow !== -1 && rowBegins[i] !== lastRow) {
-        return null; //selected rows begin in different column
-      }
-      lastRow = rowBegins[i];
+WalkontableSelection.prototype.draw = function () {
+  var TD;
+  for (var i = 0, ilen = this.selected.length; i < ilen; i++) {
+    TD = this.instance.wtTable.getCell(this.selected[i]);
+    if (TD) {
+      this.onAdd(this.selected[i], TD);
     }
   }
-
-  lastRow = -1;
-  for (i in rowEnds) {
-    if (rowEnds.hasOwnProperty(i)) {
-      if (lastRow !== -1 && rowEnds[i] !== lastRow) {
-        return null; //selected rows end in different column
-      }
-      if (rowEnds[i] !== rowBegins[i] + rowLengths[i] - 1) {
-        return null; //selected rows end does not match begin + length
-      }
-      lastRow = rowEnds[i];
+  if (this.border) {
+    if (ilen > 0) {
+      this.border.appear(this.getCorners());
+    }
+    else {
+      this.border.disappear(this.getCorners());
     }
   }
+};
 
-  lastRow = -1;
-  for (i in rowLengths) {
-    if (rowLengths.hasOwnProperty(i)) {
-      if (lastRow !== -1 && rowLengths[i] !== lastRow) {
-        return null; //selected rows have different length
-      }
-      if (lastRow !== -1 && !rowLengths.hasOwnProperty(i - 1)) {
-        return null; //there is a row gap in selection
-      }
-      lastRow = rowLengths[i];
-    }
-  }
+/*WalkontableSelection.prototype.rectangleSize = function () {
+ var that = this
+ , rowLengths = {}
+ , rowBegins = {}
+ , rowEnds = {}
+ , row
+ , col
+ , rowSpan
+ , colSpan
+ , lastRow
+ , i
+ , ilen
+ , j
+ , height = 0
+ , tableSection
+ , lastTableSection;
 
-  return {width: lastRow, height: height};
-};*/
+ this.selected.sort(function (a, b) {
+ return that.wtCell.colIndex(a) - that.wtCell.colIndex(b);
+ });
+
+ this.selected.sort(function (a, b) {
+ return that.wtCell.rowIndex(a) - that.wtCell.rowIndex(b);
+ });
+
+ for (i = 0, ilen = this.selected.length; i < ilen; i++) {
+ tableSection = this.wtDom.closestParent(this.selected[i], ['THEAD', 'TBODY', 'TFOOT', 'TABLE']);
+ if(lastTableSection && lastTableSection !== tableSection) {
+ return null; //can only select cells that are in the same section (thead, tbody, tfoot or table if none of them is defined)
+ }
+ lastTableSection = tableSection;
+
+ row = this.wtCell.rowIndex(this.selected[i]);
+ col = this.wtCell.colIndex(this.selected[i]);
+ rowSpan = this.selected[i].rowSpan;
+ colSpan = this.selected[i].colSpan;
+ for (j = 0; j < rowSpan; j++) {
+ if (typeof rowBegins[row + j] === 'undefined' || col < rowBegins[row + j]) {
+ rowBegins[row + j] = col;
+ }
+ if (typeof rowEnds[row + j] === 'undefined' || col + colSpan - 1 > rowEnds[row + j]) {
+ rowEnds[row + j] = col + colSpan - 1;
+ }
+ if (typeof rowLengths[row + j] === 'undefined') {
+ rowLengths[row + j] = 0;
+ height++;
+ }
+ rowLengths[row + j] += colSpan;
+ }
+ }
+
+ if (!ilen) {
+ return null; //empty selection
+ }
+
+ lastRow = -1;
+ for (i in rowBegins) {
+ if (rowBegins.hasOwnProperty(i)) {
+ if (lastRow !== -1 && rowBegins[i] !== lastRow) {
+ return null; //selected rows begin in different column
+ }
+ lastRow = rowBegins[i];
+ }
+ }
+
+ lastRow = -1;
+ for (i in rowEnds) {
+ if (rowEnds.hasOwnProperty(i)) {
+ if (lastRow !== -1 && rowEnds[i] !== lastRow) {
+ return null; //selected rows end in different column
+ }
+ if (rowEnds[i] !== rowBegins[i] + rowLengths[i] - 1) {
+ return null; //selected rows end does not match begin + length
+ }
+ lastRow = rowEnds[i];
+ }
+ }
+
+ lastRow = -1;
+ for (i in rowLengths) {
+ if (rowLengths.hasOwnProperty(i)) {
+ if (lastRow !== -1 && rowLengths[i] !== lastRow) {
+ return null; //selected rows have different length
+ }
+ if (lastRow !== -1 && !rowLengths.hasOwnProperty(i - 1)) {
+ return null; //there is a row gap in selection
+ }
+ lastRow = rowLengths[i];
+ }
+ }
+
+ return {width: lastRow, height: height};
+ };*/
 function WalkontableTable(instance) {
   //reference to instance
   this.instance = instance;
@@ -4682,6 +4892,11 @@ function WalkontableTable(instance) {
   if (!this.THEAD) {
     this.THEAD = document.createElement('THEAD');
     this.TABLE.insertBefore(this.THEAD, this.TBODY);
+  }
+  this.COLGROUP = this.TABLE.getElementsByTagName('COLGROUP')[0];
+  if (!this.COLGROUP) {
+    this.COLGROUP = document.createElement('COLGROUP');
+    this.TABLE.insertBefore(this.COLGROUP, this.THEAD);
   }
 
   if (this.instance.hasSetting('columnHeaders')) {
@@ -4706,6 +4921,15 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   displayRows = Math.min(displayRows, totalRows);
   displayTds = Math.min(displayColumns, totalColumns);
 
+  //adjust COLGROUP
+  while (this.COLGROUP.childNodes.length < displayTds + rowHeadersCount) {
+    this.COLGROUP.appendChild(document.createElement('COL'));
+  }
+  while (this.COLGROUP.length > displayTds + rowHeadersCount) {
+    this.COLGROUP.removeChild(this.COLGROUP.lastChild);
+  }
+
+  //adjust THEAD
   if (this.instance.hasSetting('columnHeaders')) {
     var availableTHs = this.THEAD.childNodes[0].childNodes.length;
     while (availableTHs < displayTds + rowHeadersCount) {
@@ -4714,6 +4938,7 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
     }
   }
 
+  //adjust TBODY
   while (this.availableTRs < displayRows) {
     TR = document.createElement('TR');
     if (this.instance.hasSetting('rowHeaders')) {
@@ -4762,11 +4987,25 @@ WalkontableTable.prototype.draw = function () {
   displayRows = Math.min(displayRows, totalRows);
   displayTds = Math.min(displayColumns, totalColumns);
 
+  //draw COLGROUP
+  if (this.instance.hasSetting('rowHeaders')) {
+    this.wtDom.addClass(this.COLGROUP.childNodes[0], 'rowHeader');
+  }
+  else {
+    this.wtDom.removeClass(this.COLGROUP.childNodes[0], 'rowHeader');
+  }
+
+  if (this.instance.hasSetting('columnWidth')) {
+    for (c = 0; c < displayTds; c++) {
+      this.COLGROUP.childNodes[c + rowHeadersCount].style.width = this.instance.getSetting('columnWidth', offsetColumn + c) + 'px';
+    }
+  }
+
+  //draw THEAD
   if (this.instance.hasSetting('rowHeaders') && this.instance.hasSetting('columnHeaders')) {
     this.THEAD.childNodes[0].childNodes[0].innerHTML = '';
   }
 
-  //draw THEAD
   if (this.instance.hasSetting('columnHeaders')) {
     for (c = 0; c < displayTds; c++) {
       this.THEAD.childNodes[0].childNodes[rowHeadersCount + c].innerHTML = this.instance.getSetting('columnHeaders', offsetColumn + c);
@@ -4795,14 +5034,7 @@ WalkontableTable.prototype.draw = function () {
   if (this.instance.selections) {
     for (r in this.instance.selections) {
       if (this.instance.selections.hasOwnProperty(r)) {
-        for (c in this.instance.selections[r].selected) {
-          if (this.instance.selections[r].selected.hasOwnProperty(c)) {
-            TD = this.getCell(this.instance.selections[r].selected[c]);
-            if (TD) {
-              this.instance.selections[r].onAdd(this.instance.selections[r].selected[c], TD);
-            }
-          }
-        }
+        this.instance.selections[r].draw();
       }
     }
   }
@@ -4817,7 +5049,7 @@ WalkontableTable.prototype.getCell = function (coords) {
     , displayColumns = this.instance.getSetting('displayColumns')
     , rowHeadersCount = this.instance.hasSetting('rowHeaders') ? 1 : 0;
 
-  if (coords[0] >= offsetRow && coords[0] <= offsetRow + displayRows) {
+  if (coords[0] >= offsetRow && coords[0] <= offsetRow + displayRows - 1) {
     if (coords[1] >= offsetColumn && coords[1] < offsetColumn + displayColumns) {
       return this.TBODY.childNodes[coords[0] - offsetRow].childNodes[coords[1] - offsetColumn + rowHeadersCount];
     }

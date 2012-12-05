@@ -917,10 +917,6 @@ Handsontable.Core = function (rootElement, settings) {
      * Create highlight border
      */
     init: function () {
-      priv.selectionBorder = new Handsontable.Border(self, {
-        className: 'selection',
-        bg: true
-      });
     },
 
     /**
@@ -931,10 +927,12 @@ Handsontable.Core = function (rootElement, settings) {
         return false;
       }
       if (selection.isMultiple()) {
-        priv.selectionBorder.appear([priv.selStart, selection.end()]);
+        self.view.wt.selections.area.clear();
+        self.view.wt.selections.area.add([priv.selStart.row, priv.selStart.col], self.view.wt.wtTable.getCell(priv.selStart.row, priv.selStart.col));
+        self.view.wt.selections.area.add([selection.end().row, selection.end().col], self.view.wt.wtTable.getCell(selection.end().row, selection.end().col));
       }
       else {
-        priv.selectionBorder.disappear();
+        self.view.wt.selections.area.clear();
       }
     },
 
@@ -945,7 +943,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return false;
       }
-      priv.selectionBorder.disappear();
+      self.view.wt.selections.area.clear();
     }
   };
 

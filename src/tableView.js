@@ -30,9 +30,18 @@ Handsontable.TableView = function (instance) {
     },
     selections: {
       current: {
+        className: 'current',
         border: {
           width: 2,
           color: '#5292F7',
+          style: 'solid'
+        }
+      },
+      area: {
+        className: 'area',
+        border: {
+          width: 1,
+          color: '#89AFF9',
           style: 'solid'
         }
       }

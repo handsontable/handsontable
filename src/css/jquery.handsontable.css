@@ -107,24 +107,13 @@
 }
 
 /* border line */
-.handsontable .htBorder {
+.handsontable .wtBorder {
   position: absolute;
-  width: 2px;
-  height: 2px;
-  background: #000;
   font-size: 0;
 }
 
-.handsontable .htBorder.current {
-  background: #5292F7;
-  width: 2px;
-  height: 2px;
-}
-
-.handsontable .htBorder.selection {
-  background: #89AFF9;
-  width: 1px;
-  height: 1px;
+.handsontable td.area {
+  background-color: #EEF4FF;
 }
 
 /* fill handle */
