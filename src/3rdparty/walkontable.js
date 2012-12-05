@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Wed Dec 05 2012 23:05:41 GMT+0100 (Central European Standard Time)
+ * Date: Thu Dec 06 2012 00:48:27 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -98,11 +98,11 @@ WalkontableBorder.prototype.appear = function (corners) {
 
     if (parseInt($from.css('border-top-width')) > 0) {
       top += 1;
-      //height -= 1;
+      height -= 1;
     }
     if (parseInt($from.css('border-left-width')) > 0) {
       left += 1;
-      //width -= 1;
+      width -= 1;
     }
   }
 
