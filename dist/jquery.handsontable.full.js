@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 05 2012 23:06:37 GMT+0100 (Central European Standard Time)
+ * Date: Thu Dec 06 2012 00:43:50 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2122,10 +2122,59 @@ Handsontable.TableView = function (instance) {
 
   var settings = this.instance.getSettings();
 
-  var isMouseDown = false;
+  var isMouseDown
+    , dragInterval;
 
   $(document.body).on('mouseup', function () {
     isMouseDown = false;
+    clearInterval(dragInterval);
+    dragInterval = null;
+  });
+  $table.on('mouseenter', function () {
+    if (dragInterval) { //if dragInterval was set (that means mouse was really outide of table, not over an element that is outside of <table> in DOM
+      clearInterval(dragInterval);
+      dragInterval = null;
+    }
+  });
+
+  $table.on('mouseleave', function (event) {
+    var tolerance = 1 //this is needed because width() and height() contains stuff like cell borders
+      , offsetTop = $table.offset().top + tolerance
+      , offsetLeft = $table.offset().left + tolerance
+      , width = $table.width() - 2 * tolerance
+      , height = $table.height() - 2 * tolerance
+      , method
+      , row = 0
+      , col = 0
+      , dragFn;
+
+    if (event.pageY < offsetTop) { //top edge crossed
+      row = -1;
+      method = 'scrollVertical';
+    }
+    else if (event.pageY >= offsetTop + height) { //bottom edge crossed
+      row = 1;
+      method = 'scrollVertical';
+    }
+    else if (event.pageX < offsetLeft) { //left edge crossed
+      col = -1;
+      method = 'scrollHorizontal';
+    }
+    else if (event.pageX >= offsetLeft + width) { //right edge crossed
+      col = 1;
+      method = 'scrollHorizontal';
+    }
+
+    if (method) {
+      dragFn = function () {
+        if (isMouseDown) {
+          instance.selection.transformEnd(row, col);
+          that.wt[method](row + col).draw();
+        }
+      };
+      dragFn();
+      dragInterval = setInterval(dragFn, 100);
+    }
   });
 
   this.wt = new Walkontable({
