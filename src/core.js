@@ -7,7 +7,7 @@
 Handsontable.Core = function (rootElement, settings) {
   this.rootElement = rootElement;
 
-  var priv, datamap, grid, selection, editproxy, highlight, autofill, validate, self = this;
+  var priv, datamap, grid, selection, editproxy, autofill, validate, self = this;
 
   priv = {
     settings: {},
@@ -680,6 +680,28 @@ Handsontable.Core = function (rootElement, settings) {
       if (!priv.settings.multiSelect) {
         priv.selStart = coords;
       }
+
+      //set up current selection
+      self.view.wt.selections.current.clear();
+      self.view.wt.selections.current.add([priv.selStart.row, priv.selStart.col]);
+
+      //set up area selection
+      self.view.wt.selections.area.clear();
+      if (selection.isMultiple()) {
+        var coords = grid.getCornerCoords([priv.selStart, priv.selEnd])
+          , r = coords.TL.row
+          , c;
+        while (r <= coords.BR.row) {
+          c = coords.TL.col;
+          while (c <= coords.BR.col) {
+            self.view.wt.selections.area.add([r, c]);
+            c++;
+          }
+          r++;
+        }
+      }
+
+      //trigger handlers
       self.rootElement.triggerHandler("selection.handsontable", [priv.selStart.row, priv.selStart.col, priv.selEnd.row, priv.selEnd.col]);
       self.rootElement.triggerHandler("selectionbyprop.handsontable", [priv.selStart.row, datamap.colToProp(priv.selStart.col), priv.selEnd.row, datamap.colToProp(priv.selEnd.col)]);
       if (scrollToCell !== false) {
@@ -716,9 +738,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (autofill.handle) {
         autofill.showHandle();
       }
-      self.view.wt.selections.current.clear();
-      self.view.wt.selections.current.add([priv.selStart.row, priv.selStart.col], self.view.wt.wtTable.getCell(priv.selStart.row, priv.selStart.col));
-      highlight.on();
+      self.view.render();
     },
 
     /**
@@ -865,7 +885,6 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
-      highlight.off();
       priv.currentBorder.disappear();
       if (autofill.handle) {
         autofill.hideHandle();
@@ -909,41 +928,6 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
       self.setDataAtCell(changes);
-    }
-  };
-
-  highlight = {
-    /**
-     * Create highlight border
-     */
-    init: function () {
-    },
-
-    /**
-     * Show border around selected cells
-     */
-    on: function () {
-      if (!selection.isSelected()) {
-        return false;
-      }
-      if (selection.isMultiple()) {
-        self.view.wt.selections.area.clear();
-        self.view.wt.selections.area.add([priv.selStart.row, priv.selStart.col], self.view.wt.wtTable.getCell(priv.selStart.row, priv.selStart.col));
-        self.view.wt.selections.area.add([selection.end().row, selection.end().col], self.view.wt.wtTable.getCell(selection.end().row, selection.end().col));
-      }
-      else {
-        self.view.wt.selections.area.clear();
-      }
-    },
-
-    /**
-     * Hide border around selected cells
-     */
-    off: function () {
-      if (!selection.isSelected()) {
-        return false;
-      }
-      self.view.wt.selections.area.clear();
     }
   };
 
@@ -1335,7 +1319,6 @@ Handsontable.Core = function (rootElement, settings) {
     this.updateSettings(settings);
     this.view = new Handsontable.TableView(this);
 
-    highlight.init();
     priv.currentBorder = new Handsontable.Border(self, {
       className: 'current',
       bg: true
