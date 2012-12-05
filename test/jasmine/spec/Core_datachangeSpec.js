@@ -79,4 +79,39 @@ describe('Core_datachange', function () {
       expect(output).toEqual($container.get(0));
     });
   });
+
+  it('onChange event object should contain documented keys and values when triggered by edit', function () {
+
+    var sampleData = [{
+      col1: 'a',
+      col2: 'b',
+      col3: 'c'
+    }];
+    var event = null;
+
+    runs(function () {
+      $container.handsontable({
+        data: sampleData,
+        onChange: function (e, source) {
+          if ('edit' == source) {
+            event = e.shift();
+          }
+        }
+      });
+      $container.handsontable('setDataAtCell', 0, 0, "test");
+    });
+
+    waitsFor(function () {
+      return (event != null)
+    }, "onChange callback called", 100);
+
+    runs(function () {
+      expect(event[0]).toEqual(0);
+      expect(event[1]).toEqual('col1');
+      expect(event[2]).toEqual('a');
+      expect(event[3]).toEqual('test');
+    });
+  });
+
+
 });
