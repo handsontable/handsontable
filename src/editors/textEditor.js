@@ -54,6 +54,10 @@ var texteditor = {
       return;
     }
 
+    var coords = {row: row, col: col};
+    instance.view.scrollViewport(coords);
+    td = instance.getCell(row, col); //because old td may have been scrolled out with scrollViewport
+
     keyboardProxy.on('cut.editor', function (event) {
       event.stopPropagation();
     });
@@ -61,8 +65,6 @@ var texteditor = {
     keyboardProxy.on('paste.editor', function (event) {
       event.stopPropagation();
     });
-
-    var $td = $(td);
 
     if (!instance.getCellMeta(row, col).isWritable) {
       return;
@@ -80,7 +82,7 @@ var texteditor = {
       keyboardProxy.val('');
     }
 
-    texteditor.refreshDimensions(instance, $td, keyboardProxy);
+    texteditor.refreshDimensions(instance, td, keyboardProxy);
     keyboardProxy.parent().removeClass('htHidden');
 
     instance.rootElement.triggerHandler('beginediting.handsontable');
@@ -93,10 +95,52 @@ var texteditor = {
     }, 1);
   },
 
-  refreshDimensions: function (instance, $td, keyboardProxy) {
+  refreshDimensions: function (instance, td, keyboardProxy) {
     if (!texteditor.isCellEdited) {
       return;
     }
+
+    ///start prepare textarea position
+    var $td = $(td);
+    var currentOffset = $td.offset();
+    var containerOffset = instance.rootElement.offset();
+    var scrollTop = instance.rootElement.scrollTop();
+    var scrollLeft = instance.rootElement.scrollLeft();
+    var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
+    var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
+
+    if (editTop < 0) {
+      editTop = 0;
+    }
+    if (editLeft < 0) {
+      editLeft = 0;
+    }
+
+    if (instance.blockedRows.count() > 0 && parseInt($td.css('border-top-width')) > 0) {
+      editTop += 1;
+    }
+    if (instance.blockedCols.count() > 0 && parseInt($td.css('border-left-width')) > 0) {
+      editLeft += 1;
+    }
+
+    if ($.browser.msie && parseInt($.browser.version, 10) <= 7) {
+      editTop -= 1;
+    }
+
+    keyboardProxy.parent().addClass('htHidden').css({
+      top: editTop,
+      left: editLeft
+    });
+
+    function onDblClick() {
+      keyboardProxy[0].focus();
+      texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true);
+    }
+
+    $td.on('dblclick.editor', onDblClick);
+    instance.rootElement.find('.htBorder.current').on('dblclick.editor', onDblClick);
+    ///end prepare textarea position
+
     var width = $td.width()
       , height = $td.outerHeight() - 4;
 
@@ -178,35 +222,9 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
   texteditor.originalValue = instance.getDataAtCell(row, prop);
   texteditor.triggerOnlyByDestroyer = cellProperties.strict;
 
-  var $current = $(td);
-  var currentOffset = $current.offset();
-  var containerOffset = instance.rootElement.offset();
-  var scrollTop = instance.rootElement.scrollTop();
-  var scrollLeft = instance.rootElement.scrollLeft();
-  var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
-  var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
-
-  if (editTop < 0) {
-    editTop = 0;
-  }
-  if (editLeft < 0) {
-    editLeft = 0;
-  }
-
-  if (instance.blockedRows.count() > 0 && parseInt($current.css('border-top-width')) > 0) {
-    editTop += 1;
-  }
-  if (instance.blockedCols.count() > 0 && parseInt($current.css('border-left-width')) > 0) {
-    editLeft += 1;
-  }
-
-  if ($.browser.msie && parseInt($.browser.version, 10) <= 7) {
-    editTop -= 1;
-  }
-
   keyboardProxy.parent().addClass('htHidden').css({
-    top: editTop,
-    left: editLeft,
+    top: 0,
+    left: 0,
     overflow: 'hidden'
   });
   keyboardProxy.css({
@@ -342,14 +360,6 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
         break;
     }
   });
-
-  function onDblClick() {
-    keyboardProxy[0].focus();
-    texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true);
-  }
-
-  $current.on('dblclick.editor', onDblClick);
-  instance.rootElement.find('.htBorder.current').on('dblclick.editor', onDblClick);
 
   return function (isCancelled) {
     texteditor.triggerOnlyByDestroyer = false;

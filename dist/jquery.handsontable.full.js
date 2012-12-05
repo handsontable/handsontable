@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 05 2012 15:48:08 GMT+0100 (Central European Standard Time)
+ * Date: Wed Dec 05 2012 22:32:42 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2872,6 +2872,10 @@ var texteditor = {
       return;
     }
 
+    var coords = {row: row, col: col};
+    instance.view.scrollViewport(coords);
+    td = instance.getCell(row, col); //because old td may have been scrolled out with scrollViewport
+
     keyboardProxy.on('cut.editor', function (event) {
       event.stopPropagation();
     });
@@ -2879,8 +2883,6 @@ var texteditor = {
     keyboardProxy.on('paste.editor', function (event) {
       event.stopPropagation();
     });
-
-    var $td = $(td);
 
     if (!instance.getCellMeta(row, col).isWritable) {
       return;
@@ -2898,7 +2900,7 @@ var texteditor = {
       keyboardProxy.val('');
     }
 
-    texteditor.refreshDimensions(instance, $td, keyboardProxy);
+    texteditor.refreshDimensions(instance, td, keyboardProxy);
     keyboardProxy.parent().removeClass('htHidden');
 
     instance.rootElement.triggerHandler('beginediting.handsontable');
@@ -2911,10 +2913,52 @@ var texteditor = {
     }, 1);
   },
 
-  refreshDimensions: function (instance, $td, keyboardProxy) {
+  refreshDimensions: function (instance, td, keyboardProxy) {
     if (!texteditor.isCellEdited) {
       return;
     }
+
+    ///start prepare textarea position
+    var $td = $(td);
+    var currentOffset = $td.offset();
+    var containerOffset = instance.rootElement.offset();
+    var scrollTop = instance.rootElement.scrollTop();
+    var scrollLeft = instance.rootElement.scrollLeft();
+    var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
+    var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
+
+    if (editTop < 0) {
+      editTop = 0;
+    }
+    if (editLeft < 0) {
+      editLeft = 0;
+    }
+
+    if (instance.blockedRows.count() > 0 && parseInt($td.css('border-top-width')) > 0) {
+      editTop += 1;
+    }
+    if (instance.blockedCols.count() > 0 && parseInt($td.css('border-left-width')) > 0) {
+      editLeft += 1;
+    }
+
+    if ($.browser.msie && parseInt($.browser.version, 10) <= 7) {
+      editTop -= 1;
+    }
+
+    keyboardProxy.parent().addClass('htHidden').css({
+      top: editTop,
+      left: editLeft
+    });
+
+    function onDblClick() {
+      keyboardProxy[0].focus();
+      texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true);
+    }
+
+    $td.on('dblclick.editor', onDblClick);
+    instance.rootElement.find('.htBorder.current').on('dblclick.editor', onDblClick);
+    ///end prepare textarea position
+
     var width = $td.width()
       , height = $td.outerHeight() - 4;
 
@@ -2996,35 +3040,9 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
   texteditor.originalValue = instance.getDataAtCell(row, prop);
   texteditor.triggerOnlyByDestroyer = cellProperties.strict;
 
-  var $current = $(td);
-  var currentOffset = $current.offset();
-  var containerOffset = instance.rootElement.offset();
-  var scrollTop = instance.rootElement.scrollTop();
-  var scrollLeft = instance.rootElement.scrollLeft();
-  var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
-  var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
-
-  if (editTop < 0) {
-    editTop = 0;
-  }
-  if (editLeft < 0) {
-    editLeft = 0;
-  }
-
-  if (instance.blockedRows.count() > 0 && parseInt($current.css('border-top-width')) > 0) {
-    editTop += 1;
-  }
-  if (instance.blockedCols.count() > 0 && parseInt($current.css('border-left-width')) > 0) {
-    editLeft += 1;
-  }
-
-  if ($.browser.msie && parseInt($.browser.version, 10) <= 7) {
-    editTop -= 1;
-  }
-
   keyboardProxy.parent().addClass('htHidden').css({
-    top: editTop,
-    left: editLeft,
+    top: 0,
+    left: 0,
     overflow: 'hidden'
   });
   keyboardProxy.css({
@@ -3160,14 +3178,6 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
         break;
     }
   });
-
-  function onDblClick() {
-    keyboardProxy[0].focus();
-    texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true);
-  }
-
-  $current.on('dblclick.editor', onDblClick);
-  instance.rootElement.find('.htBorder.current').on('dblclick.editor', onDblClick);
 
   return function (isCancelled) {
     texteditor.triggerOnlyByDestroyer = false;
@@ -3956,7 +3966,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Wed Dec 05 2012 14:44:00 GMT+0100 (Central European Standard Time)
+ * Date: Wed Dec 05 2012 22:30:48 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -4004,7 +4014,7 @@ WalkontableBorder.prototype.appear = function (corners) {
 
   var hideTop, hideLeft, hideBottom, hideRight;
 
-  if (this.instance.hasSetting('displayRows')) {
+  if (displayRows !== null) {
     if (corners[0] > offsetRow + displayRows - 1 || corners[2] < offsetRow) {
       hideTop = hideLeft = hideBottom = hideRight = true;
     }
@@ -4020,7 +4030,7 @@ WalkontableBorder.prototype.appear = function (corners) {
     }
   }
 
-  if (this.instance.hasSetting('displayColumns')) {
+  if (displayColumns !== null) {
     if (corners[1] > offsetColumn + displayColumns - 1 || corners[3] < offsetColumn) {
       hideTop = hideLeft = hideBottom = hideRight = true;
     }
