@@ -1,13 +1,14 @@
 /**
  * walkontable 0.1
  * 
- * Date: Thu Dec 06 2012 00:48:27 GMT+0100 (Central European Standard Time)
+ * Date: Thu Dec 06 2012 01:51:24 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
   //reference to instance
   this.instance = instance;
   this.settings = settings;
+  this.wtDom = new WalkontableDom();
 
   this.main = document.createElement("div");
   this.main.style.position = 'absolute';
@@ -84,9 +85,9 @@ WalkontableBorder.prototype.appear = function (corners) {
   if (!(hideTop == hideLeft == hideBottom == hideRight == true)) {
     $from = $(this.instance.wtTable.getCell([corners[0], corners[1]]));
     $to = (corners.length > 2) ? $(this.instance.wtTable.getCell([corners[2], corners[3]])) : $from;
-    fromOffset = $from.offset();
-    toOffset = (corners.length > 2) ? $to.offset() : fromOffset;
-    containerOffset = $(this.instance.wtTable.TABLE).offset();
+    fromOffset = this.wtDom.offset($from[0]);
+    toOffset = (corners.length > 2) ? this.wtDom.offset($to[0]) : fromOffset;
+    containerOffset = this.wtDom.offset(this.instance.wtTable.TABLE);
 
     minTop = fromOffset.top;
     height = toOffset.top + $to.outerHeight() - minTop;
@@ -413,6 +414,42 @@ WalkontableDom.prototype.removeTextNodes = function (elem, parent) {
     }
   }
 };
+
+WalkontableDom.prototype.offset = function (elem) {
+  return elem.getBoundingClientRect();
+};
+
+//seems getBounding is always faster: http://jsperf.com/offset-vs-getboundingclientrect/3
+/*
+ WalkontableDom.prototype.offsetLeft = function (elem) {
+ var offset = elem.offsetLeft;
+ while (elem = elem.offsetParent) {
+ offset += elem.offsetLeft;
+ }
+ return offset;
+ };
+
+ WalkontableDom.prototype.offsetTop = function (elem) {
+ var offset = elem.offsetTop;
+ while (elem = elem.offsetParent) {
+ offset += elem.offsetTop;
+ }
+ return offset;
+ };
+
+ WalkontableDom.prototype.offset = function (elem) {
+ var offsetLeft = elem.offsetLeft
+ , offsetTop = elem.offsetTop;
+ while (elem = elem.offsetParent) {
+ offsetLeft += elem.offsetLeft;
+ offsetTop += elem.offsetTop;
+ }
+ return {
+ left: offsetLeft,
+ top: offsetTop
+ };
+ };
+ */
 function WalkontableEvent(instance) {
   var that = this;
 

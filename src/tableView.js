@@ -29,8 +29,9 @@ Handsontable.TableView = function (instance) {
 
   $table.on('mouseleave', function (event) {
     var tolerance = 1 //this is needed because width() and height() contains stuff like cell borders
-      , offsetTop = $table.offset().top + tolerance
-      , offsetLeft = $table.offset().left + tolerance
+      , offset = that.wt.wtDom.offset($table[0])
+      , offsetTop = offset.top + tolerance
+      , offsetLeft = offset.left + tolerance
       , width = $table.width() - 2 * tolerance
       , height = $table.height() - 2 * tolerance
       , method
