@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Dec 06 2012 02:24:41 GMT+0100 (Central European Standard Time)
+ * Date: Thu Dec 06 2012 11:44:20 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -4024,7 +4024,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Thu Dec 06 2012 02:21:23 GMT+0100 (Central European Standard Time)
+ * Date: Thu Dec 06 2012 11:43:40 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -4966,7 +4966,11 @@ function WalkontableTable(instance) {
     }
   }
 
-  this.availableTRs = 0;
+  this.colgroupChildrenLength = this.COLGROUP.childNodes.length;
+  if (this.instance.hasSetting('columnHeaders')) {
+    this.theadChildrenLength = this.THEAD.childNodes[0].childNodes.length;
+  }
+  this.tbodyChildrenLength = this.TBODY.childNodes.length;
 }
 
 WalkontableTable.prototype.adjustAvailableNodes = function () {
@@ -4982,24 +4986,25 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   displayTds = Math.min(displayColumns, totalColumns);
 
   //adjust COLGROUP
-  while (this.COLGROUP.childNodes.length < displayTds + rowHeadersCount) {
+  while (this.colgroupChildrenLength < displayTds + rowHeadersCount) {
     this.COLGROUP.appendChild(document.createElement('COL'));
+    this.colgroupChildrenLength++;
   }
-  while (this.COLGROUP.length > displayTds + rowHeadersCount) {
+  while (this.colgroupChildrenLength > displayTds + rowHeadersCount) {
     this.COLGROUP.removeChild(this.COLGROUP.lastChild);
+    this.colgroupChildrenLength--;
   }
 
   //adjust THEAD
   if (this.instance.hasSetting('columnHeaders')) {
-    var availableTHs = this.THEAD.childNodes[0].childNodes.length;
-    while (availableTHs < displayTds + rowHeadersCount) {
+    while (this.theadChildrenLength < displayTds + rowHeadersCount) {
       this.THEAD.firstChild.appendChild(document.createElement('TH'));
-      availableTHs++;
+      this.theadChildrenLength++;
     }
   }
 
   //adjust TBODY
-  while (this.availableTRs < displayRows) {
+  while (this.tbodyChildrenLength < displayRows) {
     TR = document.createElement('TR');
     if (this.instance.hasSetting('rowHeaders')) {
       TR.appendChild(document.createElement('TH'));
@@ -5008,21 +5013,24 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
       TR.appendChild(document.createElement('TD'));
     }
     this.TBODY.appendChild(TR);
-    this.availableTRs++;
+    this.tbodyChildrenLength++;
   }
-  while (this.availableTRs > displayRows) {
+  while (this.tbodyChildrenLength > displayRows) {
     this.TBODY.removeChild(this.TBODY.lastChild);
-    this.availableTRs--;
+    this.tbodyChildrenLength--;
   }
 
-  var TRs = this.TABLE.getElementsByTagName('TR');
-
+  var TRs = this.TBODY.childNodes;
+  var trChildrenLength;
   for (var r = 0, rlen = TRs.length; r < rlen; r++) {
-    while (TRs[r].childNodes.length < displayTds + rowHeadersCount) {
+    trChildrenLength = TRs[r].childNodes.length;
+    while (trChildrenLength < displayTds + rowHeadersCount) {
       TRs[r].appendChild(document.createElement('TD'));
+      trChildrenLength++;
     }
-    while (TRs[r].childNodes.length > displayTds + rowHeadersCount) {
+    while (trChildrenLength > displayTds + rowHeadersCount) {
       TRs[r].removeChild(TRs[r].lastChild);
+      trChildrenLength--;
     }
   }
 };
@@ -5086,7 +5094,7 @@ WalkontableTable.prototype.draw = function () {
         TH.innerHTML = '';
       }
     }
-    for (c = 0; c < displayTds; c++) {
+    for (c = 0; c < displayTds; c++) { //in future use nextSibling; http://jsperf.com/nextsibling-vs-indexed-childnodes
       TD = TR.childNodes[c + rowHeadersCount];
       TD.className = '';
       this.instance.getSetting('cellRenderer', offsetRow + r, offsetColumn + c, TD);
@@ -5132,13 +5140,17 @@ function WalkontableWheel(instance) {
 
   //reference to instance
   this.instance = instance;
+  var wheelTimeout;
   $(this.instance.settings.table).on('mousewheel', function (event, delta, deltaX, deltaY) {
-    if (deltaY) {
-      that.instance.scrollVertical(-deltaY).draw();
-    }
-    else if (deltaX) {
-      that.instance.scrollHorizontal(deltaX).draw();
-    }
+    clearTimeout(wheelTimeout);
+    wheelTimeout = setTimeout(function () { //timeout is needed because with fast-wheel scrolling mousewheel event comes dozen times per second
+      if (deltaY) {
+        that.instance.scrollVertical(-deltaY).draw();
+      }
+      else if (deltaX) {
+        that.instance.scrollHorizontal(deltaX).draw();
+      }
+    }, 0);
     event.preventDefault();
   });
 }
