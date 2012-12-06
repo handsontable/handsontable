@@ -56,6 +56,7 @@ var texteditor = {
 
     var coords = {row: row, col: col};
     instance.view.scrollViewport(coords);
+    instance.view.render();
     td = instance.getCell(row, col); //because old td may have been scrolled out with scrollViewport
 
     keyboardProxy.on('cut.editor', function (event) {

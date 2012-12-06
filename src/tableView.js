@@ -215,5 +215,5 @@ Handsontable.TableView.prototype.getAllCells = function () {
  * @param coords
  */
 Handsontable.TableView.prototype.scrollViewport = function (coords) {
-  this.wt.scrollViewport([coords.row, coords.col]).draw();
+  this.wt.scrollViewport([coords.row, coords.col]);
 };

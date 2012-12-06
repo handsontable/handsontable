@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Dec 06 2012 01:51:56 GMT+0100 (Central European Standard Time)
+ * Date: Thu Dec 06 2012 02:24:41 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2325,7 +2325,7 @@ Handsontable.TableView.prototype.getAllCells = function () {
  * @param coords
  */
 Handsontable.TableView.prototype.scrollViewport = function (coords) {
-  this.wt.scrollViewport([coords.row, coords.col]).draw();
+  this.wt.scrollViewport([coords.row, coords.col]);
 };
 /**
  * Returns true if keyCode represents a printable character
@@ -2931,6 +2931,7 @@ var texteditor = {
 
     var coords = {row: row, col: col};
     instance.view.scrollViewport(coords);
+    instance.view.render();
     td = instance.getCell(row, col); //because old td may have been scrolled out with scrollViewport
 
     keyboardProxy.on('cut.editor', function (event) {
@@ -4023,7 +4024,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Thu Dec 06 2012 01:51:24 GMT+0100 (Central European Standard Time)
+ * Date: Thu Dec 06 2012 02:21:23 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -4060,7 +4061,7 @@ function WalkontableBorder(instance, settings) {
  * @param {Array} corners
  */
 WalkontableBorder.prototype.appear = function (corners) {
-  var $from, $to, fromOffset, toOffset, containerOffset, top, minTop, left, minLeft, height, width;
+  var isMultiple, $from, $to, fromOffset, toOffset, containerOffset, top, minTop, left, minLeft, height, width;
   if (this.disabled) {
     return;
   }
@@ -4105,10 +4106,11 @@ WalkontableBorder.prototype.appear = function (corners) {
   }
 
   if (!(hideTop == hideLeft == hideBottom == hideRight == true)) {
+    isMultiple = (corners[0] !== corners[2] || corners[1] !== corners[3]);
     $from = $(this.instance.wtTable.getCell([corners[0], corners[1]]));
-    $to = (corners.length > 2) ? $(this.instance.wtTable.getCell([corners[2], corners[3]])) : $from;
+    $to = isMultiple ? $(this.instance.wtTable.getCell([corners[2], corners[3]])) : $from;
     fromOffset = this.wtDom.offset($from[0]);
-    toOffset = (corners.length > 2) ? this.wtDom.offset($to[0]) : fromOffset;
+    toOffset = isMultiple ? this.wtDom.offset($to[0]) : fromOffset;
     containerOffset = this.wtDom.offset(this.instance.wtTable.TABLE);
 
     minTop = fromOffset.top;
@@ -5041,6 +5043,7 @@ WalkontableTable.prototype.draw = function () {
     , TD
     , cellData;
   this.adjustAvailableNodes();
+  this.tableOffset = this.wtDom.offset(this.TABLE);
 
   displayRows = Math.min(displayRows, totalRows);
   displayTds = Math.min(displayColumns, totalColumns);
