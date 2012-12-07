@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Thu Dec 06 2012 11:43:40 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 07 2012 13:54:39 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -190,7 +190,8 @@ function Walkontable(settings) {
     columnWidth: null,
     selections: null,
     onCellMouseDown: null,
-    onCellMouseOver: null
+    onCellMouseOver: null,
+    onCellDblClick: null
   };
 
   //reference to settings
@@ -466,12 +467,40 @@ function WalkontableEvent(instance) {
     }
   });
 
+  var lastMouseOver;
   $(this.instance.settings.table).on('mouseover', function (event) {
     if (that.instance.settings.onCellMouseOver) {
       var TD = that.wtDom.closest(event.target, ['TD', 'TH']);
-      that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(TD), TD);
+      if (TD !== lastMouseOver) {
+        lastMouseOver = TD;
+        that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(TD), TD);
+      }
     }
   });
+
+  var dblClickOrigin
+    , dblClickTimeout;
+  $(this.instance.settings.table).on('mouseup', function (event) {
+    if (that.instance.settings.onCellDblClick) {
+      var TD = that.wtDom.closest(event.target, ['TD', 'TH']);
+      if (dblClickOrigin === TD) {
+        that.instance.getSetting('onCellDblClick', event, that.instance.wtTable.getCoords(TD), TD);
+        dblClickOrigin = null;
+      }
+      else {
+        dblClickOrigin = TD;
+        clearTimeout(dblClickTimeout);
+        dblClickTimeout = setTimeout(function () {
+          dblClickOrigin = null;
+        }, 500);
+      }
+    }
+  });
+
+  //TODO: add border events
+  //instance.container.find('.htBorder.current').on('mousedown', onDblClick);
+  //instance.container.find('.htBorder.current').on('mouseover', onDblClick);
+  //instance.container.find('.htBorder.current').on('dblclick', onDblClick);
 }
 //http://stackoverflow.com/questions/3629183/why-doesnt-indexof-work-on-an-array-ie8
 if (!Array.prototype.indexOf) {
@@ -944,9 +973,7 @@ function WalkontableTable(instance) {
   }
 
   this.colgroupChildrenLength = this.COLGROUP.childNodes.length;
-  if (this.instance.hasSetting('columnHeaders')) {
-    this.theadChildrenLength = this.THEAD.childNodes[0].childNodes.length;
-  }
+  this.theadChildrenLength = this.THEAD.firstChild ? this.THEAD.firstChild.childNodes.length : 0;
   this.tbodyChildrenLength = this.TBODY.childNodes.length;
 }
 
@@ -977,6 +1004,10 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
     while (this.theadChildrenLength < displayTds + rowHeadersCount) {
       this.THEAD.firstChild.appendChild(document.createElement('TH'));
       this.theadChildrenLength++;
+    }
+    while (this.theadChildrenLength > displayTds + rowHeadersCount) {
+      this.THEAD.firstChild.removeChild(this.THEAD.firstChild.lastChild);
+      this.theadChildrenLength--;
     }
   }
 

@@ -165,6 +165,7 @@ Handsontable.TableView.prototype.removeCol = function (coords, toCoords) {
 
 Handsontable.TableView.prototype.render = function (row, col, prop, value) {
   this.wt.draw();
+  this.instance.rootElement.triggerHandler('render.handsontable');
 };
 
 Handsontable.TableView.prototype.renderRow = function (row) {

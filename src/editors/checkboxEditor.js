@@ -40,13 +40,10 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardPr
     toggleCheckboxCell(instance, row, prop, cellProperties);
   }
 
-  var $td = $(td);
-  $td.on('dblclick.editor', onDblClick);
-  //instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
+  instance.view.wt.update('onCellDblClick', onDblClick);
 
   return function () {
     keyboardProxy.off(".editor");
-    $td.off(".editor");
-    //instance.container.find('.htBorder.current').off(".editor");
+    instance.view.wt.update('onCellDblClick', null);
   }
 };

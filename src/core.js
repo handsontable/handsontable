@@ -941,8 +941,8 @@ Handsontable.Core = function (rootElement, settings) {
       if (!autofill.handle) {
         autofill.handle = new Handsontable.FillHandle(self);
         /*autofill.fillBorder = new Handsontable.Border(self, {
-          className: 'htFillBorder'
-        });*/
+         className: 'htFillBorder'
+         });*/
 
         $(autofill.handle.handle).on('dblclick', autofill.selectAdjacent);
       }
@@ -1477,7 +1477,6 @@ Handsontable.Core = function (rootElement, settings) {
       }
       self.view.render();
       self.rootElement.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
-      self.rootElement.triggerHandler("cellrender.handsontable", [changes, source || 'edit']);
     });
   };
 
@@ -1553,7 +1552,6 @@ Handsontable.Core = function (rootElement, settings) {
     }
     selection.refreshBorderDimensions();
     priv.editProxy.triggerHandler('refreshBorder');
-    self.rootElement.triggerHandler('cellrender.handsontable', [changes, source || 'render']);
   };
 
   /**

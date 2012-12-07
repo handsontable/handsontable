@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Dec 06 2012 11:44:20 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 07 2012 14:06:03 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -960,8 +960,8 @@ Handsontable.Core = function (rootElement, settings) {
       if (!autofill.handle) {
         autofill.handle = new Handsontable.FillHandle(self);
         /*autofill.fillBorder = new Handsontable.Border(self, {
-          className: 'htFillBorder'
-        });*/
+         className: 'htFillBorder'
+         });*/
 
         $(autofill.handle.handle).on('dblclick', autofill.selectAdjacent);
       }
@@ -1496,7 +1496,6 @@ Handsontable.Core = function (rootElement, settings) {
       }
       self.view.render();
       self.rootElement.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
-      self.rootElement.triggerHandler("cellrender.handsontable", [changes, source || 'edit']);
     });
   };
 
@@ -1572,7 +1571,6 @@ Handsontable.Core = function (rootElement, settings) {
     }
     selection.refreshBorderDimensions();
     priv.editProxy.triggerHandler('refreshBorder');
-    self.rootElement.triggerHandler('cellrender.handsontable', [changes, source || 'render']);
   };
 
   /**
@@ -2275,6 +2273,7 @@ Handsontable.TableView.prototype.removeCol = function (coords, toCoords) {
 
 Handsontable.TableView.prototype.render = function (row, col, prop, value) {
   this.wt.draw();
+  this.instance.rootElement.triggerHandler('render.handsontable');
 };
 
 Handsontable.TableView.prototype.renderRow = function (row) {
@@ -2819,13 +2818,19 @@ Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, valu
   var $td = $(td);
   var $text = $('<div class="htAutocomplete"></div>');
   var $arrow = $('<div class="htAutocompleteArrow">&#x25BC;</div>');
-  $arrow.mouseup(function(){
-    $td.triggerHandler('dblclick.editor');
+
+  $arrow.mousedown(function (event) {
+    instance.view.wt.getSetting('onCellDblClick');
+    event.stopPropagation(); //otherwise can confuse mousedown handler
+  });
+
+  $arrow.mouseup(function (event) {
+    event.stopPropagation(); //otherwise can confuse dblclick handler
   });
 
   Handsontable.TextCell.renderer(instance, $text[0], row, col, prop, value, cellProperties);
 
-  if($text.html() === '') {
+  if ($text.html() === '') {
     $text.html('&nbsp;');
   }
 
@@ -2862,13 +2867,19 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, c
     td.innerHTML = "#bad value#";
   }
 
-  $(td).find('input').change(function () {
-    if ($(this).is(':checked')) {
+  var $input = $(td).find('input:first');
+  $input.mousedown(function (event) {
+    if (!$(this).is(':checked')) {
       instance.setDataAtCell(row, prop, cellProperties.checkedTemplate);
     }
     else {
       instance.setDataAtCell(row, prop, cellProperties.uncheckedTemplate);
     }
+    event.stopPropagation(); //otherwise can confuse mousedown handler
+  });
+
+  $input.mouseup(function (event) {
+    event.stopPropagation(); //otherwise can confuse dblclick handler
   });
 
   return td;
@@ -2932,7 +2943,7 @@ var texteditor = {
     var coords = {row: row, col: col};
     instance.view.scrollViewport(coords);
     instance.view.render();
-    td = instance.getCell(row, col); //because old td may have been scrolled out with scrollViewport
+    texteditor.$td = $(instance.getCell(row, col)); //because old td may have been scrolled out with scrollViewport
 
     keyboardProxy.on('cut.editor', function (event) {
       event.stopPropagation();
@@ -2958,7 +2969,7 @@ var texteditor = {
       keyboardProxy.val('');
     }
 
-    texteditor.refreshDimensions(instance, td, keyboardProxy);
+    texteditor.refreshDimensions(instance, keyboardProxy);
     keyboardProxy.parent().removeClass('htHidden');
 
     instance.rootElement.triggerHandler('beginediting.handsontable');
@@ -2971,14 +2982,13 @@ var texteditor = {
     }, 1);
   },
 
-  refreshDimensions: function (instance, td, keyboardProxy) {
+  refreshDimensions: function (instance, keyboardProxy) {
     if (!texteditor.isCellEdited) {
       return;
     }
 
     ///start prepare textarea position
-    var $td = $(td);
-    var currentOffset = $td.offset();
+    var currentOffset = texteditor.$td.offset();
     var containerOffset = instance.rootElement.offset();
     var scrollTop = instance.rootElement.scrollTop();
     var scrollLeft = instance.rootElement.scrollLeft();
@@ -2992,10 +3002,10 @@ var texteditor = {
       editLeft = 0;
     }
 
-    if (instance.blockedRows.count() > 0 && parseInt($td.css('border-top-width')) > 0) {
+    if (instance.blockedRows.count() > 0 && parseInt(texteditor.$td.css('border-top-width')) > 0) {
       editTop += 1;
     }
-    if (instance.blockedCols.count() > 0 && parseInt($td.css('border-left-width')) > 0) {
+    if (instance.blockedCols.count() > 0 && parseInt(texteditor.$td.css('border-left-width')) > 0) {
       editLeft += 1;
     }
 
@@ -3007,23 +3017,15 @@ var texteditor = {
       top: editTop,
       left: editLeft
     });
-
-    function onDblClick() {
-      keyboardProxy[0].focus();
-      texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true);
-    }
-
-    $td.on('dblclick.editor', onDblClick);
-    instance.rootElement.find('.htBorder.current').on('dblclick.editor', onDblClick);
     ///end prepare textarea position
 
-    var width = $td.width()
-      , height = $td.outerHeight() - 4;
+    var width = texteditor.$td.width()
+      , height = texteditor.$td.outerHeight() - 4;
 
-    if (parseInt($td.css('border-top-width')) > 0) {
+    if (parseInt(texteditor.$td.css('border-top-width')) > 0) {
       height -= 1;
     }
-    if (parseInt($td.css('border-left-width')) > 0) {
+    if (parseInt(texteditor.$td.css('border-left-width')) > 0) {
       if (instance.blockedCols.count() > 0) {
         width -= 1;
       }
@@ -3068,7 +3070,7 @@ var texteditor = {
       }
     }
     keyboardProxy.off(".editor");
-    $(td).off('.editor');
+    instance.view.wt.update('onCellDblClick', null);
 
     keyboardProxy.css({
       width: 0,
@@ -3078,7 +3080,6 @@ var texteditor = {
       overflow: 'hidden'
     });
 
-    instance.rootElement.find('.htBorder.current').off('.editor');
     instance.rootElement.triggerHandler('finishediting.handsontable');
   }
 };
@@ -3095,6 +3096,7 @@ var texteditor = {
  */
 Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
   texteditor.isCellEdited = false;
+  texteditor.$td = $(td);
   texteditor.originalValue = instance.getDataAtCell(row, prop);
   texteditor.triggerOnlyByDestroyer = cellProperties.strict;
 
@@ -3111,7 +3113,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
   keyboardProxy.on('refreshBorder.editor', function () {
     setTimeout(function () {
       if (texteditor.isCellEdited) {
-        texteditor.refreshDimensions(instance, $(td), keyboardProxy);
+        texteditor.refreshDimensions(instance, keyboardProxy);
       }
     }, 0);
   });
@@ -3120,7 +3122,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     if (Handsontable.helper.isPrintableChar(event.keyCode)) {
       if (!texteditor.isCellEdited && !ctrlDown) { //disregard CTRL-key shortcuts
-        texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy);
+        texteditor.beginEditing(instance, null, row, col, prop, keyboardProxy);
         event.stopImmediatePropagation();
       }
       else if (ctrlDown) {
@@ -3140,13 +3142,13 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
     switch (event.keyCode) {
       case 38: /* arrow up */
         if (texteditor.isCellEdited) {
-          texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
+          texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
         }
         break;
 
       case 9: /* tab */
         if (texteditor.isCellEdited) {
-          texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
+          texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
         }
         event.preventDefault();
         break;
@@ -3154,7 +3156,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
       case 39: /* arrow right */
         if (texteditor.isCellEdited) {
           if (texteditor.getCaretPosition(keyboardProxy) === keyboardProxy.val().length) {
-            texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
+            texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
 
           }
           else {
@@ -3166,7 +3168,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
       case 37: /* arrow left */
         if (texteditor.isCellEdited) {
           if (texteditor.getCaretPosition(keyboardProxy) === 0) {
-            texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
+            texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
           }
           else {
             event.stopPropagation();
@@ -3183,7 +3185,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
 
       case 40: /* arrow down */
         if (texteditor.isCellEdited) {
-          texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false);
+          texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
         }
         break;
 
@@ -3196,7 +3198,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
 
       case 113: /* F2 */
         if (!texteditor.isCellEdited) {
-          texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true); //show edit field
+          texteditor.beginEditing(instance, null, row, col, prop, keyboardProxy, true); //show edit field
           event.stopPropagation();
           event.preventDefault(); //prevent Opera from opening Go to Page dialog
         }
@@ -3212,15 +3214,15 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
             event.stopPropagation();
           }
           else {
-            texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, false, ctrlDown);
+            texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false, ctrlDown);
           }
         }
         else if (instance.getSettings().enterBeginsEditing) {
           if ((ctrlDown && !selection.isMultiple()) || event.altKey) { //if ctrl+enter or alt+enter, add new line
-            texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true, '\n'); //show edit field
+            texteditor.beginEditing(instance, null, row, col, prop, keyboardProxy, true, '\n'); //show edit field
           }
           else {
-            texteditor.beginEditing(instance, td, row, col, prop, keyboardProxy, true); //show edit field
+            texteditor.beginEditing(instance, null, row, col, prop, keyboardProxy, true); //show edit field
           }
           event.stopPropagation();
         }
@@ -3237,9 +3239,16 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
     }
   });
 
+  function onDblClick() {
+    keyboardProxy[0].focus();
+    texteditor.beginEditing(instance, null, row, col, prop, keyboardProxy, true);
+  }
+
+  instance.view.wt.update('onCellDblClick', onDblClick);
+
   return function (isCancelled) {
     texteditor.triggerOnlyByDestroyer = false;
-    texteditor.finishEditing(instance, td, row, col, prop, keyboardProxy, isCancelled);
+    texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, isCancelled);
   }
 };
 function isAutoComplete(keyboardProxy) {
@@ -3393,14 +3402,15 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   var textDestroyer = Handsontable.TextEditor(instance, td, row, col, prop, keyboardProxy, cellProperties);
 
   function onDblClick() {
+    keyboardProxy[0].focus();
+    texteditor.beginEditing(instance, null, row, col, prop, keyboardProxy, true);
     dontHide = true;
     setTimeout(function () { //otherwise is misaligned in IE9
       keyboardProxy.data('typeahead').lookup();
     }, 1);
   }
 
-  $(td).on('dblclick.editor', onDblClick);
-  //instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick); //needs to be changed for firtual renderer
+  instance.view.wt.update('onCellDblClick', onDblClick); //no need to destroy it here because it will be destroyed by TextEditor destroyer
 
   var destroyer = function (isCancelled) {
     wasDestroyed = true;
@@ -3456,14 +3466,11 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardPr
     toggleCheckboxCell(instance, row, prop, cellProperties);
   }
 
-  var $td = $(td);
-  $td.on('dblclick.editor', onDblClick);
-  //instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick);
+  instance.view.wt.update('onCellDblClick', onDblClick);
 
   return function () {
     keyboardProxy.off(".editor");
-    $td.off(".editor");
-    //instance.container.find('.htBorder.current').off(".editor");
+    instance.view.wt.update('onCellDblClick', null);
   }
 };
 Handsontable.AutocompleteCell = {
@@ -4024,7 +4031,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Thu Dec 06 2012 11:43:40 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 07 2012 13:54:39 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -4213,7 +4220,8 @@ function Walkontable(settings) {
     columnWidth: null,
     selections: null,
     onCellMouseDown: null,
-    onCellMouseOver: null
+    onCellMouseOver: null,
+    onCellDblClick: null
   };
 
   //reference to settings
@@ -4489,12 +4497,40 @@ function WalkontableEvent(instance) {
     }
   });
 
+  var lastMouseOver;
   $(this.instance.settings.table).on('mouseover', function (event) {
     if (that.instance.settings.onCellMouseOver) {
       var TD = that.wtDom.closest(event.target, ['TD', 'TH']);
-      that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(TD), TD);
+      if (TD !== lastMouseOver) {
+        lastMouseOver = TD;
+        that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(TD), TD);
+      }
     }
   });
+
+  var dblClickOrigin
+    , dblClickTimeout;
+  $(this.instance.settings.table).on('mouseup', function (event) {
+    if (that.instance.settings.onCellDblClick) {
+      var TD = that.wtDom.closest(event.target, ['TD', 'TH']);
+      if (dblClickOrigin === TD) {
+        that.instance.getSetting('onCellDblClick', event, that.instance.wtTable.getCoords(TD), TD);
+        dblClickOrigin = null;
+      }
+      else {
+        dblClickOrigin = TD;
+        clearTimeout(dblClickTimeout);
+        dblClickTimeout = setTimeout(function () {
+          dblClickOrigin = null;
+        }, 500);
+      }
+    }
+  });
+
+  //TODO: add border events
+  //instance.container.find('.htBorder.current').on('mousedown', onDblClick);
+  //instance.container.find('.htBorder.current').on('mouseover', onDblClick);
+  //instance.container.find('.htBorder.current').on('dblclick', onDblClick);
 }
 //http://stackoverflow.com/questions/3629183/why-doesnt-indexof-work-on-an-array-ie8
 if (!Array.prototype.indexOf) {
@@ -4967,9 +5003,7 @@ function WalkontableTable(instance) {
   }
 
   this.colgroupChildrenLength = this.COLGROUP.childNodes.length;
-  if (this.instance.hasSetting('columnHeaders')) {
-    this.theadChildrenLength = this.THEAD.childNodes[0].childNodes.length;
-  }
+  this.theadChildrenLength = this.THEAD.firstChild ? this.THEAD.firstChild.childNodes.length : 0;
   this.tbodyChildrenLength = this.TBODY.childNodes.length;
 }
 
@@ -5000,6 +5034,10 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
     while (this.theadChildrenLength < displayTds + rowHeadersCount) {
       this.THEAD.firstChild.appendChild(document.createElement('TH'));
       this.theadChildrenLength++;
+    }
+    while (this.theadChildrenLength > displayTds + rowHeadersCount) {
+      this.THEAD.firstChild.removeChild(this.THEAD.firstChild.lastChild);
+      this.theadChildrenLength--;
     }
   }
 

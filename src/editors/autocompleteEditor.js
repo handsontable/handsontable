@@ -149,14 +149,15 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   var textDestroyer = Handsontable.TextEditor(instance, td, row, col, prop, keyboardProxy, cellProperties);
 
   function onDblClick() {
+    keyboardProxy[0].focus();
+    texteditor.beginEditing(instance, null, row, col, prop, keyboardProxy, true);
     dontHide = true;
     setTimeout(function () { //otherwise is misaligned in IE9
       keyboardProxy.data('typeahead').lookup();
     }, 1);
   }
 
-  $(td).on('dblclick.editor', onDblClick);
-  //instance.container.find('.htBorder.current').on('dblclick.editor', onDblClick); //needs to be changed for firtual renderer
+  instance.view.wt.update('onCellDblClick', onDblClick); //no need to destroy it here because it will be destroyed by TextEditor destroyer
 
   var destroyer = function (isCancelled) {
     wasDestroyed = true;
