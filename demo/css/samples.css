@@ -279,11 +279,11 @@ body.home .linkColumn {
   float: left;
 }
 
-body.home ul {
+body.home #container ul {
   list-style-type: none;
   padding: 0;
 }
 
-body.home ul li {
+body.home #container ul li {
   margin: 0 0 10px 0;
 }
