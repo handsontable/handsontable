@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Fri Dec 07 2012 13:54:39 GMT+0100 (Central European Standard Time)
+ * Date: Sat Dec 08 2012 01:36:11 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -30,7 +30,7 @@ function WalkontableBorder(instance, settings) {
   this.right = this.main.childNodes[3];
 
   this.disappear();
-  instance.wtTable.TABLE.parentNode.appendChild(this.main);
+  instance.wtTable.parent.appendChild(this.main);
 }
 
 /**
@@ -417,11 +417,18 @@ WalkontableDom.prototype.removeTextNodes = function (elem, parent) {
   }
 };
 
+/**
+ * seems getBounding is usually faster: http://jsperf.com/offset-vs-getboundingclientrect/4
+ * but maybe offset + cache would work?
+ */
 WalkontableDom.prototype.offset = function (elem) {
-  return elem.getBoundingClientRect();
+  var rect = elem.getBoundingClientRect();
+  return {
+    top: rect.top + document.documentElement.scrollTop,
+    left: rect.left + document.documentElement.scrollLeft
+  };
 };
 
-//seems getBounding is always faster: http://jsperf.com/offset-vs-getboundingclientrect/3
 /*
  WalkontableDom.prototype.offsetLeft = function (elem) {
  var offset = elem.offsetLeft;
@@ -460,15 +467,23 @@ function WalkontableEvent(instance) {
 
   this.wtDom = new WalkontableDom();
 
-  $(this.instance.settings.table).on('mousedown', function (event) {
+  var onMouseDown = function (event) {
     if (that.instance.settings.onCellMouseDown) {
-      var TD = that.wtDom.closest(event.target, ['TD', 'TH']);
-      that.instance.getSetting('onCellMouseDown', event, that.instance.wtTable.getCoords(TD), TD);
+      var coords
+        , TD = that.wtDom.closest(event.target, ['TD', 'TH']);
+      if (TD) {
+        coords = that.instance.wtTable.getCoords(TD);
+      }
+      else if (!TD && that.wtDom.hasClass(event.target, 'wtBorder') && that.wtDom.hasClass(event.target, 'current')) {
+        coords = that.instance.selections.current.selected[0];
+        TD = that.instance.wtTable.getCell(coords);
+      }
+      that.instance.getSetting('onCellMouseDown', event, coords, TD);
     }
-  });
+  };
 
   var lastMouseOver;
-  $(this.instance.settings.table).on('mouseover', function (event) {
+  var onMouseOver = function (event) {
     if (that.instance.settings.onCellMouseOver) {
       var TD = that.wtDom.closest(event.target, ['TD', 'TH']);
       if (TD !== lastMouseOver) {
@@ -476,15 +491,24 @@ function WalkontableEvent(instance) {
         that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(TD), TD);
       }
     }
-  });
+  };
 
   var dblClickOrigin
     , dblClickTimeout;
-  $(this.instance.settings.table).on('mouseup', function (event) {
-    if (that.instance.settings.onCellDblClick) {
-      var TD = that.wtDom.closest(event.target, ['TD', 'TH']);
+  var onMouseUp = function (event) {
+    if (event.which !== 2 && that.instance.settings.onCellDblClick) { //if not right mouse button
+      var coords
+        , TD = that.wtDom.closest(event.target, ['TD', 'TH']);
+      if (TD) {
+        coords = that.instance.wtTable.getCoords(TD);
+      }
+      else if (!TD && that.wtDom.hasClass(event.target, 'wtBorder') && that.wtDom.hasClass(event.target, 'current')) {
+        coords = that.instance.selections.current.selected[0];
+        TD = that.instance.wtTable.getCell(coords);
+      }
+
       if (dblClickOrigin === TD) {
-        that.instance.getSetting('onCellDblClick', event, that.instance.wtTable.getCoords(TD), TD);
+        that.instance.getSetting('onCellDblClick', event, coords, TD);
         dblClickOrigin = null;
       }
       else {
@@ -495,12 +519,11 @@ function WalkontableEvent(instance) {
         }, 500);
       }
     }
-  });
+  };
 
-  //TODO: add border events
-  //instance.container.find('.htBorder.current').on('mousedown', onDblClick);
-  //instance.container.find('.htBorder.current').on('mouseover', onDblClick);
-  //instance.container.find('.htBorder.current').on('dblclick', onDblClick);
+  $(this.instance.wtTable.parent).on('mousedown', onMouseDown);
+  $(this.instance.settings.table).on('mouseover', onMouseOver);
+  $(this.instance.wtTable.parent).on('mouseup', onMouseUp);
 }
 //http://stackoverflow.com/questions/3629183/why-doesnt-indexof-work-on-an-array-ie8
 if (!Array.prototype.indexOf) {
@@ -614,9 +637,7 @@ function WalkontableScrollbar(instance, type) {
   //reference to instance
   this.instance = instance;
   this.type = type;
-  var TABLE = this.instance.getSetting('table');
-  this.$table = $(TABLE);
-  var wtDom = new WalkontableDom();
+  this.$table = $(this.instance.wtTable.TABLE);
 
   //create elements
   this.slider = document.createElement('DIV');
@@ -628,20 +649,8 @@ function WalkontableScrollbar(instance, type) {
   this.handle = document.createElement('DIV');
   this.handle.className = 'handle';
 
-  var parent = TABLE.parentNode;
-  if (!parent || parent.nodeType !== 1 || !wtDom.hasClass(parent, 'wtHolder')) {
-    var holder = document.createElement('DIV');
-    holder.style.position = 'relative';
-    holder.className = 'wtHolder';
-    if (parent) {
-      parent.insertBefore(holder, TABLE); //if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
-    }
-    holder.appendChild(TABLE);
-    parent = holder;
-  }
-
   this.slider.appendChild(this.handle);
-  parent.appendChild(this.slider);
+  this.instance.wtTable.parent.appendChild(this.slider);
 
   this.dragdealer = new Dragdealer(this.slider, {
     vertical: (type === 'vertical'),
@@ -944,11 +953,24 @@ WalkontableSelection.prototype.draw = function () {
 function WalkontableTable(instance) {
   //reference to instance
   this.instance = instance;
-
-  //bootstrap from settings
   this.TABLE = this.instance.getSetting('table');
   this.wtDom = new WalkontableDom();
   this.wtDom.removeTextNodes(this.TABLE);
+
+  //wtHolder
+  var parent = this.TABLE.parentNode;
+  if (!parent || parent.nodeType !== 1 || !this.wtDom.hasClass(parent, 'wtHolder')) {
+    var holder = document.createElement('DIV');
+    holder.style.position = 'relative';
+    holder.className = 'wtHolder';
+    if (parent) {
+      parent.insertBefore(holder, this.TABLE); //if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
+    }
+    holder.appendChild(this.TABLE);
+    this.parent = holder;
+  }
+
+  //bootstrap from settings
   this.TBODY = this.TABLE.getElementsByTagName('TBODY')[0];
   if (!this.TBODY) {
     this.TBODY = document.createElement('TBODY');
