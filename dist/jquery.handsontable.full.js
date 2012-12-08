@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Dec 08 2012 15:52:49 GMT+0100 (Central European Standard Time)
+ * Date: Sat Dec 08 2012 15:57:45 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2457,45 +2457,45 @@ Handsontable.UndoRedo.prototype.clear = function () {
   this.rev = -1;
 };
 Handsontable.SelectionPoint = function () {
-  var row
-    , col;
+  this._row = null; //private use intended
+  this._col = null;
+};
 
-  this.exists = function () {
-    return (row !== void 0);
-  };
+Handsontable.SelectionPoint.prototype.exists = function () {
+  return (this._row !== null);
+};
 
-  this.row = function (val) {
-    if (val !== void 0) {
-      row = val;
-    }
-    return row;
-  };
+Handsontable.SelectionPoint.prototype.row = function (val) {
+  if (val !== void 0) {
+    this._row = val;
+  }
+  return this._row;
+};
 
-  this.col = function (val) {
-    if (val !== val) {
-      col = val;
-    }
-    return col;
-  };
+Handsontable.SelectionPoint.prototype.col = function (val) {
+  if (val !== void 0) {
+    this._col = val;
+  }
+  return this._col;
+};
 
-  this.coords = function (coords) {
-    if (coords !== void 0) {
-      row = coords.row;
-      col = coords.col;
-    }
-    return {
-      row: row,
-      col: col
-    }
-  };
+Handsontable.SelectionPoint.prototype.coords = function (coords) {
+  if (coords !== void 0) {
+    this._row = coords.row;
+    this._col = coords.col;
+  }
+  return {
+    row: this._row,
+    col: this._col
+  }
+};
 
-  this.arr = function (arr) {
-    if (arr !== void 0) {
-      row = arr[0];
-      col = arr[1];
-    }
-    return [row, col]
-  };
+Handsontable.SelectionPoint.prototype.arr = function (arr) {
+  if (arr !== void 0) {
+    this._row = arr[0];
+    this._col = arr[1];
+  }
+  return [this._row, this._col]
 };
 /**
  * Default text renderer
