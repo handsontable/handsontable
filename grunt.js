@@ -31,6 +31,7 @@ module.exports = function (grunt) {
           'src/helpers.js',
           'src/fillHandle.js',
           'src/undoRedo.js',
+          'src/selectionPoint.js',
 
           'src/renderers/textRenderer.js',
           'src/renderers/autocompleteRenderer.js',

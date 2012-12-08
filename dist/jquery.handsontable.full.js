@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Dec 08 2012 13:22:42 GMT+0100 (Central European Standard Time)
+ * Date: Sat Dec 08 2012 15:52:49 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -30,8 +30,8 @@ Handsontable.Core = function (rootElement, settings) {
 
   priv = {
     settings: {},
-    selStart: null,
-    selEnd: null,
+    selStart: (new Handsontable.SelectionPoint()),
+    selEnd: (new Handsontable.SelectionPoint()),
     editProxy: false,
     isPopulated: null,
     scrollable: null,
@@ -358,8 +358,8 @@ Handsontable.Core = function (rootElement, settings) {
             datamap.createRow(coords);
             //self.view.createRow(coords);
             //self.view.renderRow(coords.row);
-            if (priv.selStart && priv.selStart.row >= coords.row) {
-              priv.selStart.row = priv.selStart.row + 1;
+            if (priv.selStart.exists() && priv.selStart.row() >= coords.row) {
+              priv.selStart.row(priv.selStart.row() + 1);
               selection.transformEnd(1, 0);
             }
             else {
@@ -373,8 +373,8 @@ Handsontable.Core = function (rootElement, settings) {
             datamap.createCol(coords);
             //self.view.createCol(coords);
             //self.view.renderCol(coords.col);
-            if (priv.selStart && priv.selStart.col >= coords.col) {
-              priv.selStart.col = priv.selStart.col + 1;
+            if (priv.selStart.exists() && priv.selStart.col() >= coords.col) {
+              priv.selStart.col(priv.selStart.col + 1);
               selection.transformEnd(0, 1);
             }
             else {
@@ -517,32 +517,32 @@ Handsontable.Core = function (rootElement, settings) {
         selection.deselect();
       }
 
-      if (recreateRows && priv.selStart) {
+      if (recreateRows && priv.selStart.exists()) {
         //if selection is outside, move selection to last row
-        if (priv.selStart.row > rowCount - 1) {
-          priv.selStart.row = rowCount - 1;
-          if (priv.selEnd.row > priv.selStart.row) {
-            priv.selEnd.row = priv.selStart.row;
+        if (priv.selStart.row() > rowCount - 1) {
+          priv.selStart.row(rowCount - 1);
+          if (priv.selEnd.row() > priv.selStart.row()) {
+            priv.selEnd.row(priv.selStart.row());
           }
-        } else if (priv.selEnd.row > rowCount - 1) {
-          priv.selEnd.row = rowCount - 1;
-          if (priv.selStart.row > priv.selEnd.row) {
-            priv.selStart.row = priv.selEnd.row;
+        } else if (priv.selEnd.row() > rowCount - 1) {
+          priv.selEnd.row(rowCount - 1);
+          if (priv.selStart.row() > priv.selEnd.row()) {
+            priv.selStart.row(priv.selEnd.row());
           }
         }
       }
 
       if (recreateCols && priv.selStart) {
         //if selection is outside, move selection to last row
-        if (priv.selStart.col > colCount - 1) {
-          priv.selStart.col = colCount - 1;
-          if (priv.selEnd.col > priv.selStart.col) {
-            priv.selEnd.col = priv.selStart.col;
+        if (priv.selStart.col() > colCount - 1) {
+          priv.selStart.col(colCount - 1);
+          if (priv.selEnd.col() > priv.selStart.col()) {
+            priv.selEnd.col(priv.selStart.col());
           }
-        } else if (priv.selEnd.col > colCount - 1) {
-          priv.selEnd.col = colCount - 1;
-          if (priv.selStart.col > priv.selEnd.col) {
-            priv.selStart.col = priv.selEnd.col;
+        } else if (priv.selEnd.col() > colCount - 1) {
+          priv.selEnd.col(colCount - 1);
+          if (priv.selStart.col() > priv.selEnd.col()) {
+            priv.selStart.col(priv.selEnd.col());
           }
         }
       }
@@ -675,7 +675,7 @@ Handsontable.Core = function (rootElement, settings) {
      */
     setRangeStart: function (coords) {
       selection.deselect();
-      priv.selStart = coords;
+      priv.selStart.coords(coords);
       selection.setRangeEnd(coords);
     },
 
@@ -685,19 +685,19 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to range end
      */
     setRangeEnd: function (coords, scrollToCell) {
-      selection.end(coords);
+      priv.selEnd.coords(coords);
       if (!priv.settings.multiSelect) {
-        priv.selStart = coords;
+        priv.selStart.coords(coords);
       }
 
       //set up current selection
       self.view.wt.selections.current.clear();
-      self.view.wt.selections.current.add([priv.selStart.row, priv.selStart.col]);
+      self.view.wt.selections.current.add(priv.selStart.arr());
 
       //set up area selection
       self.view.wt.selections.area.clear();
       if (selection.isMultiple()) {
-        var coords = grid.getCornerCoords([priv.selStart, priv.selEnd])
+        var coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()])
           , r = coords.TL.row
           , c;
         while (r <= coords.BR.row) {
@@ -711,8 +711,8 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       //trigger handlers
-      self.rootElement.triggerHandler("selection.handsontable", [priv.selStart.row, priv.selStart.col, priv.selEnd.row, priv.selEnd.col]);
-      self.rootElement.triggerHandler("selectionbyprop.handsontable", [priv.selStart.row, datamap.colToProp(priv.selStart.col), priv.selEnd.row, datamap.colToProp(priv.selEnd.col)]);
+      self.rootElement.triggerHandler("selection.handsontable", [priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col()]);
+      self.rootElement.triggerHandler("selectionbyprop.handsontable", [priv.selStart.row(), datamap.colToProp(priv.selStart.col()), priv.selEnd.row(), datamap.colToProp(priv.selEnd.col())]);
       if (scrollToCell !== false) {
         self.view.scrollViewport(coords);
       }
@@ -751,60 +751,40 @@ Handsontable.Core = function (rootElement, settings) {
     },
 
     /**
-     * Setter/getter for selection start
-     */
-    start: function (coords) {
-      if (typeof coords !== 'undefined') {
-        priv.selStart = coords;
-      }
-      return priv.selStart;
-    },
-
-    /**
-     * Setter/getter for selection end
-     */
-    end: function (coords) {
-      if (typeof coords !== 'undefined') {
-        priv.selEnd = coords;
-      }
-      return priv.selEnd;
-    },
-
-    /**
      * Returns information if we have a multiselection
      * @return {Boolean}
      */
     isMultiple: function () {
-      return !(priv.selEnd.col === priv.selStart.col && priv.selEnd.row === priv.selStart.row);
+      return !(priv.selEnd.col() === priv.selStart.col() && priv.selEnd.row() === priv.selStart.row());
     },
 
     /**
      * Selects cell relative to current cell (if possible)
      */
     transformStart: function (rowDelta, colDelta, force) {
-      if (priv.selStart.row + rowDelta > self.countRows() - 1) {
+      if (priv.selStart.row() + rowDelta > self.countRows() - 1) {
         if (force && priv.settings.minSpareRows > 0) {
           self.alter("insert_row", self.countRows());
         }
-        else if (priv.settings.autoWrapCol && priv.selStart.col + colDelta < self.countCols() - 1) {
+        else if (priv.settings.autoWrapCol && priv.selStart.col() + colDelta < self.countCols() - 1) {
           rowDelta = 1 - self.countRows();
           colDelta = 1;
         }
       }
-      else if (priv.settings.autoWrapCol && priv.selStart.row + rowDelta < 0 && priv.selStart.col + colDelta >= 0) {
+      else if (priv.settings.autoWrapCol && priv.selStart.row() + rowDelta < 0 && priv.selStart.col() + colDelta >= 0) {
         rowDelta = self.countRows() - 1;
         colDelta = -1;
       }
-      if (priv.selStart.col + colDelta > self.countCols() - 1) {
+      if (priv.selStart.col() + colDelta > self.countCols() - 1) {
         if (force && priv.settings.minSpareCols > 0) {
           self.alter("insert_col", self.countCols());
         }
-        else if (priv.settings.autoWrapRow && priv.selStart.row + rowDelta < self.countRows() - 1) {
+        else if (priv.settings.autoWrapRow && priv.selStart.row() + rowDelta < self.countRows() - 1) {
           rowDelta = 1;
           colDelta = 1 - self.countCols();
         }
       }
-      else if (priv.settings.autoWrapRow && priv.selStart.col + colDelta < 0 && priv.selStart.row + rowDelta >= 0) {
+      else if (priv.settings.autoWrapRow && priv.selStart.col() + colDelta < 0 && priv.selStart.row() + rowDelta >= 0) {
         rowDelta = -1;
         colDelta = self.countCols() - 1;
       }
@@ -812,8 +792,8 @@ Handsontable.Core = function (rootElement, settings) {
       var totalRows = self.countRows();
       var totalCols = self.countCols();
       var coords = {
-        row: (priv.selStart.row + rowDelta),
-        col: priv.selStart.col + colDelta
+        row: (priv.selStart.row() + rowDelta),
+        col: priv.selStart.col() + colDelta
       };
 
       if (coords.row < 0) {
@@ -837,12 +817,12 @@ Handsontable.Core = function (rootElement, settings) {
      * Sets selection end cell relative to current selection end cell (if possible)
      */
     transformEnd: function (rowDelta, colDelta) {
-      if (priv.selEnd) {
+      if (priv.selEnd.exists()) {
         var totalRows = self.countRows();
         var totalCols = self.countCols();
         var coords = {
-          row: (priv.selEnd.row + rowDelta),
-          col: priv.selEnd.col + colDelta
+          row: priv.selEnd.row() + rowDelta,
+          col: priv.selEnd.col() + colDelta
         };
 
         if (coords.row < 0) {
@@ -868,11 +848,7 @@ Handsontable.Core = function (rootElement, settings) {
      * @return {Boolean}
      */
     isSelected: function () {
-      var selEnd = selection.end();
-      if (!selEnd || typeof selEnd.row === "undefined") {
-        return false;
-      }
-      return true;
+      return priv.selEnd.exists();
     },
 
     /**
@@ -883,7 +859,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return false;
       }
-      var sel = grid.getCornerCoords([priv.selStart, priv.selEnd]);
+      var sel = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
       return (sel.TL.row <= coords.row && sel.BR.row >= coords.row && sel.TL.col <= coords.col && sel.BR.col >= coords.col);
     },
 
@@ -897,7 +873,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (autofill.handle) {
         autofill.hideHandle();
       }
-      selection.end(false);
+      priv.selEnd = new Handsontable.SelectionPoint(); //create new empty point to remove the existing one
       editproxy.destroy();
       self.rootElement.triggerHandler('deselect.handsontable');
     },
@@ -926,7 +902,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
-      var corners = grid.getCornerCoords([priv.selStart, selection.end()]);
+      var corners = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
       var r, c, changes = [];
       for (r = corners.TL.row; r <= corners.BR.row; r++) {
         for (c = corners.TL.col; c <= corners.BR.col; c++) {
@@ -1078,7 +1054,7 @@ Handsontable.Core = function (rootElement, settings) {
      * Show fill handle
      */
     showHandle: function () {
-      autofill.handle.appear([priv.selStart, priv.selEnd]);
+      autofill.handle.appear([priv.selStart.coords(), priv.selEnd.coords()]);
     },
 
     /**
@@ -1093,7 +1069,7 @@ Handsontable.Core = function (rootElement, settings) {
      */
     showBorder: function (td) {
       var coords = self.view.getCellCoords(td);
-      var corners = grid.getCornerCoords([priv.selStart, priv.selEnd]);
+      var corners = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
       if (priv.settings.fillHandle !== 'horizontal' && (corners.BR.row < coords.row || corners.TL.row > coords.row)) {
         coords = {row: coords.row, col: corners.BR.col};
       }
@@ -1103,7 +1079,7 @@ Handsontable.Core = function (rootElement, settings) {
       else {
         return; //wrong direction
       }
-      autofill.fillBorder.appear([priv.selStart, priv.selEnd, coords]);
+      autofill.fillBorder.appear([priv.selStart.coords(), priv.selEnd.coords(), coords]);
     }
   };
 
@@ -1137,7 +1113,7 @@ Handsontable.Core = function (rootElement, settings) {
 
           var input = priv.editProxy.val().replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
             inputArray = SheetClip.parse(input),
-            coords = grid.getCornerCoords([priv.selStart, priv.selEnd]);
+            coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
 
           grid.populateFromArray(coords.TL, inputArray, {
             row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
@@ -1252,28 +1228,28 @@ Handsontable.Core = function (rootElement, settings) {
 
             case 36: /* home */
               if (event.ctrlKey || event.metaKey) {
-                rangeModifier({row: 0, col: priv.selStart.col});
+                rangeModifier({row: 0, col: priv.selStart.col()});
               }
               else {
-                rangeModifier({row: priv.selStart.row, col: 0});
+                rangeModifier({row: priv.selStart.row(), col: 0});
               }
               break;
 
             case 35: /* end */
               if (event.ctrlKey || event.metaKey) {
-                rangeModifier({row: self.countRows() - 1, col: priv.selStart.col});
+                rangeModifier({row: self.countRows() - 1, col: priv.selStart.col()});
               }
               else {
-                rangeModifier({row: priv.selStart.row, col: self.countCols() - 1});
+                rangeModifier({row: priv.selStart.row(), col: self.countCols() - 1});
               }
               break;
 
             case 33: /* pg up */
-              rangeModifier({row: 0, col: priv.selStart.col});
+              rangeModifier({row: 0, col: priv.selStart.col()});
               break;
 
             case 34: /* pg dn */
-              rangeModifier({row: self.countRows() - 1, col: priv.selStart.col});
+              rangeModifier({row: self.countRows() - 1, col: priv.selStart.col()});
               break;
 
             default:
@@ -1305,9 +1281,9 @@ Handsontable.Core = function (rootElement, settings) {
      */
     prepare: function () {
       priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
-      priv.editProxy.val(datamap.getText(priv.selStart, priv.selEnd));
+      priv.editProxy.val(datamap.getText(priv.selStart.coords(), priv.selEnd.coords()));
       setTimeout(editproxy.focus, 1);
-      priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart), priv.selStart, priv.editProxy);
+      priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords(), priv.editProxy);
     },
 
     /**
@@ -1517,7 +1493,7 @@ Handsontable.Core = function (rootElement, settings) {
    */
   this.getSelected = function () { //https://github.com/warpech/jquery-handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      var coords = grid.getCornerCoords([priv.selStart, priv.selEnd]);
+      var coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
       return [coords.TL.row, coords.TL.col, coords.BR.row, coords.BR.col];
     }
   };
@@ -1970,7 +1946,7 @@ Handsontable.Core = function (rootElement, settings) {
         return false;
       }
     }
-    selection.start({row: row, col: col});
+    priv.selStart.coords({row: row, col: col});
     if (typeof endRow === "undefined") {
       selection.setRangeEnd({row: row, col: col}, scrollToCell);
     }
@@ -2479,6 +2455,47 @@ Handsontable.UndoRedo.prototype.add = function (changes) {
 Handsontable.UndoRedo.prototype.clear = function () {
   this.data = [];
   this.rev = -1;
+};
+Handsontable.SelectionPoint = function () {
+  var row
+    , col;
+
+  this.exists = function () {
+    return (row !== void 0);
+  };
+
+  this.row = function (val) {
+    if (val !== void 0) {
+      row = val;
+    }
+    return row;
+  };
+
+  this.col = function (val) {
+    if (val !== val) {
+      col = val;
+    }
+    return col;
+  };
+
+  this.coords = function (coords) {
+    if (coords !== void 0) {
+      row = coords.row;
+      col = coords.col;
+    }
+    return {
+      row: row,
+      col: col
+    }
+  };
+
+  this.arr = function (arr) {
+    if (arr !== void 0) {
+      row = arr[0];
+      col = arr[1];
+    }
+    return [row, col]
+  };
 };
 /**
  * Default text renderer
