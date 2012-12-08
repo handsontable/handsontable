@@ -348,11 +348,15 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
         break;
 
       case 36: /* home */
-        event.stopPropagation();
+        if (texteditor.isCellEdited) {
+          event.stopPropagation();
+        }
         break;
 
       case 35: /* end */
-        event.stopPropagation();
+        if (texteditor.isCellEdited) {
+          event.stopPropagation();
+        }
         break;
     }
   });

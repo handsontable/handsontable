@@ -1233,28 +1233,28 @@ Handsontable.Core = function (rootElement, settings) {
 
             case 36: /* home */
               if (event.ctrlKey || event.metaKey) {
-                rangeModifier(self.view.getCellAtCoords({row: 0, col: priv.selStart.col}));
+                rangeModifier({row: 0, col: priv.selStart.col});
               }
               else {
-                rangeModifier(self.view.getCellAtCoords({row: priv.selStart.row, col: 0}));
+                rangeModifier({row: priv.selStart.row, col: 0});
               }
               break;
 
             case 35: /* end */
               if (event.ctrlKey || event.metaKey) {
-                rangeModifier(self.view.getCellAtCoords({row: self.countRows() - 1, col: priv.selStart.col}));
+                rangeModifier({row: self.countRows() - 1, col: priv.selStart.col});
               }
               else {
-                rangeModifier(self.view.getCellAtCoords({row: priv.selStart.row, col: self.countCols() - 1}));
+                rangeModifier({row: priv.selStart.row, col: self.countCols() - 1});
               }
               break;
 
             case 33: /* pg up */
-              rangeModifier(self.view.getCellAtCoords({row: 0, col: priv.selStart.col}));
+              rangeModifier({row: 0, col: priv.selStart.col});
               break;
 
             case 34: /* pg dn */
-              rangeModifier(self.view.getCellAtCoords({row: self.countRows() - 1, col: priv.selStart.col}));
+              rangeModifier({row: self.countRows() - 1, col: priv.selStart.col});
               break;
 
             default:

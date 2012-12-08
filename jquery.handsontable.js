@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Dec 08 2012 02:14:55 GMT+0100 (Central European Standard Time)
+ * Date: Sat Dec 08 2012 12:25:52 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1252,28 +1252,28 @@ Handsontable.Core = function (rootElement, settings) {
 
             case 36: /* home */
               if (event.ctrlKey || event.metaKey) {
-                rangeModifier(self.view.getCellAtCoords({row: 0, col: priv.selStart.col}));
+                rangeModifier({row: 0, col: priv.selStart.col});
               }
               else {
-                rangeModifier(self.view.getCellAtCoords({row: priv.selStart.row, col: 0}));
+                rangeModifier({row: priv.selStart.row, col: 0});
               }
               break;
 
             case 35: /* end */
               if (event.ctrlKey || event.metaKey) {
-                rangeModifier(self.view.getCellAtCoords({row: self.countRows() - 1, col: priv.selStart.col}));
+                rangeModifier({row: self.countRows() - 1, col: priv.selStart.col});
               }
               else {
-                rangeModifier(self.view.getCellAtCoords({row: priv.selStart.row, col: self.countCols() - 1}));
+                rangeModifier({row: priv.selStart.row, col: self.countCols() - 1});
               }
               break;
 
             case 33: /* pg up */
-              rangeModifier(self.view.getCellAtCoords({row: 0, col: priv.selStart.col}));
+              rangeModifier({row: 0, col: priv.selStart.col});
               break;
 
             case 34: /* pg dn */
-              rangeModifier(self.view.getCellAtCoords({row: self.countRows() - 1, col: priv.selStart.col}));
+              rangeModifier({row: self.countRows() - 1, col: priv.selStart.col});
               break;
 
             default:
@@ -2925,11 +2925,15 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
         break;
 
       case 36: /* home */
-        event.stopPropagation();
+        if (texteditor.isCellEdited) {
+          event.stopPropagation();
+        }
         break;
 
       case 35: /* end */
-        event.stopPropagation();
+        if (texteditor.isCellEdited) {
+          event.stopPropagation();
+        }
         break;
     }
   });
