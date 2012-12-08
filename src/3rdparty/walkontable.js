@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Sat Dec 08 2012 01:36:11 GMT+0100 (Central European Standard Time)
+ * Date: Sat Dec 08 2012 13:22:01 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -496,7 +496,7 @@ function WalkontableEvent(instance) {
   var dblClickOrigin
     , dblClickTimeout;
   var onMouseUp = function (event) {
-    if (event.which !== 2 && that.instance.settings.onCellDblClick) { //if not right mouse button
+    if (event.button !== 2 && that.instance.settings.onCellDblClick) { //if not right mouse button
       var coords
         , TD = that.wtDom.closest(event.target, ['TD', 'TH']);
       if (TD) {
