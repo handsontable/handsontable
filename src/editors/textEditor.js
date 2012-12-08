@@ -109,6 +109,10 @@ var texteditor = {
     var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
     var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
 
+    var settings = instance.getSettings();
+    var rowHeadersCount = settings.rowHeaders === false ? 0 : 1;
+    var colHeadersCount = settings.colHeaders === false ? 0 : 1;
+
     if (editTop < 0) {
       editTop = 0;
     }
@@ -116,10 +120,10 @@ var texteditor = {
       editLeft = 0;
     }
 
-    if (instance.blockedRows.count() > 0 && parseInt(texteditor.$td.css('border-top-width')) > 0) {
+    if (rowHeadersCount > 0 && parseInt(texteditor.$td.css('border-top-width')) > 0) {
       editTop += 1;
     }
-    if (instance.blockedCols.count() > 0 && parseInt(texteditor.$td.css('border-left-width')) > 0) {
+    if (colHeadersCount > 0 && parseInt(texteditor.$td.css('border-left-width')) > 0) {
       editLeft += 1;
     }
 
@@ -140,7 +144,7 @@ var texteditor = {
       height -= 1;
     }
     if (parseInt(texteditor.$td.css('border-left-width')) > 0) {
-      if (instance.blockedCols.count() > 0) {
+      if (rowHeadersCount > 0) {
         width -= 1;
       }
     }

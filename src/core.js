@@ -339,7 +339,6 @@ Handsontable.Core = function (rootElement, settings) {
             datamap.createRow(coords);
             //self.view.createRow(coords);
             //self.view.renderRow(coords.row);
-            //self.blockedCols.refresh();
             if (priv.selStart && priv.selStart.row >= coords.row) {
               priv.selStart.row = priv.selStart.row + 1;
               selection.transformEnd(1, 0);
@@ -355,7 +354,6 @@ Handsontable.Core = function (rootElement, settings) {
             datamap.createCol(coords);
             //self.view.createCol(coords);
             //self.view.renderCol(coords.col);
-            //self.blockedRows.refresh();
             if (priv.selStart && priv.selStart.col >= coords.col) {
               priv.selStart.col = priv.selStart.col + 1;
               selection.transformEnd(0, 1);
@@ -370,9 +368,6 @@ Handsontable.Core = function (rootElement, settings) {
           datamap.removeRow(coords, toCoords);
           //self.view.removeRow(coords, toCoords);
           result = grid.keepEmptyRows();
-          if (!result) {
-            self.blockedCols.refresh();
-          }
           selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
           break;
 
@@ -380,9 +375,6 @@ Handsontable.Core = function (rootElement, settings) {
           datamap.removeCol(coords, toCoords);
           //self.view.removeCol(coords, toCoords);
           result = grid.keepEmptyRows();
-          if (!result) {
-            self.blockedRows.refresh();
-          }
           selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
           break;
       }
@@ -538,8 +530,6 @@ Handsontable.Core = function (rootElement, settings) {
 
       if (recreateRows || recreateCols) {
         selection.refreshBorders();
-        self.blockedCols.update();
-        self.blockedRows.update();
       }
 
       return (recreateRows || recreateCols);
@@ -1421,7 +1411,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {String} [source='edit'] String that identifies how this change will be described in changes array (useful in onChange callback)
    */
   this.setDataAtCell = function (row, prop, value, source) {
-    var refreshRows = false, refreshCols = false, changes, i, ilen;
+    var changes, i, ilen;
 
     if (typeof row === "object") { //is it an array of changes
       changes = row;
@@ -1451,7 +1441,6 @@ Handsontable.Core = function (rootElement, settings) {
             datamap.createRow();
             self.view.createRow();
             self.view.renderRow(self.countRows() - 1);
-            refreshRows = true;
           }
         }
         if (priv.dataType === 'array' && priv.settings.minSpareCols) {
@@ -1459,17 +1448,10 @@ Handsontable.Core = function (rootElement, settings) {
             datamap.createCol();
             self.view.createCol();
             self.view.renderCol(self.countCols() - 1);
-            refreshCols = true;
           }
         }
         datamap.set(row, prop, value);
         //self.view.render(row, col, prop, value);
-      }
-      if (refreshRows) {
-        self.blockedCols.refresh();
-      }
-      if (refreshCols) {
-        self.blockedRows.refresh();
       }
       var recreated = grid.keepEmptyRows();
       if (!recreated) {
@@ -1644,11 +1626,6 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
 
-    if (!self.blockedCols) {
-      self.blockedCols = new Handsontable.BlockedCols(self);
-      self.blockedRows = new Handsontable.BlockedRows(self);
-    }
-
     for (i in settings) {
       if (i === 'data') {
         continue; //loadData will be triggered later
@@ -1701,31 +1678,10 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
 
-    if (typeof settings.colHeaders !== "undefined") {
-      if (settings.colHeaders === false && priv.extensions["ColHeader"]) {
-        priv.extensions["ColHeader"].destroy();
-      }
-      else if (settings.colHeaders !== false) {
-        priv.extensions["ColHeader"] = new Handsontable.ColHeader(self, settings.colHeaders);
-      }
-    }
-
-    if (typeof settings.rowHeaders !== "undefined") {
-      if (settings.rowHeaders === false && priv.extensions["RowHeader"]) {
-        priv.extensions["RowHeader"].destroy();
-      }
-      else if (settings.rowHeaders !== false) {
-        priv.extensions["RowHeader"] = new Handsontable.RowHeader(self, settings.rowHeaders);
-      }
-    }
-
     recreated = grid.keepEmptyRows();
     if (!recreated) {
       selection.refreshBorders(null, true);
     }
-
-    self.blockedCols.update();
-    self.blockedRows.update();
   };
 
   /**
@@ -1898,34 +1854,23 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
-   * Returns headers (if they are enabled)
-   * @param {Object} obj Instance of rowHeader or colHeader
-   * @param {Number} count Number of rows or cols
-   * @param {Number} index (Optional) Will return only header at given index
-   * @return {Array|String}
-   */
-  var getHeaderText = function (obj, count, index) {
-    if (obj) {
-      if (typeof index !== 'undefined') {
-        return obj.columnLabel(index);
-      }
-      else {
-        var headers = [];
-        for (var i = 0; i < count; i++) {
-          headers.push(obj.columnLabel(i));
-        }
-        return headers;
-      }
-    }
-  };
-
-  /**
    * Return array of row headers (if they are enabled). If param `row` given, return header at given row as string
    * @param {Number} row (Optional)
    * @return {Array|String}
    */
   this.getRowHeader = function (row) {
-    return getHeaderText(priv.extensions['RowHeader'], self.countRows(), row);
+    if (priv.settings.rowHeaders === true) {
+      return row + 1;
+    }
+    else if (typeof priv.settings.rowHeaders === 'function') {
+      return priv.settings.colHeaders(row);
+    }
+    else if (Object.prototype.toString.call(priv.settings.rowHeaders) === '[object Array]') {
+      return priv.settings.colHeaders[row];
+    }
+    else {
+      return priv.settings.colHeaders;
+    }
   };
 
   /**
@@ -1934,7 +1879,26 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Array|String}
    */
   this.getColHeader = function (col) {
-    return getHeaderText(priv.extensions['ColHeader'], self.colCount, col);
+    if (priv.settings.colHeaders === true) {
+      var dividend = col + 1;
+      var columnLabel = '';
+      var modulo;
+      while (dividend > 0) {
+        modulo = (dividend - 1) % 26;
+        columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
+        dividend = parseInt((dividend - modulo) / 26);
+      }
+      return columnLabel;
+    }
+    else if (typeof priv.settings.colHeaders === 'function') {
+      return priv.settings.colHeaders(col);
+    }
+    else if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]') {
+      return priv.settings.colHeaders[col];
+    }
+    else {
+      return priv.settings.colHeaders;
+    }
   };
 
   /**

@@ -31,10 +31,6 @@ module.exports = function (grunt) {
           'src/helpers.js',
           'src/fillHandle.js',
           'src/undoRedo.js',
-          'src/blockedRows.js',
-          'src/blockedCols.js',
-          'src/rowHeader.js',
-          'src/colHeader.js',
 
           'src/renderers/textRenderer.js',
           'src/renderers/autocompleteRenderer.js',
