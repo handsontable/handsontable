@@ -123,7 +123,7 @@
               $img.on('mousedown', function (event) {
                 event.preventDefault(); //prevent selection quirk
               });
-              $img.appendTo(td); //render as img
+              $(td).empty().append($img); //empty is needed because you are rendering to an existing cell
             }
             else {
               Handsontable.TextCell.renderer.apply(this, arguments); //render as text
