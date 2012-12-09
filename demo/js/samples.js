@@ -121,4 +121,9 @@ h2 {margin: 20px 0;}';
     $(form).submit();
   });
 
+  $('button[name=dump]').on('click', function () {
+    var dump = $(this).data('dump');
+    var $container = $(dump);
+    console.log('data of ' + dump, $container.handsontable('getData'));
+  });
 });
