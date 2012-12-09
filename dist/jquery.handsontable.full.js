@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Dec 09 2012 16:23:27 GMT+0100 (Central European Standard Time)
+ * Date: Sun Dec 09 2012 23:22:11 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2530,13 +2530,8 @@ Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, valu
   var $text = $('<div class="htAutocomplete"></div>');
   var $arrow = $('<div class="htAutocompleteArrow">&#x25BC;</div>');
 
-  $arrow.mousedown(function (event) {
-    instance.view.wt.getSetting('onCellDblClick');
-    event.stopPropagation(); //otherwise can confuse mousedown handler
-  });
-
   $arrow.mouseup(function (event) {
-    event.stopPropagation(); //otherwise can confuse dblclick handler
+    instance.view.wt.getSetting('onCellDblClick');
   });
 
   Handsontable.TextCell.renderer(instance, $text[0], row, col, prop, value, cellProperties);

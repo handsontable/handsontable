@@ -13,13 +13,8 @@ Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, valu
   var $text = $('<div class="htAutocomplete"></div>');
   var $arrow = $('<div class="htAutocompleteArrow">&#x25BC;</div>');
 
-  $arrow.mousedown(function (event) {
-    instance.view.wt.getSetting('onCellDblClick');
-    event.stopPropagation(); //otherwise can confuse mousedown handler
-  });
-
   $arrow.mouseup(function (event) {
-    event.stopPropagation(); //otherwise can confuse dblclick handler
+    instance.view.wt.getSetting('onCellDblClick');
   });
 
   Handsontable.TextCell.renderer(instance, $text[0], row, col, prop, value, cellProperties);
