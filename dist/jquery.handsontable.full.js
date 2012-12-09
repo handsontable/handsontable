@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Dec 09 2012 14:50:24 GMT+0100 (Central European Standard Time)
+ * Date: Sun Dec 09 2012 16:23:27 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1664,14 +1664,16 @@ Handsontable.Core = function (rootElement, settings) {
       datamap.createMap();
     }
 
-    if (typeof settings.fillHandle !== "undefined") {
-      if (autofill.handle && settings.fillHandle === false) {
-        autofill.disable();
-      }
-      else if (!autofill.handle && settings.fillHandle !== false) {
-        autofill.init();
-      }
-    }
+    /*
+     TODO implement it in 0.8.0
+     if (typeof settings.fillHandle !== "undefined") {
+     if (autofill.handle && settings.fillHandle === false) {
+     autofill.disable();
+     }
+     else if (!autofill.handle && settings.fillHandle !== false) {
+     autofill.init();
+     }
+     }*/
 
     recreated = grid.keepEmptyRows();
     if (!recreated) {
@@ -1822,8 +1824,7 @@ Handsontable.Core = function (rootElement, settings) {
     if (priv.settings.cells) {
       cellProperites = $.extend(true, cellProperites, priv.settings.cells(row, col, prop) || {});
     }
-    //cellProperites.isWritable = grid.isCellWritable($(self.view.getCellAtCoords({row: row, col: col})), cellProperites);
-    cellProperites.isWritable = true;
+    cellProperites.isWritable = !cellProperites.readOnly;
     Handsontable.PluginHooks.run(self, 'afterGetCellMeta', [row, col, cellProperites]);
     return cellProperites;
   };
@@ -1835,7 +1836,8 @@ Handsontable.Core = function (rootElement, settings) {
    * @public
    */
   this.setCellReadOnly = function (row, col) {
-    $(self.view.getCellAtCoords({row: row, col: col})).data("readOnly", true);
+    throw new Error('not implemented yet (Handsontable 0.8.0)');
+    //$(self.view.getCellAtCoords({row: row, col: col})).data("readOnly", true);
   };
 
   /**
@@ -1845,7 +1847,8 @@ Handsontable.Core = function (rootElement, settings) {
    * @public
    */
   this.setCellEditable = function (row, col) {
-    $(self.view.getCellAtCoords({row: row, col: col})).data("readOnly", false);
+    throw new Error('not implemented yet (Handsontable 0.8.0)');
+    //$(self.view.getCellAtCoords({row: row, col: col})).data("readOnly", false);
   };
 
   /**

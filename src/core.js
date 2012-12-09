@@ -1645,14 +1645,16 @@ Handsontable.Core = function (rootElement, settings) {
       datamap.createMap();
     }
 
-    if (typeof settings.fillHandle !== "undefined") {
-      if (autofill.handle && settings.fillHandle === false) {
-        autofill.disable();
-      }
-      else if (!autofill.handle && settings.fillHandle !== false) {
-        autofill.init();
-      }
-    }
+    /*
+     TODO implement it in 0.8.0
+     if (typeof settings.fillHandle !== "undefined") {
+     if (autofill.handle && settings.fillHandle === false) {
+     autofill.disable();
+     }
+     else if (!autofill.handle && settings.fillHandle !== false) {
+     autofill.init();
+     }
+     }*/
 
     recreated = grid.keepEmptyRows();
     if (!recreated) {
@@ -1803,8 +1805,7 @@ Handsontable.Core = function (rootElement, settings) {
     if (priv.settings.cells) {
       cellProperites = $.extend(true, cellProperites, priv.settings.cells(row, col, prop) || {});
     }
-    //cellProperites.isWritable = grid.isCellWritable($(self.view.getCellAtCoords({row: row, col: col})), cellProperites);
-    cellProperites.isWritable = true;
+    cellProperites.isWritable = !cellProperites.readOnly;
     Handsontable.PluginHooks.run(self, 'afterGetCellMeta', [row, col, cellProperites]);
     return cellProperites;
   };
@@ -1816,7 +1817,8 @@ Handsontable.Core = function (rootElement, settings) {
    * @public
    */
   this.setCellReadOnly = function (row, col) {
-    $(self.view.getCellAtCoords({row: row, col: col})).data("readOnly", true);
+    throw new Error('not implemented yet (Handsontable 0.8.0)');
+    //$(self.view.getCellAtCoords({row: row, col: col})).data("readOnly", true);
   };
 
   /**
@@ -1826,7 +1828,8 @@ Handsontable.Core = function (rootElement, settings) {
    * @public
    */
   this.setCellEditable = function (row, col) {
-    $(self.view.getCellAtCoords({row: row, col: col})).data("readOnly", false);
+    throw new Error('not implemented yet (Handsontable 0.8.0)');
+    //$(self.view.getCellAtCoords({row: row, col: col})).data("readOnly", false);
   };
 
   /**
