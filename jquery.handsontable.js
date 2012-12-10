@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 10 2012 21:00:12 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 10 2012 21:15:45 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -508,39 +508,54 @@ Handsontable.Core = function (rootElement, settings) {
         selection.deselect();
       }
 
-      if (recreateRows && priv.selStart.exists()) {
+      var selectionChanged;
+      if (priv.selStart.exists()) {
+        var fromRow = priv.selStart.row();
+        var fromCol = priv.selStart.col();
+        var toRow = priv.selEnd.row();
+        var toCol = priv.selEnd.col();
+
         //if selection is outside, move selection to last row
-        if (priv.selStart.row() > rowCount - 1) {
-          priv.selStart.row(rowCount - 1);
-          if (priv.selEnd.row() > priv.selStart.row()) {
-            priv.selEnd.row(priv.selStart.row());
+        if (fromRow > rowCount - 1) {
+          fromRow = rowCount - 1;
+          selectionChanged = true;
+          if (toRow > fromRow) {
+            toRow = fromRow;
           }
-        } else if (priv.selEnd.row() > rowCount - 1) {
-          priv.selEnd.row(rowCount - 1);
-          if (priv.selStart.row() > priv.selEnd.row()) {
-            priv.selStart.row(priv.selEnd.row());
+        } else if (toRow > rowCount - 1) {
+          toRow = rowCount - 1;
+          selectionChanged = true;
+          if (fromRow > toRow) {
+            fromRow = toRow;
           }
+        }
+
+        //if selection is outside, move selection to last row
+        if (fromCol > colCount - 1) {
+          fromCol = colCount - 1;
+          selectionChanged = true;
+          if (toCol > fromCol) {
+            toCol = fromCol;
+          }
+        } else if (toCol > colCount - 1) {
+          toCol = colCount - 1;
+          selectionChanged = true;
+          if (fromCol > toCol) {
+            fromCol = toCol;
+          }
+        }
+
+        if (selectionChanged) {
+          self.selectCell(fromRow, fromCol, toRow, toCol);
         }
       }
 
-      if (recreateCols && priv.selStart) {
-        //if selection is outside, move selection to last row
-        if (priv.selStart.col() > colCount - 1) {
-          priv.selStart.col(colCount - 1);
-          if (priv.selEnd.col() > priv.selStart.col()) {
-            priv.selEnd.col(priv.selStart.col());
-          }
-        } else if (priv.selEnd.col() > colCount - 1) {
-          priv.selEnd.col(colCount - 1);
-          if (priv.selStart.col() > priv.selEnd.col()) {
-            priv.selStart.col(priv.selEnd.col());
-          }
-        }
-      }
-
-      if (recreateRows || recreateCols) {
-        selection.refreshBorders();
-      }
+      /*
+       //this should not be needed since 0.8.0 but I leave it here for reference
+       if ((recreateRows || recreateCols) && !selectionChanged) {
+       selection.refreshBorders();
+       }
+       */
 
       return (recreateRows || recreateCols);
     },
