@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 10 2012 20:54:44 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 10 2012 21:00:12 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -170,7 +170,7 @@ Handsontable.Core = function (rootElement, settings) {
       var row;
       if (priv.dataType === 'array') {
         row = [];
-        for (var c = 0; c < self.colCount; c++) {
+        for (var c = 0, clen = self.countCols(); c < clen; c++) {
           row.push(null);
         }
       }
@@ -233,7 +233,7 @@ Handsontable.Core = function (rootElement, settings) {
         throw new Error("cannot remove column with object data source or columns option specified");
       }
       var r = 0;
-      if (!coords || coords.col === self.colCount - 1) {
+      if (!coords || coords.col === self.countCols() - 1) {
         for (; r < self.countRows(); r++) {
           priv.settings.data[r].pop();
         }
@@ -296,7 +296,7 @@ Handsontable.Core = function (rootElement, settings) {
      */
     clear: function () {
       for (var r = 0; r < self.countRows(); r++) {
-        for (var c = 0; c < self.colCount; c++) {
+        for (var c = 0; c < self.countCols(); c++) {
           datamap.set(r, datamap.colToProp(c), '');
         }
       }
@@ -419,7 +419,7 @@ Handsontable.Core = function (rootElement, settings) {
 
       //count currently empty rows
       rows : for (r = self.countRows() - 1; r >= 0; r--) {
-        for (c = 0, clen = self.colCount; c < clen; c++) {
+        for (c = 0, clen = self.countCols(); c < clen; c++) {
           val = datamap.get(r, datamap.colToProp(c));
           if (val !== '' && val !== null && typeof val !== 'undefined') {
             break rows;
@@ -1287,8 +1287,6 @@ Handsontable.Core = function (rootElement, settings) {
 
   this.init = function () {
     editproxy.init();
-
-    self.rowCount = 0;
 
     bindEvents();
     this.updateSettings(settings);
