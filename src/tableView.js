@@ -7,7 +7,7 @@ Handsontable.TableView = function (instance) {
 
   this.instance = instance;
   instance.rootElement.addClass('handsontable');
-  var $table = $('<table><thead></thead><tbody></tbody></table>');
+  var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
   instance.rootElement.prepend($table);
 
   var settings = this.instance.getSettings();

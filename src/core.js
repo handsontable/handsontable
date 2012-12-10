@@ -417,15 +417,6 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
 
-      //should I add empty rows to table view to meet startRows?
-      if (self.countRows() < priv.settings.minRows) {
-        for (; self.countRows() < priv.settings.minRows; emptyRows++) {
-          //self.view.createRow();
-          //self.view.renderRow(self.countRows() - 1);
-          recreateRows = true;
-        }
-      }
-
       //should I add empty rows to meet minSpareRows?
       if (emptyRows < priv.settings.minSpareRows) {
         for (; emptyRows < priv.settings.minSpareRows && self.countRows() < priv.settings.maxRows; emptyRows++) {
@@ -1415,15 +1406,15 @@ Handsontable.Core = function (rootElement, settings) {
         if (priv.settings.minSpareRows) {
           while (row > self.countRows() - 1) {
             datamap.createRow();
-            self.view.createRow();
-            self.view.renderRow(self.countRows() - 1);
+            //self.view.createRow();
+            //self.view.renderRow(self.countRows() - 1);
           }
         }
         if (priv.dataType === 'array' && priv.settings.minSpareCols) {
           while (col > self.countCols() - 1) {
             datamap.createCol();
-            self.view.createCol();
-            self.view.renderCol(self.countCols() - 1);
+            //self.view.createCol();
+            //self.view.renderCol(self.countCols() - 1);
           }
         }
         datamap.set(row, prop, value);
@@ -1517,7 +1508,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @public
    * @param {Array} data
    */
-  this.loadData = function (data) {
+  this.loadData = function (data, isInitial) {
     priv.isPopulated = false;
     priv.settings.data = data;
     if ($.isPlainObject(priv.settings.dataSchema) || $.isPlainObject(data[0])) {
@@ -1534,20 +1525,20 @@ Handsontable.Core = function (rootElement, settings) {
     }
     datamap.createMap();
 
-    var rlen = priv.settings.data.length;
-    while (priv.settings.minRows > rlen) {
-      datamap.createRow();
-      rlen++;
-    }
-
-    if (self.colCount === void 0) {
-      self.colCount = self.countCols();
+    if (isInitial) {
+      var rlen = priv.settings.data.length;
+      if (priv.settings.startRows) {
+        while (priv.settings.startRows > rlen) {
+          datamap.createRow();
+          rlen++;
+        }
+      }
     }
 
     grid.keepEmptyRows();
     grid.clear();
     var changes = [];
-    rlen = priv.settings.data.length; //recount number of rows in case some row was removed by keepEmptyRows
+    var rlen = priv.settings.data.length; //recount number of rows in case some row was removed by keepEmptyRows
     var clen = self.countCols();
     for (var r = 0; r < rlen; r++) {
       for (var c = 0; c < clen; c++) {
@@ -1584,7 +1575,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @public
    */
   this.updateSettings = function (settings) {
-    var i, j, recreated;
+    var i, recreated;
 
     if (typeof settings.rows !== "undefined") {
       throw new Error("'rows' setting is no longer supported. do you mean startRows, minRows or maxRows?");
@@ -1628,18 +1619,10 @@ Handsontable.Core = function (rootElement, settings) {
           settings.data.push(row);
         }
       }
-      else {
-        if (settings.startRows !== void 0 && settings.minRows === void 0) {
-          settings.minRows = settings.startRows;
-        }
-        if (settings.startCols !== void 0 && settings.minCols === void 0) {
-          settings.minCols = settings.startCols;
-        }
-      }
     }
 
     if (settings.data !== void 0) {
-      self.loadData(settings.data);
+      self.loadData(settings.data, true);
     }
     else if (settings.columns !== void 0) {
       datamap.createMap();
