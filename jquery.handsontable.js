@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 10 2012 21:26:59 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 10 2012 21:34:31 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -374,7 +374,7 @@ Handsontable.Core = function (rootElement, settings) {
             //self.view.createCol(coords);
             //self.view.renderCol(coords.col);
             if (priv.selStart.exists() && priv.selStart.col() >= coords.col) {
-              priv.selStart.col(priv.selStart.col + 1);
+              priv.selStart.col(priv.selStart.col() + 1);
               selection.transformEnd(0, 1); //will call render() internally
             }
             else {

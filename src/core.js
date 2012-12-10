@@ -355,7 +355,7 @@ Handsontable.Core = function (rootElement, settings) {
             //self.view.createCol(coords);
             //self.view.renderCol(coords.col);
             if (priv.selStart.exists() && priv.selStart.col() >= coords.col) {
-              priv.selStart.col(priv.selStart.col + 1);
+              priv.selStart.col(priv.selStart.col() + 1);
               selection.transformEnd(0, 1); //will call render() internally
             }
             else {
