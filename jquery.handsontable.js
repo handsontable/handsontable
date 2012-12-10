@@ -2535,6 +2535,9 @@ Handsontable.TableView.prototype.removeCol = function (coords, toCoords) {
 Handsontable.TableView.prototype.render = function (row, col, prop, value) {
   var coords = {row: row, col: col};
   var td = this.instance.getCell(row, col);
+  if (!td) {
+   return;
+  }
   this.applyCellTypeMethod('renderer', td, coords, value);
   this.instance.minWidthFix(td);
   return td;
