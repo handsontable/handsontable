@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 10 2012 21:15:45 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 10 2012 21:26:59 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -360,10 +360,10 @@ Handsontable.Core = function (rootElement, settings) {
             //self.view.renderRow(coords.row);
             if (priv.selStart.exists() && priv.selStart.row() >= coords.row) {
               priv.selStart.row(priv.selStart.row() + 1);
-              selection.transformEnd(1, 0);
+              selection.transformEnd(1, 0); //will call render() internally
             }
             else {
-              selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
+              self.view.render();
             }
           }
           break;
@@ -375,10 +375,10 @@ Handsontable.Core = function (rootElement, settings) {
             //self.view.renderCol(coords.col);
             if (priv.selStart.exists() && priv.selStart.col() >= coords.col) {
               priv.selStart.col(priv.selStart.col + 1);
-              selection.transformEnd(0, 1);
+              selection.transformEnd(0, 1); //will call render() internally
             }
             else {
-              selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
+              self.view.render();
             }
           }
           break;
@@ -387,14 +387,14 @@ Handsontable.Core = function (rootElement, settings) {
           datamap.removeRow(coords, toCoords);
           //self.view.removeRow(coords, toCoords);
           result = grid.keepEmptyRows();
-          selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
+          self.view.render();
           break;
 
         case "remove_col":
           datamap.removeCol(coords, toCoords);
           //self.view.removeCol(coords, toCoords);
           result = grid.keepEmptyRows();
-          selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
+          self.view.render();
           break;
       }
 
@@ -508,8 +508,8 @@ Handsontable.Core = function (rootElement, settings) {
         selection.deselect();
       }
 
-      var selectionChanged;
       if (priv.selStart.exists()) {
+        var selectionChanged;
         var fromRow = priv.selStart.row();
         var fromCol = priv.selStart.col();
         var toRow = priv.selEnd.row();
