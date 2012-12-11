@@ -1,5 +1,7 @@
 ## [0.8.0-beta1](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta1) (Dec 11, 2012)
 
+Beta of new upcoming version 0.8.0 can be previewed here: http://handsontable.com/0.8.0/
+
 Features:
 - completely new rendering engine codenamed "Walkontable" that uses a `canvas` type approach to draw the visible part of the table on screen. Works smoothly even with data sources above 100 000k rows.
 
