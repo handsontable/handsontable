@@ -46,12 +46,11 @@
 
     function createBigData() {
       var arr = [];
-      var arrPart = [];
       var str = 'abcdefghijklmnopqrstuvwxyz';
       var i;
 
-      for (i = 0; i < 100; i++) {
-        arrPart.push([
+      for (i = 0; i < 100000; i++) {
+        arr.push([
           i,
           randomString(3 * (1 + Math.sin(i)), str),
           randomString(3 * (1 + Math.sin(i + 2)), str),
@@ -60,10 +59,6 @@
           randomString(3 * (1 + Math.sin(i + 8)), str),
           randomString(3 * (1 + Math.sin(i + 10)), str)
         ]);
-      }
-
-      for (i = 0; i < 100000; i++) {
-        arr.push(arrPart[i % 100]); //clone 100 row chunks until array has size of 100000
       }
 
       return arr;
