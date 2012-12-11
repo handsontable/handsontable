@@ -11,6 +11,7 @@ Known issues (all of them will be fixed before final 0.8.0):
 - fill handle (drag-down) feature is currently broken
 - selecting an area and clicking one of its cells within 500 ms starts editing of that cell
 - clicking on cell & row borders has no effect
+- this version does not work in IE7-8 (but will work in final 0.8.0)
 
 Bugfixes:
 - fixed CSS problems with Foundation framework
