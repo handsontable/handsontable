@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Dec 11 2012 03:10:36 GMT+0100 (Central European Standard Time)
+ * Date: Tue Dec 11 2012 11:34:12 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3748,7 +3748,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Tue Dec 11 2012 02:33:54 GMT+0100 (Central European Standard Time)
+ * Date: Tue Dec 11 2012 11:27:15 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -4038,6 +4038,9 @@ Walkontable.prototype.getSetting = function (key, param1, param2, param3) {
 
   if (typeof this.settings[key] === 'function') {
     return this.settings[key](param1, param2, param3);
+  }
+  else if (param1 !== void 0 && typeof this.settings[key] === 'object' && this.settings[key][param1] !== void 0) {
+    return this.settings[key][param1];
   }
   else {
     return this.settings[key];
