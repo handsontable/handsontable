@@ -68,7 +68,7 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  this.wt = new Walkontable({
+  var walkontableConfig = {
     table: $table[0],
     data: instance.getDataAtCell,
     totalRows: instance.countRows,
@@ -79,7 +79,7 @@ Handsontable.TableView = function (instance) {
     displayColumns: null,
     width: settings.width,
     height: settings.height,
-    rowHeaders: settings.rowHeaders ? instance.getRowHeader : null,
+    frozenColumns: settings.rowHeaders ? [instance.getRowHeader] : null,
     columnHeaders: settings.colHeaders ? instance.getColHeader : null,
     cellRenderer: function (row, column, TD) {
       that.applyCellTypeMethod('renderer', TD, {row: row, col: column}, instance.getDataAtCell(row, column));
@@ -125,7 +125,11 @@ Handsontable.TableView = function (instance) {
         that.instance.autofill.showBorder(this);
       }
     }
-  });
+  };
+
+  Handsontable.PluginHooks.run(this.instance, 'walkontableConfig', [walkontableConfig]);
+
+  this.wt = new Walkontable(walkontableConfig);
   this.wt.draw();
 };
 

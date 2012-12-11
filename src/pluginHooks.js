@@ -1,7 +1,8 @@
 Handsontable.PluginHooks = {
   hooks: {
     afterInit: [],
-    afterGetCellMeta: []
+    afterGetCellMeta: [],
+    walkontableConfig: []
   },
 
   push: function (hook, fn) {

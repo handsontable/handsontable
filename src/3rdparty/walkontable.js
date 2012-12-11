@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Sat Dec 08 2012 16:16:17 GMT+0100 (Central European Standard Time)
+ * Date: Tue Dec 11 2012 02:33:54 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -170,7 +170,7 @@ function Walkontable(settings) {
     data: void 0,
     offsetRow: 0,
     offsetColumn: 0,
-    rowHeaders: false,
+    frozenColumns: null,
     columnHeaders: false,
     totalRows: void 0,
     totalColumns: void 0,
@@ -1007,29 +1007,31 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
     , displayRows = this.instance.getSetting('displayRows')
     , displayColumns = this.instance.getSetting('displayColumns')
     , displayTds
-    , rowHeadersCount = this.instance.hasSetting('rowHeaders') ? 1 : 0
-    , TR;
+    , frozenColumns = this.instance.getSetting('frozenColumns')
+    , frozenColumnsCount = frozenColumns ? frozenColumns.length : 0
+    , TR
+    , c;
 
   displayRows = Math.min(displayRows, totalRows);
   displayTds = Math.min(displayColumns, totalColumns);
 
   //adjust COLGROUP
-  while (this.colgroupChildrenLength < displayTds + rowHeadersCount) {
+  while (this.colgroupChildrenLength < displayTds + frozenColumnsCount) {
     this.COLGROUP.appendChild(document.createElement('COL'));
     this.colgroupChildrenLength++;
   }
-  while (this.colgroupChildrenLength > displayTds + rowHeadersCount) {
+  while (this.colgroupChildrenLength > displayTds + frozenColumnsCount) {
     this.COLGROUP.removeChild(this.COLGROUP.lastChild);
     this.colgroupChildrenLength--;
   }
 
   //adjust THEAD
   if (this.instance.hasSetting('columnHeaders')) {
-    while (this.theadChildrenLength < displayTds + rowHeadersCount) {
+    while (this.theadChildrenLength < displayTds + frozenColumnsCount) {
       this.THEAD.firstChild.appendChild(document.createElement('TH'));
       this.theadChildrenLength++;
     }
-    while (this.theadChildrenLength > displayTds + rowHeadersCount) {
+    while (this.theadChildrenLength > displayTds + frozenColumnsCount) {
       this.THEAD.firstChild.removeChild(this.THEAD.firstChild.lastChild);
       this.theadChildrenLength--;
     }
@@ -1038,10 +1040,10 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   //adjust TBODY
   while (this.tbodyChildrenLength < displayRows) {
     TR = document.createElement('TR');
-    if (this.instance.hasSetting('rowHeaders')) {
+    for (c = 0; c < frozenColumnsCount; c++) {
       TR.appendChild(document.createElement('TH'));
     }
-    for (var c = 0; c < displayTds; c++) {
+    for (c = 0; c < displayTds; c++) {
       TR.appendChild(document.createElement('TD'));
     }
     this.TBODY.appendChild(TR);
@@ -1056,11 +1058,11 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   var trChildrenLength;
   for (var r = 0, rlen = TRs.length; r < rlen; r++) {
     trChildrenLength = TRs[r].childNodes.length;
-    while (trChildrenLength < displayTds + rowHeadersCount) {
+    while (trChildrenLength < displayTds + frozenColumnsCount) {
       TRs[r].appendChild(document.createElement('TD'));
       trChildrenLength++;
     }
-    while (trChildrenLength > displayTds + rowHeadersCount) {
+    while (trChildrenLength > displayTds + frozenColumnsCount) {
       TRs[r].removeChild(TRs[r].lastChild);
       trChildrenLength--;
     }
@@ -1077,7 +1079,8 @@ WalkontableTable.prototype.draw = function () {
     , displayRows = this.instance.getSetting('displayRows')
     , displayColumns = this.instance.getSetting('displayColumns')
     , displayTds
-    , rowHeadersCount = this.instance.hasSetting('rowHeaders') ? 1 : 0
+    , frozenColumns = this.instance.getSetting('frozenColumns')
+    , frozenColumnsCount = frozenColumns ? frozenColumns.length : 0
     , TR
     , TH
     , TD
@@ -1089,45 +1092,59 @@ WalkontableTable.prototype.draw = function () {
   displayTds = Math.min(displayColumns, totalColumns);
 
   //draw COLGROUP
-  if (this.instance.hasSetting('rowHeaders')) {
-    this.wtDom.addClass(this.COLGROUP.childNodes[0], 'rowHeader');
-  }
-  else {
-    this.wtDom.removeClass(this.COLGROUP.childNodes[0], 'rowHeader');
+  for (c = 0; c < this.colgroupChildrenLength; c++) {
+    if (c < frozenColumnsCount) {
+      this.wtDom.addClass(this.COLGROUP.childNodes[c], 'rowHeader');
+      if (typeof frozenColumns[c] === "function") {
+        frozenColumns[c](null, this.COLGROUP.childNodes[c])
+      }
+    }
+    else {
+      this.wtDom.removeClass(this.COLGROUP.childNodes[c], 'rowHeader');
+    }
   }
 
   if (this.instance.hasSetting('columnWidth')) {
     for (c = 0; c < displayTds; c++) {
-      this.COLGROUP.childNodes[c + rowHeadersCount].style.width = this.instance.getSetting('columnWidth', offsetColumn + c) + 'px';
+      this.COLGROUP.childNodes[c + frozenColumnsCount].style.width = this.instance.getSetting('columnWidth', offsetColumn + c) + 'px';
     }
   }
 
   //draw THEAD
-  if (this.instance.hasSetting('rowHeaders') && this.instance.hasSetting('columnHeaders')) {
-    this.THEAD.childNodes[0].childNodes[0].innerHTML = '';
+  if (frozenColumnsCount && this.instance.hasSetting('columnHeaders')) {
+    for (c = 0; c < frozenColumnsCount; c++) {
+      if (typeof frozenColumns[c] === "function") {
+        frozenColumns[c](null, this.THEAD.childNodes[0].childNodes[c])
+      }
+      else {
+        this.THEAD.childNodes[0].childNodes[c].innerHTML = '';
+      }
+    }
   }
 
   if (this.instance.hasSetting('columnHeaders')) {
     for (c = 0; c < displayTds; c++) {
-      this.THEAD.childNodes[0].childNodes[rowHeadersCount + c].innerHTML = this.instance.getSetting('columnHeaders', offsetColumn + c);
+      this.THEAD.childNodes[0].childNodes[frozenColumnsCount + c].innerHTML = this.instance.getSetting('columnHeaders', offsetColumn + c);
     }
   }
 
   //draw TBODY
   for (r = 0; r < displayRows; r++) {
     TR = this.TBODY.childNodes[r];
-    if (this.instance.hasSetting('rowHeaders')) {
-      TH = TR.childNodes[0];
-      cellData = this.instance.getSetting('rowHeaders', offsetRow + r);
+    for (c = 0; c < frozenColumnsCount; c++) { //in future use nextSibling; http://jsperf.com/nextsibling-vs-indexed-childnodes
+      TH = TR.childNodes[c];
+      cellData = typeof frozenColumns[c] === "function" ? frozenColumns[c](offsetRow + r, TH) : frozenColumns[c];
       if (cellData !== void 0) {
         TH.innerHTML = cellData;
       }
-      else {
-        TH.innerHTML = '';
-      }
+      /*
+       we can assume that frozenColumns[c] function took care of inserting content into TH
+       else {
+       TH.innerHTML = '';
+       }*/
     }
     for (c = 0; c < displayTds; c++) { //in future use nextSibling; http://jsperf.com/nextsibling-vs-indexed-childnodes
-      TD = TR.childNodes[c + rowHeadersCount];
+      TD = TR.childNodes[c + frozenColumnsCount];
       TD.className = '';
       this.instance.getSetting('cellRenderer', offsetRow + r, offsetColumn + c, TD);
     }
@@ -1150,21 +1167,23 @@ WalkontableTable.prototype.getCell = function (coords) {
     , offsetColumn = this.instance.getSetting('offsetColumn')
     , displayRows = this.instance.getSetting('displayRows')
     , displayColumns = this.instance.getSetting('displayColumns')
-    , rowHeadersCount = this.instance.hasSetting('rowHeaders') ? 1 : 0;
+    , frozenColumns = this.instance.getSetting('frozenColumns')
+    , frozenColumnsCount = frozenColumns ? frozenColumns.length : 0;
 
   if (coords[0] >= offsetRow && coords[0] <= offsetRow + displayRows - 1) {
     if (coords[1] >= offsetColumn && coords[1] < offsetColumn + displayColumns) {
-      return this.TBODY.childNodes[coords[0] - offsetRow].childNodes[coords[1] - offsetColumn + rowHeadersCount];
+      return this.TBODY.childNodes[coords[0] - offsetRow].childNodes[coords[1] - offsetColumn + frozenColumnsCount];
     }
   }
   return null;
 };
 
 WalkontableTable.prototype.getCoords = function (TD) {
-  var rowHeadersCount = this.instance.hasSetting('rowHeaders') ? 1 : 0;
+  var frozenColumns = this.instance.getSetting('frozenColumns')
+    , frozenColumnsCount = frozenColumns ? frozenColumns.length : 0;
   return [
     this.wtDom.prevSiblings(TD.parentNode).length + this.instance.getSetting('offsetRow'),
-    TD.cellIndex + this.instance.getSetting('offsetColumn') - rowHeadersCount
+    TD.cellIndex + this.instance.getSetting('offsetColumn') - frozenColumnsCount
   ];
 };
 function WalkontableWheel(instance) {

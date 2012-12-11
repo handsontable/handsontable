@@ -1,12 +1,8 @@
 /**
  * Handsontable RemoveRow extension. See `demo/buttons.html` for example usage
  */
-.handsontable.htRemoveRow th.htRemoveRow {
-  min-width: 15px;
-}
-
-.handsontable.htRemoveRow th.htRemoveRow div.minWidthProblemFix {
-  width: 15px;
+.handsontable.htRemoveRow col.htRemoveRow {
+  width: 28px;
 }
 
 .handsontable.htRemoveRow tr:first-child th.htRemoveRow,
@@ -17,12 +13,13 @@
 .handsontable.htRemoveRow th.htRemoveRow .btn {
   background-color: #BBB;
   border-radius: 9px;
-  padding: 0 4px 0 4px;
+  padding: 0 6px 0 6px;
   color: #FFF;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
   display: none;
+  float: right;
 }
 
 .handsontable.htRemoveRow th.htRemoveRow .btn:hover {
