@@ -36,6 +36,39 @@
   Google Analytics for GitHub Page. Don't copy this to your project :)
   -->
   <script src="js/ga.js"></script>
+
+  <script>
+    function randomString(length, chars) {
+      var result = '';
+      for (var i = length; i > 0; --i) result += chars.charAt(Math.round(Math.random() * (chars.length - 1)));
+      return result;
+    }
+
+    function createBigData() {
+      var arr = [];
+      var arrPart = [];
+      var str = 'abcdefghijklmnopqrstuvwxyz';
+      var i;
+
+      for (i = 0; i < 100; i++) {
+        arrPart.push([
+          i,
+          randomString(3 * (1 + Math.sin(i)), str),
+          randomString(3 * (1 + Math.sin(i + 2)), str),
+          randomString(3 * (1 + Math.sin(i + 4)), str),
+          randomString(3 * (1 + Math.sin(i + 6)), str),
+          randomString(3 * (1 + Math.sin(i + 8)), str),
+          randomString(3 * (1 + Math.sin(i + 10)), str)
+        ]);
+      }
+
+      for (i = 0; i < 100000; i++) {
+        arr.push(arrPart[i % 100]); //clone 100 row chunks until array has size of 100000
+      }
+
+      return arr;
+    }
+  </script>
 </head>
 
 <body>
@@ -65,7 +98,9 @@
       <div class="pad bottomSpace100">
         <p>If you want scrollbars, just set it in the container CSS.</p>
 
-        <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
+        <p>Known issue - the width and height of the table is not measured accurately in 0.8.0-beta1. This will be fixed in beta2. Follow the CHANGELOG.md for more details</p>
+
+        <div id="example1" style="width: 200px; height: 200px; overflow: scroll"></div>
 
         <p>
           <button name="dump" data-dump="#example1">Dump to console</button>
@@ -79,26 +114,16 @@
           /*
            Container looks like this:
 
-           <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
+           <div id="example1" style="width: 200px; height: 200px; overflow: scroll"></div>
            */
 
           $("#example1").handsontable({
-            startRows: 40,
-            startCols: 40,
+            data: createBigData(),
+            colWidths: [40, 70, 70, 70, 70], //can also be a number or a function
             rowHeaders: true,
             colHeaders: true,
-            minSpareCols: 1,
             minSpareRows: 1
           });
-
-          var data = [
-            ["", "Kia", "Nissan", "Toyota", "Honda"],
-            ["2008", 10, 11, 12, 13],
-            ["2009", 20, 11, 14, 13],
-            ["2010", 30, 15, 12, 13]
-          ];
-
-          $("#example1").handsontable("loadData", data);
         </script>
       </div>
     </div>

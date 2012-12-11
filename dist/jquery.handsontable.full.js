@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Dec 11 2012 11:37:36 GMT+0100 (Central European Standard Time)
+ * Date: Tue Dec 11 2012 12:23:29 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2028,11 +2028,25 @@ Handsontable.TableView = function (instance) {
   var that = this;
 
   this.instance = instance;
+  var settings = this.instance.getSettings();
+
   instance.rootElement.addClass('handsontable');
   var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
   instance.rootElement.prepend($table);
-
-  var settings = this.instance.getSettings();
+  var overflow = instance.rootElement.css('overflow');
+  var myWidth = settings.width;
+  var myHeight = settings.height;
+  if (overflow === 'scroll' || overflow === 'auto') {
+    instance.rootElement.css('overflow', '');
+    if (settings.width === void 0 && parseInt(instance.rootElement.css('width')) > 0) {
+      myWidth = parseInt(instance.rootElement.css('width'));
+      instance.rootElement[0].style.width = '';
+    }
+    if (settings.height === void 0 && parseInt(instance.rootElement.css('height')) > 0) {
+      myHeight = parseInt(instance.rootElement.css('height'));
+      instance.rootElement[0].style.height = '';
+    }
+  }
 
   var isMouseDown
     , dragInterval;
@@ -2099,10 +2113,11 @@ Handsontable.TableView = function (instance) {
     offsetColumn: 0,
     displayRows: null,
     displayColumns: null,
-    width: settings.width,
-    height: settings.height,
+    width: myWidth,
+    height: myHeight,
     frozenColumns: settings.rowHeaders ? [instance.getRowHeader] : null,
     columnHeaders: settings.colHeaders ? instance.getColHeader : null,
+    columnWidth: settings.colWidths ? settings.colWidths : null,
     cellRenderer: function (row, column, TD) {
       that.applyCellTypeMethod('renderer', TD, {row: row, col: column}, instance.getDataAtCell(row, column));
     },
