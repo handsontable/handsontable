@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Dec 11 2012 11:34:12 GMT+0100 (Central European Standard Time)
+ * Date: Tue Dec 11 2012 11:37:36 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -356,8 +356,6 @@ Handsontable.Core = function (rootElement, settings) {
         case "insert_row":
           if (self.countRows() < priv.settings.maxRows) {
             datamap.createRow(coords);
-            //self.view.createRow(coords);
-            //self.view.renderRow(coords.row);
             if (priv.selStart.exists() && priv.selStart.row() >= coords.row) {
               priv.selStart.row(priv.selStart.row() + 1);
               selection.transformEnd(1, 0); //will call render() internally
@@ -371,8 +369,6 @@ Handsontable.Core = function (rootElement, settings) {
         case "insert_col":
           if (self.countCols() < priv.settings.maxCols) {
             datamap.createCol(coords);
-            //self.view.createCol(coords);
-            //self.view.renderCol(coords.col);
             if (priv.selStart.exists() && priv.selStart.col() >= coords.col) {
               priv.selStart.col(priv.selStart.col() + 1);
               selection.transformEnd(0, 1); //will call render() internally
@@ -385,14 +381,12 @@ Handsontable.Core = function (rootElement, settings) {
 
         case "remove_row":
           datamap.removeRow(coords, toCoords);
-          //self.view.removeRow(coords, toCoords);
           result = grid.keepEmptyRows();
           self.view.render();
           break;
 
         case "remove_col":
           datamap.removeCol(coords, toCoords);
-          //self.view.removeCol(coords, toCoords);
           result = grid.keepEmptyRows();
           self.view.render();
           break;
@@ -440,8 +434,6 @@ Handsontable.Core = function (rootElement, settings) {
       if (emptyRows < priv.settings.minSpareRows) {
         for (; emptyRows < priv.settings.minSpareRows && self.countRows() < priv.settings.maxRows; emptyRows++) {
           datamap.createRow();
-          //self.view.createRow();
-          //self.view.renderRow(self.countRows() - 1);
           recreateRows = true;
         }
       }
@@ -465,8 +457,6 @@ Handsontable.Core = function (rootElement, settings) {
           if (!priv.settings.columns) {
             datamap.createCol();
           }
-          //self.view.createCol();
-          //self.view.renderCol(self.countCols() - 1);
           recreateCols = true;
         }
       }
@@ -477,15 +467,12 @@ Handsontable.Core = function (rootElement, settings) {
           if (!priv.settings.columns) {
             datamap.createCol();
           }
-          //self.view.createCol();
-          //self.view.renderCol(self.colCount - 1);
           recreateCols = true;
         }
       }
 
       if (!recreateRows && priv.settings.enterBeginsEditing) {
         for (; ((priv.settings.minRows && self.countRows() > priv.settings.minRows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows) && (!priv.settings.minHeight || $tbody.height() - $tbody.find('tr:last').height() - 4 > priv.settings.minHeight)); emptyRows--) {
-          //self.view.removeRow();
           datamap.removeRow();
           recreateRows = true;
         }
@@ -496,7 +483,6 @@ Handsontable.Core = function (rootElement, settings) {
           if (!priv.settings.columns) {
             datamap.removeCol();
           }
-          //self.view.removeCol();
           recreateCols = true;
         }
       }
@@ -602,7 +588,6 @@ Handsontable.Core = function (rootElement, settings) {
           if ((end && current.col > end.col) || (!priv.settings.minSpareCols && current.col > self.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
             break;
           }
-          //td = self.view.getCellAtCoords(current);
           if (self.getCellMeta(current.row, current.col).isWritable) {
             var p = datamap.colToProp(current.col);
             setData.push([current.row, p, input[r][c]]);
@@ -1438,19 +1423,14 @@ Handsontable.Core = function (rootElement, settings) {
         if (priv.settings.minSpareRows) {
           while (row > self.countRows() - 1) {
             datamap.createRow();
-            //self.view.createRow();
-            //self.view.renderRow(self.countRows() - 1);
           }
         }
         if (priv.dataType === 'array' && priv.settings.minSpareCols) {
           while (col > self.countCols() - 1) {
             datamap.createCol();
-            //self.view.createCol();
-            //self.view.renderCol(self.countCols() - 1);
           }
         }
         datamap.set(row, prop, value);
-        //self.view.render(row, col, prop, value);
       }
       var recreated = grid.keepEmptyRows();
       if (!recreated) {
@@ -1526,9 +1506,6 @@ Handsontable.Core = function (rootElement, settings) {
      }
      }*/
     if (self.view) {
-      /*for (var i = 0, ilen = changes.length; i < ilen; i++) {
-       self.view.render(changes[i][0], datamap.propToCol(changes[i][1]), changes[i][1], changes[i][3]);
-       }*/
       self.view.render();
     }
     selection.refreshBorderDimensions();
@@ -1833,7 +1810,6 @@ Handsontable.Core = function (rootElement, settings) {
    */
   this.setCellReadOnly = function (row, col) {
     throw new Error('not implemented yet (Handsontable 0.8.0)');
-    //$(self.view.getCellAtCoords({row: row, col: col})).data("readOnly", true);
   };
 
   /**
@@ -1844,7 +1820,6 @@ Handsontable.Core = function (rootElement, settings) {
    */
   this.setCellEditable = function (row, col) {
     throw new Error('not implemented yet (Handsontable 0.8.0)');
-    //$(self.view.getCellAtCoords({row: row, col: col})).data("readOnly", false);
   };
 
   /**
@@ -2180,51 +2155,9 @@ Handsontable.TableView = function (instance) {
   this.wt.draw();
 };
 
-/**
- * Creates row at the bottom of the <table>
- * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
- */
-Handsontable.TableView.prototype.createRow = function (coords) {
-
-};
-
-/**
- * Creates col at the right of the <table>
- * @param {Object} [coords] Optional. Coords of the cell before which the new column will be inserted
- */
-Handsontable.TableView.prototype.createCol = function (coords) {
-
-};
-
-/**
- * Removes row at the bottom of the <table>
- * @param {Object} [coords] Optional. Coords of the cell which row will be removed
- * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all rows will be removed
- */
-Handsontable.TableView.prototype.removeRow = function (coords, toCoords) {
-
-};
-
-/**
- * Removes col at the right of the <table>
- * @param {Object} [coords] Optional. Coords of the cell which col will be removed
- * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all cols will be removed
- */
-Handsontable.TableView.prototype.removeCol = function (coords, toCoords) {
-
-};
-
 Handsontable.TableView.prototype.render = function (row, col, prop, value) {
   this.wt.draw();
   this.instance.rootElement.triggerHandler('render.handsontable');
-};
-
-Handsontable.TableView.prototype.renderRow = function (row) {
-
-};
-
-Handsontable.TableView.prototype.renderCol = function (col) {
-
 };
 
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, coords, extraParam) {
@@ -2242,24 +2175,10 @@ Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td,
 };
 
 /**
- * Returns coordinates given td object
- */
-Handsontable.TableView.prototype.getCellCoords = function (td) {
-
-};
-
-/**
  * Returns td object given coordinates
  */
 Handsontable.TableView.prototype.getCellAtCoords = function (coords) {
   return this.wt.wtTable.getCell([coords.row, coords.col]);
-};
-
-/**
- * Returns all td objects in grid
- */
-Handsontable.TableView.prototype.getAllCells = function () {
-
 };
 
 /**
