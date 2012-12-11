@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Dec 11 2012 12:24:27 GMT+0100 (Central European Standard Time)
+ * Date: Tue Dec 11 2012 19:33:52 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3682,7 +3682,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Tue Dec 11 2012 11:27:15 GMT+0100 (Central European Standard Time)
+ * Date: Tue Dec 11 2012 19:32:16 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -4104,14 +4104,15 @@ WalkontableDom.prototype.removeTextNodes = function (elem, parent) {
 /**
  * seems getBounding is usually faster: http://jsperf.com/offset-vs-getboundingclientrect/4
  * but maybe offset + cache would work?
+ * edit: after more tests turns out offsetLeft/Top is faster
  */
-WalkontableDom.prototype.offset = function (elem) {
-  var rect = elem.getBoundingClientRect();
-  return {
-    top: rect.top + document.documentElement.scrollTop,
-    left: rect.left + document.documentElement.scrollLeft
-  };
-};
+/*WalkontableDom.prototype.offset = function (elem) {
+ var rect = elem.getBoundingClientRect();
+ return {
+ top: rect.top + document.documentElement.scrollTop,
+ left: rect.left + document.documentElement.scrollLeft
+ };
+ };*/
 
 /*
  WalkontableDom.prototype.offsetLeft = function (elem) {
@@ -4128,21 +4129,20 @@ WalkontableDom.prototype.offset = function (elem) {
  offset += elem.offsetTop;
  }
  return offset;
- };
+ };*/
 
- WalkontableDom.prototype.offset = function (elem) {
- var offsetLeft = elem.offsetLeft
- , offsetTop = elem.offsetTop;
- while (elem = elem.offsetParent) {
- offsetLeft += elem.offsetLeft;
- offsetTop += elem.offsetTop;
- }
- return {
- left: offsetLeft,
- top: offsetTop
- };
- };
- */
+WalkontableDom.prototype.offset = function (elem) {
+  var offsetLeft = elem.offsetLeft
+    , offsetTop = elem.offsetTop;
+  while (elem = elem.offsetParent) {
+    offsetLeft += elem.offsetLeft;
+    offsetTop += elem.offsetTop;
+  }
+  return {
+    left: offsetLeft,
+    top: offsetTop
+  };
+};
 function WalkontableEvent(instance) {
   var that = this;
 
@@ -4469,9 +4469,7 @@ WalkontableSelection.prototype.remove = function (coords) {
 };
 
 WalkontableSelection.prototype.clear = function () {
-  for (var i = this.selected.length - 1; i >= 0; i--) {
-    this.remove(this.selected[i]);
-  }
+  this.selected.length = 0; //http://jsperf.com/clear-arrayxxx
 };
 
 WalkontableSelection.prototype.isSelected = function (coords) {
