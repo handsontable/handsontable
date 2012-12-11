@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Dec 11 2012 02:35:16 GMT+0100 (Central European Standard Time)
+ * Date: Tue Dec 11 2012 03:10:36 GMT+0100 (Central European Standard Time)
  */
 
 .handsontable {
@@ -32,6 +32,8 @@
   -ms-user-select: none;
   /*user-select: none; /*no browser supports unprefixed version*/
   border-spacing: 0;
+  margin: 0;
+  border-width: 0;
 }
 
 .handsontable col {
@@ -46,6 +48,14 @@
   line-height: 21px;
   padding: 0 4px 0 4px; /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
   background-color: #FFF;
+  font-size: 12px;
+  vertical-align: top;
+}
+
+.handsontable th:last-child {
+  /*Foundation framework fix*/
+  border-right: 1px solid #CCC;
+  border-bottom: 1px solid #CCC;
 }
 
 .handsontable div.minWidthFix {
