@@ -1,3 +1,11 @@
+## [0.8.0-beta2](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta2) (Dec 12, 2012)
+
+Beta preview has been updated: http://handsontable.com/0.8.0/
+
+Bugfixes since 0.8.0-beta1:
+- fixed known issue "selecting an area and clicking one of its cells within 500 ms starts editing of that cell"
+- fixed error when clicking on row/column header
+
 ## [0.8.0-beta1](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta1) (Dec 11, 2012)
 
 Beta of new upcoming version 0.8.0 can be previewed here: http://handsontable.com/0.8.0/
