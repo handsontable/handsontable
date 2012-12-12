@@ -32,6 +32,9 @@ Known issues (all of them will be fixed before final 0.8.0):
 Bugfixes:
 - fixed CSS problems with Foundation framework
 
+Other changes:
+- Handsontable core properties `colCount`, `rowCount` do not exist anymore. Use `countRows()` and `countCols()` public methods instead
+
 ## [0.7.5](https://github.com/warpech/jquery-handsontable/tree/v0.7.5) (Nov 26, 2012)
 
 Features:
