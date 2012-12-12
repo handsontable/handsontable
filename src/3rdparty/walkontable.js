@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Wed Dec 12 2012 02:29:07 GMT+0100 (Central European Standard Time)
+ * Date: Wed Dec 12 2012 17:27:45 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -30,7 +30,7 @@ function WalkontableBorder(instance, settings) {
   this.right = this.main.childNodes[3];
 
   this.disappear();
-  instance.wtTable.parent.appendChild(this.main);
+  instance.wtTable.hider.appendChild(this.main);
 }
 
 /**
@@ -192,7 +192,9 @@ function Walkontable(settings) {
     selections: null,
     onCellMouseDown: null,
     onCellMouseOver: null,
-    onCellDblClick: null
+    onCellDblClick: null,
+    scrollbarWidth: 9,
+    scrollbarHeight: 9
   };
 
   //reference to settings
@@ -688,6 +690,7 @@ function WalkontableScrollbar(instance, type) {
   //reference to instance
   this.instance = instance;
   this.type = type;
+  this.$hider = $(this.instance.wtTable.hider);
   this.$table = $(this.instance.wtTable.TABLE);
 
   //create elements
@@ -737,8 +740,8 @@ WalkontableScrollbar.prototype.refresh = function () {
     , offsetColumn = this.instance.getSetting('offsetColumn')
     , totalRows = this.instance.getSetting('totalRows')
     , totalColumns = this.instance.getSetting('totalColumns')
-    , tableWidth = this.$table.outerWidth()
-    , tableHeight = this.$table.outerHeight()
+    , tableWidth = this.instance.hasSetting('width') ? this.instance.getSetting('width') - this.instance.getSetting('scrollbarWidth') : this.$table.outerWidth()
+    , tableHeight = this.instance.hasSetting('height') ? this.instance.getSetting('height') - this.instance.getSetting('scrollbarHeight') : this.$table.outerHeight()
     , displayRows = Math.min(this.instance.getSetting('displayRows'), totalRows)
     , displayColumns = Math.min(this.instance.getSetting('displayColumns'), totalColumns);
 
@@ -1006,18 +1009,57 @@ function WalkontableTable(instance) {
   this.wtDom = new WalkontableDom();
   this.wtDom.removeTextNodes(this.TABLE);
 
-  //wtHolder
+  //wtSpreader
   var parent = this.TABLE.parentNode;
+  if (!parent || parent.nodeType !== 1 || !this.wtDom.hasClass(parent, 'wtHolder')) {
+    var spreader = document.createElement('DIV');
+    spreader.style.position = 'absolute';
+    spreader.style.top = '0';
+    spreader.style.left = '0';
+    spreader.style.width = '4000px';
+    spreader.style.height = '4000px';
+    spreader.className = 'wtSpreader';
+    if (parent) {
+      parent.insertBefore(spreader, this.TABLE); //if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
+    }
+    spreader.appendChild(this.TABLE);
+  }
+  this.spreader = this.TABLE.parentNode;
+
+  //wtHider
+  var parent = this.spreader.parentNode;
+  if (!parent || parent.nodeType !== 1 || !this.wtDom.hasClass(parent, 'wtHolder')) {
+    var hider = document.createElement('DIV');
+    hider.style.position = 'relative';
+    if (this.instance.hasSetting('width') && this.instance.hasSetting('height')) {
+      hider.style.overflow = 'hidden';
+    }
+    if (this.instance.hasSetting('width')) {
+      hider.style.width = this.instance.getSetting('width') - this.instance.getSetting('scrollbarWidth') + 'px';
+    }
+    if (this.instance.hasSetting('height')) {
+      hider.style.height = this.instance.getSetting('height') - this.instance.getSetting('scrollbarHeight') + 'px';
+    }
+    hider.className = 'wtHider';
+    if (parent) {
+      parent.insertBefore(hider, this.spreader); //if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
+    }
+    hider.appendChild(this.spreader);
+  }
+  this.hider = this.spreader.parentNode;
+
+  //wtHolder
+  parent = this.hider.parentNode;
   if (!parent || parent.nodeType !== 1 || !this.wtDom.hasClass(parent, 'wtHolder')) {
     var holder = document.createElement('DIV');
     holder.style.position = 'relative';
     holder.className = 'wtHolder';
     if (parent) {
-      parent.insertBefore(holder, this.TABLE); //if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
+      parent.insertBefore(holder, this.hider); //if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
     }
-    holder.appendChild(this.TABLE);
-    this.parent = holder;
+    holder.appendChild(this.hider);
   }
+  this.parent = this.hider.parentNode;
 
   //bootstrap from settings
   this.TBODY = this.TABLE.getElementsByTagName('TBODY')[0];
@@ -1189,7 +1231,7 @@ WalkontableTable.prototype._doDraw = function () {
   }
 
   //draw TBODY
-  for (r = 0; r < displayRows; r++) {
+  rows : for (r = 0; r < displayRows; r++) {
     TR = this.TBODY.childNodes[r];
     for (c = 0; c < frozenColumnsCount; c++) { //in future use nextSibling; http://jsperf.com/nextsibling-vs-indexed-childnodes
       TH = TR.childNodes[c];
@@ -1203,10 +1245,20 @@ WalkontableTable.prototype._doDraw = function () {
        TH.innerHTML = '';
        }*/
     }
-    for (c = 0; c < displayTds; c++) { //in future use nextSibling; http://jsperf.com/nextsibling-vs-indexed-childnodes
+    cols : for (c = 0; c < displayTds; c++) { //in future use nextSibling; http://jsperf.com/nextsibling-vs-indexed-childnodes
       TD = TR.childNodes[c + frozenColumnsCount];
-      TD.className = '';
-      this.instance.getSetting('cellRenderer', offsetRow + r, offsetColumn + c, TD);
+      if (!this.instance.drawn || this.isCellVisible(TD)) {
+        TD.className = '';
+        this.instance.getSetting('cellRenderer', offsetRow + r, offsetColumn + c, TD);
+      }
+      else {
+        if (c === 0) {
+          break rows;
+        }
+        else {
+          break cols;
+        }
+      }
     }
   }
 
@@ -1221,6 +1273,63 @@ WalkontableTable.prototype._doDraw = function () {
 
   this.instance.wtScroll.refreshScrollbars();
   this.instance.drawn = true;
+};
+
+//0 if no
+//1 if partially
+//2 is fully
+WalkontableTable.prototype.isCellVisible = function (TD) {
+  var offsetRow = this.instance.getSetting('offsetRow')
+    , offsetColumn = this.instance.getSetting('offsetColumn')
+    , displayRows = this.instance.getSetting('displayRows')
+    , displayColumns = this.instance.getSetting('displayColumns')
+    , frozenColumns = this.instance.getSetting('frozenColumns')
+    , frozenColumnsCount = frozenColumns ? frozenColumns.length : 0;
+
+  var out;
+
+  if (this.instance.drawn) {
+    var cellOffset = this.wtDom.offset(TD);
+    var tableOffset = this.tableOffset;
+    var innerOffsetTop = cellOffset.top - tableOffset.top;
+    var innerOffsetLeft = cellOffset.left - tableOffset.left;
+    var width = $(TD).outerWidth();
+    var height = $(TD).outerHeight();
+
+    var tableWidth = this.instance.hasSetting('width') ? this.instance.getSetting('width') - this.instance.getSetting('scrollbarWidth') : $(this.TABLE).outerWidth()
+      , tableHeight = this.instance.hasSetting('height') ? this.instance.getSetting('height') - this.instance.getSetting('scrollbarHeight') : $(this.TABLE).outerHeight()
+
+    if (innerOffsetTop > tableHeight) {
+      out = 0;
+    }
+    else if (innerOffsetLeft > tableWidth) {
+      out = 0;
+    }
+    else if (innerOffsetTop + height > tableHeight) {
+      out = 1;
+    }
+    else if (innerOffsetLeft + width > tableWidth) {
+      out = 1;
+    }
+    else {
+      out = 2;
+    }
+  }
+  else {
+    out = 0;
+  }
+
+  /*if (out === 2) {
+   TD.style.backgroundColor = 'green';
+   }
+   else if (out === 1) {
+   TD.style.backgroundColor = 'orange';
+   }
+   else {
+   TD.style.backgroundColor = 'red';
+   }*/
+
+  return out;
 };
 
 WalkontableTable.prototype.getCell = function (coords) {
