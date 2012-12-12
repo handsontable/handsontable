@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Tue Dec 11 2012 23:56:50 GMT+0100 (Central European Standard Time)
+ * Date: Wed Dec 12 2012 02:29:07 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -167,6 +167,7 @@ function Walkontable(settings) {
   //default settings. void 0 means it is required, null means it can be empty
   var defaults = {
     table: void 0,
+    async: false,
     data: void 0,
     offsetRow: 0,
     offsetColumn: 0,
@@ -243,9 +244,8 @@ function Walkontable(settings) {
 }
 
 Walkontable.prototype.draw = function () {
+  this.scrollViewport([this.settings.offsetRow, this.settings.offsetColumn]);
   this.wtTable.draw();
-  this.wtScroll.refreshScrollbars();
-  this.drawn = true;
   return this;
 };
 
@@ -562,6 +562,22 @@ if (!Array.prototype.indexOf) {
     return -1;
   };
 }
+
+/**
+ * Provides requestAnimationFrame in a cross browser way.
+ * http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+ */
+if (!window.requestAnimationFrame) {
+  window.requestAnimationFrame = (function () {
+    return window.webkitRequestAnimationFrame ||
+      window.mozRequestAnimationFrame ||
+      window.oRequestAnimationFrame ||
+      window.msRequestAnimationFrame ||
+      function (/* function FrameRequestCallback */ callback, /* DOMElement Element */ element) {
+        window.setTimeout(callback, 1000 / 60);
+      };
+  })();
+}
 function WalkontableScroll(instance) {
   this.instance = instance;
   this.wtScrollbarV = new WalkontableScrollbar(instance, 'vertical');
@@ -575,18 +591,21 @@ WalkontableScroll.prototype.refreshScrollbars = function () {
 
 WalkontableScroll.prototype.scrollVertical = function (delta) {
   var offsetRow = this.instance.getSetting('offsetRow')
+    , newOffsetRow
     , max = this.instance.getSetting('totalRows') - this.instance.getSetting('displayRows');
   if (max < 0) {
     max = 0;
   }
-  offsetRow = offsetRow + delta;
-  if (offsetRow < 0) {
-    offsetRow = 0;
+  newOffsetRow = offsetRow + delta;
+  if (newOffsetRow < 0) {
+    newOffsetRow = 0;
   }
-  else if (offsetRow >= max) {
-    offsetRow = max;
+  else if (newOffsetRow >= max) {
+    newOffsetRow = max;
   }
-  this.instance.update('offsetRow', offsetRow);
+  if (newOffsetRow !== offsetRow) {
+    this.instance.update('offsetRow', newOffsetRow);
+  }
   return this.instance;
 };
 
@@ -594,18 +613,21 @@ WalkontableScroll.prototype.scrollHorizontal = function (delta) {
   var displayColumns = this.instance.getSetting('displayColumns');
   if (displayColumns !== null) {
     var offsetColumn = this.instance.getSetting('offsetColumn')
+      , newOffsetColumn
       , max = this.instance.getSetting('totalColumns') - displayColumns;
     if (max < 0) {
       max = 0;
     }
-    offsetColumn = offsetColumn + delta;
-    if (offsetColumn < 0) {
-      offsetColumn = 0;
+    newOffsetColumn = offsetColumn + delta;
+    if (newOffsetColumn < 0) {
+      newOffsetColumn = 0;
     }
-    else if (offsetColumn >= max) {
-      offsetColumn = max;
+    else if (newOffsetColumn >= max) {
+      newOffsetColumn = max;
     }
-    this.instance.update('offsetColumn', offsetColumn);
+    if (newOffsetColumn !== offsetColumn) {
+      this.instance.update('offsetColumn', newOffsetColumn);
+    }
   }
   return this.instance;
 };
@@ -635,6 +657,12 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     else if (coords[0] < offsetRow) {
       this.scrollVertical(coords[0] - offsetRow);
     }
+    else {
+      this.scrollVertical(0); //Craig's issue: remove row from the last scroll page should scroll viewport a row up if needed
+    }
+  }
+  else {
+    this.scrollVertical(0); //Craig's issue
   }
 
   if (displayColumns < totalColumns) {
@@ -644,6 +672,12 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     else if (coords[1] < offsetColumn) {
       this.scrollHorizontal(coords[1] - offsetColumn);
     }
+    else {
+      this.scrollHorizontal(0); //Craig's issue
+    }
+  }
+  else {
+    this.scrollHorizontal(0); //Craig's issue
   }
 
   return this.instance;
@@ -1083,6 +1117,21 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
 };
 
 WalkontableTable.prototype.draw = function () {
+  this.adjustAvailableNodes();
+  this.tableOffset = this.wtDom.offset(this.TABLE);
+  if (this.instance.hasSetting('async')) {
+    var that = this;
+    window.requestAnimationFrame(function () {
+      that._doDraw();
+    });
+  }
+  else {
+    this._doDraw();
+  }
+  return this;
+};
+
+WalkontableTable.prototype._doDraw = function () {
   var r
     , c
     , offsetRow = this.instance.getSetting('offsetRow')
@@ -1098,8 +1147,6 @@ WalkontableTable.prototype.draw = function () {
     , TH
     , TD
     , cellData;
-  this.adjustAvailableNodes();
-  this.tableOffset = this.wtDom.offset(this.TABLE);
 
   displayRows = Math.min(displayRows, totalRows);
   displayTds = Math.min(displayColumns, totalColumns);
@@ -1172,7 +1219,8 @@ WalkontableTable.prototype.draw = function () {
     }
   }
 
-  return this;
+  this.instance.wtScroll.refreshScrollbars();
+  this.instance.drawn = true;
 };
 
 WalkontableTable.prototype.getCell = function (coords) {

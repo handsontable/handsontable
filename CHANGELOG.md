@@ -2,9 +2,17 @@
 
 Beta preview has been updated: http://handsontable.com/0.8.0/
 
+New features since 0.8.0-beta1:
+- now the table is rendered even faster with `requestAnimationFrame`
+
+New known issues since 0.8.0-beta1:
+- page up/page down works wrongly
+- CTRL+A works very slow on large data sets
+
 Bugfixes since 0.8.0-beta1:
 - fixed known issue "selecting an area and clicking one of its cells within 500 ms starts editing of that cell"
 - fixed error when clicking on row/column header
+- fixed rendering removed row at last scroll page
 
 ## [0.8.0-beta1](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta1) (Dec 11, 2012)
 
