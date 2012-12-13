@@ -13,6 +13,7 @@ Bugfixes since 0.8.0-beta1:
 - fixed known issue "selecting an area and clicking one of its cells within 500 ms starts editing of that cell"
 - fixed error when clicking on row/column header
 - fixed rendering removed row at last scroll page
+- make scrollbar scrolling much more smooth
 
 ## [0.8.0-beta1](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta1) (Dec 11, 2012)
 
