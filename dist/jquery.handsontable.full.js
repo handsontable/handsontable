@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Dec 13 2012 23:33:57 GMT+0100 (Central European Standard Time)
+ * Date: Thu Dec 13 2012 23:54:31 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1030,7 +1030,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       if (start) {
-        grid.populateFromArray(start, SheetClip.parse(priv.editProxy.val()), end, 'autofill');
+        grid.populateFromArray(start, SheetClip.parse(priv.editProxy[0].value), end, 'autofill');
 
         selection.setRangeStart(drag.TL);
         selection.setRangeEnd(drag.BR);
@@ -1102,7 +1102,7 @@ Handsontable.Core = function (rootElement, settings) {
             }
           });
 
-          var input = priv.editProxy.val().replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
+          var input = priv.editProxy[0].value.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
             inputArray = SheetClip.parse(input),
             coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
 
@@ -1272,7 +1272,7 @@ Handsontable.Core = function (rootElement, settings) {
      */
     prepare: function () {
       priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
-      priv.editProxy.val(datamap.getText(priv.selStart.coords(), priv.selEnd.coords()));
+      priv.editProxy[0].value = datamap.getText(priv.selStart.coords(), priv.selEnd.coords());
       setTimeout(editproxy.focus, 1);
       priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords(), priv.editProxy);
     },
