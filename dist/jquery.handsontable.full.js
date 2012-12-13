@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Dec 13 2012 18:22:02 GMT+0100 (Central European Standard Time)
+ * Date: Thu Dec 13 2012 23:33:57 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3683,7 +3683,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Thu Dec 13 2012 18:19:03 GMT+0100 (Central European Standard Time)
+ * Date: Thu Dec 13 2012 19:42:38 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -3928,10 +3928,11 @@ function Walkontable(settings) {
 }
 
 Walkontable.prototype.draw = function () {
-  this.scrollViewport([this.settings.offsetRow, this.settings.offsetColumn]); //needed by WalkontableScroll -> remove row from the last scroll page should scroll viewport a row up if needed
+  //this.instance.scrollViewport([this.instance.getSetting('offsetRow'), this.instance.getSetting('offsetColumn')]); //needed by WalkontableScroll -> remove row from the last scroll page should scroll viewport a row up if needed
   if (this.hasSetting('async')) {
     var that = this;
-    window.requestAnimationFrame(function () {
+    window.cancelRequestAnimFrame(that.drawFrame);
+    that.drawFrame = window.requestAnimFrame(function () {
       that.wtTable.draw();
     });
   }
@@ -3966,7 +3967,8 @@ Walkontable.prototype.scrollHorizontal = function (delta) {
 Walkontable.prototype.scrollViewport = function (coords) {
   if (this.hasSetting('async')) {
     var that = this;
-    window.requestAnimationFrame(function () {
+    window.cancelRequestAnimFrame(that.scrollFrame);
+    that.scrollFrame = window.requestAnimFrame(function () {
       that.wtScroll.scrollViewport(coords);
     });
   }
@@ -4277,20 +4279,27 @@ if (!Array.prototype.indexOf) {
 }
 
 /**
- * Provides requestAnimationFrame in a cross browser way.
- * http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+ * http://notes.jetienne.com/2011/05/18/cancelRequestAnimFrame-for-paul-irish-requestAnimFrame.html
  */
-if (!window.requestAnimationFrame) {
-  window.requestAnimationFrame = (function () {
-    return window.webkitRequestAnimationFrame ||
-      window.mozRequestAnimationFrame ||
-      window.oRequestAnimationFrame ||
-      window.msRequestAnimationFrame ||
-      function (/* function FrameRequestCallback */ callback, /* DOMElement Element */ element) {
-        window.setTimeout(callback, 1000 / 60);
-      };
-  })();
-}
+window.requestAnimFrame = (function () {
+  return  window.requestAnimationFrame ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame ||
+    window.oRequestAnimationFrame ||
+    window.msRequestAnimationFrame ||
+    function (/* function */ callback, /* DOMElement */ element) {
+      return window.setTimeout(callback, 1000 / 60);
+    };
+})();
+
+window.cancelRequestAnimFrame = (function () {
+  return window.cancelAnimationFrame ||
+    window.webkitCancelRequestAnimationFrame ||
+    window.mozCancelRequestAnimationFrame ||
+    window.oCancelRequestAnimationFrame ||
+    window.msCancelRequestAnimationFrame ||
+    clearTimeout
+})();
 function WalkontableScroll(instance) {
   this.instance = instance;
   this.wtScrollbarV = new WalkontableScrollbar(instance, 'vertical');
@@ -4302,7 +4311,7 @@ WalkontableScroll.prototype.refreshScrollbars = function () {
   this.wtScrollbarH.refresh();
 };
 
-WalkontableScroll.prototype.scrollVertical = function (delta) {
+WalkontableScroll.prototype.scrollVertical = function (delta, force) {
   var offsetRow = this.instance.getSetting('offsetRow')
     , newOffsetRow
     , max = this.instance.getSetting('totalRows') - this.instance.getSetting('displayRows');
@@ -4313,10 +4322,9 @@ WalkontableScroll.prototype.scrollVertical = function (delta) {
   if (newOffsetRow < 0) {
     newOffsetRow = 0;
   }
-  else if (newOffsetRow >= max) {
+  else if (newOffsetRow >= max && !force) {
     newOffsetRow = max;
   }
-
   if (newOffsetRow !== offsetRow) {
     this.instance.update('offsetRow', newOffsetRow);
   }
@@ -4417,15 +4425,40 @@ function WalkontableScrollbar(instance, type) {
   this.slider.appendChild(this.handle);
   this.instance.wtTable.parent.appendChild(this.slider);
 
+  that.waitTimeout = null;
+  that.queuedAnimationCallback = null;
   this.dragdealer = new Dragdealer(this.slider, {
     vertical: (type === 'vertical'),
     horizontal: (type === 'horizontal'),
     speed: 100,
     yPrecision: 100,
     animationCallback: function (x, y) {
+      that.skipRefresh = true;
+      var nextRender = function () {
+        if (that.skipRefresh) { //mouse button still not released
+          that.onScroll(type === 'vertical' ? y : x);
+        }
+        that.waitTimeout = setTimeout(function () {
+          that.waitTimeout = null;
+          if (that.queuedAnimationCallback) {
+            that.queuedAnimationCallback();
+            that.queuedAnimationCallback = null;
+          }
+        }, 100);
+      };
+      if (that.waitTimeout === null) {
+        nextRender();
+      }
+      else {
+        that.queuedAnimationCallback = nextRender;
+      }
+    },
+    callback: function (x, y) {
+      that.skipRefresh = false;
       that.onScroll(type === 'vertical' ? y : x);
     }
   });
+  that.skipRefresh = false;
 }
 
 WalkontableScrollbar.prototype.onScroll = function (delta) {
@@ -4444,6 +4477,9 @@ WalkontableScrollbar.prototype.onScroll = function (delta) {
 };
 
 WalkontableScrollbar.prototype.refresh = function () {
+  if (this.skipRefresh) {
+    return;
+  }
   var ratio = 1
     , handleSize
     , handlePosition
@@ -4477,7 +4513,7 @@ WalkontableScrollbar.prototype.refresh = function () {
     }
     this.handle.style.height = handleSize + 'px';
 
-    handlePosition = tableHeight * (offsetRow / totalRows);
+    handlePosition = (tableHeight - handleSize) * (offsetRow / totalRows);
     if (handlePosition > tableHeight - handleSize) {
       handlePosition = tableHeight - handleSize;
     }
@@ -4497,13 +4533,14 @@ WalkontableScrollbar.prototype.refresh = function () {
     }
     this.handle.style.width = handleSize + 'px';
 
-    handlePosition = tableWidth * (offsetColumn / totalColumns);
+    handlePosition = (tableWidth - handleSize) * (offsetColumn / totalColumns);
     if (handlePosition > tableWidth - handleSize) {
       handlePosition = tableWidth - handleSize;
     }
-    else if (handlePosition < 0) {
-      handlePosition = 0;
-    }
+    /* it should be needed here if it was not needed above
+     else if (handlePosition < 0) {
+     handlePosition = 0;
+     }*/
     this.handle.style.left = handlePosition + 'px';
   }
 
@@ -4877,6 +4914,7 @@ WalkontableTable.prototype.draw = function () {
   this.tableOffset = this.wtDom.offset(this.TABLE);
   this.adjustAvailableNodes();
   this._doDraw();
+  //this.instance.scrollViewport([this.instance.getSetting('offsetRow'), this.instance.getSetting('offsetColumn')]); //needed by WalkontableScroll -> remove row from the last scroll page should scroll viewport a row up if needed
   return this;
 };
 
