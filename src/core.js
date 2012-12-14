@@ -1979,7 +1979,7 @@ var settings = {
   'autoWrapRow': false,
   'autoWrapCol': false,
   'viewEngine': 'walkontable',
-  'asyncRendering': true
+  'asyncRendering': window.jasmine ? false : true //disable async for testing
 };
 
 $.fn.handsontable = function (action) {
