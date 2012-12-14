@@ -14,6 +14,7 @@ Bugfixes since 0.8.0-beta1:
 - fixed error when clicking on row/column header
 - fixed rendering removed row at last scroll page
 - make scrollbar scrolling much more smooth
+- fix copy-paste in Chrome
 
 ## [0.8.0-beta1](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta1) (Dec 11, 2012)
 

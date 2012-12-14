@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Dec 13 2012 23:54:31 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 14 2012 02:01:20 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1074,7 +1074,7 @@ Handsontable.Core = function (rootElement, settings) {
     }
   };
 
-  this.editproxy = editproxy = { //this public assignment is only temporary
+  editproxy = { //this public assignment is only temporary
     /**
      * Create input field
      */
@@ -1117,6 +1117,14 @@ Handsontable.Core = function (rootElement, settings) {
 
       function onKeyDown(event) {
         if ($body.children('.context-menu-list:visible').length) {
+          return;
+        }
+
+        if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
+          //when CTRL is pressed, prepare selectable text in textarea
+          //http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
+          priv.editProxy[0].value = datamap.getText(priv.selStart.coords(), priv.selEnd.coords());
+          setTimeout(editproxy.focus, 1);
           return;
         }
 
@@ -1272,7 +1280,7 @@ Handsontable.Core = function (rootElement, settings) {
      */
     prepare: function () {
       priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
-      priv.editProxy[0].value = datamap.getText(priv.selStart.coords(), priv.selEnd.coords());
+      //priv.editProxy[0].value = datamap.getText(priv.selStart.coords(), priv.selEnd.coords());
       setTimeout(editproxy.focus, 1);
       priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords(), priv.editProxy);
     },
