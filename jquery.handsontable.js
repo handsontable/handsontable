@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 14 2012 02:18:08 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 14 2012 02:33:26 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3691,7 +3691,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Thu Dec 13 2012 19:42:38 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 14 2012 02:32:48 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -4319,10 +4319,10 @@ WalkontableScroll.prototype.refreshScrollbars = function () {
   this.wtScrollbarH.refresh();
 };
 
-WalkontableScroll.prototype.scrollVertical = function (delta, force) {
+WalkontableScroll.prototype.scrollVertical = function (delta) {
   var offsetRow = this.instance.getSetting('offsetRow')
     , newOffsetRow
-    , max = this.instance.getSetting('totalRows') - this.instance.getSetting('displayRows');
+    , max = this.instance.getSetting('totalRows') - this.instance.getSetting('viewportRows');
   if (max < 0) {
     max = 0;
   }
@@ -4330,7 +4330,7 @@ WalkontableScroll.prototype.scrollVertical = function (delta, force) {
   if (newOffsetRow < 0) {
     newOffsetRow = 0;
   }
-  else if (newOffsetRow >= max && !force) {
+  else if (newOffsetRow >= max) {
     newOffsetRow = max;
   }
   if (newOffsetRow !== offsetRow) {
@@ -4339,12 +4339,12 @@ WalkontableScroll.prototype.scrollVertical = function (delta, force) {
   return this.instance;
 };
 
-WalkontableScroll.prototype.scrollHorizontal = function (delta, force) {
-  var displayColumns = this.instance.getSetting('displayColumns');
-  if (displayColumns !== null) {
+WalkontableScroll.prototype.scrollHorizontal = function (delta) {
+  var viewportColumns = this.instance.getSetting('viewportColumns');
+  if (viewportColumns !== null) {
     var offsetColumn = this.instance.getSetting('offsetColumn')
       , newOffsetColumn
-      , max = this.instance.getSetting('totalColumns') - displayColumns;
+      , max = this.instance.getSetting('totalColumns') - viewportColumns;
     if (max < 0) {
       max = 0;
     }
@@ -4352,7 +4352,7 @@ WalkontableScroll.prototype.scrollHorizontal = function (delta, force) {
     if (newOffsetColumn < 0) {
       newOffsetColumn = 0;
     }
-    else if (newOffsetColumn >= max && !force) {
+    else if (newOffsetColumn >= max) {
       newOffsetColumn = max;
     }
     if (newOffsetColumn !== offsetColumn) {
@@ -4382,7 +4382,7 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
 
   if (viewportRows < totalRows) {
     if (coords[0] > offsetRow + viewportRows - 1) {
-      this.scrollVertical(coords[0] - (offsetRow + viewportRows - 1), !!this.instance.wtTable.visibilityEdgeRow);
+      this.scrollVertical(coords[0] - (offsetRow + viewportRows - 1));
     }
     else if (coords[0] < offsetRow) {
       this.scrollVertical(coords[0] - offsetRow);
@@ -4397,7 +4397,7 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
 
   if (viewportColumns > 0 && viewportColumns < totalColumns) {
     if (coords[1] > offsetColumn + viewportColumns - 1) {
-      this.scrollHorizontal(coords[1] - (offsetColumn + viewportColumns - 1), !!this.instance.wtTable.visibilityEdgeColumn);
+      this.scrollHorizontal(coords[1] - (offsetColumn + viewportColumns - 1));
     }
     else if (coords[1] < offsetColumn) {
       this.scrollHorizontal(coords[1] - offsetColumn);
