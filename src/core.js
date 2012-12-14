@@ -1263,7 +1263,15 @@ Handsontable.Core = function (rootElement, settings) {
       priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
       //priv.editProxy[0].value = datamap.getText(priv.selStart.coords(), priv.selEnd.coords());
       setTimeout(editproxy.focus, 1);
-      priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords(), priv.editProxy);
+      if (priv.settings.asyncRendering) {
+        clearTimeout(window.prepareFrame);
+        window.prepareFrame = setTimeout(function () {
+          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords(), priv.editProxy);
+        }, 0);
+      }
+      else {
+        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords(), priv.editProxy);
+      }
     },
 
     /**
@@ -1970,7 +1978,8 @@ var settings = {
   'tabMoves': {row: 0, col: 1},
   'autoWrapRow': false,
   'autoWrapCol': false,
-  'viewEngine': 'walkontable'
+  'viewEngine': 'walkontable',
+  'asyncRendering': true
 };
 
 $.fn.handsontable = function (action) {

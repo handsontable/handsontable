@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 14 2012 02:33:26 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 14 2012 03:30:51 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1282,7 +1282,15 @@ Handsontable.Core = function (rootElement, settings) {
       priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
       //priv.editProxy[0].value = datamap.getText(priv.selStart.coords(), priv.selEnd.coords());
       setTimeout(editproxy.focus, 1);
-      priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords(), priv.editProxy);
+      if (priv.settings.asyncRendering) {
+        clearTimeout(window.prepareFrame);
+        window.prepareFrame = setTimeout(function () {
+          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords(), priv.editProxy);
+        }, 0);
+      }
+      else {
+        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords(), priv.editProxy);
+      }
     },
 
     /**
@@ -1989,7 +1997,8 @@ var settings = {
   'tabMoves': {row: 0, col: 1},
   'autoWrapRow': false,
   'autoWrapCol': false,
-  'viewEngine': 'walkontable'
+  'viewEngine': 'walkontable',
+  'asyncRendering': true
 };
 
 $.fn.handsontable = function (action) {
@@ -2114,7 +2123,7 @@ Handsontable.TableView = function (instance) {
 
   var walkontableConfig = {
     table: $table[0],
-    async: true,
+    async: settings.asyncRendering,
     data: instance.getDataAtCell,
     totalRows: instance.countRows,
     totalColumns: instance.countCols,
@@ -3691,7 +3700,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Fri Dec 14 2012 02:32:48 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 14 2012 03:28:56 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -3939,10 +3948,10 @@ Walkontable.prototype.draw = function () {
   //this.instance.scrollViewport([this.instance.getSetting('offsetRow'), this.instance.getSetting('offsetColumn')]); //needed by WalkontableScroll -> remove row from the last scroll page should scroll viewport a row up if needed
   if (this.hasSetting('async')) {
     var that = this;
-    window.cancelRequestAnimFrame(that.drawFrame);
-    that.drawFrame = window.requestAnimFrame(function () {
+    clearTimeout(that.drawFrame);
+    that.drawFrame = setTimeout(function () {
       that.wtTable.draw();
-    });
+    }, 0);
   }
   else {
     this.wtTable.draw();
@@ -3975,10 +3984,10 @@ Walkontable.prototype.scrollHorizontal = function (delta) {
 Walkontable.prototype.scrollViewport = function (coords) {
   if (this.hasSetting('async')) {
     var that = this;
-    window.cancelRequestAnimFrame(that.scrollFrame);
-    that.scrollFrame = window.requestAnimFrame(function () {
+    clearTimeout(that.scrollFrame);
+    that.scrollFrame = setTimeout(function () {
       that.wtScroll.scrollViewport(coords);
-    });
+    }, 0);
   }
   else {
     this.wtScroll.scrollViewport(coords);
@@ -4285,29 +4294,6 @@ if (!Array.prototype.indexOf) {
     return -1;
   };
 }
-
-/**
- * http://notes.jetienne.com/2011/05/18/cancelRequestAnimFrame-for-paul-irish-requestAnimFrame.html
- */
-window.requestAnimFrame = (function () {
-  return  window.requestAnimationFrame ||
-    window.webkitRequestAnimationFrame ||
-    window.mozRequestAnimationFrame ||
-    window.oRequestAnimationFrame ||
-    window.msRequestAnimationFrame ||
-    function (/* function */ callback, /* DOMElement */ element) {
-      return window.setTimeout(callback, 1000 / 60);
-    };
-})();
-
-window.cancelRequestAnimFrame = (function () {
-  return window.cancelAnimationFrame ||
-    window.webkitCancelRequestAnimationFrame ||
-    window.mozCancelRequestAnimationFrame ||
-    window.oCancelRequestAnimationFrame ||
-    window.msCancelRequestAnimationFrame ||
-    clearTimeout
-})();
 function WalkontableScroll(instance) {
   this.instance = instance;
   this.wtScrollbarV = new WalkontableScrollbar(instance, 'vertical');
