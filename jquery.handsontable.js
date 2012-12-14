@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 14 2012 03:34:40 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 14 2012 03:52:52 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3700,7 +3700,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Fri Dec 14 2012 03:28:56 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 14 2012 03:51:37 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -3948,7 +3948,6 @@ Walkontable.prototype.draw = function () {
   //this.instance.scrollViewport([this.instance.getSetting('offsetRow'), this.instance.getSetting('offsetColumn')]); //needed by WalkontableScroll -> remove row from the last scroll page should scroll viewport a row up if needed
   if (this.hasSetting('async')) {
     var that = this;
-    clearTimeout(that.drawFrame);
     that.drawFrame = setTimeout(function () {
       that.wtTable.draw();
     }, 0);
@@ -3984,7 +3983,6 @@ Walkontable.prototype.scrollHorizontal = function (delta) {
 Walkontable.prototype.scrollViewport = function (coords) {
   if (this.hasSetting('async')) {
     var that = this;
-    clearTimeout(that.scrollFrame);
     that.scrollFrame = setTimeout(function () {
       that.wtScroll.scrollViewport(coords);
     }, 0);
@@ -4294,6 +4292,29 @@ if (!Array.prototype.indexOf) {
     return -1;
   };
 }
+
+/**
+ * http://notes.jetienne.com/2011/05/18/cancelRequestAnimFrame-for-paul-irish-requestAnimFrame.html
+ */
+window.requestAnimFrame = (function () {
+  return  window.requestAnimationFrame ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame ||
+    window.oRequestAnimationFrame ||
+    window.msRequestAnimationFrame ||
+    function (/* function */ callback, /* DOMElement */ element) {
+      return window.setTimeout(callback, 1000 / 60);
+    };
+})();
+
+window.cancelRequestAnimFrame = (function () {
+  return window.cancelAnimationFrame ||
+    window.webkitCancelRequestAnimationFrame ||
+    window.mozCancelRequestAnimationFrame ||
+    window.oCancelRequestAnimationFrame ||
+    window.msCancelRequestAnimationFrame ||
+    clearTimeout
+})();
 function WalkontableScroll(instance) {
   this.instance = instance;
   this.wtScrollbarV = new WalkontableScrollbar(instance, 'vertical');
@@ -5019,8 +5040,23 @@ WalkontableTable.prototype._doDraw = function () {
   }
 
   //redraw selections
+  if (this.instance.hasSetting('async')) {
+    var that = this;
+    window.cancelRequestAnimFrame(this.selectionsFrame);
+    that.selectionsFrame = window.requestAnimFrame(function () {
+      that.refreshSelections();
+    });
+  }
+  else {
+    this.refreshSelections();
+  }
+
+  this.instance.drawn = true;
+};
+
+WalkontableTable.prototype.refreshSelections = function () {
   if (this.instance.selections) {
-    for (r in this.instance.selections) {
+    for (var r in this.instance.selections) {
       if (this.instance.selections.hasOwnProperty(r)) {
         this.instance.selections[r].draw();
       }
@@ -5028,8 +5064,7 @@ WalkontableTable.prototype._doDraw = function () {
   }
 
   this.instance.wtScroll.refreshScrollbars();
-  this.instance.drawn = true;
-};
+}
 
 //0 if no
 //1 if partially
