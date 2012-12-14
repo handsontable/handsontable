@@ -93,9 +93,7 @@
       <div class="pad bottomSpace100">
         <p>If you want scrollbars, just set it in the container CSS.</p>
 
-        <p>Known issue - the width and height of the table is not measured accurately in 0.8.0-beta1. This will be fixed in beta2. Follow the CHANGELOG.md for more details</p>
-
-        <div id="example1" style="width: 200px; height: 200px; overflow: scroll"></div>
+        <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
         <p>
           <button name="dump" data-dump="#example1">Dump to console</button>
@@ -114,7 +112,7 @@
 
           $("#example1").handsontable({
             data: createBigData(),
-            colWidths: [40, 70, 70, 70, 70], //can also be a number or a function
+            colWidths: [55, 80, 80, 80, 80, 80, 80], //can also be a number or a function
             rowHeaders: true,
             colHeaders: true,
             minSpareRows: 1
