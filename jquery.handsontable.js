@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 14 2012 15:24:30 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 14 2012 15:42:41 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1844,14 +1844,14 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Array|String}
    */
   this.getRowHeader = function (row) {
-    if (priv.settings.rowHeaders === true) {
-      return row + 1;
+    if (Object.prototype.toString.call(priv.settings.rowHeaders) === '[object Array]' && priv.settings.rowHeaders[row] !== void 0) {
+      return priv.settings.rowHeaders[row];
     }
     else if (typeof priv.settings.rowHeaders === 'function') {
       return priv.settings.rowHeaders(row);
     }
-    else if (Object.prototype.toString.call(priv.settings.rowHeaders) === '[object Array]') {
-      return priv.settings.rowHeaders[row];
+    else if (priv.settings.rowHeaders && typeof priv.settings.rowHeaders !== 'string' && typeof priv.settings.rowHeaders !== 'number') {
+      return row + 1;
     }
     else {
       return priv.settings.rowHeaders;
@@ -1864,7 +1864,13 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Array|String}
    */
   this.getColHeader = function (col) {
-    if (priv.settings.colHeaders === true) {
+    if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
+      return priv.settings.colHeaders[col];
+    }
+    else if (typeof priv.settings.colHeaders === 'function') {
+      return priv.settings.colHeaders(col);
+    }
+    else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
       var dividend = col + 1;
       var columnLabel = '';
       var modulo;
@@ -1874,12 +1880,6 @@ Handsontable.Core = function (rootElement, settings) {
         dividend = parseInt((dividend - modulo) / 26);
       }
       return columnLabel;
-    }
-    else if (typeof priv.settings.colHeaders === 'function') {
-      return priv.settings.colHeaders(col);
-    }
-    else if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]') {
-      return priv.settings.colHeaders[col];
     }
     else {
       return priv.settings.colHeaders;
