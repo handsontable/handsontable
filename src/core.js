@@ -1829,13 +1829,13 @@ Handsontable.Core = function (rootElement, settings) {
       return row + 1;
     }
     else if (typeof priv.settings.rowHeaders === 'function') {
-      return priv.settings.colHeaders(row);
+      return priv.settings.rowHeaders(row);
     }
     else if (Object.prototype.toString.call(priv.settings.rowHeaders) === '[object Array]') {
-      return priv.settings.colHeaders[row];
+      return priv.settings.rowHeaders[row];
     }
     else {
-      return priv.settings.colHeaders;
+      return priv.settings.rowHeaders;
     }
   };
 

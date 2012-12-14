@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 14 2012 15:12:28 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 14 2012 15:24:30 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1848,13 +1848,13 @@ Handsontable.Core = function (rootElement, settings) {
       return row + 1;
     }
     else if (typeof priv.settings.rowHeaders === 'function') {
-      return priv.settings.colHeaders(row);
+      return priv.settings.rowHeaders(row);
     }
     else if (Object.prototype.toString.call(priv.settings.rowHeaders) === '[object Array]') {
-      return priv.settings.colHeaders[row];
+      return priv.settings.rowHeaders[row];
     }
     else {
-      return priv.settings.colHeaders;
+      return priv.settings.rowHeaders;
     }
   };
 
