@@ -251,6 +251,10 @@ ul.context-menu-list {
   color: black;
 }
 
+ul.context-menu-list li {
+  margin-bottom: 0; /*Foundation framework fix*/
+}
+
 /**
  * dragdealer
  */
