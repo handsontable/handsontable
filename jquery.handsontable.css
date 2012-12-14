@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 14 2012 15:42:41 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 14 2012 15:55:50 GMT+0100 (Central European Standard Time)
  */
 
 .handsontable {
@@ -259,7 +259,7 @@ ul.context-menu-list li {
  * dragdealer
  */
 
-.dragdealer {
+.handsontable .dragdealer {
   position: relative;
   width: 9px;
   height: 9px;
@@ -267,13 +267,13 @@ ul.context-menu-list li {
   border: 1px solid #DDD;
 }
 
-.dragdealer .handle {
+.handsontable .dragdealer .handle {
   position: absolute;
   width: 9px;
   height: 9px;
   background: #C5C5C5;
 }
 
-.dragdealer .disabled {
+.handsontable .dragdealer .disabled {
   background: #898989;
 }
