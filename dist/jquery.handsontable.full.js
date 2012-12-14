@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 14 2012 02:01:20 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 14 2012 02:18:08 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2045,7 +2045,7 @@ Handsontable.TableView = function (instance) {
   var myWidth = settings.width;
   var myHeight = settings.height;
   if (overflow === 'scroll' || overflow === 'auto') {
-    instance.rootElement.css('overflow', '');
+    instance.rootElement.css('overflow', 'visible');
     if (settings.width === void 0 && parseInt(instance.rootElement.css('width')) > 0) {
       myWidth = parseInt(instance.rootElement.css('width'));
       instance.rootElement[0].style.width = '';
