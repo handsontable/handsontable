@@ -1,4 +1,4 @@
-## [0.8.0-beta2](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta2) (Dec 12, 2012)
+## [0.8.0-beta2](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta2) (Dec 14, 2012)
 
 Beta preview has been updated: http://handsontable.com/0.8.0/
 
@@ -6,16 +6,19 @@ New features since 0.8.0-beta1:
 - now the table is rendered even faster with `requestAnimationFrame`
 
 New known issues since 0.8.0-beta1:
-- page up/page down works wrongly
-- CTRL+A works very slow on large data sets
+- page up/page down scrolls to the first and the last row (should only scroll one screen)
+- CTRL+A works slow on large data sets (as reported by @brivazac / #295)
+- copy of large selection (5k, 10k, 100k rows etc) freezes IE8 (first reported by @itanex / #295). Below 1k rows works fine. The only solution I can think of right now is to set copy limit in IE8 to 1000 rows.
+- when using `overflow: auto`, only relevant scrollbars should be displayed (first reported by @dansabirov / #295)
 
 Bugfixes since 0.8.0-beta1:
 - fixed known issue "selecting an area and clicking one of its cells within 500 ms starts editing of that cell"
-- fixed error when clicking on row/column header
-- fixed rendering removed row at last scroll page
-- make scrollbar scrolling much more smooth
-- fix copy-paste in Chrome
-- `getRowHeader()` referenced to colHeaders instead of rowHeaders
+- fixed known issue "table width and height is now configured using `width` and `height` settings"
+- fixed error when clicking on row/column header (related to @cscribner / #295)
+- fix copy-paste in Chrome (thanks @ravio  / #295)
+- `getRowHeader()` referenced to colHeaders instead of rowHeaders (thanks @marint / #295)
+- fix performance of `loadData` (thanks @codename- / #295)
+- now works in IE8, still not yet in IE7
 
 ## [0.8.0-beta1](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta1) (Dec 11, 2012)
 
@@ -25,12 +28,12 @@ Features:
 - completely new rendering engine codenamed "Walkontable" that uses a `canvas` type approach to draw the visible part of the table on screen. Works smoothly even with data sources above 100 000k rows.
 
 Known issues (all of them will be fixed before final 0.8.0):
-- table width and height is now configured using `width` and `height` settings, though it does not work accurately yet (guesses fixed cell size of 50x20px). This will be fixed in beta2.
+- _fixed in beta2:_ table width and height is now configured using `width` and `height` settings, though it does not work accurately yet (guesses fixed cell size of 50x20px). This will be fixed in beta2.
+- _fixed in beta2:_ selecting an area and clicking one of its cells within 500 ms starts editing of that cell
 - methods `setCellReadOnly` and `setCellEditable` are currently broken. You can still define read only columns using the `columns` or `cells` settings
 - fill handle (drag-down) feature is currently broken
-- selecting an area and clicking one of its cells within 500 ms starts editing of that cell
-- clicking on cell & row borders has no effect
-- this version does not work in IE7-8 (but will work in final 0.8.0)
+- clicking on cell & row borders has no effect (first reported by @cscribner / #295, though now it does not crash)
+- partially fixed in beta2:_ this version does not work in IE7-8 (but will work in final 0.8.0)
 
 Bugfixes:
 - fixed CSS problems with Foundation framework
