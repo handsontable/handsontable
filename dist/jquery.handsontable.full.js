@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 14 2012 17:27:19 GMT+0100 (Central European Standard Time)
+ * Date: Sat Dec 15 2012 14:23:49 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3700,7 +3700,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Fri Dec 14 2012 03:51:37 GMT+0100 (Central European Standard Time)
+ * Date: Sat Dec 15 2012 14:20:07 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -4772,6 +4772,13 @@ function WalkontableTable(instance) {
   this.wtDom = new WalkontableDom();
   this.wtDom.removeTextNodes(this.TABLE);
 
+  this.hasEmptyCellProblem = ($.browser.msie && (parseInt($.browser.version, 10) <= 7));
+  this.hasCellSpacingProblem = ($.browser.msie && (parseInt($.browser.version, 10) <= 7));
+
+  if (this.hasCellSpacingProblem) { //IE7
+    this.TABLE.cellSpacing = 0;
+  }
+
   this.visibilityEdgeRow = this.visibilityEdgeColumn = null;
 
   //wtSpreader
@@ -4982,11 +4989,15 @@ WalkontableTable.prototype._doDraw = function () {
   //draw THEAD
   if (frozenColumnsCount && this.instance.hasSetting('columnHeaders')) {
     for (c = 0; c < frozenColumnsCount; c++) {
+      TH = this.THEAD.childNodes[0].childNodes[c];
       if (typeof frozenColumns[c] === "function") {
-        frozenColumns[c](null, this.THEAD.childNodes[0].childNodes[c])
+        frozenColumns[c](null, TH);
       }
       else {
-        this.THEAD.childNodes[0].childNodes[c].innerHTML = '';
+        TH.innerHTML = '';
+      }
+      if (this.hasEmptyCellProblem && TH.innerHTML === '') { //IE7
+        TH.innerHTML = '&nbsp;';
       }
     }
   }
@@ -5027,6 +5038,9 @@ WalkontableTable.prototype._doDraw = function () {
       if (!this.instance.drawn || visibility) {
         TD.className = '';
         this.instance.getSetting('cellRenderer', offsetRow + r, offsetColumn + c, TD);
+        if (this.hasEmptyCellProblem && TD.innerHTML === '') { //IE7
+          TD.innerHTML = '&nbsp;';
+        }
       }
       else {
         if (c === 0) {
@@ -5064,7 +5078,7 @@ WalkontableTable.prototype.refreshSelections = function () {
   }
 
   this.instance.wtScroll.refreshScrollbars();
-}
+};
 
 //0 if no
 //1 if partially
@@ -5141,10 +5155,12 @@ function WalkontableWheel(instance) {
     clearTimeout(wheelTimeout);
     wheelTimeout = setTimeout(function () { //timeout is needed because with fast-wheel scrolling mousewheel event comes dozen times per second
       if (deltaY) {
-        that.instance.scrollVertical(-deltaY).draw();
+        //ceil is needed because jquery-mousewheel reports fractional mousewheel deltas on touchpad scroll
+        //see http://stackoverflow.com/questions/5527601/normalizing-mousewheel-speed-across-browsers
+        that.instance.scrollVertical(-Math.ceil(deltaY)).draw();
       }
       else if (deltaX) {
-        that.instance.scrollHorizontal(deltaX).draw();
+        that.instance.scrollHorizontal(Math.ceil(deltaX)).draw();
       }
     }, 0);
     event.preventDefault();
