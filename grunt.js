@@ -59,8 +59,8 @@ module.exports = function (grunt) {
         src: [
           'jquery.handsontable.js',
           'lib/bootstrap-typeahead.js',
-          'lib/jQuery-contextMenu/jquery.contextMenu.js',
-          'lib/jQuery-contextMenu/jquery.ui.position.js'
+          'lib/jQuery-contextMenu/jquery.contextMenu.js'
+          //'lib/jQuery-contextMenu/jquery.ui.position.js' //seems to have no effect when turned off on contextmenu.html
         ],
         dest: 'dist/jquery.handsontable.full.js'
       },

@@ -15,6 +15,9 @@ Bugfixes since 0.8.0-beta2:
 - fixed scrolling with touchpad (as reported by @codename- / #303)
 - now works in IE7
 
+Other changes since 0.8.0-beta2:
+- removed `jquery.ui.position.js` from `jquery.handsontable.full.js`, because it seems to have no effect (explained in `demo/contextmenu.html`)
+
 ## [0.8.0-beta2](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta2) (Dec 14, 2012)
 
 Beta preview has been updated: http://handsontable.com/0.8.0/
