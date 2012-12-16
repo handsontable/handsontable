@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Dec 15 2012 15:43:39 GMT+0100 (Central European Standard Time)
+ * Date: Sun Dec 16 2012 01:43:08 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3700,7 +3700,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Sat Dec 15 2012 14:20:07 GMT+0100 (Central European Standard Time)
+ * Date: Sun Dec 16 2012 01:41:19 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -4210,7 +4210,7 @@ function WalkontableEvent(instance) {
       if (that.instance.settings.onCellMouseDown) {
         that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD);
       }
-      if (event.button !== 2 && that.instance.settings.onCellDblClick) { //if not right mouse button
+      if (event.button !== 2) { //if not right mouse button
         dblClickOrigin.shift();
         dblClickOrigin.push(cell.TD);
       }
@@ -4231,7 +4231,7 @@ function WalkontableEvent(instance) {
   };
 
   var onMouseUp = function (event) {
-    if (event.button !== 2 && that.instance.settings.onCellDblClick) { //if not right mouse button
+    if (event.button !== 2) { //if not right mouse button
       var cell = that.parentCell(event.target);
 
       if (cell.TD && cell.TD.nodeName === 'TD') {
