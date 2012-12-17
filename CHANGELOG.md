@@ -14,6 +14,7 @@ Known issues:
 Bugfixes since 0.8.0-beta2:
 - fixed scrolling with touchpad (as reported by @codename- / #303)
 - fixed double click on cell (as reported by @MDron / #303)
+- CTRL+A then Delete did not remove redundant empty rows in scroll example (as reported by @ravio / 303)
 - now works in IE7
 
 Other changes since 0.8.0-beta2:

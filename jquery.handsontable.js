@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 17 2012 15:30:16 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 17 2012 22:45:23 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -472,17 +472,15 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       if (!recreateRows && priv.settings.enterBeginsEditing) {
-        for (; ((priv.settings.minRows && self.countRows() > priv.settings.minRows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows) && (!priv.settings.minHeight || $tbody.height() - $tbody.find('tr:last').height() - 4 > priv.settings.minHeight)); emptyRows--) {
+        for (; (((priv.settings.minRows || priv.settings.minSpareRows) && self.countRows() > priv.settings.minRows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows) && (!priv.settings.minHeight || $tbody.height() - $tbody.find('tr:last').height() - 4 > priv.settings.minHeight)); emptyRows--) {
           datamap.removeRow();
           recreateRows = true;
         }
       }
 
-      if (!recreateCols && priv.settings.enterBeginsEditing) {
-        for (; ((priv.settings.startCols && self.countCols() > priv.settings.startCols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (!priv.settings.minWidth || $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
-          if (!priv.settings.columns) {
-            datamap.removeCol();
-          }
+      if (!recreateCols && priv.settings.enterBeginsEditing && !priv.settings.columns) {
+        for (; (((priv.settings.minCols || priv.settings.minSpareCols) && self.countCols() > priv.settings.minCols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (!priv.settings.minWidth || $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
+          datamap.removeCol();
           recreateCols = true;
         }
       }

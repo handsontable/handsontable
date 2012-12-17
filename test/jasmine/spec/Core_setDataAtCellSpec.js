@@ -97,7 +97,7 @@ describe('Core_setDataAtCell', function () {
       try {
         handsontable({
           minSpareRows: 1,
-          startRows: 5,
+          minRows: 5,
           maxRows: 10
         });
         selectCell(4, 0);
@@ -125,7 +125,7 @@ describe('Core_setDataAtCell', function () {
       try {
         handsontable({
           minSpareCols: 1,
-          startCols: 5,
+          minCols: 5,
           maxCols: 10
         });
         selectCell(0, 4);
@@ -154,8 +154,8 @@ describe('Core_setDataAtCell', function () {
         handsontable({
           minSpareRows: 1,
           minSpareCols: 1,
-          startRows: 5,
-          startCols: 5,
+          minRows: 5,
+          minCols: 5,
           maxRows: 6,
           maxCols: 6
         });
