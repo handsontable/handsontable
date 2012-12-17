@@ -41,6 +41,13 @@ Handsontable.TableView = function (instance) {
       instance.autofill.handle.isDragged = 0;
     }
   });
+
+  $table.on('selectstart', function (event) {
+    //https://github.com/warpech/jquery-handsontable/issues/160
+    //selectstart is IE only event. Prevent text from being selected when performing drag down in IE8
+    event.preventDefault();
+  });
+
   $table.on('mouseenter', function () {
     if (dragInterval) { //if dragInterval was set (that means mouse was really outside of table, not over an element that is outside of <table> in DOM
       clearInterval(dragInterval);

@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Dec 18 2012 00:55:18 GMT+0100 (Central European Standard Time)
+ * Date: Tue Dec 18 2012 00:59:29 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2058,6 +2058,13 @@ Handsontable.TableView = function (instance) {
       instance.autofill.handle.isDragged = 0;
     }
   });
+
+  $table.on('selectstart', function (event) {
+    //https://github.com/warpech/jquery-handsontable/issues/160
+    //selectstart is IE only event. Prevent text from being selected when performing drag down in IE8
+    event.preventDefault();
+  });
+
   $table.on('mouseenter', function () {
     if (dragInterval) { //if dragInterval was set (that means mouse was really outside of table, not over an element that is outside of <table> in DOM
       clearInterval(dragInterval);
