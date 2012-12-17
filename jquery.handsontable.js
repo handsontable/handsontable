@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Dec 16 2012 01:43:08 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 17 2012 11:17:54 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -908,23 +908,16 @@ Handsontable.Core = function (rootElement, settings) {
 
   this.autofill = autofill = { //this public assignment is only temporary
     handle: null,
-    fillBorder: null,
 
     /**
      * Create fill handle and fill border objects
      */
     init: function () {
       if (!autofill.handle) {
-        autofill.handle = new Handsontable.FillHandle(self);
-        /*autofill.fillBorder = new Handsontable.Border(self, {
-         className: 'htFillBorder'
-         });*/
-
-        $(autofill.handle.handle).on('dblclick', autofill.selectAdjacent);
+        autofill.handle = {};
       }
       else {
         autofill.handle.disabled = false;
-        autofill.fillBorder.disabled = false;
       }
 
       self.rootElement.on('beginediting.handsontable', function () {
@@ -943,7 +936,6 @@ Handsontable.Core = function (rootElement, settings) {
      */
     disable: function () {
       autofill.handle.disabled = true;
-      autofill.fillBorder.disabled = true;
     },
 
     /**
@@ -986,91 +978,111 @@ Handsontable.Core = function (rootElement, settings) {
 
       autofill.handle.isDragged = 0;
 
-      drag = autofill.fillBorder.corners;
+      drag = self.view.wt.selections.fill.getCorners();
       if (!drag) {
         return;
       }
 
-      autofill.fillBorder.disappear();
+      self.view.wt.selections.fill.clear();
 
       if (selection.isMultiple()) {
-        select = priv.selectionBorder.corners;
+        select = self.view.wt.selections.area.getCorners();
       }
       else {
-        select = priv.currentBorder.corners;
+        select = self.view.wt.selections.current.getCorners();
       }
 
-      if (drag.TL.row === select.TL.row && drag.TL.col < select.TL.col) {
-        start = drag.TL;
-        end = {
-          row: drag.BR.row,
-          col: select.TL.col - 1
-        };
-      }
-      else if (drag.TL.row === select.TL.row && drag.BR.col > select.BR.col) {
+      if (drag[0] === select[0] && drag[1] < select[1]) {
         start = {
-          row: drag.TL.row,
-          col: select.BR.col + 1
+          row: drag[0],
+          col: drag[1]
         };
-        end = drag.BR;
-      }
-      else if (drag.TL.row < select.TL.row && drag.TL.col === select.TL.col) {
-        start = drag.TL;
         end = {
-          row: select.TL.row - 1,
-          col: drag.BR.col
+          row: drag[2],
+          col: select[1] - 1
         };
       }
-      else if (drag.BR.row > select.BR.row && drag.TL.col === select.TL.col) {
+      else if (drag[0] === select[0] && drag[3] > select[3]) {
         start = {
-          row: select.BR.row + 1,
-          col: drag.TL.col
+          row: drag[0],
+          col: select[3] + 1
         };
-        end = drag.BR;
+        end = {
+          row: drag[2],
+          col: drag[3]
+        };
+      }
+      else if (drag[0] < select[0] && drag[1] === select[1]) {
+        start = {
+          row: drag[0],
+          col: drag[1]
+        };
+        end = {
+          row: select[0] - 1,
+          col: drag[3]
+        };
+      }
+      else if (drag[2] > select[2] && drag[1] === select[1]) {
+        start = {
+          row: select[2] + 1,
+          col: drag[1]
+        };
+        end = {
+          row: drag[2],
+          col: drag[3]
+        };
       }
 
       if (start) {
-        grid.populateFromArray(start, SheetClip.parse(priv.editProxy[0].value), end, 'autofill');
+        //grid.populateFromArray(start, SheetClip.parse(priv.editProxy[0].value), end, 'autofill');
+        grid.populateFromArray(start, SheetClip.parse(datamap.getText(priv.selStart.coords(), priv.selEnd.coords())), end, 'autofill');
 
-        selection.setRangeStart(drag.TL);
-        selection.setRangeEnd(drag.BR);
+        selection.setRangeStart({row: drag[0], col: drag[1]});
+        selection.setRangeEnd({row: drag[2], col: drag[3]});
       }
-      else {
-        //reset to avoid some range bug
-        selection.refreshBorders();
-      }
+      /*else {
+       //reset to avoid some range bug
+       selection.refreshBorders();
+       }*/
     },
 
     /**
      * Show fill handle
      */
     showHandle: function () {
-      autofill.handle.appear([priv.selStart.coords(), priv.selEnd.coords()]);
+      //autofill.handle.appear([priv.selStart.coords(), priv.selEnd.coords()]);
     },
 
     /**
      * Hide fill handle
      */
     hideHandle: function () {
-      autofill.handle.disappear();
+      //autofill.handle.disappear();
     },
 
     /**
      * Show fill border
      */
-    showBorder: function (td) {
-      var coords = self.view.getCellCoords(td);
+    showBorder: function (coords) {
+      coords.row = coords[0];
+      coords.col = coords[1];
+
       var corners = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
       if (priv.settings.fillHandle !== 'horizontal' && (corners.BR.row < coords.row || corners.TL.row > coords.row)) {
-        coords = {row: coords.row, col: corners.BR.col};
+        coords = [coords.row, corners.BR.col];
       }
       else if (priv.settings.fillHandle !== 'vertical') {
-        coords = {row: corners.BR.row, col: coords.col};
+        coords = [corners.BR.row, coords.col];
       }
       else {
         return; //wrong direction
       }
-      autofill.fillBorder.appear([priv.selStart.coords(), priv.selEnd.coords(), coords]);
+
+      self.view.wt.selections.fill.clear();
+      self.view.wt.selections.fill.add([priv.selStart.coords().row, priv.selStart.coords().col]);
+      self.view.wt.selections.fill.add([priv.selEnd.coords().row, priv.selEnd.coords().col]);
+      self.view.wt.selections.fill.add(coords);
+      self.view.render();
     }
   };
 
@@ -1653,16 +1665,14 @@ Handsontable.Core = function (rootElement, settings) {
       datamap.createMap();
     }
 
-    /*
-     TODO implement it in 0.8.0
-     if (typeof settings.fillHandle !== "undefined") {
-     if (autofill.handle && settings.fillHandle === false) {
-     autofill.disable();
-     }
-     else if (!autofill.handle && settings.fillHandle !== false) {
-     autofill.init();
-     }
-     }*/
+    if (typeof settings.fillHandle !== "undefined") {
+      if (autofill.handle && settings.fillHandle === false) {
+        autofill.disable();
+      }
+      else if (!autofill.handle && settings.fillHandle !== false) {
+        autofill.init();
+      }
+    }
 
     recreated = grid.keepEmptyRows();
     if (!recreated) {
@@ -2072,6 +2082,13 @@ Handsontable.TableView = function (instance) {
     isMouseDown = false;
     clearInterval(dragInterval);
     dragInterval = null;
+
+    if (instance.autofill.handle && instance.autofill.handle.isDragged) {
+      if (instance.autofill.handle.isDragged > 1) {
+        instance.autofill.apply();
+      }
+      instance.autofill.handle.isDragged = 0;
+    }
   });
   $table.on('mouseenter', function () {
     if (dragInterval) { //if dragInterval was set (that means mouse was really outide of table, not over an element that is outside of <table> in DOM
@@ -2145,7 +2162,10 @@ Handsontable.TableView = function (instance) {
         border: {
           width: 2,
           color: '#5292F7',
-          style: 'solid'
+          style: 'solid',
+          cornerVisible: function () {
+            return settings.fillHandle && !instance.selection.isMultiple()
+          }
         }
       },
       area: {
@@ -2153,6 +2173,17 @@ Handsontable.TableView = function (instance) {
         border: {
           width: 1,
           color: '#89AFF9',
+          style: 'solid',
+          cornerVisible: function () {
+            return settings.fillHandle && instance.selection.isMultiple()
+          }
+        }
+      },
+      fill: {
+        className: 'fill',
+        border: {
+          width: 1,
+          color: 'red',
           style: 'solid'
         }
       }
@@ -2171,14 +2202,21 @@ Handsontable.TableView = function (instance) {
       }
     },
     onCellMouseOver: function (event, coords, TD) {
+      //console.log('isMouseDown', isMouseDown, instance.autofill.handle.isDragged);
       var coordsObj = {row: coords[0], col: coords[1]};
       if (isMouseDown) {
         instance.selection.setRangeEnd(coordsObj);
       }
-      else if (that.instance.autofill.handle && that.instance.autofill.handle.isDragged) {
-        that.instance.autofill.handle.isDragged++;
-        that.instance.autofill.showBorder(this);
+      else if (instance.autofill.handle && instance.autofill.handle.isDragged) {
+        instance.autofill.handle.isDragged++;
+        instance.autofill.showBorder(coords);
       }
+    },
+    onCellCornerMouseDown: function (event) {
+      instance.autofill.handle.isDragged = 1;
+    },
+    onCellCornerDblClick: function (event) {
+      instance.autofill.selectAdjacent();
     }
   };
 
@@ -2266,74 +2304,6 @@ Handsontable.helper.stringify = function (value) {
   }
 };
 
-/**
- * Create DOM element for drag-down handle
- * @constructor
- * @param {Object} instance Handsontable instance
- */
-Handsontable.FillHandle = function (instance) {
-  return;
-
-  this.instance = instance;
-  this.rootElement = instance.rootElement;
-  var container = this.rootElement[0];
-
-  this.handle = document.createElement("div");
-  this.handle.className = "htFillHandle";
-  this.disappear();
-  container.appendChild(this.handle);
-
-  var that = this;
-  $(this.handle).mousedown(function () {
-    that.isDragged = 1;
-  });
-
-  this.rootElement.find('table').on('selectstart', function (event) {
-    //https://github.com/warpech/jquery-handsontable/issues/160
-    //selectstart is IE only event. Prevent text from being selected when performing drag down in IE8
-    event.preventDefault();
-  });
-};
-
-Handsontable.FillHandle.prototype = {
-  /**
-   * Show handle in cell cornerł
-   * @param {Object[]} coordsArr
-   */
-  appear: function (coordsArr) {
-    return;
-
-    if (this.disabled) {
-      return;
-    }
-
-    var $td, tdOffset, containerOffset, top, left, height, width;
-
-    var corners = this.instance.getCornerCoords(coordsArr);
-
-    $td = $(this.instance.getCell(corners.BR.row, corners.BR.col));
-    tdOffset = $td.offset();
-    containerOffset = this.$container.offset();
-
-    top = tdOffset.top - containerOffset.top + this.rootElement.scrollTop() - 1;
-    left = tdOffset.left - containerOffset.left + this.rootElement.scrollLeft() - 1;
-    height = $td.outerHeight();
-    width = $td.outerWidth();
-
-    this.handle.style.top = top + height - 3 + 'px';
-    this.handle.style.left = left + width - 3 + 'px';
-    this.handle.style.display = 'block';
-  },
-
-  /**
-   * Hide handle
-   */
-  disappear: function () {
-    return;
-
-    this.handle.style.display = 'none';
-  }
-};
 /**
  * Handsontable UndoRedo class
  */
@@ -3700,7 +3670,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Sun Dec 16 2012 01:41:19 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 17 2012 11:10:54 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -3714,7 +3684,7 @@ function WalkontableBorder(instance, settings) {
   this.main.style.top = 0;
   this.main.style.left = 0;
 
-  for (var i = 0; i < 4; i++) {
+  for (var i = 0; i < 5; i++) {
     var DIV = document.createElement('DIV');
     DIV.className = 'wtBorder ' + settings.className;
     DIV.style.backgroundColor = settings.border.color;
@@ -3727,6 +3697,12 @@ function WalkontableBorder(instance, settings) {
   this.left = this.main.childNodes[1];
   this.bottom = this.main.childNodes[2];
   this.right = this.main.childNodes[3];
+
+  this.corner = this.main.childNodes[4];
+  this.corner.className += ' corner';
+  this.corner.style.width = '5px';
+  this.corner.style.height = '5px';
+  this.corner.style.border = '2px solid #FFF';
 
   this.disappear();
   instance.wtTable.hider.appendChild(this.main);
@@ -3848,6 +3824,15 @@ WalkontableBorder.prototype.appear = function (corners) {
     this.right.style.height = height + 1 + 'px';
     this.right.style.display = 'block';
   }
+
+  if (hideBottom && hideRight || !this.hasSetting(this.settings.border.cornerVisible)) {
+    this.corner.style.display = 'none';
+  }
+  else {
+    this.corner.style.top = top + height - 4 + 'px';
+    this.corner.style.left = left + width - 4 + 'px';
+    this.corner.style.display = 'block';
+  }
 };
 
 /**
@@ -3858,6 +3843,14 @@ WalkontableBorder.prototype.disappear = function () {
   this.left.style.display = 'none';
   this.bottom.style.display = 'none';
   this.right.style.display = 'none';
+  this.corner.style.display = 'none';
+};
+
+WalkontableBorder.prototype.hasSetting = function (setting) {
+  if (typeof setting === 'function') {
+    return setting();
+  }
+  return !!setting;
 };
 function Walkontable(settings) {
   var that = this;
@@ -3892,6 +3885,8 @@ function Walkontable(settings) {
     onCellMouseDown: null,
     onCellMouseOver: null,
     onCellDblClick: null,
+    onCellCornerMouseDown: null,
+    onCellCornerDblClick: null,
     scrollbarWidth: 9,
     scrollbarHeight: 9
   };
@@ -4210,9 +4205,19 @@ function WalkontableEvent(instance) {
       if (that.instance.settings.onCellMouseDown) {
         that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD);
       }
-      if (event.button !== 2) { //if not right mouse button
+    }
+    else if (that.wtDom.hasClass(event.target, 'corner')) {
+      that.instance.getSetting('onCellCornerMouseDown', event, event.target);
+    }
+
+    if (event.button !== 2) { //if not right mouse button
+      if (cell.TD && cell.TD.nodeName === 'TD') {
         dblClickOrigin.shift();
         dblClickOrigin.push(cell.TD);
+      }
+      else if (that.wtDom.hasClass(event.target, 'corner')) {
+        dblClickOrigin.shift();
+        dblClickOrigin.push(event.target);
       }
     }
   };
@@ -4237,19 +4242,29 @@ function WalkontableEvent(instance) {
       if (cell.TD && cell.TD.nodeName === 'TD') {
         dblClickOrigin.shift();
         dblClickOrigin.push(cell.TD);
+      }
+      else {
+        dblClickOrigin.shift();
+        dblClickOrigin.push(event.target);
+      }
 
-        if (dblClickOrigin[4] !== null && dblClickOrigin[3] === dblClickOrigin[2]) {
-          if (dblClickTimeout && dblClickOrigin[2] === dblClickOrigin[1] && dblClickOrigin[1] === dblClickOrigin[0]) {
+      if (dblClickOrigin[3] !== null && dblClickOrigin[3] === dblClickOrigin[2]) {
+        if (dblClickTimeout && dblClickOrigin[2] === dblClickOrigin[1] && dblClickOrigin[1] === dblClickOrigin[0]) {
+          if (cell.TD) {
             that.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD);
-            clearTimeout(dblClickTimeout);
+          }
+          else if (that.wtDom.hasClass(event.target, 'corner')) {
+            that.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD);
+          }
+
+          clearTimeout(dblClickTimeout);
+          dblClickTimeout = null;
+        }
+        else {
+          clearTimeout(dblClickTimeout);
+          dblClickTimeout = setTimeout(function () {
             dblClickTimeout = null;
-          }
-          else {
-            clearTimeout(dblClickTimeout);
-            dblClickTimeout = setTimeout(function () {
-              dblClickTimeout = null;
-            }, 500);
-          }
+          }, 500);
         }
       }
     }
@@ -4266,7 +4281,7 @@ WalkontableEvent.prototype.parentCell = function (elem) {
   if (cell.TD) {
     cell.coords = this.instance.wtTable.getCoords(cell.TD);
   }
-  else if (!cell.TD && this.wtDom.hasClass(elem, 'wtBorder') && this.wtDom.hasClass(elem, 'current')) {
+  else if (!cell.TD && this.wtDom.hasClass(elem, 'wtBorder') && this.wtDom.hasClass(elem, 'current') && !this.wtDom.hasClass(elem, 'corner')) {
     cell.coords = this.instance.selections.current.selected[0];
     cell.TD = this.instance.wtTable.getCell(cell.coords);
   }

@@ -889,23 +889,16 @@ Handsontable.Core = function (rootElement, settings) {
 
   this.autofill = autofill = { //this public assignment is only temporary
     handle: null,
-    fillBorder: null,
 
     /**
      * Create fill handle and fill border objects
      */
     init: function () {
       if (!autofill.handle) {
-        autofill.handle = new Handsontable.FillHandle(self);
-        /*autofill.fillBorder = new Handsontable.Border(self, {
-         className: 'htFillBorder'
-         });*/
-
-        $(autofill.handle.handle).on('dblclick', autofill.selectAdjacent);
+        autofill.handle = {};
       }
       else {
         autofill.handle.disabled = false;
-        autofill.fillBorder.disabled = false;
       }
 
       self.rootElement.on('beginediting.handsontable', function () {
@@ -924,7 +917,6 @@ Handsontable.Core = function (rootElement, settings) {
      */
     disable: function () {
       autofill.handle.disabled = true;
-      autofill.fillBorder.disabled = true;
     },
 
     /**
@@ -967,91 +959,111 @@ Handsontable.Core = function (rootElement, settings) {
 
       autofill.handle.isDragged = 0;
 
-      drag = autofill.fillBorder.corners;
+      drag = self.view.wt.selections.fill.getCorners();
       if (!drag) {
         return;
       }
 
-      autofill.fillBorder.disappear();
+      self.view.wt.selections.fill.clear();
 
       if (selection.isMultiple()) {
-        select = priv.selectionBorder.corners;
+        select = self.view.wt.selections.area.getCorners();
       }
       else {
-        select = priv.currentBorder.corners;
+        select = self.view.wt.selections.current.getCorners();
       }
 
-      if (drag.TL.row === select.TL.row && drag.TL.col < select.TL.col) {
-        start = drag.TL;
-        end = {
-          row: drag.BR.row,
-          col: select.TL.col - 1
-        };
-      }
-      else if (drag.TL.row === select.TL.row && drag.BR.col > select.BR.col) {
+      if (drag[0] === select[0] && drag[1] < select[1]) {
         start = {
-          row: drag.TL.row,
-          col: select.BR.col + 1
+          row: drag[0],
+          col: drag[1]
         };
-        end = drag.BR;
-      }
-      else if (drag.TL.row < select.TL.row && drag.TL.col === select.TL.col) {
-        start = drag.TL;
         end = {
-          row: select.TL.row - 1,
-          col: drag.BR.col
+          row: drag[2],
+          col: select[1] - 1
         };
       }
-      else if (drag.BR.row > select.BR.row && drag.TL.col === select.TL.col) {
+      else if (drag[0] === select[0] && drag[3] > select[3]) {
         start = {
-          row: select.BR.row + 1,
-          col: drag.TL.col
+          row: drag[0],
+          col: select[3] + 1
         };
-        end = drag.BR;
+        end = {
+          row: drag[2],
+          col: drag[3]
+        };
+      }
+      else if (drag[0] < select[0] && drag[1] === select[1]) {
+        start = {
+          row: drag[0],
+          col: drag[1]
+        };
+        end = {
+          row: select[0] - 1,
+          col: drag[3]
+        };
+      }
+      else if (drag[2] > select[2] && drag[1] === select[1]) {
+        start = {
+          row: select[2] + 1,
+          col: drag[1]
+        };
+        end = {
+          row: drag[2],
+          col: drag[3]
+        };
       }
 
       if (start) {
-        grid.populateFromArray(start, SheetClip.parse(priv.editProxy[0].value), end, 'autofill');
+        //grid.populateFromArray(start, SheetClip.parse(priv.editProxy[0].value), end, 'autofill');
+        grid.populateFromArray(start, SheetClip.parse(datamap.getText(priv.selStart.coords(), priv.selEnd.coords())), end, 'autofill');
 
-        selection.setRangeStart(drag.TL);
-        selection.setRangeEnd(drag.BR);
+        selection.setRangeStart({row: drag[0], col: drag[1]});
+        selection.setRangeEnd({row: drag[2], col: drag[3]});
       }
-      else {
-        //reset to avoid some range bug
-        selection.refreshBorders();
-      }
+      /*else {
+       //reset to avoid some range bug
+       selection.refreshBorders();
+       }*/
     },
 
     /**
      * Show fill handle
      */
     showHandle: function () {
-      autofill.handle.appear([priv.selStart.coords(), priv.selEnd.coords()]);
+      //autofill.handle.appear([priv.selStart.coords(), priv.selEnd.coords()]);
     },
 
     /**
      * Hide fill handle
      */
     hideHandle: function () {
-      autofill.handle.disappear();
+      //autofill.handle.disappear();
     },
 
     /**
      * Show fill border
      */
-    showBorder: function (td) {
-      var coords = self.view.getCellCoords(td);
+    showBorder: function (coords) {
+      coords.row = coords[0];
+      coords.col = coords[1];
+
       var corners = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
       if (priv.settings.fillHandle !== 'horizontal' && (corners.BR.row < coords.row || corners.TL.row > coords.row)) {
-        coords = {row: coords.row, col: corners.BR.col};
+        coords = [coords.row, corners.BR.col];
       }
       else if (priv.settings.fillHandle !== 'vertical') {
-        coords = {row: corners.BR.row, col: coords.col};
+        coords = [corners.BR.row, coords.col];
       }
       else {
         return; //wrong direction
       }
-      autofill.fillBorder.appear([priv.selStart.coords(), priv.selEnd.coords(), coords]);
+
+      self.view.wt.selections.fill.clear();
+      self.view.wt.selections.fill.add([priv.selStart.coords().row, priv.selStart.coords().col]);
+      self.view.wt.selections.fill.add([priv.selEnd.coords().row, priv.selEnd.coords().col]);
+      self.view.wt.selections.fill.add(coords);
+      self.view.render();
     }
   };
 
@@ -1634,16 +1646,14 @@ Handsontable.Core = function (rootElement, settings) {
       datamap.createMap();
     }
 
-    /*
-     TODO implement it in 0.8.0
-     if (typeof settings.fillHandle !== "undefined") {
-     if (autofill.handle && settings.fillHandle === false) {
-     autofill.disable();
-     }
-     else if (!autofill.handle && settings.fillHandle !== false) {
-     autofill.init();
-     }
-     }*/
+    if (typeof settings.fillHandle !== "undefined") {
+      if (autofill.handle && settings.fillHandle === false) {
+        autofill.disable();
+      }
+      else if (!autofill.handle && settings.fillHandle !== false) {
+        autofill.init();
+      }
+    }
 
     recreated = grid.keepEmptyRows();
     if (!recreated) {

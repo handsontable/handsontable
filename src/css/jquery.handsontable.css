@@ -121,12 +121,7 @@
 }
 
 /* fill handle */
-.handsontable .htFillHandle {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  background: #5292F7;
-  border: 1px solid #fff;
+.handsontable .wtBorder.corner {
   font-size: 0;
   cursor: crosshair;
 }

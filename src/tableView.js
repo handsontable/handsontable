@@ -33,6 +33,13 @@ Handsontable.TableView = function (instance) {
     isMouseDown = false;
     clearInterval(dragInterval);
     dragInterval = null;
+
+    if (instance.autofill.handle && instance.autofill.handle.isDragged) {
+      if (instance.autofill.handle.isDragged > 1) {
+        instance.autofill.apply();
+      }
+      instance.autofill.handle.isDragged = 0;
+    }
   });
   $table.on('mouseenter', function () {
     if (dragInterval) { //if dragInterval was set (that means mouse was really outide of table, not over an element that is outside of <table> in DOM
@@ -106,7 +113,10 @@ Handsontable.TableView = function (instance) {
         border: {
           width: 2,
           color: '#5292F7',
-          style: 'solid'
+          style: 'solid',
+          cornerVisible: function () {
+            return settings.fillHandle && !instance.selection.isMultiple()
+          }
         }
       },
       area: {
@@ -114,6 +124,17 @@ Handsontable.TableView = function (instance) {
         border: {
           width: 1,
           color: '#89AFF9',
+          style: 'solid',
+          cornerVisible: function () {
+            return settings.fillHandle && instance.selection.isMultiple()
+          }
+        }
+      },
+      fill: {
+        className: 'fill',
+        border: {
+          width: 1,
+          color: 'red',
           style: 'solid'
         }
       }
@@ -132,14 +153,21 @@ Handsontable.TableView = function (instance) {
       }
     },
     onCellMouseOver: function (event, coords, TD) {
+      //console.log('isMouseDown', isMouseDown, instance.autofill.handle.isDragged);
       var coordsObj = {row: coords[0], col: coords[1]};
       if (isMouseDown) {
         instance.selection.setRangeEnd(coordsObj);
       }
-      else if (that.instance.autofill.handle && that.instance.autofill.handle.isDragged) {
-        that.instance.autofill.handle.isDragged++;
-        that.instance.autofill.showBorder(this);
+      else if (instance.autofill.handle && instance.autofill.handle.isDragged) {
+        instance.autofill.handle.isDragged++;
+        instance.autofill.showBorder(coords);
       }
+    },
+    onCellCornerMouseDown: function (event) {
+      instance.autofill.handle.isDragged = 1;
+    },
+    onCellCornerDblClick: function (event) {
+      instance.autofill.selectAdjacent();
     }
   };
 

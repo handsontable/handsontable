@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Dec 16 2012 01:43:08 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 17 2012 11:17:54 GMT+0100 (Central European Standard Time)
  */
 
 .handsontable {
@@ -121,12 +121,7 @@
 }
 
 /* fill handle */
-.handsontable .htFillHandle {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  background: #5292F7;
-  border: 1px solid #fff;
+.handsontable .wtBorder.corner {
   font-size: 0;
   cursor: crosshair;
 }
