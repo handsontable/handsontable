@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Mon Dec 17 2012 12:49:40 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 17 2012 14:05:48 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -188,7 +188,7 @@ function Walkontable(settings) {
   var originalHeaders = [];
 
   //default settings. void 0 means it is required, null means it can be empty
-  var defaults = {
+  this.defaults = {
     table: void 0,
     async: false,
     data: void 0,
@@ -224,16 +224,16 @@ function Walkontable(settings) {
 
   //reference to settings
   this.settings = {};
-  for (var i in defaults) {
-    if (defaults.hasOwnProperty(i)) {
+  for (var i in this.defaults) {
+    if (this.defaults.hasOwnProperty(i)) {
       if (settings[i] !== void 0) {
         this.settings[i] = settings[i];
       }
-      else if (defaults[i] === void 0) {
+      else if (this.defaults[i] === void 0) {
         throw new Error('A required setting "' + i + '" was not provided');
       }
       else {
-        this.settings[i] = defaults[i];
+        this.settings[i] = this.defaults[i];
       }
     }
   }
@@ -275,13 +275,20 @@ Walkontable.prototype.draw = function (selectionsOnly) {
   if (this.hasSetting('async')) {
     var that = this;
     that.drawFrame = setTimeout(function () {
-      that.wtTable.draw(selectionsOnly);
+      that._doDraw(selectionsOnly);
     }, 0);
   }
   else {
-    this.wtTable.draw(selectionsOnly);
+    this._doDraw(selectionsOnly);
   }
   return this;
+};
+
+Walkontable.prototype._doDraw = function (selectionsOnly) {
+  selectionsOnly = selectionsOnly && this.settings.offsetRow === this.lastOffsetRow && this.settings.offsetColumn === this.lastOffsetColumn;
+  this.lastOffsetRow = this.settings.offsetRow;
+  this.lastOffsetColumn = this.settings.offsetColumn;
+  this.wtTable.draw(selectionsOnly);
 };
 
 Walkontable.prototype.update = function (settings, value) {
