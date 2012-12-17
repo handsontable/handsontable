@@ -58,10 +58,6 @@
   border-bottom: 1px solid #CCC;
 }
 
-.handsontable div.minWidthFix {
-  width: 50px;
-}
-
 .handsontable tr:first-child th.htNoFrame,
 .handsontable th:first-child.htNoFrame,
 .handsontable th.htNoFrame {

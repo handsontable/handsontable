@@ -24,38 +24,6 @@ Handsontable.Core = function (rootElement, settings) {
     dataType: 'array'
   };
 
-  var hasMinWidthProblem = ($.browser.msie && (parseInt($.browser.version, 10) <= 7));
-  /**
-   * Used to get over IE7 not respecting CSS min-width (and also not showing border around empty cells)
-   * @param {Element} td
-   */
-  this.minWidthFix = function (td) {
-    if (hasMinWidthProblem) {
-      if (td.className) {
-        td.innerHTML = '<div class="minWidthFix ' + td.className + '">' + td.innerHTML + '</div>';
-      }
-      else {
-        td.innerHTML = '<div class="minWidthFix">' + td.innerHTML + '</div>';
-      }
-    }
-  };
-
-  var hasPositionProblem = ($.browser.msie && (parseInt($.browser.version, 10) <= 7));
-  /**
-   * Used to get over IE7 returning negative position in demo/buttons.html
-   * @param {Object} position
-   */
-  this.positionFix = function (position) {
-    if (hasPositionProblem) {
-      if (position.top < 0) {
-        position.top = 0;
-      }
-      if (position.left < 0) {
-        position.left = 0;
-      }
-    }
-  };
-
   datamap = {
     recursiveDuckSchema: function (obj) {
       var schema;

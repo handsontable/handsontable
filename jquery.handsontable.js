@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Dec 18 2012 00:06:33 GMT+0100 (Central European Standard Time)
+ * Date: Tue Dec 18 2012 00:08:54 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -41,38 +41,6 @@ Handsontable.Core = function (rootElement, settings) {
     propToCol: null,
     dataSchema: null,
     dataType: 'array'
-  };
-
-  var hasMinWidthProblem = ($.browser.msie && (parseInt($.browser.version, 10) <= 7));
-  /**
-   * Used to get over IE7 not respecting CSS min-width (and also not showing border around empty cells)
-   * @param {Element} td
-   */
-  this.minWidthFix = function (td) {
-    if (hasMinWidthProblem) {
-      if (td.className) {
-        td.innerHTML = '<div class="minWidthFix ' + td.className + '">' + td.innerHTML + '</div>';
-      }
-      else {
-        td.innerHTML = '<div class="minWidthFix">' + td.innerHTML + '</div>';
-      }
-    }
-  };
-
-  var hasPositionProblem = ($.browser.msie && (parseInt($.browser.version, 10) <= 7));
-  /**
-   * Used to get over IE7 returning negative position in demo/buttons.html
-   * @param {Object} position
-   */
-  this.positionFix = function (position) {
-    if (hasPositionProblem) {
-      if (position.top < 0) {
-        position.top = 0;
-      }
-      if (position.left < 0) {
-        position.left = 0;
-      }
-    }
   };
 
   datamap = {
