@@ -657,6 +657,8 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to range end
      */
     setRangeEnd: function (coords, scrollToCell) {
+      var r, c;
+
       priv.selEnd.coords(coords);
       if (!priv.settings.multiSelect) {
         priv.selStart.coords(coords);
@@ -669,9 +671,8 @@ Handsontable.Core = function (rootElement, settings) {
       //set up area selection
       self.view.wt.selections.area.clear();
       if (selection.isMultiple()) {
-        var coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()])
-          , r = coords.TL.row
-          , c;
+        coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
+        r = coords.TL.row;
         while (r <= coords.BR.row) {
           c = coords.TL.col;
           while (c <= coords.BR.col) {
@@ -1527,6 +1528,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {Array} data
    */
   this.loadData = function (data, isInitial) {
+    var changes, r, rlen, c, clen, p;
     priv.isPopulated = false;
     priv.settings.data = data;
     if ($.isPlainObject(priv.settings.dataSchema) || $.isPlainObject(data[0])) {
@@ -1544,7 +1546,7 @@ Handsontable.Core = function (rootElement, settings) {
     datamap.createMap();
 
     if (isInitial) {
-      var rlen = priv.settings.data.length;
+      rlen = self.countRows();
       if (priv.settings.startRows) {
         while (priv.settings.startRows > rlen) {
           datamap.createRow();
@@ -1555,12 +1557,12 @@ Handsontable.Core = function (rootElement, settings) {
 
     grid.keepEmptyRows();
     grid.clear();
-    var changes = [];
-    var rlen = priv.settings.data.length; //recount number of rows in case some row was removed by keepEmptyRows
-    var clen = self.countCols();
-    for (var r = 0; r < rlen; r++) {
-      for (var c = 0; c < clen; c++) {
-        var p = datamap.colToProp(c);
+    changes = [];
+    rlen = self.countRows(); //recount number of rows in case some row was removed by keepEmptyRows
+    clen = self.countCols();
+    for (r = 0; r < rlen; r++) {
+      for (c = 0; c < clen; c++) {
+        p = datamap.colToProp(c);
         changes.push([r, p, "", datamap.get(r, p)])
       }
     }
