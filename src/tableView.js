@@ -119,7 +119,7 @@ Handsontable.TableView = function (instance) {
           color: '#5292F7',
           style: 'solid',
           cornerVisible: function () {
-            return settings.fillHandle && !instance.selection.isMultiple()
+            return settings.fillHandle && !texteditor.isCellEdited && !instance.selection.isMultiple()
           }
         }
       },
@@ -130,7 +130,7 @@ Handsontable.TableView = function (instance) {
           color: '#89AFF9',
           style: 'solid',
           cornerVisible: function () {
-            return settings.fillHandle && instance.selection.isMultiple()
+            return settings.fillHandle && !texteditor.isCellEdited && instance.selection.isMultiple()
           }
         }
       },
