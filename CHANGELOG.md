@@ -4,11 +4,11 @@ Beta preview has been updated: http://handsontable.com/0.8.0/
 
 Known issues:
 - methods `setCellReadOnly` and `setCellEditable` are currently broken. You can still define read only columns using the `columns` or `cells` settings
-- fill handle (drag-down) feature is currently broken
 - clicking on cell & row borders has no effect (first reported by @cscribner / #295)
 - page up/page down scrolls to the first and the last row (should only scroll one screen)
 - CTRL+A works slow on large data sets (as reported by @brivazac / #295)
 - copy of large selection (5k, 10k, 100k rows etc) freezes IE8 (first reported by @itanex / #295). Below 1k rows works fine. The only solution I can think of right now is to set copy limit in IE8 to 1000 rows.
+- paste of large selection (100k rows) freezes Firefox (first reported by @ravio / #303)
 - when using `overflow: auto`, only relevant scrollbars should be displayed (first reported by @dansabirov / #295)
 - autocomplete does not work with empty field in source; autocomplete strict mode looks broken (as reported by @MDron / #303)
 - scrolling mouse wheel should not block the window scroll if the first row/last row was reached
@@ -17,6 +17,7 @@ Bugfixes since 0.8.0-beta2:
 - fixed scrolling with touchpad (as reported by @codename- / #303)
 - fixed double click on cell (as reported by @MDron, @ravio / #303)
 - CTRL+A then Delete did not remove redundant empty rows in scroll example (as reported by @ravio / 303)
+- fill handle (drag-down) feature is currently broken (as reported by @chaowarat / 301)
 - CTRL+Enter while editing multiselection did not work (should apply the value to all the selected cells)
 - now works in IE7
 
