@@ -180,7 +180,7 @@ var texteditor = {
         ];
       }
       if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
-        var sel = instance.handsontable('getSelected');
+        var sel = instance.getSelected();
         instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
       }
       else {
@@ -254,6 +254,12 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
           event.stopPropagation();
         }
       }
+      return;
+    }
+
+    if (texteditor.isCellEdited && (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93)) {
+      //when CTRL is pressed and cell is edited, don't prepare selectable text in textarea
+      event.stopPropagation();
       return;
     }
 

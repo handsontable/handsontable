@@ -17,6 +17,7 @@ Bugfixes since 0.8.0-beta2:
 - fixed scrolling with touchpad (as reported by @codename- / #303)
 - fixed double click on cell (as reported by @MDron, @ravio / #303)
 - CTRL+A then Delete did not remove redundant empty rows in scroll example (as reported by @ravio / 303)
+- CTRL+Enter while editing multiselection did not work (should apply the value to all the selected cells)
 - now works in IE7
 
 Other changes since 0.8.0-beta2:

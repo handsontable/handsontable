@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Dec 18 2012 00:08:54 GMT+0100 (Central European Standard Time)
+ * Date: Tue Dec 18 2012 00:26:15 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2666,7 +2666,7 @@ var texteditor = {
         ];
       }
       if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
-        var sel = instance.handsontable('getSelected');
+        var sel = instance.getSelected();
         instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
       }
       else {
@@ -2740,6 +2740,12 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
           event.stopPropagation();
         }
       }
+      return;
+    }
+
+    if (texteditor.isCellEdited && (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93)) {
+      //when CTRL is pressed and cell is edited, don't prepare selectable text in textarea
+      event.stopPropagation();
       return;
     }
 
