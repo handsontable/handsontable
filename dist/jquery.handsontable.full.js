@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 17 2012 11:17:54 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 17 2012 12:50:43 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -738,7 +738,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (autofill.handle) {
         autofill.showHandle();
       }
-      self.view.render();
+      self.view.render(true);
     },
 
     /**
@@ -1082,7 +1082,7 @@ Handsontable.Core = function (rootElement, settings) {
       self.view.wt.selections.fill.add([priv.selStart.coords().row, priv.selStart.coords().col]);
       self.view.wt.selections.fill.add([priv.selEnd.coords().row, priv.selEnd.coords().col]);
       self.view.wt.selections.fill.add(coords);
-      self.view.render();
+      self.view.render(true);
     }
   };
 
@@ -2223,11 +2223,11 @@ Handsontable.TableView = function (instance) {
   Handsontable.PluginHooks.run(this.instance, 'walkontableConfig', [walkontableConfig]);
 
   this.wt = new Walkontable(walkontableConfig);
-  this.wt.draw();
+  this.render();
 };
 
-Handsontable.TableView.prototype.render = function (row, col, prop, value) {
-  this.wt.draw();
+Handsontable.TableView.prototype.render = function (selectionsOnly) {
+  this.wt.draw(selectionsOnly);
   this.instance.rootElement.triggerHandler('render.handsontable');
 };
 
@@ -3670,7 +3670,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Mon Dec 17 2012 11:10:54 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 17 2012 12:49:40 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -3939,16 +3939,16 @@ function Walkontable(settings) {
   this.drawn = false;
 }
 
-Walkontable.prototype.draw = function () {
+Walkontable.prototype.draw = function (selectionsOnly) {
   //this.instance.scrollViewport([this.instance.getSetting('offsetRow'), this.instance.getSetting('offsetColumn')]); //needed by WalkontableScroll -> remove row from the last scroll page should scroll viewport a row up if needed
   if (this.hasSetting('async')) {
     var that = this;
     that.drawFrame = setTimeout(function () {
-      that.wtTable.draw();
+      that.wtTable.draw(selectionsOnly);
     }, 0);
   }
   else {
-    this.wtTable.draw();
+    this.wtTable.draw(selectionsOnly);
   }
   return this;
 };
@@ -4581,6 +4581,7 @@ WalkontableScrollbar.prototype.refresh = function () {
 };
 function WalkontableSelection(instance, settings) {
   this.instance = instance;
+  this.settings = settings;
   this.selected = [];
   if (settings.border) {
     this.border = new WalkontableBorder(instance, settings);
@@ -4669,9 +4670,17 @@ WalkontableSelection.prototype.getCorners = function () {
   return [minRow, minColumn, maxRow, maxColumn];
 };
 
-WalkontableSelection.prototype.draw = function () {
-  var TD;
-  for (var i = 0, ilen = this.selected.length; i < ilen; i++) {
+WalkontableSelection.prototype.draw = function (selectionsOnly) {
+  var TDs, TD, i, ilen;
+
+  if (selectionsOnly && this.settings.className) {
+    TDs = this.instance.wtTable.TABLE.getElementsByTagName('TD');
+    for (i = 0, ilen = TDs.length; i < ilen; i++) {
+      this.instance.wtDom.removeClass(TDs[i], this.settings.className);
+    }
+  }
+
+  for (i = 0, ilen = this.selected.length; i < ilen; i++) {
     TD = this.instance.wtTable.getCell(this.selected[i]);
     if (TD) {
       this.onAdd(this.selected[i], TD);
@@ -4947,10 +4956,29 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   }
 };
 
-WalkontableTable.prototype.draw = function () {
-  this.tableOffset = this.wtDom.offset(this.TABLE);
-  this.adjustAvailableNodes();
-  this._doDraw();
+WalkontableTable.prototype.draw = function (selectionsOnly) {
+  if (!selectionsOnly) {
+    this.tableOffset = this.wtDom.offset(this.TABLE);
+    this.adjustAvailableNodes();
+    this._doDraw(selectionsOnly);
+  }
+  else {
+  }
+
+  //redraw selections
+  if (this.instance.hasSetting('async')) {
+    var that = this;
+    window.cancelRequestAnimFrame(this.selectionsFrame);
+    that.selectionsFrame = window.requestAnimFrame(function () {
+      that.refreshSelections(selectionsOnly);
+    });
+  }
+  else {
+    this.refreshSelections(selectionsOnly);
+  }
+
+  this.instance.drawn = true;
+
   //this.instance.scrollViewport([this.instance.getSetting('offsetRow'), this.instance.getSetting('offsetColumn')]); //needed by WalkontableScroll -> remove row from the last scroll page should scroll viewport a row up if needed
   return this;
 };
@@ -5067,27 +5095,13 @@ WalkontableTable.prototype._doDraw = function () {
       }
     }
   }
-
-  //redraw selections
-  if (this.instance.hasSetting('async')) {
-    var that = this;
-    window.cancelRequestAnimFrame(this.selectionsFrame);
-    that.selectionsFrame = window.requestAnimFrame(function () {
-      that.refreshSelections();
-    });
-  }
-  else {
-    this.refreshSelections();
-  }
-
-  this.instance.drawn = true;
 };
 
-WalkontableTable.prototype.refreshSelections = function () {
+WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
   if (this.instance.selections) {
     for (var r in this.instance.selections) {
       if (this.instance.selections.hasOwnProperty(r)) {
-        this.instance.selections[r].draw();
+        this.instance.selections[r].draw(selectionsOnly);
       }
     }
   }

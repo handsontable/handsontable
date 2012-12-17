@@ -719,7 +719,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (autofill.handle) {
         autofill.showHandle();
       }
-      self.view.render();
+      self.view.render(true);
     },
 
     /**
@@ -1063,7 +1063,7 @@ Handsontable.Core = function (rootElement, settings) {
       self.view.wt.selections.fill.add([priv.selStart.coords().row, priv.selStart.coords().col]);
       self.view.wt.selections.fill.add([priv.selEnd.coords().row, priv.selEnd.coords().col]);
       self.view.wt.selections.fill.add(coords);
-      self.view.render();
+      self.view.render(true);
     }
   };
 

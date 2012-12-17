@@ -174,11 +174,11 @@ Handsontable.TableView = function (instance) {
   Handsontable.PluginHooks.run(this.instance, 'walkontableConfig', [walkontableConfig]);
 
   this.wt = new Walkontable(walkontableConfig);
-  this.wt.draw();
+  this.render();
 };
 
-Handsontable.TableView.prototype.render = function (row, col, prop, value) {
-  this.wt.draw();
+Handsontable.TableView.prototype.render = function (selectionsOnly) {
+  this.wt.draw(selectionsOnly);
   this.instance.rootElement.triggerHandler('render.handsontable');
 };
 
