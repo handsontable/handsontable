@@ -10,10 +10,12 @@ Known issues:
 - CTRL+A works slow on large data sets (as reported by @brivazac / #295)
 - copy of large selection (5k, 10k, 100k rows etc) freezes IE8 (first reported by @itanex / #295). Below 1k rows works fine. The only solution I can think of right now is to set copy limit in IE8 to 1000 rows.
 - when using `overflow: auto`, only relevant scrollbars should be displayed (first reported by @dansabirov / #295)
+- autocomplete does not work with empty field in source; autocomplete strict mode looks broken (as reported by @MDron / #303)
+- scrolling mouse wheel should not block the window scroll if the first row/last row was reached
 
 Bugfixes since 0.8.0-beta2:
 - fixed scrolling with touchpad (as reported by @codename- / #303)
-- fixed double click on cell (as reported by @MDron / #303)
+- fixed double click on cell (as reported by @MDron, @ravio / #303)
 - CTRL+A then Delete did not remove redundant empty rows in scroll example (as reported by @ravio / 303)
 - now works in IE7
 
