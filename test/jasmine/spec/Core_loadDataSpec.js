@@ -256,7 +256,7 @@ describe('Core_loadData', function () {
     }
 
     expect(err).toBeUndefined();
-    expect(countRows()).toBe(2);
+    expect(countRows()).toBe(1);
   });
 
   it('should remove grid rows if new data source has less of them', function () {
