@@ -53,6 +53,7 @@ var texteditor = {
     if (texteditor.isCellEdited) {
       return;
     }
+    texteditor.isCellEdited = true;
 
     var coords = {row: row, col: col};
     instance.view.scrollViewport(coords);
@@ -70,8 +71,6 @@ var texteditor = {
     if (!instance.getCellMeta(row, col).isWritable) {
       return;
     }
-
-    texteditor.isCellEdited = true;
 
     if (useOriginalValue) {
       var original = instance.getDataAtCell(row, prop);

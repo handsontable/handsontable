@@ -32,7 +32,7 @@ var isEditorVisible = function () {
 };
 
 var isFillHandleVisible = function () {
-  return spec().$container.find('.htFillHandle').is(':visible');
+  return !!spec().$container.find('.wtBorder.corner:visible').length;
 };
 
 var isAutocompleteVisible = function () {

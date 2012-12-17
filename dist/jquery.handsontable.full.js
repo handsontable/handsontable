@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Dec 18 2012 00:32:15 GMT+0100 (Central European Standard Time)
+ * Date: Tue Dec 18 2012 00:55:18 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2539,6 +2539,7 @@ var texteditor = {
     if (texteditor.isCellEdited) {
       return;
     }
+    texteditor.isCellEdited = true;
 
     var coords = {row: row, col: col};
     instance.view.scrollViewport(coords);
@@ -2556,8 +2557,6 @@ var texteditor = {
     if (!instance.getCellMeta(row, col).isWritable) {
       return;
     }
-
-    texteditor.isCellEdited = true;
 
     if (useOriginalValue) {
       var original = instance.getDataAtCell(row, prop);
