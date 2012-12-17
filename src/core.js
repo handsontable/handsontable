@@ -655,7 +655,7 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to range end
      */
     setRangeEnd: function (coords, scrollToCell) {
-      var r, c;
+      var r, c, intermediateCoords;
 
       priv.selEnd.coords(coords);
       if (!priv.settings.multiSelect) {
@@ -669,11 +669,11 @@ Handsontable.Core = function (rootElement, settings) {
       //set up area selection
       self.view.wt.selections.area.clear();
       if (selection.isMultiple()) {
-        coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
-        r = coords.TL.row;
-        while (r <= coords.BR.row) {
-          c = coords.TL.col;
-          while (c <= coords.BR.col) {
+        intermediateCoords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
+        r = intermediateCoords.TL.row;
+        while (r <= intermediateCoords.BR.row) {
+          c = intermediateCoords.TL.col;
+          while (c <= intermediateCoords.BR.col) {
             self.view.wt.selections.area.add([r, c]);
             c++;
           }

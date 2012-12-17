@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 17 2012 22:45:23 GMT+0100 (Central European Standard Time)
+ * Date: Tue Dec 18 2012 00:06:33 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -674,7 +674,7 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to range end
      */
     setRangeEnd: function (coords, scrollToCell) {
-      var r, c;
+      var r, c, intermediateCoords;
 
       priv.selEnd.coords(coords);
       if (!priv.settings.multiSelect) {
@@ -688,11 +688,11 @@ Handsontable.Core = function (rootElement, settings) {
       //set up area selection
       self.view.wt.selections.area.clear();
       if (selection.isMultiple()) {
-        coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
-        r = coords.TL.row;
-        while (r <= coords.BR.row) {
-          c = coords.TL.col;
-          while (c <= coords.BR.col) {
+        intermediateCoords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
+        r = intermediateCoords.TL.row;
+        while (r <= intermediateCoords.BR.row) {
+          c = intermediateCoords.TL.col;
+          while (c <= intermediateCoords.BR.col) {
             self.view.wt.selections.area.add([r, c]);
             c++;
           }
@@ -2091,19 +2091,23 @@ Handsontable.TableView = function (instance) {
     }
   });
   $table.on('mouseenter', function () {
-    if (dragInterval) { //if dragInterval was set (that means mouse was really outide of table, not over an element that is outside of <table> in DOM
+    if (dragInterval) { //if dragInterval was set (that means mouse was really outside of table, not over an element that is outside of <table> in DOM
       clearInterval(dragInterval);
       dragInterval = null;
     }
   });
 
   $table.on('mouseleave', function (event) {
+    if (!(isMouseDown || (instance.autofill.handle && instance.autofill.handle.isDragged))) {
+      return;
+    }
+
     var tolerance = 1 //this is needed because width() and height() contains stuff like cell borders
       , offset = that.wt.wtDom.offset($table[0])
       , offsetTop = offset.top + tolerance
       , offsetLeft = offset.left + tolerance
-      , width = $table.width() - 2 * tolerance
-      , height = $table.height() - 2 * tolerance
+      , width = myWidth - that.wt.settings.scrollbarWidth - 2 * tolerance
+      , height = myHeight - that.wt.settings.scrollbarHeight - 2 * tolerance
       , method
       , row = 0
       , col = 0
@@ -2128,8 +2132,8 @@ Handsontable.TableView = function (instance) {
 
     if (method) {
       dragFn = function () {
-        if (isMouseDown) {
-          instance.selection.transformEnd(row, col);
+        if (isMouseDown || (instance.autofill.handle && instance.autofill.handle.isDragged)) {
+          //instance.selection.transformEnd(row, col);
           that.wt[method](row + col).draw();
         }
       };
@@ -2202,7 +2206,6 @@ Handsontable.TableView = function (instance) {
       }
     },
     onCellMouseOver: function (event, coords, TD) {
-      //console.log('isMouseDown', isMouseDown, instance.autofill.handle.isDragged);
       var coordsObj = {row: coords[0], col: coords[1]};
       if (isMouseDown) {
         instance.selection.setRangeEnd(coordsObj);
@@ -2214,6 +2217,7 @@ Handsontable.TableView = function (instance) {
     },
     onCellCornerMouseDown: function (event) {
       instance.autofill.handle.isDragged = 1;
+      event.preventDefault();
     },
     onCellCornerDblClick: function (event) {
       instance.autofill.selectAdjacent();

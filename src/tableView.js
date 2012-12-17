@@ -42,19 +42,23 @@ Handsontable.TableView = function (instance) {
     }
   });
   $table.on('mouseenter', function () {
-    if (dragInterval) { //if dragInterval was set (that means mouse was really outide of table, not over an element that is outside of <table> in DOM
+    if (dragInterval) { //if dragInterval was set (that means mouse was really outside of table, not over an element that is outside of <table> in DOM
       clearInterval(dragInterval);
       dragInterval = null;
     }
   });
 
   $table.on('mouseleave', function (event) {
+    if (!(isMouseDown || (instance.autofill.handle && instance.autofill.handle.isDragged))) {
+      return;
+    }
+
     var tolerance = 1 //this is needed because width() and height() contains stuff like cell borders
       , offset = that.wt.wtDom.offset($table[0])
       , offsetTop = offset.top + tolerance
       , offsetLeft = offset.left + tolerance
-      , width = $table.width() - 2 * tolerance
-      , height = $table.height() - 2 * tolerance
+      , width = myWidth - that.wt.settings.scrollbarWidth - 2 * tolerance
+      , height = myHeight - that.wt.settings.scrollbarHeight - 2 * tolerance
       , method
       , row = 0
       , col = 0
@@ -79,8 +83,8 @@ Handsontable.TableView = function (instance) {
 
     if (method) {
       dragFn = function () {
-        if (isMouseDown) {
-          instance.selection.transformEnd(row, col);
+        if (isMouseDown || (instance.autofill.handle && instance.autofill.handle.isDragged)) {
+          //instance.selection.transformEnd(row, col);
           that.wt[method](row + col).draw();
         }
       };
@@ -153,7 +157,6 @@ Handsontable.TableView = function (instance) {
       }
     },
     onCellMouseOver: function (event, coords, TD) {
-      //console.log('isMouseDown', isMouseDown, instance.autofill.handle.isDragged);
       var coordsObj = {row: coords[0], col: coords[1]};
       if (isMouseDown) {
         instance.selection.setRangeEnd(coordsObj);
@@ -165,6 +168,7 @@ Handsontable.TableView = function (instance) {
     },
     onCellCornerMouseDown: function (event) {
       instance.autofill.handle.isDragged = 1;
+      event.preventDefault();
     },
     onCellCornerDblClick: function (event) {
       instance.autofill.selectAdjacent();
