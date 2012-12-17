@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 17 2012 14:06:59 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 17 2012 15:30:16 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3672,7 +3672,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Mon Dec 17 2012 14:05:48 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 17 2012 15:29:12 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -4971,19 +4971,17 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
     this.adjustAvailableNodes();
     this._doDraw(selectionsOnly);
   }
-  else {
-  }
 
-  //redraw selections
+  //redraw selections and scrollbars
   if (this.instance.hasSetting('async')) {
     var that = this;
     window.cancelRequestAnimFrame(this.selectionsFrame);
     that.selectionsFrame = window.requestAnimFrame(function () {
-      that.refreshSelections(selectionsOnly);
+      that.refreshPositions(selectionsOnly);
     });
   }
   else {
-    this.refreshSelections(selectionsOnly);
+    this.refreshPositions(selectionsOnly);
   }
 
   this.instance.drawn = true;
@@ -5104,18 +5102,27 @@ WalkontableTable.prototype._doDraw = function () {
       }
     }
   }
+
+  this.refreshSelections();
+};
+
+WalkontableTable.prototype.refreshPositions = function (selectionsOnly) {
+  if (selectionsOnly) { //otherwise it was already rendered by _doDraw
+    this.refreshSelections(selectionsOnly);
+  }
+
+  this.instance.wtScroll.refreshScrollbars();
 };
 
 WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
+  var r;
   if (this.instance.selections) {
-    for (var r in this.instance.selections) {
+    for (r in this.instance.selections) {
       if (this.instance.selections.hasOwnProperty(r)) {
         this.instance.selections[r].draw(selectionsOnly);
       }
     }
   }
-
-  this.instance.wtScroll.refreshScrollbars();
 };
 
 //0 if no
