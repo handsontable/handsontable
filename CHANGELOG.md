@@ -1,4 +1,4 @@
-## [0.8.0-beta3](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta3) (Dec 17, 2012)
+## [0.8.0-beta3](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta3) (Dec 18, 2012)
 
 Beta preview has been updated: http://handsontable.com/0.8.0/
 
