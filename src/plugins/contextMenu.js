@@ -1,7 +1,7 @@
 function createContextMenu() {
   var instance = this
     , defaultOptions = {
-      selector: "#" + instance.rootElement.attr('id') + ' table, #' + instance.rootElement.attr('id') + ' div',
+      selector: "#" + instance.rootElement.attr('id') + ' table, #' + instance.rootElement.attr('id') + ' div > table',
       trigger: 'right',
       callback: onContextClick
     },
