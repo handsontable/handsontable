@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 19 2012 01:04:18 GMT+0100 (Central European Standard Time)
+ * Date: Wed Dec 19 2012 16:41:18 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -377,8 +377,6 @@ Handsontable.Core = function (rootElement, settings) {
     keepEmptyRows: function () {
       var r, c, rlen, clen, emptyRows = 0, emptyCols = 0, recreateRows = false, recreateCols = false, val;
 
-      var $tbody = $(priv.tableBody);
-
       //count currently empty rows
       rows : for (r = self.countRows() - 1; r >= 0; r--) {
         for (c = 0, clen = self.countCols(); c < clen; c++) {
@@ -440,14 +438,14 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       if (!recreateRows && priv.settings.enterBeginsEditing) {
-        for (; (((priv.settings.minRows || priv.settings.minSpareRows) && self.countRows() > priv.settings.minRows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows) && (!priv.settings.minHeight || $tbody.height() - $tbody.find('tr:last').height() - 4 > priv.settings.minHeight)); emptyRows--) {
+        for (; (((priv.settings.minRows || priv.settings.minSpareRows) && self.countRows() > priv.settings.minRows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows)); emptyRows--) {
           datamap.removeRow();
           recreateRows = true;
         }
       }
 
       if (!recreateCols && priv.settings.enterBeginsEditing && !priv.settings.columns) {
-        for (; (((priv.settings.minCols || priv.settings.minSpareCols) && self.countCols() > priv.settings.minCols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols) && (!priv.settings.minWidth || $tbody.width() - $tbody.find('tr:last').find('td:last').width() - 4 > priv.settings.minWidth)); emptyCols--) {
+        for (; (((priv.settings.minCols || priv.settings.minSpareCols) && self.countCols() > priv.settings.minCols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols)); emptyCols--) {
           datamap.removeCol();
           recreateCols = true;
         }
@@ -1988,8 +1986,6 @@ var settings = {
   'maxCols': Infinity,
   'minSpareRows': 0,
   'minSpareCols': 0,
-  'minHeight': 0,
-  'minWidth': 0,
   'multiSelect': true,
   'fillHandle': true,
   'undo': true,

@@ -93,8 +93,6 @@ The table below presents configuration options that are interpreted by `handsont
  `columns`               | array                          | _undefined_      | Defines the cell properties and data binding for certain columns. See [demo/datasources.html](https://github.com/warpech/jquery-handsontable/blob/reference/demo/datasources.html) for examples
  `cells`                 | function(`row`, `col`, `prop`) | _undefined_      | Defines the cell properties for given `row`, `col`, `prop` coordinates
  `dataSchema`            | object                         | _like first row_ | Defines the structure of a new row when data source is an object. See [demo/datasources.html](https://github.com/warpech/jquery-handsontable/blob/reference/demo/datasources.html) for examples
- `minWidth`              | number                         | 0                | Handsontable will add as many columns as needed to meet the given width in pixels
- `minHeight`             | number                         | 0                | Handsontable will add as many rows as needed to meet the given height in pixels
  `minSpareCols`          | number                         | 0                | When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns
  `minSpareRows`          | number                         | 0                | When set to 1 (or more), Handsontable will add a new row at the end of grid if there are no more empty rows
  `multiSelect`           | boolean                        | true             | If true, selection of multiple cells using keyboard or mouse is allowed

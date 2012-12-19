@@ -1,4 +1,4 @@
-## [0.8.0-beta4]
+## [0.8.0-beta4] (current HEAD)
 
 Known issues:
 - methods `setCellReadOnly` and `setCellEditable` are currently broken. You can still define read only columns using the `columns` or `cells` settings
@@ -13,6 +13,10 @@ Known issues:
 
 New features since 0.8.0-beta3:
 - new methods `rowOffset`, `colOffset`, `countVisibleRows`, `countVisibleCols`
+
+Other changes:
+- public methods `colCount`, `rowCount` do not exist anymore. Use `countRows()` and `countCols()` public methods instead
+- options `minWidth`, `minHeight` do not exist anymore because their definitions were to blurry and usage case too limited. Use `width` and `height` options instead and provide as many rows/columns in your data source as you need
 
 ## [0.8.0-beta3](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta3) (Dec 18, 2012)
 
