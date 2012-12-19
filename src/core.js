@@ -518,7 +518,7 @@ Handsontable.Core = function (rootElement, settings) {
      * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
      */
     populateFromArray: function (start, input, end, source) {
-      var r, rlen, c, clen, td, setData = [], current = {};
+      var r, rlen, c, clen, setData = [], current = {};
       rlen = input.length;
       if (rlen === 0) {
         return false;
@@ -550,13 +550,6 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
       self.setDataAtCell(setData, null, null, source || 'populateFromArray');
-    },
-
-    /**
-     * Clears all cells in the grid
-     */
-    clear: function () {
-
     },
 
     /**
@@ -1522,7 +1515,6 @@ Handsontable.Core = function (rootElement, settings) {
     }
 
     grid.keepEmptyRows();
-    grid.clear();
     changes = [];
     rlen = self.countRows(); //recount number of rows in case some row was removed by keepEmptyRows
     clen = self.countCols();
