@@ -48,6 +48,10 @@ To see the list of recent changes, see the [Changelog](https://github.com/warpec
  handsontable('getDataAtCell', row, col)                                               | Method      | Return cell value at `row`, `col`
  handsontable('countRows')                                                             | Method      | Return total number of rows in the grid
  handsontable('countCols')                                                             | Method      | Return total number of columns in the grid
+ handsontable('rowOffset')                                                             | Method      | Return index of first visible row
+ handsontable('colOffset')                                                             | Method      | Return index of first visible column
+ handsontable('countVisibleRows')                                                      | Method      | Return number of visible rows
+ handsontable('countVisibleCols')                                                      | Method      | Return number of visible columns
  handsontable('clear')                                                                 | Method      | Empty all cells
  handsontable('clearUndo')                                                             | Method      | Clear undo history
  handsontable('getData', [r, c, r2, c2])                                               | Method      | Return the current data object (the same that was passed by `data` configuration option or `loadData` method). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to get only a fragment of grid data

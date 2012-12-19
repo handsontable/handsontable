@@ -1872,6 +1872,38 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
+   * Return index of first visible row
+   * @return {Number}
+   */
+  this.rowOffset = function () {
+    return self.view.wt.getSetting('offsetRow');
+  };
+
+  /**
+   * Return index of first visible column
+   * @return {Number}
+   */
+  this.colOffset = function () {
+    return self.view.wt.getSetting('offsetColumn');
+  };
+
+  /**
+   * Return number of visible rows
+   * @return {Number}
+   */
+  this.countVisibleRows = function () {
+    return self.view.wt.getSetting('viewportRows');
+  };
+
+  /**
+   * Return number of visible columns
+   * @return {Number}
+   */
+  this.countVisibleCols = function () {
+    return self.view.wt.getSetting('viewportColumns');
+  };
+
+  /**
    * Selects cell on grid. Optionally selects range to another cell
    * @param {Number} row
    * @param {Number} col

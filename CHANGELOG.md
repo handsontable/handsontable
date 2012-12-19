@@ -1,6 +1,4 @@
-## [0.8.0-beta3](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta3) (Dec 18, 2012)
-
-Beta preview has been updated: http://handsontable.com/0.8.0/
+## [0.8.0-beta4]
 
 Known issues:
 - methods `setCellReadOnly` and `setCellEditable` are currently broken. You can still define read only columns using the `columns` or `cells` settings
@@ -12,6 +10,13 @@ Known issues:
 - when using `overflow: auto`, only relevant scrollbars should be displayed (first reported by @dansabirov / #295)
 - autocomplete does not work with empty field in source; autocomplete strict mode looks broken (as reported by @MDron / #303)
 - scrolling mouse wheel should not block the window scroll if the first row/last row was reached
+
+New features since 0.8.0-beta3:
+- new methods `rowOffset`, `colOffset`, `countVisibleRows`, `countVisibleCols`
+
+## [0.8.0-beta3](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta3) (Dec 18, 2012)
+
+Beta preview has been updated: http://handsontable.com/0.8.0/
 
 Bugfixes since 0.8.0-beta2:
 - fixed scrolling with touchpad (as reported by @codename- / #303)
