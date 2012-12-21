@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 21 2012 15:49:13 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 21 2012 18:14:22 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -345,7 +345,7 @@ Handsontable.Core = function (rootElement, settings) {
               selection.transformEnd(1, 0); //will call render() internally
             }
             else {
-              self.view.render();
+              selection.refreshBorders(); //it will call render and prepare methods
             }
           }
           break;
@@ -358,7 +358,7 @@ Handsontable.Core = function (rootElement, settings) {
               selection.transformEnd(0, 1); //will call render() internally
             }
             else {
-              self.view.render();
+              selection.refreshBorders(); //it will call render and prepare methods
             }
           }
           break;
@@ -366,13 +366,13 @@ Handsontable.Core = function (rootElement, settings) {
         case "remove_row":
           datamap.removeRow(coords, toCoords);
           grid.keepEmptyRows();
-          self.view.render();
+          selection.refreshBorders(); //it will call render and prepare methods
           break;
 
         case "remove_col":
           datamap.removeCol(coords, toCoords);
           grid.keepEmptyRows();
-          self.view.render();
+          selection.refreshBorders(); //it will call render and prepare methods
           break;
       }
 

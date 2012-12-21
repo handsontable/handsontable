@@ -326,7 +326,7 @@ Handsontable.Core = function (rootElement, settings) {
               selection.transformEnd(1, 0); //will call render() internally
             }
             else {
-              self.view.render();
+              selection.refreshBorders(); //it will call render and prepare methods
             }
           }
           break;
@@ -339,7 +339,7 @@ Handsontable.Core = function (rootElement, settings) {
               selection.transformEnd(0, 1); //will call render() internally
             }
             else {
-              self.view.render();
+              selection.refreshBorders(); //it will call render and prepare methods
             }
           }
           break;
@@ -347,13 +347,13 @@ Handsontable.Core = function (rootElement, settings) {
         case "remove_row":
           datamap.removeRow(coords, toCoords);
           grid.keepEmptyRows();
-          self.view.render();
+          selection.refreshBorders(); //it will call render and prepare methods
           break;
 
         case "remove_col":
           datamap.removeCol(coords, toCoords);
           grid.keepEmptyRows();
-          self.view.render();
+          selection.refreshBorders(); //it will call render and prepare methods
           break;
       }
 
