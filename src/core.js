@@ -108,7 +108,13 @@ Handsontable.Core = function (rootElement, settings) {
     },
 
     getSchema: function () {
-      return priv.settings.dataSchema || priv.duckDataSchema;
+      if (priv.settings.dataSchema) {
+        if (typeof priv.settings.dataSchema === 'function') {
+          return priv.settings.dataSchema();
+        }
+        return priv.settings.dataSchema;
+      }
+      return priv.duckDataSchema;
     },
 
     /**
@@ -127,9 +133,15 @@ Handsontable.Core = function (rootElement, settings) {
         row = $.extend(true, {}, datamap.getSchema());
       }
       if (!coords || coords.row >= self.countRows()) {
+        if (priv.settings.onCreateRow) {
+          priv.settings.onCreateRow(self.countRows(), row);
+        }
         priv.settings.data.push(row);
       }
       else {
+        if (priv.settings.onCreateRow) {
+          priv.settings.onCreateRow(coords.row, row);
+        }
         priv.settings.data.splice(coords.row, 0, row);
       }
       self.forceFullRender = true; //used when data was changed

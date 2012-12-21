@@ -13,6 +13,8 @@ Known issues:
 
 New features since 0.8.0-beta3:
 - new methods `rowOffset`, `colOffset`, `countVisibleRows`, `countVisibleCols`
+- new callback `onCreateRow` [TODO: write tests]
+- `dataSchema` can now be a function that returns object/array [TODO: write tests]
 
 Other changes:
 - public methods `colCount`, `rowCount` do not exist anymore. Use `countRows()` and `countCols()` public methods instead
