@@ -365,6 +365,7 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
       self.rootElement.triggerHandler("datachange.handsontable", [changes, 'alter']);
+      grid.keepEmptyRows(); //makes sure that we did not add rows that will be removed in next refresh
     },
 
     /**
@@ -1075,10 +1076,10 @@ Handsontable.Core = function (rootElement, settings) {
             case 9: /* tab */
               var tabMoves = typeof priv.settings.tabMoves === 'function' ? priv.settings.tabMoves(event) : priv.settings.tabMoves;
               if (event.shiftKey) {
-                selection.transformStart(-tabMoves.row, -tabMoves.col);
+                selection.transformStart(-tabMoves.row, -tabMoves.col); //move selection left
               }
               else {
-                selection.transformStart(tabMoves.row, tabMoves.col);
+                selection.transformStart(tabMoves.row, tabMoves.col, true); //move selection right (add a new column if needed)
               }
               event.preventDefault();
               break;
@@ -1129,7 +1130,7 @@ Handsontable.Core = function (rootElement, settings) {
                 selection.transformStart(-enterMoves.row, -enterMoves.col); //move selection up
               }
               else {
-                selection.transformStart(enterMoves.row, enterMoves.col); //move selection down
+                selection.transformStart(enterMoves.row, enterMoves.col, true); //move selection down (add a new row if needed)
               }
               event.preventDefault(); //don't add newline to field
               break;
