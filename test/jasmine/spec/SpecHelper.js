@@ -6,6 +6,7 @@ var handsontable = function (options) {
   var currentSpec = spec();
   currentSpec.$container.handsontable(options);
   currentSpec.$keyboardProxy = currentSpec.$container.find('textarea.handsontableInput');
+  return currentSpec.$container.data('handsontable');
 };
 
 var countRows = function () {
