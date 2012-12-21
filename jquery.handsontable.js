@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 21 2012 20:00:06 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 21 2012 20:15:20 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -876,27 +876,27 @@ Handsontable.Core = function (rootElement, settings) {
       var select, data, r, maxR, c;
 
       if (selection.isMultiple()) {
-        select = priv.selectionBorder.corners;
+        select = self.view.wt.selections.area.getCorners();
       }
       else {
-        select = priv.currentBorder.corners;
+        select = self.view.wt.selections.current.getCorners();
       }
 
-      autofill.fillBorder.disappear();
-
       data = datamap.getAll();
-      rows : for (r = select.BR.row + 1; r < self.countRows(); r++) {
-        for (c = select.TL.col; c <= select.BR.col; c++) {
+      rows : for (r = select[2] + 1; r < self.countRows(); r++) {
+        for (c = select[1]; c <= select[3]; c++) {
           if (data[r][c]) {
             break rows;
           }
         }
-        if (!!data[r][select.TL.col - 1] || !!data[r][select.BR.col + 1]) {
+        if (!!data[r][select[1] - 1] || !!data[r][select[3] + 1]) {
           maxR = r;
         }
       }
       if (maxR) {
-        autofill.showBorder(self.view.getCellAtCoords({row: maxR, col: select.BR.col}));
+        self.view.wt.selections.fill.clear();
+        self.view.wt.selections.fill.add([select[0], select[1]]);
+        self.view.wt.selections.fill.add([maxR, select[3]]);
         autofill.apply();
       }
     },
