@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 21 2012 12:24:04 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 21 2012 13:07:38 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -792,9 +792,6 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
-      if (autofill.handle) {
-        autofill.hideHandle();
-      }
       priv.selEnd = new Handsontable.SelectionPoint(); //create new empty point to remove the existing one
       editproxy.destroy();
       self.rootElement.triggerHandler('deselect.handsontable');
@@ -850,16 +847,6 @@ Handsontable.Core = function (rootElement, settings) {
       else {
         autofill.handle.disabled = false;
       }
-
-      self.rootElement.on('beginediting.handsontable', function () {
-        autofill.hideHandle();
-      });
-
-      self.rootElement.on('finishediting.handsontable', function () {
-        if (selection.isSelected()) {
-          autofill.showHandle();
-        }
-      });
     },
 
     /**
@@ -975,20 +962,6 @@ Handsontable.Core = function (rootElement, settings) {
        //reset to avoid some range bug
        selection.refreshBorders();
        }*/
-    },
-
-    /**
-     * Show fill handle
-     */
-    showHandle: function () {
-      //autofill.handle.appear([priv.selStart.coords(), priv.selEnd.coords()]);
-    },
-
-    /**
-     * Hide fill handle
-     */
-    hideHandle: function () {
-      //autofill.handle.disappear();
     },
 
     /**
@@ -1465,7 +1438,7 @@ Handsontable.Core = function (rootElement, settings) {
     if (self.view) {
       self.forceFullRender = true; //used when data was changed
       selection.refreshBorders(null, true);
-      priv.editProxy.triggerHandler('refreshBorder');
+      priv.editProxy.triggerHandler('refreshBorder'); //refresh size of the textarea in case cell dimensions have changed
     }
   };
 
