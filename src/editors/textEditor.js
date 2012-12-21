@@ -58,7 +58,6 @@ var texteditor = {
     var coords = {row: row, col: col};
     instance.view.scrollViewport(coords);
     instance.view.render();
-    texteditor.$td = $(instance.getCell(row, col)); //because old td may have been scrolled out with scrollViewport
 
     keyboardProxy.on('cut.editor', function (event) {
       event.stopPropagation();
@@ -82,26 +81,24 @@ var texteditor = {
       keyboardProxy.val('');
     }
 
-    texteditor.refreshDimensions(instance, keyboardProxy);
-    keyboardProxy.parent().removeClass('htHidden');
-
-    instance.rootElement.triggerHandler('beginediting.handsontable');
-
-    setTimeout(function () {
-      //async fix for Firefox 3.6.28 (needs manual testing)
-      keyboardProxy.parent().css({
-        overflow: 'visible'
-      });
-    }, 1);
+    if (instance.getSettings().asyncRendering) {
+      setTimeout(function () {
+        texteditor.refreshDimensions(instance, row, col, keyboardProxy);
+      }, 0);
+    }
+    else {
+      texteditor.refreshDimensions(instance, row, col, keyboardProxy);
+    }
   },
 
-  refreshDimensions: function (instance, keyboardProxy) {
+  refreshDimensions: function (instance, row, col, keyboardProxy) {
     if (!texteditor.isCellEdited) {
       return;
     }
 
     ///start prepare textarea position
-    var currentOffset = texteditor.$td.offset();
+    var $td = $(instance.getCell(row, col)); //because old td may have been scrolled out with scrollViewport
+    var currentOffset = $td.offset();
     var containerOffset = instance.rootElement.offset();
     var scrollTop = instance.rootElement.scrollTop();
     var scrollLeft = instance.rootElement.scrollLeft();
@@ -119,10 +116,10 @@ var texteditor = {
       editLeft = 0;
     }
 
-    if (rowHeadersCount > 0 && parseInt(texteditor.$td.css('border-top-width')) > 0) {
+    if (rowHeadersCount > 0 && parseInt($td.css('border-top-width')) > 0) {
       editTop += 1;
     }
-    if (colHeadersCount > 0 && parseInt(texteditor.$td.css('border-left-width')) > 0) {
+    if (colHeadersCount > 0 && parseInt($td.css('border-left-width')) > 0) {
       editLeft += 1;
     }
 
@@ -136,13 +133,13 @@ var texteditor = {
     });
     ///end prepare textarea position
 
-    var width = texteditor.$td.width()
-      , height = texteditor.$td.outerHeight() - 4;
+    var width = $td.width()
+      , height = $td.outerHeight() - 4;
 
-    if (parseInt(texteditor.$td.css('border-top-width')) > 0) {
+    if (parseInt($td.css('border-top-width')) > 0) {
       height -= 1;
     }
-    if (parseInt(texteditor.$td.css('border-left-width')) > 0) {
+    if (parseInt($td.css('border-left-width')) > 0) {
       if (rowHeadersCount > 0) {
         width -= 1;
       }
@@ -156,6 +153,17 @@ var texteditor = {
       animate: false,
       extraSpace: 0
     });
+
+    keyboardProxy.parent().removeClass('htHidden');
+
+    instance.rootElement.triggerHandler('beginediting.handsontable');
+
+    setTimeout(function () {
+      //async fix for Firefox 3.6.28 (needs manual testing)
+      keyboardProxy.parent().css({
+        overflow: 'visible'
+      });
+    }, 1);
   },
 
   /**
@@ -213,7 +221,6 @@ var texteditor = {
  */
 Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
   texteditor.isCellEdited = false;
-  texteditor.$td = $(td);
   texteditor.originalValue = instance.getDataAtCell(row, prop);
   texteditor.triggerOnlyByDestroyer = cellProperties.strict;
 
@@ -230,7 +237,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
   keyboardProxy.on('refreshBorder.editor', function () {
     setTimeout(function () {
       if (texteditor.isCellEdited) {
-        texteditor.refreshDimensions(instance, keyboardProxy);
+        texteditor.refreshDimensions(instance, row, col, keyboardProxy);
       }
     }, 0);
   });

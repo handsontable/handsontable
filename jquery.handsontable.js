@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Dec 19 2012 16:41:18 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 21 2012 12:24:04 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -151,6 +151,7 @@ Handsontable.Core = function (rootElement, settings) {
       else {
         priv.settings.data.splice(coords.row, 0, row);
       }
+      self.forceFullRender = true; //used when data was changed
     },
 
     /**
@@ -175,6 +176,7 @@ Handsontable.Core = function (rootElement, settings) {
           priv.settings.data[r].splice(coords.col, 0, '');
         }
       }
+      self.forceFullRender = true; //used when data was changed
     },
 
     /**
@@ -189,6 +191,7 @@ Handsontable.Core = function (rootElement, settings) {
       else {
         priv.settings.data.splice(coords.row, toCoords.row - coords.row + 1);
       }
+      self.forceFullRender = true; //used when data was changed
     },
 
     /**
@@ -212,6 +215,7 @@ Handsontable.Core = function (rootElement, settings) {
           priv.settings.data[r].splice(coords.col, howMany);
         }
       }
+      self.forceFullRender = true; //used when data was changed
     },
 
     /**
@@ -317,7 +321,7 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Object} [toCoords] Required only for actions "remove_row" and "remove_col"
      */
     alter: function (action, coords, toCoords) {
-      var oldData, newData, changes, r, rlen, c, clen, result;
+      var oldData, newData, changes, r, rlen, c, clen;
       oldData = $.extend(true, [], datamap.getAll());
 
       switch (action) {
@@ -349,13 +353,13 @@ Handsontable.Core = function (rootElement, settings) {
 
         case "remove_row":
           datamap.removeRow(coords, toCoords);
-          result = grid.keepEmptyRows();
+          grid.keepEmptyRows();
           self.view.render();
           break;
 
         case "remove_col":
           datamap.removeCol(coords, toCoords);
-          result = grid.keepEmptyRows();
+          grid.keepEmptyRows();
           self.view.render();
           break;
       }
@@ -372,10 +376,9 @@ Handsontable.Core = function (rootElement, settings) {
 
     /**
      * Makes sure there are empty rows at the bottom of the table
-     * @return recreate {Boolean} TRUE if row or col was added or removed
      */
     keepEmptyRows: function () {
-      var r, c, rlen, clen, emptyRows = 0, emptyCols = 0, recreateRows = false, recreateCols = false, val;
+      var r, c, rlen, clen, emptyRows = 0, emptyCols = 0, val;
 
       //count currently empty rows
       rows : for (r = self.countRows() - 1; r >= 0; r--) {
@@ -400,7 +403,6 @@ Handsontable.Core = function (rootElement, settings) {
       if (emptyRows < priv.settings.minSpareRows) {
         for (; emptyRows < priv.settings.minSpareRows && self.countRows() < priv.settings.maxRows; emptyRows++) {
           datamap.createRow();
-          recreateRows = true;
         }
       }
 
@@ -423,7 +425,6 @@ Handsontable.Core = function (rootElement, settings) {
           if (!priv.settings.columns) {
             datamap.createCol();
           }
-          recreateCols = true;
         }
       }
 
@@ -433,21 +434,18 @@ Handsontable.Core = function (rootElement, settings) {
           if (!priv.settings.columns) {
             datamap.createCol();
           }
-          recreateCols = true;
         }
       }
 
-      if (!recreateRows && priv.settings.enterBeginsEditing) {
+      if (priv.settings.enterBeginsEditing) {
         for (; (((priv.settings.minRows || priv.settings.minSpareRows) && self.countRows() > priv.settings.minRows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows)); emptyRows--) {
           datamap.removeRow();
-          recreateRows = true;
         }
       }
 
-      if (!recreateCols && priv.settings.enterBeginsEditing && !priv.settings.columns) {
+      if (priv.settings.enterBeginsEditing && !priv.settings.columns) {
         for (; (((priv.settings.minCols || priv.settings.minSpareCols) && self.countCols() > priv.settings.minCols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols)); emptyCols--) {
           datamap.removeCol();
-          recreateCols = true;
         }
       }
 
@@ -499,15 +497,6 @@ Handsontable.Core = function (rootElement, settings) {
           self.selectCell(fromRow, fromCol, toRow, toCol);
         }
       }
-
-      /*
-       //this should not be needed since 0.8.0 but I leave it here for reference
-       if ((recreateRows || recreateCols) && !selectionChanged) {
-       selection.refreshBorders();
-       }
-       */
-
-      return (recreateRows || recreateCols);
     },
 
     /**
@@ -677,26 +666,10 @@ Handsontable.Core = function (rootElement, settings) {
       if (!keepEditor) {
         editproxy.destroy(revertOriginal);
       }
-      if (!selection.isSelected()) {
-        return;
-      }
-      selection.refreshBorderDimensions();
-      if (!keepEditor) {
+      self.view.render();
+      if (selection.isSelected() && !keepEditor) {
         editproxy.prepare();
       }
-    },
-
-    /**
-     * Redraws borders around cells
-     */
-    refreshBorderDimensions: function () {
-      if (!selection.isSelected()) {
-        return;
-      }
-      if (autofill.handle) {
-        autofill.showHandle();
-      }
-      self.view.render(true);
     },
 
     /**
@@ -1040,7 +1013,7 @@ Handsontable.Core = function (rootElement, settings) {
       self.view.wt.selections.fill.add([priv.selStart.coords().row, priv.selStart.coords().col]);
       self.view.wt.selections.fill.add([priv.selEnd.coords().row, priv.selEnd.coords().col]);
       self.view.wt.selections.fill.add(coords);
-      self.view.render(true);
+      self.view.render();
     }
   };
 
@@ -1418,11 +1391,9 @@ Handsontable.Core = function (rootElement, settings) {
         }
         datamap.set(row, prop, value);
       }
-      var recreated = grid.keepEmptyRows();
-      if (!recreated) {
-        selection.refreshBorders();
-      }
-      self.view.render();
+      self.forceFullRender = true; //used when data was changed
+      grid.keepEmptyRows();
+      selection.refreshBorders();
       self.rootElement.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
     });
   };
@@ -1492,10 +1463,10 @@ Handsontable.Core = function (rootElement, settings) {
      }
      }*/
     if (self.view) {
-      self.view.render();
+      self.forceFullRender = true; //used when data was changed
+      selection.refreshBorders(null, true);
+      priv.editProxy.triggerHandler('refreshBorder');
     }
-    selection.refreshBorderDimensions();
-    priv.editProxy.triggerHandler('refreshBorder');
   };
 
   /**
@@ -1542,7 +1513,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
     self.rootElement.triggerHandler('datachange.handsontable', [changes, 'loadData']);
-    self.render(changes, 'loadData');
+    self.render();
     priv.isPopulated = true;
     self.clearUndo();
   };
@@ -1632,8 +1603,9 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
 
-    recreated = grid.keepEmptyRows();
-    if (!recreated) {
+    grid.keepEmptyRows();
+    if (self.view) {
+      self.forceFullRender = true; //used when data was changed
       selection.refreshBorders(null, true);
     }
   };
@@ -2222,12 +2194,14 @@ Handsontable.TableView = function (instance) {
   Handsontable.PluginHooks.run(this.instance, 'walkontableConfig', [walkontableConfig]);
 
   this.wt = new Walkontable(walkontableConfig);
+  this.instance.forceFullRender = true; //used when data was changed
   this.render();
 };
 
-Handsontable.TableView.prototype.render = function (selectionsOnly) {
-  this.wt.draw(selectionsOnly);
+Handsontable.TableView.prototype.render = function () {
+  this.wt.draw(!this.instance.forceFullRender);
   this.instance.rootElement.triggerHandler('render.handsontable');
+  this.instance.forceFullRender = false;
 };
 
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, coords, extraParam) {
@@ -2571,7 +2545,6 @@ var texteditor = {
     var coords = {row: row, col: col};
     instance.view.scrollViewport(coords);
     instance.view.render();
-    texteditor.$td = $(instance.getCell(row, col)); //because old td may have been scrolled out with scrollViewport
 
     keyboardProxy.on('cut.editor', function (event) {
       event.stopPropagation();
@@ -2595,26 +2568,24 @@ var texteditor = {
       keyboardProxy.val('');
     }
 
-    texteditor.refreshDimensions(instance, keyboardProxy);
-    keyboardProxy.parent().removeClass('htHidden');
-
-    instance.rootElement.triggerHandler('beginediting.handsontable');
-
-    setTimeout(function () {
-      //async fix for Firefox 3.6.28 (needs manual testing)
-      keyboardProxy.parent().css({
-        overflow: 'visible'
-      });
-    }, 1);
+    if (instance.getSettings().asyncRendering) {
+      setTimeout(function () {
+        texteditor.refreshDimensions(instance, row, col, keyboardProxy);
+      }, 0);
+    }
+    else {
+      texteditor.refreshDimensions(instance, row, col, keyboardProxy);
+    }
   },
 
-  refreshDimensions: function (instance, keyboardProxy) {
+  refreshDimensions: function (instance, row, col, keyboardProxy) {
     if (!texteditor.isCellEdited) {
       return;
     }
 
     ///start prepare textarea position
-    var currentOffset = texteditor.$td.offset();
+    var $td = $(instance.getCell(row, col)); //because old td may have been scrolled out with scrollViewport
+    var currentOffset = $td.offset();
     var containerOffset = instance.rootElement.offset();
     var scrollTop = instance.rootElement.scrollTop();
     var scrollLeft = instance.rootElement.scrollLeft();
@@ -2632,10 +2603,10 @@ var texteditor = {
       editLeft = 0;
     }
 
-    if (rowHeadersCount > 0 && parseInt(texteditor.$td.css('border-top-width')) > 0) {
+    if (rowHeadersCount > 0 && parseInt($td.css('border-top-width')) > 0) {
       editTop += 1;
     }
-    if (colHeadersCount > 0 && parseInt(texteditor.$td.css('border-left-width')) > 0) {
+    if (colHeadersCount > 0 && parseInt($td.css('border-left-width')) > 0) {
       editLeft += 1;
     }
 
@@ -2649,13 +2620,13 @@ var texteditor = {
     });
     ///end prepare textarea position
 
-    var width = texteditor.$td.width()
-      , height = texteditor.$td.outerHeight() - 4;
+    var width = $td.width()
+      , height = $td.outerHeight() - 4;
 
-    if (parseInt(texteditor.$td.css('border-top-width')) > 0) {
+    if (parseInt($td.css('border-top-width')) > 0) {
       height -= 1;
     }
-    if (parseInt(texteditor.$td.css('border-left-width')) > 0) {
+    if (parseInt($td.css('border-left-width')) > 0) {
       if (rowHeadersCount > 0) {
         width -= 1;
       }
@@ -2669,6 +2640,17 @@ var texteditor = {
       animate: false,
       extraSpace: 0
     });
+
+    keyboardProxy.parent().removeClass('htHidden');
+
+    instance.rootElement.triggerHandler('beginediting.handsontable');
+
+    setTimeout(function () {
+      //async fix for Firefox 3.6.28 (needs manual testing)
+      keyboardProxy.parent().css({
+        overflow: 'visible'
+      });
+    }, 1);
   },
 
   /**
@@ -2726,7 +2708,6 @@ var texteditor = {
  */
 Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
   texteditor.isCellEdited = false;
-  texteditor.$td = $(td);
   texteditor.originalValue = instance.getDataAtCell(row, prop);
   texteditor.triggerOnlyByDestroyer = cellProperties.strict;
 
@@ -2743,7 +2724,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
   keyboardProxy.on('refreshBorder.editor', function () {
     setTimeout(function () {
       if (texteditor.isCellEdited) {
-        texteditor.refreshDimensions(instance, keyboardProxy);
+        texteditor.refreshDimensions(instance, row, col, keyboardProxy);
       }
     }, 0);
   });

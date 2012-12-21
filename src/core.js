@@ -132,6 +132,7 @@ Handsontable.Core = function (rootElement, settings) {
       else {
         priv.settings.data.splice(coords.row, 0, row);
       }
+      self.forceFullRender = true; //used when data was changed
     },
 
     /**
@@ -156,6 +157,7 @@ Handsontable.Core = function (rootElement, settings) {
           priv.settings.data[r].splice(coords.col, 0, '');
         }
       }
+      self.forceFullRender = true; //used when data was changed
     },
 
     /**
@@ -170,6 +172,7 @@ Handsontable.Core = function (rootElement, settings) {
       else {
         priv.settings.data.splice(coords.row, toCoords.row - coords.row + 1);
       }
+      self.forceFullRender = true; //used when data was changed
     },
 
     /**
@@ -193,6 +196,7 @@ Handsontable.Core = function (rootElement, settings) {
           priv.settings.data[r].splice(coords.col, howMany);
         }
       }
+      self.forceFullRender = true; //used when data was changed
     },
 
     /**
@@ -298,7 +302,7 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Object} [toCoords] Required only for actions "remove_row" and "remove_col"
      */
     alter: function (action, coords, toCoords) {
-      var oldData, newData, changes, r, rlen, c, clen, result;
+      var oldData, newData, changes, r, rlen, c, clen;
       oldData = $.extend(true, [], datamap.getAll());
 
       switch (action) {
@@ -330,13 +334,13 @@ Handsontable.Core = function (rootElement, settings) {
 
         case "remove_row":
           datamap.removeRow(coords, toCoords);
-          result = grid.keepEmptyRows();
+          grid.keepEmptyRows();
           self.view.render();
           break;
 
         case "remove_col":
           datamap.removeCol(coords, toCoords);
-          result = grid.keepEmptyRows();
+          grid.keepEmptyRows();
           self.view.render();
           break;
       }
@@ -353,10 +357,9 @@ Handsontable.Core = function (rootElement, settings) {
 
     /**
      * Makes sure there are empty rows at the bottom of the table
-     * @return recreate {Boolean} TRUE if row or col was added or removed
      */
     keepEmptyRows: function () {
-      var r, c, rlen, clen, emptyRows = 0, emptyCols = 0, recreateRows = false, recreateCols = false, val;
+      var r, c, rlen, clen, emptyRows = 0, emptyCols = 0, val;
 
       //count currently empty rows
       rows : for (r = self.countRows() - 1; r >= 0; r--) {
@@ -381,7 +384,6 @@ Handsontable.Core = function (rootElement, settings) {
       if (emptyRows < priv.settings.minSpareRows) {
         for (; emptyRows < priv.settings.minSpareRows && self.countRows() < priv.settings.maxRows; emptyRows++) {
           datamap.createRow();
-          recreateRows = true;
         }
       }
 
@@ -404,7 +406,6 @@ Handsontable.Core = function (rootElement, settings) {
           if (!priv.settings.columns) {
             datamap.createCol();
           }
-          recreateCols = true;
         }
       }
 
@@ -414,21 +415,18 @@ Handsontable.Core = function (rootElement, settings) {
           if (!priv.settings.columns) {
             datamap.createCol();
           }
-          recreateCols = true;
         }
       }
 
-      if (!recreateRows && priv.settings.enterBeginsEditing) {
+      if (priv.settings.enterBeginsEditing) {
         for (; (((priv.settings.minRows || priv.settings.minSpareRows) && self.countRows() > priv.settings.minRows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows)); emptyRows--) {
           datamap.removeRow();
-          recreateRows = true;
         }
       }
 
-      if (!recreateCols && priv.settings.enterBeginsEditing && !priv.settings.columns) {
+      if (priv.settings.enterBeginsEditing && !priv.settings.columns) {
         for (; (((priv.settings.minCols || priv.settings.minSpareCols) && self.countCols() > priv.settings.minCols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols)); emptyCols--) {
           datamap.removeCol();
-          recreateCols = true;
         }
       }
 
@@ -480,15 +478,6 @@ Handsontable.Core = function (rootElement, settings) {
           self.selectCell(fromRow, fromCol, toRow, toCol);
         }
       }
-
-      /*
-       //this should not be needed since 0.8.0 but I leave it here for reference
-       if ((recreateRows || recreateCols) && !selectionChanged) {
-       selection.refreshBorders();
-       }
-       */
-
-      return (recreateRows || recreateCols);
     },
 
     /**
@@ -658,26 +647,10 @@ Handsontable.Core = function (rootElement, settings) {
       if (!keepEditor) {
         editproxy.destroy(revertOriginal);
       }
-      if (!selection.isSelected()) {
-        return;
-      }
-      selection.refreshBorderDimensions();
-      if (!keepEditor) {
+      self.view.render();
+      if (selection.isSelected() && !keepEditor) {
         editproxy.prepare();
       }
-    },
-
-    /**
-     * Redraws borders around cells
-     */
-    refreshBorderDimensions: function () {
-      if (!selection.isSelected()) {
-        return;
-      }
-      if (autofill.handle) {
-        autofill.showHandle();
-      }
-      self.view.render(true);
     },
 
     /**
@@ -1021,7 +994,7 @@ Handsontable.Core = function (rootElement, settings) {
       self.view.wt.selections.fill.add([priv.selStart.coords().row, priv.selStart.coords().col]);
       self.view.wt.selections.fill.add([priv.selEnd.coords().row, priv.selEnd.coords().col]);
       self.view.wt.selections.fill.add(coords);
-      self.view.render(true);
+      self.view.render();
     }
   };
 
@@ -1399,11 +1372,9 @@ Handsontable.Core = function (rootElement, settings) {
         }
         datamap.set(row, prop, value);
       }
-      var recreated = grid.keepEmptyRows();
-      if (!recreated) {
-        selection.refreshBorders();
-      }
-      self.view.render();
+      self.forceFullRender = true; //used when data was changed
+      grid.keepEmptyRows();
+      selection.refreshBorders();
       self.rootElement.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
     });
   };
@@ -1473,10 +1444,10 @@ Handsontable.Core = function (rootElement, settings) {
      }
      }*/
     if (self.view) {
-      self.view.render();
+      self.forceFullRender = true; //used when data was changed
+      selection.refreshBorders(null, true);
+      priv.editProxy.triggerHandler('refreshBorder');
     }
-    selection.refreshBorderDimensions();
-    priv.editProxy.triggerHandler('refreshBorder');
   };
 
   /**
@@ -1523,7 +1494,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
     self.rootElement.triggerHandler('datachange.handsontable', [changes, 'loadData']);
-    self.render(changes, 'loadData');
+    self.render();
     priv.isPopulated = true;
     self.clearUndo();
   };
@@ -1613,8 +1584,9 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
 
-    recreated = grid.keepEmptyRows();
-    if (!recreated) {
+    grid.keepEmptyRows();
+    if (self.view) {
+      self.forceFullRender = true; //used when data was changed
       selection.refreshBorders(null, true);
     }
   };

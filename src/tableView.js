@@ -185,12 +185,14 @@ Handsontable.TableView = function (instance) {
   Handsontable.PluginHooks.run(this.instance, 'walkontableConfig', [walkontableConfig]);
 
   this.wt = new Walkontable(walkontableConfig);
+  this.instance.forceFullRender = true; //used when data was changed
   this.render();
 };
 
-Handsontable.TableView.prototype.render = function (selectionsOnly) {
-  this.wt.draw(selectionsOnly);
+Handsontable.TableView.prototype.render = function () {
+  this.wt.draw(!this.instance.forceFullRender);
   this.instance.rootElement.triggerHandler('render.handsontable');
+  this.instance.forceFullRender = false;
 };
 
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, coords, extraParam) {
