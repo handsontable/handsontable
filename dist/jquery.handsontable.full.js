@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 21 2012 20:15:20 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 21 2012 20:24:21 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2959,14 +2959,10 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   });
 
   keyboardProxy.on("keyup.editor", function (event) {
-      if (wasDestroyed) {
-        return;
-      }
-
       switch (event.keyCode) {
         case 9: /* tab */
         case 13: /* return/enter */
-          if (!isAutoComplete(keyboardProxy)) {
+          if (!wasDestroyed && !isAutoComplete(keyboardProxy)) {
             var ev = $.Event('keyup');
             ev.keyCode = 113; //113 triggers lookup, in contrary to 13 or 9 which only trigger hide
             keyboardProxy.trigger(ev);
@@ -2981,7 +2977,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
           break;
 
         default:
-          if (!Handsontable.helper.isPrintableChar(event.keyCode)) { //otherwise Del or F12 would open suggestions list
+          if (!wasDestroyed && !Handsontable.helper.isPrintableChar(event.keyCode)) { //otherwise Del or F12 would open suggestions list
             event.stopImmediatePropagation();
           }
       }

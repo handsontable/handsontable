@@ -117,14 +117,10 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
   });
 
   keyboardProxy.on("keyup.editor", function (event) {
-      if (wasDestroyed) {
-        return;
-      }
-
       switch (event.keyCode) {
         case 9: /* tab */
         case 13: /* return/enter */
-          if (!isAutoComplete(keyboardProxy)) {
+          if (!wasDestroyed && !isAutoComplete(keyboardProxy)) {
             var ev = $.Event('keyup');
             ev.keyCode = 113; //113 triggers lookup, in contrary to 13 or 9 which only trigger hide
             keyboardProxy.trigger(ev);
@@ -139,7 +135,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
           break;
 
         default:
-          if (!Handsontable.helper.isPrintableChar(event.keyCode)) { //otherwise Del or F12 would open suggestions list
+          if (!wasDestroyed && !Handsontable.helper.isPrintableChar(event.keyCode)) { //otherwise Del or F12 would open suggestions list
             event.stopImmediatePropagation();
           }
       }

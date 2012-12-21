@@ -24,6 +24,7 @@ Other changes:
 Bugfixes since 0.8.0-beta3:
 - enter on last row/col should add more rows/cols if minSpareRows/minSpareCols > 0
 - double clicking on fill handle fills the column to the last non-empty row
+- pressing enter/tab in autocomplete moves to next row/column
 
 ## [0.8.0-beta3](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta3) (Dec 18, 2012)
 
