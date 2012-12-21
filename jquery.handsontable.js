@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 21 2012 19:56:49 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 21 2012 20:00:06 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1428,26 +1428,8 @@ Handsontable.Core = function (rootElement, settings) {
   /**
    * Render visible data
    * @public
-   * @param {Array} changes (Optional) If not given, all visible grid will be rerendered
-   * @param {String} source (Optional)
    */
-  this.render = function (changes, source) {
-    /*if (typeof changes === "undefined") {
-     changes = [];
-     var r
-     , c
-     , p
-     , val
-     , rlen = self.countRows()
-     , clen = (priv.settings.columns && priv.settings.columns.length) || priv.settings.startCols;
-     for (r = 0; r < rlen; r++) {
-     for (c = 0; c < clen; c++) {
-     p = datamap.colToProp(c);
-     val = datamap.get(r, p);
-     changes.push([r, p, val, val]);
-     }
-     }
-     }*/
+  this.render = function () {
     if (self.view) {
       self.forceFullRender = true; //used when data was changed
       selection.refreshBorders(null, true);
@@ -1527,7 +1509,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @public
    */
   this.updateSettings = function (settings) {
-    var i, recreated;
+    var i;
 
     if (typeof settings.rows !== "undefined") {
       throw new Error("'rows' setting is no longer supported. do you mean startRows, minRows or maxRows?");
