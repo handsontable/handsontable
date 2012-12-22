@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Sat Dec 22 2012 12:58:15 GMT+0100 (Central European Standard Time)
+ * Date: Sat Dec 22 2012 15:48:17 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -1507,15 +1507,12 @@ WalkontableTable.prototype.isCellVisible = function (TD) {
 };
 
 WalkontableTable.prototype.getCell = function (coords) {
-  var offsetRow = this.instance.getSetting('offsetRow')
-    , offsetColumn = this.instance.getSetting('offsetColumn')
-    , displayRows = this.instance.getSetting('displayRows')
-    , displayColumns = this.instance.getSetting('displayColumns')
-    , frozenColumns = this.instance.getSetting('frozenColumns')
-    , frozenColumnsCount = frozenColumns ? frozenColumns.length : 0;
-
-  if (coords[0] >= offsetRow && coords[0] <= offsetRow + displayRows - 1) {
-    if (coords[1] >= offsetColumn && coords[1] < offsetColumn + displayColumns) {
+  var offsetRow = this.instance.getSetting('offsetRow');
+  if (coords[0] >= offsetRow && coords[0] <= offsetRow + this.instance.getSetting('displayRows') - 1) {
+    var offsetColumn = this.instance.getSetting('offsetColumn');
+    if (coords[1] >= offsetColumn && coords[1] < offsetColumn + this.instance.getSetting('displayColumns')) {
+      var frozenColumns = this.instance.getSetting('frozenColumns')
+        , frozenColumnsCount = frozenColumns ? frozenColumns.length : 0;
       return this.TBODY.childNodes[coords[0] - offsetRow].childNodes[coords[1] - offsetColumn + frozenColumnsCount];
     }
   }
