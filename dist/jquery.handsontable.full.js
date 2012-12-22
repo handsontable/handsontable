@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 21 2012 20:24:21 GMT+0100 (Central European Standard Time)
+ * Date: Sat Dec 22 2012 13:49:55 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -635,8 +635,6 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to range end
      */
     setRangeEnd: function (coords, scrollToCell) {
-      var r, c, intermediateCoords;
-
       priv.selEnd.coords(coords);
       if (!priv.settings.multiSelect) {
         priv.selStart.coords(coords);
@@ -649,16 +647,8 @@ Handsontable.Core = function (rootElement, settings) {
       //set up area selection
       self.view.wt.selections.area.clear();
       if (selection.isMultiple()) {
-        intermediateCoords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
-        r = intermediateCoords.TL.row;
-        while (r <= intermediateCoords.BR.row) {
-          c = intermediateCoords.TL.col;
-          while (c <= intermediateCoords.BR.col) {
-            self.view.wt.selections.area.add([r, c]);
-            c++;
-          }
-          r++;
-        }
+        self.view.wt.selections.area.add(priv.selStart.arr());
+        self.view.wt.selections.area.add(priv.selEnd.arr());
       }
 
       //trigger handlers
@@ -3619,7 +3609,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Mon Dec 17 2012 15:29:12 GMT+0100 (Central European Standard Time)
+ * Date: Sat Dec 22 2012 12:58:15 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -3672,7 +3662,7 @@ WalkontableBorder.prototype.appear = function (corners) {
     , displayRows = this.instance.getSetting('displayRows')
     , displayColumns = this.instance.getSetting('displayColumns');
 
-  var hideTop, hideLeft, hideBottom, hideRight;
+  var hideTop = false, hideLeft = false, hideBottom = false, hideRight = false;
 
   if (displayRows !== null) {
     if (corners[0] > offsetRow + displayRows - 1 || corners[2] < offsetRow) {
@@ -3706,7 +3696,7 @@ WalkontableBorder.prototype.appear = function (corners) {
     }
   }
 
-  if (!(hideTop == hideLeft == hideBottom == hideRight == true)) {
+  if (hideTop + hideLeft + hideBottom + hideRight < 4) { //at least one border is not hidden
     isMultiple = (corners[0] !== corners[2] || corners[1] !== corners[3]);
     $from = $(this.instance.wtTable.getCell([corners[0], corners[1]]));
     $to = isMultiple ? $(this.instance.wtTable.getCell([corners[2], corners[3]])) : $from;
@@ -4627,7 +4617,7 @@ WalkontableSelection.prototype.getCorners = function () {
 };
 
 WalkontableSelection.prototype.draw = function (selectionsOnly) {
-  var TDs, TD, i, ilen;
+  var TDs, TD, i, ilen, corners, r, c;
 
   if (selectionsOnly && this.settings.className) {
     TDs = this.instance.wtTable.TABLE.getElementsByTagName('TD');
@@ -4636,18 +4626,29 @@ WalkontableSelection.prototype.draw = function (selectionsOnly) {
     }
   }
 
-  for (i = 0, ilen = this.selected.length; i < ilen; i++) {
-    TD = this.instance.wtTable.getCell(this.selected[i]);
-    if (TD) {
-      this.onAdd(this.selected[i], TD);
+  ilen = this.selected.length;
+  if (ilen) {
+    corners = this.getCorners();
+    r = corners[0];
+    while (r <= corners[2]) {
+      c = corners[1];
+      while (c <= corners[3]) {
+        TD = this.instance.wtTable.getCell([r, c]);
+        if (TD) {
+          this.onAdd([r, c], TD);
+        }
+        c++;
+      }
+      r++;
     }
   }
+
   if (this.border) {
     if (ilen > 0) {
-      this.border.appear(this.getCorners());
+      this.border.appear(corners);
     }
     else {
-      this.border.disappear(this.getCorners());
+      this.border.disappear(corners);
     }
   }
 };

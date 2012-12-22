@@ -4,7 +4,6 @@ Known issues:
 - methods `setCellReadOnly` and `setCellEditable` are currently broken. You can still define read only columns using the `columns` or `cells` settings
 - clicking on cell & row borders has no effect (first reported by @cscribner / #295)
 - page up/page down scrolls to the first and the last row (should only scroll one screen)
-- CTRL+A works slow on large data sets (as reported by @brivazac / #295)
 - copy of large selection (5k, 10k, 100k rows etc) freezes IE8 (first reported by @itanex / #295). Below 1k rows works fine. The only solution I can think of right now is to set copy limit in IE8 to 1000 rows.
 - paste of large selection (100k rows) freezes Firefox (first reported by @ravio / #303)
 - when using `overflow: auto`, only relevant scrollbars should be displayed (first reported by @dansabirov / #295)
@@ -25,6 +24,7 @@ Bugfixes since 0.8.0-beta3:
 - enter on last row/col should add more rows/cols if minSpareRows/minSpareCols > 0
 - double clicking on fill handle fills the column to the last non-empty row
 - pressing enter/tab in autocomplete moves to next row/column
+- CTRL+A works slow on large data sets (as reported by @brivazac / #295)
 
 ## [0.8.0-beta3](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta3) (Dec 18, 2012)
 
