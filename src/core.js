@@ -637,6 +637,9 @@ Handsontable.Core = function (rootElement, settings) {
       self.rootElement.triggerHandler("selectionbyprop.handsontable", [priv.selStart.row(), datamap.colToProp(priv.selStart.col()), priv.selEnd.row(), datamap.colToProp(priv.selEnd.col())]);
       if (scrollToCell !== false) {
         self.view.scrollViewport(coords);
+
+        self.view.wt.draw(true); //these two lines are needed to fix scrolling viewport when cell dimensions are significantly bigger than assumed by Walkontable
+        self.view.scrollViewport(coords);
       }
       selection.refreshBorders();
     },

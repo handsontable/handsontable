@@ -14,10 +14,11 @@ New features since 0.8.0-beta3:
 - new methods `rowOffset`, `colOffset`, `countVisibleRows`, `countVisibleCols`
 - new callback `onCreateRow` [TODO: write tests]
 - `dataSchema` can now be a function that returns object/array [TODO: write tests]
+- fixed scrolling with arrow keys
 
 Other changes:
-- public methods `colCount`, `rowCount` do not exist anymore. Use `countRows()` and `countCols()` public methods instead
-- options `minWidth`, `minHeight` do not exist anymore because their definitions were to blurry and usage case too limited. Use `width` and `height` options instead and provide as many rows/columns in your data source as you need
+- public methods `colCount`, `rowCount` are removed. Use `countRows()` and `countCols()` public methods instead
+- options `minWidth`, `minHeight` are removed. Their definitions were to blurry and usage case too limited. Use `width` and `height` options instead and provide as many rows/columns in your data source as you need
 - add `render` method to README.md
 
 Bugfixes since 0.8.0-beta3:

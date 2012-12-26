@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Dec 22 2012 15:49:33 GMT+0100 (Central European Standard Time)
+ * Date: Wed Dec 26 2012 23:11:00 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -655,6 +655,9 @@ Handsontable.Core = function (rootElement, settings) {
       self.rootElement.triggerHandler("selection.handsontable", [priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col()]);
       self.rootElement.triggerHandler("selectionbyprop.handsontable", [priv.selStart.row(), datamap.colToProp(priv.selStart.col()), priv.selEnd.row(), datamap.colToProp(priv.selEnd.col())]);
       if (scrollToCell !== false) {
+        self.view.scrollViewport(coords);
+
+        self.view.wt.draw(true); //these two lines are needed to fix scrolling viewport when cell dimensions are significantly bigger than assumed by Walkontable
         self.view.scrollViewport(coords);
       }
       selection.refreshBorders();
