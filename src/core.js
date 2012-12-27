@@ -1147,11 +1147,17 @@ Handsontable.Core = function (rootElement, settings) {
               break;
 
             case 33: /* pg up */
-              rangeModifier({row: 0, col: priv.selStart.col()});
+              selection.transformStart(-self.countVisibleRows(), 0);
+              self.view.wt.scrollVertical(-self.countVisibleRows());
+              self.view.render();
+              event.preventDefault(); //don't page up the window
               break;
 
-            case 34: /* pg dn */
-              rangeModifier({row: self.countRows() - 1, col: priv.selStart.col()});
+            case 34: /* pg down */
+              selection.transformStart(self.countVisibleRows(), 0);
+              self.view.wt.scrollVertical(self.countVisibleRows());
+              self.view.render();
+              event.preventDefault(); //don't page down the window
               break;
 
             default:
