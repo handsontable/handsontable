@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Dec 27 2012 14:09:51 GMT+0100 (Central European Standard Time)
+ * Date: Fri Dec 28 2012 19:50:26 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -510,22 +510,6 @@ Handsontable.Core = function (rootElement, settings) {
           self.selectCell(fromRow, fromCol, toRow, toCol);
         }
       }
-    },
-
-    /**
-     * Is cell writable
-     */
-    isCellWritable: function ($td, cellProperties) {
-      if (priv.isPopulated) {
-        var data = $td.data('readOnly');
-        if (typeof data === 'undefined') {
-          return !cellProperties.readOnly;
-        }
-        else {
-          return !data;
-        }
-      }
-      return true;
     },
 
     /**
@@ -1723,26 +1707,6 @@ Handsontable.Core = function (rootElement, settings) {
     cellProperites.isWritable = !cellProperites.readOnly;
     Handsontable.PluginHooks.run(self, 'afterGetCellMeta', [row, col, cellProperites]);
     return cellProperites;
-  };
-
-  /**
-   * Sets cell to be readonly
-   * @param {Number} row
-   * @param {Number} col
-   * @public
-   */
-  this.setCellReadOnly = function (row, col) {
-    throw new Error('not implemented yet (Handsontable 0.8.0)');
-  };
-
-  /**
-   * Sets cell to be editable (removes readonly)
-   * @param {Number} row
-   * @param {Number} col
-   * @public
-   */
-  this.setCellEditable = function (row, col) {
-    throw new Error('not implemented yet (Handsontable 0.8.0)');
   };
 
   /**

@@ -166,6 +166,20 @@ ul, ol, p {
   clear: left;
 }
 
+.descLayout code {
+  white-space: nowrap;
+}
+
+.descLayout code {
+  margin: 0 2px;
+  padding: 0 5px;
+  border: 1px solid #EAEAEA;
+  background-color: #F8F8F8;
+  border-radius: 3px;
+  font-size: 12px;
+  font-family: Consolas, Courier, monospace;
+}
+
 /**
  * jsFiddle
  */

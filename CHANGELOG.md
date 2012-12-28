@@ -1,7 +1,6 @@
 ## [0.8.0-beta4] (current HEAD)
 
 Known issues:
-- methods `setCellReadOnly` and `setCellEditable` are currently broken. You can still define read only columns using the `columns` or `cells` settings
 - clicking on cell & row borders has no effect (first reported by @cscribner / #295)
 - copy of large selection (5k, 10k, 100k rows etc) freezes IE8 (first reported by @itanex / #295). Below 1k rows works fine. The only solution I can think of right now is to set copy limit in IE8 to 1000 rows.
 - paste of large selection (100k rows) freezes Firefox (first reported by @ravio / #303)
@@ -18,6 +17,7 @@ New features since 0.8.0-beta3:
 
 Other changes:
 - public methods `colCount`, `rowCount` are removed. Use `countRows()` and `countCols()` public methods instead
+- public methods `setCellReadOnly`, `setCellEditable` are removed. Use `readOnly` cell property to make a cell read-only. See `demo/readonly.html` for examples
 - options `minWidth`, `minHeight` are removed. Their definitions were to blurry and usage case too limited. Use `width` and `height` options instead and provide as many rows/columns in your data source as you need
 - add `render` method to README.md
 

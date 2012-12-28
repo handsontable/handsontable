@@ -494,22 +494,6 @@ Handsontable.Core = function (rootElement, settings) {
     },
 
     /**
-     * Is cell writable
-     */
-    isCellWritable: function ($td, cellProperties) {
-      if (priv.isPopulated) {
-        var data = $td.data('readOnly');
-        if (typeof data === 'undefined') {
-          return !cellProperties.readOnly;
-        }
-        else {
-          return !data;
-        }
-      }
-      return true;
-    },
-
-    /**
      * Populate cells at position with 2d array
      * @param {Object} start Start selection position
      * @param {Array} input 2d array
@@ -1704,26 +1688,6 @@ Handsontable.Core = function (rootElement, settings) {
     cellProperites.isWritable = !cellProperites.readOnly;
     Handsontable.PluginHooks.run(self, 'afterGetCellMeta', [row, col, cellProperites]);
     return cellProperites;
-  };
-
-  /**
-   * Sets cell to be readonly
-   * @param {Number} row
-   * @param {Number} col
-   * @public
-   */
-  this.setCellReadOnly = function (row, col) {
-    throw new Error('not implemented yet (Handsontable 0.8.0)');
-  };
-
-  /**
-   * Sets cell to be editable (removes readonly)
-   * @param {Number} row
-   * @param {Number} col
-   * @public
-   */
-  this.setCellEditable = function (row, col) {
-    throw new Error('not implemented yet (Handsontable 0.8.0)');
   };
 
   /**

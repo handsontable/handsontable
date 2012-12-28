@@ -12,9 +12,15 @@ describe('Core_getCellMeta', function () {
   });
 
   it('should not allow manual editing of a read only cell', function () {
+    var allCellsReadOnly = false;
+
     runs(function () {
-      handsontable();
-      setCellReadOnly(2, 2);
+      handsontable({
+        cells: function () {
+          return {readOnly: allCellsReadOnly}
+        }
+      });
+      allCellsReadOnly = true;
       selectCell(2, 2);
       keyDown('enter');
     });
@@ -27,10 +33,15 @@ describe('Core_getCellMeta', function () {
   });
 
   it('should allow manual editing of cell that is no longer read only', function () {
+    var allCellsReadOnly = true;
+
     runs(function () {
-      handsontable();
-      setCellReadOnly(2, 2);
-      setCellEditable(2, 2);
+      handsontable({
+        cells: function () {
+          return {readOnly: allCellsReadOnly}
+        }
+      });
+      allCellsReadOnly = false;
       selectCell(2, 2);
       keyDown('enter');
     });
