@@ -386,23 +386,27 @@ Handsontable.Core = function (rootElement, settings) {
           break;
 
         case "remove_row":
-          datamap.removeRow(coords, toCoords);
-          self.view.removeRow(coords, toCoords);
-          result = grid.keepEmptyRows();
-          if (!result) {
-            self.blockedCols.refresh();
-          }
-          selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
+		  if(self.rowCount > priv.settings.minRows){
+		      datamap.removeRow(coords, toCoords);
+		      self.view.removeRow(coords, toCoords);
+		      result = grid.keepEmptyRows();
+		      if (!result) {
+		        self.blockedCols.refresh();
+		      }
+		      selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
+		  }
           break;
 
         case "remove_col":
-          datamap.removeCol(coords, toCoords);
-          self.view.removeCol(coords, toCoords);
-          result = grid.keepEmptyRows();
-          if (!result) {
-            self.blockedRows.refresh();
-          }
-          selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
+		  if(self.colCount > priv.settings.minCols){
+		      datamap.removeCol(coords, toCoords);
+		      self.view.removeCol(coords, toCoords);
+		      result = grid.keepEmptyRows();
+		      if (!result) {
+		        self.blockedRows.refresh();
+		      }
+		      selection.transformEnd(0, 0); //refresh selection, otherwise arrow movement does not work
+		  }
           break;
       }
 
