@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Sat Dec 22 2012 15:48:17 GMT+0100 (Central European Standard Time)
+ * Date: Sun Dec 30 2012 17:02:55 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -328,10 +328,10 @@ Walkontable.prototype.scrollViewport = function (coords) {
 
 Walkontable.prototype.getSetting = function (key, param1, param2, param3) {
   if (key === 'displayRows' && this.settings['height']) {
-    return Math.min(this.settings['height'] / 20, this.getSetting('totalRows') - this.getSetting('offsetRow')); //silly assumption but should be fine for now
+    return Math.min(Math.floor(this.settings['height'] / 20), this.getSetting('totalRows') - this.getSetting('offsetRow')); //silly assumption but should be fine for now
   }
   else if (key === 'displayColumns' && this.settings['width']) {
-    return Math.min(this.settings['width'] / 50, this.getSetting('totalColumns') - this.getSetting('offsetColumn')); //silly assumption but should be fine for now
+    return Math.min(Math.floor(this.settings['width'] / 50), this.getSetting('totalColumns') - this.getSetting('offsetColumn')); //silly assumption but should be fine for now
   }
   else if (key === 'displayRows' && this.settings['displayRows'] === null) {
     return this.getSetting('totalRows');
@@ -881,7 +881,7 @@ WalkontableScrollbar.prototype.refresh = function () {
     }
     this.handle.style.height = handleSize + 'px';
 
-    handlePosition = (tableHeight - handleSize) * (offsetRow / totalRows);
+    handlePosition = Math.round((tableHeight - handleSize) * (offsetRow / totalRows));
     if (handlePosition > tableHeight - handleSize) {
       handlePosition = tableHeight - handleSize;
     }
@@ -901,7 +901,7 @@ WalkontableScrollbar.prototype.refresh = function () {
     }
     this.handle.style.width = handleSize + 'px';
 
-    handlePosition = (tableWidth - handleSize) * (offsetColumn / totalColumns);
+    handlePosition = Math.round((tableWidth - handleSize) * (offsetColumn / totalColumns));
     if (handlePosition > tableWidth - handleSize) {
       handlePosition = tableWidth - handleSize;
     }
