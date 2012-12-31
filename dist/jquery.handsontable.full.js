@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Dec 30 2012 17:04:14 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 31 2012 12:17:46 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2826,10 +2826,11 @@ function isAutoComplete(keyboardProxy) {
 Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
   var typeahead = keyboardProxy.data('typeahead')
     , i
+    , j
     , dontHide = false;
 
   if (!typeahead) {
-    keyboardProxy.typeahead(cellProperties.options || {});
+    keyboardProxy.typeahead();
     typeahead = keyboardProxy.data('typeahead');
     typeahead._show = typeahead.show;
     typeahead._hide = typeahead.hide;
@@ -2837,14 +2838,6 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
     typeahead._highlighter = typeahead.highlighter;
   }
   else {
-    if (cellProperties.options) {
-      /* overwrite typeahead options (most importantly `items`) */
-      for (i in cellProperties) {
-        if (cellProperties.hasOwnProperty(i)) {
-          typeahead.options[i] = cellProperties.options[i];
-        }
-      }
-    }
     typeahead.$menu.off(); //remove previous typeahead bindings
     keyboardProxy.off(); //remove previous typeahead bindings. Removing this will cause prepare to register 2 keydown listeners in typeahead
     typeahead.listen(); //add typeahead bindings
@@ -2893,10 +2886,19 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
     return this;
   };
 
-  /* overwrite typeahead methods (matcher, sorter, highlighter, updater, etc) if provided in cellProperties */
+  /* overwrite typeahead options and methods (matcher, sorter, highlighter, updater, etc) if provided in cellProperties */
   for (i in cellProperties) {
     if (cellProperties.hasOwnProperty(i)) {
-      typeahead[i] = cellProperties[i];
+      if (i === 'options') {
+        for (j in cellProperties.options) {
+          if (cellProperties.options.hasOwnProperty(j)) {
+            typeahead.options[j] = cellProperties.options[j];
+          }
+        }
+      }
+      else {
+        typeahead[i] = cellProperties[i];
+      }
     }
   }
 

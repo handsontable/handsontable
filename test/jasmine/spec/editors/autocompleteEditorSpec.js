@@ -187,4 +187,45 @@ describe('AutocompleteEditor', function () {
       expect(this.$keyboardProxy.width()).toEqual($td.width());
     });
   });
+
+  it('should show items as configured in cellProperties (async)', function () {
+    var done = false;
+    runs(function () {
+      handsontable({
+        columns: [
+          {
+            type: Handsontable.AutocompleteCell,
+            options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
+            source: function (query, process) {
+              $.ajax({
+                url: '../../demo/php/cars.php',
+                data: {
+                  query: query
+                },
+                success: function (response) {
+                  process(response);
+                  done = true;
+                }
+              });
+            },
+            strict: true
+          },
+          {},
+          {},
+          {}
+        ]
+      });
+      selectCell(0, 0);
+      keyDownUp('enter');
+    });
+
+    waitsFor(function () {
+      return done;
+    }, 1000);
+
+    runs(function () {
+      var li = autocomplete().$menu.find('li');
+      expect(li.length).toEqual(10);
+    });
+  });
 });
