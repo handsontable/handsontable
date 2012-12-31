@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 31 2012 12:17:46 GMT+0100 (Central European Standard Time)
+ * Date: Mon Dec 31 2012 18:28:25 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1898,7 +1898,6 @@ var settings = {
   'tabMoves': {row: 0, col: 1},
   'autoWrapRow': false,
   'autoWrapCol': false,
-  'viewEngine': 'walkontable',
   'asyncRendering': window.jasmine ? false : true //disable async for testing
 };
 

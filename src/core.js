@@ -1879,7 +1879,6 @@ var settings = {
   'tabMoves': {row: 0, col: 1},
   'autoWrapRow': false,
   'autoWrapCol': false,
-  'viewEngine': 'walkontable',
   'asyncRendering': window.jasmine ? false : true //disable async for testing
 };
 
