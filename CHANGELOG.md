@@ -26,7 +26,8 @@ Bugfixes since 0.8.0-beta3:
 - double clicking on fill handle fills the column to the last non-empty row
 - pressing enter/tab in autocomplete moves to next row/column
 - CTRL+A works slow on large data sets (as reported by @brivazac / #295)
-- page up/page down
+- CTRL+A, CTRL+C sequence did not work well if CTRL was not released
+- page up/page down worked wrongly
 
 ## [0.8.0-beta3](https://github.com/warpech/jquery-handsontable/tree/v0.8.0-beta3) (Dec 18, 2012)
 

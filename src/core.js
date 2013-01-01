@@ -923,7 +923,6 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       if (start) {
-        //grid.populateFromArray(start, SheetClip.parse(priv.editProxy[0].value), end, 'autofill');
         grid.populateFromArray(start, SheetClip.parse(datamap.getText(priv.selStart.coords(), priv.selEnd.coords())), end, 'autofill');
 
         selection.setRangeStart({row: drag[0], col: drag[1]});
@@ -1010,8 +1009,7 @@ Handsontable.Core = function (rootElement, settings) {
         if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
           //when CTRL is pressed, prepare selectable text in textarea
           //http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
-          priv.editProxy[0].value = datamap.getText(priv.selStart.coords(), priv.selEnd.coords());
-          setTimeout(editproxy.focus, 1);
+          editproxy.setCopyableText();
           return;
         }
 
@@ -1021,6 +1019,7 @@ Handsontable.Core = function (rootElement, settings) {
           if (Handsontable.helper.isPrintableChar(event.keyCode) && ctrlDown) {
             if (event.keyCode === 65) { //CTRL + A
               selection.selectAll(); //select all cells
+              editproxy.setCopyableText();
             }
             else if (event.keyCode === 88 && $.browser.opera) { //CTRL + X
               priv.editProxyHolder.triggerHandler('cut'); //simulate oncut for Opera
@@ -1169,11 +1168,19 @@ Handsontable.Core = function (rootElement, settings) {
     },
 
     /**
+     * Prepares copyable text in the invisible textarea
+     */
+    setCopyableText: function () {
+      priv.editProxy[0].value = datamap.getText(priv.selStart.coords(), priv.selEnd.coords());
+      setTimeout(editproxy.focus, 1);
+    },
+
+    /**
      * Prepare text input to be displayed at given grid cell
      */
     prepare: function () {
       priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
-      //priv.editProxy[0].value = datamap.getText(priv.selStart.coords(), priv.selEnd.coords());
+      //editproxy.setCopyableText();
       setTimeout(editproxy.focus, 1);
       if (priv.settings.asyncRendering) {
         clearTimeout(window.prepareFrame);
