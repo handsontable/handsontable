@@ -290,8 +290,12 @@ body.home .centerLayout {
 }
 
 body.home .linkColumn {
-  width: 266px;
   float: left;
+  margin-left: 80px;
+}
+
+body.home .linkColumn.first {
+  margin-left: 0;
 }
 
 body.home #container ul {
