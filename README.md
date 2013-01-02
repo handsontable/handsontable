@@ -91,6 +91,7 @@ The table below presents configuration options that are interpreted by `handsont
  `startCols`             | number                         | 5                | Initial number of columns
  `rowHeaders`            | boolean/array                  | false            | Defines if the row headers (1, 2, 3, ...) should be displayed. You can just set it to `true` or specify custom a array `["First", "Second", "Third", ...]`
  `colHeaders`            | boolean/array                  | false            | Defines if the column headers (A, B, C, ...) should be displayed. You can just set it to `true` or specify custom a array `["First Name", "Last Name", "Address", ...]`
+ `colWidths`             | array                          | [50, ..]         | Defines if the column widths in pixels (array of numbers)
  `columns`               | array                          | _undefined_      | Defines the cell properties and data binding for certain columns. See [demo/datasources.html](https://github.com/warpech/jquery-handsontable/blob/reference/demo/datasources.html) for examples
  `cells`                 | function(`row`, `col`, `prop`) | _undefined_      | Defines the cell properties for given `row`, `col`, `prop` coordinates
  `dataSchema`            | object                         | _like first row_ | Defines the structure of a new row when data source is an object. See [demo/datasources.html](https://github.com/warpech/jquery-handsontable/blob/reference/demo/datasources.html) for examples
