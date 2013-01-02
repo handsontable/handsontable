@@ -83,15 +83,26 @@
           for HTML, JavaScript &amp; jQuery
         </div>
 
-        <h2>Scroll</h2>
+        <h2>Scrollbars</h2>
+
+        <p>This page shows how to configure Handsontable scrollbars:</p>
+
+        <ul>
+          <li><a href="#both">Vertical and horizontal scrollbars</a></li>
+          <li><a href="#single">Single scrollbar</a></li>
+        </ul>
       </div>
     </div>
   </div>
 
   <div class="rowLayout">
     <div class="descLayout">
-      <div class="pad bottomSpace100">
-        <p>If you want scrollbars, just set it in the container CSS.</p>
+      <div class="pad">
+        <a name="both"></a>
+
+        <h2>Vertical and horizontal scrollbars</h2>
+
+        <p>If you want scrollbars, just set container width, height and <code>overflow: scroll</code> in CSS.</p>
 
         <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
@@ -107,10 +118,49 @@
           /*
            Container looks like this:
 
-           <div id="example1" style="width: 200px; height: 200px; overflow: scroll"></div>
+           <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
            */
 
           $("#example1").handsontable({
+            data: createBigData(),
+            colWidths: [55, 80, 80, 80, 80, 80, 80], //can also be a number or a function
+            rowHeaders: true,
+            colHeaders: true,
+            minSpareRows: 1
+          });
+        </script>
+      </div>
+    </div>
+  </div>
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <div class="pad bottomSpace100">
+        <a name="single"></a>
+
+        <h2>Single scrollbar</h2>
+
+        <p>It is also possible to configure only a single scrollbar. The following example creates one by specifying
+          only the container height and <code>overflow: auto</code> in CSS.</p>
+
+        <div id="example2" style="height: 300px; overflow: auto"></div>
+
+        <p>
+          <button name="dump" data-dump="#example1">Dump to console</button>
+        </p>
+      </div>
+    </div>
+
+    <div class="codeLayout">
+      <div class="pad">
+        <script>
+          /*
+           Container looks like this:
+
+           <div id="example2" style="width: height: 300px; overflow: auto"></div>
+           */
+
+          $("#example2").handsontable({
             data: createBigData(),
             colWidths: [55, 80, 80, 80, 80, 80, 80], //can also be a number or a function
             rowHeaders: true,
