@@ -1723,7 +1723,10 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Array|String}
    */
   this.getColHeader = function (col) {
-    if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
+    if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
+      return priv.settings.columns[col].title;
+    }
+    else if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
       return priv.settings.colHeaders[col];
     }
     else if (typeof priv.settings.colHeaders === 'function') {
@@ -1742,6 +1745,20 @@ Handsontable.Core = function (rootElement, settings) {
     }
     else {
       return priv.settings.colHeaders;
+    }
+  };
+
+  /**
+   * Return column width
+   * @param {Number} col
+   * @return {Number}
+   */
+  this.getColWidth = function (col) {
+    if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
+      return priv.settings.columns[col].width;
+    }
+    else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
+      return priv.settings.colWidths[col];
     }
   };
 

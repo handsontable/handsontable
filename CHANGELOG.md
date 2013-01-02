@@ -14,6 +14,8 @@ New features since 0.8.0-beta3:
 - `dataSchema` can now be a function that returns object/array [TODO: write tests]
 - when using `overflow: auto`, only relevant scrollbars should be displayed (first reported by @dansabirov / #295)
 - fixed scrolling with arrow keys
+- now column title can be given as `columns[].title` (not only colHeaders[]) [TODO: write tests]
+- now column width can be given as `columns[].width` (not only colWidths[]) [TODO: write tests]
 
 Other changes:
 - public methods `colCount`, `rowCount` are removed. Use `countRows()` and `countCols()` public methods instead

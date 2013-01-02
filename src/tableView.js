@@ -117,7 +117,7 @@ Handsontable.TableView = function (instance) {
     height: myHeight,
     frozenColumns: settings.rowHeaders ? [instance.getRowHeader] : null,
     columnHeaders: settings.colHeaders ? instance.getColHeader : null,
-    columnWidth: settings.colWidths ? settings.colWidths : null,
+    columnWidth: instance.getColWidth,
     cellRenderer: function (row, column, TD) {
       that.applyCellTypeMethod('renderer', TD, {row: row, col: column}, instance.getDataAtCell(row, column));
     },

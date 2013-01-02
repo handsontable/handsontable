@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Jan 02 2013 09:02:17 GMT+0100 (Central European Standard Time)
+ * Date: Wed Jan 02 2013 12:10:45 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1742,7 +1742,10 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Array|String}
    */
   this.getColHeader = function (col) {
-    if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
+    if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
+      return priv.settings.columns[col].title;
+    }
+    else if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
       return priv.settings.colHeaders[col];
     }
     else if (typeof priv.settings.colHeaders === 'function') {
@@ -1761,6 +1764,20 @@ Handsontable.Core = function (rootElement, settings) {
     }
     else {
       return priv.settings.colHeaders;
+    }
+  };
+
+  /**
+   * Return column width
+   * @param {Number} col
+   * @return {Number}
+   */
+  this.getColWidth = function (col) {
+    if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
+      return priv.settings.columns[col].width;
+    }
+    else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
+      return priv.settings.colWidths[col];
     }
   };
 
@@ -2063,7 +2080,7 @@ Handsontable.TableView = function (instance) {
     height: myHeight,
     frozenColumns: settings.rowHeaders ? [instance.getRowHeader] : null,
     columnHeaders: settings.colHeaders ? instance.getColHeader : null,
-    columnWidth: settings.colWidths ? settings.colWidths : null,
+    columnWidth: instance.getColWidth,
     cellRenderer: function (row, column, TD) {
       that.applyCellTypeMethod('renderer', TD, {row: row, col: column}, instance.getDataAtCell(row, column));
     },
