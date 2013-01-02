@@ -4,7 +4,6 @@ Known issues:
 - clicking on cell & row borders has no effect (first reported by @cscribner / #295)
 - copy of large selection (5k, 10k, 100k rows etc) freezes IE8 (first reported by @itanex / #295). Below 1k rows works fine. The only solution I can think of right now is to set copy limit in IE8 to 1000 rows.
 - paste of large selection (100k rows) freezes Firefox (first reported by @ravio / #303)
-- when using `overflow: auto`, only relevant scrollbars should be displayed (first reported by @dansabirov / #295)
 - autocomplete does not work with empty field in source; autocomplete strict mode looks broken (as reported by @MDron / #303)
 - scrolling mouse wheel/page up/page down should not block the window scroll if the first row/last row was reached
 - page up/page down does not behave exactly as in Google Docs (moves selected cell to first visible row). This is because transformStart implies scrollToCell. It should be decoupled sometime in future
@@ -13,6 +12,7 @@ New features since 0.8.0-beta3:
 - new methods `rowOffset`, `colOffset`, `countVisibleRows`, `countVisibleCols`
 - new callback `onCreateRow` [TODO: write tests]
 - `dataSchema` can now be a function that returns object/array [TODO: write tests]
+- when using `overflow: auto`, only relevant scrollbars should be displayed (first reported by @dansabirov / #295)
 - fixed scrolling with arrow keys
 
 Other changes:

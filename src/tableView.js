@@ -11,17 +11,20 @@ Handsontable.TableView = function (instance) {
   instance.rootElement.addClass('handsontable');
   var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
   instance.rootElement.prepend($table);
-  var overflow = instance.rootElement.css('overflow');
+  var overflow = instance.rootElement[0].style.overflow;
   var myWidth = settings.width;
   var myHeight = settings.height;
+  if ((myWidth || myHeight) && !(overflow === 'scroll' || overflow === 'auto')) {
+    overflow = 'auto';
+  }
   if (overflow === 'scroll' || overflow === 'auto') {
-    instance.rootElement.css('overflow', 'visible');
-    if (settings.width === void 0 && parseInt(instance.rootElement.css('width')) > 0) {
-      myWidth = parseInt(instance.rootElement.css('width'));
+    instance.rootElement[0].style.overflow = 'visible';
+    if (settings.width === void 0 && parseInt(instance.rootElement[0].style.width) > 0) {
+      myWidth = parseInt(instance.rootElement[0].style.width);
       instance.rootElement[0].style.width = '';
     }
-    if (settings.height === void 0 && parseInt(instance.rootElement.css('height')) > 0) {
-      myHeight = parseInt(instance.rootElement.css('height'));
+    if (settings.height === void 0 && parseInt(instance.rootElement[0].style.height) > 0) {
+      myHeight = parseInt(instance.rootElement[0].style.height);
       instance.rootElement[0].style.height = '';
     }
   }

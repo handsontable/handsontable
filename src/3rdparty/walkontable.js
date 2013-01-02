@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Sun Dec 30 2012 17:02:55 GMT+0100 (Central European Standard Time)
+ * Date: Wed Jan 02 2013 08:59:16 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -670,13 +670,17 @@ window.cancelRequestAnimFrame = (function () {
 })();
 function WalkontableScroll(instance) {
   this.instance = instance;
-  this.wtScrollbarV = new WalkontableScrollbar(instance, 'vertical');
-  this.wtScrollbarH = new WalkontableScrollbar(instance, 'horizontal');
+  if (instance.hasSetting('height') || instance.hasSetting('displayRows')) {
+    this.wtScrollbarV = new WalkontableScrollbar(instance, 'vertical');
+  }
+  if (instance.hasSetting('width') || instance.hasSetting('displayColumns')) {
+    this.wtScrollbarH = new WalkontableScrollbar(instance, 'horizontal');
+  }
 }
 
 WalkontableScroll.prototype.refreshScrollbars = function () {
-  this.wtScrollbarV.refresh();
-  this.wtScrollbarH.refresh();
+  this.wtScrollbarV && this.wtScrollbarV.refresh();
+  this.wtScrollbarH && this.wtScrollbarH.refresh();
 };
 
 WalkontableScroll.prototype.scrollVertical = function (delta) {
@@ -1178,7 +1182,7 @@ function WalkontableTable(instance) {
   if (!parent || parent.nodeType !== 1 || !this.wtDom.hasClass(parent, 'wtHolder')) {
     var hider = document.createElement('DIV');
     hider.style.position = 'relative';
-    if (this.instance.hasSetting('width') && this.instance.hasSetting('height')) {
+    if (this.instance.hasSetting('width') || this.instance.hasSetting('height')) {
       hider.style.overflow = 'hidden';
     }
     if (this.instance.hasSetting('width')) {
