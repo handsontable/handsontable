@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.8.0-beta3
+ * Handsontable 0.8.0
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Jan 02 2013 12:20:59 GMT+0100 (Central European Standard Time)
+ * Date: Wed Jan 02 2013 23:51:46 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1900,7 +1900,7 @@ Handsontable.Core = function (rootElement, settings) {
   /**
    * Handsontable version
    */
-  this.version = '0.8.0-beta3'; //inserted by grunt from package.json
+  this.version = '0.8.0'; //inserted by grunt from package.json
 };
 
 var settings = {
