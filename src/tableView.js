@@ -203,6 +203,18 @@ Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td,
     , method
     , cellProperties = this.instance.getCellMeta(coords.row, coords.col);
 
+  if (typeof cellProperties.type === 'string') {
+    switch (cellProperties.type) {
+      case 'autocomplete':
+        cellProperties.type = Handsontable.AutocompleteCell;
+        break;
+
+      case 'checkbox':
+        cellProperties.type = Handsontable.CheckboxCell;
+        break;
+    }
+  }
+
   if (cellProperties.type && typeof cellProperties.type[methodName] === "function") {
     method = cellProperties.type[methodName];
   }

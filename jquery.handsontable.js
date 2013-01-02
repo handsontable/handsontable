@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Jan 02 2013 12:10:45 GMT+0100 (Central European Standard Time)
+ * Date: Wed Jan 02 2013 12:20:59 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2165,6 +2165,18 @@ Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td,
   var prop = this.instance.colToProp(coords.col)
     , method
     , cellProperties = this.instance.getCellMeta(coords.row, coords.col);
+
+  if (typeof cellProperties.type === 'string') {
+    switch (cellProperties.type) {
+      case 'autocomplete':
+        cellProperties.type = Handsontable.AutocompleteCell;
+        break;
+
+      case 'checkbox':
+        cellProperties.type = Handsontable.CheckboxCell;
+        break;
+    }
+  }
 
   if (cellProperties.type && typeof cellProperties.type[methodName] === "function") {
     method = cellProperties.type[methodName];
