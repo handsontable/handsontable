@@ -196,18 +196,26 @@
               {},
               {type: {renderer: customRenderer}}
             ],
-            colHeaders: [
-              "<b>Bold</b> and <em>Beautiful</em>",
-              "Some <input type='checkbox' class='checker'> checkbox"
-            ]
+            colHeaders: function (col) {
+              switch (col) {
+                case 0:
+                  return "<b>Bold</b> and <em>Beautiful</em>";
+
+                case 1:
+                  var txt = "Some <input type='checkbox' class='checker' ";
+                  txt += isChecked ? 'checked="checked"' : '';
+                  txt += "> checkbox";
+                  return txt;
+              }
+            }
           });
 
           $container.on('mousedown', 'input.checker', function (event) {
             event.stopPropagation();
           });
 
-          $container.on('change', 'input.checker', function (event) {
-            isChecked = $(this).is(':checked');
+          $container.on('mouseup', 'input.checker', function (event) {
+            isChecked = !$(this).is(':checked');
             $container.handsontable('render');
           });
         </script>

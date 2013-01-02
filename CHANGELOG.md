@@ -1,3 +1,8 @@
+## HEAD (Jan 2, 2013)
+
+Bugfixes:
+- fix Custom HTML demo
+
 ## [0.8.0](https://github.com/warpech/jquery-handsontable/tree/v0.8.0) (Jan 2, 2013)
 
 After series of bugfixes in last 3 beta version, this is the first stable release in 0.8.x branch. From now on, I will try to update critical issues more frequently.
