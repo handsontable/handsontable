@@ -1,7 +1,8 @@
-## HEAD (Jan 2, 2013)
+## HEAD (Jan 4, 2013)
 
 Bugfixes:
-- fix Custom HTML demo
+- Custom HTML demo (Rendering custom HTML in header) did not work
+- loading a new data source with fewer rows/columns threw an error
 
 ## [0.8.0](https://github.com/warpech/jquery-handsontable/tree/v0.8.0) (Jan 2, 2013)
 

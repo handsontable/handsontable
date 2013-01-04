@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Wed Jan 02 2013 08:59:16 GMT+0100 (Central European Standard Time)
+ * Date: Fri Jan 04 2013 14:43:06 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -327,11 +327,30 @@ Walkontable.prototype.scrollViewport = function (coords) {
 };
 
 Walkontable.prototype.getSetting = function (key, param1, param2, param3) {
+  var estimated
+    , calculated;
+
   if (key === 'displayRows' && this.settings['height']) {
-    return Math.min(Math.floor(this.settings['height'] / 20), this.getSetting('totalRows') - this.getSetting('offsetRow')); //silly assumption but should be fine for now
+    estimated = Math.floor(this.settings['height'] / 20); //silly assumption but should be fine for now
+    calculated = this.getSetting('totalRows') - this.getSetting('offsetRow');
+    if (calculated < 0) {
+      this.update('offsetRow', Math.max(0, this.getSetting('totalRows') - estimated));
+      return estimated;
+    }
+    else {
+      return Math.min(estimated, calculated);
+    }
   }
   else if (key === 'displayColumns' && this.settings['width']) {
-    return Math.min(Math.floor(this.settings['width'] / 50), this.getSetting('totalColumns') - this.getSetting('offsetColumn')); //silly assumption but should be fine for now
+    estimated = Math.floor(this.settings['width'] / 50); //silly assumption but should be fine for now
+    calculated = this.getSetting('totalColumns') - this.getSetting('offsetColumn');
+    if (calculated < 0) {
+      this.update('offsetColumn', Math.max(0, this.getSetting('totalColumns') - estimated));
+      return estimated;
+    }
+    else {
+      return Math.min(estimated, calculated);
+    }
   }
   else if (key === 'displayRows' && this.settings['displayRows'] === null) {
     return this.getSetting('totalRows');
