@@ -134,4 +134,28 @@ describe('Core_keepEmptyRows', function () {
     setDataAtCell(0, 5, "test");
     expect(countCols()).toEqual(6);
   });
+
+  it('should ignore minCols if columns is set', function () {
+    handsontable({
+      startCols: 1,
+      minCols: 6,
+      columns: [
+        {},
+        {}
+      ]
+    });
+    expect(countCols()).toEqual(2);
+  });
+
+  it('columns should have priority over startCols', function () {
+    handsontable({
+      startCols: 3,
+      minCols: 6,
+      columns: [
+        {},
+        {}
+      ]
+    });
+    expect(countCols()).toEqual(2);
+  });
 });

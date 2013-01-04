@@ -2,7 +2,8 @@
 
 Bugfixes:
 - Custom HTML demo (Rendering custom HTML in header) did not work
-- loading a new data source with fewer rows/columns threw an error
+- fixed error when loading a new data source with fewer rows/columns
+- using `minCols` with `columns` option caused an infinite loop. Now `columns` length sets a fixed number of columns (options `startCols`, `minCols`, `maxCols` will be ignored when `columns` is set) (fix #334)
 
 ## [0.8.0](https://github.com/warpech/jquery-handsontable/tree/v0.8.0) (Jan 2, 2013)
 

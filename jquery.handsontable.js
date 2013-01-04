@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jan 04 2013 14:45:22 GMT+0100 (Central European Standard Time)
+ * Date: Fri Jan 04 2013 17:54:47 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -433,20 +433,16 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       //should I add empty cols to meet minCols?
-      if (self.countCols() < priv.settings.minCols) {
+      if (!priv.settings.columns && self.countCols() < priv.settings.minCols) {
         for (; self.countCols() < priv.settings.minCols; emptyCols++) {
-          if (!priv.settings.columns) {
-            datamap.createCol();
-          }
+          datamap.createCol();
         }
       }
 
       //should I add empty cols to meet minSpareCols?
-      if (priv.dataType === 'array' && emptyCols < priv.settings.minSpareCols) {
+      if (!priv.settings.columns && priv.dataType === 'array' && emptyCols < priv.settings.minSpareCols) {
         for (; emptyCols < priv.settings.minSpareCols && self.countCols() < priv.settings.maxCols; emptyCols++) {
-          if (!priv.settings.columns) {
-            datamap.createCol();
-          }
+          datamap.createCol();
         }
       }
 
@@ -1803,7 +1799,12 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
     else if (priv.dataType === 'array') {
-      return Math.max((priv.settings.columns && priv.settings.columns.length) || 0, (priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length) || 0);
+      if (priv.settings.columns && priv.settings.columns.length) {
+        return priv.settings.columns.length;
+      }
+      else {
+        return Math.max((priv.settings.columns && priv.settings.columns.length) || 0, (priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length) || 0);
+      }
     }
   };
 
