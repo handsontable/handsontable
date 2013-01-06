@@ -42,10 +42,12 @@ function strip_tags(input, allowed) {
 /**
  * Removes unnecessary spaces from left side of the code block
  * @param {String} code
+ * @param {Number} pad
  * @return {Array}
  */
-function trimCodeBlock(code) {
+function trimCodeBlock(code, pad) {
   var i;
+  pad = pad || 0;
   code = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); //escape html special chars
   code = code.split('\n');
   for (i = 0; i < 10; i++) {
@@ -61,7 +63,7 @@ function trimCodeBlock(code) {
     offset++;
   }
   for (i = 0, ilen = code.length; i < ilen; i++) {
-    code[i] = code[i].substring(offset);
+    code[i] = Array(pad + 1).join(' ') + code[i].substring(offset);
   }
   return code;
 }
@@ -84,24 +86,25 @@ $(function () {
   $('.jsFiddleLink').on('click', function () {
     var css = '</style><!-- Ugly Hack due to jsFiddle issue: http://goo.gl/BUfGZ -->\n\
 <script src="http://handsontable.com/lib/jquery.min.js"></script>\n\
-<script src="http://handsontable.com/jquery.handsontable.js"></script>\n\
-<script src="http://handsontable.com/lib/bootstrap-typeahead.js"></script>\n\
-<script src="http://handsontable.com/lib/jQuery-contextMenu/jquery.contextMenu.js"></script>\n\
-<script src="http://handsontable.com/lib/jQuery-contextMenu/jquery.ui.position.js"></script>\n\
-<link rel="stylesheet" media="screen" href="http://handsontable.com/lib/jQuery-contextMenu/jquery.contextMenu.css">\n\
-<link rel="stylesheet" media="screen" href="http://handsontable.com/jquery.handsontable.css">\n\
+<script src="http://handsontable.com/dist/jquery.handsontable.full.js"></script>\n\
+<link rel="stylesheet" media="screen" href="http://handsontable.com/dist/jquery.handsontable.full.css">\n\
 <link rel="stylesheet" media="screen" href="http://handsontable.com/demo/css/samples.css">\n\
 <style type="text/css">\n\
 body {background: white; margin: 20px;}\n\
 h2 {margin: 20px 0;}';
 
-    var js = '';
+    var js = '$(document).ready(function () {\n\n';
+
+    js += trimCodeBlock(bindDumpButton.toString(), 2).join('\n') + '\n';
+    js += '  bindDumpButton();\n\n';
+
     $('script.common').each(function () {
-      js += trimCodeBlock($(this).html()).join('\n') + '\n';
+      js += trimCodeBlock($(this).html(), 2).join('\n') + '\n';
     });
     $(this).parents('.codeLayout').find('script').not('.common').each(function () {
-      js += trimCodeBlock($(this).html()).join('\n') + '\n';
+      js += trimCodeBlock($(this).html(), 2).join('\n') + '\n';
     });
+    js += '});';
 
     var clone = $(this).parents('.rowLayout').find('.descLayout .pad').clone();
     clone.find('div[id^="example"]').html('');
@@ -121,9 +124,13 @@ h2 {margin: 20px 0;}';
     $(form).submit();
   });
 
-  $('button[name=dump]').on('click', function () {
+  bindDumpButton();
+});
+
+function bindDumpButton() {
+  $('body').on('click', 'button[name=dump]', function () {
     var dump = $(this).data('dump');
     var $container = $(dump);
     console.log('data of ' + dump, $container.handsontable('getData'));
   });
-});
+}

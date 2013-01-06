@@ -1,11 +1,14 @@
 ## HEAD (Jan 4, 2013)
 
 Bugfixes:
-- Custom HTML demo (Rendering custom HTML in header) did not work
 - fixed error when loading a new data source with fewer rows/columns
 - using `minCols` with `columns` option caused an infinite loop. Now `columns` length sets a fixed number of columns (options `startCols`, `minCols`, `maxCols` will be ignored when `columns` is set) (fix #334)
 - onChange was triggered before data was rendered (fix #333)
 - public `destroy` method did not unbind Handsontable events (fix #335)
+
+Other changes:
+- [Custom HTML demo page](http://handsontable.com/demo/renderers_html.html) (Rendering custom HTML in header) did not work well
+- JSFiddle links now also work in [Context Menu demo page](http://handsontable.com/demo/contextmenu.html)
 
 ## [0.8.0](https://github.com/warpech/jquery-handsontable/tree/v0.8.0) (Jan 2, 2013)
 
