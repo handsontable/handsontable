@@ -1,4 +1,4 @@
-## HEAD (Jan 4, 2013)
+## [0.8.1](https://github.com/warpech/jquery-handsontable/tree/v0.8.1) (Jan 6, 2013)
 
 Bugfixes:
 - fixed error when loading a new data source with fewer rows/columns
