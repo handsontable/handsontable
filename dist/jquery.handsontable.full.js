@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Jan 06 2013 15:37:43 GMT+0100 (Central European Standard Time)
+ * Date: Sun Jan 06 2013 15:59:21 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1213,7 +1213,12 @@ Handsontable.Core = function (rootElement, settings) {
      * Sets focus to textarea
      */
     focus: function () {
-      priv.editProxy[0].select();
+      try { //calling select() on hidden textarea causes problem in IE9 - similar to https://github.com/ajaxorg/ace/issues/251
+        priv.editProxy[0].select();
+      }
+      catch (e) {
+
+      }
     }
   };
 

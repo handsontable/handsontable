@@ -1194,7 +1194,12 @@ Handsontable.Core = function (rootElement, settings) {
      * Sets focus to textarea
      */
     focus: function () {
-      priv.editProxy[0].select();
+      try { //calling select() on hidden textarea causes problem in IE9 - similar to https://github.com/ajaxorg/ace/issues/251
+        priv.editProxy[0].select();
+      }
+      catch (e) {
+
+      }
     }
   };
 
