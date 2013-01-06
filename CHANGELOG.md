@@ -1,4 +1,4 @@
-## HEAD
+## [0.8.2](https://github.com/warpech/jquery-handsontable/tree/v0.8.2) (Jan 7, 2013)
 
 Features:
 - new options `copyRowsLimit`, `copyColsLimit` and callback `onCopyLimit`. The options configure the amount of rows and columns that can be copied to clipboard (default 1000). The callback will ba called if the limit is exceeded (response to an issue first reported by @itanex / #295)
