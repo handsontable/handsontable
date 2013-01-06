@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Jan 06 2013 16:05:30 GMT+0100 (Central European Standard Time)
+ * Date: Sun Jan 06 2013 19:48:09 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1197,6 +1197,7 @@ Handsontable.Core = function (rootElement, settings) {
     prepare: function () {
       priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
       //editproxy.setCopyableText();
+      priv.editProxy[0].value = '';
       setTimeout(editproxy.focus, 1);
       if (priv.settings.asyncRendering) {
         clearTimeout(window.prepareFrame);
@@ -2220,7 +2221,13 @@ Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td,
  * Returns td object given coordinates
  */
 Handsontable.TableView.prototype.getCellAtCoords = function (coords) {
-  return this.wt.wtTable.getCell([coords.row, coords.col]);
+  var td = this.wt.wtTable.getCell([coords.row, coords.col]);
+  if (td < 0) { //there was an exit code (cell is out of bounds)
+    return null;
+  }
+  else {
+    return td;
+  }
 };
 
 /**
@@ -3651,7 +3658,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Sun Jan 06 2013 15:36:31 GMT+0100 (Central European Standard Time)
+ * Date: Sun Jan 06 2013 19:32:52 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -4600,7 +4607,7 @@ function WalkontableSelection(instance, settings) {
   }
   this.onAdd = function (coords) {
     var TD = instance.wtTable.getCell(coords);
-    if (TD) {
+    if (typeof TD === 'object') {
       if (settings.className) {
         instance.wtDom.addClass(TD, settings.className);
       }
@@ -4608,7 +4615,7 @@ function WalkontableSelection(instance, settings) {
   };
   /*this.onRemove = function (coords) {
    var TD = instance.wtTable.getCell(coords);
-   if (TD) {
+   if (typeof TD === 'object') {
    if (settings.className) {
    instance.wtDom.removeClass(TD, settings.className);
    }
@@ -4696,11 +4703,17 @@ WalkontableSelection.prototype.draw = function (selectionsOnly) {
   if (ilen) {
     corners = this.getCorners();
     r = corners[0];
-    while (r <= corners[2]) {
+    rows : while (r <= corners[2]) {
       c = corners[1];
       while (c <= corners[3]) {
         TD = this.instance.wtTable.getCell([r, c]);
-        if (TD) {
+        if (TD === -2) {
+          break rows;
+        }
+        else if (TD === -4) {
+          break;
+        }
+        else if (TD !== -1 && TD !== -3) {
           this.onAdd([r, c], TD);
         }
         c++;
@@ -5180,17 +5193,38 @@ WalkontableTable.prototype.isCellVisible = function (TD) {
   return out;
 };
 
+/**
+ * getCell
+ * @param {Array} coords
+ * @return {Object} HTMLElement on success or {Number} one of the exit codes on error:
+ *  -1 row before viewport
+ *  -2 row after viewport
+ *  -3 column before viewport
+ *  -4 column after viewport
+ *
+ */
 WalkontableTable.prototype.getCell = function (coords) {
   var offsetRow = this.instance.getSetting('offsetRow');
-  if (coords[0] >= offsetRow && coords[0] <= offsetRow + this.instance.getSetting('displayRows') - 1) {
+  if (coords[0] < offsetRow) {
+    return -1; //row before viewport
+  }
+  else if (coords[0] > offsetRow + this.instance.getSetting('displayRows') - 1) {
+    return -2; //row after viewport
+  }
+  else {
     var offsetColumn = this.instance.getSetting('offsetColumn');
-    if (coords[1] >= offsetColumn && coords[1] < offsetColumn + this.instance.getSetting('displayColumns')) {
+    if (coords[1] < offsetColumn) {
+      return -3; //column before viewport
+    }
+    else if (coords[1] > offsetColumn + this.instance.getSetting('displayColumns') - 1) {
+      return -4; //column after viewport
+    }
+    else {
       var frozenColumns = this.instance.getSetting('frozenColumns')
         , frozenColumnsCount = frozenColumns ? frozenColumns.length : 0;
       return this.TBODY.childNodes[coords[0] - offsetRow].childNodes[coords[1] - offsetColumn + frozenColumnsCount];
     }
   }
-  return null;
 };
 
 WalkontableTable.prototype.getCoords = function (TD) {

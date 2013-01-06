@@ -228,7 +228,13 @@ Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td,
  * Returns td object given coordinates
  */
 Handsontable.TableView.prototype.getCellAtCoords = function (coords) {
-  return this.wt.wtTable.getCell([coords.row, coords.col]);
+  var td = this.wt.wtTable.getCell([coords.row, coords.col]);
+  if (td < 0) { //there was an exit code (cell is out of bounds)
+    return null;
+  }
+  else {
+    return td;
+  }
 };
 
 /**

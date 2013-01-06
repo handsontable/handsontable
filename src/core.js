@@ -1178,6 +1178,7 @@ Handsontable.Core = function (rootElement, settings) {
     prepare: function () {
       priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
       //editproxy.setCopyableText();
+      priv.editProxy[0].value = '';
       setTimeout(editproxy.focus, 1);
       if (priv.settings.asyncRendering) {
         clearTimeout(window.prepareFrame);

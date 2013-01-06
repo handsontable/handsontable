@@ -1,3 +1,8 @@
+## HEAD
+
+Other changes:
+- performance fixes for selecting all cells (CTRL+A)
+
 ## [0.8.1](https://github.com/warpech/jquery-handsontable/tree/v0.8.1) (Jan 6, 2013)
 
 Bugfixes:
