@@ -15,7 +15,12 @@ describe('FillHandle', function () {
     handsontable({
       fillHandle: true
     });
-    selectCell(2, 2);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      selectCell(2, 2);
+    });
 
     waitsFor(nextFrame, 'next frame', 60);
 
