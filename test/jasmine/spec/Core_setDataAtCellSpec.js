@@ -109,7 +109,7 @@ describe('Core_setDataAtCell', function () {
       }
     });
 
-    waits(110);
+    waits(300);
 
     runs(function () {
       expect(countRows()).toEqual(10);

@@ -5,6 +5,7 @@ Bugfixes:
 - using `minCols` with `columns` option caused an infinite loop. Now `columns` length sets a fixed number of columns (options `startCols`, `minCols`, `maxCols` will be ignored when `columns` is set) (fix #334)
 - onChange was triggered before data was rendered (fix #333)
 - public `destroy` method did not unbind Handsontable events (fix #335)
+- fix error when data row was externally removed while scrolling
 
 Other changes:
 - [Custom HTML demo page](http://handsontable.com/demo/renderers_html.html) (Rendering custom HTML in header) did not work well

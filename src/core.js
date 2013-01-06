@@ -1207,6 +1207,7 @@ Handsontable.Core = function (rootElement, settings) {
 
     if (typeof priv.firstRun === 'object') {
       fireEvent('datachange.handsontable', priv.firstRun);
+      priv.firstRun = false;
     }
 
     Handsontable.PluginHooks.run(self, 'afterInit');

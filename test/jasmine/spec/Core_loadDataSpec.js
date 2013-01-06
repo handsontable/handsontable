@@ -325,17 +325,14 @@ describe('Core_loadData', function () {
       minSpareCols: 1,
       minSpareRows: 1,
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
+      asyncRendering: false
     });
     selectCell(8, 0);
     loadData(data2);
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(countRows()).toBe(data2.length + 1); //+1 because of minSpareRows
-      expect(getSelected()).toEqual([5, 0, 5, 0]);
-    });
+    expect(countRows()).toBe(data2.length + 1); //+1 because of minSpareRows
+    expect(getSelected()).toEqual([5, 0, 5, 0]);
   });
 
   it('loading empty data should remove all rows', function () {
@@ -355,7 +352,8 @@ describe('Core_loadData', function () {
     handsontable({
       data: data1,
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
+      asyncRendering: false
     });
     selectCell(7, 0);
     loadData(data2);

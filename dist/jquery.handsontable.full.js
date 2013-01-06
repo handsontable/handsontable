@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Jan 06 2013 13:59:22 GMT+0100 (Central European Standard Time)
+ * Date: Sun Jan 06 2013 15:37:43 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1226,6 +1226,7 @@ Handsontable.Core = function (rootElement, settings) {
 
     if (typeof priv.firstRun === 'object') {
       fireEvent('datachange.handsontable', priv.firstRun);
+      priv.firstRun = false;
     }
 
     Handsontable.PluginHooks.run(self, 'afterInit');
@@ -3645,7 +3646,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
 /**
  * walkontable 0.1
  * 
- * Date: Fri Jan 04 2013 14:43:06 GMT+0100 (Central European Standard Time)
+ * Date: Sun Jan 06 2013 15:36:31 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -3960,6 +3961,7 @@ Walkontable.prototype.scrollHorizontal = function (delta) {
 Walkontable.prototype.scrollViewport = function (coords) {
   if (this.hasSetting('async')) {
     var that = this;
+    clearTimeout(that.scrollFrame);
     that.scrollFrame = setTimeout(function () {
       that.wtScroll.scrollViewport(coords);
     }, 0);
