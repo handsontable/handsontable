@@ -27,9 +27,14 @@ describe('Core_dataSchema', function () {
       minSpareRows: 1
     });
     selectCell(0, 1);
-    keyDownUp('enter');
-    this.$keyboardProxy.val('Ted');
-    keyDownUp('enter');
-    expect(getData()[0].name.first).toEqual('Ted');
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      keyDownUp('enter');
+      this.$keyboardProxy.val('Ted');
+      keyDownUp('enter');
+      expect(getData()[0].name.first).toEqual('Ted');
+    });
   });
 });

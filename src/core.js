@@ -21,7 +21,8 @@ Handsontable.Core = function (rootElement, settings) {
     colToProp: null,
     propToCol: null,
     dataSchema: null,
-    dataType: 'array'
+    dataType: 'array',
+    firstRun: true
   };
 
   datamap = {
@@ -364,7 +365,7 @@ Handsontable.Core = function (rootElement, settings) {
           changes.push([r, c, oldData[r] ? oldData[r][c] : null, newData[r][c]]);
         }
       }
-      self.rootElement.triggerHandler("datachange.handsontable", [changes, 'alter']);
+      fireEvent("datachange.handsontable", [changes, 'alter']);
       grid.keepEmptyRows(); //makes sure that we did not add rows that will be removed in next refresh
     },
 
@@ -1204,6 +1205,10 @@ Handsontable.Core = function (rootElement, settings) {
     this.updateSettings(settings);
     this.view = new Handsontable.TableView(this);
 
+    if (typeof priv.firstRun === 'object') {
+      fireEvent('datachange.handsontable', priv.firstRun);
+    }
+
     Handsontable.PluginHooks.run(self, 'afterInit');
   };
 
@@ -1280,6 +1285,17 @@ Handsontable.Core = function (rootElement, settings) {
     return $.when(validated);
   };
 
+  var fireEvent = function (name, params) {
+    if (priv.settings.asyncRendering) {
+      setTimeout(function () {
+        self.rootElement.triggerHandler(name, params);
+      }, 0);
+    }
+    else {
+      self.rootElement.triggerHandler(name, params);
+    }
+  }
+
   var bindEvents = function () {
     self.rootElement.on("datachange.handsontable", function (event, changes, source) {
       if (priv.settings.onChange) {
@@ -1347,7 +1363,7 @@ Handsontable.Core = function (rootElement, settings) {
       self.forceFullRender = true; //used when data was changed
       grid.keepEmptyRows();
       selection.refreshBorders();
-      self.rootElement.triggerHandler("datachange.handsontable", [changes, source || 'edit']);
+      fireEvent("datachange.handsontable", [changes, source || 'edit']);
     });
   };
 
@@ -1447,8 +1463,13 @@ Handsontable.Core = function (rootElement, settings) {
         changes.push([r, p, "", datamap.get(r, p)])
       }
     }
-    self.rootElement.triggerHandler('datachange.handsontable', [changes, 'loadData']);
-    self.render();
+    if (priv.firstRun) {
+      priv.firstRun = [changes, 'loadData'];
+    }
+    else {
+      fireEvent('datachange.handsontable', [changes, 'loadData']);
+      self.render();
+    }
     priv.isPopulated = true;
     self.clearUndo();
   };
@@ -1904,7 +1925,7 @@ var settings = {
   'tabMoves': {row: 0, col: 1},
   'autoWrapRow': false,
   'autoWrapCol': false,
-  'asyncRendering': window.jasmine ? false : true //disable async for testing
+  'asyncRendering': true
 };
 
 $.fn.handsontable = function (action) {

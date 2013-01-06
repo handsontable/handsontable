@@ -1,3 +1,32 @@
+/* -- frame counter -- */
+var frame = 0;
+var lastFrame = null;
+
+(function () {
+  frame = 0;
+  lastFrame = null;
+  var countFrames = function () {
+    requestAnimFrame(function () {
+      frame++;
+      countFrames();
+    });
+  };
+  countFrames();
+})();
+
+var nextFrame = function (myFrame) {
+  if (lastFrame === null) {
+    lastFrame = frame;
+  }
+  else if (frame - 2 >= lastFrame) {
+    lastFrame = null;
+    return true;
+  }
+  return false;
+};
+
+/* ------------------- */
+
 var spec = function () {
   return jasmine.getEnv().currentSpec;
 };
@@ -105,6 +134,7 @@ var handsontableKeyTriggerFactory = function (type) {
 
 var keyDown = handsontableKeyTriggerFactory('keydown');
 var keyUp = handsontableKeyTriggerFactory('keyup');
+var keyPress = handsontableKeyTriggerFactory('keypress');
 
 /**
  * Presses keyDown, then keyUp
