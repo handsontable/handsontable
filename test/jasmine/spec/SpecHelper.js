@@ -125,6 +125,10 @@ var handsontableKeyTriggerFactory = function (type) {
         ev.keyCode = 40;
         break;
 
+      case 'ctrl':
+        ev.keyCode = 17;
+        break;
+
       default:
         throw new Error('unknown key');
     }

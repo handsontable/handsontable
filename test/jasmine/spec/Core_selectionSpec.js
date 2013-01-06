@@ -264,6 +264,7 @@ describe('Core_selection', function () {
       selectCell(3, 0);
       keyDownUp('shift+arrow_down');
       keyDownUp('shift+arrow_down');
+      keyDownUp('shift+arrow_down');
     }
     catch (e) {
       err = e;
@@ -271,5 +272,22 @@ describe('Core_selection', function () {
 
     expect(err).toBeUndefined();
     expect(getSelected()).toEqual([3, 0, 4, 0]);
+  });
+
+  it('should select multiple cells', function () {
+    var err;
+    try {
+      handsontable({
+        startRows: 5,
+        startCols: 5
+      });
+      selectCell(3, 0, 4, 1);
+    }
+    catch (e) {
+      err = e;
+    }
+
+    expect(err).toBeUndefined();
+    expect(getSelected()).toEqual([3, 0, 4, 1]);
   });
 });

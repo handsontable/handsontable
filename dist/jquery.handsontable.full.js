@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Jan 06 2013 19:48:09 GMT+0100 (Central European Standard Time)
+ * Date: Sun Jan 06 2013 23:45:37 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -796,8 +796,8 @@ Handsontable.Core = function (rootElement, settings) {
         col: 0
       });
       selection.setRangeEnd({
-        row: self.countRows(),
-        col: self.countCols()
+        row: self.countRows() - 1,
+        col: self.countCols() - 1
       }, false);
     },
 
@@ -1187,8 +1187,19 @@ Handsontable.Core = function (rootElement, settings) {
      * Prepares copyable text in the invisible textarea
      */
     setCopyableText: function () {
-      priv.editProxy[0].value = datamap.getText(priv.selStart.coords(), priv.selEnd.coords());
+      var startRow = Math.min(priv.selStart.row(), priv.selEnd.row());
+      var startCol = Math.min(priv.selStart.col(), priv.selEnd.col());
+      var endRow = Math.max(priv.selStart.row(), priv.selEnd.row());
+      var endCol = Math.max(priv.selStart.col(), priv.selEnd.col());
+      var finalEndRow = Math.min(endRow, startRow + priv.settings.copyRowsLimit - 1);
+      var finalEndCol = Math.min(endCol, startCol + priv.settings.copyColsLimit - 1);
+
+      priv.editProxy[0].value = datamap.getText({row: startRow, col: startCol}, {row: finalEndRow, col: finalEndCol});
       setTimeout(editproxy.focus, 1);
+
+      if ((endRow !== finalEndRow || endCol !== finalEndCol) && priv.settings.onCopyLimit) {
+        priv.settings.onCopyLimit(endRow - startRow + 1, endCol - startCol + 1, priv.settings.copyRowsLimit, priv.settings.copyColsLimit);
+      }
     },
 
     /**
@@ -1897,7 +1908,7 @@ Handsontable.Core = function (rootElement, settings) {
       selection.setRangeEnd({row: row, col: col}, scrollToCell);
     }
     else {
-      selection.setRangeEnd({row: row, col: col}, scrollToCell);
+      selection.setRangeEnd({row: endRow, col: endCol}, scrollToCell);
     }
   };
 
@@ -1952,6 +1963,8 @@ var settings = {
   'tabMoves': {row: 0, col: 1},
   'autoWrapRow': false,
   'autoWrapCol': false,
+  'copyRowsLimit': 1000,
+  'copyColsLimit': 1000,
   'asyncRendering': true
 };
 
