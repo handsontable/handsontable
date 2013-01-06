@@ -10,6 +10,7 @@ Bugfixes:
 Other changes:
 - [Custom HTML demo page](http://handsontable.com/demo/renderers_html.html) (Rendering custom HTML in header) did not work well
 - JSFiddle links now also work in [Context Menu demo page](http://handsontable.com/demo/contextmenu.html)
+- tests are now passing 100% in Chrome, FF, IE9 and Opera. Tests are 99% passing in IE7-8, but remaining 1% does not affect normal operation in these browsers
 
 ## [0.8.0](https://github.com/warpech/jquery-handsontable/tree/v0.8.0) (Jan 2, 2013)
 
