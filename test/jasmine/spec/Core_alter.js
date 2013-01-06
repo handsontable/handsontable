@@ -78,4 +78,36 @@ describe('Core_alter', function () {
       expect(countCols()).toEqual(7);
     });
   });
+
+  it('should not remove rows below minRows', function () {
+    handsontable({
+      startRows: 5,
+      minRows: 4
+    });
+    alter('remove_row', 1);
+    alter('remove_row', 1);
+    alter('remove_row', 1);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countRows()).toEqual(4);
+    });
+  });
+
+  it('should not remove cols below minCols', function () {
+    handsontable({
+      startCols: 5,
+      minCols: 4
+    });
+    alter('remove_col', 1);
+    alter('remove_col', 1);
+    alter('remove_col', 1);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countCols()).toEqual(4);
+    });
+  });
 });
