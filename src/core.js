@@ -1898,6 +1898,7 @@ Handsontable.Core = function (rootElement, settings) {
   this.destroy = function () {
     self.rootElement.empty();
     self.rootElement.removeData('handsontable');
+    self.rootElement.off('.handsontable');
   };
 
   /**

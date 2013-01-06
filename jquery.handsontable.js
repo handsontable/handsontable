@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Jan 06 2013 13:32:52 GMT+0100 (Central European Standard Time)
+ * Date: Sun Jan 06 2013 13:59:22 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1917,6 +1917,7 @@ Handsontable.Core = function (rootElement, settings) {
   this.destroy = function () {
     self.rootElement.empty();
     self.rootElement.removeData('handsontable');
+    self.rootElement.off('.handsontable');
   };
 
   /**
