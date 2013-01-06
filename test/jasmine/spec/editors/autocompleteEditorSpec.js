@@ -45,21 +45,19 @@ describe('AutocompleteEditor', function () {
   });
 
   it('should destroy editor when value change with Enter on suggestion', function () {
-    runs(function () {
-      handsontable({
-        autoComplete: getAutocompleteConfig(true),
-        asyncRendering: false //TODO make sure tests pass also when async true
-      });
-      selectCell(2, 2);
-      keyDownUp('enter');
+    handsontable({
+      autoComplete: getAutocompleteConfig(true),
+      asyncRendering: false //TODO make sure tests pass also when async true
     });
+    selectCell(2, 2);
+    keyDownUp('enter');
 
     waits(100);
 
     runs(function () {
-      keyDownUp('arrow_down');
-      keyDownUp('arrow_down');
-      keyDownUp('arrow_down');
+      keyPress('arrow_down');
+      keyPress('arrow_down');
+      keyPress('arrow_down');
       keyDownUp('enter');
     });
 

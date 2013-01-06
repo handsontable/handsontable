@@ -12,10 +12,10 @@ describe('TextEditor', function () {
   });
 
   it('should begin editing when enterBeginsEditing equals true', function () {
-      handsontable({
-        enterBeginsEditing: true
-      });
-      selectCell(2, 2);
+    handsontable({
+      enterBeginsEditing: true
+    });
+    selectCell(2, 2);
 
     waitsFor(nextFrame, 'next frame', 60);
 
@@ -33,10 +33,10 @@ describe('TextEditor', function () {
   });
 
   it('should move down when enterBeginsEditing equals false', function () {
-      handsontable({
-        enterBeginsEditing: false
-      });
-      selectCell(2, 2);
+    handsontable({
+      enterBeginsEditing: false
+    });
+    selectCell(2, 2);
 
     waitsFor(nextFrame, 'next frame', 60);
 
@@ -55,13 +55,13 @@ describe('TextEditor', function () {
 
   it('should trigger beginediting', function () {
     var called;
-      handsontable({
-        enterBeginsEditing: true
-      });
-      selectCell(2, 2);
-      this.$container.on('beginediting.handsontable', function () {
-        called = true;
-      });
+    handsontable({
+      enterBeginsEditing: true
+    });
+    selectCell(2, 2);
+    this.$container.on('beginediting.handsontable', function () {
+      called = true;
+    });
 
     waitsFor(nextFrame, 'next frame', 60);
 
@@ -80,10 +80,10 @@ describe('TextEditor', function () {
 
   it('should trigger finishediting', function () {
     var called;
-      handsontable({
-        enterBeginsEditing: true
-      });
-      selectCell(2, 2);
+    handsontable({
+      enterBeginsEditing: true
+    });
+    selectCell(2, 2);
 
     waitsFor(nextFrame, 'next frame', 60);
 
