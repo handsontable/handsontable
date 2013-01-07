@@ -82,13 +82,13 @@ The table below presents configuration options that are interpreted by `handsont
 
   Option                 | Type                           | Default          | Description
 -------------------------|--------------------------------|------------------|-------------
- `data`                  | array/object                   | []               | Initial data set that will be bound to the data grid by reference
+ `data`                  | array/object                   | []               | Initial data source that will be bound to the data grid **by reference** (editing data grid alters the data source. See [Understanding binding as reference](http://handsontable.com/demo/understanding_reference.html))
  `minRows`               | number                         | 0                | Minimum number of rows. At least that many of rows will be created during initialization
  `minCols`               | number                         | 0                | Minimum number of columns. At least that many of columns will be created during initialization
  `maxRows`               | number                         | _Infinity_       | Maximum number of rows
  `maxCols`               | number                         | _Infinity_       | Maximum number of columns
- `startRows`             | number                         | 5                | Initial number of rows
- `startCols`             | number                         | 5                | Initial number of columns
+ `startRows`             | number                         | 5                | Initial number of rows. **Notice:** This option only has effect in Handsontable constructor and only if `data` is not provided
+ `startCols`             | number                         | 5                | Initial number of columns. **Notice:** This option only has effect in Handsontable constructor and only if `data` is not provided
  `rowHeaders`            | boolean/array                  | false            | Defines if the row headers (1, 2, 3, ...) should be displayed. You can just set it to `true` or specify custom a array `["First", "Second", "Third", ...]`
  `colHeaders`            | boolean/array                  | false            | Defines if the column headers (A, B, C, ...) should be displayed. You can just set it to `true` or specify custom a array `["First Name", "Last Name", "Address", ...]`
  `colWidths`             | array                          | [50, ..]         | Defines if the column widths in pixels (array of numbers)
