@@ -2,6 +2,8 @@ Handsontable.PluginHooks = {
   hooks: {
     afterInit: [],
     afterGetCellMeta: [],
+    afterGetColHeader: [],
+    afterGetColWidth: [],
     walkontableConfig: []
   },
 

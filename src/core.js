@@ -1753,19 +1753,20 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
-   * Return array of col headers (if they are enabled). If param `col` given, return header at given col as string
+   * Return column header at given col as HTML string
    * @param {Number} col (Optional)
    * @return {Array|String}
    */
   this.getColHeader = function (col) {
+    var response = {};
     if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
-      return priv.settings.columns[col].title;
+      response.html = priv.settings.columns[col].title;
     }
     else if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
-      return priv.settings.colHeaders[col];
+      response.html = priv.settings.colHeaders[col];
     }
     else if (typeof priv.settings.colHeaders === 'function') {
-      return priv.settings.colHeaders(col);
+      response.html = priv.settings.colHeaders(col);
     }
     else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
       var dividend = col + 1;
@@ -1776,11 +1777,13 @@ Handsontable.Core = function (rootElement, settings) {
         columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
         dividend = parseInt((dividend - modulo) / 26);
       }
-      return columnLabel;
+      response.html = columnLabel;
     }
     else {
-      return priv.settings.colHeaders;
+      response.html = priv.settings.colHeaders;
     }
+    Handsontable.PluginHooks.run(self, 'afterGetColHeader', [col, response]);
+    return response.html;
   };
 
   /**
@@ -1789,12 +1792,15 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Number}
    */
   this.getColWidth = function (col) {
+    var response = {};
     if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
-      return priv.settings.columns[col].width;
+      response.width = priv.settings.columns[col].width;
     }
     else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
-      return priv.settings.colWidths[col];
+      response.width = priv.settings.colWidths[col];
     }
+    Handsontable.PluginHooks.run(self, 'afterGetColWidth', [col, response]);
+    return response.width;
   };
 
   /**

@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 07 2013 12:00:47 GMT+0100 (Central European Standard Time)
+ * Date: Tue Jan 08 2013 00:50:11 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1772,19 +1772,20 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
-   * Return array of col headers (if they are enabled). If param `col` given, return header at given col as string
+   * Return column header at given col as HTML string
    * @param {Number} col (Optional)
    * @return {Array|String}
    */
   this.getColHeader = function (col) {
+    var response = {};
     if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
-      return priv.settings.columns[col].title;
+      response.html = priv.settings.columns[col].title;
     }
     else if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
-      return priv.settings.colHeaders[col];
+      response.html = priv.settings.colHeaders[col];
     }
     else if (typeof priv.settings.colHeaders === 'function') {
-      return priv.settings.colHeaders(col);
+      response.html = priv.settings.colHeaders(col);
     }
     else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
       var dividend = col + 1;
@@ -1795,11 +1796,13 @@ Handsontable.Core = function (rootElement, settings) {
         columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
         dividend = parseInt((dividend - modulo) / 26);
       }
-      return columnLabel;
+      response.html = columnLabel;
     }
     else {
-      return priv.settings.colHeaders;
+      response.html = priv.settings.colHeaders;
     }
+    Handsontable.PluginHooks.run(self, 'afterGetColHeader', [col, response]);
+    return response.html;
   };
 
   /**
@@ -1808,12 +1811,15 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Number}
    */
   this.getColWidth = function (col) {
+    var response = {};
     if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
-      return priv.settings.columns[col].width;
+      response.width = priv.settings.columns[col].width;
     }
     else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
-      return priv.settings.colWidths[col];
+      response.width = priv.settings.colWidths[col];
     }
+    Handsontable.PluginHooks.run(self, 'afterGetColWidth', [col, response]);
+    return response.width;
   };
 
   /**
@@ -3128,6 +3134,8 @@ Handsontable.PluginHooks = {
   hooks: {
     afterInit: [],
     afterGetCellMeta: [],
+    afterGetColHeader: [],
+    afterGetColWidth: [],
     walkontableConfig: []
   },
 
@@ -3328,6 +3336,64 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
     }
   }
 });
+function HandsontableManualColumnResize() {
+  var pressed
+    , currentCol
+    , currentWidth
+    , instance
+    , start
+    , startX
+    , startWidth;
+
+  $(document).mousemove(function (e) {
+    if (pressed) {
+      currentWidth = startWidth + (e.pageX - startX);
+      $(start).width(currentWidth); //updates col width in DOM
+      instance.view.render(); //updates borders only
+    }
+  });
+
+  $(document).mouseup(function () {
+    if (pressed) {
+      instance.manualColumnWidths[currentCol] = currentWidth; //save col width
+      $('.manualResizer.active').removeClass('active');
+      pressed = false;
+    }
+  });
+
+  this.afterInit = function () {
+    var that = this;
+    this.manualColumnWidths = [];
+    this.rootElement.on('mousedown', '.manualResizer', function (e) {
+      instance = that;
+      currentCol = $(e.target).attr('rel');
+      start = that.rootElement.find('col').eq($(e.target).parent().parent().index());
+      pressed = true;
+      startX = e.pageX;
+      startWidth = start.width();
+      currentWidth = startWidth;
+      $(e.target).addClass('active');
+    });
+  }
+
+  this.getColHeader = function (col, response) {
+    var prepend = '<div class="relative">';
+    var append = ' <div class="manualResizer" rel="' + col + '" style="cursor: col-resize"></div></div>';
+    response.html = prepend + response.html + append;
+  };
+
+  this.getColWidth = function (col, response) {
+    if (this.manualColumnWidths[col]) {
+      response.width = this.manualColumnWidths[col];
+    }
+  };
+}
+var htManualColumnResize = new HandsontableManualColumnResize();
+
+Handsontable.PluginHooks.push('afterInit', htManualColumnResize.afterInit);
+Handsontable.PluginHooks.push('afterGetColHeader', htManualColumnResize.getColHeader);
+Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWidth);
+
 /*
  * jQuery.fn.autoResize 1.1+
  * --
