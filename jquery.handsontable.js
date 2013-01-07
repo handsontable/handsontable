@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 07 2013 00:30:16 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 07 2013 12:00:47 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3575,7 +3575,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
       (
         autoResize.cloneContainer ||
           (autoResize.cloneContainer = $('<arclones/>').appendTo('body'))
-        ).append(this.clones);
+        ).empty().append(this.clones); //this should be refactored so that a node is never cloned more than once
     }
 
   };
