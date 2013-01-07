@@ -40,6 +40,10 @@
   width: 50px;
 }
 
+.handsontable .currentRow {
+  background: #F1F1F1;
+}
+
 .handsontable th,
 .handsontable td {
   border-right: 1px solid #CCC;

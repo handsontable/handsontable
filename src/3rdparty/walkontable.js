@@ -1035,43 +1035,54 @@ WalkontableSelection.prototype.getCorners = function () {
 WalkontableSelection.prototype.draw = function (selectionsOnly) {
   var TDs, TD, i, ilen, corners, r, c;
 
-  if (selectionsOnly && this.settings.className) {
-    TDs = this.instance.wtTable.TABLE.getElementsByTagName('TD');
-    for (i = 0, ilen = TDs.length; i < ilen; i++) {
-      this.instance.wtDom.removeClass(TDs[i], this.settings.className);
-    }
-  }
-
   ilen = this.selected.length;
   if (ilen) {
     corners = this.getCorners();
-    r = corners[0];
-    rows : while (r <= corners[2]) {
-      c = corners[1];
-      while (c <= corners[3]) {
+    var offsetRow = this.instance.getSetting('offsetRow')
+      , lastVisibleRow = offsetRow + this.instance.getSetting('displayRows') - 1
+      , offsetColumn = this.instance.getSetting('offsetColumn')
+      , lastVisibleColumn = offsetColumn + this.instance.getSetting('displayColumns') - 1;
+
+    for(r=offsetRow; r<=lastVisibleRow; r++) {
+      for(c=offsetColumn; c<=lastVisibleColumn; c++) {
         TD = this.instance.wtTable.getCell([r, c]);
-        if (TD === -2) {
-          break rows;
-        }
-        else if (TD === -4) {
-          break;
-        }
-        else if (TD !== -1 && TD !== -3) {
+        if(r >= corners[0] && r <= corners[2] && c >= corners[1] && c <= corners[3]) {
+          //selected cell
+          this.instance.wtDom.removeClass(TD, 'currentRow');
+          this.instance.wtDom.removeClass(TD, 'currentCol');
           this.onAdd([r, c], TD);
         }
-        c++;
+        else if(r >= corners[0] && r <= corners[2]) {
+          //selection is in this row
+          this.instance.wtDom.removeClass(TD, 'currentCol');
+          this.instance.wtDom.addClass(TD, 'currentRow');
+          this.instance.wtDom.removeClass(TD, this.settings.className);
+        }
+        else if(c >= corners[1] && c <= corners[3]) {
+          //selection is in this column
+          this.instance.wtDom.removeClass(TD, 'currentRow');
+          this.instance.wtDom.addClass(TD, 'currentCol');
+          this.instance.wtDom.removeClass(TD, this.settings.className);
+        }
+        else {
+          //no selection
+          this.instance.wtDom.removeClass(TD, 'currentRow');
+          this.instance.wtDom.removeClass(TD, 'currentCol');
+          this.instance.wtDom.removeClass(TD, this.settings.className);
+        }
       }
-      r++;
     }
-  }
 
-  if (this.border) {
-    if (ilen > 0) {
-      this.border.appear(corners);
+    this.border && this.border.appear(corners);
+  }
+  else {
+    if (selectionsOnly && this.settings.className) {
+      TDs = this.instance.wtTable.TABLE.getElementsByTagName('TD');
+      for (i = 0, ilen = TDs.length; i < ilen; i++) {
+        this.instance.wtDom.removeClass(TDs[i], this.settings.className);
+      }
     }
-    else {
-      this.border.disappear(corners);
-    }
+    this.border && this.border.disappear();
   }
 };
 
