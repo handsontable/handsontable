@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Jan 08 2013 00:50:11 GMT+0100 (Central European Standard Time)
+ * Date: Tue Jan 08 2013 12:16:43 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3343,42 +3343,63 @@ function HandsontableManualColumnResize() {
     , instance
     , start
     , startX
-    , startWidth;
+    , startWidth
+    , startOffset;
+
+  var $line = $('<div class="manualColumnResizerLine"><div class="manualColumnResizer"></div></div>');
+  $line.css({
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 0,
+    //background: 'black',
+    borderRight: '1px dashed #777'
+  });
 
   $(document).mousemove(function (e) {
     if (pressed) {
       currentWidth = startWidth + (e.pageX - startX);
-      $(start).width(currentWidth); //updates col width in DOM
-      instance.view.render(); //updates borders only
+      currentWidth = Math.max(currentWidth, 20);
+      currentWidth = Math.min(currentWidth, 500);
+      $line.css('left', startOffset + currentWidth - 1 + 'px');
     }
   });
 
   $(document).mouseup(function () {
     if (pressed) {
       instance.manualColumnWidths[currentCol] = currentWidth; //save col width
-      $('.manualResizer.active').removeClass('active');
+      $('.manualColumnResizer.active').removeClass('active');
       pressed = false;
+      instance.forceFullRender = true;
+      instance.view.render(); //updates all
+      $line.remove();
     }
   });
 
   this.afterInit = function () {
     var that = this;
     this.manualColumnWidths = [];
-    this.rootElement.on('mousedown', '.manualResizer', function (e) {
+    this.rootElement.on('mousedown', '.manualColumnResizer', function (e) {
       instance = that;
-      currentCol = $(e.target).attr('rel');
-      start = that.rootElement.find('col').eq($(e.target).parent().parent().index());
+      var $resizer = $(e.target);
+      currentCol = $resizer.attr('rel');
+      start = that.rootElement.find('col').eq($resizer.parent().parent().index());
       pressed = true;
       startX = e.pageX;
       startWidth = start.width();
       currentWidth = startWidth;
-      $(e.target).addClass('active');
+      $resizer.addClass('active');
+
+      var $table = that.rootElement.find('.htCore');
+      $line.appendTo($table.parent()).height($table.height());
+      startOffset = parseInt($resizer.parent().parent().offset().left - $table.offset().left);
+      $line.css('left', startOffset + startWidth - 1 + 'px');
     });
   }
 
   this.getColHeader = function (col, response) {
     var prepend = '<div class="relative">';
-    var append = ' <div class="manualResizer" rel="' + col + '" style="cursor: col-resize"></div></div>';
+    var append = ' <div class="manualColumnResizer" rel="' + col + '" style="cursor: col-resize"></div></div>';
     response.html = prepend + response.html + append;
   };
 
