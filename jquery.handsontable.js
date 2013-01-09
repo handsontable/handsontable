@@ -6,7 +6,11 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
+<<<<<<< HEAD
  * Date: Tue Jan 08 2013 12:16:43 GMT+0100 (Central European Standard Time)
+=======
+ * Date: Wed Jan 09 2013 12:26:51 GMT+0100 (Central European Standard Time)
+>>>>>>> 0.8.3
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2023,7 +2027,7 @@ Handsontable.TableView = function (instance) {
   instance.rootElement.addClass('handsontable');
   var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
   instance.rootElement.prepend($table);
-  var overflow = instance.rootElement[0].style.overflow;
+  var overflow = instance.rootElement.css('overflow');
   var myWidth = settings.width;
   var myHeight = settings.height;
   if ((myWidth || myHeight) && !(overflow === 'scroll' || overflow === 'auto')) {
@@ -2031,12 +2035,16 @@ Handsontable.TableView = function (instance) {
   }
   if (overflow === 'scroll' || overflow === 'auto') {
     instance.rootElement[0].style.overflow = 'visible';
-    if (settings.width === void 0 && parseInt(instance.rootElement[0].style.width) > 0) {
-      myWidth = parseInt(instance.rootElement[0].style.width);
+
+    var computedWidth = this.instance.rootElement.width();
+    var computedHeight = this.instance.rootElement.height();
+
+    if (settings.width === void 0 && computedWidth > 0) {
+      myWidth = computedWidth;
       instance.rootElement[0].style.width = '';
     }
-    if (settings.height === void 0 && parseInt(instance.rootElement[0].style.height) > 0) {
-      myHeight = parseInt(instance.rootElement[0].style.height);
+    if (settings.height === void 0 && computedHeight > 0) {
+      myHeight = computedHeight;
       instance.rootElement[0].style.height = '';
     }
   }
