@@ -41,7 +41,7 @@ function HandsontableManualColumnResize() {
   this.afterInit = function () {
     var that = this;
     this.manualColumnWidths = [];
-    this.rootElement.on('mousedown', '.manualColumnResizer', function (e) {
+    this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
       instance = that;
       var $resizer = $(e.target);
       currentCol = $resizer.attr('rel');

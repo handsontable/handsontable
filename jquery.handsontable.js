@@ -6,11 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
-<<<<<<< HEAD
- * Date: Tue Jan 08 2013 12:16:43 GMT+0100 (Central European Standard Time)
-=======
- * Date: Wed Jan 09 2013 12:26:51 GMT+0100 (Central European Standard Time)
->>>>>>> 0.8.3
+ * Date: Fri Jan 11 2013 11:50:11 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3387,7 +3383,7 @@ function HandsontableManualColumnResize() {
   this.afterInit = function () {
     var that = this;
     this.manualColumnWidths = [];
-    this.rootElement.on('mousedown', '.manualColumnResizer', function (e) {
+    this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
       instance = that;
       var $resizer = $(e.target);
       currentCol = $resizer.attr('rel');
