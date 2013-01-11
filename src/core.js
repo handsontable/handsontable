@@ -1216,6 +1216,7 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   this.init = function () {
+    Handsontable.PluginHooks.run(self, 'beforeInit');
     editproxy.init();
 
     bindEvents();
@@ -1226,7 +1227,6 @@ Handsontable.Core = function (rootElement, settings) {
       fireEvent('datachange.handsontable', priv.firstRun);
       priv.firstRun = false;
     }
-
     Handsontable.PluginHooks.run(self, 'afterInit');
   };
 

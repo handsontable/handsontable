@@ -1,5 +1,6 @@
 Handsontable.PluginHooks = {
   hooks: {
+    beforeInit: [],
     afterInit: [],
     afterGetCellMeta: [],
     afterGetColHeader: [],

@@ -38,7 +38,7 @@ function HandsontableManualColumnResize() {
     }
   });
 
-  this.afterInit = function () {
+  this.beforeInit = function () {
     var that = this;
     this.manualColumnWidths = [];
     this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
@@ -73,6 +73,6 @@ function HandsontableManualColumnResize() {
 }
 var htManualColumnResize = new HandsontableManualColumnResize();
 
-Handsontable.PluginHooks.push('afterInit', htManualColumnResize.afterInit);
+Handsontable.PluginHooks.push('beforeInit', htManualColumnResize.beforeInit);
 Handsontable.PluginHooks.push('afterGetColHeader', htManualColumnResize.getColHeader);
 Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWidth);

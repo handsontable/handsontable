@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jan 11 2013 11:50:11 GMT+0100 (Central European Standard Time)
+ * Date: Fri Jan 11 2013 11:57:11 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1235,6 +1235,7 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   this.init = function () {
+    Handsontable.PluginHooks.run(self, 'beforeInit');
     editproxy.init();
 
     bindEvents();
@@ -1245,7 +1246,6 @@ Handsontable.Core = function (rootElement, settings) {
       fireEvent('datachange.handsontable', priv.firstRun);
       priv.firstRun = false;
     }
-
     Handsontable.PluginHooks.run(self, 'afterInit');
   };
 
@@ -3136,6 +3136,7 @@ Handsontable.TextCell = {
 };
 Handsontable.PluginHooks = {
   hooks: {
+    beforeInit: [],
     afterInit: [],
     afterGetCellMeta: [],
     afterGetColHeader: [],
@@ -3380,7 +3381,7 @@ function HandsontableManualColumnResize() {
     }
   });
 
-  this.afterInit = function () {
+  this.beforeInit = function () {
     var that = this;
     this.manualColumnWidths = [];
     this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
@@ -3415,7 +3416,7 @@ function HandsontableManualColumnResize() {
 }
 var htManualColumnResize = new HandsontableManualColumnResize();
 
-Handsontable.PluginHooks.push('afterInit', htManualColumnResize.afterInit);
+Handsontable.PluginHooks.push('beforeInit', htManualColumnResize.beforeInit);
 Handsontable.PluginHooks.push('afterGetColHeader', htManualColumnResize.getColHeader);
 Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWidth);
 
