@@ -34,9 +34,15 @@
   border-spacing: 0;
   margin: 0;
   border-width: 0;
+  table-layout: fixed;
+  width: 0;
 }
 
 .handsontable col {
+  width: 50px;
+}
+
+.handsontable col.rowHeader {
   width: 50px;
 }
 
@@ -50,6 +56,7 @@
   background-color: #FFF;
   font-size: 12px;
   vertical-align: top;
+  overflow: hidden;
 }
 
 .handsontable th:last-child {
