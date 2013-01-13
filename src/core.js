@@ -1481,6 +1481,8 @@ Handsontable.Core = function (rootElement, settings) {
         changes.push([r, p, "", datamap.get(r, p)])
       }
     }
+    Handsontable.PluginHooks.run(self, 'afterLoadData');
+
     if (priv.firstRun) {
       priv.firstRun = [changes, 'loadData'];
     }
@@ -1798,6 +1800,9 @@ Handsontable.Core = function (rootElement, settings) {
     }
     else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
       response.width = priv.settings.colWidths[col];
+    }
+    else {
+      response.width = 50;
     }
     Handsontable.PluginHooks.run(self, 'afterGetColWidth', [col, response]);
     return response.width;

@@ -44,6 +44,7 @@ module.exports = function (grunt) {
           'src/cellTypes.js',
 
           'src/pluginHooks.js',
+          'src/plugins/autoColumnSize.js',
           'src/plugins/contextMenu.js',
           'src/plugins/legacy.js',
           'src/plugins/manualColumnResize.js',

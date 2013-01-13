@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jan 11 2013 17:33:10 GMT+0100 (Central European Standard Time)
+ * Date: Sun Jan 13 2013 15:50:39 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1500,6 +1500,8 @@ Handsontable.Core = function (rootElement, settings) {
         changes.push([r, p, "", datamap.get(r, p)])
       }
     }
+    Handsontable.PluginHooks.run(self, 'afterLoadData');
+
     if (priv.firstRun) {
       priv.firstRun = [changes, 'loadData'];
     }
@@ -1817,6 +1819,9 @@ Handsontable.Core = function (rootElement, settings) {
     }
     else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
       response.width = priv.settings.colWidths[col];
+    }
+    else {
+      response.width = 50;
     }
     Handsontable.PluginHooks.run(self, 'afterGetColWidth', [col, response]);
     return response.width;
@@ -2209,9 +2214,15 @@ Handsontable.TableView = function (instance) {
 };
 
 Handsontable.TableView.prototype.render = function () {
+  if (this.instance.forceFullRender) {
+    Handsontable.PluginHooks.run(this.instance, 'beforeRender');
+  }
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.rootElement.triggerHandler('render.handsontable');
   this.instance.forceFullRender = false;
+  if (this.instance.forceFullRender) {
+    Handsontable.PluginHooks.run(this.instance, 'afterRender');
+  }
 };
 
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, coords, extraParam) {
@@ -3138,6 +3149,9 @@ Handsontable.PluginHooks = {
   hooks: {
     beforeInit: [],
     afterInit: [],
+    afterLoadData: [],
+    beforeRender: [],
+    afterRender: [],
     afterGetCellMeta: [],
     afterGetColHeader: [],
     afterGetColWidth: [],
@@ -3163,6 +3177,82 @@ Handsontable.PluginHooks = {
     }
   }
 };
+/**
+ * This plugin determines the optimal column size for the data that's inside it
+ * @constructor
+ */
+function HandsontableAutoColumnSize() {
+  var determined = [];
+  var instance;
+  var tmp;
+
+  var sampleCount = 5; //number of samples to take of each value length
+
+  var determineColumnWidth = function (col) {
+    if (!tmp) {
+      tmp = document.createElement('TABLE');
+      tmp.style.position = 'absolute';
+      tmp.style.top = '0';
+      tmp.style.left = '0';
+      tmp.innerHTML = '<tbody><tr><td></td></tr></tbody>';
+      document.body.appendChild(tmp);
+    }
+
+    var rows = instance.countRows();
+    var samples = {};
+    for (var r = 0; r < rows; r++) {
+      var value = Handsontable.helper.stringify(instance.getDataAtCell(r, col));
+      var len = value.length;
+      if (!samples[len]) {
+        samples[len] = {
+          needed: sampleCount,
+          strings: []
+        };
+      }
+      if (samples[len].needed) {
+        samples[len].strings.push(value);
+        samples[len].needed--;
+      }
+    }
+
+    var txt = '';
+    var settings = instance.getSettings();
+    if (settings.colHeaders) {
+      txt += instance.getColHeader(col) + '<br>';
+    }
+    for (var i in samples) {
+      if (samples.hasOwnProperty(i)) {
+        for (var j = 0, jlen = samples[i].strings.length; j < jlen; j++) {
+          txt += samples[i].strings[j] + '<br>';
+        }
+      }
+    }
+    tmp.firstChild.firstChild.firstChild.innerHTML = txt; //TD innerHTML
+
+    tmp.style.display = 'block';
+    determined[col] = $(tmp).outerWidth();
+    tmp.style.display = 'none';
+  }
+
+  this.determineColumnsWidth = function () {
+    instance = this;
+    var cols = this.countCols();
+    for (var c = 0; c < cols; c++) {
+      determineColumnWidth(c);
+    }
+  };
+
+  this.getColWidth = function (col, response) {
+    if (determined[col] && determined[col] > response.width) {
+      response.width = determined[col];
+    }
+  };
+}
+var htAutoColumnSize = new HandsontableAutoColumnSize();
+
+Handsontable.PluginHooks.push('beforeRender', htAutoColumnSize.determineColumnsWidth);
+Handsontable.PluginHooks.push('afterGetColWidth', htAutoColumnSize.getColWidth);
+
 function createContextMenu() {
   var instance = this
     , defaultOptions = {

@@ -197,9 +197,15 @@ Handsontable.TableView = function (instance) {
 };
 
 Handsontable.TableView.prototype.render = function () {
+  if (this.instance.forceFullRender) {
+    Handsontable.PluginHooks.run(this.instance, 'beforeRender');
+  }
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.rootElement.triggerHandler('render.handsontable');
   this.instance.forceFullRender = false;
+  if (this.instance.forceFullRender) {
+    Handsontable.PluginHooks.run(this.instance, 'afterRender');
+  }
 };
 
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, coords, extraParam) {
