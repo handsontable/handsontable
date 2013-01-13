@@ -5,6 +5,7 @@ Features:
 - manual column resize (initial commit) [TODO: write tests]
 - automatic column size (initial commit) [TODO: write tests]
 - apply automatic column size when double clicked on manual resize handle [TODO: write tests]
+- column sorting (initial commit) [TODO: write tests]
 
 Bugfixes:
 - overflow auto only worked when declared in inline style (not in CSS class) (issue #339 point 6)

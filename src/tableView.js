@@ -189,7 +189,7 @@ Handsontable.TableView = function (instance) {
     }
   };
 
-  Handsontable.PluginHooks.run(this.instance, 'walkontableConfig', [walkontableConfig]);
+  Handsontable.PluginHooks.run(this.instance, 'walkontableConfig', walkontableConfig);
 
   this.wt = new Walkontable(walkontableConfig);
   this.instance.forceFullRender = true; //used when data was changed

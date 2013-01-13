@@ -217,10 +217,14 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Number} row
      * @param {Number} prop
      */
+    getVars: {},
     get: function (row, prop) {
-      if (typeof prop === 'string' && prop.indexOf('.') > -1) {
-        var sliced = prop.split(".");
-        var out = priv.settings.data[row];
+      datamap.getVars.row = row;
+      datamap.getVars.prop = prop;
+      Handsontable.PluginHooks.run(self, 'beforeGet', datamap.getVars);
+      if (typeof datamap.getVars.prop === 'string' && datamap.getVars.prop.indexOf('.') > -1) {
+        var sliced = datamap.getVars.prop.split(".");
+        var out = priv.settings.data[datamap.getVars.row];
         if (!out) {
           return null;
         }
@@ -233,7 +237,7 @@ Handsontable.Core = function (rootElement, settings) {
         return out;
       }
       else {
-        return priv.settings.data[row] ? priv.settings.data[row][prop] : null;
+        return priv.settings.data[datamap.getVars.row] ? priv.settings.data[datamap.getVars.row][datamap.getVars.prop] : null;
       }
     },
 
@@ -243,17 +247,22 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Number} prop
      * @param {String} value
      */
+    setVars: {},
     set: function (row, prop, value) {
-      if (typeof prop === 'string' && prop.indexOf('.') > -1) {
-        var sliced = prop.split(".");
-        var out = priv.settings.data[row];
+      datamap.setVars.row = row;
+      datamap.setVars.prop = prop;
+      datamap.setVars.value = value;
+      Handsontable.PluginHooks.run(self, 'beforeSet', datamap.setVars);
+      if (typeof datamap.setVars.prop === 'string' && datamap.setVars.prop.indexOf('.') > -1) {
+        var sliced = datamap.setVars.prop.split(".");
+        var out = priv.settings.data[datamap.setVars.row];
         for (var i = 0, ilen = sliced.length - 1; i < ilen; i++) {
           out = out[sliced[i]];
         }
-        out[sliced[i]] = value;
+        out[sliced[i]] = datamap.setVars.value;
       }
       else {
-        priv.settings.data[row][prop] = value;
+        priv.settings.data[datamap.setVars.row][datamap.setVars.prop] = datamap.setVars.value;
       }
     },
 
@@ -1730,7 +1739,7 @@ Handsontable.Core = function (rootElement, settings) {
       cellProperites = $.extend(true, cellProperites, priv.settings.cells(row, col, prop) || {});
     }
     cellProperites.isWritable = !cellProperites.readOnly;
-    Handsontable.PluginHooks.run(self, 'afterGetCellMeta', [row, col, cellProperites]);
+    Handsontable.PluginHooks.run(self, 'afterGetCellMeta', row, col, cellProperites);
     return cellProperites;
   };
 
@@ -1784,7 +1793,7 @@ Handsontable.Core = function (rootElement, settings) {
     else {
       response.html = priv.settings.colHeaders;
     }
-    Handsontable.PluginHooks.run(self, 'afterGetColHeader', [col, response]);
+    Handsontable.PluginHooks.run(self, 'afterGetColHeader', col, response);
     return response.html;
   };
 
@@ -1804,7 +1813,7 @@ Handsontable.Core = function (rootElement, settings) {
     else {
       response.width = 50;
     }
-    Handsontable.PluginHooks.run(self, 'afterGetColWidth', [col, response]);
+    Handsontable.PluginHooks.run(self, 'afterGetColWidth', col, response);
     return response.width;
   };
 

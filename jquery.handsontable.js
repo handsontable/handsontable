@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Jan 13 2013 16:37:52 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 14 2013 00:54:17 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -236,10 +236,14 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Number} row
      * @param {Number} prop
      */
+    getVars: {},
     get: function (row, prop) {
-      if (typeof prop === 'string' && prop.indexOf('.') > -1) {
-        var sliced = prop.split(".");
-        var out = priv.settings.data[row];
+      datamap.getVars.row = row;
+      datamap.getVars.prop = prop;
+      Handsontable.PluginHooks.run(self, 'beforeGet', datamap.getVars);
+      if (typeof datamap.getVars.prop === 'string' && datamap.getVars.prop.indexOf('.') > -1) {
+        var sliced = datamap.getVars.prop.split(".");
+        var out = priv.settings.data[datamap.getVars.row];
         if (!out) {
           return null;
         }
@@ -252,7 +256,7 @@ Handsontable.Core = function (rootElement, settings) {
         return out;
       }
       else {
-        return priv.settings.data[row] ? priv.settings.data[row][prop] : null;
+        return priv.settings.data[datamap.getVars.row] ? priv.settings.data[datamap.getVars.row][datamap.getVars.prop] : null;
       }
     },
 
@@ -262,17 +266,22 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Number} prop
      * @param {String} value
      */
+    setVars: {},
     set: function (row, prop, value) {
-      if (typeof prop === 'string' && prop.indexOf('.') > -1) {
-        var sliced = prop.split(".");
-        var out = priv.settings.data[row];
+      datamap.setVars.row = row;
+      datamap.setVars.prop = prop;
+      datamap.setVars.value = value;
+      Handsontable.PluginHooks.run(self, 'beforeSet', datamap.setVars);
+      if (typeof datamap.setVars.prop === 'string' && datamap.setVars.prop.indexOf('.') > -1) {
+        var sliced = datamap.setVars.prop.split(".");
+        var out = priv.settings.data[datamap.setVars.row];
         for (var i = 0, ilen = sliced.length - 1; i < ilen; i++) {
           out = out[sliced[i]];
         }
-        out[sliced[i]] = value;
+        out[sliced[i]] = datamap.setVars.value;
       }
       else {
-        priv.settings.data[row][prop] = value;
+        priv.settings.data[datamap.setVars.row][datamap.setVars.prop] = datamap.setVars.value;
       }
     },
 
@@ -1749,7 +1758,7 @@ Handsontable.Core = function (rootElement, settings) {
       cellProperites = $.extend(true, cellProperites, priv.settings.cells(row, col, prop) || {});
     }
     cellProperites.isWritable = !cellProperites.readOnly;
-    Handsontable.PluginHooks.run(self, 'afterGetCellMeta', [row, col, cellProperites]);
+    Handsontable.PluginHooks.run(self, 'afterGetCellMeta', row, col, cellProperites);
     return cellProperites;
   };
 
@@ -1803,7 +1812,7 @@ Handsontable.Core = function (rootElement, settings) {
     else {
       response.html = priv.settings.colHeaders;
     }
-    Handsontable.PluginHooks.run(self, 'afterGetColHeader', [col, response]);
+    Handsontable.PluginHooks.run(self, 'afterGetColHeader', col, response);
     return response.html;
   };
 
@@ -1823,7 +1832,7 @@ Handsontable.Core = function (rootElement, settings) {
     else {
       response.width = 50;
     }
-    Handsontable.PluginHooks.run(self, 'afterGetColWidth', [col, response]);
+    Handsontable.PluginHooks.run(self, 'afterGetColWidth', col, response);
     return response.width;
   };
 
@@ -2206,7 +2215,7 @@ Handsontable.TableView = function (instance) {
     }
   };
 
-  Handsontable.PluginHooks.run(this.instance, 'walkontableConfig', [walkontableConfig]);
+  Handsontable.PluginHooks.run(this.instance, 'walkontableConfig', walkontableConfig);
 
   this.wt = new Walkontable(walkontableConfig);
   this.instance.forceFullRender = true; //used when data was changed
@@ -3152,6 +3161,8 @@ Handsontable.PluginHooks = {
     afterLoadData: [],
     beforeRender: [],
     afterRender: [],
+    beforeGet: [],
+    beforeSet: [],
     afterGetCellMeta: [],
     afterGetColHeader: [],
     afterGetColWidth: [],
@@ -3166,14 +3177,10 @@ Handsontable.PluginHooks = {
     this.hooks[hook].unshift(fn);
   },
 
-  run: function (instance, hook, args) {
+  run: function (instance, hook, p1, p2, p3, p4, p5) {
+    //performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
     for (var i = 0, ilen = this.hooks[hook].length; i < ilen; i++) {
-      if (args) {
-        this.hooks[hook][i].apply(instance, args);
-      }
-      else {
-        this.hooks[hook][i].call(instance);
-      }
+      this.hooks[hook][i].call(instance, p1, p2, p3, p4, p5);
     }
   }
 };
@@ -3531,6 +3538,53 @@ Handsontable.PluginHooks.push('beforeInit', htManualColumnResize.beforeInit);
 Handsontable.PluginHooks.push('afterGetColHeader', htManualColumnResize.getColHeader);
 Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWidth);
 
+/**
+ * This plugin sorts the view by a column (but does not sort the data source!)
+ * @constructor
+ */
+function HandsontableColumnSorting() {
+  var plugin = this;
+
+  this.afterInit = function () {
+    if (this.getSettings().columnSorting) {
+      this.sortedColumn = 1;
+      plugin.sort.call(this);
+    }
+  };
+
+  this.sort = function () {
+    this.sortedOrder = [];
+    var data = this.getData();
+    for (var i = 0, ilen = this.countRows(); i < ilen; i++) {
+      this.sortedOrder.push([i, data[i][this.sortedColumn]]);
+    }
+    this.sortedOrder.sort(function (a, b) {
+      if (a[1] === b[1]) {
+        return 0;
+      }
+      if (a[1] === null) {
+        return 1;
+      }
+      if (b[1] === null) {
+        return -1;
+      }
+      if (a[1] < b[1]) return -1;
+      if (a[1] > b[1]) return 1;
+      return 0;
+    });
+  };
+
+  this.translateRow = function (getVars) {
+    if (this.sortedOrder) {
+      getVars.row = this.sortedOrder[getVars.row][0];
+    }
+  };
+}
+var htSortColumn = new HandsontableColumnSorting();
+
+Handsontable.PluginHooks.push('afterInit', htSortColumn.afterInit);
+Handsontable.PluginHooks.push('beforeGet', htSortColumn.translateRow);
+Handsontable.PluginHooks.push('beforeSet', htSortColumn.translateRow);
 /*
  * jQuery.fn.autoResize 1.1+
  * --
