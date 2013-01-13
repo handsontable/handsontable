@@ -4,6 +4,7 @@ Features:
 - optimize jquery-autoresize plugin: arclones element is emptied before injecting another node
 - manual column resize (initial commit) [TODO: write tests]
 - automatic column size (initial commit) [TODO: write tests]
+- apply automatic column size when double clicked on manual resize handle [TODO: write tests]
 
 Bugfixes:
 - overflow auto only worked when declared in inline style (not in CSS class) (issue #339 point 6)

@@ -3,13 +3,17 @@
  * @constructor
  */
 function HandsontableAutoColumnSize() {
-  var determined = [];
   var instance;
   var tmp;
+  var that = this;
 
   var sampleCount = 5; //number of samples to take of each value length
 
-  var determineColumnWidth = function (col) {
+  this.beforeInit = function () {
+    this.autoColumnWidths = [];
+  }
+
+  this.determineColumnWidth = function (col) {
     if (!tmp) {
       tmp = document.createElement('TABLE');
       tmp.style.position = 'absolute';
@@ -51,25 +55,30 @@ function HandsontableAutoColumnSize() {
     tmp.firstChild.firstChild.firstChild.innerHTML = txt; //TD innerHTML
 
     tmp.style.display = 'block';
-    determined[col] = $(tmp).outerWidth();
+    var width = $(tmp).outerWidth();
     tmp.style.display = 'none';
+    return width;
   }
 
   this.determineColumnsWidth = function () {
     instance = this;
-    var cols = this.countCols();
-    for (var c = 0; c < cols; c++) {
-      determineColumnWidth(c);
+    var settings = this.getSettings();
+    if (settings.autoColumnSize) {
+      var cols = this.countCols();
+      for (var c = 0; c < cols; c++) {
+        this.autoColumnWidths[c] = that.determineColumnWidth(c);
+      }
     }
   };
 
   this.getColWidth = function (col, response) {
-    if (determined[col] && determined[col] > response.width) {
-      response.width = determined[col];
+    if (this.autoColumnWidths[col] && this.autoColumnWidths[col] > response.width) {
+      response.width = this.autoColumnWidths[col];
     }
   };
 }
 var htAutoColumnSize = new HandsontableAutoColumnSize();
 
+Handsontable.PluginHooks.push('beforeInit', htAutoColumnSize.beforeInit);
 Handsontable.PluginHooks.push('beforeRender', htAutoColumnSize.determineColumnsWidth);
 Handsontable.PluginHooks.push('afterGetColWidth', htAutoColumnSize.getColWidth);

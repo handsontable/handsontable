@@ -14,27 +14,33 @@ function HandsontableManualColumnResize() {
     top: 0,
     left: 0,
     width: 0,
-    //background: 'black',
     borderRight: '1px dashed #777'
   });
 
   $(document).mousemove(function (e) {
     if (pressed) {
       currentWidth = startWidth + (e.pageX - startX);
-      currentWidth = Math.max(currentWidth, 20);
-      currentWidth = Math.min(currentWidth, 500);
-      $line.css('left', startOffset + currentWidth - 1 + 'px');
+      setManualSize(currentCol, currentWidth); //save col width
+      $line[0].style.left = startOffset + currentWidth - 1 + 'px';
+      if ($line[0].style.display === 'none') {
+        $line[0].style.display = 'block';
+      }
     }
   });
 
   $(document).mouseup(function () {
     if (pressed) {
-      instance.manualColumnWidths[currentCol] = currentWidth; //save col width
       $('.manualColumnResizer.active').removeClass('active');
       pressed = false;
       instance.forceFullRender = true;
       instance.view.render(); //updates all
-      $line.remove();
+      $line[0].style.display = 'none';
+    }
+  });
+
+  $(document).dblclick(function (e) {
+    if ($(e.target).is('.manualColumnResizer')) {
+      setManualSize(currentCol, htAutoColumnSize.determineColumnWidth.call(instance, currentCol));
     }
   });
 
@@ -55,8 +61,14 @@ function HandsontableManualColumnResize() {
       var $table = that.rootElement.find('.htCore');
       $line.appendTo($table.parent()).height($table.height());
       startOffset = parseInt($resizer.parent().parent().offset().left - $table.offset().left);
-      $line.css('left', startOffset + startWidth - 1 + 'px');
+      $line[0].style.left = startOffset + currentWidth - 1 + 'px';
     });
+  }
+
+  var setManualSize = function (col, width) {
+    width = Math.max(width, 20);
+    width = Math.min(width, 500);
+    instance.manualColumnWidths[col] = width;
   }
 
   this.getColHeader = function (col, response) {

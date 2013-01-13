@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Jan 13 2013 15:50:39 GMT+0100 (Central European Standard Time)
+ * Date: Sun Jan 13 2013 16:37:52 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3182,13 +3182,17 @@ Handsontable.PluginHooks = {
  * @constructor
  */
 function HandsontableAutoColumnSize() {
-  var determined = [];
   var instance;
   var tmp;
+  var that = this;
 
   var sampleCount = 5; //number of samples to take of each value length
 
-  var determineColumnWidth = function (col) {
+  this.beforeInit = function () {
+    this.autoColumnWidths = [];
+  }
+
+  this.determineColumnWidth = function (col) {
     if (!tmp) {
       tmp = document.createElement('TABLE');
       tmp.style.position = 'absolute';
@@ -3230,26 +3234,31 @@ function HandsontableAutoColumnSize() {
     tmp.firstChild.firstChild.firstChild.innerHTML = txt; //TD innerHTML
 
     tmp.style.display = 'block';
-    determined[col] = $(tmp).outerWidth();
+    var width = $(tmp).outerWidth();
     tmp.style.display = 'none';
+    return width;
   }
 
   this.determineColumnsWidth = function () {
     instance = this;
-    var cols = this.countCols();
-    for (var c = 0; c < cols; c++) {
-      determineColumnWidth(c);
+    var settings = this.getSettings();
+    if (settings.autoColumnSize) {
+      var cols = this.countCols();
+      for (var c = 0; c < cols; c++) {
+        this.autoColumnWidths[c] = that.determineColumnWidth(c);
+      }
     }
   };
 
   this.getColWidth = function (col, response) {
-    if (determined[col] && determined[col] > response.width) {
-      response.width = determined[col];
+    if (this.autoColumnWidths[col] && this.autoColumnWidths[col] > response.width) {
+      response.width = this.autoColumnWidths[col];
     }
   };
 }
 var htAutoColumnSize = new HandsontableAutoColumnSize();
 
+Handsontable.PluginHooks.push('beforeInit', htAutoColumnSize.beforeInit);
 Handsontable.PluginHooks.push('beforeRender', htAutoColumnSize.determineColumnsWidth);
 Handsontable.PluginHooks.push('afterGetColWidth', htAutoColumnSize.getColWidth);
 
@@ -3447,27 +3456,33 @@ function HandsontableManualColumnResize() {
     top: 0,
     left: 0,
     width: 0,
-    //background: 'black',
     borderRight: '1px dashed #777'
   });
 
   $(document).mousemove(function (e) {
     if (pressed) {
       currentWidth = startWidth + (e.pageX - startX);
-      currentWidth = Math.max(currentWidth, 20);
-      currentWidth = Math.min(currentWidth, 500);
-      $line.css('left', startOffset + currentWidth - 1 + 'px');
+      setManualSize(currentCol, currentWidth); //save col width
+      $line[0].style.left = startOffset + currentWidth - 1 + 'px';
+      if ($line[0].style.display === 'none') {
+        $line[0].style.display = 'block';
+      }
     }
   });
 
   $(document).mouseup(function () {
     if (pressed) {
-      instance.manualColumnWidths[currentCol] = currentWidth; //save col width
       $('.manualColumnResizer.active').removeClass('active');
       pressed = false;
       instance.forceFullRender = true;
       instance.view.render(); //updates all
-      $line.remove();
+      $line[0].style.display = 'none';
+    }
+  });
+
+  $(document).dblclick(function (e) {
+    if ($(e.target).is('.manualColumnResizer')) {
+      setManualSize(currentCol, htAutoColumnSize.determineColumnWidth.call(instance, currentCol));
     }
   });
 
@@ -3488,8 +3503,14 @@ function HandsontableManualColumnResize() {
       var $table = that.rootElement.find('.htCore');
       $line.appendTo($table.parent()).height($table.height());
       startOffset = parseInt($resizer.parent().parent().offset().left - $table.offset().left);
-      $line.css('left', startOffset + startWidth - 1 + 'px');
+      $line[0].style.left = startOffset + currentWidth - 1 + 'px';
     });
+  }
+
+  var setManualSize = function (col, width) {
+    width = Math.max(width, 20);
+    width = Math.min(width, 500);
+    instance.manualColumnWidths[col] = width;
   }
 
   this.getColHeader = function (col, response) {
