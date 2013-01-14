@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 07 2013 12:53:12 GMT+0100 (Central European Standard Time)
+ * Date: Wed Jan 09 2013 12:26:51 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2017,7 +2017,7 @@ Handsontable.TableView = function (instance) {
   instance.rootElement.addClass('handsontable');
   var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
   instance.rootElement.prepend($table);
-  var overflow = instance.rootElement[0].style.overflow;
+  var overflow = instance.rootElement.css('overflow');
   var myWidth = settings.width;
   var myHeight = settings.height;
   if ((myWidth || myHeight) && !(overflow === 'scroll' || overflow === 'auto')) {
@@ -2025,12 +2025,16 @@ Handsontable.TableView = function (instance) {
   }
   if (overflow === 'scroll' || overflow === 'auto') {
     instance.rootElement[0].style.overflow = 'visible';
-    if (settings.width === void 0 && parseInt(instance.rootElement[0].style.width) > 0) {
-      myWidth = parseInt(instance.rootElement[0].style.width);
+
+    var computedWidth = this.instance.rootElement.width();
+    var computedHeight = this.instance.rootElement.height();
+
+    if (settings.width === void 0 && computedWidth > 0) {
+      myWidth = computedWidth;
       instance.rootElement[0].style.width = '';
     }
-    if (settings.height === void 0 && parseInt(instance.rootElement[0].style.height) > 0) {
-      myHeight = parseInt(instance.rootElement[0].style.height);
+    if (settings.height === void 0 && computedHeight > 0) {
+      myHeight = computedHeight;
       instance.rootElement[0].style.height = '';
     }
   }
@@ -3575,7 +3579,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
       (
         autoResize.cloneContainer ||
           (autoResize.cloneContainer = $('<arclones/>').appendTo('body'))
-        ).append(this.clones);
+        ).empty().append(this.clones); //this should be refactored so that a node is never cloned more than once
     }
 
   };

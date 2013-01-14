@@ -1,3 +1,11 @@
+## [0.8.3](https://github.com/warpech/jquery-handsontable/tree/v0.8.3) (Jan 8, 2013)
+
+Feature:
+- optimize jquery-autoresize plugin: arclones element is emptied before injecting another node
+
+Bugfixes:
+- overflow auto only worked when declared in inline style (not in CSS class) (issue #339 point 6)
+
 ## [0.8.2](https://github.com/warpech/jquery-handsontable/tree/v0.8.2) (Jan 7, 2013)
 
 Features:
