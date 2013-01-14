@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 14 2013 11:41:09 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 14 2013 12:41:28 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3272,6 +3272,7 @@ Handsontable.PluginHooks.push('afterGetColWidth', htAutoColumnSize.getColWidth);
  */
 function HandsontableColumnSorting() {
   var plugin = this;
+  var sortingEnabled;
 
   this.afterInit = function () {
     var instance = this;
@@ -3299,11 +3300,13 @@ function HandsontableColumnSorting() {
   };
 
   this.sort = function () {
+    sortingEnabled = false;
     var instance = this;
     this.sortIndex.length = 0;
     var data = this.getData();
     for (var i = 0, ilen = this.countRows(); i < ilen; i++) {
-      this.sortIndex.push([i, data[i][this.sortColumn]]);
+      //this.sortIndex.push([i, data[i][this.sortColumn]]);
+      this.sortIndex.push([i, instance.getDataAtCell(i, this.sortColumn)]);
     }
     this.sortIndex.sort(function (a, b) {
       if (a[1] === b[1]) {
@@ -3319,10 +3322,11 @@ function HandsontableColumnSorting() {
       if (a[1] > b[1]) return instance.sortOrder ? 1 : -1;
       return 0;
     });
+    sortingEnabled = true;
   };
 
   this.translateRow = function (getVars) {
-    if (this.sortIndex && this.sortIndex.length) {
+    if (sortingEnabled && this.sortIndex && this.sortIndex.length) {
       getVars.row = this.sortIndex[getVars.row][0];
     }
   };
