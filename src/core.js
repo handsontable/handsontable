@@ -1481,22 +1481,13 @@ Handsontable.Core = function (rootElement, settings) {
     }
 
     grid.keepEmptyRows();
-    changes = [];
-    rlen = self.countRows(); //recount number of rows in case some row was removed by keepEmptyRows
-    clen = self.countCols();
-    for (r = 0; r < rlen; r++) {
-      for (c = 0; c < clen; c++) {
-        p = datamap.colToProp(c);
-        changes.push([r, p, "", datamap.get(r, p)])
-      }
-    }
     Handsontable.PluginHooks.run(self, 'afterLoadData');
 
     if (priv.firstRun) {
-      priv.firstRun = [changes, 'loadData'];
+      priv.firstRun = [null, 'loadData'];
     }
     else {
-      fireEvent('datachange.handsontable', [changes, 'loadData']);
+      fireEvent('datachange.handsontable', [null, 'loadData']);
       self.render();
     }
     priv.isPopulated = true;

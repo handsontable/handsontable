@@ -7,6 +7,9 @@ Features:
 - apply automatic column size when double clicked on manual resize handle [TODO: write tests]
 - column sorting (initial commit) [TODO: write tests]
 
+Breaking changes:
+- `loadData` no longer sends list of changes to `onChange` callback. That was not performant. Now if sends `null` changes object and `loadData` as source string.
+
 Bugfixes:
 - overflow auto only worked when declared in inline style (not in CSS class) (issue #339 point 6)
 

@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 14 2013 00:54:17 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 14 2013 01:07:28 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1500,22 +1500,13 @@ Handsontable.Core = function (rootElement, settings) {
     }
 
     grid.keepEmptyRows();
-    changes = [];
-    rlen = self.countRows(); //recount number of rows in case some row was removed by keepEmptyRows
-    clen = self.countCols();
-    for (r = 0; r < rlen; r++) {
-      for (c = 0; c < clen; c++) {
-        p = datamap.colToProp(c);
-        changes.push([r, p, "", datamap.get(r, p)])
-      }
-    }
     Handsontable.PluginHooks.run(self, 'afterLoadData');
 
     if (priv.firstRun) {
-      priv.firstRun = [changes, 'loadData'];
+      priv.firstRun = [null, 'loadData'];
     }
     else {
-      fireEvent('datachange.handsontable', [changes, 'loadData']);
+      fireEvent('datachange.handsontable', [null, 'loadData']);
       self.render();
     }
     priv.isPopulated = true;
