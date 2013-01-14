@@ -12,10 +12,16 @@ function HandsontableColumnSorting() {
       this.rootElement.on('click.handsontable', '.columnSorting', function (e) {
         var $div = $(e.target);
         if ($div.is('.columnSorting')) {
-          instance.sortColumn = $div.closest('th').index();
-          instance.sortOrder = !instance.sortOrder;
+          var col = $div.closest('th').index();
           if (instance.getSettings().rowHeaders) {
-            instance.sortColumn--;
+            col--;
+          }
+          if (instance.sortColumn === col) {
+            instance.sortOrder = !instance.sortOrder;
+          }
+          else {
+            instance.sortColumn = col;
+            instance.sortOrder = true;
           }
           plugin.sort.call(instance);
           instance.render();
