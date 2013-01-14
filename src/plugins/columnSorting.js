@@ -11,9 +11,9 @@ function HandsontableColumnSorting() {
     if (this.getSettings().columnSorting) {
       this.sortIndex = [];
       this.rootElement.on('click.handsontable', '.columnSorting', function (e) {
-        var $div = $(e.target);
-        if ($div.is('.columnSorting')) {
-          var col = $div.closest('th').index();
+        var $target = $(e.target);
+        if ($target.is('.columnSorting')) {
+          var col = $target.closest('th').index();
           if (instance.getSettings().rowHeaders) {
             col--;
           }
@@ -35,7 +35,7 @@ function HandsontableColumnSorting() {
     sortingEnabled = false;
     var instance = this;
     this.sortIndex.length = 0;
-    var data = this.getData();
+    //var data = this.getData();
     for (var i = 0, ilen = this.countRows(); i < ilen; i++) {
       //this.sortIndex.push([i, data[i][this.sortColumn]]);
       this.sortIndex.push([i, instance.getDataAtCell(i, this.sortColumn)]);
@@ -63,11 +63,9 @@ function HandsontableColumnSorting() {
     }
   };
 
-  this.getColHeader = function (col, response) {
+  this.getColHeader = function (col, TH) {
     if (this.getSettings().columnSorting) {
-      var prepend = '<span class="columnSorting">';
-      var append = '</span>';
-      response.html = prepend + response.html + append;
+      $(TH).find('span.colHeader').addClass('columnSorting');
     }
   };
 }

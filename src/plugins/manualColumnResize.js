@@ -63,18 +63,19 @@ function HandsontableManualColumnResize() {
       startOffset = parseInt($resizer.parent().parent().offset().left - $table.offset().left);
       $line[0].style.left = startOffset + currentWidth - 1 + 'px';
     });
-  }
+  };
 
   var setManualSize = function (col, width) {
     width = Math.max(width, 20);
     width = Math.min(width, 500);
     instance.manualColumnWidths[col] = width;
-  }
+  };
 
-  this.getColHeader = function (col, response) {
-    var prepend = '<div class="relative">';
-    var append = ' <div class="manualColumnResizer" rel="' + col + '" style="cursor: col-resize"></div></div>';
-    response.html = prepend + response.html + append;
+  this.getColHeader = function (col, TH) {
+    var DIV = document.createElement('DIV');
+    DIV.className = 'manualColumnResizer';
+    $(DIV).attr('rel', col);
+    TH.firstChild.appendChild(DIV);
   };
 
   this.getColWidth = function (col, response) {

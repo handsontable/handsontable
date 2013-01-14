@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Mon Jan 14 2013 21:27:27 GMT+0100 (Central European Standard Time)
+ * Date: Tue Jan 15 2013 00:45:07 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -204,7 +204,7 @@ function Walkontable(settings) {
     offsetRow: 0,
     offsetColumn: 0,
     frozenColumns: null,
-    columnHeaders: false,
+    columnHeaders: null, //this must be a function in format: function (col, TH) {}
     totalRows: void 0,
     totalColumns: void 0,
     width: null,
@@ -264,8 +264,8 @@ function Walkontable(settings) {
       originalHeaders.push(this.wtTable.THEAD.childNodes[0].childNodes[c].innerHTML);
     }
     if (!this.hasSetting('columnHeaders')) {
-      this.settings.columnHeaders = function (column) {
-        return originalHeaders[column];
+      this.settings.columnHeaders = function (column, TH) {
+        TH.innerHTML = originalHeaders[column];
       }
     }
   }
@@ -370,7 +370,7 @@ Walkontable.prototype.getSetting = function (key, param1, param2, param3) {
     return this.getSetting('totalRows');
   }
   else if (key === 'displayColumns' && this.settings['displayColumns'] === null) {
-    return this.settings['rowHeaders'] ? this.getSetting('totalColumns') + 1 : this.getSetting('totalColumns');
+    return this.getSetting('totalColumns');
   }
   else if (key === 'viewportRows') {
     if (this.wtTable.visibilityEdgeRow) {
@@ -897,10 +897,12 @@ WalkontableScrollbar.prototype.refresh = function () {
     , viewportColumns = Math.min(this.instance.getSetting('viewportColumns'), totalColumns);
 
   if (!tableWidth) {
-    throw new Error("I could not compute table width. Is the <table> element attached to the DOM?");
+    //throw new Error("I could not compute table width. Is the <table> element attached to the DOM?");
+    return;
   }
   if (!tableHeight) {
-    throw new Error("I could not compute table height. Is the <table> element attached to the DOM?");
+    //throw new Error("I could not compute table height. Is the <table> element attached to the DOM?");
+    return;
   }
 
   tableWidth -= this.instance.getSetting('scrollbarWidth');
@@ -1548,7 +1550,7 @@ WalkontableTable.prototype._doDraw = function () {
 
   if (this.instance.hasSetting('columnHeaders')) {
     for (c = 0; c < displayTds; c++) {
-      this.THEAD.childNodes[0].childNodes[frozenColumnsCount + c].innerHTML = this.instance.getSetting('columnHeaders', offsetColumn + c);
+      this.instance.getSetting('columnHeaders', offsetColumn + c, this.THEAD.childNodes[0].childNodes[frozenColumnsCount + c]);
     }
   }
 

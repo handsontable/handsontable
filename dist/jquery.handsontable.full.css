@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 14 2013 21:33:01 GMT+0100 (Central European Standard Time)
+ * Date: Tue Jan 15 2013 00:54:01 GMT+0100 (Central European Standard Time)
  */
 
 .handsontable {
@@ -128,6 +128,7 @@
   width: 5px;
   height: 25px;
   z-index: 999;
+  cursor: col-resize;
 }
 
 .handsontable th .manualColumnResizer:hover,

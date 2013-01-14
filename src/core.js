@@ -1756,19 +1756,20 @@ Handsontable.Core = function (rootElement, settings) {
 
   /**
    * Return column header at given col as HTML string
-   * @param {Number} col (Optional)
-   * @return {Array|String}
+   * @param {Number} col
+   * @param {HTMLElement} TH
    */
-  this.getColHeader = function (col) {
-    var response = {};
+  this.getColHeader = function (col, TH) {
+    var DIV = document.createElement('DIV');
+    DIV.className = 'relative';
     if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
-      response.html = priv.settings.columns[col].title;
+      DIV.innerHTML = '<span class="colHeader">' + priv.settings.columns[col].title + '</span>';
     }
     else if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
-      response.html = priv.settings.colHeaders[col];
+      DIV.innerHTML = '<span class="colHeader">' + priv.settings.colHeaders[col] + '</span>';
     }
     else if (typeof priv.settings.colHeaders === 'function') {
-      response.html = priv.settings.colHeaders(col);
+      DIV.innerHTML = '<span class="colHeader">' + priv.settings.colHeaders(col) + '</span>';
     }
     else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
       var dividend = col + 1;
@@ -1779,13 +1780,17 @@ Handsontable.Core = function (rootElement, settings) {
         columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
         dividend = parseInt((dividend - modulo) / 26);
       }
-      response.html = columnLabel;
+      DIV.innerHTML = '<span class="colHeader">' + columnLabel + '</span>';
     }
     else {
-      response.html = priv.settings.colHeaders;
+      DIV.innerHTML = '<span class="colHeader">' + priv.settings.colHeaders + '</span>';
     }
-    Handsontable.PluginHooks.run(self, 'afterGetColHeader', col, response);
-    return response.html;
+
+    while (TH.firstChild) {
+      TH.removeChild(TH.firstChild); //empty TH node
+    }
+    TH.appendChild(DIV);
+    Handsontable.PluginHooks.run(self, 'afterGetColHeader', col, TH);
   };
 
   /**

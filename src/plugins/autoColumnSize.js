@@ -3,24 +3,38 @@
  * @constructor
  */
 function HandsontableAutoColumnSize() {
-  var instance;
-  var tmp;
-  var that = this;
-
-  var sampleCount = 5; //number of samples to take of each value length
+  var that = this
+    , instance
+    , tmp
+    , $tmp
+    , tmpTbody
+    , tmpThead
+    , sampleCount = 5; //number of samples to take of each value length
 
   this.beforeInit = function () {
     this.autoColumnWidths = [];
-  }
+  };
 
   this.determineColumnWidth = function (col) {
     if (!tmp) {
-      tmp = document.createElement('TABLE');
+      tmp = document.createElement('DIV');
       tmp.style.position = 'absolute';
       tmp.style.top = '0';
       tmp.style.left = '0';
-      tmp.innerHTML = '<tbody><tr><td></td></tr></tbody>';
+      tmp.style.display = 'none';
+
+      tmpTbody = document.createElement('TABLE');
+      tmpTbody.innerHTML = '<tbody><tr><td></td></tr></tbody>';
+      tmp.appendChild(tmpTbody);
+
+      tmp.appendChild(document.createElement('BR'));
+
+      tmpThead = document.createElement('TABLE');
+      tmpThead.innerHTML = '<thead><tr><th></th></tr></thead>';
+      tmp.appendChild(tmpThead);
+
       document.body.appendChild(tmp);
+      $tmp = $(tmp);
     }
 
     var rows = instance.countRows();
@@ -40,11 +54,12 @@ function HandsontableAutoColumnSize() {
       }
     }
 
-    var txt = '';
     var settings = instance.getSettings();
     if (settings.colHeaders) {
-      txt += instance.getColHeader(col) + '<br>';
+      instance.getColHeader(col, tmpThead.firstChild.firstChild.firstChild); //TH innerHTML
     }
+
+    var txt = '';
     for (var i in samples) {
       if (samples.hasOwnProperty(i)) {
         for (var j = 0, jlen = samples[i].strings.length; j < jlen; j++) {
@@ -52,13 +67,13 @@ function HandsontableAutoColumnSize() {
         }
       }
     }
-    tmp.firstChild.firstChild.firstChild.innerHTML = txt; //TD innerHTML
+    tmpTbody.firstChild.firstChild.firstChild.innerHTML = txt; //TD innerHTML
 
     tmp.style.display = 'block';
-    var width = $(tmp).outerWidth();
+    var width = $tmp.outerWidth();
     tmp.style.display = 'none';
     return width;
-  }
+  };
 
   this.determineColumnsWidth = function () {
     instance = this;
