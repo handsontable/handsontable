@@ -6,6 +6,7 @@ Features:
 - automatic column size (initial commit) [TODO: write tests]
 - compability: automatic column size is asserted `true` when `colWidths` option is not provided
 - apply automatic column size when double clicked on manual resize handle [TODO: write tests]
+- Scroll example page describes difference between available column stretching modes (all, last [default], none)
 - column sorting (initial commit) [TODO: write tests]
 
 Breaking changes:

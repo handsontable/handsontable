@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 14 2013 01:33:17 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 14 2013 07:50:14 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1976,7 +1976,8 @@ var settings = {
   'autoWrapCol': false,
   'copyRowsLimit': 1000,
   'copyColsLimit': 1000,
-  'asyncRendering': true
+  'asyncRendering': true,
+  'stretchH': 'last'
 };
 
 $.fn.handsontable = function (action) {
@@ -2127,6 +2128,7 @@ Handsontable.TableView = function (instance) {
   var walkontableConfig = {
     table: $table[0],
     async: settings.asyncRendering,
+    stretchH: settings.stretchH,
     data: instance.getDataAtCell,
     totalRows: instance.countRows,
     totalColumns: instance.countCols,

@@ -1957,7 +1957,8 @@ var settings = {
   'autoWrapCol': false,
   'copyRowsLimit': 1000,
   'copyColsLimit': 1000,
-  'asyncRendering': true
+  'asyncRendering': true,
+  'stretchH': 'last'
 };
 
 $.fn.handsontable = function (action) {
