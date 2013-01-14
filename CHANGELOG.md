@@ -2,6 +2,7 @@
 
 Features:
 - optimize jquery-autoresize plugin: arclones element is emptied before injecting another node
+- new configuration options `currentRowClassName` and `currentColClassName` along with new example page "Highlight current row & column" [TODO: write tests]
 - manual column resize (initial commit) [TODO: write tests]
 - automatic column size (initial commit) [TODO: write tests]
 - compability: automatic column size is asserted `true` when `colWidths` option is not provided

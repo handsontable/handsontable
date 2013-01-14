@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 14 2013 01:33:17 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 14 2013 11:03:53 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1976,6 +1976,8 @@ var settings = {
   'autoWrapCol': false,
   'copyRowsLimit': 1000,
   'copyColsLimit': 1000,
+  'currentRowClassName': void 0,
+  'currentColClassName': void 0,
   'asyncRendering': true
 };
 
@@ -2142,6 +2144,8 @@ Handsontable.TableView = function (instance) {
     cellRenderer: function (row, column, TD) {
       that.applyCellTypeMethod('renderer', TD, {row: row, col: column}, instance.getDataAtCell(row, column));
     },
+    currentRowClassName: settings.currentRowClassName,
+    currentColumnClassName: settings.currentColClassName,
     selections: {
       current: {
         className: 'current',
@@ -3874,7 +3878,7 @@ Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWid
 /**
  * walkontable 0.1
  * 
- * Date: Fri Jan 11 2013 11:44:27 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 14 2013 10:56:02 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -4069,6 +4073,8 @@ function Walkontable(settings) {
     scrollH: 'auto', //values: scroll (always show scrollbar), auto (show scrollbar if table does not fit in the container), none (never show scrollbar)
     scrollV: 'auto', //values: see above
     stretchH: 'last', //values: all, last, none
+    currentRowClassName: null,
+    currentColumnClassName: null,
 
     //data source
     data: void 0,
@@ -4938,43 +4944,56 @@ WalkontableSelection.prototype.getCorners = function () {
 WalkontableSelection.prototype.draw = function (selectionsOnly) {
   var TDs, TD, i, ilen, corners, r, c;
 
-  if (selectionsOnly && this.settings.className) {
-    TDs = this.instance.wtTable.TABLE.getElementsByTagName('TD');
-    for (i = 0, ilen = TDs.length; i < ilen; i++) {
-      this.instance.wtDom.removeClass(TDs[i], this.settings.className);
-    }
-  }
-
   ilen = this.selected.length;
   if (ilen) {
     corners = this.getCorners();
-    r = corners[0];
-    rows : while (r <= corners[2]) {
-      c = corners[1];
-      while (c <= corners[3]) {
+    var offsetRow = this.instance.getSetting('offsetRow')
+      , lastVisibleRow = offsetRow + this.instance.getSetting('displayRows') - 1
+      , offsetColumn = this.instance.getSetting('offsetColumn')
+      , lastVisibleColumn = offsetColumn + this.instance.getSetting('displayColumns') - 1
+      , currentRowClassName = this.instance.getSetting('currentRowClassName')
+      , currentColumnClassName = this.instance.getSetting('currentColumnClassName');
+
+    for (r = offsetRow; r <= lastVisibleRow; r++) {
+      for (c = offsetColumn; c <= lastVisibleColumn; c++) {
         TD = this.instance.wtTable.getCell([r, c]);
-        if (TD === -2) {
-          break rows;
-        }
-        else if (TD === -4) {
-          break;
-        }
-        else if (TD !== -1 && TD !== -3) {
+        if (r >= corners[0] && r <= corners[2] && c >= corners[1] && c <= corners[3]) {
+          //selected cell
+          currentRowClassName && this.instance.wtDom.removeClass(TD, currentRowClassName);
+          currentColumnClassName && this.instance.wtDom.removeClass(TD, currentColumnClassName);
           this.onAdd([r, c], TD);
         }
-        c++;
+        else if (r >= corners[0] && r <= corners[2]) {
+          //selection is in this row
+          currentColumnClassName && this.instance.wtDom.removeClass(TD, currentColumnClassName);
+          currentRowClassName && this.instance.wtDom.addClass(TD, currentRowClassName);
+          this.instance.wtDom.removeClass(TD, this.settings.className);
+        }
+        else if (c >= corners[1] && c <= corners[3]) {
+          //selection is in this column
+          currentRowClassName && this.instance.wtDom.removeClass(TD, currentRowClassName);
+          currentColumnClassName && this.instance.wtDom.addClass(TD, currentColumnClassName);
+          this.instance.wtDom.removeClass(TD, this.settings.className);
+        }
+        else {
+          //no selection
+          currentRowClassName && this.instance.wtDom.removeClass(TD, currentRowClassName);
+          currentColumnClassName && this.instance.wtDom.removeClass(TD, currentColumnClassName);
+          this.instance.wtDom.removeClass(TD, this.settings.className);
       }
-      r++;
     }
   }
 
-  if (this.border) {
-    if (ilen > 0) {
-      this.border.appear(corners);
+    this.border && this.border.appear(corners);
     }
     else {
-      this.border.disappear(corners);
+    if (selectionsOnly && this.settings.className) {
+      TDs = this.instance.wtTable.TABLE.getElementsByTagName('TD');
+      for (i = 0, ilen = TDs.length; i < ilen; i++) {
+        this.instance.wtDom.removeClass(TDs[i], this.settings.className);
     }
+  }
+    this.border && this.border.disappear();
   }
 };
 
