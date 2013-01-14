@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 14 2013 12:41:28 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 14 2013 20:15:43 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2031,27 +2031,17 @@ Handsontable.TableView = function (instance) {
   instance.rootElement.addClass('handsontable');
   var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
   instance.rootElement.prepend($table);
-  var overflow = instance.rootElement.css('overflow');
-  var myWidth = settings.width;
-  var myHeight = settings.height;
-  if ((myWidth || myHeight) && !(overflow === 'scroll' || overflow === 'auto')) {
-    overflow = 'auto';
+  this.overflow = instance.rootElement.css('overflow');
+  if ((settings.width || settings.height) && !(this.overflow === 'scroll' || this.overflow === 'auto')) {
+    this.overflow = 'auto';
   }
-  if (overflow === 'scroll' || overflow === 'auto') {
-    instance.rootElement[0].style.overflow = 'visible';
-
-    var computedWidth = this.instance.rootElement.width();
-    var computedHeight = this.instance.rootElement.height();
-
-    if (settings.width === void 0 && computedWidth > 0) {
-      myWidth = computedWidth;
-      instance.rootElement[0].style.width = '';
-    }
-    if (settings.height === void 0 && computedHeight > 0) {
-      myHeight = computedHeight;
-      instance.rootElement[0].style.height = '';
-    }
+  if (this.overflow === 'scroll' || this.overflow === 'auto') {
+    //instance.rootElement[0].style.overflow = 'visible';
+    instance.rootElement[0].style.overflow = 'hidden';
   }
+  this.determineContainerSize();
+  //instance.rootElement[0].style.height = '';
+  //instance.rootElement[0].style.width = '';
 
   var isMouseDown
     , dragInterval;
@@ -2091,8 +2081,8 @@ Handsontable.TableView = function (instance) {
       , offset = that.wt.wtDom.offset($table[0])
       , offsetTop = offset.top + tolerance
       , offsetLeft = offset.left + tolerance
-      , width = myWidth - that.wt.settings.scrollbarWidth - 2 * tolerance
-      , height = myHeight - that.wt.settings.scrollbarHeight - 2 * tolerance
+      , width = this.containerWidth - that.wt.settings.scrollbarWidth - 2 * tolerance
+      , height = this.containerHeight - that.wt.settings.scrollbarHeight - 2 * tolerance
       , method
       , row = 0
       , col = 0
@@ -2138,8 +2128,8 @@ Handsontable.TableView = function (instance) {
     offsetColumn: 0,
     displayRows: null,
     displayColumns: null,
-    width: myWidth,
-    height: myHeight,
+    width: this.containerWidth,
+    height: this.containerHeight,
     frozenColumns: settings.rowHeaders ? [instance.getRowHeader] : null,
     columnHeaders: settings.colHeaders ? instance.getColHeader : null,
     columnWidth: instance.getColWidth,
@@ -2217,6 +2207,36 @@ Handsontable.TableView = function (instance) {
   this.wt = new Walkontable(walkontableConfig);
   this.instance.forceFullRender = true; //used when data was changed
   this.render();
+
+  var that = this;
+  $(window).on('resize', function () {
+    that.determineContainerSize();
+    that.wt.update('width', that.containerWidth);
+    that.wt.update('height', that.containerHeight);
+    that.instance.forceFullRender = true;
+    that.render();
+  });
+};
+
+Handsontable.TableView.prototype.determineContainerSize = function () {
+  var TABLE = this.instance.rootElement[0].firstChild; //remove table so it won't affect the measurement
+  var settings = this.instance.getSettings();
+  this.instance.rootElement[0].removeChild(TABLE);
+  this.containerWidth = settings.width;
+  this.containerHeight = settings.height;
+
+  var computedWidth = this.instance.rootElement.width();
+  var computedHeight = this.instance.rootElement.height();
+  if (settings.width === void 0 && computedWidth > 0) {
+    this.containerWidth = computedWidth;
+  }
+
+  if (this.overflow === 'scroll' || this.overflow === 'auto') {
+    if (settings.height === void 0 && computedHeight > 0) {
+      this.containerHeight = computedHeight;
+    }
+  }
+  this.instance.rootElement[0].appendChild(TABLE);
 };
 
 Handsontable.TableView.prototype.render = function () {
