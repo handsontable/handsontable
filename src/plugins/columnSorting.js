@@ -54,9 +54,11 @@ function HandsontableColumnSorting() {
   };
 
   this.getColHeader = function (col, response) {
-    var prepend = '<span class="columnSorting">';
-    var append = '</span>';
-    response.html = prepend + response.html + append;
+    if (this.getSettings().columnSorting) {
+      var prepend = '<span class="columnSorting">';
+      var append = '</span>';
+      response.html = prepend + response.html + append;
+    }
   };
 }
 var htSortColumn = new HandsontableColumnSorting();

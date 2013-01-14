@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 14 2013 11:03:53 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 14 2013 11:36:14 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3322,9 +3322,11 @@ function HandsontableColumnSorting() {
   };
 
   this.getColHeader = function (col, response) {
-    var prepend = '<span class="columnSorting">';
-    var append = '</span>';
-    response.html = prepend + response.html + append;
+    if (this.getSettings().columnSorting) {
+      var prepend = '<span class="columnSorting">';
+      var append = '</span>';
+      response.html = prepend + response.html + append;
+    }
   };
 }
 var htSortColumn = new HandsontableColumnSorting();
