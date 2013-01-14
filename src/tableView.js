@@ -125,6 +125,8 @@ Handsontable.TableView = function (instance) {
     cellRenderer: function (row, column, TD) {
       that.applyCellTypeMethod('renderer', TD, {row: row, col: column}, instance.getDataAtCell(row, column));
     },
+    currentRowClassName: settings.currentRowClassName,
+    currentColumnClassName: settings.currentColClassName,
     selections: {
       current: {
         className: 'current',

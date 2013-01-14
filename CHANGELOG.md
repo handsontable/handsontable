@@ -2,6 +2,7 @@
 
 Feature:
 - optimize jquery-autoresize plugin: arclones element is emptied before injecting another node
+- new configuration options `currentRowClassName` and `currentColClassName` along with new example page "Highlight current row & column" [TODO: write tests]
 
 Bugfixes:
 - overflow auto only worked when declared in inline style (not in CSS class) (issue #339 point 6)

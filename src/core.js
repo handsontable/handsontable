@@ -1946,6 +1946,8 @@ var settings = {
   'autoWrapCol': false,
   'copyRowsLimit': 1000,
   'copyColsLimit': 1000,
+  'currentRowClassName': void 0,
+  'currentColClassName': void 0,
   'asyncRendering': true
 };
 
