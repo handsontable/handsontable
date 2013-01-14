@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 14 2013 01:25:17 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 14 2013 01:33:17 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3240,7 +3240,7 @@ function HandsontableAutoColumnSize() {
   this.determineColumnsWidth = function () {
     instance = this;
     var settings = this.getSettings();
-    if (settings.autoColumnSize) {
+    if (settings.autoColumnSize || !settings.colWidths) {
       var cols = this.countCols();
       for (var c = 0; c < cols; c++) {
         this.autoColumnWidths[c] = that.determineColumnWidth(c);
