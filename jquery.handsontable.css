@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 14 2013 01:07:28 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 14 2013 01:25:17 GMT+0100 (Central European Standard Time)
  */
 
 .handsontable {
@@ -118,6 +118,8 @@
   padding: 2px 4px;
 }
 
+/* plugins */
+
 .handsontable .manualColumnResizer {
   position: absolute;
   right: -1px;
@@ -131,6 +133,11 @@
 .handsontable th .manualColumnResizer:hover,
 .handsontable .manualColumnResizerLine .manualColumnResizer {
   background-color: #AAB;
+}
+
+.handsontable .columnSorting:hover {
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* border line */

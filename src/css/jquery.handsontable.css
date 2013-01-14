@@ -118,6 +118,8 @@
   padding: 2px 4px;
 }
 
+/* plugins */
+
 .handsontable .manualColumnResizer {
   position: absolute;
   right: -1px;
@@ -131,6 +133,11 @@
 .handsontable th .manualColumnResizer:hover,
 .handsontable .manualColumnResizerLine .manualColumnResizer {
   background-color: #AAB;
+}
+
+.handsontable .columnSorting:hover {
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* border line */
