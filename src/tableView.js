@@ -199,9 +199,8 @@ Handsontable.TableView = function (instance) {
 };
 
 Handsontable.TableView.prototype.determineContainerSize = function () {
-  var TABLE = this.instance.rootElement[0].firstChild; //remove table so it won't affect the measurement
+  this.instance.rootElement[0].firstChild.style.display = 'none';
   var settings = this.instance.getSettings();
-  this.instance.rootElement[0].removeChild(TABLE);
   this.containerWidth = settings.width;
   this.containerHeight = settings.height;
 
@@ -216,7 +215,7 @@ Handsontable.TableView.prototype.determineContainerSize = function () {
       this.containerHeight = computedHeight;
     }
   }
-  this.instance.rootElement[0].appendChild(TABLE);
+  this.instance.rootElement[0].firstChild.style.display = 'table';
 };
 
 Handsontable.TableView.prototype.render = function () {

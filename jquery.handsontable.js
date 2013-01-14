@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 14 2013 20:15:43 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 14 2013 21:10:37 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2219,9 +2219,8 @@ Handsontable.TableView = function (instance) {
 };
 
 Handsontable.TableView.prototype.determineContainerSize = function () {
-  var TABLE = this.instance.rootElement[0].firstChild; //remove table so it won't affect the measurement
+  this.instance.rootElement[0].firstChild.style.display = 'none';
   var settings = this.instance.getSettings();
-  this.instance.rootElement[0].removeChild(TABLE);
   this.containerWidth = settings.width;
   this.containerHeight = settings.height;
 
@@ -2236,7 +2235,7 @@ Handsontable.TableView.prototype.determineContainerSize = function () {
       this.containerHeight = computedHeight;
     }
   }
-  this.instance.rootElement[0].appendChild(TABLE);
+  this.instance.rootElement[0].firstChild.style.display = 'table';
 };
 
 Handsontable.TableView.prototype.render = function () {
