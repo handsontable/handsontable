@@ -48,6 +48,7 @@ module.exports = function (grunt) {
           'src/plugins/columnSorting.js',
           'src/plugins/contextMenu.js',
           'src/plugins/legacy.js',
+          'src/plugins/manualColumnMove.js',
           'src/plugins/manualColumnResize.js',
 
           'src/3rdparty/jquery.autoresize.js',

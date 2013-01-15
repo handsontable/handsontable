@@ -90,6 +90,7 @@ Handsontable.Core = function (rootElement, settings) {
     },
 
     colToProp: function (col) {
+      col = Handsontable.PluginModifiers.run(self, 'col', col);
       if (priv.colToProp && typeof priv.colToProp[col] !== 'undefined') {
         return priv.colToProp[col];
       }
@@ -99,13 +100,15 @@ Handsontable.Core = function (rootElement, settings) {
     },
 
     propToCol: function (prop) {
+      var col;
       if (typeof priv.propToCol[prop] !== 'undefined') {
-        return priv.propToCol[prop];
+        col = priv.propToCol[prop];
       }
       else {
-        return prop;
+        col = prop;
       }
-
+      col = Handsontable.PluginModifiers.run(self, 'col', col);
+      return col;
     },
 
     getSchema: function () {
@@ -1760,6 +1763,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {HTMLElement} TH
    */
   this.getColHeader = function (col, TH) {
+    col = Handsontable.PluginModifiers.run(self, 'col', col);
     var DIV = document.createElement('DIV');
     DIV.className = 'relative';
     if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
@@ -1799,6 +1803,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Number}
    */
   this.getColWidth = function (col) {
+    col = Handsontable.PluginModifiers.run(self, 'col', col);
     var response = {};
     if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
       response.width = priv.settings.columns[col].width;

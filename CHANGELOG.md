@@ -9,6 +9,7 @@ Features:
 - apply automatic column size when double clicked on manual resize handle [TODO: write tests]
 - Scroll example page describes difference between available column stretching modes (all, last [default], none)
 - column sorting (initial commit) [TODO: write tests]
+- manual column move
 
 Breaking changes:
 - `loadData` no longer sends list of changes to `onChange` callback. That was not performant. Now if sends `null` changes object and `loadData` as source string.
