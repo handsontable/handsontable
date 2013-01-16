@@ -1965,7 +1965,7 @@ var settings = {
   'currentRowClassName': void 0,
   'currentColClassName': void 0,
   'asyncRendering': true,
-  'stretchH': 'last'
+  'stretchH': 'hybrid'
 };
 
 $.fn.handsontable = function (action) {
