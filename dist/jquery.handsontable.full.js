@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Jan 16 2013 12:35:16 GMT+0100 (Central European Standard Time)
+ * Date: Wed Jan 16 2013 16:22:26 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1340,7 +1340,7 @@ Handsontable.Core = function (rootElement, settings) {
     else {
       self.rootElement.triggerHandler(name, params);
     }
-  }
+  };
 
   var bindEvents = function () {
     self.rootElement.on("datachange.handsontable", function (event, changes, source) {
@@ -1472,7 +1472,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {Array} data
    */
   this.loadData = function (data, isInitial) {
-    var changes, r, rlen, c, clen, p;
+    var rlen;
     priv.isPopulated = false;
     priv.settings.data = data;
     if ($.isPlainObject(priv.settings.dataSchema) || $.isPlainObject(data[0])) {

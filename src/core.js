@@ -1321,7 +1321,7 @@ Handsontable.Core = function (rootElement, settings) {
     else {
       self.rootElement.triggerHandler(name, params);
     }
-  }
+  };
 
   var bindEvents = function () {
     self.rootElement.on("datachange.handsontable", function (event, changes, source) {
@@ -1453,7 +1453,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {Array} data
    */
   this.loadData = function (data, isInitial) {
-    var changes, r, rlen, c, clen, p;
+    var rlen;
     priv.isPopulated = false;
     priv.settings.data = data;
     if ($.isPlainObject(priv.settings.dataSchema) || $.isPlainObject(data[0])) {
