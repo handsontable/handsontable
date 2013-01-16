@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Wed Jan 16 2013 12:29:42 GMT+0100 (Central European Standard Time)
+ * Date: Wed Jan 16 2013 21:38:22 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -229,8 +229,8 @@ function Walkontable(settings) {
     onCellCornerDblClick: null,
 
     //constants
-    scrollbarWidth: 9,
-    scrollbarHeight: 9
+    scrollbarWidth: 10,
+    scrollbarHeight: 10
   };
 
   //reference to settings
@@ -1664,37 +1664,33 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
   }
 };
 
-//0 if no
-//1 if partially
-//2 is fully
 WalkontableTable.prototype.isCellVisible = function (TD) {
-  var offsetRow = this.instance.getSetting('offsetRow')
-    , offsetColumn = this.instance.getSetting('offsetColumn')
-    , displayRows = this.instance.getSetting('displayRows')
-    , displayColumns = this.instance.getSetting('displayColumns')
-    , frozenColumns = this.instance.getSetting('frozenColumns');
+  var out
+    , scrollV = this.instance.getSetting('scrollV')
+    , scrollH = this.instance.getSetting('scrollH')
+    , cellOffset = this.wtDom.offset(TD)
+    , tableOffset = this.tableOffset
+    , innerOffsetTop = cellOffset.top - tableOffset.top
+    , innerOffsetLeft = cellOffset.left - tableOffset.left
+    , $td = $(TD)
+    , width = $td.outerWidth()
+    , height = $td.outerHeight()
+    , tableWidth = this.instance.hasSetting('width') ? this.instance.getSetting('width') : Infinity
+    , tableHeight = this.instance.hasSetting('height') ? this.instance.getSetting('height') : Infinity;
 
-  var out;
+  if (scrollV === 'auto' || scrollV === 'scroll' || scrollV === 'hybrid') {
+    tableHeight -= this.instance.getSetting('scrollbarHeight'); //at this point we don't really know if the scrollbars are visible, so let's assume they are
+  }
+  if (scrollH === 'auto' || scrollH === 'scroll' || scrollH === 'hybrid') {
+    tableWidth -= this.instance.getSetting('scrollbarWidth'); //at this point we don't really know if the scrollbars are visible, so let's assume they are
+  }
 
-  var cellOffset = this.wtDom.offset(TD);
-  var tableOffset = this.tableOffset;
-  var innerOffsetTop = cellOffset.top - tableOffset.top;
-  var innerOffsetLeft = cellOffset.left - tableOffset.left;
-  var $td = $(TD);
-  var width = $td.outerWidth();
-  var height = $td.outerHeight();
-
-  var $table = $(this.TABLE);
-  var tableWidth = this.instance.hasSetting('width') ? this.instance.getSetting('width') : $table.outerWidth()
-    , tableHeight = this.instance.hasSetting('height') ? this.instance.getSetting('height') : $table.outerHeight();
-
-  //at this point we don't really know if the scrollbars are visible
-  //if (this.instance.wtScroll.wtScrollbarV.visible) {
-  tableHeight -= this.instance.getSetting('scrollbarHeight');
-  //}
-  //if (this.instance.wtScroll.wtScrollbarH.visible) {
-  tableWidth -= this.instance.getSetting('scrollbarWidth');
-  //}
+  /**
+   * Legend:
+   * 0 - not visible
+   * 1 - partially visible
+   * 2 - visible
+   */
 
   if (innerOffsetTop > tableHeight) {
     out = 0;
