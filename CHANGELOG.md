@@ -16,6 +16,7 @@ Breaking changes:
 Bugfixes:
 - overflow auto only worked when declared in inline style (not in CSS class) (issue #339 point 6)
 - during initialization, sliders were shown for a while in the top left corner
+- scrolling issues (#343, #331)
 
 ## [0.8.2](https://github.com/warpech/jquery-handsontable/tree/v0.8.2) (Jan 7, 2013)
 
