@@ -23,14 +23,12 @@ function HandsontableAutoColumnSize() {
       tmp.style.left = '0';
       tmp.style.display = 'none';
 
-      tmpTbody = document.createElement('TABLE');
-      tmpTbody.innerHTML = '<tbody><tr><td></td></tr></tbody>';
+      tmpTbody = $('<table><thead><tr><td></td></tr></thead></table>')[0];
       tmp.appendChild(tmpTbody);
 
       tmp.appendChild(document.createElement('BR'));
 
-      tmpThead = document.createElement('TABLE');
-      tmpThead.innerHTML = '<thead><tr><th></th></tr></thead>';
+      tmpThead = $('<table><tbody><tr><td></td></tr></tbody></table>')[0];
       tmp.appendChild(tmpThead);
 
       document.body.appendChild(tmp);

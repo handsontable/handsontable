@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Jan 19 2013 17:36:04 GMT+0100 (Central European Standard Time)
+ * Date: Sun Jan 20 2013 14:36:32 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3230,14 +3230,12 @@ function HandsontableAutoColumnSize() {
       tmp.style.left = '0';
       tmp.style.display = 'none';
 
-      tmpTbody = document.createElement('TABLE');
-      tmpTbody.innerHTML = '<tbody><tr><td></td></tr></tbody>';
+      tmpTbody = $('<table><thead><tr><td></td></tr></thead></table>')[0];
       tmp.appendChild(tmpTbody);
 
       tmp.appendChild(document.createElement('BR'));
 
-      tmpThead = document.createElement('TABLE');
-      tmpThead.innerHTML = '<thead><tr><th></th></tr></thead>';
+      tmpThead = $('<table><tbody><tr><td></td></tr></tbody></table>')[0];
       tmp.appendChild(tmpThead);
 
       document.body.appendChild(tmp);
