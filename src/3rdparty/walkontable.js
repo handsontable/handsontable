@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Mon Jan 21 2013 13:07:49 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 21 2013 14:38:34 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -901,8 +901,10 @@ WalkontableScrollbar.prototype.refresh = function () {
     , handlePosition
     , offsetCount
     , totalCount
-    , tableWidth = this.instance.hasSetting('width') ? this.instance.getSetting('width') : this.$table.outerWidth()
-    , tableHeight = this.instance.hasSetting('height') ? this.instance.getSetting('height') : this.$table.outerHeight();
+    , tableOuterWidth = this.$table.outerWidth()
+    , tableOuterHeight = this.$table.outerHeight()
+    , tableWidth = this.instance.hasSetting('width') ? this.instance.getSetting('width') : tableOuterWidth
+    , tableHeight = this.instance.hasSetting('height') ? this.instance.getSetting('height') : tableOuterHeight;
 
   if (!tableWidth) {
     //throw new Error("I could not compute table width. Is the <table> element attached to the DOM?");
@@ -913,11 +915,18 @@ WalkontableScrollbar.prototype.refresh = function () {
     return;
   }
 
-  if (this.instance.wtScroll.wtScrollbarV.visible) {
+  if (this.instance.hasSetting('width') && this.instance.wtScroll.wtScrollbarV.visible) {
     tableWidth -= this.instance.getSetting('scrollbarWidth');
   }
-  if (this.instance.wtScroll.wtScrollbarH.visible) {
+  if (tableWidth > tableOuterWidth + this.instance.getSetting('scrollbarWidth')) {
+    tableWidth = tableOuterWidth;
+  }
+
+  if (this.instance.hasSetting('height') && this.instance.wtScroll.wtScrollbarH.visible) {
     tableHeight -= this.instance.getSetting('scrollbarHeight');
+  }
+  if (tableHeight > tableOuterHeight + this.instance.getSetting('scrollbarHeight')) {
+    tableHeight = tableOuterHeight;
   }
 
   if (this.type === 'vertical') {
