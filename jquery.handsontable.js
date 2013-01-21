@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 21 2013 14:40:17 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 21 2013 23:33:31 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2070,15 +2070,21 @@ Handsontable.TableView = function (instance) {
   });
 
   $(document.documentElement).on('mousedown', function (event) {
-    if (that.instance.getSettings().outsideClickDeselects) {
-      var next = event.target;
+    var next = event.target;
+    if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== null && next !== document.documentElement) {
-        if (next === instance.rootElement[0] || $(next).attr('id') === 'context-menu-layer' || $(next).is('.typeahead li')) {
+        if (next === instance.rootElement[0] || $(next).attr('id') === 'context-menu-layer' || $(next).is('.context-menu-list') || $(next).is('.typeahead li')) {
           return; //click inside container
         }
         next = next.parentNode;
       }
+    }
+
+    if (that.instance.getSettings().outsideClickDeselects) {
       that.instance.deselectCell();
+    }
+    else {
+      that.instance.destroyEditor();
     }
   });
 
@@ -2237,6 +2243,12 @@ Handsontable.TableView = function (instance) {
     that.wt.update('height', that.containerHeight);
     that.instance.forceFullRender = true;
     that.render();
+  });
+
+  $(that.wt.wtTable.spreader).on('mousedown.handsontable, contextmenu.handsontable', function (event) {
+    if(event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
+      event.stopPropagation();
+    }
   });
 };
 
@@ -3434,6 +3446,10 @@ function createContextMenu() {
 
   function onContextClick(key) {
     var corners = instance.getSelected(); //[top left row, top left col, bottom right row, bottom right col]
+
+    if(!corners) {
+      return; //needed when there are 2 grids on a page
+    }
 
     switch (key) {
       case "row_above":
