@@ -1,7 +1,7 @@
 /**
  * walkontable 0.1
  * 
- * Date: Sun Jan 20 2013 16:20:59 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 21 2013 13:07:49 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -1709,6 +1709,8 @@ WalkontableTable.prototype._doDraw = function () {
       this.wtDom.removeClass(this.COLGROUP.childNodes[c], 'rowHeader');
     }
   }
+
+  this.refreshStretching(); //needed here or otherwise scrollbarH is not shown
 
   //draw THEAD
   if (frozenColumnsCount && this.instance.hasSetting('columnHeaders')) {
