@@ -37,12 +37,12 @@ describe('Core_init', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(this.$container.find('.htCore').width()).toEqual(200 - 9); //9 is scrollbar width
+      expect(this.$container.width()).toEqual(200);
     });
   });
 
   it('should respect width provided in CSS class', function () {
-    var $style = $('<style>.myTable {overflow: auto; width: 200px}</style>').appendTo('head');
+    $('<style>.myTable {overflow: auto; width: 200px}</style>').appendTo('head');
     this.$container.addClass('myTable');
     handsontable({
       data: [
@@ -53,7 +53,7 @@ describe('Core_init', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(this.$container.find('.htCore').width()).toEqual(200 - 9); //9 is scrollbar width
+      expect(this.$container.width()).toEqual(200);
     });
   });
 });
