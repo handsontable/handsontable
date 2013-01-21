@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jan 21 2013 11:07:48 GMT+0100 (Central European Standard Time)
+ * Date: Mon Jan 21 2013 12:14:43 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -789,7 +789,10 @@ Handsontable.Core = function (rootElement, settings) {
         return;
       }
       priv.selEnd = new Handsontable.SelectionPoint(); //create new empty point to remove the existing one
+      self.view.wt.selections.current.clear();
+      self.view.wt.selections.area.clear();
       editproxy.destroy();
+      selection.refreshBorders();
       self.rootElement.triggerHandler('deselect.handsontable');
     },
 
@@ -1235,7 +1238,9 @@ Handsontable.Core = function (rootElement, settings) {
      */
     focus: function () {
       try { //calling select() on hidden textarea causes problem in IE9 - similar to https://github.com/ajaxorg/ace/issues/251
-        priv.editProxy[0].select();
+        if(selection.isSelected()) {
+          priv.editProxy[0].select();
+        }
       }
       catch (e) {
 
@@ -2064,6 +2069,21 @@ Handsontable.TableView = function (instance) {
     }
   });
 
+  $(document.documentElement).on('mouseup', function (event) {
+    if (that.instance.getSettings().outsideClickDeselects) {
+      setTimeout(function () {
+        var next = event.target;
+        while (next !== null && next !== document.documentElement) {
+          if (next === instance.rootElement[0] || $(next).attr('id') === 'context-menu-layer') {
+            return; //click inside container
+          }
+          next = next.parentNode;
+        }
+        that.instance.deselectCell();
+      }, 1);
+    }
+  });
+
   $table.on('selectstart', function (event) {
     //https://github.com/warpech/jquery-handsontable/issues/160
     //selectstart is IE only event. Prevent text from being selected when performing drag down in IE8
@@ -2086,8 +2106,8 @@ Handsontable.TableView = function (instance) {
       , offset = that.wt.wtDom.offset($table[0])
       , offsetTop = offset.top + tolerance
       , offsetLeft = offset.left + tolerance
-      , width = this.containerWidth - that.wt.settings.scrollbarWidth - 2 * tolerance
-      , height = this.containerHeight - that.wt.settings.scrollbarHeight - 2 * tolerance
+      , width = that.containerWidth - that.wt.settings.scrollbarWidth - 2 * tolerance
+      , height = that.containerHeight - that.wt.settings.scrollbarHeight - 2 * tolerance
       , method
       , row = 0
       , col = 0
@@ -2213,7 +2233,6 @@ Handsontable.TableView = function (instance) {
   this.instance.forceFullRender = true; //used when data was changed
   this.render();
 
-  var that = this;
   $(window).on('resize', function () {
     that.determineContainerSize();
     that.wt.update('width', that.containerWidth);
@@ -2788,6 +2807,12 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
   keyboardProxy.css({
     width: 0,
     height: 0
+  });
+
+  keyboardProxy.on('blur.editor', function () {
+    if (texteditor.isCellEdited) {
+      texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
+    }
   });
 
   keyboardProxy.on('refreshBorder.editor', function () {

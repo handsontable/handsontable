@@ -770,7 +770,10 @@ Handsontable.Core = function (rootElement, settings) {
         return;
       }
       priv.selEnd = new Handsontable.SelectionPoint(); //create new empty point to remove the existing one
+      self.view.wt.selections.current.clear();
+      self.view.wt.selections.area.clear();
       editproxy.destroy();
+      selection.refreshBorders();
       self.rootElement.triggerHandler('deselect.handsontable');
     },
 
@@ -1216,7 +1219,9 @@ Handsontable.Core = function (rootElement, settings) {
      */
     focus: function () {
       try { //calling select() on hidden textarea causes problem in IE9 - similar to https://github.com/ajaxorg/ace/issues/251
-        priv.editProxy[0].select();
+        if(selection.isSelected()) {
+          priv.editProxy[0].select();
+        }
       }
       catch (e) {
 

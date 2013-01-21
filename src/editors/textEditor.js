@@ -234,6 +234,12 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
     height: 0
   });
 
+  keyboardProxy.on('blur.editor', function () {
+    if (texteditor.isCellEdited) {
+      texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
+    }
+  });
+
   keyboardProxy.on('refreshBorder.editor', function () {
     setTimeout(function () {
       if (texteditor.isCellEdited) {
