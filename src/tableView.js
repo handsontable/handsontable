@@ -76,8 +76,8 @@ Handsontable.TableView = function (instance) {
       , offset = that.wt.wtDom.offset($table[0])
       , offsetTop = offset.top + tolerance
       , offsetLeft = offset.left + tolerance
-      , width = that.containerWidth - that.wt.settings.scrollbarWidth - 2 * tolerance
-      , height = that.containerHeight - that.wt.settings.scrollbarHeight - 2 * tolerance
+      , width = that.containerWidth - that.wt.getSetting('scrollbarWidth') - 2 * tolerance
+      , height = that.containerHeight - that.wt.getSetting('scrollbarHeight') - 2 * tolerance
       , method
       , row = 0
       , col = 0
