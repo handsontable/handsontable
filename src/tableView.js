@@ -39,18 +39,16 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  $(document.documentElement).on('mouseup', function (event) {
+  $(document.documentElement).on('mousedown', function (event) {
     if (that.instance.getSettings().outsideClickDeselects) {
-      setTimeout(function () {
-        var next = event.target;
-        while (next !== null && next !== document.documentElement) {
-          if (next === instance.rootElement[0] || $(next).attr('id') === 'context-menu-layer') {
-            return; //click inside container
-          }
-          next = next.parentNode;
+      var next = event.target;
+      while (next !== null && next !== document.documentElement) {
+        if (next === instance.rootElement[0] || $(next).attr('id') === 'context-menu-layer' || $(next).is('.typeahead li')) {
+          return; //click inside container
         }
-        that.instance.deselectCell();
-      }, 1);
+        next = next.parentNode;
+      }
+      that.instance.deselectCell();
     }
   });
 
