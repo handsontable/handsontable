@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Column sorting - Handsontable</title>
+  <title>Column resize - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -22,9 +22,9 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Column sorting">
+  <meta property="og:title" content="Column resize">
   <meta property="og:description"
-        content="Click on a column header to sort.">
+        content=".">
   <meta property="og:url" content="http://handsontable.com/demo/sorting.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -91,13 +91,13 @@
       <div class="pad">
         <a name="both"></a>
 
-        <h2>Column sorting</h2>
+        <h2>Column resize</h2>
 
-        <p>To enable this experimental feature, use setting <code>columnSorting: true</code></p>
+        <p>To enable this experimental feature, use setting <code>manualColumnResize: true</code></p>
 
-        <p>Click on a column header to sort.</p>
+        <p>In the right part of column header a draggable column resize handle will appear.</p>
 
-        <p>Only the table view is sorted. The data source remains in the original order.</p>
+        <p>Double click on the column resize handle to automatically adjust column width.</p>
 
         <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
@@ -117,7 +117,7 @@
             rowHeaders: true,
             colHeaders: true,
             colWidths: [55, 80, 80, 80, 80, 80, 80],
-            columnSorting: true,
+            manualColumnResize: true,
             minSpareRows: 1
           });
         </script>
