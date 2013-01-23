@@ -88,7 +88,9 @@
 
         <ul>
           <li><a href="#both">Vertical and horizontal scrollbars</a></li>
-          <li><a href="#single">Single scrollbar</a></li>
+          <li><a href="#last">Single scrollbar (stretch last column)</a></li>
+          <li><a href="#stretch">Single scrollbar (stretch all columns)</a></li>
+          <li><a href="#hybrid">Single scrollbar (hybrid mode - default)</a></li>
         </ul>
       </div>
     </div>
@@ -115,6 +117,10 @@
 
     <div class="codeLayout">
       <div class="pad">
+        <div class="jsFiddle">
+          <div class="jsFiddleLink">Edit in jsFiddle</div>
+        </div>
+
         <script>
           /*
            Container looks like this:
@@ -127,7 +133,8 @@
             colWidths: [55, 80, 80, 80, 80, 80, 80], //can also be a number or a function
             rowHeaders: true,
             colHeaders: true,
-            minSpareRows: 1
+            minSpareRows: 1,
+            contextMenu: true
           });
         </script>
       </div>
@@ -156,6 +163,10 @@
 
     <div class="codeLayout">
       <div class="pad">
+        <div class="jsFiddle">
+          <div class="jsFiddleLink">Edit in jsFiddle</div>
+        </div>
+
         <script>
           /*
            Container looks like this:
@@ -168,7 +179,9 @@
             colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
             rowHeaders: true,
             colHeaders: true,
-            minSpareRows: 1
+            stretchH: 'last',
+            minSpareRows: 1,
+            contextMenu: true
           });
         </script>
       </div>
@@ -201,6 +214,10 @@
 
     <div class="codeLayout">
       <div class="pad">
+        <div class="jsFiddle">
+          <div class="jsFiddleLink">Edit in jsFiddle</div>
+        </div>
+
         <script>
           /*
            Container looks like this:
@@ -214,7 +231,58 @@
             rowHeaders: true,
             colHeaders: true,
             stretchH: 'all',
-            minSpareRows: 1
+            minSpareRows: 1,
+            contextMenu: true
+          });
+        </script>
+      </div>
+    </div>
+  </div>
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <div class="pad bottomSpace100">
+        <a name="hybrid"></a>
+
+        <h2>Single scrollbar (hybrid mode - default)</h2>
+
+        <p>Sometimes you don't want if horizontal scroll bar will be needed. That's why <code>stretchH: 'hybrid'</code> is the default column stretching mode</p>
+
+        <p>When horizontal scrollbar is NOT visible, it acts as <code>stretchH: 'none'</code>. When horizontal scrollbar is visible, it acts as <code>stretchH: 'last'</code>.</p>
+
+        <div id="example4" style="height: 300px; overflow: auto"></div>
+
+        <p>
+          <button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+            data to console
+          </button>
+        </p>
+      </div>
+    </div>
+
+    <div class="codeLayout">
+      <div class="pad">
+        <div class="jsFiddle">
+          <div class="jsFiddleLink">Edit in jsFiddle</div>
+        </div>
+
+        <script>
+          /*
+           Container looks like this:
+
+           <div id="example4" style="width: height: 300px; overflow: auto"></div>
+           */
+
+          $("#example4").handsontable({
+            data: createBigData(),
+            colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
+            rowHeaders: true,
+            colHeaders: true,
+            scrollH: 'auto',
+            scrollV: 'auto',
+            stretchH: 'hybrid', //actually you don't have to declare it because it is default
+            minSpareRows: 1,
+            contextMenu: true
           });
         </script>
       </div>

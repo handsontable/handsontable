@@ -22,9 +22,9 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Sorting">
+  <meta property="og:title" content="Column sorting">
   <meta property="og:description"
-        content=".">
+        content="Click on a column header to sort.">
   <meta property="og:url" content="http://handsontable.com/demo/sorting.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -93,6 +93,8 @@
 
         <h2>Column sorting</h2>
 
+        <p>To enable this experimental feature, use setting <code>columnSorting: true</code></p>
+
         <p>Click on a column header to sort.</p>
 
         <p>Only the table view is sorted. The data source remains in the original order.</p>
@@ -109,6 +111,10 @@
 
     <div class="codeLayout">
       <div class="pad">
+        <div class="jsFiddle">
+          <div class="jsFiddleLink">Edit in jsFiddle</div>
+        </div>
+
         <script>
           $("#example1").handsontable({
             data: createBigData(),

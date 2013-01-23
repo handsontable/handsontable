@@ -69,10 +69,6 @@
 
       <p>Please take note that Handsontable will change the original data source. More about this here: <a
           href="understanding_reference.html">Understanding binding as reference</a>.</p>
-
-      <a name="array"></a>
-
-      <h2>Array data source</h2>
     </div>
   </div>
 </div>
@@ -80,6 +76,10 @@
 <div class="rowLayout">
   <div class="descLayout">
     <div class="pad bottomSpace100">
+      <a name="array"></a>
+
+      <h2>Array data source</h2>
+
       <p>Most of the people use <strong>array of arrays</strong> data source with Handsontable.</p>
 
       <div id="example1"></div>
@@ -92,6 +92,10 @@
 
   <div class="codeLayout">
     <div class="pad">
+      <div class="jsFiddle">
+        <div class="jsFiddleLink">Edit in jsFiddle</div>
+      </div>
+
       <script>
         var data = [
           ["", "Kia", "Nissan", "Toyota", "Honda"],
@@ -115,17 +119,11 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad">
+    <div class="pad bottomSpace150">
       <a name="array-hidden"></a>
 
       <h2>Array data source (with hidden columns)</h2>
-    </div>
-  </div>
-</div>
 
-<div class="rowLayout">
-  <div class="descLayout">
-    <div class="pad bottomSpace150">
       <p>Let's say, you want the same data source, but without the <b>Kia</b> column.</p>
 
       <div id="example2"></div>
@@ -138,6 +136,10 @@
 
   <div class="codeLayout">
     <div class="pad">
+      <div class="jsFiddle">
+        <div class="jsFiddleLink">Edit in jsFiddle</div>
+      </div>
+
       <script>
         var hiddenData = [
           ["", "Kia", "Nissan", "Toyota", "Honda"],
@@ -167,17 +169,11 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad">
+    <div class="pad bottomSpace100">
       <a name="object"></a>
 
       <h2>Object data source</h2>
-    </div>
-  </div>
-</div>
 
-<div class="rowLayout">
-  <div class="descLayout">
-    <div class="pad bottomSpace100">
       <p>With version 0.7.0, comes possibility to use <strong>array of objects</strong> data source.</p>
 
       <div id="example3"></div>
@@ -190,6 +186,10 @@
 
   <div class="codeLayout">
     <div class="pad">
+      <div class="jsFiddle">
+        <div class="jsFiddleLink">Edit in jsFiddle</div>
+      </div>
+
       <script>
         var objectData = [
           {id: 1, name: "Ted Right", address: ""},
@@ -212,17 +212,11 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad">
+    <div class="pad bottomSpace100">
       <a name="nested"></a>
 
       <h2>Nested object data source (with column mapping)</h2>
-    </div>
-  </div>
-</div>
 
-<div class="rowLayout">
-  <div class="descLayout">
-    <div class="pad bottomSpace100">
       <p>Some people have nested objects. They can also be used at the data source with a little bit of column
         mapping.</p>
 
@@ -238,6 +232,10 @@
 
   <div class="codeLayout">
     <div class="pad">
+      <div class="jsFiddle">
+        <div class="jsFiddleLink">Edit in jsFiddle</div>
+      </div>
+
       <script>
         var nestedObjects = [
           {id: 1, name: {first: "Ted", last: "Right"}, address: ""},
@@ -266,17 +264,11 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad">
+    <div class="pad bottomSpace100">
       <a name="dataschema"></a>
 
       <h2>Automatic and custom data schema</h2>
-    </div>
-  </div>
-</div>
 
-<div class="rowLayout">
-  <div class="descLayout">
-    <div class="pad bottomSpace100">
       <p>When you use object data binding, Handsontable needs to know the data structure to create when you add a new
         row.</p>
 
@@ -298,6 +290,10 @@
 
   <div class="codeLayout">
     <div class="pad">
+      <div class="jsFiddle">
+        <div class="jsFiddleLink">Edit in jsFiddle</div>
+      </div>
+
       <script>
         var $container = $("#example5");
         $container.handsontable({

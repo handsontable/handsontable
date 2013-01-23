@@ -271,6 +271,7 @@ describe('TextEditor', function () {
     });
 
     waitsFor(nextFrame, 'next frame', 60);
+    waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
       expect(isEditorVisible()).toEqual(true);

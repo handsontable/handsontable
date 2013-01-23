@@ -39,6 +39,25 @@ Handsontable.TableView = function (instance) {
     }
   });
 
+  $(document.documentElement).on('mousedown', function (event) {
+    var next = event.target;
+    if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
+      while (next !== null && next !== document.documentElement) {
+        if (next === instance.rootElement[0] || $(next).attr('id') === 'context-menu-layer' || $(next).is('.context-menu-list') || $(next).is('.typeahead li')) {
+          return; //click inside container
+        }
+        next = next.parentNode;
+      }
+    }
+
+    if (that.instance.getSettings().outsideClickDeselects) {
+      that.instance.deselectCell();
+    }
+    else {
+      that.instance.destroyEditor();
+    }
+  });
+
   $table.on('selectstart', function (event) {
     //https://github.com/warpech/jquery-handsontable/issues/160
     //selectstart is IE only event. Prevent text from being selected when performing drag down in IE8
@@ -61,8 +80,8 @@ Handsontable.TableView = function (instance) {
       , offset = that.wt.wtDom.offset($table[0])
       , offsetTop = offset.top + tolerance
       , offsetLeft = offset.left + tolerance
-      , width = this.containerWidth - that.wt.settings.scrollbarWidth - 2 * tolerance
-      , height = this.containerHeight - that.wt.settings.scrollbarHeight - 2 * tolerance
+      , width = that.containerWidth - that.wt.getSetting('scrollbarWidth') - 2 * tolerance
+      , height = that.containerHeight - that.wt.getSetting('scrollbarHeight') - 2 * tolerance
       , method
       , row = 0
       , col = 0
@@ -188,13 +207,18 @@ Handsontable.TableView = function (instance) {
   this.instance.forceFullRender = true; //used when data was changed
   this.render();
 
-  var that = this;
   $(window).on('resize', function () {
     that.determineContainerSize();
     that.wt.update('width', that.containerWidth);
     that.wt.update('height', that.containerHeight);
     that.instance.forceFullRender = true;
     that.render();
+  });
+
+  $(that.wt.wtTable.spreader).on('mousedown.handsontable, contextmenu.handsontable', function (event) {
+    if(event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
+      event.stopPropagation();
+    }
   });
 };
 

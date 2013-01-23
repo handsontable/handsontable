@@ -45,24 +45,29 @@ function HandsontableManualColumnResize() {
   });
 
   this.beforeInit = function () {
-    var that = this;
     this.manualColumnWidths = [];
-    this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
-      instance = that;
-      var $resizer = $(e.target);
-      currentCol = $resizer.attr('rel');
-      start = that.rootElement.find('col').eq($resizer.parent().parent().index());
-      pressed = true;
-      startX = e.pageX;
-      startWidth = start.width();
-      currentWidth = startWidth;
-      $resizer.addClass('active');
+  };
 
-      var $table = that.rootElement.find('.htCore');
-      $line.appendTo($table.parent()).height($table.height());
-      startOffset = parseInt($resizer.parent().parent().offset().left - $table.offset().left);
-      $line[0].style.left = startOffset + currentWidth - 1 + 'px';
-    });
+  this.afterInit = function () {
+    if (this.getSettings().manualColumnResize) {
+      var that = this;
+      this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
+        instance = that;
+        var $resizer = $(e.target);
+        currentCol = $resizer.attr('rel');
+        start = that.rootElement.find('col').eq($resizer.parent().parent().index());
+        pressed = true;
+        startX = e.pageX;
+        startWidth = start.width();
+        currentWidth = startWidth;
+        $resizer.addClass('active');
+
+        var $table = that.rootElement.find('.htCore');
+        $line.appendTo($table.parent()).height($table.height());
+        startOffset = parseInt($resizer.parent().parent().offset().left - $table.offset().left);
+        $line[0].style.left = startOffset + currentWidth - 1 + 'px';
+      });
+    }
   };
 
   var setManualSize = function (col, width) {
@@ -72,14 +77,16 @@ function HandsontableManualColumnResize() {
   };
 
   this.getColHeader = function (col, TH) {
-    var DIV = document.createElement('DIV');
-    DIV.className = 'manualColumnResizer';
-    $(DIV).attr('rel', col);
-    TH.firstChild.appendChild(DIV);
+    if (this.getSettings().manualColumnResize) {
+      var DIV = document.createElement('DIV');
+      DIV.className = 'manualColumnResizer';
+      $(DIV).attr('rel', col);
+      TH.firstChild.appendChild(DIV);
+    }
   };
 
   this.getColWidth = function (col, response) {
-    if (this.manualColumnWidths[col]) {
+    if (this.getSettings().manualColumnResize && this.manualColumnWidths[col]) {
       response.width = this.manualColumnWidths[col];
     }
   };
@@ -87,5 +94,6 @@ function HandsontableManualColumnResize() {
 var htManualColumnResize = new HandsontableManualColumnResize();
 
 Handsontable.PluginHooks.push('beforeInit', htManualColumnResize.beforeInit);
+Handsontable.PluginHooks.push('afterInit', htManualColumnResize.afterInit);
 Handsontable.PluginHooks.push('afterGetColHeader', htManualColumnResize.getColHeader);
 Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWidth);

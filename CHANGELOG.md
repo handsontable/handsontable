@@ -2,13 +2,12 @@
 
 Features:
 - optimize jquery-autoresize plugin: arclones element is emptied before injecting another node
-- new configuration options `currentRowClassName` and `currentColClassName` along with new example page "Highlight current row & column" [TODO: write tests]
-- manual column resize (initial commit) [TODO: write tests]
-- automatic column size (initial commit) [TODO: write tests]
+- new configuration options `currentRowClassName` and `currentColClassName` along with new example page [Highlight current row & column](http://handsontable.com/demo/current.html) [TODO: write tests]
+- [Manual column resize](http://handsontable.com/demo/column_resize.html)
+- [Column sorting](http://handsontable.com/demo/sorting.html)
 - compability: automatic column size is asserted `true` when `colWidths` option is not provided
 - apply automatic column size when double clicked on manual resize handle [TODO: write tests]
-- Scroll example page describes difference between available column stretching modes (all, last [default], none)
-- column sorting (initial commit) [TODO: write tests]
+- Scroll example page describes difference between available [column stretching modes](http://handsontable.com/demo/scroll.html) (all, last [default], none)
 - manual column move
 
 Breaking changes:
@@ -17,6 +16,10 @@ Breaking changes:
 Bugfixes:
 - overflow auto only worked when declared in inline style (not in CSS class) (issue #339 point 6)
 - during initialization, sliders were shown for a while in the top left corner
+- scrolling issues (#343, #331, partially #360)
+- deselection when param `outsideClickDeselects` set to true (issue #351)
+- order of callbacks when clicked outside of a cell (issue #269)
+- context menu was shown when clicked outside of the table (issue #306)
 
 ## [0.8.2](https://github.com/warpech/jquery-handsontable/tree/v0.8.2) (Jan 7, 2013)
 
