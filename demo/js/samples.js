@@ -91,7 +91,10 @@ $(function () {
 <link rel="stylesheet" media="screen" href="http://handsontable.com/demo/css/samples.css">\n\
 <style type="text/css">\n\
 body {background: white; margin: 20px;}\n\
-h2 {margin: 20px 0;}';
+h2 {margin: 20px 0;}\n\n';
+    $('style.common').each(function () {
+      css += trimCodeBlock($(this).html()).join('\n') + '\n';
+    });
 
     var js = '$(document).ready(function () {\n\n';
 
