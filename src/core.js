@@ -90,6 +90,7 @@ Handsontable.Core = function (rootElement, settings) {
     },
 
     colToProp: function (col) {
+      col = Handsontable.PluginModifiers.run(self, 'col', col);
       if (priv.colToProp && typeof priv.colToProp[col] !== 'undefined') {
         return priv.colToProp[col];
       }
@@ -99,13 +100,15 @@ Handsontable.Core = function (rootElement, settings) {
     },
 
     propToCol: function (prop) {
+      var col;
       if (typeof priv.propToCol[prop] !== 'undefined') {
-        return priv.propToCol[prop];
+        col = priv.propToCol[prop];
       }
       else {
-        return prop;
+        col = prop;
       }
-
+      col = Handsontable.PluginModifiers.run(self, 'col', col);
+      return col;
     },
 
     getSchema: function () {
@@ -217,10 +220,14 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Number} row
      * @param {Number} prop
      */
+    getVars: {},
     get: function (row, prop) {
-      if (typeof prop === 'string' && prop.indexOf('.') > -1) {
-        var sliced = prop.split(".");
-        var out = priv.settings.data[row];
+      datamap.getVars.row = row;
+      datamap.getVars.prop = prop;
+      Handsontable.PluginHooks.run(self, 'beforeGet', datamap.getVars);
+      if (typeof datamap.getVars.prop === 'string' && datamap.getVars.prop.indexOf('.') > -1) {
+        var sliced = datamap.getVars.prop.split(".");
+        var out = priv.settings.data[datamap.getVars.row];
         if (!out) {
           return null;
         }
@@ -233,7 +240,7 @@ Handsontable.Core = function (rootElement, settings) {
         return out;
       }
       else {
-        return priv.settings.data[row] ? priv.settings.data[row][prop] : null;
+        return priv.settings.data[datamap.getVars.row] ? priv.settings.data[datamap.getVars.row][datamap.getVars.prop] : null;
       }
     },
 
@@ -243,17 +250,22 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Number} prop
      * @param {String} value
      */
+    setVars: {},
     set: function (row, prop, value) {
-      if (typeof prop === 'string' && prop.indexOf('.') > -1) {
-        var sliced = prop.split(".");
-        var out = priv.settings.data[row];
+      datamap.setVars.row = row;
+      datamap.setVars.prop = prop;
+      datamap.setVars.value = value;
+      Handsontable.PluginHooks.run(self, 'beforeSet', datamap.setVars);
+      if (typeof datamap.setVars.prop === 'string' && datamap.setVars.prop.indexOf('.') > -1) {
+        var sliced = datamap.setVars.prop.split(".");
+        var out = priv.settings.data[datamap.setVars.row];
         for (var i = 0, ilen = sliced.length - 1; i < ilen; i++) {
           out = out[sliced[i]];
         }
-        out[sliced[i]] = value;
+        out[sliced[i]] = datamap.setVars.value;
       }
       else {
-        priv.settings.data[row][prop] = value;
+        priv.settings.data[datamap.setVars.row][datamap.setVars.prop] = datamap.setVars.value;
       }
     },
 
@@ -761,7 +773,10 @@ Handsontable.Core = function (rootElement, settings) {
         return;
       }
       priv.selEnd = new Handsontable.SelectionPoint(); //create new empty point to remove the existing one
+      self.view.wt.selections.current.clear();
+      self.view.wt.selections.area.clear();
       editproxy.destroy();
+      selection.refreshBorders();
       self.rootElement.triggerHandler('deselect.handsontable');
     },
 
@@ -1207,7 +1222,9 @@ Handsontable.Core = function (rootElement, settings) {
      */
     focus: function () {
       try { //calling select() on hidden textarea causes problem in IE9 - similar to https://github.com/ajaxorg/ace/issues/251
-        priv.editProxy[0].select();
+        if(selection.isSelected()) {
+          priv.editProxy[0].select();
+        }
       }
       catch (e) {
 
@@ -1216,6 +1233,7 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   this.init = function () {
+    Handsontable.PluginHooks.run(self, 'beforeInit');
     editproxy.init();
 
     bindEvents();
@@ -1226,7 +1244,6 @@ Handsontable.Core = function (rootElement, settings) {
       fireEvent('datachange.handsontable', priv.firstRun);
       priv.firstRun = false;
     }
-
     Handsontable.PluginHooks.run(self, 'afterInit');
   };
 
@@ -1312,7 +1329,7 @@ Handsontable.Core = function (rootElement, settings) {
     else {
       self.rootElement.triggerHandler(name, params);
     }
-  }
+  };
 
   var bindEvents = function () {
     self.rootElement.on("datachange.handsontable", function (event, changes, source) {
@@ -1444,7 +1461,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {Array} data
    */
   this.loadData = function (data, isInitial) {
-    var changes, r, rlen, c, clen, p;
+    var rlen;
     priv.isPopulated = false;
     priv.settings.data = data;
     if ($.isPlainObject(priv.settings.dataSchema) || $.isPlainObject(data[0])) {
@@ -1472,20 +1489,13 @@ Handsontable.Core = function (rootElement, settings) {
     }
 
     grid.keepEmptyRows();
-    changes = [];
-    rlen = self.countRows(); //recount number of rows in case some row was removed by keepEmptyRows
-    clen = self.countCols();
-    for (r = 0; r < rlen; r++) {
-      for (c = 0; c < clen; c++) {
-        p = datamap.colToProp(c);
-        changes.push([r, p, "", datamap.get(r, p)])
-      }
-    }
+    Handsontable.PluginHooks.run(self, 'afterLoadData');
+
     if (priv.firstRun) {
-      priv.firstRun = [changes, 'loadData'];
+      priv.firstRun = [null, 'loadData'];
     }
     else {
-      fireEvent('datachange.handsontable', [changes, 'loadData']);
+      fireEvent('datachange.handsontable', [null, 'loadData']);
       self.render();
     }
     priv.isPopulated = true;
@@ -1728,7 +1738,7 @@ Handsontable.Core = function (rootElement, settings) {
       cellProperites = $.extend(true, cellProperites, priv.settings.cells(row, col, prop) || {});
     }
     cellProperites.isWritable = !cellProperites.readOnly;
-    Handsontable.PluginHooks.run(self, 'afterGetCellMeta', [row, col, cellProperites]);
+    Handsontable.PluginHooks.run(self, 'afterGetCellMeta', row, col, cellProperites);
     return cellProperites;
   };
 
@@ -1753,19 +1763,22 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
-   * Return array of col headers (if they are enabled). If param `col` given, return header at given col as string
-   * @param {Number} col (Optional)
-   * @return {Array|String}
+   * Return column header at given col as HTML string
+   * @param {Number} col
+   * @param {HTMLElement} TH
    */
-  this.getColHeader = function (col) {
+  this.getColHeader = function (col, TH) {
+    col = Handsontable.PluginModifiers.run(self, 'col', col);
+    var DIV = document.createElement('DIV');
+    DIV.className = 'relative';
     if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
-      return priv.settings.columns[col].title;
+      DIV.innerHTML = '<span class="colHeader">' + priv.settings.columns[col].title + '</span>';
     }
     else if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
-      return priv.settings.colHeaders[col];
+      DIV.innerHTML = '<span class="colHeader">' + priv.settings.colHeaders[col] + '</span>';
     }
     else if (typeof priv.settings.colHeaders === 'function') {
-      return priv.settings.colHeaders(col);
+      DIV.innerHTML = '<span class="colHeader">' + priv.settings.colHeaders(col) + '</span>';
     }
     else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
       var dividend = col + 1;
@@ -1776,11 +1789,17 @@ Handsontable.Core = function (rootElement, settings) {
         columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
         dividend = parseInt((dividend - modulo) / 26);
       }
-      return columnLabel;
+      DIV.innerHTML = '<span class="colHeader">' + columnLabel + '</span>';
     }
     else {
-      return priv.settings.colHeaders;
+      DIV.innerHTML = '<span class="colHeader">' + priv.settings.colHeaders + '</span>';
     }
+
+    while (TH.firstChild) {
+      TH.removeChild(TH.firstChild); //empty TH node
+    }
+    TH.appendChild(DIV);
+    Handsontable.PluginHooks.run(self, 'afterGetColHeader', col, TH);
   };
 
   /**
@@ -1789,12 +1808,19 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Number}
    */
   this.getColWidth = function (col) {
+    col = Handsontable.PluginModifiers.run(self, 'col', col);
+    var response = {};
     if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
-      return priv.settings.columns[col].width;
+      response.width = priv.settings.columns[col].width;
     }
     else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
-      return priv.settings.colWidths[col];
+      response.width = priv.settings.colWidths[col];
     }
+    else {
+      response.width = 50;
+    }
+    Handsontable.PluginHooks.run(self, 'afterGetColWidth', col, response);
+    return response.width;
   };
 
   /**
@@ -1946,7 +1972,10 @@ var settings = {
   'autoWrapCol': false,
   'copyRowsLimit': 1000,
   'copyColsLimit': 1000,
-  'asyncRendering': true
+  'currentRowClassName': void 0,
+  'currentColClassName': void 0,
+  'asyncRendering': true,
+  'stretchH': 'hybrid'
 };
 
 $.fn.handsontable = function (action) {

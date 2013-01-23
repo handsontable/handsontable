@@ -96,16 +96,11 @@ describe('Core_selection', function () {
     });
   });
 
-  it('this should focus external textarea when clicked during editing', function () {
-    var output = null;
-    var textarea = $('<input>').appendTo($('body'));
+  it('should focus external textarea when clicked during editing', function () {
+    var textarea = $('<input type="text">').prependTo($('body'));
 
     runs(function () {
-      handsontable({
-        onSelectionByProp: function () {
-          output = this;
-        }
-      });
+      handsontable();
       selectCell(0, 0);
     });
 
@@ -113,7 +108,7 @@ describe('Core_selection', function () {
 
     runs(function () {
       keyDown('enter');
-      $("html").triggerHandler('click');
+      $("html").triggerHandler('mouseup');
       textarea.focus();
     });
 

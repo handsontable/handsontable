@@ -54,8 +54,6 @@
         <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
           for HTML, JavaScript &amp; jQuery
         </div>
-
-        <h2>Pre-populate new rows from template</h2>
       </div>
     </div>
   </div>
@@ -63,6 +61,8 @@
   <div class="rowLayout">
     <div class="descLayout">
       <div class="pad bottomSpace850">
+        <h2>Pre-populate new rows from template</h2>
+
         <p>Below example shows how cell type renderers can be used to present the template values for empty rows.</p>
 
         <p>When any cell in the empty row is edited, the
@@ -85,6 +85,10 @@
 
     <div class="codeLayout">
       <div class="pad">
+        <div class="jsFiddle">
+          <div class="jsFiddleLink">Edit in jsFiddle</div>
+        </div>
+
         <script>
           function isEmptyRow(instance, row) {
             var rowData = instance.getData()[row];

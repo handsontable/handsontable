@@ -2,12 +2,12 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Validation - Handsontable</title>
+  <title>Column sorting - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script src="../lib/jquery.min.js"></script>
+  <script src="../lib/jquery.js"></script>
   <script src="../dist/jquery.handsontable.full.js"></script>
   <link rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -22,20 +22,48 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Validation">
+  <meta property="og:title" content="Column sorting">
   <meta property="og:description"
-        content="Use the onBeforeChange callback to validate changes before they are applied to the table.">
-  <meta property="og:url" content="http://handsontable.com/demo/validation.html">
+        content="Click on a column header to sort.">
+  <meta property="og:url" content="http://handsontable.com/demo/sorting.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
-  <link rel="canonical" href="http://handsontable.com/demo/validation.html">
+  <link rel="canonical" href="http://handsontable.com/demo/sorting.html">
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
   -->
   <script src="js/ga.js"></script>
+
+  <script class="common">
+    function randomString(length, chars) {
+      var result = '';
+      for (var i = length; i > 0; --i) result += chars.charAt(Math.round(Math.random() * (chars.length - 1)));
+      return result;
+    }
+
+    function createBigData() {
+      var arr = [];
+      var str = 'abcdefghijklmnopqrstuvwxyz';
+      var i;
+
+      for (i = 0; i < 10000; i++) {
+        arr.push([
+          i,
+          randomString(3 * (1 + Math.sin(i)), str),
+          randomString(3 * (1 + Math.sin(i + 2)), str),
+          randomString(3 * (1 + Math.sin(i + 4)), str),
+          randomString(3 * (1 + Math.sin(i + 6)), str),
+          randomString(3 * (1 + Math.sin(i + 8)), str),
+          randomString(3 * (1 + Math.sin(i + 10)), str)
+        ]);
+      }
+
+      return arr;
+    }
+  </script>
 </head>
 
 <body>
@@ -60,21 +88,23 @@
 
   <div class="rowLayout">
     <div class="descLayout">
-      <div class="pad bottomSpace300">
-        <h2>Validation</h2>
+      <div class="pad">
+        <a name="both"></a>
 
-        <p>Use the
-          <b>onBeforeChange</b> callback to validate changes before they are applied to the table.
-        </p>
+        <h2>Column sorting</h2>
 
-        <div id="example1"></div>
+        <p>To enable this experimental feature, use setting <code>columnSorting: true</code></p>
 
-        <p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
+        <p>Click on a column header to sort.</p>
 
-        <pre id="example1console" class="console">Edit the above grid to see callback</pre>
+        <p>Only the table view is sorted. The data source remains in the original order.</p>
+
+        <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
         <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
+          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+            data to console
+          </button>
         </p>
       </div>
     </div>
@@ -86,46 +116,18 @@
         </div>
 
         <script>
-          var data = [
-            ["", "Kia", "Nissan", "Toyota", "Honda"],
-            ["2008", 10, 11, 12, 13],
-            ["2009", 20, 11, 14, 13],
-            ["2010", 30, 15, 12, 13]
-          ];
-
           $("#example1").handsontable({
-            data: data,
-            startRows: 8,
-            startCols: 6,
+            data: createBigData(),
             rowHeaders: true,
             colHeaders: true,
-            minSpareRows: 1,
-            contextMenu: true,
-            onBeforeChange: function (data) {
-              for (var i = data.length - 1; i >= 0; i--) {
-                if (data[i][3] === "foo") {
-                  data.splice(i, 1); //gently don't accept the word "foo" (remove the change at index i)
-                }
-                else if (data[i][3] === "bar") {
-                  //if the word bar is given, add a ! at the end of it
-                  data[i][3] = data[i][3] + '!';
-                }
-                else if (data[i][3] === "nuke") {
-                  //if any of pasted cells contains the word "nuke", reject the whole paste
-                  return false;
-                }
-              }
-            },
-            onChange: function (data, source) {
-              if (source === 'loadData') {
-                return; //don't show this change in console
-              }
-              $("#example1console").text(JSON.stringify(data));
-            }
+            colWidths: [55, 80, 80, 80, 80, 80, 80],
+            columnSorting: true,
+            minSpareRows: 1
           });
         </script>
       </div>
     </div>
+  </div>
   </div>
 
   <div class="rowLayout">

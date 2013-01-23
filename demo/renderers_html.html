@@ -36,6 +36,18 @@
   Google Analytics for GitHub Page. Don't copy this to your project :)
   -->
   <script src="js/ga.js"></script>
+
+  <script class="common">
+    function strip_tags(input, allowed) {
+      // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+      allowed = (((allowed || "") + "").toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
+      var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
+          commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
+      return input.replace(commentsAndPhpTags, '').replace(tags, function ($0, $1) {
+        return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
+      });
+    }
+  </script>
 </head>
 
 <body>
@@ -63,10 +75,6 @@
           <li><a href="#cell">Rendering custom HTML in cells</a></li>
           <li><a href="#header">Rendering custom HTML in header</a></li>
         </ul>
-
-        <a name="cell"></a>
-
-        <h2>Rendering custom HTML in cells</h2>
       </div>
     </div>
   </div>
@@ -74,6 +82,10 @@
   <div class="rowLayout">
     <div class="descLayout">
       <div class="pad bottomSpace450">
+        <a name="cell"></a>
+
+        <h2>Rendering custom HTML in cells</h2>
+
         <p>This example shows how to use custom cell renderers to display HTML content in a cell.</p>
 
         <p>This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS
@@ -89,6 +101,10 @@
 
     <div class="codeLayout">
       <div class="pad">
+        <div class="jsFiddle">
+          <div class="jsFiddleLink">Edit in jsFiddle</div>
+        </div>
+
         <script>
           var data = [
             {
@@ -134,6 +150,7 @@
           var $container = $("#example1");
           $container.handsontable({
             data: data,
+            colWidths: [120, 200, 80],
             colHeaders: ["Plain text title", "HTML Description", "Cover"],
             columns: [
               {data: "title"},
@@ -148,17 +165,11 @@
 
   <div class="rowLayout">
     <div class="descLayout">
-      <div class="pad">
+      <div class="pad bottomSpace450">
         <a name="header"></a>
 
         <h2>Rendering custom HTML in header</h2>
-      </div>
-    </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad bottomSpace300">
         <p>You can also put HTML into row and column headers.</p>
 
         <p>If you need to attach events to DOM elements like the checkbox below, just remember to identify the element
@@ -175,6 +186,10 @@
 
     <div class="codeLayout">
       <div class="pad">
+        <div class="jsFiddle">
+          <div class="jsFiddleLink">Edit in jsFiddle</div>
+        </div>
+
         <script>
           var isChecked;
 

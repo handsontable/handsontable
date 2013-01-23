@@ -54,8 +54,6 @@
         <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
           for HTML, JavaScript &amp; jQuery
         </div>
-
-        <h2>Conditional formatting</h2>
       </div>
     </div>
   </div>
@@ -63,6 +61,8 @@
   <div class="rowLayout">
     <div class="descLayout">
       <div class="pad bottomSpace650">
+        <h2>Conditional formatting</h2>
+
         <p>This demo shows how to use the cell type renderer feature to make some conditional formatting:</p>
 
         <ol>
@@ -90,6 +90,10 @@
 
     <div class="codeLayout">
       <div class="pad">
+        <div class="jsFiddle">
+          <div class="jsFiddleLink">Edit in jsFiddle</div>
+        </div>
+
         <script>
           function negativeValueRenderer(instance, td, row, col, prop, value, cellProperties) {
             Handsontable.TextCell.renderer.apply(this, arguments);

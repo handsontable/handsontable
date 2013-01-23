@@ -76,10 +76,11 @@
 
     <script>
       var data = [
-        ["", "Kia", "Nissan", "Toyota", "Honda"],
-        ["2008", 10, 11, 12, 13],
-        ["2009", 20, 11, 14, 13],
-        ["2010", 30, 15, 12, 13]
+        ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
+        ["2009", 0, 2941, 4303, 354, 5814],
+        ["2010", 5, 2905, 2867, 412, 5284],
+        ["2011", 4, 2517, 4822, 552, 6127],
+        ["2012", 2, 2422, 5399, 776, 4151]
       ];
 
       $('#example').handsontable({
@@ -87,8 +88,9 @@
         minRows: 5,
         minCols: 6,
         minSpareRows: 1,
-        minSpareCols: 1,
-        colHeaders: true
+        autoWrapRow: true,
+        colHeaders: true,
+        contextMenu: true
       });
 
       $('.ver').html($('#example').data('handsontable').version);
@@ -106,13 +108,22 @@
           <a href="demo/renderers_html.html">Custom HTML</a>
         </li>
         <li>
-          <a href="demo/scroll.html">Scroll bars</a>
+          <a href="demo/scroll.html">Scroll bars / Column stretch</a>
         </li>
         <li>
           <a href="demo/conditional.html">Conditional formatting</a>
         </li>
         <li>
           <a href="demo/prepopulate.html">Pre-populate new rows</a>
+        </li>
+        <li>
+          <a href="demo/current.html">Highlight current row &amp; column</a>
+        </li>
+        <li>
+          <a href="demo/sorting.html">Column sorting</a>
+        </li>
+        <li>
+          <a href="demo/column_resize.html">Manual column resize &amp; move</a>
         </li>
       </ul>
     </div>

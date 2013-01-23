@@ -30,6 +30,10 @@ function createContextMenu() {
   function onContextClick(key) {
     var corners = instance.getSelected(); //[top left row, top left col, bottom right row, bottom right col]
 
+    if(!corners) {
+      return; //needed when there are 2 grids on a page
+    }
+
     switch (key) {
       case "row_above":
         instance.alter("insert_row", corners[0]);

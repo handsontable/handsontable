@@ -34,9 +34,15 @@
   border-spacing: 0;
   margin: 0;
   border-width: 0;
+  table-layout: fixed;
+  width: 0;
 }
 
 .handsontable col {
+  width: 50px;
+}
+
+.handsontable col.rowHeader {
   width: 50px;
 }
 
@@ -50,6 +56,7 @@
   background-color: #FFF;
   font-size: 12px;
   vertical-align: top;
+  overflow: hidden;
 }
 
 .handsontable th:last-child {
@@ -99,11 +106,55 @@
 }
 
 .handsontable thead th {
-  padding: 2px 4px;
+  padding: 0;
 }
 
 .handsontable th.active {
   background-color: #CCC;
+}
+
+.handsontable thead th .relative {
+  position: relative;
+  padding: 2px 4px;
+}
+
+/* plugins */
+
+.handsontable .manualColumnMover {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: transparent;
+  width: 5px;
+  height: 25px;
+  z-index: 999;
+  cursor: move;
+}
+
+.handsontable th .manualColumnMover:hover,
+.handsontable th .manualColumnMover.active {
+  background-color: #88F;
+}
+
+.handsontable .manualColumnResizer {
+  position: absolute;
+  right: -1px;
+  top: 0;
+  background-color: transparent;
+  width: 5px;
+  height: 25px;
+  z-index: 999;
+  cursor: col-resize;
+}
+
+.handsontable th .manualColumnResizer:hover,
+.handsontable .manualColumnResizerLine .manualColumnResizer {
+  background-color: #AAB;
+}
+
+.handsontable .columnSorting:hover {
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* border line */
