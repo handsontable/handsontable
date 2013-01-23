@@ -111,8 +111,9 @@ The table below presents configuration options that are interpreted by `handsont
  `copyRowsLimit`         | number                         | 1000             | Maximum number of rows than can be copied to clipboard using CTRL+C
  `copyColsLimit`         | number                         | 1000             | Maximum number of columns than can be copied to clipboard using CTRL+C
  `stretchH`              | string                         | hybrid           | [Column stretching](http://handsontable.com/demo/scroll.html) mode. Possible values: `none, hybrid, last, all`. Hybrid mode works as `none` where there is no horizontal scrollbar, and as `last` when the horizontal scrollbar is present.
- `manualColumnResize`    | boolean                        | false            | Turns on [Manual column resize](http://handsontable.com/demo/column_resize.html)
- `columnSorting`         | boolean                        | false            | Turns on [Column sorting](http://handsontable.com/demo/sorting.html)
+ `manualColumnResize`    | boolean                        | false            | Turn on [Manual column resize](http://handsontable.com/demo/column_resize.html)
+ `manualColumnMove`      | boolean                        | false            | Turn on [Manual column move](http://handsontable.com/demo/column_move.html)
+ `columnSorting`         | boolean                        | false            | Turn on [Column sorting](http://handsontable.com/demo/sorting.html)
  `currentRowClassName`   | string                         | _undefined_      | Class name for all visible rows in current selection
  `currentColClassName`   | string                         | _undefined_      | Class name for all visible columns in current selection
  `onSelection`           | function(`r`, `c`, `r2`, `c2`) | _undefined_      | Callback fired before one or more cells is selected. You can call `updateSettings` from inside, e.g. if you want to disable fillHandle for a specific cell. Parameters: <ul><li>`r` selection start row</li><li>`c` selection start column</li><li>`r2` selection end column</li><li>`c2` selection end column</li></ul>

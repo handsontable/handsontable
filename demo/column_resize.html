@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Column resize - Handsontable</title>
+  <title>Manual column resize &amp; move - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -82,6 +82,15 @@
         <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
           for HTML, JavaScript &amp; jQuery
         </div>
+
+        <h2>Manual column resize &amp; move</h2>
+
+        <p>This page shows how to use Handsontable with column related built-in plugins:</p>
+
+        <ul>
+          <li><a href="#resize">Column resize</a></li>
+          <li><a href="#move">Column move</a></li>
+        </ul>
       </div>
     </div>
   </div>
@@ -89,7 +98,7 @@
   <div class="rowLayout">
     <div class="descLayout">
       <div class="pad">
-        <a name="both"></a>
+        <a name="resize"></a>
 
         <h2>Column resize</h2>
 
@@ -128,6 +137,50 @@
       </div>
     </div>
   </div>
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <div class="pad">
+        <a name="move"></a>
+
+        <h2>Column move</h2>
+
+        <p>To enable this experimental feature, use setting <code>manualColumnMove: true</code></p>
+
+        <p>In the left part of column header a draggable column move handle will appear.</p>
+
+        <div id="example2" style="width: 400px; height: 300px; overflow: scroll"></div>
+
+        <p>
+          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+            data to console
+          </button>
+        </p>
+      </div>
+    </div>
+
+    <div class="codeLayout">
+      <div class="pad">
+        <div class="jsFiddle">
+          <div class="jsFiddleLink">Edit in jsFiddle</div>
+        </div>
+
+        <script>
+          $("#example2").handsontable({
+            data: createBigData(),
+            rowHeaders: true,
+            colHeaders: true,
+            colWidths: [55, 80, 80, 80, 80, 80, 80],
+            manualColumnMove: true,
+            manualColumnResize: true,
+            minSpareRows: 1
+          });
+        </script>
+      </div>
+    </div>
+  </div>
+</div>
+
   </div>
 
   <div class="rowLayout">

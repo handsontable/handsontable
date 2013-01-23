@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Jan 23 2013 01:53:12 GMT+0100 (Central European Standard Time)
+ * Date: Wed Jan 23 2013 02:34:03 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1242,8 +1242,8 @@ Handsontable.Core = function (rootElement, settings) {
     focus: function () {
       try { //calling select() on hidden textarea causes problem in IE9 - similar to https://github.com/ajaxorg/ace/issues/251
         if(selection.isSelected()) {
-        priv.editProxy[0].select();
-      }
+          priv.editProxy[0].select();
+        }
       }
       catch (e) {
 
@@ -3670,52 +3670,63 @@ function HandsontableManualColumnMove() {
   });
 
   this.beforeInit = function () {
-    var that = this;
     this.manualColumnPositions = [];
-    this.rootElement.on('mousedown.handsontable', '.manualColumnMover', function (e) {
-      instance = that;
+  };
 
-      var $resizer = $(e.target);
-      var th = $resizer.closest('th');
-      startCol = th.index();
-      pressed = true;
-      startX = e.pageX;
+  this.afterInit = function () {
+    if (this.getSettings().manualColumnMove) {
+      var that = this;
+      this.rootElement.on('mousedown.handsontable', '.manualColumnMover', function (e) {
+        instance = that;
 
-      var $table = that.rootElement.find('.htCore');
-      $ghost.appendTo($table.parent());
-      $ghost.width($resizer.parent().width());
-      $ghost.height($table.height());
-      startOffset = parseInt(th.offset().left - $table.offset().left);
-      $ghost[0].style.left = startOffset + 6 + 'px';
-    });
-    this.rootElement.on('mouseenter.handsontable', 'td, th', function (e) {
-      if (pressed) {
-        $('.manualColumnMover.active').removeClass('active');
-        var $ths = that.rootElement.find('thead th');
-        endCol = $(this).index();
-        var $hover = $ths.eq(endCol).find('.manualColumnMover').addClass('active');
-        $ths.not($hover).removeClass('active');
-      }
-    });
+        var $resizer = $(e.target);
+        var th = $resizer.closest('th');
+        startCol = th.index();
+        pressed = true;
+        startX = e.pageX;
+
+        var $table = that.rootElement.find('.htCore');
+        $ghost.appendTo($table.parent());
+        $ghost.width($resizer.parent().width());
+        $ghost.height($table.height());
+        startOffset = parseInt(th.offset().left - $table.offset().left);
+        $ghost[0].style.left = startOffset + 6 + 'px';
+      });
+      this.rootElement.on('mouseenter.handsontable', 'td, th', function (e) {
+        if (pressed) {
+          $('.manualColumnMover.active').removeClass('active');
+          var $ths = that.rootElement.find('thead th');
+          endCol = $(this).index();
+          var $hover = $ths.eq(endCol).find('.manualColumnMover').addClass('active');
+          $ths.not($hover).removeClass('active');
+        }
+      });
+    }
   };
 
   this.modifyCol = function (col) {
     //TODO test performance: http://jsperf.com/object-wrapper-vs-primitive/2
-    if (typeof this.manualColumnPositions[col] === 'undefined') {
-      this.manualColumnPositions[col] = col;
+    if (this.getSettings().manualColumnMove) {
+      if (typeof this.manualColumnPositions[col] === 'undefined') {
+        this.manualColumnPositions[col] = col;
+      }
+      return this.manualColumnPositions[col];
     }
-    return this.manualColumnPositions[col];
+    return col;
   };
 
   this.getColHeader = function (col, TH) {
-    var DIV = document.createElement('DIV');
-    DIV.className = 'manualColumnMover';
-    TH.firstChild.appendChild(DIV);
+    if (this.getSettings().manualColumnMove) {
+      var DIV = document.createElement('DIV');
+      DIV.className = 'manualColumnMover';
+      TH.firstChild.appendChild(DIV);
+    }
   };
 }
 var htManualColumnMove = new HandsontableManualColumnMove();
 
 Handsontable.PluginHooks.push('beforeInit', htManualColumnMove.beforeInit);
+Handsontable.PluginHooks.push('afterInit', htManualColumnMove.afterInit);
 Handsontable.PluginHooks.push('afterGetColHeader', htManualColumnMove.getColHeader);
 Handsontable.PluginModifiers.push('col', htManualColumnMove.modifyCol);
 
@@ -3771,23 +3782,23 @@ function HandsontableManualColumnResize() {
 
   this.afterInit = function () {
     if (this.getSettings().manualColumnResize) {
-    var that = this;
-    this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
-      instance = that;
-      var $resizer = $(e.target);
-      currentCol = $resizer.attr('rel');
-      start = that.rootElement.find('col').eq($resizer.parent().parent().index());
-      pressed = true;
-      startX = e.pageX;
-      startWidth = start.width();
-      currentWidth = startWidth;
-      $resizer.addClass('active');
+      var that = this;
+      this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
+        instance = that;
+        var $resizer = $(e.target);
+        currentCol = $resizer.attr('rel');
+        start = that.rootElement.find('col').eq($resizer.parent().parent().index());
+        pressed = true;
+        startX = e.pageX;
+        startWidth = start.width();
+        currentWidth = startWidth;
+        $resizer.addClass('active');
 
-      var $table = that.rootElement.find('.htCore');
-      $line.appendTo($table.parent()).height($table.height());
-      startOffset = parseInt($resizer.parent().parent().offset().left - $table.offset().left);
-      $line[0].style.left = startOffset + currentWidth - 1 + 'px';
-    });
+        var $table = that.rootElement.find('.htCore');
+        $line.appendTo($table.parent()).height($table.height());
+        startOffset = parseInt($resizer.parent().parent().offset().left - $table.offset().left);
+        $line[0].style.left = startOffset + currentWidth - 1 + 'px';
+      });
     }
   };
 
@@ -3799,10 +3810,10 @@ function HandsontableManualColumnResize() {
 
   this.getColHeader = function (col, TH) {
     if (this.getSettings().manualColumnResize) {
-    var DIV = document.createElement('DIV');
-    DIV.className = 'manualColumnResizer';
-    $(DIV).attr('rel', col);
-    TH.firstChild.appendChild(DIV);
+      var DIV = document.createElement('DIV');
+      DIV.className = 'manualColumnResizer';
+      $(DIV).attr('rel', col);
+      TH.firstChild.appendChild(DIV);
     }
   };
 
@@ -4364,8 +4375,8 @@ function Walkontable(settings) {
       this.update('columnHeaders', function (column, TH) {
         TH.innerHTML = originalHeaders[column];
       });
-      }
     }
+  }
 
   //initialize selections
   this.selections = {};
@@ -4773,7 +4784,7 @@ WalkontableScroll.prototype.scrollVertical = function (delta) {
 
     if (newOffsetRow >= totalRows) {
       newOffsetRow = totalRows - 1;
-  }
+    }
 
     var TD = this.instance.wtTable.TBODY.firstChild.firstChild;
     if (TD.nodeName === 'TH') {
@@ -4817,7 +4828,7 @@ WalkontableScroll.prototype.scrollHorizontal = function (delta) {
     throw new Error('scrollHorizontal can only be called after table was drawn to DOM');
   }
 
-    var offsetColumn = this.instance.getSetting('offsetColumn')
+  var offsetColumn = this.instance.getSetting('offsetColumn')
     , newOffsetColumn = offsetColumn + delta;
 
   if (newOffsetColumn > 0) {
@@ -4856,12 +4867,12 @@ WalkontableScroll.prototype.scrollHorizontal = function (delta) {
     }
   }
   else if (newOffsetColumn < 0) {
-      newOffsetColumn = 0;
-    }
+    newOffsetColumn = 0;
+  }
 
-    if (newOffsetColumn !== offsetColumn) {
-      this.instance.update('offsetColumn', newOffsetColumn);
-    }
+  if (newOffsetColumn !== offsetColumn) {
+    this.instance.update('offsetColumn', newOffsetColumn);
+  }
   return this.instance;
 };
 
@@ -4962,7 +4973,7 @@ function WalkontableScrollbar(instance, type) {
       if (that.dragTimeout === null) {
         that.dragTimeout = setInterval(dragRender, 100);
         dragRender();
-        }
+      }
     },
     callback: function (x, y) {
       that.skipRefresh = false;
@@ -4986,11 +4997,11 @@ WalkontableScrollbar.prototype.onScroll = function (delta) {
       if (delta === 1) {
         if (this.type === 'vertical') {
           this.instance.scrollVertical(Infinity).draw();
-      }
+        }
         else {
           this.instance.scrollHorizontal(Infinity).draw();
-    }
-  }
+        }
+      }
       else if (newOffset !== this.instance.getSetting(keys[0])) { //is new offset different than old offset
         if (this.type === 'vertical') {
           this.instance.scrollVertical(newOffset - this.instance.getSetting(keys[0])).draw();
@@ -5078,18 +5089,18 @@ WalkontableScrollbar.prototype.refresh = function () {
   }
 
   if (this.instance.hasSetting('width') && this.instance.wtScroll.wtScrollbarV.visible) {
-  tableWidth -= this.instance.getSetting('scrollbarWidth');
-    }
+    tableWidth -= this.instance.getSetting('scrollbarWidth');
+  }
   if (tableWidth > tableOuterWidth + this.instance.getSetting('scrollbarWidth')) {
     tableWidth = tableOuterWidth;
   }
 
   if (this.instance.hasSetting('height') && this.instance.wtScroll.wtScrollbarH.visible) {
     tableHeight -= this.instance.getSetting('scrollbarHeight');
-    }
+  }
   if (tableHeight > tableOuterHeight + this.instance.getSetting('scrollbarHeight')) {
     tableHeight = tableOuterHeight;
-      }
+  }
 
   if (this.type === 'vertical') {
     offsetCount = this.instance.getSetting('offsetRow');
@@ -5098,10 +5109,10 @@ WalkontableScrollbar.prototype.refresh = function () {
 
     sliderSize = tableHeight - 2; //2 is sliders border-width
 
-      this.slider.style.top = this.$table.position().top + 'px';
-      this.slider.style.left = tableWidth - 1 + 'px'; //1 is sliders border-width
+    this.slider.style.top = this.$table.position().top + 'px';
+    this.slider.style.left = tableWidth - 1 + 'px'; //1 is sliders border-width
     this.slider.style.height = sliderSize + 'px';
-    }
+  }
   else { //horizontal
     offsetCount = this.instance.getSetting('offsetColumn');
     totalCount = this.instance.getSetting('totalColumns');
@@ -5115,22 +5126,22 @@ WalkontableScrollbar.prototype.refresh = function () {
   }
 
   handleSize = Math.round(sliderSize * ratio);
-      if (handleSize < 10) {
+  if (handleSize < 10) {
     handleSize = 15;
-      }
+  }
   handlePosition = Math.round(sliderSize * (offsetCount / totalCount));
-      if (handlePosition > tableWidth - handleSize) {
-        handlePosition = tableWidth - handleSize;
-      }
+  if (handlePosition > tableWidth - handleSize) {
+    handlePosition = tableWidth - handleSize;
+  }
 
   if (this.type === 'vertical') {
     this.handle.style.height = handleSize + 'px';
     this.handle.style.top = handlePosition + 'px';
   }
   else { //horizontal
-      this.handle.style.width = handleSize + 'px';
-      this.handle.style.left = handlePosition + 'px';
-    }
+    this.handle.style.width = handleSize + 'px';
+    this.handle.style.left = handlePosition + 'px';
+  }
 
   this.slider.style.display = 'block';
 
@@ -5731,31 +5742,31 @@ WalkontableTable.prototype.refreshStretching = function () {
 
     var diff = containerWidth - domWidth;
     if (diff > 0) {
-          if (stretchH === 'all') {
-            var newWidth;
-            var remainingDiff = diff;
-            var ratio = diff / widthSum;
+      if (stretchH === 'all') {
+        var newWidth;
+        var remainingDiff = diff;
+        var ratio = diff / widthSum;
 
-            for (c = 0; c < displayTds; c++) {
-              if (widths[c]) {
-                if (c === displayTds - 1) {
-                  newWidth = widths[c] + remainingDiff;
-                }
-                else {
+        for (c = 0; c < displayTds; c++) {
+          if (widths[c]) {
+            if (c === displayTds - 1) {
+              newWidth = widths[c] + remainingDiff;
+            }
+            else {
               newWidth = widths[c] + Math.floor(ratio * widths[c]);
               remainingDiff -= Math.floor(ratio * widths[c]);
-                }
-              }
+            }
+          }
           widths[c] = newWidth;
-            }
-          }
-          else {
-            if (widths[widths.length - 1]) {
-          widths[widths.length - 1] = widths[widths.length - 1] + diff;
-            }
-          }
         }
       }
+      else {
+        if (widths[widths.length - 1]) {
+          widths[widths.length - 1] = widths[widths.length - 1] + diff;
+        }
+      }
+    }
+  }
 
   for (c = 0; c < displayTds; c++) {
     if (widths[c]) {
@@ -5763,7 +5774,7 @@ WalkontableTable.prototype.refreshStretching = function () {
     }
     else {
       this.COLGROUP.childNodes[c + frozenColumnsCount].style.width = '';
-  }
+    }
   }
 };
 
@@ -5968,9 +5979,9 @@ WalkontableTable.prototype._doDraw = function () {
       }
     }
     /*if (this.visibilityEdgeRow !== null && offsetRow + r > this.visibilityEdgeRow) {
-      break;
+     break;
      }*/
-    }
+  }
 
   if (this.visibilityEdgeRow === null) {
     this.visibilityEdgeRow = visibilityFullRow + 1;
@@ -5984,7 +5995,7 @@ WalkontableTable.prototype.refreshPositions = function (selectionsOnly) {
   this.instance.wtScroll.refreshScrollbars();
   this.refreshHiderDimensions();
   this.refreshStretching();
-    this.refreshSelections(selectionsOnly);
+  this.refreshSelections(selectionsOnly);
 };
 
 WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
