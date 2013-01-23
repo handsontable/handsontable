@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Jan 22 2013 17:09:24 GMT+0100 (Central European Standard Time)
+ * Date: Wed Jan 23 2013 01:39:18 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -4032,7 +4032,7 @@ Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWid
 /**
  * walkontable 0.1
  * 
- * Date: Tue Jan 22 2013 17:06:04 GMT+0100 (Central European Standard Time)
+ * Date: Wed Jan 23 2013 01:38:29 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -4639,7 +4639,7 @@ WalkontableScroll.prototype.scrollVertical = function (delta) {
 
   if (newOffsetRow > 0) {
     var totalRows = this.instance.getSetting('totalRows');
-    var height = this.instance.getSetting('height') - this.instance.getSetting('scrollbarHeight');
+    var height = (this.instance.getSetting('height') || Infinity) - this.instance.getSetting('scrollbarHeight'); //Infinity is needed, otherwise you could scroll a table that did not have height specified
 
     if (newOffsetRow >= totalRows) {
       newOffsetRow = totalRows - 1;
@@ -4768,7 +4768,7 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     }
   }
   else {
-    this.scrollVertical(coords[0] - offsetRow);
+    //this.scrollVertical(coords[0] - offsetRow); //this should not be needed anymore
   }
 
   if (viewportColumns > 0 && viewportColumns < totalColumns) {
@@ -4783,7 +4783,7 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     }
   }
   else {
-    this.scrollHorizontal(coords[1] - offsetColumn);
+    //this.scrollHorizontal(coords[1] - offsetColumn); //this should not be needed anymore
   }
 
   return this.instance;
@@ -5271,8 +5271,8 @@ function WalkontableSettings(instance, settings) {
     columnHeaders: null, //this must be a function in format: function (col, TH) {}
     totalRows: void 0,
     totalColumns: void 0,
-    width: 3000,
-    height: 3000,
+    width: null,
+    height: null,
     cellRenderer: function (row, column, TD) {
       var cellData = that.getSetting('data', row, column);
       if (cellData !== void 0) {
