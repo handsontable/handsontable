@@ -107,7 +107,11 @@ h2 {margin: 20px 0;}';
     js += '});';
 
     var clone = $(this).parents('.rowLayout').find('.descLayout .pad').clone();
-    clone.find('div[id^="example"]').html('');
+    var example = clone.find('div[id^="example"]');
+    example.html('');
+    if(example[0].style.overflow === 'hidden') {
+      example[0].style.overflow = 'auto';
+    }
     clone.find('a[name]').remove();
     var html = trimCodeBlock(clone.html()).join('\n');
 
