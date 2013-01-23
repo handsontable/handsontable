@@ -1,4 +1,4 @@
-## [0.8.3](https://github.com/warpech/jquery-handsontable/tree/v0.8.3) (Jan 8, 2013)
+## [0.8.3](https://github.com/warpech/jquery-handsontable/tree/v0.8.3) (Jan 23, 2013)
 
 Features:
 - optimize jquery-autoresize plugin: arclones element is emptied before injecting another node
