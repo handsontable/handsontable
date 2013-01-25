@@ -2169,6 +2169,14 @@ Handsontable.TableView = function (instance) {
     columnWidth: instance.getColWidth,
     cellRenderer: function (row, column, TD) {
       that.applyCellTypeMethod('renderer', TD, {row: row, col: column}, instance.getDataAtCell(row, column));
+      if(settings.rowHeight) {
+        var DIV = document.createElement('div');
+        DIV.className = TD.className = 'fixedRowHeight';
+        DIV.style.height = TD.style.height = settings.rowHeight + 'px';
+        DIV.innerHTML = TD.innerHTML;
+        TD.innerHTML = '';
+        TD.appendChild(DIV);
+      }
     },
     currentRowClassName: settings.currentRowClassName,
     currentColumnClassName: settings.currentColClassName,
