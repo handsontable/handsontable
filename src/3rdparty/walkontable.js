@@ -1827,8 +1827,15 @@ WalkontableTable.prototype.refreshPositions = function (selectionsOnly) {
 };
 
 WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
-  var r;
+  var r, i, ilen, TDs
+      , currentRowClassName = this.instance.getSetting("currentRowClassName")
+      , currentColumnClassName = this.instance.getSetting("currentColumnClassName");
   if (this.instance.selections) {
+      TDs = this.instance.wtTable.TABLE.getElementsByTagName('TD');
+      for (i = 0, ilen = TDs.length; i < ilen; i++) {
+        this.instance.wtDom.removeClass(TDs[i], currentRowClassName);
+        this.instance.wtDom.removeClass(TDs[i], currentColumnClassName);
+      }
     for (r in this.instance.selections) {
       if (this.instance.selections.hasOwnProperty(r)) {
         this.instance.selections[r].draw(selectionsOnly);
