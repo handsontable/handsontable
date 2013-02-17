@@ -1,5 +1,6 @@
-## HEAD (Feb 17, 2013)
+## [0.8.4](https://github.com/warpech/jquery-handsontable/tree/v0.8.4) (Feb 17, 2013)
 
+Features:
 - add $.browser shim for compatibility with jQuery 1.9
 
 Other:
