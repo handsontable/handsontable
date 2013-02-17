@@ -21,7 +21,10 @@
   "keywords": [
     "grid",
     "datagrid",
-    "table"
+    "table",
+    "ui",
+    "input",
+    "ajax"
   ],
   "bugs": "https://github.com/warpech/jquery-handsontable/issues",
   "dependencies": {
