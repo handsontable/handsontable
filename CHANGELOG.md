@@ -2,6 +2,9 @@
 
 - add $.browser shim for compatibility with jQuery 1.9
 
+Other:
+- add jQuery Plugins Registry manifest file
+
 ## [0.8.3](https://github.com/warpech/jquery-handsontable/tree/v0.8.3) (Jan 23, 2013)
 
 Features:
