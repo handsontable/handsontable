@@ -1,4 +1,4 @@
-## HEAD
+## [0.8.5](https://github.com/warpech/jquery-handsontable/tree/v0.8.5) (Feb 18, 2013)
 
 Bugfix:
 - clear currentRowClassName and currentColumnClassName when refreshing selections ([#398](https://github.com/warpech/jquery-handsontable/issues/398)) - thanks @jaycfields
