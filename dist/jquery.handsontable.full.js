@@ -5561,7 +5561,7 @@ WalkontableSettings.prototype.rowHeight = function (row) {
 };
 
 WalkontableSettings.prototype.columnWidth = function (column) {
-  return Math.min(200, this._getSetting('columnWidth', column));
+  return Math.min(1000, this._getSetting('columnWidth', column));
 };
 
 WalkontableSettings.prototype.displayRows = function () {
