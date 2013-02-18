@@ -135,11 +135,11 @@ Handsontable.TableView = function (instance) {
     cellRenderer: function (row, column, TD) {
       that.applyCellTypeMethod('renderer', TD, {row: row, col: column}, instance.getDataAtCell(row, column));
     },
-    currentRowClassName: settings.currentRowClassName,
-    currentColumnClassName: settings.currentColClassName,
     selections: {
       current: {
         className: 'current',
+        highlightRowClassName: settings.currentRowClassName,
+        highlightColumnClassName: settings.currentColClassName,
         border: {
           width: 2,
           color: '#5292F7',
@@ -151,6 +151,8 @@ Handsontable.TableView = function (instance) {
       },
       area: {
         className: 'area',
+        highlightRowClassName: settings.currentRowClassName,
+        highlightColumnClassName: settings.currentColClassName,
         border: {
           width: 1,
           color: '#89AFF9',
