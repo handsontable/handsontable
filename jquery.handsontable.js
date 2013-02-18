@@ -4396,7 +4396,7 @@ Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProper
     'lineHeight', 'textDecoration', 'letterSpacing',
     'fontSize', 'fontFamily', 'fontStyle', 'fontWeight',
     'textTransform', 'textAlign', 'direction', 'wordSpacing', 'fontSizeAdjust',
-    'padding'
+    'padding-top', 'padding-right', 'padding-bottom', 'padding-left'
   ];
 
   autoResize.cloneCSSValues = {
