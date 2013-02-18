@@ -33,11 +33,24 @@ Then, run `handsontable()` constructor on an empty div. After that, load some da
 </script>
 ```
 
-## Changelog and Future Versions
+## Changelog
 
-To see the list of recent changes, see the [Changelog](https://github.com/warpech/jquery-handsontable/wiki/Changelog) wiki page. To see the planned future releases, see the [Milestones](https://github.com/warpech/jquery-handsontable/wiki/Milestones) page.
+To see the list of recent changes, see the [Changelog](https://github.com/warpech/jquery-handsontable/wiki/Changelog) wiki page.
 
-## Methods
+## Reporting bugs and feature requests
+
+Please follow this guidelines when reporting bugs and feature requests:
+
+1. Use [GitHub Issues](https://github.com/warpech/jquery-handsontable/issues) board to report bugs and feature requests (not my email address)
+2. Please **always** write steps to reporoduce the error. That way I can focus on fixing the bug, not scratching my had how to reproduce it.
+3. If possible, please add a JSFiddle link that shows the problem (start by forking [this fiddle](http://jsfiddle.net/warpech/hU6Kz/)). It saves me much time.
+4. If you can't reproduce it on JSFiddle, please add a screenshot that shows the problem. JSFiddle is much more appreciated because it lets me start fixing straight away.
+
+Thanks for understanding!
+
+## API Reference
+
+### Methods
 
   Option                                                                               | Role        | Description
 ---------------------------------------------------------------------------------------|-------------|-------------
@@ -76,7 +89,7 @@ To see the list of recent changes, see the [Changelog](https://github.com/warpec
  handsontable('undo')                                                                  | Method      | Undo last edit
  handsontable('redo')                                                                  | Method      | Redo edit (used to reverse an undo)
 
-## Options
+### Options
 
 The table below presents configuration options that are interpreted by `handsontable()` constructor:
 
@@ -121,55 +134,6 @@ The table below presents configuration options that are interpreted by `handsont
  `onBeforeChange`        | function(`changes`)            | _undefined_      | Callback fired before one or more cells is changed. Its main purpose is to validate the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, col, oldVal, newVal], ... ]`. You can disregard a single change by setting `changes[i][3]` to false, or cancel all edit by returning false.</li></ul>
  `onChange`              | function(`changes`, `source`)  | _undefined_      | Callback fired after one or more cells is changed. Its main use case is to save the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, col, oldVal, newVal], ... ]`. </li><li>`source` is one of the strings: `"alter"`, `"empty"`, `"edit"`, `"populateFromArray"`, `"loadData"`, `"autofill"`, `"paste"`.</li></ul> Note: for performance reasone, the `changes` array is null for `"loadData"` source.
  `onCopyLimit`           | function()                     | _undefined_      | Callback fired if `copyRowsLimit` or `copyColumnsLimit` was reached. Callback parameters are: `selectedRowsCount`, `selectedColsCount`, `copyRowsLimit`, `copyColsLimit`
-
-### Defining autocomplete
-
-The `autocomplete` option is an array of mixins that define multiple autocomplete providers for the grid. 
-
-To keep Handsontable lightweight, this feature has a dependency on another jQuery plugin: 
-[bootstrap-typeahead](https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js). 
-It is included in the repo.
-
-Example:
-
-```js
-autoComplete: [
-  {
-    match: function (row, col, data) {
-      if (data()[0][col].indexOf("color") > -1) { //if column name contains word "color"
-        return true;
-      }
-      return false;
-    },
-    highlighter: function (item) {
-      //only define this function if you want a different behavior
-      //than the original (defaultAutoCompleteHighlighter in core.js)
-      var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
-      var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-        return '<strong>' + match + '</strong>';
-      });
-      return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
-    },
-    source: function (row, col) {
-      return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
-    },
-    strict: false //allows other values that defined in array above
-  },
-  {
-    match: function (row, col, data) {
-      return (col === 0); //if it is first column
-    },
-    source: function (row, col) {
-      return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
-    },
-    strict: true //only accept predefined values (from array above)
-  }
-],
-```
-
-## Reporting bugs and feature requests
-
-Please use GitHub Issues board to report bugs and feature requests (not my email address). When providing a bug report, please give me a way to reporoduce the error. The best practice is to add a JSFiddle link that shows the erroneous behavior (start by forking [this fiddle](http://jsfiddle.net/warpech/hU6Kz/)). That way I can focus on fixing the bug, not scratching my had how to reproduce it. Thanks for understanding!
 
 ## Similar projects
 
