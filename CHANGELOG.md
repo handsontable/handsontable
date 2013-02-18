@@ -1,7 +1,7 @@
 ## [0.8.4](https://github.com/warpech/jquery-handsontable/tree/v0.8.4) (Feb 17, 2013)
 
 Features:
-- add $.browser shim for compatibility with jQuery 1.9
+- add $.browser shim for compatibility with jQuery 1.9 ([#378](https://github.com/warpech/jquery-handsontable/issues/378), [#389](https://github.com/warpech/jquery-handsontable/issues/389), [13d72c8](https://github.com/warpech/jquery-handsontable/commit/13d72c8cb10f733e1149f71f156a6c6a4f8cb3dc))
 
 Other:
 - add jQuery Plugins Registry manifest file
