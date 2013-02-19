@@ -1,0 +1,254 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Templating</h1>
+
+<h2>Goal</h2>
+
+<p>Create a dynamic mechanism of declaring and instantiating DOM structures within a document whose presence and order are reflections of the presence and order of underlying model values. Common use-cases require support for sub-iteration and sub-instantiation, recursion, and re-usage of a single declared form in multiple locations.</p>
+
+<h2>HTMLTemplateElement</h2>
+
+<p>The <code>HTMLTemplate</code> element is used for both declaring template structure as well as directing its usage in the DOM.</p>
+
+<code><pre>&lt;template&gt;</pre></code>
+
+<h3>Declaration</h3>
+<p>The children of the template element are a declaration of form. They define what an instance of the template <em>will</em> look like upon creation. Child nodes are not considered to be a part of the DOM. During parsing, they are lifted out and attached to the <code>instancePrototype</code> property of the template element. If a template element is created via script, any children are removed and attached to the <code>instancePrototype</code> when the template element is attached to a document.</p>
+
+<code><pre>&lt;template&gt;
+  Name: {{ name }}, Age: {{ age }}
+&lt;/template&gt;</pre></code>
+
+<h3 id="usage">Usage</h3>
+<p>The template element is also used to create instances of declared form. The presence of a (possibly empty) string-valued <code>instantiate</code> or <code>iterate</code> attribute activates the template, which causes it create and destroy instances based on the state of the <a href="#operativeModel">Operative Model</a>.</p>
+
+<h3 id="operativeModel">Operative Model</h3>
+
+<p>An active template's <em>Operative Model</em> is the <a href="model.html#pathValue">path value</a> whose reference object is the <code>model</code> of the template element's <code>parentNode</code>, and whose path is the value of the <code>instantiate</code> or <code>iterate</code> attribute.</p>
+
+<code><pre>&lt;div id="example"&gt;
+&lt;template instantiate="person"&gt; &lt; !--Operative Model will be { name: 'Alice, age: 27 } --!&gt;
+  Name: {{ name }}, Age: {{ age }}
+&lt;/template&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+document.getElementById('example').model = Model.get({ person: { name: 'Alice', age: 27 }});
+&lt;/script&gt;</pre></code>
+
+<p>Any instances of a template must exist as a sequence of nextSiblings following the template element itself, with each instance being terminated by a comment node with its <code>textContent</code> property equal to <code>"template-instance"</code>.</p>
+
+<code><pre>&lt;ol&gt;
+  &lt;template iterate="things"&gt;&lt;li&gt;{{ name }} thing&lt;/li&gt;&lt;/template&gt;
+  &lt;li&gt;First thing&lt;/li&gt;
+  &lt;!--template-instance--&gt;
+  &lt;li&gt;Second thing&lt;/li&gt;
+  &lt;!--template-instance--&gt;
+  &lt;li&gt;Third thing&lt;/li&gt;
+  &lt;!--template-instance--&gt;
+&lt;/ol&gt;</pre></code>
+
+<h3>Template Instances</h3>
+
+<h4>Composition</h4>
+
+<p>A template instance is a clone of its <code>instancePrototype</code> which is zero or more top-level nodes, followed by a comment node with its <code>textContent</code> property equal to <code>"template-instance"</code> which denotes the end of the instance.</p>
+
+<h4 id="instancePath">Scoping</h4>
+
+<p>HTMLElement and TextNode implement a hidden scoping mechanism, <code>instancePath</code>, which is not visible as API but has visible side-effects. It is required for proper semantics of <a href="template.html#usage">template usage</a>.</p>
+
+<h4>Creation</h4>
+
+<p>When an instance is created, the template usage must compute an appropriate instancePath and set it internally on each top-level node of the cloned instancePrototype. The <a href="#instancePath">instancePath</a> will be:</p>
+
+<ul>
+  <li>For <code>instantiate</code>, the contained <code>instantiate</code> path.</li>
+  <li>For <code>iterate</code>, the contained <code>iterate</code> path, concatenated with the index property of the corresponding array item.</li>
+</ul>
+
+<h3>Instantiation</h3>
+
+<p>A template usage created via the <code>instantiate</code> attribute requires that:</p>
+
+<ul>
+
+<li>If the <a href="#operativeModel">operative model</a> is <code>undefined</code>, zero instances exist</li>
+
+<li>Otherwise, one instance exists</li>
+
+</ul>
+
+<code><pre>&lt;div id='example'&gt;
+  &lt;template instantiate&gt;&lt;span&gt;Hello, {{ location }}&lt;/span&gt;&lt;/template&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+document.getElementById('example').model = Model.get({ location: 'World' });
+&lt;/script&gt;</pre></code>
+
+<code><pre>&lt;div id='example'&gt;
+  &lt;template instantiate&gt;&lt;span&gt;Hello, {{ location }}&lt;/span&gt;&lt;/template&gt;
+  &lt;span&gt;Hello, World&lt;/span&gt;
+  &lt;!--template-instance--&gt;
+&lt;/div&gt;</pre></code>
+
+<h3 id="iterate">Iteration</h3>
+
+<p>A template usage created via the <code>iterate</code> attribute requires that:</p>
+
+<ul>
+
+<li>If the <a href="#operativeModel">operative model</a> is <code>undefined</code> or is not <em>Array-like</em>, zero instances exist.</li>
+
+<li>Otherwise, one instance exists for each index of the operative model in the same order.</li>
+
+</ul>
+
+<code><pre>&lt;div id='example'&gt;
+  &lt;ol&gt;
+  &lt;template iterate="pets"&gt;&lt;li&gt;{{ name }}&lt;/li&gt;&lt;/template&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+document.getElementById('example').model = Model.get({
+  pets: [
+    { name: 'Snoopy' },
+    { name: 'Garfield' },
+    { name: 'Tweetie' }
+  ]
+});
+&lt;/script&gt;</pre></code>
+
+<code><pre>&lt;div id='example'&gt;
+  &lt;ol&gt;
+  &lt;template iterate="pets"&gt;&lt;li&gt;{{ name }}&lt;/li&gt;&lt;/template&gt;
+  &lt;li&gt;Snoopy&lt;/span&gt;
+  &lt;!--template-instance--&gt;
+  &lt;li&gt;Garfield&lt;/span&gt;
+  &lt;!--template-instance--&gt;
+  &lt;li&gt;Tweetie&lt;/span&gt;
+  &lt;!--template-instance--&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;</pre></code>
+
+<h3>Usage By Reference</h3>
+
+<p>A template can be used apart its declaration. If a template element is used via <code>instantiate</code> or <code>iterate</code> and also includes a <code>src</code> attribute, it uses the referenced template's <code>instancePrototype</code> for creating instances.</p>
+
+<code><pre>&lt;template id="petTemplate"&gt;&lt;li&gt;{{ name }}&lt;/li&gt;&lt;/template&gt;
+
+&lt;div id='example'&gt;
+  &lt;ol&gt;
+  &lt;template src="#petTemplate" iterate="pets"&gt;&lt;/template&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+document.getElementById('example').model = Model.get({
+  pets: [
+    { name: 'Snoopy' },
+    { name: 'Garfield' },
+    { name: 'Tweetie' }
+  ]
+});
+&lt;/script&gt;</pre></code>
+
+<code><pre>&lt;template id="petTemplate"&gt;&lt;li&gt;{{ name }}&lt;/li&gt;&lt;/template&gt;
+
+&lt;div id='example'&gt;
+  &lt;ol&gt;
+  &lt;template src="#petTemplate" iterate="pets"&gt;&lt;/template&gt;
+  &lt;li&gt;Snoopy&lt;/span&gt;
+  &lt;!--template-instance--&gt;
+  &lt;li&gt;Garfield&lt;/span&gt;
+  &lt;!--template-instance--&gt;
+  &lt;li&gt;Tweetie&lt;/span&gt;
+  &lt;!--template-instance--&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;</pre></code>
+
+<h3>Sub-usage</h3>
+
+<p>Template declaration can contain template elements, as well as references (<code>src</code>) to non-sub (top-level) template declarations.</p>
+
+<p class="todo">Needs to be formalized.</p>
+
+<p>Sub-iterateion:</p>
+
+<code><pre>&lt;div id="example"&gt;
+&lt;ul&gt;
+&lt;template iterate&gt;
+  &lt;li&gt;{{ name }}
+  &lt;ul&gt;&lt;template iterate="skills"&gt;&lt;li&gt;{{ ./ }}&lt;/li&gt;&lt;/template&gt;&lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/template&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;script&gt;
+document.getElementById('example').model = Model.get([
+  { name: 'Sally', skills: ['carpentry'] },
+  { name: 'Sam' },
+  { name: 'Helen', skills: ['weaving', 'omnipotence'] }
+]);
+&lt;/script&gt;</pre></code>
+
+<code><pre>&lt;div id="example"&gt;
+&lt;ul&gt;
+&lt;template iterate&gt;
+  &lt;li&gt;{{ name }}
+  &lt;ul&gt;&lt;template iterate="skills"&gt;&lt;li&gt;{{ ./ }}&lt;/li&gt;&lt;/template&gt;&lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/template&gt;
+  &lt;li&gt;Sally
+    &lt;ul&gt;&lt;template iterate="skills"&gt;&lt;/template&gt;
+      &lt;li&gt;carpentry&lt;/li&gt;&lt;!--template-instance--&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;!--template-instance--&gt;
+  &lt;li&gt;Sam
+    &lt;ul&gt;&lt;template iterate="skills"&gt;&lt;/template&gt;&lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;!--template-instance--&gt;
+  &lt;li&gt;Helen
+    &lt;ul&gt;&lt;template iterate="skills"&gt;&lt;/template&gt;
+      &lt;li&gt;weaving&lt;/li&gt;&lt;!--template-instance--&gt;
+      &lt;li&gt;omnipotence&lt;/li&gt;&lt;!--template-instance--&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;!--template-instance--&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</pre></code>
+
+<p class="todo">Need code sample for recursion</p>
+
+<h2>Open Issues</h2>
+
+<ul>
+<li>Spec the valid values of template.src. E.g. #internalId, or URL.</li>
+<li>Page loading behavior. async, defer? Remote sourced templates?</li>
+<li>Changes required to HTML parser:
+  <ul>
+    <li>Lift template declaration out and attach to <code>instancePrototype</code></li>
+    <li>Ensure template declaration is semi-separate parsing context and contains well-formed and balanced mark-up</li>
+    <li>Allow template presence within table, select, etc...</li>
+  </ul>
+</li>
+
+<li>Imperative API</li>
+<li>Lifecycle events for instances. e.g. create, delete, maybe move?</li>
+<li>Detecting and handling array moves</li>
+<li>Should iterate create instances for items that are undefined? Is this inconsistent with instantiate not creating an instance when the operative value is undefined.</li>
+<li>Pre(server)-render support (serialized instances)</li>
+<li>How to expose $index to instances as a bindable value?</li>
+<li>Model.getView(), e.g. transparent sorting/filter of underlying collection for display purposes</li>
+</ul>
+
+</body>
+</html>
+

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2013 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>Model Tests</title>
+<script src="third_party/closure/closure/goog/base.js"></script>
+<script src="platform/compat.js"></script>
+<script src="side_table.js"></script>
+<script src="ChangeSummary/change_summary.js"></script>
+<script src="model.js"></script>
+<script src="script_value_binding.js"></script>
+<script src="test_common.js"></script>
+
+<script>
+goog.require('goog.testing.jsunit');
+</script>
+</head>
+<body>
+<script>
+
+function testScriptValueBindingA() {
+  var lastSeenValue;
+  var changeCount = 0;
+  var observer = {
+    valueChanged: function(v) {
+      changeCount++;
+      lastSeenValue = v.value;
+    }
+  };
+
+  var model = {a: 42};
+  var binding = new ScriptValueBinding(model, 'a', observer);
+
+  assertEquals(42, binding.value);
+  assertEquals(0, changeCount);
+  assertUndefined(lastSeenValue);
+
+  model.a = 'Changed';
+  Model.notifyChanges();
+
+  assertEquals('Changed', binding.value);
+  assertEquals(1, changeCount);
+  assertEquals('Changed', lastSeenValue);
+}
+
+function testScriptValueBindingAB() {
+  var lastSeenValue;
+  var changeCount = 0;
+  var observer = {
+    valueChanged: function(v) {
+      changeCount++;
+      lastSeenValue = v.value;
+    }
+  };
+
+  var model = {a: {b: 42}};
+  var binding = new ScriptValueBinding(model, 'a.b', observer);
+
+  assertEquals(42, binding.value);
+  assertEquals(0, changeCount);
+  assertUndefined(lastSeenValue);
+
+  model.a.b = 'Changed';
+  Model.notifyChanges();
+
+  assertEquals('Changed', binding.value);
+  assertEquals(1, changeCount);
+  assertEquals('Changed', lastSeenValue);
+
+  model.a = {b: true};
+  Model.notifyChanges();
+
+  assertEquals(true, binding.value);
+  assertEquals(2, changeCount);
+  assertEquals(true, lastSeenValue);
+}
+
+function testDelegatedValueBinding() {
+  var lastSeenValue;
+  var changeCount = 0;
+  var observer = {
+    valueChanged: function(v) {
+      changeCount++;
+      lastSeenValue = v.value;
+    }
+  };
+
+  function delegate(text) {
+    assertEquals(bindingText, text);
+    function toTarget(a, b) {
+      return a + b;
+    }
+    return [['a', 'b'], toTarget];
+  }
+
+  var model = {a: 'a', b: 'b'};
+  var bindingText = 'binding text';
+  var ONE_WAY = DelegatedValueBinding.Type.ONE_WAY;
+
+  var binding = new DelegatedValueBinding(model, delegate, bindingText,
+                                          ONE_WAY, observer);
+
+  assertEquals('ab', binding.value);
+
+  model.a = 1;
+  Model.notifyChanges();
+  assertEquals('1b', binding.value);
+  assertEquals(1, changeCount);
+  assertEquals('1b', lastSeenValue);
+
+  model.b = 2;
+  Model.notifyChanges();
+  assertEquals(3, binding.value);
+  assertEquals(2, changeCount);
+  assertEquals(3, lastSeenValue);
+}
+
+function testDelegatedValueBindingDeep() {
+  var lastSeenValue;
+  var changeCount = 0;
+  var observer = {
+    valueChanged: function(v) {
+      changeCount++;
+      lastSeenValue = v.value;
+    }
+  };
+
+  function delegate(text) {
+    assertEquals(bindingText, text);
+    function toTarget(ab, cd) {
+      return ab + cd;
+    }
+    return [['a.b', 'c.d'], toTarget];
+  }
+
+  var model = {
+    a: {b: 'ab'},
+    c: {d: 'cd'}
+  };
+  var bindingText = 'binding text';
+  var ONE_WAY = DelegatedValueBinding.Type.ONE_WAY;
+
+  var binding = new DelegatedValueBinding(model, delegate, bindingText,
+                                          ONE_WAY, observer);
+
+  assertEquals('abcd', binding.value);
+
+  model.a.b = 1;
+  Model.notifyChanges();
+  assertEquals('1cd', binding.value);
+  assertEquals(1, changeCount);
+  assertEquals('1cd', lastSeenValue);
+
+  model.c.d = 2;
+  Model.notifyChanges();
+  assertEquals(3, binding.value);
+  assertEquals(2, changeCount);
+  assertEquals(3, lastSeenValue);
+
+  model.a = {b: 3};
+  Model.notifyChanges();
+  assertEquals(5, binding.value);
+  assertEquals(3, changeCount);
+  assertEquals(5, lastSeenValue);
+
+  model.a = {b: 'hello'};
+  model.c = {d: ' world'};
+  Model.notifyChanges();
+  assertEquals('hello world', binding.value);
+  assertEquals(5, changeCount);
+  assertEquals('hello world', lastSeenValue);
+}
+
+function testDelegatedValueBindingTwoWay() {
+  var lastSeenValue;
+  var changeCount = 0;
+  var observer = {
+    valueChanged: function(v) {
+      changeCount++;
+      lastSeenValue = v.value;
+    }
+  };
+
+  function delegate(text) {
+    assertEquals(bindingText, text);
+    function toTarget(a, b) {
+      return a + b;
+    }
+    function toSource(value) {
+      return value + 1;
+    }
+    return [['a', 'b'], toTarget, toSource];
+  }
+
+  var model = {a: 'a', b: 'b'};
+  var bindingText = 'binding text';
+  var TWO_WAY = DelegatedValueBinding.Type.TWO_WAY;
+
+  var binding = new DelegatedValueBinding(model, delegate, bindingText,
+                                          TWO_WAY, observer);
+
+  assertEquals('ab', binding.value);
+
+  model.a = 1;
+  Model.notifyChanges();
+  assertEquals('1b', binding.value);
+  assertEquals(1, changeCount);
+  assertEquals('1b', lastSeenValue);
+
+  model.b = 2;
+  Model.notifyChanges();
+  assertEquals(3, binding.value);
+  assertEquals(2, changeCount);
+  assertEquals(3, lastSeenValue);
+
+  binding.value = 3;
+  assertEquals(4, model.a);
+  Model.notifyChanges();
+  assertEquals(6, binding.value);
+  assertEquals(3, changeCount);
+  assertEquals(6, lastSeenValue);
+}
+
+function testDelegatedValueBindingTwoWayDeep() {
+  var lastSeenValue;
+  var changeCount = 0;
+  var observer = {
+    valueChanged: function(v) {
+      changeCount++;
+      lastSeenValue = v.value;
+    }
+  };
+
+  function delegate(text) {
+    assertEquals(bindingText, text);
+    function toTarget(ab, cd) {
+      return ab + cd;
+    }
+    function toSource(v) {
+      return v + 1;
+    }
+    return [['a.b', 'c.d'], toTarget, toSource];
+  }
+
+  var model = {
+    a: {b: 'ab'},
+    c: {d: 'cd'}
+  };
+  var bindingText = 'binding text';
+  var TWO_WAY = DelegatedValueBinding.Type.TWO_WAY;
+
+  var binding = new DelegatedValueBinding(model, delegate, bindingText,
+                                          TWO_WAY, observer);
+
+  assertEquals('abcd', binding.value);
+
+  model.a.b = 1;
+  Model.notifyChanges();
+  assertEquals('1cd', binding.value);
+  assertEquals(1, changeCount);
+  assertEquals('1cd', lastSeenValue);
+
+  model.c.d = 2;
+  Model.notifyChanges();
+  assertEquals(3, binding.value);
+  assertEquals(2, changeCount);
+  assertEquals(3, lastSeenValue);
+
+  model.a = {b: 3};
+  Model.notifyChanges();
+  assertEquals(5, binding.value);
+  assertEquals(3, changeCount);
+  assertEquals(5, lastSeenValue);
+
+  model.a = {b: 'hello'};
+  model.c = {d: ' world'};
+  Model.notifyChanges();
+  assertEquals('hello world', binding.value);
+  assertEquals(5, changeCount);
+  assertEquals('hello world', lastSeenValue);
+
+  binding.value = 3;
+  assertEquals(4, model.a.b);
+  Model.notifyChanges();
+  assertEquals('4 world', binding.value);
+  assertEquals(6, changeCount);
+  assertEquals('4 world', lastSeenValue);
+}
+
+</script>
+</body>
+</html>

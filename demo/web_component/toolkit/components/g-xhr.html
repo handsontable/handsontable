@@ -1,0 +1,88 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<element name="g-xhr">
+  <link rel="components" href="g-component.html">
+  <template>
+    <style>
+      @host {
+        display: none;
+      }
+    </style>
+  </template>
+  <script>
+    this.component({
+      getTransport: function() {
+        try {
+          return new XMLHttpRequest();
+        } catch (e) {}
+        try {
+          return new ActiveXObject('Msxml2.XMLHTTP');
+        } catch (e) {}
+        try {
+          return new ActiveXObject('Microsoft.XMLHTTP');
+        } catch (e) {}
+        return false;
+      },
+      makeReadyStateHandler: function(inXhr, inCallback) {
+        inXhr.onreadystatechange = function() {
+          if (inXhr.readyState == 4) {
+            inCallback && inCallback.apply(null, [inXhr.responseText, inXhr]);
+          }
+        };
+      },
+      setRequestHeaders: function(inXhr, inHeaders) {
+        if (inHeaders) {
+          for (var name in inHeaders) {
+            xhr.setRequestHeader(name, inHeaders[name]);
+          }
+        }
+      },
+      toQueryString: function(inParams) {
+        var r = [];
+        for (var n in inParams) {
+          var v = inParams[n];
+          n = encodeURIComponent(n);
+          r.push(v === undefined || v === null ? n : (n + '=' + encodeURIComponent(v)));
+        }
+        return r.join('&');
+      },
+      publish: {
+        /**
+         * Sends a HTTP request to the server and returns the XHR object.
+         *
+         * @param inOptions A set of key/value pairs that configure the request.
+         * @param inOptions.url The url to which the request is sent.
+         * @param inOptions.method The HTTP method to use, default is GET.
+         * @param inOptions.sync By default, all requests are sent asynchronously.
+         *        To send synchronous requests, set to true.
+         * @param inOptions.params Data to be sent to the server.
+         * @param inOptions.body The content for the request body for POST method.
+         * @param inOptions.headers HTTP request headers.
+         * @param inOptions.callback Called when request is completed.
+         * @returns XHR object.
+         */
+        request: function(inOptions) {
+          var transport = this.getTransport();
+          var url = inOptions.url;
+          var method = inOptions.method || 'GET';
+          var async = !inOptions.sync;
+          var params = this.toQueryString(inOptions.params);
+          if (params && method == 'GET') {
+            url += (url.indexOf('?') > 0 ? '&' : '?') + params;
+          }
+          transport.open(method, url, async);
+          this.makeReadyStateHandler(transport, inOptions.callback);
+          this.setRequestHeaders(inOptions.headers);
+          transport.send(method == 'POST' ? (inOptions.body || params) : null);
+          if (!async) {
+            transport.onreadystatechange(transport);
+          }
+          return transport;
+        }
+      }
+    });
+  </script>
+</element>

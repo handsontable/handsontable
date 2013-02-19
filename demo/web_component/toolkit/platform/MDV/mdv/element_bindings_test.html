@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2013 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>Element Bindings Tests</title>
+<script src="third_party/closure/closure/goog/base.js"></script>
+<script src="platform/compat.js"></script>
+<script src="side_table.js"></script>
+<script src="ChangeSummary/change_summary.js"></script>
+<script src="model.js"></script>
+<script src="script_value_binding.js"></script>
+<script src="text_replacements_binding.js"></script>
+<script src="element_attribute_bindings.js"></script>
+<script src="element_bindings.js"></script>
+<script src="input_bindings.js"></script>
+<script src="delegates.js"></script>
+<script src="test_common.js"></script>
+
+<script>
+goog.require('goog.testing.jsunit');
+</script>
+</head>
+<body>
+<div id="testContainer">
+</div>
+<script>
+// Note: DOMNodeInserted/Removed only fire in webkit if the node is rooted in
+// document. This is just an attachment point so that tests will pass in
+// webkit.
+var testContainerDiv = document.getElementById('testContainer');
+</script>
+
+<script>
+
+function testModel() {
+  var d = document.createElement('div');
+  d.model = 'hello world';
+  assertEquals('hello world', d.model);
+
+  var d2 = d.appendChild(document.createElement('div'));
+  assertEquals('hello world', d2.model);
+}
+
+function testModelCleared() {
+  var parent = document.createElement('div');
+  var child = parent.appendChild(document.createElement('div'));
+
+  parent.model = 'a';
+  child.model = 'b';
+  Model.notifyChanges();
+  assertEquals('b', child.model);
+
+  var count = 0;
+
+  Model.observePath(child, 'model', function(val, oldVal) {
+    count++;
+    assertEquals('b', oldVal);
+  });
+
+  child.model = undefined;
+  Model.notifyChanges();
+  assertEquals('a', child.model);
+
+// TODO(rafaelw): Decide if .model property should be observable
+// https://github.com/toolkitchen/mdv/issues/10
+//  assertEquals(1, count);
+}
+
+function testModelDelegateInheritance() {
+  var a = {}, b = {};
+  var div = document.createElement('div');
+  assertUndefined(div.modelDelegate);
+  var child = div.appendChild(document.createTextNode('Hello MDV'));
+  assertUndefined(child.modelDelegate);
+  div.modelDelegate = a;
+  assertEquals(a, div.modelDelegate);
+  assertEquals(a, child.modelDelegate);
+  child.modelDelegate = b;
+  assertEquals(b, child.modelDelegate);
+  child.modelDelegate = null;
+  assertNull(child.modelDelegate);
+  child.modelDelegate = undefined;
+  assertEquals(a, child.modelDelegate);
+}
+
+function testText() {
+  var text = document.createTextNode('hi');
+  var model = text.model = {a: 1, b: 2};
+  text.addBinding('{{a}} and {{b}}');
+  assertEquals('1 and 2', text.data);
+
+  model.a = 3;
+  Model.notifyChanges();
+  assertEquals('3 and 2', text.data);
+
+  text.model = {a: 4, b: 5};
+  Model.notifyChanges();
+  assertEquals('4 and 5', text.data);
+}
+
+function testTextInherited() {
+  var element = document.createElement('div');
+  var text = element.appendChild(document.createTextNode('hi'));
+  var model = element.model = {a: 1, b: 2};
+  text.addBinding('{{a}} and {{b}}');
+  assertEquals('1 and 2', text.data);
+
+  model.a = 3;
+  Model.notifyChanges();
+  assertEquals('3 and 2', text.data);
+
+  element.model = {a: 4, b: 5};
+  Model.notifyChanges();
+  assertEquals('4 and 5', text.data);
+
+  text.model = {a: 6, b: 7};
+  Model.notifyChanges();
+  assertEquals('6 and 7', text.data);
+
+  text.model = undefined;
+  Model.notifyChanges();
+  assertEquals('4 and 5', text.data);
+}
+
+function testTextBindingText() {
+  var text = document.createTextNode('hi');
+  var model = text.model = {a: 1, b: 2};
+  assertNull(text.bindingText);
+  var bindingText = '{{a}} and {{b}}';
+  text.addBinding(bindingText);
+  assertEquals(bindingText, text.bindingText);
+  assertEquals('1 and 2', text.data);
+  assertEquals(bindingText, text.bindingText);
+  text.removeBinding();
+  assertNull(text.bindingText);
+}
+
+function testAttributes() {
+  var element = document.createElement('div');
+  var model = element.model = {a: 1, b: 2};
+  element.addBinding('hidden', '{{a}}');
+  element.addBinding('id', '{{b}}');
+
+  assertEquals('1', element.getAttribute('hidden'));
+  assertEquals('2', element.id);
+
+  model.a = null;
+  Model.notifyChanges();
+  assertFalse(element.hasAttribute('hidden'));
+
+  element.model = {a: false, b: 'x'};
+  Model.notifyChanges();
+  assertEquals('false', element.getAttribute('hidden'));
+  assertEquals('x', element.id);
+
+  function delegate(text) {
+    function toTarget(value) {
+      return value ? value : null;
+    }
+    return [[text], toTarget];
+  }
+  element.modelDelegate = delegate;
+  Model.notifyChanges();
+  assertFalse(element.hasAttribute('hidden'));
+  assertEquals('x', element.id);
+}
+
+function testAttributesInherited() {
+  var parent = document.createElement('div');
+  var element = parent.appendChild(document.createElement('div'));
+  var model = parent.model = {a: 1, b: 2};
+  element.addBinding('hidden', '{{a}}');
+  element.addBinding('id', '{{b}}');
+
+  assertEquals('1', element.getAttribute('hidden'));
+  assertEquals('2', element.id);
+
+  model.a = null;
+  Model.notifyChanges();
+  assertFalse(element.hasAttribute('hidden'));
+
+  parent.model = {a: false, b: 'x'};
+  Model.notifyChanges();
+  assertEquals('false', element.getAttribute('hidden'));
+  assertEquals('x', element.id);
+
+  function delegate(text) {
+    function toTarget(value) {
+      return value ? value : null;
+    }
+    return [[text], toTarget];
+  }
+  parent.modelDelegate = delegate;
+  Model.notifyChanges();
+  assertFalse(element.hasAttribute('hidden'));
+  assertEquals('x', element.id);
+}
+
+function testAttributesBindingText() {
+  var element = document.createElement('div');
+  var model = element.model = {a: 1};
+  var bindingText = '{{a}}';
+  element.addBinding('hidden', bindingText);
+
+  assertEquals('1', element.getAttribute('hidden'));
+
+  var attr = element.getAttributeNode('hidden');
+  assertEquals(bindingText, attr.bindingText);
+
+  model.a = null;
+  Model.notifyChanges();
+  assertFalse(element.hasAttribute('hidden'));
+  assertNull(attr.bindingText);
+}
+
+function testSimpleBinding() {
+  var el = document.createElement('div');
+  el.model = {a: '1'};
+  el.addBinding('foo', '{{a}}');
+  Model.notifyChanges();
+  assertEquals('1', el.getAttribute('foo'));
+
+  el.model.a = '2';
+  Model.notifyChanges();
+  assertEquals('2', el.getAttribute('foo'));
+
+  el.model.a = 232.2;
+  Model.notifyChanges();
+  assertEquals('232.2', el.getAttribute('foo'));
+
+  el.model.a = 232;
+  Model.notifyChanges();
+  assertEquals('232', el.getAttribute('foo'));
+
+  el.model.a = null;
+  Model.notifyChanges();
+  assertEquals(null, el.getAttribute('foo'));
+
+  el.model.a = undefined;
+  Model.notifyChanges();
+  assertEquals('', el.getAttribute('foo'));
+}
+
+function testSimpleBindingWithDashes() {
+  var el = document.createElement('div');
+  el.model = {a: '1'};
+  el.addBinding('foo-bar', '{{a}}');
+  Model.notifyChanges();
+  assertEquals('1', el.getAttribute('foo-bar'));
+
+  el.model.a = '2';
+  Model.notifyChanges();
+  assertEquals('2', el.getAttribute('foo-bar'));
+}
+
+function testSimpleBindingWithComment() {
+  var el = document.createElement('div');
+  el.innerHTML = '<!-- Comment -->';
+  el.model = {a: '1'};
+  el.addBinding('foo-bar', '{{a}}');
+  Model.notifyChanges();
+  assertEquals('1', el.getAttribute('foo-bar'));
+
+  el.model.a = '2';
+  Model.notifyChanges();
+  assertEquals('2', el.getAttribute('foo-bar'));
+}
+
+function testSimpleBindingChangeModel() {
+  var el = document.createElement('div');
+  el.addBinding('foo', '{{a}}');
+  el.model = {a: '1'};
+  Model.notifyChanges();
+  assertEquals('1', el.getAttribute('foo'));
+}
+
+function testSimpleBindingChangeAncestorModel() {
+  var d1 = document.createElement('div');
+  var d2 = d1.appendChild(document.createElement('div'));
+  var d3 = d2.appendChild(document.createElement('div'));
+  d3.addBinding('foo', '{{a}}');
+
+  d1.model = {a: 1};
+  Model.notifyChanges();
+  assertEquals('1', d3.getAttribute('foo'));
+
+  d1.model = {a: 2};
+  Model.notifyChanges();
+  assertEquals('2', d3.getAttribute('foo'));
+
+  d2.model = {a: 3};
+  Model.notifyChanges();
+  assertEquals('3', d3.getAttribute('foo'));
+
+  d3.model = {a: 4};
+  Model.notifyChanges();
+  assertEquals('4', d3.getAttribute('foo'));
+
+  d2.model = {a: 5};
+  Model.notifyChanges();
+  assertEquals('4', d3.getAttribute('foo'));
+
+  d3.model = undefined;
+  Model.notifyChanges();
+  assertEquals('5', d3.getAttribute('foo'));
+
+  d2.model = undefined;
+  Model.notifyChanges();
+  assertEquals('2', d3.getAttribute('foo'));
+}
+
+function testPlaceHolderBindingText() {
+  var m = {
+    adj: 'cruel',
+    noun: 'world'
+  };
+
+  var el = document.createElement('div');
+  el.textContent = 'dummy';
+  el.firstChild.addBinding('Hello {{ adj }} {{noun}}!');
+  el.model = m;
+
+  Model.notifyChanges();
+  assertEquals('Hello cruel world!', el.textContent);
+
+  el.model.adj = 'happy';
+  Model.notifyChanges();
+  assertEquals('Hello happy world!', el.textContent);
+
+  el.model = {
+    adj: 'sunny',
+    noun: 'day'
+  };
+  Model.notifyChanges();
+  assertEquals('Hello sunny day!', el.textContent);
+}
+
+function testPlaceHolderBindingText2() {
+  var m = {
+    adj: 'cruel',
+    noun: 'world'
+  };
+
+  var el = document.createElement('div');
+  el.textContent = 'dummy';
+  el.firstChild.addBinding('Hello {{ adj }} {{noun}}!');
+  el.model = m;
+
+  Model.notifyChanges();
+  assertEquals('Hello cruel world!', el.textContent);
+
+  el.model.adj = 'happy';
+  Model.notifyChanges();
+  assertEquals('Hello happy world!', el.textContent);
+
+  el.model = {
+    adj: 'sunny',
+    noun: 'day'
+  };
+  Model.notifyChanges();
+  assertEquals('Hello sunny day!', el.textContent);
+}
+
+function testPlaceHolderBindingTextInline() {
+  var m = {
+    adj: 'cruel',
+    noun: 'world'
+  };
+
+  var el = document.createElement('div');
+  el.textContent = 'dummy';
+  el.firstChild.addBinding('Hello {{ adj }} {{noun}}!');
+  el.model = m;
+
+  Model.notifyChanges();
+  assertEquals('Hello cruel world!', el.textContent);
+
+  el.model.adj = 'happy';
+  Model.notifyChanges();
+  assertEquals('Hello happy world!', el.textContent);
+
+  el.model = {
+    adj: 'sunny',
+    noun: 'day'
+  };
+  Model.notifyChanges();
+  assertEquals('Hello sunny day!', el.textContent);
+}
+
+function testPlaceHolderBindingElementProperty() {
+  var m = {
+    adj: 'cruel',
+    noun: 'world'
+  };
+
+  var el = document.createElement('div');
+  el.addBinding('foo', 'Hello {{adj}} {{noun}}!');
+  el.model = m;
+
+  Model.notifyChanges();
+  assertEquals('Hello cruel world!', el.getAttribute('foo'));
+
+  el.model.adj = 'happy';
+  Model.notifyChanges();
+  assertEquals('Hello happy world!', el.getAttribute('foo'));
+
+  el.model = {
+    adj: 'sunny',
+    noun: 'day'
+  };
+  Model.notifyChanges();
+  assertEquals('Hello sunny day!', el.getAttribute('foo'));
+
+  // Change the binding.
+  el.addBinding('foo', 'Goodbye {{ adj }} {{noun}}!');
+  Model.notifyChanges();
+  assertEquals('Goodbye sunny day!', el.getAttribute('foo'));
+
+  // Remove the binding. Should stop following the model.
+  el.removeBinding('foo');
+  el.model.adj = 'cloudy';
+  Model.notifyChanges();
+  assertEquals('Goodbye sunny day!', el.getAttribute('foo'));
+}
+
+function testDomTreeChanges() {
+  var d1 = document.createElement('div');
+  d1.id = 'd1';
+  var d2 = document.createElement('div');
+  d2.id = 'd2';
+  var d3 = document.createElement('div');
+  d3.id = 'd3';
+  d3.addBinding('foo', '{{a}}');
+
+  testContainerDiv.appendChild(d1);
+  testContainerDiv.appendChild(d2);
+
+  Model.notifyChanges();
+  assertEquals('', d3.getAttribute('foo'));
+
+  d1.model = {a: 1};
+  d2.model = {a: 2};
+
+  d1.appendChild(d3);
+  Model.notifyChanges();
+  assertEquals('1', d3.getAttribute('foo'));
+
+  d2.appendChild(d3);
+  Model.notifyChanges();
+  assertEquals('2', d3.getAttribute('foo'));
+
+  testContainerDiv.innerHTML = '';
+}
+
+function dispatchEvent(type, target) {
+  var event = document.createEvent('HTMLEvents');
+  event.initEvent(type, true, false);
+  target.dispatchEvent(event);
+  Model.notifyChanges();
+}
+
+function testInputElementTextBinding() {
+  var m = {val: 'ping'};
+
+  var el = document.createElement('input');
+  el.addValueBinding('val');
+  el.model = m;
+  Model.notifyChanges();
+  assertEquals('ping', el.value);
+
+  el.value = 'pong';
+  dispatchEvent('input', el);
+  assertEquals('pong', m.val);
+
+  // Try a deep path.
+  m = {
+    a: {
+      b: {
+        c: 'ping'
+      }
+    }
+  };
+
+  el.addValueBinding('a.b.c');
+  el.model = m;
+  Model.notifyChanges();
+  assertEquals('ping', el.value);
+
+  el.value = 'pong';
+  dispatchEvent('input', el);
+  assertEquals('pong', Model.getValueAtPath(m, 'a.b.c'));
+
+  // Start with the model property being absent.
+  delete m.a.b.c;
+  Model.notifyChanges();
+  assertEquals('', el.value);
+
+  el.value = 'pong';
+  dispatchEvent('input', el);
+  assertEquals('pong', Model.getValueAtPath(m, 'a.b.c'));
+  Model.notifyChanges();
+
+  // Model property unreachable (and unsettable).
+  delete m.a.b;
+  Model.notifyChanges();
+  assertEquals('', el.value);
+
+  el.value = 'pong';
+  dispatchEvent('input', el);
+  assertEquals(undefined, Model.getValueAtPath(m, 'a.b.c'));
+}
+
+function testSimpleTransform() {
+  function delegate(path) {
+    function toTarget(source) {
+      return source + 1;
+    }
+
+    function toSource(target) {
+      return (+target) - 1;
+    }
+
+    return [[path], toTarget, toSource];
+  }
+
+  var m = {val: 1};
+  var el = document.createElement('input');
+  el.addValueBinding('val');
+  el.model = m;
+  el.modelDelegate = delegate;
+  Model.notifyChanges();
+  assertEquals('2', el.value);
+
+  el.value = '3';
+  dispatchEvent('input', el);
+  assertEquals(2, m.val);
+}
+
+function testDeclarativeTransform() {
+  var transformArgs;
+  var toTargetArgs;
+
+  function MyTrans(var_arg) {
+    transformArgs = Array.prototype.slice.call(arguments);
+  }
+  MyTrans.prototype = {
+    toTarget: function(source, path) {
+      toTargetArgs = Array.prototype.slice.call(arguments);
+      return source + 1;
+    },
+
+    toSource: function(target) {
+      return +target - 1;
+    }
+  };
+
+  Transform.registry.myTrans = MyTrans;
+
+  var m = {val: 1};
+  var el = document.createElement('input');
+  el.addValueBinding('val | myTrans("a", \'b\', 1)');
+  el.model = m;
+  el.modelDelegate = MDVDelegate;
+  Model.notifyChanges();
+  assertEquals('2', el.value);
+  assertArrayEquals([m.val, 'val'], toTargetArgs);
+
+  el.value = '3';
+  dispatchEvent('input', el);
+  assertEquals(2, m.val);
+
+  assertArrayEquals(['a', 'b', 1],
+                    transformArgs);
+
+  delete Transform.registry.myTrans;
+}
+
+function testClassListTransform() {
+  var el = document.createElement('div');
+  el.modelDelegate = MDVDelegate;
+  el.addBinding('class', '{{ val | toggle("selected") }}');
+  el.model = { val: false };
+  Model.notifyChanges();
+  assertEquals('', el.className);
+
+  el.model.val = true;
+  Model.notifyChanges();
+  assertEquals('selected', el.className);
+
+  // Test impicit naming
+  el = document.createElement('div');
+  el.modelDelegate = MDVDelegate;
+  el.addBinding('class', '{{ selected | toggle }}');
+  el.model = { selected: false };
+  Model.notifyChanges();
+  assertEquals('', el.className);
+
+  el.model.selected = true;
+  Model.notifyChanges();
+  assertEquals('selected', el.className);
+
+  // Test impicit naming
+  el = document.createElement('div');
+  el.modelDelegate = MDVDelegate;
+  el.addBinding('class', 'classA {{ selected | toggle }} classB');
+  el.model = { selected: false };
+  Model.notifyChanges();
+  assertEquals('classA  classB', el.className);
+
+  el.model.selected = true;
+  Model.notifyChanges();
+  assertEquals('classA selected classB', el.className);
+}
+
+function testInputElementCheckbox() {
+  var m = {val: true};
+
+  var el = document.createElement('input');
+  el.type = 'checkbox';
+  el.addCheckedBinding('val');
+  el.model = m;
+  Model.notifyChanges();
+  assertEquals(true, el.checked);
+
+  m.val = false;
+  Model.notifyChanges();
+  assertEquals(false, el.checked);
+
+  el.checked = true;
+  dispatchEvent('click', el);
+  assertEquals(true, m.val);
+
+  el.checked = false;
+  dispatchEvent('click', el);
+  assertEquals(false, m.val);
+}
+
+function testInputElementRadio() {
+  var m = {val1: true, val2: false, val3: false, val4: true};
+  var RADIO_GROUP_NAME = 'test';
+
+  var container = document.body.appendChild(document.createElement('div'));
+  container.model = m;
+
+  var el1 = container.appendChild(document.createElement('input'));
+  el1.type = 'radio';
+  el1.name = RADIO_GROUP_NAME;
+  el1.addCheckedBinding('val1');
+
+  var el2 = container.appendChild(document.createElement('input'));
+  el2.type = 'radio';
+  el2.name = RADIO_GROUP_NAME;
+  el2.addCheckedBinding('val2');
+
+  var el3 = container.appendChild(document.createElement('input'));
+  el3.type = 'radio';
+  el3.name = RADIO_GROUP_NAME;
+  el3.addCheckedBinding('val3');
+
+  var el4 = container.appendChild(document.createElement('input'));
+  el4.type = 'radio';
+  el4.name = 'othergroup';
+  el4.addCheckedBinding('val4');
+
+  Model.notifyChanges();
+  assertEquals(true, el1.checked);
+  assertEquals(false, el2.checked);
+  assertEquals(false, el3.checked);
+  assertEquals(true, el4.checked);
+
+  m.val1 = false;
+  m.val2 = true;
+  Model.notifyChanges();
+  assertEquals(false, el1.checked);
+  assertEquals(true, el2.checked);
+  assertEquals(false, el3.checked);
+  assertEquals(true, el4.checked);
+
+  el1.checked = true;
+  dispatchEvent('change', el1);
+  assertEquals(true, m.val1);
+  assertEquals(false, m.val2);
+  assertEquals(false, m.val3);
+  assertEquals(true, m.val4);
+
+  el3.checked = true;
+  dispatchEvent('change', el3);
+  assertEquals(false, m.val1);
+  assertEquals(false, m.val2);
+  assertEquals(true, m.val3);
+  assertEquals(true, m.val4);
+
+  document.body.removeChild(container);
+}
+
+function testInputElementRadioMultipleForms() {
+  var m = {val1: true, val2: false, val3: false, val4: true};
+  var RADIO_GROUP_NAME = 'test';
+
+  var container = document.body.appendChild(document.createElement('div'));
+  container.model = m;
+  var form1 = container.appendChild(document.createElement('form'));
+  var form2 = container.appendChild(document.createElement('form'));
+
+  var el1 = form1.appendChild(document.createElement('input'));
+  el1.type = 'radio';
+  el1.name = RADIO_GROUP_NAME;
+  el1.addCheckedBinding('val1');
+
+  var el2 = form1.appendChild(document.createElement('input'));
+  el2.type = 'radio';
+  el2.name = RADIO_GROUP_NAME;
+  el2.addCheckedBinding('val2');
+
+  var el3 = form2.appendChild(document.createElement('input'));
+  el3.type = 'radio';
+  el3.name = RADIO_GROUP_NAME;
+  el3.addCheckedBinding('val3');
+
+  var el4 = form2.appendChild(document.createElement('input'));
+  el4.type = 'radio';
+  el4.name = RADIO_GROUP_NAME;
+  el4.addCheckedBinding('val4');
+
+  Model.notifyChanges();
+  assertEquals(true, el1.checked);
+  assertEquals(false, el2.checked);
+  assertEquals(false, el3.checked);
+  assertEquals(true, el4.checked);
+
+  el2.checked = true;
+  dispatchEvent('change', el2);
+  assertEquals(false, m.val1);
+  assertEquals(true, m.val2);
+
+  // Radio buttons in form2 should be unaffected
+  assertEquals(false, m.val3);
+  assertEquals(true, m.val4);
+
+  el3.checked = true;
+  dispatchEvent('change', el3);
+  assertEquals(true, m.val3);
+  assertEquals(false, m.val4);
+
+  // Radio buttons in form1 should be unaffected
+  assertEquals(false, m.val1);
+  assertEquals(true, m.val2);
+
+  document.body.removeChild(container);
+}
+
+function testBindToChecked() {
+  var div = document.createElement('div');
+  var child = div.appendChild(document.createElement('div'));
+  var input = child.appendChild(document.createElement('input'));
+  input.type = 'checkbox';
+
+  var m = {
+    a: {
+      b: false
+    }
+  };
+  div.model = m;
+
+  input.addCheckedBinding('a.b');
+
+  input.checked = true;
+  dispatchEvent('click', input);
+  assertTrue(m.a.b);
+
+  input.checked = false;
+  assertTrue(m.a.b);
+  dispatchEvent('click', input);
+  assertFalse(m.a.b);
+}
+
+function testExpressionBinding() {
+  var el = document.createElement('div');
+  var m = el.model = {a: 1, b: 2};
+  el.modelDelegate = MDVDelegate;
+  el.addBinding('foo', '{{a}} + {{b}} = {{ expr(a, b) a + b }}');
+  Model.notifyChanges();
+  assertEquals('1 + 2 = 3', el.getAttribute('foo'));
+
+  m.a = 4;
+  Model.notifyChanges();
+  assertEquals('4 + 2 = 6', el.getAttribute('foo'));
+
+  m.b = 8;
+  Model.notifyChanges();
+  assertEquals('4 + 8 = 12', el.getAttribute('foo'));
+
+  el.model = null;
+  Model.notifyChanges();
+  assertEquals(' +  = NaN', el.getAttribute('foo'));
+}
+
+function testMultipleReferences() {
+  var el = document.createElement('div');
+  var m = el.model = {foo: 'bar'};
+  el.addBinding('foo', '{{foo}} {{foo}}');
+  assertEquals('bar bar', el.getAttribute('foo'));
+}
+
+function testExpressionBindingNoCoerce() {
+  var el = document.createElement('div');
+  var m = el.model = {
+    a: {
+      b: 1
+    },
+    c: {
+      d: 2
+    }
+  };
+  el.modelDelegate = MDVDelegate;
+  el.addBinding('foo', '{{ expr(a.b, c.d) b + d }}');
+  assertEquals('3', el.getAttribute('foo'));
+}
+
+/*
+ * TODO(rafaelw): Decide if minimal reads should be implemented.
+ * https://github.com/toolkitchen/mdv/issues/11
+ *
+function testMinimalReads() {
+  var accessesPerNotifyObservers = Model.observableObjects_ ? 1 : 2;
+  var el = document.createElement('div');
+  function Data(a, b) {
+    this.a_ = a;
+    this.b_ = b;
+  }
+  var aAccess = 0;
+  var bAccess = 0;
+  Data.prototype = {
+    get a() {
+      aAccess++;
+      return this.a_;
+    },
+    set a(a) {
+      this.a_ = a;
+    },
+    get b() {
+      bAccess++;
+      return this.b_;
+    },
+    set b(b) {
+      this.b_ = b;
+    }
+  }
+
+  el.model = new Data('a', 'b');
+  el.addBinding('foo', '{{a}} {{b}}');
+
+  assertEquals('a b', el.getAttribute('foo'));
+  assertEquals(1 * accessesPerNotifyObservers, aAccess);
+  assertEquals(1 * accessesPerNotifyObservers, bAccess);
+
+  el.model.a = 'c';
+  Model.notifyChanges();
+  assertEquals('c b', el.getAttribute('foo'));
+  assertEquals(2 * accessesPerNotifyObservers, aAccess);
+  assertEquals(2 * accessesPerNotifyObservers, bAccess);
+
+  el.model.b = 'd';
+  Model.notifyChanges();
+  assertEquals('c d', el.getAttribute('foo'));
+  assertEquals(3 * accessesPerNotifyObservers, aAccess);
+  assertEquals(3 * accessesPerNotifyObservers, bAccess);
+}
+
+function testObserveOnElement() {
+  var d = document.createElement('div');
+
+  var count = 0;
+  function callback(c) {
+    count++;
+  }
+
+  Model.observePath(d, 'model', callback);
+
+  d.model = {};
+  Model.notifyChanges();
+  assertEquals(1, count);
+}
+
+function testObserveOnElement2() {
+  var div = document.createElement('div');
+
+  var count = 0;
+  function callback(c) {
+    count++;
+  }
+
+  var divModel = div;
+
+  Model.observePath(divModel, 'model', callback);
+
+  divModel.model = {};
+  Model.notifyChanges();
+  assertEquals(1, count);
+}
+*/
+
+</script>
+</body>
+</html>

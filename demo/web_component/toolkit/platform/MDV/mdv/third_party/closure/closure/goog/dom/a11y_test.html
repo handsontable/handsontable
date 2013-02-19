@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2008 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<!--
+Author:  attila@google.com (Attila Bodis)
+-->
+<head>
+  <title>Closure Unit Tests - goog.dom.a11y</title>
+  <script src="../base.js"></script>
+  <script>
+    goog.require('goog.dom');
+    goog.require('goog.dom.a11y');
+    goog.require('goog.dom.a11y.Role');
+    goog.require('goog.dom.a11y.State');
+    goog.require('goog.testing.jsunit');
+    goog.require('goog.userAgent');
+  </script>
+</head>
+<body>
+  <div id="sandbox"></div>
+  <script>
+    var sandbox = goog.dom.getElement('sandbox');
+    var someDiv;
+    var someSpan;
+
+    function setUp() {
+      someDiv = goog.dom.createDom('div', {id: 'someDiv'}, 'DIV');
+      someSpan = goog.dom.createDom('span', {id: 'someSpan'}, 'SPAN');
+      sandbox.appendChild(someDiv);
+      someDiv.appendChild(someSpan);
+    }
+    
+    function tearDown() {
+      sandbox.innerHTML = '';
+      someDiv = null;
+      someSpan = null;
+    }
+
+    function testGetSetRole() {
+      assertEquals('someDiv\'s role should be the empty string',
+          '', goog.dom.a11y.getRole(someDiv));
+      assertEquals('someSpan\'s role should be the empty string',
+          '', goog.dom.a11y.getRole(someSpan));
+
+      goog.dom.a11y.setRole(someDiv, goog.dom.a11y.Role.MENU);
+      goog.dom.a11y.setRole(someSpan, goog.dom.a11y.Role.MENU_ITEM);
+
+      if (goog.userAgent.GECKO) {
+        assertEquals('On Gecko, someDiv\'s role should be MENU',
+            goog.dom.a11y.Role.MENU, goog.dom.a11y.getRole(someDiv));
+        assertEquals('On Gecko, someSpan\'s role should be MENU_ITEM',
+            goog.dom.a11y.Role.MENU_ITEM, goog.dom.a11y.getRole(someSpan));
+      } else {
+        assertEquals('On non-Gecko, someDiv should not have a role',
+            '', goog.dom.a11y.getRole(someDiv));
+        assertEquals('On non-Gecko, someSpan should not have a role',
+            '', goog.dom.a11y.getRole(someSpan));
+      }
+    }
+
+    function testGetSetState() {
+      assertEquals('someDiv\'s state should be the empty string',
+          '', goog.dom.a11y.getState(someDiv));
+
+      goog.dom.a11y.setState(someDiv, goog.dom.a11y.State.LABELLEDBY,
+          'someSpan');
+
+      if (goog.userAgent.GECKO) {
+        assertEquals(
+            'On Gecko, someDiv\'s labelledby state should be "someSpan"',
+            'someSpan',
+            goog.dom.a11y.getState(someDiv, goog.dom.a11y.State.LABELLEDBY));
+      } else {
+        assertEquals(
+            'On non-Gecko, someDiv should not have a state', '',
+            goog.dom.a11y.getState(someDiv, goog.dom.a11y.State.LABELLEDBY));
+      }
+    }
+
+    function testGetSetActiveDescendant() {
+      goog.dom.a11y.setActiveDescendant(someDiv, null);
+      assertNull('someDiv\'s activedescendant should be null',
+          goog.dom.a11y.getActiveDescendant(someDiv));
+
+      goog.dom.a11y.setActiveDescendant(someDiv, someSpan);
+
+      if (goog.userAgent.GECKO) {
+        assertEquals(
+            'On Gecko, someDiv\'s active descendant should be "someSpan"',
+            someSpan,
+            goog.dom.a11y.getActiveDescendant(someDiv));
+      } else {
+        assertNull(
+            'On non-Gecko, someDiv should not have an active descendant',
+            goog.dom.a11y.getActiveDescendant(someDiv));
+      }
+    }
+  </script>
+</body>
+</html>

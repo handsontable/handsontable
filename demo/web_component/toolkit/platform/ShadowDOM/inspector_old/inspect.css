@@ -1,0 +1,87 @@
+.inspector {
+  font: 12px Arial;
+  overflow: auto;
+  background: whitesmoke;
+}
+
+.inspector > .group {
+  margin-left: 0;
+  background: none;
+}
+
+xlabel {
+  display: inline-block;
+  padding-left: 15px;
+  height: 18px;
+  line-height: 18px;
+}
+
+tools > input {
+  vertical-align: text-bottom;
+}
+
+.node {
+  margin-left: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  font-weight: normal;
+}
+
+/*.node {
+  background-image: url("images/line.png");
+  background-repeat: repeat-y;
+  background-position: 6px center;
+}*/
+
+.group > xlabel {
+  font-weight: 600;
+  background-image: url("images/arrow-down.png");
+  background-repeat: no-repeat;
+  background-position: 4px center;
+}
+
+.flatten > xlabel {
+  display: none;
+}
+
+.flatten > :not(xlabel) {
+  margin-left: 0;
+  background-image: none;
+}
+
+.collapsed > xlabel {
+  background-position: 6px center;
+  background-image: url("images/arrow-right.png");
+}
+
+.collapsed > * {
+  height: 0;
+}
+
+.flatten.collapsed > *, .collapsed > xlabel {
+  height: auto;
+}
+
+.composed-0 {
+  background-color: #CCFFFF;
+}
+
+.composed-1 {
+  background-color: #FF99FF;
+}
+
+.composed-2 {
+  background-color: #CCCC00;
+}
+
+.composed-3 {
+  background-color: #CCFFCC;
+}
+
+.composed-4 {
+  background-color: #E0D1FF;
+}
+
+.composed-5 {
+  background-color: #B2CCCC;
+}

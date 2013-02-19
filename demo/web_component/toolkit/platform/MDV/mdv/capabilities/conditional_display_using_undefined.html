@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2011 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>Conditional Display using Undefined</title>
+<link rel="stylesheet" href="common_styles.css">
+<script src="include.js"></script>
+<style>
+
+.person {
+  background-color: #BECC9A;
+}
+
+.dog {
+  background-color: #E5E19E;
+  margin: 0 0 .5em 1em;
+}
+
+.dog ul {
+  display: inline;
+  padding: 0;
+}
+
+.dog li {
+  display: inline;
+  background-color: #BECC9A;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  padding: 3px;
+}
+
+</style>
+</head>
+<body>
+  <div class="example">
+    <h1>Conditional Display using Undefined</h1>
+    <div class="content">
+      <ul>
+      <template iterate="people">
+        <li class="person">
+          Person: {{ name }}
+          <template instantiate="dog">
+            <div class="dog">
+              <div>Dog: {{ name }}</div>
+              <div>Age: {{ age }}</div>
+              <div>Food: <ul>
+                <template iterate="food">
+                  <li>{{ ./ }}</li>
+                </template>
+              </ul></div>
+            </div>
+          </template>
+        </li>
+      </template>
+      </ul>
+    </div>
+  </div>
+
+<script>
+document.body.model = {
+  people: [
+    {
+      name: 'Charlie Brown',
+      dog: {
+        name: 'Snoopy',
+        age: new Date().getFullYear() - 1950,
+        food: ['Angel food cake with seven-minute frosting', 'Pizza', 'Donuts',
+               'Chocolate chip cookies']
+      }
+    },
+    {
+      name: 'Shaggy',
+      dog: {
+        name: 'Scooby-doo',
+        age: new Date().getFullYear() - 1969,
+        food: ['Scooby Snacks', 'Pizza', 'Hamburgers', 'Potato chips',
+               'Ice cream', 'Chocolate']
+      }
+    },
+    {
+      name: 'Beetle Bailey'
+    }
+  ]
+};
+</script>
+
+  <div class="comment">
+    <h1>Comment</h1>
+    <div class="content">
+      It is often common to want to hide whole sub trees if the model is
+      undefined so as not to show a bunch of meaningless data. A template that
+      has an undefined computed model will not be instantiated.
+    </div>
+  </div>
+</body>
+</html>

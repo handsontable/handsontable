@@ -1,0 +1,366 @@
+/*
+ * Copyright 2012 The Toolkitchen Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+@host, g-panels {
+  display: block;
+  position: relative;
+  outline: none;
+  overflow: hidden;
+}
+
+@host > *, g-panels > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-transform: translateZ(0);
+}
+
+g-panels > g-panels {
+  position: absolute;
+}
+
+/* TODO(sorvell): note: this is a workaround for reference combinators 
+approach defined in shadowDom spec */
+/* TODO(sorvell): expose animation timing via css variable */
+@host > .transition, g-panels > .transition {
+  -webkit-transition: all 0.218s ease-in-out;
+}
+
+@host > .animate, g-panels > .animate {
+  -webkit-animation-duration: 0.218s;
+  -webkit-animation-fill-mode: both;
+}
+
+/*
+  TODO(sorvell): include a reasonable set of default overlay opening 
+  animations. What's here right now is ad hoc.
+
+  NOTE: until reference combinators (presumably), need to include this file
+  in any document that wants panel transitions.
+*/
+
+/* fade */
+@host > .panels-ascending-from,
+@host > .panels-descending-from,
+g-panels > .panels-ascending-from,
+g-panels > .panels-descending-from,
+{
+  -webkit-animation-name: g-panels-fadeOut;
+}
+@host > .panels-ascending-to,
+@host > .panels-descending-to,
+g-panels > .panels-ascending-to,
+g-panels > .panels-descending-to {
+  -webkit-animation-name: g-panels-fadeIn;
+}
+
+/* hslide */
+@host.g-panels-hslide > .panels-ascending-from {
+  -webkit-animation-name: g-panels-slideLeft;
+}
+@host.g-panels-hslide > .panels-ascending-to {
+  -webkit-animation-name: g-panels-slideFromRight;
+}
+@host.g-panels-hslide > .panels-descending-from {
+  -webkit-animation-name: g-panels-slideRight;
+}
+@host.g-panels-hslide > .panels-descending-to {
+  -webkit-animation-name: g-panels-slideFromLeft;
+}
+
+g-panels.g-panels-hslide > .panels-ascending-from {
+  -webkit-animation-name: g-panels-slideLeft;
+}
+g-panels.g-panels-hslide > .panels-ascending-to {
+  -webkit-animation-name: g-panels-slideFromRight;
+}
+g-panels.g-panels-hslide > .panels-descending-from {
+  -webkit-animation-name: g-panels-slideRight;
+}
+g-panels.g-panels-hslide > .panels-descending-to {
+  -webkit-animation-name: g-panels-slideFromLeft;
+}
+
+/* vslide */
+@host.g-panels-vslide > .panels-ascending-from {
+  -webkit-animation-name: g-panels-slideTop;
+}
+@host.g-panels-vslide > .panels-ascending-to {
+  -webkit-animation-name: g-panels-slideFromBottom;
+}
+@host.g-panels-vslide > .panels-descending-from {
+  -webkit-animation-name: g-panels-slideBottom;
+}
+@host.g-panels-vslide > .panels-descending-to {
+  -webkit-animation-name: g-panels-slideFromTop;
+}
+
+/* hslideover */
+@host.g-panels-hslideover > .panels-ascending-from,
+@host.g-panels-hslideover > .panels-descending-from {
+  -webkit-animation-name: none;
+}
+@host.g-panels-hslideover > .panels-ascending-to {
+  -webkit-animation-name: g-panels-slideFromRight;
+}
+@host.g-panels-hslideover > .panels-descending-to {
+  -webkit-animation-name: g-panels-slideFromLeft;
+}
+
+/* vslideover */
+@host.g-panels-vslideover > .panels-ascending-from,
+@host.g-panels-vslideover > .panels-descending-from {
+  -webkit-animation-name: none;
+}
+@host.g-panels-vslideover > .panels-ascending-to {
+  -webkit-animation-name: g-panels-slideFromBottom;
+}
+@host.g-panels-vslideover > .panels-descending-to {
+  -webkit-animation-name: g-panels-slideFromTop;
+}
+
+/* explode */
+@host.g-panels-explode > .panels-ascending-from,
+@host.g-panels-explode > .panels-descending-from {
+  -webkit-animation-name: g-panels-explodeOut;
+}
+@host.g-panels-explode > .panels-ascending-to,
+@host.g-panels-explode > .panels-descending-to {
+  -webkit-animation-name: g-panels-explodeIn;
+}
+
+/* scale-slide */
+@host.g-panels-scale-slide > .panels-ascending-from {
+  -webkit-animation-name: g-panels-fadeScaleOut;
+}
+@host.g-panels-scale-slide > .panels-ascending-to {
+  -webkit-animation-name: g-panels-slideFromRight;
+}
+@host.g-panels-scale-slide > .panels-descending-from {
+  -webkit-animation-name: g-panels-slideRight;
+}
+@host.g-panels-scale-slide > .panels-descending-to {
+  -webkit-animation-name: g-panels-fadeScaleIn;
+}
+
+/* fly-up-right */
+@host.g-panels-fly-up-right > .panels-ascending-from {
+  -webkit-animation-name: g-panels-flyOutRight;
+}
+@host.g-panels-fly-up-right > .panels-ascending-to {
+  -webkit-animation-name: g-panels-fadeInPartial;
+}
+@host.g-panels-fly-up-right > .panels-descending-from {
+  -webkit-animation-name: g-panels-fadeOutPartial;
+}
+@host.g-panels-fly-up-right > .panels-descending-to {
+  -webkit-animation-name: g-panels-flyInLeft;
+}
+
+@-webkit-keyframes g-panels-fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@-webkit-keyframes g-panels-fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes g-panels-fadeInPartial {
+  0% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes g-panels-fadeOutPartial {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.25;
+  }
+}
+
+@-webkit-keyframes g-panels-fadeScaleIn {
+  0% {
+    z-index: 0;
+    opacity: 0.5;
+    -webkit-transform: scale(0.9) translateZ(0);
+  }
+  20% {
+    z-index: 0;
+    -webkit-transform: scale(0.9) translateZ(0);
+  }
+  100% {
+    z-index: 0;
+    opacity: 1;
+    -webkit-transform: scale(1) translateZ(0);
+  }
+}
+
+@-webkit-keyframes g-panels-fadeScaleOut {
+  0% {
+    z-index: 0;
+    opacity: 1;
+    -webkit-transform: scale(1) translateZ(0);
+  }
+  20% {
+    z-index: 0;
+    -webkit-transform: scale(0.9) translateZ(0);
+  }
+  100% {
+    z-index: 0;
+    opacity: 0.5;
+    -webkit-transform: scale(0.9) translateZ(0);
+  }
+}
+
+@-webkit-keyframes g-panels-slideRight {
+  0% {
+    z-index: 1;
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+  100% {
+    z-index: 1;
+    -webkit-transform: translate3d(100%, 0, 0);
+  }
+}
+
+@-webkit-keyframes g-panels-slideFromRight {
+  0% {
+    z-index: 1;
+    -webkit-transform: translate3d(100%, 0, 0);
+  }
+  100% {
+    z-index: 1;
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+}
+
+@-webkit-keyframes g-panels-slideLeft {
+  0% {
+    z-index: 1;
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+  100% {
+    z-index: 1;
+    -webkit-transform: translate3d(-100%, 0, 0);
+  }
+}
+
+@-webkit-keyframes g-panels-slideFromLeft {
+  0% {
+    z-index: 1;  
+    -webkit-transform: translate3d(-100%, 0, 0);
+  }
+  100% {
+    z-index: 1;
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+}
+
+@-webkit-keyframes g-panels-slideBottom {
+  0% {
+    z-index: 1;
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+  100% {
+    z-index: 1;
+    -webkit-transform: translate3d(0, 100%, 0);
+  }
+}
+
+@-webkit-keyframes g-panels-slideFromBottom {
+  0% {
+    z-index: 1;
+    -webkit-transform: translate3d(0, 100%, 0);
+  }
+  100% {
+    z-index: 1;
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+}
+
+@-webkit-keyframes g-panels-slideTop {
+  0% {
+    z-index: 1;
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+  100% {
+    z-index: 1;
+    -webkit-transform: translate3d(0, -100%, 0);
+  }
+}
+
+@-webkit-keyframes g-panels-slideFromTop {
+  0% {
+    z-index: 1;
+    -webkit-transform: translate3d(0, -100%, 0);
+  }
+  100% {
+    z-index: 1;
+    -webkit-transform: translate3d(0, 0, 0);
+  }
+}
+
+@-webkit-keyframes g-panels-explodeOut {
+  0% {
+    -webkit-transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+  100% {
+    -webkit-transform: scale(0) translateZ(0);
+    opacity: 0;
+  }
+}
+
+@-webkit-keyframes g-panels-explodeIn {
+  0% {
+    z-index: 1;
+    -webkit-transform: scale(0) translateZ(0);
+    opacity: 0;
+  }
+  100% {
+    z-index: 1;
+    -webkit-transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes g-panels-flyOutRight {
+  0% {
+    z-index: 1;
+    -webkit-transform: translate3d(0,0,0) rotate(0);
+  }
+  100% {
+    z-index: 1;
+    -webkit-transform: translate3d(10%, -110%, 0) rotate(5deg);
+  }
+}
+
+@-webkit-keyframes g-panels-flyInLeft {
+  0% {
+    z-index: 1;
+    -webkit-transform: translate3d(10%, -110%, 0) rotate(5deg);
+  }
+  100% {
+    z-index: 1;
+    -webkit-transform: translate3d(0,0,0) rotate(0deg);
+  }
+}

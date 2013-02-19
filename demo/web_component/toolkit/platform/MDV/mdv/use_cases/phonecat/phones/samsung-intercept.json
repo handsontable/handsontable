@@ -1,0 +1,83 @@
+{
+    "additionalFeatures": "", 
+    "android": {
+        "os": "Android 2.1", 
+        "ui": ""
+    }, 
+    "availability": [
+        "Sprint (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "800 hours", 
+        "talkTime": "7 hours", 
+        "type": "Lithium Ion (Li-Ion) (1500 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Video"
+        ], 
+        "primary": "3.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.1", 
+        "cell": "CDMA EVDO Rev. 0", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "Put a smile on your face and tons of apps in your hand with the Samsung Intercept\u2122.Pre-loaded social apps let you post pictures at a touch, and thousands of Android\u2122 Market apps let you customize the 3.2\u201d touchscreen how you like.Stylish yet affordable, it features the nextgen Android 2.1 OS and a powerful processor.Slide out the full QWERTY keyboard for fast messaging, and snap the 3.2MP camera for stunning images.Come on, get appy!", 
+    "display": {
+        "screenResolution": "WQVGA (400 x 240)", 
+        "screenSize": "3.2 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "800MHz ARM11 Samsung S3C6410", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/True.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "samsung-intercept", 
+    "images": [
+        {
+            "id": "114003", 
+            "medium": "http://www.google.com/phone/image/medium/114003", 
+            "small": "http://www.google.com/phone/image/small/114003"
+        }, 
+        {
+            "id": "118002", 
+            "medium": "http://www.google.com/phone/image/medium/118002", 
+            "small": "http://www.google.com/phone/image/small/118002"
+        }, 
+        {
+            "id": "145001", 
+            "medium": "http://www.google.com/phone/image/medium/145001", 
+            "small": "http://www.google.com/phone/image/small/145001"
+        }, 
+        {
+            "id": "146001", 
+            "medium": "http://www.google.com/phone/image/medium/146001", 
+            "small": "http://www.google.com/phone/image/small/146001"
+        }, 
+        {
+            "id": "155001", 
+            "medium": "http://www.google.com/phone/image/medium/155001", 
+            "small": "http://www.google.com/phone/image/small/155001"
+        }
+    ], 
+    "name": "Samsung Intercept\u2122", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "58.0 mm (w)", 
+            "117.0 mm (h)", 
+            "14.95 mm (d)"
+        ], 
+        "weight": "130.0 grams"
+    }, 
+    "storage": {
+        "flash": "180MB", 
+        "ram": "256MB"
+    }
+}

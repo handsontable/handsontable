@@ -1,0 +1,65 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<element name="g-toolbar">
+  <link rel="components" href="g-component.html">
+  <template>
+    <style>
+      @host {
+        display: -webkit-box;
+        display: -webkit-flex;
+        -webkit-box-align: center;
+        -webkit-align-items: center;
+        min-height: 60px;
+        background-color: whitesmoke;
+        box-shadow: inset 0px 0px 3px rgba(255, 255, 255, 1);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.16);
+      }
+      
+      @host > *:not(g-toolbar) {
+        margin: 0 6px;
+      }
+      
+      /* toolbars can be made plain and nested toolbars are unstyled by default */
+      @host > g-toolbar {
+        background-color: none;
+        box-shadow: none;
+        border-bottom: 0;
+      }
+      
+      /* TODO(ffu): to replace with :distributed */
+      @host > .flex {
+        -webkit-box-flex: 1;
+        -webkit-flex: 1;
+      }
+      
+      /* TODO(ffu): ad hoc, replace with a more thoughtful set of responsive rules */
+      @media screen and (max-width: 800px) {
+        @host.responsive {
+          position: fixed;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          z-index: 1;
+          background-color: whitesmoke;
+          border: 0;
+          border-top: 1px solid rgba(0, 0, 0, 0.16);
+        }
+        
+        @host.responsive > .hidden-narrow {
+          display: none;
+        }
+      }
+    </style>
+    <content></content>
+  </template>
+  <script>
+    this.component({
+      ready: function() {
+        this.node.setAttribute('touch-action', 'none');
+      }
+    });
+  </script>
+</element>

@@ -1,0 +1,195 @@
+/*
+ * Copyright 2012 The Toolkitchen Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+
+/*
+  TODO(sorvell): include a reasonable set of default overlay opening 
+  animations. What's here right now is ad hoc.
+*/
+ 
+ /*
+    Styling a g-overlay:
+ 
+    1. use the 'opened' class to style the overlay when it is open.
+    A transition or animation can be applied to animate the overlay into place.
+    Note: there's no need to set the display property of an overlay. That's
+    managed automatically.
+ 
+    2. To apply a different animation when the overlay closes, use the 
+    'closing' class.
+ */
+ 
+@host {
+  height: 0;
+  width: 0;
+  outline: none;
+  overflow: hidden;
+}
+ 
+@host > .overlay {
+  position: fixed;
+  z-index: 10;
+  outline: none;
+  display: none;
+  opacity: 0.99;
+  -webkit-transition: opacity 0.001s;
+}
+
+/* Note that trbl: 0 + position: fixed will not 'fit to window'
+if a transform is applied to a parent of this element. That parent
+becomes the containing block; see:
+http://dev.w3.org/csswg/css3-transforms/#transform-rendering
+We address this by using script based positioning =(
+*/
+
+@host > .scrim {
+  display: none;
+}
+
+@host.modal > .scrim {
+  z-index: 5;
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: black;
+  opacity: 0;
+  -webkit-transition: opacity 0.218s;
+}
+
+/*
+  The revealed class exists because it's necessary to 'show' a node
+  before applying a transition. When an overlay is opened, it is 
+  immediately revealed (display: block) and then asynchronously the 
+  opened or closing classes are added.
+
+  Because we don't want to actually show the node before a transition
+  or animation is applied, when the node is 
+  revealed, it is made display: block but visibility: hidden.
+  It is then made visibility: visible when it is opened.
+*/
+
+@host.revealed > .overlay {
+  display: block;
+  visibility: hidden;
+}
+
+@host.revealed.opened > .overlay {
+  opacity: 1;
+  display: block;
+  visibility: visible;
+}
+
+@host.revealed.closing > .overlay {
+  display: block;
+  visibility: visible;
+}
+
+@host.modal.revealed > .scrim {
+  display: block;
+}
+
+@host.modal.opened > .scrim {
+  opacity: 0.5;
+}
+
+@host.modal.transparent > .scrim {
+  opacity: 0;
+}
+
+/* 
+  When an animation is detected (via an animationstart event) this class
+  is applied to remove any transition. This ensures only 1 animation end event
+  will be processed.
+  
+  NOTE: if a rule such as a media query changes an overlay from using a css 
+  animation to a transition, the animation class must be altered or removed.
+*/
+@host.animation > .overlay {
+  -webkit-transition: none;
+}
+
+@host.g-overlay-fade > .overlay {
+  opacity: 0;
+  -webkit-transition: all 0.218s;
+}
+
+@host.g-overlay-fade.opened > .overlay {
+  opacity: 1;
+}
+
+@host.g-overlay-scale-slideup > .overlay {
+  opacity: 0.0;
+  -webkit-transform: scale(1.05);
+}
+
+@host.g-overlay-scale-slideup.opened > .overlay {
+  opacity: 1.0;
+  -webkit-transform: scale(1.0);
+  -webkit-transition: all 0.218s;
+}
+
+@host.g-overlay-scale-slideup.closing > .overlay {
+  opacity: 0;
+  -webkit-transform: translateY(-100%);
+  -webkit-transition: all 0.4s;
+}
+
+@-webkit-keyframes g-overlay-shakeFadeIn {
+  0% {
+    opacity: 0;
+    -webkit-transform: translateX(0);
+  }
+  10% {
+    -webkit-transform: translateX(-50px);
+  }
+  30% {
+    -webkit-transform: translateX(50px);
+  }
+  50% {
+    -webkit-transform: translateX(-25px);
+  }
+  70% {
+    -webkit-transform: translateX(25px);
+  }
+  90% {
+    -webkit-transform: translateX(-13px);
+  }
+  100% {
+    -webkit-transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes g-overlay-shakeFadeOut {
+  0% {
+    opacity: 1;
+    -webkit-transform: translateX(0);
+  }
+  10% {
+    -webkit-transform: translateX(-50px);
+  }
+  30% {
+    -webkit-transform: translateX(50px);
+  }
+  100% {
+    -webkit-transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+@host.g-overlay-shake.opened > .overlay {
+  -webkit-animation-duration: 0.5s;
+  -webkit-animation-fill-mode: both;
+  -webkit-animation-name: g-overlay-shakeFadeIn;
+}
+
+@host.g-overlay-shake.closing > .overlay {
+  -webkit-animation-duration: 0.5s;
+  -webkit-animation-fill-mode: both;
+  -webkit-animation-name: g-overlay-shakeFadeOut;
+}

@@ -1,0 +1,75 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Model-driven Views: Design</h1>
+
+<h2>Synopsis</h2>
+
+<p>This document lays out the design for Model-driven Views (MDV): A proposal for extending HTML and the DOM APIs to support a sensible separation between the UI (DOM) of a document or application and its underlying data (model). Updates to the model are reflected in the DOM and user input into the DOM is immediately assigned to the model.</p>
+
+<code><pre>&lt;div id="example"&gt;
+Goals:
+&lt;ul&gt;
+&lt;template iterate&gt;
+  &lt;li&gt;{{ goal }}&lt;/li&gt;
+&lt;/template&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+...
+&lt;script&gt;
+document.getElementById('example').model = [
+  {goal: 'Fast'},
+  {goal: 'Safe'},
+  {goal: 'Simple'},
+  {goal: 'Stable'}
+];
+&lt;/script&gt;
+</pre></code>
+<p><em>Note: Extra whitespace/formatting is added in the output part of code samples for clarity's sake. Template instances in the design and prototype do not add extra whitespace.</em></p>
+<code><pre class="result">&lt;div id="example"&gt;
+Goals:
+&lt;ul&gt;
+&lt;template iterate&gt;&lt;/template&gt;
+  &lt;li&gt;Fast&lt;/li&gt;
+  &lt;!--template-instance--&gt;
+  &lt;li&gt;Safe&lt;/li&gt;
+  &lt;!--template-instance--&gt;
+  &lt;li&gt;Simple&lt;/li&gt;
+  &lt;!--template-instance--&gt;
+  &lt;li&gt;Stable&lt;/li&gt;
+  &lt;!--template-instance--&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+</pre></code>
+
+<h2>Audience</h2>
+
+<p>The intended audience of this document is browser implementors who wish to understand the work done so far by Google. This document (along with the prototype that implements most of the design described) is intended as a starting point for a discussion about how to best solve the broad motivations of this effort.</p>
+
+<p>The design is not complete. Following each section is a list of open issues. Separately, aspects of the design which are currently sub-optimal are called out as needing more attention.</p>
+
+<h2>Design Considerations</h2>
+
+<ol>
+<li><em>Fast.</em> DOM updates should be at least as fast as (and ideally faster than) use of innerHTML, node.cloneNode(true) and direct use of the DOM APIs.</li>
+<li><em>Safe.</em> MDV should neither create new attack surfaces nor encourage practices in applications which do.</li>
+<li><em>Simple</em>. Dramatically reduce the amount of code required to wire up application logic and the DOM.</li>
+<li><em>Stable.</em> Transient state of DOM structures such as event handlers, user input and application-specific use of node properties should never be destroyed as a side effect of MDV's operations.</li>
+</ol>
+
+<h2>Design Overview</h2>
+
+<p>The overall design for MDV has five main components</p>
+
+<ol>
+<li><em><a href="model.html">Observable data mutations</a></em> creates a mechanism for the DOM to observe changes to application data so that it can react appropriately.</li>
+<li><em><a href="dom_model.html">Model ownership</a></em> locates the model data which the DOM and application script share within the DOM itself.</li>
+<li><em><a href="bindings.html">Bindings</a></em> allows individual values of DOM nodes to be dependent on one or more model values and for user input values to be assigned to model values.</li>
+<li><em><a href="template.html">Templating</a></em> creates a high-level construct for declaring sections of DOM which can be instantiated dependent on the presence and quantity of underlying model data.
+<li><em><a href="processing_model.html">Asynchronous Processing Model</a></em> specifies the behavior of bindings and templates such that all DOM updates required after a sequence model mutations can be deferred until the current script event exits. Further, the required work to the DOM can be safely processed without risk of running application script while it is under way.</li>
+</ol>
+
+</body>
+</html>

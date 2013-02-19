@@ -1,0 +1,74 @@
+{
+    "additionalFeatures": "Proximity Sensor\r\n", 
+    "android": {
+        "os": "Android 2.2", 
+        "ui": "HTC Sense\u2122"
+    }, 
+    "availability": [
+        "Verizon (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "146 hours", 
+        "talkTime": "4 hours", 
+        "type": "Lithium Ion (Li-Ion) (1300 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "8.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.1", 
+        "cell": "Dual-band (800 and 1900MHz) CDMA2000 1xRTT/1xEVDO/1xEVDO rev.", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g/n"
+    }, 
+    "description": "It blazes across the digital universe.  It snaps stunning 8-megapixel photos.  It zips them instantly to all of your 8 thousand friends.  With such attention to detail on the inside and out, the name of this phone pretty much says it all.Instant sharing. Capture the moment and post it instantly on Facebook\u00ae, Flickr\u00ae, or Picasa\u2122. Mail it, message it, or send a peep to all your peeps.Instant friends. With the Friend Stream app, you always know what\u2019s going on on Facebook and Twitter\u2122, without actually going on Facebook and Twitter.Instant apps. The Android\u2122 OS with HTC Sense\u2122 delivers easy access to thousands of apps and games available at the Android Market\u2122.", 
+    "display": {
+        "screenResolution": "WVGA (800 x 480)", 
+        "screenSize": "3.7 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "1GHz Snapdragon Qualcomm QSD8650", 
+        "fmRadio": true, 
+        "physicalKeyboard": "/phone/static/images/False.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "droid-incredible-by-htc", 
+    "images": [
+        {
+            "id": "242001", 
+            "medium": "http://www.google.com/phone/image/medium/242001", 
+            "small": "http://www.google.com/phone/image/small/242001"
+        }, 
+        {
+            "id": "243001", 
+            "medium": "http://www.google.com/phone/image/medium/243001", 
+            "small": "http://www.google.com/phone/image/small/243001"
+        }, 
+        {
+            "id": "244001", 
+            "medium": "http://www.google.com/phone/image/medium/244001", 
+            "small": "http://www.google.com/phone/image/small/244001"
+        }
+    ], 
+    "name": "DROID\u2122 Incredible by HTC", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "58.5 mm (w)", 
+            "117.5 mm (h)", 
+            "11.9 mm (d)"
+        ], 
+        "weight": "130.0 grams"
+    }, 
+    "storage": {
+        "flash": "8000MB", 
+        "ram": "512MB"
+    }
+}

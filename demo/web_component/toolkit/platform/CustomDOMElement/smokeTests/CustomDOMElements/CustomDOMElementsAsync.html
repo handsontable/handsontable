@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script src="../../../components-polyfill.js" exportas="components" unShadow></script>
+  <style>
+    shadow-root {
+      color: silver !important;
+      background-color: white !important;
+      border: 1px dotted silver !important;
+    }
+  </style>
+</head>
+<body>
+
+  <x-element>Hi</x-element>
+
+  <hr/>
+
+  <x-subelement></x-subelement>
+
+  <hr/>
+
+  <!-- -->
+  
+  <template id="x-element">
+    x-element
+    <content></content>
+  </template>
+
+  <script>
+    //
+    // register
+    //
+    var proto = components.CustomDOMElements.generatePrototype("div", {
+      orangate: function() {
+        this.style.background = "orange";
+      }
+    });
+    //
+    XElement = document.register("x-element", {
+      prototype: proto,
+      template: document.querySelector("template#x-element"),
+      lifecycle: {
+        created: function(inShadowRoot, inKey) {
+          console.log("x-element created", this.is, inShadowRoot, inKey);
+        }
+      }
+    });
+    //
+    // imperative creation
+    //
+    var imperative = function() {
+      var impElt = new XElement();
+      document.body.appendChild(impElt);
+      impElt.orangate();
+    };
+    setTimeout(imperative, 100);
+    //imperative();
+    //
+    // declarative instance
+    //
+    var declarative = function() {
+      var decElt = document.querySelector("[is=x-element]");
+      decElt.orangate();
+    };
+    setTimeout(declarative, 150);
+    //declarative();
+  </script>
+  
+  <template id="x-subelement">
+    x-subelement
+    <shadow>
+  </template>
+  
+  <script>
+    //
+    // subclass
+    //
+    var subclass = function() {
+      var proto = components.CustomDOMElements.generatePrototype("x-element", {});
+      //
+      XSubElement = document.register("x-subelement", {
+        prototype: proto,
+        template: document.querySelector("template#x-subelement"),
+        lifecycle: {
+          created: function(inShadowRoot, inKey) {
+            console.log("x-subelement created", this.is, inShadowRoot, inKey);
+          }
+        }
+      });
+      //
+      var sub = document.querySelector("[is=x-subelement]");
+      sub.orangate();
+    };
+    setTimeout(subclass, 200);
+  </script>
+</body>
+</html>

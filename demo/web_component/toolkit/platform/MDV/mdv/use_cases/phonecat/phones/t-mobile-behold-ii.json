@@ -1,0 +1,79 @@
+{
+    "additionalFeatures": "", 
+    "android": {
+        "os": "Android 1.6", 
+        "ui": "TouchWiz"
+    }, 
+    "availability": [
+        "T-Mobile (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "350 hours", 
+        "talkTime": "6 hours", 
+        "type": "Lithium Ion (Li-Ion) (1500 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "5.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.0", 
+        "cell": "EDGE  Quad band  850/900/1800/1900 MHz    \r\nUMTS Dual-band 1700/2100 MHz \r\nHSDPA 7.2Mbps \r\n ", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "The Behold\u00ae II is an Android phone with ideal features like corporate email synchronization, WiFi, and visual voicemail. Its Webkit-based browser is fully integrated with Google applications so you can check Gmail, automatically add an event to your calendar, and find directions with Google Maps. The Behold\u00ae II also features a 3.2\u201d AMOLED screen so you can view your graphics, photos and YouTube videos in clarity. And it is everything you need for multimedia, offering 16GB of expandable memory, Bluetooth 2.1, MP3 music player and a 5MP camera/camcorder with auto-focus, flash and 8x zoom. It\u2019s truly something to behold.", 
+    "display": {
+        "screenResolution": "HVGA (480 x 320)", 
+        "screenSize": "3.2 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "600 MHz", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/False.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "t-mobile-behold-ii", 
+    "images": [
+        {
+            "id": "139001", 
+            "medium": "http://www.google.com/phone/image/medium/139001", 
+            "small": "http://www.google.com/phone/image/small/139001"
+        }, 
+        {
+            "id": "140001", 
+            "medium": "http://www.google.com/phone/image/medium/140001", 
+            "small": "http://www.google.com/phone/image/small/140001"
+        }, 
+        {
+            "id": "153001", 
+            "medium": "http://www.google.com/phone/image/medium/153001", 
+            "small": "http://www.google.com/phone/image/small/153001"
+        }, 
+        {
+            "id": "427001", 
+            "medium": "http://www.google.com/phone/image/medium/427001", 
+            "small": "http://www.google.com/phone/image/small/427001"
+        }
+    ], 
+    "name": "T-Mobile Behold II\u2122", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "56.5 mm (w)", 
+            "116.5 mm (h)", 
+            "12.5 mm (d)"
+        ], 
+        "weight": "118.0 grams"
+    }, 
+    "storage": {
+        "flash": "200MB", 
+        "ram": "194MB"
+    }
+}

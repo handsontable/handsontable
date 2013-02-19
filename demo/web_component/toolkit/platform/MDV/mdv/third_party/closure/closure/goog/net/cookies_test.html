@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2006 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<head>
+<title>Closure Unit Tests - goog.net.cookies</title>
+<script src="../base.js"></script>
+<script>
+  goog.require('goog.array');
+  goog.require('goog.net.cookies');
+  goog.require('goog.testing.jsunit');
+</script>
+</head>
+<body>
+<script>
+
+var cookies = goog.net.cookies;
+var baseCount = 0;
+
+function checkForCookies() {
+  if (!goog.net.cookies.isEnabled()) {
+    var message = 'Cookies must be enabled to run this test.';
+    if (location.protocol == 'file:') {
+      message += '\nNote that cookies for local files are disabled in some ' +
+          'browsers.\nThey can be enabled in Chrome with the ' +
+          '--enable-file-cookies flag.';
+    }
+
+    fail(message);
+  }
+}
+
+function setUp() {
+  checkForCookies();
+
+  // Make sure there are no cookies set by previous, bad tests.
+  cookies.clear();
+  baseCount = cookies.getCount();
+}
+
+function tearDown() {
+  // Clear up after ourselves.
+  cookies.clear();
+}
+
+function testIsEnabled() {
+  // Save static function prior to mocking.
+  var isNavigatorCookieEnabled = cookies.isNavigatorCookieEnabled_;
+  try {
+    cookies.isNavigatorCookieEnabled_ = function() { return true; };
+    assertTrue(cookies.isEnabled());
+    cookies.isNavigatorCookieEnabled_ = function() { return false; };
+    assertFalse(cookies.isEnabled());
+  } finally {
+    // Restore static function.
+    cookies.isNavigatorCookieEnabled_ = isNavigatorCookieEnabled;
+  }
+}
+
+function testCount() {
+  // setUp empties the cookies
+
+  cookies.set('testa', 'A');
+  assertEquals(baseCount + 1, cookies.getCount());
+  cookies.set('testb', 'B');
+  cookies.set('testc', 'C');
+  assertEquals(baseCount + 3, cookies.getCount());
+  cookies.remove('testa');
+  cookies.remove('testb');
+  assertEquals(baseCount + 1, cookies.getCount());
+  cookies.remove('testc');
+  assertEquals(baseCount + 0, cookies.getCount());
+}
+
+function assertThrows(f, args, opt_this) {
+  try {
+    f.apply(opt_this, args);
+  } catch (ex) {
+    return;
+  }
+  fail('An exception was not thrown');
+}
+
+function testSet() {
+  cookies.set('testa', 'testb');
+  assertEquals('testb', cookies.get('testa'));
+  cookies.remove('testa');
+  assertEquals(undefined, cookies.get('testa'));
+  // check for invalid characters in name and value
+}
+
+function testSetInvalidName() {
+  assertThrows(cookies.set, ['foo=bar', 'test']);
+  assertThrows(cookies.set, ['foo;bar', 'test']);
+}
+
+function testSetInvalidValue() {
+  assertThrows(cookies.set, ['testa', ';']);
+  assertThrows(cookies.set, ['testb', 'a;']);
+  assertThrows(cookies.set, ['testc', ';a']);
+  assertThrows(cookies.set, ['testd', 'a;a']);
+}
+
+function testGetKeys() {
+  cookies.set('testa', 'A');
+  cookies.set('testb', 'B');
+  cookies.set('testc', 'C');
+  var keys = cookies.getKeys();
+  assertTrue(goog.array.contains(keys, 'testa'));
+  assertTrue(goog.array.contains(keys, 'testb'));
+  assertTrue(goog.array.contains(keys, 'testc'));
+}
+
+
+function testGetValues() {
+  cookies.set('testa', 'A');
+  cookies.set('testb', 'B');
+  cookies.set('testc', 'C');
+  var values = cookies.getValues();
+  assertTrue(goog.array.contains(values, 'A'));
+  assertTrue(goog.array.contains(values, 'B'));
+  assertTrue(goog.array.contains(values, 'C'));
+}
+
+
+function testContainsKey() {
+  assertFalse(cookies.containsKey('testa'));
+  cookies.set('testa', 'A');
+  assertTrue(cookies.containsKey('testa'));
+  cookies.set('testb', 'B');
+  assertTrue(cookies.containsKey('testb'));
+  cookies.remove('testb');
+  assertFalse(cookies.containsKey('testb'));
+  cookies.remove('testa');
+  assertFalse(cookies.containsKey('testa'));
+}
+
+
+function testContainsValue() {
+  assertFalse(cookies.containsValue('A'));
+  cookies.set('testa', 'A');
+  assertTrue(cookies.containsValue('A'));
+  cookies.set('testb', 'B');
+  assertTrue(cookies.containsValue('B'));
+  cookies.remove('testb');
+  assertFalse(cookies.containsValue('B'));
+  cookies.remove('testa');
+  assertFalse(cookies.containsValue('A'));
+}
+
+
+function testIsEmpty() {
+  // we cannot guarantee that we have no cookies so testing for the true
+  // case cannot be done without a mock document.cookie
+  cookies.set('testa', 'A');
+  assertFalse(cookies.isEmpty());
+  cookies.set('testb', 'B');
+  assertFalse(cookies.isEmpty());
+  cookies.remove('testb');
+  assertFalse(cookies.isEmpty());
+  cookies.remove('testa');
+}
+
+
+function testRemove() {
+  assertFalse('1. Cookie should not contain "testa"', cookies.containsKey('testa'));
+  cookies.set('testa', 'A', undefined, '/');
+  assertTrue('2. Cookie should contain "testa"', cookies.containsKey('testa'));
+  cookies.remove('testa', '/');
+  assertFalse('3. Cookie should not contain "testa"', cookies.containsKey('testa'));
+
+  cookies.set('testa', 'A');
+  assertTrue('4. Cookie should contain "testa"', cookies.containsKey('testa'));
+  cookies.remove('testa');
+  assertFalse('5. Cookie should not contain "testa"', cookies.containsKey('testa'));
+}
+
+function testStrangeValue() {
+  // This ensures that the pattern key2=value in the value does not match
+  // the key2 cookie.
+  var value = 'testb=bbb';
+  var value2 = 'ccc';
+
+  cookies.set('testa', value);
+  cookies.set('testb', value2);
+
+  assertEquals(value, cookies.get('testa'));
+  assertEquals(value2, cookies.get('testb'));
+}
+
+// TODO(user): Test path, domain and maxAge.
+//            However the document.cookie string is magical which makes this
+//            very hard to test
+
+</script>
+</body>
+</html>

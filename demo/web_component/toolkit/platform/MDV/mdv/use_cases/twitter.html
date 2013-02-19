@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2011 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>Twitter Demo</title>
+<script src="include.js"></script>
+<style>
+
+body {
+  display: -webkit-box;
+  display: -moz-box;
+  -webkit-box-orient: vertical;
+  -moz-box-orient: vertical;
+  margin: 0;
+  padding: 5px;
+  font: 13px sans-serif;
+  width: 100%;
+  -moz-box-sizing: border-box;
+}
+
+body > div {
+  display: -webkit-box;
+  display: -moz-box;
+  -webkit-box-orient: horizontal;
+  -moz-box-orient: horizontal;
+}
+
+body > * {
+  width: 100%;
+}
+
+#details-pane {
+  -moz-box-flex: 1;
+  margin-left: 5px;
+}
+
+#details img {
+  float: left;
+  margin: 5px 5px 5px 0;
+}
+
+h1, h2, h3 {
+  margin: 0;
+  padding-top: 5px;
+}
+
+#list {
+  list-style: none;
+  margin: 5px 0;
+  min-width: 150px;
+  padding: 0;
+}
+
+#list > li {
+  border-radius: 2px;
+  cursor: pointer;
+  padding: 1px 5px;
+}
+
+#list > li:hover {
+  background: #ddd;
+}
+
+</style>
+<!--
+
+{
+  "from_user_id_str":"516761",
+  "profile_image_url":"http://a0.twimg.com/profile_images/1140507284/yakan__normal.jpg",
+  "created_at":"Tue, 07 Dec 2010 17:28:56 +0000",
+  "from_user":"oc_chang",
+  "id_str":"12196874488385537",
+  "metadata":{"result_type":"recent"},
+  "to_user_id":null,
+  "text":"Google\u306e\u4e2d\u306e\u4eba\u304c\u958b\u767a\u3057\u305fChrome\u62e1\u5f35\u6a5f\u80fd\u3000\u53b3\u907818\u500b\u307e\u3068\u3081*\u4e8c\u5341\u6b73\u8857\u9053\u307e\u3063\u3057\u3050\u3089 http://goo.gl/OcCOl",
+  "id":12196874488385537,
+  "from_user_id":516761,
+  "geo":null,
+  "iso_language_code":"zh",
+  "to_user_id_str":null,
+  "source":"&lt;a href=&quot;http://twitter.com/&quot;&gt;web&lt;/a&gt;"
+}
+
+-->
+</head>
+<body data-controller="Controller">
+
+  <h1>Twitter Demo</h1>
+
+  <template instantiate>
+    <input type="search" value="{{ term }}">
+  </template>
+
+  <div>
+    <div>
+      <h2>Users</h2>
+
+      <ul id="list">
+        <template iterate="results">
+          <li data-action="click:updateDetails">{{from_user}}</li>
+        </template>
+      </ul>
+    </div>
+
+    <div id="details-pane">
+      <h2>Details</h2>
+
+      <div id="details">
+        <template instantiate>
+          <img src="{{profile_image_url}}">
+          <h3><a href="http://twitter.com/{{from_user}}">{{from_user}}</a></h3>
+          <p>{{text}}</p>
+          <p>Created at: {{created_at}}</p>
+          <p>Language code: {{iso_language_code}}</p>
+        </template>
+      </div>
+    </div>
+  </div>
+
+<script>
+
+var jsonp = function() {
+  var count = 0;
+  return function(url, f, scope) {
+    var script = document.createElement('script');
+    var name = 'callback_' + count++;
+    window[name] = function() {
+      delete window[name];
+      f.apply(scope||null, arguments);
+      script.parentNode.removeChild(script);
+      script = null;
+      Model.notifyChanges();
+    };
+    script.src = url + '&callback=' + name;
+    document.head.appendChild(script);
+  }
+}();
+
+var details = document.getElementById('details');
+
+function Controller(root) {
+  root.model = this;
+  this.term = 'Google Chrome';
+}
+
+Controller.prototype = {
+  term_: '',
+  results: null,
+
+  get term() {
+    return this.term_;
+  },
+
+  set term(term) {
+    if (term == this.term_)
+      return;
+    this.term_ = term;
+
+    var self = this;
+
+    jsonp('http://search.twitter.com/search.json?q=' + encodeURIComponent(term),
+      function(value) {
+        self.results = value.results;
+        if (self.results)
+          self.updateDetails(self.results[0]);
+      }
+    );
+  },
+
+  indexOfUser: function(user) {
+    if (this.results) {
+      for (var i = 0; i < this.results.length; i++) {
+        if (this.results[i]['from_user'] == user)
+          return i;
+      }
+    }
+    return -1;
+  },
+
+  updateDetails: function(item) {
+    var index = this.indexOfUser(item.from_user);
+    if (index >= 0)
+      details.model = this.results[index];
+  }
+};
+
+</script>
+
+</body>
+</html>

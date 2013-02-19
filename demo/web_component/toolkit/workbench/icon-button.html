@@ -1,0 +1,24 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0">
+  <title>Icon Button</title>
+  <script src="../platform/platform.js"></script>
+  <link rel="components" href="../components/g-icon-button.html">
+</head>
+<body>
+  <g-icon-button src="images/star_full.svg"></g-icon-button>
+  <g-icon-button active="true" src="images/star_full.svg"></g-icon-button>
+  <g-icon-button id="dynamic"></g-icon-button>
+  <script>
+    window.addEventListener("WebComponentsReady", function() {
+      document.querySelector("#dynamic").src = "images/star_full.svg";
+    });
+  </script>
+</body>
+</html>

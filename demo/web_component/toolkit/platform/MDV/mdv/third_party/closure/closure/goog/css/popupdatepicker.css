@@ -1,0 +1,17 @@
+/*
+ * Copyright 2009 The Closure Library Authors. All Rights Reserved.
+ *
+ * Use of this source code is governed by an Apache 2.0 License.
+ * See the COPYING file for details.
+ */
+
+/*
+ * Standard styling for a goog.ui.PopupDatePicker.
+ *
+ * @author arv@google.com (Erik Arvidsson)
+ */
+
+.goog-date-picker {
+  position: absolute;
+}
+

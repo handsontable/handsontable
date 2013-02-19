@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2011 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>MutationSummary test</title>
+<script src="http://closure-library.googlecode.com/svn/trunk/closure/goog/base.js"></script>
+<script src="mutation_summary.js"></script>
+<script src="testing_util.js"></script>
+
+<script>
+goog.require('goog.testing.jsunit');
+goog.require('goog.testing.AsyncTestCase');
+</script>
+</head>
+<body>
+  <div id="test-div"></div>
+
+<script>
+"use strict";
+
+var testCase = goog.testing.AsyncTestCase.createAndInstall(document.title);
+testCase.stepTimeout = 5 * 1000;
+
+var continueTesting = testCase.continueTesting.bind(testCase);
+
+var testDiv;
+var observer;
+var observing;
+var changed;
+var query;
+var options;
+
+function startObserving(q, extraOptions) {
+  query = q || { all: true };
+  options = {
+    rootNode: testDiv,
+    callback: function() {
+      throw 'Mutation Delivered at end of microtask'
+    },
+    queries: [query]
+  }
+
+  if (extraOptions) {
+    Object.keys(extraOptions).forEach(function(key) {
+      options[key] = extraOptions[key];
+    });
+  }
+
+  observer = new MutationSummary(options);
+
+  observing = true;
+}
+
+function stopObserving() {
+  if (observing)
+      observer.disconnect();
+
+  observing = false;
+}
+
+function setUp() {
+  testDiv = document.getElementById('test-div');
+  testDiv.__id__ = 1;
+}
+
+function tearDown() {
+  stopObserving();
+  testDiv.textContent = '';
+}
+
+function assertSummary(expect, opt_changed) {
+  var changed = opt_changed ? opt_changed[0] : observer.takeSummaries()[0];
+
+  expect.added = expect.added || [];
+  expect.removed = expect.removed || [];
+  expect.reparented = expect.reparented || [];
+  expect.reordered = expect.reordered || [];
+  expect.attributeChanged = expect.attributeChanged || {};
+
+  // added, removed
+  assert(typeof expect.added == typeof changed.added && typeof expect.removed == typeof changed.removed);
+  compareNodeArrayIgnoreOrder(expect.added, changed.added);
+  compareNodeArrayIgnoreOrder(expect.removed, changed.removed);
+
+  if (options.oldPreviousSibling) {
+    expect.removed.forEach(function(node, index) {
+      assertEquals(expect.removedOldPreviousSibling[index], changed.getOldPreviousSibling(node));
+    });
+  }
+
+  // reparented
+  if (query.all || query.element) {
+    assert(typeof expect.reparented === typeof changed.reparented);
+    compareNodeArrayIgnoreOrder(expect.reparented, changed.reparented);
+
+    if (options.oldPreviousSibling) {
+      expect.reparented.forEach(function(node, index) {
+        assertEquals(expect.reparentedOldPreviousSibling[index], changed.getOldPreviousSibling(node));
+      });
+    }
+  } else {
+    assertUndefined(changed.reparented);
+  }
+
+  // reordered
+  if (query.all) {
+    assert(typeof expect.reordered == typeof changed.reordered);
+    compareNodeArrayIgnoreOrder(expect.reordered, changed.reordered);
+
+    expect.reordered.forEach(function(node, index) {
+      assertEquals(expect.reorderedOldPreviousSibling[index], changed.getOldPreviousSibling(node));
+    });
+  } else {
+    assertUndefined(changed.reordered);
+  }
+
+  // valueChanged
+  if (query.attribute || query.characterData) {
+    assert(typeof expect.valueChanged == typeof changed.valueChanged);
+    compareNodeArrayIgnoreOrder(expect.valueChanged, changed.valueChanged);
+    var getOldFunction = query.attribute ? 'getOldAttribute' : 'getOldCharacterData';
+
+    expect.valueChanged.forEach(function(node, index) {
+      assertEquals(expect.oldValues[index], changed[getOldFunction](node));
+    });
+  } else {
+    assertUndefined(changed.valueChanged);
+  }
+
+  // attributeChanged
+  if (query.all || query.elementAttributes) {
+    assert(typeof expect.attributeChanged == typeof changed.attributeChanged);
+    assertEquals(Object.keys(expect.attributeChanged).length, Object.keys(changed.attributeChanged).length);
+
+    Object.keys(expect.attributeChanged).forEach(function(attrName) {
+      compareNodeArrayIgnoreOrder(expect.attributeChanged[attrName], changed.attributeChanged[attrName]);
+      expect.attributeOldValue[attrName].forEach(function(attrOldValue, index) {
+        assertEquals(expect.attributeOldValue[attrName][index], changed.getOldAttribute(expect.attributeChanged[attrName][index], attrName));
+      });
+    });
+  } else {
+    assertUndefined(changed.attributeChanged);
+  }
+}
+
+function assertNothingReported() {
+  assertUndefined(observer.takeSummaries());
+}
+
+function assertSelectorNames(selectors, expectSelectorStrings) {
+  assertEquals(expectSelectorStrings.length, selectors.length);
+  expectSelectorStrings.forEach(function(expectSelectorString, i) {
+    assertEquals(expectSelectorString, selectors[i].selectorString);
+  });
+}
+
+function testParseElementFilter() {
+  assertSelectorNames(MutationSummary.parseElementFilter('div'),
+                      ['div']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter(' div '),
+                      ['div']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('div,span'),
+                      ['div', 'span']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter(' div , SPAN '),
+                      ['div', 'SPAN']);
+
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div span');
+  })
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div > span');
+  })
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div>span');
+  })
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div < span');
+  })
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div<span');
+  })
+
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div:first-child')
+  });
+
+  assertSelectorNames(MutationSummary.parseElementFilter('#id'),
+                      ['*#id']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('span#id'),
+                      ['span#id']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('SPAN#id1#id2'),
+                      ['SPAN#id1#id2']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('span, #id'),
+                      ['span', '*#id']);
+
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('#2foo');
+  })
+
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('# div');
+  })
+
+  assertSelectorNames(MutationSummary.parseElementFilter('.className'),
+                      ['*.className']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('.className.className2'),
+                      ['*.className.className2']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('div.className'),
+                      ['div.className']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('DIV.className.className2'),
+                      ['DIV.className.className2']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter(' div.className '),
+                      ['div.className']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('.className'),
+                      ['*.className']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter(' .className '),
+                      ['*.className']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('.className,.className,span.className'),
+                      ['*.className', '*.className', 'span.className']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter(' .className, .className, SPAN.className'),
+                      ['*.className', '*.className', 'SPAN.className']);
+
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div. className');
+  })
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div . className');
+  })
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div .className');
+  })
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div .className');
+  })
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('.2className');
+  })
+
+  assertSelectorNames(MutationSummary.parseElementFilter('div[foo].className'),
+                      ['div[foo].className']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('DIV[foo].className#id'),
+                      ['DIV[foo].className#id']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('div#id.className[foo]'),
+                      ['div#id.className[foo]']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('div[foo]'),
+                      ['div[foo]']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('div[ foo ]'),
+                      ['div[foo]']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter(' div[ foo ] '),
+                      ['div[foo]']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('div[foo],span[bar]'),
+                      ['div[foo]', 'span[bar]']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter(' div[foo] , span[bar] '),
+                      ['div[foo]', 'span[bar]']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('[foo]'),
+                      ['*[foo]']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('[foo][bar]'),
+                      ['*[foo][bar]']);
+
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div [foo]');
+  })
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div[foo');
+  })
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('divfoo]');
+  })
+
+  assertSelectorNames(MutationSummary.parseElementFilter('div[foo=bar]'),
+                      ['div[foo="bar"]']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('div[ foo=" bar baz " ]'),
+                      ['div[foo=" bar baz "]']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter(' div[ foo = \' bar baz \'] '),
+                      ['div[foo=" bar baz "]']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('div[foo=baz],span[bar="bat"]'),
+                      ['div[foo="baz"]', 'span[bar="bat"]']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter(' div[foo=boo] , span[bar="baz"] '),
+                      ['div[foo="boo"]', 'span[bar="baz"]']);
+
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div[foo="bar ]');
+  })
+
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div[foo=bar"baz]');
+  })
+
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div[foo=bar baz]');
+  })
+
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div[foo|=bar]');
+  })
+
+  assertSelectorNames(MutationSummary.parseElementFilter('div[foo~=bar]'),
+                      ['div[foo~="bar"]']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('div[foo~="bar  "]'),
+                      ['div[foo~="bar  "]']);
+
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div[foo~=]');
+  })
+  assertThrows(function() {
+    MutationSummary.parseElementFilter('div[foo~ =bar]');
+  })
+
+  assertSelectorNames(MutationSummary.parseElementFilter('div[foo][bar]'),
+                      ['div[foo][bar]']);
+
+  assertSelectorNames(MutationSummary.parseElementFilter('div[foo], A, *[bar], div[ baz = "bat"]'),
+                      ['div[foo]', 'A', '*[bar]', 'div[baz="bat"]']);
+}
+
+function testOptionsValidation() {
+  // Unknown option.
+  assertThrows(function() {
+    new MutationSummary({
+      blarg: true,
+      callback: function() {},
+      queries: [{ all: true }]
+    });
+  });
+
+  // callback is required.
+  assertThrows(function() {
+    new MutationSummary({
+      queries: [{ all: true }]
+    });
+  });
+
+  // callback must be a function.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: 'foo'
+    });
+  });
+
+  // queries is required.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+    });
+  });
+
+  // queries must contain at least one query request.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: []
+    });
+  });
+
+  // Valid all request.
+  new MutationSummary({
+    callback: function() {},
+    queries: [{ all: true }]
+  });
+
+  // all doesn't allow options.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{ all: true, foo: false }]
+    });
+  });
+
+  // Valid attribute request.
+  new MutationSummary({
+    callback: function() {},
+    queries: [{ attribute: "foo" }]
+  });
+
+  // attribute doesn't allow options.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{ attribute: "foo", bar: false }]
+    });
+  });
+
+  // attribute must be a string.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{ attribute: 1 }]
+    });
+  });
+
+  // attribute must be non-zero length.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{ attribute: '  ' }]
+    });
+  });
+
+  // attribute must names must be valid.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{ attribute: '1foo' }]
+    });
+  });
+
+    // attribute must contain only one attribute.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{ attribute: 'foo bar' }]
+    });
+  });
+
+  // Valid element request.
+  new MutationSummary({
+    callback: function() {},
+    queries: [{ element: 'div' }]
+  });
+
+  // Valid element request 2.
+  new MutationSummary({
+    callback: function() {},
+    queries: [{ element: 'div, span[foo]' }]
+  });
+
+  // Valid element request 3.
+  new MutationSummary({
+    callback: function() {},
+    queries: [{ element: 'div', elementAttributes: "foo bar" }]
+  });
+
+  // Valid element request 4.
+  new MutationSummary({
+    callback: function() {},
+    oldPreviousSibling: true,
+    queries: [{ element: 'div, span[foo]' }]
+  });
+
+  // elementFilter doesn't support descendant selectors.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{ element: 'div span[foo]' }]
+    });
+  });
+
+  // elementFilter must contain at least one item
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{ element: '' }]
+    });
+  });
+
+  // Invalid element syntanx.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{ element: 'div[noTrailingBracket', }]
+    });
+  });
+
+  // Invalid element option
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{ element: 'div[foo]', foo: true }]
+    });
+  });
+
+  // elememtAttribute must contain valid attribute names
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{ element: 'div[foo]', elementAttributes: 'foo 1bar' }]
+    });
+  });
+
+  // Invalid element option 2.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{ element: 'div[foo]', elementAttributes: 'foo', foo: true }]
+    });
+  });
+
+  // Valid characterData request.
+  new MutationSummary({
+    callback: function() {},
+    queries: [{ characterData: true }]
+  });
+
+  // Invalid characterData option.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{ characterData: true, foo: true }]
+    });
+  });
+
+  // Invalid query request.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{  }]
+    });
+  });
+
+  // Invalid query request.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{ foo: true  }]
+    });
+  });
+
+    // Disallow listening to multiple 'cases' of the same attribute.
+  assertThrows(function() {
+    new MutationSummary({
+      callback: function() {},
+      queries: [{ element: 'a', elementAttributes: 'Bar bar' }]
+    });
+  });
+}
+
+function testDisconnectReconnect() {
+  var div = testDiv.appendChild(document.createElement('div'));
+  div.setAttribute('foo', '1');
+
+  startObserving({
+    element: 'div',
+    elementAttributes: 'foo bar'
+  });
+
+  div.setAttribute('foo', '2');
+
+  var summaries = observer.disconnect();
+  div.setAttribute('bar', '3'); // should be ignored.
+  observer.reconnect();
+
+  // summaries returned from disconnect are handed in.
+  assertSummary({
+    attributeChanged: { 'foo': [div], 'bar': [] },
+    attributeOldValue: { 'foo': ['1'], 'bar':[] }
+  }, summaries);
+
+  div.setAttribute('foo', '3');
+  // change to 'bar' should never be reported.
+  assertSummary({
+    attributeChanged: { 'foo': [div], 'bar': [] },
+    attributeOldValue: { 'foo': ['2'], 'bar':[] }
+  });
+}
+
+function testAttributeBasic() {
+  var div = testDiv.appendChild(document.createElement('div'));
+  div.setAttribute('foo', 'bar');
+
+  var div2 = testDiv.appendChild(document.createElement('div'));
+
+  var div3 = document.createElement('div');
+  div3.setAttribute('foo', 'bat');
+
+  startObserving({
+    attribute: "foo"
+  });
+
+  div.setAttribute('foo', 'bar2');
+  div2.setAttribute('foo', 'baz');
+  testDiv.appendChild(div3);
+  div3.setAttribute('foo', 'bat2');
+  assertSummary({
+    added: [div2, div3],
+    valueChanged: [div],
+    oldValues: ['bar']
+  });
+
+  div3.setAttribute('foo', 'bat3');
+  testDiv.removeChild(div3);
+  testDiv.removeChild(div);
+  div2.setAttribute('foo', 'baz2');
+  assertSummary({
+    added: [],
+    removed: [div3, div],
+    valueChanged: [div2],
+    oldValues: ['baz']
+  });
+
+  div2.removeAttribute('foo');
+  div2.setAttribute('foo', 'baz2');
+  assertNothingReported();
+}
+
+function testAttributeCaseInsensitive() {
+  var div = testDiv.appendChild(document.createElement('div'));
+  div.setAttribute('foo', 'bar');
+
+  var div2 = testDiv.appendChild(document.createElement('div'));
+
+  var div3 = document.createElement('div');
+  div3.setAttribute('foo', 'bat');
+
+  startObserving({
+    attribute: "FOO"
+  });
+
+  div.setAttribute('foo', 'bar2');
+  div2.setAttribute('foo', 'baz');
+  testDiv.appendChild(div3);
+  div3.setAttribute('foo', 'bat2');
+  assertSummary({
+    added: [div2, div3],
+    valueChanged: [div],
+    oldValues: ['bar']
+  });
+
+  div3.setAttribute('foo', 'bat3');
+  testDiv.removeChild(div3);
+  testDiv.removeChild(div);
+  div2.setAttribute('foo', 'baz2');
+  assertSummary({
+    added: [],
+    removed: [div3, div],
+    valueChanged: [div2],
+    oldValues: ['baz']
+  });
+
+  div2.removeAttribute('foo');
+  div2.setAttribute('foo', 'baz2');
+  assertNothingReported();
+}
+
+// TODO(rafaelw): Add node movement to this.
+function testCharacterDataBasic() {
+  var div = testDiv.appendChild(document.createElement('div'));
+  div.innerHTML = 'foo';
+  var text = div.firstChild;
+  var comment = div.appendChild(document.createComment('123'));
+
+  startObserving({
+    characterData: true
+  });
+  text.textContent = 'bar';
+  comment.textContent = '456'
+  var comment2 = div.appendChild(document.createComment('456'));
+  comment2.textContent = '789';
+  var div2 = testDiv.appendChild(document.createElement('div'));
+  assertSummary({
+    added: [comment2],
+    valueChanged: [text, comment],
+    oldValues: ['foo', '123']
+  });
+
+  text.textContent = 'baz';
+  text.textContent = 'bat';
+  div.removeChild(comment2);
+  assertSummary({
+    removed: [comment2],
+    valueChanged: [text],
+    oldValues: ['bar']
+  });
+
+  text.textContent = 'bar';
+  text.textContent = 'bat'; // Restoring its original value should mean
+                            // we won't hear about the change.
+  assertNothingReported();
+}
+
+function testElementFilterBasic() {
+  startObserving({
+    element: 'div, A, p'
+  });
+
+  var div = testDiv.appendChild(document.createElement('div'));
+  var span = div.appendChild(document.createElement('span'));
+  var p = testDiv.appendChild(document.createElement('P'));
+  assertSummary({
+    added: [div, p]
+  });
+
+  testDiv.removeChild(div);
+  testDiv.appendChild(div);
+  assertNothingReported();
+}
+
+function testElementFilterAttributeSpecified() {
+  startObserving({
+    element: 'div[foo], A, *[bar], div[ baz = "bat"], span#foo[blow~=blarg]'
+  });
+
+  var div = testDiv.appendChild(document.createElement('div'));
+  div.setAttribute('foo', 'foo');
+  var div2 = testDiv.appendChild(document.createElement('div'));
+  div2.setAttribute('fooz', 'foo');
+  var div3 = testDiv.appendChild(document.createElement('div'));
+  div3.setAttribute('baz', 'fat');
+
+  var span = div.appendChild(document.createElement('span'));
+  var p = testDiv.appendChild(document.createElement('P'));
+  p.setAttribute('baz', 'baz');
+  assertSummary({
+    added: [div]
+  });
+
+  div.removeAttribute('foo');
+  p.removeAttribute('baz');
+  p.setAttribute('bar', 'bar');
+  div3.setAttribute('baz', 'bat');
+  span.id = 'foo';
+  span.setAttribute('blow', 'blarg bloog');
+  assertSummary({
+    added: [p, div3, span],
+    removed: [div]
+  });
+
+  div3.removeAttribute('baz');
+  div3.setAttribute('baz', 'bat');
+  assertNothingReported();
+}
+
+
+function testCaseInsensitiveElementAttributes() {
+  var div = testDiv.appendChild(document.createElement('div'));
+
+  startObserving({
+    element: 'div',
+    elementAttributes: 'foo BAR'
+  });
+
+  div.setAttribute('FOO', 'FOO');
+  div.setAttribute('bar', 'bar');
+
+  assertSummary({
+    attributeChanged: { 'foo': [div], 'BAR': [div] },
+    attributeOldValue: { 'foo': [null], 'BAR': [null] }
+  });
+}
+
+function testElementFilterHTMLCaseInsensitive2() {
+  startObserving({
+    element: 'DIV[foo], A, *[bar], div[ BaZ = "bat"], span#foo[Blow~=blarg]',
+    elementAttributes: 'FOO'
+  });
+
+  var div = testDiv.appendChild(document.createElement('div'));
+  div.setAttribute('FOO', 'foo');
+  var div2 = testDiv.appendChild(document.createElement('div'));
+  div2.setAttribute('fooz', 'foo');
+  var div3 = testDiv.appendChild(document.createElement('div'));
+  div3.setAttribute('baz', 'fat');
+
+  var span = div.appendChild(document.createElement('span'));
+  var p = testDiv.appendChild(document.createElement('P'));
+  p.setAttribute('baz', 'baz');
+  assertSummary({
+    added: [div],
+    attributeChanged: { 'FOO': [] },
+    attributeOldValue: { 'FOO':[] }
+  });
+
+  div.setAttribute('foo', 'blarg');
+
+  p.removeAttribute('baz');
+  p.setAttribute('bar', 'bar');
+  div3.setAttribute('baz', 'bat');
+  span.id = 'foo';
+  span.setAttribute('bloW', 'blarg bloog');
+  assertSummary({
+    added: [p, div3, span],
+    attributeChanged: { 'FOO':[div] },
+    attributeOldValue: { 'FOO':['foo'] }
+  });
+
+  div3.removeAttribute('baz');
+  div3.setAttribute('baz', 'bat');
+  assertNothingReported();
+}
+
+function testElementFilterSVGCaseSensitive() {
+  var docType = document.implementation.createDocumentType("svg", "-//W3C//DTD SVG 1.1//EN", null);
+  var svgDoc = document.implementation.createDocument('http://www.w3.org/2000/svg', 'svg', docType);
+
+  testDiv = svgDoc.createElement('div');
+
+  startObserving({
+    element: 'div[foo], a, *[bar], div[ BaZ = "bat"], SPAN#foo[Blow~=blarg]',
+    elementAttributes: 'FOO'
+  });
+
+  var div = testDiv.appendChild(svgDoc.createElement('div'));
+  div.setAttribute('FOO', 'foo');
+
+  var div2 = testDiv.appendChild(svgDoc.createElement('div'));
+  div2.setAttribute('foo', 'foo');
+
+  var div3 = testDiv.appendChild(svgDoc.createElement('div'));
+  div3.setAttribute('baz', 'fat');
+
+  var span = div.appendChild(svgDoc.createElement('span'));
+  var upperSpan = div.appendChild(div.appendChild(svgDoc.createElementNS('http://www.w3.org/2000/svg', 'SPAN')));
+  var p = testDiv.appendChild(svgDoc.createElement('P'));
+  p.setAttribute('bar', 'baz');
+  assertSummary({
+    added: [div2, p],
+    attributeChanged: { 'FOO':[] },
+    attributeOldValue: { 'FOO':[] }
+  });
+
+  div2.setAttribute('foo', 'bar');
+
+  p.removeAttribute('bar');
+  p.setAttribute('BAR', 'bar');
+
+  div3.setAttribute('BaZ', 'bat');
+
+  // Note: SVG Elements aren't HTMLElements, so el.id doesn't delegate to the 'id' attribute.
+  upperSpan.setAttribute('id', 'foo');
+  upperSpan.setAttribute('Blow', 'blarg bloog');
+  assertSummary({
+    added: [div3, upperSpan],
+    removed: [p],
+    attributeChanged: { 'FOO':[] },
+    attributeOldValue: { 'FOO':[] }
+  });
+
+  div3.removeAttribute('baz');
+  div3.setAttribute('baz', 'bat');
+  assertNothingReported();
+}
+
+function testElementFilterWithElementAttributes() {
+  var div = testDiv.appendChild(document.createElement('div'));
+  div.setAttribute('foo', 'bar');
+  div.setAttribute('baz', 'bat');
+  div.setAttribute('boo', 'bag');
+
+  var div2 = testDiv.appendChild(document.createElement('div'));
+
+  startObserving({
+    element: '  div[  baz  ]',
+    elementAttributes: 'foo boo',
+  });
+
+  div.setAttribute('foo', 'bar2');
+  div.setAttribute('baz', 'bat2');
+  div.setAttribute('boo', 'bag2');
+  div.setAttribute('boo', 'bag');
+
+  div2.setAttribute('baz', 'blarg');
+
+  var div3 = testDiv.appendChild(document.createElement('div'));
+  div3.setAttribute('baz', 'bar');
+  div2.appendChild(div);
+  assertSummary({
+    added: [div2, div3],
+    reparented: [div],
+    attributeChanged: { 'foo': [div], 'boo': [] },
+    attributeOldValue: { 'foo': ['bar'], 'boo':[] }
+  });
+
+  testDiv.appendChild(div);
+  div3.removeAttribute('baz');
+  testDiv.removeChild(div2);
+  assertSummary({
+    reparented: [div],
+    removed: [div2, div3],
+    attributeChanged: { 'foo':[], 'boo':[] },
+    attributeOldValue: { 'foo':[], 'boo':[] }
+  });
+
+  div.setAttribute('foo', 'baz');
+  div.setAttribute('foo', 'bar2');
+  assertNothingReported();
+}
+
+function testElementFilterWithClassname() {
+  var div = testDiv.appendChild(document.createElement('div'));
+  div.setAttribute('class', 'foo');
+
+  var div2 = testDiv.appendChild(document.createElement('div'));
+
+  startObserving({
+    element: 'div.foo'
+  });
+
+  div.setAttribute('class', 'bar foo baz');
+  div2.setAttribute('class', 'foo');
+
+  var div3 = testDiv.appendChild(document.createElement('div'));
+  div3.setAttribute('class', 'bar');
+  assertSummary({
+    added: [div2]
+  });
+
+  testDiv.removeChild(div);
+  div2.removeAttribute('class');
+  div3.setAttribute('class', 'foo');
+  var div4 = testDiv.appendChild(document.createElement('div'));
+  div4.setAttribute('class', 'foobaz');
+  assertSummary({
+    added: [div3],
+    removed: [div, div2]
+  });
+
+  div3.setAttribute('class', 'bar');
+  div3.setAttribute('class', 'foo bar');
+  assertNothingReported();
+}
+
+function testNoValidator() {
+  var validator = MutationSummary.createQueryValidator;
+  MutationSummary.createQueryValidator = undefined;
+
+  startObserving();
+
+  var div = testDiv.appendChild(document.createElement('div'));
+  var span = div.appendChild(document.createElement('span'));
+  assertSummary({
+    added: [div, span]
+  });
+
+  div.removeChild(span);
+  assertSummary({
+    removed: [span]
+  });
+
+  MutationSummary.createQueryValidator = validator;
+}
+
+function testAddRemoveBasic() {
+  startObserving();
+
+  var div = testDiv.appendChild(document.createElement('div'));
+  var span = div.appendChild(document.createElement('span'));
+  assertSummary({
+    added: [div, span]
+  });
+
+  div.removeChild(span);
+  assertSummary({
+    removed: [span],
+  });
+}
+
+function testSequentialRemovals() {
+  var div = testDiv.appendChild(document.createElement('div'));
+
+  startObserving();
+
+  testDiv.removeChild(div);
+  var div2 = document.createElement('div');
+  div2.appendChild(div);
+  testDiv.appendChild(div2);
+  div2.removeChild(div);
+  assertSummary({
+    added: [div2],
+    removed: [div]
+  });
+}
+
+function testAddAndRemoveOutsideTree() {
+  var div1 = testDiv.appendChild(document.createElement('div'));
+  var div2 = div1.appendChild(document.createElement('div'));
+  var span = div2.appendChild(document.createElement('span'));
+
+  startObserving();
+  testDiv.removeChild(div1);
+  // This add will be ignored since this is a detached subtree.
+  div1.appendChild(document.createElement('span'));
+  div1.removeChild(div2);
+  div2.removeChild(span);
+  assertSummary({
+    removed: [div1, div2, span]
+  });
+
+  // This add will be ignored because it happens outside the document tree.
+  div1.appendChild(document.createElement('span'));
+  assertNothingReported();
+}
+
+function testAddOutsideOfTreeAndReinsert() {
+  var div1 = testDiv.appendChild(document.createElement('div'));
+
+  startObserving();
+  testDiv.removeChild(div1);
+  // This add is taking place while outside the tree, but should be considered
+  // and 'add' because the parent node is later replaced.
+  var span = div1.appendChild(document.createElement('span'));
+  testDiv.appendChild(div1);
+  assertSummary({
+    added: [span]
+  });
+}
+
+function testReparented() {
+  var div1 = testDiv.appendChild(document.createElement('div'));
+  var div2 = div1.appendChild(document.createElement('div'));
+  var span = div2.appendChild(document.createElement('span'));
+
+  startObserving();
+
+  testDiv.removeChild(div1);
+  div1.removeChild(div2);
+  testDiv.appendChild(div2);
+  testDiv.appendChild(div1);
+  assertSummary({
+    reparented: [div2]
+  });
+}
+
+function testAddingToDetachedSubtree() {
+  var div1 = testDiv.appendChild(document.createElement('div'));
+
+  startObserving();
+  testDiv.removeChild(div1);
+  var div2 = div1.appendChild(document.createElement('div'));
+  var span = div2.appendChild(document.createElement('span'));
+  assertSummary({
+    removed: [div1]
+  });
+}
+
+function testReorderInsideTree() {
+  var div1 = testDiv.appendChild(document.createElement('div'));
+  var div2 = div1.appendChild(document.createElement('div'));
+  var div3 = div2.appendChild(document.createElement('div'));
+
+  startObserving();
+
+  testDiv.removeChild(div1);
+  div1.removeChild(div2);
+  div2.removeChild(div3);
+  testDiv.appendChild(div3);
+  div3.appendChild(div2);
+  div2.appendChild(div1);
+  assertSummary({
+    reparented: [ div1, div2, div3 ]
+  });
+}
+
+function testRemovedOldPreviousSibling() {
+  var div1 = testDiv.appendChild(document.createElement('div'));
+  var div2 = testDiv.appendChild(document.createElement('div'));
+  var div3 = testDiv.appendChild(document.createElement('div'));
+  var div4 = div3.appendChild(document.createElement('div'));
+  var div5 = div3.appendChild(document.createElement('div'));
+
+  startObserving(undefined, { oldPreviousSibling: true });
+
+  testDiv.removeChild(div1);
+  testDiv.removeChild(div2);
+  testDiv.removeChild(div3);
+
+  assertSummary({
+    removed: [ div1, div2, div3, div4, div5 ],
+    removedOldPreviousSibling:[ null, div1, div2, null, div4 ]
+  });
+}
+
+function testReorderInsideTreeAndAddMiddle() {
+  var div1 = testDiv.appendChild(document.createElement('div'));
+  var div2 = div1.appendChild(document.createElement('div'));
+  var div3 = div2.appendChild(document.createElement('div'));
+
+  startObserving();
+
+  testDiv.removeChild(div1);
+  div1.removeChild(div2);
+  div2.removeChild(div3);
+  testDiv.appendChild(div3);
+  div3.appendChild(div2);
+  var div4 = document.createElement('div');
+  div2.appendChild(div4);
+  div4.appendChild(div1);
+  assertSummary({
+    added: [div4],
+    reparented: [div1, div2, div3]
+  });
+}
+
+function testReorderOutsideTree() {
+  var div1 = document.createElement('div');
+  var div2 = div1.appendChild(document.createElement('div'));
+  var div3 = div2.appendChild(document.createElement('div'));
+
+  startObserving();
+
+  div1.removeChild(div2);
+  div2.removeChild(div3);
+  div3.appendChild(div2);
+  div2.appendChild(div1);
+
+  assertNothingReported();
+}
+
+function testReorderAndRemoveFromTree() {
+  var div1 = testDiv.appendChild(document.createElement('div'));
+  var div2 = div1.appendChild(document.createElement('div'));
+  var div3 = div2.appendChild(document.createElement('div'));
+
+  startObserving();
+
+  testDiv.removeChild(div1);
+  div1.removeChild(div2);
+  div2.removeChild(div3);
+  div3.appendChild(div2);
+  div2.appendChild(div1);
+  assertSummary({
+    removed: [div1, div2, div3]
+  });
+}
+
+function testReorderAndRemoveSubtree() {
+  var div1 = testDiv.appendChild(document.createElement('div'));
+  var div2 = div1.appendChild(document.createElement('div'));
+
+  startObserving();
+
+  div1.removeChild(div2);
+  testDiv.appendChild(div2);
+  div2.appendChild(div1);
+  div2.removeChild(div1);
+  assertSummary({
+    reparented: [div2],
+    removed: [div1]
+  });
+}
+
+function testReorderOutsideAndAddToTree() {
+  var div1 = document.createElement('div');
+  var div2 = div1.appendChild(document.createElement('div'));
+  var div3 = div2.appendChild(document.createElement('div'));
+
+  startObserving();
+
+  div1.removeChild(div2);
+  div2.removeChild(div3);
+  div3.appendChild(div2);
+  div2.appendChild(div1);
+  testDiv.appendChild(div3);
+  assertSummary({
+    added: [div1, div2, div3]
+  });
+}
+
+function testReorderOutsideAndAddSubtree() {
+  var div1 = document.createElement('div');
+  var div2 = div1.appendChild(document.createElement('div'));
+
+  startObserving();
+
+  div1.removeChild(div2);
+  div2.appendChild(div1);
+  testDiv.appendChild(div2);
+  assertSummary({
+    added: [div1, div2]
+  });
+}
+
+function testRemoveSubtreeAndAddToExternal() {
+  var div1 = testDiv.appendChild(document.createElement('div'));
+  var div2 = div1.appendChild(document.createElement('div'));
+  var div3 = document.createElement('div');
+
+  startObserving();
+  testDiv.removeChild(div1);
+  div3.appendChild(div1);
+  assertSummary({
+    removed: [div1, div2]
+  });
+}
+
+function insertAfter(parent, node, refNode) {
+  parent.insertBefore(node, refNode ? refNode.nextSibling : parent.firstChild);
+}
+
+function testMove() {
+  var divA = testDiv.appendChild(document.createElement('div'));
+  divA.id = 'a';
+  var divB = testDiv.appendChild(document.createElement('div'));
+  divB.id = 'b';
+  var divC = testDiv.appendChild(document.createElement('div'));
+  divC.id = 'c';
+  var divD = testDiv.appendChild(document.createElement('div'));
+  divD.id = 'd';
+
+  startObserving();                 // A  B  C  D
+
+  insertAfter(testDiv, divB, null); // [B] A  C  D
+  insertAfter(testDiv, divC, null); // [C  B] A  D
+  insertAfter(testDiv, divD, null); // [D  C  B] A
+
+  // Final effect is [D  C  B] A
+  assertSummary({
+    reordered: [divD, divC, divB],
+    reorderedOldPreviousSibling: [divC, divB, divA]
+  });
+}
+
+function testMove2() {
+  var divA = testDiv.appendChild(document.createElement('div'));
+  divA.id = 'a';
+  var divB = testDiv.appendChild(document.createElement('div'));
+  divB.id = 'b';
+  var divC = testDiv.appendChild(document.createElement('div'));
+  divC.id = 'c';
+
+  startObserving();                 // A  B  C
+
+  insertAfter(testDiv, divA, divC); // B  C [A]
+  insertAfter(testDiv, divB, divA); // C [A  B]
+
+  // Final effect is C [A B]
+  assertSummary({
+    reordered: [divA, divB],
+    reorderedOldPreviousSibling: [null, divA]
+  });
+}
+
+function testMoveDetectNoop() {
+  var divA = testDiv.appendChild(document.createElement('div'));
+  divA.id = 'a';
+  var divB = testDiv.appendChild(document.createElement('div'));
+  divB.id = 'b';
+  var divC = testDiv.appendChild(document.createElement('div'));
+  divC.id = 'c';
+  var divD = testDiv.appendChild(document.createElement('div'));
+  divD.id = 'd';
+  var divE = testDiv.appendChild(document.createElement('div'));
+  divE.id = 'e';
+  var divF = testDiv.appendChild(document.createElement('div'));
+  divF.id = 'f';
+  var divG = document.createElement('div');
+  divG.id = 'g';
+
+  startObserving();                 // A  B  C  D  E  F
+
+  insertAfter(testDiv, divD, divA); // A [D] B  C  E  F
+  insertAfter(testDiv, divC, divA); // A [C  D] B  E  F
+  insertAfter(testDiv, divB, divC); // A [C  B  D] E  F
+  insertAfter(testDiv, divD, divA); // A [D  C  B] E  F
+  insertAfter(testDiv, divG, divE); // A [D  C  B] E [G] F
+  insertAfter(testDiv, divE, divG); // A [D  C  B  G  E] F
+
+  // Final effect is A D [C B G] E F
+  assertSummary({
+    added: [divG],
+    reordered: [divB, divC],
+    reorderedOldPreviousSibling: [divA, divB]
+  });
+
+  insertAfter(testDiv, divC, divA);
+  insertAfter(testDiv, divD, divA);
+  assertNothingReported();
+}
+
+function testMoveDetectNoopSimple() {
+  var divA = testDiv.appendChild(document.createElement('div'));
+  divA.id = 'a';
+  var divB = testDiv.appendChild(document.createElement('div'));
+  divB.id = 'b';
+
+  startObserving();                 // A  B
+
+  insertAfter(testDiv, divA, divB); // B [A]
+  insertAfter(testDiv, divB, divA); // [A B]
+  insertAfter(testDiv, divA, divB); // [B A]
+
+  // Final effect is B [A]
+  assertSummary({
+    reordered: [divA],
+    reorderedOldPreviousSibling: [null]
+  });
+}
+
+function testIgnoreOwnChanges() {
+  testCase.waitForAsync();
+  var div;
+  var count = 0;
+
+  var summary1 = new MutationSummary({
+    observeOwnChanges: false,
+    queries: [{ all: true}],
+    callback: function(summaries) {
+      var summary = summaries[0];
+      count++;
+
+      if (count == 1) {
+        assertEquals(1, summary.added.length)
+        div = testDiv.appendChild(document.createElement('div'));
+      } else if (count == 2) {
+        assertEquals(2, summary.added.length);
+        div = testDiv.appendChild(document.createElement('div'));
+        summary1.disconnect();
+      } else if (count == 3) {
+        assertEquals(1, summary.added.length);
+        summary1.disconnect();
+        continueTesting();
+      }
+    }
+  })
+
+  var summary2 = new MutationSummary({
+    observeOwnChanges: false,
+    queries: [{ all: true}],
+    callback: function(summaries) {
+      var summary = summaries[0];
+      count++;
+
+      if (count == 1) {
+         assertEquals(1, summary.added.length)
+         div = testDiv.appendChild(document.createElement('div'));
+       } else if (count == 2) {
+         assertEquals(2, summary.added.length);
+         div = testDiv.appendChild(document.createElement('div'));
+         summary2.disconnect();
+       } else if (count == 3) {
+         assertEquals(1, summary.added.length);
+         summary2.disconnect();
+         continueTesting();
+       }
+     }
+  });
+
+  testDiv.appendChild(document.createElement('div'));
+}
+
+</script>
+</body>
+</html>

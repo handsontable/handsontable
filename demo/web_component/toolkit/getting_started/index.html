@@ -1,0 +1,37 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Toolkit Getting Started</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <!-- load toolkit platform -->
+    <script src="../platform/platform.js"></script>
+    <!-- load some components -->
+    <link rel="components" href="../components/g-toolbar.html">
+    <link rel="components" href="../components/g-menu-button.html">
+    <link rel="components" href="../components/g-menu-item.html">
+    <!-- salt to taste -->
+    <style>
+      body {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- deploy components -->
+    <g-toolbar>
+      <span>Toolbar w/Menu Button</span>
+      <g-menu-button src="images/add.svg" selected="0">
+        <g-menu-item src="images/chat.svg">Share Link</g-menu-item>
+        <g-menu-item src="images/email.svg">Email Link</g-menu-item>
+        <g-menu-item src="images/favorite.svg">Add to Favorites</g-menu-item>
+      </g-menu-button>
+    </g-toolbar>
+  </body>
+</html>

@@ -1,0 +1,84 @@
+{
+    "additionalFeatures": "3.2\" HVGA touchscreen with sliding QWERTY keyboard\r\nAndroidTM 2.1 (Eclair)\r\n3.0 Camera/Camcorder with LED flash\r\nFull HTML Browser\r\nStereo Bluetooth Capable\r\nVideo and Music Player\r\n", 
+    "android": {
+        "os": "Android 2.1", 
+        "ui": "Android"
+    }, 
+    "availability": [
+        "US Cellular (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "800 hours", 
+        "talkTime": "7 hours", 
+        "type": "Lithium Ion (Li-Ion) (1500 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "3.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.0", 
+        "cell": "CDMA : 800/1800/1900/2100", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "At last, a phone as unique and distinctive as you: The Samsung Acclaim\u2122 is powered by Android\u2122 2.1 (a first for U.S. Cellular), so you can customize it to make it more \u201cyou\u201d. Start with any of the over 48,000 apps available through Android Market. It also features a brilliant 3.2\" touchscreen and full QWERTY keyboard \u2013 surf the Web, navigate the world with Google Maps and manage work emails. You can also update your Facebook status, snap 3.0MP pictures, text friends, download videos, and do it all with distinction.", 
+    "display": {
+        "screenResolution": "HVGA (480 x 320)", 
+        "screenSize": "3.2 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "800MHz", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/True.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "samsung-acclaim", 
+    "images": [
+        {
+            "id": "263003", 
+            "medium": "http://www.google.com/phone/image/medium/263003", 
+            "small": "http://www.google.com/phone/image/small/263003"
+        }, 
+        {
+            "id": "263004", 
+            "medium": "http://www.google.com/phone/image/medium/263004", 
+            "small": "http://www.google.com/phone/image/small/263004"
+        }, 
+        {
+            "id": "277004", 
+            "medium": "http://www.google.com/phone/image/medium/277004", 
+            "small": "http://www.google.com/phone/image/small/277004"
+        }, 
+        {
+            "id": "278004", 
+            "medium": "http://www.google.com/phone/image/medium/278004", 
+            "small": "http://www.google.com/phone/image/small/278004"
+        }, 
+        {
+            "id": "292002", 
+            "medium": "http://www.google.com/phone/image/medium/292002", 
+            "small": "http://www.google.com/phone/image/small/292002"
+        }
+    ], 
+    "name": "Samsung Acclaim\u2122", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "59.0 mm (w)", 
+            "114.0 mm (h)", 
+            "15.3 mm (d)"
+        ], 
+        "weight": "138.0 grams"
+    }, 
+    "storage": {
+        "flash": "220MB", 
+        "ram": "256MB"
+    }
+}

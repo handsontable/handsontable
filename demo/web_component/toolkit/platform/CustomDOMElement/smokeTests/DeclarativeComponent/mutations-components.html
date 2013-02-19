@@ -1,0 +1,46 @@
+<element name="x-echo">
+  <template>
+    <style>@host { display: block; }</style>
+    x-echo: <content></content>
+  </template>
+</element>
+
+
+<element name="x-foo">
+  <template>
+    <style>@host { display: block; border: 1px solid black;}</style>
+    I am an x-foo.
+    <div></div>
+    <content></content>
+    <template iterate>
+      <x-echo>{{index}}</x-echo>
+    </template>
+  </template>
+  <script>
+    if (this != window) {
+      this.lifecycle({
+        shadowRootCreated: function(inRoot) {
+          var d = ShadowDOM.localQuery(inRoot, 'div');
+          d.innerHTML = '<x-echo>Added to x-foo\'s shadowRoot</x-echo><hr>';
+        },
+        created: function() {
+         var d = document.createElement('div');
+         d.innerHTML = '<x-echo>Added to x-foo\'s light dom.</x-echo><hr>';
+         //this.appendChild(d);
+         this.lightDOM.appendChild(d);
+         this.distribute();
+         this.model = [
+           {index: 0},
+           {index: 1},
+           {index: 2},
+           {index: 3}
+         ];
+        }
+      })
+
+      this.generatedConstructor.prototype = {
+
+      }
+    }
+  </script>
+</element>

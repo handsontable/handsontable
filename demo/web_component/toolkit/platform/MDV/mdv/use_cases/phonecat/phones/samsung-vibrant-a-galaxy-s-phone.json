@@ -1,0 +1,79 @@
+{
+    "additionalFeatures": "Swype; Video Messaging\r\n", 
+    "android": {
+        "os": "Android 2.1", 
+        "ui": "TouchWiz"
+    }, 
+    "availability": [
+        "T-Mobile (United States)", 
+        "Bell (Canada)"
+    ], 
+    "battery": {
+        "standbyTime": "510 hours", 
+        "talkTime": "7 hours", 
+        "type": "Lithium Ion (Li-Ion) (1500 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Video"
+        ], 
+        "primary": "5.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 3.0", 
+        "cell": "GSM : 850/900/1800/1900\r\n3G : 1700/1900/2100/", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g/n"
+    }, 
+    "description": "Experience entertainment in a whole new light. The stylish and slim Samsung Vibrant\u2122, with its vivid 4-inch Super AMOLED\u2122 display, makes everything from Hollywood blockbusters to music videos to Amazon\u2019s bestsellers look absolutely brilliant \u2013 even outside in the sun. Android\u2122 Market rockets you into a universe filled with equally brilliant apps; download them at blistering speeds thanks to the powerful 1GHz Hummingbird processor. Keep your social life organized and continuously updated with the pre-loaded social networking apps, while uploading all the 5.0MP pics you\u2019ve snapped and 720p HD videos you\u2019ve recorded. Go on, go out and enjoy the Vibrant life.", 
+    "display": {
+        "screenResolution": "WVGA (800 x 480)", 
+        "screenSize": "4.0 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "1 GHz", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/False.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "samsung-vibrant-a-galaxy-s-phone", 
+    "images": [
+        {
+            "id": "293004", 
+            "medium": "http://www.google.com/phone/image/medium/293004", 
+            "small": "http://www.google.com/phone/image/small/293004"
+        }, 
+        {
+            "id": "300005", 
+            "medium": "http://www.google.com/phone/image/medium/300005", 
+            "small": "http://www.google.com/phone/image/small/300005"
+        }, 
+        {
+            "id": "314003", 
+            "medium": "http://www.google.com/phone/image/medium/314003", 
+            "small": "http://www.google.com/phone/image/small/314003"
+        }, 
+        {
+            "id": "317002", 
+            "medium": "http://www.google.com/phone/image/medium/317002", 
+            "small": "http://www.google.com/phone/image/small/317002"
+        }
+    ], 
+    "name": "Samsung Vibrant\u2122 a Galaxy S\u2122 phone", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "64.5 mm (w)", 
+            "122.5 mm (h)", 
+            "9.99 mm (d)"
+        ], 
+        "weight": "118.0 grams"
+    }, 
+    "storage": {
+        "flash": "16000MB", 
+        "ram": "512MB"
+    }
+}

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2011 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>Recursive template</title>
+<script src="include.js"></script>
+<style>
+
+.tree,
+.tree ul {
+  padding: 0;
+}
+
+.tree li {
+  list-style: none;
+  font: 12px Lucida Grande;
+  background: url(icon.png) no-repeat;
+  padding-left: 18px;
+  line-height: 18px;
+}
+
+.tree .has-children {
+  background-image: url(folder.png);
+}
+
+</style>
+</head>
+<body data-controller="Controller">
+
+<button data-action="click:removeItem2">Remove item 2</button>
+<button data-action="click:appendTree">Append tree</button>
+
+<ul class="tree">
+  <template iterate id=t1>
+    <li class="{{ children | toggle('has-children') }}">{{name}}
+      <ul>
+        <template ref=t1 iterate=children></template>
+      </ul>
+    </li>
+  </template>
+</ul>
+
+<script>
+function Controller(root) {
+  this.model = root.model = [
+    {
+      name: 'Root',
+      children: [
+        {name: 'Item 1'},
+        {
+          name: 'Item 2',
+          children: [
+            {name: 'Item 2.1'},
+            {
+              name: 'Item 2.2',
+              children: [
+                {name: 'Item 2.2.1'},
+                {name: 'Item 2.2.2'},
+              ]
+            },
+            {name: 'Item 2.3'},
+          ]
+        },
+        {name: 'Item 3'}
+      ]
+    }
+  ];
+}
+
+Controller.prototype = {
+  i: 4,
+
+  removeItem2: function() {
+    this.model[0].children.splice(1, 1);
+  },
+
+  appendTree: function() {
+    this.model[0].children.push({
+      name: 'Item ' + this.i,
+      children: [
+        {name: 'Item' + this.i + '.1'},
+        {name: 'Item' + this.i + '.2'},
+        {name: 'Item' + this.i + '.3'}
+      ]
+    });
+
+    this.i++;
+  }
+}
+</script>
+</body>
+</html>

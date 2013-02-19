@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- -->
+    <script src="../../ShadowDOM/shadowdom-polyfill.js" shadow="shim"></script>
+    <!-- -->
+    <script src="lib/dump.js"></script>
+    <!-- -->
+    <style>
+      div, g-A {
+        display: block;
+        border: 1px dotted red;
+        margin: 8px;
+        padding: 8px;
+      }
+    </style>
+    <script>
+      change = function() {
+        A = $("g-A");
+        new ShadowDOM.ShadowRoot(A).appendChild($("template#A").content);
+        ShadowDOM.distribute(A);
+        dumper(A);
+      }
+    </script>
+  </head>
+  <body onload="change()">
+      <g-A><span>Where am I?</span></g-A>
+      <template id="A"><span>A's template, content goes here: [<content></content>]</span></template>
+
+      <hr/>
+
+      Expected output (also, see console):
+
+      <div><span>A's template, content goes here: [Where am I?]</span></div>
+  </body>
+</html>

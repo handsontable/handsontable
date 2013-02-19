@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2008 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<head>
+<title>Closure Unit Tests - goog.testing.ExpectedFailures</title>
+<script src="../base.js"></script>
+<script>
+  goog.require('goog.testing.ExpectedFailures');
+  goog.require('goog.testing.jsunit');
+</script>
+</head>
+<body>
+<script type="text/javascript">
+  var count, expectedFailures, lastLevel, lastMessage;
+
+  // Stub out the logger.
+  goog.testing.ExpectedFailures.prototype.logger_.log = function(level,
+      message) {
+    lastLevel = level;
+    lastMessage = message;
+    count++;
+  };
+
+  function setUp() {
+    expectedFailures = new goog.testing.ExpectedFailures();
+    count = 0;
+    lastLevel = lastMessage = '';
+  }
+
+  // Individual test methods.
+
+  function testNoExpectedFailure() {
+    expectedFailures.handleTearDown()
+  }
+
+  function testPreventExpectedFailure() {
+    expectedFailures.expectFailureFor(true);
+
+    expectedFailures.handleException(new goog.testing.JsUnitException('', ''));
+    assertEquals('Should have logged a message', 1, count);
+    assertEquals('Should have logged an info message',
+        goog.debug.Logger.Level.INFO, lastLevel);
+    assertContains('Should log a suppression message',
+        'Suppressing test failure', lastMessage);
+
+    expectedFailures.handleTearDown();
+    assertEquals('Should not have logged another message', 1, count);
+  }
+
+  function testDoNotPreventException() {
+    var ex = 'exception';
+    try {
+      expectedFailures.expectFailureFor(false);
+      expectedFailures.handleException(ex);
+      fail('Should have rethrown exception');
+    } catch (e) {
+      assertEquals('Should rethrow same exepction', e, ex);
+    }
+  }
+
+  function testExpectedFailureDidNotOccur() {
+    expectedFailures.expectFailureFor(true);
+
+    expectedFailures.handleTearDown();
+    assertEquals('Should have logged a message', 1, count);
+    assertEquals('Should have logged a warning',
+        goog.debug.Logger.Level.WARNING, lastLevel);
+    assertContains('Should log a suppression message',
+        'Expected a test failure', lastMessage);
+  }
+
+  function testRun() {
+    expectedFailures.expectFailureFor(true);
+
+    expectedFailures.run(function() {
+      fail('Expected failure');
+    });
+
+    assertEquals('Should have logged a message', 1, count);
+    assertEquals('Should have logged an info message',
+        goog.debug.Logger.Level.INFO, lastLevel);
+    assertContains('Should log a suppression message',
+        'Suppressing test failure', lastMessage);
+
+    expectedFailures.handleTearDown();
+    assertEquals('Should not have logged another message', 1, count);
+  }
+
+  function testRunStrict() {
+    expectedFailures.expectFailureFor(true);
+
+    try {
+      expectedFailures.run(function() {
+        // Doesn't fail!
+      });
+
+      fail('Should have thrown exception');
+    } catch (ex) {
+      assertEquals(ex.message, 'Call to fail()\n' +
+          'Expected a test failure in \'testRunStrict\' but the test passed.');
+    }
+  }
+
+  function testRunLenient() {
+    expectedFailures.expectFailureFor(true);
+
+    expectedFailures.run(function() {
+      // Doesn't fail!
+    }, true);
+    expectedFailures.handleTearDown();
+    assertEquals('Should have logged a message', 1, count);
+    assertEquals('Should have logged a warning',
+        goog.debug.Logger.Level.WARNING, lastLevel);
+    assertContains('Should log a suppression message',
+        'Expected a test failure', lastMessage);
+  }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<element name="g-ratings" attributes="count value">
+  <link rel="components" href="g-component.html">
+  <template>
+    <style>
+      .star {
+        display: inline-block;
+        width: 12px;
+        height: 21px;
+        background: url('images/star_blank.svg') center no-repeat;
+        cursor: default;
+      }
+      
+      .star.full {
+        background: url('images/star_full.svg') center no-repeat;
+      }
+    </style>
+    <!-- FIXME(ffu): in MDV polyfill, setting a model on a template element does
+    not cause the children to have the proper model. Workaround here to add a div
+    at the top-level. -->
+    <div>
+      <template iterate="stars">
+        <span index="{{index}}" class="star {{starClass}}" on-click="starClick"></span>
+      </template>
+    </div>
+  </template>
+  <script>
+    this.component({
+      ready: function() {
+        this.node.count = this.node.count || 5;
+      },
+      countChanged: function() {
+        this.stars = [];
+        for (var i = 0; i < this.node.count; i++) {
+          this.stars.push({index: i});
+        }
+        this.valueChanged();
+      },
+      valueChanged: function() {
+        this.stars && this.stars.forEach(function(s, i) {
+          s.starClass = i < this.value ? 'full' : '';
+        }.bind(this));
+      },
+      starClick: function(inEvent, inDetail, inSender) {
+        var s = inSender.model;
+        this.node.value = s.index + (s.starClass == 'full' ? 0 : 1);
+      }
+    });
+  </script>
+</element>

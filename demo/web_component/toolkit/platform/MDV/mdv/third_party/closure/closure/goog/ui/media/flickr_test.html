@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2009 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<!--
+  Author: goto@google.com (Sam Goto)
+-->
+<head>
+<title>Closure Unit Tests - goog.ui.media.FlickrSet</title>
+<script src="../../base.js"></script>
+<script>
+  goog.require('goog.debug.Logger');
+  goog.require('goog.dom');
+  goog.require('goog.events');
+  goog.require('goog.testing.jsunit');
+  goog.require('goog.testing.LooseMock');
+  goog.require('goog.ui.Component');
+  goog.require('goog.ui.Control');
+  goog.require('goog.ui.ControlRenderer');
+  goog.require('goog.ui.media.FlashObject');
+  goog.require('goog.ui.media.FlickrSet');
+  goog.require('goog.ui.media.FlickrSetModel');
+</script>
+</head>
+<body>
+<script>
+  var flickr;
+  var control;
+  var FLICKR_USER = 'ingawalker';
+  var FLICKR_SET = '72057594102831547';
+  var FLICKRSET_URL =
+      'http://www.flickr.com/photos/' + FLICKR_USER + '/sets/' + FLICKR_SET;
+  var parent = goog.dom.createElement('div');
+
+  function setUp() {
+    flickr = new goog.ui.media.FlickrSet();
+    var set = new goog.ui.media.FlickrSetModel(FLICKR_USER, FLICKR_SET,
+        'caption');
+    control = new goog.ui.media.Media(set, flickr);
+  }
+
+  function tearDown() {
+    control.dispose();
+  }
+
+  function testBasicRendering() {
+    control.render(parent);
+    var el = goog.dom.getElementsByTagNameAndClass(
+        'div', goog.ui.media.FlickrSet.CSS_CLASS, parent);
+    assertEquals(1, el.length);
+  }
+
+  function testParsingUrl() {
+    assertEquals(
+        FLICKR_USER,
+        goog.ui.media.FlickrSetModel.newInstance(FLICKRSET_URL).getUserId());
+
+    assertEquals(
+        FLICKR_SET,
+        goog.ui.media.FlickrSetModel.newInstance(FLICKRSET_URL).getSetId());
+
+    assertThrows('', function() {
+      goog.ui.media.FlickrSet.parseUrl('http://invalidUrl/filename.doc');
+    });
+  }
+
+  function testSettingWhichFlashUrlToUse() {
+    goog.ui.media.FlickrSet.setFlashUrl('http://foo');
+    assertEquals(goog.ui.media.FlickrSet.flashUrl_, 'http://foo');
+  }
+
+  function testCreatingDomOnInitialState() {
+    control.render(parent);
+    var caption = goog.dom.getElementsByTagNameAndClass(
+        'div',
+        goog.ui.media.FlickrSet.CSS_CLASS + '-caption',
+        parent);
+    assertEquals(1, caption.length);
+
+    var flash = goog.dom.getElementsByTagNameAndClass(
+        'div', goog.ui.media.FlashObject.CSS_CLASS, parent);
+    assertEquals(1, flash.length);
+  }
+</script>
+</body>
+</html>

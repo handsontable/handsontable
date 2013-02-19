@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2011 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>TreeMirror test</title>
+<script src="http://closure-library.googlecode.com/svn/trunk/closure/goog/base.js"></script>
+<script src="mutation_summary.js"></script>
+<script src="tree_mirror.js"></script>
+<script src="testing_util.js"></script>
+
+<script>
+goog.require('goog.testing.jsunit');
+goog.require('goog.testing.AsyncTestCase');
+</script>
+</head>
+<body>
+
+<script>
+
+var testCase = goog.testing.AsyncTestCase.createAndInstall(document.title);
+testCase.stepTimeout = 2 * 60 * 1000; // This test can take a LONG time.
+
+var continueTesting = testCase.continueTesting.bind(testCase);
+
+var testDiv;
+
+function setUp() {
+  testDiv = document.createElement('div');
+  testDiv.id = 'test-div';
+}
+
+function testFuzzer() {
+  var TREE_SIZE = 512;
+  var PASSES = 128;
+  var MOVES_PER_PASS = 128;
+  var NON_DOC_ROOTS_MAX = 4;
+
+  testCase.waitForAsync();
+
+  var allNodes = []
+  var nonRootNodes = [];
+
+  // Generate random document.
+  randomTree(testDiv, TREE_SIZE);
+  getReachable(testDiv, allNodes);
+  getReachable(testDiv, nonRootNodes, true);
+
+  // Generate some fragments which lie outside the document.
+  var nonDocCount = randInt(1, NON_DOC_ROOTS_MAX);
+  for (var i = 0; i < nonDocCount; i++) {
+    var nonDoc = randomNode();
+    nonDoc.id = 'ext' + i;
+    randomTree(nonDoc, randInt(Math.floor(TREE_SIZE / 8),
+                               Math.floor(TREE_SIZE / 4)));
+    getReachable(nonDoc, allNodes);
+    getReachable(nonDoc, nonRootNodes, true);
+  }
+
+  var testingQueries = [{ characterData: true} ];
+
+  var attributeQuery = { attribute: randomAttributeName() };
+  testingQueries.push(attributeQuery);
+
+  var elementQuery = {
+    element: [ randomTagname(), randomTagname() + '[' + randomAttributeName() + ']' ],
+    elementAttributes: randomAttributeName() + ' ' + randomAttributeName()
+  };
+  testingQueries.push(elementQuery);
+
+  var pass = 0;
+  var mirrorRoot = testDiv.cloneNode(false);
+  var mirrorClient = new TreeMirrorClient(testDiv, new TreeMirror(mirrorRoot), testingQueries);
+
+  function doNextPass() {
+    for (var move = 0; move < MOVES_PER_PASS; move++) {
+      randomMutation(allNodes, nonRootNodes);
+    }
+
+    pass++;
+
+    setTimeout(checkNextPass, 0);
+  }
+
+  function checkNextPass() {
+    assertTreesEqual(testDiv, mirrorRoot);
+
+    if (pass >= PASSES) {
+      mirrorClient.disconnect();
+      continueTesting();
+    } else
+      doNextPass();
+  };
+
+  doNextPass();
+}
+
+function testRandomCloneAndTestCopy() {
+  randomTree(testDiv, 512);
+  var copy = testDiv.cloneNode(true);
+  assertTreesEqual(testDiv, copy);
+}
+
+function assertTreesEqual(node, copy) {
+  assertEquals(node.tagName, copy.tagName);
+  assertEquals(node.id, copy.id);
+
+  assertEquals(node.nodeType, copy.nodeType);
+  if (node.nodeType == Node.ELEMENT_NODE) {
+    assertEquals(node.attributes.length, copy.attributes.length);
+    for (var i = 0; i < node.attributes.length; i++) {
+      var attr = node.attributes[i];
+      assertEquals(attr.value, copy.getAttribute(attr.name));
+    }
+  } else {
+    assertEquals(node.textContent, copy.textContent);
+  }
+
+  assertEquals(node.childNodes.length, copy.childNodes.length);
+
+  var copyChild = copy.firstChild;
+  for (var child = node.firstChild; child; child = child.nextSibling) {
+    assertTreesEqual(child, copyChild);
+    copyChild = copyChild.nextSibling;
+  }
+}
+
+// This is used because our implementation of Map is just a shim. If keys
+// in our map have a magical __id__ property, then access becomes constant
+// rather than linear.
+var nodePrivateIdCounter = 2;
+
+function randomTree(root, numNodes) {
+  var MAX_CHILDREN = 8;
+
+  function randDist(count, amount) {
+    var buckets = [];
+
+    while(count-- > 0)
+      buckets[count] = 0;
+
+    while (amount > 0) {
+      var add = randInt(0, 1);
+      buckets[randInt(0, buckets.length - 1)] += add;
+      amount -= add;
+    }
+
+    return buckets;
+  }
+
+  if (numNodes <= 0)
+    return;
+
+  var childCount = Math.min(numNodes, MAX_CHILDREN);
+  var childDist = randDist(childCount, numNodes - childCount);
+  for (var i = 0; i < childDist.length; i++) {
+    var maybeText = childDist[i] <= 1;
+    var child = root.appendChild(randomNode(maybeText));
+    // child.id = root.id + '.' + String.fromCharCode(65 + i);  // asci('A') + i.
+    if (child.nodeType == Node.ELEMENT_NODE)
+      randomTree(child, childDist[i]);
+  }
+}
+
+var tagMenu = [
+  'DIV',
+  'SPAN',
+  'P'
+];
+
+function randomTagname() {
+  return tagMenu[randInt(0, tagMenu.length - 1)];
+}
+
+var attributeMenu = [
+  'foo',
+  'bar',
+  'baz',
+  'bat',
+  'bag',
+  'blu',
+  'coo',
+  'dat'
+];
+
+function randomAttributeName() {
+  return attributeMenu[randInt(0, attributeMenu.length - 1)];
+}
+
+var textMenu = [
+  'Kermit',
+  'Fozzy',
+  'Gonzo',
+  'Piggy',
+  'Professor',
+  'Scooter',
+  'Animal',
+  'Beaker'
+];
+
+function randomText() {
+  return textMenu[randInt(0, textMenu.length - 1)];
+}
+
+function randomNode(maybeText) {
+  var node;
+  if (maybeText && !randInt(0, 8)) {
+    var text = randomText();
+    if (randInt(0, 1))
+      node = document.createTextNode(text);
+    else
+      node = document.createComment(text);
+  } else {
+    node = document.createElement(randomTagname());
+  }
+  return node;
+}
+
+function randInt(start, end) {
+  return Math.round(Math.random() * (end-start) + start);
+}
+
+function getReachable(root, reachable, excludeRoot) {
+  reachable = reachable || [];
+  if (!excludeRoot)
+    reachable.push(root);
+  if (!root.childNodes || ! root.childNodes.length)
+    return;
+
+  for (var child = root.firstChild; child; child = child.nextSibling) {
+    getReachable(child, reachable);
+  }
+
+  return reachable;
+}
+
+function randomMutation(allNodes, nonRootNodes) {
+
+  function nodeIsDescendant(root, target) {
+    if (!target)
+      return false;
+    if (root === target)
+      return true;
+
+    return nodeIsDescendant(root, target.parentNode);
+  }
+
+  function selectNodeAtRandom(nodes, excludeNodeAndDescendants, isElement) {
+    var node;
+    while (!node || nodeIsDescendant(excludeNodeAndDescendants, node) || (isElement && node.nodeType != Node.ELEMENT_NODE))
+      node = nodes[randInt(0, nodes.length - 1)];
+    return node;
+  }
+
+  function moveNode(allNodes, node) {
+    var parent = selectNodeAtRandom(allNodes, node, true);
+    // NOTE: The random index here maybe be childNodes[childNodes.length]
+    // which is undefined, meaning 'insert at end of childlist'.
+    var beforeNode = parent.childNodes[randInt(0, parent.childNodes.length)];
+
+    parent.insertBefore(node, beforeNode);
+  }
+
+  function mutateAttribute(node) {
+    var attrName = randomAttributeName();
+    if (randInt(0, 1))
+      node.setAttribute(attrName, randInt(0, 9));
+    else
+      node.removeAttribute(attrName);
+  }
+
+  function mutateText(node) {
+    node.textContent = randomText();
+  }
+
+  var node = selectNodeAtRandom(nonRootNodes);
+
+  if (randInt(0, 1)) {
+    moveNode(allNodes, node);
+    return;
+  }
+
+  if (node.nodeType == Node.TEXT_NODE)
+    mutateText(node);
+  else if (node.nodeType == Node.ELEMENT_NODE)
+    mutateAttribute(node);
+}
+
+</script>
+</body>
+</html>

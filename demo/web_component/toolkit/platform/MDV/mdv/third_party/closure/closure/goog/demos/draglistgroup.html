@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2010 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<head>
+  <title>goog.fx.DragListGroup</title>
+  <meta charset="utf-8">
+  <script src="../base.js"></script>
+  <script>
+    goog.require('goog.dom');
+    goog.require('goog.fx.DragListGroup');
+    goog.require('goog.fx.DragListDirection');
+  </script>
+  <link rel="stylesheet" href="css/demo.css">
+  <style>
+    body {
+      font-family: verdana, sans-serif;
+    }
+
+    .hr_clear {
+      float: none;
+      clear: both;
+      height: 0px;
+      padding: 10px 0px 0px 0px;
+      border: 0px;
+      margin: 0px;
+      visibility: hidden;
+    }
+
+    .horiz1_class,
+    .horiz2_class,
+    .horiz3_class,
+    .horiz4_class {
+      padding: 8px 12px;
+      /* box_height + 2 * (padding + border + margin) =
+         50 + 2 * (5 + 2 + 4) = 72px */
+      height: 72px;
+      border: 2px solid #000000;
+    }
+    .horiz1_class { float: left; }
+    .horiz2_class { float: left; }
+    .horiz3_class { float: right; }
+    .horiz4_class { float: right; }
+
+    .horiz1_class div { float: left; }
+    .horiz2_class div { float: right; }
+    .horiz3_class div { float: right; }
+    .horiz4_class div { float: left; }
+
+    .vert_table td {
+      vertical-align: top;
+      padding: 0px 20px;
+    }
+
+    .vert1_class,
+    .vert2_class {
+      padding: 12px 8px;
+      /* box_width + 2 * (padding + border + margin) =
+         50 + 2 * (5 + 2 + 2) = 68px */
+      width: 68px;
+      border: 2px solid #000000;
+    }
+
+    div.red_box,
+    div.orange_box,
+    div.yellow_box,
+    div.green_box,
+    div.blue_box,
+    div.purple_box {
+      width: 50px;
+      height: 50px;
+      padding: 5px;
+      margin: 4px 2px;
+      font-family: verdana, sans-serif;
+      font-size: 36px;
+      font-weight: bold;
+      text-align: center;
+    }
+    div.red_box {
+      border: 2px solid #CC0000;
+      color: #CC0000;
+    }
+    div.orange_box {
+      border: 2px solid #FF9900;
+      color: #FF9933;
+    }
+    div.yellow_box {
+      border: 2px solid #CCCC00;
+      color: #CCCC00;
+    }
+    div.green_box {
+      border: 2px solid #009900;
+      color: #009900;
+    }
+    div.blue_box {
+      border: 2px solid #0000CC;
+      color: #0000CC;
+    }
+    div.purple_box {
+      border: 2px solid #993399;
+      color: #993399;
+    }
+
+    #test {
+      background-color: #CCFFCC;
+      width: 100px;
+      height: 100px;
+      padding: 13px;
+      border: 11px solid #339933;
+      margin: 15px;
+    }
+
+    /* The following styles are used in the JS. */
+
+    .cursor_pointer {
+      cursor: pointer;
+    }
+
+    .cursor_move {
+      cursor: move;
+      -moz-user-select: none;
+    }
+
+    .opacity_40 {
+      opacity: 0.4;
+      -moz-opacity: 0.4;
+      filter: alpha(opacity=40);
+    }
+
+    .drag_hover_class {
+      border-color: #009900;
+      background-color: #CCFFCC;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>goog.fx.DragListGroup</h1>
+  <h2>You can drag any square into any of the 6 lists.</h2>
+  <hr class="hr_clear">
+
+  <h4>Horizonal list 1 (grows right):</h4>
+  <div id="horiz1_div" class="horiz1_class">
+    <div class="red_box">1</div>
+    <div class="red_box">2</div>
+    <div class="red_box">3</div>
+    <div class="red_box">4</div>
+  </div>
+  <hr class="hr_clear">
+
+  <h4>Horizonal list 2 (grows right, reverse doc order):</h4>
+  <p style="color:#FF0000;font-style:italic">Question: Anyone know how to make this case work in browsers other than Chrome and FF3?</p>
+  <div id="horiz2_div" class="horiz2_class">
+    <div class="orange_box">1</div>
+    <div class="orange_box">2</div>
+    <div class="orange_box">3</div>
+    <div class="orange_box">4</div>
+  </div>
+  <hr class="hr_clear">
+
+
+  <table class="vert_table">
+  <tr>
+
+  <td>
+  <h4>Vertical list 1:</h4>
+  <div id="vert1_div" class="vert1_class">
+    <div class="blue_box">1</div>
+    <div class="blue_box">2</div>
+    <div class="blue_box">3</div>
+    <div class="blue_box">4</div>
+  </div>
+  </td>
+
+  <td>
+  <h4>Vertical list 2 (style changes on drag hover):</h4>
+  <div id="vert2_div" class="vert2_class">
+    <div class="purple_box">1</div>
+    <div class="purple_box">2</div>
+    <div class="purple_box">3</div>
+    <div class="purple_box">4</div>
+  </div>
+  </td>
+
+  </tr>
+  </table>
+  <hr class="hr_clear">
+  <h4>Horizonal list 3 (grows left):</h4>
+  <p style="color:#FF0000;font-style:italic">Question: Anyone know how to make this case work in browsers other than Chrome and FF3?</p>
+  <div id="horiz3_div" class="horiz3_class">
+    <div class="yellow_box">1</div>
+    <div class="yellow_box">2</div>
+    <div class="yellow_box">3</div>
+    <div class="yellow_box">4</div>
+  </div>
+  <hr class="hr_clear">
+
+  <h4>Horizonal list 4 (grows left, reverse doc order):</h4>
+  <div id="horiz4_div" class="horiz4_class">
+    <div class="green_box">1</div>
+    <div class="green_box">2</div>
+    <div class="green_box">3</div>
+    <div class="green_box">4</div>
+  </div>
+  <hr class="hr_clear">
+
+
+  <script>
+
+  var $ = goog.dom.getElement;
+
+  var dlg = new goog.fx.DragListGroup();
+  dlg.setDragItemHoverClass('cursor_move');
+  dlg.setDraggerElClass('cursor_move opacity_40');
+
+  dlg.addDragList($('horiz1_div'), goog.fx.DragListDirection.RIGHT);
+  dlg.addDragList($('horiz2_div'), goog.fx.DragListDirection.RIGHT, false);
+  dlg.addDragList($('horiz3_div'), goog.fx.DragListDirection.LEFT);
+  dlg.addDragList($('horiz4_div'), goog.fx.DragListDirection.LEFT, false);
+  dlg.addDragList($('vert1_div'), goog.fx.DragListDirection.DOWN);
+  dlg.addDragList($('vert2_div'), goog.fx.DragListDirection.DOWN, true,
+                  'drag_hover_class');
+
+  dlg.init();
+
+  </script>
+</body>
+</html>

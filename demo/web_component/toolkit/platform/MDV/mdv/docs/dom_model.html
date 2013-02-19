@@ -1,0 +1,39 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Model Ownership: DOM Model</h1>
+
+<h2>Goal</h2>
+
+<p>Create a mechanism by which the DOM and script can share access to the model data which drives the DOM's display.</p>
+
+<h2 id="modelProperty">HTMLElement.model, TextNode.model</h2>
+
+<p>HTMLElement and TextNode implement a read/write property called <code>model</code>. It is the location in which the data which drives the display of a fragment of DOM resides.</p>
+
+<ul>
+<li>The value of a node's <code>model</code> is either its assigned value, or its <code>parentNode</code>'s value.</li>
+
+<li>All nodes default to inheriting their <code>model</code> value from their parent.</li>
+
+<li>Valid assignment values are scalars, objects and <code>null</code>.</li>
+
+<li>Assigning <code>undefined</code> has the special meaning that the node is  to inherit its <code>model</code> value from its parent</li>
+
+<li>As a consequence of the above, a node's <code>model</code> value is not read/write consistent. Reading its value immediately after setting may not return the same value.</li>
+</ul>
+
+<h2><a name=model-owner>Model Owner</a></h2>
+
+<p>A model owner is the nearest ancestor node that has a model assigned to it.</p>
+
+<h2>Open Issues</h2>
+
+<ul>
+<li>Design/spec a declarative mechanism for assigning model data to the DOM. E.g. a <code>dataSrc</code> attribute on &lt;template&gt; and/or a new &lt;datasource&gt; element.</li>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,138 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Processing Model</h1>
+
+<h2>Goal</h2>
+
+<p>Define the semantics of bindings and template operation so as to:</p>
+<ul>
+
+<li>Avoid the situation where the operation of a binding or template and application script are both trying to mutate the DOM <em>at the same time</em>.</li>
+
+<li>Avoid the need for transactional primitives for use-cases where multiple model mutations need to be treated as atomic.</li>
+
+<li>Allow the maximum latitude for the user-agent to optimize DOM update performance by creating the common-case that the work required following Model mutations can be done in a single pass, <em>after</em> the user script has exited.</li>
+</ul>
+
+<h2 id="twoPhase">Two-Phase Processing</h2>
+
+<p>The general approach of the processing model is that the work of properly responding to model changes that imply DOM changes is done in two phases:</p>
+
+<ol>
+  <li><em>Observe and Read</em>. This phase lasts for the entirety of all script events. In it, bindings and template usages  observe changes to dependent <a href="model.html#pathValue">path values</a> and objects (in the case of template iteration) and register new observers to path values and objects which <em>will</em> be needed for new template instances or bindings.</li>
+  <li><em>Build</em>:
+    <ol>
+      <li>Create a work-list by traversing a set of internal structures which contain:
+        <ul>
+          <li>A set of binding target values to be assigned.</li>
+          <li>A set of template instances to be destroyed.</li>
+          <li>A set of template instances to be created, and for each, </em>all</em> the model data required for contained bindings and sub-instances.</li>
+        </ul>
+      </li>
+      <li>Do all necessary work.</li>
+    </ol>
+  </li>
+</ol>
+
+<p>Note that, during phase (2), no application script needs to be run or model values inspected.</p>
+
+<h2>Phantom Template Instances</h2>
+
+<p>In order for the <em>Observe and Read</em> phase to operate properly, template usages synchronously create a <em>Phantom Instance</em> for each instance which <em>will</em> need to be created.</p>
+
+<p>A <em>Phantom instance</em> is a minimal structure which internally represents the location of the bindings and sub-template-usages which are required for the instance. Live bindings and template usages which are observing the relevant path values and objects are created and attached inside phantom instance.</p>
+
+<p>The creation and operation of phantom instances is an implementation detail of the template element and bindings. Its behavior is not observable visually or by application script.</p>
+
+<h2>Binding Operation</h2>
+
+<p><a href="bindings.html">Bindings</a> must act synchronously in response to three events:</p>
+
+<ol>
+
+<li><em>Creation</em>. Can occur via imperative API, or within a phantom instance. The binding:
+  <ol>
+    <li>Marks itself as dirty.</li>
+    <li>Begins observing its <a href="bindings.html#sources">sources</a>.</li>
+    <li>Saves the returned <a href="model.html#pathValueClass">PathValues</a>.</li>
+    <li>Executes any associated <a href="bindings.html#transform">Transform</a>.toTarget, and saves the results.</li>
+  </ol>
+<li><em>Destruction</em>. Can occur via imperative API, or via a template usage marking an instance as to-be-removed. The binding:
+   <ol>
+     <li>Marks itself destroyed.</li>
+     <li>Unregisters all observers.</li>
+     <li>Removes itself from its target.</li>
+  </ol></li>
+
+<li><em>Source mutation</em>. Can occur at any point during <em>Observe and Read</em> phase. The binding:
+    <ol>
+      <li>Marks itself as dirty.</li>
+      <li>Executes any <a href="bindings.html#transform">Transform</a>.toTarget associated with the source.</li>
+    </ol></li>
+
+</ol>
+
+<h2>Template Usage Operation</h2>
+
+<p><a href="template.html#usage">Template usages</a> are responsible <em>only</em> for creating and destroying instances. A template usage is unconcerned with the content of existing instances. The behavior of instance content is solely governed by the effects of contained bindings, sub-template-usages, user interaction and application script. Templates are <em>never</em> "re-rendered". In fact, it is the job of the template usage to create an abstraction for its instances that the instance is an autonomous "sub-document" whose root model is the array item for which it was created.</p>
+
+<p>Template usages must act synchronously in response to two events:</p>
+
+<ol>
+  <li><em><a href="template.html#operativeModel">Operative Model</a> Value Changed</em>. Can occur via imperative API (adding or changing the value of <code>instantiate</code> or <code>iterate</code>) or at any point during the <em>Observe and Read</em> phase in response to model or path changes. The template usage:
+    <ol>
+      <li><a class="todo" href="">Deactivates</a> any existing instances</li>
+      <li>Deactivates and discards any phantom instances</li>
+    </ol>
+  </li>
+
+  <li><em><a href="template.html#operativeModel">Operative Model</a> Object <a href="model.html#spliceMutation"><code>splice</code></a> mutation</em>. Can occur at any point during the <em>Observe and Read</em> phase. The template usage:
+    <ol>
+      <li>Deactivates any existing instances</li>
+      <li>Creates any needed phantom instances</li>
+      <li>Updates the <a href="template.html#instancePath"><code>instancePath</code></a> of any existing instances which represent array items whose indices have changed.</li>
+    </ol>
+  </li>
+</ol>
+
+<h3>Timing of updates to <code>instancePath</code></h3>
+
+<p>Note that when a splice occurs to an array which is being iterated over it may cause an existing instance to have an incorrect <code>instancePath</code>. In such a case, if the instance contains any bindings or sub-template-usages, the associated <a href="model.html#modelObserve">observers</a> are now observing along the wrong path, and will fire mutation notifications if no action is taken.</p>
+
+<p>However, the <a href="model.html#notificationOrder">observer notification sequencing</a> guarantees that the template's <a href="model.html#modelObserveObject">observer</a> of its <a href="template.html#operativeModel">operative model</a> will fire before any PathValue observers. During that callback, it updates the <code>instancePath</code>, and thereby corrects the PathValues of any contained observers, and the error is prevented.</p>
+
+<p class="todo">Code example</p>
+
+<h2>Application script conflicting with Binding and Template usage operation</h2>
+
+<p>Because Bindings and Templates allow for automatic mutation of the DOM in response to model mutations, the opportunity arises for application script to mutate the DOM in ways that conflict with the operation of bindings and template usages.</p>
+
+<p>Generally, the restriction on application script is:</p>
+
+<ul>
+  <li>Avoid directly mutating any DOM Node value to which a binding is attached.</li>
+  <li>Avoid directly adding, removing, or re-ordering template instances.</li>
+</ul>
+
+<p>Otherwise, script is free to mutate the DOM without conflict, </em>including</em> mutating the <em>content</em> of template instances.</p>
+
+<p>If script <em>does</em>:</p>
+
+<ul>
+  <li><em>Mutate the target of a binding:</em> no error is issued or fault is generated. The value is simply in danger of being overwritten by the operation of the binding.</li>
+  <li><em>Add, remove or re-order any template instance:</em> the template usage <em>will</em> detect the interference. In response, it must issue an error, stop observing its operative model and leave the instances in whatever state they were found.</li>
+</ul>
+
+<h2>Open Issues</h2>
+
+<ul>
+  <li>Specify exactly how a template usage detects the invalid mutation of instances</li>
+  <li>Consider a <code>flushDOMUpdates</code> api call which syncs pending DOM mutations to accomodate the few cases where <code>setTimeout</code> isn't good enough.</li>
+</ul>
+</body>
+</html>
+

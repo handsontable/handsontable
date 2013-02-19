@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2010 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<head>
+<title>Menus</title>
+<script src="../base.js"></script>
+<script>
+  goog.require('goog.debug');
+  goog.require('goog.ui.Menu');
+  goog.require('goog.ui.MenuItem');
+  goog.require('goog.ui.PopupMenu');
+</script>
+<link rel="stylesheet" href="css/demo.css">
+<link rel="stylesheet" href="../css/menu.css">
+<link rel="stylesheet" href="../css/menuitem.css">
+<link rel="stylesheet" href="../css/menuseparator.css">
+<style>
+
+/* --- Search Menu Styles --- */
+
+#searchMenu .goog-menu {
+  position: relative;
+  color: #000;
+  border: 1px solid #B5B6B5;
+  background-color: #ECF0F6;
+  height: 50ex;
+  padding: 2px;
+}
+
+#searchMenu .goog-menuitem {
+  border: 1px solid #B5B6B5;
+  background-color: #DAE1EE;
+  margin-bottom: 2px;
+}
+
+#searchMenu .goog-menuitem-highlight {
+  background-color: #5599DD;
+  color: #FFF;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#searchMenu .goog-menuitem-disabled {
+  background-color: #ECF0F6;
+  color: #000;
+  border: 0px;
+  font-weight: bold;
+  text-align: center;
+}
+
+#searchMenu .goog-menu hr {
+  visibility: hidden;
+  height: 2ex;
+}
+
+
+/* --- Toolbar Menu Styles --- */
+
+#toolbarMenu {
+  position: relative;
+  margin-top: 25px;
+  width: 75ex;
+  font: normal 9px verdana;
+  background-color: #369;
+  color: white;
+}
+
+#toolbarMenu .goog-menuitem {
+  display: inline;
+  padding: 0px 5px;
+}
+
+#toolbarMenu .goog-menuitem-highlight {
+  background-color: #F3F3F7;
+  color: #4279A5;
+}
+
+#toolbarMenu .goog-menuitem-disabled {
+  background-color: #F3F3F7;
+  color: #999;
+}
+
+#toolbarMenu hr {
+  display: inline;
+  height: 100%;
+  width: 1px;
+  margin-right: 135px;
+  padding: 0px;
+  border-left: 1px solid #B5B6B5;
+}
+
+</style>
+</head>
+<body>
+<div>
+  Demonstration of different types of menus existing on the same page.<br><br>
+</div>
+<div id="searchMenu"></div>
+
+<div id="toolbarMenu" class="goog-menu">
+  <div class="goog-menuitem">Mail</div>
+  <div class="goog-menuitem">Photos</div>
+  <div class="goog-menuitem">Feeds</div>
+  <div class="goog-menuitem">Calendar</div>
+  <hr>
+  <div class="goog-menuitem">Help</div>
+</div>
+<h2 id="x">...</h2>
+<h3 id="y">...</h2>
+
+<script>
+
+  /* Fixed search menu demo */
+
+  var search = new goog.ui.Menu();
+  var h = new goog.ui.MenuItem('Search', '');
+  h.setEnabled(false);
+  search.addItem(h);
+  var googleName = goog.dom.createDom('span', {'style': 'font-family:serif;color:red'}, 'Google');
+
+  search.addItem(new goog.ui.MenuItem(googleName, 'http://www.google.com'));
+  search.addItem(new goog.ui.MenuItem('Yahoo!', 'http://www.yahoo.com'));
+  search.addItem(new goog.ui.MenuItem('Live search', 'http://www.live.com'));
+  search.addItem(new goog.ui.MenuItem('Ask', 'http://www.ask.com'));
+  search.addItem(new goog.ui.MenuSeparator());
+  search.addItem(new goog.ui.MenuItem('Add a new link...', ':addnew'));
+  search.render(goog.dom.getElement('searchMenu'));
+  goog.events.listen(search, 'action', function(e) {
+    var action = e.target.getModel();
+    if (action == ':addnew') {
+      var n = prompt('Enter a new link name...');
+      var u = prompt('Enter the new link url...');
+      if (n && u) {
+        search.addItemAt(new goog.ui.MenuItem(n, u), search.getItemCount() - 2);
+      }
+    } else {
+      alert(action);
+      // location = action;
+    }
+  });
+  goog.events.listen(search.getElement(), 'click', function(e) {
+    e.stopPropagation();
+  });
+
+
+
+  /* Popup context style menu (left click) */
+
+  var popup = new goog.ui.PopupMenu();
+  popup.addItem(new goog.ui.MenuItem('Red', '#FAA'));
+  popup.addItem(new goog.ui.MenuItem('Green', '#AFA'));
+  popup.addItem(new goog.ui.MenuItem('Blue', '#8AF'));
+  popup.addItem(new goog.ui.MenuItem('Yellow', '#FF8'));
+  popup.addItem(new goog.ui.MenuSeparator());
+  popup.addItem(new goog.ui.MenuItem('Reset', '#FFF'));
+  popup.setToggleMode(true);
+  popup.render();
+  popup.attach(document.body);
+  goog.events.listen(popup, 'action', function(e) {
+    document.body.style.backgroundColor = e.target.getModel();
+  });
+
+
+  /* Toolbar menu */
+  var toolbar = new goog.ui.Menu();
+  toolbar.decorate(document.getElementById('toolbarMenu'));
+  goog.events.listen(toolbar, 'action', function(e) {
+    document.getElementById('x').innerHTML = e.target.getCaption();
+  });
+  goog.events.listen(toolbar, 'highlight', function(e) {
+    var highlighted = e.target.getChildAt(e.newIndex);
+    if (highlighted) {
+      document.getElementById('y').innerHTML = highlighted.getCaption();
+    }
+  });
+</script>
+
+</body>
+</html>

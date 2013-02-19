@@ -1,0 +1,79 @@
+{
+    "additionalFeatures": "Second microphone for dynamic noise suppression", 
+    "android": {
+        "os": "Android 2.2", 
+        "ui": "Android"
+    }, 
+    "availability": [
+        "T-Mobile (United States)", 
+        "Vodafone (United Kingdom)", 
+        "Vodafone (Italy)", 
+        "Vodafone (Spain)", 
+        "KT (Korea)", 
+        "Videotron (Canada)"
+    ], 
+    "battery": {
+        "standbyTime": "290 hours", 
+        "talkTime": "10 hours", 
+        "type": "Lithium Ion (Li-Ion) (1400 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "5.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.0", 
+        "cell": "3 UMTS bands (either 900/AWS/2100 MHz or 850/1900/2100 MHz)\r\nHSDPA 7.2 Mbps\r\nHSUPA 2 Mbps\r\nGSM/EDGE (850, 900, 1800, 1900 MHz)\r\n", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "Manufactured by HTC, the Nexus One features dynamic noise suppression from Audience, Inc., a large 3.7\" OLED display for deep contrast and brilliant colors, and a 1GHz Qualcomm Snapdragon\u2122 chipset for blazing speeds. Of course, it also comes with a host of popular Google applications, including Gmail, Google Voice and Google Maps Navigation.\r\n\r\nThe Nexus One is available for sale in the US to registered developers.", 
+    "display": {
+        "screenResolution": "WVGA (800 x 480)", 
+        "screenSize": "3.7 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "1 GHz Qualcomm QSD 8250 Snapdragon", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/False.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "nexus-one", 
+    "images": [
+        {
+            "id": "58003", 
+            "medium": "http://www.google.com/phone/image/medium/58003", 
+            "small": "http://www.google.com/phone/image/small/58003"
+        }, 
+        {
+            "id": "89001", 
+            "medium": "http://www.google.com/phone/image/medium/89001", 
+            "small": "http://www.google.com/phone/image/small/89001"
+        }, 
+        {
+            "id": "90001", 
+            "medium": "http://www.google.com/phone/image/medium/90001", 
+            "small": "http://www.google.com/phone/image/small/90001"
+        }
+    ], 
+    "name": "Nexus One", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "59.8 mm (w)", 
+            "119.0 mm (h)", 
+            "11.5 mm (d)"
+        ], 
+        "weight": "130.0 grams"
+    }, 
+    "storage": {
+        "flash": "512MB", 
+        "ram": "512MB"
+    }
+}

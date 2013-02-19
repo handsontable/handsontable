@@ -1,0 +1,68 @@
+{
+    "additionalFeatures": "", 
+    "android": {
+        "os": "Android 2.1", 
+        "ui": "HTC Sense\u2122"
+    }, 
+    "availability": [
+        "Verizon (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "373 hours", 
+        "talkTime": "3 hours", 
+        "type": "Lithium Ion (Li-Ion) (1300 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Video"
+        ], 
+        "primary": "5.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.0", 
+        "cell": "MA: Dual-band 800/1900MHz, CDMA2000 1xRTT/1xEVDO rev. A", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "The DROID ERIS by HTC gets you. You can make this phone your own, and personalize almost everything about it.  Change your phone for work, weekends, whatever. Custom Scenes let you create different phones for every different thing you do.  Stay in the loop. Keep up with Facebook\u00ae, Google Talk\u2122, and Flickr\u00ae. Stay on top of Twitter\u2122 with HTC Peep\u2122.  Focus on your people instead of your passwords. Look at everything sent to you\u2014emails, calls, texts, status updates, and more\u2014organized by the person who sent it.  Free your apps. Choose from thousands of apps on the Android Market\u2122\u2014or build your own.  Know the time and weather, no matter where you travel. When your plane lands, your phone updates automatically.", 
+    "display": {
+        "screenResolution": "HVGA (480 x 320)", 
+        "screenSize": "3.2 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/False.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "droid-eris-by-htc", 
+    "images": [
+        {
+            "id": "144001", 
+            "medium": "http://www.google.com/phone/image/medium/144001", 
+            "small": "http://www.google.com/phone/image/small/144001"
+        }, 
+        {
+            "id": "157001", 
+            "medium": "http://www.google.com/phone/image/medium/157001", 
+            "small": "http://www.google.com/phone/image/small/157001"
+        }
+    ], 
+    "name": "DROID\u2122 Eris by HTC", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "55.6 mm (w)", 
+            "113.03 mm (h)", 
+            "12.95 mm (d)"
+        ], 
+        "weight": "119.9 grams"
+    }, 
+    "storage": {
+        "flash": "512MB", 
+        "ram": "288MB"
+    }
+}

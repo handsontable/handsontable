@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2011 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+  <title>Property Models Test</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #f9f9f9;
+      font-family: Droid Sans, sans-serif;
+      font-size: 12px;
+    }
+
+    h1 {
+      font-size: 175%;
+      margin: 5px;
+      min-height: 66px;
+      text-transform: uppercase;
+      text-rendering: optimizeLegibility;
+      cursor: pointer;
+    }
+
+    body {
+      margin-left: 10%;
+      max-width: 900px;
+    }
+  </style>
+  <script src="include.js"></script>
+  <script src="property_model.js"></script>
+</head>
+<body>
+<h3> Express A &amp; B in absolute or relative value</h3>
+<fieldset id="sumsAndPercentages">
+<legend>A + B = SUM, %A = A / SUM, %B = B / SUM, WHEN(FIXED) SUM = SUM</legend>
+<div>
+  <label>A <input id="a" type="text"></label>
+  <label>%A <input id="percentA" type="text"></label>
+</div>
+
+<div>
+  <label>B <input id="b" type="text"></label>
+  <label>%B <input id="percentB" type="text"></label>
+</div>
+
+<div>
+  <label>Sum <input id="sum" type="text"></label>
+  <input id="sumFixed" type="checkbox"><span>Fixed</span>
+</div>
+</fieldset>
+
+<h3> Cascading inequivalence</h3>
+<fieldset id="inequivalence">
+<legend>A &lt;= B, B &lt;= C</legend>
+<div>
+<label>A <input id="rangeA" type="range"></label>
+</div>
+
+<div>
+<label>B <input id="rangeB" type="range"></label>
+</div>
+
+<div>
+<label>C <input id="rangeC" type="range"></label>
+</div>
+</fieldset>
+
+<script>
+
+var inequivalence = document.getElementById('inequivalence');
+var elRangeA = document.getElementById('rangeA');
+var elRangeB = document.getElementById('rangeB');
+var elRangeC = document.getElementById('rangeC');
+
+var m1 = {
+  rangeA: 50,
+  rangeB: 50,
+  rangeC: 50
+};
+
+inequivalence.model = m1;
+elRangeA.addBinding('value', '{{ rangeA | number }}');
+elRangeB.addBinding('value', '{{ rangeB | number }}');
+elRangeC.addBinding('value', '{{ rangeC | number }}');
+
+Planner.makePlanner(m1, [
+  {
+    name: "A <= B",
+    methods: [
+      {
+        name: "A = MIN(A, B)",
+        property: 'rangeA',
+        f: function() {
+          return Math.min(m1.rangeA, m1.rangeB);
+        }
+      },
+      {
+        name: "B = MAX(A, B);",
+        property: 'rangeB',
+        f: function() {
+          return Math.max(m1.rangeA, m1.rangeB);
+        }
+      }
+    ]
+  },
+  {
+    name: "B <= C",
+    methods: [
+      {
+        name: "B = MIN(B, C)",
+        property: 'rangeB',
+        f: function() {
+          return Math.min(m1.rangeB, m1.rangeC);
+        }
+      },
+      {
+        name: "C = MAX(B, C);",
+        property: 'rangeC',
+        f: function() {
+          return Math.max(m1.rangeB, m1.rangeC);
+        }
+      }
+    ]
+  }
+]);
+
+var sumsAndPercentagesView = document.getElementById('sumsAndPercentages');
+var elA = document.getElementById('a');
+var elB = document.getElementById('b');
+var elSum = document.getElementById('sum');
+var elPercentA = document.getElementById('percentA');
+var elPercentB = document.getElementById('percentB');
+var elSumFixed = document.getElementById('sumFixed');
+
+var m2 = {
+  a: 5, b: 5, sum: 10,
+  percentA: 50, percentB: 50,
+  sumFixed: false
+};
+
+sumsAndPercentagesView.model = m2;
+elA.addBinding('value', '{{ a | number }}');
+elB.addBinding('value', '{{ b | number }}');
+elSum.addBinding('value', '{{ sum | number }}');
+elPercentA.addBinding('value', '{{ percentA | number }}');
+elPercentB.addBinding('value', '{{ percentB | number }}');
+elSumFixed.addBinding('checked', '{{ sumFixed }}');
+elSum.addBinding('disabled', '{{ sumFixed }}');
+
+Planner.makePlanner(m2, [
+  {
+    name: "IF (sumFixed) SUM = SUM",
+    inputs: [ 'sumFixed' ],
+    when: function() {
+      return m2.sumFixed;
+    },
+    methods: [
+      {
+        name: "SUM = SUM",
+        property: 'sum',
+        f: function() {
+          return m2.sum;
+        }
+      }
+    ]
+  },
+  {
+    name: "B% = B/SUM",
+    methods: [
+      {
+        name: "B = SUM * B% / 100",
+        property: 'b',
+        f: function() {
+          return m2.sum * (m2.percentB / 100);
+        }
+      },
+      {
+        name: "B% = B / SUM",
+        property: 'percentB',
+        f: function() {
+          return (m2.b / m2.sum) * 100;
+        }
+      },
+      {
+        name: "SUM = B / B%",
+        property: 'sum',
+        f: function() {
+          return m2.b / (m2.percentB / 100);
+        }
+      }
+    ]
+  },
+
+  {
+    name: "SUM = A + B",
+    methods: [
+      {
+        name: "A = SUM - B",
+        property: 'a',
+        f: function() {
+          return m2.sum - m2.b;
+        }
+      },
+      {
+        name: "B = SUM - A",
+        property: 'b',
+        f: function() {
+          return m2.sum - m2.a;
+        }
+      },
+      {
+        name: "SUM = A + B",
+        property: 'sum',
+        f: function() {
+          return m2.a + m2.b;
+        }
+      }
+    ]
+  },
+
+  {
+    name: "A% = A/SUM",
+    methods: [
+      {
+        name: "A = SUM * A%",
+        property: 'a',
+        f: function() {
+          return m2.sum * (m2.percentA / 100);
+        }
+      },
+      {
+        name: "A% = A / SUM",
+        property: 'percentA',
+        f: function() {
+          return (m2.a / m2.sum) * 100;
+        }
+      },
+      {
+        name: "SUM = A / A%",
+        property: 'sum',
+        f: function() {
+          return m2.a / (m2.percentA / 100);
+        }
+      }
+    ]
+  }
+]);
+
+</script>
+</body>
+</html>

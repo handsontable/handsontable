@@ -1,0 +1,72 @@
+@host {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 40px;
+  height: 40px;
+}
+ 
+#overlay > .overlay {
+  background: white;
+  border: 1px solid #cfcfcf;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  margin: 10px 0 0 20px;
+  -webkit-transform: translateX(-50%);
+}
+
+.arrow-border, .arrow {
+  height: 1px;
+  width: 0;
+  margin: 0 auto;
+  margin-top: -22px;
+  border-color: transparent transparent #cfcfcf transparent;
+  border-style: solid;
+  border-width: 10px;
+}
+ 
+.arrow {
+  border-bottom-color: white;
+  margin-top: -19px;
+}
+
+#menu {
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  box-shadow: none;
+}
+
+@host g-menu-item {
+  white-space: nowrap;
+}
+
+/* TODO(ffu): adding responsive class won't work in native; to work in native
+automatically we'll need to add a feature to detect if we're in a responsive
+container */
+@media screen and (max-width: 800px) {
+  .responsive .arrow-border, .arrow {
+    display: none;
+  }
+  
+  .responsive #menu {
+    width: 100%;
+  }
+  
+  .responsive #overlay > .overlay {
+    position: absolute;
+    -webkit-transform: translateX(0);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: 0;
+    border-bottom: 0;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .responsive #overlay.slideup > .overlay {
+    -webkit-transform: translateY(100%);
+    -webkit-transition: -webkit-transform 0.218s;
+  }
+  
+  .responsive #overlay.slideup.opened > .overlay {
+    -webkit-transform: translateY(0);
+  }
+}

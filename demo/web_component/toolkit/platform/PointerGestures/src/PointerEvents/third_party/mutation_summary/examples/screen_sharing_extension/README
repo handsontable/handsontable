@@ -1,0 +1,36 @@
+--The ScreenSharing example extension--
+
+This directory contains the source for an example Chrome Extension called ScreenSharing is a simple variant of the PageMirror extension.
+
+The basic behavior is almost exactly identical, except for popping up a new tab in the same browser, the extension forwards changes to a NodeJS server.js which can relay those changes to any number of clients
+
+--Requirements--
+
+This example requires NodeJS to run the relay server. See http://nodejs.org for installation instructions.
+
+--Installation--
+
+1. Copy ../../mutation_summary.js and ../../tree_mirror.js to this directory.
+2. Edit the serverURL variable in content.js to point to the machine on which you plan to run server.js. E.g. 'ws://mymachine:8080/projector'.
+2. Navigate Chrome to chrome://extensions.
+3. Click the 'Developer Mode' checkbox.
+4. Click the 'Load unpacked extension...' button.
+5. Navigate the file browser to this directory and click select.
+
+This shoud load the extension and a little button with an icon of 'Evil Spock' should appear in the top-right corner of each Chrome window.
+
+6. In the current directory, run node server.js (after having installed NodeJS)
+
+--Usage---
+
+1. Now try navigating to a web page which is highly dynamic. http://www.google.com is a good example.
+2. Click the Spock button and move aside the tab which is opened.
+3. Now point any other browser (which implements WebSockets) at the machine on which you started the server.js, port 8080. E.g. 'http://mymachine:8080'.
+4. The contents of the "source" browsers tab will now to projected to this browser (and to all other browsers who are watching).
+
+--Uninstallation--
+
+1. Click the 'Remove' button in PageMirror row on the chrome://extensions page.
+
+
+

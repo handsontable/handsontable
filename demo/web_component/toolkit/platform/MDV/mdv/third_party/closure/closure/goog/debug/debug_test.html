@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2008 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<head>
+<title>Closure Unit Tests - goog.debug</title>
+<script src="../base.js"></script>
+<script>
+  goog.require('goog.debug');
+  goog.require('goog.testing.jsunit');
+</script>
+</head>
+<body>
+<script>
+
+function testMakeWhitespaceVisible() {
+  assertEquals(
+      'Hello[_][_]World![r][n]\n' +
+      '[r][n]\n' +
+      '[f][f]I[_]am[t][t]here![r][n]\n',
+      goog.debug.makeWhitespaceVisible(
+          'Hello  World!\r\n\r\n\f\fI am\t\there!\r\n'));
+}
+
+</script>
+</body>
+</html>

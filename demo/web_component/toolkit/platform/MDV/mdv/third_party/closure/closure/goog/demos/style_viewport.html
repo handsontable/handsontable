@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!--
+
+  Author: eae@google.com (Emil A Eklund)
+-->
+<html>
+<!--
+Copyright 2008 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<head>
+<title>Closure Manual Test - goog.style.getViewportForElement</title>
+<script src="../base.js"></script>
+<script>
+  goog.require('goog.style');
+</script>
+<style>
+  #test1, #test2, #test3 {
+    overflow: auto;
+  }
+  #test1 {
+    width: 400px;
+    height: 400px;
+    border: 1px solid black;
+    padding: 40px;
+    position: relative;
+    z-index: 1;
+  }
+  #test2 {
+    width: 100px;
+    height: 100px;
+    border: 1px solid green;
+    margin: 7px;
+    padding: 30px;
+  }
+  #test3 {
+    width: 200px;
+    height: 200px;
+    border: 5px solid blue;
+    padding: 45px;
+    margin: 10px;
+  }
+  #overlay, #overlay2 {
+    position: absolute;
+    opacity: 0.5;
+  }
+  #overlay {
+    background: lime;
+  }
+  #overlay2 {
+    border: 4px solid red;
+  }
+</style>
+</head>
+<body>
+  <div id="test1">
+    Scrolling container
+    <div id="test2">
+      Scrolling container
+      <div id="test3">
+        The visible part of this container should be covered by the green field.
+        <br>
+        <span id="test-span">Test Element</span>
+        <div style="height: 400px;">&nbsp;</div>
+        <span id="test-span">Test Element</span>
+      </div>
+      <div style="height: 400px;">&nbsp;</div>
+    </div>
+    <div style="height: 400px;">&nbsp;</div>
+  </div>
+  <div style="height: 400px; width: 4000px;">&nbsp;</div>
+
+  <span id="test-span2">Test</span>
+
+  <div id="overlay"></div>
+  <div id="overlay2"></div>
+
+  <p>
+    The green field should cover the visible part of the container with a blue
+    border. The thick red border should always be around the main document
+    viewport.
+  </p>
+  <p>
+    The elements are repositioned every two seconds.
+  </p>
+
+<script>
+
+document.documentElement.scrollLeft = 100;
+document.body.scrollLeft = 100;
+document.getElementById('test1').scrollTop = 100;
+document.getElementById('test2').scrollLeft = 50;
+document.getElementById('test2').scrollTop = 70;
+document.getElementById('test3').scrollTop = 300;
+
+function updateOverlay(element, overlay, borderWidth) {
+  var elementBox = goog.style.getVisibleRectForElement(element);
+  if (elementBox) {
+    overlay.style.top = elementBox.top + 'px';
+    overlay.style.left = elementBox.left + 'px';
+    overlay.style.width = (elementBox.right - elementBox.left -
+        borderWidth * 2) + 'px';
+    overlay.style.height = (elementBox.bottom - elementBox.top -
+        borderWidth * 2) + 'px';
+    overlay.style.display = 'block';
+  }
+  else {
+    overlay.style.display = 'none';
+  }
+}
+
+
+function update() {
+  updateOverlay(document.getElementById('test-span'),
+                document.getElementById('overlay'), 0);
+  updateOverlay(document.getElementById('test-span2'), 
+                document.getElementById('overlay2'), 4);
+}
+
+update();
+
+window.setInterval('update();', 2000);
+
+</script>
+
+</body>
+</html>

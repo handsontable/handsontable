@@ -1,0 +1,36 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ribbon</title>
+  <script src="../platform/platform.js"></script>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, 'open sans', sans-serif;
+    }
+    
+    g-ribbon {
+      position: absolute;
+      width: 240px;
+      top: 0;
+      bottom: 0;
+      left: 0;
+    }
+  </style>
+  <link rel="components" href="../components/g-ribbon.html">
+  <link rel="components" href="../components/g-menu-item.html">
+</head>
+<body>
+  <g-ribbon selected="0" label="Toolkit">
+    <g-menu-item src="images/ribbon_topics.svg">Topics</g-menu-item>
+    <g-menu-item src="images/ribbon_trending.svg">Trending</g-menu-item>
+    <g-menu-item src="images/ribbon_accounts.svg">Accounts</g-menu-item>
+    <g-menu-item src="images/ribbon_explore.svg">Explore</g-menu-item>
+    <g-menu-item src="images/ribbon_favorite.svg">Favorites</g-menu-item>
+  </g-ribbon>
+</body>
+</html>

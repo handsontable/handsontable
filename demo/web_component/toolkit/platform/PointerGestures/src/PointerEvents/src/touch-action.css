@@ -1,0 +1,15 @@
+[touch-action="none"] {
+  -ms-touch-action: none;
+}
+
+[touch-action="pan-x"] {
+  -ms-touch-action: pan-x;
+}
+
+[touch-action="pan-y"] {
+  -ms-touch-action: pan-y;
+}
+
+[touch-action="scroll"] {
+  -ms-touch-action: pan-x pan-y;
+}

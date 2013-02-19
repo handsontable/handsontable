@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2006 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<!--
+  All Rights Reserved.
+-->
+<head>
+<title>Closure Unit Tests - goog.i18n.DateTimeParse</title>
+<meta charset="utf-8"/>
+<script src="../base.js"></script>
+<script>
+  goog.require('goog.i18n.DateTimeFormat');
+  goog.require('goog.i18n.DateTimeParse');
+  goog.require('goog.i18n.DateTimeSymbols');
+  goog.require('goog.testing.jsunit');
+  goog.require('goog.userAgent');
+</script>
+</head>
+<body>
+<script>
+
+/**
+ * Date/time formatting symbols for locale en.
+ * @enum {Array.<string|number>|number}
+ */
+goog.i18n.DateTimeSymbols_en = {
+  ERAS: ['BC', 'AD'],
+  ERANAMES: ['Before Christ', 'Anno Domini'],
+  NARROWMONTHS: ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'],
+  STANDALONENARROWMONTHS: ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O',
+      'N', 'D'],
+  MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+      'August', 'September', 'October', 'November', 'December'],
+  STANDALONEMONTHS: ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'],
+  SHORTMONTHS: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+      'Oct', 'Nov', 'Dec'],
+  STANDALONESHORTMONTHS: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
+      'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  WEEKDAYS: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
+      'Saturday'],
+  STANDALONEWEEKDAYS: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+      'Friday', 'Saturday'],
+  SHORTWEEKDAYS: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  STANDALONESHORTWEEKDAYS: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  NARROWWEEKDAYS: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+  STANDALONENARROWWEEKDAYS: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+  SHORTQUARTERS: ['Q1', 'Q2', 'Q3', 'Q4'],
+  QUARTERS: ['1st quarter', '2nd quarter', '3rd quarter', '4th quarter'],
+  AMPMS: ['AM', 'PM'],
+  DATEFORMATS: ['EEEE, MMMM d, yyyy', 'MMMM d, yyyy', 'MMM d, yyyy', 'M/d/yy'],
+  TIMEFORMATS: ['h:mm:ss a v', 'h:mm:ss a z', 'h:mm:ss a', 'h:mm a'],
+  FIRSTDAYOFWEEK: 6,
+  WEEKENDRANGE: [5, 6],
+  FIRSTWEEKCUTOFFDAY: 5
+};
+
+
+/**
+ * Date/time formatting symbols for locale fr.
+ * @enum {Array.<string|number>|number}
+ */
+goog.i18n.DateTimeSymbols_fr = {
+  ERAS: ['av. J.-C.', 'ap. J.-C.'],
+  ERANAMES: ['avant Jésus-Christ', 'après Jésus-Christ'],
+  NARROWMONTHS: ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'],
+  STANDALONENARROWMONTHS: ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O',
+      'N', 'D'],
+  MONTHS: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet',
+      'août', 'septembre', 'octobre', 'novembre', 'décembre'],
+  STANDALONEMONTHS: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+      'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
+  SHORTMONTHS: ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.',
+      'août', 'sept.', 'oct.', 'nov.', 'déc.'],
+  STANDALONESHORTMONTHS: ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
+      'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc]'],
+  WEEKDAYS: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi',
+      'samedi'],
+  STANDALONEWEEKDAYS: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi',
+      'vendredi', 'samedi'],
+  SHORTWEEKDAYS: ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'],
+  STANDALONESHORTWEEKDAYS: ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.',
+      'sam.'],
+  NARROWWEEKDAYS: ['D', 'L', 'M', 'M', 'J', 'V', 'S'],
+  STANDALONENARROWWEEKDAYS: ['D', 'L', 'M', 'M', 'J', 'V', 'S'],
+  SHORTQUARTERS: ['T1', 'T2', 'T3', 'T4'],
+  QUARTERS: ['1er trimestre', '2e trimestre', '3e trimestre', '4e trimestre'],
+  AMPMS: ['AM', 'PM'],
+  DATEFORMATS: ['EEEE d MMMM yyyy', 'd MMMM yyyy', 'd MMM yyyy', 'dd/MM/yy'],
+  TIMEFORMATS: ['HH:mm:ss v', 'HH:mm:ss z', 'HH:mm:ss', 'HH:mm'],
+  FIRSTDAYOFWEEK: 0,
+  WEEKENDRANGE: [5, 6],
+  FIRSTWEEKCUTOFFDAY: 3
+};
+
+
+/**
+ * Date/time formatting symbols for locale zh.
+ * @enum {Array.<string|number>|number}
+ */
+goog.i18n.DateTimeSymbols_zh = {
+  ERAS: ['公元前', '公元'],
+  ERANAMES: ['公元前', '公元'],
+  NARROWMONTHS: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月',
+      '9月', '10月', '11月', '12月'],
+  STANDALONENARROWMONTHS: ['1月', '2月', '3月', '4月', '5月', '6月',
+      '7月', '8月', '9月', '10月', '11月', '12月'],
+  MONTHS: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月',
+      '9月', '10月', '11月', '12月'],
+  STANDALONEMONTHS: ['一月', '二月', '三月', '四月', '五月', '六月',
+      '七月', '八月', '九月', '十月', '十一月', '十二月'],
+  SHORTMONTHS: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月',
+      '9月', '10月', '11月', '12月'],
+  STANDALONESHORTMONTHS: ['一月', '二月', '三月', '四月', '五月',
+      '六月', '七月', '八月', '九月', '十月', '十一月',
+      '十二月'],
+  WEEKDAYS: ['星期日', '星期一', '星期二', '星期三', '星期四',
+      '星期五', '星期六'],
+  STANDALONEWEEKDAYS: ['星期日', '星期一', '星期二', '星期三',
+      '星期四', '星期五', '星期六'],
+  SHORTWEEKDAYS: ['周日', '周一', '周二', '周三', '周四', '周五',
+      '周六'],
+  STANDALONESHORTWEEKDAYS: ['周日', '周一', '周二', '周三', '周四',
+      '周五', '周六'],
+  NARROWWEEKDAYS: ['日', '一', '二', '三', '四', '五', '六'],
+  STANDALONENARROWWEEKDAYS: ['日', '一', '二', '三', '四', '五', '六'],
+  SHORTQUARTERS: ['1季', '2季', '3季', '4季'],
+  QUARTERS: ['第1季度', '第2季度', '第3季度', '第4季度'],
+  AMPMS: ['上午', '下午'],
+  DATEFORMATS: ['yyyy年M月d日EEEE', 'yyyy年M月d日', 'yyyy-M-d', 'yy-M-d'],
+  TIMEFORMATS: ['ahh时mm分ss秒v', 'ahh时mm分ss秒z', 'ahh:mm:ss', 'ah:mm'],
+  FIRSTDAYOFWEEK: 6,
+  WEEKENDRANGE: [5, 6],
+  FIRSTWEEKCUTOFFDAY: 5
+};
+
+goog.i18n.DateTimeSymbols = goog.i18n.DateTimeSymbols_en;
+
+function testNegativeYear() {
+  var date = new Date();
+
+  var parser = new goog.i18n.DateTimeParse('MM/dd, yyyy');
+  assertTrue(parser.parse('11/22, 1999', date) > 0);
+  assertEquals(1999, date.getFullYear());
+  assertEquals(11 - 1, date.getMonth());
+  assertEquals(22, date.getDate());
+
+  assertTrue(parser.parse('11/22, -1999', date) > 0);
+  assertEquals(-1999, date.getFullYear());
+  assertEquals(11 - 1, date.getMonth());
+  assertEquals(22, date.getDate());
+}
+
+function testEra() {
+  // Bug 2350397
+  if (goog.userAgent.WEBKIT) {
+  // Bug 2350397 Test seems to be very flaky on Chrome. Disabling it
+    return;
+  }
+
+  var date = new Date();
+  var parser = new goog.i18n.DateTimeParse('MM/dd, yyyyG');
+  assertTrue(parser.parse('11/22, 1999BC', date) > 0);
+  assertEquals(-1998, date.getFullYear());
+  assertEquals(11 - 1, date.getMonth());
+  assertEquals(22, date.getDate());
+
+  assertTrue(parser.parse('11/22, 1BC', date) > 0);
+  assertEquals(0, date.getFullYear());
+  assertEquals(11 - 1, date.getMonth());
+  assertEquals(22, date.getDate());
+
+  assertTrue(parser.parse('11/22, 1999AD', date) > 0);
+  assertEquals(1999, date.getFullYear());
+  assertEquals(11 - 1, date.getMonth());
+  assertEquals(22, date.getDate());
+}
+
+function testFractionalSeconds() {
+  var date = new Date();
+
+  var parser = new goog.i18n.DateTimeParse('hh:mm:ss.SSS');
+  assertTrue(parser.parse('11:12:13.956', date) > 0);
+  assertEquals(11, date.getHours());
+  assertEquals(12, date.getMinutes());
+  assertEquals(13, date.getSeconds());
+  assertEquals(956, date.getTime() % 1000);
+
+  assertTrue(parser.parse('11:12:13.95', date) > 0);
+  assertEquals(11, date.getHours());
+  assertEquals(12, date.getMinutes());
+  assertEquals(13, date.getSeconds());
+  assertEquals(950, date.getTime() % 1000);
+
+  assertTrue(parser.parse('11:12:13.9', date) > 0);
+  assertEquals(11, date.getHours());
+  assertEquals(12, date.getMinutes());
+  assertEquals(13, date.getSeconds());
+  assertEquals(900, date.getTime() % 1000);
+}
+
+function testAmbiguousYear() {
+  // Bug 2350397 Test seems to fail on all browsers. Disabling it.
+    return;
+
+  var date = new Date();
+
+  // assume this year is 2006, year 27 to 99 will be interpret as 1927 to 1999
+  // year 00 to 25 will be 2000 to 2025. Year 26 can be either 1926 or 2026
+  // depend on the exact time.
+  var orgDate = new Date();
+  orgDate.setFullYear(orgDate.getFullYear() + 20);
+
+  // following 2 lines only works in 2006. Keep them here as they explained
+  // our intention better.
+  //assertTrue(DateTimeParse.parse('01/01/26', 0, 'MM/dd/yy', date) > 0);
+  //assertTrue(date.getYear() == 2026 - 1900);
+
+  // rewrite so that it works in any year.
+  orgDate.setMonth(0);
+  orgDate.setDate(1);
+  orgDate.setHours(0);
+  orgDate.setMinutes(0);
+  orgDate.setSeconds(0);
+  orgDate.setMilliseconds(1);
+  var str = '01/01/' + (orgDate.getFullYear() % 100);
+  var parser = new goog.i18n.DateTimeParse('MM/dd/yy');
+  assertTrue(parser.parse(str, date) > 0);
+  assertEquals(orgDate.getFullYear(), date.getFullYear());
+
+  // following 2 lines only works in 2006. Keep them here as they explained
+  // our intention better.
+  //assertTrue(DateTimeParse.parse('MM/dd/yy', '12/30/26', date) > 0);
+  //assertTrue(date.getYear() == 1926 - 1900);
+
+  // rewrite so that it works in any year.
+  orgDate.setMonth(11);
+  orgDate.setDate(31);
+  orgDate.setHours(23);
+  orgDate.setMinutes(59);
+  orgDate.setSeconds(59);
+  orgDate.setMilliseconds(999);
+  str = '12/31/' + (orgDate.getFullYear() % 100);
+  var parser1 = new goog.i18n.DateTimeParse('MM/dd/yy');
+  assertTrue(parser1.parse(str, date) > 0);
+  assertEquals(orgDate.getFullYear(), date.getFullYear()+100);
+
+  var parser2 = new goog.i18n.DateTimeParse('yy,MM,dd');
+  assertTrue(parser2.parse('2097,07,21', date) > 0);
+  assertEquals(2097, date.getFullYear());
+
+  // Test the ability to move the disambiguation century
+  goog.i18n.DateTimeParse.ambiguousYearCenturyStart = 60;
+
+  orgDate.setMonth(0);
+  orgDate.setDate(1);
+  orgDate.setHours(0);
+  orgDate.setMinutes(0);
+  orgDate.setSeconds(0);
+  orgDate.setMilliseconds(1);
+  str = '01/01/' + (orgDate.getFullYear() % 100);
+  assertTrue(parser1.parse(str, date) > 0);
+  assertEquals(orgDate.getFullYear(), date.getFullYear());
+
+  // Increment orgDate 20 more years
+  orgDate.setFullYear(date.getFullYear() + 20);
+  str = '01/01/' + (orgDate.getFullYear() % 100);
+  assertTrue(parser1.parse(str, date) > 0);
+  assertEquals(orgDate.getFullYear(), date.getFullYear());
+
+  orgDate.setFullYear(date.getFullYear() + 21);
+  str = '01/01/' + (orgDate.getFullYear() % 100);
+  assertTrue(parser1.parse(str, date) > 0);
+  assertEquals(orgDate.getFullYear(), date.getFullYear()+100);
+
+  // Reset parameter for other test cases
+  goog.i18n.DateTimeParse.ambiguousYearCenturyStart = 80;
+}
+
+function testLeapYear() {
+  var date = new Date();
+
+  var parser = new goog.i18n.DateTimeParse('MMdd, yyyy');
+  assertTrue(parser.parse('0229, 2001', date) > 0);
+  assertEquals(3 - 1, date.getMonth());
+  assertEquals(1, date.getDate());
+
+  assertTrue(parser.parse('0229, 2000', date) > 0);
+  assertEquals(2 - 1, date.getMonth());
+  assertEquals(29, date.getDate());
+}
+
+function testAbutField() {
+  var date = new Date();
+
+  var parser = new goog.i18n.DateTimeParse('hhmm');
+  assertTrue(parser.parse('1122', date) > 0);
+  assertEquals(11, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('122', date) > 0);
+  assertEquals(1, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  var parser2 = new goog.i18n.DateTimeParse('hhmmss');
+  assertTrue(parser2.parse('112233', date) > 0);
+  assertEquals(11, date.getHours());
+  assertEquals(22, date.getMinutes());
+  assertEquals(33, date.getSeconds());
+
+  assertTrue(parser2.parse('12233', date) > 0);
+  assertEquals(1, date.getHours());
+  assertEquals(22, date.getMinutes());
+  assertEquals(33, date.getSeconds());
+
+  var parser3 = new goog.i18n.DateTimeParse('yyyyMMdd');
+  assertTrue(parser3.parse('19991202', date) > 0);
+  assertEquals(1999, date.getFullYear());
+  assertEquals(12 - 1, date.getMonth());
+  assertEquals(02, date.getDate());
+
+  assertTrue(parser3.parse('9991202', date) > 0);
+  assertTrue(date.getFullYear() == 999);
+  assertEquals(12 - 1, date.getMonth());
+  assertEquals(02, date.getDate());
+
+  assertTrue(parser3.parse('991202', date) > 0);
+  assertEquals(99, date.getFullYear());
+  assertEquals(12 - 1, date.getMonth());
+  assertEquals(02, date.getDate());
+
+  assertTrue(parser3.parse('91202', date) > 0);
+  assertEquals(9, date.getFullYear());
+  assertEquals(12 - 1, date.getMonth());
+  assertEquals(02, date.getDate());
+}
+
+function testYearParsing() {
+  var date = new Date();
+
+  var parser = new goog.i18n.DateTimeParse('yyMMdd');
+  assertTrue(parser.parse('991202', date) > 0);
+  assertEquals(1999, date.getFullYear());
+  assertEquals(12 - 1, date.getMonth());
+  assertEquals(02, date.getDate());
+
+  var parser2 = new goog.i18n.DateTimeParse('yyyyMMdd');
+  assertTrue(parser2.parse('20051202', date) > 0);
+  assertEquals(2005, date.getFullYear());
+  assertEquals(12 - 1, date.getMonth());
+  assertEquals(02, date.getDate());
+}
+
+function testHourParsing_hh() {
+  var date = new Date();
+
+  var parser = new goog.i18n.DateTimeParse('hhmm');
+  assertTrue(parser.parse('0022', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('1122', date) > 0);
+  assertEquals(11, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('1222', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('2322', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('2422', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  var parser2 = new goog.i18n.DateTimeParse('hhmma');
+  assertTrue(parser2.parse('0022am', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1122am', date) > 0);
+  assertEquals(11, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1222am', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2322am', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2422am', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('0022pm', date) > 0);
+  assertEquals(12, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1122pm', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1222pm', date) > 0);
+  assertEquals(12, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2322pm', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2422pm', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+}
+
+function testHourParsing_KK() {
+  var date = new Date();
+
+  var parser = new goog.i18n.DateTimeParse('KKmm');
+  assertTrue(parser.parse('0022', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('1122', date) > 0);
+  assertEquals(11, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('1222', date) > 0);
+  assertEquals(12, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('2322', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('2422', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+
+  var parser2 = new goog.i18n.DateTimeParse('KKmma');
+  assertTrue(parser2.parse('0022am', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1122am', date) > 0);
+  assertEquals(11, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1222am', date) > 0);
+  assertEquals(12, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2322am', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2422am', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('0022pm', date) > 0);
+  assertEquals(12, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1122pm', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1222pm', date) > 0);
+  assertEquals(12, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2322pm', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2422pm', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+}
+
+function testHourParsing_kk() {
+  var date = new Date();
+
+  var parser = new goog.i18n.DateTimeParse('kkmm');
+  assertTrue(parser.parse('0022', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('1122', date) > 0);
+  assertEquals(11, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('1222', date) > 0);
+  assertEquals(12, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('2322', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('2422', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  var parser2 = new goog.i18n.DateTimeParse('kkmma');
+  assertTrue(parser2.parse('0022am', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1122am', date) > 0);
+  assertEquals(11, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1222am', date) > 0);
+  assertEquals(12, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2322am', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2422am', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('0022pm', date) > 0);
+  assertEquals(12, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1122pm', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1222pm', date) > 0);
+  assertEquals(12, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2322pm', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2422pm', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+}
+
+function testHourParsing_HH() {
+  var date = new Date();
+
+  var parser = new goog.i18n.DateTimeParse('HHmm');
+  assertTrue(parser.parse('0022', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('1122', date) > 0);
+  assertEquals(11, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('1222', date) > 0);
+  assertEquals(12, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('2322', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser.parse('2422', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  var parser2 = new goog.i18n.DateTimeParse('HHmma');
+  assertTrue(parser2.parse('0022am', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1122am', date) > 0);
+  assertEquals(11, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1222am', date) > 0);
+  assertEquals(12, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2322am', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2422am', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('0022pm', date) > 0);
+  assertEquals(12, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1122pm', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('1222pm', date) > 0);
+  assertEquals(12, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2322pm', date) > 0);
+  assertEquals(23, date.getHours());
+  assertEquals(22, date.getMinutes());
+
+  assertTrue(parser2.parse('2422pm', date) > 0);
+  assertEquals(00, date.getHours());
+  assertEquals(22, date.getMinutes());
+}
+
+function testEnglishDate() {
+  var date = new Date();
+
+  var parser = new goog.i18n.DateTimeParse('yyyy MMM dd hh:mm');
+  assertTrue(parser.parse('2006 Jul 10 15:44', date) > 0);
+  assertEquals(2006, date.getFullYear());
+  assertEquals(7 - 1, date.getMonth());
+  assertEquals(10, date.getDate());
+  assertEquals(15, date.getHours());
+  assertEquals(44, date.getMinutes());
+}
+
+function testChineseDate() {
+  goog.i18n.DateTimeSymbols = goog.i18n.DateTimeSymbols_zh;
+
+  var date = new Date();
+  var parser = new goog.i18n.DateTimeParse(
+      goog.i18n.DateTimeFormat.Format.FULL_DATE);
+  parser.parse('2006\u5E747\u670824\u65E5\u661F\u671F\u4E00', date);
+  assertEquals(2006, date.getFullYear());
+  assertEquals(7 - 1, date.getMonth());
+  assertEquals(24, date.getDate());
+
+  parser = new goog.i18n.DateTimeParse(
+      goog.i18n.DateTimeFormat.Format.LONG_DATE);
+  parser.parse('2006\u5E747\u670824\u65E5', date);
+  assertEquals(2006, date.getFullYear());
+  assertEquals(7 - 1, date.getMonth());
+  assertEquals(24, date.getDate());
+
+  parser = new goog.i18n.DateTimeParse(
+      goog.i18n.DateTimeFormat.Format.FULL_TIME);
+  parser.parse('\u4E0B\u534803\u65F626\u520628\u79D2 GMT-07:00', date);
+  assertEquals((24 + date.getHours() + date.getTimezoneOffset()/60) % 24, 22);
+  assertEquals(26, date.getMinutes());
+  assertEquals(28, date.getSeconds());
+
+  goog.i18n.DateTimeSymbols = goog.i18n.DateTimeSymbols_en;
+}
+
+function testTimeZone() {
+  var date = new Date();
+
+  var parser = new goog.i18n.DateTimeParse('MM/dd/yyyy, hh:mm:ss zzz');
+  assertTrue(parser.parse('07/21/2003, 11:22:33 GMT-0700', date) > 0);
+  var hourGmtMinus07 = date.getHours();
+
+  assertTrue(parser.parse('07/21/2003, 11:22:33 GMT-0600', date) > 0);
+  var hourGmtMinus06 = date.getHours();
+  assertEquals(1, (hourGmtMinus07 + 24 - hourGmtMinus06) % 24);
+
+  assertTrue(parser.parse('07/21/2003, 11:22:33 GMT-0800', date) > 0);
+  var hourGmtMinus08 = date.getHours();
+  assertEquals(1, (hourGmtMinus08 + 24 - hourGmtMinus07) % 24);
+
+  assertTrue(parser.parse('07/21/2003, 23:22:33 GMT-0800', date) > 0);
+  assertEquals((date.getHours() + 24 - hourGmtMinus07) % 24, 13);
+
+  assertTrue(parser.parse('07/21/2003, 11:22:33 GMT+0800', date) > 0);
+  var hourGmt08 = date.getHours();
+  assertEquals(16, (hourGmtMinus08 + 24 - hourGmt08) % 24);
+
+  assertTrue(parser.parse('07/21/2003, 11:22:33 GMT0800', date) > 0);
+  assertEquals(hourGmt08, date.getHours());
+}
+
+function testWeekDay() {
+  var date = new Date();
+  var parser = new goog.i18n.DateTimeParse('EEEE, MM/dd/yyyy');
+
+  assertTrue(parser.parse('Wednesday, 08/16/2006', date) > 0);
+  assertEquals(2006, date.getFullYear());
+  assertEquals(8 - 1, date.getMonth());
+  assertEquals(16, date.getDate());
+  assertTrue(parser.parse('Tuesday, 08/16/2006', date) == 0);
+  assertTrue(parser.parse('Thursday, 08/16/2006', date) == 0);
+  assertTrue(parser.parse('Wed, 08/16/2006', date) > 0);
+  assertTrue(parser.parse('Wasdfed, 08/16/2006', date) == 0);
+
+  date.setDate(25);
+  parser = new goog.i18n.DateTimeParse('EEEE, MM/yyyy');
+  assertTrue(parser.parse('Wed, 09/2006', date) > 0);
+  assertEquals(27, date.getDate());
+
+  date.setDate(30);
+  assertTrue(parser.parse('Wed, 09/2006', date) > 0);
+  assertEquals(27, date.getDate());
+  date.setDate(30);
+  assertTrue(parser.parse('Mon, 09/2006', date) > 0);
+  assertEquals(25, date.getDate());
+}
+
+function testStrictParse() {
+  var date = new Date();
+
+  var parser = new goog.i18n.DateTimeParse('yyyy/MM/dd');
+  assertTrue(parser.strictParse('2000/13/10', date) == 0);
+  assertTrue(parser.strictParse('2000/13/40', date) == 0);
+  assertTrue(parser.strictParse('2000/11/10', date) > 0);
+  assertEquals(2000, date.getFullYear());
+  assertEquals(11 - 1, date.getMonth());
+  assertEquals(10, date.getDate());
+
+  parser = new goog.i18n.DateTimeParse('yy/MM/dd');
+  assertTrue(parser.strictParse('00/11/10', date) > 0);
+  assertTrue(parser.strictParse('99/11/10', date) > 0);
+  assertTrue(parser.strictParse('00/13/10', date) == 0);
+  assertTrue(parser.strictParse('00/11/32', date) == 0);
+  assertTrue(parser.strictParse('1900/11/2', date) > 0);
+
+
+  parser = new goog.i18n.DateTimeParse('hh:mm');
+  assertTrue(parser.strictParse('15:44', date) > 0);
+  assertTrue(parser.strictParse('25:44', date) == 0);
+  assertTrue(parser.strictParse('15:64', date) == 0);
+
+  // leap year
+  parser = new goog.i18n.DateTimeParse('yy/MM/dd');
+  assertTrue(parser.strictParse('00/02/29', date) > 0);
+  assertTrue(parser.strictParse('01/02/29', date) == 0);
+}
+
+function testEnglishQuarter() {
+  var date = new Date();
+  var parser = new goog.i18n.DateTimeParse('QQQQ yyyy');
+  assertTrue(parser.parse('1st quarter 2009', date) > 0);
+  assertEquals(2009, date.getFullYear());
+  assertEquals(0, date.getMonth());
+  assertEquals(1, date.getDate());
+}
+
+function testEnglishShortQuarter() {
+  var date = new Date();
+  var parser = new goog.i18n.DateTimeParse('yyyyQQ');
+  assertTrue(parser.parse('2006Q2', date) > 0);
+  assertEquals(2006, date.getFullYear());
+  assertEquals(4 - 1, date.getMonth());
+  assertEquals(1, date.getDate());
+}
+
+function testFrenchShortQuarter() {
+  goog.i18n.DateTimeSymbols = goog.i18n.DateTimeSymbols_fr;
+
+  var date = new Date();
+  try {
+    var parser = new goog.i18n.DateTimeParse('yyyyQQ');
+    assertTrue(parser.parse('2009T3', date) > 0);
+    assertEquals(2009, date.getFullYear());
+    assertEquals(7 - 1, date.getMonth());
+    assertEquals(1, date.getDate());
+  } catch (e) {
+    goog.i18n.DateTimeSymbols = goog.i18n.DateTimeSymbols_en;
+    throw e;
+  }
+  goog.i18n.DateTimeSymbols = goog.i18n.DateTimeSymbols_en;
+}
+
+
+</script>
+</body>
+</html>

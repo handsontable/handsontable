@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2011 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>Path Reference: this</title>
+<link rel="stylesheet" href="common_styles.css">
+<script src="include.js"></script>
+<style>
+.person.dogOwner {
+  color: green;
+}
+
+.person {
+  color: red;
+}
+</style>
+</head>
+<body>
+  <div class="example">
+    <h1>Path Reference, this: ./</h1>
+    <div class="content">
+      <ul>
+      <template iterate>
+        <li>{{ ./ }}</li>
+      </template>
+      </ul>
+    </div>
+  </div>
+
+<script>
+document.body.model = [
+  'Uno',
+  'Dos',
+  'Tres'
+];
+</script>
+
+  <div class="comment">
+    <h1>Comment</h1>
+    <div class="content">
+      Mostly commonly useful in iterating over an array of scalar values, a
+      binding must support referencing the current value (not a path from it).
+      Here, the text of each list item is bound to the current item (which is a
+      string) via the './' path.
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- -->
+    <script src="../shadowdom-polyfill.js" shadow="shim"></script>
+    <!-- -->
+    <script src="lib/util.js"></script>
+    <script src="lib/dump.js"></script>
+    <script src="lib/Component.js"></script>
+    <!-- -->
+    <style>
+      div, g-A, g-B, g-C {
+        display: block;
+        border: 1px dotted red;
+        margin: 8px;
+        padding: 8px;
+      }
+    </style>
+    <script>
+      change = function() {
+        Component.register("g-A", ["Base", "A"]);
+        Component.register("g-B", ["Base", "B"]);
+        Component.register("g-C", ["Cbb", "Cb", "C"]);
+        Component.upgradeAll();
+        //
+        A = c$[0];
+        //
+        var n = document.createElement('div');
+        n.id = 'a1';
+        n.innerHTML = 'A1 dynamic';
+        A.appendChild(n);
+        //
+        var n = document.createElement('div');
+        n.id = 'a2';
+        n.innerHTML = 'A2 too';
+        A.appendChild(n);
+        //
+        ShadowDOM.distribute(A);
+        //
+        dumper(A);
+      }
+    </script>
+  </head>
+  <body onload="change()">
+      <g-A><span id="a1">Where am I?</span><span id="a2">Where do I go?</span></g-A>
+
+      <!-- A collects #a2 into first CONTENT, leaving #a1 in POOL -->
+      <!-- A.shadow (Base) collects #a1 into it's CONTENT -->
+      <!-- first B should capture the #a2, second B should capture the #a1 -->
+      <template id="A">[A->]<g-C><g-B><content select="#a2"></content></g-B></g-C><g-C><g-B><shadow></shadow></g-B></g-C>[<-A]</template>
+      <!-- B collects #a2's into first CONTENT, leaving #a1's in POOL -->
+      <!-- B.shadow collects #a1's into the second CONTENT -->
+      <template id="B">[B->][<content select="#a2"></content>]<shadow></shadow>[<-B]</template>
+      <!-- Base collects #a1's -->
+      <template id="Base">[Base->]<content select="#a1"></content>[<-Base]</template>
+      <!-- C has basic but deep inheritance -->
+      <template id="C">[C->]<shadow></shadow>[<-C]</template>
+      <template id="Cb"><span>[Cb->]<shadow></shadow>[<-Cb]</span></template>
+      <template id="Cbb">[Cbb->]</span><content></content></span>[<-Cbb]</template>
+      
+      <hr/>
+      
+      Expected output (also, see console):
+
+      <div>[A->]
+        <div>[C->][Cb->][Cbb->]
+          <div>[B->]<span>Where do I go?</span><div>A2 too</div>[Base->][<-Base][<-B]</div>
+        [<-Cbb][<-Cb][<-C]</div>
+        <div>[C->][Cb->][Cbb->]
+          <div>[B->][][Base->]Where Am I?<div>A1 dynamic</div>[<-Base][<-B]</div>
+        [<-Cbb][<-Cb][<-C]</div>
+      [<-A]</div>
+
+</body>
+</html>

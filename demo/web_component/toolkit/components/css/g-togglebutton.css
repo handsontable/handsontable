@@ -1,0 +1,75 @@
+/*
+ * Copyright 2012 The Toolkitchen Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+@host {
+  display: inline-block;
+}
+
+.toggle {
+  position: relative;
+  height: 27px;
+  line-height: 27px;
+  width: 94px;
+  overflow: hidden;
+  border: 1px solid #CCC;
+  border-radius: 2px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #666;
+  background-image: -webkit-linear-gradient(top, #EEEEEE, #e0e0e0);
+  box-shadow: inset 0px 1px 2px 0 rgba(0,0,0,0.1);
+}
+
+.toggle span {
+  display: inline-block;
+  width: 45px;
+  text-align: center;
+  border-radius: 2px 2px 0 0;
+}
+
+.toggle span.on {
+  width: 47px;
+  margin-right: -2px;
+  color: #FFF;
+  background-image: -webkit-linear-gradient(top, #3b93ff, #3689EE);
+  box-shadow: inset 0px 1px 2px 0 rgba(0,0,0,0.1);
+  border-radius: 2px 0 0 2px;
+}
+
+.toggle .thumb {
+  position: absolute;
+  display: block;
+  top: -1px;
+  left: -1px;
+  height: 27px;
+  width: 47px;
+  border: 1px solid #CCC;
+  border-radius: 2px;
+  box-shadow: 0px 1px 2px 0 rgba(0,0,0,0.1);
+  background-image: -webkit-linear-gradient(top, #f8f8f8, #f1f1f1);
+  -webkit-transition: all 0.130s ease-out;
+}
+
+.thumb.dragging {
+  -webkit-transition: all 0;
+}
+
+.toggle.on .thumb {
+  left: 46px;
+}
+
+.toggle .thumb::after {
+  content: "";
+  position: absolute;
+  display: block;
+  top: 9px;
+  left: 15px;
+  height: 9px;
+  width: 17px;
+  background-image: -webkit-linear-gradient(left, #ccc 50%, transparent 50%), -webkit-linear-gradient(left, #ccc 50%, transparent 50%), -webkit-linear-gradient(left, #ccc 50%, transparent 50%), -webkit-linear-gradient(left, #ccc 50%, transparent 50%), -webkit-linear-gradient(left, #ccc 50%, transparent 50%);
+  background-size: 2px;
+  background-position: 0 0, 0 2px, 0 4px, 0 6px, 0 8px;
+  background-repeat: repeat-x;
+}

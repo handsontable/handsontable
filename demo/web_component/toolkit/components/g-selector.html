@@ -1,0 +1,64 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<element name="g-selector" attributes="selected multi" on-pointerup="activateHandler">
+  <link rel="components" href="g-selection.html">
+  <template>
+    <g-selection id="selection" multi="{{multi}}" on-select="selectionSelect"></g-selection>
+    <content id="items" select="*"></content>
+  </template>
+  <script>
+    this.component({
+      multi: false,
+      ready: function() {
+        this.node.setAttribute('touch-action', 'none');
+      },
+      publish: {
+        selectedClass: 'selected',
+        get items() {
+          return this.$.items.getDistributedNodes();
+        },
+        get selection() {
+          return this.$.selection.getSelection();
+        }
+      },
+      valueForNode: function(inNode) {
+        return inNode.getAttribute('name') || inNode.value;
+      },
+      valueToIndex: function(inValue) {
+        // find an item with value == inValue and return it's index
+        for (var i=0, items=this.items, c; c=items[i]; i++) {
+          //if ((c.value === inValue) || (c.getAttribute('name') === inValue)) {
+          if (this.valueForNode(c) == inValue) {
+            return i;
+          }
+        }
+        // if no item found, the value itself is probably the index
+        return inValue;
+      },
+      selectedChanged: function() {
+        var item = this.items[this.valueToIndex(this.selected)];
+        if (item) {
+          this.$.selection.select(item);
+        }
+      },
+      // events fired from <g-selection> object
+      selectionSelect: function(inEvent, inInfo) {
+        if (inInfo.item) {
+          inInfo.item.classList.toggle(this.selectedClass, inInfo.isSelected);
+        }
+      },
+      // event fired from host
+      activateHandler: function(inEvent) {
+        var items = this.items;
+        var i = this.findDistributedTarget(inEvent.target, items);
+        if (i >= 0) {
+          this.selected = this.valueForNode(items[i]) || i;
+          this.asend('activate');
+        }
+      }
+    });
+  </script>
+</element>

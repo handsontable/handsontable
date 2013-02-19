@@ -1,0 +1,216 @@
+<html>
+<!--
+Copyright 2012 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>ChangeSummaryDispatcher test</title>
+</head>
+<body>
+<script src="http://closure-library.googlecode.com/svn/trunk/closure/goog/base.js"></script>
+<script src="../change_summary.js"></script>
+<script src="dispatcher.js"></script>
+<body>
+<script>
+"use strict";
+
+goog.require('goog.testing.jsunit');
+
+ChangeSummaryDispatcher.rethrowExceptions = true;
+
+var dispatcher;
+
+function setUp() {
+  dispatcher = new ChangeSummaryDispatcher();
+}
+
+function tearDown() {
+  dispatcher.disconnect();
+}
+
+function assertArraysEquivalent() {
+  var msg = '', a, b;
+  if (arguments.length == 3) {
+    msg = arguments[0];
+    a = arguments[1];
+    b = arguments[2];
+  } else {
+    a = arguments[0];
+    b = arguments[1];
+  }
+  if (a === b)
+    return;
+  assertEquals('different type', typeof a, typeof b);
+  assertEquals('different length', a.length, b.length);
+  for (var i = 0; i < a.length; i++) {
+    assertEquals('index ' + i, a[i], b[i]);
+  }
+}
+
+function assertSplicesEqual(expect, actual) {
+  if (expect === actual)
+    return;
+  assertEquals(expect.length, actual.length);
+  expect.forEach(function(splice, index) {
+    var actualSplice = actual[index];
+    assertEquals(splice.index, actualSplice.index);
+    assertArraysEquivalent(splice.removed, actualSplice.removed);
+    assertEquals(splice.addedCount, actualSplice.addedCount);
+  });
+}
+
+function testPathValue() {
+  var model = {
+    a: {}
+  }
+
+  var expectOldValue;
+  var expectNewValue;
+
+  var count1 = 0;
+  var callback1 = function(newValue, oldValue) {
+  	count1++;
+  	assertEquals(expectNewValue, newValue);
+  	assertEquals(expectOldValue, oldValue);
+  };
+
+  var count2 = 0;
+  var callback2 = function(newValue, oldValue) {
+  	count2++;
+  	assertEquals(expectNewValue, newValue);
+  	assertEquals(expectOldValue, oldValue);
+  };
+
+  dispatcher.observePathValue(model, 'a.b', callback1);
+
+  expectNewValue = 2;
+
+  model.a.b = 2;
+  dispatcher.deliver();
+  assertEquals(1, count1);
+
+  dispatcher.observePathValue(model, 'a.b', callback2);
+
+  expectNewValue = 3;
+  expectOldValue = 2;
+  model.a.b = 3;
+  dispatcher.deliver();
+  assertEquals(2, count1);
+  assertEquals(1, count2);
+
+  expectNewValue = 4;
+  expectOldValue = 3;
+  model.a.b = 4;
+  dispatcher.deliver();
+  assertEquals(3, count1);
+  assertEquals(2, count2);
+
+  dispatcher.unobservePathValue(model, 'a.b', callback1);
+
+  expectNewValue = 5;
+  expectOldValue = 4;
+  model.a.b = 5;
+  dispatcher.deliver();
+  assertEquals(3, count1);
+  assertEquals(3, count2);
+
+  dispatcher.unobservePathValue(model, 'a.b', callback2);
+
+  model.a.b = 5;
+  dispatcher.deliver();
+  assertEquals(3, count1);
+  assertEquals(3, count2);
+
+  model.a.b = 6;
+}
+
+function testPropertySet() {
+  var model = [];
+
+  var expectNewProperties = [];
+  var expectDeletedProperties = [];
+  var expectArraySplices = [];
+
+  var count1 = 0;
+  var callback1 = function(newProperties, deletedProperties, arraySplices) {
+  	count1++;
+  	assertArraysEquivalent(expectNewProperties, newProperties);
+  	assertArraysEquivalent(expectDeletedProperties, deletedProperties);
+  	assertSplicesEqual(expectArraySplices, arraySplices);
+  };
+
+  var count2 = 0;
+  var callback2 = function(newProperties, deletedProperties, arraySplices) {
+  	count2++;
+  	assertArraysEquivalent(expectNewProperties, newProperties);
+  	assertArraysEquivalent(expectDeletedProperties, deletedProperties);
+  	assertSplicesEqual(expectArraySplices, arraySplices);
+  };
+
+  dispatcher.observePropertySet(model, callback1);
+
+  expectNewProperties = ['foo'];
+  expectArraySplices = [{
+  	index: 0,
+  	removed: [],
+  	addedCount: 1
+  }];
+  model.push(1);
+  model.foo = 'bar';
+  dispatcher.deliver();
+  assertEquals(1, count1);
+  assertEquals(0, count2);
+
+  dispatcher.observePropertySet(model, callback2);
+
+  expectNewProperties = ['bar'];
+  expectArraySplices = [{
+  	index: 0,
+  	removed: [1],
+  	addedCount: 1
+  }];
+  model.splice(0, 1, 2);
+  model.bar = 'bat';
+  dispatcher.deliver();
+  assertEquals(2, count1);
+  assertEquals(1, count2);
+
+  dispatcher.unobservePropertySet(model, callback1);
+
+  expectNewProperties = [];
+  expectDeletedProperties = ['foo'];
+  expectArraySplices = [{
+  	index: 0,
+  	removed: [],
+  	addedCount: 1
+  }];
+  model.unshift(3);
+  delete model.foo;
+  dispatcher.deliver();
+  assertEquals(2, count1);
+  assertEquals(2, count2);
+
+  dispatcher.unobservePropertySet(model, callback2);
+
+  model.unshift(3);
+  delete model.foo;
+  dispatcher.deliver();
+  assertEquals(2, count1);
+  assertEquals(2, count2);
+
+  model.push(6);
+}
+
+</script>
+</html>

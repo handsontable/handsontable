@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2011 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>Table Sample</title>
+<script src="include.js"></script>
+<style>
+
+tr {
+  height: 40px;
+}
+
+td {
+  width: 40px;
+  border: 2px solid black;
+  text-align: center;
+}
+
+.square:not(.taken):hover {
+  border: 2px solid #00FF00;
+}
+
+.square.taken:hover {
+  border: 2px solid #FF0000;
+}
+
+</style>
+<script>
+
+function TickTackToeController(root) {
+  this.model = {
+    currentPlayer: 'X',
+
+    board: [
+      [ { move: '' }, { move: '' }, { move: '' } ],
+      [ { move: '' }, { move: '' }, { move: '' } ],
+      [ { move: '' }, { move: '' }, { move: '' } ],
+    ],
+
+    get winner() {
+      var board = this.board;
+      var winner;
+
+      function maybeThreeInARow(square) {
+        if (!square.move) {
+          winner = '';
+          return false;
+        }
+        if (!winner) {
+          winner = square.move;
+          return true;
+        }
+        if (winner === square.move)
+          return true;
+        winner = '';
+        return false;
+      }
+
+      function rowWinner(i) {
+        return board[i].every(maybeThreeInARow);
+      }
+
+      function columnWinner(i) {
+        return board.map(function(row) {
+          return row[i]
+        }).every(maybeThreeInARow);
+      }
+
+      function diagWinner(dir) {
+        var index = dir > 0 ? -1 : 3;
+        return board.map(function(row) {
+          index += dir;
+          return row[index]
+        }).every(maybeThreeInARow);
+      }
+
+      if ([0, 1, 2].some(rowWinner) ||
+          [0, 1, 2].some(columnWinner) ||
+          [-1, 1].some(diagWinner))
+        return winner;
+    }
+  }
+}
+
+TickTackToeController.prototype = {
+  makeMove: function(boardSquare) {
+    if (!this.model.winner && boardSquare.move == '') {
+      boardSquare.move = this.model.currentPlayer;
+      this.model.currentPlayer = this.model.currentPlayer == 'X' ? 'O' : 'X';
+    }
+  },
+  reset: function() {
+    this.model.currentPlayer = 'X';
+    this.model.board.forEach(function(row) {
+      row.forEach(function(square) {
+        square.move = '';
+      });
+    });
+  }
+};
+
+</script>
+</head>
+<body data-controller="TickTackToeController">
+  <template instantiate>
+    <span>It's {{ currentPlayer }}'s turn</span>
+    <table>
+      <tr template iterate="board">
+        <td template
+            iterate
+            class="square {{ move | toggle('taken') }}"
+            data-action="click:makeMove"> {{ move }} </td>
+      </tr>
+    </table>
+    <span hidden="{{ winner | absent }}">{{ winner }} wins!</span>
+    <a href="#" data-action="click:reset">Play Again</a>
+  </template>
+</body>
+</html>

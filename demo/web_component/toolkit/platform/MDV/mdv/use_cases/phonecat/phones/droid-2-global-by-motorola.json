@@ -1,0 +1,74 @@
+{
+    "additionalFeatures": "Adobe Flash Player 10, Quadband GSM Worldphone, Advance Business Security, Complex Password Secure, Review & Edit Documents with Quick Office, Personal 3G Mobile Hotspot for up to 5 WiFi enabled Devices, Advanced Social Networking brings all social content into a single homescreen widget", 
+    "android": {
+        "os": "Android 2.2", 
+        "ui": ""
+    }, 
+    "availability": [
+        "Verizon (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "230 hours", 
+        "talkTime": "8 hours", 
+        "type": "Lithium Ion (Li-Ion) (1400 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "5.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.1", 
+        "cell": "WCDMA 850/1900/2100, CDMA 800/1900, GSM 850/900/1800/1900, HSDPA 10.2 Mbps (Category 9/10), CDMA EV-DO Release A, EDGE Class 12, GPRS Class 12, HSUPA 1.8 Mbps", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g/n"
+    }, 
+    "description": "With Quad Band GSM, the DROID 2 Global can send email and make and receive calls from more than 200 countries. It features an improved QWERTY keyboard, super-fast 1.2 GHz processor and enhanced security for all your business needs.", 
+    "display": {
+        "screenResolution": "FWVGA (854 x 480)", 
+        "screenSize": "3.7 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "1.2 GHz TI OMAP", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/True.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "droid-2-global-by-motorola", 
+    "images": [
+        {
+            "id": "724001", 
+            "medium": "http://www.google.com/phone/image/medium/724001", 
+            "small": "http://www.google.com/phone/image/small/724001"
+        }, 
+        {
+            "id": "725001", 
+            "medium": "http://www.google.com/phone/image/medium/725001", 
+            "small": "http://www.google.com/phone/image/small/725001"
+        }, 
+        {
+            "id": "726001", 
+            "medium": "http://www.google.com/phone/image/medium/726001", 
+            "small": "http://www.google.com/phone/image/small/726001"
+        }
+    ], 
+    "name": "DROID\u2122 2 Global by Motorola", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "60.5 mm (w)", 
+            "116.3 mm (h)", 
+            "13.7 mm (d)"
+        ], 
+        "weight": "169.0 grams"
+    }, 
+    "storage": {
+        "flash": "8192MB", 
+        "ram": "512MB"
+    }
+}

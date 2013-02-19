@@ -1,0 +1,74 @@
+{
+    "additionalFeatures": "Proximity Sensor; Ambient light sensor; Webkit HTML5Accessibility features: Tactile QWERTY keyboard, four-direction keypad, camera button, TalkBack screen reader", 
+    "android": {
+        "os": "Android 2.1", 
+        "ui": ""
+    }, 
+    "availability": [
+        "Cellular South (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "270 hours", 
+        "talkTime": "6 hours", 
+        "type": "Lithium Ion (Li-Ion) (1390 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "5.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.1", 
+        "cell": "CDMA 1X 800/1900, EVDO rev. A", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "The web is richer. Photos are sharper. Videos pop. It has the most advanced Google browser and the very latest software with an advanced processor and 3G speed for faster search. It can help you navigate turn-by-turn. It even has a 5MP camera with a flash, image stabilisation, and a DVD-quality recorder. It's the phone without compromise.", 
+    "display": {
+        "screenResolution": "FWVGA (854 x 480)", 
+        "screenSize": "3.7 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "550 MHz Arm\u00ae Cortex\u2122 A8 processor", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/True.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "milestone-by-motorola-cdma", 
+    "images": [
+        {
+            "id": "444004", 
+            "medium": "http://www.google.com/phone/image/medium/444004", 
+            "small": "http://www.google.com/phone/image/small/444004"
+        }, 
+        {
+            "id": "459002", 
+            "medium": "http://www.google.com/phone/image/medium/459002", 
+            "small": "http://www.google.com/phone/image/small/459002"
+        }, 
+        {
+            "id": "491003", 
+            "medium": "http://www.google.com/phone/image/medium/491003", 
+            "small": "http://www.google.com/phone/image/small/491003"
+        }
+    ], 
+    "name": "Milestone\u2122 by Motorola (CDMA)", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "60.0 mm (w)", 
+            "116.8 mm (h)", 
+            "13.7 mm (d)"
+        ], 
+        "weight": "165.0 grams"
+    }, 
+    "storage": {
+        "flash": "512MB", 
+        "ram": "256MB"
+    }
+}

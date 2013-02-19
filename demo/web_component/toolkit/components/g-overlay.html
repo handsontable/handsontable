@@ -1,0 +1,236 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<element name="g-overlay" 
+         attributes="opened autoCloseDisabled modal" 
+         >
+<link rel="components" href="g-component.html">
+<link rel="stylesheet" href="css/g-overlay.css">
+<template>
+  <div id="scrim" class="scrim"></div>
+  <div id="overlay" tabIndex="-1" class="overlay"
+       touch-action="none"
+       on-webkitAnimationStart="openedAnimationStart"
+       on-webkitAnimationEnd="openedAnimationEnd"
+       on-webkitTransitionEnd="openedTransitionEnd"
+       on-tap="tapHandler"
+       on-keydown="keydownHandler">
+    <content></content>
+  </div>
+</template>
+<script>
+  var ESCAPE_KEY = 27;
+  
+  // track overlays for z-index and focus managemant
+  var overlays = [];
+  var trackOverlays = function(inOverlay) {
+    if (inOverlay.opened) {
+      var z0 = currentOverlayZ();
+      overlays.push(inOverlay);
+      var z1 = currentOverlayZ();
+      if (z1 <= z0) {
+        applyOverlayZ(inOverlay, z0);
+      } 
+    } else {
+      var i = overlays.indexOf(inOverlay);
+      if (i >= 0) {
+        overlays.splice(i, 1);
+        setZ(inOverlay.$.overlay, null);
+      }
+    }
+  }
+  
+  var applyOverlayZ = function(inOverlay, inAboveZ) {
+    setZ(inOverlay.$.overlay, inAboveZ + (inOverlay.modal ? 2 : 1));
+    setZ(inOverlay.$.scrim, inOverlay.modal ? inAboveZ + 1 : null);
+  }
+  
+  var setZ = function(inNode, inZ) {
+    inNode.style.zIndex = inZ;
+  }
+
+  var currentOverlay = function() {
+    return overlays[overlays.length-1];
+  }
+  
+  var DEFAULT_Z = 1001;
+  
+  var currentOverlayZ = function() {
+    var z;
+    var current = currentOverlay();
+    if (current) {
+      var z1 = window.getComputedStyle(current.$.overlay).zIndex;
+      if (!isNaN(z1)) {
+        z = Number(z1);
+      }
+    }
+    return z || DEFAULT_Z;
+  }
+  
+  var focusOverlay = function() {
+    var current = currentOverlay();
+    if (current) {
+      current.applyFocus();
+    }
+  }
+
+  /**
+   * The overlay component is hidden by default and can be opened to display
+   * its content. It's common to animate an overlay opened and closed. This 
+   * can be achieved by styling the overlay node via the `opened` and
+   * `animating` classes.
+  */
+  this.component({
+    publish: {
+      //* Toggle the opened state of the overlay.
+      toggle: function() {
+        this.node.opened = !this.opened;
+      }
+    },
+    //* Maximum allowed animation time. 
+    // NOTE: This timeout acts as a catchall for completing animations
+    // which may not have received an animationEnd event due to, for example,
+    // a parent being hidden during animation.
+    timeout: 1000,
+    opened: false,
+    autoCloseDisabled: false,
+    captureEventType: 'tap',
+    modalChanged: function() {
+      this.node.classList.toggle('modal', this.modal);
+    },
+    openedChanged: function() {
+      this.renderOpened();
+      trackOverlays(this);
+      if (!this.autoCloseDisabled) {
+        this.enableCaptureHandler(this.opened);
+      }
+      this.enableResizeHandler(this.opened);
+      this.send('opened', this.opened);
+    },
+    enableHandler: function(inEnable, inMethodName, inNode, inEventName, inCapture) {
+      var m = 'bound' + inMethodName;
+      this[m] = this[m] || this[inMethodName].bind(this);
+      
+      inNode[inEnable ? 'addEventListener' : 'removeEventListener'](
+        inEventName, this[m], inCapture);
+    },
+    enableResizeHandler: function(inEnable) {
+      this.enableHandler(inEnable, 'resizeHandler', window, 
+        'resize');
+    },
+    enableCaptureHandler: function(inEnable) {
+      this.enableHandler(inEnable, 'captureHandler', document, 
+        this.captureEventType, true);
+      if (inEnable) {
+        __PointerEventShim__.dispatcher.registerTarget(document);
+      } else {
+        __PointerEventShim__.dispatcher.unregisterTarget(document);
+      }
+    },
+    getFocusNode: function() {
+      return this.node.querySelector('[autofocus]') || this.$.overlay;
+    },
+    // TODO(sorvell): nodes stay focused when they become un-focusable due to
+    // an ancestory becoming display: none; file bug.
+    applyFocus: function() {
+      var focusNode = this.getFocusNode();
+      if (this.opened) {
+        focusNode.focus();
+      } else {
+        focusNode.blur();
+        focusOverlay();
+      }
+    },
+    renderOpened: function() {
+      this.node.classList.remove('closing');
+      this.node.classList.add('revealed');
+      this.sizeScrim();
+      // continue styling after delay so display state can change without
+      // aborting transitions
+      this.asyncMethod('continueRenderOpened');
+    },
+    continueRenderOpened: function() {
+      this.node.classList.toggle('opened', this.opened);
+      this.node.classList.toggle('closing', !this.opened);
+      this.animating = this.asyncMethod('completeOpening', null, this.timeout);
+    },
+    completeOpening: function() {
+      clearTimeout(this.animating);
+      this.animating = null;
+      this.node.classList.remove('closing');
+      this.node.classList.toggle('revealed', this.opened);
+      this.applyFocus();
+    },
+    openedAnimationEnd: function(e) {
+      if (!this.opened) {
+        this.node.classList.remove('animation');
+      }
+      // same steps as when a transition ends
+      this.openedTransitionEnd(e);
+    },
+    openedTransitionEnd: function(e) {
+      // TODO(sorvell): Necessary due to 
+      // https://bugs.webkit.org/show_bug.cgi?id=107892
+      // Remove when that bug is addressed.
+      if (e.target == this.$.overlay) {
+        this.completeOpening();
+        e.stopPropagation();
+        e.cancelBubble = true;
+        this.sizeScrim();
+      }
+    },
+    openedAnimationStart: function(e) {
+      this.node.classList.add('animation');
+      e.stopPropagation();
+      e.cancelBubble = true;
+    },
+    tapHandler: function(e) {
+      if (e.target && e.target.hasAttribute('overlay-toggle')) {
+        this.toggle();
+      }
+    },
+    // TODO(sorvell): This approach will not work with native shadowDOM.
+    // This handler is intended to be able to distinguish if an event target
+    // is inside or outside the overlay. To do this we capture events on
+    // document. However, the target document seems may have been retargeted
+    // such that it's not possible to tell if the original event target is 
+    // inside the overlay.
+    // Can solve this by always using a scrim.
+    captureHandler: function(e) {
+      if (!this.autoCloseDisabled && (currentOverlay() == this) && (this.$.overlay 
+          != e.target) && !e.overlay && !(this.$.overlay.compareDocumentPosition(e.target) &
+          Node.DOCUMENT_POSITION_CONTAINED_BY)) {
+        this.node.opened = false;
+        if (this.modal) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          e.cancelBubble = true;
+        }
+      }
+    },
+    keydownHandler: function(e) {
+      if (!this.autoCloseDisabled && (e.keyCode == ESCAPE_KEY)) {
+        this.node.opened = false;
+        e.stopPropagation();
+        e.cancelBubble = true;
+      }
+    },
+    sizeScrim: function() {
+      if (this.modal && this.opened) {
+        var style = this.$.scrim.style;
+        style.left = style.top = style.height = style.width = null;
+        var r = this.$.scrim.getBoundingClientRect();
+        style.left = -r.left +'px';
+        style.top = -r.top +'px';
+        style.width = window.innerWidth +'px';
+        style.height = window.innerHeight +'px';
+      }
+    },
+    resizeHandler: function() {
+      this.sizeScrim();
+    }
+  });
+</script>
+</element>

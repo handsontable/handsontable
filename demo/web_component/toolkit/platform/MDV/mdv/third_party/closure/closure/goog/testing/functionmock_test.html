@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<!--
+
+  Test mocking global / top-level functions
+
+  Author: jonnyleroy@google.com (Jonny LeRoy)
+-->
+
+<html>
+<!--
+Copyright 2008 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<head>
+<title>Global Mock Unit Test</title>
+<script src="../base.js"></script>
+<script>
+  goog.require('goog.testing.asserts');
+  goog.require('goog.testing.FunctionMock');
+  goog.require('goog.testing.GlobalFunctionMock');
+  goog.require('goog.testing.MethodMock');
+  goog.require('goog.testing.StrictMock');
+  goog.require('goog.testing.jsunit');
+</script>
+</head>
+<body>
+<script>
+
+// Global scope so we can tear it down safely
+var mockGlobal;
+
+function tearDown() {
+  if (mockGlobal) {
+    mockGlobal.$tearDown();
+  }
+}
+
+
+//----- Tests for goog.testing.FunctionMock
+
+function testMocksFunctionWithNoArgs() {
+  var mockFoo = goog.testing.createFunctionMock();
+  mockFoo();
+  mockFoo.$replay();
+  mockFoo();
+  mockFoo.$verify();
+}
+
+function testMocksFunctionWithOneArg() {
+  var mockFoo = goog.testing.createFunctionMock();
+  mockFoo('x');
+  mockFoo.$replay();
+  mockFoo('x');
+  mockFoo.$verify();
+}
+
+function testMocksFunctionWithMultipleArgs() {
+  var mockFoo = goog.testing.createFunctionMock();
+  mockFoo('x', 'y');
+  mockFoo.$replay();
+  mockFoo('x', 'y');
+  mockFoo.$verify();
+}
+
+function testFailsIfCalledWithIncorrectArgs() {
+  var mockFoo = goog.testing.createFunctionMock();
+
+  mockFoo();
+  mockFoo.$replay();
+  assertThrows(function() {mockFoo('x');});
+  mockFoo.$reset();
+
+  mockFoo('x');
+  mockFoo.$replay();
+  assertThrows(function() {mockFoo();});
+  mockFoo.$reset();
+
+  mockFoo('x');
+  mockFoo.$replay();
+  assertThrows(function() {mockFoo('x', 'y');});
+  mockFoo.$reset();
+
+  mockFoo('x', 'y');
+  mockFoo.$replay();
+  assertThrows(function() {mockFoo('x');});
+  mockFoo.$reset();
+
+  mockFoo('correct');
+  mockFoo.$replay();
+  assertThrows(function() {mockFoo('wrong');});
+  mockFoo.$reset();
+
+  mockFoo('correct', 'args');
+  mockFoo.$replay();
+  assertThrows(function() {mockFoo('wrong', 'args');});
+  mockFoo.$reset();
+}
+
+function testMocksFunctionWithReturnValue() {
+  var mockFoo = goog.testing.createFunctionMock();
+  mockFoo().$returns('bar');
+  mockFoo.$replay();
+  assertEquals('bar', mockFoo());
+  mockFoo.$verify();
+}
+
+function testFunctionMockWorksWhenPassedAsACallback() {
+  var invoker = {
+    register: function(callback) {
+      this.callback = callback;
+    },
+
+    invoke: function(args) {
+      return this.callback(args);
+    }
+  };
+
+  var mockFunction = goog.testing.createFunctionMock();
+  mockFunction('bar').$returns('baz');
+
+  mockFunction.$replay();
+  invoker.register(mockFunction);
+  assertEquals('baz', invoker.invoke('bar'));
+  mockFunction.$verify();
+}
+
+function testFunctionMockQuacksLikeAStrictMock() {
+  var mockFunction = goog.testing.createFunctionMock();
+  assertQuacksLike(mockFunction, goog.testing.StrictMock);
+}
+
+
+//----- Global functions for goog.testing.GlobalFunctionMock to mock
+
+function globalFoo() {
+  return 'I am Spartacus!';
+}
+
+function globalBar(who, what) {
+  return [who, 'is', what].join(' ');
+}
+
+
+//----- Tests for goog.testing.createGlobalFunctionMock
+
+function testMocksGlobalFunctionWithNoArgs() {
+  mockGlobal = goog.testing.createGlobalFunctionMock('globalFoo');
+  mockGlobal().$returns('No, I am Spartacus!');
+
+  mockGlobal.$replay();
+  assertEquals('No, I am Spartacus!', globalFoo());
+  mockGlobal.$verify();
+}
+
+function testMocksGlobalFunctionUsingGlobalName() {
+  goog.testing.createGlobalFunctionMock('globalFoo');
+  globalFoo().$returns('No, I am Spartacus!');
+
+  globalFoo.$replay();
+  assertEquals('No, I am Spartacus!', globalFoo());
+  globalFoo.$verify();
+  globalFoo.$tearDown();
+}
+
+function testMocksGlobalFunctionWithArgs() {
+  var mockReturnValue = 'Noam is Chomsky!';
+  mockGlobal = goog.testing.createGlobalFunctionMock('globalBar');
+  mockGlobal('Noam', 'Spartacus').$returns(mockReturnValue);
+
+  mockGlobal.$replay();
+  assertEquals(mockReturnValue, globalBar('Noam', 'Spartacus'));
+  mockGlobal.$verify();
+}
+
+function testGlobalFunctionMockFailsWithIncorrectArgs() {
+  mockGlobal = goog.testing.createGlobalFunctionMock('globalBar');
+  mockGlobal('a', 'b');
+
+  mockGlobal.$replay();
+
+  assertThrows('Mock should have failed because of incorrect arguments',
+      function() {globalBar('b', 'a')});
+}
+
+function testGlobalFunctionMockQuacksLikeAFunctionMock() {
+  mockGlobal = goog.testing.createGlobalFunctionMock('globalFoo');
+  assertQuacksLike(mockGlobal, goog.testing.FunctionMock);
+}
+
+function testMockedFunctionsAvailableInGlobalAndGoogGlobalAndWindowScope() {
+  mockGlobal = goog.testing.createGlobalFunctionMock('globalFoo');
+
+  // we expect this call 3 times through global, goog.global and window scope
+  mockGlobal().$times(3);
+
+  mockGlobal.$replay();
+  goog.global.globalFoo();
+  window.globalFoo();
+  globalFoo();
+  mockGlobal.$verify();
+}
+
+function testTearDownRestoresOriginalGlobalFunction() {
+  mockGlobal = goog.testing.createGlobalFunctionMock('globalFoo');
+  mockGlobal().$returns('No, I am Spartacus!');
+
+  mockGlobal.$replay();
+  assertEquals('No, I am Spartacus!', globalFoo());
+  mockGlobal.$tearDown();
+  assertEquals('I am Spartacus!', globalFoo());
+  mockGlobal.$verify();
+}
+
+function testTearDownHandlesMultipleMocking() {
+  var mock1 = goog.testing.createGlobalFunctionMock('globalFoo');
+  var mock2 = goog.testing.createGlobalFunctionMock('globalFoo');
+  var mock3 = goog.testing.createGlobalFunctionMock('globalFoo');
+  mock1().$returns('No, I am Spartacus 1!');
+  mock2().$returns('No, I am Spartacus 2!');
+  mock3().$returns('No, I am Spartacus 3!');
+
+  mock1.$replay();
+  mock2.$replay();
+  mock3.$replay();
+  assertEquals('No, I am Spartacus 3!', globalFoo());
+  mock3.$tearDown();
+  assertEquals('No, I am Spartacus 2!', globalFoo());
+  mock2.$tearDown();
+  assertEquals('No, I am Spartacus 1!', globalFoo());
+  mock1.$tearDown();
+  assertEquals('I am Spartacus!', globalFoo());
+}
+
+//----- Functions for goog.testing.MethodMock to mock
+
+var mynamespace = {};
+
+mynamespace.myMethod = function() {
+  return 'I should be mocked.';
+};
+
+function testMocksMethod() {
+  mockMethod = goog.testing.createMethodMock(mynamespace, 'myMethod');
+  mockMethod().$returns('I have been mocked!');
+
+  mockMethod.$replay();
+  assertEquals('I have been mocked!', mockMethod());
+  mockMethod.$verify();
+}
+
+function testMocksMethodInNamespace() {
+  goog.testing.createMethodMock(mynamespace, 'myMethod');
+  mynamespace.myMethod().$returns('I have been mocked!');
+
+  mynamespace.myMethod.$replay();
+  assertEquals('I have been mocked!', mynamespace.myMethod());
+  mynamespace.myMethod.$verify();
+  mynamespace.myMethod.$tearDown();
+}
+
+function testMethodMockCanOnlyMockExistingMethods() {
+  assertThrows(function() {
+    goog.testing.createMethodMock(mynamespace, 'doesNotExist');
+  });
+}
+
+//----- Functions for goog.testing.createConstructorMock to mock
+
+var constructornamespace = {};
+
+constructornamespace.MyConstructor = function() {
+};
+
+constructornamespace.MyConstructor.prototype.myMethod = function() {
+  return 'I should be mocked.';
+};
+
+constructornamespace.MyConstructorWithArgument = function(argument) {
+  this.argument_ = argument;
+};
+
+constructornamespace.MyConstructorWithArgument.prototype.myMethod = function() {
+  return this.argument_;
+};
+
+constructornamespace.MyConstructorWithClassMembers = function() {
+};
+
+constructornamespace.MyConstructorWithClassMembers.CONSTANT = 42;
+
+constructornamespace.MyConstructorWithClassMembers.classMethod = function() {
+  return 'class method return value';
+};
+
+function testConstructorMock() {
+  var mockObject =
+      new goog.testing.StrictMock(constructornamespace.MyConstructor);
+  var mockConstructor = goog.testing.createConstructorMock(
+      constructornamespace, 'MyConstructor');
+  mockConstructor().$returns(mockObject);
+  mockObject.myMethod().$returns('I have been mocked!');
+
+  mockConstructor.$replay();
+  mockObject.$replay();
+  assertEquals('I have been mocked!',
+      new constructornamespace.MyConstructor().myMethod());
+  mockConstructor.$verify();
+  mockObject.$verify();
+  mockConstructor.$tearDown();
+}
+
+function testConstructorMockWithArgument() {
+  var mockObject = new goog.testing.StrictMock(
+      constructornamespace.MyConstructorWithArgument);
+  var mockConstructor = goog.testing.createConstructorMock(
+      constructornamespace, 'MyConstructorWithArgument');
+  mockConstructor(goog.testing.mockmatchers.isString).$returns(mockObject);
+  mockObject.myMethod().$returns('I have been mocked!');
+
+  mockConstructor.$replay();
+  mockObject.$replay();
+  assertEquals('I have been mocked!',
+      new constructornamespace.MyConstructorWithArgument('I should be mocked.')
+          .myMethod());
+  mockConstructor.$verify();
+  mockObject.$verify();
+  mockConstructor.$tearDown();
+}
+
+/**
+ * Test that class members are copied to the mock constructor.
+ */
+function testConstructorMockWithClassMembers() {
+  var mockConstructor = goog.testing.createConstructorMock(
+      constructornamespace, 'MyConstructorWithClassMembers');
+  assertEquals(42, constructornamespace.MyConstructorWithClassMembers.CONSTANT);
+  assertEquals('class method return value',
+      constructornamespace.MyConstructorWithClassMembers.classMethod());
+  mockConstructor.$tearDown();
+}
+
+//----- Helper assertions
+
+function assertQuacksLike(obj, target) {
+  for (meth in target.prototype) {
+    if (!goog.string.endsWith(meth, '_')) {
+      assertNotUndefined('Should have implemented '+ meth +'()', obj[meth]);
+    }
+  }
+}
+</script>
+
+</body>
+</html>
+

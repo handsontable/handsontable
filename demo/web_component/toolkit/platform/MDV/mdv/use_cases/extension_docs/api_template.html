@@ -1,0 +1,487 @@
+<template instantiate>
+  <div id="gc-container" class="labs">
+      <div id="devModeWarning">
+        You are viewing extension docs in chrome via the 'file:' scheme: are you expecting to see local changes when you refresh? You'll need run chrome with --allow-file-access-from-files.
+      </div>
+      <!-- SUBTEMPLATES: DO NOT MOVE FROM THIS LOCATION -->
+      <!-- In particular, sub-templates that recurse, must be used by allowing
+           jstemplate to make a copy of the template in this section which
+           are not operated on by way of the jsskip="true" -->
+
+      <!-- VALUE -->
+      <template id="valueTemplate">
+      <div>
+        <dt>
+          <var hidden="{{ name | absent }}">{{ name }}</var>
+            <em>
+
+              <!-- TYPE -->
+              <div style="display:inline">
+                (
+                  <span class="optional" hidden="{{ optional | absent }}">optional</span>
+                  <span class="enum" hidden="{{ enum | absent }}">enumerated</span>
+                  <template id="typeTemplate" instantiate>
+                    <span>
+                      <span hidden="{{ $ref | absent }}">
+                        <a href="{{ expr(./ @ type) getTypeRefPage(type) }}#type-{{ $ref }}">{{ $ref }}</a>
+                      </span>
+                      <span hidden="{{ $ref | present }}">
+                        <span hidden="{{ expr(type) !isArray(type) }}">
+                          array of <template ref="typeTemplate" instantiate="items"></template>
+                        </span>
+                        <span hidden="{{ expr(type) isArray(type) }}">{{ expr(./ @ type) getTypeName(type) }}</span>
+                        <span hidden="{{ expr(type, enum) isArray(type) || !enum }}">{{ expr(enum, type) getEnumValues(enum, type) }}</span>
+                      </span>
+                    </span>
+                  </template>
+                )
+              </div>
+
+            </em>
+        </dt>
+        <dd class="todo" hidden="{{ description | present }}">
+          Undocumented.
+        </dd>
+        <dd hidden="{{ description | absent }}">
+          {{ expr(description) substituteTypeRefs(description) }}
+        </dd>
+        <dd hidden="{{ min_version | absent }}">
+          This parameter was added in version
+          <b><span>{{ min_version }}</span></b>.
+          You must omit this parameter in earlier versions,
+          and you may omit it in any version.  If you require this
+          parameter, the manifest key
+          <a href="manifest.html#minimum_chrome_version">minimum_chrome_version</a>
+          can ensure that your extension won't be run in an earlier browser version.
+        </dd>
+
+        <!-- OBJECT PROPERTIES -->
+        <dd hidden="{{ expr(./ @ type) !shouldExpandObject(type) }}">
+          <dl>
+            <template ref="valueTemplate" iterate="properties">
+          </dl>
+        </dd>
+
+        <!-- FUNCTION PARAMETERS -->
+        <dd hidden="{{ expr(type, parameters, name) !isFunction(type) || !parameters || name == 'callback' }}">
+          <template ref="functionParametersTemplate" instantiate></template>
+        </dd>
+
+      </div> <!-- /VALUE -->
+      </template>
+
+      <template id="functionParametersTemplate">
+        <div>
+          <h5>Parameters</h5>
+          <dl>
+            <template ref="valueTemplate" iterate="parameters">
+          </dl>
+        </div>
+      </template>
+
+  <a id="top"></a>
+    <div id="skipto">
+      <a href="#gc-pagecontent">Skip to page content</a>
+      <a href="#gc-toc">Skip to main navigation</a>
+    </div>
+    <!-- API HEADER -->
+    <table id="header" width="100%" cellspacing="0" border="0">
+      <tr>
+        <td valign="middle"
+          ><a href="http://code.google.com/"><img src="images/code_labs_logo.gif" height="43" width="161" alt="Google Code Labs"
+            style="border:0; margin:0;"
+        ></a></td>
+        <td valign="middle" width="100%" style="padding-left:0.6em;">
+          <form action="http://www.google.com/cse" id="cse" style="margin-top:0.5em">
+            <div id="gsc-search-box">
+              <input type="hidden" name="cx" value="002967670403910741006:61_cvzfqtno" />
+              <input type="hidden" name="ie" value="UTF-8" />
+              <input type="text" name="q" value="" size="55" />
+              <input class="gsc-search-button" type="submit" name="sa" value="Search" />
+              <br>
+              <span class="greytext">e.g. "page action" or "tabs"</span>
+            </div>
+          </form>
+
+          <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+          <script type="text/javascript">google.load("elements", "1", {packages: "transliteration"});</script>
+          <script type="text/javascript" src="http://www.google.com/coop/cse/t13n?form=cse&t13n_langs=en"></script>
+          <script type="text/javascript" src="http://www.google.com/coop/cse/brand?form=cse&lang=en"></script>
+        </td>
+      </tr>
+    </table>
+
+    <div id="codesiteContent" class="{{ /hideSideNav | toggle }}">
+
+      <a id="gc-topnav-anchor"></a>
+      <div id="gc-topnav">
+        <h1>Google Chrome Extensions (<a href="http://code.google.com/labs/">Labs</a>)</h1>
+        <ul id="home" class="gc-topnav-tabs">
+          <li id="home_link">
+            <a href="index.html" title="Google Chrome Extensions home page">Home</a>
+          </li>
+          <li id="docs_link">
+            <a href="docs.html" title="Official Google Chrome Extensions documentation">Docs</a>
+          </li>
+          <li id="faq_link">
+            <a href="faq.html" title="Answers to frequently asked questions about Google Chrome Extensions">FAQ</a>
+          </li>
+          <li id="samples_link">
+            <a href="samples.html" title="Sample extensions (with source code)">Samples</a>
+          </li>
+          <li id="group_link">
+            <a href="http://groups.google.com/a/chromium.org/group/chromium-extensions" title="Google Chrome Extensions developer forum">Group</a>
+          </li>
+        </ul>
+      </div> <!-- end gc-topnav -->
+
+    <div class="g-section g-tpl-170">
+      <!-- SIDENAV -->
+      <div class="g-unit g-first" id="gc-toc" hidden="{{ /hideSideNav }}">
+        <ul>
+          <li><a href="getstarted.html">Getting Started</a></li>
+          <li><a href="overview.html">Overview</a></li>
+          <li><a href="whats_new.html">What's New?</a></li>
+          <li><h2><a href="devguide.html">Developer's Guide</a></h2>
+            <ul>
+              <li>Browser UI
+                <ul>
+                  <li><a href="browserAction.html">Browser Actions</a></li>
+                  <li><a href="contextMenus.html">Context Menus</a></li>
+                  <li><a href="notifications.html">Desktop Notifications</a></li>
+                  <li><a href="omnibox.html">Omnibox</a></li>
+                  <li><a href="options.html">Options Pages</a></li>
+                  <li><a href="override.html">Override Pages</a></li>
+                  <li><a href="pageAction.html">Page Actions</a></li>
+                </ul>
+              </li>
+              <li>Browser Interaction
+                <ul>
+                  <li><a href="bookmarks.html">Bookmarks</a></li>
+                  <li><a href="cookies.html">Cookies</a></li>
+                  <li><a href="events.html">Events</a></li>
+                  <li><a href="history.html">History</a></li>
+                  <li><a href="management.html">Management</a></li>
+                  <li><a href="tabs.html">Tabs</a></li>
+                  <li><a href="windows.html">Windows</a></li>
+                </ul>
+              </li>
+              <li>Implementation
+                <ul>
+                  <li><a href="a11y.html">Accessibility</a></li>
+                  <li><a href="background_pages.html">Background Pages</a></li>
+                  <li><a href="content_scripts.html">Content Scripts</a></li>
+                  <li><a href="xhr.html">Cross-Origin XHR</a></li>
+                  <li><a href="idle.html">Idle</a></li>
+                  <li><a href="i18n.html">Internationalization</a></li>
+                  <li><a href="messaging.html">Message Passing</a></li>
+                  <li><a href="npapi.html">NPAPI Plugins</a></li>
+                </ul>
+              </li>
+              <li>Finishing
+                <ul>
+                  <li><a href="hosting.html">Hosting</a></li>
+                  <li><a href="external_extensions.html">Other Deployment Options</a></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li><h2><a href="apps.html">Packaged Apps</a></h2></li>
+          <li><h2><a href="tutorials.html">Tutorials</a></h2>
+            <ul>
+              <li><a href="tut_debugging.html">Debugging</a></li>
+              <li><a href="tut_analytics.html">Google Analytics</a></li>
+              <li><a href="tut_oauth.html">OAuth</a></li>
+            </ul>
+          </li>
+          <li><h2>Reference</h2>
+            <ul>
+              <li>Formats
+                <ul>
+                  <li><a href="manifest.html">Manifest Files</a></li>
+                  <li><a href="match_patterns.html">Match Patterns</a></li>
+                </ul>
+              </li>
+              <li><a href="permission_warnings.html">Permission Warnings</a></li>
+              <li><a href="api_index.html">chrome.* APIs</a></li>
+              <li><a href="api_other.html">Other APIs</a></li>
+            </ul>
+          </li>
+          <li><h2><a href="samples.html">Samples</a></h2></li>
+          <div class="line"> </div>
+          <li><h2>More</h2>
+            <ul>
+              <li><a href="http://code.google.com/chrome/webstore/docs/index.html">Chrome Web Store</a></li>
+              <li><a href="http://code.google.com/chrome/apps/docs/developers_guide.html">Hosted Apps</a></li>
+              <li><a href="themes.html">Themes</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <script>
+        initToggles();
+      </script>
+
+    <div class="g-unit" id="gc-pagecontent">
+      <div id="pageTitle">
+        <h1 class="page_title">{{ /pageName }}</h1>
+      </div>
+        <!-- TABLE OF CONTENTS -->
+        <div id="toc" hidden="{{ /hidePageTOC() }}">
+          <h2>Contents</h2>
+          <ol>
+            <template iterate="staticTOC">
+              <li>
+                <a href="#{{ href }}">{{ name }}</a>
+                <ol>
+                  <template iterate="children">
+                    <li>
+                      <a href="#{{ href }}">{{ name }}</a>
+                    </li>
+                  </template>
+                </ol>
+              </li>
+            </template>
+              <li modelScope="apiDefinition">
+                <a href="#apiReference">API reference: {{ /moduleName }}</a>
+                <ol>
+                  <li hidden="{{ properties | absent }}">
+                    <a href="#properties">Properties</a>
+                    <ol>
+                      <template iterate="properties">
+                        <li>
+                          <a href="#property-{{ name }}">{{ name }}</a>
+                        </li>
+                      </template>
+                    </ol>
+                  </li>
+                  <li hidden="{{ functions | absent }}">
+                    <a href="#methods">Methods</a>
+                    <ol>
+                      <template iterate="functions">
+                        <li>
+                          <a href="#method-{{ name }}">{{ name }}</a>
+                        </li>
+                      </template>
+                    </ol>
+                  </li>
+                  <li hidden="{{ events | absent }}"
+                    <a href="#events">Events</a>
+                    <ol>
+                      <template iterate="events">
+                      <li>
+                        <a href="#event-{{ name }}">{{ name }}</a>
+                      </li>
+                    </ol>
+                  </li>
+                  <li hidden="{{ types | absent }}">
+                    <a href="#types">Types</a>
+                    <ol>
+                      <template iterate="types">
+                        <li>
+                          <a href="#type-{{ id }}">{{ id }}</a>
+                        </li>
+                      </template>
+                    </ol>
+                  </li>
+                </ol>
+              </li>
+          </ol>
+        </div>
+        <!-- /TABLE OF CONTENTS -->
+
+        <!-- Standard content lead-in for experimental API pages -->
+        <p hidden="{{ /isNotExperimentalAPIPage }}" id="classSummary">
+          For information on how to use experimental APIs, see the <a href="experimental.html">chrome.experimental.* APIs</a> page.
+        </p>
+
+        <!-- STATIC CONTENT PLACEHOLDER -->
+        <div id="static"></div>
+
+        <!-- API PAGE -->
+        <div class="apiPage" modelScope="apiDefinition">
+        <a name="apiReference"></a>
+        <h2>API reference: {{ /moduleName }}</h2>
+          <!-- PROPERTIES -->
+          <div hidden="{{ properties | absent }}" class="apiGroup">
+            <a name="properties"></a>
+            <h3 id="properties">Properties</h3>
+            <template iterate="properties">
+              <div>
+                <a name="property-{{ name }}"></a>
+                <h4>{{ name }}</h4>
+                <div class="summary">
+                  <!-- Note: intentionally longer 80 columns -->
+                  <span>{{ /moduleName }}.</span><span>{{ name }}</span>
+                </div>
+                <template ref="valueTemplate" instantiate>
+              </div>
+            </template>
+
+          </div> <!-- /apiGroup -->
+
+          <!-- METHODS -->
+          <div hidden="{{ functions | absent }}" class="apiGroup" id="methods">
+            <a name="methods"></a>
+            <h3>Methods</h3>
+
+            <!-- iterates over all functions -->
+
+            <template iterate="functions">
+            <div class="apiItem">
+              <a name="method-{{ name }}"></a> <!-- method-anchor -->
+              <h4>{{ name }}</h4>
+
+              <div class="summary">
+                <span hidden="{{ returns | absent }}">{{ expr(./ @ func) getTypeName(func.returns) }}</span>
+                <!-- Note: intentionally longer 80 columns -->
+                <span>{{ expr(./ @ func) getFullyQualifiedFunctionName(func) }}</span>(<template iterate="parameters"><span class="{{ optional | toggle }}"><span jsdisplay="$index">, </span><span>{{ expr(./ @ param) getTypeName(param) }}</span> <var><span>{{ name }}</span></var></span></template>)
+              </div>
+
+              <div class="description">
+                <p class="todo" hidden="{{ description | present }}">Undocumented.</p>
+                <p hidden="{{ description | absent }}">
+                  {{ description }}
+                </p>
+
+                <!-- PARAMETERS -->
+                <h4>Parameters</h4>
+                <dl>
+                  <template ref="valueTemplate" iterate="parameters">
+                </dl>
+
+                <!-- RETURNS -->
+                <h4 hidden="{{ returns | absent }}">Returns</h4>
+                <dl hidden="{{ returns | absent }}">
+                  <template ref="valueTemplate" instantiate="returns"></template>
+                </dl>
+
+                <!-- CALLBACK -->
+                <div hidden="{{ callbackParameters | absent }}">
+                  <div modelScope="callbackParameters">
+                  <h4>Callback function</h4>
+                  <p hidden="{{ optional }}">
+                    The callback <em>parameter</em> should specify a function
+                    that looks like this:
+                  </p>
+                  <p hidden="{{ optional | absent }}">
+                    If you specify the <em>callback</em> parameter, it should
+                    specify a function that looks like this:
+                  </p>
+
+                  <!-- Note: intentionally longer 80 columns -->
+                  <pre>function(<span>{{ expr(parameters) getSignatureString(parameters) }}</span>) <span class="subdued">{...}</span>;</pre>
+                  <dl hidden="{{ parameters | absent }}">
+                    <template ref="valueTemplate" iterate="parameters"></template>
+                  </dl>
+                  </div>
+                </div>
+
+                <!-- MIN_VERSION -->
+                <p hidden="{{ min_version | absent }}" >
+                  This function was added in version <b><span>{{ min_version }}</span></b>.
+                  If you require this function, the manifest key
+                  <a href="manifest.html#minimum_chrome_version">minimum_chrome_version</a>
+                  can ensure that your extension won't be run in an earlier browser version.
+                </p>
+              </div> <!-- /description -->
+
+            </div>  <!-- /apiItem -->
+            </template>
+
+          </div>  <!-- /apiGroup -->
+
+          <!-- EVENTS -->
+          <div hidden="{{ events | absent }}" class="apiGroup">
+            <a name="events"></a>
+            <h3 id="events">Events</h3>
+
+            <!-- iterates over all events -->
+            <template iterate="events">
+              <div class="apiItem">
+                <a name="event-{{ name }}"></a>
+                <h4>{{ name }}</h4>
+
+                <div class="summary">
+                  <!-- Note: intentionally longer 80 columns -->
+                  <span class="subdued">{{ /moduleName }}.</span><span>{{ name }}</span><span class="subdued">.addListener</span>(function(<span>{{ expr(parameters) getSignatureString(parameters) }}</span>) <span class="subdued">{...}</span>);
+                </div>
+
+                <div class="description">
+                  <p class="todo" hidden="{{ description | present }}">Undocumented.</p>
+                  <p hidden="{{ description | absent }}">
+                    {{ description }}
+                  </p>
+
+                  <!-- PARAMETERS -->
+                  <h4>Parameters</h4>
+                  <dl hidden="{{ parameters | absent }}">
+                    <template ref="valueTemplate" iterate="parameters"></template>
+                  </dl>
+
+                </div> <!-- /decription -->
+
+              </div> <!-- /apiItem -->
+            </template>
+
+          </div> <!-- /apiGroup -->
+
+          <!-- TYPES -->
+          <div hidden="{{ types | absent }}" class="apiGroup">
+            <a name="types"></a>
+            <h3 id="types">Types</h3>
+
+            <!-- iterates over all types -->
+            <template iterate="types">
+            <div class="apiItem">
+              <a name="type-{{ id }}"></a>
+              <h4>{{ id }}</h4>
+              <template ref="valueTemplate" instantiate></template>
+            </div> <!-- /apiItem -->
+            </template>
+
+          </div> <!-- /apiGroup -->
+
+        </div> <!-- /apiPage -->
+      </div> <!-- /gc-pagecontent -->
+    </div> <!-- /g-section -->
+  </div> <!-- /codesiteContent -->
+    <div id="gc-footer" -->
+      <div class="text">
+  <p>
+  Except as otherwise <a
+  href="http://code.google.com/policies.html#restrictions">noted</a>,
+  the content of this page is licensed under the <a rel="license"
+  href="http://creativecommons.org/licenses/by/3.0/">Creative Commons
+  Attribution 3.0 License</a>, and code samples are licensed under the
+  <a rel="license" href="http://code.google.com/google_bsd_license.html">BSD License</a>.
+  </p>
+  <p>
+  &copy;2011 Google
+  </p>
+
+<!-- begin analytics -->
+<script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
+<script src="http://www.google-analytics.com/ga.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+  // chrome doc tracking
+  try {
+    var engdocs = _gat._getTracker("YT-10763712-2");
+    engdocs._trackPageview();
+  } catch(err) {}
+
+  // code.google.com site-wide tracking
+  try {
+    _uacct="UA-18071-1";
+    _uanchor=1;
+    _uff=0;
+    urchinTracker();
+  }
+  catch(e) {/* urchinTracker not available. */}
+</script>
+<!-- end analytics -->
+      </div>
+    </div> <!-- /gc-footer -->
+  </div> <!-- /gc-container -->
+</template>

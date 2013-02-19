@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2008 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<!--
+  Author: ajp@google.com (Andy Perelson)
+-->
+<head>
+<title>Closure Unit Tests - goog.ui.SliderBase</title>
+<script src="../base.js"></script>
+<script type="text/javascript">
+  goog.require('goog.dom');
+  goog.require('goog.events');
+  goog.require('goog.ui.SliderBase');
+  goog.require('goog.testing.jsunit');
+  goog.require('goog.testing.recordFunction');
+</script>
+</head>
+<body>
+
+<div id="sandbox"></div>
+
+<script type="text/javascript">
+var oneThumbSlider;
+var oneChangeEventCount;
+
+var twoThumbSlider;
+var twoChangeEventCount;
+
+/**
+ * A basic class to implement the abstract goog.ui.SliderBase for testing.
+ * @constructor
+ * @extends {goog.ui.SliderBase}
+ */
+function OneThumbSlider() {
+  goog.ui.SliderBase.call(this);
+}
+goog.inherits(OneThumbSlider, goog.ui.SliderBase);
+
+
+/** {@inheritDoc} */
+OneThumbSlider.prototype.createThumbs = function() {
+  this.valueThumb = this.extentThumb = goog.dom.getElement('thumb');
+};
+
+
+/** {@inheritDoc} */
+OneThumbSlider.prototype.getCssClass = function() {
+  return 'dummyCssClass';
+};
+
+
+/**
+ * A basic class to implement the abstract goog.ui.SliderBase for testing.
+ * @constructor
+ * @extends {goog.ui.SliderBase}
+ */
+function TwoThumbSlider() {
+  goog.ui.SliderBase.call(this);
+}
+goog.inherits(TwoThumbSlider, goog.ui.SliderBase);
+
+
+/** {@inheritDoc} */
+TwoThumbSlider.prototype.createThumbs = function() {
+  this.valueThumb = goog.dom.getElement('valueThumb');
+  this.extentThumb = goog.dom.getElement('extentThumb');
+};
+
+
+/** {@inheritDoc} */
+TwoThumbSlider.prototype.getCssClass = function() {
+  return 'dummyCssClass';
+};
+
+
+function setUp() {
+  var sandBox = goog.dom.getElement('sandbox');
+
+  var oneThumbElem = goog.dom.createDom(
+      'div', {'id': 'oneThumbSlider'},
+      goog.dom.createDom('span', {'id': 'thumb'}));
+  sandBox.appendChild(oneThumbElem);
+  oneThumbSlider = new OneThumbSlider();
+  oneThumbSlider.decorate(oneThumbElem);
+  oneChangeEventCount = 0;
+  goog.events.listen(oneThumbSlider, goog.ui.Component.EventType.CHANGE,
+      function() {
+        oneChangeEventCount++;
+      });
+
+ var twoThumbElem = goog.dom.createDom(
+     'div', {'id': 'oneThumbSlider'},
+     goog.dom.createDom('span', {'id': 'valueThumb'}),
+     goog.dom.createDom('span', {'id': 'extentThumb'}));
+  sandBox.appendChild(twoThumbElem);
+  twoThumbSlider = new TwoThumbSlider();
+  twoThumbSlider.decorate(twoThumbElem);
+  twoChangeEventCount = 0;
+  goog.events.listen(twoThumbSlider, goog.ui.Component.EventType.CHANGE,
+      function() {
+        twoChangeEventCount++;
+      });
+
+}
+
+function tearDown() {
+  goog.events.removeAll();
+  oneThumbSlider.dispose();
+  twoThumbSlider.dispose();
+  goog.dom.getElement('sandbox').innerHTML = '';
+}
+
+function testGetAndSetValue() {
+  oneThumbSlider.setValue(30);
+  assertEquals(30, oneThumbSlider.getValue());
+  assertEquals('Setting valid value must dispatch only a single change event.',
+      1, oneChangeEventCount);
+
+  oneThumbSlider.setValue(30);
+  assertEquals(30, oneThumbSlider.getValue());
+  assertEquals('Setting to same value must not dispatch change event.',
+      1, oneChangeEventCount);
+
+  oneThumbSlider.setValue(-30);
+  assertEquals('Setting invalid value must not change value.',
+      30, oneThumbSlider.getValue());
+  assertEquals('Setting invalid value must not dispatch change event.',
+      1, oneChangeEventCount);
+
+
+  // Value thumb can't go past extent thumb, so we must move that first to
+  // allow setting value.
+  twoThumbSlider.setExtent(70);
+  twoChangeEventCount = 0;
+  twoThumbSlider.setValue(60);
+  assertEquals(60, twoThumbSlider.getValue());
+  assertEquals('Setting valid value must dispatch only a single change event.',
+      1, twoChangeEventCount);
+
+  twoThumbSlider.setValue(60);
+  assertEquals(60, twoThumbSlider.getValue());
+  assertEquals('Setting to same value must not dispatch change event.',
+      1, twoChangeEventCount);
+
+  twoThumbSlider.setValue(-60);
+  assertEquals('Setting invalid value must not change value.',
+      60, twoThumbSlider.getValue());
+  assertEquals('Setting invalid value must not dispatch change event.',
+      1, twoChangeEventCount);
+}
+
+function testGetAndSetExtent() {
+  // Note(ajp): With a one thumb slider the API only really makes sense if you
+  // always use setValue since there is no extent.
+
+  twoThumbSlider.setExtent(7);
+  assertEquals(7, twoThumbSlider.getExtent());
+  assertEquals('Setting valid value must dispatch only a single change event.',
+      1, twoChangeEventCount);
+
+  twoThumbSlider.setExtent(7);
+  assertEquals(7, twoThumbSlider.getExtent());
+  assertEquals('Setting to same value must not dispatch change event.',
+      1, twoChangeEventCount);
+
+  twoThumbSlider.setExtent(-7);
+  assertEquals('Setting invalid value must not change value.',
+      7, twoThumbSlider.getExtent());
+  assertEquals('Setting invalid value must not dispatch change event.',
+      1, twoChangeEventCount);
+}
+
+function testRangeListener() {
+  var slider = new goog.ui.SliderBase;
+  slider.updateUi_= slider.updateAriaStates = function() {};
+  slider.rangeModel.setValue(0);
+
+  var f = goog.testing.recordFunction();
+  goog.events.listen(slider, goog.ui.Component.EventType.CHANGE, f);
+
+  slider.rangeModel.setValue(50);
+  assertEquals(1, f.getCallCount());
+
+  slider.exitDocument();
+  slider.rangeModel.setValue(0);
+  assertEquals('The range model listener should not have been removed so we ' +
+               'should have gotten a second event dispatch',
+               2, f.getCallCount());
+}
+
+</script>
+</body>
+</html>

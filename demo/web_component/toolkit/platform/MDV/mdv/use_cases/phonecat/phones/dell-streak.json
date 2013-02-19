@@ -1,0 +1,91 @@
+{
+    "additionalFeatures": "Front-Facing VGA Camera, Gorilla Glass Screen", 
+    "android": {
+        "os": "Android 1.6", 
+        "ui": ""
+    }, 
+    "availability": [
+        "O2 (United Kingdom)", 
+        "AT&T (United States)", 
+        "Optus (Australia)"
+    ], 
+    "battery": {
+        "standbyTime": "400 hours", 
+        "talkTime": "7 hours", 
+        "type": "Lithium Ion (Li-Ion) (1530 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "5.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.1", 
+        "cell": "Version 1: UMTS 2100/900  GSM/EDGE 1900/1800/900/850\r\nVersion 2: UMTS 2100/1900/850  GSM/EDGE 1900/1800/900/850", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "Introducing the Dell Streak, the 5\" go-anywhere pocket tablet. This perfectly-sized, go-anywhere entertainment, social connection and navigation device includes:\r\n\r\n\u2022 Widescreen display optimally designed for mobile web, video and movies\r\n\u2022 Integrated social networking widgets and apps, plus tons of apps through the Android\u2122 Marketplace\r\n\u2022 Crystal-clear, scratch-resistant Gorilla\u00ae glass screen\r\n\u2022 Google Maps\u2122 with navigation and text-to-voice, turn-by-turn directions with Street View\r\n\u2022 Multitasking Google Android OS that gives you the freedom to do what you want", 
+    "display": {
+        "screenResolution": "WVGA (800 x 480)", 
+        "screenSize": "5.0 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "1 GHz Qualcomm Snapdragon QSD8250", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/False.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "dell-streak", 
+    "images": [
+        {
+            "id": "580001", 
+            "medium": "http://www.google.com/phone/image/medium/580001", 
+            "small": "http://www.google.com/phone/image/small/580001"
+        }, 
+        {
+            "id": "581001", 
+            "medium": "http://www.google.com/phone/image/medium/581001", 
+            "small": "http://www.google.com/phone/image/small/581001"
+        }, 
+        {
+            "id": "582001", 
+            "medium": "http://www.google.com/phone/image/medium/582001", 
+            "small": "http://www.google.com/phone/image/small/582001"
+        }, 
+        {
+            "id": "583001", 
+            "medium": "http://www.google.com/phone/image/medium/583001", 
+            "small": "http://www.google.com/phone/image/small/583001"
+        }, 
+        {
+            "id": "584001", 
+            "medium": "http://www.google.com/phone/image/medium/584001", 
+            "small": "http://www.google.com/phone/image/small/584001"
+        }, 
+        {
+            "id": "585001", 
+            "medium": "http://www.google.com/phone/image/medium/585001", 
+            "small": "http://www.google.com/phone/image/small/585001"
+        }
+    ], 
+    "name": "Dell Streak", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "152.9 mm (w)", 
+            "79.1 mm (h)", 
+            "9.98 mm (d)"
+        ], 
+        "weight": "220.0 grams"
+    }, 
+    "storage": {
+        "flash": "2000MB", 
+        "ram": "512MB"
+    }
+}

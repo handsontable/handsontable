@@ -1,0 +1,74 @@
+{
+    "additionalFeatures": "DLNA, Adobe\u00ae Flash\u00ae Player 10.1, Accessibility features: Tactile QWERTY keyboard, arrow keys, voice search button, camera button, Zoom Mode screen magnifier, Voice Readouts Screen Reader", 
+    "android": {
+        "os": "Android 2.2", 
+        "ui": "MOTOBLUR"
+    }, 
+    "availability": [
+        "Verizon (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "315 hours", 
+        "talkTime": "9 hours", 
+        "type": "Lithium Ion (Li-Ion) (1400 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "5.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.1", 
+        "cell": "CDMA 1X 800/1900, EVDO rev. A", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g/n"
+    }, 
+    "description": "With its 1 GHz processor and Android 2.2 with Adobe Flash 10, the DROID 2 offers PC-like power and speed. Use the intuitive QWERTY keyboard to touch, talk, press or Swype your texts. Create a WiFi hotspot with up to five connections. Work or play? You choose!\r\n\r\n\r\nDROID is a trademark of Lucasfilm Ltd. and its related companies. Used under license.", 
+    "display": {
+        "screenResolution": "FWVGA (854 x 480)", 
+        "screenSize": "3.7 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "1 GHz processor", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/True.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "droid-2-by-motorola", 
+    "images": [
+        {
+            "id": "263002", 
+            "medium": "http://www.google.com/phone/image/medium/263002", 
+            "small": "http://www.google.com/phone/image/small/263002"
+        }, 
+        {
+            "id": "264002", 
+            "medium": "http://www.google.com/phone/image/medium/264002", 
+            "small": "http://www.google.com/phone/image/small/264002"
+        }, 
+        {
+            "id": "269003", 
+            "medium": "http://www.google.com/phone/image/medium/269003", 
+            "small": "http://www.google.com/phone/image/small/269003"
+        }
+    ], 
+    "name": "DROID\u2122 2 by Motorola", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "60.5 mm (w)", 
+            "116.3 mm (h)", 
+            "13.7 mm (d)"
+        ], 
+        "weight": "169.0 grams"
+    }, 
+    "storage": {
+        "flash": "8000MB", 
+        "ram": "512MB"
+    }
+}

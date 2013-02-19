@@ -1,0 +1,133 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Panels</title>
+  <script src="../platform/platform.js"></script>
+  <link rel="components" href="../components/g-panels.html">
+  <link rel="stylesheet" href="../components/css/g-panels.css" />
+	<style>
+		html, body {
+			height: 100%;
+			margin: 0;
+			background: whitesmoke;
+		}
+
+		body {
+			display: -webkit-flex;
+			-webkit-flex-flow: column;
+		}
+
+		.controls {
+			padding: 10px;
+		}
+
+		g-panels {
+      counter-reset: section;
+			-webkit-flex: 1;
+			outline: none;
+			border: 1px solid #ccc;
+			position: relative;
+			overflow: hidden;
+			font-size: 30px;
+		}
+
+		g-panels > * {
+			padding: 10px;
+      box-sizing: border-box;
+    }
+
+    g-panels[transition="flow"] > * {
+      width: 80%;
+      -webkit-box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2), 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    g-panels[transition="flow"] > *:nth-of-type(1) {
+      width: 200px;
+    }
+
+    g-panels[transition="flow"] > *:nth-of-type(2) {
+      width: 240px;
+    }
+
+    g-panels[transition="flow"] > *:nth-of-type(3) {
+      width: 280px;
+    }
+
+    g-panels[transition="flow"] > *:nth-of-type(4) {
+      width: 100%;
+    }
+
+    g-panels[transition="flow"] > *:nth-of-type(5) {
+      width: 280px;
+    }
+
+	</style>
+</head>
+<body>
+  <div class="controls">
+		<button onclick="previous();">&laquo;</button>
+		<button onclick="next();">&raquo;</button>
+    <button onclick="addPanel();">+</button>
+		<select onchange="changeTransition(event)">
+			<option  selected>fade</option>
+      <option value="none">none</option>
+      <option value="keyframe">hslide</option>
+			<option value="keyframe">vslide</option>
+			<option value="keyframe">hslideover</option>
+			<option value="keyframe">vslideover</option>
+			<option value="keyframe">explode</option>
+      <option value="keyframe">scale-slide</option>
+      <option value="keyframe">fly-up-right</option>
+      <option value="flow">flow</option>
+		</select>
+    <label>enable transitions: <input type="checkbox" checked onchange="transitionableChange(event)"></label>
+	</div>
+  <g-panels index="2" transition="keyframe" class="g-panels-fade">
+		<section name="foo" style="background: blue;">Panel 1</section>
+		<section name="zonk" style="background: red;">Panel 2</section>
+		<section name="bar" style="background: yellow;">Panel 3</section>
+		<section name="zing" style="background: black; color: white">Panel 4</section>
+		<section name="baz" style="background: white;" class="right">Panel 5</section>
+	</g-panels>
+<script>
+	document.addEventListener("WebComponentsReady", function() {
+    panels = document.querySelector("g-panels");
+		next = function() {
+			panels.next();
+		}
+		previous = function() {
+			panels.previous();
+		}
+    
+    transitionableChange = function(e) {
+      panels.enableTransitions(e.target.checked);
+    }
+
+		changeTransition = function(e) {
+      panels.transition = e.target.value;
+      var selectedOption = e.target.selectedOptions[0];
+      var className = selectedOption ? selectedOption.textContent : '';
+      panels.className = 'g-panels-' + className;
+      panels.focus();
+		}
+    
+    addPanel = function() {
+      var p = document.createElement('section');
+      p.style.background = 'hsla(' + Math.round(Math.random() * 360) + ', 60%, 30%, 1)';
+      p.textContent = 'Panel ' + ++panels.count;
+      panels.appendChild(p);
+      panels.panelAdded(p);
+      panels.index = panels.count;
+    }
+
+    panels.focus();
+	});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+--The PageMirror example extension--
+
+This directory contains the source for an example Chrome Extension called PageMirror which uses both the MutationSummary and TreeMirror utility classes.
+
+The purpose of this example is to demonstrate how to fully mirror the contents of a DOM Tree to a remote location.
+
+
+--Installation--
+
+1. Copy ../../mutation_summary.js and ../../tree_mirror.js to this directory.
+2. Navigate Chrome to chrome://extensions.
+3. Click the 'Developer Mode' checkbox.
+4. Click the 'Load unpacked extension...' button.
+5. Navigate the file browser to this directory and click select.
+
+This shoud load the extension and a little button with an icon of 'Evil Spock' should appear in the top-right corner of each Chrome window.
+
+
+--Usage---
+
+1. Now try navigating to a web page which is highly dynamic. http://www.google.com is a good example.
+2. Click the Spock button and move aside the tab which is opened.
+3. Make changes in the original google.com window and watch the changes be mirrored in the tab which opened.
+
+
+--Note--
+
+Web sites that use iframes (like Gmail) won't work correctly because this example doesn't attempt to recursively mirror the contents of iframes.
+
+The "mirror" won't be functional (interacting with it won't behave like the source page). The reason is that no attempt is made to mirror the javascript state of the source page.
+
+
+--Techincal Note--
+
+In this example, the mechanism by which DOM structures are serialized is relatively naive and no attempt is made to minimize the size of the serialized structures (compressing the messages, for example).
+
+However, because this example uses the MutationSummary, the number of DOM structures which must be serialized IS minimized. This is a very good thing, as network bandwidth and latency are nearly always more "expensive" than DOM operations. I.e. Most applications would prefer to do lots of work in the DOM and avoid having to read from or write to the network.
+
+
+--Uninstallation--
+
+1. Click the 'Remove' button in PageMirror row on the chrome://extensions page.
+
+
+

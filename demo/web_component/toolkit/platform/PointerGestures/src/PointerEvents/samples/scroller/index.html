@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width user-scalable=no">
+    <title>PointerEvent scrolling sample</title>
+    <style>
+      * {
+        -webkit-user-select: none;
+        box-sizing: border-box;
+      }
+      body, html {
+        margin: 0;
+        height: 100%;
+        position: relative;
+      }
+      #scroller {
+        height: 400px;
+        width: 100%;
+        border: 2px solid red;
+        overflow: auto;
+      }
+      #big {
+        height: 1000px;
+        width: 1000px;
+        background: -webkit-linear-gradient(45deg, red, blue);
+        background: linear-gradient(45deg, red, blue);
+      }
+      button {
+        height: 100px;
+        width: 100px;
+      }
+    </style>
+    <script src="../../src/pointerevents.js"></script>
+  </head>
+  <body>
+    <div id="scroller">
+      <div id="big"></div>
+    </div>
+    <br>
+    <button onclick="x()">Pan-X</button>
+    <button onclick="y()">Pan-Y</button>
+    <button onclick="scroll()">Scroll</button>
+    <button onclick="none()">None</button>
+    <script>
+      function x() {
+        scroller.setAttribute('touch-action', 'pan-x');
+      }
+      function y() {
+        scroller.setAttribute('touch-action', 'pan-y');
+      }
+      function scroll() {
+        scroller.setAttribute('touch-action', 'scroll');
+      }
+      function none() {
+        scroller.setAttribute('touch-action', 'none');
+      }
+      [
+        'pointerdown',
+        'pointerup',
+        'pointermove',
+        'pointercancel'
+      ].forEach(function(e) {
+        document.addEventListener(e, function(e) {
+          console.log(e.type, e.clientX, e.clientY);
+        });
+      });
+    </script>
+  </body>
+</html>

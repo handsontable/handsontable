@@ -1,0 +1,74 @@
+{
+    "additionalFeatures": "", 
+    "android": {
+        "os": "Android 2.1", 
+        "ui": ""
+    }, 
+    "availability": [
+        "Sprint (United States)", 
+        "Cellular South (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "360 hours", 
+        "talkTime": "7 hours", 
+        "type": "Lithium Ion (Li-Ion) (1340 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Video"
+        ], 
+        "primary": "5.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.0", 
+        "cell": "Dual Band CDMA2000 1xRTT/1xEVDO/1xEVDO Rev. A (800/1900 MHz)\r\n", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "Be yourself. That's the idea behind the HTC Hero\u2122, a phone that follows your lead. Time to work? Time to play? Time to put down your phone and think? The HTC Hero helps you be you. \r\nSet the Scene for every time and place. It's like having a different phone for every different thing you do.  Focus on people, not accounts. Look at all the messages from any one person\u2014their emails, calls, texts, status updates, everything\u2014all in one place.  Keep your friends close. Stay in touch on Facebook\u00ae, Google Talk\u2122, and Flickr\u00ae\u2014and use HTC Peep\u2122 to keep up with tweets.  \r\nFind yourself, no matter where you find yourself. The minute your plane lands, your phone automatically updates the time and weather.  App out your phone. Get one-touch access to thousands of apps in Android Market\u2122.", 
+    "display": {
+        "screenResolution": "HVGA (480 x 320)", 
+        "screenSize": "3.2 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "528MHz Qualcomm MSM7600", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/False.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "htc-hero", 
+    "images": [
+        {
+            "id": "159001", 
+            "medium": "http://www.google.com/phone/image/medium/159001", 
+            "small": "http://www.google.com/phone/image/small/159001"
+        }, 
+        {
+            "id": "326003", 
+            "medium": "http://www.google.com/phone/image/medium/326003", 
+            "small": "http://www.google.com/phone/image/small/326003"
+        }, 
+        {
+            "id": "334001", 
+            "medium": "http://www.google.com/phone/image/medium/334001", 
+            "small": "http://www.google.com/phone/image/small/334001"
+        }
+    ], 
+    "name": "HTC Hero", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "56.2 mm (w)", 
+            "112.0 mm (h)", 
+            "14.35 mm (d)"
+        ], 
+        "weight": "135.0 grams"
+    }, 
+    "storage": {
+        "flash": "512MB", 
+        "ram": "288MB"
+    }
+}

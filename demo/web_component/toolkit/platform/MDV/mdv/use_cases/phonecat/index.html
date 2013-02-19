@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>MDV Phonecat</title>
+<link rel="stylesheet" href="app.css">
+<script src="mdv.js"></script>
+<script src="util.js"></script>
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+  doLoad();
+}, false);
+
+window.addEventListener('popstate', function() {
+  doLoad();
+}, false);
+
+var phoneRe = /\/phones\/([^\/]*)$/;
+
+function doLoad() {
+  var match = getFragment().match(phoneRe);
+  if (match && match[1]) {
+    xhr('phones/' + match[1] + '.json', phoneLoaded);
+  } else {
+    xhr('phones/phones.json', phonesLoaded);
+  }
+}
+
+function phoneLoaded(content) {
+  document.body.model = {
+    phoneDetail: JSON.parse(content)
+  };
+}
+
+var phones;
+function phonesLoaded(content) {
+  phones = JSON.parse(content);
+
+  document.body.model = {
+    phoneList: {
+       phones: phones,
+       query: ''
+    },
+  };
+};
+
+</script>
+</head>
+
+<body>
+<template instantiate="phoneDetail">
+  <img src="{{ images[0].medium }}" class="phone"/>
+
+  <h1>{{ name }}</h1>
+
+  <p>{{ description }}</p>
+
+  <ul class="phone-thumbs">
+    <template iterate="images">
+    <li>
+      <img src="{{ small }}"/>
+    </li>
+    </template>
+  </ul>
+
+  <ul class="specs">
+    <li>
+      <span>Availability and Networks</span>
+      <dl>
+        <dt>Availability</dt>
+        <template iterate="availability">
+        <dd>{{ ./ }}</dd>
+        </template>
+      </dl>
+    </li>
+    <li>
+      <span>Battery</span>
+      <dl>
+        <dt>Type</dt>
+        <dd>{{ battery.type }}</dd>
+        <dt>Talk Time</dt>
+        <dd>{{ battery.talkTime }}</dd>
+        <dt>Standby time (max)</dt>
+        <dd>{{ battery.standbyTime }}</dd>
+      </dl>
+    </li>
+    <li>
+      <span>Storage and Memory</span>
+      <dl>
+        <dt>RAM</dt>
+        <dd>{{ storage.ram }}</dd>
+        <dt>Internal Storage</dt>
+        <dd>{{ storage.flash }}</dd>
+      </dl>
+    </li>
+    <li>
+      <span>Connectivity</span>
+      <dl>
+        <dt>Network Support</dt>
+        <dd>{{ connectivity }}</dd>
+        <dt>WiFi</dt>
+        <dd>{{ connectivity }}</dd>
+        <dt>Bluetooth</dt>
+        <dd>{{ connectivity.bluetooth }}</dd>
+        <dt>Infrared</dt>
+        <dd>{{ connectivity.infrared }}</dd>
+        <dt>GPS</dt>
+        <dd>{{ connectivity.gps }}</dd>
+      </dl>
+    </li>
+    <li>
+      <span>Android</span>
+      <dl>
+        <dt>OS Version</dt>
+        <dd>{{ android.os }}</dd>
+        <dt>UI</dt>
+        <dd>{{ android.ui }}</dd>
+      </dl>
+    </li>
+    <li>
+      <span>Size and Weigth</span>
+      <dl>
+        <dt>Dimensions</dt>
+        <template iterate="sizeAndWeight.dimensions">
+          <dd>{{ ./ }}</dd>
+        </template>
+        <dt>Weight</dt>
+        <dd>{{ sizeAndWeight.weight }}</dd>
+      </dl>
+    </li>
+    <li>
+      <span>Display</span>
+      <dl>
+        <dt>Screen size</dt>
+        <dd>{{ display.screenSize }}</dd>
+        <dt>Screen resolution</dt>
+        <dd>{{ display.screenResolution }}</dd>
+        <dt>Touch screen</dt>
+        <dd>{{ display.touchScreen }}</dd>
+      </dl>
+    </li>
+    <li>
+      <span>Hardware</span>
+      <dl>
+        <dt>CPU</dt>
+        <dd>{{ hardware.cpu }}</dd>
+        <dt>USB</dt>
+        <dd>{{ hardware.usb }}</dd>
+        <dt>Audio / headphone jack</dt>
+        <dd>{{ hardware.audioJack }}</dd>
+        <dt>FM Radio</dt>
+        <dd>{{ hardware.fmRadio }}</dd>
+        <dt>Accelerometer</dt>
+        <dd>{{ hardware.accelerometer }}</dd>
+      </dl>
+    </li>
+    <li>
+      <span>Camera</span>
+      <dl>
+        <dt>Primary</dt>
+        <dd>{{ camera.primary }}</dd>
+        <dt>Features</dt>
+        <dd>{{ expr(camera.features) features.join(', ') }}</dd>
+      </dl>
+    </li>
+    <li>
+      <span>Additional Features</span>
+      <dd>{{ additionalFeatures }}</dd>
+    </li>
+  </ul>
+</template>
+
+<template instantiate="phoneList">
+  <ul class="predicates">
+    <li>
+      Sort by:
+      <ul>
+        <li><span onclick="newSort('age');">Newest</span></li>
+        <li><span onclick="newSort('name');">Alphabetical</span></li>
+      </ul>
+    </li>
+    <li>
+      Search: <input type="text" value="{{ query }}"></input>
+    </li>
+  </ul>
+
+  <ul class="phones">
+    <template iterate="phones">
+      <li>
+        <a href="#/phones/{{ id }}">{{ name }}</a>
+        <a href="#/phones/{{ id }}" class="thumb">
+          <img ng:src="{{ imageUrl }}"/></a>
+        <p>{{ snippet }}</p>
+      </li>
+    </template>
+  </ul>
+</template>
+
+</body>
+</html>

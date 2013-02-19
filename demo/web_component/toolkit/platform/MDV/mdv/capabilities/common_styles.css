@@ -1,0 +1,31 @@
+body {
+  font-family: 'Lucida Grande', Lucida, Verdana, sans-serif;
+  margin: 0;
+  background-color: #619183;
+}
+
+h1 {
+  font-weight: bold;
+  font-size: 150%;
+  background-color: #BECC9A;
+  margin: 20px 20px 0 20px;
+  padding: 20px;
+  border-radius: 10px 10px 0 0px;
+  -moz-box-shadow: 5px 5px 2px #2B3332;
+  -webkit-box-shadow: 5px 5px 2px #2B3332;
+  box-shadow: 5px 5px 2px #2B3332;
+}
+
+.content {
+  margin: 0 20px 20px 20px;
+  background-color: #E5E19E;
+  padding: 20px;
+  border-radius: 0 0 20px 20px;
+  -moz-box-shadow: 5px 5px 2px #2B3332;
+  -webkit-box-shadow: 5px 5px 2px #2B3332;
+  box-shadow: 5px 5px 2px #2B3332;
+}
+
+.comment {
+  font-size: 75%;
+}

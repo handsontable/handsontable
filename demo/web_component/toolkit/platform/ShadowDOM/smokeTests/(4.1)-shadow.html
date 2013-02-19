@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- -->
+    <script src="../shadowdom-polyfill.js" shadow="shim"></script>
+    <!-- -->
+    <script src="lib/dump.js"></script>
+    <!-- -->
+    <style>
+      div, g-A {
+        display: block;
+        border: 1px dotted red;
+        margin: 8px;
+        padding: 8px;
+      }
+    </style>
+    <script>
+      change = function() {
+        new ShadowDOM.ShadowRoot($("g-A")).appendChild($("template#Abb").content);
+        new ShadowDOM.ShadowRoot($("g-A")).appendChild($("template#Ab").content);
+        new ShadowDOM.ShadowRoot($("g-A")).appendChild($("template#A").content);
+        ShadowDOM.distribute($("g-A"));
+        xdump($("g-A"));
+      }
+    </script>
+  </head>
+  <body onload="change()">
+      <g-A>
+        <span>Where am I?</span>
+      </g-A>
+
+      <template id="Abb"><span>A's Base Base Template</span></template>
+      <template id="Ab"><span>A's Base Template:<shadow></shadow></span></template>
+      <template id="A"><span>A's Template:<shadow></shadow></span></template>
+
+      <hr/>
+
+      Expected output (also, see console):
+
+      <div><span>A's Template:A's Base Template:A's Base Base Template</span></div>
+  </body>
+</html>

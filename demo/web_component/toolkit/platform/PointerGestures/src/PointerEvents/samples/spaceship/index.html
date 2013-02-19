@@ -1,0 +1,278 @@
+<!doctype html>
+<!--
+Multi-touch game controller demo. Original work by @seb_ly.
+
+For more information, see
+http://sebleedelisle.com/2011/04/multi-touch-game-controller-in-javascripthtml5-for-ipad
+
+Modified to use pointer.js by Boris Smus. For more information, see
+https://github.com/borismus/pointer.js.
+-->
+<html lang=en>
+  <head>
+    <meta charset=utf-8>
+    <meta name="viewport" content="width=device-width; height=device-height; initial-scale=1.0; maximum-scale=1.0;" /> 
+    <title>PointerEvents Spaceship</title>
+    <style type="text/css"> 
+
+      * {
+        -webkit-touch-callout: none; /* prevent callout to copy image, etc when tap to hold */
+        -webkit-text-size-adjust: none; /* prevent webkit from resizing text to fit */
+        /* make transparent link selection, adjust last value opacity 0 to 1.0 */
+        -webkit-tap-highlight-color: rgba(0,0,0,0); 
+        -webkit-user-select: none; /* prevent copy paste, to allow, change 'none' to 'text' */
+        -webkit-tap-highlight-color: rgba(0,0,0,0); 
+      }
+
+      body {
+        background-color: #000000;
+        margin: 0px;
+      }
+      canvas {
+        display:block;
+        position:absolute;
+      }
+      .container {
+        width:auto;
+        text-align:center;
+        background-color:#ff0000;
+      }
+    </style>
+
+
+  </head>
+  <body onload = "init()">
+    <script src="js/Vector2.js"></script>
+    <script src="js/ShipMovingTouch.js"></script>
+    <script src="js/BulletSebs.js"></script>
+    <script src="../../src/pointerevents.js"></script>
+    <script>
+// shim layer with setTimeout fallback
+window.requestAnimFrame = (function(){
+  return  window.requestAnimationFrame       ||
+  window.webkitRequestAnimationFrame ||
+  window.mozRequestAnimationFrame    ||
+  window.oRequestAnimationFrame      ||
+  window.msRequestAnimationFrame     ||
+  function( callback ){
+    window.setTimeout(callback, 1000 / 60);
+  };
+})();
+
+var canvas,
+c, // c is the canvas' context 2D
+container, 
+halfWidth, 
+halfHeight,
+leftPointerID = -1, 
+leftPointerPos = new Vector2(0,0),
+leftPointerStartPos = new Vector2(0,0),
+leftVector = new Vector2(0,0); 
+
+
+setupCanvas();
+
+ship = new ShipMoving(halfWidth, halfHeight)
+bullets = [],
+spareBullets = [];
+var pointers = {};
+
+
+document.body.appendChild(ship.canvas);
+
+//setInterval(draw, 1000/35); 
+requestAnimFrame(draw);
+
+
+canvas.addEventListener( 'pointerdown', onPointerDown, false );
+canvas.addEventListener( 'pointermove', onPointerMove, false );
+canvas.addEventListener( 'pointerup', onPointerUp, false );
+window.onorientationchange = resetCanvas;  
+window.onresize = resetCanvas;  
+
+function resetCanvas (e) {
+  // resize the canvas - but remember - this clears the canvas too. 
+  canvas.width = window.innerWidth; 
+  canvas.height = window.innerHeight;
+
+  halfWidth = canvas.width/2;
+  halfHeight = canvas.height/2;
+
+  //make sure we scroll to the top left.
+  window.scrollTo(0,0); 
+}
+
+function init(){
+
+}
+
+function draw() {
+
+  c.clearRect(0,0,canvas.width, canvas.height); 
+
+  ship.targetVel.copyFrom(leftVector);
+  ship.targetVel.multiplyEq(0.15);
+
+  ship.update(); 
+
+  with(ship.pos) {
+    if(x<0) x = canvas.width; 
+    else if(x>canvas.width) x = 0;
+    if(y<0) y = canvas.height; 
+    else if (y>canvas.height) y = 0; 
+  }
+
+  ship.draw(); 
+
+
+  for (var i = 0; i < bullets.length; i++) {
+    var bullet = bullets[i]; 
+    if(!bullet.enabled) continue; 
+    bullet.update(); 
+    bullet.draw(c); 
+    if(!bullet.enabled)
+    {
+      spareBullets.push(bullet); 
+
+    }
+
+
+  }
+
+  for(var id in pointers) {
+
+    var pointer = pointers[id]; 
+
+    if(pointer.pointerId == leftPointerID){
+      c.beginPath(); 
+      c.strokeStyle = "cyan"; 
+      c.lineWidth = 6; 
+      c.arc(leftPointerStartPos.x, leftPointerStartPos.y, 40,0,Math.PI*2,true); 
+      c.stroke();
+      c.beginPath(); 
+      c.strokeStyle = "cyan"; 
+      c.lineWidth = 2; 
+      c.arc(leftPointerStartPos.x, leftPointerStartPos.y, 60,0,Math.PI*2,true); 
+      c.stroke();
+      c.beginPath(); 
+      c.strokeStyle = "cyan"; 
+      c.arc(leftPointerPos.x, leftPointerPos.y, 40, 0,Math.PI*2, true); 
+      c.stroke(); 
+
+      } else {
+
+      c.beginPath(); 
+      c.fillStyle = "white";
+      c.fillText(pointer.pointerType + " id : "+pointer.pointerId+" x:"+pointer.x+" y:"+pointer.y, pointer.x+30, pointer.y-30); 
+
+      c.beginPath(); 
+      c.strokeStyle = "red";
+      c.lineWidth = "6";
+      c.arc(pointer.x, pointer.y, 40, 0, Math.PI*2, true); 
+      c.stroke();
+    }
+  }
+  //c.fillText("hello", 0,0); 
+
+  requestAnimFrame(draw);
+}
+
+function makeBullet() {
+
+  var bullet;
+
+  if(spareBullets.length>0) {
+
+    bullet = spareBullets.pop(); 
+    bullet.reset(ship.pos.x, ship.pos.y, ship.angle); 
+
+    } else {
+
+    bullet = new Bullet(ship.pos.x, ship.pos.y, ship.angle); 
+    bullets.push(bullet);
+
+  }
+
+  bullet.vel.plusEq(ship.vel); 
+
+
+}
+
+function onPointerDown(e) {
+  pointers[e.pointerId] = {x: e.clientX, y: e.clientY,
+      pointerId: e.pointerId, pointerType: e.pointerType};
+
+  for(var id in pointers) {
+    var pointer = pointers[id]; 
+    if((leftPointerID<0) && (pointer.x<halfWidth))
+    {
+      leftPointerID = pointer.pointerId; 
+      leftPointerStartPos.reset(pointer.x, pointer.y); 	
+      leftPointerPos.copyFrom(leftPointerStartPos); 
+      leftVector.reset(0,0); 
+      continue; 		
+      } else {
+
+      makeBullet(); 
+
+    }	
+  }
+}
+
+function onPointerMove(e) {
+  // Prevent the browser from doing its default thing (scroll, zoom)
+  var pointer = pointers[e.pointerId];
+  if (pointer) {
+    pointer.x = e.clientX;
+    pointer.y = e.clientY;
+  }
+
+  for(var id in pointers) {
+    var pointer = pointers[id]; 
+    if(leftPointerID == pointer.pointerId)
+    {
+      leftPointerPos.reset(pointer.x, pointer.y); 
+      leftVector.copyFrom(leftPointerPos); 
+      leftVector.minusEq(leftPointerStartPos); 	
+      break; 		
+    }		
+  }
+
+
+} 
+
+function onPointerUp(e) { 
+  delete pointers[e.pointerId];
+  var length = 0;
+  for (var id in pointers) { length += 1; }
+
+  if (length == 0) {
+    leftPointerID = -1; 
+    if (e.pointerType == 'touch') {
+      leftVector.reset(0,0); 
+    }
+  }
+}
+
+
+function setupCanvas() {
+
+  canvas = document.createElement( 'canvas' );
+  canvas.setAttribute( 'touch-action', 'none' );
+  c = canvas.getContext( '2d' );
+  container = document.createElement( 'div' );
+  container.className = "container";
+
+  document.body.appendChild( container );
+  container.appendChild(canvas);	
+
+  resetCanvas(); 
+
+  c.strokeStyle = "#ffffff";
+  c.lineWidth =2;	
+}
+
+
+      </script>
+    </body>
+  </html>

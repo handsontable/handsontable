@@ -1,0 +1,39 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<element name="g-menu-button" attributes="src selected opened">
+  <link rel="stylesheet" href="css/g-menu-button.css" />
+  <link rel="components" href="g-icon-button.html"/>
+  <link rel="components" href="g-overlay.html">
+  <link rel="components" href="g-menu.html"/>
+  <template>
+    <g-icon-button id="button" touch-action="none" on-tap="toggle" src="{{src}}" active="{{opened}}"></g-icon-button>
+    <g-overlay id="overlay" class="slideup" opened="{{opened}}" modal>
+      <div class="arrow-border"></div>
+      <div class="arrow"></div>
+      <g-menu id="menu" selected="{{selected}}" on-activate="toggle">
+        <content select="*"></content>
+      </g-menu>
+    </g-overlay>
+  </template>
+  <script>
+    this.component({
+      opened: false,
+      publish: {
+        //* Toggle the opened state of the dropdown.
+        toggle: function() {
+          this.opened = !this.opened;
+        },
+        //* Returns the selected item.
+        get selection() {
+          return this.$.menu.selection;
+        },
+        activateHandler: function() {
+          this.opened = false;
+        }
+      }
+    });
+  </script>
+</element>

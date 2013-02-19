@@ -1,0 +1,82 @@
+{
+    "additionalFeatures": "Opera mini browser; Android Webkit w/Adobe Flash Lite\u00ae; Mil Spec standards; Push-to-talk; Push email", 
+    "android": {
+        "os": "Android 1.5", 
+        "ui": ""
+    }, 
+    "availability": [
+        "Nextel (Brazil)", 
+        "Sprint (United States)", 
+        "Nextel (Mexico)", 
+        "Nextel (Argentina)"
+    ], 
+    "battery": {
+        "standbyTime": "100 hours", 
+        "talkTime": "3 hours", 
+        "type": "Lithium Ion (Li-Ion) (1400 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "5.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.0", 
+        "cell": "iDEN 800 / 900 MHz", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "Changing the game, Motorola i1 brings PTT functionality into a touch screen design. Multi-tasking is made easier with an option to toggle PTT calls to the background, allowing you to view emails, message and more.", 
+    "display": {
+        "screenResolution": "HVGA (480 x 320)", 
+        "screenSize": "3.1 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "2.5mm", 
+        "cpu": "", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/False.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "motorola-i1", 
+    "images": [
+        {
+            "id": "300006", 
+            "medium": "http://www.google.com/phone/image/medium/300006", 
+            "small": "http://www.google.com/phone/image/small/300006"
+        }, 
+        {
+            "id": "335003", 
+            "medium": "http://www.google.com/phone/image/medium/335003", 
+            "small": "http://www.google.com/phone/image/small/335003"
+        }, 
+        {
+            "id": "336004", 
+            "medium": "http://www.google.com/phone/image/medium/336004", 
+            "small": "http://www.google.com/phone/image/small/336004"
+        }, 
+        {
+            "id": "350002", 
+            "medium": "http://www.google.com/phone/image/medium/350002", 
+            "small": "http://www.google.com/phone/image/small/350002"
+        }
+    ], 
+    "name": "Motorola i1", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "58.0 mm (w)", 
+            "118.0 mm (h)", 
+            "12.8 mm (d)"
+        ], 
+        "weight": "131.0 grams"
+    }, 
+    "storage": {
+        "flash": "256MB", 
+        "ram": "256MB"
+    }
+}

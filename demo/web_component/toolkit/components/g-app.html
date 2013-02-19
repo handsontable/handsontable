@@ -1,0 +1,64 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<element name="g-app">
+<link rel="components" href="g-component.html">
+<template>
+  <style>
+    @host {
+      font-family: 'Helvetica Neue', Helvetica, Arial, 'open sans', sans-serif;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: -webkit-box;
+      display: -webkit-flex;
+      -webkit-box-orient: vertical;
+      -webkit-flex-flow: column;
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      overflow: hidden;
+    }
+
+    @host > .flex, .flex {
+      -webkit-box-flex: 1;
+      -webkit-flex: 1;
+    }
+  </style>
+  <content></content>
+</template>
+<script>
+  var ensureHostStyles = function(inNode) {
+    if (inNode.localName != 'g-app') {
+      var sheet = document.querySelector('style[g-app]');
+      if (!sheet) {
+        sheet = document.createElement('style');
+        var head = document.head;
+        head.insertBefore(sheet, head.firstChild);
+      }
+      // get g-app shadow's style element
+      var shadow = inNode.shadow;
+      while (shadow.olderSubtree) {
+        shadow = shadow.olderSubtree;
+      }
+      var style = ShadowDOM.localQuery(shadow, 'style');
+      if (style) {
+        var styles = style.textContent;
+        styles = styles.replace(/@host/g, inNode.localName);
+        sheet.appendChild(document.createTextNode(styles));
+      }
+    }
+  }
+  
+  this.component();
+  // TODO(sorvell): we force extendees have our host styles by
+  // using shadowRootCreated. This styling is really the point of g-app.
+  this.lifecycle({
+    shadowRootCreated: function() {
+      ensureHostStyles(this);
+    }
+  });
+</script>
+</element>

@@ -1,0 +1,75 @@
+{
+    "additionalFeatures": "Includes HTC widgets: Bookmarks, Calendar, Clock, Footprints, Friend Stream, Mail, Messages, Music, News, People, Photo Album, Photo Frame, Search, Settings, Stocks, Twitter, Weather.", 
+    "android": {
+        "os": "Android 2.1", 
+        "ui": "HTC Sense\u2122"
+    }, 
+    "availability": [
+        "US Cellular (United States)", 
+        "Cellular South (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "360 hours", 
+        "talkTime": "6 hours", 
+        "type": "Lithium Ion (Li-Ion) (1400 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "5.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.1", 
+        "cell": "CDMA 1X 800/1900, EVDO rev. A", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "With the HTC Desire, it\u2019s all about your information, your entertainment, your multimedia \u2026 your way. A multitude of HTC Sense widgets makes it easy to transform your Home screen with rich content that personalizes your phone experience.\r\n\r\nIf you\u2019re a sports junkie or simply love to keep up to date with the latest news, the HTC Desire keeps you in the know with the News application. News makes it easier than ever to collect all your favorite articles from across the web. Choose from a selection of channels that cover top blogs, news sites or sports pages, or get news updates based on the keywords you select.\r\n\r\nThe 1 GHz Qualcomm Snapdragon processor makes the phone incredibly responsive.", 
+    "display": {
+        "screenResolution": "WVGA (800 x 480)", 
+        "screenSize": "3.7 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "1 GHz Qualcomm QSD 8250 Snapdragon", 
+        "fmRadio": true, 
+        "physicalKeyboard": "/phone/static/images/False.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "htc-desire-cdma", 
+    "images": [
+        {
+            "id": "424004", 
+            "medium": "http://www.google.com/phone/image/medium/424004", 
+            "small": "http://www.google.com/phone/image/small/424004"
+        }, 
+        {
+            "id": "503001", 
+            "medium": "http://www.google.com/phone/image/medium/503001", 
+            "small": "http://www.google.com/phone/image/small/503001"
+        }, 
+        {
+            "id": "504001", 
+            "medium": "http://www.google.com/phone/image/medium/504001", 
+            "small": "http://www.google.com/phone/image/small/504001"
+        }
+    ], 
+    "name": "HTC Desire (CDMA)", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "60.0 mm (w)", 
+            "119.0 mm (h)", 
+            "11.9 mm (d)"
+        ], 
+        "weight": "135.0 grams"
+    }, 
+    "storage": {
+        "flash": "512MB", 
+        "ram": "384MB"
+    }
+}

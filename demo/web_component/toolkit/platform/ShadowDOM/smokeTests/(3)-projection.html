@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- -->
+    <script>__exported_components_polyfill_scope__ = window;</script>
+    <script src="../polyfill/Changeling.js"></script>
+    <script src="../polyfill/Projection.js"></script>
+    <!-- -->
+    <script src="lib/util.js"></script>
+    <script src="lib/dump.js"></script>
+    <!-- -->
+    <style>
+      div {
+        border: 1px dotted red;
+        margin: 8px;
+        padding: 8px;
+      }
+    </style>
+    <script>
+      change = function() {
+        // establish virtual tree via projection
+        new Projection($("#parentB")).addNodes($("#parentA").childNodes);
+        // dump document tree
+        dumper(document.body);
+      }
+    </script>
+  </head>
+  <body onload="change()">
+      <div id="parentA">
+        Foo
+        <span>Where am I?</span>
+        <span>Where am I?</span>
+        <span>Where am I?</span>
+        Bar
+      </div>
+      <div id="parentB"></div>
+
+      <hr/>
+
+      Expected output:
+      <div>(changeling for TEXT)(changeling for SPAN)(changeling for TEXT)(changeling for SPAN)(changeling for TEXT)(changeling for SPAN)(changeling for TEXT)</div>
+      <div>
+        Foo
+        <span>Where am I?</span>
+        <span>Where am I?</span>
+        <span>Where am I?</span>
+        Bar
+      </div>
+  </body>
+</html>

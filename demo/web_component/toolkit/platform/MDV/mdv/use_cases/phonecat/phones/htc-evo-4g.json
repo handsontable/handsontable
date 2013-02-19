@@ -1,0 +1,74 @@
+{
+    "additionalFeatures": "1.3MP front-facing camera, HDMI out, WiMax mobile Wi-Fi router, Friend Stream, HTC Sync, Amazon MP3", 
+    "android": {
+        "os": "Android 2.2", 
+        "ui": "HTC Sense\u2122"
+    }, 
+    "availability": [
+        "Sprint (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "146 hours", 
+        "talkTime": "7 hours", 
+        "type": "Lithium Ion (Li-Ion) (1500 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "8.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.0", 
+        "cell": "CDMA 800/1900 MHz EVDO Rev. A, WiMAX 2.5 to 2.7GHz; 802.16e ", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "With the HTC EVO\u2122 4G, the first 4G phone on the nation's first 4G network, you\u2019ve got the power to do more than you ever thought possible with a phone. \r\n\r\n\r\nWi-Fi\u00ae wherever you go. With instant Internet access for up to 5 computers, the HTC EVO opens up all kinds of possibilities. \r\n\r\n\r\nTrue HD vision. The true HD camcorder captures the moment. And with the HDMI cable connected to your flatscreen, you can relive the moment, down to the last detail. \r\n\r\n\r\nPower-packed entertainment. With eye-popping resolution on the giant 4.3-inch screen, your favorite flicks, live sports and primetime shows come to the rescue whenever there\u2019s time to kill.", 
+    "display": {
+        "screenResolution": "WVGA (800 x 480)", 
+        "screenSize": "4.3 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "Qualcomm\u00ae QSD 8650, 1GHz ", 
+        "fmRadio": true, 
+        "physicalKeyboard": "/phone/static/images/False.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "htc-evo-4g", 
+    "images": [
+        {
+            "id": "114004", 
+            "medium": "http://www.google.com/phone/image/medium/114004", 
+            "small": "http://www.google.com/phone/image/small/114004"
+        }, 
+        {
+            "id": "166001", 
+            "medium": "http://www.google.com/phone/image/medium/166001", 
+            "small": "http://www.google.com/phone/image/small/166001"
+        }, 
+        {
+            "id": "167001", 
+            "medium": "http://www.google.com/phone/image/medium/167001", 
+            "small": "http://www.google.com/phone/image/small/167001"
+        }
+    ], 
+    "name": "HTC EVO 4G", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "66.0 mm (w)", 
+            "122.0 mm (h)", 
+            "12.7 mm (d)"
+        ], 
+        "weight": "170.1 grams"
+    }, 
+    "storage": {
+        "flash": "1000MB", 
+        "ram": "512MB"
+    }
+}

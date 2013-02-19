@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2008 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<!--
+Author: cberry@google.com (Craig Berry)
+-->
+<head>
+<title>Closure Unit Tests - goog.ui.ScrollFloater</title>
+<script src="../base.js"></script>
+<script>
+  goog.require('goog.dom');
+  goog.require('goog.testing.jsunit');
+  goog.require('goog.ui.ScrollFloater');
+</script>
+</head>
+<body>
+<script>
+
+  function testScrollFloater() {
+    var scrollFloater = new goog.ui.ScrollFloater();
+    var floater = goog.dom.getElement('floater');
+    scrollFloater.decorate(floater);
+
+    assertTrue('Default state is enabled', scrollFloater.isScrollingEnabled());
+    assertFalse('On unscrolled page should not be floating',
+                scrollFloater.isFloating());
+
+    scrollFloater.setScrollingEnabled(false);
+
+    assertFalse('We can disable the floater',
+                scrollFloater.isScrollingEnabled());
+  }
+
+</script>
+
+<div id="floater">
+Content to be scroll-floated.
+</div>
+
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- -->
+    <script>
+      window.__exported_components_polyfill_scope__ = window;
+      flags = {
+        logloader: true,
+        logparser: true
+      };
+		</script>
+		<!-- -->
+		<script src="../../lib/lang.js"></script>
+		<script src="../../ComponentDocuments/path.js"></script>
+		<script src="../../ComponentDocuments/loader.js"></script>
+		<script src="../../ComponentDocuments/parser.js"></script>
+		<!-- -->
+		<link rel="components" href="mock/mock-components.html"/>
+	</head>
+	<body>
+		Output in console.
+		<script>
+			ComponentDocuments.loader.componentLoader.preload(document, function() {
+				console.log("preload finished");
+				ComponentDocuments.parser.parse(document, function(inElement) {
+					console.log(inElement);
+				});
+			});
+		</script>
+	</body>
+</html>

@@ -1,0 +1,92 @@
+<!--
+/*
+ * Copyright 2012 The Toolkitchen Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+-->
+<element name="g-panel-transition">
+  <script>
+    this.component({
+      publish: {
+        transitionClass: 'transition',
+        timeout: 1000,
+        //* indicates only one panel should be displayed at a time.
+        highlander: true,
+        setup: function(inPanels) {
+          this.panels = inPanels;
+          this.panels.getPanels().forEach(function(p, i) {
+            this.setupPanel(p, i);
+          }, this);
+          this.finishListener = this.finish.bind(this);
+        },
+        teardown: function() {
+          this.panels.getPanels().forEach(function(p, i) {
+            this.teardownPanel(p, i);
+          }, this);
+        },
+        setupPanel: function(inPanel, inIndex) {
+          if (this.transitionClass) {
+            inPanel.classList.add(this.transitionClass);
+          }
+        },
+        teardownPanel: function(inPanel, inIndex) {
+          inPanel.classList.remove(this.transitionClass);  
+          inPanel.style.opacity = inPanel.style.webkitTransform = null;
+          if (this.highlander) {
+            this.panels.enablePanelShowing(inPanel, true);
+          }
+        },
+        canTransition: function() {
+          return true;
+        },
+        go: function(inFrom, inTo, inForward) {
+          this.from = inFrom;
+          this.to = inTo;
+          this.forward = inForward;
+          this._transitioning = true;
+          this.setupTimeout();
+          this.begin(inFrom, inTo, inForward);
+        },
+        finish: function() {
+          if (this._transitioning) {
+            this.complete(); 
+            this.cancel();
+            this.panels.finishTransition(this.from, this.to, this.forward);
+          }
+        },
+        setupTimeout: function() {
+          webkitRequestAnimationFrame(function() {
+            this._timeout = this.asyncMethod('finishListener', null,
+              this.timeout);
+          }.bind(this));
+        },
+        cancel: function() {
+          clearTimeout(this._timeout);
+          this._transitioning = this._timeout = false;
+        },
+        stop: function() {
+          this.finish();
+        },
+        // transitions typically override begin/complete
+        begin: function() {
+        },
+        complete: function() {
+        },
+        // refresh the transition state
+        refresh: function() {
+        }
+      }
+    });
+  </script>
+</element>
+
+<element name="g-none-panel-transition" extends="g-panel-transition">
+  <script>
+    this.component({
+      begin: function() {
+        this.finish();
+      }
+    })
+  </script>
+</element>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>PointerGesture testing ground</title>
+    <style>
+      body, html {
+        margin: 0;
+        height: 100%;
+        position: relative;
+      }
+      body {
+        overflow: auto;
+      }
+      #capture {
+        background-color: orange;
+        height: 300px;
+        width: 300px;
+        text-align: center;
+        -webkit-user-select: none;
+      }
+      #enterleave {
+        background-color: blue;
+        height: 150px;
+        width: 150px;
+        text-align: center;
+        vertical-align: center;
+        line-height: 150px;
+        left: 25%;
+        top: 25%;
+        position: relative;
+      }
+      #output {
+        width: 300px;
+        height: 150px;
+        overflow: scroll;
+        white-space: pre;
+      }
+    </style>
+    <script src="../../src/pointergestures.js"></script>
+  </head>
+  <body>
+    <div id="capture" touch-action="none">
+      <div id="enterleave">
+      </div>
+    </div>
+    <div id="output"></div>
+    <script>
+      var events = [
+        'hold',
+        'holdpulse',
+        'release',
+        'tap',
+        'flick',
+        'trackstart',
+        'track',
+        'trackend'
+      ];
+      function appendOutput(inString) {
+        var t = output.textContent;
+        output.textContent = inString + '\n' + t;
+      };
+      events.forEach(function(en) {
+        capture.addEventListener(en, function(inEvent) {
+          console.log(inEvent);
+          appendOutput(inEvent.type);
+        });
+      });
+    </script>
+  </body>
+</html>

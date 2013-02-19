@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<!--
+  Copyright 2009 The Closure Library Authors. All Rights Reserved.
+  Author: dgajda@google.com (Damian Gajda)
+-->
+<head>
+<title>Closure Unit Tests - goog.text.LorumIpsum</title>
+  <script src="../../../../../closure/goog/base.js"></script>
+  <script src="../../deps.js"></script>
+<script>
+  goog.require('goog.testing.jsunit');
+  goog.require('goog.testing.PseudoRandom');
+  goog.require('goog.text.LoremIpsum');
+</script>
+</head>
+<body>
+<script>
+
+  var pseudoRandom;
+
+  function setUp() {
+    pseudoRandom = new goog.testing.PseudoRandom(100);
+    pseudoRandom.install();
+  }
+
+  function tearDown() {
+    pseudoRandom.uninstall();
+  }
+
+  function testLoremIpsum() {
+    var generator = new goog.text.LoremIpsum();
+    assertEquals(
+        'Lorem ipsum dolor sit amet. Enim convallis tortor interdum cras. ' +
+        'Parturient sit massa dolor, nulla. In tristique a hymenaeos risus. ' +
+        'Senectus ipsum nunc dui luctus dapibus per, accumsan dignissim ' +
+        'porta pede cubilia potenti. Litora id, pretium orci et ' +
+        'sollicitudin. Nisl nam odio curabitur sapien, fames eni curae. ' +
+        'Fringilla amet. Pede leo erat placerat eros, aliquet congue. Duis ' +
+        'phasellus primis, sapien, habitant augue auctor, aenean eu. ' +
+        'Tincidunt quam, tempor eu risus aenean. Tempor eu, nisi imperdiet ' +
+        'tristique magna dapibus, laoreet. Velit nisi feugiat venenatis. ' +
+        'Metus luctus massa hymenaeos mi, condimentum mi, rutrum ad. Semper ' +
+        'faucibus fusce blandit mollis mus. Parturient ridiculus porta in. ' +
+        'Elit sed sagittis magna nisl viverra, at, congue venenatis. Donec. ' +
+        'Mi. Diam proin integer aenean, nec eros est phasellus accumsan, ' +
+        'auctor primis. Est. At, ac cras magna ac nibh, elit.',
+        generator.generateParagraph(true));
+
+    assertEquals(
+        'Pede vel tortor vel ac vehicula. Ac malesuada parturient. ' +
+        'Parturient orci risus. Mi, at mus semper nec et pharetra sodales, ' +
+        'ante. Ac. Integer dictumst primis pharetra. Pretium proin orci ' +
+        'porta condimentum leo, amet. Sociosqu euismod vitae adipiscing ' +
+        'senectus quam vehicula sollicitudin, platea. Sollicitudin ' + 
+        'parturient eros platea id ac nisi.',
+        generator.generateParagraph(false));
+  }
+
+</script>
+</body>
+</html>

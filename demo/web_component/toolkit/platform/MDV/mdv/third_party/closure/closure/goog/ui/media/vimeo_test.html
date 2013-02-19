@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2009 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<!--
+  Author: goto@google.com (Sam Goto)
+-->
+<head>
+<title>Closure Unit Tests - goog.ui.media.Vimeo</title>
+<script src="../../base.js"></script>
+<script>
+  goog.require('goog.debug.Logger');
+  goog.require('goog.dom');
+  goog.require('goog.events');
+  goog.require('goog.testing.jsunit');
+  goog.require('goog.testing.LooseMock');
+  goog.require('goog.ui.Component');
+  goog.require('goog.ui.Control');
+  goog.require('goog.ui.ControlRenderer');
+  goog.require('goog.ui.media.FlashObject');
+  goog.require('goog.ui.media.Vimeo');
+  goog.require('goog.ui.media.VimeoModel');
+</script>
+</head>
+<body>
+<script>
+
+  var vimeo;
+  var control;
+  var VIMEO_ID = '3001295';
+  var VIMEO_URL = 'http://vimeo.com/' + VIMEO_ID;
+  var parent = goog.dom.createElement('div');
+  
+  function setUp() {
+    vimeo = new goog.ui.media.Vimeo();
+    var model = new goog.ui.media.VimeoModel(VIMEO_ID, 'vimeo caption');
+    control = new goog.ui.media.Media(model, vimeo);
+    control.setSelected(true);
+  }
+
+  function tearDown() {
+    control.dispose();
+  }
+
+  function testBasicRendering() {
+    control.render(parent);
+    var el = goog.dom.getElementsByTagNameAndClass('div',
+        goog.ui.media.Vimeo.CSS_CLASS, parent);
+    assertEquals(1, el.length);
+    assertEquals(VIMEO_URL, control.getDataModel().getUrl());
+  }
+
+  function testParsingUrl() {
+    var player1 = goog.ui.media.VimeoModel.newInstance(VIMEO_URL);
+
+    var failed = false;
+    try {
+      var player2 = goog.ui.media.Vimeo.parseUrl(
+          'http://invalidUrl/filename.doc');
+    } catch (e) {
+      failed = true;
+    }
+    assertTrue(failed);
+  }
+
+  function testCreatingDomOnInitialState() {
+    control.render(parent);
+    var caption = goog.dom.getElementsByTagNameAndClass(
+        'div',
+        goog.ui.media.Vimeo.CSS_CLASS + '-caption',
+        parent);
+    assertEquals(1, caption.length);
+
+    var flash = goog.dom.getElementsByTagNameAndClass('div',
+        goog.ui.media.FlashObject.CSS_CLASS, parent);
+    assertEquals(1, flash.length);
+  }
+</script>
+</body>
+</html>

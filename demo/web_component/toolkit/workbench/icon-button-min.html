@@ -1,0 +1,44 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0">
+  <title>Icon Button</title>
+
+  <!-- (option 1) fully minified script -->
+  <script src="../platform/min/platform.min.js"></script>
+
+  <!-- (option 2) concatenated, but not minified -->
+  <!--  <script src="../platform/min/platform.js"></script>-->
+
+  <!-- (option 3) individual dependencies  -->
+  <!--  
+  <script src="../platform/lib/preload.js"></script>
+  <script src="../platform/lib/lang.js"></script>
+  <script src="../platform/lib/dom_token_list.js"></script>
+  <script src="../platform/min/PointerEvents.js"></script>
+  <script src="../platform/min/PointerGestures.js"></script>
+  <script src="../platform/min/MDV.js"></script>
+  <script src="../platform/min/ShadowDOM.js"></script>
+  <script src="../platform/min/ComponentDocuments.js"></script>
+  <script src="../platform/min/CustomDOMElement.js"></script>
+  <script src="../platform/lib/boot.js"></script>
+  -->
+
+  <link rel="components" href="../components/g-icon-button.html">
+</head>
+<body>
+  <g-icon-button src="images/star_full.svg"></g-icon-button>
+  <g-icon-button active="true" src="images/star_full.svg"></g-icon-button>
+  <g-icon-button id="dynamic"></g-icon-button>
+  <script>
+    window.addEventListener("WebComponentsReady", function() {
+      document.querySelector("#dynamic").src = "images/star_full.svg";
+    });
+  </script>
+</body>
+</html>

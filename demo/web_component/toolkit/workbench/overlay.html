@@ -1,0 +1,101 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Overlay</title>
+  <script src="../platform/platform.js"></script>
+  <link rel="components" href="../components/g-overlay.html">
+  <link rel="stylesheet" href="../components/css/g-overlay.css">
+	<style>
+    g-overlay > .overlay {
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+			font-size: 13px;
+			-webkit-user-select: none;
+			overflow: hidden;
+			background: white;
+      padding:30px 42px;
+			outline: 1px solid rgba(0,0,0,0.2);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+
+    #dialog > .overlay, #dialog2 > .overlay {
+			top: 72px;
+			left: 50%;
+			width: 512px;
+			margin-left: -256px;
+    }
+
+    #confirmation > .overlay {
+      position: absolute;
+      left: 50%;
+      top: 100px;
+      text-align: center;
+      width: 150px;
+      margin-left: -75px;
+    }
+	</style>
+</head>
+<body>
+	<button onclick="$('#dialog').toggle()">Toggle Dialog</button>
+  ( open styling: 
+  <select onchange="changeOpening(event)">
+    <option>g-overlay-scale-slideup</option>
+    <option>g-overlay-shake</option>
+    <option>g-overlay-fade</option>
+    <option>none</option>
+  </select>,
+  <label>modal: <input type="checkbox" onchange="modalChange(event)">
+  </label>
+  )
+  <br>
+	<g-overlay id="dialog" class="g-overlay-scale-slideup">
+		<h2>Dialog</h2>
+		<div>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed fringilla sapien sed enim sollicitudin laoreet. Suspendisse suscipit, metus ac volutpat sodales, libero magna semper lacus, molestie fringilla massa orci ut arcu. Nullam sodales urna sit amet odio vehicula mattis.</div><br><br>
+		<div>Ut aliquam vulputate congue. Vestibulum pretium pretium nulla quis sollicitudin. Praesent lacinia congue erat nec mattis. Fusce commodo lacus est. Duis turpis eros, ultrices sed aliquet non, blandit egestas velit. Integer a augue nec lorem tristique hendrerit. Curabitur imperdiet risus id enim bibendum vestibulum. Integer id magna at arcu faucibus fermentum vel a augue. Sed fringilla venenatis dolor, in blandit magna molestie luctus. Vestibulum dignissim posuere ultrices. Aenean urna nisl, tincidunt vitae iaculis ut, pharetra nec eros.</div><br><br>
+		<div>
+      <input placeholder="say something..." autofocus oninput="somethingCheck()"></input><br>
+			I agree with this wholeheartedly.
+      <g-overlay id="confirmation">
+        Thank you.
+      </g-overlay>
+		</div><br><br>
+		<button overlay-toggle>OK</button>
+	</g-overlay>
+
+	<br><br>
+
+	<button onclick="$('#dialog2').toggle()">Toggle Dialog 2</button>
+
+	<g-overlay id="dialog2" class="g-overlay-shake" modal>
+		<h2>Dialog 2</h2>
+			I'm dizzy.
+		</div><br><br>
+		<button overlay-toggle>OK</button>
+	</g-overlay>
+  
+  <script>
+    $ = document.querySelector.bind(document);
+
+    somethingCheck = function() {
+      $('#confirmation').opened = (event.target.value == 'something');
+    }
+    
+    changeOpening = function(e) {
+      var s = e.target.selectedOptions[0];
+      if (s) {
+        dialog.className = dialog.className.replace(/g-[^\s]*/, '')
+        dialog.classList.add(s.textContent);
+      }
+    }
+    
+    modalChange = function(e) {
+      dialog.modal = e.target.checked;
+    }
+	</script>
+</body>
+</html>

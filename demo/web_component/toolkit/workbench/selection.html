@@ -1,0 +1,26 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Selection</title>
+  <script src="../platform/platform.js"></script>
+  <link rel="components" href="../components/g-selection.html">
+</head>
+<body>
+  <g-selection></g-selection>
+  <script>
+    window.addEventListener('WebComponentsReady', function() {
+      // g-selection provides a code module, not rendering
+      var s = document.querySelector("g-selection");
+      s.addEventListener("select", function(inEvent) {
+        console.log("selected", inEvent.detail);
+      });
+      s.select("(item)");
+    });
+  </script>
+</body>
+</html>

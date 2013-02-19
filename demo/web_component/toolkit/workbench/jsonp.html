@@ -1,0 +1,31 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Jsonp</title>
+  <script src="../platform/platform.js"></script>
+  <link rel="components" href="../components/g-jsonp.html">
+</head>
+<body>
+  <g-jsonp url="https://clients1.google.com/finance/info?q=GOOG&client=ig&callback="></g-jsonp>
+  <template instantiate="stockquote">
+    <div>quote: {{l}}</div>
+  </template>
+  <script>
+    document.addEventListener('WebComponentsReady', function() {
+      var jsonp = document.querySelector("g-jsonp");
+      jsonp.addEventListener("response", 
+        function(inEvent) {
+          document.body.model = {
+            stockquote: inEvent.detail.response[0]
+          };
+        }
+      );
+    });
+  </script>
+</body>
+</html>

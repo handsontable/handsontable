@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2011 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>Shuffle Comparison</title>
+<script src="../../mutation_summary.js"></script>
+<body>
+  Shuffle moves: <input id="moveCount" type="number" value="1000">
+
+  <select id="watchType" onchange="setupWatch();">
+    <option value="event">DOM Mutation Events</option>
+    <option value="observer">DOM Mutation Observers</option>
+    <option value="summary">The Mutation Summary Library</option>
+  </select>
+  <button onclick="shuffle();">Shuffle!</button>
+
+  <ul id="deck"><li>Ace</li><li>2</li><li>3</li><li>4</li><li>5</li><li>6</li><li>7</li><li>8</li><li>9</li><li>10</li><li>Jack</li><li>Queen</li><li>King</li></ul>
+
+  <h3 id="report"></h3>
+</body>
+
+<script>
+
+var changeCount;
+var callbacks;
+var watchType;
+var observer;
+var observerSummary;
+
+function shuffle() {
+  prepReport();
+
+  var deck = document.getElementById('deck');
+  var moveCount = Number(document.getElementById('moveCount').value);
+  while(moveCount-- > 0) {
+    var randomCard = deck.childNodes[randInt(0, deck.childNodes.length - 1)];
+    deck.removeChild(randomCard);
+    var randomPlace = deck.firstChild;
+    var randomCount = randInt(0, deck.childNodes.length - 1);
+    while(randomCount-- > 0) {
+      randomPlace = randomPlace.nextSibling;
+    }
+    deck.insertBefore(randomCard, randomPlace);
+  }
+
+  setTimeout(report, 0);
+}
+
+function mutationEventIsFiring(e) {
+  callbacks++;
+  changeCount++;
+}
+
+function observeMutations(mutations) {
+  callbacks++;
+  changeCount += mutations.length;
+}
+
+function handleSummary(summaries) {
+  callbacks++;
+  var shuffleChanges = summaries[0];
+  changeCount += shuffleChanges.reordered.length;
+}
+
+function randInt(start, end) {
+  return Math.round(Math.random() * (end-start) + start);
+}
+
+function prepReport() {
+  document.getElementById('report').innerText = '';
+  changeCount = 0;
+  callbacks = 0;
+}
+
+function setupWatch() {
+  var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+
+  switch(watchType) {
+    case 'event':
+      document.removeEventListener('DOMNodeInserted', mutationEventIsFiring);
+      document.removeEventListener('DOMNodeRemoved', mutationEventIsFiring);
+      break;
+    case 'observer':
+      observer.disconnect();
+      break;
+    case 'summary':
+      observerSummary.disconnect();
+      break;
+  }
+
+  watchType = document.getElementById('watchType').value;
+
+  switch(watchType) {
+    case 'event':
+      document.addEventListener('DOMNodeInserted', mutationEventIsFiring);
+      document.addEventListener('DOMNodeRemoved', mutationEventIsFiring);
+      window.report = function() {
+        document.getElementById('report').textContent = changeCount + ' events fired';
+      }
+      break;
+    case 'observer':
+      observer = new MutationObserver(observeMutations);
+      observer.observe(document, { childList: true, subtree: true});
+      window.report = function() {
+        document.getElementById('report').textContent = changeCount + ' mutations reported in ' + callbacks + ' callbacks';
+      }
+      break;
+    case 'summary':
+      observerSummary = new MutationSummary({ callback: handleSummary, queries: [{ all: true }]});
+      window.report = function() {
+        document.getElementById('report').textContent = changeCount + ' reorders reported in ' + callbacks + ' callbacks';
+      }
+      break;
+  }
+}
+
+window.addEventListener('DOMContentLoaded', setupWatch);
+
+</script>
+</html>

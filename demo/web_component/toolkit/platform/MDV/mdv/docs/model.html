@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Observable Objects: Model</h1>
+
+<h2>Goal</h2>
+<p>The first primitive in the MDV design is a <em>Model</em> abstraction which creates a mechanism through which mutations to objects can be expressed directly, but allows observers to be notified when mutations occur.</p>
+
+<p>The Model abstraction allows for two types of observation:</p>
+<ol>
+<li>Observe all mutations which occur to a specific object.</li>
+<li>Observe changes to the <a href="#pathValue">value at a path</a> from an object.</li>
+</ol>
+
+<p>Further, it guarantees that</p>
+<ol>
+<li>Observers are notified if <em>and only if</em> a change has occurred.</li>
+<li>Observers are notified in a <a href="#notificationOrder">particular order</a>.</li>
+</ol>
+
+<code><pre>&lt;script&gt;
+var data = {person: { name: 'Jim', age: 32 }};
+var m = Model.get(data);
+
+Model.observeObject(m, function(change) {
+  // Handle property add/update/deletes
+});
+
+Model.observePath(m, "person.age", function(value, oldValue) {
+  // Handle value change of m.person.age
+});
+
+m.person.age = 33; // Second observer fires: (value = 33, oldValue=32)
+m.parent = { name: 'Sam', age: 72 }; // First observer fires (property 'parent' added)
+data.person.name = 'James'; // No observers are fired. Only model objects are observable.
+&lt;/script&gt;</pre></code>
+
+<h2 id="path">Path</h2>
+
+<p>Note: the code samples in this section are pseudo-code.</p>
+
+<p>A <em>Path</em> is generally a JSON-style path. It is modelled after the
+member lookup syntax in ECMAScript. Dot (<code>.</code>) and bracket
+(<code>[]</code>) notation are supported.</p>
+
+<code><pre>{"a": {"b": {"c": 42, "d": [97, 13]}}}
+
+a.b.c => 42
+a.b.d[1] => 13
+</pre></code>
+
+<p>A path can also contain <em>parent</em> (<code>../</code>), <em>this</em>
+(<code>./</code>) and <em>root</em> (<code>/</code>). The syntax for these where
+inspired by the file system path syntax. It is important to point out that even
+though a path can reach above itself, whenever it is used it will never be able
+to reach above the <em>reference</em> object.
+
+<h3>Parent</h3>
+
+<p>The <em>parent</em> path name (<code>../</code>) allows you to select a
+value above the current reference point. In general this is not that useful
+since you cannot reach above the current reference object. However, having a
+parent selector is useful when concatenating paths. When concatenating multiple
+paths the <em>parent</em> strips the previous part.</p>
+
+<code><pre>path-a = a.b.c
+path-b = ../d
+concat(path-a, path-b) => a.b.d</pre></code>
+
+<h3>This</h3>
+
+<p>The <em>this</em> path name (<code>./</code>) allows you to select the value
+at the current reference point.</p>
+
+<code><pre>path-a = a.b.c
+path-b = ./
+concat(path-a, path-b) => a.b.c</pre></code>
+
+
+<h3>Root</h3>
+
+<p>The <em>root</em> path name (<code>/</code>) selects the root of the
+reference. It's value is that, when concatenating multiple path it strips
+everything to the left of the <em>root</em> part.</p>
+
+<code><pre>path-a = a.b.c
+path-b = /d.e
+concat(path-a, path-b) => /d.e
+</pre></code>
+
+<h2 id="pathValue">Path Value</h2>
+
+<p>A <em>Path Value</em> is the value of a property at a <em>path</em> from a given <em>reference</em> object. If the path is unreachable, the value is considered <code>undefined</code>.</p>
+
+<p class="todo">Needs to be formalized.</p>
+
+<h2>Model Objects</h2>
+
+<p>A <em>Model</em> object is a proxy for an underlying "raw" data object. The model can be read and written to as if it were the underlying object, but writes will cause observers to be notified of mutations. The object which the model is proxing is the <em>proxied object</em>. An object has at most one model and a model has at most one proxied object. Models have the following behaviors.</p>
+
+<ul>
+
+<li>Read:
+  <ol>
+    <li>Read the property on the proxied object.</li>
+    <li>If the read value is a object, return its model, otherwise return the value.</li>
+  </ol>
+</li>
+
+<li>Updates:
+  <ol>
+    <li>If the update is an assignment and the assigned value is an model, use its proxied object for assignment.</li>
+    <li>Update the proxied object.</li>
+    <li>Notify all affected observers.</li>
+  </ol>
+</li>
+
+<li>Function invocations:
+  <ol>
+    <li>If any argument is model, replace it with its proxied object.</li>
+    <li><code>this</code> inside the function body is the proxied object, not the model.</li>
+    <li>If the returned value is an object, return its model, otherwise return the value.</li>
+  </ol>
+</li>
+</ul>
+
+<p>Further:</p>
+<ul>
+<li>Model objects have the same prototype as their underlying object. <em>Note that   with the current ECMA Proxy implementation, <code>Array.isArray(Model.get([])) === false</code>. This is likely to be surprising to application code, and also causes <code>Array.prototype.concat</code> to not work as expected on models. ECMA TC-39 is <a href="http://wiki.ecmascript.org/doku.php?id=strawman:es5_internal_nominal_typing">aware</a> of the problem and looking for a fix.</em>
+</li>
+<li>Mutations made to a raw object are never observable, even if a corresponding model object has been retrieved and observed.</li>
+</ul>
+
+<p class="todo">Clarify. The point here is that writes to models will fire notifications to observers. Further that the model maintain a wet/dry boundary for the models/proxied objects. The wet side is the "outside", i.e. traversing from a model will always return objects wrapped as models. The dry side is the "inside", i.e. functions of proxied objects (including setters) should never see model objects, only proxied "raw" objects.</p>
+
+<p>Arrays objects behave like other objects with respect to models, except that Array fire <a href="#spliceMutation">"splice"</a> mutation events when index properties are affected.</p>
+
+<h2>Model.get</h2>
+<code>Model.get(object, [opt_path])</code>
+
+<p>Create or fetch the existing model for a the value at a <code>opt_path</code> from <code>object</code>.</p>
+
+<p>The Model maintains an internal <a href="http://wiki.ecmascript.org/doku.php?id=harmony:weak_maps">weak</a> mapping between raw objects and model objects. At most, one model object will exist for a given raw object.</p>
+
+<p>The call behaves as follows:</p>
+
+<ul>
+<li>[opt_path] defaults to the empty path.</li>
+<li>If the referenced value is not an object, the value is simply returned.</li>
+<li>If the referenced value is a model object, it is simply returned.</li>
+<li>If a model already exists for the referenced value, a new model object is not created and the existing model object is returned.</li>
+</ul>
+
+<h2 id="modelObserveObject">Model.observeObject</h2>
+<code>Model.observeObject(object, callback)</code>
+
+<p>Register a callback to be invoked every time <code>object</code> is mutated.</p>
+
+<p>The call behaves as follows:</p>
+
+<ul>
+<li>The provided object can either be a raw object or a model. If a raw object is provided, the call will internally use <code>Model.get</code> to retrieve the appropriate model object.</li>
+<li>If <code>object</code> is not observable (not an object), the call silently returns.</li>
+<li><code>callback</code> is guaranteed to be invoked eventually for each mutation.</li>
+<li><code>callback</code> is provided a single <code>change</code> argument. Note that <code>change</code> is a model object which means that object-valued references from it are also models.</li>
+<li id="spliceMutation">If the observed object is an Array, the <code>change</code> encodes only one type of mutation:
+<code><pre>{
+  mutation: 'splice',
+  index: [UInt32]
+  added: [Array of added values]
+  removed: [Array of removed values]
+}</pre></code>
+</li>
+<li>
+Otherwise, the <code>change</code> argument encodes all mutations as adds, updates or deletes of a named object property.
+<code><pre>{
+  mutation: ['add' | 'update' | 'delete' ],
+  propertyName: [String],
+  value: [current value],
+  oldValue: [previous value - if 'update' or 'delete']
+}</pre></code>
+
+</li>
+<li>If a property is assigned on an object and an existing value is available via the object's prototype type chain, the <code>mutation</code> is considered an 'update' and its <code>oldValue</code> is the value from the prototype chain. Likewise, if a property is deleted but the property is still available via the prototype chain, the <code>mutation</code> is considered an 'update' and its <code>value</code> is the value from the prototype chain.</li>
+</ul>
+
+<h2 id="modelObserve">Model.observe</h2>
+<code>Model.observePath(object, path, callback)</code>
+
+<p>Register a callback to be invoked when the value at <code>path</code> from the <code>object</code> changes.</p>
+
+<p>The call behaves as follows:</p>
+
+<ul>
+<li>The provided object can either be a raw object or a model. If a raw object is provided, the call will internally use <code>Model.get</code> to retrieve the appropriate model object.</li>
+<li>If <code>object</code> is not observable (not an object), the call silently returns.</li>
+<li><code>callback</code> will not be invoked if, by the time it is to be called, the value has been returned to the callback's <code>lastObservedValue</code>.</li>
+<li>If the value at <code>path</code> is unreachable from <code>object</code>, it is considered to be <code>undefined</code>.</li>
+<li>Internally maintains the <code>lastObservedValue</code> for each registered <code>callback</code> which is initially the value at the time of registration and updated to be the value after each invocation of <code>callback</code>.</li>
+<li><code>callback</code> is invoked with two arguments:
+  <pre><code>callback(value, lastObservedValue)</code></pre>
+</li>
+<li><code>Model.observe</code> returns a <code>PathValue</code> object</li>
+</ul>
+
+<h2 id="notificationOrder">Observer notification sequencing</h2>
+
+<p>Observers affected by an object mutation are notified in an order which reflects decreasing proximity to the mutation. Specifically:</p>
+
+<ol>
+  <li>All <code>Model.observeObject</code> observers of the object that was mutated</li>
+  <li>All affected <code>Model.observe</code> observers, breadth-first, starting at one property away from the object and expanded until all are reached.</li>
+</ol>
+
+<h2>Open Issues</h2>
+<ul>
+
+<li>Need to specify an approach to detecting and handling cycles within notification sequences</li>
+
+</ul>
+</body>
+</html>

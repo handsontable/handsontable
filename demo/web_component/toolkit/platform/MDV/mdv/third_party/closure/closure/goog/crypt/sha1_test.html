@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2010 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<head>
+<title>Closure Unit Tests - goog.crypt.sha1</title>
+<script src="../base.js"></script>
+<script>
+  goog.require('goog.crypt.Sha1');
+  goog.require('goog.testing.jsunit');
+</script>
+</head>
+<body>
+<script>
+
+/**
+ * Helper function to convert a byte array to a hex string
+ */
+function bytesToHex(bytes) {
+  var hexchars = '0123456789abcdef';
+  var hexrep = new Array(bytes.length * 2);
+
+  for (var i = 0; i < bytes.length; ++i) {
+    hexrep[i * 2] = hexchars.charAt((bytes[i] >> 4) & 15);
+    hexrep[i * 2 + 1] = hexchars.charAt(bytes[i] & 15);
+  }
+  return hexrep.join('');
+}
+
+function testHashing() {
+  // Test basic hashing.
+  var byteArray = [0x61, 0x62, 0x63]
+  var sha1 = new goog.crypt.Sha1();
+  sha1.update(byteArray);
+
+  assertEquals('a9993e364706816aba3e25717850c26c9cd0d89d',
+               bytesToHex(sha1.digest()));
+}
+
+</script>
+</body>
+</html>

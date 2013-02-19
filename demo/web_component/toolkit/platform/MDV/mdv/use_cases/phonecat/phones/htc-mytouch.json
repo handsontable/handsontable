@@ -1,0 +1,73 @@
+{
+    "additionalFeatures": "", 
+    "android": {
+        "os": "Android 1.6", 
+        "ui": ""
+    }, 
+    "availability": [
+        "T-Mobile (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "660 hours", 
+        "talkTime": "7 hours", 
+        "type": "Lithium Ion (Li-Ion) (1340 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Video"
+        ], 
+        "primary": "3.2 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.0", 
+        "cell": "3G UMTS and HSPA, EDGE, and GPRS ", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "The more you get to know the T-Mobile myTouch 3G, the better it gets to know you. You can customize almost everything on this phone, and stay in sync with all your Google\u2122 apps and accounts. Make your phone your own. Choose from lots of themes, skins, wallpapers, menus, and icons. Experiment with longTouch to open up even more options.  Work without being at work. ActiveSync\u00ae makes it easy to use your work e-mail address from anywhere. Come on, get app-y. Choose from thousands of apps in Android Market\u2122\u2014like Sherpa, a search app that gets to know your tastes over time.  Stay synced with Google. Sign in with your Google account for fast access to Google Talk\u2122, Google Maps\u2122, Search, Calendar, and Gmail\u2122.", 
+    "display": {
+        "screenResolution": "HVGA (480 x 320)", 
+        "screenSize": "3.2 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "None", 
+        "cpu": "528 MHz Qualcomm", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/False.png", 
+        "usb": "USB 1.0"
+    }, 
+    "id": "htc-mytouch", 
+    "images": [
+        {
+            "id": "19003", 
+            "medium": "http://www.google.com/phone/image/medium/19003", 
+            "small": "http://www.google.com/phone/image/small/19003"
+        }, 
+        {
+            "id": "114002", 
+            "medium": "http://www.google.com/phone/image/medium/114002", 
+            "small": "http://www.google.com/phone/image/small/114002"
+        }, 
+        {
+            "id": "142001", 
+            "medium": "http://www.google.com/phone/image/medium/142001", 
+            "small": "http://www.google.com/phone/image/small/142001"
+        }
+    ], 
+    "name": "HTC myTouch", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "55.56 mm (w)", 
+            "113.0 mm (h)", 
+            "14.65 mm (d)"
+        ], 
+        "weight": "116.2 grams"
+    }, 
+    "storage": {
+        "flash": "512MB", 
+        "ram": "288MB"
+    }
+}

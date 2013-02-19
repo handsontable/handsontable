@@ -1,0 +1,73 @@
+{
+    "additionalFeatures": "", 
+    "android": {
+        "os": "Android 2.1", 
+        "ui": "HTC Sense\u2122"
+    }, 
+    "availability": [
+        "T-Mobile (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "286 hours", 
+        "talkTime": "6 hours", 
+        "type": "Lithium Ion (Li-Ion) (1300 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash"
+        ], 
+        "primary": "5.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.1", 
+        "cell": "Quad band GSM 850 900 1800 1900 MHz GPRS/EDGE, Tri band UMTS 900 1700 2100 MHz HSDPA/HSUPA (US/Europe) (7.2/2 Mbit/s)", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "Make your phone your own. Choose from lots of themes, skins, wallpapers, menus, and icons. \r\nSlide out the keyboard and get comfortable. A slide-out keyboard with 3.4-inch screen let you read, watch, and type anywhere.  \r\nSwype\u00ae keyboard \u2013 Enter text in one continuous motion, up to 40 words per minute. In no time you will be able to Swype as fast as you think. \r\nDon\u2019t miss out. YOU are a shutterbug. Capture all of your favorite moments with a 5MP camera with autofocus and flash. \r\nCome on, get app-y.Choose from thousands of apps on the Android Market\u2122\u2014like Sherpa, a search app that gets to know your tastes over time.", 
+    "display": {
+        "screenResolution": "HVGA (480 x 320)", 
+        "screenSize": "3.4 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "600MHz MSM7227 Qualcomm processor", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/True.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "mytouch-3g-slide", 
+    "images": [
+        {
+            "id": "212003", 
+            "medium": "http://www.google.com/phone/image/medium/212003", 
+            "small": "http://www.google.com/phone/image/small/212003"
+        }, 
+        {
+            "id": "428001", 
+            "medium": "http://www.google.com/phone/image/medium/428001", 
+            "small": "http://www.google.com/phone/image/small/428001"
+        }, 
+        {
+            "id": "429001", 
+            "medium": "http://www.google.com/phone/image/medium/429001", 
+            "small": "http://www.google.com/phone/image/small/429001"
+        }
+    ], 
+    "name": "myTouch 3G Slide", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "59.6 mm (w)", 
+            "115.5 mm (h)", 
+            "15.15 mm (d)"
+        ], 
+        "weight": "164.4 grams"
+    }, 
+    "storage": {
+        "flash": "512MB", 
+        "ram": "512MB"
+    }
+}

@@ -1,0 +1,84 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<element name="g-ajax" attributes="url handleAs auto params response">
+  <link rel="components" href="g-component.html">
+  <link rel="components" href="g-xhr.html">
+  <template>
+    <g-xhr id="xhr"></g-xhr>
+    <content></content>
+  </template>
+  <script>
+    this.component({
+      ready: function() {
+        // wait until ready to auto go only 1x.
+        this.readied = true;
+        this.asyncMethod('autoChanged');
+      },
+      receive: function(inResponse, inXhr) {
+        if (this.isSuccess(inXhr)) {
+          this.processResponse(inXhr);
+        } else {
+          this.error(inXhr);
+        }
+        this.complete(inXhr);
+      },
+      isSuccess: function(inXhr) {
+        var status = inXhr.status || 0;
+        return !status || (status >= 200 && status < 300);
+      },
+      processResponse: function(inXhr) {
+        var response = this.evalResponse(inXhr);
+        this.response = response;
+        this.send('response', {response: response, xhr: inXhr});
+      },
+      error: function(inXhr) {
+        var response = inXhr.status + ': ' + inXhr.responseText;
+        this.send('error', {response: response, xhr: inXhr});
+      },
+      complete: function(inXhr) {
+        this.send('complete', {response: inXhr.status, xhr: inXhr});
+      },
+      evalResponse: function(inXhr) {
+        return this[(this.handleAs || 'text') + 'Handler'](inXhr);
+      },
+      xmlHandler: function(inXhr) {
+        return inXhr.responseXML;
+      },
+      textHandler: function(inXhr) {
+        return inXhr.responseText;
+      },
+      jsonHandler: function(inXhr) {
+        var r = this.textHandler(inXhr);
+        try {
+          return JSON.parse(r);
+        } catch (x) {
+          return r;
+        }
+      },
+      autoChanged: function() {
+        if (this.auto && this.readied) {
+          this.go();
+        }
+      },
+      paramsChanged: function() {
+        if (this.auto && this.readied) {
+          this.go();
+        }
+      },
+      publish: {
+        /**
+         * Performs an Ajax request to the url specified.
+         * 
+         */
+        go: function() {
+          var params = typeof(this.params) == 'string' ? JSON.parse(this.params) : this.params || null;
+          return this.$.xhr.request({url: this.url, 
+            callback: this.receive.bind(this), params: params});
+        }
+      }
+    });
+  </script>
+</element>

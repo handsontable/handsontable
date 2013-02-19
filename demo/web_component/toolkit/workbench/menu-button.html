@@ -1,0 +1,37 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Menu Button</title>
+  <script src="../platform/platform.js"></script>
+  <link rel="components" href="../components/g-menu-button.html">
+  <link rel="components" href="../components/g-menu-item.html">
+  <link rel="components" href="../components/g-toolbar.html">
+  <style>
+    html, body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, 'open sans', sans-serif;
+      height: 100%;
+    }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, 'open sans', sans-serif;
+      margin: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <g-toolbar class="responsive">
+    <div>toggle menubutton:</div>
+    <g-menu-button src="images/add.svg" selected="0">
+      <g-menu-item src="images/edit_page.svg">Post a Comment</g-menu-item>
+      <g-menu-item src="images/chat.svg">Share Link</g-menu-item>
+      <g-menu-item src="images/email.svg">Email Link</g-menu-item>
+      <g-menu-item src="images/favorite.svg">Add to Favorites</g-menu-item>
+    </g-menu-button>
+  </g-toolbar>
+</body>
+</html>

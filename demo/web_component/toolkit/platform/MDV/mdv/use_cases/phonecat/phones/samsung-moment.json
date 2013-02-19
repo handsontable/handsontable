@@ -1,0 +1,84 @@
+{
+    "additionalFeatures": "3G speeds where available \r\nSlide-out QWERTY keyboard \r\nTouchscreen \r\nMusic capable \r\nSprint TV\u00ae \r\nGPS Navigation enabled", 
+    "android": {
+        "os": "Android 2.1", 
+        "ui": ""
+    }, 
+    "availability": [
+        "Sprint (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "750 hours", 
+        "talkTime": "6 hours", 
+        "type": "Lithium Ion (Li-Ion) (1440 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "3.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.1", 
+        "cell": "CDMA-Rev.A ", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "Feeling tied down? Break free from your PC with the Samsung Moment\u2122. It features Google\u2019s Android\u2122 operating system and a full web browser so you can find what you need fast. You\u2019ll enjoy downloadable apps galore for games, news & weather, shopping and social networks. And the brilliant 3.2\u201d AMOLED display makes it easy to read emails, see content and watch videos. So stay in the moment and get ready for a high-speed Google search\u2014right on your home screen.", 
+    "display": {
+        "screenResolution": "HVGA (480 x 320)", 
+        "screenSize": "3.2 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "800 MHz", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/True.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "samsung-moment", 
+    "images": [
+        {
+            "id": "29001", 
+            "medium": "http://www.google.com/phone/image/medium/29001", 
+            "small": "http://www.google.com/phone/image/small/29001"
+        }, 
+        {
+            "id": "100002", 
+            "medium": "http://www.google.com/phone/image/medium/100002", 
+            "small": "http://www.google.com/phone/image/small/100002"
+        }, 
+        {
+            "id": "104004", 
+            "medium": "http://www.google.com/phone/image/medium/104004", 
+            "small": "http://www.google.com/phone/image/small/104004"
+        }, 
+        {
+            "id": "138001", 
+            "medium": "http://www.google.com/phone/image/medium/138001", 
+            "small": "http://www.google.com/phone/image/small/138001"
+        }, 
+        {
+            "id": "152001", 
+            "medium": "http://www.google.com/phone/image/medium/152001", 
+            "small": "http://www.google.com/phone/image/small/152001"
+        }
+    ], 
+    "name": "Samsung Moment\u2122", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "59.5 mm (w)", 
+            "117.0 mm (h)", 
+            "15.7 mm (d)"
+        ], 
+        "weight": "157.0 grams"
+    }, 
+    "storage": {
+        "flash": "196MB", 
+        "ram": "256MB"
+    }
+}

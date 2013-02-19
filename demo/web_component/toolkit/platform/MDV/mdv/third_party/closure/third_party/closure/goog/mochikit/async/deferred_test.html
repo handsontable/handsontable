@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html>
+<!--
+  Copyright 2009 The Closure Library Authors. All Rights Reserved.
+  Author: arv@google.com (Erik Arvidsson)
+-->
+<head>
+<title>Closure Unit Tests - goog.async.Deferred</title>
+<script src="../../../../../closure/goog/base.js"></script>
+<script src="../../deps.js"></script>
+<script>
+
+goog.require('goog.array');
+goog.require('goog.async.Deferred');
+goog.require('goog.string');
+goog.require('goog.testing.MockClock');
+goog.require('goog.testing.jsunit');
+
+</script>
+</head>
+<body>
+<script>
+
+var Deferred = goog.async.Deferred;
+var AlreadyCalledError = goog.async.Deferred.AlreadyCalledError;
+var CancelledError = goog.async.Deferred.CancelledError;
+
+// Unhandled errors may be sent to the browser on a timeout.
+var mockClock = new goog.testing.MockClock();
+
+function setUp() {
+  mockClock.install();
+}
+
+function tearDown() {
+  // Advance the mockClock to fire any unhandled exception timeouts.
+  mockClock.tick();
+  mockClock.uninstall();
+}
+
+function assertEqualsCallback(msg, expected) {
+  return function(res) {
+    assertEquals(msg, expected, res);
+    // Since the assertion is an exception that will be caught inside the
+    // Deferred object, we must advance the clock to see if it has failed.
+    mockClock.tick();
+    return res;
+  };
+}
+
+function increment(res) {
+  return res + 1;
+}
+
+function throwStuff(res) {
+  throw Error(res);
+}
+
+function catchStuff(res) {
+  // IE handles numbers passed to the Error object in a non-standard way. Treat
+  // an error number as the message if no message is present.
+  // See http://msdn.microsoft.com/en-us/library/t9zk6eay(VS.71).aspx
+  var message = res.message || res.number;
+  return goog.string.isNumeric(message) ? Number(message) : message;
+}
+
+function returnError(res) {
+  return Error(res);
+}
+
+function neverHappen(res) {
+  fail('This should not happen');
+}
+
+function testNormal() {
+  var d = new Deferred();
+  d.addCallback(assertEqualsCallback('pre-deferred callback', 1));
+  d.callback(1);
+  d.addCallback(increment);
+  d.addCallback(assertEqualsCallback('post-deferred callback', 2));
+  d.addCallback(throwStuff);
+  d.addCallback(neverHappen);
+  d.addErrback(catchStuff);
+  d.addCallback(assertEqualsCallback('throw -> err, catch -> success', 2));
+  d.addCallback(returnError);
+  d.addCallback(neverHappen);
+  d.addErrback(catchStuff);
+  d.addCallback(assertEqualsCallback('return -> err, catch -> succcess', 2));
+}
+
+function testCancel() {
+  var count = 0;
+  function cancelled(d) {
+    count++;
+  }
+
+  function cancelledError(res) {
+    assertTrue(res instanceof CancelledError);
+  }
+
+  var d = new Deferred(cancelled);
+  d.addCallback(neverHappen);
+  d.addErrback(cancelledError);
+  d.cancel();
+
+  assertEquals(1, count);
+}
+
+function testSucceedFail() {
+  var count = 0;
+
+  var d = Deferred.succeed(1).addCallback(assertEqualsCallback('succeed', 1));
+
+  // default error
+  d = Deferred.fail().addCallback(neverHappen);
+  d = d.addErrback(function(res) {
+    count++;
+    return res;
+  });
+
+  // default wrapped error
+  d = Deferred.fail('web taco').addCallback(neverHappen).addErrback(catchStuff);
+  d = d.addCallback(assertEqualsCallback('wrapped fail', 'web taco'));
+
+  // default unwrapped error
+  d = Deferred.fail(Error('ugh')).addCallback(neverHappen).addErrback(
+      catchStuff);
+  d = d.addCallback(assertEqualsCallback('unwrapped fail', 'ugh'));
+
+  assertEquals(1, count);
+}
+
+function testDeferredDependencies() {
+  function deferredIncrement(res) {
+    var rval = Deferred.succeed(res);
+    rval.addCallback(increment);
+    return rval;
+  }
+
+  var d = Deferred.succeed(1).addCallback(deferredIncrement);
+  d = d.addCallback(assertEqualsCallback('dependent deferred succeed', 2));
+
+  function deferredFailure(res) {
+    return Deferred.fail(res);
+  }
+
+  d = Deferred.succeed('ugh').addCallback(deferredFailure).addErrback(
+      catchStuff);
+  d = d.addCallback(assertEqualsCallback('dependent deferred fail', 'ugh'));
+}
+
+// Test double-calling, double-failing, etc.
+function testDoubleCalling() {
+  try {
+    Deferred.succeed(1).callback(2);
+    neverHappen();
+  } catch (ex) {
+    assertTrue('double call', ex instanceof AlreadyCalledError);
+  }
+}
+
+function testDoubleCalling2() {
+  try {
+    Deferred.fail(1).errback(2);
+    neverHappen();
+  } catch (ex) {
+    assertTrue('double-fail', ex instanceof AlreadyCalledError);
+  }
+}
+
+function testDoubleCalling3() {
+  try {
+    var d = Deferred.succeed(1);
+    d.cancel();
+    d = d.callback(2);
+    assertTrue('swallowed one callback, no canceller', true);
+    d.callback(3);
+    neverHappen();
+  } catch (ex) {
+    assertTrue('swallow cancel', ex instanceof AlreadyCalledError);
+  }
+}
+
+function testDoubleCalling4() {
+  var count = 0;
+  function cancelled(d) {
+    count++;
+  }
+
+  try {
+    var d = new Deferred(cancelled);
+    d.cancel();
+    d = d.callback(1);
+    neverHappen();
+  } catch (ex) {
+    assertTrue('non-swallowed cancel', ex instanceof AlreadyCalledError);
+  }
+  assertEquals(1, count);
+}
+
+// Test incorrect Deferred usage
+function testIncorrectUsage() {
+  var d = new Deferred();
+  try {
+    d.callback(new Deferred());
+    neverHappen();
+  } catch (ex) {
+    assertTrue('deferred not allowed for callback', ex instanceof Error);
+  }
+}
+
+function testIncorrectUsage2() {
+  var d = new Deferred();
+  try {
+    d.errback(new Deferred());
+    neverHappen();
+  } catch (ex) {
+    assertTrue('deferred not allowed for errback', ex instanceof Error);
+  }
+}
+
+function testIncorrectUsage3() {
+  var d = new Deferred();
+  (new Deferred()).addCallback(function() {return d;}).callback(1);
+  try {
+    d.addCallback(function() {});
+    neverHappen();
+  } catch (ex) {
+    assertTrue('chained deferred not allowed to be re-used',
+               ex instanceof Error);
+  }
+}
+
+function testCallbackScope1() {
+  var c1 = {}, c2 = {};
+  var callbackScope = null;
+  var errbackScope = null;
+
+  var d = new Deferred();
+  d.addCallback(function() {
+    callbackScope = this;
+    throw Error('Foo');
+  }, c1);
+  d.addErrback(function() {
+    errbackScope = this;
+  }, c2);
+  d.callback();
+  assertEquals('Incorrect callback scope', c1, callbackScope);
+  assertEquals('Incorrect errback scope', c2, errbackScope);
+}
+
+function testCallbackScope2() {
+  var callbackScope = null;
+  var errbackScope = null;
+
+  var d = new Deferred();
+  d.addCallback(function() {
+    callbackScope = this;
+    throw Error('Foo');
+  });
+  d.addErrback(function() {
+    errbackScope = this;
+  });
+  d.callback();
+  assertEquals('Incorrect callback scope', window, callbackScope);
+  assertEquals('Incorrect errback scope', window, errbackScope);
+}
+
+function testCallbackScope3() {
+  var c = {};
+  var callbackScope = null;
+  var errbackScope = null;
+
+  var d = new Deferred(null, c);
+  d.addCallback(function() {
+    callbackScope = this;
+    throw Error('Foo');
+  });
+  d.addErrback(function() {
+    errbackScope = this;
+  });
+  d.callback();
+  assertEquals('Incorrect callback scope', c, callbackScope);
+  assertEquals('Incorrect errback scope', c, errbackScope);
+}
+
+function testChainedDeferred1() {
+  var calls = [];
+
+  var d2 = new Deferred();
+  d2.addCallback(function() {calls.push('B1');});
+  d2.addCallback(function() {calls.push('B2');});
+
+  var d1 = new Deferred();
+  d1.addCallback(function() {calls.push('A1');});
+  d1.addCallback(function() {calls.push('A2');});
+  d1.chainDeferred(d2);
+  d1.addCallback(function() {calls.push('A3');});
+
+  d1.callback();
+  assertEquals('A1,A2,B1,B2,A3', calls.join(','));
+}
+
+function testChainedDeferred2() {
+  var calls = [];
+
+  var d2 = new Deferred();
+  d2.addCallback(function() {calls.push('B1');});
+  d2.addErrback(function(err) {calls.push('B2'); throw Error('x');});
+
+  var d1 = new Deferred();
+  d1.addCallback(function(err) {throw Error('foo');});
+  d1.chainDeferred(d2);
+  d1.addCallback(function() {calls.push('A1');});
+  d1.addErrback(function() {calls.push('A2');});
+
+  d1.callback();
+  assertEquals('B2,A2', calls.join(','));
+
+  try {
+    mockClock.tick();
+    neverHappen();
+  } catch (ex) {
+    assertEquals('In debug mode, should catch unhandled throw from d2.',
+                 'x', ex.message);
+  }
+}
+
+function testUndefinedResultAndCallbackSequence() {
+  var results = [];
+  var d = new Deferred();
+  d.addCallback(function(res) {return 'foo';});
+  d.addCallback(function(res) {results.push(res); return 'bar';});
+  d.addCallback(function(res) {results.push(res);});
+  d.addCallback(function(res) {results.push(res);});
+  d.callback();
+  assertEquals('foo,bar,bar', results.join(','));
+}
+
+function testUndefinedResultAndErrbackSequence() {
+  var results = [];
+  var d = new Deferred();
+  d.addCallback(function(res) {throw Error('uh oh');});
+  d.addErrback(function(res) {results.push('A');});
+  d.addCallback(function(res) {results.push('B');});
+  d.addErrback(function(res) {results.push('C');});
+  d.callback();
+  assertEquals('A,C', results.join(','));
+}
+
+function testHasFired() {
+  var d1 = new Deferred();
+  var d2 = new Deferred();
+
+  assertFalse(d1.hasFired());
+  assertFalse(d2.hasFired());
+
+  d1.callback();
+  d2.errback();
+  assertTrue(d1.hasFired());
+  assertTrue(d2.hasFired());
+}
+
+function testUnhandledErrors() {
+  var d = new Deferred();
+  d.addCallback(throwStuff);
+
+  try {
+    d.callback(1);
+    mockClock.tick();
+    neverHappen();
+  } catch (ex) {
+    assertTrue('In debug mode, unhandled exceptions should hit the browser.',
+               ex instanceof Error);
+  }
+
+  try {
+    d.addErrback(catchStuff);
+    mockClock.tick();
+  } catch (ex) {
+    fail('Errbacks added after a failure should resume.');
+  }
+
+  d.addCallback(assertEqualsCallback('Should recover after throw.', 1));
+  mockClock.tick();
+}
+
+function testSynchronousErrorCancelling() {
+  var d = new Deferred();
+  d.addCallback(throwStuff);
+
+  try {
+    d.callback(1);
+    d.addErrback(catchStuff);
+    mockClock.tick();
+  } catch (ex) {
+    fail('Adding an errback to the end of a failing Deferred should cancel ' +
+         'the unhandled error timeout.');
+  }
+
+  d.addCallback(assertEqualsCallback('Callback should fire', 1));
+}
+
+</script>
+</body>
+</html>

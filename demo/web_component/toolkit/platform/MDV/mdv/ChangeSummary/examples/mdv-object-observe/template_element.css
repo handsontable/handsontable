@@ -1,0 +1,13 @@
+template,
+thead[template],
+tbody[template],
+tfoot[template],
+th[template],
+tr[template],
+td[template],
+colgroup[template],
+col[template],
+option[template] {
+  display: none;
+}
+

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2010 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<head>
+  <title>Closure Demos</title>
+  <script src="../base.js"></script>
+  <script>
+    goog.require('goog.ui.tree.TreeControl');
+    goog.require('goog.dom');
+    goog.require('goog.events.EventType');
+  </script>
+  <script>
+    var treeData = [
+      {name: 'Advanced Tooltip', url: 'advancedtooltip.html'},
+      {name: 'Auto Complete - Basic', url: 'autocomplete-basic.html'},
+      {name: 'Bidi Input', url: 'bidiinput.html'},
+      {name: 'Bubble', url: 'bubble.html'},
+      {name: 'Char Counter', url: 'charcounter.html'},
+      {name: 'Color Pickers and Palettes', childNodes: [
+        {name: 'Simple Color Grid', url: 'colorpicker.html'},
+        {name: 'Popup Color Picker', url: 'popupcolorpicker.html'},
+        {name: 'Palette Examples', url: 'palette.html'}
+        ]},
+      {name: 'Common UI Controls', childNodes: [
+        {name: 'Button', url: 'button.html'},
+        {name: 'Combobox', url: 'combobox.html'},
+        {name: 'Container', url: 'container.html'},
+        {name: 'Control', url: 'control.html'},
+        {name: 'Dimension Picker', url: 'dimensionpicker.html'},
+        {name: 'Menu', url: 'menu.html'},
+        {name: 'MenuButton', url: 'menubutton.html'},
+        {name: 'Select', url: 'select.html'},
+        {name: 'Sub Menus', url: 'submenus.html'},
+        {name: 'Sub Menus Flyweight', url: 'submenus2.html'},
+        {name: 'Tab Bar and Tabs', url: 'tabbar.html'},
+        {name: 'Toolbar', url: 'toolbar.html'}
+        ]},
+      {name: 'Date Picker', url: 'datepicker.html'},
+      {name: 'Debug', url: 'debug.html'},
+      {name: 'Dependency Graph', url: 'depsgraph.html'},
+      {name: 'Dialog', url: 'dialog.html'},
+      {name: 'Dom Selection', url: 'dom_selection.html'},
+      {name: 'Drag', url: 'drag.html'},
+      {name: 'DragDrop', url: 'dragdrop.html'},
+      {name: 'DragListGroup', url: 'draglistgroup.html'},
+      {name: 'Editor', childNodes: [
+        {name: 'Field - Basic', url: 'editor/field_basic.html'},
+        {name: 'Full Editor', url: 'editor/editor.html'},
+        {name: 'Hello World Plugin', url: 'editor/helloworld.html'},
+        {name: 'Seamless Field', url: 'editor/seamlessfield.html'},
+      ]},
+      {name: 'Effects', url: 'effects.html'},
+      {name: 'Events', childNodes: [
+        {name: 'Event Propagation', url: 'event-propagation.html'},
+        {name: 'Event Target', url: 'eventtarget.html'},
+        {name: 'Events', url: 'events.html'},
+        {name: 'Focus Handler', url: 'focushandler.html'},
+        {name: 'Input Handler', url: 'inputhandler.html'},
+        {name: 'Key Handler', url: 'keyhandler.html'},
+        {name: 'Keyboard Shortcuts', url: 'keyboardshortcuts.html'},
+        {name: 'Mouse Wheel Handler', url: 'mousewheelhandler.html'}
+        ]},
+      {name: 'Gauge', url: 'gauge.html'},
+      {name: 'Graphics', childNodes: [
+        {name: 'Basic Elements', url: 'graphics/basicelements.html'},
+        {name: 'Events', url: 'graphics/events.html'},
+        {name: 'Modify Elements', url: 'graphics/modifyelements.html'},
+        {name: 'Tiger', url: 'graphics/tiger.html'}
+        ]},
+      {name: 'History', childNodes: [
+        {name: 'Demo 1', url: 'history1.html'},
+        {name: 'Demo 2', url: 'history2.html'},
+        ]},
+      {name: 'Hover Card', url: 'hovercard.html'},
+      {name: 'Inline Block', childNodes: [
+        {name: 'Quirks mode', url: 'inline_block_quirks.html'},
+        {name: 'Standards mode', url: 'inline_block_standards.html'},
+        ]},
+      {name: 'Input Date Picker', url: 'inputdatepicker.html'},
+      {name: 'Label Input', url: 'labelinput.html'},
+      {name: 'Offline UI', url: 'offline.html'},
+      {name: 'Plain Text Spell Checker', url: 'plaintextspellchecker.html'},
+      {name: 'Popup', url: 'popup.html'},
+      {name: 'Popup Date Picker', url: 'popupdatepicker.html'},
+      {name: 'Popup Menu', url: 'popupmenu.html'},
+      {name: 'Progress Bar', url: 'progressbar.html'},
+      {name: 'Prompt', url: 'prompt.html'},
+      {name: 'QuadTree', url: 'quadtree.html'},
+      {name: 'Ratings', url: 'ratings.html'},
+      {name: 'Rich Text Spell Checker', url: 'richtextspellchecker.html'},
+      {name: 'Rounded Panel', url: 'roundedpanel.html'},
+      {name: 'Sample Component', url: 'samplecomponent.html'},
+      {name: 'Server Chart', url: 'serverchart.html'},
+      {name: 'Sliders', childNodes: [
+        {name: 'Slider', url: 'slider.html'},
+        {name: 'Two Thumb Slider', url: 'twothumbslider.html'}
+        ]},
+      {name: 'Split Pane', url: 'splitpane.html'},
+      {name: 'Tab Pane', url: 'tabpane.html'},
+      {name: 'Table Sorting', url: 'tablesorter.html'},
+      {name: 'ToolTip', url: 'tooltip.html'},
+      {name: 'Tracer', url: 'tracer.html'},
+      {name: 'Tree', url: 'tree/demo.html'},
+      {name: 'Util', childNodes: [
+        {name: 'Time Based', url: 'timers.html'}
+         ]},
+      {name: 'User Agent', url: 'useragent.html'},
+      {name: 'Viewport Size Monitor', url: 'viewportsizemonitor.html'},
+      {name: 'XPC', url: 'xpc/'},
+      {name: 'Zippy', url: 'zippy.html'},
+    ];
+
+    function initTree() {
+      goog.ui.tree.TreeControl.defaultConfig.cleardotPath =
+          '../images/tree/cleardot.gif';
+      var tree = new goog.ui.tree.TreeControl('All Demos');
+      tree.setIsUserCollapsible(false);
+      buildNode(tree, treeData);
+      tree.render(goog.dom.getElement('demo-list'));
+    }
+
+    function buildNode(parent, nodeArray) {
+      for (var i = 0, node; node = nodeArray[i]; i++) {
+        if (node.name) {
+          var childNode = parent.getTree().createNode();
+          parent.add(childNode);
+          if (node.url) {
+            childNode.setHtml('<a href="' + node.url + '" title="' + node.name +
+                '" target="demo">' + node.name + '</a>');
+            // Need to prevent BaseNode.onClick_ from calling preventDefault.
+            childNode.onClick_ = goog.nullFunction;
+          } else if (node.childNodes) {
+            childNode.setHtml(node.name);
+            buildNode(childNode, node.childNodes);
+          }
+        }
+      }
+    }
+
+    //function showDemo(node) {
+    //  window.top.frames['demo'].location = node.getClientData();
+    //}
+  </script>
+  <link rel="stylesheet" href="../css/tree.css">
+  <style>
+    body {
+      font: normal 10pt Tahoma, Arial, sans-serif;
+      color: #333;
+      background-color: #eee;
+    }
+
+    h2 a {
+      font: bold 18pt Tahoma, Arial, sans-serif;
+      color: #333;
+      text-decoration: underline;
+    }
+
+    h2 a:hover {
+      color: #00f;
+      text-decoration: underline;
+    }
+
+    .goog-tree-children {
+      background-repeat: repeat-y;
+      background-image: url("../images/tree/I.png") !important;
+      background-position-y: 1px !important; /* IE only */
+      font: icon;
+    }
+
+    .goog-tree-icon {
+      background-image:url("../images/tree/tree.png");
+    }
+
+    .goog-tree-item-label {
+      font: bold 10pt Tahoma, Arial, sans-serif;
+      color: #333;
+      text-decoration: none;
+    }
+
+    .goog-tree-item-label a {
+      font: normal 10pt Tahoma, Arial, sans-serif;
+      color: #333;
+      text-decoration: none;
+    }
+
+    .goog-tree-item-label a:hover {
+      color: #00f;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h2><a href="index_splash.html" title="Home" target="demo">Index</a></h2>
+  <div id="demo-list"></div>
+  <script>initTree();</script>
+</body>
+</html>

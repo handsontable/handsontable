@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2009 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<!--
+  Author: goto@google.com (Sam Goto)
+-->
+<head>
+<title>Closure Unit Tests - goog.ui.media.Youtube</title>
+<script src="../../base.js"></script>
+<script>
+  goog.require('goog.debug.Logger');
+  goog.require('goog.dom');
+  goog.require('goog.events');
+  goog.require('goog.testing.jsunit');
+  goog.require('goog.testing.LooseMock');
+  goog.require('goog.ui.Component');
+  goog.require('goog.ui.Control');
+  goog.require('goog.ui.ControlRenderer');
+  goog.require('goog.ui.media.FlashObject');
+  goog.require('goog.ui.media.Media');
+  goog.require('goog.ui.media.Youtube');
+  goog.require('goog.ui.media.YoutubeModel');
+</script>
+</head>
+<body>
+<script>
+
+  var youtube;
+  var control;
+  var YOUTUBE_VIDEO_ID = 'dMH0bHeiRNg';
+  var YOUTUBE_URL = 'http://www.youtube.com/watch?v=' + YOUTUBE_VIDEO_ID;
+  var parent = goog.dom.createElement('div');
+
+  function setUp() {
+    var model = new goog.ui.media.YoutubeModel(
+        YOUTUBE_VIDEO_ID, 'evolution of dance');
+    control = goog.ui.media.Youtube.newControl(model);
+  }
+
+  function tearDown() {
+    control.dispose();
+  }
+
+  function testBasicRendering() {
+    control.render(parent);
+    var el = goog.dom.getElementsByTagNameAndClass('div',
+        goog.ui.media.Youtube.CSS_CLASS, parent);
+    assertEquals(1, el.length);
+  }
+
+  function testParsingUrl() {
+    var model = goog.ui.media.YoutubeModel.newInstance(YOUTUBE_URL);
+    assertEquals('dMH0bHeiRNg', model.getVideoId());
+
+    var model = goog.ui.media.YoutubeModel.newInstance(
+        'http://br.youtube.com/watch?v=dMH0bHeiRNg');
+    assertEquals('dMH0bHeiRNg', model.getVideoId());
+
+    assertEquals('dMH0bHeiRNg', goog.ui.media.YoutubeModel.newInstance(
+        'https://br.youtube.com/watch?v=dMH0bHeiRNg').getVideoId());
+
+    assertEquals('dMH0bHeiRNg', goog.ui.media.YoutubeModel.newInstance(
+        'https://br.youtube.com/watch?v=dMH0bHeiRNg&featured=dir')
+        .getVideoId());
+
+    assertEquals('dMH0bHeiRNg', goog.ui.media.YoutubeModel.newInstance(
+        'https://br.youtube.com/watch?featured=dir&amp;v=dMH0bHeiRNg')
+        .getVideoId());
+
+    assertEquals('qbce2yN81mE', goog.ui.media.YoutubeModel.newInstance(
+        'http://www.youtube.com/watch?usg=AFQjCNFf90gdVBmPp-Wgya5_CTSaw&amp;' +
+        'v=qbce2yN81mE&amp;source=video&amp;vgc=rss').getVideoId());
+
+    assertThrows('youtube parser expects a well formed URL', function() {
+      var videoId = goog.ui.media.YoutubeModel.newInstance(
+          'http://invalidUrl/watch?v=dMH0bHeiRNg').getVideoId();
+    });
+  }
+
+  function testBuildingUrl() {
+    assertEquals(
+        YOUTUBE_URL, goog.ui.media.YoutubeModel.buildUrl(YOUTUBE_VIDEO_ID));
+  }
+
+  function testCreatingModel() {
+    var model = new goog.ui.media.YoutubeModel(YOUTUBE_VIDEO_ID);
+    assertEquals(YOUTUBE_VIDEO_ID, model.getVideoId());
+    assertEquals(YOUTUBE_URL, model.getUrl());
+    assertUndefined(model.getCaption());
+  }
+
+  function testCreatingDomOnInitialState() {
+    control.render(parent);
+    var preview = goog.dom.getElementsByTagNameAndClass(
+        'img',
+        goog.ui.media.Youtube.CSS_CLASS + '-thumbnail0',
+        parent);
+    assertEquals(1, preview.length);
+
+    var caption = goog.dom.getElementsByTagNameAndClass(
+        'div',
+        goog.ui.media.Youtube.CSS_CLASS + '-caption',
+        parent);
+    assertEquals(1, caption.length);
+
+    var flash = goog.dom.getElementsByTagNameAndClass('div',
+        goog.ui.media.FlashObject.CSS_CLASS);
+    assertEquals(0, flash.length);
+  }
+
+  function testCreatingDomOnSelectedState() {
+    control.render(parent);
+    control.setSelected(true);
+    var preview = goog.dom.getElementsByTagNameAndClass(
+        'img',
+        goog.ui.media.Youtube.CSS_CLASS + '-preview',
+        parent);
+    assertEquals(0, preview.length);
+
+    var caption = goog.dom.getElementsByTagNameAndClass(
+        'div',
+        goog.ui.media.Youtube.CSS_CLASS + '-caption',
+        parent);
+    assertEquals(1, caption.length);
+
+    var flash = goog.dom.getElementsByTagNameAndClass('div',
+        goog.ui.media.FlashObject.CSS_CLASS, parent);
+    assertEquals(1, flash.length);
+  }
+
+  function testSettingSelectedStateAfterRender() {
+    control.render(parent);
+    control.setSelected(true);
+
+    var preview = goog.dom.getElementsByTagNameAndClass(
+        'img',
+        goog.ui.media.Youtube.CSS_CLASS + '-preview',
+        parent);
+    assertEquals(0, preview.length);
+
+    var caption = goog.dom.getElementsByTagNameAndClass(
+        'div',
+        goog.ui.media.Youtube.CSS_CLASS + '-caption',
+        parent);
+    assertEquals(1, caption.length);
+
+    var flash = goog.dom.getElementsByTagNameAndClass('div',
+        goog.ui.media.FlashObject.CSS_CLASS. parent);
+    assertEquals(1, flash.length);
+
+    control.setSelected(false);
+
+    var preview = goog.dom.getElementsByTagNameAndClass(
+        'img',
+        goog.ui.media.Youtube.CSS_CLASS + '-thumbnail0',
+        parent);
+    assertEquals(1, preview.length);
+
+    var caption = goog.dom.getElementsByTagNameAndClass(
+        'div',
+        goog.ui.media.Youtube.CSS_CLASS + '-caption',
+        parent);
+    assertEquals(1, caption.length);
+
+    // setting select as false doesn't actually remove the flash movie from
+    // the DOM tree, which means that setting selected to true won't actually
+    // restart the movie. TODO(user): fix this.
+    var flash = goog.dom.getElementsByTagNameAndClass('div',
+        goog.ui.media.FlashObject.CSS_CLASS, parent);
+    assertEquals(1, flash.length);
+
+    control.setSelected(true);
+
+    var flash = goog.dom.getElementsByTagNameAndClass('div',
+        goog.ui.media.FlashObject.CSS_CLASS, parent);
+    assertEquals(1, flash.length);
+  }
+</script>
+</body>
+</html>

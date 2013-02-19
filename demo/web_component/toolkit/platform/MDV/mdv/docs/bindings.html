@@ -1,0 +1,154 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Bindings: Connecting DOM Node values to Model values</h1>
+
+<h2>Goal</h2>
+
+<p>Create a mechanism by which DOM nodes can derive values needed for presentation from one or more model values. Further, create a mechanism by which user input can be assigned to model values.</p>
+
+
+
+<code><pre>&lt;div id="example"&gt;
+&lt;template instantiate&gt;
+  &lt;a href="/images/person-{{ person.id }}.png"&gt;{{ relationship }}&lt;/a&gt;
+&lt;/template&gt;
+&lt;/div&gt;
+&lt;script&gt;
+document.getElementById('example').model = Model.get({
+  person: {
+    id: 23,
+    name: 'Joe Smith'
+  },
+  relationship: 'Friend'
+});
+&lt;/script&gt;</pre></code>
+
+<code><pre>&lt;div id="example"&gt;
+&lt;template instantiate&gt;
+  &lt;a href="/images/person-{{ person.id }}.png"&gt;{{ relationship }}&lt;/a&gt;
+&lt;/template&gt;
+&lt;a href="/images/person-23"&gt;Friend&lt;/a&gt;
+&lt;/div&gt;
+</pre></code>
+
+
+<h2>Binding</h2>
+
+<p>A <em>Binding</em> is a connection between a node (target) value and one or more model values (sources). A binding is composed of:</p>
+
+<ul>
+
+<li>A <em>Target</em>, which is a <em>value</em> of the DOM Node. <p class="todo">Define clearly what a <em>value</em> means...property vs attribute.</p></li>
+
+<li id="sources">A set of <em>source</em> values, each of which is a <a href="model.html#pathValue">path value</a> specified as:
+  <ul>
+    <li>A reference object, which is typically the <em>target</em> node's <a href="dom_model.html#modelProperty"><code>model</code> property</a>.</li>
+    <li>A <a href="model.html#path">path</a> from the reference object</li>
+  </ul>
+</li>
+<li>Each source may have an associated <a href="#transform">Transform</a> object which can alter the value as it passes from source to target or from target to source.</li>
+<li>If the <em>Binding</em> has multiple <em>source</em> values, it must implement a <code>format</code> method which combines them into a single value which can be assigned to the target.</li>
+</ul>
+
+<p class="todo">When a source is a DOM model, the path can reference values in ancestor element's model. E.g. {{ ../../someValue }} or {{ /someValue }}. Spec how this works.</p>
+
+<h2 id="transform">Transform</h2>
+
+<p><em>Transforms</em> primarily serve the function of converting model values between the most convenient internal representation and (possibly locale and context dependent) display representation. They can also serve the purpose of being tolerant of multiple user input formats.</p>
+
+<p>A <em>Transform</em> must implement two methods:</p>
+<ul>
+  <li><code>function toTarget(value)</code></li>
+  <li><code>function toSource(value)</code></li>
+</ul>
+
+<p>Ideally, a set of broadly useful transforms can be provided as a part of the MDV feature. Additionally, applications are free to implement their own, as well as register custom Transforms by name for use in declarative bindings. The MDV prototype implements a handful of Transforms which were useful for implementing many of the examples and use-cases.</p>
+
+<p class="todo">Transform declarative registry API.</p>
+
+<h2>Binding Directionality</h2>
+
+<p>In general, the expected direction of data flow in bindings is from source to target. The binding directionality is determined by the <em>Target</em>:</p>
+
+<ul>
+  <li>If the <em>Target</em> value is property which is the recipient of user input, like HTMLInputElement.value, then the binding is Two-Way.</li>
+  <li>Otherwise, the binding is One-Way.</li>
+</ul>
+
+<p class="todo">Spec the behavior of one and two-way bindings</p>
+
+<h2>Declarative Binding API</h2>
+
+<p class="todo">Needs to be formalized</p>
+
+<p>Bindings can be declared in markup <em>inline</em> within a template declaration or via the <code>bind</code> attribute.</p>
+
+<h3>Inline bindings</h3>
+
+<p class="todo">Syntax needs improving. The transform separator looks like an *or* operator.</p>
+
+<code><pre>&lt;a href="{{ imageUrl }}"&gt;{{ product.name }}: {{ amount | current }}&lt;/a&gt;</pre></code>
+
+<p>Bindings can be declared <em>inline</em> only within a template element because the contents of template is not live within the document.</p>
+
+<p>Inline bindings:</p>
+
+<ul>
+  <li>Are denoted with a matching pair of double curly braces.</li>
+  <li>Cannot be nested.</li>
+  <li>Must be matched within a TextNode or the value of a content attribute.</li>
+</ul>
+
+<p>A simple binding declaration just specifies a <a href="model.html#path">path</a>:</p>
+
+<code><pre>{{ path.to.value }}</pre></code>
+
+<p>A transform can be specified by name, and optionally be passed zero or more string arguments</p>
+
+<code><pre>{{ path.to.value | transformName }}</pre></code>
+<code><pre>{{ path.to.value | transformName("arg1", "arg2") }}</pre></code>
+
+<p class="todo">Spec how transform names are registered.</p>
+
+<p>More than one binding can be specified for a given target value:</p>
+
+<code><pre>&lt;a href="{{ versionPath }}/{{ productNumber }}"&gt;</pre></code>
+
+<p>Expressions must use the <code>expr</code> prefix and declare their inputs:</p>
+
+<code><pre>{{ expr(symbol, stock.amount, stock.lastTrade @ price) symbol + ': ' + (amount * price) }}</pre></code>
+
+<h3>The <code>bind</code> attribute</h3>
+
+<p class="todo">Needs to be designed</p>
+
+<p>The <code>bind</code> is the serialization of the bindings declared for an element:</p>
+
+<ul>
+  <li>It is available for use anywhere in the DOM.</li>
+  <li>Any inline bindings declared within a template are serialized to the <code>bind</code> attribute for each template instance.</li>
+  <li>The syntax of the contents of the bind attribute allows for more expressive binding to DOM structures. E.g. Toggling a particular class within a classList or assigning to a named query parameter of a URL.</li>
+</ul>
+
+<h2>Open Issues</h2>
+
+<ul>
+<li>Specify target binding behavior. I.e. property vs attribute vs bindprop.</li>
+<li>Allowing binding to other sources of data than DOM model. e.g. Custom element attribute values, or transient widget state.</li>
+<li>Support for other binding policies: OneWay-OneTime, TwoWay-OnFocusChange</li>
+<li>Full set of element/property that support Two-Way bindings</li>
+<li>Initialization policy for TwoWay bindings. I.e. who wins in conflict</li>
+<li>Can model values "reject" values from a TwoWay bindings. I.e. If an input value is bound, only update the view when the model value changes -- Proper View/Controller separation.</li>
+<li>What happens if script updates the target value of a binding?</li>
+<li>Out-of-band, out-of-template binding declarations?</li>
+<li>Security: consider blocking javascript and data URLs in bindings which are known to be targeted at URLs</li>
+<li>Context-aware behavior of bindings. E.g. href="{{ myUrl }}" -- auto-URL-encode.</li>
+<li>Should a Transform be allowed to <em>decline</em> assigning a new value to a source (if the value would be invalid, for instance)?</li>
+<li>Describe the behavior of a TwoWay binding with multiple sources. Use-case parsing a single string into an array of values.</li>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!doctype html>
+<html>
+<head>
+  <title>Toolbar</title>
+  <script src="../platform/platform.js"></script>
+  <link rel="components" href="../components/g-toolbar.html">
+  <link rel="components" href="../components/g-icon-button.html">
+  <style>
+    html, body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, 'open sans', sans-serif;
+      height: 100%;
+    }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, 'open sans', sans-serif;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <g-toolbar>
+    <g-icon-button src="images/star_full.svg"></g-icon-button>
+    <g-icon-button src="images/star_full.svg" active="true"></g-icon-button>
+    <div class="flex">Title</div>
+    <g-toolbar class="responsive">
+      <div class="hidden-narrow">(</div>
+      <g-icon-button src="images/add.svg"></g-icon-button>
+      <g-icon-button src="images/star_full.svg"></g-icon-button>
+      <div class="hidden-narrow">)</div>
+    </g-toolbar>
+    <g-icon-button src="images/star_full.svg" active="true"></g-icon-button>
+  </g-toolbar>
+</body>
+</html>

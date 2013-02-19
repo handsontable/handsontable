@@ -1,0 +1,39 @@
+<!--
+/*
+ * Copyright 2012 The Toolkitchen Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+-->
+<element name="g-keyframe-panel-transition" extends="g-panel-transition">
+  <script>
+    var END_EVENT = 'webkitAnimationEnd';
+    
+    this.component({
+      publish: {
+        transitionClass: 'animate',
+        setup: function(inPanels) {
+          this.$super(arguments);
+          this.panels.node.addEventListener(END_EVENT, this.finishListener);
+        },
+        teardown: function() {
+          this.$super(arguments);
+          this.panels.node.removeEventListener(END_EVENT, this.finishListener);
+        },
+        begin: function() {
+          this.from.classList.add(this.forward ? 'panels-ascending-from' :
+              'panels-descending-from');
+          this.to.classList.add(this.forward ? 'panels-ascending-to' :
+              'panels-descending-to');
+        },
+        complete: function() {
+          this.from.classList.remove('panels-ascending-from', 
+              'panels-descending-from');
+          this.to.classList.remove('panels-ascending-to', 
+              'panels-descending-to');
+        }
+      }
+    });
+  </script>
+</element>
+

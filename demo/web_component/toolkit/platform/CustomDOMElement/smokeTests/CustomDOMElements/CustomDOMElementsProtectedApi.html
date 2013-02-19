@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <script src="../../../components-polyfill.js" exportas="components" unShadow></script>
+  <style>
+    shadow-root {
+      color: silver !important;
+      background-color: white !important;
+      border: 1px dotted silver !important;
+    }
+  </style>
+</head>
+<body>
+
+  <template id="x-element">
+    x-element
+    <content></content>
+  </template>
+  <x-element></x-element>
+
+  <hr/>
+
+  <template id="x-subelement">
+    x-subelement
+    <shadow>
+  </template>
+  <x-subelement></x-subelement>
+
+  <hr/>
+
+  <script>
+    //
+    // register
+    //
+    var protectedApi = {
+      created: function(inShadowRoot, inKey) {
+        console.log("x-element created", this.is, inShadowRoot, inKey);
+      },
+      munge: function(inNode) {
+        inNode.style.background = "orange";
+      }
+    };
+    //
+    var proto = components.CustomDOMElements.generatePrototype("div", {
+      munge: function() {
+        protectedApi.munge(this);
+      }
+    });
+    //
+    XElement = document.register("x-element", {
+      prototype: proto,
+      template: document.querySelector("template#x-element"),
+      lifecycle: {
+        created: function(inShadowRoot, inKey) {
+          console.log("x-element created", this.is, inShadowRoot, inKey);
+        }
+      }
+    });
+    //
+    // declarative creation
+    //
+    var declarative = function() {
+      var decElt = document.querySelector("[is=x-element]");
+      decElt.munge();
+    };
+    declarative();
+    //
+    // subclass
+    //
+    (function() {
+      var subclass = function() {
+        var protectedApi = {
+          created: function(inShadowRoot, inKey) {
+            console.log("x-subelement created", this.is, inShadowRoot, inKey);
+          },
+          munge: function(inNode) {
+            inNode.style.background = "lightblue";
+          }
+        };
+        //
+        var proto = components.CustomDOMElements.generatePrototype("x-element", {
+          // have to do this again to override implementation, inherited
+          // one is bound to our __proto__
+          munge: function() {
+            protectedApi.munge(this);
+          }
+        });
+        //
+        XSubElement = document.register("x-subelement", {
+          prototype: proto,
+          template: document.querySelector("template#x-subelement"),
+          lifecycle: protectedApi
+        });
+        //
+        var sub = document.querySelector("[is=x-subelement]");
+        sub.munge();
+      };
+      subclass();
+     })();
+  </script>
+</body>
+</html>

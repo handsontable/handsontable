@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2011 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>Recursive Template</title>
+<link rel="stylesheet" href="common_styles.css">
+<script src="include.js"></script>
+</head>
+<body>
+  <div class="example">
+    <h1>Recursive Template</h1>
+    <div class="content">
+      <ul class="tree">
+        <template iterate="items" id="t">
+          <li>{{name}}
+            <ul>
+              <template ref="t" iterate="children"></template>
+            </ul>
+          </li>
+        </template>
+      </ul>
+    </div>
+  </div>
+
+<script>
+
+document.body.model = {
+  'items': [
+    {
+      'name': 'Africa',
+      'children': [
+        {
+          'name': 'Egypt'
+        },
+        {
+          'name': 'Kenya',
+          'children': [
+            {
+              'name': 'Nairobi'
+            },
+            {
+              'name': 'Mombasa'
+            }
+          ]
+        },
+        {
+          'name': 'Sudan',
+          'children': {
+            'name': 'Khartoum'
+          }
+        }
+      ]
+    },
+    {
+      'name': 'Asia',
+      'children': [
+        {
+          'name': 'China'
+        },
+        {
+          'name': 'India'
+        },
+        {
+          'name': 'Russia'
+        },
+        {
+          'name': 'Mongolia'
+        }
+      ]
+    },
+    {
+      'name': 'Australia',
+      'children': {
+        'name': 'Commonwealth of Australia'
+      }
+    },
+    {
+      'name': 'Europe',
+      'children': [
+        {
+          'name': 'Germany'
+        },
+        {
+          'name': 'France'
+        },
+        {
+          'name': 'Spain'
+        },
+        {
+          'name': 'Italy'
+        }
+      ]
+    },
+    {
+      'name': 'North America',
+      'children': [
+        {
+          'name': 'Mexico',
+          'children': [
+            {
+              'name': 'Mexico City'
+            },
+            {
+              'name': 'Guadalajara'
+            }
+          ]
+        },
+        {
+          'name': 'Canada',
+          'children': [
+            {
+              'name': 'Ottawa'
+            },
+            {
+              'name': 'Toronto'
+            }
+          ]
+        },
+        {
+          'name': 'United States of America'
+        }
+      ]
+    },
+    {
+      'name': 'South America',
+      'children': [
+        {
+          'name': 'Brazil'
+        },
+        {
+          'name': 'Argentina'
+        }
+      ]
+    }
+  ]
+};
+
+</script>
+
+  <div class="comment">
+    <h1>Comment</h1>
+    <div class="content">
+      This uses a recursive template to show a tree structure. Each template
+      shows the name as a list item as well as an unordered list of the items
+      children.
+    </div>
+  </div>
+
+</body>
+</html>

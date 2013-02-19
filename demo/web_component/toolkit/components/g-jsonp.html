@@ -1,0 +1,51 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<element name="g-jsonp" attributes="url response">
+  <link rel="components" href="g-component.html">
+  <script>
+    var JSONP_CALLBACK_FUNC_NAME = 'jsonp_callback_';
+    
+    var callbackId = 0;
+  
+    this.component({
+      publish: {
+        go: function() {
+          this.callbackFunc = JSONP_CALLBACK_FUNC_NAME + callbackId++;
+          window[this.callbackFunc] = this.respond.bind(this);
+          url = this.url + this.callbackFunc + '&' + Math.random();
+          this.addScript(url);
+        },
+        isInFlight: function() {
+          return !!this.script;
+        }
+      },
+      ready: function() {
+        if (this.url) {
+          this.go();
+        }
+      },
+      addScript: function(inSrc) {
+        this.script = document.createElement('script');
+        this.script.src = inSrc;
+        this.script.onerror = this.respond.bind(this);
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(this.script, s);
+      },
+      removeScript: function() {
+        if (this.script.parentNode) {
+          this.script.parentNode.removeChild(this.script);
+        }
+        this.script = null;
+      },
+      respond: function(inResponse) {
+        this.response = inResponse;
+        this.removeScript();
+        delete window[this.callbackFunc];
+        this.send('response', {response: inResponse});
+      }
+    });
+  </script>
+</element>

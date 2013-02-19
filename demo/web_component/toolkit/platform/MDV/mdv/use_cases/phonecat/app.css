@@ -1,0 +1,87 @@
+/* app css stylesheet */
+
+a {
+  color: blue;
+}
+
+.query {
+  position: absolute;
+  width: 150px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.phones {
+  margin: 0;
+  margin-left: 160px;
+  list-style: none;
+  padding: 0;
+}
+
+.phones .thumb img {
+  float: left;
+  margin-bottom: 1em;
+}
+
+.phones li {
+  clear: both;
+}
+
+.predicates {
+  position: absolute;
+  width: 150px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/** Detail View **/
+img.phone {
+  float: left;
+  border: 1px solid black;
+  margin-right: 3em;
+  margin-bottom: 2em;
+  background-color: white;
+  padding: 2em;
+}
+
+ul.phone-thumbs {
+  margin: 0;
+  list-style: none;
+}
+
+ul.phone-thumbs li {
+  border: 1px solid black;
+  display: inline-block;
+  margin: 1em;
+  background-color: white;
+  padding: 1em;
+}
+
+ul.specs {
+  clear: both;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+ul.specs > li{
+  display: inline-block;
+  width: 200px;
+  vertical-align: top;
+}
+
+ul.specs > li > span{
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+ul.specs dt {
+  font-weight: bold;
+}
+
+h1 {
+  border-bottom: 1px solid gray;
+}
+

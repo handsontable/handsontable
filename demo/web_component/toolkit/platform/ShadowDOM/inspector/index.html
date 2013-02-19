@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+<head>
+  <title></title>
+  <script src="../../platform.js"></script>
+</head>
+<body>
+  <div id="foo">Now is the time for <span style="text-decoration:italic;">all good men</span> to come to the aid of their <blockquote>party.</blockquote></div>
+  <div>Now is the time for <span>all good men</span> to come to the aid of their <blockquote>party.</blockquote></div>
+  <div id="zed">
+    <div>Now is the time for <span id="squid">all good men</span> to come to the aid of their <blockquote>party.</blockquote></div>
+    Now is the time for <span class="bold">all good men</span> to come to the aid of their <blockquote>party.</blockquote>
+  </div>
+  <!--<script src="inspector.js"></script>-->
+  <script>
+    window.onload = function() {
+      var root = new ShadowDOM.ShadowRoot(foo);
+      var clone = zed.cloneNode(true);
+      root.appendChild(clone);
+      xinspect(document.body);
+    };
+  </script>
+</body>
+</html>

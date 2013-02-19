@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- -->
+    <script src="../shadowdom-polyfill.js" shadow="shim"></script>
+    <!-- -->
+    <script src="lib/util.js"></script>
+    <script src="lib/dump.js"></script>
+    <!-- -->
+    <style>
+      div, g-A, g-B {
+        display: block;
+        border: 1px dotted red;
+        margin: 8px;
+        padding: 8px;
+      }
+    </style>
+    <script>
+      change = function() {
+        A = $("g-A");
+        new ShadowRoot(A, $("template#Ab").content);
+        new ShadowRoot(A, $("template#A").content);
+        //
+        B = ShadowDOM.localQuery(A.shadow, "g-B");
+        new ShadowRoot(B, $("template#B").content);
+        //
+        ShadowDOM.distribute(A);
+        //
+        dumper(A);
+      }
+    </script>
+  </head>
+  <body onload="change()">
+      <g-A><span id="a1">Where am I?</span><span id="a2">I like to be first</span></g-A>
+
+      <!-- content must project through shadow-content to become B content -->
+      <template id="A">[A->]<content select="#a2"></content><g-B><shadow></shadow></g-B>[<-A]</template>
+      <!-- A's <shadow> is here, non #a2 content inserts here -->
+      <template id="Ab">[Ab->]<content></content>[<-Ab]</template>
+      <!-- echo content matching #a1 (filters out "[Ab->][<-Ab]" nodes) -->
+      <template id="B">[B->]<content select="#a1"></content>[<-B]</template>
+
+      <hr/>
+
+      Expected output (also, see console):
+
+      <div>[A-&gt;]I like to be first<div>[B-&gt;]<span id="a1">Where am I?</span>[&lt;-B]</div>[&lt;-A]</div>
+</body>
+</html>

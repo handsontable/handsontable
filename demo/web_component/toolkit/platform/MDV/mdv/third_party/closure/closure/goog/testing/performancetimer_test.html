@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2008 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<!--
+Author:  attila@google.com (Attila Bodis)
+-->
+<head>
+  <title>Closure Unit Tests - goog.testing.PerformanceTimer</title>
+  <script src="../base.js"></script>
+  <script>
+    goog.require('goog.dom');
+    goog.require('goog.testing.PerformanceTimer');
+    goog.require('goog.testing.jsunit');
+  </script>
+</head>
+<body>
+  <div id="sandbox"></div>
+  <script>
+    var sandbox = document.getElementById('sandbox');
+    var timer;
+
+    // Fast test function, pretty much guaranteed to run in under 5,000ms.
+    function fastTestFunction() {
+      for (var i = 0; i < 10; i++) {
+        var div = document.createElement('div');
+        div.innerHTML = 'Div no. ' + i;
+        sandbox.appendChild(div);
+      }
+    }
+
+    // Slow test function, pretty much guaranteed to run longer than 1ms.
+    function slowTestFunction() {
+      for (var i = 0; i < 1000; i++) {
+        var span = document.createElement('span');
+        span.id = 'span_' + i;
+        span.className = 'foo bar';
+        span.innerHTML = 'Span no. ' + i;
+
+        var div = document.createElement('div');
+        div.id = 'div_ ' + i;
+        div.className = 'foo bar';
+        div.tabIndex = i;
+        div.appendChild(span);
+
+        sandbox.appendChild(div);
+      }
+    }
+
+    function setUp() {
+      timer = new goog.testing.PerformanceTimer();
+    }
+    
+    function tearDown() {
+      timer = null;
+      goog.dom.removeChildren(sandbox);
+    }
+
+    function testConstructor() {
+      assertTrue('Timer must be an instance of goog.testing.PerformanceTimer',
+          timer instanceof goog.testing.PerformanceTimer);
+      assertEquals('Timer must collect the default number of samples', 10,
+          timer.getNumSamples());
+      assertEquals('Timer must have the default timeout interval', 5000,
+          timer.getTimeoutInterval());
+    }
+
+    function testRun() {
+      // Fast test function should complete successfully in under 5 seconds...
+      var results = timer.run(fastTestFunction);
+
+      assertNotNull('Results must be available',
+          results);
+      assertTrue('Average must be a nonnegative number',
+          results['average'] >= 0);
+      assertEquals('Count must be as expected', 10,
+          results['count']);
+      assertTrue('Maximum must be a nonnegative number',
+          results['maximum'] >= 0);
+      assertTrue('Mimimum must be a nonnegative number',
+          results['minimum'] >= 0);
+      assertTrue('Standard deviation must be a nonnegative number',
+          results['standardDeviation'] >= 0);
+      assertTrue('Total must be a nonnegative number',
+          results['total'] >= 0);
+      assertTrue('Average must be between minimum and maximum',
+          results['minimum'] <= results['average'] &&
+          results['average'] <= results['maximum']);
+    }
+
+    function testTimeout() {
+      // Slow test function can't finish 10 runs in under 1 millisecond...
+      timer.setTimeoutInterval(1);
+      var results = timer.run(slowTestFunction);
+
+      assertNotNull('Results must be available',
+          results);
+      assertTrue('Count must less than expected',
+          results['count'] < timer.getNumSamples());
+    }
+  </script>
+</body>
+</html>

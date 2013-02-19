@@ -1,0 +1,74 @@
+{
+    "additionalFeatures": "Proximity sensor; Magnetometer; Ambient light sensor; Android HTML Webkit; Adobe\u00ae Flash\u00ae PlayerAccessibility features: Zoom Mode screen magnifier, Voice Readouts Screen Reader", 
+    "android": {
+        "os": "Android 2.2", 
+        "ui": "MOTOBLUR"
+    }, 
+    "availability": [
+        "Verizon (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "220 hours", 
+        "talkTime": "8 hours", 
+        "type": "Lithium Ion (Li-Ion) (1540 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "8.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.1", 
+        "cell": "CDMA 800/1900, EVDO rev. A", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g/n"
+    }, 
+    "description": "Introducing DROID X by Motorola:  a 1-GHz powerhouse with a vivid, 4.3-inch display in a thin touch tablet. DROID X empowers your creative side with a full-featured 8-megapixel camera and 720p HD camcorder to capture sharp pictures and videos. Enjoy editing your videos, then sharing and controlling them on your HDTV via DLNA wirelessly or via the HDMI connector. With this kind of power and spacious display, you'll fall in love with your favorite Android\u2122 apps all over again.\r\n\r\n\r\nDROID is a trademark of Lucasfilm Ltd. and its related companies. Used under license.", 
+    "display": {
+        "screenResolution": "FWVGA (854 x 480)", 
+        "screenSize": "4.3 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "1GHz TI OMAP3630-1000", 
+        "fmRadio": true, 
+        "physicalKeyboard": "/phone/static/images/False.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "droid-x-by-motorola", 
+    "images": [
+        {
+            "id": "10003", 
+            "medium": "http://www.google.com/phone/image/medium/10003", 
+            "small": "http://www.google.com/phone/image/small/10003"
+        }, 
+        {
+            "id": "44002", 
+            "medium": "http://www.google.com/phone/image/medium/44002", 
+            "small": "http://www.google.com/phone/image/small/44002"
+        }, 
+        {
+            "id": "97001", 
+            "medium": "http://www.google.com/phone/image/medium/97001", 
+            "small": "http://www.google.com/phone/image/small/97001"
+        }
+    ], 
+    "name": "DROID\u2122 X by Motorola", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "65.5 mm (w)", 
+            "127.5 mm (h)", 
+            "9.9 mm (d)"
+        ], 
+        "weight": "155.0 grams"
+    }, 
+    "storage": {
+        "flash": "8000MB", 
+        "ram": "512MB"
+    }
+}

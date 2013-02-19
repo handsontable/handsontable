@@ -1,0 +1,37 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<element name="g-icon" attributes="src">
+  <link rel="components" href="g-component.html">
+  <template>
+    <style>
+      @host {
+        display: inline-block;
+        opacity: 0.65;
+      }
+
+      @host:hover {
+        opacity: 0.8;
+      }
+
+      #icon {
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+        background: no-repeat center;
+      }
+    </style>
+    <div id="icon" style="background-image:url({{src}})"></div>
+  </template>
+  <script>    
+    /**
+     * g-icon is a 32x32 glyph expressed as a background-image.
+     * @module g-icon
+     */
+    this.component({
+      src: ''
+    });
+  </script>
+</element>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- -->
+    <script src="../shadowdom-polyfill.js" shadow="shim"></script>
+    <!-- -->
+    <script src="lib/util.js"></script>
+    <script src="lib/dump.js"></script>
+    <!-- -->
+    <style>
+      div, g-A {
+        display: block;
+        border: 1px dotted red;
+        margin: 8px;
+        padding: 8px;
+      }
+    </style>
+    <script>
+      change = function() {
+        A = $("g-A");
+        //
+        new ShadowRoot(A, $("template#Ab").content);
+        new ShadowRoot(A, $("template#A").content);
+        ShadowDOM.distribute(A);
+        //
+        dumper(A);
+      }
+    </script>
+  </head>
+  <body onload="change()">
+      <g-A>
+        <span id="a2">Where am I?</span>
+        <span id="a1">I go first</span>
+      </g-A>
+      <template id="Ab"><span>A's base template, #a2: [<content select="#a2"></content>]</span></template>
+      <template id="A">#a1:[<content select="#a1"></content>]<span> A's template, shadow: {<shadow></shadow>}</span></template>
+
+      <hr/>
+
+      Expected output (also, see console):
+
+      <div><span>#a1:[I go first] A's template, shadow: {A's base template, #a2: [Where am I?]}</span></div>
+  </body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2011 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+  <title>Simple Databinding Examples</title>
+  <script src="include.js"></script>
+  <style>
+
+fieldset {
+  margin: 30px;
+}
+  </style>
+</head>
+
+<body>
+
+<script>
+var m = {};
+
+window.onload = function() {
+  document.body.model = m;
+
+  disabledExamplePostLoad();
+}
+</script>
+
+<template instantiate="sample1">
+  <fieldset><legend>All together now:</legend>
+    <labeL>Input 1: <input type="text" value="{{ text }}"></label>
+    <label>Input 2: <input type="text" value="{{ text }}"></label>
+    Span: <span>{{ text }}</span>
+  </fieldset>
+</template>
+<script>
+m.sample1 = {text: ''};
+</script>
+
+<template instantiate="sample2">
+  <fieldset>
+    <legend>Binding To Disabled, Changing Bindings</legend>
+    <h5>Shipping Address</h5>
+
+    <div>
+      <label>Name: <input type="text" value="{{shipping.name}}"></label>
+      <label>Address: <input type="text" value="{{shipping.address}}"></label>
+    </div>
+
+    <h5>Billing Address</h5>
+
+    <div>
+      <label>
+        <input id="useShipping"
+               type="checkbox"
+               checked="{{useShipping}}">Same as Shipping Address
+      </label>
+    </div>
+    <div id="billingDiv">
+      <label>Name: <input id="billingName" type="text" value="{{name}}"></label>
+      <label>Address: <input id="billingAddress" type="text" value="{{address}}"></label>
+    </div>
+  </fieldset>
+</template>
+<script>
+m.sample2 = {
+  useShipping: false,
+  shipping: {
+    name: '',
+    address: ''
+  },
+  billing: {
+    name: '',
+    address: ''
+  }
+};
+
+function disabledExamplePostLoad() {
+  var checkBox = document.getElementById('useShipping');
+  var billingDiv = document.getElementById('billingDiv');
+  var billingName = document.getElementById('billingName');
+  var billingAddress = document.getElementById('billingAddress');
+
+  function update(useShipping) {
+    billingDiv.model = useShipping ? m.sample2.shipping : m.sample2.billing;
+    billingName.disabled = billingAddress.disabled = useShipping;
+  }
+  update(checkBox.checked);
+
+  Model.observePath(m.sample2, 'useShipping', update);
+}
+</script>
+</body>
+</html>

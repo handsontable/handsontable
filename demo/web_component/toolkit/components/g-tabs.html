@@ -1,0 +1,64 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<element name="g-tabs" extends="g-selector" attributes="selected multi vertical">
+  <link rel="components" href="g-selector.html">
+  <template>
+    <style>
+      style {
+        display: none !important;
+      }
+      @host {
+        display: block;
+        height: 28px;
+        line-height: 28px;
+        border: 0;
+        border-bottom: 1px solid #ccc;
+      }
+      
+      @host.vertical {
+        display: inline-block;
+        width: 71px;
+        height: 100%;
+        border: 0;
+        border-right: 1px solid #ccc;
+      }
+      
+      @host > * {
+        display: inline-block;
+        min-width: 54px;
+        height: 27px;
+        line-height: 27px;
+        text-align: center;
+        padding: 0 8px;
+        cursor: default;
+        border: 1px solid transparent;
+        border-radius: 2px 2px 0 0;
+        -webkit-transition: all 0.218s;
+      }
+      
+      @host.vertical > * {
+        border-radius: 2px 0 0 2px;
+      }
+      
+      @host > :hover {
+        color: #555;
+      }
+      
+      @host > .selected {
+        color: #202020;
+        border: 1px solid #ccc;
+      }
+    </style>
+    <shadow></shadow>
+  </template>
+  <script>
+    this.component({
+      verticalChanged: function() {
+        this.node.classList.toggle('vertical', this.vertical);
+      }
+    });
+  </script>
+</element>

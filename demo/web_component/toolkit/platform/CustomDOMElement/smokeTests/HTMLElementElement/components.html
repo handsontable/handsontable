@@ -1,0 +1,79 @@
+<!--
+/*
+ * Copyright 2012 The Toolkitchen Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+-->
+<element name="x-element">
+  <template>
+    <style>
+      @host {
+        border: 1px dotted lightblue;
+      }
+    </style>x-<content></content>-x</template>
+  <script>
+    this.generatedConstructor.prototype = {
+      foo: 42
+    };
+    this.lifecycle({
+      shadowRootCreated: function(inRoot) {
+        console.log("shadowRootCreated:", inRoot);
+      },
+      created: function(inSuper) {
+        console.log("created:", inSuper);
+      }
+    });
+  </script>
+</element>
+
+<element name="x-composite">
+  <template>
+    [<x-element>
+      <content></content>
+    </x-element>]
+  </template>
+  <script>
+    //
+    // setting this.generatedConstructor.prototype is optional
+    //
+    this.lifecycle({
+      shadowRootCreated: function(inRoot) {
+        console.log("shadowRootCreated:", inRoot);
+      },
+      created: function(inSuper) {
+        console.log("created:", inSuper);
+      }
+    });
+  </script>
+</element>
+
+<element name="x-inherited" extends="x-element">
+  <template>
+    y-<content></content>-y
+  </template>
+  <script>
+    this.lifecycle({
+      shadowRootCreated: function(inRoot) {
+        console.log("shadowRootCreated:", inRoot);
+      },
+      created: function(inSuper) {
+        console.log("created:", inSuper);
+      }
+    });
+  </script>
+</element>
+
+<element name="x-composite-more">
+  <template>
+    [<content select="span"></content>]
+    [<x-inherited><content select="code"></content></x-inherited>]
+    [<x-element><content></content></x-element>]
+
+  </template>
+  <script>
+    //
+    // calling this.lifecycle is optional
+    //
+  </script>
+</element>

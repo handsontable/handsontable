@@ -1,0 +1,74 @@
+{
+    "additionalFeatures": "Accessibility features: Tactile QWERTY keyboard, four-direction keypad, start and end call buttons, dedicated number keys, camera button, TalkBack screen reader", 
+    "android": {
+        "os": "Android 2.1", 
+        "ui": "LG Home"
+    }, 
+    "availability": [
+        "Verizon (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "500 hours", 
+        "talkTime": "8 hours", 
+        "type": "Lithium Ion (Li-Ion) (1500 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "3.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.1", 
+        "cell": "1.9 GHz CDMA PCS, 800 MHz CDMA, EVDO Rev. A, 1xRTT", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "3G Android\u2122-Powered Smartphone, Downloadable Apps, Customizable Widgets\r\nThe Android\u2122-Powered LG Ally\u2122 gives you the ability to customize home screens, and switch from surfing the web and emailing to text messaging and updating your social status. Turn-by-turn directions from Google Maps\u2122 and thousands of apps in Android Market\u2122, you'll be ready for any adventure today - and a new one tomorrow.", 
+    "display": {
+        "screenResolution": "WVGA (800 x 480)", 
+        "screenSize": "3.2 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "600 MHz Qualcomm MSM7627", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/True.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "lg-ally", 
+    "images": [
+        {
+            "id": "17002", 
+            "medium": "http://www.google.com/phone/image/medium/17002", 
+            "small": "http://www.google.com/phone/image/small/17002"
+        }, 
+        {
+            "id": "288005", 
+            "medium": "http://www.google.com/phone/image/medium/288005", 
+            "small": "http://www.google.com/phone/image/small/288005"
+        }, 
+        {
+            "id": "347004", 
+            "medium": "http://www.google.com/phone/image/medium/347004", 
+            "small": "http://www.google.com/phone/image/small/347004"
+        }
+    ], 
+    "name": "LG Ally", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "56.0 mm (w)", 
+            "116.0 mm (h)", 
+            "16.0 mm (d)"
+        ], 
+        "weight": "158.0 grams"
+    }, 
+    "storage": {
+        "flash": "126MB", 
+        "ram": "256MB"
+    }
+}

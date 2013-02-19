@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2011 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>Forms Validation</title>
+<script src="include.js"></script>
+</head>
+<body data-controller="FormController">
+    <form >
+      <template instantiate>
+      <button disabled="{{ invalid }}">Submit</button><br>
+      Email <input type="text" value="{{ email }}"><br>
+      Repeat Email: <input type="text" value="{{ repeatEmail }}"><br>
+      <input type="checkbox" checked="{{ agreeToTerms }}"> I agree
+      <button disabled="{{ invalid }}">Submit</button>
+      </template>
+    </form>
+<script>
+
+function FormController(root) {
+  var model = root.model;
+  function checkValid() {
+    model.invalid = !model.agreeToTerms ||
+                    !model.email ||
+                    model.email != model.repeatEmail;
+  }
+
+  Model.observePath(model, 'email', checkValid);
+  Model.observePath(model, 'repeatEmail', checkValid);
+  Model.observePath(model, 'agreeToTerms', checkValid);
+  checkValid();
+}
+
+document.body.model = {};
+
+</script>
+</body>
+</html>

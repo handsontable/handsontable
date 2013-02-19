@@ -1,0 +1,68 @@
+{
+    "additionalFeatures": "Hearing Aid Compatible HAC M3 - T3 Class,  Ford Sync: Yes, Napster Mobile Compatible", 
+    "android": {
+        "os": "Android 2.1", 
+        "ui": "HTC Sense\u2122"
+    }, 
+    "availability": [
+        "AT&T (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "400 hours", 
+        "talkTime": "6 hours", 
+        "type": "Lithium Ion (Li-Ion) (1200 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Video"
+        ], 
+        "primary": "5.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.1", 
+        "cell": "HSPA/UMTS/EDGE/GPRS/GSM; Dual Mode UMTS/HSDPA/HSUPA (1900/850MHZ) & GSM/GPRS/EDGE (Quad band 850/900/1800/1900MHZ); HSDPA/UMTS (3GPP Release 5 Compliant; 7.2 Mbps Enabled) EGPRS Functionality", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "It\u2019s got everything you\u2019d expect from the Internet. And with HTC Sense\u2122 and the Android\u2122 2.1 OS  it goes beyond every expectation of a pocket-sized phone. Know the time and weather, wherever. No matter what time zone you turn up in, the auto-updating display keeps you on schedule and a step ahead of the weather.\r\nApp it up. With the Android 2.1 operating system and instant access to the Android Market\u2122, there\u2019s never a short supply of cool new ways to use your phone.\r\nFriendStream forever. With HTC\u2019s FriendStream app, you know what\u2019s going on with your friends on Facebook\u00ae and Twitter\u2122, without actually going on Facebook and Twitter.\r\nTake the easy route. With Google Maps\u2122, getting there gets a whole lot easier. Launch the app for instant turn-by-turn directions, live traffic updates, alternate routes and more.", 
+    "display": {
+        "screenResolution": "HVGA (480 x 320)", 
+        "screenSize": "3.2 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "600 MHz", 
+        "fmRadio": true, 
+        "physicalKeyboard": "/phone/static/images/False.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "htc-aria", 
+    "images": [
+        {
+            "id": "173001", 
+            "medium": "http://www.google.com/phone/image/medium/173001", 
+            "small": "http://www.google.com/phone/image/small/173001"
+        }, 
+        {
+            "id": "289002", 
+            "medium": "http://www.google.com/phone/image/medium/289002", 
+            "small": "http://www.google.com/phone/image/small/289002"
+        }
+    ], 
+    "name": "HTC Aria", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "57.7 mm (w)", 
+            "103.8 mm (h)", 
+            "11.7 mm (d)"
+        ], 
+        "weight": "115.0 grams"
+    }, 
+    "storage": {
+        "flash": "384MB", 
+        "ram": "384MB"
+    }
+}

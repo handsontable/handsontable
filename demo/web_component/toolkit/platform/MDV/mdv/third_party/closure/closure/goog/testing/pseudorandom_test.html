@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2009 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<head>
+<title>Closure Unit Tests - goog.testing.PseudoRandom</title>
+<script src="../base.js"></script>
+<script>
+  goog.require('goog.testing.PseudoRandom');
+  goog.require('goog.testing.jsunit');
+</script>
+</head>
+<body>
+<script>
+
+  function testInstall() {
+    var random = new goog.testing.PseudoRandom(100);
+    var originalRandom = Math.random;
+
+    assertFalse(!!random.installed_);
+
+    random.install();
+    assertTrue(random.installed_);
+    assertNotEquals(Math.random, originalRandom);
+
+    random.uninstall();
+    assertFalse(random.installed_);
+    assertEquals(originalRandom, Math.random);
+  }
+
+  function testRandom() {
+    var random = new goog.testing.PseudoRandom(100, true);
+    assertEquals(0.002247790043235406, Math.random());
+    assertEquals(0.5030723804889388, Math.random());
+    assertEquals(0.8068772436163565, Math.random());
+    assertEquals(0.7714252865710697, Math.random());
+    assertEquals(0.47000723489722573, Math.random());
+    assertEquals(0.7192345287533566, Math.random());
+    assertEquals(0.16993709732683582, Math.random());
+    assertEquals(0.033624989920819824, Math.random());
+    assertEquals(0.11188828673232759, Math.random());
+    assertEquals(0.959487323992191, Math.random());
+    assertEquals(0.41261565794007266, Math.random());
+    assertEquals(0.37042378904869727, Math.random());
+    assertEquals(0.726719974629303, Math.random());
+    assertEquals(0.4998944519829092, Math.random());
+    assertEquals(0.4050909653859837, Math.random());
+    assertEquals(0.1459898667628944, Math.random());
+    assertEquals(0.07685837237074747, Math.random());
+    assertEquals(0.030492650793359256, Math.random());
+    assertEquals(0.9107450010435443, Math.random());
+    assertEquals(0.5719443575274702, Math.random());
+    assertEquals(0.3260816232292376, Math.random());
+    assertEquals(0.2860344063649913, Math.random());
+    assertEquals(0.1668293458478155, Math.random());
+    assertEquals(0.01935336909534569, Math.random());
+    assertEquals(0.2064792722790407, Math.random());
+    assertEquals(0.9609506356262506, Math.random());
+    assertEquals(0.04813212235387236, Math.random());
+    assertEquals(0.3856775275075161, Math.random());
+    assertEquals(0.03993020546828175, Math.random());
+    assertEquals(0.47094740919094846, Math.random());
+    assertEquals(0.10238883726308114, Math.random());
+    assertEquals(0.41156286239234224, Math.random());
+    assertEquals(0.5509296189780301, Math.random());
+    assertEquals(0.923636159949447, Math.random());
+    assertEquals(0.8410754768206976, Math.random());
+    assertEquals(0.5543406327830456, Math.random());
+    assertEquals(0.5766840905906678, Math.random());
+    assertEquals(0.11773664603930258, Math.random());
+    assertEquals(0.2656405284851376, Math.random());
+    assertEquals(0.7339493122692493, Math.random());
+    assertEquals(0.46725172061611736, Math.random());
+    assertEquals(0.7078046837927923, Math.random());
+    assertEquals(0.43989058002919174, Math.random());
+    assertEquals(0.9581870193135442, Math.random());
+    assertEquals(0.645608146359543, Math.random());
+    assertEquals(0.15083260469093143, Math.random());
+    assertEquals(0.840659687127659, Math.random());
+    assertEquals(0.4837564718883229, Math.random());
+    assertEquals(0.40865381592350314, Math.random());
+    assertEquals(0.12834819085342566, Math.random());
+    assertEquals(0.49551988588811074, Math.random());
+    assertEquals(0.24041126455188305, Math.random());
+    assertEquals(0.8921497427923432, Math.random());
+    assertEquals(0.9602342842517404, Math.random());
+    assertEquals(0.4691342571046254, Math.random());
+    random.uninstall();
+  }
+
+</script>
+</body>
+</html>

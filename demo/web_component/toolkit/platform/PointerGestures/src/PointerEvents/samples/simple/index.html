@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width user-scalable=no">
+    <title>PointerEventShim testing ground</title>
+    <style>
+      * {
+        -webkit-user-select: none;
+      }
+      body, html {
+        margin: 0;
+        height: 100%;
+        position: relative;
+      }
+      body {
+        overflow: auto;
+        -ms-touch-action: none;
+        touch-action: none;
+      }
+      #capture {
+        background-color: orange;
+        height: 300px;
+        width: 300px;
+        text-align: center;
+        -webkit-user-select: none;
+      }
+      #enterleave {
+        background-color: blue;
+        height: 150px;
+        width: 150px;
+        text-align: center;
+        vertical-align: center;
+        line-height: 150px;
+        left: 25%;
+        top: 25%;
+        position: relative;
+      }
+      #output {
+        width: 300px;
+        height: 150px;
+        overflow: scroll;
+        white-space: pre;
+      }
+    </style>
+    <script src="../../src/pointerevents.js"></script>
+  </head>
+  <body>
+    <div id="capture" touch-action="none">
+      <div id="enterleave">
+      </div>
+    </div>
+    <div id="output"></div>
+    <script>
+      var events = [
+        // base events
+        'click',
+        'pointerdown',
+        'pointerup',
+        'pointermove',
+        'pointerover',
+        'pointerout'
+      ];
+      function find(/*...inEls*/) {
+        [].forEach.call(arguments, function(e) {
+          window[e] = document.getElementById(e);
+        });
+      }
+      function appendOutput(inString) {
+        var it = output.textContent;
+        output.textContent = inString + '\n' + it;
+      }
+      find('capture', 'output', 'enterleave');
+      events.forEach(function(en) {
+        capture.addEventListener(en, function(inEvent) {
+          appendOutput(inEvent.type + ' [' + inEvent.pointerId + ']');
+        });
+      });
+      enterleave.addEventListener('pointerover', function(e) {
+        appendOutput('enterleave entered');
+      });
+      enterleave.addEventListener('pointerout', function(e) {
+        appendOutput('enterleave left');
+      });
+    </script>
+  </body>
+</html>

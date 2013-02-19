@@ -1,0 +1,79 @@
+{
+    "additionalFeatures": "SWYPE text entry.\r\nAccessibility features: Tactile QWERTY keyboard, arrow keys, dedicated number keys, camera button, TalkBack screen reader", 
+    "android": {
+        "os": "Android 2.1", 
+        "ui": "TouchWiz"
+    }, 
+    "availability": [
+        "Sprint (United States)"
+    ], 
+    "battery": {
+        "standbyTime": "780 hours", 
+        "talkTime": "6 hours", 
+        "type": "Lithium Ion (Li-Ion) (1500 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "5.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 3.0", 
+        "cell": "CDMA 800/1900 MHz EVDO Rev. A\r\nWiMAX 2.5 to 2.7 GHz; 802.16e\r\n", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g/n"
+    }, 
+    "description": "The smartphone just became brilliant. The Samsung Epic\u2122 4G a Galaxy S\u2122 phone, exclusively at Sprint, offers a robust set of entertainment features and represents a high level of mobile intelligence. The 4.0\" Super AMOLED\u2122 display is stunningly bright while also conserving battery life. Combining 4G network capabilities with a powerful one-gigahertz processor, the Samsung Epic\u2122 4G is built for speed. Add in a sliding QWERTY keyboard, a front facing camera and the unlimited possibilities of the Android\u2122 platform, and the Epic 4G is truly brilliant.", 
+    "display": {
+        "screenResolution": "WVGA (800 x 480)", 
+        "screenSize": "4.0 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "1GHz", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/True.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "samsung-epic-4g-a-galaxy-s-phone", 
+    "images": [
+        {
+            "id": "281003", 
+            "medium": "http://www.google.com/phone/image/medium/281003", 
+            "small": "http://www.google.com/phone/image/small/281003"
+        }, 
+        {
+            "id": "284004", 
+            "medium": "http://www.google.com/phone/image/medium/284004", 
+            "small": "http://www.google.com/phone/image/small/284004"
+        }, 
+        {
+            "id": "303003", 
+            "medium": "http://www.google.com/phone/image/medium/303003", 
+            "small": "http://www.google.com/phone/image/small/303003"
+        }, 
+        {
+            "id": "340003", 
+            "medium": "http://www.google.com/phone/image/medium/340003", 
+            "small": "http://www.google.com/phone/image/small/340003"
+        }
+    ], 
+    "name": "Samsung Epic 4G\u2122 a Galaxy S\u2122 phone", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "64.6 mm (w)", 
+            "124.8 mm (h)", 
+            "14.2 mm (d)"
+        ], 
+        "weight": "155.0 grams"
+    }, 
+    "storage": {
+        "flash": "1000MB", 
+        "ram": "512MB"
+    }
+}

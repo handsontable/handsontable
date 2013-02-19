@@ -1,0 +1,36 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<title>App Extendee</title>
+  <script src="../platform/platform.js"></script>
+</head>
+<body>
+  <element name="g-my-app" extends="g-app">
+    <link rel="components" href="../components/g-app.html">
+    <template>
+      <style>
+        .tomato {
+          background: tomato;
+          padding: 20px;
+        }
+      </style>
+      <div class="flex tomato">{{content}}</div>
+    </template>
+    <script>
+      if (this.component) {
+        this.component({
+          content: 'App Stuff!!!'
+        });
+      }
+    </script>
+  </element>
+
+  <g-my-app></g-my-app>
+  
+</body>
+</html>

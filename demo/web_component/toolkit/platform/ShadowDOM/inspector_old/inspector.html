@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+<head>
+  <title>Inspector</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" href="inspect.css"></link>
+  <script src="dump.js"></script>
+  <script src="inspect.js"></script>
+</head>
+<body>
+  <div id="tree" class="inspector"></div>
+  <script>
+    inspect = function(inNode, inExplode) {
+      tree.textContent = '';
+      xinspect(inNode, tree, inExplode);
+    };
+  </script>
+</body>
+</html>

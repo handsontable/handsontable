@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>Mocha Test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- -->
+    <link rel="stylesheet" href="../third_party/mocha/mocha.css" />
+    <script src="../third_party/expect.js/expect.js"></script>
+    <script src="../third_party/mocha/mocha.js"></script>
+    <!-- -->
+    <script src="../platform/platform.js"></script>
+    <link rel="components" href="g-foo.html">
+    <link rel="components" href="../components/g-icon.html">
+    <link rel="components" href="../components/g-icon-button.html">
+    <link rel="components" href="../components/g-selection.html">
+    <link rel="components" href="../components/g-selector.html">
+    <link rel="components" href="../components/g-togglebutton.html">
+    <link rel="components" href="../components/g-menu-item.html">
+    <link rel="components" href="../components/g-menu.html">
+    <link rel="components" href="../components/g-ajax.html">
+    <style>
+      #work {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <script>
+      mocha.setup({ui: 'tdd'});
+    </script>
+    <!--  -->
+    <div id="work"></div>
+    <script src="utils.js"></script>
+    <script src="component.js"></script>
+    <script src="icon.js"></script>
+    <script src="icon-button.js"></script>
+    <script src="selection.js"></script>
+    <script src="selector.js"></script>
+    <script src="togglebutton.js"></script>
+    <script src="menu-item.js"></script>
+    <script src="menu.js"></script>
+    <script src="ajax.js"></script>
+    <!--  -->
+    <script>
+      window.addEventListener('WebComponentsReady', function() {
+        mocha.run();
+      });
+    </script>
+  </body>
+</html>

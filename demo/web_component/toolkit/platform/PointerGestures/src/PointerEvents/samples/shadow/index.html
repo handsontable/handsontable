@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<script src="../../src/pointerevents.js"></script>
+<style>
+  #host {
+    height: 400px;
+    width: 400px;
+    background: lightblue;
+  }
+</style>
+
+<div id="host"></div>
+
+<script>
+  var n = document.getElementById('host');
+  var s = n.webkitCreateShadowRoot();
+  var d = document.createElement('div');
+  var pd = document.createElement('div');
+  pd.appendChild(d);
+  pd.setAttribute('touch-action', 'none');
+  d.style.cssText = 'height: 200px; width: 200px; background: blue;';
+  d.innerHTML = '<div>Hello World</div>';
+  s.appendChild(pd);
+  d.addEventListener('pointermove', function(e){ console.log(e.target) });
+  // Secret Sauce
+  __PointerEventShim__.enablePointerEvents(s);
+</script>

@@ -1,0 +1,114 @@
+{
+    "additionalFeatures": "", 
+    "android": {
+        "os": "Android 1.6", 
+        "ui": ""
+    }, 
+    "availability": [
+        "Orange (Poland)", 
+        "TIM (Brazil)", 
+        "Vodafone (Italy)", 
+        "Vodafone (United Kingdom)", 
+        "TIM (Italy)", 
+        "T-Mobile (Germany)", 
+        "Orange (Spain)", 
+        "AT&T (United States)", 
+        "SKT (Korea)", 
+        "Vodafone (Germany)", 
+        "Virgin Mobile (Australia)", 
+        "Movistar (Argentina)", 
+        "Movistar (Spain)", 
+        "StarHub (Singapore)", 
+        "3 (Australia)", 
+        "Singtel (Singapore)", 
+        "Personal (Argentina)", 
+        "Telstra (Australia)", 
+        "Vivo (Brazil)", 
+        "Era (Poland)", 
+        "Play (Poland)", 
+        "Virgin Mobile (France)", 
+        "Vodafone (Spain)", 
+        "Bouygues Telecom (France)", 
+        "3 (United Kingdom)", 
+        "SFR (France)", 
+        "Rogers (Canada)", 
+        "Orange (United Kingdom)", 
+        "T-Mobile (United Kingdom)", 
+        "O2 (United Kingdom)", 
+        "M1 (Singapore)", 
+        "Optus (Australia)", 
+        "Orange (France)", 
+        "O2 (Germany)", 
+        "NTT docomo (Japan)", 
+        "Vodafone (Australia)"
+    ], 
+    "battery": {
+        "standbyTime": "415 hours", 
+        "talkTime": "10 hours", 
+        "type": "Lithium Polymer (Li-Poly) (1500 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Flash", 
+            "Video"
+        ], 
+        "primary": "8.1 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 2.0", 
+        "cell": "UMTS HSPA 900/1700/2100\r\nGSM GPRS/EDGE 850/900/1800\r\nUMTS HSPA 800/1900/2100\r\nGSM GPRS/EDGE 850/900/1800", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g"
+    }, 
+    "description": "Capture your world. Holiday memories. Birthday parties. Concerts. Catch it all. With the 8.1 megapixel camera with face detection. Watch it all and drift away on the 4\u201d touchscreen.Addicted to friends? Addicted to music? Texts. Updates. Calls. Tweets. With Timescape\u2122 you have all your communication in one place. One live stream. Always up to date. Music. Photos. Videos. Mediascape\u2122 keeps it together, in one place. Always there for you to enjoy it.You choose - Android Market. Going out? Finding out? Or perhaps just chilling out? Get any application you want from Android Market. All Google services at your service. Simply to make life more entertaining.", 
+    "display": {
+        "screenResolution": "FWVGA (854 x 480)", 
+        "screenSize": "4.0 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "1 GHz Qualcomm QSD 8250 Snapdragon", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/False.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "sony-ericsson-xperia-x10", 
+    "images": [
+        {
+            "id": "444002", 
+            "medium": "http://www.google.com/phone/image/medium/444002", 
+            "small": "http://www.google.com/phone/image/small/444002"
+        }, 
+        {
+            "id": "455002", 
+            "medium": "http://www.google.com/phone/image/medium/455002", 
+            "small": "http://www.google.com/phone/image/small/455002"
+        }, 
+        {
+            "id": "478002", 
+            "medium": "http://www.google.com/phone/image/medium/478002", 
+            "small": "http://www.google.com/phone/image/small/478002"
+        }, 
+        {
+            "id": "483002", 
+            "medium": "http://www.google.com/phone/image/medium/483002", 
+            "small": "http://www.google.com/phone/image/small/483002"
+        }
+    ], 
+    "name": "Sony Ericsson Xperia X10", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "63.0 mm (w)", 
+            "119.0 mm (h)", 
+            "13.0 mm (d)"
+        ], 
+        "weight": "135.0 grams"
+    }, 
+    "storage": {
+        "flash": "1000MB", 
+        "ram": "384MB"
+    }
+}

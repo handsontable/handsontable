@@ -1,0 +1,146 @@
+<!--
+/*
+ * Copyright 2012 The Toolkitchen Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+-->
+<element name="g-flow-panel-transition" extends="g-panel-transition">
+  <template>
+    <style scoped id="flowsheet">
+      g-panels[transition='flow'] > .right {
+        left: auto;
+        right: 0;
+      }
+      
+      /* note: won't win over node specific styling */
+      g-panels[transition='flow'] > .narrow-layout {
+        width: 100%;
+        -webkit-box-shadow: none;
+      }
+    </style>
+  </template>
+  <script>
+    
+    var isNodeHidden = function(inNode) {
+      return (inNode.offsetWidth) == 0 && (inNode.offsetHeight == 0);
+    }
+    
+    var END_EVENT = 'webkitTransitionEnd';
+    
+    this.component({
+      publish: {
+        highlander: false,
+        narrowMedia: '(max-width: 800px)',
+        setup: function() {
+          this.$super(arguments);
+          this.listenForMediaMatch();
+          // TODO(sorvell): redo when reference combinators arrive
+          this.panels.node.lightDOM.appendChild(this.$.flowsheet);
+          this.panels.node.distribute();
+          this.boundResizeHandler = this.resizeHandler.bind(this);
+          window.addEventListener('resize', this.boundResizeHandler);
+          this.panels.node.addEventListener(END_EVENT, this.finishListener);
+        },
+        teardown: function() {
+          window.removeEventListener('resize', this.boundResizeHandler);
+          // TODO(sorvell): how do we remove a node from lightDOM?
+          // Need a ref to the node in lightDOM; workaround until fixed.
+          var sheet = this.panels.node.lightDOM.querySelector(this.$.flowsheet.id);
+          if (sheet) {
+            this.panels.node.lightDOM.removeChild(sheet);
+            this.panels.node.distribute();
+          }
+          this.$super();
+          this.panels.node.removeEventListener(END_EVENT, this.finishListener);
+        },
+        listenForMediaMatch: function() {
+          var mq = window.matchMedia(this.narrowMedia);
+          mq.addListener(this.layoutChange.bind(this));
+          this.layoutChange(mq);
+        },
+        layoutChange: function(inQuery) {
+          this.narrowLayout = inQuery.matches;
+          this.panels.getPanels().forEach(function(p) {
+            p.classList.toggle('narrow-layout', this.narrowLayout);
+          }, this);
+          this.refresh();
+        },
+        enableTransitions: function(inEnable) {
+          this.panels.getPanels().forEach(function(p) {
+            p.style.webkitTransition = inEnable ? null : 'none';
+          });
+        },
+        canTransition: function() {
+          return !isNodeHidden(this.panels.node);
+        },
+        resizeHandler: function(e) {
+          if (this.narrowLayout && !this.resizing) {
+            this.resizing = this.asyncMethod('resize', null, 50);
+          }
+        },
+        resize: function() {
+          clearTimeout(this.resizing);
+          this.resizing = null;
+          this.refresh();
+        },
+        refresh: function() {
+          this.enableTransitions(false);
+          this.to = this.panels.getSelectedPanel();
+          if (this.canTransition()) {
+            this.begin();
+          }
+          webkitRequestAnimationFrame(function() {
+            this.enableTransitions(true);
+          }.bind(this));
+        },
+        begin: function() {
+          var i = this.panels.indexOf(this.to);
+          if (this.panelIsRightAligned(this.to)) {
+            this.applyRightLayout(this.to, i);
+          } else {
+            this.applyLeftLayout(this.to, i);
+          }
+        },
+        // inIndex appears at the left with subsequent nodes
+        // moved out of the way to the right; right aligned nodes are ignored
+        applyLeftLayout: function(inTo, inIndex) {
+          var l, count = this.count;
+          this.panels.getPanels().forEach(function(p, i) {
+            var x = !l ? 0 : l.offsetWidth + 'px';
+            var right = this.panelIsRightAligned(p);
+            p.style.zIndex = right ? -i : null;
+            p.style.webkitTransform = 'translate3d(' + (right ? 0 : x) + ',0,0)';
+            if (i >= inIndex) {
+              l = p;
+            }
+          }, this);
+        },
+        // inIndex appears at the right with previous nodes
+        // moved out of the way to the left; note z-index used to get proper stacking
+        applyRightLayout: function(inTo, inIndex) {
+          var p$ = this.panels.getPanels(), right=true, l;
+          for (var i=p$.length-1, p; p=p$[i]; i--) {
+            var x = l ? -l.offsetWidth : 0;
+            p.style.zIndex = right ? p$.length - i : null;
+            p.style.webkitTransform = 'translate3d(' + x + 'px,0,0)';
+            if (i <= inIndex) {
+              l = p;
+            }
+            // record where we stop being right aligned so we can stop z-stacking
+            right = right && this.panelIsRightAligned(p);
+          }
+        },
+        // TODO(sorvell): it's unsatisfying that we need a specific class to 
+        // determine right alignment because this defeats applying rightness via
+        // selectors (e.g. :last-child or media queries). We could look for 
+        // computed style right == 0 but this seems more brittle.
+        panelIsRightAligned: function(inNode) {
+          return !this.panels.narrowLayout && inNode &&
+              inNode.classList.contains('right');
+        }
+      }
+    });
+  </script>
+</element>
+

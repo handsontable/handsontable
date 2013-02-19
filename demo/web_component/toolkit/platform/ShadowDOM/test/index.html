@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>Mocha Test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- -->
+    <script>window.__exported_components_polyfill_scope__ = window;</script>
+    <script src="../shadowdom-polyfill.js" shadow="testing"></script>
+    <!-- -->
+    <link rel="stylesheet" href="../../../third_party/mocha/mocha.css" />
+    <!-- -->
+    <style>
+      #work {
+        visibility: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <div id="work"></div>
+    <script src="../../../third_party/mocha/mocha.js"></script>
+    <script>mocha.setup('bdd')</script>
+    <!-- -->
+    <script src="utils.js"></script>
+    <script src="(4)-shadowDom.js"></script>
+    <script src="(4.1)-shadow.js"></script>
+    <script src="(5)-lightAndShadow.js"></script>
+    <script src="(5.1)-content-select.js"></script>
+    <script src="(5.1.1)-content-select-class.js"></script>
+    <script src="(5.1.2)-content-select-all.js"></script>
+    <script src="(5.1.3)-content-select-dynamic.js"></script>
+    <script src="(5.2)-shadow-bases.js"></script>
+    <script src="(5.2.1)-shadow-bases-dynamic.js"></script>
+    <script src="(5.3)-bases-select.js"></script>
+    <script src="(6)-composition.js"></script>
+    <script src="(6.1)-reprojection.js"></script>
+    <script src="(6.1.1)-dynamics.js"></script>
+    <script src="(6.2)-more-reprojection.js"></script>
+    <script src="(6.3)-reproject-shadow.js"></script>
+    <script src="(6.3.1)-reproject-shadow-shadow.js"></script>
+    <script src="(6.4)-reproject-shadow-select.js"></script>
+    <script src="Component.js"></script>
+    <script src="(7)-component.js"></script>
+    <script src="(7.1)-composition.js"></script>
+    <script src="(7.2)-complexity.js"></script>
+    <script src="(7.2.0.1)-complexity.js"></script>
+    <script src="(7.2.0.2)-complexity.js"></script>
+    <script src="(7.2.1)-more-complexity.js"></script>
+    <script src="(7.2.2)-more-complexity-dynamic.js"></script>
+    <script src="(7.2.3)-uber-complexity.js"></script>
+    <script src="(7.3)-lifecycle.js"></script>
+    <!-- -->
+    <script>
+      mocha.run();
+    </script>
+  </body>
+</html>

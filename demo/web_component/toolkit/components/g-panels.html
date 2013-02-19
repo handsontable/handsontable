@@ -1,0 +1,285 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<element name="g-panels" attributes="transition selected index autoselect" 
+         on-keydown="keydownHandler">
+<link rel="components" href="g-component.html">
+<link rel="components" href="panel-transitions/g-panel-transition.html">
+<link rel="components" href="panel-transitions/g-keyframe-panel-transition.html">
+<link rel="components" href="panel-transitions/g-flow-panel-transition.html">
+<link rel="stylesheet" href="css/g-panels.css" />
+<template>
+  <content id="content" select="*"></content>
+</template>
+<script>
+  // TODO(sorvell): promote this and figure out canonical way to do this;
+  // and support contenteditable.
+  var documentIsEditing = function() {
+    var a = document.activeElement;
+    if (a.tagName == "INPUT" || a.tagName == "SELECT" || a.tagName == "TEXTAREA") {
+      return true;
+    }
+  }
+  
+  // TODO(sorvell): need key table
+  var RIGHT_ARROW_KEY = 39;
+  var LEFT_ARROW_KEY = 37;
+  
+  this.component({
+    transition: 'keyframe',
+    defaultTransition: 'keyframe',
+    _canTransition: false,
+    ready: function() {
+      this.initPanels();
+      if (!this.node.hasAttribute('tabindex')) {
+        this.node.tabIndex = -1;
+      }
+      if (this.selected) {
+        this.selectedChanged();
+      } else if (!this.index) {
+        this.index = 0;
+      }
+      this.refreshWhenInserted();
+    },
+    initPanels: function() {
+      this.getPanels().forEach(function(p, i) {
+        this.initPanel(p, i);
+      }, this);
+    },
+    initPanel: function() {},
+    indexChanged: function(inOldValue) {
+      var i = this.clampIndex(this.index);
+      if (!this.canSelect(i)) {
+        this.index = inOldValue;
+        return;
+      }
+      if (i != this.index) {
+        this.index = i;
+      }
+      if (this.index != this.lastIndex) {
+        var fromPanel = this.panelAtIndex(this.lastIndex),
+            toPanel = this.panelAtIndex(this.index),
+            forward = Boolean(this.index > this.lastIndex);
+        if (!this.transitionNode) {
+          this.transitionChanged();
+        }
+        if (this.canTransition(fromPanel, toPanel, forward)) {
+          this.beginTransition(fromPanel, toPanel, forward);
+        } else {
+          this.finishTransition(fromPanel, toPanel, forward);
+        }
+        this.lastIndex = this.index;
+        this.selected = this.getSelectedValue();
+      }
+    },
+    canSelect: function(inIndex) {
+      var canSelect = true;
+      // TODO(sorvell): dirtyCheck before we sent the canSelect event since
+      // it's likely that the decision needs to rely on binding state.
+      // consider doing this in g-component.send.
+      dirtyCheck();
+      this.send('canselect', {
+        index: inIndex, 
+        selected: this.selectedValueForIndex(inIndex),
+        preventSelect: function() {
+          canSelect = false;
+        }
+      });
+      return canSelect;
+    },
+    clampIndex: function(inIndex) {
+      var i = isNaN(inIndex) ? 0 : inIndex;
+      return Math.max(0, Math.min(this.count-1, i));
+    },
+    getSelectedValue: function() {
+      var selected = this.getSelectedPanel();
+      return this.selectedValueForPanel(selected);
+    },
+    selectedValueForPanel: function(inPanel) {
+      var name = inPanel && (inPanel.getAttribute('id') ||
+          inPanel.getAttribute('name'));
+      return name || this.indexOf(inPanel);
+    },
+    selectedValueForIndex: function(inIndex) {
+      var panel = this.panelAtIndex(inIndex);
+      return this.selectedValueForPanel(panel);
+    },
+    // selected is the name property of the panel to select
+    selectedChanged: function(inOldValue) {
+      var index = this.indexOfPropValue('id', this.selected);
+      index = index >= 0 ? index : this.indexOfPropValue('name', this.selected);
+      index = index >= 0 ? index : Number(this.selected);
+      if (index >= 0) {
+        this.index = index;
+      }
+    },
+    transitionChanged: function(inOldValue) {
+      if (this.transitionNode) {
+        if (this.transitionNode.localName == 
+            this.tagNameForTransition(this.transition)) {
+          return;
+        }
+        this.transitionNode.teardown();
+      }
+      this.transitionNode = this.makeTransitionNode(this.transition);
+      this.transitionNode.setup(this);
+      this.node.setAttribute('transition', this.transition);
+      this.refresh();
+    },
+    makeTransitionNode: function(inName) {
+      var name = this.tagNameForTransition(inName);
+      var transition = document.createElement(name);
+      return transition.setup ? transition :
+          this.makeTransitionNode(this.defaultTransition);
+    },
+    tagNameForTransition: function(inName) {
+      return 'g-' + inName + (inName ? '-' : '') + 'panel-transition';
+    },
+    indexOfPropValue: function(inProp, inValue) {
+      var c$ = this.getPanels();
+      for (var i=0, c; c=c$[i]; i++) {
+        if (c.getAttribute(inProp) == inValue) {
+          return i;
+        }
+      }
+      return -1;
+    },
+    panelAtName: function(inName) {
+      return this.panelAtIndex(this.indexOfName(inName));
+    },
+    canTransition: function(inFrom, inTo, inForward) {
+      return this._canTransition && Boolean(this.transitionNode && inFrom && inTo &&
+          this.transitionNode.canTransition(inFrom, inTo, inForward));
+    },
+    beginTransition: function(inFrom, inTo, inForward) {
+      if (this.transitionNode) {
+        this.transitionNode.stop();
+      }
+      //console.time('transition: ' + this.transition + ', ' + this.node.className);
+      //webkitRequestAnimationFrame(function() {
+        this.enablePanelShowing(inFrom, true);
+        this.enablePanelShowing(inTo, true);
+        if (this.showByZ) {
+          this.applyZ(inFrom, this.topZ);
+          this.applyZ(inTo, this.topZ - 1);
+        }
+        this.transitionNode.go(inFrom, inTo, inForward);
+      //}.bind(this));
+    },
+    finishTransition: function(inFrom, inTo, inForward) {
+      if (!this.canTransition(inFrom, inTo, inForward)) {
+        this.transitionNode.refresh();
+      }
+      this.ensureSelectedShowing();
+      //console.timeEnd('transition: ' + this.transition + ', ' + this.node.className);
+      this.asend('select');
+    },
+    keydownHandler: function(e) {
+      if (this.autoselect && !documentIsEditing()) {
+        var oldIndex = this.index;
+        if (e.keyCode == RIGHT_ARROW_KEY) {
+          this.next();
+        } else if (e.keyCode == LEFT_ARROW_KEY) {
+          this.previous();
+        }
+        // TODO(sorvell): dirtyCheck so we know syncronously if index changed.
+        dirtyCheck();
+        if (this.index != oldIndex) {
+          e.cancelBubble = true;
+          this.node.focus();
+        }
+      }
+    },
+    refresh: function() {
+      if (this.transitionNode && this.transitionNode.canTransition()) {
+        this.transitionNode.refresh();
+        this.ensureSelectedShowing();
+      }
+    },
+    // TODO(sorvell): need to refresh when inserted into DOM,
+    // in lieu of that event, do so in WebComponentsReady.
+    refreshWhenInserted: function() {
+      var ready = 'WebComponentsReady';
+      var fn = function() {
+        this.refresh();
+        // TODO(sorvell): continue investigating why this it's necessary
+        // to need to ensure synchronous layout to avoid artifacting.
+        this.node.offsetWidth;
+        this.enableTransitions(true);
+        document.removeEventListener(ready, fn);
+      }.bind(this);
+      document.addEventListener(ready, fn);
+    },
+    ensureSelectedShowing: function() {
+      if (this.transitionNode.highlander) {
+        this.getPanels().forEach(function(p, i) {
+          if (this.showByZ) {
+            this.applyZ(p, i == this.index ? this.topZ : 0);
+          } else {
+            this.enablePanelShowing(p, i == this.index);
+          }
+        }, this);
+      }
+    },
+    // TODO(sorvell): this is an experimental mode where panels are 
+    // shown by altering z-index... will probably either be removed
+    // or used exclusively.
+    showByZ: false,
+    topZ: 2,
+    applyZ: function(inNode, inZ) {
+      inNode.style.zIndex = inZ;
+    },
+    publish: {
+      enableTransitions: function(inEnable) {
+        this._canTransition = inEnable;
+      },
+      // note: cannot use hidden attr for this since it's trumped by display
+      // setting e.g. hidden + display: -webkit-flex == showing.
+      enablePanelShowing: function(inPanel, inEnable) {
+        if (inPanel) {
+          inPanel.style.display = inEnable ? null : 'none';
+        }
+      }, 
+      // TODO: consider selecting something more specific so we don't need to
+      // filter out style/templates children.
+      getPanels: function() {
+        var n$ = this.$.content.getDistributedNodes();
+        return Array.prototype.filter.call(n$, function(c) {
+          return c.tagName != 'STYLE' && c.tagName != 'TEMPLATE';
+        });
+      },
+      get count() {
+        return this.getPanels().length;
+      },
+      getSelectedPanel: function() {
+        return this.getPanels()[this.index];
+      },
+      indexOf: function(inPanel) {
+        return this.getPanels().indexOf(inPanel);
+      },
+      panelAtIndex: function(inIndex) {
+        return this.getPanels()[inIndex];
+      },
+      next: function() {
+        this.index++;
+        dirtyCheck();
+      },
+      previous: function() {
+        this.index--;
+        dirtyCheck();
+      },
+      toggleBetween: function(inA, inB) {
+        this.selected = this.selected == inA ? inB : inA;
+      },
+      // TODO(sorvell): temporary api; this needs to be automated
+      panelAdded: function(inPanel) {
+        this.node.distribute();
+        this.transitionNode.setupPanel(inPanel);
+        this.refresh();
+      }
+    }
+  });
+</script>
+</element>

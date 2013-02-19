@@ -1,0 +1,79 @@
+{
+    "additionalFeatures": "SWYPE", 
+    "android": {
+        "os": "Android 2.1", 
+        "ui": "TouchWiz"
+    }, 
+    "availability": [
+        "AT&T (United States)", 
+        "Rogers (Canada)"
+    ], 
+    "battery": {
+        "standbyTime": "300 hours", 
+        "talkTime": "6 hours", 
+        "type": "Lithium Ion (Li-Ion) (1500 mAH)"
+    }, 
+    "camera": {
+        "features": [
+            "Video"
+        ], 
+        "primary": "5.0 megapixels"
+    }, 
+    "connectivity": {
+        "bluetooth": "Bluetooth 3.0", 
+        "cell": "GSM : 850/900/1800/19003G : 850/1900/2100\n", 
+        "gps": true, 
+        "infrared": false, 
+        "wifi": "802.11 b/g/n"
+    }, 
+    "description": "See brilliance on display. The Samsung Captivate\u2122 with its 4-inch Super AMOLED\u2122 display brings to life Hollywood blockbusters and your own 5.0MP pics like never before. Revel in the beauty of vivid clarity and awe-inspiring colors \u2013 even when the screen is drenched in sunlight. Experience the Web with the full HTML browser, choose from thousands of games and productivity apps from the Android\u2122 Market, and stay in touch with everybody with pre-loaded social apps. Do it at blazing speeds with the 1GHz processor, Swype\u00ae technology and up to 32GB of expandable memory \u2013 all with the phone as captivating as life itself.", 
+    "display": {
+        "screenResolution": "WVGA (800 x 480)", 
+        "screenSize": "4.0 inches", 
+        "touchScreen": true
+    }, 
+    "hardware": {
+        "accelerometer": true, 
+        "audioJack": "3.5mm", 
+        "cpu": "1GHz", 
+        "fmRadio": false, 
+        "physicalKeyboard": "/phone/static/images/False.png", 
+        "usb": "USB 2.0"
+    }, 
+    "id": "samsung-captivate-a-galaxy-s-phone", 
+    "images": [
+        {
+            "id": "293003", 
+            "medium": "http://www.google.com/phone/image/medium/293003", 
+            "small": "http://www.google.com/phone/image/small/293003"
+        }, 
+        {
+            "id": "326005", 
+            "medium": "http://www.google.com/phone/image/medium/326005", 
+            "small": "http://www.google.com/phone/image/small/326005"
+        }, 
+        {
+            "id": "341001", 
+            "medium": "http://www.google.com/phone/image/medium/341001", 
+            "small": "http://www.google.com/phone/image/small/341001"
+        }, 
+        {
+            "id": "342001", 
+            "medium": "http://www.google.com/phone/image/medium/342001", 
+            "small": "http://www.google.com/phone/image/small/342001"
+        }
+    ], 
+    "name": "Samsung Captivate\u2122 a Galaxy S\u2122 phone", 
+    "sizeAndWeight": {
+        "dimensions": [
+            "64.0 mm (w)", 
+            "123.0 mm (h)", 
+            "9.9 mm (d)"
+        ], 
+        "weight": "130.0 grams"
+    }, 
+    "storage": {
+        "flash": "16000MB", 
+        "ram": "512MB"
+    }
+}

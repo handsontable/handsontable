@@ -1,0 +1,66 @@
+<!--
+/*
+ * Copyright 2012 The Toolkitchen Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+-->
+<element name="g-ribbon" extends="g-selector" attributes="label selected">
+  <link rel="components" href="g-selector.html"/>
+  <template>
+    <style>
+      @host {
+        display: -webkit-box;
+        display: -webkit-flex;
+        -webkit-box-orient: vertical;
+        -webkit-flex-flow: column;
+        background-color: #333;
+        color: white;
+        font-size: 15px;
+      }
+      
+      .ribbon-label {
+        height: 60px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+        line-height: 60px;
+        padding-left: 30px;
+        font-size: 21px;
+        color: white;
+      }
+      
+      @host g-menu-item {
+        height: 50px;
+        border-radius: 3px;
+        border: 1px solid transparent;
+        background: none;
+        opacity: 0.7;
+        margin: 10px 14px;
+      }
+      
+      @host g-menu-item.selected {
+        background-color: rgba(0,0,0,0.5);
+        border: 1px solid #3D3D3D;
+        opacity: 1;
+      }
+      
+      @host g-menu-item.selected:before {
+        content: "";
+        position: absolute;
+        margin-top: 6px;
+        right: 0;
+        width: 0; 
+        height: 0; 
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent; 
+        border-right: 10px solid white; 
+      }
+    </style>
+    <div class="ribbon-label">{{label}}</div>
+    <shadow></shadow>
+  </template>
+  <script>
+    this.component({
+      label: ''
+    });
+  </script>
+</element>

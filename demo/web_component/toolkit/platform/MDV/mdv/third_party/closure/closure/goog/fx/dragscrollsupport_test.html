@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2008 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<!--
+  Author: dgajda@google.com (Damian Gajda)
+-->
+<head>
+<title>Closure Unit Tests - goog.fx.DragScrollSupport</title>
+<script src="../base.js"></script>
+<script>
+  goog.require('goog.dom');
+  goog.require('goog.events');
+  goog.require('goog.events.Event');
+  goog.require('goog.testing.MockClock');
+  goog.require('goog.testing.events');
+  goog.require('goog.testing.jsunit');
+
+  goog.require('goog.fx.DragScrollSupport');
+</script>
+<style>
+
+#containerDiv {
+  position: absolute;
+  top: 20px;
+  overflow-y: scroll;
+  width: 100px;
+  height: 100px;
+  visibility: hidden;
+}
+
+#contentDiv {
+  height: 200px;
+}
+
+</style>
+</head>
+<body>
+
+<div id="containerDiv">
+  <div id="contentDiv">Sample text</div>
+</div>
+<script>
+
+var containerDiv = document.getElementById('containerDiv');
+var contentDiv = document.getElementById('contentDiv');
+var clock;
+
+function setUp() {
+  clock = new goog.testing.MockClock(true);
+}
+
+
+function tearDown() {
+  clock.dispose();
+}
+
+
+function testDragZeroMarginDivContainer() {
+  var dsc = new goog.fx.DragScrollSupport(containerDiv);
+
+  // Set initial scroll state.
+  var scrollTop = 50;
+  containerDiv.scrollTop = scrollTop;
+
+  goog.testing.events.fireMouseMoveEvent(containerDiv,
+      new goog.math.Coordinate(50, 20 + 50));
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertEquals('Mousing inside the container should not trigger scrolling.',
+      scrollTop, containerDiv.scrollTop);
+  assertEquals('Scroll timer should not tick yet', 0, clock.getTimeoutsMade());
+
+  scrollTop = containerDiv.scrollTop;
+  goog.testing.events.fireMouseMoveEvent(containerDiv,
+      new goog.math.Coordinate(50, 10));
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertTrue('Mousing above the container should trigger scrolling up.',
+      scrollTop > containerDiv.scrollTop);
+  scrollTop = containerDiv.scrollTop;
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertTrue('Mousing above the container should trigger scrolling up.',
+      scrollTop > containerDiv.scrollTop);
+
+  scrollTop = containerDiv.scrollTop;
+  goog.testing.events.fireMouseMoveEvent(containerDiv,
+      new goog.math.Coordinate(50, 20 + 110));
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertTrue('Mousing below the container should trigger scrolling down.',
+      scrollTop < containerDiv.scrollTop);
+  scrollTop = containerDiv.scrollTop;
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertTrue('Mousing below the container should trigger scrolling down.',
+      scrollTop < containerDiv.scrollTop);
+
+  scrollTop = containerDiv.scrollTop;
+  goog.testing.events.fireMouseMoveEvent(containerDiv,
+      new goog.math.Coordinate(50, 20 + 50));
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertEquals('Mousing inside the container should stop scrolling.',
+      scrollTop, containerDiv.scrollTop);
+
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+
+  dsc.dispose();
+}
+
+
+function testDragMarginDivContainer() {
+  var dsc = new goog.fx.DragScrollSupport(containerDiv, 20);
+
+  // Set initial scroll state.
+  var scrollTop = 50;
+  containerDiv.scrollTop = scrollTop;
+
+  goog.testing.events.fireMouseMoveEvent(containerDiv,
+      new goog.math.Coordinate(50, 20 + 50));
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertEquals('Mousing inside the container should not trigger scrolling.',
+      scrollTop, containerDiv.scrollTop);
+  assertEquals('Scroll timer should not tick yet', 0, clock.getTimeoutsMade());
+
+  scrollTop = containerDiv.scrollTop;
+  goog.testing.events.fireMouseMoveEvent(containerDiv,
+      new goog.math.Coordinate(50, 30));
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertTrue('Mousing above the margin should trigger scrolling up.',
+      scrollTop > containerDiv.scrollTop);
+  scrollTop = containerDiv.scrollTop;
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertTrue('Mousing above the margin should trigger scrolling up.',
+      scrollTop > containerDiv.scrollTop);
+
+  scrollTop = containerDiv.scrollTop;
+  goog.testing.events.fireMouseMoveEvent(containerDiv,
+      new goog.math.Coordinate(50, 20 + 90));
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertTrue('Mousing below the margin should trigger scrolling down.',
+      scrollTop < containerDiv.scrollTop);
+  scrollTop = containerDiv.scrollTop;
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertTrue('Mousing above the margin should trigger scrolling down.',
+      scrollTop < containerDiv.scrollTop);
+
+  scrollTop = containerDiv.scrollTop;
+  goog.testing.events.fireMouseMoveEvent(containerDiv,
+      new goog.math.Coordinate(50, 20 + 50));
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertEquals('Mousing inside the margin should stop scrolling.',
+      scrollTop, containerDiv.scrollTop);
+
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+
+  assertEquals('Scroll timer should have ticked 5 times',
+      5, clock.getTimeoutsMade());
+
+  dsc.dispose();
+}
+
+
+function testDragMarginScrollConstrainedDivContainer() {
+  var dsc = new goog.fx.DragScrollSupport(containerDiv, 20);
+  dsc.setConstrainScroll(true);
+
+  // Set initial scroll state.
+  var scrollTop = 50;
+  containerDiv.scrollTop = scrollTop;
+
+  goog.testing.events.fireMouseMoveEvent(containerDiv,
+      new goog.math.Coordinate(50, 20 + 50));
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertEquals('Mousing inside the container should not trigger scrolling.',
+      scrollTop, containerDiv.scrollTop);
+  assertEquals('Scroll timer should not tick yet', 0, clock.getTimeoutsMade());
+
+  scrollTop = containerDiv.scrollTop;
+  goog.testing.events.fireMouseMoveEvent(containerDiv,
+      new goog.math.Coordinate(50, 30));
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertTrue('Mousing above the margin should trigger scrolling up.',
+      scrollTop > containerDiv.scrollTop);
+  scrollTop = containerDiv.scrollTop;
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertTrue('Mousing above the margin should trigger scrolling up.',
+      scrollTop > containerDiv.scrollTop);
+
+  scrollTop = containerDiv.scrollTop;
+  goog.testing.events.fireMouseMoveEvent(containerDiv,
+      new goog.math.Coordinate(50, 20 + 90));
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertTrue('Mousing below the margin should trigger scrolling down.',
+      scrollTop < containerDiv.scrollTop);
+  scrollTop = containerDiv.scrollTop;
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertTrue('Mousing above the margin should trigger scrolling down.',
+      scrollTop < containerDiv.scrollTop);
+
+  scrollTop = containerDiv.scrollTop;
+  goog.testing.events.fireMouseMoveEvent(containerDiv,
+      new goog.math.Coordinate(50, 20 + 50));
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertEquals('Mousing inside the margin should stop scrolling.',
+      scrollTop, containerDiv.scrollTop);
+
+  scrollTop = containerDiv.scrollTop;
+  goog.testing.events.fireMouseMoveEvent(containerDiv,
+      new goog.math.Coordinate(50, 10));
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertEquals('Mousing above the container should not trigger scrolling up.',
+      scrollTop, containerDiv.scrollTop);
+  scrollTop = containerDiv.scrollTop;
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertEquals('Mousing above the container should not trigger scrolling up.',
+      scrollTop, containerDiv.scrollTop);
+
+  scrollTop = containerDiv.scrollTop;
+  goog.testing.events.fireMouseMoveEvent(containerDiv,
+      new goog.math.Coordinate(50, 20 + 110));
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertEquals('Mousing below the container should not trigger scrolling down.',
+      scrollTop, containerDiv.scrollTop);
+  scrollTop = containerDiv.scrollTop;
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertEquals('Mousing below the container should not trigger scrolling down.',
+      scrollTop, containerDiv.scrollTop);
+
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+
+  scrollTop = containerDiv.scrollTop;
+  goog.testing.events.fireMouseMoveEvent(containerDiv,
+      new goog.math.Coordinate(150, 20 + 90));
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertEquals('Mousing to the right of the container should not trigger ' +
+      'scrolling up.', scrollTop, containerDiv.scrollTop);
+  scrollTop = containerDiv.scrollTop;
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+  assertEquals('Mousing to the right of the container should not trigger ' +
+      'scrolling up.', scrollTop, containerDiv.scrollTop);
+
+  clock.tick(goog.fx.DragScrollSupport.TIMER_STEP_ + 1);
+
+  assertEquals('Scroll timer should have ticked 5 times',
+      5, clock.getTimeoutsMade());
+
+  dsc.dispose();
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- -->
+    <script src="../../ShadowDOM/shadowdom-polyfill.js" shadow="shim"></script>
+    <!-- -->
+    <script src="lib/dump.js"></script>
+    <script src="lib/util.js"></script>
+    <!-- -->
+    <style>
+      div, g-A {
+        display: block;
+        border: 1px dotted red;
+        margin: 8px;
+        padding: 8px;
+      }
+    </style>
+    <script>
+      change = function() {
+        A = $("g-A");
+        //
+        Aroot = new ShadowRoot(A, $("template#A").content);
+        ShadowDOM.distribute(A);
+
+        changeContent = function() {
+          ShadowDOM.localQuery(Aroot, 'content').setAttribute('select', 'span');
+          ShadowDOM.distribute(A);
+        }
+
+        addContent = function() {
+          var content = document.createElement('content');
+          content.setAttribute('select', 'div');
+          var div = ShadowDOM.localQuery(Aroot, 'div');
+          div.appendChild(content);
+          ShadowDOM.distribute(A);
+        }
+        changeContent();
+        addContent();
+        //
+        dumper(A);
+      }
+    </script>
+  </head>
+  <body onload="change()">
+      <g-A>
+        <div>To DIV perchance</div><span>To SPAN or not</span>
+      </g-A>
+      <template id="A">
+        A's template<br/>
+        content 1:
+        <content select="div"></content>
+        <br>
+        <div>content 2: </div>
+      </template>
+
+      <hr/>
+
+      Expected output (also, see console):
+
+      <div>
+        A's template<br/>
+        content 1:
+        <span>To SPAN or not</span>
+        <br>
+        <div>
+          content 2: <div>To DIV perchance</div>
+        </div>
+      </div>
+  </body>
+</html>

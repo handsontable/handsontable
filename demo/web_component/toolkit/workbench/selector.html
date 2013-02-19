@@ -1,0 +1,48 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Selector</title>
+  <script src="../platform/platform.js"></script>
+  <link rel="components" href="../components/g-selector.html">
+  <style>
+    g-selector {
+      display: block;
+      border: 1px solid #ccc;
+      border-bottom: none;
+      -webkit-user-select: none;
+    }
+    g-selector > * {
+      height: 40px;
+      line-height: 40px;
+      padding: 0 20px;
+      border-bottom: 1px solid #ccc;
+    }
+    g-selector > .selected {
+      background: #eee;
+    }
+  </style>
+</head>
+<body>
+  <h2>Single-select</h2>
+  <g-selector id="selector">
+    <div>Item 1</div>
+    <div>Item 2</div>
+    <div>Item 3</div>
+    <div>Item 4</div>
+    <div>Item 5</div>
+  </g-selector>
+  <h2>Multi-select</h2>
+  <g-selector multi>
+    <div>Item 1</div>
+    <div>Item 2</div>
+    <div>Item 3</div>
+    <div>Item 4</div>
+    <div>Item 5</div>
+  </g-selector>
+</body>
+</html>

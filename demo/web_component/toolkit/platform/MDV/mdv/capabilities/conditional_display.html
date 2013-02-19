@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2011 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>Conditional Display</title>
+<link rel="stylesheet" href="common_styles.css">
+<script src="include.js"></script>
+<style>
+.person.dog-owner {
+  color: green;
+}
+
+.person {
+  color: red;
+}
+</style>
+</head>
+<body>
+  <div class="example">
+    <h1>Conditional Display</h1>
+    <div class="content">
+      <ul>
+      <template iterate="people">
+        <li>
+          <span class="person {{ dog | toggle('dog-owner') }}">
+            Person: {{ name }}
+          </span>
+          <span hidden="{{ expr(dog) dog ? null : '' }}">
+            Dog: {{ dog }}
+          </span>
+        </li>
+      </template>
+      </ul>
+    </div>
+  </div>
+
+<script>
+document.body.model = {
+  people: [
+    {
+      name: 'Charlie Brown',
+      dog: 'Snoopy'
+    },
+    {
+      name: 'Shaggy',
+      dog: 'Scooby'
+    },
+    {
+      name: 'Beetle Bailey'
+    }
+  ]
+};
+document.body.modelDelegate = MDVDelegate;
+</script>
+
+  <div class="comment">
+    <h1>Comment</h1>
+    <div class="content">
+      The second span in each list item has a binding on its 'hidden'
+      attribute. This allows the 'Dog: ' prefix to only be shown if the person
+      has a dog.
+    </div>
+  </div>
+</body>
+</html>

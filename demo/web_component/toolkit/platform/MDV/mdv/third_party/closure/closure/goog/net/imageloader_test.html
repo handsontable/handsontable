@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2006 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<!--
+  Author: zachlloyd@google.com (Zachary Lloyd)
+-->
+<head>
+  <title>Closure Unit Tests - goog.net.ImageLoader</title>  
+  <script src="../base.js"></script>
+  <script>
+    goog.require('goog.events');
+    goog.require('goog.net.ImageLoader');
+    goog.require('goog.structs.Map');
+    goog.require('goog.testing.jsunit');
+  </script>
+</head>
+<body>
+<script>
+
+
+
+  var TEST_IMAGES = new goog.structs.Map();
+
+  //  TEST_IMAGES.set(FileName, Expected Size (width, height), Expected event)
+  var EVENT_TYPE_LOAD = goog.events.EventType.LOAD;
+  TEST_IMAGES.set('imageloader_testimg1.gif', [20, 20, EVENT_TYPE_LOAD]);
+  TEST_IMAGES.set('imageloader_testimg2.gif', [20, 20, EVENT_TYPE_LOAD]);
+  TEST_IMAGES.set('imageloader_testimg3.gif', [32, 32, EVENT_TYPE_LOAD]);
+
+  var EVENT_TYPE_ERROR = goog.net.EventType.ERROR;
+  TEST_IMAGES.set('this-is-not-image-1.gif', [0, 0, EVENT_TYPE_ERROR]);
+  TEST_IMAGES.set('this-is-not-image-2.gif', [0, 0, EVENT_TYPE_ERROR]);
+
+  var TIMEOUT = 5000;
+  // in milleseconds
+
+  // Create a new test case.
+  var imageLoaderTestCase = new goog.testing.TestCase(document.title);
+  var setUpPageStatus;
+
+  // Keep track of time so we can timeout if the images don't load.
+  imageLoaderTestCase.elapsedTime_ = 0;
+
+  imageLoaderTestCase.results_ = new goog.structs.Map();
+
+  /** True once the test environment is set up. */
+  imageLoaderTestCase.isSetUp = false;
+
+  /** True once the page is ready for the test to be run. */
+  imageLoaderTestCase.isReady = false;
+
+  /** Sets up the test environment, adds tests and sets up the worker pools. */
+  imageLoaderTestCase.setUpTests = function() {
+    this.log('Setting tests up');
+
+    this.add(new goog.testing.TestCase.Test('testCompleteResults',
+        this.testCompleteResults, this));
+
+    this.isSetUp = true;
+
+    var imageLoader = new goog.net.ImageLoader();
+    var keys = TEST_IMAGES.getKeys();
+    for (var i = 0; i < keys.length; i++) {
+      this.log('Adding image: ' + keys[i]);
+      imageLoader.addImage('img_' + i, keys[i]);
+    }
+    goog.events.listen(imageLoader, goog.events.EventType.LOAD, this);
+    goog.events.listen(imageLoader, goog.net.EventType.COMPLETE, this);
+    goog.events.listen(imageLoader, goog.net.EventType.ERROR, this);
+    imageLoader.start();
+  };
+
+
+  /** Handles any events fired on the imageLoader */
+  imageLoaderTestCase.handleEvent = function(e) {
+    this.log('handleEvent, type: ' + e.type);
+
+    switch (e.type) {
+      case goog.events.EventType.LOAD:
+        var image = e.target;
+        this.results_.set(image.src.substring(image.src.lastIndexOf('/') + 1),
+            [image.naturalWidth, image.naturalHeight, e.type]);
+        break;
+
+      case goog.net.EventType.ERROR:
+        var image = e.target;
+        this.results_.set(image.src.substring(image.src.lastIndexOf('/') + 1),
+            [image.naturalWidth, image.naturalHeight, e.type]);
+        break;
+
+      case goog.net.EventType.COMPLETE:
+        setUpPageStatus = 'complete';
+        this.isReady = true;
+        break;
+    }
+  };
+
+
+  /** Tests the results. */
+  imageLoaderTestCase.testCompleteResults = function() {
+    var keys = TEST_IMAGES.getKeys();
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      this.log(key);
+
+      // Check if fires the COMPLETE event.
+      assertTrue('Image is not loaded completely',
+          this.results_.containsKey(key));
+
+      // Chcekc size.
+      assertTrue('Image size is not correct',
+          this.results_.get(key)[0] == TEST_IMAGES.get(key)[0] &&
+          this.results_.get(key)[1] == TEST_IMAGES.get(key)[1]);
+
+      // Check if fired the correct event.
+      assertTrue('Event *' + TEST_IMAGES.get(key)[2] + '* must be fired',
+          this.results_.get(key)[2] == TEST_IMAGES.get(key)[2]);
+    }
+  };
+
+  /** Waits until the tests are ready to begin, before running them. */
+  imageLoaderTestCase.runTests = function() {
+    if (!this.isSetUp) {
+      this.setUpTests();
+    }
+    if (this.isReady) {
+      this.execute();
+    } else {
+      if (this.elapsedTime_ > TIMEOUT) {
+        this.log('timed out');
+        setUpPageStatus = 'complete';
+        this.isReady = true;
+        return;
+      }
+      this.log('Not ready, waiting');
+      this.elapsedTime_ += 100;
+      // Try again in 100ms
+      setTimeout('imageLoaderTestCase.runTests()', 100);
+    }
+  };
+
+  /** Used by the JsUnit test runner. */
+  function testCompleteResults() {
+    imageLoaderTestCase.testCompleteResults();
+  }
+
+  /** Used by the JsUnit test runner. */
+  function setUpPage() {
+    imageLoaderTestCase.runTests();
+  }
+
+  /** Standalone Closure Test Runner. */
+  if (typeof G_testRunner != 'undefined') {
+    G_testRunner.initialize(imageLoaderTestCase);
+  }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,860 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<element name="g-component">
+<script>
+
+  // log control
+
+  var log = {
+    ready: 1,
+    events: 0,
+    data: 0
+  };
+  log = window.logFlags || log;
+
+  // decorate HTMLElementElement with toolkit API
+
+  HTMLElementElement.prototype.component = component;
+
+  // entry point for declarative component definition
+
+  function component(inDefinition) {
+    // ensure non-null definition
+    var definition = inDefinition || {};
+    // use information from HTMLElementElement attributes
+    var attributes = this.element.attributes;
+    // install boilerplate callbacks
+    this.lifecycle({
+      shadowRootCreated: function(inRoot) {
+        initializeRoot.call(this, inRoot, definition);
+      },
+      created: function(/*inSuper*/) {
+        instanceReady.call(this);
+      }
+    });
+    // parse declared attributes into imperative form
+    publishAttributes(attributes[conventions.ATTRIBUTES_ATTRIBUTE],
+      definition);
+    // parse declared on-* delegates into imperative form
+    parseHostEvents(attributes, definition);
+    // construct a prototype from our sugared definition
+    var prototype = desugar(definition, this.extendsName);
+    // register this prototype with it's tag name
+    register(this.name, prototype);
+    // install our prototype
+    this.generatedConstructor.prototype = prototype;
+  };
+
+  function initializeRoot(inRoot) {
+    // we only want to do somes tasks per-instance, but they must
+    // be done before root initializations, and we have no other
+    // entry point, so we have to multiplex this method
+    if (!this.hasOwnProperty('$protected')) {
+      instanceCreated.call(this);
+    }
+    if (inRoot) {
+      rootCreated.call(this, inRoot);
+    }
+  };
+
+  // component lifecycle
+
+  function instanceCreated() {
+    // instance our protected interface
+    this.$protected = Object.create(this.$protected);
+    // point our protected instance at our node instance
+    this.$protected.node = this;
+  };
+
+  function rootCreated(inRoot) {
+    // map id's to nodes, for nodes with id's
+    marshalNodeReferences.call(this.$protected, inRoot);
+    // set shadow-root model
+    inRoot.model = this.$protected;
+    // parse and apply model binding markup in DOM
+    bindModel.call(this, ShadowDOM.localNodes(inRoot));
+    // accumulate events of interest
+    // TODO(sjmiles): ideally on native we set up listeners directly on inRoot,
+    // under shim inRoot does not participate in event bubbling
+    this.__events = accumulateEvents(inRoot, this.__events);
+    //console.log('[%s]:', this.localName, this.__events);
+  };
+
+  function instanceReady() {
+    // set light-dom model explicitly as there is no natural
+    // DOM hierarchy for MDV under ShadowDOM shim
+    // TODO(sjmiles): nodes added to lightDOM after this point
+    // also need model injection
+    if (this.lightDOM) {
+      injectModel.call(this, this.lightDOM.childNodes);
+    }
+    // add host-events to the event accumulation
+    accumulateHostEvents.call(this.$protected, this.__events);
+    // TODO(sjmiles): ideally delegated events are set up per root
+    // not on the host node (see above)
+    bindAccumulatedEvents(this, this.__events);
+    // initialize our Observable aspect
+    Observable.call(this.$protected);
+    takeAttributes.call(this.$protected);
+    // call ready hook
+    this.$protected.ready();
+    // TODO(sjmiles): explain succinctly why this dirtyCheck is here
+    window.dirtyCheck();
+    log.ready && console.log('[%s#%s] ready', this.localName, this.id || '');
+  };
+
+  // helper functions
+
+  var publishAttributes = function(inAttributes, inDefinition) {
+    if (inAttributes) {
+      var pd = conventions.PUBLISH_DIRECTIVE;
+      // need a publish block to extend
+      var pub = inDefinition[pd] = inDefinition[pd] || {};
+      // use the value of the attributes-attribute
+      var a$ = inAttributes.value;
+      // attributes='a b c' or attributes='a,b,c'
+      var names = a$.split(a$.indexOf(',') >= 0 ? ',' : ' ');
+      // record each name for publishing
+      names.forEach(function(p) {
+        pub[p.trim()] = null;
+      });
+    }
+  };
+
+  var parseHostEvents = function(inAttributes, inDefinition) {
+    inDefinition.eventDelegates = mixin(inDefinition.eventDelegates,
+      parseEvents(inAttributes));
+  };
+
+  var parseEvents = function(inAttributes) {
+    var events = {};
+    if (inAttributes) {
+      var prefix = conventions.CUSTOM_EVENT_PREFIX;
+      for (var i=0, a; a=inAttributes[i]; i++) {
+        if (a.name.slice(0, prefix.length) == prefix) {
+          events[a.name.slice(prefix.length)] = a.value;
+        }
+      }
+    }
+    return events;
+  };
+
+  // conventional names for automation
+
+  var conventions = {
+    ATTRIBUTES_ATTRIBUTE: 'attributes',
+    PUBLISH_DIRECTIVE: 'publish',
+    PROPERTY_CHANGED_SUFFIX: 'Changed',
+    CUSTOM_EVENT_PREFIX: 'on-',
+    DELEGATES_DIRECTIVE: 'bind',
+    DELEGATE_OUT_SUFFIX: 'Output',
+    DELEGATE_IN_SUFFIX: 'Input'
+  };
+
+  //
+  // OOP abstractions
+  //
+
+  // it's convenient to keep track of our own components
+  // for protected inheritance
+
+  function desugar(inDefinition, inExtendsName) {
+    // prototype to extend
+    var base = registry[inExtendsName] || BasePrototype;
+    // extend prototype
+    var prototype = extend(inDefinition, base);
+    // publish public properties
+    publish(prototype);
+    //
+    // more desugaring
+    //
+    // return extended prototype
+    return prototype;
+  };
+
+  // it's convenient (but probably redundant) to maintain
+  // an internal registry
+
+  var registry = {};
+
+  function register(inName, inPrototype) {
+    // cache prototype
+    return registry[inName] = inPrototype;
+  };
+
+  // produce a prototype from inDefinition which extends inBase
+
+  function extend(inDefinition, inBase) {
+    var prototype = Object.create(inBase);
+    // use definition directly to avoid a mixin step
+    // (caveats: can't reuse definitions, relies on __proto__)
+    prototype.$protected = inDefinition;
+    prototype.$protected.__proto__ = inBase.$protected;
+    return prototype;
+  };
+
+  // publishing is a sugaring mechanism where properties
+  // specified in a 'publish' block are forwarded to the
+  // public interface via get/set pairs and bound functions
+  function publish(inPrototype) {
+    var $protected = inPrototype.$protected;
+    // publish properties via 'publish' directive
+    var pd = conventions.PUBLISH_DIRECTIVE;
+    if ($protected.hasOwnProperty(pd)) {
+      var $public = $protected[pd];
+      // install public properties on $protected
+      for (var n in $public) {
+        // do not overwrite default values already (directly) on prototype
+        if (!$protected.hasOwnProperty(n)) {
+          copyProperty(n, $public, $protected)
+        }
+      }
+      // publish public properties to master prototype
+      publishProperties($public, $protected, inPrototype);
+    }
+  }
+
+  // copy property 'name' from src to obj
+  var copyProperty = function(name, src, obj) {
+    var g = src.__lookupGetter__(name);
+    if (g) {
+      obj.__defineGetter__(name, g);
+    } else {
+      obj[name] = src[name];
+    }
+    var s = src.__lookupSetter__(name);
+    if (s) {
+      obj.__defineSetter__(name, s);
+    }
+  };
+
+  // copy all properties from inProps (et al) to inObj
+  var mixin = function(inObj/*, inProps, inMoreProps, ...*/) {
+    var obj = inObj || {};
+    var p$ = Array.prototype.slice.call(arguments, 1);
+    for (var i=0, p; (p=p$[i]); i++) {
+      for (var n in p) {
+        copyProperty(n, p, obj);
+      }
+    }
+    return obj;
+  };
+
+  // publish properties identified by inProperties from inSource to inTarget
+  function publishProperties(inProperties, inSource, inTarget) {
+    for (var n in inProperties) {
+      publishProperty(inSource, n, inTarget);
+    }
+  };
+
+  // make inSource[inName] available on inTarget as a getter/setter
+  // pair or a method bound to this.$protected
+  function publishProperty(inSource, inName, inTarget) {
+    // access property value (unless it is a getter itself)
+    var value = (!inSource.__lookupGetter__(inName)) && inSource[inName];
+    if (typeof value == 'function') {
+      inTarget[inName] = function() {
+        return value.apply(this.$protected, arguments);
+      }
+    } else {
+      // TODO(sjmiles): can't remember why I needed to install
+      // the property before defining get/set
+      // if it turns out we do need this, beware of overrides
+      // where there is already a setter and there are side effects
+      //inTarget[inName] = null;
+      Object.defineProperty(inTarget, inName, {
+        get: function() {
+          return this.$protected[inName];
+        },
+        set: function(inValue) {
+          this.$protected.setProperty(inName, inValue);
+        }
+      });
+    }
+  };
+
+  //
+  // Base API
+  //
+
+  // data observer abstraction
+  // this implementation uses MDV polyfill
+  var ﻿Observable = function() {
+    api.activate.call(this);
+  };
+  
+  var api = Observable.api = {
+    activate: function () {
+      Model.observeObject(this, function(inAdded, inRemoved, inChanged, inOldValueGetter) {
+        api.propertiesChanged.call(this, inChanged, inOldValueGetter);
+        api.propertiesChanged.call(this, inAdded, inOldValueGetter);
+        // TODO(sorvell): do we care about removal?
+        //api.propertiesChanged.call(this, inRemoved, inOldValueGetter);
+      }.bind(this));
+    },
+    propertiesChanged: function(inProperties, inOldValueGetter) {
+      Object.keys(inProperties).forEach(function(k) {
+        old = inOldValueGetter(k);
+        // TODO(sorvell): this is intended to ignore added properties 
+        // set to the same value as prototype (could be factored out from 
+        // changes if necessary)
+        if ((old !== undefined) || (this[k] != this.__proto__[k])) {
+          this.propertyChanged(k, old);
+        }
+      }, this);
+    }
+  }
+
+  Observable.prototype = {
+    propertyChanged: function(inName, inOldValue) {
+      //log.data && console.log('[%s#%s] propertyChanged: [%s] now [%s] was [%s]', this.node.localName, this.node.id || '', inName, this[inName], inOldValue);
+      var fn = inName + 'Changed';
+      if (this[fn] && !Observable._squelch) {
+        this[fn](inOldValue);
+      }
+    },
+    setProperty: function(inName, inValue, inSilent) {
+      Observable._squelch = inSilent;
+      try {
+        this[inName] = inValue;
+      } finally {
+        Observable._squelch = false;
+      }
+    }
+  };
+
+  // super call implementation
+
+  var $super = (function() {
+    // TODO(sjmiles): will not work with mixins because
+    //    the memoization strategy assumes
+    //    each function exists on only one prototype chain
+    //    (i.e. we use the function object for memoizing)
+
+    var nextSuper = function(inProto, inName, inCaller) {
+      // look for an inherited prototype that implements inName
+      var proto = inProto;
+      while (proto &&
+          (!proto.hasOwnProperty(inName) || proto[inName] == inCaller)) {
+        proto = proto.__proto__;
+      }
+      return proto;
+    };
+
+    var memoizeSuper = function(inMethod, inName, inProto) {
+      // find and cache next prototype containing inName
+      // we need the prototype so we can another lookup
+      // from here
+      inMethod._super = nextSuper(inProto, inName, inMethod);
+      if (inMethod._super) {
+        // _super is a prototype, the actual method is _super[inName]
+        // tag super method with it's name for further lookups
+        inMethod._super[inName]._nom = inName;
+      }
+    };
+
+    var nameInThis = function(inValue) {
+      for (var n in this) {
+        if (this[n] == inValue) {
+          return n;
+        }
+      }
+    };
+
+    return function(inArgs) {
+      // since we are thunking a method call, performance is important
+      // here: memoize all lookups, once memoized the fast path
+      // calls no helper functions
+      //
+      // find the caller (can't be strict because of 'caller')
+      var caller = this.$super.caller;
+      // memoization for 'name of method'
+      var nom = caller._nom;
+      if (!nom) {
+        // once per call chain
+        nom = caller._nom = nameInThis.call(this, caller);
+        if (!nom) {
+          console.warn('called super() on a method not in "this"');
+          return;
+        }
+      }
+      // super prototype is either cached or we have to find it
+      // by searching __proto__ (at the 'top')
+      if (!('_super' in caller)) {
+        memoizeSuper(caller, nom, this.__proto__);
+      }
+      // memoized next implementation prototype
+      var _super = caller._super;
+      if (!_super) {
+        // if _super is falsey, there is no super implementation
+        console.warn('called $super(' + nom + ') where there is no super implementation');
+      } else {
+        // our super function
+        var fn = _super[nom];
+        // memoize information so 'fn' can call 'super'
+        if (!('_super' in fn)) {
+          memoizeSuper(fn, nom, _super);
+        }
+        // invoke the inherited method
+        // if 'fn' is not function valued, this will throw
+        return fn.apply(this, inArgs || []);
+      }
+    };
+  })();
+
+  // (protected) Base API
+
+  var ProtectedBase = {
+    ready: function() {
+    },
+    $super: $super,
+    asyncMethod: function(inMethod, inArgs, inTimeout) {
+      var args = (inArgs && inArgs.length) ? inArgs : [inArgs];
+      return window.setTimeout(function() {
+        this[inMethod].apply(this, args);
+      }.bind(this), inTimeout || 0);
+    },
+    dispatch: function(inMethodName, inArguments) {
+      if (this[inMethodName]) {
+        this[inMethodName].apply(this, inArguments);
+      }
+    },
+    send: function(inType, inDetail, inToNode) {
+      var node = inToNode || this.node;
+      log.events && console.log('[%s]: sending [%s]', node.localName, inType);
+      node.dispatchEvent(new CustomEvent(inType, {bubbles: true, 
+          detail: inDetail}));
+    },
+    asend: function(/*inType, inDetail*/) {
+      this.asyncMethod("send", arguments);
+    },
+    findDistributedTarget: function(inTarget, inNodes) {
+      // find first ancestor of target (including itself) that
+      // is in inNodes, if any
+      var n = inTarget;
+      while (n && n != this) {
+        var i = Array.prototype.indexOf.call(inNodes, n);
+        if (i >= 0) {
+          return i;
+        }
+        n = n.parentNode;
+      }
+    }
+  };
+
+  // TODO(sjmiles): deprecated
+
+  ProtectedBase.fireEvent = ProtectedBase.send;
+
+  // use ProtectedBase directly to avoid a mixin step
+  // (caveat: relies on __proto__)
+
+  ProtectedBase.__proto__ = Object.create(Observable.prototype);
+
+  var BasePrototype = {
+    // base $protected implementation is Observable
+    $protected: ProtectedBase
+  };
+
+  //
+  // reference marshalling
+  //
+
+  // locate nodes with id and store references to them in this.$ hash
+  var marshalNodeReferences = function(inRoot) {
+    // establish $ instance variable
+    this.$ = this.$ || {};
+    // populate $ from nodes with ID from the LOCAL tree
+    if (inRoot) {
+      var nodes = ShadowDOM.localQueryAll(inRoot, "[id]");
+      ShadowDOM.forEach(nodes, function(n) {
+        this.$[n.id] = ShadowDOM.deref(n);
+      }, this);
+    }
+  };
+
+  //
+  // model bindings
+  //
+  // convert {{macro}} strings in markup into MDV bindings
+  //
+  // MDV usually does this work but requires an additional
+  // nested template and functions asynchronously
+
+  function injectModel(inNodes) {
+    ShadowDOM.forEach(inNodes, function(n) {
+      ShadowDOM.deref(n).model = this.$protected;
+    }, this);
+  };
+
+  function bindModel(inNodes) {
+    log.bind && console.group("[%s] bindModel", this.localName);
+    _bindModel.call(this, inNodes);
+    log.bind && console.groupEnd();
+  };
+
+  function _bindModel(inNodes) {
+    ShadowDOM.forEach(inNodes, bindNodeModel, this);
+  };
+
+  function bindNodeModel(inNode) {
+    var n = ShadowDOM.deref(inNode);
+    // node's binding model is this component's protected object
+    n.model = this.$protected;
+    if (n.nodeName == '#text') {
+      // text-node binding
+      bindMustache.call(this, n, n.textContent);
+    } else if (n.tagName !== 'TEMPLATE') {
+      // scan for bindings in attributes
+      if (n.attributes) {
+        ShadowDOM.forEach(n.attributes, function(a) {
+          bindMustache.call(this, n, a.name, a.value);
+        }, this);
+      }
+      // walking the LOCAL tree
+      _bindModel.call(this, ShadowDOM.localNodes(n));
+    }
+  };
+
+  function bindMustache(inNode, inName, inValue) {
+    // ad-hoc component test
+    if (inNode.$protected) {
+      var m = inValue.match(bindMustache.pattern);
+      if (m) {
+        var source = m[1];
+        var target = propertyForAttribute.call(inNode.$protected, inName);
+        if (source && target) {
+          bindProperties(this, source, inNode, target);
+        }
+      }
+    } else {
+      if ((inValue || inName).search(bindMustache.pattern) >= 0) {
+        if (inNode.localName == 'input') {
+          addInputBinding(inNode, inName, inValue)
+        } else {
+          inNode.addBinding(inName, inValue);
+        }
+        log.bind && console.log('[%s] bindMustache: [%s] to [%s]%s',
+            this.localName, inValue || inName, (inNode.localName || '#text'),
+            inValue ? '.[' + inValue + ']' : '');
+      }
+    }
+  };
+  
+  // Support MDV 2-way bindings to inputs.
+  function addInputBinding(inNode, inName, inValue) {
+    var v = inValue.replace('{{', '').replace('}}', '');
+    if (inName == 'value') {
+      inNode.addValueBinding(v);
+    } else if (inName == 'checked') {
+      inNode.addCheckedBinding(v);
+    } else {
+      inNode.addBinding(inName, inValue);
+    }
+  }
+
+  bindMustache.pattern = /\{\{([^{}]*)}}/;
+
+  // property binding extensions to MDV
+
+	function bindProperties(inA, inPropA, inB, inPropB) {
+     log.bind && console.log('[%s] bindProperties [%s] to [%s].[%s]', inA.localName, inPropA, inB.localName, inPropB);
+    _bindProperties(inA.$protected, inPropA, inB.$protected, inPropB);
+    // TODO(sjmiles): explain succinctly why this dirtyCheck is here
+    window.dirtyCheck();
+  };
+
+  function _getProp(parts, create, context) {
+		var obj = context || window;
+		for(var i=0, p; obj && (p=parts[i]); i++){
+			obj = (p in obj ? obj[p] : (create ? obj[p]={} : undefined));
+		}
+		return obj;
+	};
+
+  // TODO(sjmiles): parameters crufty for the usage below, simplify
+
+	function setProperty(name, value, context) {
+		var parts = name.split("."), p = parts.pop(),
+        obj = _getProp(parts, true, context);
+		return obj && p ? (obj[p]=value) : undefined;
+	};
+
+  function getProperty(name, create, context) {
+		return _getProp(name.split("."), create, context);
+	};
+
+  function _bindProperties(inA, inPropA, inB, inPropB) {
+    var valueA = getProperty(inPropA, false, inA);
+    var valueB = getProperty(inPropB, false, inB);
+    if (valueA == undefined && valueB == undefined) {
+      log.data && console.log('[%s] _bindProperties: initializing [%s] and [%s].[%s]', inA.node.localName, inPropB, inA.node.localName, inPropA);
+      setProperty(inPropA, null, inA);
+      setProperty(inPropB, null, inB);
+    } else if (valueA == undefined) {
+      log.data && console.log('[%s] _bindProperties: pulling [%s] (%s) from [%s].[%s]', inA.node.localName, inPropB, valueB, inA.node.localName, inPropA);
+      setProperty(inPropA, valueB, inA);
+    } else {
+      log.data && console.log('[%s] _bindProperties: sending [%s] (%s) to [%s].[%s]', inA.node.localName, inPropA, valueA, inB.node.localName, inPropB);
+      setProperty(inPropB, valueA, inB);
+    }
+    bindProperty(inA, inPropA, inB, inPropB);
+    bindProperty(inB, inPropB, inA, inPropA);
+  };
+
+  function bindProperty(inA, inPropA, inB, inPropB) {
+    Model.observePath(inA, inPropA, function(inNew) {
+      // intermediate changes are observed, but are irrelevant
+      // we only propagate when the value stabilizes
+      if (getProperty(inPropA, false, inA) === inNew) {
+        // probably redundant, but prevent circularity right here
+        if (getProperty(inPropB, false, inB) !== inNew) {
+          log.data && console.log('[%s] bindProperty: propagating [%s] (%s) to [%s].[%s]', inA.node.localName, inPropA, inNew, inB.node.localName, inPropB);
+          setProperty(inPropB, inNew, inB);
+        }
+      }
+    });
+  };
+
+  //
+  // attribute processing
+  //
+
+  // propagate initial attribute values into properties as a batch,
+  // invoking side-effects only after all values are set
+
+  function takeAttributes() {
+    // accumulate a record of all non-default attribute values
+    // so we can invoke side-effects after all values are initialized
+    //var changed = [];
+    // for each attribute
+    ShadowDOM.forEach(this.node.attributes, function(a) {
+      // try to match this attribute to a property (attributess are
+      // all lower-case, so this is case-insensitive search)
+      var name = propertyForAttribute.call(this, a.name);
+      if (name) {
+        // filter out 'mustached' values, these are to be
+        // replaced with bound-data and are not yet values
+        // themselves
+        if (a.value.search(bindMustache.pattern) >= 0) {
+          return;
+        }
+        // deserialize Boolean or Number values from attribute
+        var value = deserializeValue(a.value);
+        //console.log('takeAttributes: ', a.name, a.value);
+        // only act if the value has changed
+        if (this[name] !== value) {
+          // track values that differ from property values
+          //changed.push({name: name, old: this[name]});
+          // install new value (has side-effects)
+          this[name] = value;
+        }
+      }
+    }, this);
+    //Model.dirtyCheck();
+    /*
+    // batch invoke side-effects
+    changed.forEach(function(c) {
+      propertyChanged.call(this, c.name, c.old);
+    }, this);
+    */
+  };
+
+  // find the public property identified by inAttributeName
+  function propertyForAttribute(inAttributeName) {
+    for (var n in this[conventions.PUBLISH_DIRECTIVE]) {
+      if (n.toLowerCase() == inAttributeName) {
+        return n;
+      }
+    }
+  };
+
+  function deserializeValue(inValue) {
+    switch (inValue) {
+      case '':
+      case 'true':
+        return true;
+      case 'false':
+        return false;
+      case '\\false':
+        return 'false';
+      }
+      return isNaN(inValue) ? inValue : parseFloat(inValue);
+  }
+
+  //
+  // automagic event mapping
+  //
+
+  var prefix = conventions.CUSTOM_EVENT_PREFIX;
+
+  // experimental delegating declarative event handler
+
+  // TODO(sjmiles):
+  // we wanted to simply look for nearest ancestor
+  // with a 'controller' property to be WLOG
+  // but we need to honor ShadowDOM, so we had to
+  // customize this search
+
+  var findController = function(inNode) {
+    // find the shadow root that contains inNode
+    var n = inNode.changeling || inNode;
+    while (n.parentNode && n.tagName !== 'SHADOW-ROOT') {
+      n = ShadowDOM.localParent(n);
+    }
+    return n.host;
+  };
+
+  var dispatch = function(inNode, inHandlerName, inArguments) {
+    if (inNode && inNode.$protected) {
+      log.events && console.group('[%s] dispatch [%s]', inNode.localName, inHandlerName);
+      inNode.$protected.dispatch(inHandlerName, inArguments);
+      log.events && console.groupEnd();
+    }
+  };
+
+  //
+  // new experimental late bound events
+  //
+
+  var accumulateEvents = function(inNode, inEvents) {
+    var events = inEvents || {};
+    accumulateNodeEvents(inNode, events);
+    accumulateChildEvents(inNode, events);
+    if (inNode.tagName == 'TEMPLATE' && inNode.content) {
+      accumulateChildEvents(inNode.content, events);
+    }
+    return events;
+  };
+
+  var accumulateNodeEvents = function(inNode, inEvents) {
+    var a$ = inNode.attributes;
+    if (a$) {
+      for (var i=0, a; a=a$[i]; i++) {
+        if (a.name.slice(0, prefix.length) == prefix) {
+          accumulateEvent(a.name.slice(prefix.length), inEvents);
+        }
+      }
+    }
+  };
+
+  var event_translations = {
+    webkitanimationstart: 'webkitAnimationStart',
+    webkitanimationend: 'webkitAnimationEnd',
+    webkittransitionend: 'webkitTransitionEnd',
+    domfocusout: 'DOMFocusOut',
+    domfocusin: 'DOMFocusIn'
+  };
+
+  var accumulateEvent = function(inName, inEvents) {
+    var n = event_translations[inName] || inName;
+    inEvents[n] = 1;
+  };
+
+  var accumulateChildEvents = function(inNode, inEvents) {
+    var cn$ = ShadowDOM.localNodes(inNode);
+    if (cn$) {
+      for (var i=0, n; n=ShadowDOM.deref(cn$[i]); i++) {
+        // TODO(sjmiles): unify calling convention (.call or not .call)
+        accumulateEvents(n, inEvents);
+        if (n.$protected) {
+          accumulateHostEvents.call(n.$protected, inEvents);
+        }
+      }
+    }
+  };
+
+  var accumulateHostEvents = function(inEvents) {
+    // TODO(sjmiles): we walk the prototype tree to operate on the union of
+    // eventDelegates maps; it might be better to merge maps when extending
+    var p = this;
+    while (p) {
+      if (p.hasOwnProperty('eventDelegates')) {
+        for (var n in p.eventDelegates) {
+          accumulateEvent(n, inEvents);
+        }
+      }
+      p = p.__proto__;
+    }
+  };
+
+  function bindAccumulatedEvents(inNode, inEvents) {
+    var fn = __.bind(inNode);
+    for (var n in inEvents) {
+      log.events && console.log('[%s] bindAccumulatedEvents: addEventListener("%s", __)', inNode.localName, n);
+      inNode.addEventListener(n, fn);
+    }
+  };
+
+  // TODO(sjmiles): lots of work on the code here as we bash out a design
+  // we like, cruftiness increasing in the process. Will be cleaned up when
+  // design solidifies.
+  function __(inEvent) {
+    if (inEvent.cancelBubble) {
+      return;
+    }
+    inEvent.on = prefix + inEvent.type;
+    //var on = prefix + inEvent.type;
+    log.events && console.group("[%s]: __ [%s]", this.localName, inEvent.on);
+    var t = inEvent.target;
+    while (t && t != this) {
+      t = ShadowDOM.deref(t);
+      var c = findController(t);
+      if (c == this) {
+        log.events && console.log('node [%s]', t.localName);
+        if (handleHostEvent.call(this, t, inEvent)) {
+          return;
+        } else if (handleEvent.call(this, t, inEvent)) {
+          return;
+        }
+      }
+      t = t.parentNode;
+    }
+    // if we are a top-level component, we have to fire our own host events
+    if (t == this && !findController(t)) {
+      handleHostEvent.call(this, t, inEvent);
+    }
+    log.events && console.groupEnd();
+  };
+
+  function handleEvent(inNode, inEvent) {
+    if (inNode.attributes) {
+      var h = inNode.getAttribute(inEvent.on);
+      if (h) {
+        log.events && console.log('[%s] found handler name [%s]', this.localName, h);
+        dispatch(this, h, [inEvent, inEvent.detail, inNode]);
+      }
+    }
+    return inEvent.cancelBubble;
+  };
+
+  function handleHostEvent(inNode, inEvent) {
+    var h = findHostHandler.call(inNode.$protected, inEvent.type);
+    if (h) {
+      log.events && console.log('[%s] found host handler name [%s]', inNode.localName, h);
+      dispatch(inNode, h, [inEvent, inEvent.detail, inNode]);
+    }
+    return inEvent.cancelBubble;
+  };
+
+  // find the method name (handler) in eventDelegates mapped to inEventName
+  var findHostHandler = function(inEventName) {
+    // TODO(sjmiles): walking the tree again is inefficient; combine with code
+    // in accumulateHostEvents into something more sane
+    var p = this;
+    while (p) {
+      if (p.hasOwnProperty('eventDelegates')) {
+        var h = p.eventDelegates[inEventName]
+            || p.eventDelegates[inEventName.toLowerCase()];
+        if (h) {
+          return h;
+        }
+      }
+      p = p.__proto__;
+    }
+  };
+</script>
+</element>

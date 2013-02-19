@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- -->
+    <script src="../shadowdom-polyfill.js" shadow="shim"></script>
+    <!-- -->
+    <script src="lib/util.js"></script>
+    <script src="lib/dump.js"></script>
+    <!-- -->
+    <style>
+      content, div, g-A, g-B {
+        display: block;
+        border: 1px dotted lightblue;
+        margin: 8px;
+        padding: 8px;
+      }
+      content {
+        border: 1px dotted magenta;
+      }
+    </style>
+    <script>
+      change = function() {
+        A = $("g-A");
+        var root = new ShadowRoot(A, $("template#A").content);
+        //ShadowDOM.distribute(A);
+        //
+        B = ShadowDOM.localQuery(root, "g-B");
+        new ShadowRoot(B, $("template#B").content);
+        ShadowDOM.distribute(A);
+        //
+        dumper(A);
+      }
+    </script>
+  </head>
+  <body onload="change()">
+      <g-A><span id="a1">Where am I?</span></g-A>
+
+      <template id="A">[A->]<g-B><content></content></g-B>[<-A]</template>
+      <template id="B">[B->][<content></content>][<-B]</template>
+
+      <hr/>
+
+      Expected output (also, see console):
+
+      <div>[A-&gt;]
+        <div>[B-&gt;][<span id="a1">Where am I?</span>][&lt;-B]</div>
+      [&lt;-A]</div>
+
+</body>
+</html>

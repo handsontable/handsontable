@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2008 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by an Apache 2.0 License.
+See the COPYING file for details.
+-->
+<!--
+Author: rcarver@google.com (Ryan Carver) 
+Author: attila@google.com (Attila Bodis) 
+-->
+<head>
+  <title>Closure Unit Tests - goog.ui.ButtonRenderer</title>
+  <script src="../base.js"></script>
+  <script>
+    goog.require('goog.dom.a11y');
+    goog.require('goog.dom.a11y.Role');
+    goog.require('goog.dom.a11y.State');
+    goog.require('goog.dom.classes');
+    goog.require('goog.style');
+    goog.require('goog.testing.ExpectedFailures');
+    goog.require('goog.testing.jsunit');
+    goog.require('goog.testing.ui.rendererasserts');
+    goog.require('goog.ui.Button');
+    goog.require('goog.ui.ButtonRenderer');
+  </script>
+</head>
+<body>
+  <div id="sandbox"></div>
+  <script>
+    var button, buttonRenderer, testRenderer;
+    var sandbox = goog.dom.getElement('sandbox');
+    var expectedFailures = new goog.testing.ExpectedFailures();
+    
+    /**
+     * A subclass of ButtonRenderer that overrides
+     * {@code getStructuralCssClass} for testing purposes.
+     * @constructor
+     * @extends {goog.ui.ControlRenderer}
+     */
+    function TestRenderer() {
+      goog.ui.ButtonRenderer.call(this);
+    };
+    goog.inherits(TestRenderer, goog.ui.ButtonRenderer);
+    goog.addSingletonGetter(TestRenderer);
+
+    /** {@inheritDoc} */
+    TestRenderer.prototype.getStructuralCssClass = function() {
+      return 'goog-base';
+    };
+
+    function setUp() {
+      buttonRenderer = goog.ui.ButtonRenderer.getInstance();
+      button = new goog.ui.Button('Hello', buttonRenderer);
+      testRenderer = TestRenderer.getInstance();
+    }
+
+    function tearDown() {
+      button.dispose();
+      goog.dom.removeChildren(sandbox);
+      expectedFailures.handleTearDown();
+    }
+
+    function testConstructor() {
+      assertNotNull('ButtonRenderer singleton instance must not be null',
+          buttonRenderer);
+    }
+
+    function testGetAriaRole() {
+      assertEquals('ButtonRenderer\'s ARIA role must have expected value',
+          goog.dom.a11y.Role.BUTTON, buttonRenderer.getAriaRole());
+    }
+
+    function testCreateDom() {
+      var element = buttonRenderer.createDom(button);
+      assertNotNull('Element must not be null', element);
+      assertEquals('Element must be a DIV', 'DIV', element.tagName);
+      assertHTMLEquals('Element must have expected structure',
+          '<div class="goog-button">Hello</div>',
+          goog.dom.getOuterHtml(element));
+
+      button.setTooltip('Hello, world!');
+      button.setValue('foo');
+      element = buttonRenderer.createDom(button);
+      assertNotNull('Element must not be null', element);
+      assertEquals('Element must be a DIV', 'DIV', element.tagName);
+      assertSameElements('Element must have expected class name',
+          ['goog-button'], goog.dom.classes.get(element));
+      assertEquals('Element must have expected title', 'Hello, world!',
+          element.title);
+      assertUndefined('Element must have no value', element.value);
+      assertEquals('Element must have expected contents', 'Hello',
+          element.innerHTML);
+
+      button.setSupportedState(goog.ui.Component.State.CHECKED, true);
+      var element = buttonRenderer.createDom(button);
+      if (goog.userAgent.GECKO) {
+        assertEquals('button\'s aria-pressed attribute must be false', 'false',
+            goog.dom.a11y.getState(element, goog.dom.a11y.State.PRESSED));
+      } else {
+        assertEquals('button\'s aria-pressed attribute must not be set', '',
+            goog.dom.a11y.getState(element, goog.dom.a11y.State.PRESSED));
+      }
+    }
+
+    function testDecorate() {
+      sandbox.innerHTML =
+          '<div id="foo">Foo</div>\n' +
+          '<div id="bar" title="Hello, world!">Bar</div>\n' +
+          '<div id="toggle">Toggle</div>';
+
+      var foo = new goog.ui.Button(null, buttonRenderer);
+      foo.decorate(goog.dom.getElement('foo'));
+      assertEquals('foo\'s tooltip must be the empty string', '',
+          foo.getTooltip());
+      foo.dispose();
+
+      var bar = new goog.ui.Button(null, buttonRenderer);
+      bar.decorate(goog.dom.getElement('bar'));
+      assertEquals('bar\'s tooltip must be initialized', 'Hello, world!',
+          bar.getTooltip());
+      bar.dispose();
+
+      var toggle = new goog.ui.Button(null, buttonRenderer);
+      toggle.setSupportedState(goog.ui.Component.State.CHECKED, true);
+      var element = goog.dom.getElement('toggle');
+      toggle.decorate(element);
+      if (goog.userAgent.GECKO) {
+        assertEquals('toggle\'s aria-pressed attribute must be false', 'false',
+            goog.dom.a11y.getState(element, goog.dom.a11y.State.PRESSED));
+      } else {
+        assertEquals('toggle\'s aria-pressed attribute must not be set', '',
+            goog.dom.a11y.getState(element, goog.dom.a11y.State.PRESSED));
+      }
+      toggle.dispose();
+    }
+    
+    function testCollapse() {
+      buttonRenderer.setCollapsed(button, goog.ui.Button.Side.START);
+      assertSameElements('Button should have class to collapse start',
+          ['goog-button-collapse-left'], button.getExtraClassNames());
+      buttonRenderer.setCollapsed(button, goog.ui.Button.Side.END);
+      assertSameElements('Button should have class to collapse end',
+          ['goog-button-collapse-right'], button.getExtraClassNames());
+      buttonRenderer.setCollapsed(button, goog.ui.Button.Side.BOTH);
+      assertSameElements('Button should have classes to collapse both',
+          ['goog-button-collapse-left', 'goog-button-collapse-right'],
+          button.getExtraClassNames());
+    }
+    
+    function testCollapseRtl() {
+      button.setRightToLeft(true);
+      buttonRenderer.setCollapsed(button, goog.ui.Button.Side.START);
+      assertSameElements('Button should have class to collapse start',
+          ['goog-button-collapse-right'], button.getExtraClassNames());
+      buttonRenderer.setCollapsed(button, goog.ui.Button.Side.END);
+      assertSameElements('Button should have class to collapse end',
+          ['goog-button-collapse-left'], button.getExtraClassNames());
+      buttonRenderer.setCollapsed(button, goog.ui.Button.Side.BOTH);
+      assertSameElements('Button should have classes to collapse both',
+          ['goog-button-collapse-left', 'goog-button-collapse-right'],
+          button.getExtraClassNames());
+    }
+    
+    function testCollapseWithStructuralClass() {
+      testRenderer.setCollapsed(button, goog.ui.Button.Side.BOTH);
+      assertSameElements('Should use structural class for collapse classes',
+          ['goog-base-collapse-left', 'goog-base-collapse-right'],
+          button.getExtraClassNames());
+    }
+
+    function testUpdateAriaState() {
+      var element = buttonRenderer.createDom(button);
+      buttonRenderer.updateAriaState(element, goog.ui.Component.State.CHECKED,
+          true);
+      if (goog.userAgent.GECKO) {
+        assertEquals('On Gecko, button must have pressed ARIA state', 'true',
+            goog.dom.a11y.getState(element, goog.dom.a11y.State.PRESSED));
+      } else {
+        assertEquals('On non-Gecko, control must not have ARIA state', '',
+            goog.dom.a11y.getState(element, goog.dom.a11y.State.PRESSED));
+      }
+
+      // Test for updating a state other than CHECKED
+      buttonRenderer.updateAriaState(element, goog.ui.Component.State.DISABLED,
+          true);
+      if (goog.userAgent.GECKO) {
+        assertEquals('On Gecko, button must have disabled ARIA state', 'true',
+            goog.dom.a11y.getState(element, goog.dom.a11y.State.DISABLED));
+      } else {
+        assertEquals('On non-Gecko, control must not have ARIA state', '',
+            goog.dom.a11y.getState(element, goog.dom.a11y.State.DISABLED));
+      }
+
+      buttonRenderer.updateAriaState(element, goog.ui.Component.State.CHECKED,
+          false);
+      if (goog.userAgent.GECKO) {
+        assertEquals('On Gecko, control must no longer have pressed ARIA state',
+            'false',
+            goog.dom.a11y.getState(element, goog.dom.a11y.State.PRESSED));
+      } else {
+        assertEquals('On non-Gecko, control must not have ARIA state', '',
+            goog.dom.a11y.getState(element, goog.dom.a11y.State.PRESSED));
+      }
+    }
+
+    function testDoesntCallGetCssClassInConstructor() {
+      goog.testing.ui.rendererasserts.
+          assertNoGetCssClassCallsInConstructor(goog.ui.ButtonRenderer);
+    }
+
+  </script>
+</body>
+</html>

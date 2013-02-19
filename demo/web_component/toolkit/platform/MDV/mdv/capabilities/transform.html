@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2011 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>Transform</title>
+<link rel="stylesheet" href="common_styles.css">
+<script src="include.js"></script>
+<style>
+.productRow {
+  background-color: #;
+}
+.new {
+  color: blue;
+}
+.isImproved {
+  color: red;
+  text-decoration: blink;
+}
+.onSale {
+  color: green;
+}
+.productRow {
+  font-size: 1.2em;
+}
+</style>
+</head>
+<body>
+  <div class="example">
+    <h1>Transforms</h1>
+    <div class="content">
+      <h2>Price List:</h2>
+      <ul>
+        <template iterate>
+          <li class="productRow {{ salePrice | toggle('onSale')}}">
+            <span class="isImproved"
+                  hidden="{{ isNew | absent}}">Improved!</span>
+            <span class="new"
+                  hidden="{{ isImproved | absent }}">New!</span>
+            <span>{{ name }}, <span>
+            <span hidden="{{ offersAccepted | present }}">
+                  {{ price | currency }}</span>
+            <span hidden="{{ salePrice | absent }}">
+              On Sale!!! {{ salePrice | currency }}
+            </span>
+            <template instantiate="offersAccepted">
+              Now taking offers: <input value="{{ bid }}" type="number">
+              <span hidden="{{ expr(bid, reserve) bid >= reserve ? '' : null }}">
+                ...{{ bid | currency }} for that? You must be mad!!!
+              </span>
+              <span hidden="{{ expr(bid, reserve) bid < reserve ? '' : null }}">
+                ...{{ bid | currency }}? SOLD!!!
+              </span>
+            </template>
+          </li>
+        </template>
+      </ul>
+    </div>
+  </div>
+
+<script>
+document.body.model = [
+  {
+    name: 'Rusty nails',
+    isNew: true,
+    price: 4
+  },
+  {
+    name: '"Fresh" Egg-salad sandwich',
+    isImproved: true,
+    price: 5
+  },
+  {
+    name: 'Snake Oil',
+    price: 6,
+    salePrice: 2.99
+  },
+  {
+    name: 'Wagon Wheel',
+    price: 20,
+    offersAccepted: {
+      bid: 5,
+      reserve: 15
+    }
+  }
+];
+document.body.modelDelegate = MDVDelegate;
+</script>
+  <div class="comment">
+    <h1>Comment</h1>
+    <div class="content">
+      Often data needs to be displayed to the user in a different way than it is
+      represented internally. Similarly, web pages must be tolerant of different
+      ways of entering data. Transforms are handlers which filter the data on
+      its way to the page and on the back. In this example, transforms are used
+      for
+      <ol>
+        <li>Converting a number type to a currency display format</li>
+        <li>Toggling a css class within the className property</li>
+        <li>Hiding or showing different spans depending on the absence or
+          presence of a value</li>
+      </ol>
+    </div>
+  </div>
+</body>
+</html>

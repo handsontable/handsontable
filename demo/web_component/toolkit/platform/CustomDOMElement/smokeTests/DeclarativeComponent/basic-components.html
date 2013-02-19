@@ -1,0 +1,20 @@
+<element name="x-component">
+  <template>
+    I am an x-component...
+    <template iterate>
+      <div>{{index}}</div>
+    </template>
+  </template>
+  <script>
+      this.lifecycle({
+        shadowRootCreated: function () {
+          this.model = [
+            {index: 0},
+            {index: 1},
+            {index: 2},
+            {index: 3}
+          ];
+        }
+      });
+    </script>
+</element>

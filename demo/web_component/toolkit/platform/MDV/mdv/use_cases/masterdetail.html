@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2011 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+<title>Master/Detail Demo</title>
+<script src="include.js"></script>
+<style>
+
+.itemRow > div {
+  display: inline-block;
+  width: 40%;
+}
+
+.selected {
+  background-color: #CCCCCC;
+}
+
+</style>
+
+</head>
+<body>
+<div id="listContainer">
+  <div class="itemRow">
+    <div><em>Name</em></div>
+    <div><em>Price</em></div>
+  </div>
+  <template iterate>
+    <div class="itemRow {{ selected | toggle }}"
+         onclick="focusExistingProduct(this.model);">
+      <div>{{ name }}</div>
+      <div>{{ price | currency }}</div>
+    </div>
+  </template>
+<button onclick="addNewItem();">Create New</button>
+</div>
+
+<hr>
+
+<div id="detailContainer">
+  <template instantiate>
+    <label>Product Name <input value="{{ name }}"></label>
+    <label>Price <input value="{{ price }}"></label>
+    <button onclick="deleteItem(this.model);">Delete</button>
+  </template>
+</div>
+
+<script>
+
+function addNewItem() {
+  var newItem = {price: 0, name: ''};
+  items.push(newItem);
+  focusExistingProduct(newItem);
+}
+
+function deleteItem(item) {
+  var index = items.indexOf(item);
+  items.splice(index, 1);
+  index = Math.min(index, items.length - 1);
+  focusExistingProduct(items[index]);
+}
+
+var selectedItem;
+
+function focusExistingProduct(item) {
+  if (selectedItem) {
+    if (item === selectedItem)
+      return;
+    selectedItem.selected = false;
+  }
+
+  if (item)
+    item.selected = !item.selected;
+
+  selectedItem = item;
+
+  detailContainer.model = item;
+  Model.notifyChanges();
+}
+
+var listContainer = document.getElementById('listContainer');
+var detailContainer = document.getElementById('detailContainer');
+
+var items = [
+  {
+    name: 'GrillMaster 2000',
+    price: 199.99
+  },
+  {
+    name: 'Flobee',
+    price: 5
+  },
+  {
+    name: 'Novelty Vomit',
+    price: 4.99
+  }
+];
+
+window.onload = function() {
+  listContainer.model = items;
+  focusExistingProduct(listContainer.model[0]);
+};
+
+</script>
+
+</body>
+</html>

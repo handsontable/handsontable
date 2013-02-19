@@ -1,0 +1,282 @@
+[
+    {
+        "age": 0,
+        "id": "nexus-s",
+        "imageUrl": "http://google.com/phone/image/small/709001",
+        "name": "Nexus S",
+        "snippet": "Fast just got faster with Nexus S. A pure Google experience, Nexus S is the first phone to run Gingerbread (Android 2.3), the fastest version of Android yet."
+    },
+    {
+        "age": 1,
+        "buyUrl": "http://phones.verizonwireless.com/droid/2/global/buynow.aspx",
+        "carrier": "Verizon",
+        "id": "droid-2-global-by-motorola",
+        "imageUrl": "http://google.com/phone/image/small/724001",
+        "name": "DROID\u2122 2 Global by Motorola",
+        "snippet": "The first smartphone with a 1.2 GHz processor and global capabilities."
+    },
+    {
+        "age": 2,
+        "buyUrl": "http://phones.verizonwireless.com/droid/pro/buynow.aspx",
+        "carrier": "Verizon",
+        "id": "droid-pro-by-motorola",
+        "imageUrl": "http://google.com/phone/image/small/719001",
+        "name": "DROID\u2122 Pro by Motorola",
+        "snippet": "The next generation of DOES."
+    },
+    {
+        "age": 3,
+        "buyUrl": "http://www.t-mobile.com/shop/phones/Cell-Phone-Detail.aspx?cell-phone=T-Mobile-myTouch-4G-White",
+        "carrier": "T-Mobile",
+        "id": "t-mobile-mytouch-4g",
+        "imageUrl": "http://google.com/phone/image/small/647001",
+        "name": "T-Mobile myTouch 4G",
+        "snippet": "The T-Mobile myTouch 4G is a premium smartphone designed to deliver blazing fast 4G speeds so that you can video chat from practically anywhere, with or without Wi-Fi."
+    },
+    {
+        "age": 4,
+        "buyUrl": "http://www.t-mobile.com/shop/phones/Cell-Phone-Detail.aspx?cell-phone=Motorola-DEFY",
+        "carrier": "T-Mobile",
+        "id": "motorola-defy-with-motoblur",
+        "imageUrl": "http://google.com/phone/image/small/640001",
+        "name": "Motorola DEFY\u2122 with MOTOBLUR\u2122",
+        "snippet": "Are you ready for everything life throws your way?"
+    },
+    {
+        "age": 5,
+        "buyUrl": "http://shop.sprint.com/NASApp/onlinestore/en/Action/DisplayPhones?phoneSKU=SPHM920BKS",
+        "carrier": "Sprint",
+        "id": "samsung-transform",
+        "imageUrl": "http://google.com/phone/image/small/674002",
+        "name": "Samsung Transform\u2122",
+        "snippet": "The Samsung Transform\u2122 brings you a fun way to customize your Android powered touch screen phone to just the way you like it through your favorite themed \u201cSprint ID Service Pack\u201d."
+    },
+    {
+        "age": 6,
+        "buyUrl": "http://www.t-mobile.com/shop/phones/Cell-Phone-Detail.aspx?cell-phone=T-Mobile-G2-with-Google",
+        "carrier": "T-Mobile",
+        "id": "t-mobile-g2",
+        "imageUrl": "http://google.com/phone/image/small/444005",
+        "name": "T-Mobile G2",
+        "snippet": "The T-Mobile G2 with Google is the first smartphone built for 4G speeds on T-Mobile's new network. Get the information you need, faster than you ever thought possible."
+    },
+    {
+        "age": 7,
+        "buyUrl": "http://www.t-mobile.com/shop/phones/Cell-Phone-Detail.aspx?cell-phone=Motorola-Charm-Golden-Bronze",
+        "carrier": "T-Mobile",
+        "id": "motorola-charm-with-motoblur",
+        "imageUrl": "http://google.com/phone/image/small/272006",
+        "name": "Motorola CHARM\u2122 with MOTOBLUR\u2122",
+        "snippet": "Motorola CHARM fits easily in your pocket or palm.  Includes MOTOBLUR service."
+    },
+    {
+        "age": 8,
+        "buyUrl": "http://www.verizonwireless.com/b2c/store/controller?item=phoneFirst&action=viewPhoneDetail&selectedPhoneId=5429",
+        "carrier": "Verizon",
+        "id": "droid-2-by-motorola",
+        "imageUrl": "http://google.com/phone/image/small/263002",
+        "name": "DROID\u2122 2 by Motorola",
+        "snippet": "With its 1 GHz processor and Android 2.2 with Adobe Flash 10, the DROID 2 offers PC-like power and speed."
+    },
+    {
+        "age": 9,
+        "buyUrl": "http://shop.sprint.com/NASApp/onlinestore/en/Action/DisplaySelPhoneDetail?phoneSKU=SPHD700BKS",
+        "carrier": "Sprint",
+        "id": "samsung-epic-4g-a-galaxy-s-phone",
+        "imageUrl": "http://google.com/phone/image/small/281003",
+        "name": "Samsung Epic 4G\u2122 a Galaxy S\u2122 phone",
+        "snippet": "The Samsung Epic\u2122 4G delivers a premium entertainment experience through advanced 4G speeds and its innovative 4\u201d touch display technology, which provides rich picture brilliance."
+    },
+    {
+        "age": 10,
+        "buyUrl": "https://www.cellularsouth.com/cscommerce/products/phones/product_phone_detail.jsp?id=prod22990083&WT.mc_id=pp_google_phone",
+        "carrier": "Cellular South",
+        "id": "milestone-by-motorola-cdma",
+        "imageUrl": "http://google.com/phone/image/small/444004",
+        "name": "Milestone\u2122 by Motorola (CDMA)",
+        "snippet": "The Motorola Milestone delivers a richer web, smarter messaging, and top-of-line media features, all on the thinnest QWERTY slider available."
+    },
+    {
+        "age": 11,
+        "buyUrl": "http://www.wireless.att.com/cell-phone-service/cell-phone-details/?device=Samsung+Captivate+(TM)+-+Black&q_sku=sku4760319",
+        "carrier": "AT&T",
+        "id": "samsung-captivate-a-galaxy-s-phone",
+        "imageUrl": "http://google.com/phone/image/small/293003",
+        "name": "Samsung Captivate\u2122 a Galaxy S\u2122 phone",
+        "snippet": "The Samsung Captivate\u2122 delivers a cinema quality experience like you\u2019ve never seen before. Its innovative 4\u201d touch display technology provides rich picture brilliance, even outdoor"
+    },
+    {
+        "age": 12,
+        "buyUrl": "http://shop.sprint.com/NASApp/onlinestore/en/Action/DisplaySelPhoneDetail?phoneSKU=MOT1KIT",
+        "carrier": "Sprint",
+        "id": "motorola-i1",
+        "imageUrl": "http://google.com/phone/image/small/300006",
+        "name": "Motorola i1",
+        "snippet": "Changing the game, Motorola i1 brings PTT functionality into a touch screen design."
+    },
+    {
+        "age": 13,
+        "buyUrl": "http://samsung.letstalk.com/product/promo.htm?pgId=100&prId=37356",
+        "carrier": "Sprint",
+        "id": "samsung-intercept",
+        "imageUrl": "http://google.com/phone/image/small/114003",
+        "name": "Samsung Intercept\u2122",
+        "snippet": "The Samsung Intercept\u2122 is built to deliver a high-end Android experience, complete with full QWERTY keyboard, at a great price."
+    },
+    {
+        "age": 14,
+        "buyUrl": "http://www.t-mobile.com/shop/phones/Cell-Phone-Detail.aspx?cell-phone=Samsung-Vibrant",
+        "carrier": "T-Mobile",
+        "id": "samsung-vibrant-a-galaxy-s-phone",
+        "imageUrl": "http://google.com/phone/image/small/293004",
+        "name": "Samsung Vibrant\u2122 a Galaxy S\u2122 phone",
+        "snippet": "The Samsung Vibrant\u2122 delivers a cinema quality experience like you\u2019ve never seen before. Its innovative 4\u201d touch display technology provides rich picture brilliance, even outdoors."
+    },
+    {
+        "age": 15,
+        "buyUrl": "http://www.verizonwireless.com/b2c/store/controller?item=phoneFirst&action=viewPhoneDetail&selectedPhoneId=5369",
+        "carrier": "Verizon",
+        "id": "droid-x-by-motorola",
+        "imageUrl": "http://google.com/phone/image/small/10003",
+        "name": "DROID\u2122 X by Motorola",
+        "snippet": "Your hand becomes a theater with the DROID X 4.3-in. hi-res screen and HD camcorder. An 8MP camera captures crisp images. Connect to a Wi-Fi hotspot or be one."
+    },
+    {
+        "age": 16,
+        "buyUrl": "http://www.uscellular.com/uscellular/zipCode.jsp?type=phones&call=0&_requestid=254157",
+        "carrier": "US Cellular",
+        "id": "samsung-acclaim",
+        "imageUrl": "http://google.com/phone/image/small/263003",
+        "name": "Samsung Acclaim\u2122",
+        "snippet": "The Samsung Acclaim\u2122 delivers a rich multimedia experience.  With a full QWERTY keyboard, crisp 3.2\u201d touch screen, and access to thousands of apps to customize your phone."
+    },
+    {
+        "age": 17,
+        "buyUrl": "http://www.wireless.att.com/cell-phone-service/cell-phone-details/?device=HTC+Aria+(TM)+-+Black&q_sku=sku4720254",
+        "carrier": "AT&T",
+        "id": "htc-aria",
+        "imageUrl": "http://google.com/phone/image/small/173001",
+        "name": "HTC Aria",
+        "snippet": "This isn't some scaled-down, mobile version of the Internet. There's GPS-based weather, visual email, Google Maps Navigation\u2122, Facebook, Flickr, YouTube - you name it."
+    },
+    {
+        "age": 18,
+        "buyUrl": "http://shop.sprint.com/NASApp/onlinestore/en/Action/DisplaySelPhoneDetail?phoneSKU=APA9292KT",
+        "carrier": "Sprint",
+        "id": "htc-evo-4g",
+        "imageUrl": "http://google.com/phone/image/small/114004",
+        "name": "HTC EVO 4G",
+        "snippet": "With the HTC EVO, you\u2019ve got the power to do more than you ever thought possible with a phone."
+    },
+    {
+        "age": 19,
+        "buyUrl": "http://www.dell.com/streak",
+        "carrier": "Dell",
+        "id": "dell-streak",
+        "imageUrl": "http://google.com/phone/image/small/580001",
+        "name": "Dell Streak",
+        "snippet": "Introducing the Dell Streak, your pocket tablet has arrived."
+    },
+    {
+        "age": 20,
+        "buyUrl": "http://www.t-mobile.com/shop/phones/Cell-Phone-Detail.aspx?cell-phone=myTouch-3G-Slide-White&Wt.z_searchCategory=Site+Search+Summary&Wt.z_searchZone=Products&WT.z_searchTerm=mytouch&WT.z_searchProduct=myTouch%99+3G+Slide+-+White",
+        "carrier": "T-Mobile",
+        "id": "mytouch-3g-slide",
+        "imageUrl": "http://google.com/phone/image/small/212003",
+        "name": "myTouch 3G Slide",
+        "snippet": "The myTouch 3G Slide\u2122 smartphone with Faves Gallery\u2122, myModes and the Genius Button\u2122 makes sure you don\u2019t miss a thing."
+    },
+    {
+        "age": 21,
+        "buyUrl": "/phone/detail/htc-desire-cdma",
+        "id": "htc-desire-cdma",
+        "imageUrl": "http://google.com/phone/image/small/424004",
+        "name": "HTC Desire (CDMA)",
+        "snippet": "HTC Desire delivers intense brilliance, sharp contrast, and true colors on the expansive 3.7-inch display."
+    },
+    {
+        "age": 22,
+        "buyUrl": "http://phones.verizonwireless.com/lg/ally/",
+        "carrier": "Verizon",
+        "id": "lg-ally",
+        "imageUrl": "http://google.com/phone/image/small/17002",
+        "name": "LG Ally",
+        "snippet": "Connect with your Ally."
+    },
+    {
+        "age": 23,
+        "buyUrl": "http://www.verizonwireless.com/b2c/store/controller?item=phoneFirst&action=viewPhoneDetail&selectedPhoneId=5269&changingCompletedOrder",
+        "carrier": "Verizon",
+        "id": "droid-incredible-by-htc",
+        "imageUrl": "http://google.com/phone/image/small/242001",
+        "name": "DROID\u2122 Incredible by HTC",
+        "snippet": "With such attention to detail on the inside and out, the name of this phone pretty much says it all."
+    },
+    {
+        "age": 24,
+        "buyUrl": "http://www.att.com/shop/wireless/devices/xperiaX10.jsp",
+        "carrier": "AT&T",
+        "id": "sony-ericsson-xperia-x10",
+        "imageUrl": "http://google.com/phone/image/small/444002",
+        "name": "Sony Ericsson Xperia X10",
+        "snippet": "Watch. Listen. Play. The ultimate Android multimedia smartphone."
+    },
+    {
+        "age": 25,
+        "id": "nexus-one",
+        "imageUrl": "http://google.com/phone/image/small/58003",
+        "name": "Nexus One",
+        "snippet": "The Nexus One shows what's possible on mobile devices through Android when cool apps meet a fast, bright, and connected computer that fits in your pocket."
+    },
+    {
+        "age": 26,
+        "buyUrl": "http://www.t-mobile.com/shop/phones/cell-phone-detail.aspx?cell-phone=Samsung-Behold-2&tp=tb3",
+        "carrier": "T-Mobile",
+        "id": "t-mobile-behold-ii",
+        "imageUrl": "http://google.com/phone/image/small/139001",
+        "name": "T-Mobile Behold II\u2122",
+        "snippet": "The Samsung Behold\u00ae II brings a seamless combination of entertainment and mobility into one with easy access to premium multimedia features through a brilliant AMOLED touch screen."
+    },
+    {
+        "age": 27,
+        "id": "droid-eris-by-htc",
+        "imageUrl": "http://google.com/phone/image/small/144001",
+        "name": "DROID\u2122 Eris by HTC",
+        "snippet": "Take customization to a whole new level. Create and switch between scenes that reflect different moments in your life."
+    },
+    {
+        "age": 28,
+        "buyUrl": "http://www.verizonwireless.com/b2c/splash/droid.jsp?page=droiddoes",
+        "carrier": "Verizon",
+        "id": "droid-by-motorola",
+        "imageUrl": "http://google.com/phone/image/small/10004",
+        "name": "DROID\u2122 by Motorola",
+        "snippet": "It's a pint-sized power plant. Location aware. Speech-recognizing. App-mashing and multitasking. With DROID by Motorola you'll connect at breakneck speed."
+    },
+    {
+        "age": 29,
+        "buyUrl": "http://shop.sprint.com/NASApp/onlinestore/en/Action/DisplaySelPhoneDetail?phoneSKU=SPHM900ZKA",
+        "carrier": "Sprint",
+        "id": "samsung-moment",
+        "imageUrl": "http://google.com/phone/image/small/29001",
+        "name": "Samsung Moment\u2122",
+        "snippet": "The Samsung Moment\u2122 has a brilliant 3.2\u201d widescreen AMOLED display that brings out the best of web browsing and the tens of thousands of apps available for download."
+    },
+    {
+        "age": 30,
+        "buyUrl": "/phone/detail/htc-hero",
+        "id": "htc-hero",
+        "imageUrl": "http://google.com/phone/image/small/159001",
+        "name": "HTC Hero",
+        "snippet": "Everything you need for work and weekend. Make it your hero with personalization that lets you create a phone just right for you."
+    },
+    {
+        "age": 31,
+        "buyUrl": "http://www.t-mobile.com/shop/phones/Cell-Phone-Detail.aspx?cell-phone=myTouch-3G-3.5mm-Jack-White",
+        "carrier": "T-Mobile",
+        "id": "htc-mytouch",
+        "imageUrl": "http://google.com/phone/image/small/19003",
+        "name": "HTC myTouch",
+        "snippet": "Phones can often define their users. With the HTC myTouch\u2122, it\u2019s the other way around. Experience the first phone that\u2019s designed around the freedom of being you."
+    }
+]

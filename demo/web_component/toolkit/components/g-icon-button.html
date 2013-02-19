@@ -1,0 +1,41 @@
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<element name="g-icon-button" attributes="src active">
+  <link rel="components" href="g-icon.html">
+  <template>
+    <style>
+      @host {
+        display: inline-block;
+        box-sizing: border-box;
+        width: 40px;
+        height: 40px;
+        border: 1px solid transparent;
+        padding: 3px;
+        cursor: pointer;
+      }
+
+      @host:hover, @host.selected {
+        border: 1px solid rgba(0,0,0,0.16);
+        border-radius: 3px;
+        opacity: 0.8;
+      }
+
+      @host:active {
+        opacity: 0.6;
+      }
+    </style>
+    <g-icon src="{{src}}"></g-icon>
+  </template>
+  <script>
+    this.component({
+      activeChanged: function() {
+        // TODO(sjmiles): 'class' attributes should have special handling 
+        //   for this common use case
+        this.node.classList.toggle('selected', this.active);
+      }
+    });
+  </script>
+</element>
