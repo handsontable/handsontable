@@ -77,7 +77,7 @@ module.exports = function (grunt) {
       }
     },
     watch: {
-      files: ['src/*.js', 'src/editors/*.js', 'src/plugins/*.js', 'src/renderers/*.js', 'src/3rdparty/*.js', 'src/css/*.css', 'lib/*.js'],
+      files: ['src/*.js', 'src/editors/*.js', 'src/plugins/*.js', 'src/renderers/*.js', 'src/3rdparty/*.js', 'src/css/*.css', 'src/wc/*', 'lib/*.js'],
       tasks: 'replace concat clean'
     },
     clean: {
@@ -95,6 +95,18 @@ module.exports = function (grunt) {
           'tmp/intro.js': 'src/intro.js',
           'tmp/core.js': 'src/core.js',
           'jquery.handsontable.css': 'src/css/jquery.handsontable.css'
+        }
+      },
+      wc: {
+        options: {
+          variables: {
+            style: '<%= grunt.file.read("dist/jquery.handsontable.full.css") %>',
+            model: '<%= grunt.file.read("dist/jquery.handsontable.full.js") %>',
+            controller: '<%= grunt.file.read("src/wc/x-handsontable-controller.js") %>'
+          }
+        },
+        files: {
+          'dist/x-handsontable.html': 'src/wc/x-handsontable.html'
         }
       }
     }

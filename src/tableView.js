@@ -43,7 +43,7 @@ Handsontable.TableView = function (instance) {
     var next = event.target;
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== null && next !== document.documentElement) {
-        if (next === instance.rootElement[0] || $(next).attr('id') === 'context-menu-layer' || $(next).is('.context-menu-list') || $(next).is('.typeahead li')) {
+        if (next === instance.rootElement[0] || $(next).attr('is') === 'x-handsontable' || $(next).attr('id') === 'context-menu-layer' || $(next).is('.context-menu-list') || $(next).is('.typeahead li')) {
           return; //click inside container
         }
         next = next.parentNode;

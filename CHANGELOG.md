@@ -1,3 +1,8 @@
+## HEAD
+
+Features:
+- Web Component experimental release (requires Toolkitchen:Toolkit polyfill)
+
 ## [0.8.5](https://github.com/warpech/jquery-handsontable/tree/v0.8.5) (Feb 18, 2013)
 
 Bugfix:
