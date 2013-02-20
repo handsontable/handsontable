@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Feb 18 2013 19:46:29 GMT+0100 (Central European Standard Time)
+ * Date: Wed Feb 20 2013 11:18:51 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2674,8 +2674,9 @@ var texteditor = {
     }
 
     if (instance.getSettings().asyncRendering) {
+      texteditor.refreshDimensions(instance, row, col, keyboardProxy); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
       setTimeout(function () {
-        texteditor.refreshDimensions(instance, row, col, keyboardProxy);
+        texteditor.refreshDimensions(instance, row, col, keyboardProxy); //need it after rerender to reposition in case scroll was moved
       }, 0);
     }
     else {
@@ -2827,10 +2828,10 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
   });
 
   /*keyboardProxy.on('blur.editor', function () {
-    if (texteditor.isCellEdited) {
-      texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
-    }
-  });*/
+   if (texteditor.isCellEdited) {
+   texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
+   }
+   });*/
 
   keyboardProxy.on('refreshBorder.editor', function () {
     setTimeout(function () {

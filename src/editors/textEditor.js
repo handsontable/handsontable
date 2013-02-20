@@ -82,8 +82,9 @@ var texteditor = {
     }
 
     if (instance.getSettings().asyncRendering) {
+      texteditor.refreshDimensions(instance, row, col, keyboardProxy); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
       setTimeout(function () {
-        texteditor.refreshDimensions(instance, row, col, keyboardProxy);
+        texteditor.refreshDimensions(instance, row, col, keyboardProxy); //need it after rerender to reposition in case scroll was moved
       }, 0);
     }
     else {
@@ -235,10 +236,10 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy,
   });
 
   /*keyboardProxy.on('blur.editor', function () {
-    if (texteditor.isCellEdited) {
-      texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
-    }
-  });*/
+   if (texteditor.isCellEdited) {
+   texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
+   }
+   });*/
 
   keyboardProxy.on('refreshBorder.editor', function () {
     setTimeout(function () {
