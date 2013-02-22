@@ -133,6 +133,9 @@ Handsontable.Core = function (rootElement, settings) {
           row.push(null);
         }
       }
+      else if (typeof priv.settings.dataSchema === 'function') {
+        row = priv.settings.dataSchema();
+      }
       else {
         row = $.extend(true, {}, datamap.getSchema());
       }
