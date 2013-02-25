@@ -77,8 +77,8 @@ module.exports = function (grunt) {
       }
     },
     watch: {
-      files: ['src/*.js', 'src/editors/*.js', 'src/plugins/*.js', 'src/renderers/*.js', 'src/3rdparty/*.js', 'src/css/*.css', 'lib/*.js'],
-      tasks: 'replace concat clean'
+      files: ['src/*', 'src/editors/*', 'src/plugins/*', 'src/renderers/*', 'src/3rdparty/*', 'src/css/*', 'lib/*'],
+      tasks: ['replace', 'concat', 'clean']
     },
     clean: {
       dist: ['tmp']
@@ -101,8 +101,10 @@ module.exports = function (grunt) {
   });
 
   // Default task.
-  grunt.registerTask('default', 'replace concat clean');
+  grunt.registerTask('default', ['replace', 'concat', 'clean']);
 
   grunt.loadNpmTasks('grunt-replace');
   grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-watch');
 };
