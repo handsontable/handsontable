@@ -36,6 +36,7 @@
   border-width: 0;
   table-layout: fixed;
   width: 0;
+  outline-width: 0;
 }
 
 .handsontable col {

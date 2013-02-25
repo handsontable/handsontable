@@ -35,6 +35,7 @@ describe('AutocompleteEditor', function () {
       keyDownUp('enter');
 
       var li = autocomplete().$menu.find('li[data-value="green"]');
+      console.log('a', li);
       li.trigger('mouseenter');
       li.trigger('click');
     });
@@ -154,7 +155,7 @@ describe('AutocompleteEditor', function () {
     keyDownUp('enter');
 
     var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
-    expect(this.$keyboardProxy.width()).toEqual($td.width());
+    expect(keyProxy().width()).toEqual($td.width());
   });
 
   it('autocomplete textarea should have cell dimensions (after render)', function () {
@@ -189,7 +190,7 @@ describe('AutocompleteEditor', function () {
 
     runs(function () {
       var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
-      expect(this.$keyboardProxy.width()).toEqual($td.width());
+      expect(keyProxy().width()).toEqual($td.width());
     });
   });
 

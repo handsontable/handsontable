@@ -118,7 +118,7 @@ describe('TextEditor', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(keyProxy()).toEqual("string");
+      expect(keyProxy().val()).toEqual("string");
     });
   });
 
@@ -136,7 +136,7 @@ describe('TextEditor', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(keyProxy()).toEqual("13");
+      expect(keyProxy().val()).toEqual("13");
     });
   });
 
@@ -154,7 +154,7 @@ describe('TextEditor', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(keyProxy()).toEqual("true");
+      expect(keyProxy().val()).toEqual("true");
     });
   });
 
@@ -172,7 +172,7 @@ describe('TextEditor', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(keyProxy()).toEqual("false");
+      expect(keyProxy().val()).toEqual("false");
     });
   });
 
@@ -190,7 +190,7 @@ describe('TextEditor', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(keyProxy()).toEqual("");
+      expect(keyProxy().val()).toEqual("");
     });
   });
 
@@ -208,7 +208,7 @@ describe('TextEditor', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(keyProxy()).toEqual("");
+      expect(keyProxy().val()).toEqual("");
     });
   });
 

@@ -6,6 +6,7 @@
  */
 Handsontable.Core = function (rootElement, settings) {
   this.rootElement = rootElement;
+  //this.rootElement.attr("tabindex", 100000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/
 
   var priv, datamap, grid, selection, editproxy, autofill, validate, self = this;
 
@@ -977,38 +978,26 @@ Handsontable.Core = function (rootElement, settings) {
      * Create input field
      */
     init: function () {
-      priv.editProxy = $('<textarea class="handsontableInput">');
-      priv.editProxyHolder = $('<div class="handsontableInputHolder">');
-      priv.editProxyHolder.append(priv.editProxy);
-
-      function onClick(event) {
-        event.stopPropagation();
-      }
-
       function onCut() {
-        setTimeout(function () {
-          selection.empty();
-        }, 100);
+        selection.empty();
       }
 
-      function onPaste() {
-        setTimeout(function () {
-          self.rootElement.one("datachange.handsontable", function (event, changes, source) {
-            if (changes.length) {
-              var last = changes[changes.length - 1];
-              selection.setRangeEnd({row: last[0], col: self.propToCol(last[1])});
-            }
-          });
+      function onPaste(str) {
+        self.rootElement.one("datachange.handsontable", function (event, changes, source) {
+          if (changes.length) {
+            var last = changes[changes.length - 1];
+            selection.setRangeEnd({row: last[0], col: self.propToCol(last[1])});
+          }
+        });
 
-          var input = priv.editProxy[0].value.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
-            inputArray = SheetClip.parse(input),
-            coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
+        var input = str.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
+          inputArray = SheetClip.parse(input),
+          coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
 
-          grid.populateFromArray(coords.TL, inputArray, {
-            row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
-            col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
-          }, 'paste');
-        }, 100);
+        grid.populateFromArray(coords.TL, inputArray, {
+          row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
+          col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
+        }, 'paste');
       }
 
       var $body = $(document.body);
@@ -1032,12 +1021,7 @@ Handsontable.Core = function (rootElement, settings) {
             if (event.keyCode === 65) { //CTRL + A
               selection.selectAll(); //select all cells
               editproxy.setCopyableText();
-            }
-            else if (event.keyCode === 88 && $.browser.opera) { //CTRL + X
-              priv.editProxyHolder.triggerHandler('cut'); //simulate oncut for Opera
-            }
-            else if (event.keyCode === 86 && $.browser.opera) { //CTRL + V
-              priv.editProxyHolder.triggerHandler('paste'); //simulate onpaste for Opera
+              event.preventDefault();
             }
             else if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
               priv.undoRedo && priv.undoRedo.redo();
@@ -1161,11 +1145,10 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
 
-      priv.editProxy.on('click', onClick);
-      priv.editProxyHolder.on('cut', onCut);
-      priv.editProxyHolder.on('paste', onPaste);
-      priv.editProxyHolder.on('keydown', onKeyDown);
-      self.rootElement.append(priv.editProxyHolder);
+      self.copyPaste = new CopyPaste(self.rootElement[0]);
+      self.copyPaste.onCut(onCut);
+      self.copyPaste.onPaste(onPaste);
+      self.rootElement.on('keydown.handsontable', onKeyDown);
     },
 
     /**
@@ -1190,8 +1173,7 @@ Handsontable.Core = function (rootElement, settings) {
       var finalEndRow = Math.min(endRow, startRow + priv.settings.copyRowsLimit - 1);
       var finalEndCol = Math.min(endCol, startCol + priv.settings.copyColsLimit - 1);
 
-      priv.editProxy[0].value = datamap.getText({row: startRow, col: startCol}, {row: finalEndRow, col: finalEndCol});
-      setTimeout(editproxy.focus, 1);
+      self.copyPaste.copyable(datamap.getText({row: startRow, col: startCol}, {row: finalEndRow, col: finalEndCol}));
 
       if ((endRow !== finalEndRow || endCol !== finalEndCol) && priv.settings.onCopyLimit) {
         priv.settings.onCopyLimit(endRow - startRow + 1, endCol - startCol + 1, priv.settings.copyRowsLimit, priv.settings.copyColsLimit);
@@ -1202,32 +1184,24 @@ Handsontable.Core = function (rootElement, settings) {
      * Prepare text input to be displayed at given grid cell
      */
     prepare: function () {
-      priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
-      //editproxy.setCopyableText();
-      priv.editProxy[0].value = '';
-      setTimeout(editproxy.focus, 1);
+      editproxy.focus();
       if (priv.settings.asyncRendering) {
         clearTimeout(window.prepareFrame);
         window.prepareFrame = setTimeout(function () {
-          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords(), priv.editProxy);
+          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords()/*, priv.editProxy*/);
         }, 0);
       }
       else {
-        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords(), priv.editProxy);
+        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords()/*, priv.editProxy*/);
       }
     },
 
     /**
-     * Sets focus to textarea
+     * Sets focus to event listener
      */
     focus: function () {
-      try { //calling select() on hidden textarea causes problem in IE9 - similar to https://github.com/ajaxorg/ace/issues/251
-        if(selection.isSelected()) {
-          priv.editProxy[0].select();
-        }
-      }
-      catch (e) {
-
+      if (selection.isSelected()) {
+        self.$table[0].focus();
       }
     }
   };
@@ -1451,7 +1425,7 @@ Handsontable.Core = function (rootElement, settings) {
     if (self.view) {
       self.forceFullRender = true; //used when data was changed
       selection.refreshBorders(null, true);
-      priv.editProxy.triggerHandler('refreshBorder'); //refresh size of the textarea in case cell dimensions have changed
+      //priv.editProxy.triggerHandler('refreshBorder'); //refresh size of the textarea in case cell dimensions have changed
     }
   };
 

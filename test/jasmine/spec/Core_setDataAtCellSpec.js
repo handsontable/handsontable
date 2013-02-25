@@ -52,8 +52,7 @@ describe('Core_setDataAtCell', function () {
         }
       });
       selectCell(0, 0);
-      this.$keyboardProxy.val('1\nThis is a "test" and a test\n2');
-      this.$keyboardProxy.parent().triggerHandler('paste');
+      triggerPaste('1\nThis is a "test" and a test\n2');
     });
 
     waitsFor(function () {
@@ -87,8 +86,7 @@ describe('Core_setDataAtCell', function () {
           }
         });
         selectCell(0, 0);
-        this.$keyboardProxy.val('1\tTest\t2');
-        this.$keyboardProxy.parent().triggerHandler('paste');
+        triggerPaste('1\tTest\t2');
       }
       catch (e) {
         err = e;
@@ -124,8 +122,7 @@ describe('Core_setDataAtCell', function () {
           }
         });
         selectCell(4, 0);
-        this.$keyboardProxy.val('1\n2\n3\n4\n5\n6\n7\n8\n9\n10');
-        this.$keyboardProxy.parent().triggerHandler('paste');
+        triggerPaste('1\n2\n3\n4\n5\n6\n7\n8\n9\n10');
       }
       catch (e) {
         err = e;
@@ -160,8 +157,7 @@ describe('Core_setDataAtCell', function () {
           }
         });
         selectCell(0, 4);
-        this.$keyboardProxy.val('1\t2\t3\t4\t5\t6\t7\t8\t9\t10');
-        this.$keyboardProxy.parent().triggerHandler('paste');
+        triggerPaste('1\t2\t3\t4\t5\t6\t7\t8\t9\t10');
       }
       catch (e) {
         err = e;
@@ -199,8 +195,7 @@ describe('Core_setDataAtCell', function () {
           }
         });
         selectCell(4, 4);
-        this.$keyboardProxy.val('1\t2\t3\n4\t5\t6\n7\t8\t9');
-        this.$keyboardProxy.parent().triggerHandler('paste');
+        triggerPaste('1\t2\t3\n4\t5\t6\n7\t8\t9');
       }
       catch (e) {
         err = e;
@@ -242,8 +237,7 @@ describe('Core_setDataAtCell', function () {
           }
         });
         selectCell(3, 0);
-        this.$keyboardProxy.val('a\tb\tc\nd\te\tf\ng\th\ti');
-        this.$keyboardProxy.parent().triggerHandler('paste');
+        triggerPaste('a\tb\tc\nd\te\tf\ng\th\ti');
       }
       catch (e) {
         err = e;

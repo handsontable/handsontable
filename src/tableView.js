@@ -10,6 +10,10 @@ Handsontable.TableView = function (instance) {
 
   instance.rootElement.addClass('handsontable');
   var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
+
+  instance.$table = $table;
+  $table.attr("tabindex", 100000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/
+
   instance.rootElement.prepend($table);
   this.overflow = instance.rootElement.css('overflow');
   if ((settings.width || settings.height) && !(this.overflow === 'scroll' || this.overflow === 'auto')) {
@@ -116,6 +120,19 @@ Handsontable.TableView = function (instance) {
     }
   });
 
+  var clearTextSelection = function () {
+    //http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
+    if (window.getSelection) {
+      if (window.getSelection().empty) {  // Chrome
+        window.getSelection().empty();
+      } else if (window.getSelection().removeAllRanges) {  // Firefox
+        window.getSelection().removeAllRanges();
+      }
+    } else if (document.selection) {  // IE?
+      document.selection.empty();
+    }
+  }
+
   var walkontableConfig = {
     table: $table[0],
     async: settings.asyncRendering,
@@ -145,7 +162,7 @@ Handsontable.TableView = function (instance) {
           color: '#5292F7',
           style: 'solid',
           cornerVisible: function () {
-            return settings.fillHandle && !texteditor.isCellEdited && !instance.selection.isMultiple()
+            return settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
           }
         }
       },
@@ -158,7 +175,7 @@ Handsontable.TableView = function (instance) {
           color: '#89AFF9',
           style: 'solid',
           cornerVisible: function () {
-            return settings.fillHandle && !texteditor.isCellEdited && instance.selection.isMultiple()
+            return settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
           }
         }
       },
@@ -183,6 +200,8 @@ Handsontable.TableView = function (instance) {
       else {
         instance.selection.setRangeStart(coordsObj);
       }
+      event.preventDefault();
+      clearTextSelection();
     },
     onCellMouseOver: function (event, coords, TD) {
       var coordsObj = {row: coords[0], col: coords[1]};
@@ -209,19 +228,30 @@ Handsontable.TableView = function (instance) {
   this.instance.forceFullRender = true; //used when data was changed
   this.render();
 
-  $(window).on('resize', function () {
-    that.determineContainerSize();
-    that.wt.update('width', that.containerWidth);
-    that.wt.update('height', that.containerHeight);
-    that.instance.forceFullRender = true;
-    that.render();
+  var $window = $(window);
+  var lastWidth = $window.width();
+  var lastHeight = $window.height();
+  $window.on('resize', function () {
+    if (!that.isCellEdited() && ($window.width() !== lastWidth || $window.height() !== lastHeight)) {
+      lastWidth = $window.width();
+      lastHeight = $window.height();
+      that.determineContainerSize();
+      that.wt.update('width', that.containerWidth);
+      that.wt.update('height', that.containerHeight);
+      that.instance.forceFullRender = true;
+      that.render();
+    }
   });
 
   $(that.wt.wtTable.spreader).on('mousedown.handsontable, contextmenu.handsontable', function (event) {
-    if(event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
+    if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
       event.stopPropagation();
     }
   });
+};
+
+Handsontable.TableView.prototype.isCellEdited = function () {
+  return this.instance.textEditor && this.instance.textEditor.isCellEdited;
 };
 
 Handsontable.TableView.prototype.determineContainerSize = function () {

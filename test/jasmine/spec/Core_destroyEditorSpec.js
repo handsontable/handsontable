@@ -7,7 +7,7 @@ describe('Core_destroyEditor', function () {
 
   afterEach(function () {
     if (this.$container) {
-      this.$container.remove();
+      //this.$container.remove();
     }
   });
 
@@ -37,7 +37,7 @@ describe('Core_destroyEditor', function () {
 
     runs(function () {
       keyDownUp('enter');
-      this.$keyboardProxy.val('Ted');
+      keyProxy().val('Ted');
     });
 
     waitsFor(nextFrame, 'next frame', 60);
@@ -74,7 +74,7 @@ describe('Core_destroyEditor', function () {
 
     runs(function () {
       keyDownUp('enter');
-      this.$keyboardProxy.val('Ted');
+      keyProxy().val('Ted');
     });
 
     waitsFor(nextFrame, 'next frame', 60);

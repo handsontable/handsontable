@@ -32,8 +32,8 @@ describe('Core_dataSchema', function () {
 
     runs(function () {
       keyDownUp('enter');
-      this.$keyboardProxy.val('Ted');
-      keyDownUp('enter');
+      keyProxy().val('Ted');
+      keyDownUp('enter', keyProxy());
       expect(getData()[0].name.first).toEqual('Ted');
     });
   });

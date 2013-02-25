@@ -17,7 +17,7 @@ function toggleCheckboxCell(instance, row, prop, cellProperties) {
  * @param {Object} keyboardProxy jQuery element of keyboard proxy that contains current editing value
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
+Handsontable.CheckboxEditor = function (instance, td, row, col, prop, __unused_, cellProperties) {
   if (typeof cellProperties === "undefined") {
     cellProperties = {};
   }
@@ -28,11 +28,12 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardPr
     cellProperties.uncheckedTemplate = false;
   }
 
-  keyboardProxy.on("keydown.editor", function (event) {
+  instance.$table.on("keydown.editor", function (event) {
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     if (!ctrlDown && Handsontable.helper.isPrintableChar(event.keyCode)) {
       toggleCheckboxCell(instance, row, prop, cellProperties);
       event.stopPropagation();
+      event.preventDefault(); //some keys have special behavior, eg. space bar scrolls screen down
     }
   });
 
@@ -43,7 +44,7 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardPr
   instance.view.wt.update('onCellDblClick', onDblClick);
 
   return function () {
-    keyboardProxy.off(".editor");
+    instance.$table.off(".editor");
     instance.view.wt.update('onCellDblClick', null);
   }
 };

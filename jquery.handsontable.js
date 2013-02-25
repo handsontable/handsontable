@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.8.5
+ * Handsontable <json:package.json>
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Feb 20 2013 11:18:51 GMT+0100 (Central European Standard Time)
+ * Date: Mon Feb 25 2013 13:24:19 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -25,6 +25,7 @@ var Handsontable = { //class namespace
  */
 Handsontable.Core = function (rootElement, settings) {
   this.rootElement = rootElement;
+  //this.rootElement.attr("tabindex", 100000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/
 
   var priv, datamap, grid, selection, editproxy, autofill, validate, self = this;
 
@@ -996,38 +997,26 @@ Handsontable.Core = function (rootElement, settings) {
      * Create input field
      */
     init: function () {
-      priv.editProxy = $('<textarea class="handsontableInput">');
-      priv.editProxyHolder = $('<div class="handsontableInputHolder">');
-      priv.editProxyHolder.append(priv.editProxy);
-
-      function onClick(event) {
-        event.stopPropagation();
-      }
-
       function onCut() {
-        setTimeout(function () {
-          selection.empty();
-        }, 100);
+        selection.empty();
       }
 
-      function onPaste() {
-        setTimeout(function () {
-          self.rootElement.one("datachange.handsontable", function (event, changes, source) {
-            if (changes.length) {
-              var last = changes[changes.length - 1];
-              selection.setRangeEnd({row: last[0], col: self.propToCol(last[1])});
-            }
-          });
+      function onPaste(str) {
+        self.rootElement.one("datachange.handsontable", function (event, changes, source) {
+          if (changes.length) {
+            var last = changes[changes.length - 1];
+            selection.setRangeEnd({row: last[0], col: self.propToCol(last[1])});
+          }
+        });
 
-          var input = priv.editProxy[0].value.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
-            inputArray = SheetClip.parse(input),
-            coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
+        var input = str.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
+          inputArray = SheetClip.parse(input),
+          coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
 
-          grid.populateFromArray(coords.TL, inputArray, {
-            row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
-            col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
-          }, 'paste');
-        }, 100);
+        grid.populateFromArray(coords.TL, inputArray, {
+          row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
+          col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
+        }, 'paste');
       }
 
       var $body = $(document.body);
@@ -1051,12 +1040,7 @@ Handsontable.Core = function (rootElement, settings) {
             if (event.keyCode === 65) { //CTRL + A
               selection.selectAll(); //select all cells
               editproxy.setCopyableText();
-            }
-            else if (event.keyCode === 88 && $.browser.opera) { //CTRL + X
-              priv.editProxyHolder.triggerHandler('cut'); //simulate oncut for Opera
-            }
-            else if (event.keyCode === 86 && $.browser.opera) { //CTRL + V
-              priv.editProxyHolder.triggerHandler('paste'); //simulate onpaste for Opera
+              event.preventDefault();
             }
             else if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
               priv.undoRedo && priv.undoRedo.redo();
@@ -1180,11 +1164,10 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
 
-      priv.editProxy.on('click', onClick);
-      priv.editProxyHolder.on('cut', onCut);
-      priv.editProxyHolder.on('paste', onPaste);
-      priv.editProxyHolder.on('keydown', onKeyDown);
-      self.rootElement.append(priv.editProxyHolder);
+      self.copyPaste = new CopyPaste(self.rootElement[0]);
+      self.copyPaste.onCut(onCut);
+      self.copyPaste.onPaste(onPaste);
+      self.rootElement.on('keydown.handsontable', onKeyDown);
     },
 
     /**
@@ -1209,8 +1192,7 @@ Handsontable.Core = function (rootElement, settings) {
       var finalEndRow = Math.min(endRow, startRow + priv.settings.copyRowsLimit - 1);
       var finalEndCol = Math.min(endCol, startCol + priv.settings.copyColsLimit - 1);
 
-      priv.editProxy[0].value = datamap.getText({row: startRow, col: startCol}, {row: finalEndRow, col: finalEndCol});
-      setTimeout(editproxy.focus, 1);
+      self.copyPaste.copyable(datamap.getText({row: startRow, col: startCol}, {row: finalEndRow, col: finalEndCol}));
 
       if ((endRow !== finalEndRow || endCol !== finalEndCol) && priv.settings.onCopyLimit) {
         priv.settings.onCopyLimit(endRow - startRow + 1, endCol - startCol + 1, priv.settings.copyRowsLimit, priv.settings.copyColsLimit);
@@ -1221,32 +1203,24 @@ Handsontable.Core = function (rootElement, settings) {
      * Prepare text input to be displayed at given grid cell
      */
     prepare: function () {
-      priv.editProxy.height(priv.editProxy.parent().innerHeight() - 4);
-      //editproxy.setCopyableText();
-      priv.editProxy[0].value = '';
-      setTimeout(editproxy.focus, 1);
+      editproxy.focus();
       if (priv.settings.asyncRendering) {
         clearTimeout(window.prepareFrame);
         window.prepareFrame = setTimeout(function () {
-          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords(), priv.editProxy);
+          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords()/*, priv.editProxy*/);
         }, 0);
       }
       else {
-        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords(), priv.editProxy);
+        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords()/*, priv.editProxy*/);
       }
     },
 
     /**
-     * Sets focus to textarea
+     * Sets focus to event listener
      */
     focus: function () {
-      try { //calling select() on hidden textarea causes problem in IE9 - similar to https://github.com/ajaxorg/ace/issues/251
-        if(selection.isSelected()) {
-          priv.editProxy[0].select();
-        }
-      }
-      catch (e) {
-
+      if (selection.isSelected()) {
+        self.$table[0].focus();
       }
     }
   };
@@ -1470,7 +1444,7 @@ Handsontable.Core = function (rootElement, settings) {
     if (self.view) {
       self.forceFullRender = true; //used when data was changed
       selection.refreshBorders(null, true);
-      priv.editProxy.triggerHandler('refreshBorder'); //refresh size of the textarea in case cell dimensions have changed
+      //priv.editProxy.triggerHandler('refreshBorder'); //refresh size of the textarea in case cell dimensions have changed
     }
   };
 
@@ -1967,7 +1941,7 @@ Handsontable.Core = function (rootElement, settings) {
   /**
    * Handsontable version
    */
-  this.version = '0.8.5'; //inserted by grunt from package.json
+  this.version = '<json:package.json>'; //inserted by grunt from package.json
 };
 
 var settings = {
@@ -2045,6 +2019,10 @@ Handsontable.TableView = function (instance) {
 
   instance.rootElement.addClass('handsontable');
   var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
+
+  instance.$table = $table;
+  $table.attr("tabindex", 100000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/
+
   instance.rootElement.prepend($table);
   this.overflow = instance.rootElement.css('overflow');
   if ((settings.width || settings.height) && !(this.overflow === 'scroll' || this.overflow === 'auto')) {
@@ -2151,6 +2129,19 @@ Handsontable.TableView = function (instance) {
     }
   });
 
+  var clearTextSelection = function () {
+    //http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
+    if (window.getSelection) {
+      if (window.getSelection().empty) {  // Chrome
+        window.getSelection().empty();
+      } else if (window.getSelection().removeAllRanges) {  // Firefox
+        window.getSelection().removeAllRanges();
+      }
+    } else if (document.selection) {  // IE?
+      document.selection.empty();
+    }
+  }
+
   var walkontableConfig = {
     table: $table[0],
     async: settings.asyncRendering,
@@ -2180,7 +2171,7 @@ Handsontable.TableView = function (instance) {
           color: '#5292F7',
           style: 'solid',
           cornerVisible: function () {
-            return settings.fillHandle && !texteditor.isCellEdited && !instance.selection.isMultiple()
+            return settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
           }
         }
       },
@@ -2193,7 +2184,7 @@ Handsontable.TableView = function (instance) {
           color: '#89AFF9',
           style: 'solid',
           cornerVisible: function () {
-            return settings.fillHandle && !texteditor.isCellEdited && instance.selection.isMultiple()
+            return settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
           }
         }
       },
@@ -2218,6 +2209,8 @@ Handsontable.TableView = function (instance) {
       else {
         instance.selection.setRangeStart(coordsObj);
       }
+      event.preventDefault();
+      clearTextSelection();
     },
     onCellMouseOver: function (event, coords, TD) {
       var coordsObj = {row: coords[0], col: coords[1]};
@@ -2244,19 +2237,30 @@ Handsontable.TableView = function (instance) {
   this.instance.forceFullRender = true; //used when data was changed
   this.render();
 
-  $(window).on('resize', function () {
-    that.determineContainerSize();
-    that.wt.update('width', that.containerWidth);
-    that.wt.update('height', that.containerHeight);
-    that.instance.forceFullRender = true;
-    that.render();
+  var $window = $(window);
+  var lastWidth = $window.width();
+  var lastHeight = $window.height();
+  $window.on('resize', function () {
+    if (!that.isCellEdited() && ($window.width() !== lastWidth || $window.height() !== lastHeight)) {
+      lastWidth = $window.width();
+      lastHeight = $window.height();
+      that.determineContainerSize();
+      that.wt.update('width', that.containerWidth);
+      that.wt.update('height', that.containerHeight);
+      that.instance.forceFullRender = true;
+      that.render();
+    }
   });
 
   $(that.wt.wtTable.spreader).on('mousedown.handsontable, contextmenu.handsontable', function (event) {
-    if(event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
+    if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
       event.stopPropagation();
     }
   });
+};
+
+Handsontable.TableView.prototype.isCellEdited = function () {
+  return this.instance.textEditor && this.instance.textEditor.isCellEdited;
 };
 
 Handsontable.TableView.prototype.determineContainerSize = function () {
@@ -2590,217 +2594,318 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, c
 
   return td;
 };
-var texteditor = {
-  isCellEdited: false,
+function HandsontableTextEditorClass(instance) {
+  this.isCellEdited = false;
+  this.instance = instance;
+  this.originalValue = '';
+  this.row;
+  this.col;
+  this.prop;
 
-  /**
-   * Returns caret position in edit proxy
-   * @author http://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
-   * @return {Number}
-   */
-  getCaretPosition: function (keyboardProxy) {
-    var el = keyboardProxy[0];
-    if (el.selectionStart) {
-      return el.selectionStart;
-    }
-    else if (document.selection) {
-      el.focus();
-      var r = document.selection.createRange();
-      if (r == null) {
-        return 0;
-      }
-      var re = el.createTextRange(),
-        rc = re.duplicate();
-      re.moveToBookmark(r.getBookmark());
-      rc.setEndPoint('EndToStart', re);
-      return rc.text.length;
-    }
-    return 0;
-  },
+  this.TEXTAREA = $('<textarea class="handsontableInput">');
+  this.TEXTAREA.css({
+    width: 0,
+    height: 0
+  });
 
-  /**
-   * Sets caret position in edit proxy
-   * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
-   * @param {Number}
-   */
-  setCaretPosition: function (keyboardProxy, pos) {
-    var el = keyboardProxy[0];
-    if (el.setSelectionRange) {
-      el.focus();
-      el.setSelectionRange(pos, pos);
-    }
-    else if (el.createTextRange) {
-      var range = el.createTextRange();
-      range.collapse(true);
-      range.moveEnd('character', pos);
-      range.moveStart('character', pos);
-      range.select();
-    }
-  },
+  this.TEXTAREA_PARENT = $('<div class="handsontableInputHolder">').append(this.TEXTAREA);
+  this.TEXTAREA_PARENT.addClass('htHidden').css({
+    top: 0,
+    left: 0,
+    overflow: 'hidden'
+  });
 
-  /**
-   * Shows text input in grid cell
-   */
-  beginEditing: function (instance, td, row, col, prop, keyboardProxy, useOriginalValue, suffix) {
-    if (texteditor.isCellEdited) {
-      return;
-    }
-    texteditor.isCellEdited = true;
+  var that = this;
 
-    var coords = {row: row, col: col};
-    instance.view.scrollViewport(coords);
-    instance.view.render();
+  /*instance.that.TEXTAREA.on('blur.editor', function () {
+   if (that.isCellEdited) {
+   that.finishEditing(false);
+   }
+   });*/
 
-    keyboardProxy.on('cut.editor', function (event) {
+  /*instance.that.TEXTAREA.on('refreshBorder.editor', function () {
+   setTimeout(function () {
+   if (that.isCellEdited) {
+   texteditor.refreshDimensions(row, col);
+   }
+   }, 0);
+   });*/
+
+  this.TEXTAREA_PARENT.on('keydown', function (event) {
+    //if we are here then isCellEdited === true
+
+    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+
+    if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
+      //when CTRL or its equivalent is pressed and cell is edited, don't prepare selectable text in textarea
       event.stopPropagation();
-    });
-
-    keyboardProxy.on('paste.editor', function (event) {
-      event.stopPropagation();
-    });
-
-    if (!instance.getCellMeta(row, col).isWritable) {
       return;
     }
 
-    if (useOriginalValue) {
-      var original = instance.getDataAtCell(row, prop);
-      original = Handsontable.helper.stringify(original) + (suffix || '');
-      keyboardProxy.val(original);
-      texteditor.setCaretPosition(keyboardProxy, original.length);
+    switch (event.keyCode) {
+      case 38: /* arrow up */
+      case 40: /* arrow down */
+        that.finishEditing(false);
+        break;
+
+      case 9: /* tab */
+        that.finishEditing(false);
+        event.preventDefault();
+        break;
+
+      case 39: /* arrow right */
+        if (that.getCaretPosition(that.TEXTAREA[0]) === that.TEXTAREA.val().length) {
+          that.finishEditing(false);
+        }
+        else {
+          event.stopPropagation();
+        }
+        break;
+
+      case 37: /* arrow left */
+        if (that.getCaretPosition(that.TEXTAREA[0]) === 0) {
+          that.finishEditing(false);
+        }
+        else {
+          event.stopPropagation();
+        }
+        break;
+
+      case 27: /* ESC */
+        that.instance.destroyEditor(true);
+        event.stopPropagation();
+        break;
+
+      case 13: /* return/enter */
+        var selected = instance.getSelected();
+        var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
+        if ((event.ctrlKey && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
+          that.TEXTAREA.val(that.TEXTAREA.val() + '\n');
+          that.TEXTAREA[0].focus();
+          event.stopPropagation();
+        }
+        else {
+          that.finishEditing(false, ctrlDown);
+        }
+        event.preventDefault(); //don't add newline to field
+        break;
+
+      case 8: /* backspace */
+      case 46: /* delete */
+      case 36: /* home */
+      case 35: /* end */
+        event.stopPropagation();
+        break;
     }
-    else {
-      keyboardProxy.val('');
-    }
+  });
+}
 
-    if (instance.getSettings().asyncRendering) {
-      texteditor.refreshDimensions(instance, row, col, keyboardProxy); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
-      setTimeout(function () {
-        texteditor.refreshDimensions(instance, row, col, keyboardProxy); //need it after rerender to reposition in case scroll was moved
-      }, 0);
-    }
-    else {
-      texteditor.refreshDimensions(instance, row, col, keyboardProxy);
-    }
-  },
-
-  refreshDimensions: function (instance, row, col, keyboardProxy) {
-    if (!texteditor.isCellEdited) {
-      return;
-    }
-
-    ///start prepare textarea position
-    var $td = $(instance.getCell(row, col)); //because old td may have been scrolled out with scrollViewport
-    var currentOffset = $td.offset();
-    var containerOffset = instance.rootElement.offset();
-    var scrollTop = instance.rootElement.scrollTop();
-    var scrollLeft = instance.rootElement.scrollLeft();
-    var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
-    var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
-
-    var settings = instance.getSettings();
-    var rowHeadersCount = settings.rowHeaders === false ? 0 : 1;
-    var colHeadersCount = settings.colHeaders === false ? 0 : 1;
-
-    if (editTop < 0) {
-      editTop = 0;
-    }
-    if (editLeft < 0) {
-      editLeft = 0;
-    }
-
-    if (rowHeadersCount > 0 && parseInt($td.css('border-top-width')) > 0) {
-      editTop += 1;
-    }
-    if (colHeadersCount > 0 && parseInt($td.css('border-left-width')) > 0) {
-      editLeft += 1;
-    }
-
-    if ($.browser.msie && parseInt($.browser.version, 10) <= 7) {
-      editTop -= 1;
-    }
-
-    keyboardProxy.parent().addClass('htHidden').css({
-      top: editTop,
-      left: editLeft
-    });
-    ///end prepare textarea position
-
-    var width = $td.width()
-      , height = $td.outerHeight() - 4;
-
-    if (parseInt($td.css('border-top-width')) > 0) {
-      height -= 1;
-    }
-    if (parseInt($td.css('border-left-width')) > 0) {
-      if (rowHeadersCount > 0) {
-        width -= 1;
-      }
-    }
-
-    keyboardProxy.autoResize({
-      maxHeight: 200,
-      minHeight: height,
-      minWidth: width,
-      maxWidth: Math.max(168, width),
-      animate: false,
-      extraSpace: 0
-    });
-
-    keyboardProxy.parent().removeClass('htHidden');
-
-    instance.rootElement.triggerHandler('beginediting.handsontable');
-
-    setTimeout(function () {
-      //async fix for Firefox 3.6.28 (needs manual testing)
-      keyboardProxy.parent().css({
-        overflow: 'visible'
-      });
-    }, 1);
-  },
-
-  /**
-   * Finishes text input in selected cells
-   */
-  finishEditing: function (instance, td, row, col, prop, keyboardProxy, isCancelled, ctrlDown) {
-    if (texteditor.triggerOnlyByDestroyer) {
-      return;
-    }
-    if (texteditor.isCellEdited) {
-      texteditor.isCellEdited = false;
-      var val;
-      if (isCancelled) {
-        val = [
-          [texteditor.originalValue]
-        ];
-      }
-      else {
-        val = [
-          [$.trim(keyboardProxy.val())]
-        ];
-      }
-      if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
-        var sel = instance.getSelected();
-        instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
-      }
-      else {
-        instance.populateFromArray({row: row, col: col}, val, null, false, 'edit');
-      }
-    }
-    keyboardProxy.off(".editor");
-    instance.view.wt.update('onCellDblClick', null);
-
-    keyboardProxy.css({
-      width: 0,
-      height: 0
-    });
-    keyboardProxy.parent().addClass('htHidden').css({
-      overflow: 'hidden'
-    });
-
-    instance.rootElement.triggerHandler('finishediting.handsontable');
+/**
+ * Returns caret position in edit proxy
+ * @author http://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
+ * @return {Number}
+ */
+HandsontableTextEditorClass.prototype.getCaretPosition = function (el) {
+  if (el.selectionStart) {
+    return el.selectionStart;
   }
-};
+  else if (document.selection) {
+    el.focus();
+    var r = document.selection.createRange();
+    if (r == null) {
+      return 0;
+    }
+    var re = el.createTextRange(),
+      rc = re.duplicate();
+    re.moveToBookmark(r.getBookmark());
+    rc.setEndPoint('EndToStart', re);
+    return rc.text.length;
+  }
+  return 0;
+}
+
+/**
+ * Sets caret position in edit proxy
+ * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
+ * @param {Number}
+ */
+HandsontableTextEditorClass.prototype.setCaretPosition = function (el, pos) {
+  if (el.setSelectionRange) {
+    el.focus();
+    el.setSelectionRange(pos, pos);
+  }
+  else if (el.createTextRange) {
+    var range = el.createTextRange();
+    range.collapse(true);
+    range.moveEnd('character', pos);
+    range.moveStart('character', pos);
+    range.select();
+  }
+}
+
+HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
+  if (this.isCellEdited) {
+    return;
+  }
+  this.isCellEdited = true;
+  this.row = row;
+  this.col = col;
+  this.prop = prop;
+
+  var coords = {row: row, col: col};
+  this.instance.view.scrollViewport(coords);
+  this.instance.view.render();
+
+  this.TEXTAREA.on('cut.editor', function (event) {
+    event.stopPropagation();
+  });
+
+  this.TEXTAREA.on('paste.editor', function (event) {
+    event.stopPropagation();
+  });
+
+  if (!this.instance.getCellMeta(row, col).isWritable) {
+    return;
+  }
+
+  if (useOriginalValue) {
+    var original = this.instance.getDataAtCell(row, prop);
+    original = Handsontable.helper.stringify(original) + (suffix || '');
+    this.TEXTAREA[0].value = original;
+  }
+  else {
+    this.TEXTAREA[0].value = '';
+  }
+
+  this.instance.rootElement.append(this.TEXTAREA_PARENT);
+
+  this.TEXTAREA[0].focus();
+  this.setCaretPosition(this.TEXTAREA[0], this.TEXTAREA[0].value.length);
+
+  if (this.instance.getSettings().asyncRendering) {
+    this.refreshDimensions(row, col); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
+    var that = this;
+    setTimeout(function () {
+      that.refreshDimensions(row, col); //need it after rerender to reposition in case scroll was moved
+    }, 0);
+  }
+  else {
+    this.refreshDimensions(row, col);
+  }
+}
+
+HandsontableTextEditorClass.prototype.refreshDimensions = function (row, col) {
+  if (!this.isCellEdited) {
+    return;
+  }
+
+  ///start prepare textarea position
+  var $td = $(this.instance.getCell(row, col)); //because old td may have been scrolled out with scrollViewport
+  var currentOffset = $td.offset();
+  var containerOffset = this.instance.rootElement.offset();
+  var scrollTop = this.instance.rootElement.scrollTop();
+  var scrollLeft = this.instance.rootElement.scrollLeft();
+  var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
+  var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
+
+  var settings = this.instance.getSettings();
+  var rowHeadersCount = settings.rowHeaders === false ? 0 : 1;
+  var colHeadersCount = settings.colHeaders === false ? 0 : 1;
+
+  if (editTop < 0) {
+    editTop = 0;
+  }
+  if (editLeft < 0) {
+    editLeft = 0;
+  }
+
+  if (rowHeadersCount > 0 && parseInt($td.css('border-top-width')) > 0) {
+    editTop += 1;
+  }
+  if (colHeadersCount > 0 && parseInt($td.css('border-left-width')) > 0) {
+    editLeft += 1;
+  }
+
+  if ($.browser.msie && parseInt($.browser.version, 10) <= 7) {
+    editTop -= 1;
+  }
+
+  this.TEXTAREA_PARENT.css({
+    top: editTop,
+    left: editLeft
+  });
+  ///end prepare textarea position
+
+  var width = $td.width()
+    , height = $td.outerHeight() - 4;
+
+  if (parseInt($td.css('border-top-width')) > 0) {
+    height -= 1;
+  }
+  if (parseInt($td.css('border-left-width')) > 0) {
+    if (rowHeadersCount > 0) {
+      width -= 1;
+    }
+  }
+
+  this.TEXTAREA.autoResize({
+    maxHeight: 200,
+    minHeight: height,
+    minWidth: width,
+    maxWidth: Math.max(168, width),
+    animate: false,
+    extraSpace: 0
+  });
+
+  this.TEXTAREA_PARENT.removeClass('htHidden');
+
+  this.instance.rootElement.triggerHandler('beginediting.handsontable');
+
+  var that = this;
+  setTimeout(function () {
+    //async fix for Firefox 3.6.28 (needs manual testing)
+    that.TEXTAREA_PARENT.css({
+      overflow: 'visible'
+    });
+  }, 1);
+}
+
+HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
+  if (this.isCellEdited) {
+    this.isCellEdited = false;
+    var val;
+    if (isCancelled) {
+      val = [
+        [this.originalValue]
+      ];
+    }
+    else {
+      val = [
+        [$.trim(this.TEXTAREA[0].value)]
+      ];
+    }
+    if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
+      var sel = this.instance.getSelected();
+      this.instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
+    }
+    else {
+      this.instance.populateFromArray({row: this.row, col: this.col}, val, null, false, 'edit');
+    }
+  }
+  this.TEXTAREA.off(".editor");
+  this.instance.$table.off(".editor");
+  this.instance.view.wt.update('onCellDblClick', null);
+
+  this.TEXTAREA.css({
+    width: 0,
+    height: 0
+  });
+  this.TEXTAREA_PARENT.addClass('htHidden').css({
+    overflow: 'hidden'
+  });
+
+  this.instance.rootElement.triggerHandler('finishediting.handsontable');
+}
 
 /**
  * Default text editor
@@ -2809,185 +2914,202 @@ var texteditor = {
  * @param {Number} row
  * @param {Number} col
  * @param {String|Number} prop Row object property name
- * @param {Object} keyboardProxy jQuery element of keyboard proxy that contains current editing value
+ * @param {Object} that.TEXTAREA jQuery element of keyboard proxy that contains current editing value
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.TextEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
-  texteditor.isCellEdited = false;
-  texteditor.originalValue = instance.getDataAtCell(row, prop);
-  texteditor.triggerOnlyByDestroyer = cellProperties.strict;
+Handsontable.TextEditor = function (instance, td, row, col, prop, ___unused___, cellProperties) {
+  if (!instance.textEditor) {
+    instance.textEditor = new HandsontableTextEditorClass(instance);
+  }
 
-  keyboardProxy.parent().addClass('htHidden').css({
-    top: 0,
-    left: 0,
-    overflow: 'hidden'
+  instance.textEditor.isCellEdited = false;
+  instance.textEditor.originalValue = instance.getDataAtCell(row, prop);
+
+  instance.$table.on('keydown.editor', function (event) {
+    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+    if (!instance.textEditor.isCellEdited) {
+      if (Handsontable.helper.isPrintableChar(event.keyCode)) {
+        if (!ctrlDown) { //disregard CTRL-key shortcuts
+          instance.textEditor.beginEditing(row, col, prop);
+        }
+      }
+      else if (event.keyCode === 113) { //f2
+        instance.textEditor.beginEditing(row, col, prop, true); //show edit field
+        event.stopPropagation();
+        event.preventDefault(); //prevent Opera from opening Go to Page dialog
+      }
+      else if (event.keyCode === 13 && instance.getSettings().enterBeginsEditing) { //enter
+        var selected = instance.getSelected();
+        var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
+        if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
+          instance.textEditor.beginEditing(row, col, prop, true, '\n'); //show edit field
+        }
+        else {
+          instance.textEditor.beginEditing(row, col, prop, true); //show edit field
+        }
+        event.preventDefault(); //prevent new line at the end of textarea
+        event.stopPropagation();
+      }
+    }
   });
-  keyboardProxy.css({
+
+  function onDblClick() {
+    instance.textEditor.beginEditing(row, col, prop, true);
+  }
+
+  instance.view.wt.update('onCellDblClick', onDblClick);
+
+  return function (isCancelled) {
+    instance.textEditor.finishEditing(isCancelled);
+  }
+};
+function HandsontableAutocompleteEditorClass(instance) {
+  this.isCellEdited = false;
+  this.instance = instance;
+  this.originalValue = '';
+  this.row;
+  this.col;
+  this.prop;
+
+  this.TEXTAREA = $('<textarea class="handsontableInput">');
+  this.TEXTAREA.css({
     width: 0,
     height: 0
   });
 
-  /*keyboardProxy.on('blur.editor', function () {
-   if (texteditor.isCellEdited) {
-   texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
-   }
-   });*/
-
-  keyboardProxy.on('refreshBorder.editor', function () {
-    setTimeout(function () {
-      if (texteditor.isCellEdited) {
-        texteditor.refreshDimensions(instance, row, col, keyboardProxy);
-      }
-    }, 0);
+  this.TEXTAREA_PARENT = $('<div class="handsontableInputHolder">').append(this.TEXTAREA);
+  this.TEXTAREA_PARENT.addClass('htHidden').css({
+    top: 0,
+    left: 0,
+    overflow: 'hidden'
   });
 
-  keyboardProxy.on("keydown.editor", function (event) {
-    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-    if (Handsontable.helper.isPrintableChar(event.keyCode)) {
-      if (!texteditor.isCellEdited && !ctrlDown) { //disregard CTRL-key shortcuts
-        texteditor.beginEditing(instance, null, row, col, prop, keyboardProxy);
-        event.stopImmediatePropagation();
-      }
-      else if (ctrlDown) {
-        if (texteditor.isCellEdited && event.keyCode === 65) { //CTRL + A
-          event.stopPropagation();
-        }
-        else if (texteditor.isCellEdited && event.keyCode === 88 && $.browser.opera) { //CTRL + X
-          event.stopPropagation();
-        }
-        else if (texteditor.isCellEdited && event.keyCode === 86 && $.browser.opera) { //CTRL + V
-          event.stopPropagation();
-        }
-      }
-      return;
-    }
+  var that = this;
 
-    if (texteditor.isCellEdited && (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93)) {
-      //when CTRL is pressed and cell is edited, don't prepare selectable text in textarea
+  this.TEXTAREA.typeahead();
+  var typeahead = this.TEXTAREA.data('typeahead');
+  this.typeahead = typeahead;
+  typeahead._render = typeahead.render;
+  typeahead._highlighter = typeahead.highlighter;
+
+  typeahead.minLength = 0;
+  typeahead.highlighter = typeahead._highlighter;
+
+  typeahead.lookup = function () {
+    var items;
+    this.query = this.$element.val();
+    items = $.isFunction(this.source) ? this.source(this.query, $.proxy(this.process, this)) : this.source;
+    return items ? this.process(items) : this;
+  };
+
+  typeahead.matcher = function () {
+    return true;
+  };
+
+  this.TEXTAREA.on('keydown', function (event) {
+    var restorePropagation = event.isPropagationStopped();
+
+    //if we are here then isCellEdited === true
+
+    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+
+    if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
+      //when CTRL or its equivalent is pressed and cell is edited, don't prepare selectable text in textarea
       event.stopPropagation();
       return;
     }
 
     switch (event.keyCode) {
       case 38: /* arrow up */
-        if (texteditor.isCellEdited) {
-          texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
-        }
+      case 40: /* arrow down */
+        event.stopPropagation();
+        restorePropagation = false;
         break;
 
       case 9: /* tab */
-        if (texteditor.isCellEdited) {
-          texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
-        }
+        that.finishEditing(false);
         event.preventDefault();
         break;
 
       case 39: /* arrow right */
-        if (texteditor.isCellEdited) {
-          if (texteditor.getCaretPosition(keyboardProxy) === keyboardProxy.val().length) {
-            texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
-
-          }
-          else {
-            event.stopPropagation();
-          }
+        if (that.getCaretPosition(that.TEXTAREA[0]) === that.TEXTAREA.val().length) {
+          that.finishEditing(false);
+        }
+        else {
+          event.stopPropagation();
+          restorePropagation = false;
         }
         break;
 
       case 37: /* arrow left */
-        if (texteditor.isCellEdited) {
-          if (texteditor.getCaretPosition(keyboardProxy) === 0) {
-            texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
-          }
-          else {
-            event.stopPropagation();
-          }
+        if (that.getCaretPosition(that.TEXTAREA[0]) === 0) {
+          that.finishEditing(false);
         }
-        break;
-
-      case 8: /* backspace */
-      case 46: /* delete */
-        if (texteditor.isCellEdited) {
+        else {
           event.stopPropagation();
-        }
-        break;
-
-      case 40: /* arrow down */
-        if (texteditor.isCellEdited) {
-          texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false);
+          restorePropagation = false;
         }
         break;
 
       case 27: /* ESC */
-        if (texteditor.isCellEdited) {
-          instance.destroyEditor(true);
-          event.stopPropagation();
-        }
-        break;
-
-      case 113: /* F2 */
-        if (!texteditor.isCellEdited) {
-          texteditor.beginEditing(instance, null, row, col, prop, keyboardProxy, true); //show edit field
-          event.stopPropagation();
-          event.preventDefault(); //prevent Opera from opening Go to Page dialog
-        }
+        that.instance.destroyEditor(true);
+        event.stopPropagation();
+        restorePropagation = false;
         break;
 
       case 13: /* return/enter */
-        if (texteditor.isCellEdited) {
-          var selected = instance.getSelected();
-          var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
-          if ((event.ctrlKey && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
-            keyboardProxy.val(keyboardProxy.val() + '\n');
-            keyboardProxy[0].focus();
-            event.stopPropagation();
-          }
-          else {
-            texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, false, ctrlDown);
-          }
+        if (!that.isMenuExpanded()) {
+          that.finishEditing(false, ctrlDown);
+          //event.stopPropagation(); //cancel because typeahead will trigger change
+          //restorePropagation = false;
         }
-        else if (instance.getSettings().enterBeginsEditing) {
-          if ((ctrlDown && !selection.isMultiple()) || event.altKey) { //if ctrl+enter or alt+enter, add new line
-            texteditor.beginEditing(instance, null, row, col, prop, keyboardProxy, true, '\n'); //show edit field
-          }
-          else {
-            texteditor.beginEditing(instance, null, row, col, prop, keyboardProxy, true); //show edit field
-          }
-          event.stopPropagation();
+        else {
+          //event.stopPropagation(); //cancel because typeahead will trigger change
+          //restorePropagation = false;
+
+          var ev = $.Event('keyup'); //because core.js keydown handler moves focus
+          ev.keyCode = event.keyCode;
+          that.TEXTAREA.triggerHandler(ev);
         }
         event.preventDefault(); //don't add newline to field
         break;
 
+      case 8: /* backspace */
+      case 46: /* delete */
       case 36: /* home */
-        if (texteditor.isCellEdited) {
-          event.stopPropagation();
-        }
-        break;
-
       case 35: /* end */
-        if (texteditor.isCellEdited) {
-          event.stopPropagation();
-        }
+        event.stopPropagation();
+        restorePropagation = false;
         break;
     }
+
+    if (restorePropagation) { //typeahead stops propagation but we don't want that
+      var ev = $.Event('keydown');
+      ev.keyCode = event.keyCode;
+      that.TEXTAREA_PARENT.trigger(ev);
+    }
   });
+}
 
-  function onDblClick() {
-    keyboardProxy[0].focus();
-    texteditor.beginEditing(instance, null, row, col, prop, keyboardProxy, true);
+for (var i in HandsontableTextEditorClass.prototype) {
+  if (HandsontableTextEditorClass.prototype.hasOwnProperty(i)) {
+    HandsontableAutocompleteEditorClass.prototype[i] = HandsontableTextEditorClass.prototype[i];
   }
+}
 
-  instance.view.wt.update('onCellDblClick', onDblClick);
+HandsontableAutocompleteEditorClass.prototype._beginEditing = HandsontableTextEditorClass.prototype.beginEditing;
 
-  return function (isCancelled) {
-    texteditor.triggerOnlyByDestroyer = false;
-    texteditor.finishEditing(instance, null, row, col, prop, keyboardProxy, isCancelled);
-  }
-};
-function isAutoComplete(keyboardProxy) {
-  var typeahead = keyboardProxy.data("typeahead");
-  if (typeahead && typeahead.$menu.is(":visible")) {
-    return typeahead;
+HandsontableAutocompleteEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
+  this._beginEditing(row, col, prop, useOriginalValue, suffix);
+  var that = this;
+  setTimeout(function () {
+    that.typeahead.show(); //otherwise typeahead appears misaligned
+  }, 0);
+}
+
+HandsontableAutocompleteEditorClass.prototype.isMenuExpanded = function () {
+  if (this.typeahead.$menu.is(":visible")) {
+    return this.typeahead;
   }
   else {
     return false;
@@ -3001,59 +3123,28 @@ function isAutoComplete(keyboardProxy) {
  * @param {Number} row
  * @param {Number} col
  * @param {String|Number} prop Row object property name
- * @param {Object} keyboardProxy jQuery element of keyboard proxy that contains current editing value
+ * @param {Object} instance.autocompleteEditor.TEXTAREA jQuery element of keyboard proxy that contains current editing value
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
-  var typeahead = keyboardProxy.data('typeahead')
-    , i
-    , j
-    , dontHide = false;
+Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, __unused_, cellProperties) {
+  var i
+    , j;
 
-  if (!typeahead) {
-    keyboardProxy.typeahead();
-    typeahead = keyboardProxy.data('typeahead');
-    typeahead._show = typeahead.show;
-    typeahead._hide = typeahead.hide;
-    typeahead._render = typeahead.render;
-    typeahead._highlighter = typeahead.highlighter;
-  }
-  else {
-    typeahead.$menu.off(); //remove previous typeahead bindings
-    keyboardProxy.off(); //remove previous typeahead bindings. Removing this will cause prepare to register 2 keydown listeners in typeahead
-    typeahead.listen(); //add typeahead bindings
+  if (!instance.autocompleteEditor) {
+    instance.autocompleteEditor = new HandsontableAutocompleteEditorClass(instance);
   }
 
-  typeahead.minLength = 0;
-  typeahead.highlighter = typeahead._highlighter;
+  instance.autocompleteEditor.isCellEdited = false;
+  instance.autocompleteEditor.originalValue = instance.getDataAtCell(row, prop);
 
-  typeahead.show = function () {
-    if (keyboardProxy.parent().hasClass('htHidden')) {
-      return;
-    }
-    return typeahead._show.call(this);
-  };
-
-  typeahead.hide = function () {
-    if (!dontHide) {
-      dontHide = false; //set to true by dblclick handler, otherwise appears and disappears immediately after double click
-      return typeahead._hide.call(this);
-    }
-  };
-
-  typeahead.lookup = function () {
-    var items;
-    this.query = this.$element.val();
-    items = $.isFunction(this.source) ? this.source(this.query, $.proxy(this.process, this)) : this.source;
-    return items ? this.process(items) : this;
-  };
-
-  typeahead.matcher = function () {
-    return true;
-  };
+  var typeahead = instance.autocompleteEditor.typeahead;
 
   typeahead.select = function () {
-    var val = this.$menu.find('.active').attr('data-value') || keyboardProxy.val();
+    if (instance.autocompleteEditor.dontHide) {
+      instance.autocompleteEditor.dontHide = false;
+      return;
+    }
+    var val = this.$menu.find('.active').attr('data-value') || instance.autocompleteEditor.TEXTAREA.val();
     destroyer(true);
     instance.setDataAtCell(row, prop, typeahead.updater(val));
     return this.hide();
@@ -3083,75 +3174,59 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, keyboa
     }
   }
 
-  var wasDestroyed = false;
-
-  keyboardProxy.on("keydown.editor", function (event) {
-    switch (event.keyCode) {
-      case 27: /* ESC */
-        dontHide = false;
-        break;
-
-      case 37: /* arrow left */
-      case 39: /* arrow right */
-      case 38: /* arrow up */
-      case 40: /* arrow down */
-      case 9: /* tab */
-      case 13: /* return/enter */
-        if (!keyboardProxy.parent().hasClass('htHidden')) {
-          event.stopImmediatePropagation();
+  var that = this;
+  instance.autocompleteEditor.dontHide = false;
+  instance.$table.on('keydown.editor', function (event) {
+    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+    if (!instance.autocompleteEditor.isCellEdited) {
+      if (Handsontable.helper.isPrintableChar(event.keyCode)) {
+        if (!ctrlDown) { //disregard CTRL-key shortcuts
+          instance.autocompleteEditor.beginEditing(row, col, prop);
+          instance.autocompleteEditor.dontHide = true;
+          typeahead.lookup();
         }
-        event.preventDefault();
+      }
+      else if (event.keyCode === 113) { //f2
+        instance.autocompleteEditor.beginEditing(row, col, prop, true); //show edit field
+        event.stopPropagation();
+        event.preventDefault(); //prevent Opera from opening Go to Page dialog
+        instance.autocompleteEditor.dontHide = true;
+        typeahead.lookup();
+      }
+      else if (event.keyCode === 13 && instance.getSettings().enterBeginsEditing) { //enter
+        //instance.autocompleteEditor.dontHide = true;
+        var selected = instance.getSelected();
+        var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
+        if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
+          instance.autocompleteEditor.beginEditing(row, col, prop, true, '\n'); //show edit field
+        }
+        else {
+          instance.autocompleteEditor.beginEditing(row, col, prop, true); //show edit field
+        }
+        event.preventDefault(); //prevent new line at the end of textarea
+        event.stopPropagation();
+
+        instance.autocompleteEditor.dontHide = true;
+        typeahead.lookup();
+      }
     }
   });
 
-  keyboardProxy.on("keyup.editor", function (event) {
-      switch (event.keyCode) {
-        case 9: /* tab */
-        case 13: /* return/enter */
-          if (!wasDestroyed && !isAutoComplete(keyboardProxy)) {
-            var ev = $.Event('keyup');
-            ev.keyCode = 113; //113 triggers lookup, in contrary to 13 or 9 which only trigger hide
-            keyboardProxy.trigger(ev);
-          }
-          else {
-            setTimeout(function () { //so pressing enter will move one row down after change is applied by 'select' above
-              var ev = $.Event('keydown');
-              ev.keyCode = event.keyCode;
-              keyboardProxy.parent().trigger(ev);
-            }, 10);
-          }
-          break;
-
-        default:
-          if (!wasDestroyed && !Handsontable.helper.isPrintableChar(event.keyCode)) { //otherwise Del or F12 would open suggestions list
-            event.stopImmediatePropagation();
-          }
-      }
-    }
-  );
-
-  var textDestroyer = Handsontable.TextEditor(instance, td, row, col, prop, keyboardProxy, cellProperties);
-
   function onDblClick() {
-    keyboardProxy[0].focus();
-    texteditor.beginEditing(instance, null, row, col, prop, keyboardProxy, true);
-    dontHide = true;
+    instance.autocompleteEditor.beginEditing(row, col, prop, true);
     setTimeout(function () { //otherwise is misaligned in IE9
-      keyboardProxy.data('typeahead').lookup();
+      instance.autocompleteEditor.TEXTAREA.data('typeahead').lookup();
     }, 1);
   }
 
-  instance.view.wt.update('onCellDblClick', onDblClick); //no need to destroy it here because it will be destroyed by TextEditor destroyer
+  instance.view.wt.update('onCellDblClick', onDblClick);
 
   var destroyer = function (isCancelled) {
-    wasDestroyed = true;
-    keyboardProxy.off(); //remove typeahead bindings
-    textDestroyer(isCancelled);
-    dontHide = false;
-    if (isAutoComplete(keyboardProxy)) {
-      isAutoComplete(keyboardProxy).hide();
+    instance.autocompleteEditor.finishEditing(isCancelled);
+    if (instance.autocompleteEditor.isMenuExpanded()) {
+      instance.autocompleteEditor.isMenuExpanded().hide();
     }
-  };
+  }
 
   return destroyer;
 };
@@ -3174,7 +3249,7 @@ function toggleCheckboxCell(instance, row, prop, cellProperties) {
  * @param {Object} keyboardProxy jQuery element of keyboard proxy that contains current editing value
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardProxy, cellProperties) {
+Handsontable.CheckboxEditor = function (instance, td, row, col, prop, __unused_, cellProperties) {
   if (typeof cellProperties === "undefined") {
     cellProperties = {};
   }
@@ -3185,11 +3260,12 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardPr
     cellProperties.uncheckedTemplate = false;
   }
 
-  keyboardProxy.on("keydown.editor", function (event) {
+  instance.$table.on("keydown.editor", function (event) {
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     if (!ctrlDown && Handsontable.helper.isPrintableChar(event.keyCode)) {
       toggleCheckboxCell(instance, row, prop, cellProperties);
       event.stopPropagation();
+      event.preventDefault(); //some keys have special behavior, eg. space bar scrolls screen down
     }
   });
 
@@ -3200,7 +3276,7 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, keyboardPr
   instance.view.wt.update('onCellDblClick', onDblClick);
 
   return function () {
-    keyboardProxy.off(".editor");
+    instance.$table.off(".editor");
     instance.view.wt.update('onCellDblClick', null);
   }
 };
@@ -6900,4 +6976,144 @@ function handler(event) {
 
 })(jQuery);
 
+/**
+ * CopyPaste.js
+ * Creates a textarea that stays hidden on the page and gets focused when user presses CTRL while not having a form input focused
+ * In future we may implement a better driver when better APIs are available
+ * @constructor
+ */
+function CopyPaste(listenerElement) {
+  var that = this;
+  listenerElement = listenerElement || document.body;
+
+  this.elDiv = document.createElement('DIV');
+  this.elDiv.style.position = 'fixed';
+  this.elDiv.style.top = 0;
+  this.elDiv.style.left = 0;
+  listenerElement.appendChild(this.elDiv);
+
+  this.elTextarea = document.createElement('TEXTAREA');
+  this.elTextarea.className = 'copyPaste';
+  this.elTextarea.style.width = '100px';
+  this.elTextarea.style.height = '100px';
+  this.elDiv.appendChild(this.elTextarea);
+
+  if (typeof this.elTextarea.style.opacity !== 'undefined') {
+    this.elTextarea.style.opacity = 0;
+  }
+  else {
+    /*@cc_on @if (@_jscript)
+     if(typeof this.elTextarea.style.filter === 'string') {
+     this.elTextarea.style.filter = 'alpha(opacity=0)';
+     }
+     @end @*/
+  }
+
+  this._bindEvent(listenerElement, 'keydown', function (event) {
+    /* 67 = c
+     * 86 = v
+     * 88 = x
+     */
+    if ((event.ctrlKey || event.metaKey) && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
+      ctrlWasDown = true;
+      that.selectNodeText(that.elTextarea);
+
+      if (event.keyCode === 88) { //works in all browsers, incl. Opera < 12.12
+        that.triggerCut(event);
+      }
+      else if (event.keyCode === 86) {
+        that.triggerPaste(event);
+      }
+
+      /*if (event.stopPropagation) {
+       event.stopPropagation();
+       }
+       // Support: IE
+       event.cancelBubble = true;*/
+    }
+  });
+
+  this._bindEvent(listenerElement, 'keyup', function (event) {
+    if (ctrlWasDown) {
+      ctrlWasDown = false;
+    }
+  });
+
+  /*
+   //does not work in Opera < 12.12
+   this._bindEvent(this.elTextarea, 'cut', function (event) {
+   that.triggerCut(event);
+   });
+
+   this._bindEvent(this.elTextarea, 'paste', function (event) {
+   that.triggerPaste(event);
+   });
+   */
+}
+
+var lastActive, ctrlWasDown;
+
+//http://jsperf.com/textara-selection
+//http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie
+CopyPaste.prototype.selectNodeText = function (el) {
+  this.elTextarea.select();
+}
+
+CopyPaste.prototype.copyable = function (str) {
+  if (typeof str !== 'string' && str.toString === void 0) {
+    throw new Error('copyable requires string parameter');
+  }
+  this.elTextarea.value = str;
+};
+
+CopyPaste.prototype.onCopy = function (fn) {
+  this.copyCallback = fn;
+};
+
+CopyPaste.prototype.onCut = function (fn) {
+  this.cutCallback = fn;
+};
+
+CopyPaste.prototype.onPaste = function (fn) {
+  this.pasteCallback = fn;
+};
+
+CopyPaste.prototype.triggerCut = function (event) {
+  var that = this;
+  if (that.cutCallback) {
+    setTimeout(function () {
+      that.cutCallback(event);
+    }, 0);
+  }
+};
+
+CopyPaste.prototype.triggerPaste = function (event, str) {
+  var that = this;
+  if (that.pasteCallback) {
+    setTimeout(function () {
+      that.pasteCallback((str || that.elTextarea.value).replace(/\n$/, ''), event); //remove trailing newline
+    }, 0);
+  }
+};
+
+//http://net.tutsplus.com/tutorials/javascript-ajax/javascript-from-null-cross-browser-event-binding/
+//http://stackoverflow.com/questions/4643249/cross-browser-event-object-normalization
+CopyPaste.prototype._bindEvent = (function () {
+  if (document.addEventListener) {
+    return function (elem, type, cb) {
+      elem.addEventListener(type, cb, false);
+    };
+  }
+  else {
+    return function (elem, type, cb) {
+      elem.attachEvent('on' + type, function () {
+        var e = window['event'];
+        e.target = e.srcElement;
+        e.relatedTarget = e.relatedTarget || e.type == 'mouseover' ? e.fromElement : e.toElement;
+        if (e.target.nodeType === 3) e.target = e.target.parentNode; //Safari bug
+        return cb.call(elem, e)
+      });
+    };
+  }
+})();
 })(jQuery, window, Handsontable);
