@@ -74,10 +74,10 @@ describe('AutocompleteEditor', function () {
       });
       selectCell(2, 2);
       keyDownUp('enter');
-      keyDownUp('esc');
+      keyDownUp('esc', autocompleteEditor());
     });
 
-    waits(51);
+    waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
       expect(isAutocompleteVisible()).toEqual(false);
@@ -185,11 +185,11 @@ describe('AutocompleteEditor', function () {
       render();
     });
 
-    waits(1);
+    waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
       var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
-      expect(keyProxy().width()).toEqual($td.width());
+      expect(autocompleteEditor().width()).toEqual($td.width());
     });
   });
 

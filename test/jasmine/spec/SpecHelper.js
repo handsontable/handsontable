@@ -58,7 +58,7 @@ var isFillHandleVisible = function () {
 };
 
 var isAutocompleteVisible = function () {
-  return keyProxy().data("typeahead").$menu.is(":visible");
+  return !!(autocompleteEditor() && autocompleteEditor().data("typeahead") && autocompleteEditor().data("typeahead").$menu.is(":visible"));
 };
 
 /**
@@ -151,6 +151,10 @@ var keyDownUp = function (key, el) {
  */
 var keyProxy = function () {
   return spec().$container.find('textarea.handsontableInput');
+};
+
+var autocompleteEditor = function () {
+  return spec().$container.data('handsontable').autocompleteEditor.TEXTAREA;
 };
 
 /**
