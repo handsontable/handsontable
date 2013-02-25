@@ -182,18 +182,15 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
 
   this.instance.rootElement.append(this.TEXTAREA_PARENT);
 
+  this.refreshDimensions(row, col); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
   this.TEXTAREA[0].focus();
   this.setCaretPosition(this.TEXTAREA[0], this.TEXTAREA[0].value.length);
 
   if (this.instance.getSettings().asyncRendering) {
-    this.refreshDimensions(row, col); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
     var that = this;
     setTimeout(function () {
       that.refreshDimensions(row, col); //need it after rerender to reposition in case scroll was moved
     }, 0);
-  }
-  else {
-    this.refreshDimensions(row, col);
   }
 }
 
