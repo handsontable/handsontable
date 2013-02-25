@@ -111,10 +111,10 @@ HandsontableAutocompleteEditorClass.prototype.isMenuExpanded = function () {
  * @param {Number} row
  * @param {Number} col
  * @param {String|Number} prop Row object property name
- * @param {Object} instance.autocompleteEditor.TEXTAREA jQuery element of keyboard proxy that contains current editing value
+ * @param value Original value (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, __unused_, cellProperties) {
+Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, value, cellProperties) {
   var i
     , j;
 
@@ -125,7 +125,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, __unus
   instance.autocompleteEditor.bindEvents();
 
   instance.autocompleteEditor.isCellEdited = false;
-  instance.autocompleteEditor.originalValue = instance.getDataAtCell(row, prop);
+  instance.autocompleteEditor.originalValue = value;
 
   var typeahead = instance.autocompleteEditor.typeahead;
 

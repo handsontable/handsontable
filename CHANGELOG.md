@@ -2,6 +2,7 @@
 
 Bugfix:
 - scrolls to top of table on any key press if the top is not on the screen ([#348](https://github.com/warpech/jquery-handsontable/issues/348))
+- cell editor was using a wrong cell value if column order was manually changed ([#367](https://github.com/warpech/jquery-handsontable/issues/367))
 
 Other:
 - reimplement cell editing abstraction. Now TextEditor `<textarea>` is decoupled from cell selection and copy/paste keyboard handling

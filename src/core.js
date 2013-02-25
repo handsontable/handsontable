@@ -1188,11 +1188,11 @@ Handsontable.Core = function (rootElement, settings) {
       if (priv.settings.asyncRendering) {
         clearTimeout(window.prepareFrame);
         window.prepareFrame = setTimeout(function () {
-          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords()/*, priv.editProxy*/);
+          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.row(), priv.selStart.col());
         }, 0);
       }
       else {
-        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords()/*, priv.editProxy*/);
+        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.row(), priv.selStart.col());
       }
     },
 

@@ -174,9 +174,7 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
   }
 
   if (useOriginalValue) {
-    var original = this.instance.getDataAtCell(row, prop);
-    original = Handsontable.helper.stringify(original) + (suffix || '');
-    this.TEXTAREA[0].value = original;
+    this.TEXTAREA[0].value = Handsontable.helper.stringify(this.originalValue) + (suffix || '');
   }
   else {
     this.TEXTAREA[0].value = '';
@@ -280,7 +278,6 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
     this.isCellEdited = false;
     var val;
     if (isCancelled) {
-
       val = [
         [this.originalValue]
       ];
@@ -315,10 +312,10 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
  * @param {Number} row
  * @param {Number} col
  * @param {String|Number} prop Row object property name
- * @param {Object} that.TEXTAREA jQuery element of keyboard proxy that contains current editing value
+ * @param value Original value (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.TextEditor = function (instance, td, row, col, prop, ___unused___, cellProperties) {
+Handsontable.TextEditor = function (instance, td, row, col, prop, value, cellProperties) {
   if (!instance.textEditor) {
     instance.textEditor = new HandsontableTextEditorClass(instance);
   }
@@ -326,7 +323,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, ___unused___, 
   instance.textEditor.bindEvents();
 
   instance.textEditor.isCellEdited = false;
-  instance.textEditor.originalValue = instance.getDataAtCell(row, prop);
+  instance.textEditor.originalValue = value;
 
   instance.$table.on('keydown.editor', function (event) {
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)

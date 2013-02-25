@@ -14,10 +14,10 @@ function toggleCheckboxCell(instance, row, prop, cellProperties) {
  * @param {Number} row
  * @param {Number} col
  * @param {String|Number} prop Row object property name
- * @param {Object} keyboardProxy jQuery element of keyboard proxy that contains current editing value
+ * @param value Original value (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.CheckboxEditor = function (instance, td, row, col, prop, __unused_, cellProperties) {
+Handsontable.CheckboxEditor = function (instance, td, row, col, prop, value, cellProperties) {
   if (typeof cellProperties === "undefined") {
     cellProperties = {};
   }

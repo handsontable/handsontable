@@ -150,7 +150,7 @@ Handsontable.TableView = function (instance) {
     columnHeaders: settings.colHeaders ? instance.getColHeader : null,
     columnWidth: instance.getColWidth,
     cellRenderer: function (row, column, TD) {
-      that.applyCellTypeMethod('renderer', TD, {row: row, col: column}, instance.getDataAtCell(row, column));
+      that.applyCellTypeMethod('renderer', TD, row, column);
     },
     selections: {
       current: {
@@ -286,10 +286,10 @@ Handsontable.TableView.prototype.render = function () {
   }
 };
 
-Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, coords, extraParam) {
-  var prop = this.instance.colToProp(coords.col)
+Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {
+  var prop = this.instance.colToProp(col)
     , method
-    , cellProperties = this.instance.getCellMeta(coords.row, coords.col);
+    , cellProperties = this.instance.getCellMeta(row, col);
 
   if (typeof cellProperties.type === 'string') {
     switch (cellProperties.type) {
@@ -309,7 +309,7 @@ Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td,
   if (typeof method !== "function") {
     method = Handsontable.TextCell[methodName];
   }
-  return method(this.instance, td, coords.row, coords.col, prop, extraParam, cellProperties);
+  return method(this.instance, td, row, col, prop, this.instance.getDataAtCell(row, col), cellProperties);
 };
 
 /**

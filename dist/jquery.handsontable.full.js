@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Feb 25 2013 19:56:16 GMT+0100 (Central European Standard Time)
+ * Date: Mon Feb 25 2013 20:14:15 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1207,11 +1207,11 @@ Handsontable.Core = function (rootElement, settings) {
       if (priv.settings.asyncRendering) {
         clearTimeout(window.prepareFrame);
         window.prepareFrame = setTimeout(function () {
-          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords()/*, priv.editProxy*/);
+          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.row(), priv.selStart.col());
         }, 0);
       }
       else {
-        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.coords()/*, priv.editProxy*/);
+        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.row(), priv.selStart.col());
       }
     },
 
@@ -2159,7 +2159,7 @@ Handsontable.TableView = function (instance) {
     columnHeaders: settings.colHeaders ? instance.getColHeader : null,
     columnWidth: instance.getColWidth,
     cellRenderer: function (row, column, TD) {
-      that.applyCellTypeMethod('renderer', TD, {row: row, col: column}, instance.getDataAtCell(row, column));
+      that.applyCellTypeMethod('renderer', TD, row, column);
     },
     selections: {
       current: {
@@ -2295,10 +2295,10 @@ Handsontable.TableView.prototype.render = function () {
   }
 };
 
-Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, coords, extraParam) {
-  var prop = this.instance.colToProp(coords.col)
+Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {
+  var prop = this.instance.colToProp(col)
     , method
-    , cellProperties = this.instance.getCellMeta(coords.row, coords.col);
+    , cellProperties = this.instance.getCellMeta(row, col);
 
   if (typeof cellProperties.type === 'string') {
     switch (cellProperties.type) {
@@ -2318,7 +2318,7 @@ Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td,
   if (typeof method !== "function") {
     method = Handsontable.TextCell[methodName];
   }
-  return method(this.instance, td, coords.row, coords.col, prop, extraParam, cellProperties);
+  return method(this.instance, td, row, col, prop, this.instance.getDataAtCell(row, col), cellProperties);
 };
 
 /**
@@ -2770,9 +2770,7 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
   }
 
   if (useOriginalValue) {
-    var original = this.instance.getDataAtCell(row, prop);
-    original = Handsontable.helper.stringify(original) + (suffix || '');
-    this.TEXTAREA[0].value = original;
+    this.TEXTAREA[0].value = Handsontable.helper.stringify(this.originalValue) + (suffix || '');
   }
   else {
     this.TEXTAREA[0].value = '';
@@ -2876,7 +2874,6 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
     this.isCellEdited = false;
     var val;
     if (isCancelled) {
-
       val = [
         [this.originalValue]
       ];
@@ -2911,10 +2908,10 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
  * @param {Number} row
  * @param {Number} col
  * @param {String|Number} prop Row object property name
- * @param {Object} that.TEXTAREA jQuery element of keyboard proxy that contains current editing value
+ * @param value Original value (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.TextEditor = function (instance, td, row, col, prop, ___unused___, cellProperties) {
+Handsontable.TextEditor = function (instance, td, row, col, prop, value, cellProperties) {
   if (!instance.textEditor) {
     instance.textEditor = new HandsontableTextEditorClass(instance);
   }
@@ -2922,7 +2919,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, ___unused___, 
   instance.textEditor.bindEvents();
 
   instance.textEditor.isCellEdited = false;
-  instance.textEditor.originalValue = instance.getDataAtCell(row, prop);
+  instance.textEditor.originalValue = value;
 
   instance.$table.on('keydown.editor', function (event) {
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
@@ -3075,10 +3072,10 @@ HandsontableAutocompleteEditorClass.prototype.isMenuExpanded = function () {
  * @param {Number} row
  * @param {Number} col
  * @param {String|Number} prop Row object property name
- * @param {Object} instance.autocompleteEditor.TEXTAREA jQuery element of keyboard proxy that contains current editing value
+ * @param value Original value (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, __unused_, cellProperties) {
+Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, value, cellProperties) {
   var i
     , j;
 
@@ -3089,7 +3086,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, __unus
   instance.autocompleteEditor.bindEvents();
 
   instance.autocompleteEditor.isCellEdited = false;
-  instance.autocompleteEditor.originalValue = instance.getDataAtCell(row, prop);
+  instance.autocompleteEditor.originalValue = value;
 
   var typeahead = instance.autocompleteEditor.typeahead;
 
@@ -3197,10 +3194,10 @@ function toggleCheckboxCell(instance, row, prop, cellProperties) {
  * @param {Number} row
  * @param {Number} col
  * @param {String|Number} prop Row object property name
- * @param {Object} keyboardProxy jQuery element of keyboard proxy that contains current editing value
+ * @param value Original value (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.CheckboxEditor = function (instance, td, row, col, prop, __unused_, cellProperties) {
+Handsontable.CheckboxEditor = function (instance, td, row, col, prop, value, cellProperties) {
   if (typeof cellProperties === "undefined") {
     cellProperties = {};
   }
