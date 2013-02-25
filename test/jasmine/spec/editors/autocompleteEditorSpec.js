@@ -35,7 +35,6 @@ describe('AutocompleteEditor', function () {
       keyDownUp('enter');
 
       var li = autocomplete().$menu.find('li[data-value="green"]');
-      console.log('a', li);
       li.trigger('mouseenter');
       li.trigger('click');
     });

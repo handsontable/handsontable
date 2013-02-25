@@ -30,7 +30,6 @@ describe('Core_destroy', function () {
       handsontable();
       expect($._data(this.$container[0], 'events')).toBeTruthy();
       destroy();
-      console.log("$._data(this.$container[0], 'events')", $._data(this.$container[0], 'events'));
       expect($._data(this.$container[0], 'events')).toBeFalsy();
     });
 
