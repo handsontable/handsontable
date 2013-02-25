@@ -251,7 +251,7 @@ Handsontable.TableView = function (instance) {
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {
-  return this.instance.textEditor && this.instance.textEditor.isCellEdited;
+  return (this.instance.textEditor && this.instance.textEditor.isCellEdited) || (this.instance.autocompleteEditor && this.instance.autocompleteEditor.isCellEdited);
 };
 
 Handsontable.TableView.prototype.determineContainerSize = function () {

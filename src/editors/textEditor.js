@@ -19,8 +19,6 @@ function HandsontableTextEditorClass(instance) {
     overflow: 'hidden'
   });
 
-  var that = this;
-
   /*instance.that.TEXTAREA.on('blur.editor', function () {
    if (that.isCellEdited) {
    that.finishEditing(false);
@@ -34,8 +32,11 @@ function HandsontableTextEditorClass(instance) {
    }
    }, 0);
    });*/
+}
 
-  this.TEXTAREA_PARENT.on('keydown', function (event) {
+HandsontableTextEditorClass.prototype.bindEvents = function () {
+  var that = this;
+  this.TEXTAREA_PARENT.off('.editor').on('keydown.editor', function (event) {
     //if we are here then isCellEdited === true
 
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
@@ -81,7 +82,7 @@ function HandsontableTextEditorClass(instance) {
         break;
 
       case 13: /* return/enter */
-        var selected = instance.getSelected();
+        var selected = that.instance.getSelected();
         var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
         if ((event.ctrlKey && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
           that.TEXTAREA.val(that.TEXTAREA.val() + '\n');
@@ -279,6 +280,7 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
     this.isCellEdited = false;
     var val;
     if (isCancelled) {
+
       val = [
         [this.originalValue]
       ];
@@ -296,17 +298,12 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
       this.instance.populateFromArray({row: this.row, col: this.col}, val, null, false, 'edit');
     }
   }
-  this.TEXTAREA.off(".editor");
+
   this.instance.$table.off(".editor");
+  this.instance.$table[0].focus();
   this.instance.view.wt.update('onCellDblClick', null);
 
-  this.TEXTAREA.css({
-    width: 0,
-    height: 0
-  });
-  this.TEXTAREA_PARENT.addClass('htHidden').css({
-    overflow: 'hidden'
-  });
+  this.TEXTAREA_PARENT.remove();
 
   this.instance.rootElement.triggerHandler('finishediting.handsontable');
 }
@@ -325,6 +322,8 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, ___unused___, 
   if (!instance.textEditor) {
     instance.textEditor = new HandsontableTextEditorClass(instance);
   }
+
+  instance.textEditor.bindEvents();
 
   instance.textEditor.isCellEdited = false;
   instance.textEditor.originalValue = instance.getDataAtCell(row, prop);

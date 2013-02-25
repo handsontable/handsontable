@@ -40,90 +40,6 @@ function HandsontableAutocompleteEditorClass(instance) {
   typeahead.matcher = function () {
     return true;
   };
-
-  this.TEXTAREA.on('keydown', function (event) {
-    var restorePropagation = event.isPropagationStopped();
-
-    //if we are here then isCellEdited === true
-
-    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-
-    if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
-      //when CTRL or its equivalent is pressed and cell is edited, don't prepare selectable text in textarea
-      event.stopPropagation();
-      return;
-    }
-
-    switch (event.keyCode) {
-      case 38: /* arrow up */
-      case 40: /* arrow down */
-        event.stopPropagation();
-        restorePropagation = false;
-        break;
-
-      case 9: /* tab */
-        that.finishEditing(false);
-        event.preventDefault();
-        break;
-
-      case 39: /* arrow right */
-        if (that.getCaretPosition(that.TEXTAREA[0]) === that.TEXTAREA.val().length) {
-          that.finishEditing(false);
-        }
-        else {
-          event.stopPropagation();
-          restorePropagation = false;
-        }
-        break;
-
-      case 37: /* arrow left */
-        if (that.getCaretPosition(that.TEXTAREA[0]) === 0) {
-          that.finishEditing(false);
-        }
-        else {
-          event.stopPropagation();
-          restorePropagation = false;
-        }
-        break;
-
-      case 27: /* ESC */
-        that.instance.destroyEditor(true);
-        event.stopPropagation();
-        restorePropagation = false;
-        break;
-
-      case 13: /* return/enter */
-        if (!that.isMenuExpanded()) {
-          that.finishEditing(false, ctrlDown);
-          //event.stopPropagation(); //cancel because typeahead will trigger change
-          //restorePropagation = false;
-        }
-        else {
-          //event.stopPropagation(); //cancel because typeahead will trigger change
-          //restorePropagation = false;
-
-          var ev = $.Event('keyup'); //because core.js keydown handler moves focus
-          ev.keyCode = event.keyCode;
-          that.TEXTAREA.triggerHandler(ev);
-        }
-        event.preventDefault(); //don't add newline to field
-        break;
-
-      case 8: /* backspace */
-      case 46: /* delete */
-      case 36: /* home */
-      case 35: /* end */
-        event.stopPropagation();
-        restorePropagation = false;
-        break;
-    }
-
-    if (restorePropagation) { //typeahead stops propagation but we don't want that
-      var ev = $.Event('keydown');
-      ev.keyCode = event.keyCode;
-      that.TEXTAREA_PARENT.trigger(ev);
-    }
-  });
 }
 
 for (var i in HandsontableTextEditorClass.prototype) {
@@ -132,14 +48,51 @@ for (var i in HandsontableTextEditorClass.prototype) {
   }
 }
 
+HandsontableAutocompleteEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
+
+HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
+  var that = this;
+
+  this.typeahead.listen();
+
+  this.TEXTAREA.off('keydown'); //unlisten
+  this.TEXTAREA.off('keyup'); //unlisten
+  this.TEXTAREA.off('keypress'); //unlisten
+
+  this.TEXTAREA_PARENT.off('.acEditor').on('keydown.acEditor', function (event) {
+    switch (event.keyCode) {
+      case 38: /* arrow up */
+        that.typeahead.prev();
+        event.stopImmediatePropagation();
+        break;
+
+      case 40: /* arrow down */
+        that.typeahead.next();
+        event.stopImmediatePropagation();
+        break;
+
+      case 13: /* enter */
+        event.preventDefault();
+        break;
+    }
+  });
+
+  this._bindEvents();
+}
+
 HandsontableAutocompleteEditorClass.prototype._beginEditing = HandsontableTextEditorClass.prototype.beginEditing;
 
 HandsontableAutocompleteEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
   this._beginEditing(row, col, prop, useOriginalValue, suffix);
-  var that = this;
-  setTimeout(function () {
-    that.typeahead.show(); //otherwise typeahead appears misaligned
-  }, 0);
+}
+
+HandsontableAutocompleteEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
+
+HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
+  if (this.isMenuExpanded()) {
+    this.typeahead.select(true);
+  }
+  this._finishEditing(isCancelled, ctrlDown);
 }
 
 HandsontableAutocompleteEditorClass.prototype.isMenuExpanded = function () {
@@ -169,19 +122,20 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, __unus
     instance.autocompleteEditor = new HandsontableAutocompleteEditorClass(instance);
   }
 
+  instance.autocompleteEditor.bindEvents();
+
   instance.autocompleteEditor.isCellEdited = false;
   instance.autocompleteEditor.originalValue = instance.getDataAtCell(row, prop);
 
   var typeahead = instance.autocompleteEditor.typeahead;
 
-  typeahead.select = function () {
-    if (instance.autocompleteEditor.dontHide) {
-      instance.autocompleteEditor.dontHide = false;
-      return;
+  typeahead.select = function (calledFromFinishEditing) {
+    if (this.$menu.find('.active').length) {
+      instance.autocompleteEditor.TEXTAREA.val(this.$menu.find('.active').attr('data-value'));
     }
-    var val = this.$menu.find('.active').attr('data-value') || instance.autocompleteEditor.TEXTAREA.val();
-    destroyer(true);
-    instance.setDataAtCell(row, prop, typeahead.updater(val));
+    if (!calledFromFinishEditing) {
+      instance.destroyEditor();
+    }
     return this.hide();
   };
 
@@ -210,47 +164,48 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, __unus
   }
 
   var that = this;
-  instance.autocompleteEditor.dontHide = false;
   instance.$table.on('keydown.editor', function (event) {
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+    var lookupOnKeyUp = false;
     if (!instance.autocompleteEditor.isCellEdited) {
       if (Handsontable.helper.isPrintableChar(event.keyCode)) {
         if (!ctrlDown) { //disregard CTRL-key shortcuts
           instance.autocompleteEditor.beginEditing(row, col, prop);
-          instance.autocompleteEditor.dontHide = true;
-          typeahead.lookup();
+          lookupOnKeyUp = true;
         }
       }
       else if (event.keyCode === 113) { //f2
         instance.autocompleteEditor.beginEditing(row, col, prop, true); //show edit field
+        lookupOnKeyUp = true;
         event.stopPropagation();
         event.preventDefault(); //prevent Opera from opening Go to Page dialog
-        instance.autocompleteEditor.dontHide = true;
-        typeahead.lookup();
       }
       else if (event.keyCode === 13 && instance.getSettings().enterBeginsEditing) { //enter
-        //instance.autocompleteEditor.dontHide = true;
         var selected = instance.getSelected();
         var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
         if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
           instance.autocompleteEditor.beginEditing(row, col, prop, true, '\n'); //show edit field
+          lookupOnKeyUp = true;
         }
         else {
           instance.autocompleteEditor.beginEditing(row, col, prop, true); //show edit field
+          lookupOnKeyUp = true;
         }
         event.preventDefault(); //prevent new line at the end of textarea
         event.stopPropagation();
-
-        instance.autocompleteEditor.dontHide = true;
-        typeahead.lookup();
       }
+    }
+    if (lookupOnKeyUp) {
+      instance.autocompleteEditor.TEXTAREA_PARENT.one('keyup.acEditor', function (event) {
+        instance.autocompleteEditor.typeahead.lookup();
+      });
     }
   });
 
   function onDblClick() {
     instance.autocompleteEditor.beginEditing(row, col, prop, true);
     setTimeout(function () { //otherwise is misaligned in IE9
-      instance.autocompleteEditor.TEXTAREA.data('typeahead').lookup();
+      instance.autocompleteEditor.typeahead.lookup();
     }, 1);
   }
 
@@ -258,9 +213,6 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, __unus
 
   var destroyer = function (isCancelled) {
     instance.autocompleteEditor.finishEditing(isCancelled);
-    if (instance.autocompleteEditor.isMenuExpanded()) {
-      instance.autocompleteEditor.isMenuExpanded().hide();
-    }
   }
 
   return destroyer;

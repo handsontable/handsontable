@@ -4,6 +4,8 @@ Bugfix:
 - scrolls to top of table on any key press if the top is not on the screen ([#348](https://github.com/warpech/jquery-handsontable/issues/348))
 
 Other:
+- reimplement cell editing abstraction. Now TextEditor `<textarea>` is decoupled from cell selection and copy/paste keyboard handling
+- upgrade Bootstrap Typeahead to v2.3.0
 - build system now requires Grunt 0.4.0
 
 ## [0.8.5](https://github.com/warpech/jquery-handsontable/tree/v0.8.5) (Feb 18, 2013)
