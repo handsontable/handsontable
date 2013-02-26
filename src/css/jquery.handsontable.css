@@ -193,19 +193,12 @@ textarea.handsontableInput {
   resize: none;
 }
 
-.handsontableInputHolder.htHidden textarea.handsontableInput {
-  border-color: #5292F7;
-  background: #5292F7;
-  color: #5292F7;
-}
-
 .handsontableInputHolder {
   position: absolute;
   top: 0;
   left: 0;
   width: 1px;
   height: 1px;
-  overflow: hidden;
 }
 
 /*

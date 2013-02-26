@@ -32,6 +32,28 @@ describe('TextEditor', function () {
     });
   });
 
+  it('should move down after editing', function () {
+    handsontable();
+    selectCell(2, 2);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      keyDown('enter');
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      keyDown('enter');
+    });
+
+    runs(function () {
+      var selection = getSelected();
+      expect(selection).toEqual([3, 2, 3, 2]);
+    });
+  });
+
   it('should move down when enterBeginsEditing equals false', function () {
     handsontable({
       enterBeginsEditing: false
@@ -50,57 +72,6 @@ describe('TextEditor', function () {
       var selection = getSelected();
       expect(selection).toEqual([3, 2, 3, 2]);
       expect(isEditorVisible()).toEqual(false);
-    });
-  });
-
-  it('should trigger beginediting', function () {
-    var called;
-    handsontable({
-      enterBeginsEditing: true
-    });
-    selectCell(2, 2);
-    this.$container.on('beginediting.handsontable', function () {
-      called = true;
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      keyDown('enter');
-    });
-
-    waitsFor(function () {
-      return (called === true)
-    }, 200);
-
-    runs(function () {
-      expect(called).toEqual(true);
-    });
-  });
-
-  it('should trigger finishediting', function () {
-    var called;
-    handsontable({
-      enterBeginsEditing: true
-    });
-    selectCell(2, 2);
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      keyDown('enter');
-      this.$container.on('finishediting.handsontable', function () {
-        called = true;
-      });
-      keyDown('enter');
-    });
-
-    waitsFor(function () {
-      return (called === true)
-    }, 100);
-
-    runs(function () {
-      expect(called).toEqual(true);
     });
   });
 

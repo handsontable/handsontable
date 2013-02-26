@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Feb 26 2013 15:57:20 GMT+0100 (Central European Standard Time)
+ * Date: Tue Feb 26 2013 19:20:27 GMT+0100 (Central European Standard Time)
  */
 
 .handsontable {
@@ -193,19 +193,12 @@ textarea.handsontableInput {
   resize: none;
 }
 
-.handsontableInputHolder.htHidden textarea.handsontableInput {
-  border-color: #5292F7;
-  background: #5292F7;
-  color: #5292F7;
-}
-
 .handsontableInputHolder {
   position: absolute;
   top: 0;
   left: 0;
   width: 1px;
   height: 1px;
-  overflow: hidden;
 }
 
 /*

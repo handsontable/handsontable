@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Feb 26 2013 15:57:20 GMT+0100 (Central European Standard Time)
+ * Date: Tue Feb 26 2013 19:20:27 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2602,6 +2602,18 @@ function HandsontableTextEditorClass(instance) {
   this.col;
   this.prop;
 
+  this.createElements();
+
+  /*instance.that.TEXTAREA.on('blur.editor', function () {
+   if (that.isCellEdited) {
+   that.finishEditing(false);
+   }
+   });*/
+
+  this.bindEvents();
+}
+
+HandsontableTextEditorClass.prototype.createElements = function () {
   this.TEXTAREA = $('<textarea class="handsontableInput">');
   this.TEXTAREA.css({
     width: 0,
@@ -2609,17 +2621,13 @@ function HandsontableTextEditorClass(instance) {
   });
 
   this.TEXTAREA_PARENT = $('<div class="handsontableInputHolder">').append(this.TEXTAREA);
-  this.TEXTAREA_PARENT.addClass('htHidden').css({
+  this.TEXTAREA_PARENT.css({
     top: 0,
     left: 0,
-    overflow: 'hidden'
+    display: 'none'
   });
 
-  /*instance.that.TEXTAREA.on('blur.editor', function () {
-   if (that.isCellEdited) {
-   that.finishEditing(false);
-   }
-   });*/
+  this.instance.rootElement.append(this.TEXTAREA_PARENT);
 
   var that = this;
   Handsontable.PluginHooks.push('afterRender', function () {
@@ -2775,8 +2783,6 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
     this.TEXTAREA[0].value = '';
   }
 
-  this.instance.rootElement.append(this.TEXTAREA_PARENT);
-
   this.refreshDimensions(); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
   this.TEXTAREA[0].focus();
   this.setCaretPosition(this.TEXTAREA[0], this.TEXTAREA[0].value.length);
@@ -2852,17 +2858,7 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
     extraSpace: 0
   });
 
-  this.TEXTAREA_PARENT.removeClass('htHidden');
-
-  this.instance.rootElement.triggerHandler('beginediting.handsontable');
-
-  var that = this;
-  setTimeout(function () {
-    //async fix for Firefox 3.6.28 (needs manual testing)
-    that.TEXTAREA_PARENT.css({
-      overflow: 'visible'
-    });
-  }, 1);
+  this.TEXTAREA_PARENT[0].style.display = 'block';
 }
 
 HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
@@ -2892,9 +2888,7 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
   this.instance.$table[0].focus();
   this.instance.view.wt.update('onCellDblClick', null);
 
-  this.TEXTAREA_PARENT.remove();
-
-  this.instance.rootElement.triggerHandler('finishediting.handsontable');
+  this.TEXTAREA_PARENT[0].style.display = 'none';
 }
 
 /**
@@ -2911,8 +2905,6 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, value, cellPro
   if (!instance.textEditor) {
     instance.textEditor = new HandsontableTextEditorClass(instance);
   }
-
-  instance.textEditor.bindEvents();
 
   instance.textEditor.isCellEdited = false;
   instance.textEditor.originalValue = value;
@@ -2963,18 +2955,13 @@ function HandsontableAutocompleteEditorClass(instance) {
   this.col;
   this.prop;
 
-  this.TEXTAREA = $('<textarea class="handsontableInput">');
-  this.TEXTAREA.css({
-    width: 0,
-    height: 0
-  });
+  this.createElements();
 
-  this.TEXTAREA_PARENT = $('<div class="handsontableInputHolder">').append(this.TEXTAREA);
-  this.TEXTAREA_PARENT.addClass('htHidden').css({
-    top: 0,
-    left: 0,
-    overflow: 'hidden'
-  });
+  /*instance.that.TEXTAREA.on('blur.editor', function () {
+   if (that.isCellEdited) {
+   that.finishEditing(false);
+   }
+   });*/
 
   var that = this;
 
@@ -2998,12 +2985,7 @@ function HandsontableAutocompleteEditorClass(instance) {
     return true;
   };
 
-  var that = this;
-  Handsontable.PluginHooks.push('afterRender', function () {
-    setTimeout(function () {
-      that.refreshDimensions();
-    }, 0);
-  });
+  this.bindEvents();
 }
 
 for (var i in HandsontableTextEditorClass.prototype) {
@@ -3085,8 +3067,6 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, value,
   if (!instance.autocompleteEditor) {
     instance.autocompleteEditor = new HandsontableAutocompleteEditorClass(instance);
   }
-
-  instance.autocompleteEditor.bindEvents();
 
   instance.autocompleteEditor.isCellEdited = false;
   instance.autocompleteEditor.originalValue = value;
