@@ -277,4 +277,35 @@ describe('TextEditor', function () {
       expect(isEditorVisible()).toEqual(true);
     });
   });
+
+  it('textarea should have cell dimensions (after render)', function () {
+    runs(function () {
+      var data = [
+        ["a", "b"],
+        ["c", "d"]
+      ];
+
+      handsontable({
+        data: data,
+        minRows: 4,
+        minCols: 4,
+        minSpareRows: 4,
+        minSpareCols: 4,
+        asyncRendering: false //TODO make sure tests pass also when async true
+      });
+
+      selectCell(1, 1);
+      keyDownUp('enter');
+
+      data[1][1] = "dddddddddddddddddddd";
+      render();
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
+      expect(keyProxy().width()).toEqual($td.width());
+    });
+  });
 });

@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Feb 26 2013 15:15:29 GMT+0100 (Central European Standard Time)
+ * Date: Tue Feb 26 2013 15:38:03 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2023,6 +2023,8 @@ Handsontable.TableView = function (instance) {
   $table.attr('tabindex', 10000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/; 32767 is max tabindex for IE7,8
 
   instance.rootElement.prepend($table);
+  $table[0].focus(); //otherwise TextEditor tests do not pass in IE8
+
   this.overflow = instance.rootElement.css('overflow');
   if ((settings.width || settings.height) && !(this.overflow === 'scroll' || this.overflow === 'auto')) {
     this.overflow = 'auto';

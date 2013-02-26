@@ -33,7 +33,7 @@ describe('Core_dataSchema', function () {
     runs(function () {
       keyDownUp('enter');
       keyProxy().val('Ted');
-      keyDownUp('enter', keyProxy());
+      keyDownUp('enter');
       expect(getData()[0].name.first).toEqual('Ted');
     });
   });

@@ -55,9 +55,9 @@ describe('AutocompleteEditor', function () {
     waits(100);
 
     runs(function () {
-      keyPress('arrow_down');
-      keyPress('arrow_down');
-      keyPress('arrow_down');
+      keyDownUp('arrow_down');
+      keyDownUp('arrow_down');
+      keyDownUp('arrow_down');
       keyDownUp('enter');
     });
 
@@ -74,7 +74,7 @@ describe('AutocompleteEditor', function () {
       });
       selectCell(2, 2);
       keyDownUp('enter');
-      keyDownUp('esc', autocompleteEditor());
+      keyDownUp('esc');
     });
 
     waitsFor(nextFrame, 'next frame', 60);

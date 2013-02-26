@@ -7,7 +7,7 @@ describe('Core_destroyEditor', function () {
 
   afterEach(function () {
     if (this.$container) {
-      //this.$container.remove();
+      this.$container.remove();
     }
   });
 

@@ -29,7 +29,7 @@ describe('Core_onKeyDown', function () {
     runs(function () {
       keyDownUp('enter');
       keyProxy().val('Ted');
-      keyDownUp('tab', keyProxy());
+      keyDownUp('tab');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([1, 2, 1, 2]);
     });
@@ -45,7 +45,7 @@ describe('Core_onKeyDown', function () {
     runs(function () {
       keyDownUp('enter');
       keyProxy().val('Ted');
-      keyDownUp('arrow_down', keyProxy());
+      keyDownUp('arrow_down');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([2, 1, 2, 1]);
     });
@@ -61,7 +61,7 @@ describe('Core_onKeyDown', function () {
     runs(function () {
       keyDownUp('enter');
       keyProxy().val('Ted');
-      keyDownUp('arrow_up', keyProxy());
+      keyDownUp('arrow_up');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([0, 1, 0, 1]);
     });
@@ -77,7 +77,7 @@ describe('Core_onKeyDown', function () {
     runs(function () {
       keyDownUp('enter');
       keyProxy().val('Ted');
-      keyDownUp('arrow_right', keyProxy());
+      keyDownUp('arrow_right');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([1, 2, 1, 2]);
     });
@@ -95,7 +95,7 @@ describe('Core_onKeyDown', function () {
       keyDownUp('enter');
       keyProxy().val('Ted');
       setCaretPosition(0); //set's text cursor to the beginning of the textarea
-      keyDownUp('arrow_left', keyProxy());
+      keyDownUp('arrow_left');
       expect(getData()[2][2]).toEqual('Ted');
       expect(getSelected()).toEqual([2, 1, 2, 1]);
     });
