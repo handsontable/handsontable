@@ -35,7 +35,7 @@ describe('ContextMenu', function () {
     expect($('ul.context-menu-list li.disabled').length).toEqual(2);
   });
 
-  it('should disable Insert row in context menu when maxRows is reached', function () {
+  it('should disable Insert col in context menu when maxCols is reached', function () {
     handsontable({
       startCols: 5,
       maxCols: 5,
