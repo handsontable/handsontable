@@ -6,7 +6,6 @@
  */
 Handsontable.Core = function (rootElement, settings) {
   this.rootElement = rootElement;
-  //this.rootElement.attr("tabindex", 100000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/
 
   var priv, datamap, grid, selection, editproxy, autofill, validate, self = this;
 
