@@ -1424,7 +1424,6 @@ Handsontable.Core = function (rootElement, settings) {
     if (self.view) {
       self.forceFullRender = true; //used when data was changed
       selection.refreshBorders(null, true);
-      //priv.editProxy.triggerHandler('refreshBorder'); //refresh size of the textarea in case cell dimensions have changed
     }
   };
 

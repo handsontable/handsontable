@@ -25,13 +25,12 @@ function HandsontableTextEditorClass(instance) {
    }
    });*/
 
-  /*instance.that.TEXTAREA.on('refreshBorder.editor', function () {
-   setTimeout(function () {
-   if (that.isCellEdited) {
-   texteditor.refreshDimensions(row, col);
-   }
-   }, 0);
-   });*/
+  var that = this;
+  Handsontable.PluginHooks.push('afterRender', function () {
+    setTimeout(function () {
+      that.refreshDimensions();
+    }, 0);
+  });
 }
 
 HandsontableTextEditorClass.prototype.bindEvents = function () {
@@ -182,25 +181,25 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
 
   this.instance.rootElement.append(this.TEXTAREA_PARENT);
 
-  this.refreshDimensions(row, col); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
+  this.refreshDimensions(); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
   this.TEXTAREA[0].focus();
   this.setCaretPosition(this.TEXTAREA[0], this.TEXTAREA[0].value.length);
 
   if (this.instance.getSettings().asyncRendering) {
     var that = this;
     setTimeout(function () {
-      that.refreshDimensions(row, col); //need it after rerender to reposition in case scroll was moved
+      that.refreshDimensions(); //need it after rerender to reposition in case scroll was moved
     }, 0);
   }
 }
 
-HandsontableTextEditorClass.prototype.refreshDimensions = function (row, col) {
+HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   if (!this.isCellEdited) {
     return;
   }
 
   ///start prepare textarea position
-  var $td = $(this.instance.getCell(row, col)); //because old td may have been scrolled out with scrollViewport
+  var $td = $(this.instance.getCell(this.row, this.col)); //because old td may have been scrolled out with scrollViewport
   var currentOffset = $td.offset();
   var containerOffset = this.instance.rootElement.offset();
   var scrollTop = this.instance.rootElement.scrollTop();

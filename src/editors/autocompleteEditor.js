@@ -40,6 +40,13 @@ function HandsontableAutocompleteEditorClass(instance) {
   typeahead.matcher = function () {
     return true;
   };
+
+  var that = this;
+  Handsontable.PluginHooks.push('afterRender', function () {
+    setTimeout(function () {
+      that.refreshDimensions();
+    }, 0);
+  });
 }
 
 for (var i in HandsontableTextEditorClass.prototype) {

@@ -282,10 +282,10 @@ Handsontable.TableView.prototype.render = function () {
   }
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.rootElement.triggerHandler('render.handsontable');
-  this.instance.forceFullRender = false;
   if (this.instance.forceFullRender) {
     Handsontable.PluginHooks.run(this.instance, 'afterRender');
   }
+  this.instance.forceFullRender = false;
 };
 
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {

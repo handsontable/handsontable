@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Feb 26 2013 15:38:03 GMT+0100 (Central European Standard Time)
+ * Date: Tue Feb 26 2013 15:57:20 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1443,7 +1443,6 @@ Handsontable.Core = function (rootElement, settings) {
     if (self.view) {
       self.forceFullRender = true; //used when data was changed
       selection.refreshBorders(null, true);
-      //priv.editProxy.triggerHandler('refreshBorder'); //refresh size of the textarea in case cell dimensions have changed
     }
   };
 
@@ -2290,10 +2289,10 @@ Handsontable.TableView.prototype.render = function () {
   }
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.rootElement.triggerHandler('render.handsontable');
-  this.instance.forceFullRender = false;
   if (this.instance.forceFullRender) {
     Handsontable.PluginHooks.run(this.instance, 'afterRender');
   }
+  this.instance.forceFullRender = false;
 };
 
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {
@@ -2622,13 +2621,12 @@ function HandsontableTextEditorClass(instance) {
    }
    });*/
 
-  /*instance.that.TEXTAREA.on('refreshBorder.editor', function () {
-   setTimeout(function () {
-   if (that.isCellEdited) {
-   texteditor.refreshDimensions(row, col);
-   }
-   }, 0);
-   });*/
+  var that = this;
+  Handsontable.PluginHooks.push('afterRender', function () {
+    setTimeout(function () {
+      that.refreshDimensions();
+    }, 0);
+  });
 }
 
 HandsontableTextEditorClass.prototype.bindEvents = function () {
@@ -2779,25 +2777,25 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
 
   this.instance.rootElement.append(this.TEXTAREA_PARENT);
 
-  this.refreshDimensions(row, col); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
+  this.refreshDimensions(); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
   this.TEXTAREA[0].focus();
   this.setCaretPosition(this.TEXTAREA[0], this.TEXTAREA[0].value.length);
 
   if (this.instance.getSettings().asyncRendering) {
     var that = this;
     setTimeout(function () {
-      that.refreshDimensions(row, col); //need it after rerender to reposition in case scroll was moved
+      that.refreshDimensions(); //need it after rerender to reposition in case scroll was moved
     }, 0);
   }
 }
 
-HandsontableTextEditorClass.prototype.refreshDimensions = function (row, col) {
+HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   if (!this.isCellEdited) {
     return;
   }
 
   ///start prepare textarea position
-  var $td = $(this.instance.getCell(row, col)); //because old td may have been scrolled out with scrollViewport
+  var $td = $(this.instance.getCell(this.row, this.col)); //because old td may have been scrolled out with scrollViewport
   var currentOffset = $td.offset();
   var containerOffset = this.instance.rootElement.offset();
   var scrollTop = this.instance.rootElement.scrollTop();
@@ -2999,6 +2997,13 @@ function HandsontableAutocompleteEditorClass(instance) {
   typeahead.matcher = function () {
     return true;
   };
+
+  var that = this;
+  Handsontable.PluginHooks.push('afterRender', function () {
+    setTimeout(function () {
+      that.refreshDimensions();
+    }, 0);
+  });
 }
 
 for (var i in HandsontableTextEditorClass.prototype) {
