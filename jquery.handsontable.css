@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Feb 26 2013 19:20:27 GMT+0100 (Central European Standard Time)
+ * Date: Tue Feb 26 2013 19:37:40 GMT+0100 (Central European Standard Time)
  */
 
 .handsontable {
@@ -222,6 +222,13 @@ AutocompleteRenderer down arrow
 
 .handsontable td .htAutocompleteArrow:hover {
   color: #777;
+}
+
+/*
+NumericRenderer
+*/
+.handsontable .htNumeric {
+  text-align: right;
 }
 
 /* typeahead rules. Needed only if you are using the autocomplete feature */

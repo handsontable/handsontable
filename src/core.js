@@ -1269,6 +1269,13 @@ Handsontable.Core = function (rootElement, settings) {
         if (changes[i] === null) {
           changes.splice(i, 1);
         }
+
+        var cellProperties = self.getCellMeta(changes[i][0], changes[i][1]);
+        if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
+          if (changes[i][3].length > 0 && /^[0-9\s]*[.]*[0-9]*$/.test(changes[i][3])) {
+            changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+          }
+        }
       }
 
       if (priv.settings.onBeforeChange && changes.length) {
@@ -1701,17 +1708,32 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Object}
    */
   this.getCellMeta = function (row, col) {
-    var cellProperites = {}
+    var cellProperties = {}
       , prop = datamap.colToProp(col);
     if (priv.settings.columns) {
-      cellProperites = $.extend(true, cellProperites, priv.settings.columns[col] || {});
+      cellProperties = $.extend(true, cellProperties, priv.settings.columns[col] || {});
     }
     if (priv.settings.cells) {
-      cellProperites = $.extend(true, cellProperites, priv.settings.cells(row, col, prop) || {});
+      cellProperties = $.extend(true, cellProperties, priv.settings.cells(row, col, prop) || {});
     }
-    cellProperites.isWritable = !cellProperites.readOnly;
-    Handsontable.PluginHooks.run(self, 'afterGetCellMeta', row, col, cellProperites);
-    return cellProperites;
+
+    if (typeof cellProperties.type === 'string' && Handsontable.cellTypes[cellProperties.type]) {
+      cellProperties = $.extend(true, cellProperties, Handsontable.cellTypes[cellProperties.type]);
+    }
+    else if (typeof cellProperties.type === 'object') {
+      for (var i in cellProperties.type) {
+        if (cellProperties.type.hasOwnProperty(i)) {
+          cellProperties[i] = cellProperties.type[i];
+        }
+      }
+    }
+    else {
+      cellProperties = $.extend(true, cellProperties, Handsontable.TextCell);
+    }
+
+    cellProperties.isWritable = !cellProperties.readOnly;
+    Handsontable.PluginHooks.run(self, 'afterGetCellMeta', row, col, cellProperties);
+    return cellProperties;
   };
 
   /**

@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Feb 26 2013 19:20:27 GMT+0100 (Central European Standard Time)
+ * Date: Tue Feb 26 2013 19:37:40 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1288,6 +1288,13 @@ Handsontable.Core = function (rootElement, settings) {
         if (changes[i] === null) {
           changes.splice(i, 1);
         }
+
+        var cellProperties = self.getCellMeta(changes[i][0], changes[i][1]);
+        if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
+          if (changes[i][3].length > 0 && /^[0-9\s]*[.]*[0-9]*$/.test(changes[i][3])) {
+            changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+          }
+        }
       }
 
       if (priv.settings.onBeforeChange && changes.length) {
@@ -1720,17 +1727,32 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Object}
    */
   this.getCellMeta = function (row, col) {
-    var cellProperites = {}
+    var cellProperties = {}
       , prop = datamap.colToProp(col);
     if (priv.settings.columns) {
-      cellProperites = $.extend(true, cellProperites, priv.settings.columns[col] || {});
+      cellProperties = $.extend(true, cellProperties, priv.settings.columns[col] || {});
     }
     if (priv.settings.cells) {
-      cellProperites = $.extend(true, cellProperites, priv.settings.cells(row, col, prop) || {});
+      cellProperties = $.extend(true, cellProperties, priv.settings.cells(row, col, prop) || {});
     }
-    cellProperites.isWritable = !cellProperites.readOnly;
-    Handsontable.PluginHooks.run(self, 'afterGetCellMeta', row, col, cellProperites);
-    return cellProperites;
+
+    if (typeof cellProperties.type === 'string' && Handsontable.cellTypes[cellProperties.type]) {
+      cellProperties = $.extend(true, cellProperties, Handsontable.cellTypes[cellProperties.type]);
+    }
+    else if (typeof cellProperties.type === 'object') {
+      for (var i in cellProperties.type) {
+        if (cellProperties.type.hasOwnProperty(i)) {
+          cellProperties[i] = cellProperties.type[i];
+        }
+      }
+    }
+    else {
+      cellProperties = $.extend(true, cellProperties, Handsontable.TextCell);
+    }
+
+    cellProperties.isWritable = !cellProperties.readOnly;
+    Handsontable.PluginHooks.run(self, 'afterGetCellMeta', row, col, cellProperties);
+    return cellProperties;
   };
 
   /**
@@ -2297,28 +2319,8 @@ Handsontable.TableView.prototype.render = function () {
 
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {
   var prop = this.instance.colToProp(col)
-    , method
     , cellProperties = this.instance.getCellMeta(row, col);
-
-  if (typeof cellProperties.type === 'string') {
-    switch (cellProperties.type) {
-      case 'autocomplete':
-        cellProperties.type = Handsontable.AutocompleteCell;
-        break;
-
-      case 'checkbox':
-        cellProperties.type = Handsontable.CheckboxCell;
-        break;
-    }
-  }
-
-  if (cellProperties.type && typeof cellProperties.type[methodName] === "function") {
-    method = cellProperties.type[methodName];
-  }
-  if (typeof method !== "function") {
-    method = Handsontable.TextCell[methodName];
-  }
-  return method(this.instance, td, row, col, prop, this.instance.getDataAtCell(row, col), cellProperties);
+  return cellProperties[methodName](this.instance, td, row, col, prop, this.instance.getDataAtCell(row, col), cellProperties);
 };
 
 /**
@@ -2593,6 +2595,28 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, c
   });
 
   return td;
+};
+/**
+ * Numeric cell renderer
+ * @param {Object} instance Handsontable instance
+ * @param {Element} td Table cell where to render
+ * @param {Number} row
+ * @param {Number} col
+ * @param {String|Number} prop Row object property name
+ * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
+ * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
+ */
+Handsontable.NumericRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+  if (typeof value === 'number') {
+    if (typeof cellProperties.language !== 'undefined') {
+      numeral.language(cellProperties.language)
+    }
+    td.innerHTML = numeral(value).format(cellProperties.format || '0'); //docs: http://numeraljs.com/
+    td.className = 'htNumeric';
+  }
+  else {
+    Handsontable.TextRenderer(instance, td, row, col, prop, value, cellProperties);
+  }
 };
 function HandsontableTextEditorClass(instance) {
   this.isCellEdited = false;
@@ -3211,6 +3235,10 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, value, cel
     instance.view.wt.update('onCellDblClick', null);
   }
 };
+/**
+ * Cell type is just a shortcut for setting bunch of cellProperties (used in getCellMeta)
+ */
+
 Handsontable.AutocompleteCell = {
   renderer: Handsontable.AutocompleteRenderer,
   editor: Handsontable.AutocompleteEditor
@@ -3225,6 +3253,19 @@ Handsontable.TextCell = {
   renderer: Handsontable.TextRenderer,
   editor: Handsontable.TextEditor
 };
+
+Handsontable.NumericCell = {
+  renderer: Handsontable.NumericRenderer,
+  editor: Handsontable.TextEditor,
+  dataType: 'number'
+};
+
+Handsontable.cellTypes = {
+  autocomplete: Handsontable.AutocompleteCell,
+  checkbox: Handsontable.CheckboxCell,
+  text: Handsontable.TextCell,
+  numeric: Handsontable.NumericCell
+}
 Handsontable.PluginHooks = {
   hooks: {
     beforeInit: [],

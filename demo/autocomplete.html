@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Autocomplete - Handsontable</title>
+  <title>Autocomplete cell type - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -22,7 +22,7 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Autocomplete">
+  <meta property="og:title" content="Autocomplete cell type">
   <meta property="og:description"
         content="This example shows the usage of the Autocomplete feature.">
   <meta property="og:url" content="http://handsontable.com/demo/autocomplete.html">
@@ -66,9 +66,9 @@
         for HTML, JavaScript &amp; jQuery
       </div>
 
-      <h2>Autocomplete</h2>
+      <h2>Autocomplete cell type</h2>
 
-      <p>This page shows how to use Handsontable with various data sources:</p>
+      <p>This page shows how to configure Handsontable with Autocomplete cell type:</p>
 
       <ul>
         <li><a href="#lazy">Autocomplete lazy mode</a></li>
@@ -132,7 +132,7 @@
               source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
               strict: false
             },
-            {},
+            {type: 'numeric'},
             {
               type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],

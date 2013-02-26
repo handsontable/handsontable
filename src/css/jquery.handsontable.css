@@ -224,6 +224,13 @@ AutocompleteRenderer down arrow
   color: #777;
 }
 
+/*
+NumericRenderer
+*/
+.handsontable .htNumeric {
+  text-align: right;
+}
+
 /* typeahead rules. Needed only if you are using the autocomplete feature */
 .typeahead {
   position: absolute;

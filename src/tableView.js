@@ -290,28 +290,8 @@ Handsontable.TableView.prototype.render = function () {
 
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {
   var prop = this.instance.colToProp(col)
-    , method
     , cellProperties = this.instance.getCellMeta(row, col);
-
-  if (typeof cellProperties.type === 'string') {
-    switch (cellProperties.type) {
-      case 'autocomplete':
-        cellProperties.type = Handsontable.AutocompleteCell;
-        break;
-
-      case 'checkbox':
-        cellProperties.type = Handsontable.CheckboxCell;
-        break;
-    }
-  }
-
-  if (cellProperties.type && typeof cellProperties.type[methodName] === "function") {
-    method = cellProperties.type[methodName];
-  }
-  if (typeof method !== "function") {
-    method = Handsontable.TextCell[methodName];
-  }
-  return method(this.instance, td, row, col, prop, this.instance.getDataAtCell(row, col), cellProperties);
+  return cellProperties[methodName](this.instance, td, row, col, prop, this.instance.getDataAtCell(row, col), cellProperties);
 };
 
 /**

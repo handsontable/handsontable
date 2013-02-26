@@ -36,6 +36,7 @@ module.exports = function (grunt) {
           'src/renderers/textRenderer.js',
           'src/renderers/autocompleteRenderer.js',
           'src/renderers/checkboxRenderer.js',
+          'src/renderers/numericRenderer.js',
 
           'src/editors/textEditor.js',
           'src/editors/autocompleteEditor.js',
@@ -64,6 +65,7 @@ module.exports = function (grunt) {
         src: [
           'jquery.handsontable.js',
           'lib/bootstrap-typeahead.js',
+          'lib/numeral.js',
           'lib/jQuery-contextMenu/jquery.contextMenu.js'
           //'lib/jQuery-contextMenu/jquery.ui.position.js' //seems to have no effect when turned off on contextmenu.html
         ],

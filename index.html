@@ -7,7 +7,7 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script src="lib/jquery.min.js"></script>
+  <script src="lib/jquery.js"></script>
   <script src="dist/jquery.handsontable.full.js"></script>
   <link rel="stylesheet" media="screen" href="dist/jquery.handsontable.full.css">
 
@@ -75,25 +75,27 @@
     <div id="example"></div>
 
     <script>
-      var data = [
-        ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
-        ["2009", 0, 2941, 4303, 354, 5814],
-        ["2010", 5, 2905, 2867, 412, 5284],
-        ["2011", 4, 2517, 4822, 552, 6127],
-        ["2012", 2, 2422, 5399, 776, 4151]
-      ];
+      $(document).ready(function () {
+        var data = [
+          ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
+          ["2009", 0, 2941, 4303, 354, 5814],
+          ["2010", 5, 2905, 2867, 412, 5284],
+          ["2011", 4, 2517, 4822, 552, 6127],
+          ["2012", 2, 2422, 5399, 776, 4151]
+        ];
 
-      $('#example').handsontable({
-        data: data,
-        minRows: 5,
-        minCols: 6,
-        minSpareRows: 1,
-        autoWrapRow: true,
-        colHeaders: true,
-        contextMenu: true
+        $('#example').handsontable({
+          data: data,
+          minRows: 5,
+          minCols: 6,
+          minSpareRows: 1,
+          autoWrapRow: true,
+          colHeaders: true,
+          contextMenu: true
+        });
+
+        $('.ver').text($('#example').data('handsontable').version);
       });
-
-      $('.ver').html($('#example').data('handsontable').version);
     </script>
 
     <h2>Examples and how-to's</h2>
@@ -131,6 +133,9 @@
     <div class="linkColumn">
       <h3>Editing</h3>
       <ul>
+        <li>
+          <a href="demo/numeric.html">Numeric</a>
+        </li>
         <li>
           <a href="demo/autocomplete.html">Autocomplete</a>
         </li>
