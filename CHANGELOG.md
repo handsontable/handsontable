@@ -2,6 +2,7 @@
 
 Features:
 - numeric cell type. Updated pages [Numeric](http://handsontable.com/demo/numeric.html) and [Column sorting](http://handsontable.com/demo/sorting.html). Solves issues [#443](https://github.com/warpech/jquery-handsontable/issues/443), [#397](https://github.com/warpech/jquery-handsontable/issues/397), [#336](https://github.com/warpech/jquery-handsontable/issues/336). Partially solves issue ([#121](https://github.com/warpech/jquery-handsontable/issues/121)
+- make autoColumnSize feature aware of renderer functions (before this, cells rendered with autocomplete and numeric renderer were too narrow)
 
 Bugfix:
 - scrolls to top of table on any key press if the top is not on the screen ([#348](https://github.com/warpech/jquery-handsontable/issues/348))

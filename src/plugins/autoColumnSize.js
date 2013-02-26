@@ -9,6 +9,8 @@ function HandsontableAutoColumnSize() {
     , $tmp
     , tmpTbody
     , tmpThead
+    , tmpNoRenderer
+    , tmpRenderer
     , sampleCount = 5; //number of samples to take of each value length
 
   this.beforeInit = function () {
@@ -18,28 +20,48 @@ function HandsontableAutoColumnSize() {
   this.determineColumnWidth = function (col) {
     if (!tmp) {
       tmp = document.createElement('DIV');
+      tmp.className = 'handsontable';
       tmp.style.position = 'absolute';
       tmp.style.top = '0';
       tmp.style.left = '0';
       tmp.style.display = 'none';
 
-      tmpTbody = $('<table><thead><tr><td></td></tr></thead></table>')[0];
+      tmpThead = $('<table><thead><tr><td></td></tr></thead></table>')[0];
+      tmp.appendChild(tmpThead);
+
+      tmp.appendChild(document.createElement('BR'));
+
+      tmpTbody = $('<table><tbody><tr><td></td></tr></tbody></table>')[0];
       tmp.appendChild(tmpTbody);
 
       tmp.appendChild(document.createElement('BR'));
 
-      tmpThead = $('<table><tbody><tr><td></td></tr></tbody></table>')[0];
-      tmp.appendChild(tmpThead);
+      tmpNoRenderer = $('<table class="htTable"><tbody><tr><td></td></tr></tbody></table>')[0];
+      tmp.appendChild(tmpNoRenderer);
+
+      tmp.appendChild(document.createElement('BR'));
+
+      tmpRenderer = $('<table class="htTable"><tbody><tr><td></td></tr></tbody></table>')[0];
+      tmp.appendChild(tmpRenderer);
 
       document.body.appendChild(tmp);
       $tmp = $(tmp);
+
+      $tmp.find('table').css({
+        tableLayout: 'auto',
+        width: 'auto'
+      });
     }
 
     var rows = instance.countRows();
     var samples = {};
+    var maxLen = 0;
     for (var r = 0; r < rows; r++) {
       var value = Handsontable.helper.stringify(instance.getDataAtCell(r, col));
       var len = value.length;
+      if (len > maxLen) {
+        maxLen = len;
+      }
       if (!samples[len]) {
         samples[len] = {
           needed: sampleCount,
@@ -67,8 +89,23 @@ function HandsontableAutoColumnSize() {
     }
     tmpTbody.firstChild.firstChild.firstChild.innerHTML = txt; //TD innerHTML
 
+    $(tmpRenderer.firstChild.firstChild.firstChild).empty();
+    $(tmpNoRenderer.firstChild.firstChild.firstChild).empty();
+
     tmp.style.display = 'block';
     var width = $tmp.outerWidth();
+
+    var cellProperties = instance.getCellMeta(0, col);
+    if (cellProperties.renderer) {
+      var str = 9999999999;
+
+      tmpNoRenderer.firstChild.firstChild.firstChild.innerHTML = str;
+
+      cellProperties.renderer(instance, tmpRenderer.firstChild.firstChild.firstChild, 0, col, instance.colToProp(col), str, cellProperties);
+
+      width += $(tmpRenderer).width() - $(tmpNoRenderer).width(); //add renderer overhead to the calculated width
+    }
+
     tmp.style.display = 'none';
     return width;
   };
