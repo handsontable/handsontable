@@ -20,7 +20,7 @@
  */
 module.exports = function (grunt) {
   grunt.initConfig({
-    pkg: '<json:package.json>',
+    pkg: grunt.file.readJSON('package.json'),
     concat: {
       dist: {
         src: [
