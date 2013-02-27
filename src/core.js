@@ -1716,6 +1716,7 @@ Handsontable.Core = function (rootElement, settings) {
     if (priv.settings.cells) {
       cellProperties = $.extend(true, cellProperties, priv.settings.cells(row, col, prop) || {});
     }
+    Handsontable.PluginHooks.run(self, 'beforeGetCellMeta', row, col, cellProperties);
 
     if (typeof cellProperties.type === 'string' && Handsontable.cellTypes[cellProperties.type]) {
       cellProperties = $.extend(true, cellProperties, Handsontable.cellTypes[cellProperties.type]);

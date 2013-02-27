@@ -7,6 +7,7 @@ Handsontable.PluginHooks = {
     afterRender: [],
     beforeGet: [],
     beforeSet: [],
+    beforeGetCellMeta: [],
     afterGetCellMeta: [],
     afterGetColHeader: [],
     afterGetColWidth: [],

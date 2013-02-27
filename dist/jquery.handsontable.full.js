@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Feb 26 2013 19:50:30 GMT+0100 (Central European Standard Time)
+ * Date: Wed Feb 27 2013 13:38:23 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1735,6 +1735,7 @@ Handsontable.Core = function (rootElement, settings) {
     if (priv.settings.cells) {
       cellProperties = $.extend(true, cellProperties, priv.settings.cells(row, col, prop) || {});
     }
+    Handsontable.PluginHooks.run(self, 'beforeGetCellMeta', row, col, cellProperties);
 
     if (typeof cellProperties.type === 'string' && Handsontable.cellTypes[cellProperties.type]) {
       cellProperties = $.extend(true, cellProperties, Handsontable.cellTypes[cellProperties.type]);
@@ -3275,6 +3276,7 @@ Handsontable.PluginHooks = {
     afterRender: [],
     beforeGet: [],
     beforeSet: [],
+    beforeGetCellMeta: [],
     afterGetCellMeta: [],
     afterGetColHeader: [],
     afterGetColWidth: [],
@@ -3680,7 +3682,7 @@ Handsontable.PluginHooks.push('afterInit', createContextMenu);
  * Support for old autocomplete syntax
  * For old syntax, see: https://github.com/warpech/jquery-handsontable/blob/8c9e701d090ea4620fe08b6a1a048672fadf6c7e/README.md#defining-autocomplete
  */
-Handsontable.PluginHooks.push('afterGetCellMeta', function (row, col, cellProperties) {
+Handsontable.PluginHooks.push('beforeGetCellMeta', function (row, col, cellProperties) {
   var settings = this.getSettings(), data = this.getData(), i, ilen, a;
   if (settings.autoComplete) {
     for (i = 0, ilen = settings.autoComplete.length; i < ilen; i++) {
