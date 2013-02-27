@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Feb 27 2013 13:52:55 GMT+0100 (Central European Standard Time)
+ * Date: Wed Feb 27 2013 14:05:30 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3067,7 +3067,7 @@ HandsontableAutocompleteEditorClass.prototype._finishEditing = HandsontableTextE
 
 HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (this.isMenuExpanded()) {
-    this.typeahead.select(true);
+    this.typeahead.select();
   }
   this._finishEditing(isCancelled, ctrlDown);
 }
@@ -3104,14 +3104,13 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, value,
 
   var typeahead = instance.autocompleteEditor.typeahead;
 
-  typeahead.select = function (calledFromFinishEditing) {
+  typeahead.select = function () {
+    var output = this.hide(); //need to hide it before destroyEditor, because destroyEditor checks if menu is expanded
     if (this.$menu.find('.active').length) {
       instance.autocompleteEditor.TEXTAREA.val(this.$menu.find('.active').attr('data-value'));
     }
-    if (!calledFromFinishEditing) {
-      instance.destroyEditor();
-    }
-    return this.hide();
+    instance.destroyEditor();
+    return output;
   };
 
   typeahead.render = function (items) {
