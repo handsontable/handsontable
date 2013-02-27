@@ -268,23 +268,17 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
 HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (this.isCellEdited) {
     this.isCellEdited = false;
-    var val;
-    if (isCancelled) {
-      val = [
-        [this.originalValue]
-      ];
-    }
-    else {
-      val = [
+    if (!isCancelled) {
+      var val = [
         [$.trim(this.TEXTAREA[0].value)]
       ];
-    }
-    if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
-      var sel = this.instance.getSelected();
-      this.instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
-    }
-    else {
-      this.instance.populateFromArray({row: this.row, col: this.col}, val, null, false, 'edit');
+      if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
+        var sel = this.instance.getSelected();
+        this.instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
+      }
+      else {
+        this.instance.populateFromArray({row: this.row, col: this.col}, val, null, false, 'edit');
+      }
     }
   }
 

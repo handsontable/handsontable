@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Feb 27 2013 14:42:37 GMT+0100 (Central European Standard Time)
+ * Date: Wed Feb 27 2013 18:42:50 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2895,23 +2895,17 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
 HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (this.isCellEdited) {
     this.isCellEdited = false;
-    var val;
-    if (isCancelled) {
-      val = [
-        [this.originalValue]
-      ];
-    }
-    else {
-      val = [
+    if (!isCancelled) {
+      var val = [
         [$.trim(this.TEXTAREA[0].value)]
       ];
-    }
-    if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
-      var sel = this.instance.getSelected();
-      this.instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
-    }
-    else {
-      this.instance.populateFromArray({row: this.row, col: this.col}, val, null, false, 'edit');
+      if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
+        var sel = this.instance.getSelected();
+        this.instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
+      }
+      else {
+        this.instance.populateFromArray({row: this.row, col: this.col}, val, null, false, 'edit');
+      }
     }
   }
 
@@ -3074,7 +3068,7 @@ HandsontableAutocompleteEditorClass.prototype.beginEditing = function (row, col,
 HandsontableAutocompleteEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
 
 HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
-  if (this.isMenuExpanded() && !isCancelled) {
+  if (this.isMenuExpanded() && this.typeahead.$menu.find('.active').length && !isCancelled) {
     this.typeahead.select();
   }
   this._finishEditing(isCancelled, ctrlDown);
@@ -3114,10 +3108,13 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, value,
 
   typeahead.select = function () {
     var output = this.hide(); //need to hide it before destroyEditor, because destroyEditor checks if menu is expanded
-    if (this.$menu.find('.active').length) {
-      instance.autocompleteEditor.TEXTAREA.val(this.$menu.find('.active').attr('data-value'));
+    instance.destroyEditor(true);
+    if (typeof cellProperties.onSelect === 'function') {
+      cellProperties.onSelect(row, col, prop, this.$menu.find('.active').attr('data-value'), this.$menu.find('.active').index());
     }
-    instance.destroyEditor();
+    else {
+      instance.setDataAtCell(row, prop, this.$menu.find('.active').attr('data-value'));
+    }
     return output;
   };
 
