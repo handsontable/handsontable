@@ -289,7 +289,9 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
   }
 
   this.instance.$table.off(".editor");
-  this.instance.$table[0].focus();
+  if (document.activeElement === this.TEXTAREA) {
+    this.instance.$table[0].focus(); //don't refocus the table if user focused some cell outside of HT on purpose
+  }
   this.instance.view.wt.update('onCellDblClick', null);
 
   this.TEXTAREA_PARENT[0].style.display = 'none';
