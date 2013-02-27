@@ -74,6 +74,12 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
     }
   });
 
+  this.TEXTAREA_PARENT.on('keyup.acEditor', function (event) {
+    if (Handsontable.helper.isPrintableChar(event.keyCode) || event.keyCode === 113 || event.keyCode === 13 || event.keyCode === 8 || event.keyCode === 46) {
+      that.typeahead.lookup();
+    }
+  });
+
   this._bindEvents();
 }
 
@@ -160,17 +166,14 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, value,
   var that = this;
   instance.$table.on('keydown.editor', function (event) {
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-    var lookupOnKeyUp = false;
     if (!instance.autocompleteEditor.isCellEdited) {
       if (Handsontable.helper.isPrintableChar(event.keyCode)) {
         if (!ctrlDown) { //disregard CTRL-key shortcuts
           instance.autocompleteEditor.beginEditing(row, col, prop);
-          lookupOnKeyUp = true;
         }
       }
       else if (event.keyCode === 113) { //f2
         instance.autocompleteEditor.beginEditing(row, col, prop, true); //show edit field
-        lookupOnKeyUp = true;
         event.stopPropagation();
         event.preventDefault(); //prevent Opera from opening Go to Page dialog
       }
@@ -179,20 +182,13 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, value,
         var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
         if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
           instance.autocompleteEditor.beginEditing(row, col, prop, true, '\n'); //show edit field
-          lookupOnKeyUp = true;
         }
         else {
           instance.autocompleteEditor.beginEditing(row, col, prop, true); //show edit field
-          lookupOnKeyUp = true;
         }
         event.preventDefault(); //prevent new line at the end of textarea
         event.stopPropagation();
       }
-    }
-    if (lookupOnKeyUp) {
-      instance.autocompleteEditor.TEXTAREA_PARENT.one('keyup.acEditor', function (event) {
-        instance.autocompleteEditor.typeahead.lookup();
-      });
     }
   });
 

@@ -234,4 +234,23 @@ describe('AutocompleteEditor', function () {
       expect(li.length).toEqual(10);
     });
   });
+
+  it('typing in textarea should refresh the lookup list', function () {
+    runs(function () {
+      handsontable({
+        autoComplete: getAutocompleteConfig(false),
+        asyncRendering: false //TODO make sure tests pass also when async true
+      });
+      selectCell(2, 2);
+      keyDownUp('enter');
+
+      autocomplete().$element.val("e");
+      keyUp(69); //e
+      expect(autocomplete().$menu.find('li:eq(0)').data('value')).toEqual('yellow');
+
+      autocomplete().$element.val("ed");
+      keyUp(68); //e
+      expect(autocomplete().$menu.find('li:eq(0)').data('value')).toEqual('red');
+    });
+  });
 });
