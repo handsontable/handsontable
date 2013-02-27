@@ -1,7 +1,7 @@
 /**
- * walkontable 0.1
+ * walkontable 0.2.0
  * 
- * Date: Mon Feb 18 2013 19:31:46 GMT+0100 (Central European Standard Time)
+ * Date: Wed Feb 27 2013 12:41:20 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -239,6 +239,7 @@ Walkontable.prototype._doDraw = function (selectionsOnly) {
   this.lastOffsetRow = this.getSetting('offsetRow');
   this.lastOffsetColumn = this.getSetting('offsetColumn');
   this.wtTable.draw(selectionsOnly);
+  this.getSetting('onDraw');
 };
 
 Walkontable.prototype.update = function (settings, value) {
@@ -1294,6 +1295,7 @@ function WalkontableSettings(instance, settings) {
     onCellDblClick: null,
     onCellCornerMouseDown: null,
     onCellCornerDblClick: null,
+    onDraw: null,
 
     //constants
     scrollbarWidth: 10,

@@ -4,6 +4,7 @@
  */
 Handsontable.TableView = function (instance) {
   var that = this;
+  var $window = $(window);
 
   this.instance = instance;
   var settings = this.instance.getSettings();
@@ -22,8 +23,8 @@ Handsontable.TableView = function (instance) {
     this.overflow = 'auto';
   }
   if (this.overflow === 'scroll' || this.overflow === 'auto') {
-    //instance.rootElement[0].style.overflow = 'visible';
-    instance.rootElement[0].style.overflow = 'hidden';
+    instance.rootElement[0].style.overflow = 'visible';
+    //instance.rootElement[0].style.overflow = 'hidden';
   }
   this.determineContainerSize();
   //instance.rootElement[0].style.height = '';
@@ -221,6 +222,9 @@ Handsontable.TableView = function (instance) {
     },
     onCellCornerDblClick: function (event) {
       instance.autofill.selectAdjacent();
+    },
+    onDraw: function (event) {
+      $window.trigger('resize');
     }
   };
 
@@ -230,19 +234,20 @@ Handsontable.TableView = function (instance) {
   this.instance.forceFullRender = true; //used when data was changed
   this.render();
 
-  var $window = $(window);
-  var lastWidth = $window.width();
-  var lastHeight = $window.height();
+  var resizeTimeout;
   $window.on('resize', function () {
-    if (!that.isCellEdited() && ($window.width() !== lastWidth || $window.height() !== lastHeight)) {
-      lastWidth = $window.width();
-      lastHeight = $window.height();
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(function () {
+      var lastContainerWidth = that.containerWidth;
+      var lastContainerHeight = that.containerHeight;
       that.determineContainerSize();
-      that.wt.update('width', that.containerWidth);
-      that.wt.update('height', that.containerHeight);
-      that.instance.forceFullRender = true;
-      that.render();
-    }
+      if (lastContainerWidth !== that.containerWidth || lastContainerHeight !== that.containerHeight) {
+        that.wt.update('width', that.containerWidth);
+        that.wt.update('height', that.containerHeight);
+        that.instance.forceFullRender = true;
+        that.render();
+      }
+    }, 60);
   });
 
   $(that.wt.wtTable.spreader).on('mousedown.handsontable, contextmenu.handsontable', function (event) {
@@ -257,7 +262,6 @@ Handsontable.TableView.prototype.isCellEdited = function () {
 };
 
 Handsontable.TableView.prototype.determineContainerSize = function () {
-  this.instance.rootElement[0].firstChild.style.display = 'none';
   var settings = this.instance.getSettings();
   this.containerWidth = settings.width;
   this.containerHeight = settings.height;
@@ -273,7 +277,6 @@ Handsontable.TableView.prototype.determineContainerSize = function () {
       this.containerHeight = computedHeight;
     }
   }
-  this.instance.rootElement[0].firstChild.style.display = 'table';
 };
 
 Handsontable.TableView.prototype.render = function () {

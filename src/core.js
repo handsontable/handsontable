@@ -2004,7 +2004,10 @@ $.fn.handsontable = function (action) {
       }
     }
     this.each(function () {
-      output = $(this).data("handsontable")[action].apply(this, args);
+      var instance = $(this).data("handsontable");
+      if (instance) {
+        output = instance[action].apply(this, args);
+      }
     });
     return output;
   }
