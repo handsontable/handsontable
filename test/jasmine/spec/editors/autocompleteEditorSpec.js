@@ -253,4 +253,21 @@ describe('AutocompleteEditor', function () {
       expect(autocomplete().$menu.find('li:eq(0)').data('value')).toEqual('red');
     });
   });
+
+  it('cancel editing (Esc) should restore the previous value', function () {
+    runs(function () {
+      handsontable({
+        autoComplete: getAutocompleteConfig(false),
+        asyncRendering: false //TODO make sure tests pass also when async true
+      });
+      setDataAtCell(2, 2, 'black');
+      selectCell(2, 2);
+      keyDownUp('enter');
+
+      autocomplete().$element.val("ye");
+      keyUp(69); //e
+      keyDownUp('esc');
+      expect(getDataAtCell(2, 2)).toEqual('black');
+    });
+  });
 });

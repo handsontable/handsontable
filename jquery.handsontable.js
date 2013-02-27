@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Feb 27 2013 14:39:20 GMT+0100 (Central European Standard Time)
+ * Date: Wed Feb 27 2013 14:42:37 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3074,7 +3074,7 @@ HandsontableAutocompleteEditorClass.prototype.beginEditing = function (row, col,
 HandsontableAutocompleteEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
 
 HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
-  if (this.isMenuExpanded()) {
+  if (this.isMenuExpanded() && !isCancelled) {
     this.typeahead.select();
   }
   this._finishEditing(isCancelled, ctrlDown);

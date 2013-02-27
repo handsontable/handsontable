@@ -92,7 +92,7 @@ HandsontableAutocompleteEditorClass.prototype.beginEditing = function (row, col,
 HandsontableAutocompleteEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
 
 HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
-  if (this.isMenuExpanded()) {
+  if (this.isMenuExpanded() && !isCancelled) {
     this.typeahead.select();
   }
   this._finishEditing(isCancelled, ctrlDown);
