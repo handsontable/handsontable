@@ -294,7 +294,9 @@ Handsontable.TableView.prototype.render = function () {
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {
   var prop = this.instance.colToProp(col)
     , cellProperties = this.instance.getCellMeta(row, col);
-  return cellProperties[methodName](this.instance, td, row, col, prop, this.instance.getDataAtCell(row, col), cellProperties);
+  if (cellProperties[methodName]) {
+    return cellProperties[methodName](this.instance, td, row, col, prop, this.instance.getDataAtCell(row, col), cellProperties);
+  }
 };
 
 /**

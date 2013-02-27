@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Feb 27 2013 18:42:50 GMT+0100 (Central European Standard Time)
+ * Date: Wed Feb 27 2013 19:05:08 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2327,7 +2327,9 @@ Handsontable.TableView.prototype.render = function () {
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {
   var prop = this.instance.colToProp(col)
     , cellProperties = this.instance.getCellMeta(row, col);
-  return cellProperties[methodName](this.instance, td, row, col, prop, this.instance.getDataAtCell(row, col), cellProperties);
+  if (cellProperties[methodName]) {
+    return cellProperties[methodName](this.instance, td, row, col, prop, this.instance.getDataAtCell(row, col), cellProperties);
+  }
 };
 
 /**
