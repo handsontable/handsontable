@@ -58,4 +58,32 @@ describe('Core_getCellMeta', function () {
       expect(isEditorVisible()).toEqual(true);
     });
   });
+
+  it('should use default cell editor for a cell that has declared only cell renderer', function () {
+    handsontable({
+      cells: function () {
+        return {
+          type: {
+            renderer: function (instance, td, row, col, prop, value, cellProperties) {
+              //taken from demo/renderers.html
+              Handsontable.TextCell.renderer.apply(this, arguments);
+              $(td).css({
+                background: 'yellow'
+              });
+            }
+          }
+        }
+      }
+    });
+    selectCell(2, 2);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      keyDown('enter');
+      document.activeElement.value = 'new value';
+      destroyEditor();
+      expect(getDataAtCell(2, 2)).toEqual('new value');
+    });
+  });
 });

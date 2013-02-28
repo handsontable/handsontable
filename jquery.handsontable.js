@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Feb 28 2013 14:30:22 GMT+0100 (Central European Standard Time)
+ * Date: Thu Feb 28 2013 14:47:58 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1727,8 +1727,11 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Object}
    */
   this.getCellMeta = function (row, col) {
-    var cellProperties = {}
-      , prop = datamap.colToProp(col);
+    var cellProperties = $.extend(true, cellProperties, Handsontable.TextCell)
+      , prop = datamap.colToProp(col)
+      , i
+      , type;
+
     if (priv.settings.columns) {
       cellProperties = $.extend(true, cellProperties, priv.settings.columns[col] || {});
     }
@@ -1738,17 +1741,18 @@ Handsontable.Core = function (rootElement, settings) {
     Handsontable.PluginHooks.run(self, 'beforeGetCellMeta', row, col, cellProperties);
 
     if (typeof cellProperties.type === 'string' && Handsontable.cellTypes[cellProperties.type]) {
-      cellProperties = $.extend(true, cellProperties, Handsontable.cellTypes[cellProperties.type]);
+      type = Handsontable.cellTypes[cellProperties.type];
     }
     else if (typeof cellProperties.type === 'object') {
-      for (var i in cellProperties.type) {
-        if (cellProperties.type.hasOwnProperty(i)) {
-          cellProperties[i] = cellProperties.type[i];
+      type = cellProperties.type;
+    }
+
+    if (type) {
+      for (i in type) {
+        if (type.hasOwnProperty(i)) {
+          cellProperties[i] = type[i];
         }
       }
-    }
-    else {
-      cellProperties = $.extend(true, cellProperties, Handsontable.TextCell);
     }
 
     cellProperties.isWritable = !cellProperties.readOnly;

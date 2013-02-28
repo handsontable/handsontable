@@ -1,6 +1,7 @@
 ## HEAD
 
 Bugfixes:
+- use default cell editor for a cell that has declared only cell renderer ([#453](https://github.com/warpech/jquery-handsontable/issues/453)
 - copy/paste did not work on Mac since 0.8.6 ([#348](https://github.com/warpech/jquery-handsontable/issues/348)
 - global shortcuts (like CTRL+A) should be blocked when cell is being edited
 - numeric cell editor did not convert cell data to number type when data source was an object

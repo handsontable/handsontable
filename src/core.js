@@ -1708,8 +1708,11 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Object}
    */
   this.getCellMeta = function (row, col) {
-    var cellProperties = {}
-      , prop = datamap.colToProp(col);
+    var cellProperties = $.extend(true, cellProperties, Handsontable.TextCell)
+      , prop = datamap.colToProp(col)
+      , i
+      , type;
+
     if (priv.settings.columns) {
       cellProperties = $.extend(true, cellProperties, priv.settings.columns[col] || {});
     }
@@ -1719,17 +1722,18 @@ Handsontable.Core = function (rootElement, settings) {
     Handsontable.PluginHooks.run(self, 'beforeGetCellMeta', row, col, cellProperties);
 
     if (typeof cellProperties.type === 'string' && Handsontable.cellTypes[cellProperties.type]) {
-      cellProperties = $.extend(true, cellProperties, Handsontable.cellTypes[cellProperties.type]);
+      type = Handsontable.cellTypes[cellProperties.type];
     }
     else if (typeof cellProperties.type === 'object') {
-      for (var i in cellProperties.type) {
-        if (cellProperties.type.hasOwnProperty(i)) {
-          cellProperties[i] = cellProperties.type[i];
+      type = cellProperties.type;
+    }
+
+    if (type) {
+      for (i in type) {
+        if (type.hasOwnProperty(i)) {
+          cellProperties[i] = type[i];
         }
       }
-    }
-    else {
-      cellProperties = $.extend(true, cellProperties, Handsontable.TextCell);
     }
 
     cellProperties.isWritable = !cellProperties.readOnly;
