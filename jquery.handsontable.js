@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Feb 27 2013 19:09:10 GMT+0100 (Central European Standard Time)
+ * Date: Thu Feb 28 2013 13:05:52 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -7025,48 +7025,34 @@ function CopyPaste(listenerElement) {
   }
 
   this._bindEvent(listenerElement, 'keydown', function (event) {
+    var isCtrlDown = false;
+    if (event.metaKey) { //mac
+      isCtrlDown = true;
+    }
+    else if (event.ctrlKey && navigator.userAgent.indexOf('Mac') === -1) { //pc
+      isCtrlDown = true;
+    }
+
     /* 67 = c
      * 86 = v
      * 88 = x
      */
-    if ((event.ctrlKey || event.metaKey) && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
-      ctrlWasDown = true;
+    if (isCtrlDown && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
       that.selectNodeText(that.elTextarea);
 
       if (event.keyCode === 88) { //works in all browsers, incl. Opera < 12.12
-        that.triggerCut(event);
+        setTimeout(function(){
+          that.triggerCut(event);
+        }, 0);
       }
       else if (event.keyCode === 86) {
-        that.triggerPaste(event);
+        setTimeout(function(){
+          that.triggerPaste(event);
+        }, 0);
       }
-
-      /*if (event.stopPropagation) {
-       event.stopPropagation();
-       }
-       // Support: IE
-       event.cancelBubble = true;*/
     }
   });
-
-  this._bindEvent(listenerElement, 'keyup', function (event) {
-    if (ctrlWasDown) {
-      ctrlWasDown = false;
-    }
-  });
-
-  /*
-   //does not work in Opera < 12.12
-   this._bindEvent(this.elTextarea, 'cut', function (event) {
-   that.triggerCut(event);
-   });
-
-   this._bindEvent(this.elTextarea, 'paste', function (event) {
-   that.triggerPaste(event);
-   });
-   */
 }
-
-var lastActive, ctrlWasDown;
 
 //http://jsperf.com/textara-selection
 //http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie

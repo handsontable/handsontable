@@ -1,3 +1,8 @@
+## HEAD
+
+Bugfixes:
+- copy/paste did not work on Mac since 0.8.6 ([#348](https://github.com/warpech/jquery-handsontable/issues/348)
+
 ## [0.8.6](https://github.com/warpech/jquery-handsontable/tree/v0.8.6) (Feb 27, 2013)
 
 Features:
