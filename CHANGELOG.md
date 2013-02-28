@@ -3,6 +3,7 @@
 Bugfixes:
 - copy/paste did not work on Mac since 0.8.6 ([#348](https://github.com/warpech/jquery-handsontable/issues/348)
 - global shortcuts (like CTRL+A) should be blocked when cell is being edited
+- numeric cell editor did not convert cell data to number type when data source was an object
 
 ## [0.8.6](https://github.com/warpech/jquery-handsontable/tree/v0.8.6) (Feb 27, 2013)
 

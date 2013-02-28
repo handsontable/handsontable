@@ -1254,7 +1254,7 @@ Handsontable.Core = function (rootElement, settings) {
       };
 
       for (var i = changes.length - 1; i >= 0; i--) {
-        var cellProperties = self.getCellMeta(changes[i][0], changes[i][1]);
+        var cellProperties = self.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
         if (cellProperties.strict && cellProperties.source) {
           var items = $.isFunction(cellProperties.source) ? cellProperties.source(changes[i][3], process(i)) : cellProperties.source;
           if (items) {
@@ -1270,7 +1270,7 @@ Handsontable.Core = function (rootElement, settings) {
           changes.splice(i, 1);
         }
 
-        var cellProperties = self.getCellMeta(changes[i][0], changes[i][1]);
+        var cellProperties = self.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
         if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && /^[0-9\s]*[.]*[0-9]*$/.test(changes[i][3])) {
             changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
