@@ -1,11 +1,11 @@
-## HEAD
+## [0.8.7](https://github.com/warpech/jquery-handsontable/tree/v0.8.7) (Mar 1, 2013)
 
 Bugfixes:
-- use default cell editor for a cell that has declared only cell renderer ([#453](https://github.com/warpech/jquery-handsontable/issues/453)
-- copy/paste did not work on Mac since 0.8.6 ([#348](https://github.com/warpech/jquery-handsontable/issues/348)
-- global shortcuts (like CTRL+A) should be blocked when cell is being edited
-- numeric cell editor did not convert cell data to number type when data source was an object
-- another attempt to solve scrolling to the top of table on any key press if the top is not on the screen ([#348](https://github.com/warpech/jquery-handsontable/issues/348))
+- use default cell editor for a cell that has declared only cell renderer ([#453](https://github.com/warpech/jquery-handsontable/issues/453), [a5c61a2](https://github.com/warpech/jquery-handsontable/commit/a5c61a26b9e833abd25afa31aee4199cc6810590))
+- copy/paste did not work on Mac since 0.8.6 ([#348](https://github.com/warpech/jquery-handsontable/issues/348), [463d5c9](https://github.com/warpech/jquery-handsontable/commit/463d5c918b85b2dc74df2669047134c23ae15fcc))
+- global shortcuts (like CTRL+A) should be blocked when cell is being edited ([8363008](https://github.com/warpech/jquery-handsontable/commit/8363008c3756ea869f50b2ad8a213839a50ad807))
+- numeric cell editor did not convert cell data to number type when data source was an object ([b09f6d3](https://github.com/warpech/jquery-handsontable/commit/b09f6d3666d238ac0ae849937152baffa6fb2824))
+- another attempt to solve scrolling to the top of table on any key press if the top is not on the screen ([#348](https://github.com/warpech/jquery-handsontable/issues/348), [d37859b](https://github.com/warpech/jquery-handsontable/commit/d37859b6acdaef0be8b886b33404144c7cf21227))
 
 ## [0.8.6](https://github.com/warpech/jquery-handsontable/tree/v0.8.6) (Feb 27, 2013)
 
