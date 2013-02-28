@@ -1,19 +1,19 @@
-## HEAD
+## [0.8.6](https://github.com/warpech/jquery-handsontable/tree/v0.8.6) (Feb 27, 2013)
 
 Features:
-- numeric cell type. Updated pages [Numeric](http://handsontable.com/demo/numeric.html) and [Column sorting](http://handsontable.com/demo/sorting.html). Solves issues [#443](https://github.com/warpech/jquery-handsontable/issues/443), [#397](https://github.com/warpech/jquery-handsontable/issues/397), [#336](https://github.com/warpech/jquery-handsontable/issues/336). Partially solves issue ([#121](https://github.com/warpech/jquery-handsontable/issues/121)
-- make autoColumnSize feature aware of renderer functions (before this, cells rendered with autocomplete and numeric renderer were too narrow)
+- **Numeric cell type**. Updated pages [Numeric](http://handsontable.com/demo/numeric.html) and [Column sorting](http://handsontable.com/demo/sorting.html). Solves issues [#443](https://github.com/warpech/jquery-handsontable/issues/443), [#397](https://github.com/warpech/jquery-handsontable/issues/397), [#336](https://github.com/warpech/jquery-handsontable/issues/336). Partially solves issue [#121](https://github.com/warpech/jquery-handsontable/issues/121) ([a052013](https://github.com/warpech/jquery-handsontable/commit/a052013049ccf6ca75a7104ddeaaec2f84961f93))
+- autoColumnSize feature is now aware of renderer functions (before this, cells rendered with autocomplete and numeric renderer were too narrow) ([7770f8a](https://github.com/warpech/jquery-handsontable/commit/7770f8a499e5c21891308bdb4d1111bfc79dd2dc))
 
 Bugfix:
-- scrolls to top of table on any key press if the top is not on the screen ([#348](https://github.com/warpech/jquery-handsontable/issues/348))
+- scrolls to top of table on any key press if the top is not on the screen ([#348](https://github.com/warpech/jquery-handsontable/issues/348), [290cde9](https://github.com/warpech/jquery-handsontable/commit/290cde93503686f1a89e5533662e3c9ca80d880e), [408f29d](https://github.com/warpech/jquery-handsontable/commit/408f29d6a65e797572adf45873780c3adfc0bf4d))
 - cell editor was using a wrong cell value if column order was manually changed ([#367](https://github.com/warpech/jquery-handsontable/issues/367))
 - cell editor dimensions were not refreshed if table was rerendered during editing
 - fix recalculation of container dimensions after window resize ([#400](https://github.com/warpech/jquery-handsontable/issues/400), [#428](https://github.com/warpech/jquery-handsontable/issues/428))
 
 Other:
-- reimplement cell editing abstraction. Now TextEditor `<textarea>` is decoupled from cell selection and copy/paste keyboard handling
+- reimplement cell editing abstraction. Now TextEditor `<textarea>` is decoupled from cell selection and copy/paste keyboard handling ([14e4cc1](https://github.com/warpech/jquery-handsontable/commit/14e4cc1d61d92b49317aed53604b87cdd1f522b0), [1eb01bd](https://github.com/warpech/jquery-handsontable/commit/1eb01bdcc975dec4fe8f2557a668d057d34b65d2), [f2b412f](https://github.com/warpech/jquery-handsontable/commit/f2b412f50027d3b4594bef464994ca8ad4f551a6), [e5af5d7](https://github.com/warpech/jquery-handsontable/commit/e5af5d7c8cbd8990398e8029c2955d7f8e22386c))
 - upgrade Bootstrap Typeahead to v2.3.0
-- build system now requires Grunt 0.4.0
+- build system now requires Grunt 0.4.0 (read instructions how to upgrade here: http://gruntjs.com/upgrading-from-0.3-to-0.4) ([3ebed1d](https://github.com/warpech/jquery-handsontable/commit/3ebed1ddb771b1d21ebf810f82df004755d420f4), [6d01ae5](https://github.com/warpech/jquery-handsontable/commit/6d01ae528ed84171d72f34eb3f25f4137f96a7ec))
 
 ## [0.8.5](https://github.com/warpech/jquery-handsontable/tree/v0.8.5) (Feb 18, 2013)
 
