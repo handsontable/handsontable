@@ -16,6 +16,7 @@ Handsontable.NumericEditor = function (instance, td, row, col, prop, value, cell
 
   instance.numericEditor.bindEvents();
 
+  instance.numericEditor.TD = td;
   instance.numericEditor.isCellEdited = false;
   instance.numericEditor.originalValue = value;
 

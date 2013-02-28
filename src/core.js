@@ -1183,24 +1183,18 @@ Handsontable.Core = function (rootElement, settings) {
      * Prepare text input to be displayed at given grid cell
      */
     prepare: function () {
-      editproxy.focus();
       if (priv.settings.asyncRendering) {
         clearTimeout(window.prepareFrame);
         window.prepareFrame = setTimeout(function () {
-          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.row(), priv.selStart.col());
+          var TD = self.view.getCellAtCoords(priv.selStart.coords());
+          TD.focus();
+          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
         }, 0);
       }
       else {
-        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.row(), priv.selStart.col());
-      }
-    },
-
-    /**
-     * Sets focus to event listener
-     */
-    focus: function () {
-      if (selection.isSelected()) {
-        self.$table[0].focus();
+        var TD = self.view.getCellAtCoords(priv.selStart.coords());
+        TD.focus();
+        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
       }
     }
   };

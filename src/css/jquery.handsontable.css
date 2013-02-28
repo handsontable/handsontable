@@ -58,6 +58,7 @@
   font-size: 12px;
   vertical-align: top;
   overflow: hidden;
+  outline-width: 0;
 }
 
 .handsontable th:last-child {

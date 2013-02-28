@@ -202,7 +202,8 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   }
 
   ///start prepare textarea position
-  var $td = $(this.instance.getCell(this.row, this.col)); //because old td may have been scrolled out with scrollViewport
+  this.TD = this.instance.getCell(this.row, this.col);
+  var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
   var currentOffset = $td.offset();
   var containerOffset = this.instance.rootElement.offset();
   var scrollTop = this.instance.rootElement.scrollTop();
@@ -281,7 +282,7 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
 
   this.instance.$table.off(".editor");
   if (document.activeElement === this.TEXTAREA) {
-    this.instance.$table[0].focus(); //don't refocus the table if user focused some cell outside of HT on purpose
+    this.TD.focus(); //don't refocus the table if user focused some cell outside of HT on purpose
   }
   this.instance.view.wt.update('onCellDblClick', null);
 
@@ -303,6 +304,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, value, cellPro
     instance.textEditor = new HandsontableTextEditorClass(instance);
   }
 
+  instance.textEditor.TD = td;
   instance.textEditor.isCellEdited = false;
   instance.textEditor.originalValue = value;
 

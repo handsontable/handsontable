@@ -125,6 +125,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, value,
     instance.autocompleteEditor = new HandsontableAutocompleteEditorClass(instance);
   }
 
+  instance.autocompleteEditor.TD = td;
   instance.autocompleteEditor.isCellEdited = false;
   instance.autocompleteEditor.originalValue = value;
 

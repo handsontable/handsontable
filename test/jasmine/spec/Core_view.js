@@ -12,7 +12,7 @@ describe('Core_view', function () {
   });
 
   it('should focus cell after viewport is scrolled using down arrow', function () {
-    runs(function(){
+    runs(function () {
       handsontable({
         startRows: 20
       });
@@ -22,32 +22,70 @@ describe('Core_view', function () {
 
     waits(51);
 
-    runs(function(){
+    runs(function () {
       keyDown('arrow_down');
     });
 
     waits(51);
 
-    runs(function(){
+    runs(function () {
       keyDown('arrow_down');
     });
 
     waits(51);
 
-    runs(function(){
+    runs(function () {
       keyDown('arrow_down');
     });
 
     waits(51);
 
-    runs(function(){
+    runs(function () {
       keyDown('enter');
     });
 
     waits(51);
 
-    runs(function(){
+    runs(function () {
       expect(isEditorVisible()).toEqual(true);
+    });
+  });
+
+  it('should not scroll viewport when last cell is clicked', function () {
+    runs(function () {
+      this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+      handsontable({
+        startRows: 50
+      });
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    var lastScroll;
+
+    runs(function () {
+      $(window).scrollTop(10000);
+      lastScroll = $(window).scrollTop();
+      selectCell(47, 0);
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect($(window).scrollTop()).toEqual(lastScroll);
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      keyDown('arrow_right');
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(getSelected()).toEqual([47, 1, 47, 1]);
+      expect($(window).scrollTop()).toEqual(lastScroll);
     });
   });
 });

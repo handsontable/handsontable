@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Feb 28 2013 14:47:58 GMT+0100 (Central European Standard Time)
+ * Date: Thu Feb 28 2013 17:56:06 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1202,24 +1202,18 @@ Handsontable.Core = function (rootElement, settings) {
      * Prepare text input to be displayed at given grid cell
      */
     prepare: function () {
-      editproxy.focus();
       if (priv.settings.asyncRendering) {
         clearTimeout(window.prepareFrame);
         window.prepareFrame = setTimeout(function () {
-          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.row(), priv.selStart.col());
+          var TD = self.view.getCellAtCoords(priv.selStart.coords());
+          TD.focus();
+          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
         }, 0);
       }
       else {
-        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', self.view.getCellAtCoords(priv.selStart.coords()), priv.selStart.row(), priv.selStart.col());
-      }
-    },
-
-    /**
-     * Sets focus to event listener
-     */
-    focus: function () {
-      if (selection.isSelected()) {
-        self.$table[0].focus();
+        var TD = self.view.getCellAtCoords(priv.selStart.coords());
+        TD.focus();
+        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
       }
     }
   };
@@ -2050,10 +2044,7 @@ Handsontable.TableView = function (instance) {
   var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
 
   instance.$table = $table;
-  $table.attr('tabindex', 10000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/; 32767 is max tabindex for IE7,8
-
   instance.rootElement.prepend($table);
-  $table[0].focus(); //otherwise TextEditor tests do not pass in IE8
 
   this.overflow = instance.rootElement.css('overflow');
   if ((settings.width || settings.height) && !(this.overflow === 'scroll' || this.overflow === 'auto')) {
@@ -2240,6 +2231,7 @@ Handsontable.TableView = function (instance) {
       else {
         instance.selection.setRangeStart(coordsObj);
       }
+      TD.focus();
       event.preventDefault();
       clearTextSelection();
     },
@@ -2292,6 +2284,8 @@ Handsontable.TableView = function (instance) {
       event.stopPropagation();
     }
   });
+
+  $table[0].focus(); //otherwise TextEditor tests do not pass in IE8
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {
@@ -2835,7 +2829,8 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   }
 
   ///start prepare textarea position
-  var $td = $(this.instance.getCell(this.row, this.col)); //because old td may have been scrolled out with scrollViewport
+  this.TD = this.instance.getCell(this.row, this.col);
+  var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
   var currentOffset = $td.offset();
   var containerOffset = this.instance.rootElement.offset();
   var scrollTop = this.instance.rootElement.scrollTop();
@@ -2914,7 +2909,7 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
 
   this.instance.$table.off(".editor");
   if (document.activeElement === this.TEXTAREA) {
-    this.instance.$table[0].focus(); //don't refocus the table if user focused some cell outside of HT on purpose
+    this.TD.focus(); //don't refocus the table if user focused some cell outside of HT on purpose
   }
   this.instance.view.wt.update('onCellDblClick', null);
 
@@ -2936,6 +2931,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, value, cellPro
     instance.textEditor = new HandsontableTextEditorClass(instance);
   }
 
+  instance.textEditor.TD = td;
   instance.textEditor.isCellEdited = false;
   instance.textEditor.originalValue = value;
 
@@ -3104,6 +3100,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, value,
     instance.autocompleteEditor = new HandsontableAutocompleteEditorClass(instance);
   }
 
+  instance.autocompleteEditor.TD = td;
   instance.autocompleteEditor.isCellEdited = false;
   instance.autocompleteEditor.originalValue = value;
 
@@ -4315,7 +4312,7 @@ Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWid
 /**
  * walkontable 0.2.0
  * 
- * Date: Wed Feb 27 2013 12:41:20 GMT+0100 (Central European Standard Time)
+ * Date: Thu Feb 28 2013 17:54:27 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -5759,6 +5756,7 @@ function WalkontableTable(instance) {
   if (this.hasCellSpacingProblem) { //IE7
     this.TABLE.cellSpacing = 0;
   }
+  this.TABLE.setAttribute('tabindex', 10000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/; 32767 is max tabindex for IE7,8
 
   this.visibilityStartRow = this.visibilityStartColumn = this.visibilityEdgeRow = this.visibilityEdgeColumn = null;
 
@@ -6011,7 +6009,9 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   for (var r = 0, rlen = TRs.length; r < rlen; r++) {
     trChildrenLength = TRs[r].childNodes.length;
     while (trChildrenLength < displayTds + frozenColumnsCount) {
-      TRs[r].appendChild(document.createElement('TD'));
+      var TD = document.createElement('TD');
+      TD.setAttribute('tabindex', 10000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/; 32767 is max tabindex for IE7,8
+      TRs[r].appendChild(TD);
       trChildrenLength++;
     }
     while (trChildrenLength > displayTds + frozenColumnsCount) {

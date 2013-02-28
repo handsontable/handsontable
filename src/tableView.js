@@ -13,10 +13,7 @@ Handsontable.TableView = function (instance) {
   var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
 
   instance.$table = $table;
-  $table.attr('tabindex', 10000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/; 32767 is max tabindex for IE7,8
-
   instance.rootElement.prepend($table);
-  $table[0].focus(); //otherwise TextEditor tests do not pass in IE8
 
   this.overflow = instance.rootElement.css('overflow');
   if ((settings.width || settings.height) && !(this.overflow === 'scroll' || this.overflow === 'auto')) {
@@ -203,6 +200,7 @@ Handsontable.TableView = function (instance) {
       else {
         instance.selection.setRangeStart(coordsObj);
       }
+      TD.focus();
       event.preventDefault();
       clearTextSelection();
     },
@@ -255,6 +253,8 @@ Handsontable.TableView = function (instance) {
       event.stopPropagation();
     }
   });
+
+  $table[0].focus(); //otherwise TextEditor tests do not pass in IE8
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {
