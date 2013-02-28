@@ -78,7 +78,7 @@ var contextMenu = function () {
  * @return {Function}
  */
 var handsontableKeyTriggerFactory = function (type) {
-  return function (key) {
+  return function (key, extend) {
     var ev = $.Event(type);
     if (typeof key === 'string') {
       if (key.indexOf('shift+') > -1) {
@@ -129,6 +129,7 @@ var handsontableKeyTriggerFactory = function (type) {
     else if (typeof key === 'number') {
       ev.keyCode = key;
     }
+    $.extend(ev, extend);
     $(document.activeElement).trigger(ev);
   }
 };
@@ -139,9 +140,9 @@ var keyUp = handsontableKeyTriggerFactory('keyup');
 /**
  * Presses keyDown, then keyUp
  */
-var keyDownUp = function (key) {
-  keyDown(key);
-  keyUp(key);
+var keyDownUp = function (key, extend) {
+  keyDown(key, extend);
+  keyUp(key, extend);
 };
 
 /**

@@ -102,11 +102,8 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         event.preventDefault(); //don't add newline to field
         break;
 
-      case 8: /* backspace */
-      case 46: /* delete */
-      case 36: /* home */
-      case 35: /* end */
-        event.stopPropagation();
+      default:
+        event.stopPropagation(); //backspace, delete, home, end, CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
         break;
     }
   });

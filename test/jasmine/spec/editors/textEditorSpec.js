@@ -279,4 +279,27 @@ describe('TextEditor', function () {
       expect(keyProxy().width()).toEqual($td.width());
     });
   });
+
+  it('global shortcuts (like CTRL+A) should be blocked when cell is being edited', function () {
+    handsontable();
+    selectCell(2, 2);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      keyDownUp('enter');
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      keyDown(65, {ctrlKey: true}); //CTRL+A should NOT select all table when cell is edited
+    });
+
+    runs(function () {
+      var selection = getSelected();
+      expect(selection).toEqual([2, 2, 2, 2]);
+      expect(isEditorVisible()).toEqual(true);
+    });
+  });
 });

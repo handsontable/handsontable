@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Feb 28 2013 13:05:52 GMT+0100 (Central European Standard Time)
+ * Date: Thu Feb 28 2013 14:20:04 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2731,11 +2731,8 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         event.preventDefault(); //don't add newline to field
         break;
 
-      case 8: /* backspace */
-      case 46: /* delete */
-      case 36: /* home */
-      case 35: /* end */
-        event.stopPropagation();
+      default:
+        event.stopPropagation(); //backspace, delete, home, end, CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
         break;
     }
   });
