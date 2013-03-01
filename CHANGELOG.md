@@ -1,3 +1,8 @@
+## HEAD
+
+Bugfix:
+- `startRows`/`startCols` option did not work as described in README.md. This parameters should be only taken into account when NO data source is provided
+
 ## [0.8.7](https://github.com/warpech/jquery-handsontable/tree/v0.8.7) (Mar 1, 2013)
 
 Bugfixes:

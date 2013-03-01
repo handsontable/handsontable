@@ -46,7 +46,7 @@ describe('Core_copy', function () {
     runs(function () {
       selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
       keyDownUp('ctrl');
-      expect(this.$container.find('textarea.copyPaste').val()).toEqual('\tKia\n2008\t10\n2009\t20\n2010\t30\n\t\n'); //should prepare 2 columns for copying
+      expect(this.$container.find('textarea.copyPaste').val()).toEqual('\tKia\n2008\t10\n2009\t20\n2010\t30\n'); //should prepare 2 columns for copying
     });
   });
 
@@ -67,7 +67,7 @@ describe('Core_copy', function () {
     runs(function () {
       selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
       keyDownUp('ctrl');
-      expect(result).toEqual([5, 5, 2, 2]);
+      expect(result).toEqual([4, 5, 2, 2]);
     });
   });
 });
