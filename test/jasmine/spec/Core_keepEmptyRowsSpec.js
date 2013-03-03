@@ -36,7 +36,12 @@ describe('Core_keepEmptyRows', function () {
         {data: "name.first"}
       ]
     });
-    expect(this.$container.find('tbody tr:first td').length).toEqual(2);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(this.$container.find('tbody tr:first td').length).toEqual(2);
+    });
   });
 
   it('should create columns if needed', function () {
@@ -51,7 +56,12 @@ describe('Core_keepEmptyRows', function () {
         {data: "city"}
       ]
     });
-    expect(this.$container.find('tbody tr:first td').length).toEqual(6);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(this.$container.find('tbody tr:first td').length).toEqual(6);
+    });
   });
 
   it('should create spare cols and rows on init (array data source)', function () {
@@ -65,7 +75,12 @@ describe('Core_keepEmptyRows', function () {
       minSpareRows: 4,
       minSpareCols: 4
     });
-    expect(countCells()).toEqual(36);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countCells()).toEqual(36);
+    });
   });
 
   it('should create spare cols and rows on init (object data source)', function () {
@@ -74,9 +89,14 @@ describe('Core_keepEmptyRows', function () {
       minRows: 4,
       minSpareRows: 1
     });
-    expect(countRows()).toEqual(4);
-    expect(countCols()).toEqual(6); //because arrayOfNestedObjects has 6 nested properites and they should be figured out if dataSchema/columns is not given
-    expect(this.$container.find('tbody tr:first td:last').text()).toEqual('City Name');
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countRows()).toEqual(4);
+      expect(countCols()).toEqual(6); //because arrayOfNestedObjects has 6 nested properites and they should be figured out if dataSchema/columns is not given
+      expect(this.$container.find('tbody tr:first td:last').text()).toEqual('City Name');
+    });
   });
 
   it('should create new row when last cell in last row is edited', function () {
@@ -92,7 +112,12 @@ describe('Core_keepEmptyRows', function () {
       minSpareRows: 1
     });
     setDataAtCell(3, 3, "test");
-    expect(data.length).toEqual(5);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(data.length).toEqual(5);
+    });
   });
 
   it('should create new col when last cell in last row is edited', function () {
@@ -108,7 +133,12 @@ describe('Core_keepEmptyRows', function () {
       minSpareCols: 1
     });
     setDataAtCell(3, 3, "test");
-    expect(countCols()).toEqual(5);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countCols()).toEqual(5);
+    });
   });
 
   it('should not create more rows that maxRows', function () {
@@ -120,7 +150,12 @@ describe('Core_keepEmptyRows', function () {
     setDataAtCell(3, 0, "test");
     setDataAtCell(4, 0, "test");
     setDataAtCell(5, 0, "test");
-    expect(countRows()).toEqual(6);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countRows()).toEqual(6);
+    });
   });
 
   it('should not create more cols that maxCols', function () {
@@ -132,6 +167,45 @@ describe('Core_keepEmptyRows', function () {
     setDataAtCell(0, 3, "test");
     setDataAtCell(0, 4, "test");
     setDataAtCell(0, 5, "test");
-    expect(countCols()).toEqual(6);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countCols()).toEqual(6);
+    });
+  });
+
+  it('should ignore minCols if columns is set', function () {
+    handsontable({
+      startCols: 1,
+      minCols: 6,
+      columns: [
+        {},
+        {}
+      ]
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countCols()).toEqual(2);
+    });
+  });
+
+  it('columns should have priority over startCols', function () {
+    handsontable({
+      startCols: 3,
+      minCols: 6,
+      columns: [
+        {},
+        {}
+      ]
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countCols()).toEqual(2);
+    });
   });
 });

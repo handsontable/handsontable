@@ -166,6 +166,20 @@ ul, ol, p {
   clear: left;
 }
 
+.descLayout code {
+  white-space: nowrap;
+}
+
+.descLayout code {
+  margin: 0 2px;
+  padding: 0 5px;
+  border: 1px solid #EAEAEA;
+  background-color: #F8F8F8;
+  border-radius: 3px;
+  font-size: 12px;
+  font-family: Consolas, Courier, monospace;
+}
+
 /**
  * jsFiddle
  */
@@ -225,6 +239,7 @@ ul, ol, p {
 .handsontable {
   margin-bottom: 10px;
   color: #000;
+  z-index: 2;
 }
 
 /**
@@ -275,15 +290,19 @@ body.home .centerLayout {
 }
 
 body.home .linkColumn {
-  width: 266px;
   float: left;
+  margin-left: 73px;
 }
 
-body.home ul {
+body.home .linkColumn.first {
+  margin-left: 0;
+}
+
+body.home #container ul {
   list-style-type: none;
   padding: 0;
 }
 
-body.home ul li {
+body.home #container ul li {
   margin: 0 0 10px 0;
 }

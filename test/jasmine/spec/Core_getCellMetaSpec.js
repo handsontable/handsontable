@@ -12,14 +12,23 @@ describe('Core_getCellMeta', function () {
   });
 
   it('should not allow manual editing of a read only cell', function () {
+    var allCellsReadOnly = false;
+
+    handsontable({
+      cells: function () {
+        return {readOnly: allCellsReadOnly}
+      }
+    });
+    allCellsReadOnly = true;
+    selectCell(2, 2);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
     runs(function () {
-      handsontable();
-      setCellReadOnly(2, 2);
-      selectCell(2, 2);
       keyDown('enter');
     });
 
-    waits(1);
+    waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
       expect(isEditorVisible()).toEqual(false);
@@ -27,15 +36,23 @@ describe('Core_getCellMeta', function () {
   });
 
   it('should allow manual editing of cell that is no longer read only', function () {
+    var allCellsReadOnly = true;
+
+    handsontable({
+      cells: function () {
+        return {readOnly: allCellsReadOnly}
+      }
+    });
+    allCellsReadOnly = false;
+    selectCell(2, 2);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
     runs(function () {
-      handsontable();
-      setCellReadOnly(2, 2);
-      setCellEditable(2, 2);
-      selectCell(2, 2);
       keyDown('enter');
     });
 
-    waits(1);
+    waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
       expect(isEditorVisible()).toEqual(true);

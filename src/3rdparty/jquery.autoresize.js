@@ -245,7 +245,7 @@
       (
         autoResize.cloneContainer ||
           (autoResize.cloneContainer = $('<arclones/>').appendTo('body'))
-        ).append(this.clones);
+        ).empty().append(this.clones); //this should be refactored so that a node is never cloned more than once
     }
 
   };

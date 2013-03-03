@@ -29,13 +29,9 @@ module.exports = function (grunt) {
           'tmp/core.js',
           'src/tableView.js',
           'src/helpers.js',
-          'src/border.js',
           'src/fillHandle.js',
           'src/undoRedo.js',
-          'src/blockedRows.js',
-          'src/blockedCols.js',
-          'src/rowHeader.js',
-          'src/colHeader.js',
+          'src/selectionPoint.js',
 
           'src/renderers/textRenderer.js',
           'src/renderers/autocompleteRenderer.js',
@@ -48,12 +44,16 @@ module.exports = function (grunt) {
           'src/cellTypes.js',
 
           'src/pluginHooks.js',
+          'src/plugins/autoColumnSize.js',
+          'src/plugins/columnSorting.js',
           'src/plugins/contextMenu.js',
           'src/plugins/legacy.js',
+          'src/plugins/manualColumnMove.js',
+          'src/plugins/manualColumnResize.js',
 
           'src/3rdparty/jquery.autoresize.js',
-          'src/3rdparty/jquery.mousewheel.js',
           'src/3rdparty/sheetclip.js',
+          'src/3rdparty/walkontable.js',
 
           'src/outro.js'
         ],
@@ -63,8 +63,8 @@ module.exports = function (grunt) {
         src: [
           'jquery.handsontable.js',
           'lib/bootstrap-typeahead.js',
-          'lib/jQuery-contextMenu/jquery.contextMenu.js',
-          'lib/jQuery-contextMenu/jquery.ui.position.js'
+          'lib/jQuery-contextMenu/jquery.contextMenu.js'
+          //'lib/jQuery-contextMenu/jquery.ui.position.js' //seems to have no effect when turned off on contextmenu.html
         ],
         dest: 'dist/jquery.handsontable.full.js'
       },
@@ -77,7 +77,7 @@ module.exports = function (grunt) {
       }
     },
     watch: {
-      files: ['src/*.js', 'src/editors/*.js', 'src/plugins/*.js', 'src/renderers/*.js'],
+      files: ['src/*.js', 'src/editors/*.js', 'src/plugins/*.js', 'src/renderers/*.js', 'src/3rdparty/*.js', 'src/css/*.css', 'lib/*.js'],
       tasks: 'replace concat clean'
     },
     clean: {

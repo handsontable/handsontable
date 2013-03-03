@@ -12,13 +12,16 @@ describe('Core_destroyEditor', function () {
   });
 
   it('editor should not be visible', function () {
+    handsontable();
+    selectCell(1, 1);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
     runs(function () {
-      handsontable();
-      selectCell(1, 1);
       keyDownUp('enter');
     });
 
-    waits(1);
+    waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
       destroyEditor();
@@ -27,14 +30,17 @@ describe('Core_destroyEditor', function () {
   });
 
   it('value should be saved', function () {
+    handsontable();
+    selectCell(1, 1);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
     runs(function () {
-      handsontable();
-      selectCell(1, 1);
       keyDownUp('enter');
       this.$keyboardProxy.val('Ted');
     });
 
-    waits(1);
+    waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
       destroyEditor();
@@ -43,13 +49,16 @@ describe('Core_destroyEditor', function () {
   });
 
   it('cell should be selected', function () {
+    handsontable();
+    selectCell(1, 1);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
     runs(function () {
-      handsontable();
-      selectCell(1, 1);
       keyDownUp('enter');
     });
 
-    waits(1);
+    waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
       destroyEditor();
@@ -58,14 +67,17 @@ describe('Core_destroyEditor', function () {
   });
 
   it('should revert original value when param set to true', function () {
+    handsontable();
+    selectCell(1, 1);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
     runs(function () {
-      handsontable();
-      selectCell(1, 1);
       keyDownUp('enter');
       this.$keyboardProxy.val('Ted');
     });
 
-    waits(1);
+    waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
       destroyEditor(true);

@@ -165,43 +165,40 @@ describe('Core_loadData', function () {
   });
 
   it('should create new rows for array of arrays (and respect minRows)', function () {
-    var called = false;
-    var myData = arrayOfArrays();
-
     handsontable({
       minRows: 20, //minRows should be respected
-      data: myData,
-      onChange: function (changes, source) {
-        if (source === 'loadData') {
-          called = true;
-        }
-      }
+      data: arrayOfArrays()
     });
 
-    expect(countRows()).toEqual(20);
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countRows()).toEqual(20); //TODO why this must be checked after render?
+    });
   });
 
   it('should create new rows for array of nested objects (and respect minRows)', function () {
-    var called = false;
-    var myData = arrayOfNestedObjects();
-
     handsontable({
       minRows: 20, //minRows should be respected
-      data: myData,
-      onChange: function (changes, source) {
-        if (source === 'loadData') {
-          called = true;
-        }
-      }
+      data: arrayOfNestedObjects()
     });
 
-    expect(countRows()).toEqual(20);
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countRows()).toEqual(20); //TODO why this must be checked after render?
+    });
   });
 
   it('HTML special chars should be escaped by default', function () {
     handsontable();
     loadData(htmlData);
-    expect(getCell(0, 0).innerHTML).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(getCell(0, 0).innerHTML).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
+    });
   });
 
   it('should create as many rows as needed by array of objects', function () {
@@ -209,7 +206,12 @@ describe('Core_loadData', function () {
       minRows: 6,
       data: arrayOfObjects()
     });
-    expect(getCell(9, 1).innerHTML).toEqual('Eve');
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(getCell(9, 1).innerHTML).toEqual('Eve');
+    });
   });
 
   //https://github.com/warpech/jquery-handsontable/pull/233
@@ -255,8 +257,12 @@ describe('Core_loadData', function () {
       err = e;
     }
 
-    expect(err).toBeUndefined();
-    expect(countRows()).toBe(2);
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(err).toBeUndefined();
+      expect(countRows()).toBe(1);
+    });
   });
 
   it('should remove grid rows if new data source has less of them', function () {
@@ -287,8 +293,12 @@ describe('Core_loadData', function () {
     selectCell(7, 0);
     loadData(data2);
 
-    expect(countRows()).toBe(data2.length);
-    expect(getSelected()).toEqual([4, 0, 4, 0]);
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countRows()).toBe(data2.length);
+      expect(getSelected()).toEqual([4, 0, 4, 0]);
+    });
   });
 
   it('should remove grid rows if new data source has less of them (with minSpareRows)', function () {
@@ -315,7 +325,8 @@ describe('Core_loadData', function () {
       minSpareCols: 1,
       minSpareRows: 1,
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
+      asyncRendering: false
     });
     selectCell(8, 0);
     loadData(data2);
@@ -341,7 +352,8 @@ describe('Core_loadData', function () {
     handsontable({
       data: data1,
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
+      asyncRendering: false
     });
     selectCell(7, 0);
     loadData(data2);

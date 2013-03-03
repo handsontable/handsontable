@@ -1,3 +1,32 @@
+/* -- frame counter -- */
+var frame = 0;
+var lastFrame = null;
+
+(function () {
+  frame = 0;
+  lastFrame = null;
+  var countFrames = function () {
+    requestAnimFrame(function () {
+      frame++;
+      countFrames();
+    });
+  };
+  countFrames();
+})();
+
+var nextFrame = function (myFrame) {
+  if (lastFrame === null) {
+    lastFrame = frame;
+  }
+  else if (frame - 2 >= lastFrame) {
+    lastFrame = null;
+    return true;
+  }
+  return false;
+};
+
+/* ------------------- */
+
 var spec = function () {
   return jasmine.getEnv().currentSpec;
 };
@@ -6,6 +35,7 @@ var handsontable = function (options) {
   var currentSpec = spec();
   currentSpec.$container.handsontable(options);
   currentSpec.$keyboardProxy = currentSpec.$container.find('textarea.handsontableInput');
+  return currentSpec.$container.data('handsontable');
 };
 
 var countRows = function () {
@@ -32,7 +62,7 @@ var isEditorVisible = function () {
 };
 
 var isFillHandleVisible = function () {
-  return spec().$container.find('.htFillHandle').is(':visible');
+  return !!spec().$container.find('.wtBorder.corner:visible').length;
 };
 
 var isAutocompleteVisible = function () {
@@ -58,6 +88,10 @@ var contextMenu = function () {
 var handsontableKeyTriggerFactory = function (type) {
   return function (key) {
     var ev = $.Event(type);
+    if (key.indexOf('shift+') > -1) {
+      key = key.substring(6);
+      ev.shiftKey = true;
+    }
     switch (key) {
       case 'tab':
         ev.keyCode = 9;
@@ -90,6 +124,13 @@ var handsontableKeyTriggerFactory = function (type) {
       case 'arrow_down':
         ev.keyCode = 40;
         break;
+
+      case 'ctrl':
+        ev.keyCode = 17;
+        break;
+
+      default:
+        throw new Error('unknown key');
     }
     spec().$keyboardProxy.trigger(ev);
   }
@@ -97,6 +138,7 @@ var handsontableKeyTriggerFactory = function (type) {
 
 var keyDown = handsontableKeyTriggerFactory('keydown');
 var keyUp = handsontableKeyTriggerFactory('keyup');
+var keyPress = handsontableKeyTriggerFactory('keypress');
 
 /**
  * Presses keyDown, then keyUp
@@ -163,7 +205,6 @@ var getDataAtCell = handsontableMethodFactory('getDataAtCell');
 var alter = handsontableMethodFactory('alter');
 var loadData = handsontableMethodFactory('loadData');
 var destroyEditor = handsontableMethodFactory('destroyEditor');
-var setCellReadOnly = handsontableMethodFactory('setCellReadOnly');
-var setCellEditable = handsontableMethodFactory('setCellEditable');
 var render = handsontableMethodFactory('render');
 var updateSettings = handsontableMethodFactory('updateSettings');
+var destroy = handsontableMethodFactory('destroy');
