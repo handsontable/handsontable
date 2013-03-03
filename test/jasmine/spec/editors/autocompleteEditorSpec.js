@@ -270,4 +270,31 @@ describe('AutocompleteEditor', function () {
       expect(getDataAtCell(2, 2)).toEqual('black');
     });
   });
+
+  it('finish editing should move the focus aways from textarea to table cell', function () {
+    runs(function () {
+      handsontable({
+        autoComplete: getAutocompleteConfig(false)
+      });
+      setDataAtCell(2, 2, 'black');
+      selectCell(2, 2);
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function(){
+      keyDownUp('enter');
+
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      autocomplete().$element.val("ye");
+      keyDownUp(69); //e
+      deselectCell();
+      keyDownUp('enter');
+      expect(document.activeElement.nodeName).toEqual('TD');
+    });
+  });
 });

@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Mar 02 2013 00:33:04 GMT+0100 (Central European Standard Time)
+ * Date: Sun Mar 03 2013 23:46:29 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2895,7 +2895,7 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
   }
 
   this.instance.$table.off(".editor");
-  if (document.activeElement === this.TEXTAREA) {
+  if (document.activeElement === this.TEXTAREA[0]) {
     this.TD.focus(); //don't refocus the table if user focused some cell outside of HT on purpose
   }
   this.instance.view.wt.update('onCellDblClick', null);
