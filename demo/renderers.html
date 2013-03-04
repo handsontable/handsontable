@@ -10,6 +10,9 @@
   <script src="../lib/jquery.min.js"></script>
   <script src="../dist/jquery.handsontable.full.js"></script>
   <link rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
+  <script src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
+  <link rel="stylesheet" media="screen" href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -81,10 +84,10 @@
 
         <script>
           var data = [
-            {id: 1, name: "Ted", isActive: true, color: "orange"},
-            {id: 2, name: "John", isActive: false, color: "black"},
-            {id: 3, name: "Al", isActive: true, color: "red"},
-            {id: 4, name: "Ben", isActive: false, color: "blue"}
+            {id: 1, name: "Ted", isActive: true, color: "orange", date: "2008-01-01"},
+            {id: 2, name: "John", isActive: false, color: "black", date: null},
+            {id: 3, name: "Al", isActive: true, color: "red", date: null},
+            {id: 4, name: "Ben", isActive: false, color: "blue", date: null}
           ];
 
           var yellowRenderer = function (instance, td, row, col, prop, value, cellProperties) {
@@ -111,6 +114,7 @@
               {data: "id"},
               {data: "name", type: {renderer: yellowRenderer}},
               {data: "isActive", type: Handsontable.CheckboxCell},
+              {data: "date", type: Handsontable.DateCell},
               {data: "color",
                 type: Handsontable.AutocompleteCell,
                 source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]

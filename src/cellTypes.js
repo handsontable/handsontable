@@ -23,6 +23,11 @@ Handsontable.NumericCell = {
   dataType: 'number'
 };
 
+Handsontable.DateCell = {
+  renderer: Handsontable.AutocompleteRenderer, //displays small gray arrow on right side of the cell
+  editor: Handsontable.DateEditor
+};
+
 Handsontable.cellTypes = {
   autocomplete: Handsontable.AutocompleteCell,
   checkbox: Handsontable.CheckboxCell,
