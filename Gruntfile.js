@@ -24,9 +24,9 @@ module.exports = function (grunt) {
     concat: {
       dist: {
         src: [
-          'tmp/intro.js',
+          'src/intro.js',
 
-          'tmp/core.js',
+          'src/core.js',
           'src/tableView.js',
           'src/helpers.js',
           'src/fillHandle.js',
