@@ -133,6 +133,9 @@ Handsontable.Core = function (rootElement, settings) {
           row.push(null);
         }
       }
+      else if(priv.dataType === 'function') {
+        row = priv.settings.dataSchema();
+      }
       else {
         row = $.extend(true, {}, datamap.getSchema());
       }
@@ -1459,6 +1462,9 @@ Handsontable.Core = function (rootElement, settings) {
     if ($.isPlainObject(priv.settings.dataSchema) || $.isPlainObject(data[0])) {
       priv.dataType = 'object';
     }
+    else if($.isFunction(priv.settings.dataSchema)){
+      priv.dataType = 'function';
+    }
     else {
       priv.dataType = 'array';
     }
@@ -1836,7 +1842,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Number}
    */
   this.countCols = function () {
-    if (priv.dataType === 'object') {
+    if (priv.dataType === 'object' || priv.dataType === 'function' ) {
       if (priv.settings.columns && priv.settings.columns.length) {
         return priv.settings.columns.length;
       }
