@@ -239,6 +239,22 @@ Handsontable.Core = function (rootElement, settings) {
         }
         return out;
       }
+      else if(typeof datamap.getVars.prop === 'function'){
+        /**
+         *  allows for interacting with complex structures, for example
+         *  d3/jQuery getter/setter properties:
+         *
+         *    {columns: [{
+         *      data: function(row, value){
+         *        if(arguments.length === 1){
+         *          return row.property();
+         *        }
+         *        row.property(value);
+         *      }
+         *    }]}
+         */
+        return datamap.getVars.prop(priv.settings.data[datamap.getVars.row]);
+      }
       else {
         return priv.settings.data[datamap.getVars.row] ? priv.settings.data[datamap.getVars.row][datamap.getVars.prop] : null;
       }
@@ -263,6 +279,10 @@ Handsontable.Core = function (rootElement, settings) {
           out = out[sliced[i]];
         }
         out[sliced[i]] = datamap.setVars.value;
+      }
+      else if(typeof datamap.setVars.prop === 'function'){
+        /* see the `function` handler in `get` */
+        datamap.setVars.prop(priv.settings.data[datamap.getVars.row], datamap.setVars.value);
       }
       else {
         priv.settings.data[datamap.setVars.row][datamap.setVars.prop] = datamap.setVars.value;
