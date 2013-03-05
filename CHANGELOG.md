@@ -1,3 +1,8 @@
+## HEAD
+
+Features:
+- refactor the `text`, `autocomplete` and `date` cell editors to share as much code as possible
+
 ## [0.8.8](https://github.com/warpech/jquery-handsontable/tree/v0.8.8) (Mar 4, 2013)
 
 Bugfixes:

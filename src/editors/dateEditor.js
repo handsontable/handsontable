@@ -1,29 +1,25 @@
 function HandsontableDateEditorClass(instance) {
-  this.isCellEdited = false;
-  this.instance = instance;
-  this.originalValue = '';
-  this.row;
-  this.col;
-  this.prop;
+  if(instance) {
+    this.isCellEdited = false;
+    this.instance = instance;
+    this.createElements();
+    this.bindEvents();
+  }
+}
 
-  this.createElements();
+HandsontableDateEditorClass.prototype = new HandsontableTextEditorClass();
 
-  var that = this;
+HandsontableDateEditorClass.prototype._createElements = HandsontableTextEditorClass.prototype.createElements;
+
+HandsontableDateEditorClass.prototype.createElements = function () {
+  this._createElements();
 
   this.datePickerdiv = $("<div>");
   this.datePickerdiv[0].style.position = 'absolute';
   this.datePickerdiv[0].style.top = 0;
   this.datePickerdiv[0].style.left = 0;
   this.datePickerdiv[0].style.zIndex = 99;
-  instance.rootElement[0].appendChild(this.datePickerdiv[0]);
-
-  this.bindEvents();
-}
-
-for (var i in HandsontableTextEditorClass.prototype) {
-  if (HandsontableTextEditorClass.prototype.hasOwnProperty(i)) {
-    HandsontableDateEditorClass.prototype[i] = HandsontableTextEditorClass.prototype[i];
-  }
+  this.instance.rootElement[0].appendChild(this.datePickerdiv[0]);
 }
 
 HandsontableDateEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
@@ -86,48 +82,10 @@ Handsontable.DateEditor = function (instance, td, row, col, prop, value, cellPro
   if (!instance.dateEditor) {
     instance.dateEditor = new HandsontableDateEditorClass(instance);
   }
-
-  instance.dateEditor.TD = td;
-  instance.dateEditor.isCellEdited = false;
-  instance.dateEditor.originalValue = value;
-
-  instance.$table.on('keydown.editor', function (event) {
-    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-    if (!instance.dateEditor.isCellEdited) {
-      if (Handsontable.helper.isPrintableChar(event.keyCode)) {
-        if (!ctrlDown) { //disregard CTRL-key shortcuts
-          instance.dateEditor.beginEditing(row, col, prop);
-        }
-      }
-      else if (event.keyCode === 113) { //f2
-        instance.dateEditor.beginEditing(row, col, prop, true); //show edit field
-        event.stopPropagation();
-        event.preventDefault(); //prevent Opera from opening Go to Page dialog
-      }
-      else if (event.keyCode === 13 && instance.getSettings().enterBeginsEditing) { //enter
-        var selected = instance.getSelected();
-        var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
-        if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
-          instance.dateEditor.beginEditing(row, col, prop, true, '\n'); //show edit field
-        }
-        else {
-          instance.dateEditor.beginEditing(row, col, prop, true); //show edit field
-        }
-        event.preventDefault(); //prevent new line at the end of textarea
-        event.stopPropagation();
-      }
-    }
-  });
-
-  function onDblClick() {
-    instance.dateEditor.beginEditing(row, col, prop, true);
-  }
-
-  instance.view.wt.update('onCellDblClick', onDblClick);
-
+  instance.dateEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
   return function (isCancelled) {
     setTimeout(function () {
       instance.dateEditor.finishEditing(isCancelled);
-    });
+    }, 0);
   }
 };

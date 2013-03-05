@@ -1,20 +1,10 @@
 function HandsontableTextEditorClass(instance) {
-  this.isCellEdited = false;
-  this.instance = instance;
-  this.originalValue = '';
-  this.row;
-  this.col;
-  this.prop;
-
-  this.createElements();
-
-  /*instance.that.TEXTAREA.on('blur.editor', function () {
-   if (that.isCellEdited) {
-   that.finishEditing(false);
-   }
-   });*/
-
-  this.bindEvents();
+  if(instance) {
+    this.isCellEdited = false;
+    this.instance = instance;
+    this.createElements();
+    this.bindEvents();
+  }
 }
 
 HandsontableTextEditorClass.prototype.createElements = function () {
@@ -107,6 +97,56 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
     }
   });
+}
+
+HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
+  this.td = td;
+  this.row = row;
+  this.col = col;
+  this.prop = prop;
+  this.originalValue = value;
+  this.cellProperties = cellProperties;
+
+  var that = this;
+
+  this.instance.$table.on('keydown.editor', function (event) {
+    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+    if (!that.isCellEdited) {
+      if (Handsontable.helper.isPrintableChar(event.keyCode)) {
+        if (!ctrlDown) { //disregard CTRL-key shortcuts
+          that.beginEditing(row, col, prop);
+        }
+      }
+      else if (event.keyCode === 113) { //f2
+        that.beginEditing(row, col, prop, true); //show edit field
+        event.stopPropagation();
+        event.preventDefault(); //prevent Opera from opening Go to Page dialog
+      }
+      else if (event.keyCode === 13 && that.instance.getSettings().enterBeginsEditing) { //enter
+        var selected = that.instance.getSelected();
+        var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
+        if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
+          that.beginEditing(row, col, prop, true, '\n'); //show edit field
+        }
+        else {
+          that.beginEditing(row, col, prop, true); //show edit field
+        }
+        event.preventDefault(); //prevent new line at the end of textarea
+        event.stopPropagation();
+      }
+    }
+  });
+
+  function onDblClick() {
+    that.beginEditing(row, col, prop, true);
+  }
+
+  this.instance.view.wt.update('onCellDblClick', onDblClick);
+}
+
+HandsontableTextEditorClass.prototype.unbindTemporaryEvents = function () {
+  this.instance.$table.off(".editor");
+  this.instance.view.wt.update('onCellDblClick', null);
 }
 
 /**
@@ -280,11 +320,10 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
     }
   }
 
-  this.instance.$table.off(".editor");
+  this.unbindTemporaryEvents();
   if (document.activeElement === this.TEXTAREA[0]) {
     this.TD.focus(); //don't refocus the table if user focused some cell outside of HT on purpose
   }
-  this.instance.view.wt.update('onCellDblClick', null);
 
   this.TEXTAREA_PARENT[0].style.display = 'none';
 }
@@ -303,46 +342,10 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, value, cellPro
   if (!instance.textEditor) {
     instance.textEditor = new HandsontableTextEditorClass(instance);
   }
-
-  instance.textEditor.TD = td;
-  instance.textEditor.isCellEdited = false;
-  instance.textEditor.originalValue = value;
-
-  instance.$table.on('keydown.editor', function (event) {
-    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-    if (!instance.textEditor.isCellEdited) {
-      if (Handsontable.helper.isPrintableChar(event.keyCode)) {
-        if (!ctrlDown) { //disregard CTRL-key shortcuts
-          instance.textEditor.beginEditing(row, col, prop);
-        }
-      }
-      else if (event.keyCode === 113) { //f2
-        instance.textEditor.beginEditing(row, col, prop, true); //show edit field
-        event.stopPropagation();
-        event.preventDefault(); //prevent Opera from opening Go to Page dialog
-      }
-      else if (event.keyCode === 13 && instance.getSettings().enterBeginsEditing) { //enter
-        var selected = instance.getSelected();
-        var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
-        if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
-          instance.textEditor.beginEditing(row, col, prop, true, '\n'); //show edit field
-        }
-        else {
-          instance.textEditor.beginEditing(row, col, prop, true); //show edit field
-        }
-        event.preventDefault(); //prevent new line at the end of textarea
-        event.stopPropagation();
-      }
-    }
-  });
-
-  function onDblClick() {
-    instance.textEditor.beginEditing(row, col, prop, true);
-  }
-
-  instance.view.wt.update('onCellDblClick', onDblClick);
-
+  instance.textEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
   return function (isCancelled) {
-    instance.textEditor.finishEditing(isCancelled);
+    setTimeout(function () {
+      instance.textEditor.finishEditing(isCancelled);
+    }, 0);
   }
 };
