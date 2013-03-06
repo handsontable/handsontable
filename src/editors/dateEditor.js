@@ -1,5 +1,5 @@
 function HandsontableDateEditorClass(instance) {
-  if(instance) {
+  if (instance) {
     this.isCellEdited = false;
     this.instance = instance;
     this.createElements();
@@ -20,6 +20,20 @@ HandsontableDateEditorClass.prototype.createElements = function () {
   this.datePickerdiv[0].style.left = 0;
   this.datePickerdiv[0].style.zIndex = 99;
   this.instance.rootElement[0].appendChild(this.datePickerdiv[0]);
+
+  var that = this;
+  var defaultOptions = {
+    dateFormat: "yy-mm-dd",
+    showButtonPanel: true,
+    changeMonth: true,
+    changeYear: true,
+    altField: this.TEXTAREA,
+    onSelect: function () {
+      that.finishEditing(false);
+    }
+  };
+  this.datePickerdiv.datepicker(defaultOptions);
+  this.datePickerdiv.hide();
 }
 
 HandsontableDateEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
@@ -48,19 +62,14 @@ HandsontableDateEditorClass.prototype.showDatepicker = function () {
   this.datePickerdiv[0].style.top = (position.top + $td.height()) + 'px';
   this.datePickerdiv[0].style.left = position.left + 'px';
 
-  var that = this;
-  var dateoptions = {
-    dateFormat: "yy-mm-dd",
-    defaultDate: this.originalValue,
-    showButtonPanel: true,
-    changeMonth: true,
-    changeYear: true,
-    altField: this.instance.dateEditor.TEXTAREA,
-    onSelect: function () {
-      that.finishEditing(false);
-    }
+  var dateOptions = {
+    defaultDate: this.originalValue || void 0
   };
-  this.datePickerdiv.datepicker(dateoptions);
+  $.extend(dateOptions, this.cellProperties);
+  this.datePickerdiv.datepicker("option", dateOptions);
+  if (this.originalValue) {
+    this.datePickerdiv.datepicker("setDate", this.originalValue);
+  }
   this.datePickerdiv.show();
 }
 

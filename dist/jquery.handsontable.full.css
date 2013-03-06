@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Mar 05 2013 14:57:04 GMT+0100 (Central European Standard Time)
+ * Date: Wed Mar 06 2013 01:00:17 GMT+0100 (Central European Standard Time)
  */
 
 .handsontable {
@@ -192,6 +192,15 @@ textarea.handsontableInput {
   font-size: 13px;
   box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
   resize: none;
+
+  /*below are needed to overwrite stuff added by jQuery UI Bootstrap theme*/
+  display: inline-block;
+  font-size: 13px;
+  line-height: inherit;
+  color: #000;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
 }
 
 .handsontableInputHolder {

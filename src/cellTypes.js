@@ -28,9 +28,11 @@ Handsontable.DateCell = {
   editor: Handsontable.DateEditor
 };
 
+//here setup the friendly aliases that are used by cellProperties.type
 Handsontable.cellTypes = {
   autocomplete: Handsontable.AutocompleteCell,
   checkbox: Handsontable.CheckboxCell,
   text: Handsontable.TextCell,
-  numeric: Handsontable.NumericCell
+  numeric: Handsontable.NumericCell,
+  date: Handsontable.DateCell
 }
