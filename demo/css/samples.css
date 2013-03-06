@@ -1,7 +1,7 @@
 /*This file is only needed for demo purposes in demo/ subdirectory */
 
 html {
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
@@ -10,7 +10,7 @@ body {
   font-family: Helvetica, Arial, FreeSans, sans-serif;
   color: #454545;
   font-size: 14px;
-  height: 100%;
+  min-height: 100%;
 }
 
 .clear {
@@ -19,7 +19,7 @@ body {
 
 #container {
   min-width: 1000px;
-  height: 100%;
+  min-height: 100%;
 }
 
 /*variation of http://matthewjamestaylor.com/blog/equal-height-columns-cross-browser-css-no-hacks*/
@@ -30,7 +30,7 @@ body {
   float: left;
   background-color: #FFF;
   border-right: 1px solid #E5E5EE;
-  height: 100%;
+  min-height: 100%;
 }
 
 .descLayout {
