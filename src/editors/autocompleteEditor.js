@@ -158,8 +158,6 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, value,
   }
   instance.autocompleteEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
   return function (isCancelled) {
-    setTimeout(function () {
-      instance.autocompleteEditor.finishEditing(isCancelled);
-    }, 0);
+    instance.autocompleteEditor.finishEditing(isCancelled);
   }
 };

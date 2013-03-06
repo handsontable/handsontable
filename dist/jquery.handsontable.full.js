@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Mar 06 2013 01:00:17 GMT+0100 (Central European Standard Time)
+ * Date: Wed Mar 06 2013 01:34:03 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2613,7 +2613,7 @@ Handsontable.NumericRenderer = function (instance, td, row, col, prop, value, ce
   }
 };
 function HandsontableTextEditorClass(instance) {
-  if(instance) {
+  if (instance) {
     this.isCellEdited = false;
     this.instance = instance;
     this.createElements();
@@ -2958,9 +2958,7 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, value, cellPro
   }
   instance.textEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
   return function (isCancelled) {
-    setTimeout(function () {
-      instance.textEditor.finishEditing(isCancelled);
-    }, 0);
+    instance.textEditor.finishEditing(isCancelled);
   }
 };
 function HandsontableAutocompleteEditorClass(instance) {
@@ -3123,9 +3121,7 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, value,
   }
   instance.autocompleteEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
   return function (isCancelled) {
-    setTimeout(function () {
-      instance.autocompleteEditor.finishEditing(isCancelled);
-    }, 0);
+    instance.autocompleteEditor.finishEditing(isCancelled);
   }
 };
 function toggleCheckboxCell(instance, row, prop, cellProperties) {
@@ -3273,9 +3269,7 @@ Handsontable.DateEditor = function (instance, td, row, col, prop, value, cellPro
   }
   instance.dateEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
   return function (isCancelled) {
-    setTimeout(function () {
-      instance.dateEditor.finishEditing(isCancelled);
-    }, 0);
+    instance.dateEditor.finishEditing(isCancelled);
   }
 };
 /**

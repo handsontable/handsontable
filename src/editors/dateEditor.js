@@ -93,8 +93,6 @@ Handsontable.DateEditor = function (instance, td, row, col, prop, value, cellPro
   }
   instance.dateEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
   return function (isCancelled) {
-    setTimeout(function () {
-      instance.dateEditor.finishEditing(isCancelled);
-    }, 0);
+    instance.dateEditor.finishEditing(isCancelled);
   }
 };

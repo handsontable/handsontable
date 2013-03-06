@@ -1,5 +1,5 @@
 function HandsontableTextEditorClass(instance) {
-  if(instance) {
+  if (instance) {
     this.isCellEdited = false;
     this.instance = instance;
     this.createElements();
@@ -344,8 +344,6 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, value, cellPro
   }
   instance.textEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
   return function (isCancelled) {
-    setTimeout(function () {
-      instance.textEditor.finishEditing(isCancelled);
-    }, 0);
+    instance.textEditor.finishEditing(isCancelled);
   }
 };
