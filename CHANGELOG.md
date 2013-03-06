@@ -1,4 +1,4 @@
-## HEAD
+## [0.8.9](https://github.com/warpech/jquery-handsontable/tree/v0.8.9) (Mar 6, 2013)
 
 This is a feature release of a new cell type. For people waiting for some bug fixes, I promise next release will focus on fixing some important bugs!
 
