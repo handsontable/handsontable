@@ -53,8 +53,14 @@ $(function () {
 <script src="http://handsontable.com/lib/jquery.min.js"></script>\n\
 <script src="http://handsontable.com/dist/jquery.handsontable.full.js"></script>\n\
 <link rel="stylesheet" media="screen" href="http://handsontable.com/dist/jquery.handsontable.full.css">\n\
-<link rel="stylesheet" media="screen" href="http://handsontable.com/demo/css/samples.css">\n\
-<style type="text/css">\n\
+<link rel="stylesheet" media="screen" href="http://handsontable.com/demo/css/samples.css">\n';
+
+    if($.ui && $.ui.datepicker) {
+      css += '<script src="http://handsontable.com/lib/jquery-ui/js/jquery-ui.custom.min.js"></script>\n\
+<link rel="stylesheet" media="screen" href="http://handsontable.com/lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">\n';
+    }
+
+    css += '<style type="text/css">\n\
 body {background: white; margin: 20px;}\n\
 h2 {margin: 20px 0;}\n\n';
     $('style.common').each(function () {
