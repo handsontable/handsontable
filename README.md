@@ -1,4 +1,5 @@
 # Handsontable
+[![Build Status](https://travis-ci.org/bollwyvl/jquery-handsontable.png?branch=travis-testing)](https://travis-ci.org/bollwyvl/jquery-handsontable)
 
 Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery. Requires jQuery 1.7+. Runs in IE7, IE8, IE9, Firefox, Chrome, Safari and Opera.
 
