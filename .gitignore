@@ -1,4 +1,5 @@
 node_modules
 .idea
 _SpecRunner.html
+.grunt
 

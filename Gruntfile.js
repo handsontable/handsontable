@@ -140,7 +140,14 @@ module.exports = function (grunt) {
         specs: [
           'test/jasmine/spec/*Spec.js',
           'test/jasmine/spec/*/*Spec.js'
-        ]
+        ],
+        template: 'test/JqueryHandsontableRunner.tmpl',
+        templateOptions: {
+          css: [
+            'lib/jQuery-contextMenu/jquery.contextMenu.css',
+            'jquery.handsontable.css',
+          ]
+        }
       }
     }
   });
