@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Cell renderers - Handsontable</title>
+  <title>Cell types - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -25,9 +25,9 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Cell renderers">
+  <meta property="og:title" content="Cell types">
   <meta property="og:description"
-        content="This example shows the default renderers available in Handsontable.">
+        content="This example shows the default renderers and editors available in Handsontable.">
   <meta property="og:url" content="http://handsontable.com/demo/renderers.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -57,21 +57,47 @@
         <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
           for HTML, JavaScript &amp; jQuery
         </div>
+
+        <h2>Cell types</h2>
+
+        <p>This page is an introduction to Handsontable cell types:</p>
+
+        <ul>
+          <li><a href="#preview">Preview of built-in and custom cell types</a></li>
+          <li><a href="#anatomy">Anatomy of a cell type</a></li>
+        </ul>
       </div>
     </div>
   </div>
 
   <div class="rowLayout">
     <div class="descLayout">
-      <div class="pad bottomSpace550">
-        <h2>Cell renderers</h2>
+      <div class="pad bottomSpace350">
+        <a name="preview"></a>
 
-        <p>This example shows the default renderers available in Handsontable.</p>
+        <h2>Preview of built-in and custom cell types</h2>
+
+        <p>The below example shows all built-in cell types (in other words, combinations of cell renderers and editors)
+          available in Handsontable:</p>
+
+        <ul>
+          <li>text</li>
+          <li><a href="numeric.html">numeric</a></li>
+          <li>checkbox</li>
+          <li><a href="date.html">date</a></li>
+          <li><a href="autocomplete.html">autocomplete</a></li>
+        </ul>
+
+        <p>The same example also shows the declaration of custom cell renderers, namely <code>yellowRenderer</code> and
+          <code>greenRenderer</code>.
+        </p>
 
         <div id="example1"></div>
 
         <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
+          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+            data to console
+          </button>
         </p>
       </div>
     </div>
@@ -111,12 +137,13 @@
             colHeaders: true,
             minSpareRows: 1,
             columns: [
-              {data: "id"},
+              {data: "id", type: 'text'},
+              //'text' is default, you don't actually have to declare it
               {data: "name", type: {renderer: yellowRenderer}},
-              {data: "isActive", type: Handsontable.CheckboxCell},
-              {data: "date", type: Handsontable.DateCell},
+              {data: "isActive", type: 'checkbox'},
+              {data: "date", type: 'date'},
               {data: "color",
-                type: Handsontable.AutocompleteCell,
+                type: 'autocomplete',
                 source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
               }
             ],
@@ -127,6 +154,44 @@
             }
           });
         </script>
+      </div>
+    </div>
+  </div>
+
+  <div class="rowLayout">
+    <div class="descLayout">
+      <div class="pad bottomSpace100">
+        <a name="anatomy"></a>
+
+        <h2>Anatomy of a cell type</h2>
+
+        <p>A cell type is a predefined set of cell properties. Cell type defines what <strong>renderer</strong>
+          and <strong>editor</strong> should be used for a cell. They can also define any different cell property that
+          will be assumed for each matching cell.</p>
+
+        <p>For example writing:</p>
+
+        <pre class="javascript"><code>
+        columns: [
+          {
+            type: 'text'
+          }
+        ]
+        </code></pre>
+
+        <p>Equals:</p>
+
+        <pre class="javascript"><code>
+        columns: [
+          {
+            renderer: Handsontable.TextRenderer,
+            editor: Handsontable.TextEditor
+          }
+        ]
+        </code></pre>
+
+        This mapping is defined in file <a
+          href="https://github.com/warpech/jquery-handsontable/blob/master/src/cellTypes.js">src/cellTypes.js</a>
       </div>
     </div>
   </div>

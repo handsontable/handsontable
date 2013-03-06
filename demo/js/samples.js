@@ -70,6 +70,12 @@ function trimCodeBlock(code, pad) {
 
 $(function () {
   if (!$.browser.msie || parseInt($.browser.version, 10) > 6) { //syntax coloring does not work well with IE7
+    $('.descLayout pre.javascript code').each(function () {
+      var $script = $(this);
+      var code = trimCodeBlock($script[0].innerHTML);
+      $script[0].innerHTML = code.join('\n');
+    });
+
     $('.codeLayout script').each(function () {
       var $script = $(this);
       var $pre = $('<pre class="javascript"></pre>');

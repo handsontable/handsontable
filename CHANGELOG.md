@@ -1,7 +1,10 @@
 ## HEAD
 
+This is a feature release of a new cell type. For people waiting for some bug fixes, I promise next release will focus on fixing some important bugs!
+
 Features:
-- refactor the `text`, `autocomplete` and `date` cell editors to share as much code as possible
+- **Date cell type**. Updated pages [Date](http://handsontable.com/demo/date.html) and [Cell types](http://handsontable.com/demo/renderers.html). Solves issue [#431](https://github.com/warpech/jquery-handsontable/issues/431)
+- refactored the `text`, `autocomplete` and `date` cell editors to share as much code as possible
 
 ## [0.8.8](https://github.com/warpech/jquery-handsontable/tree/v0.8.8) (Mar 4, 2013)
 
