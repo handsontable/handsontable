@@ -23,7 +23,7 @@ module.exports = function (grunt) {
     pkg: grunt.file.readJSON('package.json'),
     meta: {
       src: [
-        'src/core.js',
+        'tmp/core.js',
         'src/tableView.js',
         'src/helpers.js',
         'src/fillHandle.js',
@@ -68,7 +68,7 @@ module.exports = function (grunt) {
       dist: {
         files: {
           'jquery.handsontable.js': [
-            'src/intro.js',
+            'tmp/intro.js',
             '<%= meta.src %>',
             'src/outro.js'
           ]
@@ -115,8 +115,7 @@ module.exports = function (grunt) {
           variables: {
             version: '<%= pkg.version %>',
             timestamp: '<%= (new Date()).toString() %>'
-          },
-          prefix: '@@'
+          }
         },
         files: {
           'tmp/intro.js': 'src/intro.js',
