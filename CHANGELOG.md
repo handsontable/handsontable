@@ -2,6 +2,7 @@
 
 Docs:
 - simplify CSS for demo pages (get rid of `bottomSpace` classes)
+- refresh the style of jsFiddle links
 
 ## [0.8.9](https://github.com/warpech/jquery-handsontable/tree/v0.8.9) (Mar 6, 2013)
 

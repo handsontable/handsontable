@@ -43,7 +43,7 @@ but apparently it works good without it
   width: 50%;
   left: 50%;
   float: left;
-  margin-bottom: 40px;
+  margin-bottom: 50px;
 }
 
 .codeLayout {
@@ -83,7 +83,7 @@ h1 {
 }
 
 h2 {
-  margin-top: 40px;
+  margin-top: 50px;
   font-size: 20px;
   font-weight: 700;
   font-style: normal;
@@ -172,32 +172,25 @@ li {
  */
 
 .jsFiddle {
-  margin-top: 34px;
+  margin-top: 38px;
   margin-bottom: 18px;
   clear: both;
   float: left;
 }
 
 .jsFiddleLink {
-  border: 1px solid #26445F;
-  text-shadow: 0 1px 1px #253E5C;
+  background-color: #355E95;
   color: white;
-  font-weight: bold;
   font-size: 12px;
-  line-height: 26px;
-  padding: 0 10px;
+  line-height: 36px;
+  height: 36px;
+  padding: 0 8px;
   float: left;
   cursor: pointer;
+}
 
-  /*gradient*/
-  background: #5184af; /* Old browsers */
-  background: -moz-linear-gradient(top, #5184af 0%, #40729d 100%); /* FF3.6+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #5184af), color-stop(100%, #40729d)); /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(top, #5184af 0%, #40729d 100%); /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(top, #5184af 0%, #40729d 100%); /* Opera 11.10+ */
-  background: -ms-linear-gradient(top, #5184af 0%, #40729d 100%); /* IE10+ */
-  background: linear-gradient(to bottom, #5184af 0%, #40729d 100%); /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr = '#5184af', endColorstr = '#40729d', GradientType = 0); /* IE6-9 */
+.jsFiddleLink:hover {
+  background-color: #3D63AA;
 }
 
 /**
