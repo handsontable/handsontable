@@ -248,6 +248,10 @@ body.home h1 {
   width: 800px;
 }
 
+body.home h2 {
+  margin-top: 40px;
+}
+
 body.home #githubWatch {
   position: absolute;
   top: 31px;
