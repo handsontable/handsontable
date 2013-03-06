@@ -20,23 +20,37 @@ body {
   padding-bottom: 20px;
 }
 
+/*is needed according to http://matthewjamestaylor.com/blog/equal-height-columns-cross-browser-css-no-hacks
+but apparently it works good without it
+.rowLayout-outer {
+  float: left;
+  overflow: hidden;
+  clear: both;
+  width: 100%;
+}*/
+
 .rowLayout {
   position: relative;
   width: 100%;
-  clear: both;
-}
-
-.descLayout {
-  width: 50%;
+  right: 50%;
   float: left;
   background-color: #FFF;
   border-right: 1px solid #E5E5EE;
 }
 
-.codeLayout {
-  position: absolute;
+.descLayout {
+  position: relative;
+  width: 50%;
   left: 50%;
-  top: 0;
+  float: left;
+  margin-bottom: 40px;
+}
+
+.codeLayout {
+  position: relative;
+  /*width: 50%; /*causes problems in IE7*/
+  left: 50%;
+  float: left;
 }
 
 /**
@@ -50,50 +64,6 @@ body {
 
 .descLayout .pad {
   float: right;
-}
-
-.pad.bottomSpace100 {
-  padding-bottom: 100px;
-}
-
-.pad.bottomSpace150 {
-  padding-bottom: 150px;
-}
-
-.pad.bottomSpace200 {
-  padding-bottom: 200px;
-}
-
-.pad.bottomSpace300 {
-  padding-bottom: 300px;
-}
-
-.pad.bottomSpace350 {
-  padding-bottom: 350px;
-}
-
-.pad.bottomSpace450 {
-  padding-bottom: 450px;
-}
-
-.pad.bottomSpace550 {
-  padding-bottom: 550px;
-}
-
-.pad.bottomSpace650 {
-  padding-bottom: 650px;
-}
-
-.pad.bottomSpace750 {
-  padding-bottom: 750px;
-}
-
-.pad.bottomSpace850 {
-  padding-bottom: 850px;
-}
-
-.pad.bottomSpace1400 {
-  padding-bottom: 1400px;
 }
 
 /**
