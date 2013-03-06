@@ -9,8 +9,8 @@ Features:
 ## [0.8.8](https://github.com/warpech/jquery-handsontable/tree/v0.8.8) (Mar 4, 2013)
 
 Bugfixes:
-- `startRows`/`startCols` option did not work as described in README.md. This parameters should be only taken into account when NO data source is provided
-- finish editing should move the focus aways from textarea to table cell
+- `startRows`/`startCols` option did not work as described in README.md. This parameters should be only taken into account when NO data source is provided ([5c865ba](https://github.com/warpech/jquery-handsontable/commit/5c865ba15dcb7d9f93a47b14aedfc96751bcbb7a))
+- finish editing should move the focus aways from textarea to table cell ([f4f6496](https://github.com/warpech/jquery-handsontable/commit/f4f649600311ba527c19dc2e8f73af2e764c54d6))
 
 ## [0.8.7](https://github.com/warpech/jquery-handsontable/tree/v0.8.7) (Mar 1, 2013)
 
