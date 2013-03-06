@@ -285,6 +285,7 @@ body.home .linkColumn.first {
 body.home #container ul {
   list-style-type: none;
   padding: 0;
+  margin: 0;
 }
 
 body.home #container ul li {
