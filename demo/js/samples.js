@@ -55,7 +55,7 @@ $(function () {
 <link rel="stylesheet" media="screen" href="http://handsontable.com/dist/jquery.handsontable.full.css">\n\
 <link rel="stylesheet" media="screen" href="http://handsontable.com/demo/css/samples.css">\n';
 
-    if($.ui && $.ui.datepicker) {
+    if ($.ui && $.ui.datepicker) {
       css += '<script src="http://handsontable.com/lib/jquery-ui/js/jquery-ui.custom.min.js"></script>\n\
 <link rel="stylesheet" media="screen" href="http://handsontable.com/lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">\n';
     }
@@ -83,8 +83,9 @@ h2 {margin: 20px 0;}\n\n';
     var clone = $(this).parents('.rowLayout').find('.descLayout .pad').clone();
     var example = clone.find('div[id^="example"]');
     example.html('');
-    if(example[0].style.overflow === 'hidden') {
-      example[0].style.overflow = 'auto';
+    var originalHT = $(this).parents('.rowLayout').find('.descLayout .pad div[id^="example"]');
+    if (originalHT.data('originalStyle')) {
+      example.attr('style', originalHT.data('originalStyle'));
     }
     clone.find('a[name]').remove();
     var html = trimCodeBlock(clone.html()).join('\n');

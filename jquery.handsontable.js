@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Mar 06 2013 01:43:31 GMT+0100 (Central European Standard Time)
+ * Date: Thu Mar 07 2013 00:06:10 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2027,6 +2027,7 @@ Handsontable.TableView = function (instance) {
   this.instance = instance;
   var settings = this.instance.getSettings();
 
+  instance.rootElement.data('originalStyle', instance.rootElement.attr('style')); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
   instance.rootElement.addClass('handsontable');
   var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
 
