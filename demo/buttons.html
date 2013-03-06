@@ -47,99 +47,104 @@
 </a>
 
 <div id="container">
+  <div class="columnLayout">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
+
+          <h2>Custom buttons</h2>
         </div>
-
-        <h2>Custom buttons</h2>
-      </div>
-    </div>
-  </div>
-
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <p>The <b>alter</b> method can be used if you want to insert or remove rows and columns using external buttons.
-          The below example uses the a custom made
-          <b>jquery.handsontable.removeRow.js</b> extension for that matter. Move your mouse over a row to see it.</p>
-
-        <p>You can programically select a cell using the <b>selectCell</b> method. The below button implements it.</p>
-
-        <p>
-          <button id="selectFirst">Select first cell</button>
-          <label><input type="checkbox" id="rowHeaders" checked="checked" autocomplete="off"> Show row headers</label>
-          <label><input type="checkbox" id="colHeaders" checked="checked" autocomplete="off"> Show col headers</label>
-        </p>
-
-        <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
-
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
-        </p>
-
-        <style>
-
-        </style>
       </div>
     </div>
 
-    <div class="codeLayout">
-      <div class="pad">
-        <script>
-          var container = $("#example1");
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <p>The <b>alter</b> method can be used if you want to insert or remove rows and columns using external
+            buttons.
+            The below example uses the a custom made
+            <b>jquery.handsontable.removeRow.js</b> extension for that matter. Move your mouse over a row to see it.</p>
 
-          container.handsontable({
-            startRows: 15,
-            startCols: 16,
-            rowHeaders: true,
-            colHeaders: true,
-            minSpareCols: 1,
-            minSpareRows: 1,
-            contextMenu: true,
-            RemoveRow: true
-          });
+          <p>You can programically select a cell using the <b>selectCell</b> method. The below button implements it.</p>
 
-          var data = [
-            ["", "Kia", "Nissan", "Toyota", "Honda"],
-            ["2008", 10, 11, 12, 13],
-            ["2009", 20, 11, 14, 13],
-            ["2010", 30, 15, 12, 13]
-          ];
+          <p>
+            <button id="selectFirst">Select first cell</button>
+            <label><input type="checkbox" id="rowHeaders" checked="checked" autocomplete="off"> Show row headers</label>
+            <label><input type="checkbox" id="colHeaders" checked="checked" autocomplete="off"> Show col headers</label>
+          </p>
 
-          container.handsontable("loadData", data);
+          <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
-          $("button#selectFirst").on('click', function () {
-            setTimeout(function () {
-              //timeout is needed because Handsontable normally deselects
-              //current cell when you click outside the table
-              container.handsontable("selectCell", 0, 0);
-            }, 10);
-          });
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump data to console
+            </button>
+          </p>
 
-          $("input#rowHeaders").change(function () {
-            container.handsontable("updateSettings", {rowHeaders: $(this).is(':checked')});
-          });
+          <style>
 
-          $("input#colHeaders").change(function () {
-            container.handsontable("updateSettings", {colHeaders: $(this).is(':checked')});
-          });
-        </script>
+          </style>
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <script>
+            var container = $("#example1");
+
+            container.handsontable({
+              startRows: 15,
+              startCols: 16,
+              rowHeaders: true,
+              colHeaders: true,
+              minSpareCols: 1,
+              minSpareRows: 1,
+              contextMenu: true,
+              RemoveRow: true
+            });
+
+            var data = [
+              ["", "Kia", "Nissan", "Toyota", "Honda"],
+              ["2008", 10, 11, 12, 13],
+              ["2009", 20, 11, 14, 13],
+              ["2010", 30, 15, 12, 13]
+            ];
+
+            container.handsontable("loadData", data);
+
+            $("button#selectFirst").on('click', function () {
+              setTimeout(function () {
+                //timeout is needed because Handsontable normally deselects
+                //current cell when you click outside the table
+                container.handsontable("selectCell", 0, 0);
+              }, 10);
+            });
+
+            $("input#rowHeaders").change(function () {
+              container.handsontable("updateSettings", {rowHeaders: $(this).is(':checked')});
+            });
+
+            $("input#colHeaders").change(function () {
+              container.handsontable("updateSettings", {colHeaders: $(this).is(':checked')});
+            });
+          </script>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
       </div>
     </div>
   </div>

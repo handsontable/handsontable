@@ -73,125 +73,129 @@
 </a>
 
 <div id="container">
+  <div class="columnLayout">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
+
+          <h2>Manual column resize &amp; move</h2>
+
+          <p>This page shows how to use Handsontable with column related built-in plugins:</p>
+
+          <ul>
+            <li><a href="#resize">Column resize</a></li>
+            <li><a href="#move">Column move</a></li>
+          </ul>
         </div>
+      </div>
+    </div>
 
-        <h2>Manual column resize &amp; move</h2>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <a name="resize"></a>
 
-        <p>This page shows how to use Handsontable with column related built-in plugins:</p>
+          <h2>Column resize</h2>
 
-        <ul>
-          <li><a href="#resize">Column resize</a></li>
-          <li><a href="#move">Column move</a></li>
-        </ul>
+          <p>To enable this experimental feature, use setting <code>manualColumnResize: true</code></p>
+
+          <p>In the right part of column header a draggable column resize handle will appear.</p>
+
+          <p>Double click on the column resize handle to automatically adjust column width.</p>
+
+          <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
+
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump
+              data to console
+            </button>
+          </p>
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
+
+          <script>
+            $("#example1").handsontable({
+              data: createBigData(),
+              rowHeaders: true,
+              colHeaders: true,
+              colWidths: [55, 80, 80, 80, 80, 80, 80],
+              manualColumnResize: true,
+              minSpareRows: 1
+            });
+          </script>
+        </div>
+      </div>
+    </div>
+
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <a name="move"></a>
+
+          <h2>Column move</h2>
+
+          <p>To enable this experimental feature, use setting <code>manualColumnMove: true</code></p>
+
+          <p>In the left part of column header a draggable column move handle will appear.</p>
+
+          <div id="example2" style="width: 400px; height: 300px; overflow: scroll"></div>
+
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump
+              data to console
+            </button>
+          </p>
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
+
+          <script>
+            $("#example2").handsontable({
+              data: createBigData(),
+              rowHeaders: true,
+              colHeaders: true,
+              colWidths: [55, 80, 80, 80, 80, 80, 80],
+              manualColumnMove: true,
+              manualColumnResize: true,
+              minSpareRows: 1
+            });
+          </script>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <a name="resize"></a>
+</div>
 
-        <h2>Column resize</h2>
+<div class="rowLayout">
+  <div class="descLayout noMargin">
+    <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
-        <p>To enable this experimental feature, use setting <code>manualColumnResize: true</code></p>
-
-        <p>In the right part of column header a draggable column resize handle will appear.</p>
-
-        <p>Double click on the column resize handle to automatically adjust column width.</p>
-
-        <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
-
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-            data to console
-          </button>
-        </p>
-      </div>
-    </div>
-
-    <div class="codeLayout">
-      <div class="pad">
-        <div class="jsFiddle">
-          <div class="jsFiddleLink">Edit in jsFiddle</div>
-        </div>
-
-        <script>
-          $("#example1").handsontable({
-            data: createBigData(),
-            rowHeaders: true,
-            colHeaders: true,
-            colWidths: [55, 80, 80, 80, 80, 80, 80],
-            manualColumnResize: true,
-            minSpareRows: 1
-          });
-        </script>
-      </div>
-    </div>
-  </div>
-
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <a name="move"></a>
-
-        <h2>Column move</h2>
-
-        <p>To enable this experimental feature, use setting <code>manualColumnMove: true</code></p>
-
-        <p>In the left part of column header a draggable column move handle will appear.</p>
-
-        <div id="example2" style="width: 400px; height: 300px; overflow: scroll"></div>
-
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-            data to console
-          </button>
-        </p>
-      </div>
-    </div>
-
-    <div class="codeLayout">
-      <div class="pad">
-        <div class="jsFiddle">
-          <div class="jsFiddleLink">Edit in jsFiddle</div>
-        </div>
-
-        <script>
-          $("#example2").handsontable({
-            data: createBigData(),
-            rowHeaders: true,
-            colHeaders: true,
-            colWidths: [55, 80, 80, 80, 80, 80, 80],
-            manualColumnMove: true,
-            manualColumnResize: true,
-            minSpareRows: 1
-          });
-        </script>
-      </div>
+      <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+        licensed under the The MIT License.</p>
     </div>
   </div>
 </div>
-
-  </div>
-
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
-
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
-      </div>
-    </div>
-  </div>
+</div>
 </div>
 </body>
 </html>

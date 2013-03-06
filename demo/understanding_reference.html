@@ -46,138 +46,144 @@
 </a>
 
 <div id="container">
+  <div class="columnLayout">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
+
+          <h2>Understanding binding as reference</h2>
         </div>
-
-        <h2>Understanding binding as reference</h2>
-      </div>
-    </div>
-  </div>
-
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <p>Handsontable binds to your data source (array or object) by reference. Therefore, all the data entered in the
-          grid will alter the original data source.</p>
-
-        <p>In complex applications, you may have a purpose to change data source programatically (outside of
-          Handsontable). A value change that was done programatically will not be presented on the screen unless you
-          refresh the grid on screen using the <b>render</b> method.</p>
-
-        <div id="example1"></div>
-
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
-        </p>
       </div>
     </div>
 
-    <div class="codeLayout">
-      <div class="pad">
-        <script>
-          var data = [
-            ["", "Kia", "Nissan", "Toyota", "Honda"],
-            ["2008", 10, 11, 12, 13],
-            ["2009", 20, 11, 14, 13],
-            ["2010", 30, 15, 12, 13]
-          ];
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <p>Handsontable binds to your data source (array or object) by reference. Therefore, all the data entered in
+            the
+            grid will alter the original data source.</p>
 
-          var $container = $("#example1");
-          $container.handsontable({
-            data: data
-          });
+          <p>In complex applications, you may have a purpose to change data source programatically (outside of
+            Handsontable). A value change that was done programatically will not be presented on the screen unless you
+            refresh the grid on screen using the <b>render</b> method.</p>
 
-          data[0][1] = "Ford"; //change "Kia" to "Ford" programatically
-          $container.handsontable('render'); //refresh the grid to display the new value
-        </script>
+          <div id="example1"></div>
+
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump data to console
+            </button>
+          </p>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h2>But I want to change my data without rendering changes!</h2>
-      </div>
-    </div>
-  </div>
+      <div class="codeLayout">
+        <div class="pad">
+          <script>
+            var data = [
+              ["", "Kia", "Nissan", "Toyota", "Honda"],
+              ["2008", 10, 11, 12, 13],
+              ["2009", 20, 11, 14, 13],
+              ["2010", 30, 15, 12, 13]
+            ];
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <p>In case you want to keep separate working copy of data for Handsontable, it is suggested to clone the data
-          source before you load it to Handsontable.</p>
+            var $container = $("#example1");
+            $container.handsontable({
+              data: data
+            });
 
-        <p>This can easily be done with <b>$.extend</b> method.</p>
-      </div>
-    </div>
-
-    <div class="codeLayout">
-      <div class="pad">
-        <script>
-          var data2 = [
-            ["", "Kia", "Nissan", "Toyota", "Honda"],
-            ["2008", 10, 11, 12, 13],
-            ["2009", 20, 11, 14, 13],
-            ["2010", 30, 15, 12, 13]
-          ];
-
-          var $container = $("#example2");
-          $container.handsontable({
-            data: $.extend(true, [], data2) //for object data source, use {} instead of []
-          });
-        </script>
-      </div>
-    </div>
-  </div>
-
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <p>In a similar way, you may find it useful to clone data before saving it.</p>
-
-        <p>That would be useful to make programmatic changes that would be saved to server but kept not invisible to the
-          user.</p>
+            data[0][1] = "Ford"; //change "Kia" to "Ford" programatically
+            $container.handsontable('render'); //refresh the grid to display the new value
+          </script>
+        </div>
       </div>
     </div>
 
-    <div class="codeLayout">
-      <div class="pad">
-        <script>
-          var data3 = [
-            ["", "Kia", "Nissan", "Toyota", "Honda"],
-            ["2008", 10, 11, 12, 13],
-            ["2009", 20, 11, 14, 13],
-            ["2010", 30, 15, 12, 13]
-          ];
-
-          var $container = $("#example3");
-          $container.handsontable({
-            data: data3,
-            onChange: function () {
-              var tmpData = $.extend(true, [], data3);
-              //now tmpData has a copy of data3 that can be manipulated
-              //without breaking the Handsontable data source object
-            }
-          });
-        </script>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h2>But I want to change my data without rendering changes!</h2>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <p>In case you want to keep separate working copy of data for Handsontable, it is suggested to clone the data
+            source before you load it to Handsontable.</p>
 
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
+          <p>This can easily be done with <b>$.extend</b> method.</p>
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <script>
+            var data2 = [
+              ["", "Kia", "Nissan", "Toyota", "Honda"],
+              ["2008", 10, 11, 12, 13],
+              ["2009", 20, 11, 14, 13],
+              ["2010", 30, 15, 12, 13]
+            ];
+
+            var $container = $("#example2");
+            $container.handsontable({
+              data: $.extend(true, [], data2) //for object data source, use {} instead of []
+            });
+          </script>
+        </div>
+      </div>
+    </div>
+
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <p>In a similar way, you may find it useful to clone data before saving it.</p>
+
+          <p>That would be useful to make programmatic changes that would be saved to server but kept not invisible to
+            the
+            user.</p>
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <script>
+            var data3 = [
+              ["", "Kia", "Nissan", "Toyota", "Honda"],
+              ["2008", 10, 11, 12, 13],
+              ["2009", 20, 11, 14, 13],
+              ["2010", 30, 15, 12, 13]
+            ];
+
+            var $container = $("#example3");
+            $container.handsontable({
+              data: data3,
+              onChange: function () {
+                var tmpData = $.extend(true, [], data3);
+                //now tmpData has a copy of data3 that can be manipulated
+                //without breaking the Handsontable data source object
+              }
+            });
+          </script>
+        </div>
+      </div>
+    </div>
+
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
       </div>
     </div>
   </div>

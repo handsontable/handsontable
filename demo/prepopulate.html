@@ -45,134 +45,138 @@
 </a>
 
 <div id="container">
+  <div class="columnLayout">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h2>Pre-populate new rows from template</h2>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h2>Pre-populate new rows from template</h2>
 
-        <p>Below example shows how cell type renderers can be used to present the template values for empty rows.</p>
+          <p>Below example shows how cell type renderers can be used to present the template values for empty rows.</p>
 
-        <p>When any cell in the empty row is edited, the
-          <b>onChange</b> callback fills the row with the template values.</p>
+          <p>When any cell in the empty row is edited, the
+            <b>onChange</b> callback fills the row with the template values.</p>
 
-        <div id="example1"></div>
+          <div id="example1"></div>
 
-        <style>
-          .placeholder {
-            color: #777;
-            font-style: italic;
-          }
-        </style>
+          <style>
+            .placeholder {
+              color: #777;
+              font-style: italic;
+            }
+          </style>
 
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
-        </p>
-      </div>
-    </div>
-
-    <div class="codeLayout">
-      <div class="pad">
-        <div class="jsFiddle">
-          <div class="jsFiddleLink">Edit in jsFiddle</div>
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump data to console
+            </button>
+          </p>
         </div>
+      </div>
 
-        <script>
-          function isEmptyRow(instance, row) {
-            var rowData = instance.getData()[row];
-            for (var i = 0, ilen = rowData.length; i < ilen; i++) {
-              if (rowData[i] !== null) {
-                return false;
-              }
-            }
-            return true;
-          }
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
 
-          function defaultValueRenderer(instance, td, row, col, prop, value, cellProperties) {
-            var args = $.extend(true, [], arguments);
-            if (args[5] === null && isEmptyRow(instance, row)) {
-              args[5] = tpl[col];
-              td.style.color = '#999';
-            }
-            else {
-              td.style.color = '';
-            }
-            Handsontable.TextCell.renderer.apply(this, args);
-          }
-
-
-          var tpl = ["one", "two", "three"];
-
-          var container = $("#example1");
-          container.handsontable({
-            startRows: 8,
-            startCols: 5,
-            minSpareRows: 1,
-            contextMenu: true,
-            cells: function (row, col, prop) {
-              var cellProperties = {};
-              cellProperties.type = {renderer: defaultValueRenderer}
-              return cellProperties;
-            },
-            onBeforeChange: function (changes) {
-              var instance = container.data('handsontable')
-                  , i
-                  , ilen = changes.length
-                  , c
-                  , clen = instance.colCount
-                  , rowColumnSeen = {}
-                  , rowsToFill = {};
-              for (i = 0; i < ilen; i++) {
-                if (changes[i][2] === null && changes[i][3] !== null) { //if oldVal is empty
-                  if (isEmptyRow(instance, changes[i][0])) {
-                    rowColumnSeen[changes[i][0] + '/' + changes[i][1]] = true; //add this row/col combination to cache so it will not be overwritten by template
-                    rowsToFill[changes[i][0]] = true;
-                  }
+          <script>
+            function isEmptyRow(instance, row) {
+              var rowData = instance.getData()[row];
+              for (var i = 0, ilen = rowData.length; i < ilen; i++) {
+                if (rowData[i] !== null) {
+                  return false;
                 }
               }
-              for(var r in rowsToFill) {
-                if(rowsToFill.hasOwnProperty(r)) {
-                  for (c = 0; c < clen; c++) {
-                    if (!rowColumnSeen[r + '/' + c]) { //if it is not provided by user in this change set, take value from template
-                      changes.push([r, c, null, tpl[c]]);
+              return true;
+            }
+
+            function defaultValueRenderer(instance, td, row, col, prop, value, cellProperties) {
+              var args = $.extend(true, [], arguments);
+              if (args[5] === null && isEmptyRow(instance, row)) {
+                args[5] = tpl[col];
+                td.style.color = '#999';
+              }
+              else {
+                td.style.color = '';
+              }
+              Handsontable.TextCell.renderer.apply(this, args);
+            }
+
+
+            var tpl = ["one", "two", "three"];
+
+            var container = $("#example1");
+            container.handsontable({
+              startRows: 8,
+              startCols: 5,
+              minSpareRows: 1,
+              contextMenu: true,
+              cells: function (row, col, prop) {
+                var cellProperties = {};
+                cellProperties.type = {renderer: defaultValueRenderer}
+                return cellProperties;
+              },
+              onBeforeChange: function (changes) {
+                var instance = container.data('handsontable')
+                    , i
+                    , ilen = changes.length
+                    , c
+                    , clen = instance.colCount
+                    , rowColumnSeen = {}
+                    , rowsToFill = {};
+                for (i = 0; i < ilen; i++) {
+                  if (changes[i][2] === null && changes[i][3] !== null) { //if oldVal is empty
+                    if (isEmptyRow(instance, changes[i][0])) {
+                      rowColumnSeen[changes[i][0] + '/' + changes[i][1]] = true; //add this row/col combination to cache so it will not be overwritten by template
+                      rowsToFill[changes[i][0]] = true;
+                    }
+                  }
+                }
+                for (var r in rowsToFill) {
+                  if (rowsToFill.hasOwnProperty(r)) {
+                    for (c = 0; c < clen; c++) {
+                      if (!rowColumnSeen[r + '/' + c]) { //if it is not provided by user in this change set, take value from template
+                        changes.push([r, c, null, tpl[c]]);
+                      }
                     }
                   }
                 }
               }
-            }
-          });
+            });
 
-          var data = [
-            ["", "Kia", "Nissan", "Toyota", "Honda"],
-            ["2008", 10, 11, 12, 13],
-            ["2009", 20, 11, 14, 13],
-            ["2010", 30, 15, 12, 13]
-          ];
+            var data = [
+              ["", "Kia", "Nissan", "Toyota", "Honda"],
+              ["2008", 10, 11, 12, 13],
+              ["2009", 20, 11, 14, 13],
+              ["2010", 30, 15, 12, 13]
+            ];
 
-          container.handsontable("loadData", data);
-        </script>
+            container.handsontable("loadData", data);
+          </script>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
       </div>
     </div>
   </div>

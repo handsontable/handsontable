@@ -16,20 +16,8 @@ body {
   min-width: 1000px;
 }
 
-.description {
-  padding-bottom: 20px;
-}
-
-/*is needed according to http://matthewjamestaylor.com/blog/equal-height-columns-cross-browser-css-no-hacks
-but apparently it works good without it
-.rowLayout-outer {
-  float: left;
-  overflow: hidden;
-  clear: both;
-  width: 100%;
-}*/
-
-.rowLayout {
+/*variation of http://matthewjamestaylor.com/blog/equal-height-columns-cross-browser-css-no-hacks*/
+.columnLayout {
   position: relative;
   width: 100%;
   right: 50%;
@@ -43,7 +31,12 @@ but apparently it works good without it
   width: 50%;
   left: 50%;
   float: left;
-  margin-bottom: 50px;
+  clear: both;
+  margin-bottom: 100px;
+}
+
+.descLayout.noMargin {
+  margin-bottom: 0;
 }
 
 .codeLayout {
@@ -51,6 +44,7 @@ but apparently it works good without it
   /*width: 50%; /*causes problems in IE7*/
   left: 50%;
   float: left;
+  margin-bottom: 100px;
 }
 
 /**
@@ -83,7 +77,7 @@ h1 {
 }
 
 h2 {
-  margin-top: 50px;
+  margin-top: 12px;
   font-size: 20px;
   font-weight: 700;
   font-style: normal;
@@ -172,7 +166,6 @@ li {
  */
 
 .jsFiddle {
-  margin-top: 38px;
   margin-bottom: 18px;
   clear: both;
   float: left;

@@ -71,150 +71,156 @@
 </a>
 
 <div id="container">
+  <div class="columnLayout">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
+
+          <h2>Read-only cells</h2>
+
+          <p>This page shows ways to configure columns or cells to be read only:</p>
+
+          <ul>
+            <li><a href="#columns">Read-only columns</a></li>
+            <li><a href="#cells">Read-only specific cells</a></li>
+          </ul>
         </div>
-
-        <h2>Read-only cells</h2>
-
-        <p>This page shows ways to configure columns or cells to be read only:</p>
-
-        <ul>
-          <li><a href="#columns">Read-only columns</a></li>
-          <li><a href="#cells">Read-only specific cells</a></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <a name="columns"></a>
-
-        <h2>Read-only columns</h2>
-
-        <p>In many usage cases, you will need to configure a certain column to be read only. This column will be
-          available for keyboard navigation and CTRL+C. Only editing and pasting data will be disabled.</p>
-
-        <p>To make a column read-only, declare it in the <code>columns</code> setting. You can also define a special
-          renderer function that will dim the read-only values.</p>
-
-        <div id="example1"></div>
-
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
-        </p>
       </div>
     </div>
 
-    <div class="codeLayout">
-      <div class="pad">
-        <div class="jsFiddle">
-          <div class="jsFiddleLink">Edit in jsFiddle</div>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <a name="columns"></a>
+
+          <h2>Read-only columns</h2>
+
+          <p>In many usage cases, you will need to configure a certain column to be read only. This column will be
+            available for keyboard navigation and CTRL+C. Only editing and pasting data will be disabled.</p>
+
+          <p>To make a column read-only, declare it in the <code>columns</code> setting. You can also define a special
+            renderer function that will dim the read-only values.</p>
+
+          <div id="example1"></div>
+
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump data to console
+            </button>
+          </p>
         </div>
-
-        <script class="common">
-          function myReadonlyRenderer(instance, td, row, col, prop, value, cellProperties) {
-            Handsontable.TextCell.renderer.apply(this, arguments);
-            //use the built-in text cell renderer
-
-            if (cellProperties.readOnly) {
-              td.className = 'dimmed';
-              //apply "dimmed" class if cell has readOnly property
-            }
-          }
-        </script>
-
-        <script>
-          $(document).ready(function () {
-            $("#example1").handsontable({
-              data: getCarData(),
-              minSpareRows: 1,
-              colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
-              columns: [
-                {
-                  data: "car",
-                  type: {renderer: myReadonlyRenderer},
-                  readOnly: true
-                },
-                {
-                  data: "year"
-                },
-                {
-                  data: "chassis"
-                },
-                {
-                  data: "bumper"
-                }
-              ]
-            });
-          });
-        </script>
       </div>
-    </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <a name="cells"></a>
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
 
-        <h2>Read-only specific cells</h2>
+          <script class="common">
+            function myReadonlyRenderer(instance, td, row, col, prop, value, cellProperties) {
+              Handsontable.TextCell.renderer.apply(this, arguments);
+              //use the built-in text cell renderer
 
-        <p>This example makes cells that contain the word "Nissan" read only.</p>
-
-        <p>It forces all cells to be rendered by <code>myReadonlyRenderer</code>, which will decide wheather a cell is
-          really read only by checking its <code>readOnly</code> property.</p>
-
-        <div id="example2"></div>
-
-        <p>
-          <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
-        </p>
-      </div>
-    </div>
-
-    <div class="codeLayout">
-      <div class="pad">
-        <div class="jsFiddle">
-          <div class="jsFiddleLink">Edit in jsFiddle</div>
-        </div>
-
-        <script>
-          $(document).ready(function () {
-            $("#example2").handsontable({
-              data: getCarData(),
-              minSpareRows: 1,
-              colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
-              cells: function (row, col, prop) {
-                var cellProperties = {
-                  type: {renderer: myReadonlyRenderer}
-                };
-                if ($("#example2").handsontable('getData')[row][prop] === 'Nissan') {
-                  cellProperties.readOnly = true;
-                }
-                return cellProperties;
+              if (cellProperties.readOnly) {
+                td.className = 'dimmed';
+                //apply "dimmed" class if cell has readOnly property
               }
+            }
+          </script>
+
+          <script>
+            $(document).ready(function () {
+              $("#example1").handsontable({
+                data: getCarData(),
+                minSpareRows: 1,
+                colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+                columns: [
+                  {
+                    data: "car",
+                    type: {renderer: myReadonlyRenderer},
+                    readOnly: true
+                  },
+                  {
+                    data: "year"
+                  },
+                  {
+                    data: "chassis"
+                  },
+                  {
+                    data: "bumper"
+                  }
+                ]
+              });
             });
-          });
-        </script>
+          </script>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <a name="cells"></a>
 
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
+          <h2>Read-only specific cells</h2>
+
+          <p>This example makes cells that contain the word "Nissan" read only.</p>
+
+          <p>It forces all cells to be rendered by <code>myReadonlyRenderer</code>, which will decide wheather a cell is
+            really read only by checking its <code>readOnly</code> property.</p>
+
+          <div id="example2"></div>
+
+          <p>
+            <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump data to console
+            </button>
+          </p>
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
+
+          <script>
+            $(document).ready(function () {
+              $("#example2").handsontable({
+                data: getCarData(),
+                minSpareRows: 1,
+                colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+                cells: function (row, col, prop) {
+                  var cellProperties = {
+                    type: {renderer: myReadonlyRenderer}
+                  };
+                  if ($("#example2").handsontable('getData')[row][prop] === 'Nissan') {
+                    cellProperties.readOnly = true;
+                  }
+                  return cellProperties;
+                }
+              });
+            });
+          </script>
+        </div>
+      </div>
+    </div>
+
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
       </div>
     </div>
   </div>
