@@ -2,11 +2,11 @@
  * This file is used to build Handsontable from `src/*`
  *
  * Installation:
- * 1. Install Grunt (`npm install -g grunt`)
- * 2. Install NPM packages from `devDependencies` section in package.json (`npm install`)
+ * 1. Install Grunt CLI (`npm install -g grunt-cli`)
+ * 1. Install Grunt 0.4.0 and other dependencies (`npm install`)
  *
  * Build:
- * Execute `grunt` from root directory of this directory (where grunt.js is)
+ * Execute `grunt` from root directory of this directory (where Gruntfile.js is)
  * To execute automatically after each change, execute `grunt --force default watch`
  *
  * Result:
@@ -16,7 +16,7 @@
  *  - dist/jquery.handsontable.full.js
  *  - dist/jquery.handsontable.full.css
  *
- * See https://github.com/cowboy/grunt for more information
+ * See http://gruntjs.com/getting-started for more information about Grunt
  */
 module.exports = function (grunt) {
   grunt.initConfig({
