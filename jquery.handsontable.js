@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Mar 07 2013 19:36:46 GMT+0100 (Central European Standard Time)
+ * Date: Thu Mar 07 2013 23:13:52 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1399,7 +1399,7 @@ Handsontable.Core = function (rootElement, settings) {
       , prop;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
-      if(typeof input[i][1] !== 'number') {
+      if (typeof input[i][1] !== 'number') {
         throw new Exception('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
       prop = datamap.colToProp(input[i][1]);
@@ -1908,8 +1908,11 @@ Handsontable.Core = function (rootElement, settings) {
       if (priv.settings.columns && priv.settings.columns.length) {
         return priv.settings.columns.length;
       }
+      else if (priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length) {
+        return priv.settings.data[0].length;
+      }
       else {
-        return Math.max((priv.settings.columns && priv.settings.columns.length) || 0, (priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length) || 0);
+        return 0;
       }
     }
   };
