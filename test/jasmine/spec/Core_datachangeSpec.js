@@ -134,7 +134,6 @@ describe('Core_datachange', function () {
   });
 
   it('onChange event object should contain documented keys and values when triggered by edit', function () {
-
     var sampleData = [{
       col1: 'a',
       col2: 'b',
@@ -143,15 +142,15 @@ describe('Core_datachange', function () {
     var event = null;
 
     runs(function () {
-      $container.handsontable({
+      handsontable({
         data: sampleData,
-        onChange: function (e, source) {
+        onChange: function (changes, source) {
           if ('edit' == source) {
-            event = e.shift();
+            event = changes.shift();
           }
         }
       });
-      $container.handsontable('setDataAtCell', 0, 0, "test");
+      setDataAtCell(0, 0, "test");
     });
 
     waitsFor(function () {

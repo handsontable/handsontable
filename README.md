@@ -59,8 +59,10 @@ Thanks for understanding!
  handsontable('updateSettings', options)                                               | Method      | Use it if you need to change configuration after initialization
  handsontable('loadData', data)                                                        | Method      | Reset all cells in the grid to contain data from the `data` array
  handsontable('render')                                                                | Method      | Rerender the table
- handsontable('setDataAtCell',&nbsp;row,&nbsp;col,&nbsp;value)                         | Method      | Set new value to a cell. To change many cells at once, pass an array of changes in format [[row, col, value], ...] as the only parameter
- handsontable('getDataAtCell', row, col)                                               | Method      | Return cell value at `row`, `col`
+ handsontable('setDataAtCell',&nbsp;row,&nbsp;col,&nbsp;value)                         | Method      | Set new value to a cell. To change many cells at once, pass an array of changes in format [[row, col, value], ...] as the only parameter. Col is the index of **visible** column (note that if columns were reordered, the current order will be used)
+ handsontable('setDataAtRowProp',&nbsp;row,&nbsp;prop,&nbsp;value)                     | Method      | Same as above, except instead of `col`, you provide name of the object property (eq. [0, 'first.name', 'Jennifer'])
+ handsontable('getDataAtCell', row, col)                                               | Method      | Return cell value at `row`, `col`. Col is the index of **visible** column (note that if columns were reordered, the current order will be used)
+ handsontable('getDataAtRowProp', row, prop)                                           | Method      | Same as above, except instead of `col`, you provide name of the object property (eq. [0, 'first.name'])
  handsontable('countRows')                                                             | Method      | Return total number of rows in the grid
  handsontable('countCols')                                                             | Method      | Return total number of columns in the grid
  handsontable('rowOffset')                                                             | Method      | Return index of first visible row

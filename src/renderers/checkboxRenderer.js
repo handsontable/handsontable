@@ -31,10 +31,10 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, c
   var $input = $(td).find('input:first');
   $input.mousedown(function (event) {
     if (!$(this).is(':checked')) {
-      instance.setDataAtCell(row, prop, cellProperties.checkedTemplate);
+      instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);
     }
     else {
-      instance.setDataAtCell(row, prop, cellProperties.uncheckedTemplate);
+      instance.setDataAtRowProp(row, prop, cellProperties.uncheckedTemplate);
     }
     event.stopPropagation(); //otherwise can confuse mousedown handler
   });

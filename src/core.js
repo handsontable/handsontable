@@ -7,7 +7,7 @@
 Handsontable.Core = function (rootElement, settings) {
   this.rootElement = rootElement;
 
-  var priv, datamap, grid, selection, editproxy, autofill, validate, self = this;
+  var priv, datamap, grid, selection, editproxy, autofill, self = this;
 
   priv = {
     settings: {},
@@ -529,8 +529,7 @@ Handsontable.Core = function (rootElement, settings) {
             break;
           }
           if (self.getCellMeta(current.row, current.col).isWritable) {
-            var p = datamap.colToProp(current.col);
-            setData.push([current.row, p, input[r][c]]);
+            setData.push([current.row, current.col, input[r][c]]);
           }
           current.col++;
           if (end && c === clen - 1) {
@@ -809,7 +808,7 @@ Handsontable.Core = function (rootElement, settings) {
       for (r = corners.TL.row; r <= corners.BR.row; r++) {
         for (c = corners.TL.col; c <= corners.BR.col; c++) {
           if (self.getCellMeta(r, c).isWritable) {
-            changes.push([r, datamap.colToProp(c), '']);
+            changes.push([r, c, '']);
           }
         }
       }
@@ -1214,7 +1213,7 @@ Handsontable.Core = function (rootElement, settings) {
     Handsontable.PluginHooks.run(self, 'afterInit');
   };
 
-  validate = function (changes, source) {
+  function validateChanges(changes, source) {
     var validated = $.Deferred();
     var deferreds = [];
 
@@ -1292,7 +1291,7 @@ Handsontable.Core = function (rootElement, settings) {
     });
 
     return $.when(validated);
-  };
+  }
 
   var fireEvent = function (name, params) {
     if (priv.settings.asyncRendering) {
@@ -1324,55 +1323,106 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
+   * Internal function to apply changes. Called after validateChanges
+   * @param {Array} changes Array in form of [row, prop, oldValue, newValue]
+   * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
+   */
+  function applyChanges(changes, source) {
+    var i
+      , ilen;
+
+    for (i = 0, ilen = changes.length; i < ilen; i++) {
+      if (priv.settings.minSpareRows) {
+        while (changes[i][0] > self.countRows() - 1) {
+          datamap.createRow();
+        }
+      }
+      if (priv.dataType === 'array' && priv.settings.minSpareCols) {
+        while (datamap.propToCol(changes[i][1]) > self.countCols() - 1) {
+          datamap.createCol();
+        }
+      }
+      datamap.set(changes[i][0], changes[i][1], changes[i][3]);
+    }
+    self.forceFullRender = true; //used when data was changed
+    grid.keepEmptyRows();
+    selection.refreshBorders();
+    fireEvent("datachange.handsontable", [changes, source || 'edit']);
+  }
+
+  function setDataInputToArray(arg0, arg1, arg2) {
+    if (typeof arg0 === "object") { //is it an array of changes
+      return arg0;
+    }
+    else if ($.isPlainObject(arg2)) { //backwards compatibility
+      return value;
+    }
+    else {
+      return [
+        [arg0, arg1, arg2]
+      ];
+    }
+  }
+
+  /**
    * Set data at given cell
    * @public
    * @param {Number|Array} row or array of changes in format [[row, col, value], ...]
+   * @param {Number} col
+   * @param {String} value
+   * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
+   */
+  this.setDataAtCell = function (row, col, value, source) {
+    var input = setDataInputToArray(row, col, value)
+      , i
+      , ilen
+      , changes = []
+      , prop;
+
+    for (i = 0, ilen = input.length; i < ilen; i++) {
+      if(typeof input[i][1] !== 'number') {
+        throw new Exception('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
+      }
+      prop = datamap.colToProp(input[i][1]);
+      changes.push([
+        input[i][0],
+        prop,
+        datamap.get(input[i][0], prop),
+        input[i][2]
+      ]);
+    }
+
+    validateChanges(changes, source).then(function () {
+      applyChanges(changes, source);
+    });
+  };
+
+
+  /**
+   * Set data at given row property
+   * @public
+   * @param {Number|Array} row or array of changes in format [[row, prop, value], ...]
    * @param {Number} prop
    * @param {String} value
-   * @param {String} [source='edit'] String that identifies how this change will be described in changes array (useful in onChange callback)
+   * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
    */
-  this.setDataAtCell = function (row, prop, value, source) {
-    var changes, i, ilen;
+  this.setDataAtRowProp = function (row, prop, value, source) {
+    var input = setDataInputToArray(row, prop, value)
+      , i
+      , ilen
+      , changes = [];
 
-    if (typeof row === "object") { //is it an array of changes
-      changes = row;
-    }
-    else if ($.isPlainObject(value)) { //backwards compatibility
-      changes = value;
-    }
-    else {
-      changes = [
-        [row, prop, value]
-      ];
-    }
-
-    for (i = 0, ilen = changes.length; i < ilen; i++) {
-      changes[i].splice(2, 0, datamap.get(changes[i][0], changes[i][1])); //add old value at index 2
+    for (i = 0, ilen = input.length; i < ilen; i++) {
+      changes.push([
+        input[i][0],
+        input[i][1],
+        datamap.get(input[i][0], input[i][1]),
+        input[i][2]
+      ]);
     }
 
-    validate(changes, source).then(function () { //when validate is resolved...
-      for (i = 0, ilen = changes.length; i < ilen; i++) {
-        row = changes[i][0];
-        prop = changes[i][1];
-        var col = datamap.propToCol(prop);
-        value = changes[i][3];
-
-        if (priv.settings.minSpareRows) {
-          while (row > self.countRows() - 1) {
-            datamap.createRow();
-          }
-        }
-        if (priv.dataType === 'array' && priv.settings.minSpareCols) {
-          while (col > self.countCols() - 1) {
-            datamap.createCol();
-          }
-        }
-        datamap.set(row, prop, value);
-      }
-      self.forceFullRender = true; //used when data was changed
-      grid.keepEmptyRows();
-      selection.refreshBorders();
-      fireEvent("datachange.handsontable", [changes, source || 'edit']);
+    validateChanges(changes, source).then(function () {
+      applyChanges(changes, source);
     });
   };
 
@@ -1671,14 +1721,25 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
-   * Return cell value at `row`, `col`
+   * Return value at `row`, `col`
    * @param {Number} row
    * @param {Number} col
    * @public
-   * @return {string}
+   * @return value (mixed data type)
    */
   this.getDataAtCell = function (row, col) {
     return datamap.get(row, datamap.colToProp(col));
+  };
+
+  /**
+   * Return value at `row`, `prop`
+   * @param {Number} row
+   * @param {Number} prop
+   * @public
+   * @return value (mixed data type)
+   */
+  this.getDataAtRowProp = function (row, prop) {
+    return datamap.get(row, prop);
   };
 
   /**

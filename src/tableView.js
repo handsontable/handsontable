@@ -296,7 +296,7 @@ Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td,
   var prop = this.instance.colToProp(col)
     , cellProperties = this.instance.getCellMeta(row, col);
   if (cellProperties[methodName]) {
-    return cellProperties[methodName](this.instance, td, row, col, prop, this.instance.getDataAtCell(row, col), cellProperties);
+    return cellProperties[methodName](this.instance, td, row, col, prop, this.instance.getDataAtRowProp(row, prop), cellProperties);
   }
 };
 

@@ -29,7 +29,7 @@ HandsontableAutocompleteEditorClass.prototype.createElements = function () {
   this.typeahead.matcher = function () {
     return true;
   };
-}
+};
 
 HandsontableAutocompleteEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
 
@@ -67,7 +67,7 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
   });
 
   this._bindEvents();
-}
+};
 
 HandsontableAutocompleteEditorClass.prototype._bindTemporaryEvents = HandsontableTextEditorClass.prototype.bindTemporaryEvents;
 
@@ -83,7 +83,7 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
       cellProperties.onSelect(row, col, prop, this.$menu.find('.active').attr('data-value'), this.$menu.find('.active').index());
     }
     else {
-      that.instance.setDataAtCell(row, prop, this.$menu.find('.active').attr('data-value'));
+      that.instance.setDataAtRowProp(row, prop, this.$menu.find('.active').attr('data-value'));
     }
     return output;
   };
@@ -122,7 +122,7 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
   }
 
   this.instance.view.wt.update('onCellDblClick', onDblClick);
-}
+};
 
 HandsontableAutocompleteEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
 
@@ -131,7 +131,7 @@ HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancel
     this.typeahead.select();
   }
   this._finishEditing(isCancelled, ctrlDown);
-}
+};
 
 HandsontableAutocompleteEditorClass.prototype.isMenuExpanded = function () {
   if (this.typeahead.$menu.is(":visible")) {
@@ -140,7 +140,7 @@ HandsontableAutocompleteEditorClass.prototype.isMenuExpanded = function () {
   else {
     return false;
   }
-}
+};
 
 /**
  * Autocomplete editor
