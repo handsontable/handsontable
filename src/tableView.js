@@ -4,474 +4,319 @@
  */
 Handsontable.TableView = function (instance) {
   var that = this;
-  this.instance = instance;
-  var priv = {};
+  var $window = $(window);
 
-  var interaction = {
-    onMouseDown: function (event) {
-      priv.isMouseDown = true;
-      if (event.button === 2 && that.instance.selection.inInSelection(that.getCellCoords(this))) { //right mouse button
+  this.instance = instance;
+  var settings = this.instance.getSettings();
+
+  instance.rootElement.data('originalStyle', instance.rootElement.attr('style')); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
+  instance.rootElement.addClass('handsontable');
+  var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
+
+  instance.$table = $table;
+  instance.rootElement.prepend($table);
+
+  this.overflow = instance.rootElement.css('overflow');
+  if ((settings.width || settings.height) && !(this.overflow === 'scroll' || this.overflow === 'auto')) {
+    this.overflow = 'auto';
+  }
+  if (this.overflow === 'scroll' || this.overflow === 'auto') {
+    instance.rootElement[0].style.overflow = 'visible';
+    //instance.rootElement[0].style.overflow = 'hidden';
+  }
+  this.determineContainerSize();
+  //instance.rootElement[0].style.height = '';
+  //instance.rootElement[0].style.width = '';
+
+  var isMouseDown
+    , dragInterval;
+
+  $(document.body).on('mouseup', function () {
+    isMouseDown = false;
+    clearInterval(dragInterval);
+    dragInterval = null;
+
+    if (instance.autofill.handle && instance.autofill.handle.isDragged) {
+      if (instance.autofill.handle.isDragged > 1) {
+        instance.autofill.apply();
+      }
+      instance.autofill.handle.isDragged = 0;
+    }
+  });
+
+  $(document.documentElement).on('mousedown', function (event) {
+    var next = event.target;
+    if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
+      while (next !== null && next !== document.documentElement) {
+        if (next === instance.rootElement[0] || $(next).attr('id') === 'context-menu-layer' || $(next).is('.context-menu-list') || $(next).is('.typeahead li')) {
+          return; //click inside container
+        }
+        next = next.parentNode;
+      }
+    }
+
+    if (that.instance.getSettings().outsideClickDeselects) {
+      that.instance.deselectCell();
+    }
+    else {
+      that.instance.destroyEditor();
+    }
+  });
+
+  $table.on('selectstart', function (event) {
+    //https://github.com/warpech/jquery-handsontable/issues/160
+    //selectstart is IE only event. Prevent text from being selected when performing drag down in IE8
+    event.preventDefault();
+  });
+
+  $table.on('mouseenter', function () {
+    if (dragInterval) { //if dragInterval was set (that means mouse was really outside of table, not over an element that is outside of <table> in DOM
+      clearInterval(dragInterval);
+      dragInterval = null;
+    }
+  });
+
+  $table.on('mouseleave', function (event) {
+    if (!(isMouseDown || (instance.autofill.handle && instance.autofill.handle.isDragged))) {
+      return;
+    }
+
+    var tolerance = 1 //this is needed because width() and height() contains stuff like cell borders
+      , offset = that.wt.wtDom.offset($table[0])
+      , offsetTop = offset.top + tolerance
+      , offsetLeft = offset.left + tolerance
+      , width = that.containerWidth - that.wt.getSetting('scrollbarWidth') - 2 * tolerance
+      , height = that.containerHeight - that.wt.getSetting('scrollbarHeight') - 2 * tolerance
+      , method
+      , row = 0
+      , col = 0
+      , dragFn;
+
+    if (event.pageY < offsetTop) { //top edge crossed
+      row = -1;
+      method = 'scrollVertical';
+    }
+    else if (event.pageY >= offsetTop + height) { //bottom edge crossed
+      row = 1;
+      method = 'scrollVertical';
+    }
+    else if (event.pageX < offsetLeft) { //left edge crossed
+      col = -1;
+      method = 'scrollHorizontal';
+    }
+    else if (event.pageX >= offsetLeft + width) { //right edge crossed
+      col = 1;
+      method = 'scrollHorizontal';
+    }
+
+    if (method) {
+      dragFn = function () {
+        if (isMouseDown || (instance.autofill.handle && instance.autofill.handle.isDragged)) {
+          //instance.selection.transformEnd(row, col);
+          that.wt[method](row + col).draw();
+        }
+      };
+      dragFn();
+      dragInterval = setInterval(dragFn, 100);
+    }
+  });
+
+  var clearTextSelection = function () {
+    //http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
+    if (window.getSelection) {
+      if (window.getSelection().empty) {  // Chrome
+        window.getSelection().empty();
+      } else if (window.getSelection().removeAllRanges) {  // Firefox
+        window.getSelection().removeAllRanges();
+      }
+    } else if (document.selection) {  // IE?
+      document.selection.empty();
+    }
+  };
+
+  var walkontableConfig = {
+    table: $table[0],
+    async: settings.asyncRendering,
+    stretchH: settings.stretchH,
+    data: instance.getDataAtCell,
+    totalRows: instance.countRows,
+    totalColumns: instance.countCols,
+    offsetRow: 0,
+    offsetColumn: 0,
+    displayRows: null,
+    displayColumns: null,
+    width: this.containerWidth,
+    height: this.containerHeight,
+    frozenColumns: settings.rowHeaders ? [instance.getRowHeader] : null,
+    columnHeaders: settings.colHeaders ? instance.getColHeader : null,
+    columnWidth: instance.getColWidth,
+    cellRenderer: function (row, column, TD) {
+      that.applyCellTypeMethod('renderer', TD, row, column);
+    },
+    selections: {
+      current: {
+        className: 'current',
+        highlightRowClassName: settings.currentRowClassName,
+        highlightColumnClassName: settings.currentColClassName,
+        border: {
+          width: 2,
+          color: '#5292F7',
+          style: 'solid',
+          cornerVisible: function () {
+            return settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
+          }
+        }
+      },
+      area: {
+        className: 'area',
+        highlightRowClassName: settings.currentRowClassName,
+        highlightColumnClassName: settings.currentColClassName,
+        border: {
+          width: 1,
+          color: '#89AFF9',
+          style: 'solid',
+          cornerVisible: function () {
+            return settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
+          }
+        }
+      },
+      fill: {
+        className: 'fill',
+        border: {
+          width: 1,
+          color: 'red',
+          style: 'solid'
+        }
+      }
+    },
+    onCellMouseDown: function (event, coords, TD) {
+      isMouseDown = true;
+      var coordsObj = {row: coords[0], col: coords[1]};
+      if (event.button === 2 && instance.selection.inInSelection(coordsObj)) { //right mouse button
         //do nothing
       }
       else if (event.shiftKey) {
-        that.instance.selection.setRangeEnd(this);
+        instance.selection.setRangeEnd(coordsObj);
       }
       else {
-        that.instance.selection.setRangeStart(this);
+        instance.selection.setRangeStart(coordsObj);
+      }
+      TD.focus();
+      event.preventDefault();
+      clearTextSelection();
+    },
+    onCellMouseOver: function (event, coords, TD) {
+      var coordsObj = {row: coords[0], col: coords[1]};
+      if (isMouseDown) {
+        instance.selection.setRangeEnd(coordsObj);
+      }
+      else if (instance.autofill.handle && instance.autofill.handle.isDragged) {
+        instance.autofill.handle.isDragged++;
+        instance.autofill.showBorder(coords);
       }
     },
-
-    onMouseOver: function () {
-      if (priv.isMouseDown) {
-        that.instance.selection.setRangeEnd(this);
-      }
-      else if (that.instance.autofill.handle && that.instance.autofill.handle.isDragged) {
-        that.instance.autofill.handle.isDragged++;
-        that.instance.autofill.showBorder(this);
-      }
+    onCellCornerMouseDown: function (event) {
+      instance.autofill.handle.isDragged = 1;
+      event.preventDefault();
     },
-
-    onMouseWheel: function (event, delta, deltaX, deltaY) {
-      if (priv.virtualScroll) {
-        if (deltaY) {
-          priv.virtualScroll.scrollTop(priv.virtualScroll.scrollTop() + 44 * -deltaY);
-        }
-        else if (deltaX) {
-          priv.virtualScroll.scrollLeft(priv.virtualScroll.scrollLeft() + 100 * deltaX);
-        }
-        event.preventDefault();
-      }
+    onCellCornerDblClick: function (event) {
+      instance.autofill.selectAdjacent();
+    },
+    onDraw: function (event) {
+      $window.trigger('resize');
     }
   };
 
+  Handsontable.PluginHooks.run(this.instance, 'walkontableConfig', walkontableConfig);
 
-  that.instance.container = $('<div class="handsontable"></div>');
-  var overflow = that.instance.rootElement.css('overflow');
-  if (overflow === 'auto' || overflow === 'scroll') {
-    that.instance.container[0].style.overflow = overflow;
-    var w = that.instance.rootElement.css('width');
-    if (w) {
-      that.instance.container[0].style.width = w;
-    }
-    var h = that.instance.rootElement.css('height');
-    if (h) {
-      that.instance.container[0].style.height = h;
-    }
-    that.instance.rootElement[0].style.overflow = 'hidden';
-    that.instance.rootElement[0].style.position = 'relative';
-  }
-  that.instance.rootElement.append(that.instance.container);
+  this.wt = new Walkontable(walkontableConfig);
+  this.instance.forceFullRender = true; //used when data was changed
+  this.render();
 
-//this.init
-
-  function onMouseEnterTable() {
-    priv.isMouseOverTable = true;
-  }
-
-  function onMouseLeaveTable() {
-    priv.isMouseOverTable = false;
-  }
-
-  that.instance.curScrollTop = that.instance.curScrollLeft = 0;
-  that.instance.lastScrollTop = that.instance.lastScrollLeft = null;
-  this.scrollbarSize = this.measureScrollbar();
-
-  var div = $('<div><table class="htCore" cellspacing="0" cellpadding="0"><thead></thead><tbody></tbody></table></div>');
-  priv.tableContainer = div[0];
-  that.instance.table = $(priv.tableContainer.firstChild);
-  this.$tableBody = that.instance.table.find("tbody")[0];
-  that.instance.table.on('mousedown', 'td', interaction.onMouseDown);
-  that.instance.table.on('mouseover', 'td', interaction.onMouseOver);
-  that.instance.table.on('mousewheel', 'td', interaction.onMouseWheel);
-  that.instance.container.append(div);
-
-  //...
-
-
-  that.instance.container.on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
-
-
-  function onMouseUp() {
-    if (priv.isMouseDown) {
-      setTimeout(that.instance.editproxy.focus, 1);
-    }
-    priv.isMouseDown = false;
-    if (that.instance.autofill.handle && that.instance.autofill.handle.isDragged) {
-      if (that.instance.autofill.handle.isDragged > 1) {
-        that.instance.autofill.apply();
+  var resizeTimeout;
+  $window.on('resize', function () {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(function () {
+      var lastContainerWidth = that.containerWidth;
+      var lastContainerHeight = that.containerHeight;
+      that.determineContainerSize();
+      if (lastContainerWidth !== that.containerWidth || lastContainerHeight !== that.containerHeight) {
+        that.wt.update('width', that.containerWidth);
+        that.wt.update('height', that.containerHeight);
+        that.instance.forceFullRender = true;
+        that.render();
       }
-      that.instance.autofill.handle.isDragged = 0;
-    }
-  }
-
-  function onOutsideClick(event) {
-    if (that.instance.getSettings().outsideClickDeselects) {
-      setTimeout(function () {//do async so all mouseenter, mouseleave events will fire before
-        if (!priv.isMouseOverTable && event.target !== priv.tableContainer && $(event.target).attr('id') !== 'context-menu-layer') { //if clicked outside the table or directly at container which also means outside
-          that.instance.selection.deselect();
-        }
-      }, 1);
-    }
-  }
-
-  $("html").on('mouseup', onMouseUp).
-    on('click', onOutsideClick);
-
-  if (that.instance.container[0].tagName.toLowerCase() !== "html" && that.instance.container[0].tagName.toLowerCase() !== "body" && (that.instance.container.css('overflow') === 'scroll' || that.instance.container.css('overflow') === 'auto')) {
-    that.scrollable = that.instance.container;
-  }
-
-  if (that.scrollable) {
-    //create fake scrolling div
-    priv.virtualScroll = $('<div class="virtualScroll"><div class="spacer"></div></div>');
-    that.scrollable = priv.virtualScroll;
-    that.instance.container.before(priv.virtualScroll);
-    that.instance.table[0].style.position = 'absolute';
-    priv.virtualScroll.css({
-      width: that.instance.container.width() + 'px',
-      height: that.instance.container.height() + 'px',
-      overflow: that.instance.container.css('overflow')
-    });
-    that.instance.container.css({
-      overflow: 'hidden',
-      position: 'absolute',
-      top: '0px',
-      left: '0px'
-    });
-    that.instance.container.width(priv.virtualScroll.innerWidth() - this.scrollbarSize.width);
-    that.instance.container.height(priv.virtualScroll.innerHeight() - this.scrollbarSize.height);
-    setInterval(function () {
-      priv.virtualScroll.find('.spacer').height(that.instance.table.height());
-      priv.virtualScroll.find('.spacer').width(that.instance.table.width());
-    }, 100);
-
-    that.scrollable.scrollTop(0);
-    that.scrollable.scrollLeft(0);
-
-    that.scrollable.on('scroll.handsontable', function () {
-      that.instance.curScrollTop = that.scrollable[0].scrollTop;
-      that.instance.curScrollLeft = that.scrollable[0].scrollLeft;
-
-      if (that.instance.curScrollTop !== that.instance.lastScrollTop) {
-        that.instance.blockedRows.refreshBorders();
-        that.instance.blockedCols.main[0].style.top = -that.instance.curScrollTop + 'px';
-        that.instance.table[0].style.top = -that.instance.curScrollTop + 'px';
-      }
-
-      if (that.instance.curScrollLeft !== that.instance.lastScrollLeft) {
-        that.instance.blockedCols.refreshBorders();
-        that.instance.blockedRows.main[0].style.left = -that.instance.curScrollLeft + 'px';
-        that.instance.table[0].style.left = -that.instance.curScrollLeft + 'px';
-      }
-
-      if (that.instance.curScrollTop !== that.instance.lastScrollTop || that.instance.curScrollLeft !== that.instance.lastScrollLeft) {
-        that.instance.selection.refreshBorders();
-
-        if (that.instance.blockedCorner) {
-          if (that.instance.curScrollTop === 0 && that.instance.curScrollLeft === 0) {
-            that.instance.blockedCorner.find("th:last-child").css({borderRightWidth: 0});
-            that.instance.blockedCorner.find("tr:last-child th").css({borderBottomWidth: 0});
-          }
-          else if (that.instance.lastScrollTop === 0 && that.instance.lastScrollLeft === 0) {
-            that.instance.blockedCorner.find("th:last-child").css({borderRightWidth: '1px'});
-            that.instance.blockedCorner.find("tr:last-child th").css({borderBottomWidth: '1px'});
-          }
-        }
-      }
-
-      that.instance.lastScrollTop = that.instance.curScrollTop;
-      that.instance.lastScrollLeft = that.instance.curScrollLeft;
-
-      that.instance.selection.refreshBorders();
-    });
-
-    Handsontable.PluginHooks.push('afterInit', function () {
-      that.scrollable.trigger('scroll.handsontable');
-    });
-  }
-  else {
-    that.scrollable = $(window);
-    if (that.instance.blockedCorner) {
-      that.instance.blockedCorner.find("th:last-child").css({borderRightWidth: 0});
-      that.instance.blockedCorner.find("tr:last-child th").css({borderBottomWidth: 0});
-    }
-  }
-
-  that.scrollable.on('scroll', function (e) {
-    e.stopPropagation();
+    }, 60);
   });
 
-  $(window).on('resize', function () {
-    //https://github.com/warpech/jquery-handsontable/issues/193
-    that.instance.blockedCols.update();
-    that.instance.blockedRows.update();
+  $(that.wt.wtTable.spreader).on('mousedown.handsontable, contextmenu.handsontable', function (event) {
+    if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
+      event.stopPropagation();
+    }
   });
 
-  $('.context-menu-root').on('mouseenter', onMouseEnterTable).on('mouseleave', onMouseLeaveTable);
-
+  $table[0].focus(); //otherwise TextEditor tests do not pass in IE8
 };
 
-/**
- * Measure the width and height of browser scrollbar
- * @return {Object}
- */
-Handsontable.TableView.prototype.measureScrollbar = function () {
-  var div = $('<div style="width:150px;height:150px;overflow:hidden;position:absolute;top:200px;left:200px"><div style="width:100%;height:100%;position:absolute">x</div>');
-  $('body').append(div);
-  var subDiv = $(div[0].firstChild);
-  var w1 = subDiv.innerWidth();
-  var h1 = subDiv.innerHeight();
-  div[0].style.overflow = 'scroll';
-  w1 -= subDiv.innerWidth();
-  h1 -= subDiv.innerHeight();
-  if (w1 === 0) {
-    w1 = 17;
-  }
-  if (h1 === 0) {
-    h1 = 17;
-  }
-  div.remove();
-  return {width: w1, height: h1};
+Handsontable.TableView.prototype.isCellEdited = function () {
+  return (this.instance.textEditor && this.instance.textEditor.isCellEdited) || (this.instance.autocompleteEditor && this.instance.autocompleteEditor.isCellEdited);
 };
 
-/**
- * Creates row at the bottom of the <table>
- * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
- */
-Handsontable.TableView.prototype.createRow = function (coords) {
-  var tr, c, td;
-  tr = document.createElement('tr');
-  this.instance.blockedCols.createRow(tr);
-  for (c = 0; c < this.instance.colCount; c++) {
-    tr.appendChild(td = document.createElement('td'));
-    this.instance.minWidthFix(td);
-  }
-  if (!coords || coords.row >= this.instance.countRows()) {
-    this.$tableBody.appendChild(tr);
-  }
-  else {
-    var oldTr = this.instance.getCell(coords.row, coords.col).parentNode;
-    this.$tableBody.insertBefore(tr, oldTr);
-  }
-  this.instance.rowCount++;
-};
+Handsontable.TableView.prototype.determineContainerSize = function () {
+  var settings = this.instance.getSettings();
+  this.containerWidth = settings.width;
+  this.containerHeight = settings.height;
 
-/**
- * Creates col at the right of the <table>
- * @param {Object} [coords] Optional. Coords of the cell before which the new column will be inserted
- */
-Handsontable.TableView.prototype.createCol = function (coords) {
-  var trs = this.$tableBody.childNodes, r, td;
-  this.instance.blockedRows.createCol();
-  if (!coords || coords.col >= this.instance.countCols()) {
-    for (r = 0; r < this.instance.rowCount; r++) {
-      trs[r].appendChild(td = document.createElement('td'));
-      this.instance.minWidthFix(td);
-    }
+  var computedWidth = this.instance.rootElement.width();
+  var computedHeight = this.instance.rootElement.height();
+  if (settings.width === void 0 && computedWidth > 0) {
+    this.containerWidth = computedWidth;
   }
-  else {
-    for (r = 0; r < this.instance.rowCount; r++) {
-      trs[r].insertBefore(td = document.createElement('td'), this.instance.getCell(r, coords.col));
-      this.instance.minWidthFix(td);
-    }
-  }
-  this.instance.colCount++;
-};
 
-/**
- * Removes row at the bottom of the <table>
- * @param {Object} [coords] Optional. Coords of the cell which row will be removed
- * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all rows will be removed
- */
-Handsontable.TableView.prototype.removeRow = function (coords, toCoords) {
-  if (!coords || coords.row === this.instance.rowCount - 1) {
-    $(this.$tableBody.childNodes[this.instance.rowCount - 1]).remove();
-    this.instance.rowCount--;
-  }
-  else {
-    for (var i = toCoords.row; i >= coords.row; i--) {
-      $(this.$tableBody.childNodes[i]).remove();
-      this.instance.rowCount--;
+  if (this.overflow === 'scroll' || this.overflow === 'auto') {
+    if (settings.height === void 0 && computedHeight > 0) {
+      this.containerHeight = computedHeight;
     }
   }
 };
 
-/**
- * Removes col at the right of the <table>
- * @param {Object} [coords] Optional. Coords of the cell which col will be removed
- * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all cols will be removed
- */
-Handsontable.TableView.prototype.removeCol = function (coords, toCoords) {
-  var trs = this.$tableBody.childNodes, colThs, i;
-  if (this.instance.blockedRows) {
-    colThs = this.instance.table.find('thead th');
+Handsontable.TableView.prototype.render = function () {
+  if (this.instance.forceFullRender) {
+    Handsontable.PluginHooks.run(this.instance, 'beforeRender');
   }
-  var r = 0;
-  if (!coords || coords.col === this.instance.colCount - 1) {
-    for (; r < this.instance.rowCount; r++) {
-      $(trs[r].childNodes[this.instance.colCount + this.instance.blockedCols.count() - 1]).remove();
-      if (colThs) {
-        colThs.eq(this.instance.colCount + this.instance.blockedCols.count() - 1).remove();
-      }
-    }
-    this.instance.colCount--;
+  this.wt.draw(!this.instance.forceFullRender);
+  this.instance.rootElement.triggerHandler('render.handsontable');
+  if (this.instance.forceFullRender) {
+    Handsontable.PluginHooks.run(this.instance, 'afterRender');
   }
-  else {
-    for (; r < this.instance.rowCount; r++) {
-      for (i = toCoords.col; i >= coords.col; i--) {
-        $(trs[r].childNodes[i + this.instance.blockedCols.count()]).remove();
-
-      }
-    }
-    if (colThs) {
-      for (i = toCoords.col; i >= coords.col; i--) {
-        colThs.eq(i + this.instance.blockedCols.count()).remove();
-      }
-    }
-    this.instance.colCount -= toCoords.col - coords.col + 1;
-  }
+  this.instance.forceFullRender = false;
 };
 
-Handsontable.TableView.prototype.render = function (row, col, prop, value) {
-  var coords = {row: row, col: col};
-  var td = this.instance.getCell(row, col);
-  this.applyCellTypeMethod('renderer', td, coords, value);
-  this.instance.minWidthFix(td);
-  return td;
-};
-
-Handsontable.TableView.prototype.renderRow = function (row) {
-  var c, p;
-  for (c = 0; c < this.instance.colCount; c++) {
-    p = this.instance.colToProp(c);
-    this.render(row, c, p, this.instance.getData()[row][p]);
+Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {
+  var prop = this.instance.colToProp(col)
+    , cellProperties = this.instance.getCellMeta(row, col);
+  if (cellProperties[methodName]) {
+    return cellProperties[methodName](this.instance, td, row, col, prop, this.instance.getDataAtCell(row, col), cellProperties);
   }
-};
-
-Handsontable.TableView.prototype.renderCol = function (col) {
-  var r
-    , rlen = this.instance.countRows()
-    , p;
-  for (r = 0; r < rlen; r++) {
-    p = this.instance.colToProp(col);
-    this.render(r, col, p, this.instance.getData()[r][p]);
-  }
-};
-
-Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, coords, extraParam) {
-  var prop = this.instance.colToProp(coords.col)
-    , method
-    , cellProperties = this.instance.getCellMeta(coords.row, coords.col);
-
-  if (cellProperties.type && typeof cellProperties.type[methodName] === "function") {
-    method = cellProperties.type[methodName];
-  }
-  if (typeof method !== "function") {
-    method = Handsontable.TextCell[methodName];
-  }
-  return method(this.instance, td, coords.row, coords.col, prop, extraParam, cellProperties);
-};
-
-/**
- * Returns coordinates given td object
- */
-Handsontable.TableView.prototype.getCellCoords = function (td) {
-  return {
-    row: td.parentNode.rowIndex - this.instance.blockedRows.count(),
-    col: td.cellIndex - this.instance.blockedCols.count()
-  };
 };
 
 /**
  * Returns td object given coordinates
  */
 Handsontable.TableView.prototype.getCellAtCoords = function (coords) {
-  if (coords.row < 0 || coords.col < 0) {
+  var td = this.wt.wtTable.getCell([coords.row, coords.col]);
+  if (td < 0) { //there was an exit code (cell is out of bounds)
     return null;
-  }
-  var tr = this.$tableBody.childNodes[coords.row];
-  if (tr) {
-    return tr.childNodes[coords.col + this.instance.blockedCols.count()];
   }
   else {
-    return null;
+    return td;
   }
-};
-
-/**
- * Returns all td objects in grid
- */
-Handsontable.TableView.prototype.getAllCells = function () {
-  var tds = [], trs, r, rlen, c, clen;
-  trs = this.$tableBody.childNodes;
-  rlen = this.instance.rowCount;
-  if (rlen > 0) {
-    clen = this.instance.colCount;
-    for (r = 0; r < rlen; r++) {
-      for (c = 0; c < clen; c++) {
-        tds.push(trs[r].childNodes[c + this.instance.blockedCols.count()]);
-      }
-    }
-  }
-  return tds;
 };
 
 /**
  * Scroll viewport to selection
- * @param td
+ * @param coords
  */
-Handsontable.TableView.prototype.scrollViewport = function (td) {
-  if (!this.instance.selection.isSelected()) {
-    return false;
-  }
-
-  var $td = $(td);
-  var tdOffset = $td.offset();
-  var scrollLeft = this.scrollable.scrollLeft(); //scrollbar position
-  var scrollTop = this.scrollable.scrollTop(); //scrollbar position
-  var scrollOffset = this.scrollable.offset();
-  var rowHeaderWidth = this.instance.blockedCols.count() ? $(this.instance.blockedCols.main[0].firstChild).outerWidth() : 2;
-  var colHeaderHeight = this.instance.blockedRows.count() ? $(this.instance.blockedRows.main[0].firstChild).outerHeight() : 2;
-
-  var offsetTop = tdOffset.top;
-  var offsetLeft = tdOffset.left;
-  var scrollWidth, scrollHeight;
-  if (scrollOffset) { //if is not the window
-    scrollWidth = this.scrollable.outerWidth();
-    scrollHeight = this.scrollable.outerHeight();
-    offsetTop += scrollTop - scrollOffset.top;
-    offsetLeft += scrollLeft - scrollOffset.left;
-  }
-  else {
-    scrollWidth = this.scrollable.width(); //don't use outerWidth with window (http://api.jquery.com/outerWidth/)
-    scrollHeight = this.scrollable.height();
-  }
-  scrollWidth -= this.scrollbarSize.width;
-  scrollHeight -= this.scrollbarSize.height;
-
-  var height = $td.outerHeight();
-  var width = $td.outerWidth();
-
-  var that = this;
-  if (scrollLeft + scrollWidth <= offsetLeft + width) {
-    setTimeout(function () {
-      that.scrollable.scrollLeft(offsetLeft + width - scrollWidth);
-    }, 1);
-  }
-  else if (scrollLeft > offsetLeft - rowHeaderWidth) {
-    setTimeout(function () {
-      that.scrollable.scrollLeft(offsetLeft - rowHeaderWidth);
-    }, 1);
-  }
-
-  if (scrollTop + scrollHeight <= offsetTop + height) {
-    setTimeout(function () {
-      that.scrollable.scrollTop(offsetTop + height - scrollHeight);
-    }, 1);
-  }
-  else if (scrollTop > offsetTop - colHeaderHeight) {
-    setTimeout(function () {
-      that.scrollable.scrollTop(offsetTop - colHeaderHeight);
-    }, 1);
-  }
+Handsontable.TableView.prototype.scrollViewport = function (coords) {
+  this.wt.scrollViewport([coords.row, coords.col]);
 };

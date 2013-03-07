@@ -1,4 +1,5 @@
 # Handsontable
+[![Build Status](https://travis-ci.org/bollwyvl/jquery-handsontable.png?branch=travis-testing)](https://travis-ci.org/bollwyvl/jquery-handsontable)
 
 Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery. Requires jQuery 1.7+. Runs in IE7, IE8, IE9, Firefox, Chrome, Safari and Opera.
 
@@ -33,21 +34,39 @@ Then, run `handsontable()` constructor on an empty div. After that, load some da
 </script>
 ```
 
-## Changelog and Future Versions
+## Changelog
 
-To see the list of recent changes, see the [Changelog](https://github.com/warpech/jquery-handsontable/wiki/Changelog) wiki page. To see the planned future releases, see the [Milestones](https://github.com/warpech/jquery-handsontable/wiki/Milestones) page.
+To see the list of recent changes, see the [Changelog](https://github.com/warpech/jquery-handsontable/wiki/Changelog) wiki page.
 
-## Methods
+## Reporting bugs and feature requests
+
+Please follow this guidelines when reporting bugs and feature requests:
+
+1. Use [GitHub Issues](https://github.com/warpech/jquery-handsontable/issues) board to report bugs and feature requests (not my email address)
+2. Please **always** write steps to reporoduce the error. That way I can focus on fixing the bug, not scratching my had how to reproduce it.
+3. If possible, please add a JSFiddle link that shows the problem (start by forking [this fiddle](http://jsfiddle.net/warpech/hU6Kz/)). It saves me much time.
+4. If you can't reproduce it on JSFiddle, please add a screenshot that shows the problem. JSFiddle is much more appreciated because it lets me start fixing straight away.
+
+Thanks for understanding!
+
+## API Reference
+
+### Methods
 
   Option                                                                               | Role        | Description
 ---------------------------------------------------------------------------------------|-------------|-------------
  handsontable(options)                                                                 | Constructor | Accepts configuration object (see **Options**)
  handsontable('updateSettings', options)                                               | Method      | Use it if you need to change configuration after initialization
  handsontable('loadData', data)                                                        | Method      | Reset all cells in the grid to contain data from the `data` array
+ handsontable('render')                                                                | Method      | Rerender the table
  handsontable('setDataAtCell',&nbsp;row,&nbsp;col,&nbsp;value)                         | Method      | Set new value to a cell. To change many cells at once, pass an array of changes in format [[row, col, value], ...] as the only parameter
  handsontable('getDataAtCell', row, col)                                               | Method      | Return cell value at `row`, `col`
  handsontable('countRows')                                                             | Method      | Return total number of rows in the grid
  handsontable('countCols')                                                             | Method      | Return total number of columns in the grid
+ handsontable('rowOffset')                                                             | Method      | Return index of first visible row
+ handsontable('colOffset')                                                             | Method      | Return index of first visible column
+ handsontable('countVisibleRows')                                                      | Method      | Return number of visible rows
+ handsontable('countVisibleCols')                                                      | Method      | Return number of visible columns
  handsontable('clear')                                                                 | Method      | Empty all cells
  handsontable('clearUndo')                                                             | Method      | Clear undo history
  handsontable('getData', [r, c, r2, c2])                                               | Method      | Return the current data object (the same that was passed by `data` configuration option or `loadData` method). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to get only a fragment of grid data
@@ -71,26 +90,25 @@ To see the list of recent changes, see the [Changelog](https://github.com/warpec
  handsontable('undo')                                                                  | Method      | Undo last edit
  handsontable('redo')                                                                  | Method      | Redo edit (used to reverse an undo)
 
-## Options
+### Options
 
 The table below presents configuration options that are interpreted by `handsontable()` constructor:
 
   Option                 | Type                           | Default          | Description
 -------------------------|--------------------------------|------------------|-------------
- `data`                  | array/object                   | []               | Initial data set that will be bound to the data grid by reference
+ `data`                  | array/object                   | []               | Initial data source that will be bound to the data grid **by reference** (editing data grid alters the data source. See [Understanding binding as reference](http://handsontable.com/demo/understanding_reference.html))
  `minRows`               | number                         | 0                | Minimum number of rows. At least that many of rows will be created during initialization
  `minCols`               | number                         | 0                | Minimum number of columns. At least that many of columns will be created during initialization
  `maxRows`               | number                         | _Infinity_       | Maximum number of rows
  `maxCols`               | number                         | _Infinity_       | Maximum number of columns
- `startRows`             | number                         | 5                | Initial number of rows
- `startCols`             | number                         | 5                | Initial number of columns
+ `startRows`             | number                         | 5                | Initial number of rows. **Notice:** This option only has effect in Handsontable constructor and only if `data` is not provided
+ `startCols`             | number                         | 5                | Initial number of columns. **Notice:** This option only has effect in Handsontable constructor and only if `data` is not provided
  `rowHeaders`            | boolean/array                  | false            | Defines if the row headers (1, 2, 3, ...) should be displayed. You can just set it to `true` or specify custom a array `["First", "Second", "Third", ...]`
  `colHeaders`            | boolean/array                  | false            | Defines if the column headers (A, B, C, ...) should be displayed. You can just set it to `true` or specify custom a array `["First Name", "Last Name", "Address", ...]`
- `columns`               | array                          | _undefined_      | Defines the cell properties and data binding for certain columns. See [demo/datasources.html](https://github.com/warpech/jquery-handsontable/blob/reference/demo/datasources.html) for examples
+ `colWidths`             | array                          | [50, ..]         | Defines if the column widths in pixels (array of numbers)
+ `columns`               | array                          | _undefined_      | Defines the cell properties and data binding for certain columns. **Notice:** Using this option sets a fixed number of columns (options `startCols`, `minCols`, `maxCols` will be ignored). See [demo/datasources.html](https://github.com/warpech/jquery-handsontable/blob/reference/demo/datasources.html) for examples
  `cells`                 | function(`row`, `col`, `prop`) | _undefined_      | Defines the cell properties for given `row`, `col`, `prop` coordinates
  `dataSchema`            | object                         | _like first row_ | Defines the structure of a new row when data source is an object. See [demo/datasources.html](https://github.com/warpech/jquery-handsontable/blob/reference/demo/datasources.html) for examples
- `minWidth`              | number                         | 0                | Handsontable will add as many columns as needed to meet the given width in pixels
- `minHeight`             | number                         | 0                | Handsontable will add as many rows as needed to meet the given height in pixels
  `minSpareCols`          | number                         | 0                | When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns
  `minSpareRows`          | number                         | 0                | When set to 1 (or more), Handsontable will add a new row at the end of grid if there are no more empty rows
  `multiSelect`           | boolean                        | true             | If true, selection of multiple cells using keyboard or mouse is allowed
@@ -104,65 +122,29 @@ The table below presents configuration options that are interpreted by `handsont
  `autoWrapRow`           | boolean                        | false            | If true, pressing TAB or right arrow in the last column will move to first column in next row
  `autoWrapCol`           | boolean                        | false            | If true, pressing ENTER or down arrow in the last row will move to first row in next column
  `autoComplete`          | array                          | _undefined_      | Autocomplete definitions. See **Defining autocomplete**
+ `copyRowsLimit`         | number                         | 1000             | Maximum number of rows than can be copied to clipboard using CTRL+C
+ `copyColsLimit`         | number                         | 1000             | Maximum number of columns than can be copied to clipboard using CTRL+C
+ `stretchH`              | string                         | hybrid           | [Column stretching](http://handsontable.com/demo/scroll.html) mode. Possible values: `none, hybrid, last, all`. Hybrid mode works as `none` where there is no horizontal scrollbar, and as `last` when the horizontal scrollbar is present.
+ `manualColumnResize`    | boolean                        | false            | Turn on [Manual column resize](http://handsontable.com/demo/column_resize.html)
+ `manualColumnMove`      | boolean                        | false            | Turn on [Manual column move](http://handsontable.com/demo/column_move.html)
+ `columnSorting`         | boolean                        | false            | Turn on [Column sorting](http://handsontable.com/demo/sorting.html)
+ `currentRowClassName`   | string                         | _undefined_      | Class name for all visible rows in current selection
+ `currentColClassName`   | string                         | _undefined_      | Class name for all visible columns in current selection
  `onSelection`           | function(`r`, `c`, `r2`, `c2`) | _undefined_      | Callback fired before one or more cells is selected. You can call `updateSettings` from inside, e.g. if you want to disable fillHandle for a specific cell. Parameters: <ul><li>`r` selection start row</li><li>`c` selection start column</li><li>`r2` selection end column</li><li>`c2` selection end column</li></ul>
  `onSelectionByProp`     | function(`r`, `p`, `r2`, `p2`) | _undefined_      | The same as above, but data source object property name is used instead of the column number
  `onBeforeChange`        | function(`changes`)            | _undefined_      | Callback fired before one or more cells is changed. Its main purpose is to validate the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, col, oldVal, newVal], ... ]`. You can disregard a single change by setting `changes[i][3]` to false, or cancel all edit by returning false.</li></ul>
- `onChange`              | function(`changes`, `source`)  | _undefined_      | Callback fired after one or more cells is changed. Its main use case is to save the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, col, oldVal, newVal], ... ]`. </li><li>`source` is one of the strings: `"alter"`, `"empty"`, `"edit"`, `"populateFromArray"`, `"loadData"`, `"autofill"`, `"paste"`.</li></ul>
-
-### Defining autocomplete
-
-The `autocomplete` option is an array of mixins that define multiple autocomplete providers for the grid. 
-
-To keep Handsontable lightweight, this feature has a dependency on another jQuery plugin: 
-[bootstrap-typeahead](https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js). 
-It is included in the repo.
-
-Example:
-
-```js
-autoComplete: [
-  {
-    match: function (row, col, data) {
-      if (data()[0][col].indexOf("color") > -1) { //if column name contains word "color"
-        return true;
-      }
-      return false;
-    },
-    highlighter: function (item) {
-      //only define this function if you want a different behavior
-      //than the original (defaultAutoCompleteHighlighter in core.js)
-      var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
-      var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-        return '<strong>' + match + '</strong>';
-      });
-      return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
-    },
-    source: function (row, col) {
-      return ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
-    },
-    strict: false //allows other values that defined in array above
-  },
-  {
-    match: function (row, col, data) {
-      return (col === 0); //if it is first column
-    },
-    source: function (row, col) {
-      return ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"]
-    },
-    strict: true //only accept predefined values (from array above)
-  }
-],
-```
-
-## Reporting bugs and feature requests
-
-Please use GitHub Issues board to report bugs and feature requests (not my email address). When providing a bug report, please give me a way to reporoduce the error. The best practice is to add a JSFiddle link that shows the erroneous behavior (start by forking [this fiddle](http://jsfiddle.net/warpech/hU6Kz/)). That way I can focus on fixing the bug, not scratching my had how to reproduce it. Thanks for understanding!
+ `onChange`              | function(`changes`, `source`)  | _undefined_      | Callback fired after one or more cells is changed. Its main use case is to save the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, col, oldVal, newVal], ... ]`. </li><li>`source` is one of the strings: `"alter"`, `"empty"`, `"edit"`, `"populateFromArray"`, `"loadData"`, `"autofill"`, `"paste"`.</li></ul> Note: for performance reasone, the `changes` array is null for `"loadData"` source.
+ `onCopyLimit`           | function()                     | _undefined_      | Callback fired if `copyRowsLimit` or `copyColumnsLimit` was reached. Callback parameters are: `selectedRowsCount`, `selectedColsCount`, `copyRowsLimit`, `copyColsLimit`
 
 ## Similar projects
 
-If you are interested in more complicated data grid solutions, consider:
+This is a free world so I invite you to check out alternative projects. I would love to receive feedback if you would like to import some of their features to Handsontable.
+
  - [DataTables](http://datatables.net/)
  - [SlickGrid](https://github.com/mleibman/SlickGrid)
+ - [jqGrid](http://www.trirand.com/blog/)
+ - [jTable](http://www.jtable.org/)
+ - [jui_datagrid](http://www.pontikis.net/labs/jui_datagrid/)
 
 ## License 
 

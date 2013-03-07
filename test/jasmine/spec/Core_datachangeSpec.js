@@ -1,14 +1,13 @@
 describe('Core_datachange', function () {
-  var $container,
-    id = 'testContainer';
+  var id = 'testContainer';
 
   beforeEach(function () {
-    $container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
   afterEach(function () {
-    if($container) {
-      $container.remove();
+    if (this.$container) {
+      this.$container.remove();
     }
   });
 
@@ -16,12 +15,12 @@ describe('Core_datachange', function () {
     var output = null;
 
     runs(function () {
-      $container.handsontable({
+      handsontable({
         onChange: function (changes) {
           output = changes;
         }
       });
-      $container.handsontable('setDataAtCell', 1, 2, "test");
+      setDataAtCell(1, 2, "test");
     });
 
     waitsFor(function () {
@@ -40,11 +39,11 @@ describe('Core_datachange', function () {
     var output = null;
 
     runs(function () {
-      $container.handsontable();
-      $container.on("datachange.handsontable", function (event, changes) {
+      handsontable();
+      this.$container.on("datachange.handsontable", function (event, changes) {
         output = changes;
       });
-      $container.handsontable('setDataAtCell', 1, 2, "test");
+      setDataAtCell(1, 2, "test");
     });
 
     waitsFor(function () {
@@ -61,14 +60,15 @@ describe('Core_datachange', function () {
 
   it('this should point to handsontable rootElement', function () {
     var output = null;
+    var $container = this.$container;
 
     runs(function () {
-      $container.handsontable({
+      handsontable({
         onChange: function () {
           output = this;
         }
       });
-      $container.handsontable('setDataAtCell', 0, 0, "test");
+      setDataAtCell(0, 0, "test");
     });
 
     waitsFor(function () {
@@ -76,7 +76,60 @@ describe('Core_datachange', function () {
     }, "onChange callback called", 100);
 
     runs(function () {
-      expect(output).toEqual($container.get(0));
+      expect(output).toEqual($container[0]);
+    });
+  });
+
+  it('onChange should be triggered after data is rendered to DOM (init)', function () {
+    var output = null;
+    var $container = this.$container;
+
+    runs(function () {
+      handsontable({
+        data: [
+          ['Joe Red']
+        ],
+        onChange: function (changes, source) {
+          if (source === 'loadData') {
+            output = $container.find('table.htCore tbody td:first').html();
+          }
+        }
+      });
+    });
+
+    waitsFor(function () {
+      return (output != null)
+    }, "onChange callback called", 100);
+
+    runs(function () {
+      expect(output).toEqual('Joe Red');
+    });
+  });
+
+  it('onChange should be triggered after data is rendered to DOM (setDataAtCell)', function () {
+    var output = null;
+    var $container = this.$container;
+
+    runs(function () {
+      handsontable({
+        data: [
+          ['Joe Red']
+        ],
+        onChange: function (changes, source) {
+          if (source === 'edit') {
+            output = $container.find('table.htCore tbody td:first').html();
+          }
+        }
+      });
+      setDataAtCell(0, 0, 'Alice Red');
+    });
+
+    waitsFor(function () {
+      return (output != null)
+    }, "onChange callback called", 100);
+
+    runs(function () {
+      expect(output).toEqual('Alice Red');
     });
   });
 

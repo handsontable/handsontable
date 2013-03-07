@@ -1,3 +1,32 @@
+/* -- frame counter -- */
+var frame = 0;
+var lastFrame = null;
+
+(function () {
+  frame = 0;
+  lastFrame = null;
+  var countFrames = function () {
+    requestAnimFrame(function () {
+      frame++;
+      countFrames();
+    });
+  };
+  countFrames();
+})();
+
+var nextFrame = function (myFrame) {
+  if (lastFrame === null) {
+    lastFrame = frame;
+  }
+  else if (frame - 2 >= lastFrame) {
+    lastFrame = null;
+    return true;
+  }
+  return false;
+};
+
+/* ------------------- */
+
 var spec = function () {
   return jasmine.getEnv().currentSpec;
 };
@@ -5,7 +34,7 @@ var spec = function () {
 var handsontable = function (options) {
   var currentSpec = spec();
   currentSpec.$container.handsontable(options);
-  currentSpec.$keyboardProxy = currentSpec.$container.find('textarea.handsontableInput');
+  return currentSpec.$container.data('handsontable');
 };
 
 var countRows = function () {
@@ -21,22 +50,15 @@ var countCells = function () {
 };
 
 var isEditorVisible = function () {
-  var overflow = spec().$keyboardProxy.parent().css('overflow');
-  if (overflow === 'visible') {
-    return true;
-  }
-  else if (overflow !== 'hidden') {
-    throw new Error("wrong overflow state of the editor");
-  }
-  return false;
+  return !!(keyProxy().is(':visible') && keyProxy().parent().is(':visible') && !keyProxy().parent().is('.htHidden'));
 };
 
 var isFillHandleVisible = function () {
-  return spec().$container.find('.htFillHandle').is(':visible');
+  return !!spec().$container.find('.wtBorder.corner:visible').length;
 };
 
 var isAutocompleteVisible = function () {
-  return spec().$keyboardProxy.data("typeahead").$menu.is(":visible");
+  return !!(autocompleteEditor() && autocompleteEditor().data("typeahead") && autocompleteEditor().data("typeahead").$menu.is(":visible"));
 };
 
 /**
@@ -56,42 +78,59 @@ var contextMenu = function () {
  * @return {Function}
  */
 var handsontableKeyTriggerFactory = function (type) {
-  return function (key) {
+  return function (key, extend) {
     var ev = $.Event(type);
-    switch (key) {
-      case 'tab':
-        ev.keyCode = 9;
-        break;
+    if (typeof key === 'string') {
+      if (key.indexOf('shift+') > -1) {
+        key = key.substring(6);
+        ev.shiftKey = true;
+      }
+      switch (key) {
+        case 'tab':
+          ev.keyCode = 9;
+          break;
 
-      case 'enter':
-        ev.keyCode = 13;
-        break;
+        case 'enter':
+          ev.keyCode = 13;
+          break;
 
-      case 'esc':
-        ev.keyCode = 27;
-        break;
+        case 'esc':
+          ev.keyCode = 27;
+          break;
 
-      case 'f2':
-        ev.keyCode = 113;
-        break;
+        case 'f2':
+          ev.keyCode = 113;
+          break;
 
-      case 'arrow_left':
-        ev.keyCode = 37;
-        break;
+        case 'arrow_left':
+          ev.keyCode = 37;
+          break;
 
-      case 'arrow_up':
-        ev.keyCode = 38;
-        break;
+        case 'arrow_up':
+          ev.keyCode = 38;
+          break;
 
-      case 'arrow_right':
-        ev.keyCode = 39;
-        break;
+        case 'arrow_right':
+          ev.keyCode = 39;
+          break;
 
-      case 'arrow_down':
-        ev.keyCode = 40;
-        break;
+        case 'arrow_down':
+          ev.keyCode = 40;
+          break;
+
+        case 'ctrl':
+          ev.keyCode = 17;
+          break;
+
+        default:
+          throw new Error('unknown key');
+      }
     }
-    spec().$keyboardProxy.trigger(ev);
+    else if (typeof key === 'number') {
+      ev.keyCode = key;
+    }
+    $.extend(ev, extend);
+    $(document.activeElement).trigger(ev);
   }
 };
 
@@ -101,9 +140,9 @@ var keyUp = handsontableKeyTriggerFactory('keyup');
 /**
  * Presses keyDown, then keyUp
  */
-var keyDownUp = function (key) {
-  keyDown(key);
-  keyUp(key);
+var keyDownUp = function (key, extend) {
+  keyDown(key, extend);
+  keyUp(key, extend);
 };
 
 /**
@@ -111,14 +150,18 @@ var keyDownUp = function (key) {
  * @return {String}
  */
 var keyProxy = function () {
-  return spec().$keyboardProxy.val();
+  return spec().$container.find('textarea.handsontableInput');
+};
+
+var autocompleteEditor = function () {
+  return spec().$container.data('handsontable').autocompleteEditor.TEXTAREA;
 };
 
 /**
  * Sets text cursor inside keyboard proxy
  */
 var setCaretPosition = function (pos) {
-  var el = spec().$keyboardProxy[0];
+  var el = keyProxy()[0];
   if (el.setSelectionRange) {
     el.focus();
     el.setSelectionRange(pos, pos);
@@ -137,6 +180,13 @@ var setCaretPosition = function (pos) {
  */
 var autocomplete = function () {
   return spec().$container.find('.handsontableInput').data("typeahead");
+};
+
+/**
+ * Triggers paste string on current selection
+ */
+var triggerPaste = function (str) {
+  spec().$container.data('handsontable').copyPaste.triggerPaste(null, str);
 };
 
 /**
@@ -163,7 +213,6 @@ var getDataAtCell = handsontableMethodFactory('getDataAtCell');
 var alter = handsontableMethodFactory('alter');
 var loadData = handsontableMethodFactory('loadData');
 var destroyEditor = handsontableMethodFactory('destroyEditor');
-var setCellReadOnly = handsontableMethodFactory('setCellReadOnly');
-var setCellEditable = handsontableMethodFactory('setCellEditable');
 var render = handsontableMethodFactory('render');
 var updateSettings = handsontableMethodFactory('updateSettings');
+var destroy = handsontableMethodFactory('destroy');

@@ -45,6 +45,7 @@
 </a>
 
 <div id="container">
+<div class="columnLayout">
 
 <div class="rowLayout">
   <div class="descLayout">
@@ -65,10 +66,6 @@
         <li><a href="#specific">context menu with specific options</a></li>
         <li><a href="#custom">context menu with fully custom configuration</a></li>
       </ul>
-
-      <a name="dependencies"></a>
-
-      <h2>Dependencies</h2>
     </div>
   </div>
 </div>
@@ -76,22 +73,33 @@
 <div class="rowLayout">
   <div class="descLayout">
     <div class="pad">
+      <a name="dependencies"></a>
 
-      <p>Context Menu feature requires <a
-          href="http://medialize.github.com/jQuery-contextMenu/">jQuery contextMenu</a>
-        plugin (tested with version 1.5.25), which itself has dependency on <a
-            href="http://docs.jquery.com/UI/Position">jQuery UI Position</a> (1.9.0-RC1).</p>
+      <h2>Dependencies</h2>
 
-      <p>All files are available in the Handsontable repo, just remember to include them in your HTML.</p>
+      <p>Context Menu feature has a <strong>required</strong> dependency on <a
+          href="http://medialize.github.com/jQuery-contextMenu/">jQuery&nbsp;contextMenu</a>
+        plugin (tested with version 1.5.25). This plugin is included in jquery.handsontable.full.js.
+
+
+      <p>jQuery contextMenu plugin has <a href="http://medialize.github.com/jQuery-contextMenu/docs.html#ui-position">optional</a>
+        dependency on <a
+            href="http://docs.jquery.com/UI/Position">jQuery UI Position</a>, which makes sure
+        that the menu is always visible in the viewport. This plugin is NOT included in
+        jquery.handsontable.full.js. Please report in GitHub issues board if you wish it was added to
+        jquery.handsontable.full.js.</p>
     </div>
   </div>
 
   <div class="codeLayout">
     <div class="pad">
-        <pre class="html"><code>&lt;script src="lib/jQuery-contextMenu/jquery.contextMenu.js"&gt;&lt;/script&gt;
-        &lt;script src="lib/jQuery-contextMenu/jquery.ui.position.js"&gt;&lt;/script&gt;
+        <pre class="html"><code>
+        &lt;script src="lib/jQuery-contextMenu/jquery.contextMenu.js"&gt;&lt;/script&gt;
         &lt;link rel="stylesheet" media="screen"
         href="lib/jQuery-contextMenu/jquery.contextMenu.css"&gt;
+
+        &lt;!-- optional --&gt;
+        &lt;script src="lib/jQuery-contextMenu/jquery.ui.position.js"&gt;&lt;/script&gt;
         </code></pre>
     </div>
   </div>
@@ -103,26 +111,26 @@
       <a name="default"></a>
 
       <h2>Context Menu with default options</h2>
-    </div>
-  </div>
-</div>
 
-<div class="rowLayout">
-  <div class="descLayout">
-    <div class="pad bottomSpace100">
       <p>Tu run the basic configuration of the Context Menu, just set the contextMenu option to true.</p>
 
       <div id="example1"></div>
 
       <p>
-        <button name="dump" data-dump="#example1">Dump to console</button>
+        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+          data to console
+        </button>
       </p>
     </div>
   </div>
 
   <div class="codeLayout">
     <div class="pad">
-      <script>
+      <div class="jsFiddle">
+        <div class="jsFiddleLink">Edit in jsFiddle</div>
+      </div>
+
+      <script class="common">
         function getData() {
           return [
             ["", "Kia", "Nissan", "Toyota", "Honda"],
@@ -131,11 +139,15 @@
             ["2010", 30, 15, 12, 13]
           ];
         }
+      </script>
 
+      <script>
         $("#example1").handsontable({
           data: getData(),
           startRows: 5,
           startCols: 5,
+          minRows: 5,
+          minCols: 5,
           maxRows: 10,
           maxCols: 10,
           rowHeaders: true,
@@ -154,13 +166,7 @@
       <a name="specific"></a>
 
       <h2>Context Menu with specific options</h2>
-    </div>
-  </div>
-</div>
 
-<div class="rowLayout">
-  <div class="descLayout">
-    <div class="pad bottomSpace100">
       <p>You can limit options available in the context menu using contextMenu option as an array of strings:</p>
 
       <ul>
@@ -180,13 +186,19 @@
       <div id="example2"></div>
 
       <p>
-        <button name="dump" data-dump="#example1">Dump to console</button>
+        <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+          data to console
+        </button>
       </p>
     </div>
   </div>
 
   <div class="codeLayout">
     <div class="pad">
+      <div class="jsFiddle">
+        <div class="jsFiddleLink">Edit in jsFiddle</div>
+      </div>
+
       <script>
         $("#example2").handsontable({
           data: getData(),
@@ -208,13 +220,7 @@
       <a name="custom"></a>
 
       <h2>Context Menu with with fully custom configuration</h2>
-    </div>
-  </div>
-</div>
 
-<div class="rowLayout">
-  <div class="descLayout">
-    <div class="pad bottomSpace450">
       <p>For greatest configurability, you use contextMenu option as a configuration object as described in <a
           href="http://medialize.github.com/jQuery-contextMenu/docs.html">jQuery contextMenu documentation</a>.</p>
 
@@ -224,13 +230,19 @@
       <div id="example3"></div>
 
       <p>
-        <button name="dump" data-dump="#example1">Dump to console</button>
+        <button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+          data to console
+        </button>
       </p>
     </div>
   </div>
 
   <div class="codeLayout">
     <div class="pad">
+      <div class="jsFiddle">
+        <div class="jsFiddleLink">Edit in jsFiddle</div>
+      </div>
+
       <script>
         $("#example3").handsontable({
           data: getData(),
@@ -275,13 +287,14 @@
 </div>
 
 <div class="rowLayout">
-  <div class="descLayout">
+  <div class="descLayout noMargin">
     <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
       <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
         licensed under the The MIT License.</p>
     </div>
   </div>
+</div>
 </div>
 </div>
 </body>

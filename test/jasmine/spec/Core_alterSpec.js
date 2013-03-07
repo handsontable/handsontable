@@ -38,8 +38,13 @@ describe('Core_alter', function () {
       ]
     });
     alter('remove_row', 1);
-    expect(getDataAtCell(1, 1)).toEqual('Joan'); //Joan should be moved up
-    expect(getData().length).toEqual(5); //new row should be added by keepEmptyRows
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(getDataAtCell(1, 1)).toEqual('Joan'); //Joan should be moved up
+      expect(getData().length).toEqual(5); //new row should be added by keepEmptyRows
+    });
   });
 
   it('should add not more rows than maxRows', function () {
@@ -50,7 +55,12 @@ describe('Core_alter', function () {
     alter('insert_row', 1);
     alter('insert_row', 1);
     alter('insert_row', 1);
-    expect(countRows()).toEqual(7);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countRows()).toEqual(7);
+    });
   });
 
   it('should add not more cols than maxCols', function () {
@@ -61,6 +71,43 @@ describe('Core_alter', function () {
     alter('insert_col', 1);
     alter('insert_col', 1);
     alter('insert_col', 1);
-    expect(countCols()).toEqual(7);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countCols()).toEqual(7);
+    });
+  });
+
+  it('should not remove rows below minRows', function () {
+    handsontable({
+      startRows: 5,
+      minRows: 4
+    });
+    alter('remove_row', 1);
+    alter('remove_row', 1);
+    alter('remove_row', 1);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countRows()).toEqual(4);
+    });
+  });
+
+  it('should not remove cols below minCols', function () {
+    handsontable({
+      startCols: 5,
+      minCols: 4
+    });
+    alter('remove_col', 1);
+    alter('remove_col', 1);
+    alter('remove_col', 1);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countCols()).toEqual(4);
+    });
   });
 });

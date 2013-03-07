@@ -1,14 +1,13 @@
 describe('Core_beforechange', function () {
-  var $container,
-    id = 'testContainer';
+  var id = 'testContainer';
 
   beforeEach(function () {
-    $container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
   afterEach(function () {
-    if ($container) {
-      $container.remove();
+    if (this.$container) {
+      this.$container.remove();
     }
   });
 
@@ -16,12 +15,12 @@ describe('Core_beforechange', function () {
     var output = null;
 
     runs(function () {
-      $container.handsontable({
+      handsontable({
         onBeforeChange: function () {
           output = this;
         }
       });
-      $container.handsontable('setDataAtCell', 0, 0, "test");
+      setDataAtCell(0, 0, "test");
     });
 
     waitsFor(function () {
@@ -29,7 +28,7 @@ describe('Core_beforechange', function () {
     }, "onBeforeChange callback called", 100);
 
     runs(function () {
-      expect(output).toEqual($container.get(0));
+      expect(output).toEqual(this.$container.get(0));
     });
   });
 
@@ -38,19 +37,17 @@ describe('Core_beforechange', function () {
       var called = false;
 
       runs(function () {
-        $container.handsontable({
+        handsontable({
           onBeforeChange: function (changes) {
             if (changes[0][2] === "test" && changes[0][3] === "") {
               called = true;
             }
           }
         });
-        $container.handsontable('setDataAtCell', 0, 0, "test");
-        $container.handsontable('selectCell', 0, 0);
+        setDataAtCell(0, 0, "test");
+        selectCell(0, 0);
 
-        var keydown = $.Event('keydown');
-        keydown.keyCode = keyCode;
-        $container.find('textarea.handsontableInput').trigger(keydown);
+        keyDown(keyCode);
       });
 
       waitsFor(function () {

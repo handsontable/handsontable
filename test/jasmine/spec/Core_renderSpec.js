@@ -59,6 +59,6 @@ describe('Core_render', function () {
     render();
 
     var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
-    expect(this.$container.find('.htBorderBg.current').width()).toBeGreaterThan($td.width());
+    expect(this.$container.find('.wtBorder.current').width()).toBeGreaterThan($td.width());
   });
 });

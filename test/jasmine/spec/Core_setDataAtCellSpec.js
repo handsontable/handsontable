@@ -42,14 +42,22 @@ describe('Core_setDataAtCell', function () {
 
   it('should correctly paste string that contains "quotes"', function () {
     //https://github.com/warpech/jquery-handsontable/issues/205
+    var called;
     runs(function () {
-      handsontable();
+      handsontable({
+        onChange: function (changes, source) {
+          if (source === 'paste') {
+            called = true;
+          }
+        }
+      });
       selectCell(0, 0);
-      this.$keyboardProxy.val('1\nThis is a "test" and a test\n2');
-      this.$keyboardProxy.parent().triggerHandler('paste');
+      triggerPaste('1\nThis is a "test" and a test\n2');
     });
 
-    waits(110);
+    waitsFor(function () {
+      return (called === true)
+    }, "onChange callback called", 1000);
 
     runs(function () {
       expect(getDataAtCell(0, 0)).toEqual('1');
@@ -60,7 +68,8 @@ describe('Core_setDataAtCell', function () {
 
   it('should correctly paste string when dataSchema is used', function () {
     //https://github.com/warpech/jquery-handsontable/issues/237
-    var err;
+    var err
+      , called;
     runs(function () {
       try {
         handsontable({
@@ -69,18 +78,24 @@ describe('Core_setDataAtCell', function () {
             col1: null,
             col2: null,
             col3: null
+          },
+          onChange: function (changes, source) {
+            if (source === 'paste') {
+              called = true;
+            }
           }
         });
         selectCell(0, 0);
-        this.$keyboardProxy.val('1\tTest\t2');
-        this.$keyboardProxy.parent().triggerHandler('paste');
+        triggerPaste('1\tTest\t2');
       }
       catch (e) {
         err = e;
       }
     });
 
-    waits(110);
+    waitsFor(function () {
+      return (called === true)
+    }, "onChange callback called", 1000);
 
     runs(function () {
       expect(getDataAtCell(0, 0)).toEqual('1');
@@ -92,24 +107,31 @@ describe('Core_setDataAtCell', function () {
   });
 
   it('should paste not more rows than maxRows', function () {
-    var err;
+    var err
+      , called;
     runs(function () {
       try {
         handsontable({
           minSpareRows: 1,
-          startRows: 5,
-          maxRows: 10
+          minRows: 5,
+          maxRows: 10,
+          onChange: function (changes, source) {
+            if (source === 'paste') {
+              called = true;
+            }
+          }
         });
         selectCell(4, 0);
-        this.$keyboardProxy.val('1\n2\n3\n4\n5\n6\n7\n8\n9\n10');
-        this.$keyboardProxy.parent().triggerHandler('paste');
+        triggerPaste('1\n2\n3\n4\n5\n6\n7\n8\n9\n10');
       }
       catch (e) {
         err = e;
       }
     });
 
-    waits(110);
+    waitsFor(function () {
+      return (called === true)
+    }, "onChange callback called", 1000);
 
     runs(function () {
       expect(countRows()).toEqual(10);
@@ -120,24 +142,31 @@ describe('Core_setDataAtCell', function () {
   });
 
   it('should paste not more cols than maxCols', function () {
-    var err;
+    var err
+      , called;
     runs(function () {
       try {
         handsontable({
           minSpareCols: 1,
-          startCols: 5,
-          maxCols: 10
+          minCols: 5,
+          maxCols: 10,
+          onChange: function (changes, source) {
+            if (source === 'paste') {
+              called = true;
+            }
+          }
         });
         selectCell(0, 4);
-        this.$keyboardProxy.val('1\t2\t3\t4\t5\t6\t7\t8\t9\t10');
-        this.$keyboardProxy.parent().triggerHandler('paste');
+        triggerPaste('1\t2\t3\t4\t5\t6\t7\t8\t9\t10');
       }
       catch (e) {
         err = e;
       }
     });
 
-    waits(110);
+    waitsFor(function () {
+      return (called === true)
+    }, "onChange callback called", 1000);
 
     runs(function () {
       expect(countCols()).toEqual(10);
@@ -148,27 +177,34 @@ describe('Core_setDataAtCell', function () {
   });
 
   it('should paste not more rows & cols than maxRows & maxCols', function () {
-    var err;
+    var err
+      , called;
     runs(function () {
       try {
         handsontable({
           minSpareRows: 1,
           minSpareCols: 1,
-          startRows: 5,
-          startCols: 5,
+          minRows: 5,
+          minCols: 5,
           maxRows: 6,
-          maxCols: 6
+          maxCols: 6,
+          onChange: function (changes, source) {
+            if (source === 'paste') {
+              called = true;
+            }
+          }
         });
         selectCell(4, 4);
-        this.$keyboardProxy.val('1\t2\t3\n4\t5\t6\n7\t8\t9');
-        this.$keyboardProxy.parent().triggerHandler('paste');
+        triggerPaste('1\t2\t3\n4\t5\t6\n7\t8\t9');
       }
       catch (e) {
         err = e;
       }
     });
 
-    waits(110);
+    waitsFor(function () {
+      return (called === true)
+    }, "onChange callback called", 1000);
 
     runs(function () {
       expect(countRows()).toEqual(6);
@@ -181,7 +217,8 @@ describe('Core_setDataAtCell', function () {
 
   //https://github.com/warpech/jquery-handsontable/issues/250
   it('should create new rows when pasting into grid with object data source', function () {
-    var err;
+    var err
+      , called;
     runs(function () {
       try {
         handsontable({
@@ -192,18 +229,24 @@ describe('Core_setDataAtCell', function () {
             {data: "name.last"},
             {data: "name.first"}
           ],
-          minSpareRows: 1
+          minSpareRows: 1,
+          onChange: function (changes, source) {
+            if (source === 'paste') {
+              called = true;
+            }
+          }
         });
         selectCell(3, 0);
-        this.$keyboardProxy.val('a\tb\tc\nd\te\tf\ng\th\ti');
-        this.$keyboardProxy.parent().triggerHandler('paste');
+        triggerPaste('a\tb\tc\nd\te\tf\ng\th\ti');
       }
       catch (e) {
         err = e;
       }
     });
 
-    waits(110);
+    waitsFor(function () {
+      return (called === true)
+    }, "onChange callback called", 1000);
 
     runs(function () {
       expect(countRows()).toEqual(7);

@@ -28,13 +28,19 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, c
     td.innerHTML = "#bad value#";
   }
 
-  $(td).find('input').change(function () {
-    if ($(this).is(':checked')) {
+  var $input = $(td).find('input:first');
+  $input.mousedown(function (event) {
+    if (!$(this).is(':checked')) {
       instance.setDataAtCell(row, prop, cellProperties.checkedTemplate);
     }
     else {
       instance.setDataAtCell(row, prop, cellProperties.uncheckedTemplate);
     }
+    event.stopPropagation(); //otherwise can confuse mousedown handler
+  });
+
+  $input.mouseup(function (event) {
+    event.stopPropagation(); //otherwise can confuse dblclick handler
   });
 
   return td;

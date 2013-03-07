@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Autocomplete - Handsontable</title>
+  <title>Autocomplete cell type - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -22,7 +22,7 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Autocomplete">
+  <meta property="og:title" content="Autocomplete cell type">
   <meta property="og:description"
         content="This example shows the usage of the Autocomplete feature.">
   <meta property="og:url" content="http://handsontable.com/demo/autocomplete.html">
@@ -38,14 +38,6 @@
   <script src="js/ga.js"></script>
 
   <script class="common">
-    $(document).ready(function () {
-      $('button[name=dumpToConsole]').on('click', function () {
-        var dump = $(this).data('dump');
-        var $container = $(dump);
-        console.log('data of ' + dump, $container.handsontable('getData'));
-      });
-    });
-
     function getCarData() {
       return [
         ["Nissan", 2009, "black", "black"],
@@ -64,6 +56,7 @@
 </a>
 
 <div id="container">
+<div class="columnLayout">
 
 <div class="rowLayout">
   <div class="descLayout">
@@ -74,9 +67,9 @@
         for HTML, JavaScript &amp; jQuery
       </div>
 
-      <h2>Autocomplete</h2>
+      <h2>Autocomplete cell type</h2>
 
-      <p>This page shows how to use Handsontable with various data sources:</p>
+      <p>This page shows how to configure Handsontable with Autocomplete cell type:</p>
 
       <ul>
         <li><a href="#lazy">Autocomplete lazy mode</a></li>
@@ -89,7 +82,7 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad bottomSpace450">
+    <div class="pad">
       <a name="lazy"></a>
 
       <h2>Autocomplete lazy mode</h2>
@@ -99,7 +92,9 @@
       <div id="example1"></div>
 
       <p>
-        <button name="dumpToConsole" data-dump="#example1">Dump to console</button>
+        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+          data to console
+        </button>
       </p>
     </div>
   </div>
@@ -127,33 +122,31 @@
       </script>
 
       <script>
-        $(document).ready(function () {
-          $("#example1").handsontable({
-            data: getCarData(),
-            startRows: 7,
-            startCols: 4,
-            colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
-            columns: [
-              {
-                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
-                source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
-                strict: false
-              },
-              {},
-              {
-                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
-                source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
-                highlighter: colorHighlighter,
-                strict: false
-              },
-              {
-                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
-                source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
-                highlighter: colorHighlighter,
-                strict: false
-              }
-            ]
-          });
+        $("#example1").handsontable({
+          data: getCarData(),
+          startRows: 7,
+          startCols: 4,
+          colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+          columns: [
+            {
+              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
+              strict: false
+            },
+            {type: 'numeric'},
+            {
+              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
+              highlighter: colorHighlighter,
+              strict: false
+            },
+            {
+              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
+              highlighter: colorHighlighter,
+              strict: false
+            }
+          ]
         });
       </script>
     </div>
@@ -162,7 +155,7 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad bottomSpace200">
+    <div class="pad">
       <a name="strict"></a>
 
       <h2>Autocomplete strict mode</h2>
@@ -176,7 +169,9 @@
       <div id="example2"></div>
 
       <p>
-        <button name="dump" data-dump="#example1">Dump to console</button>
+        <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+          data to console
+        </button>
       </p>
     </div>
   </div>
@@ -188,33 +183,31 @@
       </div>
 
       <script>
-        $(document).ready(function () {
-          $("#example2").handsontable({
-            data: getCarData(),
-            startRows: 7,
-            startCols: 4,
-            colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
-            columns: [
-              {
-                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
-                source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
-                strict: true
-              },
-              {},
-              {
-                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
-                source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
-                highlighter: colorHighlighter,
-                strict: true
-              },
-              {
-                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
-                source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
-                highlighter: colorHighlighter,
-                strict: true
-              }
-            ]
-          });
+        $("#example2").handsontable({
+          data: getCarData(),
+          startRows: 7,
+          startCols: 4,
+          colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+          columns: [
+            {
+              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
+              strict: true
+            },
+            {},
+            {
+              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
+              highlighter: colorHighlighter,
+              strict: true
+            },
+            {
+              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
+              highlighter: colorHighlighter,
+              strict: true
+            }
+          ]
         });
       </script>
     </div>
@@ -223,7 +216,7 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad bottomSpace200">
+    <div class="pad">
       <a name="strict-ajax"></a>
 
       <h2>Autocomplete strict mode (Ajax)</h2>
@@ -240,7 +233,9 @@
       <div id="example3"></div>
 
       <p>
-        <button name="dump" data-dump="#example1">Dump to console</button>
+        <button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+          data to console
+        </button>
       </p>
     </div>
   </div>
@@ -255,35 +250,33 @@
       </div>
 
       <script>
-        $(document).ready(function () {
-          $("#example3").handsontable({
-            data: getCarData(),
-            startRows: 7,
-            startCols: 4,
-            colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
-            columns: [
-              {
-                type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
-                options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
-                source: function (query, process) {
-                  $.ajax({
-                    url: 'php/cars.php',
-                    data: {
-                      query: query
-                    },
-                    success: function (response) {
-                      console.log("response", response);
-                      process(response);
-                    }
-                  });
-                },
-                strict: true
+        $("#example3").handsontable({
+          data: getCarData(),
+          startRows: 7,
+          startCols: 4,
+          colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+          columns: [
+            {
+              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
+              source: function (query, process) {
+                $.ajax({
+                  url: 'php/cars.php',
+                  data: {
+                    query: query
+                  },
+                  success: function (response) {
+                    console.log("response", response);
+                    process(response);
+                  }
+                });
               },
-              {} /*Year is a default text column*/,
-              {} /*Chassis color is a default text column*/,
-              {} /*Bumper color is a default text column*/
-            ]
-          });
+              strict: true
+            },
+            {} /*Year is a default text column*/,
+            {} /*Chassis color is a default text column*/,
+            {} /*Bumper color is a default text column*/
+          ]
         });
       </script>
     </div>
@@ -291,13 +284,14 @@
 </div>
 
 <div class="rowLayout">
-  <div class="descLayout">
+  <div class="descLayout noMargin">
     <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
       <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
         licensed under the The MIT License.</p>
     </div>
   </div>
+</div>
 </div>
 </div>
 </body>

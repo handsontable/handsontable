@@ -32,20 +32,39 @@
   -ms-user-select: none;
   /*user-select: none; /*no browser supports unprefixed version*/
   border-spacing: 0;
+  margin: 0;
+  border-width: 0;
+  table-layout: fixed;
+  width: 0;
+  outline-width: 0;
+}
+
+.handsontable col {
+  width: 50px;
+}
+
+.handsontable col.rowHeader {
+  width: 50px;
 }
 
 .handsontable th,
 .handsontable td {
   border-right: 1px solid #CCC;
   border-bottom: 1px solid #CCC;
-  min-width: 50px;
   height: 22px;
   line-height: 21px;
   padding: 0 4px 0 4px; /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
+  background-color: #FFF;
+  font-size: 12px;
+  vertical-align: top;
+  overflow: hidden;
+  outline-width: 0;
 }
 
-.handsontable div.minWidthFix {
-  width: 50px;
+.handsontable th:last-child {
+  /*Foundation framework fix*/
+  border-right: 1px solid #CCC;
+  border-bottom: 1px solid #CCC;
 }
 
 .handsontable tr:first-child th.htNoFrame,
@@ -89,51 +108,69 @@
 }
 
 .handsontable thead th {
-  padding: 2px 4px;
+  padding: 0;
 }
 
 .handsontable th.active {
   background-color: #CCC;
 }
 
-/* border background */
-.handsontable .htBorderBg {
-  position: absolute;
-  font-size: 0;
+.handsontable thead th .relative {
+  position: relative;
+  padding: 2px 4px;
 }
 
-.handsontable .htBorderBg.selection {
-  background-color: #EEF4FF;
+/* plugins */
+
+.handsontable .manualColumnMover {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: transparent;
+  width: 5px;
+  height: 25px;
+  z-index: 999;
+  cursor: move;
+}
+
+.handsontable th .manualColumnMover:hover,
+.handsontable th .manualColumnMover.active {
+  background-color: #88F;
+}
+
+.handsontable .manualColumnResizer {
+  position: absolute;
+  right: -1px;
+  top: 0;
+  background-color: transparent;
+  width: 5px;
+  height: 25px;
+  z-index: 999;
+  cursor: col-resize;
+}
+
+.handsontable th .manualColumnResizer:hover,
+.handsontable .manualColumnResizerLine .manualColumnResizer {
+  background-color: #AAB;
+}
+
+.handsontable .columnSorting:hover {
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* border line */
-.handsontable .htBorder {
+.handsontable .wtBorder {
   position: absolute;
-  width: 2px;
-  height: 2px;
-  background: #000;
   font-size: 0;
 }
 
-.handsontable .htBorder.current {
-  background: #5292F7;
-  width: 2px;
-  height: 2px;
-}
-
-.handsontable .htBorder.selection {
-  background: #89AFF9;
-  width: 1px;
-  height: 1px;
+.handsontable td.area {
+  background-color: #EEF4FF;
 }
 
 /* fill handle */
-.handsontable .htFillHandle {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  background: #5292F7;
-  border: 1px solid #fff;
+.handsontable .wtBorder.corner {
   font-size: 0;
   cursor: crosshair;
 }
@@ -155,12 +192,15 @@ textarea.handsontableInput {
   font-size: 13px;
   box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
   resize: none;
-}
 
-.handsontableInputHolder.htHidden textarea.handsontableInput {
-  border-color: #5292F7;
-  background: #5292F7;
-  color: #5292F7;
+  /*below are needed to overwrite stuff added by jQuery UI Bootstrap theme*/
+  display: inline-block;
+  font-size: 13px;
+  line-height: inherit;
+  color: #000;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
 }
 
 .handsontableInputHolder {
@@ -169,7 +209,6 @@ textarea.handsontableInput {
   left: 0;
   width: 1px;
   height: 1px;
-  overflow: hidden;
 }
 
 /*
@@ -193,6 +232,13 @@ AutocompleteRenderer down arrow
 
 .handsontable td .htAutocompleteArrow:hover {
   color: #777;
+}
+
+/*
+NumericRenderer
+*/
+.handsontable .htNumeric {
+  text-align: right;
 }
 
 /* typeahead rules. Needed only if you are using the autocomplete feature */
@@ -256,4 +302,31 @@ AutocompleteRenderer down arrow
 /*context menu rules*/
 ul.context-menu-list {
   color: black;
+}
+
+ul.context-menu-list li {
+  margin-bottom: 0; /*Foundation framework fix*/
+}
+
+/**
+ * dragdealer
+ */
+
+.handsontable .dragdealer {
+  position: relative;
+  width: 9px;
+  height: 9px;
+  background: #F8F8F8;
+  border: 1px solid #DDD;
+}
+
+.handsontable .dragdealer .handle {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  background: #C5C5C5;
+}
+
+.handsontable .dragdealer .disabled {
+  background: #898989;
 }
