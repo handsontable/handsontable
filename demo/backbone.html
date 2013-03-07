@@ -97,7 +97,13 @@
         <script>
           var CarModel = Backbone.Model.extend({}),
             CarCollection = Backbone.Collection.extend({
-                model: CarModel
+                model: CarModel,
+                splice: function(index, howMany /* model1, ... modelN */){
+                  var args = _.toArray(arguments).slice(2).concat({at: index}),
+                    removed = this.models.slice(index, index + howMany);
+                  this.remove(removed).add.apply(this, args);
+                  return removed;
+                },
               }),
             cars = new CarCollection(),
             // normally, you'd get these from the server with .fetch()
@@ -111,7 +117,7 @@
               return new CarModel(obj);
             };
           
-          // since we're not using a server... let's try out the schema
+          // since we're not using a server...
           cars.add({make: "Dodge", model: "Neon", year: 1990});
           cars.add({make: "Audi", model: "A4", year: 2003});
           var $container = $("#example1");
