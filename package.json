@@ -9,7 +9,6 @@
   "version": "0.8.10",
   "devDependencies": {
     "grunt": "~0.4.0",
-    "grunt-cli": "~0.1.6",
     "grunt-replace": "~0.4.0",
     "grunt-contrib-clean": "~0.4.0",
     "grunt-contrib-concat": "~0.1.0",
