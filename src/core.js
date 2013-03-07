@@ -285,7 +285,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
       else if(typeof datamap.setVars.prop === 'function'){
         /* see the `function` handler in `get` */
-        datamap.setVars.prop(priv.settings.data[datamap.getVars.row], datamap.setVars.value);
+        datamap.setVars.prop(priv.settings.data[datamap.setVars.row], datamap.setVars.value);
       }
       else {
         priv.settings.data[datamap.setVars.row][datamap.setVars.prop] = datamap.setVars.value;
