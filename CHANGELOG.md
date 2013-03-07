@@ -1,5 +1,8 @@
 ## HEAD
 
+Bugfix:
+- inline cell styles applied by cell renderer were not removed on table scroll ([#353](https://github.com/warpech/jquery-handsontable/issues/353), [#376](https://github.com/warpech/jquery-handsontable/issues/376))
+
 Docs:
 - simplify CSS for demo pages (get rid of `bottomSpace` classes)
 - refresh the style of jsFiddle links

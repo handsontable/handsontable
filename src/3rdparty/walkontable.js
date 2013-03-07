@@ -1,7 +1,7 @@
 /**
  * walkontable 0.2.0
  * 
- * Date: Thu Feb 28 2013 17:54:27 GMT+0100 (Central European Standard Time)
+ * Date: Thu Mar 07 2013 10:08:43 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -1822,6 +1822,7 @@ WalkontableTable.prototype._doDraw = function () {
       else {
         TD = TR.childNodes[c + frozenColumnsCount];
         TD.className = '';
+        TD.removeAttribute('style');
         this.instance.getSetting('cellRenderer', offsetRow + r, offsetColumn + c, TD);
         if (this.hasEmptyCellProblem && TD.innerHTML === '') { //IE7
           TD.innerHTML = '&nbsp;';
