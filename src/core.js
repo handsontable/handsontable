@@ -126,31 +126,27 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
      */
     createRow: function (coords) {
-      var row;
+      var row,
+        row_count = self.countRows(),
+        at = !coords || coords.row >= row_count ? row_count : coords.row;
+
       if (priv.dataType === 'array') {
         row = [];
         for (var c = 0, clen = self.countCols(); c < clen; c++) {
           row.push(null);
         }
       }
-      else if(priv.dataType === 'function') {
-        row = priv.settings.dataSchema();
+      else if (priv.dataType === 'function') {
+        row = priv.settings.dataSchema(at);
       }
       else {
         row = $.extend(true, {}, datamap.getSchema());
       }
-      if (!coords || coords.row >= self.countRows()) {
-        if (priv.settings.onCreateRow) {
-          priv.settings.onCreateRow(self.countRows(), row);
-        }
-        priv.settings.data.push(row);
+
+      if (priv.settings.onCreateRow) {
+        priv.settings.onCreateRow(at, row);
       }
-      else {
-        if (priv.settings.onCreateRow) {
-          priv.settings.onCreateRow(coords.row, row);
-        }
-        priv.settings.data.splice(coords.row, 0, row);
-      }
+      priv.settings.data.splice(at, 0, row);
       self.forceFullRender = true; //used when data was changed
     },
 
@@ -256,7 +252,10 @@ Handsontable.Core = function (rootElement, settings) {
          *      }
          *    }]}
          */
-        return datamap.getVars.prop(priv.settings.data[datamap.getVars.row]);
+        return datamap.getVars.prop(priv.settings.data.slice(
+          datamap.getVars.row,
+          datamap.getVars.row + 1
+        )[0]);
       }
       else {
         return priv.settings.data[datamap.getVars.row] ? priv.settings.data[datamap.getVars.row][datamap.getVars.prop] : null;
@@ -285,7 +284,10 @@ Handsontable.Core = function (rootElement, settings) {
       }
       else if(typeof datamap.setVars.prop === 'function'){
         /* see the `function` handler in `get` */
-        datamap.setVars.prop(priv.settings.data[datamap.setVars.row], datamap.setVars.value);
+        datamap.setVars.prop(priv.settings.data.slice(
+          datamap.setVars.row,
+          datamap.setVars.row+1
+        )[0], datamap.setVars.value);
       }
       else {
         priv.settings.data[datamap.setVars.row][datamap.setVars.prop] = datamap.setVars.value;
