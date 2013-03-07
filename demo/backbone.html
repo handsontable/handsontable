@@ -69,9 +69,15 @@
           <p>
             <a href="http://backbonejs.org/">Backbone.js</a> is a client-side
             MV* framework that can do some pretty smart things
-            with data going to and coming back from a server. This little 
-            example shows how Backbone Models and Collections can work with 
-            Handsontable.
+            with data going to and coming back from a server, and has a great
+            event model for keeping multiple views in sync.
+          </p>
+          <p>
+            This little example shows how Backbone Models and Collections can 
+            work with Handsontable. Below, you'll see events firing from
+            changes in the <code>CarCollection</code> by Handsontable or 
+            otherwise.<button id="add_car">Simulate a new Car</button>
+            <select multiple="true" class="events" style="width:100%"></select>
           </p>
         </div>
 
@@ -95,33 +101,25 @@
         </div>
 
         <script>
-          var CarModel = Backbone.Model.extend({}),
-            CarCollection = Backbone.Collection.extend({
-                model: CarModel,
-                splice: function(index, howMany /* model1, ... modelN */){
-                  var args = _.toArray(arguments).slice(2).concat({at: index}),
-                    removed = this.models.slice(index, index + howMany);
-                  this.remove(removed).add.apply(this, args);
-                  return removed;
-                },
-              }),
-            cars = new CarCollection(),
-            // normally, you'd get these from the server with .fetch()
-            attr = function(attr){
-              return {data: function(car, value){
-                if(_.isUndefined(value)){return car.get(attr);}
-                car.set(attr, value);
-              }};
-            },
-            makeCar = function(obj){
-              return new CarModel(obj);
-            };
+          var CarModel = Backbone.Model.extend({});
           
-          // since we're not using a server...
-          cars.add({make: "Dodge", model: "Neon", year: 1990});
-          cars.add({make: "Audi", model: "A4", year: 2003});
+          var CarCollection = Backbone.Collection.extend({
+            model: CarModel,
+            // Backbone.Collection doesn't support `splice`, yet! Easy to add.
+            splice: hacked_splice,
+          });
+              
+          var cars = new CarCollection();
+          
+          // since we're not using a server... make up some data. This will make
+          // a couple CarModels from these plain old objects
+          cars.add([
+            {make: "Dodge", model: "Ram", year: 2012, weight: 6811},
+            {make: "Toyota", model: "Camry", year: 2012, weight: 3190},
+            {make: "Smart", model: "Fortwo", year: 2012, weight: 1808}
+          ]);
+          
           var $container = $("#example1");
-          
           $container.handsontable({
             data: cars,
             dataSchema: makeCar,
@@ -133,6 +131,54 @@
             colHeaders: ["Make", "Model", "Year"],
             minSpareRows: 1
           });
+          
+          // this will log all the Backbone events getting fired!
+          cars.on("all", log_events)
+            .on("add", function(){$container.handsontable("render");})
+            .on("remove", function(){$container.handsontable("render");});
+          
+          // you'll have to make something like these until there is a better
+          // way to use the string notation, i.e. "bb:make"!
+          
+          // normally, you'd get these from the server with .fetch()
+          function attr(attr){
+            // this lets us remember `attr` for when when it is get/set 
+            return {data: function(car, value){
+              if(_.isUndefined(value)){return car.get(attr);}
+              car.set(attr, value);
+            }};
+          }
+            
+          // just setting `dataSchema: CarModel` would be great, but it is non-
+          // trivial to detect constructors... 
+          function makeCar(){
+            return new CarModel();
+          }
+          
+          // use the "good" Collection methods to emulate Array.splice
+          function hacked_splice(index, howMany /* model1, ... modelN */){
+            var args = _.toArray(arguments).slice(2).concat({at: index}),
+              removed = this.models.slice(index, index + howMany);
+            this.remove(removed).add.apply(this, args);
+            return removed;
+          }
+          
+          // show a log of events getting fired
+          function log_events(event, model){
+            var now = new Date();
+            $("#example1 .events").prepend(
+              $("<option/>").text([
+                  ":",now.getSeconds(),":", now.getMilliseconds(),
+                  "[" + event + "]",
+                  JSON.stringify(model)
+              ].join(" "))
+            )
+            .scrollTop(0);
+          }
+          
+          $("#add_car").click(function(){
+            cars.add({make: "Tesla", model: "S", year: 2012, weight: 4647.3});
+          })
         </script>
       </div>
     </div>
