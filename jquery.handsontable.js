@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Mar 07 2013 10:13:24 GMT+0100 (Central European Standard Time)
+ * Date: Thu Mar 07 2013 14:02:44 GMT-0500 (EST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -145,28 +145,27 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
      */
     createRow: function (coords) {
-      var row;
+      var row,
+        row_count = self.countRows(),
+        at = !coords || coords.row >= row_count ? row_count : coords.row;
+
       if (priv.dataType === 'array') {
         row = [];
         for (var c = 0, clen = self.countCols(); c < clen; c++) {
           row.push(null);
         }
       }
+      else if (priv.dataType === 'function') {
+        row = priv.settings.dataSchema(at);
+      }
       else {
         row = $.extend(true, {}, datamap.getSchema());
       }
-      if (!coords || coords.row >= self.countRows()) {
-        if (priv.settings.onCreateRow) {
-          priv.settings.onCreateRow(self.countRows(), row);
-        }
-        priv.settings.data.push(row);
+
+      if (priv.settings.onCreateRow) {
+        priv.settings.onCreateRow(at, row);
       }
-      else {
-        if (priv.settings.onCreateRow) {
-          priv.settings.onCreateRow(coords.row, row);
-        }
-        priv.settings.data.splice(coords.row, 0, row);
-      }
+      priv.settings.data.splice(at, 0, row);
       self.forceFullRender = true; //used when data was changed
     },
 
@@ -258,6 +257,25 @@ Handsontable.Core = function (rootElement, settings) {
         }
         return out;
       }
+      else if(typeof datamap.getVars.prop === 'function'){
+        /**
+         *  allows for interacting with complex structures, for example
+         *  d3/jQuery getter/setter properties:
+         *
+         *    {columns: [{
+         *      data: function(row, value){
+         *        if(arguments.length === 1){
+         *          return row.property();
+         *        }
+         *        row.property(value);
+         *      }
+         *    }]}
+         */
+        return datamap.getVars.prop(priv.settings.data.slice(
+          datamap.getVars.row,
+          datamap.getVars.row + 1
+        )[0]);
+      }
       else {
         return priv.settings.data[datamap.getVars.row] ? priv.settings.data[datamap.getVars.row][datamap.getVars.prop] : null;
       }
@@ -282,6 +300,13 @@ Handsontable.Core = function (rootElement, settings) {
           out = out[sliced[i]];
         }
         out[sliced[i]] = datamap.setVars.value;
+      }
+      else if(typeof datamap.setVars.prop === 'function'){
+        /* see the `function` handler in `get` */
+        datamap.setVars.prop(priv.settings.data.slice(
+          datamap.setVars.row,
+          datamap.setVars.row+1
+        )[0], datamap.setVars.value);
       }
       else {
         priv.settings.data[datamap.setVars.row][datamap.setVars.prop] = datamap.setVars.value;
@@ -1458,6 +1483,9 @@ Handsontable.Core = function (rootElement, settings) {
     if ($.isPlainObject(priv.settings.dataSchema) || $.isPlainObject(data[0])) {
       priv.dataType = 'object';
     }
+    else if($.isFunction(priv.settings.dataSchema)){
+      priv.dataType = 'function';
+    }
     else {
       priv.dataType = 'array';
     }
@@ -1835,7 +1863,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Number}
    */
   this.countCols = function () {
-    if (priv.dataType === 'object') {
+    if (priv.dataType === 'object' || priv.dataType === 'function' ) {
       if (priv.settings.columns && priv.settings.columns.length) {
         return priv.settings.columns.length;
       }
