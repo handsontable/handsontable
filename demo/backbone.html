@@ -48,148 +48,149 @@
 </a>
 
 <div id="container">
+  <div class="columnLayout">
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
-
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad bottomSpace850">
-        <h2>Backbone.js</h2>
-        <div id="example1">
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad bottomSpace850">
+          <h2>Backbone.js</h2>
+          <div id="example1">
+            <p>
+              <a href="http://backbonejs.org/">Backbone.js</a> is a client-side
+              MV* framework that can do some pretty smart things
+              with data going to and coming back from a server, and has a great
+              event model for keeping multiple views in sync.
+            </p>
+            <p>
+              This little example shows how Backbone Models and Collections can 
+              work with Handsontable. Below, you'll see events firing from
+              changes in the <code>CarCollection</code> by Handsontable or 
+              otherwise.<button id="add_car">Simulate a new Car</button>
+              <select multiple="true" class="events" style="width:100%"></select>
+            </p>
+          </div>
+
+          <style>
+            .placeholder {
+              color: #777;
+              font-style: italic;
+            }
+          </style>
+
           <p>
-            <a href="http://backbonejs.org/">Backbone.js</a> is a client-side
-            MV* framework that can do some pretty smart things
-            with data going to and coming back from a server, and has a great
-            event model for keeping multiple views in sync.
-          </p>
-          <p>
-            This little example shows how Backbone Models and Collections can 
-            work with Handsontable. Below, you'll see events firing from
-            changes in the <code>CarCollection</code> by Handsontable or 
-            otherwise.<button id="add_car">Simulate a new Car</button>
-            <select multiple="true" class="events" style="width:100%"></select>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
           </p>
         </div>
-
-        <style>
-          .placeholder {
-            color: #777;
-            font-style: italic;
-          }
-        </style>
-
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
-        </p>
       </div>
-    </div>
 
-    <div class="codeLayout">
-      <div class="pad">
-        <div class="jsFiddle">
-          <div class="jsFiddleLink">Edit in jsFiddle</div>
-        </div>
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
 
-        <script>
-          var CarModel = Backbone.Model.extend({});
+          <script>
+            var CarModel = Backbone.Model.extend({});
           
-          var CarCollection = Backbone.Collection.extend({
-            model: CarModel,
-            // Backbone.Collection doesn't support `splice`, yet! Easy to add.
-            splice: hacked_splice,
-          });
+            var CarCollection = Backbone.Collection.extend({
+              model: CarModel,
+              // Backbone.Collection doesn't support `splice`, yet! Easy to add.
+              splice: hacked_splice,
+            });
               
-          var cars = new CarCollection();
+            var cars = new CarCollection();
           
-          // since we're not using a server... make up some data. This will make
-          // a couple CarModels from these plain old objects
-          cars.add([
-            {make: "Dodge", model: "Ram", year: 2012, weight: 6811},
-            {make: "Toyota", model: "Camry", year: 2012, weight: 3190},
-            {make: "Smart", model: "Fortwo", year: 2012, weight: 1808}
-          ]);
+            // since we're not using a server... make up some data. This will make
+            // a couple CarModels from these plain old objects
+            cars.add([
+              {make: "Dodge", model: "Ram", year: 2012, weight: 6811},
+              {make: "Toyota", model: "Camry", year: 2012, weight: 3190},
+              {make: "Smart", model: "Fortwo", year: 2012, weight: 1808}
+            ]);
           
-          var $container = $("#example1");
-          $container.handsontable({
-            data: cars,
-            dataSchema: makeCar,
-            columns: [
-              attr("make"),
-              attr("model"),
-              attr("year")
-            ],
-            colHeaders: ["Make", "Model", "Year"],
-            minSpareRows: 1
-          });
+            var $container = $("#example1");
+            $container.handsontable({
+              data: cars,
+              dataSchema: makeCar,
+              columns: [
+                attr("make"),
+                attr("model"),
+                attr("year")
+              ],
+              colHeaders: ["Make", "Model", "Year"],
+              minSpareRows: 1
+            });
           
-          // this will log all the Backbone events getting fired!
-          cars.on("all", log_events)
-            .on("add", function(){$container.handsontable("render");})
-            .on("remove", function(){$container.handsontable("render");});
+            // this will log all the Backbone events getting fired!
+            cars.on("all", log_events)
+              .on("add", function(){$container.handsontable("render");})
+              .on("remove", function(){$container.handsontable("render");});
           
-          // you'll have to make something like these until there is a better
-          // way to use the string notation, i.e. "bb:make"!
+            // you'll have to make something like these until there is a better
+            // way to use the string notation, i.e. "bb:make"!
           
-          // normally, you'd get these from the server with .fetch()
-          function attr(attr){
-            // this lets us remember `attr` for when when it is get/set 
-            return {data: function(car, value){
-              if(_.isUndefined(value)){return car.get(attr);}
-              car.set(attr, value);
-            }};
-          }
+            // normally, you'd get these from the server with .fetch()
+            function attr(attr){
+              // this lets us remember `attr` for when when it is get/set 
+              return {data: function(car, value){
+                if(_.isUndefined(value)){return car.get(attr);}
+                car.set(attr, value);
+              }};
+            }
             
-          // just setting `dataSchema: CarModel` would be great, but it is non-
-          // trivial to detect constructors... 
-          function makeCar(){
-            return new CarModel();
-          }
+            // just setting `dataSchema: CarModel` would be great, but it is non-
+            // trivial to detect constructors... 
+            function makeCar(){
+              return new CarModel();
+            }
           
-          // use the "good" Collection methods to emulate Array.splice
-          function hacked_splice(index, howMany /* model1, ... modelN */){
-            var args = _.toArray(arguments).slice(2).concat({at: index}),
-              removed = this.models.slice(index, index + howMany);
-            this.remove(removed).add.apply(this, args);
-            return removed;
-          }
+            // use the "good" Collection methods to emulate Array.splice
+            function hacked_splice(index, howMany /* model1, ... modelN */){
+              var args = _.toArray(arguments).slice(2).concat({at: index}),
+                removed = this.models.slice(index, index + howMany);
+              this.remove(removed).add.apply(this, args);
+              return removed;
+            }
           
-          // show a log of events getting fired
-          function log_events(event, model){
-            var now = new Date();
-            $("#example1 .events").prepend(
-              $("<option/>").text([
-                  ":",now.getSeconds(),":", now.getMilliseconds(),
-                  "[" + event + "]",
-                  JSON.stringify(model)
-              ].join(" "))
-            )
-            .scrollTop(0);
-          }
+            // show a log of events getting fired
+            function log_events(event, model){
+              var now = new Date();
+              $("#example1 .events").prepend(
+                $("<option/>").text([
+                    ":",now.getSeconds(),":", now.getMilliseconds(),
+                    "[" + event + "]",
+                    JSON.stringify(model)
+                ].join(" "))
+              )
+              .scrollTop(0);
+            }
           
-          $("#add_car").click(function(){
-            cars.add({make: "Tesla", model: "S", year: 2012, weight: 4647.3});
-          })
-        </script>
+            $("#add_car").click(function(){
+              cars.add({make: "Tesla", model: "S", year: 2012, weight: 4647.3});
+            })
+          </script>
+        </div>
       </div>
     </div>
-  </div>
+  
+    <div class="rowLayout nomargin">
+      <div class="descLayout">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
-
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
       </div>
     </div>
   </div>
