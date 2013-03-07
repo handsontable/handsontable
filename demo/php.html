@@ -23,7 +23,8 @@
   Facebook open graph. Don't copy this to your project :)
   -->
   <meta property="og:title" content="PHP example - Handsontable">
-  <meta property="og:description" content="This page loads and saves data on server. In this example, client side uses $.ajax. Server side uses PHP with PDO (SQLite)">
+  <meta property="og:description"
+        content="This page loads and saves data on server. In this example, client side uses $.ajax. Server side uses PHP with PDO (SQLite)">
   <meta property="og:url" content="http://handsontable.com/demo/php.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -44,141 +45,147 @@
 </a>
 
 <div id="container">
+  <div class="columnLayout">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
+
+          <h2>PHP example</h2>
         </div>
-
-        <h2>PHP example</h2>
-      </div>
-    </div>
-  </div>
-
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad bottomSpace850">
-        <p>This page loads and saves data on server. In this example, client side uses <b>$.ajax</b>. Server side uses <b>PHP with PDO (SQLite)</b>.</p>
-
-        <p>Please note. This page and the PHP scripts are a work in progress. They are not yet configured on GitHub. Please run it on your own localhost.</p>
-
-        <p>
-          <button name="load">Load</button>
-          <button name="save">Save</button>
-          <label><input type="checkbox" name="autosave" checked="checked" autocomplete="off"> Autosave</label>
-        </p>
-
-        <div id="exampleConsole" class="console">Click "Load" to load data from server</div>
-
-        <div id="example1"></div>
-
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
-        </p>
       </div>
     </div>
 
-    <div class="codeLayout">
-      <div class="pad">
-        <script>
-          var $container = $("#example1");
-          var $console = $("#exampleConsole");
-          var $parent = $container.parent();
-          var autosaveNotification;
-          $container.handsontable({
-            startRows: 8,
-            startCols: 3,
-            rowHeaders: true,
-            colHeaders: ['Manufacturer', 'Year', 'Price'],
-            minSpareCols: 0,
-            minSpareRows: 1,
-            contextMenu: true,
-            onChange: function (change, source) {
-              if (source === 'loadData') {
-                return; //don't save this change
-              }
-              if ($parent.find('input[name=autosave]').is(':checked')) {
-                clearTimeout(autosaveNotification);
-                $.ajax({
-                  url: "php/save.php",
-                  dataType: "json",
-                  type: "POST",
-                  data: {changes: change}, //contains changed cells' data
-                  success: function (data) {
-                    $console.text('Autosaved (' + change.length + ' cell' + (change.length > 1 ? 's' : '') + ')');
-                    autosaveNotification = setTimeout(function () {
-                      $console.text('Changes will be autosaved');
-                    }, 1000);
-                  }
-                });
-              }
-            }
-          });
-          var handsontable = $container.data('handsontable');
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <p>This page loads and saves data on server. In this example, client side uses <b>$.ajax</b>. Server side uses
+            <b>PHP with PDO (SQLite)</b>.</p>
 
-          $parent.find('button[name=load]').click(function () {
-            $.ajax({
-              url: "php/load.php",
-              dataType: 'json',
-              type: 'GET',
-              success: function (res) {
-                var data = [], row;
-                for (var i = 0, ilen = res.cars.length; i < ilen; i++) {
-                  row = [];
-                  row[0] = res.cars[i].manufacturer;
-                  row[1] = res.cars[i].year;
-                  row[2] = res.cars[i].price;
-                  data[res.cars[i].id - 1] = row;
+          <p>Please note. This page and the PHP scripts are a work in progress. They are not yet configured on GitHub.
+            Please run it on your own localhost.</p>
+
+          <p>
+            <button name="load">Load</button>
+            <button name="save">Save</button>
+            <label><input type="checkbox" name="autosave" checked="checked" autocomplete="off"> Autosave</label>
+          </p>
+
+          <div id="exampleConsole" class="console">Click "Load" to load data from server</div>
+
+          <div id="example1"></div>
+
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump data to console
+            </button>
+          </p>
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <script>
+            var $container = $("#example1");
+            var $console = $("#exampleConsole");
+            var $parent = $container.parent();
+            var autosaveNotification;
+            $container.handsontable({
+              startRows: 8,
+              startCols: 3,
+              rowHeaders: true,
+              colHeaders: ['Manufacturer', 'Year', 'Price'],
+              minSpareCols: 0,
+              minSpareRows: 1,
+              contextMenu: true,
+              onChange: function (change, source) {
+                if (source === 'loadData') {
+                  return; //don't save this change
                 }
-                handsontable.loadData(data);
-                $console.text('Data loaded');
+                if ($parent.find('input[name=autosave]').is(':checked')) {
+                  clearTimeout(autosaveNotification);
+                  $.ajax({
+                    url: "php/save.php",
+                    dataType: "json",
+                    type: "POST",
+                    data: {changes: change}, //contains changed cells' data
+                    success: function (data) {
+                      $console.text('Autosaved (' + change.length + ' cell' + (change.length > 1 ? 's' : '') + ')');
+                      autosaveNotification = setTimeout(function () {
+                        $console.text('Changes will be autosaved');
+                      }, 1000);
+                    }
+                  });
+                }
               }
             });
-          }).click(); //execute immediately
+            var handsontable = $container.data('handsontable');
 
-          $parent.find('button[name=save]').click(function () {
-            $.ajax({
-              url: "php/save.php",
-              data: {"data": handsontable.getData()}, //returns all cells' data
-              dataType: 'json',
-              type: 'POST',
-              success: function (res) {
-                if (res.result === 'ok') {
-                  $console.text('Data saved');
+            $parent.find('button[name=load]').click(function () {
+              $.ajax({
+                url: "php/load.php",
+                dataType: 'json',
+                type: 'GET',
+                success: function (res) {
+                  var data = [], row;
+                  for (var i = 0, ilen = res.cars.length; i < ilen; i++) {
+                    row = [];
+                    row[0] = res.cars[i].manufacturer;
+                    row[1] = res.cars[i].year;
+                    row[2] = res.cars[i].price;
+                    data[res.cars[i].id - 1] = row;
+                  }
+                  handsontable.loadData(data);
+                  $console.text('Data loaded');
                 }
-                else {
+              });
+            }).click(); //execute immediately
+
+            $parent.find('button[name=save]').click(function () {
+              $.ajax({
+                url: "php/save.php",
+                data: {"data": handsontable.getData()}, //returns all cells' data
+                dataType: 'json',
+                type: 'POST',
+                success: function (res) {
+                  if (res.result === 'ok') {
+                    $console.text('Data saved');
+                  }
+                  else {
+                    $console.text('Save error');
+                  }
+                },
+                error: function () {
                   $console.text('Save error');
                 }
-              },
-              error: function () {
-                $console.text('Save error');
+              });
+            });
+
+            $parent.find('input[name=autosave]').click(function () {
+              if ($(this).is(':checked')) {
+                $console.text('Changes will be autosaved');
+              }
+              else {
+                $console.text('Changes will not be autosaved');
               }
             });
-          });
-
-          $parent.find('input[name=autosave]').click(function () {
-            if ($(this).is(':checked')) {
-              $console.text('Changes will be autosaved');
-            }
-            else {
-              $console.text('Changes will not be autosaved');
-            }
-          });
-        </script>
+          </script>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
       </div>
     </div>
   </div>

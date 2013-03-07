@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.8.9
+ * Handsontable 0.8.10
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Mar 06 2013 01:43:31 GMT+0100 (Central European Standard Time)
+ * Date: Thu Mar 07 2013 10:13:24 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1947,7 +1947,7 @@ Handsontable.Core = function (rootElement, settings) {
   /**
    * Handsontable version
    */
-  this.version = '0.8.9'; //inserted by grunt from package.json
+  this.version = '0.8.10'; //inserted by grunt from package.json
 };
 
 var settings = {
@@ -2027,6 +2027,7 @@ Handsontable.TableView = function (instance) {
   this.instance = instance;
   var settings = this.instance.getSettings();
 
+  instance.rootElement.data('originalStyle', instance.rootElement.attr('style')); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
   instance.rootElement.addClass('handsontable');
   var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
 
@@ -4355,7 +4356,7 @@ Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWid
 /**
  * walkontable 0.2.0
  * 
- * Date: Thu Feb 28 2013 17:54:27 GMT+0100 (Central European Standard Time)
+ * Date: Thu Mar 07 2013 10:08:43 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -6176,6 +6177,7 @@ WalkontableTable.prototype._doDraw = function () {
       else {
         TD = TR.childNodes[c + frozenColumnsCount];
         TD.className = '';
+        TD.removeAttribute('style');
         this.instance.getSetting('cellRenderer', offsetRow + r, offsetColumn + c, TD);
         if (this.hasEmptyCellProblem && TD.innerHTML === '') { //IE7
           TD.innerHTML = '&nbsp;';

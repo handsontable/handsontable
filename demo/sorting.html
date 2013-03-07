@@ -73,83 +73,86 @@
 </a>
 
 <div id="container">
+  <div class="columnLayout">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <a name="both"></a>
+
+          <h2>Column sorting</h2>
+
+          <p>To enable this experimental feature, use setting <code>columnSorting: true</code></p>
+
+          <p>Click on a column header to sort.</p>
+
+          <p>Only the table view is sorted. The data source remains in the original order.</p>
+
+          <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
+
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump
+              data to console
+            </button>
+          </p>
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
+
+          <script>
+            $("#example1").handsontable({
+              data: createBigData(),
+              rowHeaders: true,
+              colHeaders: true,
+              colWidths: [55, 80, 80, 80, 80, 80, 80],
+              columnSorting: true,
+              columns: [
+                {
+                  type: 'numeric'
+                },
+                {},
+                {},
+                {},
+                {},
+                {},
+                {}
+              ],
+              minSpareRows: 1,
+              contextMenu: true
+            });
+          </script>
+        </div>
+      </div>
+    </div>
+
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
         </div>
       </div>
     </div>
   </div>
-
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <a name="both"></a>
-
-        <h2>Column sorting</h2>
-
-        <p>To enable this experimental feature, use setting <code>columnSorting: true</code></p>
-
-        <p>Click on a column header to sort.</p>
-
-        <p>Only the table view is sorted. The data source remains in the original order.</p>
-
-        <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
-
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-            data to console
-          </button>
-        </p>
-      </div>
-    </div>
-
-    <div class="codeLayout">
-      <div class="pad">
-        <div class="jsFiddle">
-          <div class="jsFiddleLink">Edit in jsFiddle</div>
-        </div>
-
-        <script>
-          $("#example1").handsontable({
-            data: createBigData(),
-            rowHeaders: true,
-            colHeaders: true,
-            colWidths: [55, 80, 80, 80, 80, 80, 80],
-            columnSorting: true,
-            columns: [
-              {
-                type: 'numeric'
-              },
-              {},
-              {},
-              {},
-              {},
-              {},
-              {}
-            ],
-            minSpareRows: 1
-          });
-        </script>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="rowLayout">
-  <div class="descLayout">
-    <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
-
-      <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-        licensed under the The MIT License.</p>
-    </div>
-  </div>
-</div>
 </div>
 </body>
 </html>

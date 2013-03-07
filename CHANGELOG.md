@@ -1,3 +1,12 @@
+## [0.8.10](https://github.com/warpech/jquery-handsontable/tree/v0.8.10) (Mar 7, 2013)
+
+Bugfix:
+- inline cell styles applied by cell renderer were not removed on table scroll ([#353](https://github.com/warpech/jquery-handsontable/issues/353), [#376](https://github.com/warpech/jquery-handsontable/issues/376))
+
+Docs:
+- simplify CSS for demo pages (get rid of `bottomSpace` classes)
+- refresh the style of jsFiddle links
+
 ## [0.8.9](https://github.com/warpech/jquery-handsontable/tree/v0.8.9) (Mar 6, 2013)
 
 This is a feature release of a new cell type. For people waiting for some bug fixes, I promise next release will focus on fixing some important bugs!

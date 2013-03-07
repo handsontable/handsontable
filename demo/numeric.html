@@ -58,94 +58,99 @@
 </a>
 
 <div id="container">
+  <div class="columnLayout">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad bottomSpace150">
-        <a name="lazy"></a>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <a name="lazy"></a>
 
-        <h2>Numeric cell type</h2>
+          <h2>Numeric cell type</h2>
 
-        <p>By default, Handsontable treats all cell values as <code>string</code> type. This is because <code>&lt;textarea&gt;</code>
-          returns a string as its value.</p>
+          <p>By default, Handsontable treats all cell values as <code>string</code> type. This is because <code>&lt;textarea&gt;</code>
+            returns a string as its value.</p>
 
-        <p>In many cases you will prefer cell values to be treated as <code>number</code> type. This allows to format
-          numbers nicely and sort them correctly.</p>
+          <p>In many cases you will prefer cell values to be treated as <code>number</code> type. This allows to format
+            numbers nicely and sort them correctly.</p>
 
-        <p>To trigger the Numeric cell type, use the option <code>type: 'numeric'</code> in <code>columns</code> array
-          or
-          <code>cells</code> function.</p>
+          <p>To trigger the Numeric cell type, use the option <code>type: 'numeric'</code> in <code>columns</code> array
+            or
+            <code>cells</code> function.</p>
 
-        <p>Numeric cell type uses <a href="http://numeraljs.com/">Numeral.js</a> as the formatting library. Head over to
-          their website to learn about the formatting syntax.</p>
+          <p>Numeric cell type uses <a href="http://numeraljs.com/">Numeral.js</a> as the formatting library. Head over
+            to
+            their website to learn about the formatting syntax.</p>
 
-        <p>To use number formatting style valid for your language (i18n), load language definition to Numeral.js. See "Languages" section in <a href="http://numeraljs.com/">Numeral.js docs</a> for more info.</p>
+          <p>To use number formatting style valid for your language (i18n), load language definition to Numeral.js. See
+            "Languages" section in <a href="http://numeraljs.com/">Numeral.js docs</a> for more info.</p>
 
-        <div id="example1"></div>
+          <div id="example1"></div>
 
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-            data to console
-          </button>
-        </p>
-      </div>
-    </div>
-
-    <div class="codeLayout">
-      <div class="pad">
-        <div class="jsFiddle">
-          <div class="jsFiddleLink">Edit in jsFiddle</div>
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump
+              data to console
+            </button>
+          </p>
         </div>
+      </div>
 
-        <script>
-          $("#example1").handsontable({
-            data: getCarData(),
-            startRows: 7,
-            startCols: 4,
-            colHeaders: ["Car", "Model", "Year", "Price"],
-            columnSorting: true,
-            columns: [
-              {
-                type: 'autocomplete',
-                source: ["Audi", "BMW", "Chrysler", "Citroen", "Mercedes", "Nissan", "Opel", "Suzuki", "Toyota", "Volvo"],
-                strict: false
-              },
-              {
-                //2nd cell is simple text, no special options here
-              },
-              {
-                type: 'numeric'
-              },
-              {
-                type: 'numeric',
-                format: '0,0.00 $',
-                language: 'de-de'
-              }
-            ]
-          });
-        </script>
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
+
+          <script>
+            $("#example1").handsontable({
+              data: getCarData(),
+              startRows: 7,
+              startCols: 4,
+              colHeaders: ["Car", "Model", "Year", "Price"],
+              columnSorting: true,
+              columns: [
+                {
+                  type: 'autocomplete',
+                  source: ["Audi", "BMW", "Chrysler", "Citroen", "Mercedes", "Nissan", "Opel", "Suzuki", "Toyota", "Volvo"],
+                  strict: false
+                },
+                {
+                  //2nd cell is simple text, no special options here
+                },
+                {
+                  type: 'numeric'
+                },
+                {
+                  type: 'numeric',
+                  format: '0,0.00 $',
+                  language: 'de-de'
+                }
+              ]
+            });
+          </script>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
       </div>
     </div>
   </div>

@@ -60,99 +60,103 @@
 </a>
 
 <div id="container">
+  <div class="columnLayout">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad bottomSpace150">
-        <a name="lazy"></a>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <a name="lazy"></a>
 
-        <h2>Date cell type</h2>
+          <h2>Date cell type</h2>
 
-        <p>To trigger the Date cell type, use the option <code>type: 'date'</code> in <code>columns</code> array
-          or <code>cells</code> function.</p>
+          <p>To trigger the Date cell type, use the option <code>type: 'date'</code> in <code>columns</code> array
+            or <code>cells</code> function.</p>
 
-        <p>The Date cell uses <a href="http://jqueryui.com/datepicker/#date-formats">jQuery UI Datepicker</a> as
-          the UI control. You can configure the datepicker by applying <a href="http://api.jqueryui.com/datepicker/">jQuery UI
-          Datepicker API</a> properties in the same <code>columns</code> array
-          or <code>cells</code> function</p>
+          <p>The Date cell uses <a href="http://jqueryui.com/datepicker/#date-formats">jQuery UI Datepicker</a> as
+            the UI control. You can configure the datepicker by applying <a href="http://api.jqueryui.com/datepicker/">jQuery
+              UI
+              Datepicker API</a> properties in the same <code>columns</code> array
+            or <code>cells</code> function</p>
 
-        <p>Note that Date cell requires additional files in your <code>&lt;head&gt;</code>:
+          <p>Note that Date cell requires additional files in your <code>&lt;head&gt;</code>:
 
-        <ul>
-          <li><code>dist/jquery.handsontable.full.js</code></li>
-          <li><code>dist/jquery.handsontable.full.css</code></li>
-          <li><code>lib/jquery-ui/js/jquery-ui.custom.min.js</code></li>
-          <li><code>lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css</code> (or another <a
-              href="http://jqueryui.com/themeroller/"> theme of your choice</a>)
-          </li>
-          <li><code>lib/jquery-ui/css/ui-bootstrap/images/*.png</code></li>
-        </ul>
+          <ul>
+            <li><code>dist/jquery.handsontable.full.js</code></li>
+            <li><code>dist/jquery.handsontable.full.css</code></li>
+            <li><code>lib/jquery-ui/js/jquery-ui.custom.min.js</code></li>
+            <li><code>lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css</code> (or another <a
+                href="http://jqueryui.com/themeroller/"> theme of your choice</a>)
+            </li>
+            <li><code>lib/jquery-ui/css/ui-bootstrap/images/*.png</code></li>
+          </ul>
 
-        <div id="example1"></div>
+          <div id="example1"></div>
 
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-            data to console
-          </button>
-        </p>
-      </div>
-    </div>
-
-    <div class="codeLayout">
-      <div class="pad">
-        <div class="jsFiddle">
-          <div class="jsFiddleLink">Edit in jsFiddle</div>
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump
+              data to console
+            </button>
+          </p>
         </div>
+      </div>
 
-        <script>
-          $("#example1").handsontable({
-            data: getCarData(),
-            startRows: 7,
-            startCols: 4,
-            colHeaders: ["Car", "Model", "Registration date", "Price"],
-            columnSorting: true,
-            columns: [
-              {
-                type: 'autocomplete',
-                source: ["Audi", "BMW", "Chrysler", "Citroen", "Mercedes", "Nissan", "Opel", "Suzuki", "Toyota", "Volvo"],
-                strict: false
-              },
-              {
-                //2nd cell is simple text, no special options here
-              },
-              {
-                type: 'date',
-                dateFormat: 'mm/dd/yy'
-              },
-              {
-                type: 'numeric',
-                format: '$ 0,0.00'
-              }
-            ]
-          });
-        </script>
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
+
+          <script>
+            $("#example1").handsontable({
+              data: getCarData(),
+              startRows: 7,
+              startCols: 4,
+              colHeaders: ["Car", "Model", "Registration date", "Price"],
+              columnSorting: true,
+              columns: [
+                {
+                  type: 'autocomplete',
+                  source: ["Audi", "BMW", "Chrysler", "Citroen", "Mercedes", "Nissan", "Opel", "Suzuki", "Toyota", "Volvo"],
+                  strict: false
+                },
+                {
+                  //2nd cell is simple text, no special options here
+                },
+                {
+                  type: 'date',
+                  dateFormat: 'mm/dd/yy'
+                },
+                {
+                  type: 'numeric',
+                  format: '$ 0,0.00'
+                }
+              ]
+            });
+          </script>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
       </div>
     </div>
   </div>
