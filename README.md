@@ -1,5 +1,4 @@
 # Handsontable
-[![Build Status](https://travis-ci.org/bollwyvl/jquery-handsontable.png?branch=travis-testing)](https://travis-ci.org/bollwyvl/jquery-handsontable)
 
 Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery. Requires jQuery 1.7+. Runs in IE7, IE8, IE9, Firefox, Chrome, Safari and Opera.
 
@@ -172,3 +171,9 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## Travis CI status
+
+[![Build Status](https://travis-ci.org/warpech/jquery-handsontable.png?branch=master)](https://travis-ci.org/warpech/jquery-handsontable)
+
+**Note:** Travis CI build fails because Handsontable test suite is not fully adjusted to run in Travis CI headless browser. Integration with Travis CI is a work in progress since Handsontable 0.8.11. It may take few more weeks until we are fully compatible. See pull request [#474](https://github.com/warpech/jquery-handsontable/pull/474) for more details.
