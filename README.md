@@ -48,6 +48,17 @@ Please follow this guidelines when reporting bugs and feature requests:
 
 Thanks for understanding!
 
+## Pull Requests
+
+Your contributions to the project are very welcome! To help me merge your pull request, please make sure you follow these points:
+
+1. Describe the problem in the Pull Request description (of course you would do it, why do I mention that?)
+2. Please make your fix on a separate branch. This makes merging much easier.
+3. Do not edit files `jquery.handsontable.js`, `jquery.handsontable.css`, `jquery.handsontable.full.js`, `jquery.handsontable.full.css`. Instead, try to edit files inside the `src/` directory and then use `grunt` to build Handsontable. Instructions for that are located in `Gruntfile.js`.
+4. For any change that you make, please try to also add a test case(s) in `tests/jasmine/spec/` directory. This helps me understand the issue and make sure that it will stay fixed forever.
+
+Thank you for your commitment! 
+
 ## API Reference
 
 ### Methods
