@@ -123,9 +123,9 @@ Handsontable.Core = function (rootElement, settings) {
 
     /**
      * Creates row at the bottom of the data array
-     * @param {Object} [coords] Optional. Coords of the cell before which the new row will be inserted
+     * @param {Number} [index] Optional. Index of the row before which the new row will be inserted
      */
-    createRow: function (coords) {
+    createRow: function (index) {
       var row;
       if (priv.dataType === 'array') {
         row = [];
@@ -136,7 +136,7 @@ Handsontable.Core = function (rootElement, settings) {
       else {
         row = $.extend(true, {}, datamap.getSchema());
       }
-      if (!coords || coords.row >= self.countRows()) {
+      if (typeof index !== 'number' || index >= self.countRows()) {
         if (priv.settings.onCreateRow) {
           priv.settings.onCreateRow(self.countRows(), row);
         }
@@ -144,23 +144,23 @@ Handsontable.Core = function (rootElement, settings) {
       }
       else {
         if (priv.settings.onCreateRow) {
-          priv.settings.onCreateRow(coords.row, row);
+          priv.settings.onCreateRow(index, row);
         }
-        priv.settings.data.splice(coords.row, 0, row);
+        priv.settings.data.splice(index, 0, row);
       }
       self.forceFullRender = true; //used when data was changed
     },
 
     /**
      * Creates col at the right of the data array
-     * @param {Object} [coords] Optional. Coords of the cell before which the new column will be inserted
+     * @param {Object} [index] Optional. Index of the column before which the new column will be inserted
      */
-    createCol: function (coords) {
+    createCol: function (index) {
       if (priv.dataType === 'object' || priv.settings.columns) {
         throw new Error("Cannot create new column. When data source in an object, you can only have as much columns as defined in first data row, data schema or in the 'columns' setting");
       }
       var r = 0, rlen = self.countRows();
-      if (!coords || coords.col >= self.countCols()) {
+      if (typeof index !== 'number' || index >= self.countCols()) {
         for (; r < rlen; r++) {
           if (typeof priv.settings.data[r] === 'undefined') {
             priv.settings.data[r] = [];
@@ -170,47 +170,45 @@ Handsontable.Core = function (rootElement, settings) {
       }
       else {
         for (; r < rlen; r++) {
-          priv.settings.data[r].splice(coords.col, 0, '');
+          priv.settings.data[r].splice(index, 0, '');
         }
       }
       self.forceFullRender = true; //used when data was changed
     },
 
     /**
-     * Removes row at the bottom of the data array
-     * @param {Object} [coords] Optional. Coords of the cell which row will be removed
-     * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all rows will be removed
+     * Removes row from the data array
+     * @param {Number} [index] Optional. Index of the row to be removed. If not provided, the last row will be removed
+     * @param {Number} [amount] Optional. Amount of the rows to be removed. If not provided, one row will be removed
      */
-    removeRow: function (coords, toCoords) {
-      if (!coords || coords.row === self.countRows() - 1) {
-        priv.settings.data.pop();
+    removeRow: function (index, amount) {
+      if (!amount) {
+        amount = 1;
       }
-      else {
-        priv.settings.data.splice(coords.row, toCoords.row - coords.row + 1);
+      if (typeof index !== 'number') {
+        index = -amount;
       }
+      priv.settings.data.splice(index, amount);
       self.forceFullRender = true; //used when data was changed
     },
 
     /**
-     * Removes col at the right of the data array
-     * @param {Object} [coords] Optional. Coords of the cell which col will be removed
-     * @param {Object} [toCoords] Required if coords is defined. Coords of the cell until which all cols will be removed
+     * Removes column from the data array
+     * @param {Number} [index] Optional. Index of the column to be removed. If not provided, the last column will be removed
+     * @param {Number} [amount] Optional. Amount of the columns to be removed. If not provided, one column will be removed
      */
-    removeCol: function (coords, toCoords) {
+    removeCol: function (index, amount) {
       if (priv.dataType === 'object' || priv.settings.columns) {
         throw new Error("cannot remove column with object data source or columns option specified");
       }
-      var r = 0;
-      if (!coords || coords.col === self.countCols() - 1) {
-        for (; r < self.countRows(); r++) {
-          priv.settings.data[r].pop();
-        }
+      if (!amount) {
+        amount = 1;
       }
-      else {
-        var howMany = toCoords.col - coords.col + 1;
-        for (; r < self.countRows(); r++) {
-          priv.settings.data[r].splice(coords.col, howMany);
-        }
+      if (typeof index !== 'number') {
+        index = -amount;
+      }
+      for (var r = 0, rlen = self.countRows(); r < rlen; r++) {
+        priv.settings.data[r].splice(index, amount);
       }
       self.forceFullRender = true; //used when data was changed
     },
@@ -321,22 +319,29 @@ Handsontable.Core = function (rootElement, settings) {
 
   grid = {
     /**
-     * Alter grid
+     * Inserts or removes rows and columns
      * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col"
-     * @param {Object} coords
-     * @param {Object} [toCoords] Required only for actions "remove_row" and "remove_col"
+     * @param {Number} index
+     * @param {Number} amount
      */
-    alter: function (action, coords, toCoords) {
-      var oldData, newData, changes, r, rlen, c, clen;
+    alter: function (action, index, amount) {
+      var oldData, newData, changes, r, rlen, c, clen, delta;
       oldData = $.extend(true, [], datamap.getAll());
 
       switch (action) {
         case "insert_row":
-          if (self.countRows() < priv.settings.maxRows) {
-            datamap.createRow(coords);
-            if (priv.selStart.exists() && priv.selStart.row() >= coords.row) {
-              priv.selStart.row(priv.selStart.row() + 1);
-              selection.transformEnd(1, 0); //will call render() internally
+          if (!amount) {
+            amount = 1;
+          }
+          delta = 0;
+          while (delta < amount && self.countRows() < priv.settings.maxRows) {
+            datamap.createRow(index);
+            delta++;
+          }
+          if (delta) {
+            if (priv.selStart.exists() && priv.selStart.row() >= index) {
+              priv.selStart.row(priv.selStart.row() + delta);
+              selection.transformEnd(delta, 0); //will call render() internally
             }
             else {
               selection.refreshBorders(); //it will call render and prepare methods
@@ -345,11 +350,18 @@ Handsontable.Core = function (rootElement, settings) {
           break;
 
         case "insert_col":
-          if (self.countCols() < priv.settings.maxCols) {
-            datamap.createCol(coords);
-            if (priv.selStart.exists() && priv.selStart.col() >= coords.col) {
-              priv.selStart.col(priv.selStart.col() + 1);
-              selection.transformEnd(0, 1); //will call render() internally
+          if (!amount) {
+            amount = 1;
+          }
+          delta = 0;
+          while (delta < amount && self.countCols() < priv.settings.maxCols) {
+            datamap.createCol(index);
+            delta++;
+          }
+          if (delta) {
+            if (priv.selStart.exists() && priv.selStart.col() >= index) {
+              priv.selStart.col(priv.selStart.col() + delta);
+              selection.transformEnd(0, delta); //will call render() internally
             }
             else {
               selection.refreshBorders(); //it will call render and prepare methods
@@ -358,15 +370,19 @@ Handsontable.Core = function (rootElement, settings) {
           break;
 
         case "remove_row":
-          datamap.removeRow(coords, toCoords);
+          datamap.removeRow(index, amount);
           grid.keepEmptyRows();
           selection.refreshBorders(); //it will call render and prepare methods
           break;
 
         case "remove_col":
-          datamap.removeCol(coords, toCoords);
+          datamap.removeCol(index, amount);
           grid.keepEmptyRows();
           selection.refreshBorders(); //it will call render and prepare methods
+          break;
+
+        default:
+          throw Error('There is no such action "' + action + '"');
           break;
       }
 
@@ -1662,31 +1678,14 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
-   * Alters the grid
+   * Inserts or removes rows and columns
    * @param {String} action See grid.alter for possible values
-   * @param {Number} from
-   * @param {Number} [to] Optional. Used only for actions "remove_row" and "remove_col"
+   * @param {Number} index
+   * @param {Number} amount
    * @public
    */
-  this.alter = function (action, from, to) {
-    if (typeof to === "undefined") {
-      to = from;
-    }
-    switch (action) {
-      case "insert_row":
-      case "remove_row":
-        grid.alter(action, {row: from, col: 0}, {row: to, col: 0});
-        break;
-
-      case "insert_col":
-      case "remove_col":
-        grid.alter(action, {row: 0, col: from}, {row: 0, col: to});
-        break;
-
-      default:
-        throw Error('There is no such action "' + action + '"');
-        break;
-    }
+  this.alter = function (action, index, amount) {
+    grid.alter(action, index, amount);
   };
 
   /**

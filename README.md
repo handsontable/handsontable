@@ -72,10 +72,10 @@ Thanks for understanding!
  handsontable('clear')                                                                 | Method      | Empty all cells
  handsontable('clearUndo')                                                             | Method      | Clear undo history
  handsontable('getData', [r, c, r2, c2])                                               | Method      | Return the current data object (the same that was passed by `data` configuration option or `loadData` method). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to get only a fragment of grid data
- handsontable('alter', 'insert_row', index)                                            | Method      | Insert new row above the row at given index
- handsontable('alter', 'insert_col', index)                                            | Method      | Insert new column before the column at given index
- handsontable('alter',&nbsp;'remove_row',&nbsp;index,&nbsp;[toIndex])                  | Method      | Remove the row at given index [optionally to another index]
- handsontable('alter',&nbsp;'remove_col',&nbsp;index,&nbsp;[toIndex])                  | Method      | Remove the column at given index [optionally to another index]
+ handsontable('alter', 'insert_row', amount)                                           | Method      | Insert new row(s) above the row at given `index`. Default `amount` equals 1
+ handsontable('alter', 'insert_col', amount)                                           | Method      | Insert new column(s) before the column at given `index`. Default `amount` equals 1
+ handsontable('alter',&nbsp;'remove_row',&nbsp;index,&nbsp;amount)                     | Method      | Remove the row(s) at given `index`. Default `amount` equals 1
+ handsontable('alter',&nbsp;'remove_col',&nbsp;index,&nbsp;amount)                     | Method      | Remove the column(s) at given `index`. Default `amount` equals 1
  handsontable('getCell', row, col)                                                     | Method      | Return &lt;td&gt; element for given `row,col`
  handsontable('getCellMeta', row, col)                                                 | Method      | Return cell properties for given `row`, `col` coordinates
  handsontable('selectCell', r, c, [r2, c2, scrollToSelection=true])                    | Method      | Select cell `r,c` or range finishing at `r2,c2`. By default, viewport will be scrolled to selection
