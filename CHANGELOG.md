@@ -1,3 +1,14 @@
+## HEAD
+
+Features:
+- this may be a **breaking change** for some applications. Now the third parameter to the `alter` method tells the amount of rows/columns to be inserted/removed. This adds more consistency to the API. ([#368](https://github.com/warpech/jquery-handsontable/issues/368))
+- merged pull request [#474](https://github.com/warpech/jquery-handsontable/pull/474) - Travis-CI integration. The tests don't pass yet but don't worry about it yet. It is a work in progress on complete test automation. Making all tests pass on Travis CI headless browser may take few more days or weeks :)
+
+Bugfix:
+- again, this may be a **breaking change** for some applications. Fix very long standing inconsistency. Restored original `setDataAtCell` requirement of the second parameter to be a column number (as described in [README.md](https://github.com/warpech/jquery-handsontable) since always). If you happen to experience an error in `setDataAtCell` after upgrade, change your usage of this method to the new method `setDataAtRowProp` ([#284](https://github.com/warpech/jquery-handsontable/pull/284))
+- new methods `setDataAtRowProp` and `getDataAtRowProp` that set/get data according to the property name in data source. See [README.md](https://github.com/warpech/jquery-handsontable) for clarification
+- merged pull request [#266](https://github.com/warpech/jquery-handsontable/pull/266) - fix countCols for arrays with column settings
+
 ## [0.8.10](https://github.com/warpech/jquery-handsontable/tree/v0.8.10) (Mar 7, 2013)
 
 Bugfix:

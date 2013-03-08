@@ -331,8 +331,12 @@ describe('Core_loadData', function () {
     selectCell(8, 0);
     loadData(data2);
 
-    expect(countRows()).toBe(data2.length + 1); //+1 because of minSpareRows
-    expect(getSelected()).toEqual([5, 0, 5, 0]);
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countRows()).toBe(data2.length + 1); //+1 because of minSpareRows
+      expect(getSelected()).toEqual([5, 0, 5, 0]);
+    });
   });
 
   it('loading empty data should remove all rows', function () {
@@ -358,7 +362,29 @@ describe('Core_loadData', function () {
     selectCell(7, 0);
     loadData(data2);
 
-    expect(countRows()).toBe(0);
-    expect(getSelected()).toEqual(null);
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countRows()).toBe(0);
+      expect(getSelected()).toEqual(null);
+    });
+  });
+
+  it('should only have as many columns as in settings', function () {
+    var data1 = arrayOfArrays();
+
+    handsontable({
+      data: data1,
+      columns: [
+        { data: 1 },
+        { data: 3 }
+      ]
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countCols()).toBe(2);
+    });
   });
 });

@@ -21,72 +21,94 @@
 module.exports = function (grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+    meta: {
+      src: [
+        'tmp/core.js',
+        'src/tableView.js',
+        'src/helpers.js',
+        'src/fillHandle.js',
+        'src/undoRedo.js',
+        'src/selectionPoint.js',
+
+        'src/renderers/textRenderer.js',
+        'src/renderers/autocompleteRenderer.js',
+        'src/renderers/checkboxRenderer.js',
+        'src/renderers/numericRenderer.js',
+
+        'src/editors/textEditor.js',
+        'src/editors/autocompleteEditor.js',
+        'src/editors/checkboxEditor.js',
+        'src/editors/dateEditor.js',
+        
+        'src/cellTypes.js',
+
+        'src/pluginHooks.js',
+        'src/plugins/autoColumnSize.js',
+        'src/plugins/columnSorting.js',
+        'src/plugins/contextMenu.js',
+        'src/plugins/legacy.js',
+        'src/plugins/manualColumnMove.js',
+        'src/plugins/manualColumnResize.js',
+
+        'src/3rdparty/jquery.autoresize.js',
+        'src/3rdparty/sheetclip.js',
+        'src/3rdparty/walkontable.js',
+        'src/3rdparty/copypaste.js',
+      ],
+      vendor: [
+        'lib/bootstrap-typeahead.js',
+        'lib/numeral.js',
+        'lib/jQuery-contextMenu/jquery.contextMenu.js'
+        // seems to have no effect when turned off on contextmenu.html
+        //'lib/jQuery-contextMenu/jquery.ui.position.js' 
+      ]
+    },
+    
     concat: {
       dist: {
-        src: [
-          'tmp/intro.js',
-
-          'tmp/core.js',
-          'src/tableView.js',
-          'src/helpers.js',
-          'src/fillHandle.js',
-          'src/undoRedo.js',
-          'src/selectionPoint.js',
-
-          'src/renderers/textRenderer.js',
-          'src/renderers/autocompleteRenderer.js',
-          'src/renderers/checkboxRenderer.js',
-          'src/renderers/numericRenderer.js',
-
-          'src/editors/textEditor.js',
-          'src/editors/autocompleteEditor.js',
-          'src/editors/checkboxEditor.js',
-          'src/editors/dateEditor.js',
-
-          'src/cellTypes.js',
-
-          'src/pluginHooks.js',
-          'src/plugins/autoColumnSize.js',
-          'src/plugins/columnSorting.js',
-          'src/plugins/contextMenu.js',
-          'src/plugins/legacy.js',
-          'src/plugins/manualColumnMove.js',
-          'src/plugins/manualColumnResize.js',
-
-          'src/3rdparty/jquery.autoresize.js',
-          'src/3rdparty/sheetclip.js',
-          'src/3rdparty/walkontable.js',
-          'src/3rdparty/copypaste.js',
-
-          'src/outro.js'
-        ],
-        dest: 'jquery.handsontable.js'
+        files: {
+          'jquery.handsontable.js': [
+            'tmp/intro.js',
+            '<%= meta.src %>',
+            'src/outro.js'
+          ]
+        }
       },
       full_js: {
-        src: [
-          'jquery.handsontable.js',
-          'lib/bootstrap-typeahead.js',
-          'lib/numeral.js',
-          'lib/jQuery-contextMenu/jquery.contextMenu.js'
-          //'lib/jQuery-contextMenu/jquery.ui.position.js' //seems to have no effect when turned off on contextmenu.html
-        ],
-        dest: 'dist/jquery.handsontable.full.js'
+        files: {
+          'dist/jquery.handsontable.full.js': [
+            'jquery.handsontable.js',
+            '<%= meta.vendor %>'
+          ]
+        }
       },
       full_css: {
-        src: [
-          'jquery.handsontable.css',
-          'lib/jQuery-contextMenu/jquery.contextMenu.css'
-        ],
-        dest: 'dist/jquery.handsontable.full.css'
+        files: {
+          'dist/jquery.handsontable.full.css': [
+            'jquery.handsontable.css',
+            'lib/jQuery-contextMenu/jquery.contextMenu.css'
+          ] 
+        } 
       }
     },
+    
     watch: {
-      files: ['src/*', 'src/editors/*', 'src/plugins/*', 'src/renderers/*', 'src/3rdparty/*', 'src/css/*', 'lib/*'],
+      files: [
+        'src/*',
+        'src/editors/*',
+        'src/plugins/*',
+        'src/renderers/*',
+        'src/3rdparty/*',
+        'src/css/*',
+        'lib/*'
+      ],
       tasks: ['replace', 'concat', 'clean']
     },
+    
     clean: {
       dist: ['tmp']
     },
+    
     replace: {
       dist: {
         options: {
@@ -101,14 +123,41 @@ module.exports = function (grunt) {
           'jquery.handsontable.css': 'src/css/jquery.handsontable.css'
         }
       }
+    },
+    
+    jasmine: {
+      src: [
+        'lib/jquery.min.js',
+        // '<%= meta.src %>',
+        'jquery.handsontable.js',
+        'lib/bootstrap-typeahead.js',
+        'lib/numeral.js',
+        'lib/jQuery-contextMenu/jquery.contextMenu.js',
+        'test/jasmine/spec/SpecHelper.js'
+      ],
+      options: {
+        specs: [
+          'test/jasmine/spec/*Spec.js',
+          'test/jasmine/spec/*/*Spec.js'
+        ],
+        template: 'test/JqueryHandsontableRunner.tmpl',
+        templateOptions: {
+          css: [
+            'lib/jQuery-contextMenu/jquery.contextMenu.css',
+            'jquery.handsontable.css',
+          ]
+        }
+      }
     }
   });
 
   // Default task.
   grunt.registerTask('default', ['replace', 'concat', 'clean']);
+  grunt.registerTask('test', ['default', 'jasmine']);
 
   grunt.loadNpmTasks('grunt-replace');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-jasmine');
 };
