@@ -39,7 +39,7 @@ module.exports = function (grunt) {
         'src/editors/autocompleteEditor.js',
         'src/editors/checkboxEditor.js',
         'src/editors/dateEditor.js',
-        
+
         'src/cellTypes.js',
 
         'src/pluginHooks.js',
@@ -53,7 +53,7 @@ module.exports = function (grunt) {
         'src/3rdparty/jquery.autoresize.js',
         'src/3rdparty/sheetclip.js',
         'src/3rdparty/walkontable.js',
-        'src/3rdparty/copypaste.js',
+        'src/3rdparty/copypaste.js'
       ],
       vendor: [
         'lib/bootstrap-typeahead.js',
@@ -63,7 +63,7 @@ module.exports = function (grunt) {
         //'lib/jQuery-contextMenu/jquery.ui.position.js' 
       ]
     },
-    
+
     concat: {
       dist: {
         files: {
@@ -87,11 +87,11 @@ module.exports = function (grunt) {
           'dist/jquery.handsontable.full.css': [
             'jquery.handsontable.css',
             'lib/jQuery-contextMenu/jquery.contextMenu.css'
-          ] 
-        } 
+          ]
+        }
       }
     },
-    
+
     watch: {
       files: [
         'src/*',
@@ -104,11 +104,11 @@ module.exports = function (grunt) {
       ],
       tasks: ['replace', 'concat', 'clean']
     },
-    
+
     clean: {
       dist: ['tmp']
     },
-    
+
     replace: {
       dist: {
         options: {
@@ -124,7 +124,7 @@ module.exports = function (grunt) {
         }
       }
     },
-    
+
     jasmine: {
       src: [
         'lib/jquery.min.js',
@@ -140,13 +140,10 @@ module.exports = function (grunt) {
           'test/jasmine/spec/*Spec.js',
           'test/jasmine/spec/*/*Spec.js'
         ],
-        template: 'test/JqueryHandsontableRunner.tmpl',
-        templateOptions: {
-          css: [
-            'lib/jQuery-contextMenu/jquery.contextMenu.css',
-            'jquery.handsontable.css',
-          ]
-        }
+        styles: [
+          'jquery.handsontable.css',
+          'lib/jQuery-contextMenu/jquery.contextMenu.css'
+        ]
       }
     }
   });
