@@ -115,7 +115,7 @@ describe('Core_selection', function () {
     waits(10);
 
     runs(function () {
-      expect(textarea.is(":focus")).toEqual(true);
+      expect(document.activeElement).toBe(textarea[0]);
       textarea.remove();
     });
   });
