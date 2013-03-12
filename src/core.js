@@ -1311,7 +1311,7 @@ Handsontable.Core = function (rootElement, settings) {
 
   var fireEvent = function (name, params) {
     if (priv.settings.asyncRendering) {
-      setTimeout(function () {
+      self.registerTimeout('fireEvent', function () {
         self.rootElement.triggerHandler(name, params);
       }, 0);
     }
@@ -1983,9 +1983,34 @@ Handsontable.Core = function (rootElement, settings) {
    * @public
    */
   this.destroy = function () {
+    self.clearTimeouts();
+    self.view.wt.destroy();
     self.rootElement.empty();
     self.rootElement.removeData('handsontable');
     self.rootElement.off('.handsontable');
+  };
+
+  this.timeouts = {};
+
+  /**
+   * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called
+   * @public
+   */
+  this.registerTimeout = function (key, handle, ms) {
+    clearTimeout(this.timeouts[key]);
+    this.timeouts[key] = setTimeout(handle, ms || 0);
+  };
+
+  /**
+   * Clears all known timeouts
+   * @public
+   */
+  this.clearTimeouts = function () {
+    for (var key in this.timeouts) {
+      if (this.timeouts.hasOwnProperty(key)) {
+        clearTimeout(this.timeouts[key]);
+      }
+    }
   };
 
   /**

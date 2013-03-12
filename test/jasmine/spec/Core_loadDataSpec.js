@@ -7,6 +7,7 @@ describe('Core_loadData', function () {
 
   afterEach(function () {
     if (this.$container) {
+      destroy();
       this.$container.remove();
     }
   });
@@ -334,7 +335,7 @@ describe('Core_loadData', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(countRows()).toBe(data2.length + 1); //+1 because of minSpareRows
+      expect(countRows()).toBe(6); //+1 because of minSpareRows
       expect(getSelected()).toEqual([5, 0, 5, 0]);
     });
   });

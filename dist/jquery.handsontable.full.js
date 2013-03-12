@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Mar 08 2013 01:58:20 GMT+0100 (Central European Standard Time)
+ * Date: Tue Mar 12 2013 02:15:16 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1330,7 +1330,7 @@ Handsontable.Core = function (rootElement, settings) {
 
   var fireEvent = function (name, params) {
     if (priv.settings.asyncRendering) {
-      setTimeout(function () {
+      self.registerTimeout('fireEvent', function () {
         self.rootElement.triggerHandler(name, params);
       }, 0);
     }
@@ -2002,9 +2002,34 @@ Handsontable.Core = function (rootElement, settings) {
    * @public
    */
   this.destroy = function () {
+    self.clearTimeouts();
+    self.view.wt.destroy();
     self.rootElement.empty();
     self.rootElement.removeData('handsontable');
     self.rootElement.off('.handsontable');
+  };
+
+  this.timeouts = {};
+
+  /**
+   * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called
+   * @public
+   */
+  this.registerTimeout = function (key, handle, ms) {
+    clearTimeout(this.timeouts[key]);
+    this.timeouts[key] = setTimeout(handle, ms || 0);
+  };
+
+  /**
+   * Clears all known timeouts
+   * @public
+   */
+  this.clearTimeouts = function () {
+    for (var key in this.timeouts) {
+      if (this.timeouts.hasOwnProperty(key)) {
+        clearTimeout(this.timeouts[key]);
+      }
+    }
   };
 
   /**
@@ -2314,10 +2339,8 @@ Handsontable.TableView = function (instance) {
   this.instance.forceFullRender = true; //used when data was changed
   this.render();
 
-  var resizeTimeout;
   $window.on('resize', function () {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(function () {
+    that.instance.registerTimeout('resizeTimeout', function () {
       var lastContainerWidth = that.containerWidth;
       var lastContainerHeight = that.containerHeight;
       that.determineContainerSize();
@@ -2703,11 +2726,11 @@ HandsontableTextEditorClass.prototype.createElements = function () {
 
   var that = this;
   Handsontable.PluginHooks.push('afterRender', function () {
-    setTimeout(function () {
+    that.instance.registerTimeout('refresh_editor_dimensions', function () {
       that.refreshDimensions();
     }, 0);
   });
-}
+};
 
 HandsontableTextEditorClass.prototype.bindEvents = function () {
   var that = this;
@@ -2775,7 +2798,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
     }
   });
-}
+};
 
 HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
   this.td = td;
@@ -2820,12 +2843,12 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
   }
 
   this.instance.view.wt.update('onCellDblClick', onDblClick);
-}
+};
 
 HandsontableTextEditorClass.prototype.unbindTemporaryEvents = function () {
   this.instance.$table.off(".editor");
   this.instance.view.wt.update('onCellDblClick', null);
-}
+};
 
 /**
  * Returns caret position in edit proxy
@@ -2849,7 +2872,7 @@ HandsontableTextEditorClass.prototype.getCaretPosition = function (el) {
     return rc.text.length;
   }
   return 0;
-}
+};
 
 /**
  * Sets caret position in edit proxy
@@ -2868,7 +2891,7 @@ HandsontableTextEditorClass.prototype.setCaretPosition = function (el, pos) {
     range.moveStart('character', pos);
     range.select();
   }
-}
+};
 
 HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
   if (this.isCellEdited) {
@@ -2912,7 +2935,7 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
       that.refreshDimensions(); //need it after rerender to reposition in case scroll was moved
     }, 0);
   }
-}
+};
 
 HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   if (!this.isCellEdited) {
@@ -2979,7 +3002,7 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   });
 
   this.TEXTAREA_PARENT[0].style.display = 'block';
-}
+};
 
 HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (this.isCellEdited) {
@@ -3004,7 +3027,7 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
   }
 
   this.TEXTAREA_PARENT[0].style.display = 'none';
-}
+};
 
 /**
  * Default text editor
@@ -3143,7 +3166,7 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
 
   function onDblClick() {
     that.beginEditing(row, col, prop, true);
-    setTimeout(function () { //otherwise is misaligned in IE9
+    that.instance.registerTimeout('IE9_align_fix', function () { //otherwise is misaligned in IE9
       that.typeahead.lookup();
     }, 1);
   }
@@ -4419,7 +4442,7 @@ Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWid
 /**
  * walkontable 0.2.0
  * 
- * Date: Thu Mar 07 2013 10:08:43 GMT+0100 (Central European Standard Time)
+ * Date: Tue Mar 12 2013 02:12:23 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -4642,7 +4665,7 @@ Walkontable.prototype.draw = function (selectionsOnly) {
   //this.instance.scrollViewport([this.instance.getSetting('offsetRow'), this.instance.getSetting('offsetColumn')]); //needed by WalkontableScroll -> remove row from the last scroll page should scroll viewport a row up if needed
   if (this.hasSetting('async')) {
     var that = this;
-    that.drawFrame = setTimeout(function () {
+    that.drawTimeout = setTimeout(function () {
       that._doDraw(selectionsOnly);
     }, 0);
   }
@@ -4675,8 +4698,8 @@ Walkontable.prototype.scrollHorizontal = function (delta) {
 Walkontable.prototype.scrollViewport = function (coords) {
   if (this.hasSetting('async')) {
     var that = this;
-    clearTimeout(that.scrollFrame);
-    that.scrollFrame = setTimeout(function () {
+    clearTimeout(that.scrollTimeout);
+    that.scrollTimeout = setTimeout(function () {
       that.wtScroll.scrollViewport(coords);
     }, 0);
   }
@@ -4702,6 +4725,14 @@ Walkontable.prototype.getSetting = function (key, param1, param2, param3) {
 
 Walkontable.prototype.hasSetting = function (key) {
   return this.wtSettings.has(key);
+};
+
+Walkontable.prototype.destroy = function () {
+  clearTimeout(this.drawTimeout);
+  clearTimeout(this.scrollTimeout);
+  clearTimeout(this.wheelTimeout);
+  clearTimeout(this.dblClickTimeout);
+  clearTimeout(this.selectionsTimeout);
 };
 function WalkontableDom(instance) {
   if (instance) {
@@ -4916,8 +4947,8 @@ function WalkontableEvent(instance) {
 
   this.wtDom = this.instance.wtDom;
 
-  var dblClickOrigin = [null, null, null, null]
-    , dblClickTimeout = null;
+  var dblClickOrigin = [null, null, null, null];
+  this.instance.dblClickTimeout = null;
 
   var onMouseDown = function (event) {
     var cell = that.parentCell(event.target);
@@ -4970,7 +5001,7 @@ function WalkontableEvent(instance) {
       }
 
       if (dblClickOrigin[3] !== null && dblClickOrigin[3] === dblClickOrigin[2]) {
-        if (dblClickTimeout && dblClickOrigin[2] === dblClickOrigin[1] && dblClickOrigin[1] === dblClickOrigin[0]) {
+        if (that.instance.dblClickTimeout && dblClickOrigin[2] === dblClickOrigin[1] && dblClickOrigin[1] === dblClickOrigin[0]) {
           if (cell.TD) {
             that.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD);
           }
@@ -4978,13 +5009,13 @@ function WalkontableEvent(instance) {
             that.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD);
           }
 
-          clearTimeout(dblClickTimeout);
-          dblClickTimeout = null;
+          clearTimeout(that.instance.dblClickTimeout);
+          that.instance.dblClickTimeout = null;
         }
         else {
-          clearTimeout(dblClickTimeout);
-          dblClickTimeout = setTimeout(function () {
-            dblClickTimeout = null;
+          clearTimeout(that.instance.dblClickTimeout);
+          that.instance.dblClickTimeout = setTimeout(function () {
+            that.instance.dblClickTimeout = null;
           }, 500);
         }
       }
@@ -6137,17 +6168,7 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
     //this.TABLE.appendChild(this.TBODY);
   }
 
-  //redraw selections and scrollbars
-  if (this.instance.hasSetting('async')) {
-    var that = this;
-    window.cancelRequestAnimFrame(this.selectionsFrame);
-    that.selectionsFrame = window.requestAnimFrame(function () {
-      that.refreshPositions(selectionsOnly);
-    });
-  }
-  else {
-    this.refreshPositions(selectionsOnly);
-  }
+  this.refreshPositions(selectionsOnly);
 
   this.instance.drawn = true;
   return this;
@@ -6408,10 +6429,9 @@ function WalkontableWheel(instance) {
 
   //reference to instance
   this.instance = instance;
-  var wheelTimeout;
   $(this.instance.wtTable.TABLE).on('mousewheel', function (event, delta, deltaX, deltaY) {
-    clearTimeout(wheelTimeout);
-    wheelTimeout = setTimeout(function () { //timeout is needed because with fast-wheel scrolling mousewheel event comes dozen times per second
+    clearTimeout(that.instance.wheelTimeout);
+    that.instance.wheelTimeout = setTimeout(function () { //timeout is needed because with fast-wheel scrolling mousewheel event comes dozen times per second
       if (deltaY) {
         //ceil is needed because jquery-mousewheel reports fractional mousewheel deltas on touchpad scroll
         //see http://stackoverflow.com/questions/5527601/normalizing-mousewheel-speed-across-browsers

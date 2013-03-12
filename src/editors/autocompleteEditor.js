@@ -116,7 +116,7 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
 
   function onDblClick() {
     that.beginEditing(row, col, prop, true);
-    setTimeout(function () { //otherwise is misaligned in IE9
+    that.instance.registerTimeout('IE9_align_fix', function () { //otherwise is misaligned in IE9
       that.typeahead.lookup();
     }, 1);
   }

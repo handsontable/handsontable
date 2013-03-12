@@ -7,6 +7,7 @@ describe('Core_destroyEditor', function () {
 
   afterEach(function () {
     if (this.$container) {
+      destroy();
       this.$container.remove();
     }
   });

@@ -7,6 +7,7 @@ describe('Core_selection', function () {
 
   afterEach(function () {
     if (this.$container) {
+      destroy();
       this.$container.remove();
     }
   });
@@ -115,7 +116,7 @@ describe('Core_selection', function () {
     waits(10);
 
     runs(function () {
-      expect(textarea.is(":focus")).toEqual(true);
+      expect(document.activeElement).toBe(textarea[0]);
       textarea.remove();
     });
   });

@@ -1,3 +1,11 @@
+## HEAD
+
+Bugfixes:
+- `destroy` method now clears all pending timeouts
+
+Other:
+- Test should now be runnable using PhantomJS. To run test suite in PhantomJS, type `grunt test`. This is primarly targeted to be used by Travis CI, but there is also a nice benefit of using it while development. PhantomJS runs the test suite much faster than desktop browsers.
+
 ## [0.8.11](https://github.com/warpech/jquery-handsontable/tree/v0.8.11) (Mar 8, 2013)
 
 Features:

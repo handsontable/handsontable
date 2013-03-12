@@ -197,7 +197,7 @@ var triggerPaste = function (str) {
 
 var handsontableMethodFactory = function (method) {
   return function () {
-    var args = $.extend(true, [], arguments);
+    var args = Array.prototype.slice.call(arguments, 0);
     args.unshift(method);
     return spec().$container.handsontable.apply(spec().$container, args);
   }
