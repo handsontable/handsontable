@@ -1,10 +1,11 @@
-## HEAD
+## [0.8.12](https://github.com/warpech/jquery-handsontable/tree/v0.8.12) (Mar 12, 2013)
+
+This release doesn't really bring any improvements for the end user but is a big step towards test automation. From now on, a push to the `master` branch triggers a [Travis CI](https://travis-ci.org/warpech/jquery-handsontable) build that performs automated testing using [grunt-contrib-jasmine](https://github.com/gruntjs/grunt-contrib-jasmine). Thanks @bollwyvl for your [help](https://github.com/warpech/jquery-handsontable/pull/474)!
+
+As a side effect, tests are now be runnable using PhantomJS. To run the test suite in PhantomJS, type `grunt test` (first run `npm install` to make sure you have all dependencies installed). PhantomJS runs the test suite much faster than desktop browsers, so it may come handy.
 
 Bugfixes:
 - `destroy` method now clears all pending timeouts
-
-Other:
-- Test should now be runnable using PhantomJS. To run test suite in PhantomJS, type `grunt test`. This is primarly targeted to be used by Travis CI, but there is also a nice benefit of using it while development. PhantomJS runs the test suite much faster than desktop browsers.
 
 ## [0.8.11](https://github.com/warpech/jquery-handsontable/tree/v0.8.11) (Mar 8, 2013)
 
