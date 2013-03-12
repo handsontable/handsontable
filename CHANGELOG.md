@@ -1,3 +1,8 @@
+## HEAD
+
+Bugfixes:
+- `destroy` method now clears all pending timeouts
+
 ## [0.8.11](https://github.com/warpech/jquery-handsontable/tree/v0.8.11) (Mar 8, 2013)
 
 Features:

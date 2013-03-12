@@ -25,7 +25,7 @@ HandsontableTextEditorClass.prototype.createElements = function () {
 
   var that = this;
   Handsontable.PluginHooks.push('afterRender', function () {
-    setTimeout(function () {
+    that.instance.registerTimeout('refresh_editor_dimensions', function () {
       that.refreshDimensions();
     }, 0);
   });
