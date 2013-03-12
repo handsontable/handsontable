@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Mar 12 2013 01:12:26 GMT+0100 (Central European Standard Time)
+ * Date: Tue Mar 12 2013 02:15:16 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -4442,7 +4442,7 @@ Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWid
 /**
  * walkontable 0.2.0
  * 
- * Date: Tue Mar 12 2013 01:01:15 GMT+0100 (Central European Standard Time)
+ * Date: Tue Mar 12 2013 02:12:23 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -6168,17 +6168,7 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
     //this.TABLE.appendChild(this.TBODY);
   }
 
-  //redraw selections and scrollbars
-  if (this.instance.hasSetting('async')) {
-    var that = this;
-    window.clearTimeout(this.instance.selectionsTimeout);
-    this.instance.selectionsTimeout = window.setTimeout(function () {
-      that.refreshPositions(selectionsOnly);
-    }, 0);
-  }
-  else {
-    this.refreshPositions(selectionsOnly);
-  }
+  this.refreshPositions(selectionsOnly);
 
   this.instance.drawn = true;
   return this;
