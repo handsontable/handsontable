@@ -196,6 +196,15 @@ describe('AutocompleteEditor', function () {
 
   it('should show items as configured in cellProperties (async)', function () {
     var done = false;
+
+    var url;
+    if (window.location.href.indexOf('test/jasmine/') > -1) {
+      url = '../../demo/json/autocomplete.json';
+    }
+    else {
+      url = 'demo/json/autocomplete.json';
+    }
+
     runs(function () {
       handsontable({
         columns: [
@@ -204,7 +213,7 @@ describe('AutocompleteEditor', function () {
             options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
             source: function (query, process) {
               $.ajax({
-                url: '../../demo/php/cars.php',
+                url: url,
                 data: {
                   query: query
                 },
@@ -283,7 +292,7 @@ describe('AutocompleteEditor', function () {
 
     waitsFor(nextFrame, 'next frame', 60);
 
-    runs(function(){
+    runs(function () {
       keyDownUp('enter');
 
     });
