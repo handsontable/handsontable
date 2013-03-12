@@ -8,6 +8,7 @@
  * Build:
  * Execute `grunt` from root directory of this directory (where Gruntfile.js is)
  * To execute automatically after each change, execute `grunt --force default watch`
+ * To execute build followed by the test run, execute `grunt test`
  *
  * Result:
  * building Handsontable will create files:
