@@ -7,6 +7,7 @@ describe('Core_beforechange', function () {
 
   afterEach(function () {
     if (this.$container) {
+      destroy();
       this.$container.remove();
     }
   });
