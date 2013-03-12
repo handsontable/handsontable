@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Mar 12 2013 01:08:52 GMT+0100 (Central European Standard Time)
+ * Date: Tue Mar 12 2013 01:12:26 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2730,7 +2730,7 @@ HandsontableTextEditorClass.prototype.createElements = function () {
       that.refreshDimensions();
     }, 0);
   });
-}
+};
 
 HandsontableTextEditorClass.prototype.bindEvents = function () {
   var that = this;
@@ -2798,7 +2798,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
     }
   });
-}
+};
 
 HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
   this.td = td;
@@ -2843,12 +2843,12 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
   }
 
   this.instance.view.wt.update('onCellDblClick', onDblClick);
-}
+};
 
 HandsontableTextEditorClass.prototype.unbindTemporaryEvents = function () {
   this.instance.$table.off(".editor");
   this.instance.view.wt.update('onCellDblClick', null);
-}
+};
 
 /**
  * Returns caret position in edit proxy
@@ -2872,7 +2872,7 @@ HandsontableTextEditorClass.prototype.getCaretPosition = function (el) {
     return rc.text.length;
   }
   return 0;
-}
+};
 
 /**
  * Sets caret position in edit proxy
@@ -2891,7 +2891,7 @@ HandsontableTextEditorClass.prototype.setCaretPosition = function (el, pos) {
     range.moveStart('character', pos);
     range.select();
   }
-}
+};
 
 HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
   if (this.isCellEdited) {
@@ -2935,7 +2935,7 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
       that.refreshDimensions(); //need it after rerender to reposition in case scroll was moved
     }, 0);
   }
-}
+};
 
 HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   if (!this.isCellEdited) {
@@ -3002,7 +3002,7 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   });
 
   this.TEXTAREA_PARENT[0].style.display = 'block';
-}
+};
 
 HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (this.isCellEdited) {
@@ -3027,7 +3027,7 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
   }
 
   this.TEXTAREA_PARENT[0].style.display = 'none';
-}
+};
 
 /**
  * Default text editor
