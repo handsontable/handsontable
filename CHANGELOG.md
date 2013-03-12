@@ -1,3 +1,9 @@
+## [0.8.13](https://github.com/warpech/jquery-handsontable/tree/v0.8.13) (Mar 12, 2013)
+
+This release adds a `min-width: 600px` to the test suite to make sure that 100% of current tests are passing in [Travis CI](https://travis-ci.org/warpech/jquery-handsontable) (PhantomJS) as well as in the desktop browsers.
+
+There are still many bugs to be fixed, but now it should be much easier to keep the increasing quality of future versions.
+
 ## [0.8.12](https://github.com/warpech/jquery-handsontable/tree/v0.8.12) (Mar 12, 2013)
 
 This release doesn't really bring any improvements for the end user but is a big step towards test automation. From now on, a push to the `master` branch triggers a [Travis CI](https://travis-ci.org/warpech/jquery-handsontable) build that performs automated testing using [grunt-contrib-jasmine](https://github.com/gruntjs/grunt-contrib-jasmine). Thanks @bollwyvl for your [help](https://github.com/warpech/jquery-handsontable/pull/474)!
