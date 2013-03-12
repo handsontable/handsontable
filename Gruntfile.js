@@ -142,6 +142,7 @@ module.exports = function (grunt) {
           'test/jasmine/spec/*/*Spec.js'
         ],
         styles: [
+          'test/jasmine/css/SpecRunner.css',
           'jquery.handsontable.css',
           'lib/jQuery-contextMenu/jquery.contextMenu.css'
         ]
