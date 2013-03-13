@@ -433,20 +433,9 @@ Handsontable.Core = function (rootElement, settings) {
      * Makes sure there are empty rows at the bottom of the table
      */
     keepEmptyRows: function () {
-      var r, c, rlen, clen, emptyRows = 0, emptyCols = 0, val;
+      var r, rlen, emptyRows = self.countEmptyRows(true), emptyCols;
 
-      //count currently empty rows
-      rows : for (r = self.countRows() - 1; r >= 0; r--) {
-        for (c = 0, clen = self.countCols(); c < clen; c++) {
-          val = datamap.get(r, datamap.colToProp(c));
-          if (val !== '' && val !== null && typeof val !== 'undefined') {
-            break rows;
-          }
-        }
-        emptyRows++;
-      }
-
-      //should I add empty rows to data source to meet startRows?
+      //should I add empty rows to data source to meet minRows?
       rlen = self.countRows();
       if (rlen < priv.settings.minRows) {
         for (r = 0; r < priv.settings.minRows - rlen; r++) {
@@ -462,17 +451,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       //count currently empty cols
-      if (self.countRows() - 1 > 0) {
-        cols : for (c = self.countCols() - 1; c >= 0; c--) {
-          for (r = 0; r < self.countRows(); r++) {
-            val = datamap.get(r, datamap.colToProp(c));
-            if (val !== '' && val !== null && typeof val !== 'undefined') {
-              break cols;
-            }
-          }
-          emptyCols++;
-        }
-      }
+      emptyCols = self.countEmptyCols(true);
 
       //should I add empty cols to meet minCols?
       if (!priv.settings.columns && self.countCols() < priv.settings.minCols) {
@@ -1965,6 +1944,88 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
+   * Return number of empty rows
+   * @return {Boolean} ending If true, will only count empty rows at the end of the data source
+   */
+  this.countEmptyRows = function (ending) {
+    var i = self.countRows() - 1
+      , empty = 0;
+    while (i >= 0) {
+      if (self.isEmptyRow(i)) {
+        empty++;
+      }
+      else if (ending) {
+        break;
+      }
+      i--;
+    }
+    return empty;
+  };
+
+  /**
+   * Return number of empty columns
+   * @return {Boolean} ending If true, will only count empty columns at the end of the data source row
+   */
+  this.countEmptyCols = function (ending) {
+    if (self.countRows() < 1) {
+      return 0;
+    }
+
+    var i = self.countCols() - 1
+      , empty = 0;
+    while (i >= 0) {
+      if (self.isEmptyCol(i)) {
+        empty++;
+      }
+      else if (ending) {
+        break;
+      }
+      i--;
+    }
+    return empty;
+  };
+
+  /**
+   * Return true if the row at the given index is empty, false otherwise
+   * @param {Number} r Row index
+   * @return {Boolean}
+   */
+  this.isEmptyRow = function (r) {
+    if (priv.settings.isEmptyRow) {
+      return priv.settings.isEmptyRow.call(this, r);
+    }
+
+    var val;
+    for (var c = 0, clen = this.countCols(); c < clen; c++) {
+      val = this.getDataAtCell(r, c);
+      if (val !== '' && val !== null && typeof val !== 'undefined') {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  /**
+   * Return true if the column at the given index is empty, false otherwise
+   * @param {Number} c Column index
+   * @return {Boolean}
+   */
+  this.isEmptyCol = function (c) {
+    if (priv.settings.isEmptyCol) {
+      return priv.settings.isEmptyCol.call(this, c);
+    }
+
+    var val;
+    for (var r = 0, rlen = this.countRows(); r < rlen; r++) {
+      val = this.getDataAtCell(r, c);
+      if (val !== '' && val !== null && typeof val !== 'undefined') {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  /**
    * Selects cell on grid. Optionally selects range to another cell
    * @param {Number} row
    * @param {Number} col
@@ -2078,7 +2139,9 @@ var settings = {
   'currentRowClassName': void 0,
   'currentColClassName': void 0,
   'asyncRendering': true,
-  'stretchH': 'hybrid'
+  'stretchH': 'hybrid',
+  isEmptyRow: void 0,
+  isEmptyCol: void 0
 };
 
 $.fn.handsontable = function (action) {

@@ -1,3 +1,8 @@
+## HEAD
+
+Features:
+- new methods: `countEmptyRows`, `countEmptyCols`, `isEmptyRow`, `isEmptyCol`. You can define your own functions for `isEmptyRow` and `isEmptyCol` (see [README.md](https://github.com/warpech/jquery-handsontable) for details)
+
 ## [0.8.13](https://github.com/warpech/jquery-handsontable/tree/v0.8.13) (Mar 12, 2013)
 
 This release adds a `min-width: 600px` to the test suite to make sure that 100% of current tests are passing in [Travis CI](https://travis-ci.org/warpech/jquery-handsontable) (PhantomJS) as well as in the desktop browsers.
