@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Mar 12 2013 03:16:18 GMT+0100 (Central European Standard Time)
+ * Date: Wed Mar 13 2013 13:08:00 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -145,26 +145,32 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Number} [index] Optional. Index of the row before which the new row will be inserted
      */
     createRow: function (index) {
-      var row;
+      var row
+        , rowCount = self.countRows();
+
+      if (typeof index !== 'number' || index >= rowCount) {
+        index = rowCount;
+      }
+
       if (priv.dataType === 'array') {
         row = [];
         for (var c = 0, clen = self.countCols(); c < clen; c++) {
           row.push(null);
         }
       }
+      else if (priv.dataType === 'function') {
+        row = priv.settings.dataSchema(index);
+      }
       else {
         row = $.extend(true, {}, datamap.getSchema());
       }
-      if (typeof index !== 'number' || index >= self.countRows()) {
-        if (priv.settings.onCreateRow) {
-          priv.settings.onCreateRow(self.countRows(), row);
-        }
+      if (priv.settings.onCreateRow) {
+        priv.settings.onCreateRow(index, row);
+      }
+      if (index === rowCount) {
         priv.settings.data.push(row);
       }
       else {
-        if (priv.settings.onCreateRow) {
-          priv.settings.onCreateRow(index, row);
-        }
         priv.settings.data.splice(index, 0, row);
       }
       self.forceFullRender = true; //used when data was changed
@@ -256,6 +262,25 @@ Handsontable.Core = function (rootElement, settings) {
         }
         return out;
       }
+      else if (typeof datamap.getVars.prop === 'function') {
+        /**
+         *  allows for interacting with complex structures, for example
+         *  d3/jQuery getter/setter properties:
+         *
+         *    {columns: [{
+         *      data: function(row, value){
+         *        if(arguments.length === 1){
+         *          return row.property();
+         *        }
+         *        row.property(value);
+         *      }
+         *    }]}
+         */
+        return datamap.getVars.prop(priv.settings.data.slice(
+          datamap.getVars.row,
+          datamap.getVars.row + 1
+        )[0]);
+      }
       else {
         return priv.settings.data[datamap.getVars.row] ? priv.settings.data[datamap.getVars.row][datamap.getVars.prop] : null;
       }
@@ -280,6 +305,13 @@ Handsontable.Core = function (rootElement, settings) {
           out = out[sliced[i]];
         }
         out[sliced[i]] = datamap.setVars.value;
+      }
+      else if (typeof datamap.setVars.prop === 'function') {
+        /* see the `function` handler in `get` */
+        datamap.setVars.prop(priv.settings.data.slice(
+          datamap.setVars.row,
+          datamap.setVars.row + 1
+        )[0], datamap.setVars.value);
       }
       else {
         priv.settings.data[datamap.setVars.row][datamap.setVars.prop] = datamap.setVars.value;
@@ -1521,11 +1553,14 @@ Handsontable.Core = function (rootElement, settings) {
   this.loadData = function (data) {
     priv.isPopulated = false;
     priv.settings.data = data;
-    if ($.isPlainObject(priv.settings.dataSchema) || $.isPlainObject(data[0])) {
-      priv.dataType = 'object';
+    if (priv.settings.dataSchema instanceof Array || data[0]  instanceof Array) {
+      priv.dataType = 'array';
+    }
+    else if ($.isFunction(priv.settings.dataSchema)) {
+      priv.dataType = 'function';
     }
     else {
-      priv.dataType = 'array';
+      priv.dataType = 'object';
     }
     if (data[0]) {
       priv.duckDataSchema = datamap.recursiveDuckSchema(data[0]);
@@ -1895,7 +1930,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Number}
    */
   this.countCols = function () {
-    if (priv.dataType === 'object') {
+    if (priv.dataType === 'object' || priv.dataType === 'function') {
       if (priv.settings.columns && priv.settings.columns.length) {
         return priv.settings.columns.length;
       }

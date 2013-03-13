@@ -45,7 +45,6 @@
 </a>
 
 <div id="container">
-<div class="columnLayout">
 
 <div class="rowLayout">
   <div class="descLayout">
@@ -66,6 +65,7 @@
         <li><a href="#object">object data source</a></li>
         <li><a href="#nested">nested object data source (with column mapping)</a></li>
         <li><a href="#dataschema">automatic and custom data schema</a></li>
+        <li><a href="#propertyschema">property-based columns and schema</a></li>
       </ul>
 
       <p>Please take note that Handsontable will change the original data source. More about this here: <a
@@ -76,7 +76,7 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad">
+    <div class="pad bottomSpace100">
       <a name="array"></a>
 
       <h2>Array data source</h2>
@@ -86,9 +86,7 @@
       <div id="example1"></div>
 
       <p>
-        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-          data to console
-        </button>
+        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
       </p>
     </div>
   </div>
@@ -122,7 +120,7 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad">
+    <div class="pad bottomSpace150">
       <a name="array-hidden"></a>
 
       <h2>Array data source (with hidden columns)</h2>
@@ -132,9 +130,7 @@
       <div id="example2"></div>
 
       <p>
-        <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-          data to console
-        </button>
+        <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
       </p>
     </div>
   </div>
@@ -174,7 +170,7 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad">
+    <div class="pad bottomSpace100">
       <a name="object"></a>
 
       <h2>Object data source</h2>
@@ -217,7 +213,7 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad">
+    <div class="pad bottomSpace100">
       <a name="nested"></a>
 
       <h2>Nested object data source (with column mapping)</h2>
@@ -230,9 +226,7 @@
       <div id="example4"></div>
 
       <p>
-        <button name="dump" data-dump="#example4" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-          data to console
-        </button>
+        <button name="dump" data-dump="#example4" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
       </p>
     </div>
   </div>
@@ -271,7 +265,7 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad">
+    <div class="pad bottomSpace100">
       <a name="dataschema"></a>
 
       <h2>Automatic and custom data schema</h2>
@@ -290,9 +284,7 @@
       <div id="example5"></div>
 
       <p>
-        <button name="dump" data-dump="#example5" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-          data to console
-        </button>
+        <button name="dump" data-dump="#example5" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
       </p>
     </div>
   </div>
@@ -325,14 +317,97 @@
 </div>
 
 <div class="rowLayout">
-  <div class="descLayout noMargin">
+  <div class="descLayout">
+    <div class="pad bottomSpace100">
+      <a name="propertyschema"></a>
+
+      <h2>Property-based Columns &amp; Schema</h2>
+
+      <p>
+        If your <strong>dataSchema</strong> is actually a constructor of an
+        object that doesn't directly expose its members, like a Backbone.js 
+        model, you can specify functions for the <strong>data</strong> member 
+        of each <strong>columns</strong> item.
+      </p>
+
+      <p>The below example shows a small example of using such objects:</p>
+
+      <div id="example6"></div>
+
+      <p>
+        <button name="dump" data-dump="#example6" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <div class="jsFiddle">
+        <div class="jsFiddleLink">Edit in jsFiddle</div>
+      </div>
+
+      <script>
+        
+        var $container = $("#example6");
+        $container.handsontable({
+          /*data: [
+            model({id: 1, name: "Ted Right", address: ""}),
+            model({id: 2, name: "Frank Honest", address: ""}),
+            model({id: 3, name: "Joan Well", address: ""})
+          ],*/
+          data: [],
+          dataSchema: model,
+          startRows: 5,
+          startCols: 3,
+          colHeaders: ['ID', 'Name', 'Address'],
+          columns: [
+            {data: property("id")},
+            {data: property("name")},
+            {data: property("address")}
+          ],
+          minSpareRows: 1
+        });
+        
+        function model(opts){
+          var _pub = {},
+            _priv = $.extend({
+              id: undefined,
+              name: undefined,
+              address: undefined
+            }, opts);
+          
+          _pub.attr = function(attr, val){
+            if(typeof val === 'undefined'){
+              console.debug("\t\tGET the", attr, "value of", _pub);
+              return _priv[attr];
+            }
+            console.debug("SET the", attr, "value of", _pub);
+            _priv[attr] = val;
+            
+            return _pub;
+          };
+          
+          return _pub;
+        }
+        
+        function property(attr){
+          return function(row, value){
+            return row.attr(attr, value);
+          }
+        };
+      </script>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
     <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
       <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
         licensed under the The MIT License.</p>
     </div>
   </div>
-</div>
 </div>
 </div>
 </body>
