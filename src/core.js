@@ -1397,7 +1397,7 @@ Handsontable.Core = function (rootElement, settings) {
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       if (typeof input[i][1] !== 'number') {
-        throw new Exception('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
+        throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
       prop = datamap.colToProp(input[i][1]);
       changes.push([
