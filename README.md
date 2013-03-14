@@ -112,7 +112,7 @@ The table below presents configuration options that are interpreted by `handsont
 
   Option                 | Type                           | Default          | Description
 -------------------------|--------------------------------|------------------|-------------
- `data`                  | array/object                   | []               | Initial data source that will be bound to the data grid **by reference** (editing data grid alters the data source. See [Understanding binding as reference](http://handsontable.com/demo/understanding_reference.html))
+ `data`                  | array/object/function          | []               | Initial data source that will be bound to the data grid **by reference** (editing data grid alters the data source. See [Understanding binding as reference](http://handsontable.com/demo/understanding_reference.html))
  `minRows`               | number                         | 0                | Minimum number of rows. At least that many of rows will be created during initialization
  `minCols`               | number                         | 0                | Minimum number of columns. At least that many of columns will be created during initialization
  `maxRows`               | number                         | _Infinity_       | Maximum number of rows
