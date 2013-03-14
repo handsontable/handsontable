@@ -40,12 +40,19 @@ function CopyPaste(listenerElement) {
       isCtrlDown = true;
     }
 
+    if (isCtrlDown) {
+      that.selectNodeText(that.elTextarea);
+      setTimeout(function(){
+        that.selectNodeText(that.elTextarea);
+      });
+    }
+
     /* 67 = c
      * 86 = v
      * 88 = x
      */
     if (isCtrlDown && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
-      that.selectNodeText(that.elTextarea);
+      // that.selectNodeText(that.elTextarea);
 
       if (event.keyCode === 88) { //works in all browsers, incl. Opera < 12.12
         setTimeout(function(){
