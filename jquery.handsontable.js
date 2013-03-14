@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.8.13
+ * Handsontable 0.8.14
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Mar 14 2013 02:53:30 GMT+0100 (Central European Standard Time)
+ * Date: Thu Mar 14 2013 03:07:52 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2130,7 +2130,7 @@ Handsontable.Core = function (rootElement, settings) {
   /**
    * Handsontable version
    */
-  this.version = '0.8.13'; //inserted by grunt from package.json
+  this.version = '0.8.14'; //inserted by grunt from package.json
 };
 
 var settings = {
@@ -7284,7 +7284,7 @@ function CopyPaste(listenerElement) {
 //http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie
 CopyPaste.prototype.selectNodeText = function (el) {
   this.elTextarea.select();
-}
+};
 
 CopyPaste.prototype.copyable = function (str) {
   if (typeof str !== 'string' && str.toString === void 0) {

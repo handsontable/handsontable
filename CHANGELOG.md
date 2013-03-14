@@ -1,8 +1,8 @@
-## HEAD
+## [0.8.14](https://github.com/warpech/jquery-handsontable/tree/v0.8.14) (Mar 14, 2013)
 
 Features:
-- now, your data source can be a function! See the last section of the [Array, object and function data sources](http://www.handsontable.com/demo/datasources.html) page for examples (fixes [#471](https://github.com/warpech/jquery-handsontable/pull/471), [#435](https://github.com/warpech/jquery-handsontable/pull/435), [#261](https://github.com/warpech/jquery-handsontable/issues/261))
-- also the column `data` property can be a function as well! Again, see the last section of the [data sources](http://www.handsontable.com/demo/datasources.html) page for examples
+- now, your data source can be a function! See the last section of the [Array, object and function data sources](http://handsontable.com/demo/datasources.html) page for examples (fixes [#471](https://github.com/warpech/jquery-handsontable/pull/471), [#435](https://github.com/warpech/jquery-handsontable/pull/435), [#261](https://github.com/warpech/jquery-handsontable/issues/261))
+- also the column `data` property can be a function as well! Again, see the last section of the [data sources](http://handsontable.com/demo/datasources.html) page for examples
 - new methods: `countEmptyRows`, `countEmptyCols`, `isEmptyRow`, `isEmptyCol`. You can define your own functions for `isEmptyRow` and `isEmptyCol` (see [README.md](https://github.com/warpech/jquery-handsontable) for details)
 
 Bugfix:

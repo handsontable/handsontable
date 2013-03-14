@@ -22,7 +22,7 @@ function trimCodeBlock(code, pad) {
     offset++;
   }
   for (i = 0, ilen = code.length; i < ilen; i++) {
-    code[i] = Array(pad + 1).join(' ') + code[i].substring(offset);
+    code[i] = new Array(pad + 1).join(' ') + code[i].substring(offset);
   }
   return code;
 }
@@ -58,6 +58,11 @@ $(function () {
     if ($.ui && $.ui.datepicker) {
       css += '<script src="http://handsontable.com/lib/jquery-ui/js/jquery-ui.custom.min.js"></script>\n\
 <link rel="stylesheet" media="screen" href="http://handsontable.com/lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">\n';
+    }
+    if (window.Backbone) {
+      css += '<script src="http://handsontable.com/demo/js/backbone/lodash.underscore.js"></script>\n\
+<script src="http://handsontable.com/demo/js/backbone/backbone.js"></script>\n\
+<script src="http://handsontable.com/demo/js/backbone/backbone-relational/backbone-relational.js"></script>\n';
     }
 
     css += '<style type="text/css">\n\
