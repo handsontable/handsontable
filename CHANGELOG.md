@@ -1,7 +1,8 @@
 ## HEAD
 
 Features:
-- support for functional data type. Now the `data` attribute no longer has to be an `array` or an `object`. It can be a function, provided that you will
+- now, your data source can be a function! See the last section of the [Array, object and function data sources](http://www.handsontable.com/demo/datasources.html) page for examples
+- the column `data` property can be a function as well! Again, see the last section of the [data sources](http://www.handsontable.com/demo/datasources.html) page for examples
 - new methods: `countEmptyRows`, `countEmptyCols`, `isEmptyRow`, `isEmptyCol`. You can define your own functions for `isEmptyRow` and `isEmptyCol` (see [README.md](https://github.com/warpech/jquery-handsontable) for details)
 
 ## [0.8.13](https://github.com/warpech/jquery-handsontable/tree/v0.8.13) (Mar 12, 2013)
