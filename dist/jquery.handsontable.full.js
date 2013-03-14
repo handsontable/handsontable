@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Mar 13 2013 19:25:27 GMT+0100 (Central European Standard Time)
+ * Date: Thu Mar 14 2013 01:41:37 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1229,8 +1229,7 @@ Handsontable.Core = function (rootElement, settings) {
      */
     prepare: function () {
       if (priv.settings.asyncRendering) {
-        clearTimeout(window.prepareFrame);
-        window.prepareFrame = setTimeout(function () {
+        self.registerTimeout('prepareFrame', function () {
           var TD = self.view.getCellAtCoords(priv.selStart.coords());
           TD.focus();
           priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());

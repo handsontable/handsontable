@@ -1210,8 +1210,7 @@ Handsontable.Core = function (rootElement, settings) {
      */
     prepare: function () {
       if (priv.settings.asyncRendering) {
-        clearTimeout(window.prepareFrame);
-        window.prepareFrame = setTimeout(function () {
+        self.registerTimeout('prepareFrame', function () {
           var TD = self.view.getCellAtCoords(priv.selStart.coords());
           TD.focus();
           priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
