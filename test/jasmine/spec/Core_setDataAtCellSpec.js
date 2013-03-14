@@ -217,4 +217,57 @@ describe('Core_setDataAtCell', function () {
       expect(getDataAtCell(5, 2)).toEqual('i');
     });
   });
+
+  //https://handsontable.com/demo/datasources.html
+  it('should work with functional data source', function () {
+    handsontable({
+      data: [
+        model({id: 1, name: "Ted Right", address: ""}),
+        model({id: 2, name: "Frank Honest", address: ""}),
+        model({id: 3, name: "Joan Well", address: ""})
+      ],
+      dataSchema: model,
+      startRows: 5,
+      startCols: 3,
+      colHeaders: ['ID', 'Name', 'Address'],
+      columns: [
+        {data: property("id")},
+        {data: property("name")},
+        {data: property("address")}
+      ],
+      minSpareRows: 1
+    });
+
+    function model(opts) {
+      var _pub = {},
+        _priv = $.extend({
+          id: undefined,
+          name: undefined,
+          address: undefined
+        }, opts);
+
+      _pub.attr = function (attr, val) {
+        if (typeof val === 'undefined') {
+          window.console && console.log("\t\tGET the", attr, "value of", _pub);
+          return _priv[attr];
+        }
+        window.console && console.log("SET the", attr, "value of", _pub);
+        _priv[attr] = val;
+
+        return _pub;
+      };
+
+      return _pub;
+    }
+
+    function property(attr) {
+      return function (row, value) {
+        return row.attr(attr, value);
+      }
+    }
+
+    expect(getDataAtCell(1, 1)).toEqual('Frank Honest');
+    setDataAtCell(1, 1, 'Something Else');
+    expect(getDataAtCell(1, 1)).toEqual('Something Else');
+  });
 });
