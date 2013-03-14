@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Mar 14 2013 02:49:09 GMT+0100 (Central European Standard Time)
+ * Date: Thu Mar 14 2013 02:53:30 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -7235,8 +7235,8 @@ function CopyPaste(listenerElement) {
 
   this.elTextarea = document.createElement('TEXTAREA');
   this.elTextarea.className = 'copyPaste';
-  this.elTextarea.style.width = '100px';
-  this.elTextarea.style.height = '100px';
+  this.elTextarea.style.width = '1px';
+  this.elTextarea.style.height = '1px';
   this.elDiv.appendChild(this.elTextarea);
 
   if (typeof this.elTextarea.style.opacity !== 'undefined') {
