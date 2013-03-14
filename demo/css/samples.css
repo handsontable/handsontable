@@ -145,7 +145,7 @@ p,
 }
 
 li {
-  margin-bottom: 0.2em;
+  margin-bottom: 1.3em;
 }
 
 .descLayout pre {
@@ -271,6 +271,7 @@ body.home #domainNotice {
 body.home .centerLayout {
   width: 880px;
   margin: 0 auto;
+  padding-bottom: 10px;
 }
 
 body.home .linkColumn {

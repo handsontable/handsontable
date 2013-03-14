@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/html">
 <head>
   <meta charset='utf-8'>
-  <title>Array and object data sources - Handsontable</title>
+  <title>Array, object and function data sources - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -22,9 +22,9 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Array and object data sources">
+  <meta property="og:title" content="Array, object and function">
   <meta property="og:description"
-        content="This page shows how to use Handsontable with various data sources: array data source (also with hidden columns), object data source, nested object data source.">
+        content="This page shows how to use Handsontable with various data sources: array, object and function.">
   <meta property="og:url" content="http://handsontable.com/demo/reference.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -56,7 +56,7 @@
         for HTML, JavaScript &amp; jQuery
       </div>
 
-      <h2>Array and object data sources</h2>
+      <h2>Array, object and function data sources</h2>
 
       <p>This page shows how to use Handsontable with various data sources:</p>
 
@@ -64,12 +64,14 @@
         <li><a href="#array">array data source</a></li>
         <li><a href="#array-hidden">array data source (with hidden columns)</a></li>
         <li><a href="#object">object data source</a></li>
-        <li><a href="#nested">nested object data source (with column mapping)</a></li>
-        <li><a href="#dataschema">automatic and custom data schema</a></li>
+        <li><a href="#nested">object data source (nested, with column mapping)</a></li>
+        <li><a href="#dataschema">object data source (custom data schema)</a></li>
+        <li><a href="#propertyschema">function data source and schema (to reach where arrays and objects can't
+          reach)</a></li>
       </ul>
 
       <p>Please take note that Handsontable will change the original data source. More about this here: <a
-          href="understanding_reference.html">Understanding binding as reference</a>.</p>
+        href="understanding_reference.html">Understanding binding as reference</a>.</p>
     </div>
   </div>
 </div>
@@ -220,7 +222,7 @@
     <div class="pad">
       <a name="nested"></a>
 
-      <h2>Nested object data source (with column mapping)</h2>
+      <h2>Object data source (nested, with column mapping)</h2>
 
       <p>Some people have nested objects. They can also be used at the data source with a little bit of column
         mapping.</p>
@@ -274,7 +276,7 @@
     <div class="pad">
       <a name="dataschema"></a>
 
-      <h2>Automatic and custom data schema</h2>
+      <h2>Object data source (custom data schema)</h2>
 
       <p>When you use object data binding, Handsontable needs to know the data structure to create when you add a new
         row.</p>
@@ -325,7 +327,92 @@
 </div>
 
 <div class="rowLayout">
-  <div class="descLayout noMargin">
+  <div class="descLayout">
+    <div class="pad">
+      <a name="propertyschema"></a>
+
+      <h2>Function data source and schema (to reach where arrays and objects can't reach)</h2>
+
+      <p>
+        If your <strong>dataSchema</strong> is actually a constructor of an
+        object that doesn't directly expose its members, like a Backbone.js
+        model, you can specify functions for the <strong>data</strong> member
+        of each <strong>columns</strong> item.
+      </p>
+
+      <p>The below example shows a small example of using such objects:</p>
+
+      <div id="example6"></div>
+
+      <p>
+        <button name="dump" data-dump="#example6" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+          data to console
+        </button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <div class="jsFiddle">
+        <div class="jsFiddleLink">Edit in jsFiddle</div>
+      </div>
+
+      <script>
+
+        var $container = $("#example6");
+        $container.handsontable({
+          data: [
+            model({id: 1, name: "Ted Right", address: ""}),
+            model({id: 2, name: "Frank Honest", address: ""}),
+            model({id: 3, name: "Joan Well", address: ""})
+          ],
+          dataSchema: model,
+          startRows: 5,
+          startCols: 3,
+          colHeaders: ['ID', 'Name', 'Address'],
+          columns: [
+            {data: property("id")},
+            {data: property("name")},
+            {data: property("address")}
+          ],
+          minSpareRows: 1
+        });
+
+        function model(opts) {
+          var _pub = {},
+            _priv = $.extend({
+              id: undefined,
+              name: undefined,
+              address: undefined
+            }, opts);
+
+          _pub.attr = function (attr, val) {
+            if (typeof val === 'undefined') {
+              window.console && console.log("\t\tGET the", attr, "value of", _pub);
+              return _priv[attr];
+            }
+            window.console && console.log("SET the", attr, "value of", _pub);
+            _priv[attr] = val;
+
+            return _pub;
+          };
+
+          return _pub;
+        }
+
+        function property(attr) {
+          return function (row, value) {
+            return row.attr(attr, value);
+          }
+        }
+      </script>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
     <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
       <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation

@@ -16,8 +16,8 @@ function CopyPaste(listenerElement) {
 
   this.elTextarea = document.createElement('TEXTAREA');
   this.elTextarea.className = 'copyPaste';
-  this.elTextarea.style.width = '100px';
-  this.elTextarea.style.height = '100px';
+  this.elTextarea.style.width = '1px';
+  this.elTextarea.style.height = '1px';
   this.elDiv.appendChild(this.elTextarea);
 
   if (typeof this.elTextarea.style.opacity !== 'undefined') {
@@ -65,7 +65,7 @@ function CopyPaste(listenerElement) {
 //http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie
 CopyPaste.prototype.selectNodeText = function (el) {
   this.elTextarea.select();
-}
+};
 
 CopyPaste.prototype.copyable = function (str) {
   if (typeof str !== 'string' && str.toString === void 0) {

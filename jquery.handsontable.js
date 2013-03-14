@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.8.13
+ * Handsontable 0.8.14
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Mar 12 2013 03:16:18 GMT+0100 (Central European Standard Time)
+ * Date: Thu Mar 14 2013 03:07:52 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -145,26 +145,32 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Number} [index] Optional. Index of the row before which the new row will be inserted
      */
     createRow: function (index) {
-      var row;
+      var row
+        , rowCount = self.countRows();
+
+      if (typeof index !== 'number' || index >= rowCount) {
+        index = rowCount;
+      }
+
       if (priv.dataType === 'array') {
         row = [];
         for (var c = 0, clen = self.countCols(); c < clen; c++) {
           row.push(null);
         }
       }
+      else if (priv.dataType === 'function') {
+        row = priv.settings.dataSchema(index);
+      }
       else {
         row = $.extend(true, {}, datamap.getSchema());
       }
-      if (typeof index !== 'number' || index >= self.countRows()) {
-        if (priv.settings.onCreateRow) {
-          priv.settings.onCreateRow(self.countRows(), row);
-        }
+      if (priv.settings.onCreateRow) {
+        priv.settings.onCreateRow(index, row);
+      }
+      if (index === rowCount) {
         priv.settings.data.push(row);
       }
       else {
-        if (priv.settings.onCreateRow) {
-          priv.settings.onCreateRow(index, row);
-        }
         priv.settings.data.splice(index, 0, row);
       }
       self.forceFullRender = true; //used when data was changed
@@ -256,6 +262,25 @@ Handsontable.Core = function (rootElement, settings) {
         }
         return out;
       }
+      else if (typeof datamap.getVars.prop === 'function') {
+        /**
+         *  allows for interacting with complex structures, for example
+         *  d3/jQuery getter/setter properties:
+         *
+         *    {columns: [{
+         *      data: function(row, value){
+         *        if(arguments.length === 1){
+         *          return row.property();
+         *        }
+         *        row.property(value);
+         *      }
+         *    }]}
+         */
+        return datamap.getVars.prop(priv.settings.data.slice(
+          datamap.getVars.row,
+          datamap.getVars.row + 1
+        )[0]);
+      }
       else {
         return priv.settings.data[datamap.getVars.row] ? priv.settings.data[datamap.getVars.row][datamap.getVars.prop] : null;
       }
@@ -280,6 +305,13 @@ Handsontable.Core = function (rootElement, settings) {
           out = out[sliced[i]];
         }
         out[sliced[i]] = datamap.setVars.value;
+      }
+      else if (typeof datamap.setVars.prop === 'function') {
+        /* see the `function` handler in `get` */
+        datamap.setVars.prop(priv.settings.data.slice(
+          datamap.setVars.row,
+          datamap.setVars.row + 1
+        )[0], datamap.setVars.value);
       }
       else {
         priv.settings.data[datamap.setVars.row][datamap.setVars.prop] = datamap.setVars.value;
@@ -420,20 +452,9 @@ Handsontable.Core = function (rootElement, settings) {
      * Makes sure there are empty rows at the bottom of the table
      */
     keepEmptyRows: function () {
-      var r, c, rlen, clen, emptyRows = 0, emptyCols = 0, val;
+      var r, rlen, emptyRows = self.countEmptyRows(true), emptyCols;
 
-      //count currently empty rows
-      rows : for (r = self.countRows() - 1; r >= 0; r--) {
-        for (c = 0, clen = self.countCols(); c < clen; c++) {
-          val = datamap.get(r, datamap.colToProp(c));
-          if (val !== '' && val !== null && typeof val !== 'undefined') {
-            break rows;
-          }
-        }
-        emptyRows++;
-      }
-
-      //should I add empty rows to data source to meet startRows?
+      //should I add empty rows to data source to meet minRows?
       rlen = self.countRows();
       if (rlen < priv.settings.minRows) {
         for (r = 0; r < priv.settings.minRows - rlen; r++) {
@@ -449,17 +470,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       //count currently empty cols
-      if (self.countRows() - 1 > 0) {
-        cols : for (c = self.countCols() - 1; c >= 0; c--) {
-          for (r = 0; r < self.countRows(); r++) {
-            val = datamap.get(r, datamap.colToProp(c));
-            if (val !== '' && val !== null && typeof val !== 'undefined') {
-              break cols;
-            }
-          }
-          emptyCols++;
-        }
-      }
+      emptyCols = self.countEmptyCols(true);
 
       //should I add empty cols to meet minCols?
       if (!priv.settings.columns && self.countCols() < priv.settings.minCols) {
@@ -1218,8 +1229,7 @@ Handsontable.Core = function (rootElement, settings) {
      */
     prepare: function () {
       if (priv.settings.asyncRendering) {
-        clearTimeout(window.prepareFrame);
-        window.prepareFrame = setTimeout(function () {
+        self.registerTimeout('prepareFrame', function () {
           var TD = self.view.getCellAtCoords(priv.selStart.coords());
           TD.focus();
           priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
@@ -1416,7 +1426,7 @@ Handsontable.Core = function (rootElement, settings) {
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       if (typeof input[i][1] !== 'number') {
-        throw new Exception('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
+        throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
       prop = datamap.colToProp(input[i][1]);
       changes.push([
@@ -1521,11 +1531,14 @@ Handsontable.Core = function (rootElement, settings) {
   this.loadData = function (data) {
     priv.isPopulated = false;
     priv.settings.data = data;
-    if ($.isPlainObject(priv.settings.dataSchema) || $.isPlainObject(data[0])) {
-      priv.dataType = 'object';
+    if (priv.settings.dataSchema instanceof Array || data[0]  instanceof Array) {
+      priv.dataType = 'array';
+    }
+    else if ($.isFunction(priv.settings.dataSchema)) {
+      priv.dataType = 'function';
     }
     else {
-      priv.dataType = 'array';
+      priv.dataType = 'object';
     }
     if (data[0]) {
       priv.duckDataSchema = datamap.recursiveDuckSchema(data[0]);
@@ -1895,7 +1908,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Number}
    */
   this.countCols = function () {
-    if (priv.dataType === 'object') {
+    if (priv.dataType === 'object' || priv.dataType === 'function') {
       if (priv.settings.columns && priv.settings.columns.length) {
         return priv.settings.columns.length;
       }
@@ -1946,6 +1959,88 @@ Handsontable.Core = function (rootElement, settings) {
    */
   this.countVisibleCols = function () {
     return self.view.wt.getSetting('viewportColumns');
+  };
+
+  /**
+   * Return number of empty rows
+   * @return {Boolean} ending If true, will only count empty rows at the end of the data source
+   */
+  this.countEmptyRows = function (ending) {
+    var i = self.countRows() - 1
+      , empty = 0;
+    while (i >= 0) {
+      if (self.isEmptyRow(i)) {
+        empty++;
+      }
+      else if (ending) {
+        break;
+      }
+      i--;
+    }
+    return empty;
+  };
+
+  /**
+   * Return number of empty columns
+   * @return {Boolean} ending If true, will only count empty columns at the end of the data source row
+   */
+  this.countEmptyCols = function (ending) {
+    if (self.countRows() < 1) {
+      return 0;
+    }
+
+    var i = self.countCols() - 1
+      , empty = 0;
+    while (i >= 0) {
+      if (self.isEmptyCol(i)) {
+        empty++;
+      }
+      else if (ending) {
+        break;
+      }
+      i--;
+    }
+    return empty;
+  };
+
+  /**
+   * Return true if the row at the given index is empty, false otherwise
+   * @param {Number} r Row index
+   * @return {Boolean}
+   */
+  this.isEmptyRow = function (r) {
+    if (priv.settings.isEmptyRow) {
+      return priv.settings.isEmptyRow.call(this, r);
+    }
+
+    var val;
+    for (var c = 0, clen = this.countCols(); c < clen; c++) {
+      val = this.getDataAtCell(r, c);
+      if (val !== '' && val !== null && typeof val !== 'undefined') {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  /**
+   * Return true if the column at the given index is empty, false otherwise
+   * @param {Number} c Column index
+   * @return {Boolean}
+   */
+  this.isEmptyCol = function (c) {
+    if (priv.settings.isEmptyCol) {
+      return priv.settings.isEmptyCol.call(this, c);
+    }
+
+    var val;
+    for (var r = 0, rlen = this.countRows(); r < rlen; r++) {
+      val = this.getDataAtCell(r, c);
+      if (val !== '' && val !== null && typeof val !== 'undefined') {
+        return false;
+      }
+    }
+    return true;
   };
 
   /**
@@ -2035,7 +2130,7 @@ Handsontable.Core = function (rootElement, settings) {
   /**
    * Handsontable version
    */
-  this.version = '0.8.13'; //inserted by grunt from package.json
+  this.version = '0.8.14'; //inserted by grunt from package.json
 };
 
 var settings = {
@@ -2062,7 +2157,9 @@ var settings = {
   'currentRowClassName': void 0,
   'currentColClassName': void 0,
   'asyncRendering': true,
-  'stretchH': 'hybrid'
+  'stretchH': 'hybrid',
+  isEmptyRow: void 0,
+  isEmptyCol: void 0
 };
 
 $.fn.handsontable = function (action) {
@@ -7138,8 +7235,8 @@ function CopyPaste(listenerElement) {
 
   this.elTextarea = document.createElement('TEXTAREA');
   this.elTextarea.className = 'copyPaste';
-  this.elTextarea.style.width = '100px';
-  this.elTextarea.style.height = '100px';
+  this.elTextarea.style.width = '1px';
+  this.elTextarea.style.height = '1px';
   this.elDiv.appendChild(this.elTextarea);
 
   if (typeof this.elTextarea.style.opacity !== 'undefined') {
@@ -7187,7 +7284,7 @@ function CopyPaste(listenerElement) {
 //http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie
 CopyPaste.prototype.selectNodeText = function (el) {
   this.elTextarea.select();
-}
+};
 
 CopyPaste.prototype.copyable = function (str) {
   if (typeof str !== 'string' && str.toString === void 0) {

@@ -101,6 +101,10 @@ Thank you for your commitment!
  handsontable('isRedoAvailable')                                                       | Method      | Return true if redo can be performed, false otherwise
  handsontable('undo')                                                                  | Method      | Undo last edit
  handsontable('redo')                                                                  | Method      | Redo edit (used to reverse an undo)
+ handsontable('countEmptyRows', [ending])                                              | Method      | Returns number of empty rows. If the optional `ending` parameter is true, returns number of empty rows at the bottom of the table
+ handsontable('countEmptyCols', [ending])                                              | Method      | Returns number of empty columns. If the optional `ending` parameter is true, returns number of empty columns at right hand edge of the table
+ handsontable('isEmptyRow', row)                                                       | Method      | Return true if the row at the given index is empty, false otherwise
+ handsontable('isEmptyCol', col)                                                       | Method      | Return true if the column at the given index is empty, false otherwise
 
 ### Options
 
@@ -108,7 +112,7 @@ The table below presents configuration options that are interpreted by `handsont
 
   Option                 | Type                           | Default          | Description
 -------------------------|--------------------------------|------------------|-------------
- `data`                  | array/object                   | []               | Initial data source that will be bound to the data grid **by reference** (editing data grid alters the data source. See [Understanding binding as reference](http://handsontable.com/demo/understanding_reference.html))
+ `data`                  | array/object/function          | []               | Initial data source that will be bound to the data grid **by reference** (editing data grid alters the data source. See [Understanding binding as reference](http://handsontable.com/demo/understanding_reference.html))
  `minRows`               | number                         | 0                | Minimum number of rows. At least that many of rows will be created during initialization
  `minCols`               | number                         | 0                | Minimum number of columns. At least that many of columns will be created during initialization
  `maxRows`               | number                         | _Infinity_       | Maximum number of rows
@@ -137,6 +141,8 @@ The table below presents configuration options that are interpreted by `handsont
  `copyRowsLimit`         | number                         | 1000             | Maximum number of rows than can be copied to clipboard using CTRL+C
  `copyColsLimit`         | number                         | 1000             | Maximum number of columns than can be copied to clipboard using CTRL+C
  `stretchH`              | string                         | hybrid           | [Column stretching](http://handsontable.com/demo/scroll.html) mode. Possible values: `none, hybrid, last, all`. Hybrid mode works as `none` where there is no horizontal scrollbar, and as `last` when the horizontal scrollbar is present.
+ `isEmptyRow`            | function(`r`)                  | _undefined_      | Lets you overwrite the default `isEmptyRow` method
+ `isEmptyCol`            | function(`c`)                  | _undefined_      | Lets you overwrite the default `isEmptyCol` method
  `manualColumnResize`    | boolean                        | false            | Turn on [Manual column resize](http://handsontable.com/demo/column_resize.html)
  `manualColumnMove`      | boolean                        | false            | Turn on [Manual column move](http://handsontable.com/demo/column_move.html)
  `columnSorting`         | boolean                        | false            | Turn on [Column sorting](http://handsontable.com/demo/sorting.html)
