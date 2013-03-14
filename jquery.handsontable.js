@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Mar 14 2013 01:41:37 GMT+0100 (Central European Standard Time)
+ * Date: Thu Mar 14 2013 02:49:09 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1426,7 +1426,7 @@ Handsontable.Core = function (rootElement, settings) {
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       if (typeof input[i][1] !== 'number') {
-        throw new Exception('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
+        throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
       prop = datamap.colToProp(input[i][1]);
       changes.push([
