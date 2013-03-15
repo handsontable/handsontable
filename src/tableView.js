@@ -244,7 +244,7 @@ Handsontable.TableView = function (instance) {
         that.instance.forceFullRender = true;
         that.render();
       }
-    }, 60);
+    }, 100);
   });
 
   $(that.wt.wtTable.spreader).on('mousedown.handsontable, contextmenu.handsontable', function (event) {
@@ -267,6 +267,7 @@ Handsontable.TableView.prototype.determineContainerSize = function () {
 
   var computedWidth = this.instance.rootElement.width();
   var computedHeight = this.instance.rootElement.height();
+
   if (settings.width === void 0 && computedWidth > 0) {
     this.containerWidth = computedWidth;
   }
@@ -274,6 +275,10 @@ Handsontable.TableView.prototype.determineContainerSize = function () {
   if (this.overflow === 'scroll' || this.overflow === 'auto') {
     if (settings.height === void 0 && computedHeight > 0) {
       this.containerHeight = computedHeight;
+    }
+
+    if (this.wt ? this.wt.wtScroll.wtScrollbarV.visible : false) {
+      this.containerHeight += 10;
     }
   }
 };
