@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Mar 15 2013 17:10:39 GMT+0100 (Central European Standard Time)
+ * Date: Fri Mar 15 2013 17:32:53 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2296,10 +2296,12 @@ Handsontable.TableView = function (instance) {
   });
 
   $(document.documentElement).on('mousedown', function (event) {
-    var next = event.target;
+    var target = event.target
+      , next = target;
+
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== null && next !== document.documentElement) {
-        if (next === instance.rootElement[0] || $(next).attr('id') === 'context-menu-layer' || $(next).is('.context-menu-list') || $(next).is('.typeahead li')) {
+        if (next === instance.rootElement[0] || next.id === 'context-menu-layer' || $(next).is('.context-menu-list') || $(next).is('.typeahead li')) {
           return; //click inside container
         }
         next = next.parentNode;
@@ -2310,7 +2312,12 @@ Handsontable.TableView = function (instance) {
       that.instance.deselectCell();
     }
     else {
-      that.instance.destroyEditor();
+      if (target.nodeName.toLowerCase() === 'input' || target.nodeName.toLowerCase() === 'textarea') {
+        that.instance.deselectCell();
+      }
+      else {
+        that.instance.destroyEditor();
+      }
     }
   });
 

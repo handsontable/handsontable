@@ -55,8 +55,8 @@ Handsontable.TableView = function (instance) {
   });
 
   $(document.documentElement).on('mousedown', function (event) {
-    var next   = event.target
-      , target = event.target;
+    var target = event.target
+      , next = target;
 
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== null && next !== document.documentElement) {
@@ -73,7 +73,8 @@ Handsontable.TableView = function (instance) {
     else {
       if (target.nodeName.toLowerCase() === 'input' || target.nodeName.toLowerCase() === 'textarea') {
         that.instance.deselectCell();
-      } else {
+      }
+      else {
         that.instance.destroyEditor();
       }
     }
