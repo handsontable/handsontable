@@ -28,10 +28,20 @@ Handsontable.TableView = function (instance) {
   //instance.rootElement[0].style.height = '';
   //instance.rootElement[0].style.width = '';
 
+  $(document.body).on('keyup', function (event) {
+    if (instance.selection.isInProgress() && !event.shiftKey) {
+      instance.selection.finish();
+    }
+  });
+
   var isMouseDown
     , dragInterval;
 
-  $(document.body).on('mouseup', function () {
+  $(document.body).on('mouseup', function (event) {
+    if (instance.selection.isInProgress() && event.which === 1) { //is left mouse button
+      instance.selection.finish();
+    }
+
     isMouseDown = false;
     clearInterval(dragInterval);
     dragInterval = null;
@@ -219,10 +229,10 @@ Handsontable.TableView = function (instance) {
       instance.autofill.handle.isDragged = 1;
       event.preventDefault();
     },
-    onCellCornerDblClick: function (event) {
+    onCellCornerDblClick: function () {
       instance.autofill.selectAdjacent();
     },
-    onDraw: function (event) {
+    onDraw: function () {
       $window.trigger('resize');
     }
   };

@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Mar 15 2013 15:59:42 GMT+0100 (Central European Standard Time)
+ * Date: Fri Mar 15 2013 17:10:39 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -638,6 +638,29 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   this.selection = selection = { //this public assignment is only temporary
+    inProgress: false,
+
+    /**
+     * Sets inProgress to true. This enables onSelectionEnd and onSelectionEndByProp to function as desired
+     */
+    begin: function () {
+      self.selection.inProgress = true;
+    },
+
+    /**
+     * Sets inProgress to false. Triggers onSelectionEnd and onSelectionEndByProp
+     */
+    finish: function () {
+      var sel = self.getSelected();
+      self.rootElement.triggerHandler("selectionend.handsontable", sel);
+      self.rootElement.triggerHandler("selectionendbyprop.handsontable", [sel[0], self.colToProp(sel[1]), sel[2], self.colToProp(sel[3])]);
+      self.selection.inProgress = false;
+    },
+
+    isInProgress: function () {
+      return self.selection.inProgress;
+    },
+
     /**
      * Starts selection range on given td object
      * @param {Object} coords
@@ -654,6 +677,8 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to range end
      */
     setRangeEnd: function (coords, scrollToCell) {
+      self.selection.begin();
+
       priv.selEnd.coords(coords);
       if (!priv.settings.multiSelect) {
         priv.selStart.coords(coords);
@@ -1365,6 +1390,16 @@ Handsontable.Core = function (rootElement, settings) {
         priv.settings.onSelectionByProp.apply(self.rootElement[0], [row, prop, endRow, endProp]);
       }
     });
+    self.rootElement.on("selectionend.handsontable", function (event, row, col, endRow, endCol) {
+      if (priv.settings.onSelectionEnd) {
+        priv.settings.onSelectionEnd.apply(self.rootElement[0], [row, col, endRow, endCol]);
+      }
+    });
+    self.rootElement.on("selectionendbyprop.handsontable", function (event, row, prop, endRow, endProp) {
+      if (priv.settings.onSelectionEndByProp) {
+        priv.settings.onSelectionEndByProp.apply(self.rootElement[0], [row, prop, endRow, endProp]);
+      }
+    });
   };
 
   /**
@@ -2050,6 +2085,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {Number} [endCol]
    * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to the selection
    * @public
+   * @return {Boolean}
    */
   this.selectCell = function (row, col, endRow, endCol, scrollToCell) {
     if (typeof row !== 'number' || row < 0 || row >= self.countRows()) {
@@ -2073,6 +2109,9 @@ Handsontable.Core = function (rootElement, settings) {
     else {
       selection.setRangeEnd({row: endRow, col: endCol}, scrollToCell);
     }
+
+    self.selection.finish();
+    return true;
   };
 
   this.selectCellByProp = function (row, prop, endRow, endProp, scrollToCell) {
@@ -2230,10 +2269,20 @@ Handsontable.TableView = function (instance) {
   //instance.rootElement[0].style.height = '';
   //instance.rootElement[0].style.width = '';
 
+  $(document.body).on('keyup', function (event) {
+    if (instance.selection.isInProgress() && !event.shiftKey) {
+      instance.selection.finish();
+    }
+  });
+
   var isMouseDown
     , dragInterval;
 
-  $(document.body).on('mouseup', function () {
+  $(document.body).on('mouseup', function (event) {
+    if (instance.selection.isInProgress() && event.which === 1) { //is left mouse button
+      instance.selection.finish();
+    }
+
     isMouseDown = false;
     clearInterval(dragInterval);
     dragInterval = null;
@@ -2421,10 +2470,10 @@ Handsontable.TableView = function (instance) {
       instance.autofill.handle.isDragged = 1;
       event.preventDefault();
     },
-    onCellCornerDblClick: function (event) {
+    onCellCornerDblClick: function () {
       instance.autofill.selectAdjacent();
     },
-    onDraw: function (event) {
+    onDraw: function () {
       $window.trigger('resize');
     }
   };

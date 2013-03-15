@@ -286,4 +286,91 @@ describe('Core_selection', function () {
     expect(err).toBeUndefined();
     expect(getSelected()).toEqual([3, 0, 4, 1]);
   });
+
+  it('should call onSelectionEnd as many times as onSelection when `selectCell` is called', function () {
+    var tick = 0
+      , tickEnd = 0;
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      onSelection: function () {
+        tick++;
+      },
+      onSelectionEnd: function () {
+        tickEnd++;
+      }
+    });
+    selectCell(3, 0);
+    selectCell(1, 1);
+
+    expect(tick).toEqual(2);
+    expect(tickEnd).toEqual(2);
+  });
+
+  it('should call onSelectionEnd when user finishes selection by releasing SHIFT key (3 times)', function () {
+    var tick = 0;
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      onSelectionEnd: function () {
+        tick++;
+      }
+    });
+    selectCell(3, 0); //makes tick++
+    keyDownUp('shift+arrow_down'); //makes tick++
+    keyDownUp('shift+arrow_down'); //makes tick++
+    keyDownUp('shift+arrow_down'); //makes tick++
+
+    expect(getSelected()).toEqual([3, 0, 4, 0]);
+    expect(tick).toEqual(4);
+  });
+
+  it('should call onSelectionEnd when user finishes selection by releasing SHIFT key (1 time)', function () {
+    var tick = 0;
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      onSelectionEnd: function () {
+        tick++;
+      }
+    });
+    selectCell(3, 0); //makes tick++
+    keyDown('shift+arrow_down');
+    keyDown('shift+arrow_down');
+    keyDownUp('shift+arrow_down'); //makes tick++
+
+    expect(getSelected()).toEqual([3, 0, 4, 0]);
+    expect(tick).toEqual(2);
+  });
+
+  it('should call onSelection while user selects cells with mouse; onSelectionEnd when user finishes selection', function () {
+    var tick = 0, tickEnd = 0;
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      onSelection: function () {
+        tick++;
+      },
+      onSelectionEnd: function () {
+        tickEnd++;
+      }
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    var that = this;
+    runs(function () {
+      that.$container.find('tr:eq(0) td:eq(0)').trigger('mousedown');
+      that.$container.find('tr:eq(0) td:eq(1)').trigger('mouseenter');
+      that.$container.find('tr:eq(1) td:eq(3)').trigger('mouseenter');
+
+      var mouseup = $.Event('mouseup');
+      mouseup.which = 1; //LMB
+      that.$container.find('tr:eq(1) td:eq(3)').trigger(mouseup);
+
+      expect(getSelected()).toEqual([0, 0, 1, 3]);
+      expect(tick).toEqual(3);
+      expect(tickEnd).toEqual(1);
+    });
+  });
 });
