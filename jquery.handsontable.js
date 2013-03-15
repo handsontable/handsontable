@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Mar 14 2013 03:07:52 GMT+0100 (Central European Standard Time)
+ * Date: Fri Mar 15 2013 15:59:42 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1503,12 +1503,11 @@ Handsontable.Core = function (rootElement, settings) {
   /**
    * Returns current selection. Returns undefined if there is no selection.
    * @public
-   * @return {Array} [topLeftRow, topLeftCol, bottomRightRow, bottomRightCol]
+   * @return {Array} [`startRow`, `startCol`, `endRow`, `endCol`]
    */
   this.getSelected = function () { //https://github.com/warpech/jquery-handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      var coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
-      return [coords.TL.row, coords.TL.col, coords.BR.row, coords.BR.col];
+      return [priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col()];
     }
   };
 

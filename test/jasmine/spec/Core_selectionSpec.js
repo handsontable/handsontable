@@ -209,7 +209,7 @@ describe('Core_selection', function () {
     }
 
     expect(err).toBeUndefined();
-    expect(getSelected()).toEqual([0, 0, 0, 1]);
+    expect(getSelected()).toEqual([0, 1, 0, 0]);
   });
 
   it('should fix end range if provided is out of bounds (to the top)', function () {
@@ -228,7 +228,7 @@ describe('Core_selection', function () {
     }
 
     expect(err).toBeUndefined();
-    expect(getSelected()).toEqual([0, 0, 1, 0]);
+    expect(getSelected()).toEqual([1, 0, 0, 0]);
   });
 
   it('should fix end range if provided is out of bounds (to the right)', function () {
