@@ -121,6 +121,75 @@ describe('Core_selection', function () {
     });
   });
 
+  it('should deselect currently selected cell', function () {
+
+    runs(function () {
+      handsontable();
+      selectCell(0, 0);
+    });
+
+    waits(10);
+
+    runs(function () {
+      $("html").triggerHandler('mousedown');
+    });
+
+    waits(10);
+
+    runs(function () {
+      expect(getSelected()).toBeUndefined();
+    });
+
+  });
+
+  it('should not deselect currently selected cell', function () {
+
+    runs(function () {
+      handsontable({
+        outsideClickDeselects : false
+      });
+      selectCell(0, 0);
+    });
+
+    waits(10);
+
+    runs(function () {
+      $("html").triggerHandler('mousedown');
+    });
+
+    waits(10);
+
+    runs(function () {
+      expect(getSelected()).toEqual([0, 0, 0, 0]);
+    });
+
+  });
+
+  it('should deselect currently selected cell when focused on other input', function () {
+    var textarea = $('<input type="text">').prependTo($('body'));
+
+    runs(function () {
+      handsontable({
+        outsideClickDeselects : false
+      });
+      selectCell(0, 0);
+    });
+
+    waits(10);
+
+    runs(function () {
+      textarea.trigger('mousedown');
+    });
+
+    waits(10);
+
+    runs(function () {
+      expect(getSelected()).toBeUndefined();
+      textarea.remove();
+    });
+
+  });
+
   it('should fix start range if provided is out of bounds (to the left)', function () {
     var err;
     try {
