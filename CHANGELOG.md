@@ -2,6 +2,7 @@
 
 Features:
 - new callbacks: `onSelectionEnd` and `onSelectionEndByProp` (see [README.md](https://github.com/warpech/jquery-handsontable) for usage information)
+- new demo page [Callbacks](http://handsontable.com/demo/callbacks.html)
 - **breaking change:** `getSelected` method output has slightly changed. Was: [`topLeftRow`, `topLeftCol`, `bottomRightRow`, `bottomRightCol`]. Is: [`startRow`, `startCol`, `endRow`, `endCol`]. This gives information about the direction of the selection - now you can tell if the selection started from left to right or otherwise.
 
 ## [0.8.14](https://github.com/warpech/jquery-handsontable/tree/v0.8.14) (Mar 14, 2013)
