@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Mar 15 2013 17:32:53 GMT+0100 (Central European Standard Time)
+ * Date: Fri Mar 15 2013 18:00:25 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -7314,20 +7314,27 @@ function CopyPaste(listenerElement) {
       isCtrlDown = true;
     }
 
+    if (isCtrlDown) {
+      that.selectNodeText(that.elTextarea);
+      setTimeout(function () {
+        that.selectNodeText(that.elTextarea);
+      }, 0);
+    }
+
     /* 67 = c
      * 86 = v
      * 88 = x
      */
     if (isCtrlDown && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
-      that.selectNodeText(that.elTextarea);
+      // that.selectNodeText(that.elTextarea);
 
       if (event.keyCode === 88) { //works in all browsers, incl. Opera < 12.12
-        setTimeout(function(){
+        setTimeout(function () {
           that.triggerCut(event);
         }, 0);
       }
       else if (event.keyCode === 86) {
-        setTimeout(function(){
+        setTimeout(function () {
           that.triggerPaste(event);
         }, 0);
       }

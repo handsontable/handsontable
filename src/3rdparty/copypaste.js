@@ -42,9 +42,9 @@ function CopyPaste(listenerElement) {
 
     if (isCtrlDown) {
       that.selectNodeText(that.elTextarea);
-      setTimeout(function(){
+      setTimeout(function () {
         that.selectNodeText(that.elTextarea);
-      });
+      }, 0);
     }
 
     /* 67 = c
@@ -55,12 +55,12 @@ function CopyPaste(listenerElement) {
       // that.selectNodeText(that.elTextarea);
 
       if (event.keyCode === 88) { //works in all browsers, incl. Opera < 12.12
-        setTimeout(function(){
+        setTimeout(function () {
           that.triggerCut(event);
         }, 0);
       }
       else if (event.keyCode === 86) {
-        setTimeout(function(){
+        setTimeout(function () {
           that.triggerPaste(event);
         }, 0);
       }

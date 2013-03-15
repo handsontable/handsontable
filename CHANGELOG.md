@@ -7,6 +7,7 @@ Features:
 
 Bugfixes:
 - `outsideClickDeselects: false` disables all focus in other inputs outside the table ([#408](https://github.com/warpech/jquery-handsontable/issues/408))
+- copy paste in Mac Safari didn't work ([#470](https://github.com/warpech/jquery-handsontable/issues/470))
 
 ## [0.8.14](https://github.com/warpech/jquery-handsontable/tree/v0.8.14) (Mar 14, 2013)
 
