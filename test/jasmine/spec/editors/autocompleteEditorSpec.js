@@ -245,6 +245,61 @@ describe('AutocompleteEditor', function () {
     });
   });
 
+  it('should return previous value when entered value didn\'t match to the list (async reponse is empty)', function () {
+    var done = false;
+
+    var url;
+    if (window.location.href.indexOf('test/jasmine/') > -1) {
+      url = '../../demo/json/autocomplete.json';
+    }
+    else {
+      url = 'demo/json/autocomplete.json';
+    }
+
+    runs(function () {
+      handsontable({
+        data   : [['one','two'],['three','four']],
+        columns: [
+          {
+            type: Handsontable.AutocompleteCell,
+            options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
+            source: function (query, process) {
+              $.ajax({
+                url: url,
+                data: {
+                  query: query
+                },
+                success: function (response) {
+                  process([]); // hardcoded empty result
+                  done = true;
+                }
+              });
+            },
+            strict: true
+          },
+          { type : 'text'}
+        ],
+        asyncRendering: false //TODO make sure tests pass also when async true
+      });
+      selectCell(0, 0);
+      keyDownUp('enter');
+    });
+
+    waitsFor(function () {
+      return done;
+    }, 1000);
+
+    runs(function () {
+
+      autocompleteEditor().val('non existent');
+      // keyDown('enter');
+      $('html').trigger('mousedown');
+
+      expect(getData()).toEqual([['one','two'],['three','four']]);
+    });
+
+  });
+
   it('typing in textarea should refresh the lookup list', function () {
     runs(function () {
       handsontable({
