@@ -278,7 +278,11 @@ Handsontable.TableView.prototype.determineContainerSize = function () {
     }
 
     if (this.wt ? this.wt.wtScroll.wtScrollbarV.visible : false) {
-      this.containerHeight += 10;
+      this.containerHeight += 10; // naive assumption that scrollbar has 10px
+    }
+
+    if (this.wt ? this.wt.wtScroll.wtScrollbarH.visible : false) {
+      this.containerWidth += 10; // naive assumption that scrollbar has 10px
     }
   }
 };
