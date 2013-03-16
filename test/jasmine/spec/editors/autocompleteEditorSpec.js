@@ -292,8 +292,7 @@ describe('AutocompleteEditor', function () {
     runs(function () {
 
       autocompleteEditor().val('non existent');
-      // keyDown('enter');
-      $('html').trigger('mousedown');
+      keyDownUp('enter');
 
       expect(getData()).toEqual([['one','two'],['three','four']]);
     });
