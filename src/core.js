@@ -1988,7 +1988,7 @@ Handsontable.Core = function (rootElement, settings) {
     self.rootElement.empty();
     self.rootElement.removeData('handsontable');
     self.rootElement.off('.handsontable');
-    $.contextMenu('destroy', "#" + self.rootElement.attr('id') + ' table, #' + self.rootElement.attr('id') + ' div');
+    Handsontable.PluginHooks.run(self, 'afterDestroy');
   };
 
   this.timeouts = {};

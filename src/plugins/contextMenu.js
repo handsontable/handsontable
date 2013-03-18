@@ -30,7 +30,7 @@ function createContextMenu() {
   function onContextClick(key) {
     var corners = instance.getSelected(); //[top left row, top left col, bottom right row, bottom right col]
 
-    if(!corners) {
+    if (!corners) {
       return; //needed when there are 2 grids on a page
     }
 
@@ -140,4 +140,9 @@ function createContextMenu() {
   $.contextMenu($.extend(true, defaultOptions, options));
 }
 
+function destroyContextMenu() {
+  $.contextMenu('destroy', "#" + this.rootElement[0].id + ' table, #' + this.rootElement[0].id + ' div');
+}
+
 Handsontable.PluginHooks.push('afterInit', createContextMenu);
+Handsontable.PluginHooks.push('afterDestroy', destroyContextMenu);

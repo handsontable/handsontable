@@ -46,10 +46,27 @@ describe('ContextMenu', function () {
       contextMenu();
       $('ul.context-menu-list li').first().trigger('mouseup.contextMenu');
       expect(getData().length).toEqual(4);
-    }
+    };
     test();
     destroy();
     test();
+  });
+
+  it('should destroy contextMenu when Handsotnable is destroyed', function () {
+    var test = function () {
+      handsontable({
+        startRows: 5,
+        contextMenu: ['remove_row']
+      });
+      selectCell(0, 0);
+      contextMenu();
+      $('ul.context-menu-list li').first().trigger('mouseup.contextMenu');
+      expect(getData().length).toEqual(4);
+    };
+    test();
+    expect($('ul.context-menu-list').length).toEqual(1);
+    destroy();
+    expect($('ul.context-menu-list').length).toEqual(0);
   });
 
 });
