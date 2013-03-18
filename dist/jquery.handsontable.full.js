@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Mar 14 2013 03:07:52 GMT+0100 (Central European Standard Time)
+ * Date: Mon Mar 18 2013 20:27:00 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1262,56 +1262,52 @@ Handsontable.Core = function (rootElement, settings) {
     var validated = $.Deferred();
     var deferreds = [];
 
-    if (source === 'paste') {
-      //validate strict autocompletes
-      var process = function (i) {
-        var deferred = $.Deferred();
-        deferreds.push(deferred);
+    //validate strict autocompletes
+    var process = function (i) {
+      var deferred = $.Deferred();
+      deferreds.push(deferred);
 
-        var originalVal = changes[i][3];
-        var lowercaseVal = typeof originalVal === 'string' ? originalVal.toLowerCase() : null;
+      var originalVal = changes[i][3];
+      var lowercaseVal = typeof originalVal === 'string' ? originalVal.toLowerCase() : null;
 
-        return function (source) {
-          var found = false;
-          for (var s = 0, slen = source.length; s < slen; s++) {
-            if (originalVal === source[s]) {
-              found = true; //perfect match
-              break;
-            }
-            else if (lowercaseVal === source[s].toLowerCase()) {
-              changes[i][3] = source[s]; //good match, fix the case
-              found = true;
-              break;
-            }
+      return function (source) {
+        var found = false;
+        for (var s = 0, slen = source.length; s < slen; s++) {
+          if (originalVal === source[s]) {
+            found = true; //perfect match
+            break;
           }
-          if (!found) {
-            changes[i] = null;
-          }
-          deferred.resolve();
-        }
-      };
-
-      for (var i = changes.length - 1; i >= 0; i--) {
-        var cellProperties = self.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
-        if (cellProperties.strict && cellProperties.source) {
-          var items = $.isFunction(cellProperties.source) ? cellProperties.source(changes[i][3], process(i)) : cellProperties.source;
-          if (items) {
-            process(i)(items)
+          else if (lowercaseVal === source[s].toLowerCase()) {
+            changes[i][3] = source[s]; //good match, fix the case
+            found = true;
+            break;
           }
         }
+        if (!found) {
+          changes[i] = null;
+        }
+        deferred.resolve();
+      }
+    };
+
+    for (var i = changes.length - 1; i >= 0; i--) {
+      var cellProperties = self.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
+      if (cellProperties.strict && cellProperties.source) {
+        $.isFunction(cellProperties.source) ? cellProperties.source(changes[i][3], process(i)) : process(i)(cellProperties.source);
       }
     }
 
-    $.when(deferreds).then(function () {
+    $.when.apply($, deferreds).then(function () {
       for (var i = changes.length - 1; i >= 0; i--) {
         if (changes[i] === null) {
           changes.splice(i, 1);
-        }
+        } else {
+          var cellProperties = self.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
 
-        var cellProperties = self.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
-        if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
-          if (changes[i][3].length > 0 && /^[0-9\s]*[.]*[0-9]*$/.test(changes[i][3])) {
-            changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+          if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
+            if (changes[i][3].length > 0 && /^[0-9\s]*[.]*[0-9]*$/.test(changes[i][3])) {
+              changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+            }
           }
         }
       }
@@ -1373,10 +1369,14 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
    */
   function applyChanges(changes, source) {
-    var i
-      , ilen;
+    var i = 0
+      , ilen = changes.length;
 
-    for (i = 0, ilen = changes.length; i < ilen; i++) {
+    if (!ilen) {
+      return;
+    }
+
+    while (i < ilen) {
       if (priv.settings.minSpareRows) {
         while (changes[i][0] > self.countRows() - 1) {
           datamap.createRow();
@@ -1388,6 +1388,7 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);
+      i++;
     }
     self.forceFullRender = true; //used when data was changed
     grid.keepEmptyRows();
@@ -3274,8 +3275,14 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
 HandsontableAutocompleteEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
 
 HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
-  if (this.isMenuExpanded() && this.typeahead.$menu.find('.active').length && !isCancelled) {
-    this.typeahead.select();
+  if (!isCancelled) {
+    if (this.isMenuExpanded() && this.typeahead.$menu.find('.active').length) {
+      this.typeahead.select();
+      this.isCellEdited = false; //cell value was updated by this.typeahead.select (issue #405)
+    }
+    else if (this.cellProperties.strict) {
+      this.isCellEdited = false; //cell value was not picked from this.typeahead.select (issue #405)
+    }
   }
   this._finishEditing(isCancelled, ctrlDown);
 };

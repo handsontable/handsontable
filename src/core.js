@@ -1274,13 +1274,11 @@ Handsontable.Core = function (rootElement, settings) {
     for (var i = changes.length - 1; i >= 0; i--) {
       var cellProperties = self.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
       if (cellProperties.strict && cellProperties.source) {
-        var items = $.isFunction(cellProperties.source) ? cellProperties.source(changes[i][3], process(i)) : cellProperties.source;
-
-        process(i)(items || []);
+        $.isFunction(cellProperties.source) ? cellProperties.source(changes[i][3], process(i)) : process(i)(cellProperties.source);
       }
     }
 
-    $.when(deferreds).then(function () {
+    $.when.apply($, deferreds).then(function () {
       for (var i = changes.length - 1; i >= 0; i--) {
         if (changes[i] === null) {
           changes.splice(i, 1);
@@ -1292,7 +1290,6 @@ Handsontable.Core = function (rootElement, settings) {
               changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
             }
           }
-
         }
       }
 
@@ -1353,10 +1350,14 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
    */
   function applyChanges(changes, source) {
-    var i
-      , ilen;
+    var i = 0
+      , ilen = changes.length;
 
-    for (i = 0, ilen = changes.length; i < ilen; i++) {
+    if (!ilen) {
+      return;
+    }
+
+    while (i < ilen) {
       if (priv.settings.minSpareRows) {
         while (changes[i][0] > self.countRows() - 1) {
           datamap.createRow();
@@ -1368,6 +1369,7 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);
+      i++;
     }
     self.forceFullRender = true; //used when data was changed
     grid.keepEmptyRows();
