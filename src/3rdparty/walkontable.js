@@ -1970,13 +1970,14 @@ WalkontableTable.prototype.getCell = function (coords) {
     else {
       var frozenColumns = this.instance.getSetting('frozenColumns')
         , frozenColumnsCount = (frozenColumns ? frozenColumns.length : 0)
-        , missingRow = ("undefined" === typeof this.TBODY.childNodes[coords[0] - offsetRow]);
+        , tr = this.TBODY.childNodes[coords[0] - offsetRow];
 
-      if (missingRow) {
+      if (typeof tr === "undefined") { //this block is only needed in async mode
         this.adjustAvailableNodes();
+        tr = this.TBODY.childNodes[coords[0] - offsetRow];
       }
 
-      return this.TBODY.childNodes[coords[0] - offsetRow].childNodes[coords[1] - offsetColumn + frozenColumnsCount];
+      return tr.childNodes[coords[1] - offsetColumn + frozenColumnsCount];
     }
   }
 };
