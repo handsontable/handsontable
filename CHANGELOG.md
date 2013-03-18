@@ -1,3 +1,8 @@
+## HEAD
+
+Bugfixes:
+- autocomplete menu did not reset <li> margin
+
 ## [0.8.15](https://github.com/warpech/jquery-handsontable/tree/v0.8.15) (Mar 18, 2013)
 
 Features:

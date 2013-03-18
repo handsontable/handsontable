@@ -242,7 +242,7 @@ NumericRenderer
 }
 
 /* typeahead rules. Needed only if you are using the autocomplete feature */
-.typeahead {
+.handsontable .typeahead {
   position: absolute;
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1.3em;
@@ -273,12 +273,13 @@ NumericRenderer
   border-radius: 4px;
 }
 
-.typeahead li {
+.handsontable .typeahead li {
   line-height: 18px;
   display: list-item;
+  margin: 0;
 }
 
-.typeahead a {
+.handsontable .typeahead a {
   display: block;
   padding: 3px 15px;
   clear: both;
@@ -288,13 +289,15 @@ NumericRenderer
   white-space: nowrap;
 }
 
-.typeahead li > a:hover, .typeahead .active > a, .typeahead .active > a:hover {
+.handsontable .typeahead li > a:hover,
+.handsontable .typeahead .active > a,
+.handsontable .typeahead .active > a:hover {
   color: white;
   text-decoration: none;
   background-color: #08C;
 }
 
-.typeahead a {
+.handsontable .typeahead a {
   color: #08C;
   text-decoration: none;
 }
