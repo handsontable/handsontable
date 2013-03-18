@@ -10,7 +10,8 @@ Bugfixes:
 - copy paste in Mac Safari didn't work ([#470](https://github.com/warpech/jquery-handsontable/issues/470))
 - table jumps back and forth when scrolling ([#432](https://github.com/warpech/jquery-handsontable/issues/432))
 - destroy doesn't unload context menu functionality ([#434](https://github.com/warpech/jquery-handsontable/issues/434))
-- throwed error when Enter key was pressed on autocomplete cell in the last row (#497)
+- throwed error when Enter key was pressed on autocomplete cell in the last row ([#497](https://github.com/warpech/jquery-handsontable/issues/497))
+- Autocomplete in strict mode allows values other than predefined ([#405](https://github.com/warpech/jquery-handsontable/issues/405))
 
 ## [0.8.14](https://github.com/warpech/jquery-handsontable/tree/v0.8.14) (Mar 14, 2013)
 
