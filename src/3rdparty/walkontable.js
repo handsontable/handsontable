@@ -1,7 +1,7 @@
 /**
  * walkontable 0.2.0
  * 
- * Date: Tue Mar 12 2013 02:12:23 GMT+0100 (Central European Standard Time)
+ * Date: Mon Mar 18 2013 16:23:12 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -846,8 +846,8 @@ function WalkontableScrollbar(instance, type) {
   this.dragdealer = new Dragdealer(this.slider, {
     vertical: (type === 'vertical'),
     horizontal: (type === 'horizontal'),
+    slide: false,
     speed: 100,
-    yPrecision: 100,
     animationCallback: function (x, y) {
       if (firstRun) {
         firstRun = false;

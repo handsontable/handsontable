@@ -94,8 +94,6 @@ Thank you for your commitment!
  handsontable('destroyEditor', [revertOriginal=false])                                 | Method      | Destroys current editor, renders and selects current cell. If revertOriginal == false, edited data is saved. Otherwise previous value is restored
  handsontable('getRowHeader', [row])                                                   | Method      | Return array of row headers (if they are enabled). If param `row` given, return header at given row as string
  handsontable('getColHeader', [col])                                                   | Method      | Return array of col headers (if they are enabled). If param `col` given, return header at given col as string
- handsontable('setCellReadOnly', row, col)                                             | Method      | Sets cell to be readonly
- handsontable('setCellEditable', row, col)                                             | Method      | Sets cell to be editable (removes readonly)
  handsontable('destroy')                                                               | Method      | Remove grid from DOM
  handsontable('isUndoAvailable')                                                       | Method      | Return true if undo can be performed, false otherwise
  handsontable('isRedoAvailable')                                                       | Method      | Return true if redo can be performed, false otherwise
