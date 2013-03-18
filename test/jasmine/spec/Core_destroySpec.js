@@ -26,18 +26,24 @@ describe('Core_destroy', function () {
     });
   });
 
-  it('should remove events from the root element', function () {
+  it('should remove events from the root element, document element and window', function () {
     runs(function () {
       handsontable();
       expect($._data(this.$container[0], 'events')).toBeTruthy();
+      expect($._data(document.documentElement, 'events')).toBeTruthy();
+      expect($._data(window, 'events')).toBeTruthy();
       destroy();
       expect($._data(this.$container[0], 'events')).toBeFalsy();
+      expect($._data(document.documentElement, 'events')).toBeFalsy();
+      expect($._data(window, 'events')).toBeFalsy();
     });
 
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
       expect($._data(this.$container[0], 'events')).toBeFalsy(); //expect the same with async rendering
+      expect($._data(document.documentElement, 'events')).toBeFalsy(); //expect the same with async rendering
+      expect($._data(window, 'events')).toBeFalsy(); //expect the same with async rendering
     });
   });
 });
