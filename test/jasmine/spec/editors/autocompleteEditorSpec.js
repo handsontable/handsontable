@@ -217,6 +217,7 @@ describe('AutocompleteEditor', function () {
                 data: {
                   query: query
                 },
+                dataType: 'json',
                 success: function (response) {
                   process(response);
                   done = true;
@@ -273,6 +274,7 @@ describe('AutocompleteEditor', function () {
                 data: {
                   query: query
                 },
+                dataType: 'json',
                 success: function (response) {
                   process([]); // hardcoded empty result
                   done = true;
@@ -364,8 +366,9 @@ describe('AutocompleteEditor', function () {
                 data: {
                   query: query
                 },
+                dataType: 'json',
                 success: function (response) {
-                  process(response); // hardcoded empty result
+                  process(response);
                   done = true;
                 }
               });
