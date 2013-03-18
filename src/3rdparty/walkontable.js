@@ -1,7 +1,7 @@
 /**
  * walkontable 0.2.0
- *
- * Date: Tue Mar 12 2013 02:12:23 GMT+0100 (Central European Standard Time)
+ * 
+ * Date: Mon Mar 18 2013 16:23:12 GMT+0100 (Central European Standard Time)
 */
 
 function WalkontableBorder(instance, settings) {
@@ -2109,7 +2109,7 @@ Dragdealer.prototype =
 		this.wrapper = wrapper;
 		this.handle = handle;
 		this.options = options;
-
+		
 		this.disabled = this.getOption('disabled', false);
 		this.horizontal = this.getOption('horizontal', true);
 		this.vertical = this.getOption('vertical', false);
@@ -2120,10 +2120,10 @@ Dragdealer.prototype =
 		this.speed = this.getOption('speed', 10) / 100;
 		this.xPrecision = this.getOption('xPrecision', 0);
 		this.yPrecision = this.getOption('yPrecision', 0);
-
+		
 		this.callback = options.callback || null;
 		this.animationCallback = options.animationCallback || null;
-
+		
 		this.bounds = {
 			left: options.left || 0, right: -(options.right || 0),
 			top: options.top || 0, bottom: -(options.bottom || 0),
@@ -2143,7 +2143,7 @@ Dragdealer.prototype =
 			target: [0, 0]
 		};
 		this.change = [0, 0];
-
+		
 		this.activity = false;
 		this.dragging = false;
 		this.tapping = false;
@@ -2158,7 +2158,7 @@ Dragdealer.prototype =
 		this.setBoundsPadding();
 		this.setBounds();
 		this.setSteps();
-
+		
 		this.addListeners();
 	},
 	setWrapperOffset: function()
@@ -2183,11 +2183,11 @@ Dragdealer.prototype =
 		this.bounds.x0 = this.bounds.left;
 		this.bounds.x1 = this.wrapper.offsetWidth + this.bounds.right;
 		this.bounds.xRange = (this.bounds.x1 - this.bounds.x0) - this.handle.offsetWidth;
-
+		
 		this.bounds.y0 = this.bounds.top;
 		this.bounds.y1 = this.wrapper.offsetHeight + this.bounds.bottom;
 		this.bounds.yRange = (this.bounds.y1 - this.bounds.y0) - this.handle.offsetHeight;
-
+		
 		this.bounds.xStep = 1 / (this.xPrecision || Math.max(this.wrapper.offsetWidth, this.handle.offsetWidth));
 		this.bounds.yStep = 1 / (this.yPrecision || Math.max(this.wrapper.offsetHeight, this.handle.offsetHeight));
 	},
@@ -2205,7 +2205,7 @@ Dragdealer.prototype =
 	addListeners: function()
 	{
 		var self = this;
-
+		
 		this.wrapper.onselectstart = function()
 		{
 			return false;
@@ -2244,7 +2244,7 @@ Dragdealer.prototype =
 		{
 			return !self.activity;
 		}
-
+		
 		this.interval = setInterval(function(){ self.animate() }, 25);
 		self.animate(false, true);
 	},
@@ -2252,7 +2252,7 @@ Dragdealer.prototype =
 	{
 		this.activity = false;
 		Cursor.refresh(e);
-
+		
 		this.preventDefaults(e, true);
 		this.startDrag();
 		this.cancelEvent(e);
@@ -2260,7 +2260,7 @@ Dragdealer.prototype =
 	wrapperDownHandler: function(e)
 	{
 		Cursor.refresh(e);
-
+		
 		this.preventDefaults(e, true);
 		this.startTap();
 	},
@@ -2274,7 +2274,7 @@ Dragdealer.prototype =
 	{
 		this.setWrapperOffset();
 		this.setBounds();
-
+		
 		this.update();
 	},
 	enable: function()
@@ -2310,7 +2310,7 @@ Dragdealer.prototype =
 			return;
 		}
 		this.tapping = true;
-
+		
 		if(target === undefined)
 		{
 			target = [
@@ -2327,7 +2327,7 @@ Dragdealer.prototype =
 			return;
 		}
 		this.tapping = false;
-
+		
 		this.setTargetValue(this.value.current);
 		this.result();
 	},
@@ -2341,7 +2341,7 @@ Dragdealer.prototype =
 			Cursor.x - Position.get(this.handle)[0],
 			Cursor.y - Position.get(this.handle)[1]
 		];
-
+		
 		this.dragging = true;
 	},
 	stopDrag: function()
@@ -2351,7 +2351,7 @@ Dragdealer.prototype =
 			return;
 		}
 		this.dragging = false;
-
+		
 		var target = this.groupClone(this.value.current);
 		if(this.slide)
 		{
@@ -2394,13 +2394,13 @@ Dragdealer.prototype =
 		if(this.dragging)
 		{
 			var prevTarget = this.groupClone(this.value.target);
-
+			
 			var offset = [
 				Cursor.x - this.offset.wrapper[0] - this.offset.mouse[0],
 				Cursor.y - this.offset.wrapper[1] - this.offset.mouse[1]
 			];
 			this.setTargetOffset(offset, this.loose);
-
+			
 			this.change = [
 				this.value.target[0] - prevTarget[0],
 				this.value.target[1] - prevTarget[1]
@@ -2469,7 +2469,7 @@ Dragdealer.prototype =
 	setTargetValue: function(value, loose)
 	{
 		var target = loose ? this.getLooseValue(value) : this.getProperValue(value);
-
+		
 		this.groupCopy(this.value.target, target);
 		this.offset.target = this.getOffsetsByRatios(target);
 	},
@@ -2477,7 +2477,7 @@ Dragdealer.prototype =
 	{
 		var value = this.getRatiosByOffsets(offset);
 		var target = loose ? this.getLooseValue(value) : this.getProperValue(value);
-
+		
 		this.groupCopy(this.value.target, target);
 		this.offset.target = this.getOffsetsByRatios(target);
 	},
@@ -2497,7 +2497,7 @@ Dragdealer.prototype =
 		proper[1] = Math.max(proper[1], 0);
 		proper[0] = Math.min(proper[0], 1);
 		proper[1] = Math.min(proper[1], 1);
-
+		
 		if((!this.dragging && !this.tapping) || this.snap)
 		{
 			if(this.steps > 1)
@@ -2574,7 +2574,7 @@ Dragdealer.prototype =
 			e.preventDefault();
 		}
 		e.returnValue = false;
-
+		
 		if(selection && document.selection)
 		{
 			document.selection.empty();
@@ -2602,7 +2602,7 @@ Dragdealer.prototype =
  * Thanks to: Seamus Leahy for adding deltaX and deltaY
  *
  * Version: 3.0.6
- *
+ * 
  * Requires: 1.2.2+
  */
 
@@ -2626,7 +2626,7 @@ $.event.special.mousewheel = {
             this.onmousewheel = handler;
         }
     },
-
+    
     teardown: function() {
         if ( this.removeEventListener ) {
             for ( var i=types.length; i; ) {
@@ -2642,7 +2642,7 @@ $.fn.extend({
     mousewheel: function(fn) {
         return fn ? this.bind("mousewheel", fn) : this.trigger("mousewheel");
     },
-
+    
     unmousewheel: function(fn) {
         return this.unbind("mousewheel", fn);
     }
@@ -2653,27 +2653,27 @@ function handler(event) {
     var orgEvent = event || window.event, args = [].slice.call( arguments, 1 ), delta = 0, returnValue = true, deltaX = 0, deltaY = 0;
     event = $.event.fix(orgEvent);
     event.type = "mousewheel";
-
+    
     // Old school scrollwheel delta
     if ( orgEvent.wheelDelta ) { delta = orgEvent.wheelDelta/120; }
     if ( orgEvent.detail     ) { delta = -orgEvent.detail/3; }
-
+    
     // New school multidimensional scroll (touchpads) deltas
     deltaY = delta;
-
+    
     // Gecko
     if ( orgEvent.axis !== undefined && orgEvent.axis === orgEvent.HORIZONTAL_AXIS ) {
         deltaY = 0;
         deltaX = -1*delta;
     }
-
+    
     // Webkit
     if ( orgEvent.wheelDeltaY !== undefined ) { deltaY = orgEvent.wheelDeltaY/120; }
     if ( orgEvent.wheelDeltaX !== undefined ) { deltaX = -1*orgEvent.wheelDeltaX/120; }
-
+    
     // Add event and delta to the front of the arguments
     args.unshift(event, delta, deltaX, deltaY);
-
+    
     return ($.event.dispatch || $.event.handle).apply(this, args);
 }
 
