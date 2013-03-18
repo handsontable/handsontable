@@ -1,4 +1,4 @@
-## HEAD
+## [0.8.15](https://github.com/warpech/jquery-handsontable/tree/v0.8.15) (Mar 18, 2013)
 
 Features:
 - new callbacks: `onSelectionEnd` and `onSelectionEndByProp` (see [README.md](https://github.com/warpech/jquery-handsontable) for usage information)
