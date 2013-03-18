@@ -2121,6 +2121,7 @@ Handsontable.Core = function (rootElement, settings) {
     self.rootElement.empty();
     self.rootElement.removeData('handsontable');
     self.rootElement.off('.handsontable');
+    Handsontable.PluginHooks.run(self, 'afterDestroy');
   };
 
   this.timeouts = {};
