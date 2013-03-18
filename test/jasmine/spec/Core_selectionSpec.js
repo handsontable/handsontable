@@ -146,7 +146,7 @@ describe('Core_selection', function () {
 
     runs(function () {
       handsontable({
-        outsideClickDeselects : false
+        outsideClickDeselects: false
       });
       selectCell(0, 0);
     });
@@ -170,7 +170,7 @@ describe('Core_selection', function () {
 
     runs(function () {
       handsontable({
-        outsideClickDeselects : false
+        outsideClickDeselects: false
       });
       selectCell(0, 0);
     });
@@ -191,168 +191,105 @@ describe('Core_selection', function () {
   });
 
   it('should fix start range if provided is out of bounds (to the left)', function () {
-    var err;
-    try {
-      handsontable({
-        startRows: 5,
-        startCols: 5
-      });
-      selectCell(0, 0);
-      keyDownUp('arrow_left');
-    }
-    catch (e) {
-      err = e;
-    }
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    selectCell(0, 0);
+    keyDownUp('arrow_left');
 
-    expect(err).toBeUndefined();
     expect(getSelected()).toEqual([0, 0, 0, 0]);
   });
 
   it('should fix start range if provided is out of bounds (to the top)', function () {
-    var err;
-    try {
-      handsontable({
-        startRows: 5,
-        startCols: 5
-      });
-      selectCell(0, 0);
-      keyDownUp('arrow_up');
-    }
-    catch (e) {
-      err = e;
-    }
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    selectCell(0, 0);
+    keyDownUp('arrow_up');
 
-    expect(err).toBeUndefined();
     expect(getSelected()).toEqual([0, 0, 0, 0]);
   });
 
   it('should fix start range if provided is out of bounds (to the right)', function () {
-    var err;
-    try {
-      handsontable({
-        startRows: 5,
-        startCols: 5
-      });
-      selectCell(0, 4);
-      keyDownUp('arrow_right');
-    }
-    catch (e) {
-      err = e;
-    }
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    selectCell(0, 4);
+    keyDownUp('arrow_right');
 
-    expect(err).toBeUndefined();
     expect(getSelected()).toEqual([0, 4, 0, 4]);
   });
 
   it('should fix start range if provided is out of bounds (to the bottom)', function () {
-    var err;
-    try {
-      handsontable({
-        startRows: 5,
-        startCols: 5
-      });
-      selectCell(4, 0);
-      keyDownUp('arrow_down');
-    }
-    catch (e) {
-      err = e;
-    }
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    selectCell(4, 0);
+    keyDownUp('arrow_down');
 
-    expect(err).toBeUndefined();
     expect(getSelected()).toEqual([4, 0, 4, 0]);
   });
 
   it('should fix end range if provided is out of bounds (to the left)', function () {
-    var err;
-    try {
-      handsontable({
-        startRows: 5,
-        startCols: 5
-      });
-      selectCell(0, 1);
-      keyDownUp('shift+arrow_left');
-      keyDownUp('shift+arrow_left');
-    }
-    catch (e) {
-      err = e;
-    }
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    selectCell(0, 1);
+    keyDownUp('shift+arrow_left');
+    keyDownUp('shift+arrow_left');
 
-    expect(err).toBeUndefined();
     expect(getSelected()).toEqual([0, 1, 0, 0]);
   });
 
   it('should fix end range if provided is out of bounds (to the top)', function () {
-    var err;
-    try {
-      handsontable({
-        startRows: 5,
-        startCols: 5
-      });
-      selectCell(1, 0);
-      keyDownUp('shift+arrow_up');
-      keyDownUp('shift+arrow_up');
-    }
-    catch (e) {
-      err = e;
-    }
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    selectCell(1, 0);
+    keyDownUp('shift+arrow_up');
+    keyDownUp('shift+arrow_up');
 
-    expect(err).toBeUndefined();
     expect(getSelected()).toEqual([1, 0, 0, 0]);
   });
 
   it('should fix end range if provided is out of bounds (to the right)', function () {
-    var err;
-    try {
-      handsontable({
-        startRows: 5,
-        startCols: 5
-      });
-      selectCell(0, 3);
-      keyDownUp('shift+arrow_right');
-      keyDownUp('shift+arrow_right');
-    }
-    catch (e) {
-      err = e;
-    }
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    selectCell(0, 3);
+    keyDownUp('shift+arrow_right');
+    keyDownUp('shift+arrow_right');
 
-    expect(err).toBeUndefined();
     expect(getSelected()).toEqual([0, 3, 0, 4]);
   });
 
   it('should fix end range if provided is out of bounds (to the bottom)', function () {
-    var err;
-    try {
-      handsontable({
-        startRows: 5,
-        startCols: 5
-      });
-      selectCell(3, 0);
-      keyDownUp('shift+arrow_down');
-      keyDownUp('shift+arrow_down');
-      keyDownUp('shift+arrow_down');
-    }
-    catch (e) {
-      err = e;
-    }
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    selectCell(3, 0);
+    keyDownUp('shift+arrow_down');
+    keyDownUp('shift+arrow_down');
+    keyDownUp('shift+arrow_down');
 
-    expect(err).toBeUndefined();
     expect(getSelected()).toEqual([3, 0, 4, 0]);
   });
 
   it('should select multiple cells', function () {
-    var err;
-    try {
-      handsontable({
-        startRows: 5,
-        startCols: 5
-      });
-      selectCell(3, 0, 4, 1);
-    }
-    catch (e) {
-      err = e;
-    }
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    selectCell(3, 0, 4, 1);
 
-    expect(err).toBeUndefined();
     expect(getSelected()).toEqual([3, 0, 4, 1]);
   });
 
