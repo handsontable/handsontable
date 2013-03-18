@@ -142,6 +142,42 @@ describe('Core_keepEmptyRows', function () {
     });
   });
 
+  it('should create new row when last cell in last row is edited by autocomplete', function () {
+    var data = [
+          {id: 1, color: "orange" },
+        ];
+
+    handsontable({
+      data: data,
+      startRows: 5,
+      colHeaders: true,
+      minSpareRows: 1,
+      columns: [
+        {data: "id", type: 'text'},
+        {data: "color",
+          type: 'autocomplete',
+          source: ["yellow", "red", "orange"]
+        }
+      ]
+    });
+
+    selectCell(1, 1);
+
+    waits(51);
+
+    runs(function () {
+      keyDownUp('enter');
+      keyDown('arrow_down');
+      keyDownUp('enter');
+    });
+
+    waits(51);
+
+    runs(function () {
+      expect(data.length).toEqual(3);
+    });
+  });
+
   it('should not create more rows that maxRows', function () {
     handsontable({
       startRows: 4,
