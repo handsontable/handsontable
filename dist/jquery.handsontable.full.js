@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Mar 18 2013 16:51:04 GMT+0100 (Central European Standard Time)
+ * Date: Mon Mar 18 2013 17:05:08 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2140,6 +2140,7 @@ Handsontable.Core = function (rootElement, settings) {
     self.rootElement.empty();
     self.rootElement.removeData('handsontable');
     self.rootElement.off('.handsontable');
+    Handsontable.PluginHooks.run(self, 'afterDestroy');
   };
 
   this.timeouts = {};
@@ -3562,7 +3563,8 @@ Handsontable.PluginHooks = {
     afterGetCellMeta: [],
     afterGetColHeader: [],
     afterGetColWidth: [],
-    walkontableConfig: []
+    walkontableConfig: [],
+    afterDestroy: []
   },
 
   push: function (key, fn) {
@@ -3845,7 +3847,7 @@ function createContextMenu() {
   function onContextClick(key) {
     var corners = instance.getSelected(); //[top left row, top left col, bottom right row, bottom right col]
 
-    if(!corners) {
+    if (!corners) {
       return; //needed when there are 2 grids on a page
     }
 
@@ -3955,7 +3957,12 @@ function createContextMenu() {
   $.contextMenu($.extend(true, defaultOptions, options));
 }
 
+function destroyContextMenu() {
+  $.contextMenu('destroy', "#" + this.rootElement[0].id + ' table, #' + this.rootElement[0].id + ' div');
+}
+
 Handsontable.PluginHooks.push('afterInit', createContextMenu);
+Handsontable.PluginHooks.push('afterDestroy', destroyContextMenu);
 /**
  * This plugin adds support for legacy features, deprecated APIs, etc.
  */
