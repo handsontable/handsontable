@@ -245,6 +245,157 @@ describe('AutocompleteEditor', function () {
     });
   });
 
+  it('strict mode should not use value if it doesn\'t match the list (async reponse is empty)', function () {
+    var done = false
+      , count = 0;
+
+    var url;
+    if (window.location.href.indexOf('test/jasmine/') > -1) {
+      url = '../../demo/json/autocomplete.json';
+    }
+    else {
+      url = 'demo/json/autocomplete.json';
+    }
+
+    runs(function () {
+      handsontable({
+        data: [
+          ['one', 'two'],
+          ['three', 'four']
+        ],
+        columns: [
+          {
+            type: Handsontable.AutocompleteCell,
+            options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
+            source: function (query, process) {
+              $.ajax({
+                url: url,
+                data: {
+                  query: query
+                },
+                success: function (response) {
+                  process([]); // hardcoded empty result
+                  done = true;
+                }
+              });
+            },
+            strict: true
+          },
+          { type: 'text'}
+        ],
+        onChange: function () {
+          count++;
+        },
+        asyncRendering: false //TODO make sure tests pass also when async true
+      });
+      setDataAtCell(0, 0, 'unexistent');
+    });
+
+    waitsFor(function () {
+      return done;
+    }, 1000);
+
+    runs(function () {
+      expect(getData()).toEqual([
+        ['one', 'two'],
+        ['three', 'four']
+      ]);
+      expect(count).toEqual(1); //1 for loadData
+    });
+
+  });
+
+  it('strict mode should use value if it matches the list (sync response)', function () {
+    var count = 0;
+
+    handsontable({
+      data: [
+        ['one', 'two'],
+        ['three', 'four']
+      ],
+      columns: [
+        {
+          type: Handsontable.AutocompleteCell,
+          options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
+          source: ['Acura', 'BMW', 'Bentley'],
+          strict: true
+        },
+        { type: 'text'}
+      ],
+      onChange: function () {
+        count++;
+      },
+      asyncRendering: false //TODO make sure tests pass also when async true
+    });
+    setDataAtCell(0, 0, 'unexistent');
+
+    expect(getData()).toEqual([
+      ['one', 'two'],
+      ['three', 'four']
+    ]);
+    expect(count).toEqual(1); //1 for loadData, 1 for edit
+  });
+
+  it('strict mode should use value if it matches the list (async response)', function () {
+    var done = false
+      , count = 0;
+
+    var url;
+    if (window.location.href.indexOf('test/jasmine/') > -1) {
+      url = '../../demo/json/autocomplete.json';
+    }
+    else {
+      url = 'demo/json/autocomplete.json';
+    }
+
+    runs(function () {
+      handsontable({
+        data: [
+          ['one', 'two'],
+          ['three', 'four']
+        ],
+        columns: [
+          {
+            type: Handsontable.AutocompleteCell,
+            options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
+            source: function (query, process) {
+              $.ajax({
+                url: url,
+                data: {
+                  query: query
+                },
+                success: function (response) {
+                  process(response); // hardcoded empty result
+                  done = true;
+                }
+              });
+            },
+            strict: true
+          },
+          { type: 'text'}
+        ],
+        onChange: function () {
+          count++;
+        },
+        asyncRendering: false //TODO make sure tests pass also when async true
+      });
+      setDataAtCell(0, 0, 'Acura');
+    });
+
+    waitsFor(function () {
+      return done;
+    }, 1000);
+
+    runs(function () {
+      expect(getData()).toEqual([
+        ['Acura', 'two'],
+        ['three', 'four']
+      ]);
+      expect(count).toEqual(2); //1 for loadData, 1 for edit
+    });
+
+  });
+
   it('typing in textarea should refresh the lookup list', function () {
     runs(function () {
       handsontable({
@@ -294,7 +445,6 @@ describe('AutocompleteEditor', function () {
 
     runs(function () {
       keyDownUp('enter');
-
     });
 
     waitsFor(nextFrame, 'next frame', 60);
