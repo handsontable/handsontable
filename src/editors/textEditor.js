@@ -262,10 +262,10 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
     editLeft = 0;
   }
 
-  if (rowHeadersCount > 0 && parseInt($td.css('border-top-width')) > 0) {
+  if (rowHeadersCount > 0 && parseInt($td.css('border-top-width'), 10) > 0) {
     editTop += 1;
   }
-  if (colHeadersCount > 0 && parseInt($td.css('border-left-width')) > 0) {
+  if (colHeadersCount > 0 && parseInt($td.css('border-left-width'), 10) > 0) {
     editLeft += 1;
   }
 
@@ -282,10 +282,10 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   var width = $td.width()
     , height = $td.outerHeight() - 4;
 
-  if (parseInt($td.css('border-top-width')) > 0) {
+  if (parseInt($td.css('border-top-width'), 10) > 0) {
     height -= 1;
   }
-  if (parseInt($td.css('border-left-width')) > 0) {
+  if (parseInt($td.css('border-left-width'), 10) > 0) {
     if (rowHeadersCount > 0) {
       width -= 1;
     }

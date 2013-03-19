@@ -65,7 +65,7 @@ function HandsontableColumnSorting() {
 
   this.getColHeader = function (col, TH) {
     if (this.getSettings().columnSorting) {
-      $(TH).find('span.colHeader').addClass('columnSorting');
+      $(TH).find('span.colHeader')[0].className += ' columnSorting';
     }
   };
 }

@@ -64,7 +64,7 @@ function HandsontableManualColumnMove() {
         $ghost.appendTo($table.parent());
         $ghost.width($resizer.parent().width());
         $ghost.height($table.height());
-        startOffset = parseInt(th.offset().left - $table.offset().left);
+        startOffset = parseInt(th.offset().left - $table.offset().left, 10);
         $ghost[0].style.left = startOffset + 6 + 'px';
       });
       this.rootElement.on('mouseenter.handsontable', 'td, th', function (e) {

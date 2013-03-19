@@ -28,7 +28,7 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, c
     td.innerHTML = "#bad value#";
   }
 
-  var $input = $(td).find('input:first');
+  var $input = $(td).find('input').first();
   $input.mousedown(function (event) {
     if (!$(this).is(':checked')) {
       instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);

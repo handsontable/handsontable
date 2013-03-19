@@ -54,7 +54,7 @@ function HandsontableManualColumnResize() {
       this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
         instance = that;
         var $resizer = $(e.target);
-        currentCol = $resizer.attr('rel');
+        currentCol = $resizer.getAttribute('rel');
         start = that.rootElement.find('col').eq($resizer.parent().parent().index());
         pressed = true;
         startX = e.pageX;
@@ -64,7 +64,7 @@ function HandsontableManualColumnResize() {
 
         var $table = that.rootElement.find('.htCore');
         $line.appendTo($table.parent()).height($table.height());
-        startOffset = parseInt($resizer.parent().parent().offset().left - $table.offset().left);
+        startOffset = parseInt($resizer.parent().parent().offset().left - $table.offset().left, 10);
         $line[0].style.left = startOffset + currentWidth - 1 + 'px';
       });
     }
@@ -80,7 +80,7 @@ function HandsontableManualColumnResize() {
     if (this.getSettings().manualColumnResize) {
       var DIV = document.createElement('DIV');
       DIV.className = 'manualColumnResizer';
-      $(DIV).attr('rel', col);
+      DIV.setAttribute('rel', col);
       TH.firstChild.appendChild(DIV);
     }
   };

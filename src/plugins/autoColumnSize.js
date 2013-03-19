@@ -5,12 +5,15 @@
 function HandsontableAutoColumnSize() {
   var that = this
     , instance
-    , tmp
     , $tmp
     , tmpTbody
+    , tmpTbodyTd
     , tmpThead
+    , tmpTheadTh
     , tmpNoRenderer
+    , tmpNoRendererTd
     , tmpRenderer
+    , tmpRendererTd
     , sampleCount = 5; //number of samples to take of each value length
 
   this.beforeInit = function () {
@@ -18,39 +21,26 @@ function HandsontableAutoColumnSize() {
   };
 
   this.determineColumnWidth = function (col) {
-    if (!tmp) {
-      tmp = document.createElement('DIV');
-      tmp.className = 'handsontable';
-      tmp.style.position = 'absolute';
-      tmp.style.top = '0';
-      tmp.style.left = '0';
-      tmp.style.display = 'none';
+    if (!$tmp) {
 
-      tmpThead = $('<table><thead><tr><td></td></tr></thead></table>')[0];
-      tmp.appendChild(tmpThead);
+      tmpThead = $('<table><thead><tr><th></th></tr></thead></table>');
+      tmpTheadTh = tmpThead.find('th')[0];
 
-      tmp.appendChild(document.createElement('BR'));
+      tmpTbody = $('<table><tbody><tr><td></td></tr></tbody></table>');
+      tmpTbodyTd = tmpTbody.find('td')[0];
 
-      tmpTbody = $('<table><tbody><tr><td></td></tr></tbody></table>')[0];
-      tmp.appendChild(tmpTbody);
+      tmpNoRenderer = $('<table><tbody><tr><td></td></tr></tbody></table>');
+      tmpNoRendererTd = tmpNoRenderer.find('td')[0];
 
-      tmp.appendChild(document.createElement('BR'));
+      tmpRenderer = $('<table><tbody><tr><td></td></tr></tbody></table>');
+      tmpRendererTd = tmpRenderer.find('td')[0];
 
-      tmpNoRenderer = $('<table class="htTable"><tbody><tr><td></td></tr></tbody></table>')[0];
-      tmp.appendChild(tmpNoRenderer);
-
-      tmp.appendChild(document.createElement('BR'));
-
-      tmpRenderer = $('<table class="htTable"><tbody><tr><td></td></tr></tbody></table>')[0];
-      tmp.appendChild(tmpRenderer);
-
-      document.body.appendChild(tmp);
-      $tmp = $(tmp);
-
-      $tmp.find('table').css({
+      $tmp = $('<div class="handsontable hidden" />').appendTo(document.body);
+      $tmp.append(tmpThead, tmpTbody, tmpNoRenderer, tmpRenderer).css({
         tableLayout: 'auto',
         width: 'auto'
       });
+
     }
 
     var rows = instance.countRows();
@@ -76,7 +66,7 @@ function HandsontableAutoColumnSize() {
 
     var settings = instance.getSettings();
     if (settings.colHeaders) {
-      instance.getColHeader(col, tmpThead.firstChild.firstChild.firstChild); //TH innerHTML
+      instance.getColHeader(col, tmpTheadTh); //TH innerHTML
     }
 
     var txt = '';
@@ -87,26 +77,26 @@ function HandsontableAutoColumnSize() {
         }
       }
     }
-    tmpTbody.firstChild.firstChild.firstChild.innerHTML = txt; //TD innerHTML
+    tmpTbodyTd.innerHTML = txt; //TD innerHTML
 
-    $(tmpRenderer.firstChild.firstChild.firstChild).empty();
-    $(tmpNoRenderer.firstChild.firstChild.firstChild).empty();
+    Handsontable.helper.empty(tmpRendererTd);
+    Handsontable.helper.empty(tmpNoRendererTd);
 
-    tmp.style.display = 'block';
-    var width = $tmp.outerWidth();
+    var width = $tmp.show().outerWidth();
 
     var cellProperties = instance.getCellMeta(0, col);
     if (cellProperties.renderer) {
       var str = 9999999999;
 
-      tmpNoRenderer.firstChild.firstChild.firstChild.innerHTML = str;
+      tmpNoRendererTd.innerHTML = str;
 
-      cellProperties.renderer(instance, tmpRenderer.firstChild.firstChild.firstChild, 0, col, instance.colToProp(col), str, cellProperties);
+      cellProperties.renderer(instance, tmpRendererTd, 0, col, instance.colToProp(col), str, cellProperties);
 
-      width += $(tmpRenderer).width() - $(tmpNoRenderer).width(); //add renderer overhead to the calculated width
+      width += tmpRenderer.width() - tmpNoRenderer.width(); //add renderer overhead to the calculated width
     }
 
-    tmp.style.display = 'none';
+    $tmp[0].style.display = 'none';
+
     return width;
   };
 

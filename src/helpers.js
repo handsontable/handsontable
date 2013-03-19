@@ -42,3 +42,13 @@ Handsontable.helper.stringify = function (value) {
       return value.toString();
   }
 };
+
+// Remove childs function
+// WARNING - this doesn't unload events and data attached by jQuery
+// http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/8
+Handsontable.helper.empty = function (element) {
+  while (element.childNodes.length > 0) {
+    element.removeChild(element.childNodes[0]);
+  }
+};
+
