@@ -1,8 +1,8 @@
 $(document).ready(function () {
   var suite = new Benchmark.Suite;
 
-  $('<button>Run all tests</button>').appendTo(document.body).click(function () {
-    suite.run(/*{ 'defer': true }*/{async: true});
+  $('<button id="runAll">Run all tests</button>').appendTo(document.body).click(function () {
+    runAllTests();
   });
 
   /**
@@ -104,11 +104,25 @@ $(document).ready(function () {
   suite.on('cycle', function (event) {
     results.push(event.target);
     reporter.handsontable('render');
-    console.log(String(event.target), results);
-  })
-
-  suite.on('complete', function () {
-    console.log('Fastest is ' + _.pluck(this.filter('fastest'), 'name'));
+    var stringified = String(event.target).replace(/±/g, '+-');
+    console.log(' - ', stringified/*, results*/);
   });
 
+  suite.on('complete', function () {
+    var total = 0;
+    for (var i = 0, ilen = results.length; i < ilen; i++) {
+      total += results[i].hz;
+    }
+    console.error("TOTAL SCORE:", numeral(total).format('0'));
+  });
+
+  function runAllTests() {
+    console.log("Running all tests...");
+    suite.run(/*{ 'defer': true }*/{async: true});
+  }
+
+  if (/phantom/i.test(navigator.userAgent)) {
+    //This is PhantomJS. Start tests immediately
+    runAllTests();
+  }
 });
