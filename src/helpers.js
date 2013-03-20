@@ -42,3 +42,17 @@ Handsontable.helper.stringify = function (value) {
       return value.toString();
   }
 };
+
+/**
+ * Generates a random hex string. Used as namespace for Handsontable instance events.
+ * @return {String} - 16 character random string: "92b1bfc74ec4"
+ */
+Handsontable.helper.randomString = function () {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  };
+
+  return s4() + s4() + s4() + s4();
+};

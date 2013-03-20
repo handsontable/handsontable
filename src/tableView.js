@@ -28,7 +28,7 @@ Handsontable.TableView = function (instance) {
   //instance.rootElement[0].style.height = '';
   //instance.rootElement[0].style.width = '';
 
-  $(document.documentElement).on('keyup.handsontable', function (event) {
+  $(document.documentElement).on('keyup.' + instance.guid, function (event) {
     if (instance.selection.isInProgress() && !event.shiftKey) {
       instance.selection.finish();
     }
@@ -37,7 +37,7 @@ Handsontable.TableView = function (instance) {
   var isMouseDown
     , dragInterval;
 
-  $(document.documentElement).on('mouseup.handsontable', function (event) {
+  $(document.documentElement).on('mouseup.' + instance.guid, function (event) {
     if (instance.selection.isInProgress() && event.which === 1) { //is left mouse button
       instance.selection.finish();
     }
@@ -54,7 +54,7 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  $(document.documentElement).on('mousedown.handsontable', function (event) {
+  $(document.documentElement).on('mousedown.' + instance.guid, function (event) {
     var target = event.target
       , next = target;
 
@@ -250,7 +250,7 @@ Handsontable.TableView = function (instance) {
   this.instance.forceFullRender = true; //used when data was changed
   this.render();
 
-  $window.on('resize.handsontable', function () {
+  $window.on('resize.' + instance.guid, function () {
     that.instance.registerTimeout('resizeTimeout', function () {
       var lastContainerWidth = that.containerWidth;
       var lastContainerHeight = that.containerHeight;

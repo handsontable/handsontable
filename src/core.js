@@ -6,6 +6,11 @@
  */
 Handsontable.Core = function (rootElement, settings) {
   this.rootElement = rootElement;
+  this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
+
+  if (!this.rootElement[0].id) {
+    this.rootElement[0].id = this.guid; //if root element does not have an id, assign a random id
+  }
 
   var priv, datamap, grid, selection, editproxy, autofill, self = this;
 
@@ -2122,8 +2127,8 @@ Handsontable.Core = function (rootElement, settings) {
     self.rootElement.empty();
     self.rootElement.removeData('handsontable');
     self.rootElement.off('.handsontable');
-    $(window).off('.handsontable');
-    $(document.documentElement).off('.handsontable');
+    $(window).off('.' + self.guid);
+    $(document.documentElement).off('.' + self.guid);
     Handsontable.PluginHooks.run(self, 'afterDestroy');
   };
 
