@@ -24,16 +24,16 @@ function HandsontableAutoColumnSize() {
     if (!$tmp) {
 
       tmpThead = $('<table><thead><tr><th></th></tr></thead></table>');
-      tmpTheadTh = tmpThead.find('th')[0];
+      tmpTheadTh = tmpThead[0].getElementsByTagName('th')[0];
 
       tmpTbody = $('<table><tbody><tr><td></td></tr></tbody></table>');
-      tmpTbodyTd = tmpTbody.find('td')[0];
+      tmpTbodyTd = tmpTbody[0].getElementsByTagName('td')[0];
 
       tmpNoRenderer = $('<table><tbody><tr><td></td></tr></tbody></table>');
-      tmpNoRendererTd = tmpNoRenderer.find('td')[0];
+      tmpNoRendererTd = tmpNoRenderer[0].getElementsByTagName('td')[0];
 
       tmpRenderer = $('<table><tbody><tr><td></td></tr></tbody></table>');
-      tmpRendererTd = tmpRenderer.find('td')[0];
+      tmpRendererTd = tmpRenderer[0].getElementsByTagName('td')[0];
 
       $tmp = $('<div class="handsontable hidden" />').appendTo(document.body);
       $tmp.append(tmpThead, tmpTbody, tmpNoRenderer, tmpRenderer).css({

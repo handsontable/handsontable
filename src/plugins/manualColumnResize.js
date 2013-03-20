@@ -52,19 +52,22 @@ function HandsontableManualColumnResize() {
     if (this.getSettings().manualColumnResize) {
       var that = this;
       this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
+        var _resizer = e.target,
+            $table   = that.rootElement.find('.htCore'),
+            $grandpa = $(_resizer.parentNode.parentNode);
+
         instance = that;
-        var $resizer = $(e.target);
-        currentCol = $resizer.getAttribute('rel');
-        start = that.rootElement.find('col').eq($resizer.parent().parent().index());
+        currentCol = _resizer.getAttribute('rel');
+        start = $(that.rootElement[0].getElementsByTagName('col')[$grandpa.index()]);
         pressed = true;
         startX = e.pageX;
         startWidth = start.width();
         currentWidth = startWidth;
-        $resizer.addClass('active');
 
-        var $table = that.rootElement.find('.htCore');
+        _resizer.className += ' active';
+
         $line.appendTo($table.parent()).height($table.height());
-        startOffset = parseInt($resizer.parent().parent().offset().left - $table.offset().left, 10);
+        startOffset = parseInt($grandpa.offset().left - $table.offset().left, 10);
         $line[0].style.left = startOffset + currentWidth - 1 + 'px';
       });
     }
