@@ -40,6 +40,7 @@ module.exports = function (grunt) {
         'src/editors/autocompleteEditor.js',
         'src/editors/checkboxEditor.js',
         'src/editors/dateEditor.js',
+        'src/editors/handsontableEditor.js',
 
         'src/cellTypes.js',
 
