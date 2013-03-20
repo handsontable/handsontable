@@ -8,11 +8,10 @@ function HandsontableTextEditorClass(instance) {
 }
 
 HandsontableTextEditorClass.prototype.createElements = function () {
-  this.TEXTAREA = $('<textarea class="handsontableInput">');
-  this.TEXTAREA.css({
-    width: 0,
-    height: 0
-  });
+  this.TEXTAREA = document.createElement('textarea');
+  this.TEXTAREA.className = "handsontableInput";
+  this.TEXTAREA.style.width = 0;
+  this.TEXTAREA.style.height = 0;
 
   this.TEXTAREA_PARENT = $('<div class="handsontableInputHolder">').append(this.TEXTAREA);
   this.TEXTAREA_PARENT.css({

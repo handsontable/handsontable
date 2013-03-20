@@ -33,7 +33,7 @@
           if (multiline && c === 0) {
             last = arr[a].length - 1;
             arr[a][last] = arr[a][last] + '\n' + rows[r][0];
-            if (multiline && countQuotes(rows[r][0]) % 2 === 1) {
+            if (multiline && (countQuotes(rows[r][0]) & 1)) {
               multiline = false;
               arr[a][last] = arr[a][last].substring(0, arr[a][last].length - 1).replace(/""/g, '"');
             }

@@ -1652,12 +1652,13 @@ WalkontableTable.prototype.refreshStretching = function () {
 };
 
 WalkontableTable.prototype.adjustAvailableNodes = function () {
-  var totalRows = this.instance.getSetting('totalRows')
-    , totalColumns = this.instance.getSetting('totalColumns')
-    , displayRows = this.instance.getSetting('displayRows')
-    , displayColumns = this.instance.getSetting('displayColumns')
+  var instance = this.instance
+    , totalRows = instance.getSetting('totalRows')
+    , totalColumns = instance.getSetting('totalColumns')
+    , displayRows = instance.getSetting('displayRows')
+    , displayColumns = instance.getSetting('displayColumns')
     , displayTds
-    , frozenColumns = this.instance.getSetting('frozenColumns')
+    , frozenColumns = instance.getSetting('frozenColumns')
     , frozenColumnsCount = frozenColumns ? frozenColumns.length : 0
     , TR
     , c;
