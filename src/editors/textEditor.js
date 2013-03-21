@@ -1,10 +1,8 @@
 function HandsontableTextEditorClass(instance) {
-  if (instance) {
-    this.isCellEdited = false;
-    this.instance = instance;
-    this.createElements();
-    this.bindEvents();
-  }
+  this.isCellEdited = false;
+  this.instance = instance;
+  this.createElements();
+  this.bindEvents();
 }
 
 HandsontableTextEditorClass.prototype.createElements = function () {
