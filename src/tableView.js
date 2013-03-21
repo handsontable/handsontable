@@ -237,7 +237,10 @@ Handsontable.TableView = function (instance) {
     that.instance.registerTimeout('resizeTimeout', function () {
       var lastContainerWidth = that.containerWidth;
       var lastContainerHeight = that.containerHeight;
+
       that.determineContainerSize();
+
+      console.log(lastContainerWidth, that.containerWidth, lastContainerHeight, that.containerHeight);
       if (lastContainerWidth !== that.containerWidth || lastContainerHeight !== that.containerHeight) {
         that.wt.update('width', that.containerWidth);
         that.wt.update('height', that.containerHeight);
@@ -262,6 +265,7 @@ Handsontable.TableView.prototype.isCellEdited = function () {
 
 Handsontable.TableView.prototype.determineContainerSize = function () {
   var settings = this.instance.getSettings();
+
   this.containerWidth = settings.width;
   this.containerHeight = settings.height;
 
@@ -277,12 +281,10 @@ Handsontable.TableView.prototype.determineContainerSize = function () {
       this.containerHeight = computedHeight;
     }
 
-    if (this.wt ? this.wt.wtScroll.wtScrollbarV.visible : false) {
-      this.containerHeight += 10; // naive assumption that scrollbar has 10px
-    }
-
-    if (this.wt ? this.wt.wtScroll.wtScrollbarH.visible : false) {
-      this.containerWidth += 10; // naive assumption that scrollbar has 10px
+    if (this.instance.rootElement[0].style.height === '') {
+      if (this.wt && this.wt.wtScroll.wtScrollbarV.visible) {
+        this.containerHeight += this.wt.getSetting('scrollbarHeight');
+      }
     }
   }
 };
