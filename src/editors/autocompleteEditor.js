@@ -7,7 +7,7 @@ function HandsontableAutocompleteEditorClass(instance) {
   }
 }
 
-HandsontableAutocompleteEditorClass.prototype = new HandsontableTextEditorClass();
+inherit(HandsontableAutocompleteEditorClass, HandsontableTextEditorClass);
 
 HandsontableAutocompleteEditorClass.prototype._createElements = HandsontableTextEditorClass.prototype.createElements;
 

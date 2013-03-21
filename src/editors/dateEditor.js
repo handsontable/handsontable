@@ -7,7 +7,7 @@ function HandsontableDateEditorClass(instance) {
   }
 }
 
-HandsontableDateEditorClass.prototype = new HandsontableTextEditorClass();
+inherit(HandsontableDateEditorClass, HandsontableTextEditorClass);
 
 HandsontableDateEditorClass.prototype._createElements = HandsontableTextEditorClass.prototype.createElements;
 
