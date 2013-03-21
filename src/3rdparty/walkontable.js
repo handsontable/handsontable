@@ -456,6 +456,17 @@ WalkontableDom.prototype.removeTextNodes = function (elem, parent) {
   }
 };
 
+// Remove childs function
+// WARNING - this doesn't unload events and data attached by jQuery
+// http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
+WalkontableDom.prototype.empty = function (element) {
+  var child;
+  while (child = element.lastChild) {
+    element.removeChild(child);
+  }
+};
+
+
 /**
  * seems getBounding is usually faster: http://jsperf.com/offset-vs-getboundingclientrect/4
  * but maybe offset + cache would work?
@@ -1291,7 +1302,7 @@ function WalkontableSettings(instance, settings) {
         TD.innerHTML = cellData;
       }
       else {
-        Handsontable.helper.empty(TD);
+        this.wtDom.empty(TD);
       }
     },
     columnWidth: 50,
@@ -1777,7 +1788,7 @@ WalkontableTable.prototype._doDraw = function () {
         frozenColumns[c](null, TH);
       }
       else {
-        Handsontable.helper.empty(TH);
+        this.wtDom.empty(TH);
       }
       if (this.hasEmptyCellProblem && TH.innerHTML === '') { //IE7
         TH.innerHTML = '&nbsp;';

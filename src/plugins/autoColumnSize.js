@@ -28,12 +28,14 @@ function HandsontableAutoColumnSize() {
 
       tmpThead   = d.createElement('table');
       tmpThead.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(d.createElement('th'));
-      tmpThead.className = 'htTable';
       tmpTheadTh = tmpThead.getElementsByTagName('th')[0];
 
-      tmpTbody   = d.createElement('table');
+      tmpThead.className = 'htTable';
+      tmpThead.style.tableLayout = 'auto',
+      tmpThead.style.width = 'auto',
+
+      tmpTbody   = tmpThead.cloneNode(false);
       tmpTbody.appendChild(d.createElement('tbody')).appendChild(d.createElement('tr')).appendChild(d.createElement('td'));
-      tmpTbody.className = 'htTable';
       tmpTbodyTd = tmpTbody.getElementsByTagName('td')[0];
 
       tmpNoRenderer   = tmpTbody.cloneNode(true);
@@ -50,17 +52,12 @@ function HandsontableAutoColumnSize() {
       tmp.appendChild(tmpNoRenderer);
       tmp.appendChild(tmpRenderer);
 
-
       $tmp = $(tmp);
-      tmpNoRenderer = $(tmpNoRenderer);
-      tmpRenderer = $(tmpRenderer);
+
+      tmpNoRenderer = $tmp.children().eq(2);
+      tmpRenderer   = $tmp.children().eq(3);
 
       d.body.appendChild(tmp);
-
-      $tmp.find('table').css({
-        tableLayout: 'auto',
-        width: 'auto'
-      });
 
     }
 
