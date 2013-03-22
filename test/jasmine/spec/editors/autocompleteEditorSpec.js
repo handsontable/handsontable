@@ -335,7 +335,7 @@ describe('AutocompleteEditor', function () {
       ['one', 'two'],
       ['three', 'four']
     ]);
-    expect(count).toEqual(1); //1 for loadData, 1 for edit
+    expect(count).toEqual(1); //1 for loadData
   });
 
   it('strict mode should use value if it matches the list (async response)', function () {
