@@ -1371,6 +1371,11 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   var bindEvents = function () {
+    self.rootElement.on("columnresize.handsontable", function(event, col) {
+      if (priv.settings.onColumnResize) {
+        priv.settings.onColumnResize.apply(self.rootElement[0], [col]);
+      }
+    });
     self.rootElement.on("datachange.handsontable", function (event, changes, source) {
       if (priv.settings.onChange) {
         priv.settings.onChange.apply(self.rootElement[0], [changes, source]);
@@ -4204,12 +4209,14 @@ function HandsontableManualColumnResize() {
       instance.forceFullRender = true;
       instance.view.render(); //updates all
       $line[0].style.display = 'none';
+      instance.rootElement.triggerHandler('columnresize.handsontable', [currentCol]);
     }
   });
 
   $(document).dblclick(function (e) {
     if ($(e.target).is('.manualColumnResizer')) {
       setManualSize(currentCol, htAutoColumnSize.determineColumnWidth.call(instance, currentCol));
+      instance.rootElement.triggerHandler('columnresize.handsontable', [currentCol]);
     }
   });
 
