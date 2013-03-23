@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Mar 18 2013 21:35:53 GMT+0100 (Central European Standard Time)
+ * Date: Sat Mar 23 2013 15:59:31 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -25,6 +25,11 @@ var Handsontable = { //class namespace
  */
 Handsontable.Core = function (rootElement, settings) {
   this.rootElement = rootElement;
+  this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
+
+  if (!this.rootElement[0].id) {
+    this.rootElement[0].id = this.guid; //if root element does not have an id, assign a random id
+  }
 
   var priv, datamap, grid, selection, editproxy, autofill, self = this;
 
@@ -2141,8 +2146,8 @@ Handsontable.Core = function (rootElement, settings) {
     self.rootElement.empty();
     self.rootElement.removeData('handsontable');
     self.rootElement.off('.handsontable');
-    $(window).off('.handsontable');
-    $(document.documentElement).off('.handsontable');
+    $(window).off('.' + self.guid);
+    $(document.documentElement).off('.' + self.guid);
     Handsontable.PluginHooks.run(self, 'afterDestroy');
   };
 
@@ -2273,7 +2278,7 @@ Handsontable.TableView = function (instance) {
   //instance.rootElement[0].style.height = '';
   //instance.rootElement[0].style.width = '';
 
-  $(document.documentElement).on('keyup.handsontable', function (event) {
+  $(document.documentElement).on('keyup.' + instance.guid, function (event) {
     if (instance.selection.isInProgress() && !event.shiftKey) {
       instance.selection.finish();
     }
@@ -2282,7 +2287,7 @@ Handsontable.TableView = function (instance) {
   var isMouseDown
     , dragInterval;
 
-  $(document.documentElement).on('mouseup.handsontable', function (event) {
+  $(document.documentElement).on('mouseup.' + instance.guid, function (event) {
     if (instance.selection.isInProgress() && event.which === 1) { //is left mouse button
       instance.selection.finish();
     }
@@ -2299,7 +2304,7 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  $(document.documentElement).on('mousedown.handsontable', function (event) {
+  $(document.documentElement).on('mousedown.' + instance.guid, function (event) {
     var target = event.target
       , next = target;
 
@@ -2495,7 +2500,7 @@ Handsontable.TableView = function (instance) {
   this.instance.forceFullRender = true; //used when data was changed
   this.render();
 
-  $window.on('resize.handsontable', function () {
+  $window.on('resize.' + instance.guid, function () {
     that.instance.registerTimeout('resizeTimeout', function () {
       var lastContainerWidth = that.containerWidth;
       var lastContainerHeight = that.containerHeight;
@@ -2623,6 +2628,20 @@ Handsontable.helper.stringify = function (value) {
     default:
       return value.toString();
   }
+};
+
+/**
+ * Generates a random hex string. Used as namespace for Handsontable instance events.
+ * @return {String} - 16 character random string: "92b1bfc74ec4"
+ */
+Handsontable.helper.randomString = function () {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  };
+
+  return s4() + s4() + s4() + s4();
 };
 
 /**
@@ -3235,6 +3254,20 @@ HandsontableAutocompleteEditorClass.prototype.createElements = function () {
   this.typeahead.matcher = function () {
     return true;
   };
+
+  var _process = this.typeahead.process;
+  this.typeahead.process = function (items) {
+    for (var i = 0, ilen = items.length; i < ilen; i++) {
+      if (items[i] === '') {
+        //this is needed because because of issue #254
+        //empty string ('') is a falsy value and breaks the loop in bootstrap-typeahead.js method `sorter`
+        //best solution would be to change line: `while (item = items.shift()) {`
+        //                                   to: `while ((item = items.shift()) !== void 0) {`
+        items[i] = '[empty string]';
+      }
+    }
+    return _process.call(this, items);
+  };
 };
 
 HandsontableAutocompleteEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
@@ -3285,11 +3318,15 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
   this.typeahead.select = function () {
     var output = this.hide(); //need to hide it before destroyEditor, because destroyEditor checks if menu is expanded
     that.instance.destroyEditor(true);
+    var val = this.$menu.find('.active').attr('data-value');
+    if (val === '[empty string]') {
+      val = '';
+    }
     if (typeof cellProperties.onSelect === 'function') {
-      cellProperties.onSelect(row, col, prop, this.$menu.find('.active').attr('data-value'), this.$menu.find('.active').index());
+      cellProperties.onSelect(row, col, prop, val, this.$menu.find('.active').index());
     }
     else {
-      that.instance.setDataAtRowProp(row, prop, this.$menu.find('.active').attr('data-value'));
+      that.instance.setDataAtRowProp(row, prop, val);
     }
     return output;
   };
@@ -7430,7 +7467,7 @@ CopyPaste.prototype._bindEvent = (function () {
 })();
 })(jQuery, window, Handsontable);
 /* =============================================================
- * bootstrap-typeahead.js v2.3.0
+ * bootstrap-typeahead.js v2.3.1
  * http://twitter.github.com/bootstrap/javascript.html#typeahead
  * =============================================================
  * Copyright 2012 Twitter, Inc.
@@ -7454,8 +7491,8 @@ CopyPaste.prototype._bindEvent = (function () {
   "use strict"; // jshint ;_;
 
 
- /* TYPEAHEAD PUBLIC CLASS DEFINITION
-  * ================================= */
+  /* TYPEAHEAD PUBLIC CLASS DEFINITION
+   * ================================= */
 
   var Typeahead = function (element, options) {
     this.$element = $(element)
@@ -7474,7 +7511,7 @@ CopyPaste.prototype._bindEvent = (function () {
 
     constructor: Typeahead
 
-  , select: function () {
+    , select: function () {
       var val = this.$menu.find('.active').attr('data-value')
       this.$element
         .val(this.updater(val))
@@ -7482,11 +7519,11 @@ CopyPaste.prototype._bindEvent = (function () {
       return this.hide()
     }
 
-  , updater: function (item) {
+    , updater: function (item) {
       return item
     }
 
-  , show: function () {
+    , show: function () {
       var pos = $.extend({}, this.$element.position(), {
         height: this.$element[0].offsetHeight
       })
@@ -7495,7 +7532,7 @@ CopyPaste.prototype._bindEvent = (function () {
         .insertAfter(this.$element)
         .css({
           top: pos.top + pos.height
-        , left: pos.left
+          , left: pos.left
         })
         .show()
 
@@ -7503,13 +7540,13 @@ CopyPaste.prototype._bindEvent = (function () {
       return this
     }
 
-  , hide: function () {
+    , hide: function () {
       this.$menu.hide()
       this.shown = false
       return this
     }
 
-  , lookup: function (event) {
+    , lookup: function (event) {
       var items
 
       this.query = this.$element.val()
@@ -7523,7 +7560,7 @@ CopyPaste.prototype._bindEvent = (function () {
       return items ? this.process(items) : this
     }
 
-  , process: function (items) {
+    , process: function (items) {
       var that = this
 
       items = $.grep(items, function (item) {
@@ -7539,11 +7576,11 @@ CopyPaste.prototype._bindEvent = (function () {
       return this.render(items.slice(0, this.options.items)).show()
     }
 
-  , matcher: function (item) {
+    , matcher: function (item) {
       return ~item.toLowerCase().indexOf(this.query.toLowerCase())
     }
 
-  , sorter: function (items) {
+    , sorter: function (items) {
       var beginswith = []
         , caseSensitive = []
         , caseInsensitive = []
@@ -7558,14 +7595,14 @@ CopyPaste.prototype._bindEvent = (function () {
       return beginswith.concat(caseSensitive, caseInsensitive)
     }
 
-  , highlighter: function (item) {
+    , highlighter: function (item) {
       var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&')
       return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
         return '<strong>' + match + '</strong>'
       })
     }
 
-  , render: function (items) {
+    , render: function (items) {
       var that = this
 
       items = $(items).map(function (i, item) {
@@ -7579,7 +7616,7 @@ CopyPaste.prototype._bindEvent = (function () {
       return this
     }
 
-  , next: function (event) {
+    , next: function (event) {
       var active = this.$menu.find('.active').removeClass('active')
         , next = active.next()
 
@@ -7590,7 +7627,7 @@ CopyPaste.prototype._bindEvent = (function () {
       next.addClass('active')
     }
 
-  , prev: function (event) {
+    , prev: function (event) {
       var active = this.$menu.find('.active').removeClass('active')
         , prev = active.prev()
 
@@ -7601,7 +7638,7 @@ CopyPaste.prototype._bindEvent = (function () {
       prev.addClass('active')
     }
 
-  , listen: function () {
+    , listen: function () {
       this.$element
         .on('focus',    $.proxy(this.focus, this))
         .on('blur',     $.proxy(this.blur, this))
@@ -7618,7 +7655,7 @@ CopyPaste.prototype._bindEvent = (function () {
         .on('mouseleave', 'li', $.proxy(this.mouseleave, this))
     }
 
-  , eventSupported: function(eventName) {
+    , eventSupported: function(eventName) {
       var isSupported = eventName in this.$element
       if (!isSupported) {
         this.$element.setAttribute(eventName, 'return;')
@@ -7627,7 +7664,7 @@ CopyPaste.prototype._bindEvent = (function () {
       return isSupported
     }
 
-  , move: function (e) {
+    , move: function (e) {
       if (!this.shown) return
 
       switch(e.keyCode) {
@@ -7651,17 +7688,17 @@ CopyPaste.prototype._bindEvent = (function () {
       e.stopPropagation()
     }
 
-  , keydown: function (e) {
+    , keydown: function (e) {
       this.suppressKeyPressRepeat = ~$.inArray(e.keyCode, [40,38,9,13,27])
       this.move(e)
     }
 
-  , keypress: function (e) {
+    , keypress: function (e) {
       if (this.suppressKeyPressRepeat) return
       this.move(e)
     }
 
-  , keyup: function (e) {
+    , keyup: function (e) {
       switch(e.keyCode) {
         case 40: // down arrow
         case 38: // up arrow
@@ -7687,31 +7724,31 @@ CopyPaste.prototype._bindEvent = (function () {
 
       e.stopPropagation()
       e.preventDefault()
-  }
+    }
 
-  , focus: function (e) {
+    , focus: function (e) {
       this.focused = true
     }
 
-  , blur: function (e) {
+    , blur: function (e) {
       this.focused = false
       if (!this.mousedover && this.shown) this.hide()
     }
 
-  , click: function (e) {
+    , click: function (e) {
       e.stopPropagation()
       e.preventDefault()
       this.select()
       this.$element.focus()
     }
 
-  , mouseenter: function (e) {
+    , mouseenter: function (e) {
       this.mousedover = true
       this.$menu.find('.active').removeClass('active')
       $(e.currentTarget).addClass('active')
     }
 
-  , mouseleave: function (e) {
+    , mouseleave: function (e) {
       this.mousedover = false
       if (!this.focused && this.shown) this.hide()
     }
@@ -7736,17 +7773,17 @@ CopyPaste.prototype._bindEvent = (function () {
 
   $.fn.typeahead.defaults = {
     source: []
-  , items: 8
-  , menu: '<ul class="typeahead dropdown-menu"></ul>'
-  , item: '<li><a href="#"></a></li>'
-  , minLength: 1
+    , items: 8
+    , menu: '<ul class="typeahead dropdown-menu"></ul>'
+    , item: '<li><a href="#"></a></li>'
+    , minLength: 1
   }
 
   $.fn.typeahead.Constructor = Typeahead
 
 
- /* TYPEAHEAD NO CONFLICT
-  * =================== */
+  /* TYPEAHEAD NO CONFLICT
+   * =================== */
 
   $.fn.typeahead.noConflict = function () {
     $.fn.typeahead = old
@@ -7754,8 +7791,8 @@ CopyPaste.prototype._bindEvent = (function () {
   }
 
 
- /* TYPEAHEAD DATA-API
-  * ================== */
+  /* TYPEAHEAD DATA-API
+   * ================== */
 
   $(document).on('focus.typeahead.data-api', '[data-provide="typeahead"]', function (e) {
     var $this = $(this)

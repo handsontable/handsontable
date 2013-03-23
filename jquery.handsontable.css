@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Mar 18 2013 21:35:53 GMT+0100 (Central European Standard Time)
+ * Date: Sat Mar 23 2013 15:59:31 GMT+0100 (Central European Standard Time)
  */
 
 .handsontable {
@@ -275,6 +275,7 @@ NumericRenderer
 
 .handsontable .typeahead li {
   line-height: 18px;
+  min-height: 18px;
   display: list-item;
   margin: 0;
 }
@@ -285,6 +286,7 @@ NumericRenderer
   clear: both;
   font-weight: normal;
   line-height: 18px;
+  min-height: 18px;
   color: #333;
   white-space: nowrap;
 }
