@@ -34,7 +34,7 @@ HandsontableAutocompleteEditorClass.prototype.createElements = function () {
   this.typeahead.process = function (items) {
     for (var i = 0, ilen = items.length; i < ilen; i++) {
       if (items[i] === '') {
-        //this is needed because because of issue #261
+        //this is needed because because of issue #254
         //empty string ('') is a falsy value and breaks the loop in bootstrap-typeahead.js method `sorter`
         //best solution would be to change line: `while (item = items.shift()) {`
         //                                   to: `while ((item = items.shift()) !== void 0) {`
