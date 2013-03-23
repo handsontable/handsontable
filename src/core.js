@@ -823,11 +823,15 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
-      priv.selEnd = new Handsontable.SelectionPoint(); //create new empty point to remove the existing one
+      var settings = self.getSettings();
+
+      if (settings.outsideClickDeselects) {
+        priv.selEnd = new Handsontable.SelectionPoint(); //create new empty point to remove the existing one
+        selection.refreshBorders();
+      }
       self.view.wt.selections.current.clear();
       self.view.wt.selections.area.clear();
       editproxy.destroy();
-      selection.refreshBorders();
       self.rootElement.triggerHandler('deselect.handsontable');
     },
 

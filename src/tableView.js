@@ -71,7 +71,7 @@ Handsontable.TableView = function (instance) {
       that.instance.deselectCell();
     }
     else {
-      if (target.nodeName.toLowerCase() === 'input' || target.nodeName.toLowerCase() === 'textarea') {
+      if (target.nodeName === 'INPUT' || target.nodeName === 'TEXTAREA' || target.nodeName === 'SELECT') {
         that.instance.deselectCell();
       }
       else {
