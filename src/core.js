@@ -823,15 +823,11 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
-      var settings = self.getSettings();
-
-      if (settings.outsideClickDeselects) {
-        priv.selEnd = new Handsontable.SelectionPoint(); //create new empty point to remove the existing one
-        selection.refreshBorders();
-      }
+      priv.selEnd = new Handsontable.SelectionPoint(); //create new empty point to remove the existing one
       self.view.wt.selections.current.clear();
       self.view.wt.selections.area.clear();
       editproxy.destroy();
+      selection.refreshBorders();
       self.rootElement.triggerHandler('deselect.handsontable');
     },
 
@@ -1241,13 +1237,19 @@ Handsontable.Core = function (rootElement, settings) {
       if (priv.settings.asyncRendering) {
         self.registerTimeout('prepareFrame', function () {
           var TD = self.view.getCellAtCoords(priv.selStart.coords());
-          TD.focus();
+          if (Handsontable.helper.isDescendant(self.rootElement[0], document.activeElement)) {
+            //we don't want to steal focus if it is outside HT (issue #408)
+            TD.focus();
+          }
           priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
         }, 0);
       }
       else {
         var TD = self.view.getCellAtCoords(priv.selStart.coords());
-        TD.focus();
+        if (Handsontable.helper.isDescendant(self.rootElement[0], document.activeElement)) {
+          //we don't want to steal focus if it is outside HT (issue #408)
+          TD.focus();
+        }
         priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
       }
     }
