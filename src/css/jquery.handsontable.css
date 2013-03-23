@@ -275,6 +275,7 @@ NumericRenderer
 
 .handsontable .typeahead li {
   line-height: 18px;
+  min-height: 18px;
   display: list-item;
   margin: 0;
 }
@@ -285,6 +286,7 @@ NumericRenderer
   clear: both;
   font-weight: normal;
   line-height: 18px;
+  min-height: 18px;
   color: #333;
   white-space: nowrap;
 }

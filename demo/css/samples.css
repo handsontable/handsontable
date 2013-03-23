@@ -222,6 +222,10 @@ li {
   z-index: 2;
 }
 
+.handsontable li {
+  margin-bottom: 0; /* will be not needed after Handsontable 0.8.16 */
+}
+
 /**
  * Highlight.js
  */
