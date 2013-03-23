@@ -221,6 +221,10 @@ Handsontable.TableView = function (instance) {
       TD.focus();
       event.preventDefault();
       clearTextSelection();
+
+      if(settings.afterOnCellMouseDown) {
+        settings.afterOnCellMouseDown.call(that.instance, event, coords, TD);
+      }
     },
     onCellMouseOver: function (event, coords, TD) {
       var coordsObj = {row: coords[0], col: coords[1]};
@@ -282,10 +286,10 @@ Handsontable.TableView.prototype.determineContainerSize = function () {
   this.containerWidth = settings.width;
   this.containerHeight = settings.height;
 
-  var computedWidth = this.instance.rootElement.width();
+    var computedWidth = this.instance.rootElement.width();
   var computedHeight = this.instance.rootElement.height();
   if (settings.width === void 0 && computedWidth > 0) {
-    this.containerWidth = computedWidth;
+      this.containerWidth = computedWidth;
   }
 
   if (this.overflow === 'scroll' || this.overflow === 'auto') {

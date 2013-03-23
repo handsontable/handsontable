@@ -29,10 +29,14 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, value, cel
   }
 
   instance.$table.on("keydown.editor", function (event) {
+    if(event.originalEvent.handled) {
+      return;
+    }
+
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     if (!ctrlDown && Handsontable.helper.isPrintableChar(event.keyCode)) {
       toggleCheckboxCell(instance, row, prop, cellProperties);
-      event.stopPropagation();
+      event.originalEvent.handled = true;
       event.preventDefault(); //some keys have special behavior, eg. space bar scrolls screen down
     }
   });

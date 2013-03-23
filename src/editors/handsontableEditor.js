@@ -18,55 +18,16 @@ HandsontableHandsontableEditorClass.prototype._createElements = HandsontableText
 HandsontableHandsontableEditorClass.prototype.createElements = function () {
   this._createElements();
 
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-  }
+  var DIV = document.createElement('DIV');
+  DIV.className = 'handsontableEditor';
+  this.TEXTAREA_PARENT[0].appendChild(DIV);
 
-  function guid() {
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-      s4() + '-' + s4() + s4() + s4();
-  }
-
-  this.$htContainer = $('<div class="inception">');
-  this.$htContainer[0].id = "ht" + guid();
-  this.TEXTAREA_PARENT[0].appendChild(this.$htContainer[0]);
+  this.$htContainer = $(DIV);
 };
 
 HandsontableHandsontableEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
 
 HandsontableHandsontableEditorClass.prototype.bindEvents = function () {
-  var data = [
-    ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
-    ["2009", 0, 2941, 4303, 354, 5814],
-    ["2010", 5, 2905, 2867, 412, 5284],
-    ["2011", 4, 2517, 4822, 552, 6127],
-    ["2012", 2, 2422, 5399, 776, 4151]
-  ];
-
-  var that = this;
- this.$htContainer.handsontable({
-    data: data,
-    minRows: 5,
-    minCols: 6,
-    minSpareRows: 1,
-    autoWrapRow: true,
-    colHeaders: true,
-    contextMenu: true,
-    onSelection: function (subrow) {
-      console.log("ustawiam", row, prop, data[subrow][0]);
-      that.isCellEdited = false;
-      that.instance.setDataAtRowProp(row, prop, data[subrow][0]);
-    }
-  });
-
-  this.$htContainer.on('mouseup.handsontable', function(event){
-    console.log("catched");
-    event.stopPropagation();
-  });
-
-  console.log("thre is");
 
   this._bindEvents();
 };
@@ -74,11 +35,60 @@ HandsontableHandsontableEditorClass.prototype.bindEvents = function () {
 HandsontableHandsontableEditorClass.prototype._bindTemporaryEvents = HandsontableTextEditorClass.prototype.bindTemporaryEvents;
 
 HandsontableHandsontableEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
+  var parent = this;
 
+  var options = {
+    colHeaders: true,
+    cells: function () {
+      return {
+        readOnly: true
+      }
+    },
+    fillHandle: false,
+    width: 2000,
+    //width: 'auto',
+    asyncRendering: false,
+    afterOnCellMouseDown: function() {
+      var sel = this.getSelected();
+      parent.TEXTAREA[0].value = this.getDataAtCell(sel[0], sel[1]);
+      parent.instance.destroyEditor();
+    },
+    beforeOnKeyDown: function (event) {
+      switch (event.keyCode) {
+        case 27: //esc
+          parent.instance.destroyEditor(true);
+          break;
+
+        case 13: //enter
+          var sel = this.getSelected();
+          parent.TEXTAREA[0].value = this.getDataAtCell(sel[0], sel[1]);
+          parent.instance.destroyEditor();
+          break;
+      }
+    }
+  };
+
+  if (cellProperties.handsontable) {
+    options = $.extend(options, cellProperties.handsontable);
+  }
+
+  this.$htContainer.handsontable(options);
 
   this._bindTemporaryEvents(td, row, col, prop, value, cellProperties);
-}
-;
+};
+
+HandsontableHandsontableEditorClass.prototype._beginEditing = HandsontableTextEditorClass.prototype.beginEditing;
+
+HandsontableHandsontableEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
+  var onBeginEditing = this.instance.getSettings().onBeginEditing;
+  if (onBeginEditing && onBeginEditing() === false) {
+    return;
+  }
+
+  this._beginEditing(row, col, prop, useOriginalValue, suffix);
+
+  this.$htContainer.handsontable('selectCell', 0, 0);
+};
 
 HandsontableHandsontableEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
 
@@ -111,6 +121,9 @@ Handsontable.HandsontableEditor = function (instance, td, row, col, prop, value,
     instance.handsontableEditor = new HandsontableHandsontableEditorClass(instance);
   }
   instance.handsontableEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
+
+  instance.registerEditor = instance.handsontableEditor;
+
   return function (isCancelled) {
     instance.handsontableEditor.finishEditing(isCancelled);
   }

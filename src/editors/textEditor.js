@@ -34,13 +34,17 @@ HandsontableTextEditorClass.prototype.createElements = function () {
 HandsontableTextEditorClass.prototype.bindEvents = function () {
   var that = this;
   this.TEXTAREA_PARENT.off('.editor').on('keydown.editor', function (event) {
+    if(event.originalEvent.handled) {
+      return;
+    }
+
     //if we are here then isCellEdited === true
 
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
     if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
       //when CTRL or its equivalent is pressed and cell is edited, don't prepare selectable text in textarea
-      event.stopPropagation();
+      event.originalEvent.handled = true;
       return;
     }
 
@@ -60,7 +64,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
           that.finishEditing(false);
         }
         else {
-          event.stopPropagation();
+          event.originalEvent.handled = true;
         }
         break;
 
@@ -69,13 +73,13 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
           that.finishEditing(false);
         }
         else {
-          event.stopPropagation();
+          event.originalEvent.handled = true;
         }
         break;
 
       case 27: /* ESC */
         that.instance.destroyEditor(true);
-        event.stopPropagation();
+        event.originalEvent.handled = true;
         break;
 
       case 13: /* return/enter */
@@ -84,7 +88,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         if ((event.ctrlKey && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
           that.TEXTAREA.val(that.TEXTAREA.val() + '\n');
           that.TEXTAREA[0].focus();
-          event.stopPropagation();
+          event.originalEvent.handled = true;
         }
         else {
           that.finishEditing(false, ctrlDown);
@@ -93,7 +97,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
 
       default:
-        event.stopPropagation(); //backspace, delete, home, end, CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
+        event.originalEvent.handled = true; //backspace, delete, home, end, CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
         break;
     }
   });
@@ -110,6 +114,10 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
   var that = this;
 
   this.instance.$table.on('keydown.editor', function (event) {
+    if(event.originalEvent.handled) {
+      return;
+    }
+
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     if (!that.isCellEdited) {
       if (Handsontable.helper.isPrintableChar(event.keyCode)) {
@@ -119,7 +127,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
       }
       else if (event.keyCode === 113) { //f2
         that.beginEditing(row, col, prop, true); //show edit field
-        event.stopPropagation();
+        event.originalEvent.handled = true;
         event.preventDefault(); //prevent Opera from opening Go to Page dialog
       }
       else if (event.keyCode === 13 && that.instance.getSettings().enterBeginsEditing) { //enter
@@ -132,7 +140,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
           that.beginEditing(row, col, prop, true); //show edit field
         }
         event.preventDefault(); //prevent new line at the end of textarea
-        event.stopPropagation();
+        event.originalEvent.handled = true;
       }
     }
   });
