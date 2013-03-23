@@ -1376,6 +1376,11 @@ Handsontable.Core = function (rootElement, settings) {
         priv.settings.onColumnResize.apply(self.rootElement[0], [col]);
       }
     });
+    self.rootElement.on("columnmove.handsontable", function(event, oldcol, newcol) {
+      if (priv.settings.onColumnMove) {
+        priv.settings.onColumnMove.apply(self.rootElement[0], [oldcol, newcol]);
+      }
+    });
     self.rootElement.on("datachange.handsontable", function (event, changes, source) {
       if (priv.settings.onChange) {
         priv.settings.onChange.apply(self.rootElement[0], [changes, source]);
@@ -4108,6 +4113,7 @@ function HandsontableManualColumnMove() {
       instance.forceFullRender = true;
       instance.view.render(); //updates all
       $ghost[0].style.display = 'none';
+      instance.rootElement.triggerHandler('columnmove.handsontable', [startCol, endCol]);
     }
   });
 
