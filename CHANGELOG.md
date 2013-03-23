@@ -4,6 +4,7 @@ Bugfixes:
 - autocomplete menu did not reset <li> margin
 - `destroy()` of one Handsontable instance made other instances on the same page unfunctional
 - Autocomplete (Bootstrap Typeahead) did not allow empty string as a value (#254)
+- outsideClickDeselects : false disables all focus in other inputs outside the table (#408)
 
 ## [0.8.15](https://github.com/warpech/jquery-handsontable/tree/v0.8.15) (Mar 18, 2013)
 

@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Mar 23 2013 15:59:31 GMT+0100 (Central European Standard Time)
+ * Date: Sat Mar 23 2013 16:38:26 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1261,13 +1261,19 @@ Handsontable.Core = function (rootElement, settings) {
       if (priv.settings.asyncRendering) {
         self.registerTimeout('prepareFrame', function () {
           var TD = self.view.getCellAtCoords(priv.selStart.coords());
-          TD.focus();
+          if (Handsontable.helper.isDescendant(self.rootElement[0], document.activeElement)) {
+            //we don't want to steal focus if it is outside HT (issue #408)
+            TD.focus();
+          }
           priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
         }, 0);
       }
       else {
         var TD = self.view.getCellAtCoords(priv.selStart.coords());
-        TD.focus();
+        if (Handsontable.helper.isDescendant(self.rootElement[0], document.activeElement)) {
+          //we don't want to steal focus if it is outside HT (issue #408)
+          TD.focus();
+        }
         priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
       }
     }
@@ -2305,8 +2311,7 @@ Handsontable.TableView = function (instance) {
   });
 
   $(document.documentElement).on('mousedown.' + instance.guid, function (event) {
-    var target = event.target
-      , next = target;
+    var next = event.target;
 
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== null && next !== document.documentElement) {
@@ -2321,13 +2326,8 @@ Handsontable.TableView = function (instance) {
       that.instance.deselectCell();
     }
     else {
-      if (target.nodeName.toLowerCase() === 'input' || target.nodeName.toLowerCase() === 'textarea') {
-        that.instance.deselectCell();
-      }
-      else {
         that.instance.destroyEditor();
       }
-    }
   });
 
   $table.on('selectstart', function (event) {
@@ -2628,6 +2628,24 @@ Handsontable.helper.stringify = function (value) {
     default:
       return value.toString();
   }
+};
+
+/**
+ * Checks if child is a descendant of given parent node
+ * http://stackoverflow.com/questions/2234979/how-to-check-in-javascript-if-one-element-is-a-child-of-another
+ * @param parent
+ * @param child
+ * @returns {boolean}
+ */
+Handsontable.helper.isDescendant = function (parent, child) {
+  var node = child.parentNode;
+  while (node != null) {
+    if (node == parent) {
+      return true;
+    }
+    node = node.parentNode;
+  }
+  return false;
 };
 
 /**
