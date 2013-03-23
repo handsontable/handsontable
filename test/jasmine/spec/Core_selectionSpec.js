@@ -165,8 +165,8 @@ describe('Core_selection', function () {
 
   });
 
-  it('should deselect currently selected cell when focused on other input', function () {
-    var textarea = $('<input type="text">').prependTo($('body'));
+  it('should allow to focus on external input and hold current selection informations', function () {
+    var textarea = $('<input id="test_textarea" type="text">').prependTo($('body'));
 
     runs(function () {
       handsontable({
@@ -179,12 +179,14 @@ describe('Core_selection', function () {
 
     runs(function () {
       textarea.trigger('mousedown');
+      textarea.focus();
     });
 
     waits(10);
 
     runs(function () {
-      expect(getSelected()).toBeUndefined();
+      expect(document.activeElement.id).toEqual('test_textarea');
+      expect(getSelected()).toEqual([0, 0, 0, 0]);
       textarea.remove();
     });
 

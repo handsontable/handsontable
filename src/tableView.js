@@ -55,8 +55,7 @@ Handsontable.TableView = function (instance) {
   });
 
   $(document.documentElement).on('mousedown.' + instance.guid, function (event) {
-    var target = event.target
-      , next = target;
+    var next = event.target;
 
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== null && next !== document.documentElement) {
@@ -71,13 +70,8 @@ Handsontable.TableView = function (instance) {
       that.instance.deselectCell();
     }
     else {
-      if (target.nodeName.toLowerCase() === 'input' || target.nodeName.toLowerCase() === 'textarea') {
-        that.instance.deselectCell();
-      }
-      else {
         that.instance.destroyEditor();
       }
-    }
   });
 
   $table.on('selectstart', function (event) {
