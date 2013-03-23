@@ -55,8 +55,8 @@ Handsontable.TableView = function (instance) {
   });
 
   $(document.documentElement).on('mousedown.handsontable', function (event) {
-    var target = event.target
-      , next = target;
+    var next, target;
+        next = target = event.target;
 
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== null && next !== document.documentElement) {
