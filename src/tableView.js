@@ -28,10 +28,20 @@ Handsontable.TableView = function (instance) {
   //instance.rootElement[0].style.height = '';
   //instance.rootElement[0].style.width = '';
 
+  $(document.documentElement).on('keyup.handsontable', function (event) {
+    if (instance.selection.isInProgress() && !event.shiftKey) {
+      instance.selection.finish();
+    }
+  });
+
   var isMouseDown
     , dragInterval;
 
-  $(document.body).on('mouseup', function () {
+  $(document.documentElement).on('mouseup.handsontable', function (event) {
+    if (instance.selection.isInProgress() && event.which === 1) { //is left mouse button
+      instance.selection.finish();
+    }
+
     isMouseDown = false;
     clearInterval(dragInterval);
     dragInterval = null;
@@ -44,11 +54,13 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  $(document.documentElement).on('mousedown', function (event) {
-    var next = event.target;
+  $(document.documentElement).on('mousedown.handsontable', function (event) {
+    var target = event.target
+      , next = target;
+
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== null && next !== document.documentElement) {
-        if (next === instance.rootElement[0] || $(next).attr('id') === 'context-menu-layer' || $(next).is('.context-menu-list') || $(next).is('.typeahead li')) {
+        if (next === instance.rootElement[0] || next.id === 'context-menu-layer' || $(next).is('.context-menu-list') || $(next).is('.typeahead li')) {
           return; //click inside container
         }
         next = next.parentNode;
@@ -59,7 +71,12 @@ Handsontable.TableView = function (instance) {
       that.instance.deselectCell();
     }
     else {
-      that.instance.destroyEditor();
+      if (target.nodeName.toLowerCase() === 'input' || target.nodeName.toLowerCase() === 'textarea') {
+        that.instance.deselectCell();
+      }
+      else {
+        that.instance.destroyEditor();
+      }
     }
   });
 
@@ -219,10 +236,10 @@ Handsontable.TableView = function (instance) {
       instance.autofill.handle.isDragged = 1;
       event.preventDefault();
     },
-    onCellCornerDblClick: function (event) {
+    onCellCornerDblClick: function () {
       instance.autofill.selectAdjacent();
     },
-    onDraw: function (event) {
+    onDraw: function () {
       $window.trigger('resize');
     }
   };
@@ -233,7 +250,7 @@ Handsontable.TableView = function (instance) {
   this.instance.forceFullRender = true; //used when data was changed
   this.render();
 
-  $window.on('resize', function () {
+  $window.on('resize.handsontable', function () {
     that.instance.registerTimeout('resizeTimeout', function () {
       var lastContainerWidth = that.containerWidth;
       var lastContainerHeight = that.containerHeight;

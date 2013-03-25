@@ -619,6 +619,29 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   this.selection = selection = { //this public assignment is only temporary
+    inProgress: false,
+
+    /**
+     * Sets inProgress to true. This enables onSelectionEnd and onSelectionEndByProp to function as desired
+     */
+    begin: function () {
+      self.selection.inProgress = true;
+    },
+
+    /**
+     * Sets inProgress to false. Triggers onSelectionEnd and onSelectionEndByProp
+     */
+    finish: function () {
+      var sel = self.getSelected();
+      self.rootElement.triggerHandler("selectionend.handsontable", sel);
+      self.rootElement.triggerHandler("selectionendbyprop.handsontable", [sel[0], self.colToProp(sel[1]), sel[2], self.colToProp(sel[3])]);
+      self.selection.inProgress = false;
+    },
+
+    isInProgress: function () {
+      return self.selection.inProgress;
+    },
+
     /**
      * Starts selection range on given td object
      * @param {Object} coords
@@ -635,6 +658,8 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to range end
      */
     setRangeEnd: function (coords, scrollToCell) {
+      self.selection.begin();
+
       priv.selEnd.coords(coords);
       if (!priv.settings.multiSelect) {
         priv.selStart.coords(coords);
@@ -1243,56 +1268,52 @@ Handsontable.Core = function (rootElement, settings) {
     var validated = $.Deferred();
     var deferreds = [];
 
-    if (source === 'paste') {
-      //validate strict autocompletes
-      var process = function (i) {
-        var deferred = $.Deferred();
-        deferreds.push(deferred);
+    //validate strict autocompletes
+    var process = function (i) {
+      var deferred = $.Deferred();
+      deferreds.push(deferred);
 
-        var originalVal = changes[i][3];
-        var lowercaseVal = typeof originalVal === 'string' ? originalVal.toLowerCase() : null;
+      var originalVal = changes[i][3];
+      var lowercaseVal = typeof originalVal === 'string' ? originalVal.toLowerCase() : null;
 
-        return function (source) {
-          var found = false;
-          for (var s = 0, slen = source.length; s < slen; s++) {
-            if (originalVal === source[s]) {
-              found = true; //perfect match
-              break;
-            }
-            else if (lowercaseVal === source[s].toLowerCase()) {
-              changes[i][3] = source[s]; //good match, fix the case
-              found = true;
-              break;
-            }
+      return function (source) {
+        var found = false;
+        for (var s = 0, slen = source.length; s < slen; s++) {
+          if (originalVal === source[s]) {
+            found = true; //perfect match
+            break;
           }
-          if (!found) {
-            changes[i] = null;
-          }
-          deferred.resolve();
-        }
-      };
-
-      for (var i = changes.length - 1; i >= 0; i--) {
-        var cellProperties = self.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
-        if (cellProperties.strict && cellProperties.source) {
-          var items = $.isFunction(cellProperties.source) ? cellProperties.source(changes[i][3], process(i)) : cellProperties.source;
-          if (items) {
-            process(i)(items)
+          else if (lowercaseVal === source[s].toLowerCase()) {
+            changes[i][3] = source[s]; //good match, fix the case
+            found = true;
+            break;
           }
         }
+        if (!found) {
+          changes[i] = null;
+        }
+        deferred.resolve();
+      }
+    };
+
+    for (var i = changes.length - 1; i >= 0; i--) {
+      var cellProperties = self.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
+      if (cellProperties.strict && cellProperties.source) {
+        $.isFunction(cellProperties.source) ? cellProperties.source(changes[i][3], process(i)) : process(i)(cellProperties.source);
       }
     }
 
-    $.when(deferreds).then(function () {
+    $.when.apply($, deferreds).then(function () {
       for (var i = changes.length - 1; i >= 0; i--) {
         if (changes[i] === null) {
           changes.splice(i, 1);
-        }
+        } else {
+          var cellProperties = self.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
 
-        var cellProperties = self.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
-        if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
-          if (changes[i][3].length > 0 && /^[0-9\s]*[.]*[0-9]*$/.test(changes[i][3])) {
-            changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+          if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
+            if (changes[i][3].length > 0 && /^[0-9\s]*[.]*[0-9]*$/.test(changes[i][3])) {
+              changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+            }
           }
         }
       }
@@ -1346,6 +1367,16 @@ Handsontable.Core = function (rootElement, settings) {
         priv.settings.onSelectionByProp.apply(self.rootElement[0], [row, prop, endRow, endProp]);
       }
     });
+    self.rootElement.on("selectionend.handsontable", function (event, row, col, endRow, endCol) {
+      if (priv.settings.onSelectionEnd) {
+        priv.settings.onSelectionEnd.apply(self.rootElement[0], [row, col, endRow, endCol]);
+      }
+    });
+    self.rootElement.on("selectionendbyprop.handsontable", function (event, row, prop, endRow, endProp) {
+      if (priv.settings.onSelectionEndByProp) {
+        priv.settings.onSelectionEndByProp.apply(self.rootElement[0], [row, prop, endRow, endProp]);
+      }
+    });
   };
 
   /**
@@ -1354,10 +1385,14 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
    */
   function applyChanges(changes, source) {
-    var i
-      , ilen;
+    var i = 0
+      , ilen = changes.length;
 
-    for (i = 0, ilen = changes.length; i < ilen; i++) {
+    if (!ilen) {
+      return;
+    }
+
+    while (i < ilen) {
       if (priv.settings.minSpareRows) {
         while (changes[i][0] > self.countRows() - 1) {
           datamap.createRow();
@@ -1369,6 +1404,7 @@ Handsontable.Core = function (rootElement, settings) {
         }
       }
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);
+      i++;
     }
     self.forceFullRender = true; //used when data was changed
     grid.keepEmptyRows();
@@ -1484,12 +1520,11 @@ Handsontable.Core = function (rootElement, settings) {
   /**
    * Returns current selection. Returns undefined if there is no selection.
    * @public
-   * @return {Array} [topLeftRow, topLeftCol, bottomRightRow, bottomRightCol]
+   * @return {Array} [`startRow`, `startCol`, `endRow`, `endCol`]
    */
   this.getSelected = function () { //https://github.com/warpech/jquery-handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      var coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
-      return [coords.TL.row, coords.TL.col, coords.BR.row, coords.BR.col];
+      return [priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col()];
     }
   };
 
@@ -2032,6 +2067,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {Number} [endCol]
    * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to the selection
    * @public
+   * @return {Boolean}
    */
   this.selectCell = function (row, col, endRow, endCol, scrollToCell) {
     if (typeof row !== 'number' || row < 0 || row >= self.countRows()) {
@@ -2055,6 +2091,9 @@ Handsontable.Core = function (rootElement, settings) {
     else {
       selection.setRangeEnd({row: endRow, col: endCol}, scrollToCell);
     }
+
+    self.selection.finish();
+    return true;
   };
 
   this.selectCellByProp = function (row, prop, endRow, endProp, scrollToCell) {
@@ -2083,6 +2122,9 @@ Handsontable.Core = function (rootElement, settings) {
     self.rootElement.empty();
     self.rootElement.removeData('handsontable');
     self.rootElement.off('.handsontable');
+    $(window).off('.handsontable');
+    $(document.documentElement).off('.handsontable');
+    Handsontable.PluginHooks.run(self, 'afterDestroy');
   };
 
   this.timeouts = {};

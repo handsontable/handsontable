@@ -127,8 +127,14 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
 HandsontableAutocompleteEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
 
 HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
-  if (this.isMenuExpanded() && this.typeahead.$menu.find('.active').length && !isCancelled) {
-    this.typeahead.select();
+  if (!isCancelled) {
+    if (this.isMenuExpanded() && this.typeahead.$menu.find('.active').length) {
+      this.typeahead.select();
+      this.isCellEdited = false; //cell value was updated by this.typeahead.select (issue #405)
+    }
+    else if (this.cellProperties.strict) {
+      this.isCellEdited = false; //cell value was not picked from this.typeahead.select (issue #405)
+    }
   }
   this._finishEditing(isCancelled, ctrlDown);
 };

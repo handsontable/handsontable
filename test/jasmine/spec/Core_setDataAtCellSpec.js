@@ -248,10 +248,8 @@ describe('Core_setDataAtCell', function () {
 
       _pub.attr = function (attr, val) {
         if (typeof val === 'undefined') {
-          window.console && console.log("\t\tGET the", attr, "value of", _pub);
           return _priv[attr];
         }
-        window.console && console.log("SET the", attr, "value of", _pub);
         _priv[attr] = val;
 
         return _pub;

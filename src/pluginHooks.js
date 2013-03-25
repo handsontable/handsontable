@@ -11,7 +11,8 @@ Handsontable.PluginHooks = {
     afterGetCellMeta: [],
     afterGetColHeader: [],
     afterGetColWidth: [],
-    walkontableConfig: []
+    walkontableConfig: [],
+    afterDestroy: []
   },
 
   push: function (key, fn) {

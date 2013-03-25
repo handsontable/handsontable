@@ -122,8 +122,12 @@ var handsontableKeyTriggerFactory = function (type) {
           ev.keyCode = 17;
           break;
 
+        case 'shift':
+          ev.keyCode = 16;
+          break;
+
         default:
-          throw new Error('unknown key');
+          throw new Error('Unrecognised key name: ' + key);
       }
     }
     else if (typeof key === 'number') {
@@ -141,8 +145,16 @@ var keyUp = handsontableKeyTriggerFactory('keyup');
  * Presses keyDown, then keyUp
  */
 var keyDownUp = function (key, extend) {
+  if (typeof key === 'string' && key.indexOf('shift+') > -1) {
+    keyDown('shift');
+  }
+
   keyDown(key, extend);
   keyUp(key, extend);
+
+  if (typeof key === 'string' && key.indexOf('shift+') > -1) {
+    keyUp('shift');
+  }
 };
 
 /**
