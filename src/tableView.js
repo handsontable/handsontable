@@ -248,7 +248,10 @@ Handsontable.TableView = function (instance) {
     that.instance.registerTimeout('resizeTimeout', function () {
       var lastContainerWidth = that.containerWidth;
       var lastContainerHeight = that.containerHeight;
+
       that.determineContainerSize();
+
+      console.log(lastContainerWidth, that.containerWidth, lastContainerHeight, that.containerHeight);
       if (lastContainerWidth !== that.containerWidth || lastContainerHeight !== that.containerHeight) {
         that.wt.update('width', that.containerWidth);
         that.wt.update('height', that.containerHeight);
@@ -273,11 +276,13 @@ Handsontable.TableView.prototype.isCellEdited = function () {
 
 Handsontable.TableView.prototype.determineContainerSize = function () {
   var settings = this.instance.getSettings();
+
   this.containerWidth = settings.width;
   this.containerHeight = settings.height;
 
   var computedWidth = this.instance.rootElement.width();
   var computedHeight = this.instance.rootElement.height();
+
   if (settings.width === void 0 && computedWidth > 0) {
     this.containerWidth = computedWidth;
   }
@@ -285,6 +290,12 @@ Handsontable.TableView.prototype.determineContainerSize = function () {
   if (this.overflow === 'scroll' || this.overflow === 'auto') {
     if (settings.height === void 0 && computedHeight > 0) {
       this.containerHeight = computedHeight;
+    }
+
+    if (this.instance.rootElement[0].style.height === '') {
+      if (this.wt && this.wt.wtScroll.wtScrollbarV.visible) {
+        this.containerHeight += this.wt.getSetting('scrollbarHeight');
+      }
     }
   }
 };

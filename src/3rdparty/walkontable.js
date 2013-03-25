@@ -965,6 +965,7 @@ WalkontableScrollbar.prototype.refresh = function () {
   }
 
   var ratio
+    , delta
     , sliderSize
     , handleSize
     , handlePosition
@@ -1025,14 +1026,16 @@ WalkontableScrollbar.prototype.refresh = function () {
   if (handleSize < 10) {
     handleSize = 15;
   }
+
   handlePosition = Math.round(sliderSize * (offsetCount / totalCount));
-  if (handlePosition > tableWidth - handleSize) {
-    handlePosition = tableWidth - handleSize;
+  if ((delta = tableWidth - handleSize) > 0 && handlePosition > delta) {
+    handlePosition = delta;
   }
 
   if (this.type === 'vertical') {
     this.handle.style.height = handleSize + 'px';
     this.handle.style.top = handlePosition + 'px';
+
   }
   else { //horizontal
     this.handle.style.width = handleSize + 'px';

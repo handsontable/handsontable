@@ -89,4 +89,31 @@ describe('Core_view', function () {
       expect($(window).scrollTop()).toEqual(lastScroll);
     });
   });
+
+  it('should not shrink table when width and height is not specified for container', function () {
+
+    var initHeight;
+
+    runs(function () {
+      this.$container = $('<div id="' + id + '" style="overflow: scroll;"></div>').appendTo('body');
+      this.$container.wrap('<div style="width: 50px;"></div>');
+      handsontable({
+        startRows: 10,
+        startCols: 10
+      });
+    });
+
+    waits(1000);
+
+    runs(function () {
+      initHeight = this.$container.height();
+    });
+
+    waits(1000);
+
+    runs(function () {
+      expect(this.$container.height()).toEqual(initHeight);
+    });
+
+  });
 });

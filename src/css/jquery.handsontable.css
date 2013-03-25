@@ -44,6 +44,10 @@
   table-layout: fixed;
   width: 0;
   outline-width: 0;
+  /* reset bootstrap table style. for more info see: https://github.com/warpech/jquery-handsontable/issues/224 */
+  max-width : none;
+  max-height: none;
+}
 }
 
 .handsontable col {
