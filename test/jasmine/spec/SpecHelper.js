@@ -133,6 +133,7 @@ var handsontableKeyTriggerFactory = function (type) {
     else if (typeof key === 'number') {
       ev.keyCode = key;
     }
+    ev.originalEvent = {}; //needed as long Handsontable searches for event.originalEvent
     $.extend(ev, extend);
     $(document.activeElement).trigger(ev);
   }
