@@ -251,7 +251,6 @@ Handsontable.TableView = function (instance) {
 
       that.determineContainerSize();
 
-      console.log(lastContainerWidth, that.containerWidth, lastContainerHeight, that.containerHeight);
       if (lastContainerWidth !== that.containerWidth || lastContainerHeight !== that.containerHeight) {
         that.wt.update('width', that.containerWidth);
         that.wt.update('height', that.containerHeight);
