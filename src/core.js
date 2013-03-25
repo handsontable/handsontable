@@ -828,6 +828,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
+      self.selection.inProgress = false; //needed by HT inception
       priv.selEnd = new Handsontable.SelectionPoint(); //create new empty point to remove the existing one
       self.view.wt.selections.current.clear();
       self.view.wt.selections.area.clear();
@@ -1058,6 +1059,15 @@ Handsontable.Core = function (rootElement, settings) {
       var $body = $(document.body);
 
       function onKeyDown(event) {
+        if(priv.settings.beforeOnKeyDown) {
+          priv.settings.beforeOnKeyDown.call(self, event);
+        }
+
+        if(event.originalEvent.handled) {
+          return;
+        }
+        event.originalEvent.handled = true;
+
         if ($body.children('.context-menu-list:visible').length) {
           return;
         }
@@ -1203,7 +1213,7 @@ Handsontable.Core = function (rootElement, settings) {
       self.copyPaste = new CopyPaste(self.rootElement[0]);
       self.copyPaste.onCut(onCut);
       self.copyPaste.onPaste(onPaste);
-      self.rootElement.on('keydown.handsontable', onKeyDown);
+      self.rootElement.on('keydown.handsontable.' + self.guid, onKeyDown);
     },
 
     /**

@@ -55,15 +55,19 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
   this.TEXTAREA.off('keydown').off('keyup').off('keypress'); //unlisten
 
   this.TEXTAREA_PARENT.off('.acEditor').on('keydown.acEditor', function (event) {
+    if(event.originalEvent.handled) {
+      return;
+    }
+
     switch (event.keyCode) {
       case 38: /* arrow up */
         that.typeahead.prev();
-        event.stopImmediatePropagation();
+        event.originalEvent.handled = true;
         break;
 
       case 40: /* arrow down */
         that.typeahead.next();
-        event.stopImmediatePropagation();
+        event.originalEvent.handled = true;
         break;
 
       case 13: /* enter */
