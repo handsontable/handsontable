@@ -1,5 +1,9 @@
 ## HEAD
 
+Features:
+- [Handsontable in Handsontable editor](http://handsontable.com/demo/handsontable.html)
+- performance and code quality fixes
+
 Bugfixes:
 - autocomplete menu did not reset <li> margin
 - `destroy()` of one Handsontable instance made other instances on the same page unfunctional
@@ -10,7 +14,6 @@ Bugfixes:
 - weirdly shrinking table when height attribute was not set (#461)
 
 Other:
-- performance and code quality fixes
 - trying to load a string as a data source now throws an error
 
 ## [0.8.15](https://github.com/warpech/jquery-handsontable/tree/v0.8.15) (Mar 18, 2013)

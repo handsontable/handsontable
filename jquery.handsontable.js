@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Mar 25 2013 13:02:03 GMT+0100 (Central European Standard Time)
+ * Date: Mon Mar 25 2013 18:40:49 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -847,6 +847,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
+      self.selection.inProgress = false; //needed by HT inception
       priv.selEnd = new Handsontable.SelectionPoint(); //create new empty point to remove the existing one
       self.view.wt.selections.current.clear();
       self.view.wt.selections.area.clear();
@@ -1077,6 +1078,15 @@ Handsontable.Core = function (rootElement, settings) {
       var $body = $(document.body);
 
       function onKeyDown(event) {
+        if(priv.settings.beforeOnKeyDown) {
+          priv.settings.beforeOnKeyDown.call(self, event);
+        }
+
+        if(event.originalEvent.handled) {
+          return;
+        }
+        event.originalEvent.handled = true;
+
         if ($body.children('.context-menu-list:visible').length) {
           return;
         }
@@ -1222,7 +1232,7 @@ Handsontable.Core = function (rootElement, settings) {
       self.copyPaste = new CopyPaste(self.rootElement[0]);
       self.copyPaste.onCut(onCut);
       self.copyPaste.onPaste(onPaste);
-      self.rootElement.on('keydown.handsontable', onKeyDown);
+      self.rootElement.on('keydown.handsontable.' + self.guid, onKeyDown);
     },
 
     /**
@@ -2119,6 +2129,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
     priv.selStart.coords({row: row, col: col});
+    self.$table[0].focus(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
     if (typeof endRow === "undefined") {
       selection.setRangeEnd({row: row, col: col}, scrollToCell);
     }
@@ -2477,6 +2488,10 @@ Handsontable.TableView = function (instance) {
       TD.focus();
       event.preventDefault();
       clearTextSelection();
+
+      if(settings.afterOnCellMouseDown) {
+        settings.afterOnCellMouseDown.call(that.instance, event, coords, TD);
+      }
     },
     onCellMouseOver: function (event, coords, TD) {
       var coordsObj = {row: coords[0], col: coords[1]};
@@ -2532,7 +2547,7 @@ Handsontable.TableView = function (instance) {
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {
-  return (this.instance.textEditor && this.instance.textEditor.isCellEdited) || (this.instance.autocompleteEditor && this.instance.autocompleteEditor.isCellEdited);
+  return (this.instance.textEditor && this.instance.textEditor.isCellEdited) || (this.instance.autocompleteEditor && this.instance.autocompleteEditor.isCellEdited) || (this.instance.handsontableEditor && this.instance.handsontableEditor.isCellEdited);
 };
 
 Handsontable.TableView.prototype.determineContainerSize = function () {
@@ -2541,11 +2556,11 @@ Handsontable.TableView.prototype.determineContainerSize = function () {
   this.containerWidth = settings.width;
   this.containerHeight = settings.height;
 
-  var computedWidth = this.instance.rootElement.width();
+    var computedWidth = this.instance.rootElement.width();
   var computedHeight = this.instance.rootElement.height();
 
   if (settings.width === void 0 && computedWidth > 0) {
-    this.containerWidth = computedWidth;
+      this.containerWidth = computedWidth;
   }
 
   if (this.overflow === 'scroll' || this.overflow === 'auto') {
@@ -2958,13 +2973,17 @@ HandsontableTextEditorClass.prototype.createElements = function () {
 HandsontableTextEditorClass.prototype.bindEvents = function () {
   var that = this;
   this.TEXTAREA_PARENT.off('.editor').on('keydown.editor', function (event) {
+    if(event.originalEvent.handled) {
+      return;
+    }
+
     //if we are here then isCellEdited === true
 
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
     if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
       //when CTRL or its equivalent is pressed and cell is edited, don't prepare selectable text in textarea
-      event.stopPropagation();
+      event.originalEvent.handled = true;
       return;
     }
 
@@ -2984,7 +3003,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
           that.finishEditing(false);
         }
         else {
-          event.stopPropagation();
+          event.originalEvent.handled = true;
         }
         break;
 
@@ -2993,13 +3012,13 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
           that.finishEditing(false);
         }
         else {
-          event.stopPropagation();
+          event.originalEvent.handled = true;
         }
         break;
 
       case 27: /* ESC */
         that.instance.destroyEditor(true);
-        event.stopPropagation();
+        event.originalEvent.handled = true;
         break;
 
       case 13: /* return/enter */
@@ -3008,7 +3027,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         if ((event.ctrlKey && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
           that.TEXTAREA.val(that.TEXTAREA.val() + '\n');
           that.TEXTAREA[0].focus();
-          event.stopPropagation();
+          event.originalEvent.handled = true;
         }
         else {
           that.finishEditing(false, ctrlDown);
@@ -3017,7 +3036,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
 
       default:
-        event.stopPropagation(); //backspace, delete, home, end, CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
+        event.originalEvent.handled = true; //backspace, delete, home, end, CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
         break;
     }
   });
@@ -3034,6 +3053,10 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
   var that = this;
 
   this.instance.$table.on('keydown.editor', function (event) {
+    if(event.originalEvent.handled) {
+      return;
+    }
+
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     if (!that.isCellEdited) {
       if (Handsontable.helper.isPrintableChar(event.keyCode)) {
@@ -3043,7 +3066,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
       }
       else if (event.keyCode === 113) { //f2
         that.beginEditing(row, col, prop, true); //show edit field
-        event.stopPropagation();
+        event.originalEvent.handled = true;
         event.preventDefault(); //prevent Opera from opening Go to Page dialog
       }
       else if (event.keyCode === 13 && that.instance.getSettings().enterBeginsEditing) { //enter
@@ -3056,7 +3079,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
           that.beginEditing(row, col, prop, true); //show edit field
         }
         event.preventDefault(); //prevent new line at the end of textarea
-        event.stopPropagation();
+        event.originalEvent.handled = true;
       }
     }
   });
@@ -3328,15 +3351,19 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
   this.TEXTAREA.off('keydown').off('keyup').off('keypress'); //unlisten
 
   this.TEXTAREA_PARENT.off('.acEditor').on('keydown.acEditor', function (event) {
+    if(event.originalEvent.handled) {
+      return;
+    }
+
     switch (event.keyCode) {
       case 38: /* arrow up */
         that.typeahead.prev();
-        event.stopImmediatePropagation();
+        event.originalEvent.handled = true;
         break;
 
       case 40: /* arrow down */
         that.typeahead.next();
-        event.stopImmediatePropagation();
+        event.originalEvent.handled = true;
         break;
 
       case 13: /* enter */
@@ -3487,10 +3514,14 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, value, cel
   }
 
   instance.$table.on("keydown.editor", function (event) {
+    if(event.originalEvent.handled) {
+      return;
+    }
+
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     if (!ctrlDown && Handsontable.helper.isPrintableChar(event.keyCode)) {
       toggleCheckboxCell(instance, row, prop, cellProperties);
-      event.stopPropagation();
+      event.originalEvent.handled = true;
       event.preventDefault(); //some keys have special behavior, eg. space bar scrolls screen down
     }
   });
@@ -3605,6 +3636,136 @@ Handsontable.DateEditor = function (instance, td, row, col, prop, value, cellPro
   }
 };
 /**
+ * This is inception. Using Handsontable as Handsontable editor
+ */
+
+function HandsontableHandsontableEditorClass(instance) {
+  if (instance) {
+    this.isCellEdited = false;
+    this.instance = instance;
+    this.createElements();
+    this.bindEvents();
+  }
+}
+
+HandsontableHandsontableEditorClass.prototype = new HandsontableTextEditorClass();
+
+HandsontableHandsontableEditorClass.prototype._createElements = HandsontableTextEditorClass.prototype.createElements;
+
+HandsontableHandsontableEditorClass.prototype.createElements = function () {
+  this._createElements();
+
+  var DIV = document.createElement('DIV');
+  DIV.className = 'handsontableEditor';
+  this.TEXTAREA_PARENT[0].appendChild(DIV);
+
+  this.$htContainer = $(DIV);
+};
+
+HandsontableHandsontableEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
+
+HandsontableHandsontableEditorClass.prototype.bindEvents = function () {
+
+  this._bindEvents();
+};
+
+HandsontableHandsontableEditorClass.prototype._bindTemporaryEvents = HandsontableTextEditorClass.prototype.bindTemporaryEvents;
+
+HandsontableHandsontableEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
+  var parent = this;
+
+  var options = {
+    colHeaders: true,
+    cells: function () {
+      return {
+        readOnly: true
+      }
+    },
+    fillHandle: false,
+    width: 2000,
+    //width: 'auto',
+    asyncRendering: false,
+    afterOnCellMouseDown: function() {
+      var sel = this.getSelected();
+      parent.TEXTAREA[0].value = this.getDataAtCell(sel[0], sel[1]);
+      parent.instance.destroyEditor();
+    },
+    beforeOnKeyDown: function (event) {
+      switch (event.keyCode) {
+        case 27: //esc
+          parent.instance.destroyEditor(true);
+          break;
+
+        case 13: //enter
+          var sel = this.getSelected();
+          parent.TEXTAREA[0].value = this.getDataAtCell(sel[0], sel[1]);
+          parent.instance.destroyEditor();
+          break;
+      }
+    }
+  };
+
+  if (cellProperties.handsontable) {
+    options = $.extend(options, cellProperties.handsontable);
+  }
+
+  this.$htContainer.handsontable(options);
+
+  this._bindTemporaryEvents(td, row, col, prop, value, cellProperties);
+};
+
+HandsontableHandsontableEditorClass.prototype._beginEditing = HandsontableTextEditorClass.prototype.beginEditing;
+
+HandsontableHandsontableEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
+  var onBeginEditing = this.instance.getSettings().onBeginEditing;
+  if (onBeginEditing && onBeginEditing() === false) {
+    return;
+  }
+
+  this._beginEditing(row, col, prop, useOriginalValue, suffix);
+
+  this.$htContainer.handsontable('selectCell', 0, 0);
+};
+
+HandsontableHandsontableEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
+
+HandsontableHandsontableEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
+  this.$htContainer.handsontable('destroy');
+  this._finishEditing(isCancelled, ctrlDown);
+};
+
+HandsontableHandsontableEditorClass.prototype.isMenuExpanded = function () {
+  if (this.typeahead.$menu.is(":visible")) {
+    return this.typeahead;
+  }
+  else {
+    return false;
+  }
+};
+
+/**
+ * Handsontable editor
+ * @param {Object} instance Handsontable instance
+ * @param {Element} td Table cell where to render
+ * @param {Number} row
+ * @param {Number} col
+ * @param {String|Number} prop Row object property name
+ * @param value Original value (remember to escape unsafe HTML before inserting to DOM!)
+ * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
+ */
+Handsontable.HandsontableEditor = function (instance, td, row, col, prop, value, cellProperties) {
+  if (!instance.handsontableEditor) {
+    instance.handsontableEditor = new HandsontableHandsontableEditorClass(instance);
+  }
+  instance.handsontableEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
+
+  instance.registerEditor = instance.handsontableEditor;
+
+  return function (isCancelled) {
+    instance.handsontableEditor.finishEditing(isCancelled);
+  }
+};
+/**
  * Cell type is just a shortcut for setting bunch of cellProperties (used in getCellMeta)
  */
 
@@ -3634,14 +3795,20 @@ Handsontable.DateCell = {
   editor: Handsontable.DateEditor
 };
 
+Handsontable.HandsontableCell = {
+  renderer: Handsontable.AutocompleteRenderer, //displays small gray arrow on right side of the cell
+  editor: Handsontable.HandsontableEditor
+};
+
 //here setup the friendly aliases that are used by cellProperties.type
 Handsontable.cellTypes = {
   autocomplete: Handsontable.AutocompleteCell,
   checkbox: Handsontable.CheckboxCell,
   text: Handsontable.TextCell,
   numeric: Handsontable.NumericCell,
-  date: Handsontable.DateCell
-}
+  date: Handsontable.DateCell,
+  handsontable: Handsontable.HandsontableCell
+};
 Handsontable.PluginHooks = {
   hooks: {
     beforeInit: [],
