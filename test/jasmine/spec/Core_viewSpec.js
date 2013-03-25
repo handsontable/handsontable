@@ -54,6 +54,7 @@ describe('Core_view', function () {
 
   it('should not scroll viewport when last cell is clicked', function () {
     runs(function () {
+      this.$container.remove();
       this.$container = $('<div id="' + id + '"></div>').appendTo('body');
       handsontable({
         startRows: 50
@@ -95,6 +96,7 @@ describe('Core_view', function () {
     var initHeight;
 
     runs(function () {
+      this.$container.remove();
       this.$container = $('<div id="' + id + '" style="overflow: scroll;"></div>').appendTo('body');
       this.$container.wrap('<div style="width: 50px;"></div>');
       handsontable({
