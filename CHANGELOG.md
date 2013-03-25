@@ -5,6 +5,9 @@ Bugfixes:
 - `destroy()` of one Handsontable instance made other instances on the same page unfunctional
 - Autocomplete (Bootstrap Typeahead) did not allow empty string as a value (#254)
 - outsideClickDeselects : false disables all focus in other inputs outside the table (#408)
+- can't scroll all the way horizontally (#430)
+- scrollable Handsontable does not work well with Twitter Bootstrap (#224)
+- weirdly shrinking table when height attribute was not set (#461)
 
 Other:
 - performance and code quality fixes
