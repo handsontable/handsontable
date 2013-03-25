@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Mar 25 2013 10:47:34 GMT+0100 (Central European Standard Time)
+ * Date: Mon Mar 25 2013 11:03:05 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1575,6 +1575,10 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {Array} data
    */
   this.loadData = function (data) {
+    if (!(data instanceof Array)) {
+      throw new Error("loadData only accepts array of objects or array of arrays (" + typeof data + " given)");
+    }
+
     priv.isPopulated = false;
     priv.settings.data = data;
     if (priv.settings.dataSchema instanceof Array || data[0]  instanceof Array) {
@@ -2148,7 +2152,9 @@ Handsontable.Core = function (rootElement, settings) {
    */
   this.destroy = function () {
     self.clearTimeouts();
-    self.view.wt.destroy();
+    if (self.view) { //in case HT is destroyed before initialization has finished
+      self.view.wt.destroy();
+    }
     self.rootElement.empty();
     self.rootElement.removeData('handsontable');
     self.rootElement.off('.handsontable');

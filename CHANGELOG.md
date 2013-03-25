@@ -8,6 +8,7 @@ Bugfixes:
 
 Other:
 - performance and code quality fixes
+- trying to load a string as a data source now throws an error
 
 ## [0.8.15](https://github.com/warpech/jquery-handsontable/tree/v0.8.15) (Mar 18, 2013)
 
