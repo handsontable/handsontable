@@ -56,6 +56,7 @@
   border-right: 1px solid #CCC;
   border-bottom: 1px solid #CCC;
   height: 22px;
+  empty-cells: show;
   line-height: 21px;
   padding: 0 4px 0 4px; /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
   background-color: #FFF;
