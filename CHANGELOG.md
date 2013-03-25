@@ -6,6 +6,9 @@ Bugfixes:
 - Autocomplete (Bootstrap Typeahead) did not allow empty string as a value (#254)
 - outsideClickDeselects : false disables all focus in other inputs outside the table (#408)
 
+Other:
+- performance and code quality fixes
+
 ## [0.8.15](https://github.com/warpech/jquery-handsontable/tree/v0.8.15) (Mar 18, 2013)
 
 Features:

@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Mar 23 2013 16:38:26 GMT+0100 (Central European Standard Time)
+ * Date: Mon Mar 25 2013 10:47:34 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1905,7 +1905,7 @@ Handsontable.Core = function (rootElement, settings) {
       while (dividend > 0) {
         modulo = (dividend - 1) % 26;
         columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-        dividend = parseInt((dividend - modulo) / 26);
+        dividend = parseInt((dividend - modulo) / 26, 10);
       }
       DIV.innerHTML = '<span class="colHeader">' + columnLabel + '</span>';
     }
@@ -2630,6 +2630,17 @@ Handsontable.helper.stringify = function (value) {
   }
 };
 
+// Remove childs function
+// WARNING - this doesn't unload events and data attached by jQuery
+// http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
+Handsontable.helper.empty = function (element) {
+  var child;
+  while (child = element.lastChild) {
+    element.removeChild(child);
+  }
+};
+
+
 /**
  * Checks if child is a descendant of given parent node
  * http://stackoverflow.com/questions/2234979/how-to-check-in-javascript-if-one-element-is-a-child-of-another
@@ -2853,9 +2864,9 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, c
     td.innerHTML = "#bad value#";
   }
 
-  var $input = $(td).find('input:first');
+  var $input = $(td.getElementsByTagName('input')[0]);
   $input.mousedown(function (event) {
-    if (!$(this).is(':checked')) {
+    if (!this.checked) {
       instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);
     }
     else {
@@ -2902,18 +2913,21 @@ function HandsontableTextEditorClass(instance) {
 }
 
 HandsontableTextEditorClass.prototype.createElements = function () {
+
+  var style;
+
   this.TEXTAREA = $('<textarea class="handsontableInput">');
-  this.TEXTAREA.css({
-    width: 0,
-    height: 0
-  });
+
+  style = this.TEXTAREA[0].style;
+  style.width = 0;
+  style.height = 0;
 
   this.TEXTAREA_PARENT = $('<div class="handsontableInputHolder">').append(this.TEXTAREA);
-  this.TEXTAREA_PARENT.css({
-    top: 0,
-    left: 0,
-    display: 'none'
-  });
+
+  style = this.TEXTAREA_PARENT[0].style;
+  style.top = 0;
+  style.left = 0;
+  style.display = 'none';
 
   this.instance.rootElement.append(this.TEXTAREA_PARENT);
 
@@ -3156,10 +3170,10 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
     editLeft = 0;
   }
 
-  if (rowHeadersCount > 0 && parseInt($td.css('border-top-width')) > 0) {
+  if (rowHeadersCount > 0 && parseInt($td.css('border-top-width'), 10) > 0) {
     editTop += 1;
   }
-  if (colHeadersCount > 0 && parseInt($td.css('border-left-width')) > 0) {
+  if (colHeadersCount > 0 && parseInt($td.css('border-left-width'), 10) > 0) {
     editLeft += 1;
   }
 
@@ -3176,10 +3190,10 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   var width = $td.width()
     , height = $td.outerHeight() - 4;
 
-  if (parseInt($td.css('border-top-width')) > 0) {
+  if (parseInt($td.css('border-top-width'), 10) > 0) {
     height -= 1;
   }
-  if (parseInt($td.css('border-left-width')) > 0) {
+  if (parseInt($td.css('border-left-width'), 10) > 0) {
     if (rowHeadersCount > 0) {
       width -= 1;
     }
@@ -3295,9 +3309,7 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
 
   this.typeahead.listen();
 
-  this.TEXTAREA.off('keydown'); //unlisten
-  this.TEXTAREA.off('keyup'); //unlisten
-  this.TEXTAREA.off('keypress'); //unlisten
+  this.TEXTAREA.off('keydown').off('keyup').off('keypress'); //unlisten
 
   this.TEXTAREA_PARENT.off('.acEditor').on('keydown.acEditor', function (event) {
     switch (event.keyCode) {
@@ -3677,9 +3689,13 @@ function HandsontableAutoColumnSize() {
     , tmp
     , $tmp
     , tmpTbody
+    , tmpTbodyTd
     , tmpThead
+    , tmpTheadTh
     , tmpNoRenderer
+    , tmpNoRendererTd
     , tmpRenderer
+    , tmpRendererTd
     , sampleCount = 5; //number of samples to take of each value length
 
   this.beforeInit = function () {
@@ -3688,38 +3704,42 @@ function HandsontableAutoColumnSize() {
 
   this.determineColumnWidth = function (col) {
     if (!tmp) {
-      tmp = document.createElement('DIV');
-      tmp.className = 'handsontable';
-      tmp.style.position = 'absolute';
-      tmp.style.top = '0';
-      tmp.style.left = '0';
-      tmp.style.display = 'none';
 
-      tmpThead = $('<table><thead><tr><td></td></tr></thead></table>')[0];
+      var d = document;
+
+      tmpThead   = d.createElement('table');
+      tmpThead.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(d.createElement('th'));
+      tmpTheadTh = tmpThead.getElementsByTagName('th')[0];
+
+      tmpThead.className = 'htTable';
+      tmpThead.style.tableLayout = 'auto',
+      tmpThead.style.width = 'auto',
+
+      tmpTbody   = tmpThead.cloneNode(false);
+      tmpTbody.appendChild(d.createElement('tbody')).appendChild(d.createElement('tr')).appendChild(d.createElement('td'));
+      tmpTbodyTd = tmpTbody.getElementsByTagName('td')[0];
+
+      tmpNoRenderer   = tmpTbody.cloneNode(true);
+      tmpNoRendererTd = tmpNoRenderer.getElementsByTagName('td')[0];
+
+      tmpRenderer   = tmpTbody.cloneNode(true);
+      tmpRendererTd = tmpRenderer.getElementsByTagName('td')[0];
+
+      tmp = d.createElement('div');
+      tmp.className = 'handsontable hidden';
+
       tmp.appendChild(tmpThead);
-
-      tmp.appendChild(document.createElement('BR'));
-
-      tmpTbody = $('<table><tbody><tr><td></td></tr></tbody></table>')[0];
       tmp.appendChild(tmpTbody);
-
-      tmp.appendChild(document.createElement('BR'));
-
-      tmpNoRenderer = $('<table class="htTable"><tbody><tr><td></td></tr></tbody></table>')[0];
       tmp.appendChild(tmpNoRenderer);
-
-      tmp.appendChild(document.createElement('BR'));
-
-      tmpRenderer = $('<table class="htTable"><tbody><tr><td></td></tr></tbody></table>')[0];
       tmp.appendChild(tmpRenderer);
 
-      document.body.appendChild(tmp);
       $tmp = $(tmp);
 
-      $tmp.find('table').css({
-        tableLayout: 'auto',
-        width: 'auto'
-      });
+      tmpNoRenderer = $tmp.children().eq(2);
+      tmpRenderer   = $tmp.children().eq(3);
+
+      d.body.appendChild(tmp);
+
     }
 
     var rows = instance.countRows();
@@ -3745,7 +3765,7 @@ function HandsontableAutoColumnSize() {
 
     var settings = instance.getSettings();
     if (settings.colHeaders) {
-      instance.getColHeader(col, tmpThead.firstChild.firstChild.firstChild); //TH innerHTML
+      instance.getColHeader(col, tmpTheadTh); //TH innerHTML
     }
 
     var txt = '';
@@ -3756,26 +3776,28 @@ function HandsontableAutoColumnSize() {
         }
       }
     }
-    tmpTbody.firstChild.firstChild.firstChild.innerHTML = txt; //TD innerHTML
+    tmpTbodyTd.innerHTML = txt; //TD innerHTML
 
-    $(tmpRenderer.firstChild.firstChild.firstChild).empty();
-    $(tmpNoRenderer.firstChild.firstChild.firstChild).empty();
+    Handsontable.helper.empty(tmpRendererTd);
+    Handsontable.helper.empty(tmpNoRendererTd);
 
     tmp.style.display = 'block';
+
     var width = $tmp.outerWidth();
 
     var cellProperties = instance.getCellMeta(0, col);
     if (cellProperties.renderer) {
       var str = 9999999999;
 
-      tmpNoRenderer.firstChild.firstChild.firstChild.innerHTML = str;
+      tmpNoRendererTd.innerHTML = str;
 
-      cellProperties.renderer(instance, tmpRenderer.firstChild.firstChild.firstChild, 0, col, instance.colToProp(col), str, cellProperties);
+      cellProperties.renderer(instance, tmpRendererTd, 0, col, instance.colToProp(col), str, cellProperties);
 
-      width += $(tmpRenderer).width() - $(tmpNoRenderer).width(); //add renderer overhead to the calculated width
+      width += tmpRenderer.width() - tmpNoRenderer.width(); //add renderer overhead to the calculated width
     }
 
     tmp.style.display = 'none';
+
     return width;
   };
 
@@ -3869,7 +3891,7 @@ function HandsontableColumnSorting() {
 
   this.getColHeader = function (col, TH) {
     if (this.getSettings().columnSorting) {
-      $(TH).find('span.colHeader').addClass('columnSorting');
+      $(TH).find('span.colHeader')[0].className += ' columnSorting';
     }
   };
 }
@@ -3881,32 +3903,33 @@ Handsontable.PluginHooks.push('beforeSet', htSortColumn.translateRow);
 Handsontable.PluginHooks.push('afterGetColHeader', htSortColumn.getColHeader);
 function createContextMenu() {
   var instance = this
-    , defaultOptions = {
-      selector: "#" + instance.rootElement.attr('id') + ' table, #' + instance.rootElement.attr('id') + ' div',
-      trigger: 'right',
-      callback: onContextClick
-    },
-    allItems = {
-      "row_above": {name: "Insert row above", disabled: isDisabled},
-      "row_below": {name: "Insert row below", disabled: isDisabled},
-      "hsep1": "---------",
-      "col_left": {name: "Insert column on the left", disabled: isDisabled},
-      "col_right": {name: "Insert column on the right", disabled: isDisabled},
-      "hsep2": "---------",
-      "remove_row": {name: "Remove row", disabled: isDisabled},
-      "remove_col": {name: "Remove column", disabled: isDisabled},
-      "hsep3": "---------",
-      "undo": {name: "Undo", disabled: function () {
-        return !instance.isUndoAvailable();
-      }},
-      "redo": {name: "Redo", disabled: function () {
-        return !instance.isRedoAvailable();
-      }}
-    }
-    , options = {}
-    , i
-    , ilen
-    , settings = instance.getSettings();
+      , selectorId = instance.rootElement[0].id
+      , allItems = {
+        "row_above": {name: "Insert row above", disabled: isDisabled},
+        "row_below": {name: "Insert row below", disabled: isDisabled},
+        "hsep1": "---------",
+        "col_left": {name: "Insert column on the left", disabled: isDisabled},
+        "col_right": {name: "Insert column on the right", disabled: isDisabled},
+        "hsep2": "---------",
+        "remove_row": {name: "Remove row", disabled: isDisabled},
+        "remove_col": {name: "Remove column", disabled: isDisabled},
+        "hsep3": "---------",
+        "undo": {name: "Undo", disabled: function () {
+          return !instance.isUndoAvailable();
+        }},
+        "redo": {name: "Redo", disabled: function () {
+          return !instance.isRedoAvailable();
+        }}
+      }
+      , defaultOptions = {
+          selector : "#" + selectorId + ' table, #' + selectorId + ' div',
+          trigger  : 'right',
+          callback : onContextClick
+        }
+      , options = {}
+      , i
+      , ilen
+      , settings = instance.getSettings();
 
   function onContextClick(key) {
     var corners = instance.getSelected(); //[top left row, top left col, bottom right row, bottom right col]
@@ -4014,7 +4037,7 @@ function createContextMenu() {
     }
   }
 
-  if (!instance.rootElement.attr('id')) {
+  if (!selectorId) {
     throw new Error("Handsontable container must have an id");
   }
 
@@ -4022,7 +4045,8 @@ function createContextMenu() {
 }
 
 function destroyContextMenu() {
-  $.contextMenu('destroy', "#" + this.rootElement[0].id + ' table, #' + this.rootElement[0].id + ' div');
+  var id = this.rootElement[0].id;
+  $.contextMenu('destroy', "#" + id + ' table, #' + id + ' div');
 }
 
 Handsontable.PluginHooks.push('afterInit', createContextMenu);
@@ -4181,7 +4205,7 @@ function HandsontableManualColumnMove() {
         $ghost.appendTo($table.parent());
         $ghost.width($resizer.parent().width());
         $ghost.height($table.height());
-        startOffset = parseInt(th.offset().left - $table.offset().left);
+        startOffset = parseInt(th.offset().left - $table.offset().left, 10);
         $ghost[0].style.left = startOffset + 6 + 'px';
       });
       this.rootElement.on('mouseenter.handsontable', 'td, th', function (e) {
@@ -4276,19 +4300,22 @@ function HandsontableManualColumnResize() {
     if (this.getSettings().manualColumnResize) {
       var that = this;
       this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
+        var _resizer = e.target,
+            $table   = that.rootElement.find('.htCore'),
+            $grandpa = $(_resizer.parentNode.parentNode);
+
         instance = that;
-        var $resizer = $(e.target);
-        currentCol = $resizer.attr('rel');
-        start = that.rootElement.find('col').eq($resizer.parent().parent().index());
+        currentCol = _resizer.getAttribute('rel');
+        start = $(that.rootElement[0].getElementsByTagName('col')[$grandpa.index()]);
         pressed = true;
         startX = e.pageX;
         startWidth = start.width();
         currentWidth = startWidth;
-        $resizer.addClass('active');
 
-        var $table = that.rootElement.find('.htCore');
+        _resizer.className += ' active';
+
         $line.appendTo($table.parent()).height($table.height());
-        startOffset = parseInt($resizer.parent().parent().offset().left - $table.offset().left);
+        startOffset = parseInt($grandpa.offset().left - $table.offset().left, 10);
         $line[0].style.left = startOffset + currentWidth - 1 + 'px';
       });
     }
@@ -4304,7 +4331,7 @@ function HandsontableManualColumnResize() {
     if (this.getSettings().manualColumnResize) {
       var DIV = document.createElement('DIV');
       DIV.className = 'manualColumnResizer';
-      $(DIV).attr('rel', col);
+      DIV.setAttribute('rel', col);
       TH.firstChild.appendChild(DIV);
     }
   };
@@ -4610,7 +4637,7 @@ Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWid
           if (multiline && c === 0) {
             last = arr[a].length - 1;
             arr[a][last] = arr[a][last] + '\n' + rows[r][0];
-            if (multiline && countQuotes(rows[r][0]) % 2 === 1) {
+            if (multiline && (countQuotes(rows[r][0]) & 1)) { //& 1 is a bitwise way of performing mod 2
               multiline = false;
               arr[a][last] = arr[a][last].substring(0, arr[a][last].length - 1).replace(/""/g, '"');
             }
@@ -4664,7 +4691,7 @@ Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWid
 }(window));
 /**
  * walkontable 0.2.0
- * 
+ *
  * Date: Mon Mar 18 2013 18:12:25 GMT+0100 (Central European Standard Time)
 */
 
@@ -4768,11 +4795,11 @@ WalkontableBorder.prototype.appear = function (corners) {
     top = minTop - containerOffset.top - 1;
     left = minLeft - containerOffset.left - 1;
 
-    if (parseInt($from.css('border-top-width')) > 0) {
+    if (parseInt($from.css('border-top-width'), 10) > 0) {
       top += 1;
       height -= 1;
     }
-    if (parseInt($from.css('border-left-width')) > 0) {
+    if (parseInt($from.css('border-left-width'), 10) > 0) {
       left += 1;
       width -= 1;
     }
@@ -5119,6 +5146,17 @@ WalkontableDom.prototype.removeTextNodes = function (elem, parent) {
     }
   }
 };
+
+// Remove childs function
+// WARNING - this doesn't unload events and data attached by jQuery
+// http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
+WalkontableDom.prototype.empty = function (element) {
+  var child;
+  while (child = element.lastChild) {
+    element.removeChild(child);
+  }
+};
+
 
 /**
  * seems getBounding is usually faster: http://jsperf.com/offset-vs-getboundingclientrect/4
@@ -5541,7 +5579,7 @@ WalkontableScrollbar.prototype.onScroll = function (delta) {
     var total = this.instance.getSetting(keys[1]);
     var display = this.instance.getSetting(keys[2]);
     if (total > display) {
-      var newOffset = Math.round(parseInt(this.handle.style[keys[3]]) * total / parseInt(this.slider.style[keys[4]])); //offset = handlePos * totalRows / offsetRows
+      var newOffset = Math.round(parseInt(this.handle.style[keys[3]], 10) * total / parseInt(this.slider.style[keys[4]], 10)); //offset = handlePos * totalRows / offsetRows
 
       if (delta === 1) {
         if (this.type === 'vertical') {
@@ -5955,7 +5993,7 @@ function WalkontableSettings(instance, settings) {
         TD.innerHTML = cellData;
       }
       else {
-        TD.innerHTML = '';
+        this.wtDom.empty(TD);
       }
     },
     columnWidth: 50,
@@ -6316,12 +6354,13 @@ WalkontableTable.prototype.refreshStretching = function () {
 };
 
 WalkontableTable.prototype.adjustAvailableNodes = function () {
-  var totalRows = this.instance.getSetting('totalRows')
-    , totalColumns = this.instance.getSetting('totalColumns')
-    , displayRows = this.instance.getSetting('displayRows')
-    , displayColumns = this.instance.getSetting('displayColumns')
+  var instance = this.instance
+    , totalRows = instance.getSetting('totalRows')
+    , totalColumns = instance.getSetting('totalColumns')
+    , displayRows = instance.getSetting('displayRows')
+    , displayColumns = instance.getSetting('displayColumns')
     , displayTds
-    , frozenColumns = this.instance.getSetting('frozenColumns')
+    , frozenColumns = instance.getSetting('frozenColumns')
     , frozenColumnsCount = frozenColumns ? frozenColumns.length : 0
     , TR
     , c;
@@ -6440,7 +6479,7 @@ WalkontableTable.prototype._doDraw = function () {
         frozenColumns[c](null, TH);
       }
       else {
-        TH.innerHTML = '';
+        this.wtDom.empty(TH);
       }
       if (this.hasEmptyCellProblem && TH.innerHTML === '') { //IE7
         TH.innerHTML = '&nbsp;';
@@ -6780,7 +6819,7 @@ Dragdealer.prototype =
 		this.wrapper = wrapper;
 		this.handle = handle;
 		this.options = options;
-		
+
 		this.disabled = this.getOption('disabled', false);
 		this.horizontal = this.getOption('horizontal', true);
 		this.vertical = this.getOption('vertical', false);
@@ -6791,10 +6830,10 @@ Dragdealer.prototype =
 		this.speed = this.getOption('speed', 10) / 100;
 		this.xPrecision = this.getOption('xPrecision', 0);
 		this.yPrecision = this.getOption('yPrecision', 0);
-		
+
 		this.callback = options.callback || null;
 		this.animationCallback = options.animationCallback || null;
-		
+
 		this.bounds = {
 			left: options.left || 0, right: -(options.right || 0),
 			top: options.top || 0, bottom: -(options.bottom || 0),
@@ -6814,7 +6853,7 @@ Dragdealer.prototype =
 			target: [0, 0]
 		};
 		this.change = [0, 0];
-		
+
 		this.activity = false;
 		this.dragging = false;
 		this.tapping = false;
@@ -6829,7 +6868,7 @@ Dragdealer.prototype =
 		this.setBoundsPadding();
 		this.setBounds();
 		this.setSteps();
-		
+
 		this.addListeners();
 	},
 	setWrapperOffset: function()
@@ -6854,11 +6893,11 @@ Dragdealer.prototype =
 		this.bounds.x0 = this.bounds.left;
 		this.bounds.x1 = this.wrapper.offsetWidth + this.bounds.right;
 		this.bounds.xRange = (this.bounds.x1 - this.bounds.x0) - this.handle.offsetWidth;
-		
+
 		this.bounds.y0 = this.bounds.top;
 		this.bounds.y1 = this.wrapper.offsetHeight + this.bounds.bottom;
 		this.bounds.yRange = (this.bounds.y1 - this.bounds.y0) - this.handle.offsetHeight;
-		
+
 		this.bounds.xStep = 1 / (this.xPrecision || Math.max(this.wrapper.offsetWidth, this.handle.offsetWidth));
 		this.bounds.yStep = 1 / (this.yPrecision || Math.max(this.wrapper.offsetHeight, this.handle.offsetHeight));
 	},
@@ -6876,7 +6915,7 @@ Dragdealer.prototype =
 	addListeners: function()
 	{
 		var self = this;
-		
+
 		this.wrapper.onselectstart = function()
 		{
 			return false;
@@ -6915,7 +6954,7 @@ Dragdealer.prototype =
 		{
 			return !self.activity;
 		}
-		
+
 		this.interval = setInterval(function(){ self.animate() }, 25);
 		self.animate(false, true);
 	},
@@ -6923,7 +6962,7 @@ Dragdealer.prototype =
 	{
 		this.activity = false;
 		Cursor.refresh(e);
-		
+
 		this.preventDefaults(e, true);
 		this.startDrag();
 		this.cancelEvent(e);
@@ -6931,7 +6970,7 @@ Dragdealer.prototype =
 	wrapperDownHandler: function(e)
 	{
 		Cursor.refresh(e);
-		
+
 		this.preventDefaults(e, true);
 		this.startTap();
 	},
@@ -6945,7 +6984,7 @@ Dragdealer.prototype =
 	{
 		this.setWrapperOffset();
 		this.setBounds();
-		
+
 		this.update();
 	},
 	enable: function()
@@ -6981,7 +7020,7 @@ Dragdealer.prototype =
 			return;
 		}
 		this.tapping = true;
-		
+
 		if(target === undefined)
 		{
 			target = [
@@ -6998,7 +7037,7 @@ Dragdealer.prototype =
 			return;
 		}
 		this.tapping = false;
-		
+
 		this.setTargetValue(this.value.current);
 		this.result();
 	},
@@ -7012,7 +7051,7 @@ Dragdealer.prototype =
 			Cursor.x - Position.get(this.handle)[0],
 			Cursor.y - Position.get(this.handle)[1]
 		];
-		
+
 		this.dragging = true;
 	},
 	stopDrag: function()
@@ -7022,7 +7061,7 @@ Dragdealer.prototype =
 			return;
 		}
 		this.dragging = false;
-		
+
 		var target = this.groupClone(this.value.current);
 		if(this.slide)
 		{
@@ -7065,13 +7104,13 @@ Dragdealer.prototype =
 		if(this.dragging)
 		{
 			var prevTarget = this.groupClone(this.value.target);
-			
+
 			var offset = [
 				Cursor.x - this.offset.wrapper[0] - this.offset.mouse[0],
 				Cursor.y - this.offset.wrapper[1] - this.offset.mouse[1]
 			];
 			this.setTargetOffset(offset, this.loose);
-			
+
 			this.change = [
 				this.value.target[0] - prevTarget[0],
 				this.value.target[1] - prevTarget[1]
@@ -7140,7 +7179,7 @@ Dragdealer.prototype =
 	setTargetValue: function(value, loose)
 	{
 		var target = loose ? this.getLooseValue(value) : this.getProperValue(value);
-		
+
 		this.groupCopy(this.value.target, target);
 		this.offset.target = this.getOffsetsByRatios(target);
 	},
@@ -7148,7 +7187,7 @@ Dragdealer.prototype =
 	{
 		var value = this.getRatiosByOffsets(offset);
 		var target = loose ? this.getLooseValue(value) : this.getProperValue(value);
-		
+
 		this.groupCopy(this.value.target, target);
 		this.offset.target = this.getOffsetsByRatios(target);
 	},
@@ -7168,7 +7207,7 @@ Dragdealer.prototype =
 		proper[1] = Math.max(proper[1], 0);
 		proper[0] = Math.min(proper[0], 1);
 		proper[1] = Math.min(proper[1], 1);
-		
+
 		if((!this.dragging && !this.tapping) || this.snap)
 		{
 			if(this.steps > 1)
@@ -7245,7 +7284,7 @@ Dragdealer.prototype =
 			e.preventDefault();
 		}
 		e.returnValue = false;
-		
+
 		if(selection && document.selection)
 		{
 			document.selection.empty();
@@ -7273,7 +7312,7 @@ Dragdealer.prototype =
  * Thanks to: Seamus Leahy for adding deltaX and deltaY
  *
  * Version: 3.0.6
- * 
+ *
  * Requires: 1.2.2+
  */
 
@@ -7297,7 +7336,7 @@ $.event.special.mousewheel = {
             this.onmousewheel = handler;
         }
     },
-    
+
     teardown: function() {
         if ( this.removeEventListener ) {
             for ( var i=types.length; i; ) {
@@ -7313,7 +7352,7 @@ $.fn.extend({
     mousewheel: function(fn) {
         return fn ? this.bind("mousewheel", fn) : this.trigger("mousewheel");
     },
-    
+
     unmousewheel: function(fn) {
         return this.unbind("mousewheel", fn);
     }
@@ -7324,27 +7363,27 @@ function handler(event) {
     var orgEvent = event || window.event, args = [].slice.call( arguments, 1 ), delta = 0, returnValue = true, deltaX = 0, deltaY = 0;
     event = $.event.fix(orgEvent);
     event.type = "mousewheel";
-    
+
     // Old school scrollwheel delta
     if ( orgEvent.wheelDelta ) { delta = orgEvent.wheelDelta/120; }
     if ( orgEvent.detail     ) { delta = -orgEvent.detail/3; }
-    
+
     // New school multidimensional scroll (touchpads) deltas
     deltaY = delta;
-    
+
     // Gecko
     if ( orgEvent.axis !== undefined && orgEvent.axis === orgEvent.HORIZONTAL_AXIS ) {
         deltaY = 0;
         deltaX = -1*delta;
     }
-    
+
     // Webkit
     if ( orgEvent.wheelDeltaY !== undefined ) { deltaY = orgEvent.wheelDeltaY/120; }
     if ( orgEvent.wheelDeltaX !== undefined ) { deltaX = -1*orgEvent.wheelDeltaX/120; }
-    
+
     // Add event and delta to the front of the arguments
     args.unshift(event, delta, deltaX, deltaY);
-    
+
     return ($.event.dispatch || $.event.handle).apply(this, args);
 }
 
