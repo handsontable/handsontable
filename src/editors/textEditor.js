@@ -107,7 +107,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
 };
 
 HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
-  this.td = td;
+  this.TD = td;
   this.row = row;
   this.col = col;
   this.prop = prop;
