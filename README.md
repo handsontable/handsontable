@@ -163,6 +163,7 @@ This is a free world so I invite you to check out alternative projects. I would 
  - [jqGrid](http://www.trirand.com/blog/)
  - [jTable](http://www.jtable.org/)
  - [jui_datagrid](http://www.pontikis.net/labs/jui_datagrid/)
+ - [ParamQuery](http://paramquery.com/)
 
 ## License 
 
