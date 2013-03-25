@@ -97,4 +97,29 @@ describe('HandsontableEditor', function () {
       expect(getDataAtCell(2, 0)).toEqual('BMW');
     });
   });
+
+  it('after HT editor is closed, focus should be set back to the cell', function () {
+    runs(function () {
+      handsontable({
+        columns: [
+          {
+            type: 'handsontable',
+            handsontable: {
+              colHeaders: ['Marque', 'Country', 'Parent company'],
+              data: getManufacturerData()
+            }
+          }
+        ]
+      });
+      selectCell(2, 0);
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      keyDownUp('enter');
+      keyDownUp('esc');
+      expect(document.activeElement).toEqual(getCell(2, 0));
+    });
+  });
 });
