@@ -106,6 +106,8 @@
 
       <p>If you want scrollbars, just set container width, height and <code>overflow: scroll</code> in CSS.</p>
 
+      <p><button class="maximize">Maximize HOT table</button></p>
+
       <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
       <p>
@@ -131,12 +133,51 @@
 
         $("#example1").handsontable({
           data: createBigData(),
-          colWidths: [55, 80, 80, 80, 80, 80, 80], //can also be a number or a function
           rowHeaders: true,
           colHeaders: true,
           minSpareRows: 1,
+          stretchH : 'all',
           contextMenu: true
         });
+
+        /* Maximize handler */
+
+        var maximize = (function ($, window) {
+
+          var _maxed   = false,
+              _timeout = null,
+              _resize  = window.onresize,
+
+              $container = $("#example1"),
+              _container = $container[0],
+
+              resize = function () {
+                var offset  = $container.offset(),
+                    height  = window.innerHeight - offset.top + window.scrollY - 20, // 20 - scrollbar height
+                    width   = window.innerWidth  - offset.left + window.scrollX - 20; // 20 - scrollbar width
+
+                _container.style.width  = width + 'px';
+                _container.style.height = height + 'px';
+              };
+
+          window.onresize = function () {
+            clearTimeout(_timeout);
+            if (_maxed) { _timeout = setTimeout(resize, 50); }
+            _resize();
+          }
+
+          return function () {
+            _maxed = ! _maxed;
+            if (_maxed) { resize(); }
+          }
+
+        })(jQuery, window);
+
+        $(document).on('click', '.maximize', function () {
+          maximize();
+          $("#example1").handsontable('render');
+        });
+
       </script>
     </div>
   </div>
