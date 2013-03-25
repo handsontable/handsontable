@@ -43,6 +43,17 @@ Handsontable.helper.stringify = function (value) {
   }
 };
 
+// Remove childs function
+// WARNING - this doesn't unload events and data attached by jQuery
+// http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
+Handsontable.helper.empty = function (element) {
+  var child;
+  while (child = element.lastChild) {
+    element.removeChild(child);
+  }
+};
+
+
 /**
  * Checks if child is a descendant of given parent node
  * http://stackoverflow.com/questions/2234979/how-to-check-in-javascript-if-one-element-is-a-child-of-another

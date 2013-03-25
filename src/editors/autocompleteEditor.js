@@ -52,9 +52,7 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
 
   this.typeahead.listen();
 
-  this.TEXTAREA.off('keydown'); //unlisten
-  this.TEXTAREA.off('keyup'); //unlisten
-  this.TEXTAREA.off('keypress'); //unlisten
+  this.TEXTAREA.off('keydown').off('keyup').off('keypress'); //unlisten
 
   this.TEXTAREA_PARENT.off('.acEditor').on('keydown.acEditor', function (event) {
     switch (event.keyCode) {

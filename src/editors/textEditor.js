@@ -8,18 +8,21 @@ function HandsontableTextEditorClass(instance) {
 }
 
 HandsontableTextEditorClass.prototype.createElements = function () {
+
+  var style;
+
   this.TEXTAREA = $('<textarea class="handsontableInput">');
-  this.TEXTAREA.css({
-    width: 0,
-    height: 0
-  });
+
+  style = this.TEXTAREA[0].style;
+  style.width = 0;
+  style.height = 0;
 
   this.TEXTAREA_PARENT = $('<div class="handsontableInputHolder">').append(this.TEXTAREA);
-  this.TEXTAREA_PARENT.css({
-    top: 0,
-    left: 0,
-    display: 'none'
-  });
+
+  style = this.TEXTAREA_PARENT[0].style;
+  style.top = 0;
+  style.left = 0;
+  style.display = 'none';
 
   this.instance.rootElement.append(this.TEXTAREA_PARENT);
 
@@ -262,10 +265,10 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
     editLeft = 0;
   }
 
-  if (rowHeadersCount > 0 && parseInt($td.css('border-top-width')) > 0) {
+  if (rowHeadersCount > 0 && parseInt($td.css('border-top-width'), 10) > 0) {
     editTop += 1;
   }
-  if (colHeadersCount > 0 && parseInt($td.css('border-left-width')) > 0) {
+  if (colHeadersCount > 0 && parseInt($td.css('border-left-width'), 10) > 0) {
     editLeft += 1;
   }
 
@@ -282,10 +285,10 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   var width = $td.width()
     , height = $td.outerHeight() - 4;
 
-  if (parseInt($td.css('border-top-width')) > 0) {
+  if (parseInt($td.css('border-top-width'), 10) > 0) {
     height -= 1;
   }
-  if (parseInt($td.css('border-left-width')) > 0) {
+  if (parseInt($td.css('border-left-width'), 10) > 0) {
     if (rowHeadersCount > 0) {
       width -= 1;
     }

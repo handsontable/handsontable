@@ -16,6 +16,13 @@
   font-size: 13px;
 }
 
+.handsontable.hidden {
+  display : none;
+  left : 0;
+  position :absolute;
+  top : 0;
+}
+
 .handsontable * {
   box-sizing: content-box;
   -webkit-box-sizing: content-box;

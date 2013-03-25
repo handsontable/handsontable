@@ -1,31 +1,32 @@
 function createContextMenu() {
   var instance = this
-    , defaultOptions = {
-      selector: "#" + instance.rootElement.attr('id') + ' table, #' + instance.rootElement.attr('id') + ' div',
-      trigger: 'right',
-      callback: onContextClick
-    },
-    allItems = {
-      "row_above": {name: "Insert row above", disabled: isDisabled},
-      "row_below": {name: "Insert row below", disabled: isDisabled},
-      "hsep1": "---------",
-      "col_left": {name: "Insert column on the left", disabled: isDisabled},
-      "col_right": {name: "Insert column on the right", disabled: isDisabled},
-      "hsep2": "---------",
-      "remove_row": {name: "Remove row", disabled: isDisabled},
-      "remove_col": {name: "Remove column", disabled: isDisabled},
-      "hsep3": "---------",
-      "undo": {name: "Undo", disabled: function () {
-        return !instance.isUndoAvailable();
-      }},
-      "redo": {name: "Redo", disabled: function () {
-        return !instance.isRedoAvailable();
-      }}
-    }
-    , options = {}
-    , i
-    , ilen
-    , settings = instance.getSettings();
+      , selectorId = instance.rootElement[0].id
+      , allItems = {
+        "row_above": {name: "Insert row above", disabled: isDisabled},
+        "row_below": {name: "Insert row below", disabled: isDisabled},
+        "hsep1": "---------",
+        "col_left": {name: "Insert column on the left", disabled: isDisabled},
+        "col_right": {name: "Insert column on the right", disabled: isDisabled},
+        "hsep2": "---------",
+        "remove_row": {name: "Remove row", disabled: isDisabled},
+        "remove_col": {name: "Remove column", disabled: isDisabled},
+        "hsep3": "---------",
+        "undo": {name: "Undo", disabled: function () {
+          return !instance.isUndoAvailable();
+        }},
+        "redo": {name: "Redo", disabled: function () {
+          return !instance.isRedoAvailable();
+        }}
+      }
+      , defaultOptions = {
+          selector : "#" + selectorId + ' table, #' + selectorId + ' div',
+          trigger  : 'right',
+          callback : onContextClick
+        }
+      , options = {}
+      , i
+      , ilen
+      , settings = instance.getSettings();
 
   function onContextClick(key) {
     var corners = instance.getSelected(); //[top left row, top left col, bottom right row, bottom right col]
@@ -133,7 +134,7 @@ function createContextMenu() {
     }
   }
 
-  if (!instance.rootElement.attr('id')) {
+  if (!selectorId) {
     throw new Error("Handsontable container must have an id");
   }
 
@@ -141,7 +142,8 @@ function createContextMenu() {
 }
 
 function destroyContextMenu() {
-  $.contextMenu('destroy', "#" + this.rootElement[0].id + ' table, #' + this.rootElement[0].id + ' div');
+  var id = this.rootElement[0].id;
+  $.contextMenu('destroy', "#" + id + ' table, #' + id + ' div');
 }
 
 Handsontable.PluginHooks.push('afterInit', createContextMenu);

@@ -1886,7 +1886,7 @@ Handsontable.Core = function (rootElement, settings) {
       while (dividend > 0) {
         modulo = (dividend - 1) % 26;
         columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-        dividend = parseInt((dividend - modulo) / 26);
+        dividend = parseInt((dividend - modulo) / 26, 10);
       }
       DIV.innerHTML = '<span class="colHeader">' + columnLabel + '</span>';
     }
