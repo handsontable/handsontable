@@ -396,6 +396,7 @@ describe('Core_selection', function () {
     runs(function () {
       keyDownUp('enter');
       expect(isEditorVisible()).toEqual(true);
+      $input.remove();
     });
   });
 });
