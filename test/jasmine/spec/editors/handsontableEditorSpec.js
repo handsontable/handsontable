@@ -112,18 +112,18 @@ describe('HandsontableEditor', function () {
         ]
       });
       selectCell(2, 0);
+      keyDownUp('arrow_down');
     });
 
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      keyDownUp('arrow_down');
       expect(getSelected()).toEqual([3, 0, 3, 0]);
       expect(document.activeElement).toEqual(getCell(3, 0));
     });
   });
 
-  it('should focus the TD after HT editor is prepared, finished and destroyed', function () {
+  it('should focus the TD after HT editor is prepared, finished (by keyboard) and destroyed', function () {
     runs(function () {
       handsontable({
         columns: [

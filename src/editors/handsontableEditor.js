@@ -48,7 +48,7 @@ HandsontableHandsontableEditorClass.prototype.bindTemporaryEvents = function (td
     width: 2000,
     //width: 'auto',
     asyncRendering: false,
-    afterOnCellMouseDown: function() {
+    afterOnCellMouseDown: function () {
       var sel = this.getSelected();
       parent.TEXTAREA[0].value = this.getDataAtCell(sel[0], sel[1]);
       parent.instance.destroyEditor();
@@ -94,8 +94,11 @@ HandsontableHandsontableEditorClass.prototype._finishEditing = HandsontableTextE
 
 HandsontableHandsontableEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (Handsontable.helper.isDescendant(this.instance.rootElement[0], document.activeElement)) {
-    var sel = this.instance.getSelected();
-    this.instance.getCell(sel[0], sel[1]).focus(); //return the focus to the cell, is focus was in the editor
+    var that = this;
+    setTimeout(function () {
+      that.TD.focus(); //return the focus to the cell must be done after destroyer to work in IE7-9
+    }, 0);
+    this.TD.focus(); //return the focus to the cell
   }
   this.$htContainer.handsontable('destroy');
   this._finishEditing(isCancelled, ctrlDown);
