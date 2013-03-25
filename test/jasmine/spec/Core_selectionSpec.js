@@ -381,4 +381,21 @@ describe('Core_selection', function () {
       expect(tickEnd).toEqual(1);
     });
   });
+
+  it('should move focus to selected cell', function () {
+    var $input = $('<input>').appendTo(document.body);
+    handsontable({
+      startRows: 5,
+      startCols: 5
+    });
+    $input[0].focus();
+    selectCell(0, 0);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      keyDownUp('enter');
+      expect(isEditorVisible()).toEqual(true);
+    });
+  });
 });

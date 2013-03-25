@@ -2110,6 +2110,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
     priv.selStart.coords({row: row, col: col});
+    self.$table[0].focus(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
     if (typeof endRow === "undefined") {
       selection.setRangeEnd({row: row, col: col}, scrollToCell);
     }
