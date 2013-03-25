@@ -52,11 +52,11 @@ function createContextMenu() {
         break;
 
       case "remove_row":
-        instance.alter(key, corners[0], corners[2]);
+        instance.alter(key, corners[0], (corners[2] - corners[0]) + 1);
         break;
 
       case "remove_col":
-        instance.alter(key, corners[1], corners[3]);
+        instance.alter(key, corners[1], (corners[3] - corners[1]) + 1);
         break;
 
       case "undo":
