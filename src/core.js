@@ -652,7 +652,6 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Object} coords
      */
     setRangeStart: function (coords) {
-      selection.deselect();
       priv.selStart.coords(coords);
       selection.setRangeEnd(coords);
     },

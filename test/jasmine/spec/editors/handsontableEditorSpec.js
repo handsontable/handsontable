@@ -98,7 +98,7 @@ describe('HandsontableEditor', function () {
     });
   });
 
-  it('after HT editor is closed, focus should be set back to the cell', function () {
+  it('should focus the TD after HT editor is prepared and destroyed', function () {
     runs(function () {
       handsontable({
         columns: [
@@ -117,7 +117,34 @@ describe('HandsontableEditor', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
+      keyDownUp('arrow_down');
+      expect(getSelected()).toEqual([3, 0, 3, 0]);
+      expect(document.activeElement).toEqual(getCell(3, 0));
+    });
+  });
+
+  it('should focus the TD after HT editor is prepared, finished and destroyed', function () {
+    runs(function () {
+      handsontable({
+        columns: [
+          {
+            type: 'handsontable',
+            handsontable: {
+              colHeaders: ['Marque', 'Country', 'Parent company'],
+              data: getManufacturerData()
+            }
+          }
+        ]
+      });
+      selectCell(2, 0);
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(document.activeElement).toEqual(getCell(2, 0));
       keyDownUp('enter');
+      expect(document.activeElement).not.toEqual(getCell(2, 0));
       keyDownUp('esc');
       expect(document.activeElement).toEqual(getCell(2, 0));
     });

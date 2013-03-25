@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Mar 25 2013 20:20:08 GMT+0100 (Central European Standard Time)
+ * Date: Mon Mar 25 2013 21:12:15 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -671,7 +671,6 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Object} coords
      */
     setRangeStart: function (coords) {
-      selection.deselect();
       priv.selStart.coords(coords);
       selection.setRangeEnd(coords);
     },
@@ -3043,7 +3042,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
 };
 
 HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
-  this.td = td;
+  this.TD = td;
   this.row = row;
   this.col = col;
   this.prop = prop;
@@ -3731,7 +3730,8 @@ HandsontableHandsontableEditorClass.prototype._finishEditing = HandsontableTextE
 
 HandsontableHandsontableEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (Handsontable.helper.isDescendant(this.instance.rootElement[0], document.activeElement)) {
-    this.TD.focus(); //return the focus to the cell, is focus was in the editor
+    var sel = this.instance.getSelected();
+    this.instance.getCell(sel[0], sel[1]).focus(); //return the focus to the cell, is focus was in the editor
   }
   this.$htContainer.handsontable('destroy');
   this._finishEditing(isCancelled, ctrlDown);

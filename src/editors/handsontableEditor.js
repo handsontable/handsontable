@@ -94,7 +94,8 @@ HandsontableHandsontableEditorClass.prototype._finishEditing = HandsontableTextE
 
 HandsontableHandsontableEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (Handsontable.helper.isDescendant(this.instance.rootElement[0], document.activeElement)) {
-    this.TD.focus(); //return the focus to the cell, is focus was in the editor
+    var sel = this.instance.getSelected();
+    this.instance.getCell(sel[0], sel[1]).focus(); //return the focus to the cell, is focus was in the editor
   }
   this.$htContainer.handsontable('destroy');
   this._finishEditing(isCancelled, ctrlDown);
