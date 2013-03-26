@@ -14,7 +14,8 @@ Handsontable.AutocompleteRenderer = function (instance, TD, row, col, prop, valu
 
   var ARROW = document.createElement('DIV');
   ARROW.className = 'htAutocompleteArrow';
-  ARROW.innerHTML = '&#x25BC;';
+  ARROW.appendChild(document.createTextNode('\u25BC'));
+  //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
 
   if (!instance.acArrowListener) {
     //not very elegant but easy and fast
@@ -28,7 +29,8 @@ Handsontable.AutocompleteRenderer = function (instance, TD, row, col, prop, valu
 
   if (!TEXT.firstChild) { //http://jsperf.com/empty-node-if-needed
     //otherwise empty fields appear borderless in demo/renderers.html (IE)
-    TEXT.innerHTML = '&nbsp;';
+    TEXT.appendChild(document.createTextNode('\u00A0')); //\u00A0 equals &nbsp; for a text node
+    //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
 
   TEXT.appendChild(ARROW);
