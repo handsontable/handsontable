@@ -1,3 +1,8 @@
+## HEAD
+
+Features:
+- performance: remove jQuery from default autocomplete and checkbox renderers (performance increase 150%!)
+
 ## [0.8.16](https://github.com/warpech/jquery-handsontable/tree/v0.8.16) (Mar 26, 2013)
 
 Features:

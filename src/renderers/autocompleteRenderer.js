@@ -1,28 +1,37 @@
 /**
  * Autocomplete renderer
  * @param {Object} instance Handsontable instance
- * @param {Element} td Table cell where to render
+ * @param {Element} TD Table cell where to render
  * @param {Number} row
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, value, cellProperties) {
-  var $td = $(td);
-  var $text = $('<div class="htAutocomplete"></div>');
-  var $arrow = $('<div class="htAutocompleteArrow">&#x25BC;</div>');
+Handsontable.AutocompleteRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
+  var TEXT = document.createElement('DIV');
+  TEXT.className = 'htAutocomplete';
 
-  $arrow.mouseup(function (event) {
-    instance.view.wt.getSetting('onCellDblClick');
-  });
+  var ARROW = document.createElement('DIV');
+  ARROW.className = 'htAutocompleteArrow';
+  ARROW.innerHTML = '&#x25BC;';
 
-  Handsontable.TextCell.renderer(instance, $text[0], row, col, prop, value, cellProperties);
-
-  if ($text.html() === '') {
-    $text.html('&nbsp;');
+  if (!instance.acArrowListener) {
+    //not very elegant but easy and fast
+    instance.acArrowListener = function () {
+      instance.view.wt.getSetting('onCellDblClick');
+    };
+    instance.rootElement.on('mouseup', '.htAutocompleteArrow', instance.acArrowListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
   }
 
-  $text.append($arrow);
-  $td.empty().append($text);
+  Handsontable.TextRenderer(instance, TEXT, row, col, prop, value, cellProperties);
+
+  if (!TEXT.firstChild) { //http://jsperf.com/empty-node-if-needed
+    //otherwise empty fields appear borderless in demo/renderers.html (IE)
+    TEXT.innerHTML = '&nbsp;';
+  }
+
+  TEXT.appendChild(ARROW);
+  Handsontable.helper.empty(TD); //TODO identify under what circumstances this line can be removed
+  TD.appendChild(TEXT);
 };

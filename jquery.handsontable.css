@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Mar 26 2013 02:34:10 GMT+0100 (Central European Standard Time)
+ * Date: Tue Mar 26 2013 11:41:47 GMT+0100 (Central European Standard Time)
  */
 
 .handsontable {
@@ -47,7 +47,6 @@
   /* reset bootstrap table style. for more info see: https://github.com/warpech/jquery-handsontable/issues/224 */
   max-width : none;
   max-height: none;
-}
 }
 
 .handsontable col {
@@ -246,6 +245,13 @@ AutocompleteRenderer down arrow
 }
 
 /*
+CheckboxRenderer
+*/
+.handsontable .htCheckboxRendererInput.noValue {
+  opacity: 0.5;
+}
+
+/*
 NumericRenderer
 */
 .handsontable .htNumeric {
@@ -265,7 +271,7 @@ NumericRenderer
   display: none;
   min-width: 160px;
   padding: 4px 0;
-  margin: 0;
+  margin: 2px 0 0 0;
   list-style: none;
   background-color: white;
   border-color: #CCC;
@@ -278,7 +284,6 @@ NumericRenderer
   -webkit-background-clip: padding-box;
   -moz-background-clip: padding;
   background-clip: padding-box;
-  margin-top: 2px;
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
   border-radius: 4px;

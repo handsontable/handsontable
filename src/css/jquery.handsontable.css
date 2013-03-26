@@ -48,7 +48,6 @@
   max-width : none;
   max-height: none;
 }
-}
 
 .handsontable col {
   width: 50px;
@@ -246,6 +245,13 @@ AutocompleteRenderer down arrow
 }
 
 /*
+CheckboxRenderer
+*/
+.handsontable .htCheckboxRendererInput.noValue {
+  opacity: 0.5;
+}
+
+/*
 NumericRenderer
 */
 .handsontable .htNumeric {
@@ -265,7 +271,7 @@ NumericRenderer
   display: none;
   min-width: 160px;
   padding: 4px 0;
-  margin: 0;
+  margin: 2px 0 0 0;
   list-style: none;
   background-color: white;
   border-color: #CCC;
@@ -278,7 +284,6 @@ NumericRenderer
   -webkit-background-clip: padding-box;
   -moz-background-clip: padding;
   background-clip: padding-box;
-  margin-top: 2px;
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
   border-radius: 4px;
