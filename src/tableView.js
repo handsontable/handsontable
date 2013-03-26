@@ -70,8 +70,8 @@ Handsontable.TableView = function (instance) {
       that.instance.deselectCell();
     }
     else {
-        that.instance.destroyEditor();
-      }
+      that.instance.destroyEditor();
+    }
   });
 
   $table.on('selectstart', function (event) {
@@ -216,7 +216,7 @@ Handsontable.TableView = function (instance) {
       event.preventDefault();
       clearTextSelection();
 
-      if(settings.afterOnCellMouseDown) {
+      if (settings.afterOnCellMouseDown) {
         settings.afterOnCellMouseDown.call(that.instance, event, coords, TD);
       }
     },
@@ -236,9 +236,6 @@ Handsontable.TableView = function (instance) {
     },
     onCellCornerDblClick: function () {
       instance.autofill.selectAdjacent();
-    },
-    onDraw: function () {
-      $window.trigger('resize');
     }
   };
 
@@ -248,18 +245,22 @@ Handsontable.TableView = function (instance) {
   this.instance.forceFullRender = true; //used when data was changed
   this.render();
 
+  var lastContainerWidth = that.containerWidth;
+  var lastContainerHeight = that.containerHeight;
+
   $window.on('resize.' + instance.guid, function () {
     that.instance.registerTimeout('resizeTimeout', function () {
-      var lastContainerWidth = that.containerWidth;
-      var lastContainerHeight = that.containerHeight;
-
       that.determineContainerSize();
+      var newContainerWidth = that.containerWidth;
+      var newContainerHeight = that.containerHeight;
 
-      if (lastContainerWidth !== that.containerWidth || lastContainerHeight !== that.containerHeight) {
-        that.wt.update('width', that.containerWidth);
-        that.wt.update('height', that.containerHeight);
+      if (lastContainerWidth !== newContainerWidth || lastContainerHeight !== newContainerHeight) {
+        that.wt.update('width', newContainerWidth);
+        that.wt.update('height', newContainerHeight);
         that.instance.forceFullRender = true;
         that.render();
+        lastContainerWidth = newContainerWidth;
+        lastContainerHeight = newContainerHeight;
       }
     }, 60);
   });
@@ -280,14 +281,14 @@ Handsontable.TableView.prototype.isCellEdited = function () {
 Handsontable.TableView.prototype.determineContainerSize = function () {
   var settings = this.instance.getSettings();
 
-  this.containerWidth = settings.width;
-  this.containerHeight = settings.height;
+  this.containerWidth = typeof settings.width === 'function' ? settings.width() : settings.width;
+  this.containerHeight = typeof settings.height === 'function' ? settings.height() : settings.height;
 
-    var computedWidth = this.instance.rootElement.width();
+  var computedWidth = this.instance.rootElement.width();
   var computedHeight = this.instance.rootElement.height();
 
   if (settings.width === void 0 && computedWidth > 0) {
-      this.containerWidth = computedWidth;
+    this.containerWidth = computedWidth;
   }
 
   if (this.overflow === 'scroll' || this.overflow === 'auto') {
@@ -297,7 +298,9 @@ Handsontable.TableView.prototype.determineContainerSize = function () {
 
     if (this.instance.rootElement[0].style.height === '') {
       if (this.wt && this.wt.wtScroll.wtScrollbarV.visible) {
-        this.containerHeight += this.wt.getSetting('scrollbarHeight');
+        if (typeof this.containerHeight === 'number') { //TODO move this to Handsontable, then this typeof can be removed
+          this.containerHeight += this.wt.getSetting('scrollbarHeight');
+        }
       }
     }
   }

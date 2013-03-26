@@ -3,6 +3,7 @@
 Features:
 - [Handsontable in Handsontable editor](http://handsontable.com/demo/handsontable.html)
 - performance and code quality fixes
+- `height` and `width` settings can now be functions (that return a number)
 
 Bugfixes:
 - autocomplete menu did not reset <li> margin

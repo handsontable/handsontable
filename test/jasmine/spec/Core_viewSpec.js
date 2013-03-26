@@ -105,17 +105,89 @@ describe('Core_view', function () {
       });
     });
 
-    waits(1000);
+    waits(250);
 
     runs(function () {
       initHeight = this.$container.height();
     });
 
-    waits(1000);
+    waits(250);
 
     runs(function () {
       expect(this.$container.height()).toEqual(initHeight);
     });
 
+  });
+
+  it('should allow height to be a number', function () {
+    this.$container[0].style.width = '';
+    this.$container[0].style.height = '';
+
+    handsontable({
+      startRows: 10,
+      startCols: 10,
+      height: 107
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(this.$container.height()).toEqual(107);
+    });
+  });
+
+  it('should allow height to be a function', function () {
+    this.$container[0].style.width = '';
+    this.$container[0].style.height = '';
+
+    handsontable({
+      startRows: 10,
+      startCols: 10,
+      height: function () {
+        return 107;
+      }
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(this.$container.height()).toEqual(107);
+    });
+  });
+
+  it('should allow width to be a number', function () {
+    this.$container[0].style.width = '';
+    this.$container[0].style.height = '';
+
+    handsontable({
+      startRows: 10,
+      startCols: 10,
+      width: 107
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(this.$container.find('.wtHider').width()).toEqual(107); //rootElement is full width but this should do the trick
+    });
+  });
+
+  it('should allow width to be a function', function () {
+    this.$container[0].style.width = '';
+    this.$container[0].style.height = '';
+
+    handsontable({
+      startRows: 10,
+      startCols: 10,
+      width: function () {
+        return 107;
+      }
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(this.$container.find('.wtHider').width()).toEqual(107); //rootElement is full width but this should do the trick
+    });
   });
 });

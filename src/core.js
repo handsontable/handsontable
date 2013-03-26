@@ -2194,6 +2194,8 @@ Handsontable.Core = function (rootElement, settings) {
 
 var settings = {
   'data': void 0,
+  'width': void 0,
+  'height': void 0,
   'startRows': 5,
   'startCols': 5,
   'minRows': 0,
