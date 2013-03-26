@@ -1,4 +1,4 @@
-## HEAD
+## [0.8.16](https://github.com/warpech/jquery-handsontable/tree/v0.8.16) (Mar 26, 2013)
 
 Features:
 - [Handsontable in Handsontable editor](http://handsontable.com/demo/handsontable.html)
