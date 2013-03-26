@@ -54,8 +54,11 @@ module.exports = function (grunt) {
 
         'src/3rdparty/jquery.autoresize.js',
         'src/3rdparty/sheetclip.js',
-        'src/3rdparty/walkontable.js',
         'src/3rdparty/copypaste.js'
+      ],
+      walkontable: [
+        'src/3rdparty/walkontable/src/*.js',
+        'src/3rdparty/walkontable/src/3rdparty/*.js'
       ],
       vendor: [
         'lib/bootstrap-typeahead.js',
@@ -72,6 +75,7 @@ module.exports = function (grunt) {
           'jquery.handsontable.js': [
             'tmp/intro.js',
             '<%= meta.src %>',
+            '<%= meta.walkontable %>',
             'src/outro.js'
           ]
         }
@@ -96,13 +100,10 @@ module.exports = function (grunt) {
 
     watch: {
       files: [
-        'src/*',
-        'src/editors/*',
-        'src/plugins/*',
-        'src/renderers/*',
-        'src/3rdparty/*',
-        'src/css/*',
-        'lib/*'
+        'src/**/*.js',
+        'src/**/*.css',
+        'lib/**/*.js',
+        'lib/**/*.css'
       ],
       tasks: ['replace', 'concat', 'clean']
     },
@@ -130,7 +131,6 @@ module.exports = function (grunt) {
     jasmine: {
       src: [
         'lib/jquery.min.js',
-        // '<%= meta.src %>',
         'jquery.handsontable.js',
         'lib/bootstrap-typeahead.js',
         'lib/numeral.js',
