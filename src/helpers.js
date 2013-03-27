@@ -43,9 +43,14 @@ Handsontable.helper.stringify = function (value) {
   }
 };
 
-// Remove childs function
-// WARNING - this doesn't unload events and data attached by jQuery
-// http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
+/**
+ * Remove childs function
+ * WARNING - this doesn't unload events and data attached by jQuery
+ * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
+ * @param element
+ * @returns {void}
+ */
+//
 Handsontable.helper.empty = function (element) {
   var child;
   while (child = element.lastChild) {
@@ -53,3 +58,51 @@ Handsontable.helper.empty = function (element) {
   }
 };
 
+/**
+ * Checks if child is a descendant of given parent node
+ * http://stackoverflow.com/questions/2234979/how-to-check-in-javascript-if-one-element-is-a-child-of-another
+ * @param parent
+ * @param child
+ * @returns {boolean}
+ */
+Handsontable.helper.isDescendant = function (parent, child) {
+  var node = child.parentNode;
+  while (node != null) {
+    if (node == parent) {
+      return true;
+    }
+    node = node.parentNode;
+  }
+  return false;
+};
+
+/**
+ * Generates a random hex string. Used as namespace for Handsontable instance events.
+ * @return {String} - 16 character random string: "92b1bfc74ec4"
+ */
+Handsontable.helper.randomString = function () {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  };
+
+  return s4() + s4() + s4() + s4();
+};
+
+/**
+ * Insert content into element trying avoid innerHTML method.
+ * @return {void}
+ */
+Handsontable.helper.avoidInnerHTML = function (element, content) {
+  if ((/(<(.*)>|&(.*);)/g).test(content)) {
+    element.innerHTML = content;
+  } else {
+    var child;
+    while (child = element.lastChild) {
+      element.removeChild(child);
+    }
+
+    element.appendChild(document.createTextNode(content));
+  }
+};
