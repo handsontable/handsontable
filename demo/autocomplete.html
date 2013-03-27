@@ -89,6 +89,14 @@
 
       <p>This example shows the usage of the Autocomplete feature.</p>
 
+      <p>List of autocomplete suggestions is rendered by <a
+        href="https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js">Twitter Bootstrap
+        Typeahead</a> library.
+      </p>
+
+      <p>The property <code>options</code> overrides <code>$.fn.typeahead.defaults</code> from Bootstrap. It may be
+        useful to configure the number of displayed suggestions.</p>
+
       <div id="example1"></div>
 
       <p>
@@ -131,7 +139,10 @@
             {
               type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
               source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
-              strict: false
+              strict: false,
+              options: {
+                items: 4 //`options` overrides `defaults` defined in bootstrap typeahead
+              }
             },
             {type: 'numeric'},
             {
@@ -226,9 +237,6 @@
 
       <p>To load data from remote (asynchrous) source, assign a function to the 'source' property. Function should
         perform the server side request and call the callback function when the result is available.</p>
-
-      <p>The property <strong>options</strong> overrides `defaults` defined in Bootstrap Typeahead. It may be useful to
-        configure the number of displayed suggestions.</p>
 
       <div id="example3"></div>
 
