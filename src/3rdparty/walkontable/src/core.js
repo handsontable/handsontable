@@ -1,5 +1,6 @@
 function Walkontable(settings) {
-  var originalHeaders = [];
+  var self = this,
+      originalHeaders = [];
 
   //bootstrap from settings
   this.wtSettings = new WalkontableSettings(this, settings);
@@ -16,7 +17,7 @@ function Walkontable(settings) {
     }
     if (!this.hasSetting('columnHeaders')) {
       this.update('columnHeaders', function (column, TH) {
-        TH.innerHTML = originalHeaders[column];
+        self.wtDom.avoidInnerHTML(TH, originalHeaders[column]);
       });
     }
   }

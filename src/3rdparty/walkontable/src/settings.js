@@ -27,7 +27,7 @@ function WalkontableSettings(instance, settings) {
     cellRenderer: function (row, column, TD) {
       var cellData = that.getSetting('data', row, column);
       if (cellData !== void 0) {
-        TD.innerHTML = cellData;
+        that.instance.wtDom.avoidInnerHTML(TD, cellData);
       }
       else {
         this.wtDom.empty(TD);

@@ -359,7 +359,7 @@ WalkontableTable.prototype._doDraw = function () {
       TH = TR.childNodes[c];
       cellData = typeof frozenColumns[c] === "function" ? frozenColumns[c](offsetRow + r, TH) : frozenColumns[c];
       if (cellData !== void 0) {
-        TH.innerHTML = cellData;
+        this.wtDom.avoidInnerHTML(TH, cellData);
       }
       /*
        we can assume that frozenColumns[c] function took care of inserting content into TH
