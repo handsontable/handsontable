@@ -198,30 +198,6 @@ WalkontableDom.prototype.avoidInnerHTML = function (element, content) {
  * but maybe offset + cache would work?
  * edit: after more tests turns out offsetLeft/Top is faster
  */
-/*WalkontableDom.prototype.offset = function (elem) {
- var rect = elem.getBoundingClientRect();
- return {
- top: rect.top + document.documentElement.scrollTop,
- left: rect.left + document.documentElement.scrollLeft
- };
- };*/
-
-/*
- WalkontableDom.prototype.offsetLeft = function (elem) {
- var offset = elem.offsetLeft;
- while (elem = elem.offsetParent) {
- offset += elem.offsetLeft;
- }
- return offset;
- };
-
- WalkontableDom.prototype.offsetTop = function (elem) {
- var offset = elem.offsetTop;
- while (elem = elem.offsetParent) {
- offset += elem.offsetTop;
- }
- return offset;
- };*/
 
 WalkontableDom.prototype.offset = function (elem) {
   var offsetLeft = elem.offsetLeft

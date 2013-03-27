@@ -108,7 +108,7 @@ function HandsontableAutoColumnSize() {
     if (cellProperties.renderer) {
       var str = 9999999999;
 
-      tmpNoRendererTd.innerHTML = str;
+      tmpNoRendererTd.appendChild(document.createTextNode(str));
 
       cellProperties.renderer(instance, tmpRendererTd, 0, col, instance.colToProp(col), str, cellProperties);
 
