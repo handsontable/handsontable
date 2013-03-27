@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Mar 26 2013 02:34:10 GMT+0100 (Central European Standard Time)
+ * Date: Tue Mar 26 2013 12:27:34 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2838,113 +2838,148 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
 /**
  * Default text renderer
  * @param {Object} instance Handsontable instance
- * @param {Element} td Table cell where to render
+ * @param {Element} TD Table cell where to render
  * @param {Number} row
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.TextRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+Handsontable.TextRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
   var escaped = Handsontable.helper.stringify(value);
-  escaped = escaped.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
-  td.innerHTML = escaped.replace(/\n/g, '<br/>');
+  if (escaped.match(/\n/)) {
+    escaped = escaped.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
+    TD.innerHTML = escaped.replace(/\n/g, '<br/>');
+  }
+  else {
+    Handsontable.helper.empty(TD); //TODO identify under what circumstances this line can be removed
+    TD.appendChild(document.createTextNode(escaped));
+    //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+  }
 };
 /**
  * Autocomplete renderer
  * @param {Object} instance Handsontable instance
- * @param {Element} td Table cell where to render
+ * @param {Element} TD Table cell where to render
  * @param {Number} row
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.AutocompleteRenderer = function (instance, td, row, col, prop, value, cellProperties) {
-  var $td = $(td);
-  var $text = $('<div class="htAutocomplete"></div>');
-  var $arrow = $('<div class="htAutocompleteArrow">&#x25BC;</div>');
+Handsontable.AutocompleteRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
+  var TEXT = document.createElement('DIV');
+  TEXT.className = 'htAutocomplete';
 
-  $arrow.mouseup(function (event) {
-    instance.view.wt.getSetting('onCellDblClick');
-  });
+  var ARROW = document.createElement('DIV');
+  ARROW.className = 'htAutocompleteArrow';
+  ARROW.appendChild(document.createTextNode('\u25BC'));
+  //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
 
-  Handsontable.TextCell.renderer(instance, $text[0], row, col, prop, value, cellProperties);
-
-  if ($text.html() === '') {
-    $text.html('&nbsp;');
+  if (!instance.acArrowListener) {
+    //not very elegant but easy and fast
+    instance.acArrowListener = function () {
+      instance.view.wt.getSetting('onCellDblClick');
+    };
+    instance.rootElement.on('mouseup', '.htAutocompleteArrow', instance.acArrowListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
   }
 
-  $text.append($arrow);
-  $td.empty().append($text);
+  Handsontable.TextRenderer(instance, TEXT, row, col, prop, value, cellProperties);
+
+  if (!TEXT.firstChild) { //http://jsperf.com/empty-node-if-needed
+    //otherwise empty fields appear borderless in demo/renderers.html (IE)
+    TEXT.appendChild(document.createTextNode('\u00A0')); //\u00A0 equals &nbsp; for a text node
+    //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+  }
+
+  TEXT.appendChild(ARROW);
+  Handsontable.helper.empty(TD); //TODO identify under what circumstances this line can be removed
+  TD.appendChild(TEXT);
 };
 /**
  * Checkbox renderer
  * @param {Object} instance Handsontable instance
- * @param {Element} td Table cell where to render
+ * @param {Element} TD Table cell where to render
  * @param {Number} row
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
   if (typeof cellProperties.checkedTemplate === "undefined") {
     cellProperties.checkedTemplate = true;
   }
   if (typeof cellProperties.uncheckedTemplate === "undefined") {
     cellProperties.uncheckedTemplate = false;
   }
+
+  Handsontable.helper.empty(TD); //TODO identify under what circumstances this line can be removed
+
+  var INPUT = document.createElement('INPUT');
+  INPUT.className = 'htCheckboxRendererInput';
+  INPUT.type = 'checkbox';
+  INPUT.setAttribute('autocomplete', 'off');
+
   if (value === cellProperties.checkedTemplate || value === Handsontable.helper.stringify(cellProperties.checkedTemplate)) {
-    td.innerHTML = "<input type='checkbox' checked autocomplete='no'>";
+    INPUT.checked = true;
+    TD.appendChild(INPUT);
   }
   else if (value === cellProperties.uncheckedTemplate || value === Handsontable.helper.stringify(cellProperties.uncheckedTemplate)) {
-    td.innerHTML = "<input type='checkbox' autocomplete='no'>";
+    TD.appendChild(INPUT);
   }
   else if (value === null) { //default value
-    td.innerHTML = "<input type='checkbox' autocomplete='no' style='opacity: 0.5'>";
+    INPUT.className += ' noValue';
+    TD.appendChild(INPUT);
   }
   else {
-    td.innerHTML = "#bad value#";
+    TD.appendChild(document.createTextNode('#bad value#'));
+    //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
 
-  var $input = $(td.getElementsByTagName('input')[0]);
-  $input.mousedown(function (event) {
-    if (!this.checked) {
-      instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);
-    }
-    else {
-      instance.setDataAtRowProp(row, prop, cellProperties.uncheckedTemplate);
-    }
-    event.stopPropagation(); //otherwise can confuse mousedown handler
-  });
+  if (!instance.checkboxInputMousedownListener) {
+    //not very elegant but easy and fast
+    instance.checkboxInputMousedownListener = function (event) {
+      if (!this.checked) {
+        instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);
+      }
+      else {
+        instance.setDataAtRowProp(row, prop, cellProperties.uncheckedTemplate);
+      }
+      event.stopPropagation(); //otherwise can confuse mousedown handler
+    };
+    instance.rootElement.on('mousedown', '.htCheckboxRendererInput', instance.checkboxInputMousedownListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
 
-  $input.mouseup(function (event) {
-    event.stopPropagation(); //otherwise can confuse dblclick handler
-  });
+    instance.checkboxInputMouseupListener = function (event) {
+      event.stopPropagation(); //otherwise can confuse dblclick handler
+    };
+    instance.rootElement.on('mouseup', '.htCheckboxRendererInput', instance.checkboxInputMouseupListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
+  }
 
-  return td;
+  return TD;
 };
 /**
  * Numeric cell renderer
  * @param {Object} instance Handsontable instance
- * @param {Element} td Table cell where to render
+ * @param {Element} TD Table cell where to render
  * @param {Number} row
  * @param {Number} col
  * @param {String|Number} prop Row object property name
  * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
-Handsontable.NumericRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
   if (typeof value === 'number') {
     if (typeof cellProperties.language !== 'undefined') {
       numeral.language(cellProperties.language)
     }
-    td.innerHTML = numeral(value).format(cellProperties.format || '0'); //docs: http://numeraljs.com/
-    td.className = 'htNumeric';
+    Handsontable.helper.empty(TD); //TODO identify under what circumstances this line can be removed
+    TD.className = 'htNumeric';
+    TD.appendChild(document.createTextNode(numeral(value).format(cellProperties.format || '0'))); //docs: http://numeraljs.com/
+    //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
   else {
-    Handsontable.TextRenderer(instance, td, row, col, prop, value, cellProperties);
+    Handsontable.TextRenderer(instance, TD, row, col, prop, value, cellProperties);
   }
 };
 function HandsontableTextEditorClass(instance) {

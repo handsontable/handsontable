@@ -36,13 +36,39 @@ $(document).ready(function () {
     asyncRendering: false
   });
 
-  $('<div id="example3" style=""></div>').appendTo(document.body).handsontable({
+  $('<div id="example3"></div>').appendTo(document.body).handsontable({
+    data: [
+      [true]
+    ],
+    columns: [
+      {
+        type: 'checkbox'
+      }
+    ],
+    asyncRendering: false
+  });
+
+  $('<div id="example4"></div>').appendTo(document.body).handsontable({
+    data: [
+      [123456.78]
+    ],
+    columns: [
+      {
+        type: 'numeric',
+        format: '0,0.00 $',
+        language: 'de-de'
+      }
+    ],
+    asyncRendering: false
+  });
+
+  $('<div id="example5" style=""></div>').appendTo(document.body).handsontable({
     startRows: 3,
     startCols: 3,
     asyncRendering: false
   });
 
-  $('<div id="example4" style="width: 100px; height: 50px; overflow: scroll"></div>').appendTo(document.body).handsontable({
+  $('<div id="example6" style="width: 100px; height: 50px; overflow: scroll"></div>').appendTo(document.body).handsontable({
     startRows: 3,
     startCols: 3,
     asyncRendering: false
@@ -52,20 +78,28 @@ $(document).ready(function () {
    * Test suite
    */
 
-  suite.add('textRenderer', function (/*deferred*/) {
+  suite.add('textRenderer', function () {
     $("#example1").handsontable('render');
   });
 
-  suite.add('autocompleteRenderer', function (/*deferred*/) {
+  suite.add('autocompleteRenderer', function () {
     $("#example2").handsontable('render');
   });
 
-  suite.add('overflow: none', function (/*deferred*/) {
+  suite.add('checkboxRenderer', function () {
     $("#example3").handsontable('render');
   });
 
-  suite.add('overflow: scroll', function (/*deferred*/) {
+  suite.add('numericRenderer', function () {
     $("#example4").handsontable('render');
+  });
+
+  suite.add('overflow: none', function () {
+    $("#example5").handsontable('render');
+  });
+
+  suite.add('overflow: scroll', function () {
+    $("#example6").handsontable('render');
   });
 
   /**
