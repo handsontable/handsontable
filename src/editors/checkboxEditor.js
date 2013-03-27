@@ -32,7 +32,7 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, value, cel
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     if (!ctrlDown && Handsontable.helper.isPrintableChar(event.keyCode)) {
       toggleCheckboxCell(instance, row, prop, cellProperties);
-      event.stopPropagation();
+      event.stopImmediatePropagation(); //stops core onKeyDown handler
       event.preventDefault(); //some keys have special behavior, eg. space bar scrolls screen down
     }
   });

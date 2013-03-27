@@ -965,6 +965,7 @@ WalkontableScrollbar.prototype.refresh = function () {
   }
 
   var ratio
+    , delta
     , sliderSize
     , handleSize
     , handlePosition
@@ -1025,14 +1026,16 @@ WalkontableScrollbar.prototype.refresh = function () {
   if (handleSize < 10) {
     handleSize = 15;
   }
+
   handlePosition = Math.round(sliderSize * (offsetCount / totalCount));
-  if (handlePosition > tableWidth - handleSize) {
-    handlePosition = tableWidth - handleSize;
+  if ((delta = tableWidth - handleSize) > 0 && handlePosition > delta) {
+    handlePosition = delta;
   }
 
   if (this.type === 'vertical') {
     this.handle.style.height = handleSize + 'px';
     this.handle.style.top = handlePosition + 'px';
+
   }
   else { //horizontal
     this.handle.style.width = handleSize + 'px';
@@ -1403,6 +1406,9 @@ WalkontableSettings.prototype.displayRows = function () {
     , calculated;
 
   if (this.settings['height']) {
+    if (typeof this.settings['height'] !== 'number') {
+      throw new Error('Walkontable height parameter must be a number (' + typeof this.settings['height'] + ' given)');
+    }
     estimated = Math.ceil(this.settings['height'] / 20); //silly assumption but should be fine for now
     calculated = this.getSetting('totalRows') - this.getSetting('offsetRow');
     if (calculated < 0) {
@@ -1423,6 +1429,9 @@ WalkontableSettings.prototype.displayColumns = function () {
     , calculated;
 
   if (this.settings['width']) {
+    if (typeof this.settings['width'] !== 'number') {
+      throw new Error('Walkontable width parameter must be a number (' + typeof this.settings['width'] + ' given)');
+    }
     estimated = Math.ceil(this.settings['width'] / 50); //silly assumption but should be fine for now
     calculated = this.getSetting('totalColumns') - this.getSetting('offsetColumn');
     if (calculated < 0) {

@@ -43,7 +43,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
 
     if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
       //when CTRL or its equivalent is pressed and cell is edited, don't prepare selectable text in textarea
-      event.stopPropagation();
+      event.stopImmediatePropagation();
       return;
     }
 
@@ -63,7 +63,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
           that.finishEditing(false);
         }
         else {
-          event.stopPropagation();
+          event.stopImmediatePropagation();
         }
         break;
 
@@ -72,13 +72,13 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
           that.finishEditing(false);
         }
         else {
-          event.stopPropagation();
+          event.stopImmediatePropagation();
         }
         break;
 
       case 27: /* ESC */
         that.instance.destroyEditor(true);
-        event.stopPropagation();
+        event.stopImmediatePropagation();
         break;
 
       case 13: /* return/enter */
@@ -87,7 +87,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         if ((event.ctrlKey && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
           that.TEXTAREA.val(that.TEXTAREA.val() + '\n');
           that.TEXTAREA[0].focus();
-          event.stopPropagation();
+          event.stopImmediatePropagation();
         }
         else {
           that.finishEditing(false, ctrlDown);
@@ -96,14 +96,14 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
 
       default:
-        event.stopPropagation(); //backspace, delete, home, end, CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
+        event.stopImmediatePropagation(); //backspace, delete, home, end, CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
         break;
     }
   });
 };
 
 HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
-  this.td = td;
+  this.TD = td;
   this.row = row;
   this.col = col;
   this.prop = prop;
@@ -122,7 +122,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
       }
       else if (event.keyCode === 113) { //f2
         that.beginEditing(row, col, prop, true); //show edit field
-        event.stopPropagation();
+        event.stopImmediatePropagation();
         event.preventDefault(); //prevent Opera from opening Go to Page dialog
       }
       else if (event.keyCode === 13 && that.instance.getSettings().enterBeginsEditing) { //enter
@@ -135,7 +135,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
           that.beginEditing(row, col, prop, true); //show edit field
         }
         event.preventDefault(); //prevent new line at the end of textarea
-        event.stopPropagation();
+        event.stopImmediatePropagation();
       }
     }
   });
@@ -215,10 +215,6 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
   this.TEXTAREA.on('paste.editor', function (event) {
     event.stopPropagation();
   });
-
-  if (!this.instance.getCellMeta(row, col).isWritable) {
-    return;
-  }
 
   if (useOriginalValue) {
     this.TEXTAREA[0].value = Handsontable.helper.stringify(this.originalValue) + (suffix || '');

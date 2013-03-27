@@ -418,6 +418,33 @@ describe('AutocompleteEditor', function () {
     });
   });
 
+  it('should be able to use empty value ("")', function () {
+
+    handsontable({
+      data: [
+        ['one', 'two'],
+        ['three', 'four']
+      ],
+      columns: [
+        {
+          type: Handsontable.AutocompleteCell,
+          source: ['', 'BMW', 'Bentley'],
+          strict: true
+        },
+        { type: 'text'}
+      ],
+      asyncRendering: false //TODO make sure tests pass also when async true
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    autocomplete().$menu.find('li:eq(0)').trigger('click');
+
+    expect(getDataAtCell(0, 0)).toEqual('');
+
+  });
+
   it('cancel editing (Esc) should restore the previous value', function () {
     runs(function () {
       handsontable({

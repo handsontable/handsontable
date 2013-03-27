@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.8.15
+ * Handsontable 0.8.16
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Mar 18 2013 21:35:53 GMT+0100 (Central European Standard Time)
+ * Date: Tue Mar 26 2013 02:34:10 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -25,6 +25,11 @@ var Handsontable = { //class namespace
  */
 Handsontable.Core = function (rootElement, settings) {
   this.rootElement = rootElement;
+  this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
+
+  if (!this.rootElement[0].id) {
+    this.rootElement[0].id = this.guid; //if root element does not have an id, assign a random id
+  }
 
   var priv, datamap, grid, selection, editproxy, autofill, self = this;
 
@@ -666,7 +671,6 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Object} coords
      */
     setRangeStart: function (coords) {
-      selection.deselect();
       priv.selStart.coords(coords);
       selection.setRangeEnd(coords);
     },
@@ -842,6 +846,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (!selection.isSelected()) {
         return;
       }
+      self.selection.inProgress = false; //needed by HT inception
       priv.selEnd = new Handsontable.SelectionPoint(); //create new empty point to remove the existing one
       self.view.wt.selections.current.clear();
       self.view.wt.selections.area.clear();
@@ -1072,6 +1077,10 @@ Handsontable.Core = function (rootElement, settings) {
       var $body = $(document.body);
 
       function onKeyDown(event) {
+        if (priv.settings.beforeOnKeyDown) {
+          priv.settings.beforeOnKeyDown.call(self, event);
+        }
+
         if ($body.children('.context-menu-list:visible').length) {
           return;
         }
@@ -1112,6 +1121,7 @@ Handsontable.Core = function (rootElement, settings) {
                 selection.transformStart(-1, 0);
               }
               event.preventDefault();
+              event.stopPropagation(); //required by HandsontableEditor
               break;
 
             case 9: /* tab */
@@ -1123,6 +1133,7 @@ Handsontable.Core = function (rootElement, settings) {
                 selection.transformStart(tabMoves.row, tabMoves.col, true); //move selection right (add a new column if needed)
               }
               event.preventDefault();
+              event.stopPropagation(); //required by HandsontableEditor
               break;
 
             case 39: /* arrow right */
@@ -1133,6 +1144,7 @@ Handsontable.Core = function (rootElement, settings) {
                 selection.transformStart(0, 1);
               }
               event.preventDefault();
+              event.stopPropagation(); //required by HandsontableEditor
               break;
 
             case 37: /* arrow left */
@@ -1143,6 +1155,7 @@ Handsontable.Core = function (rootElement, settings) {
                 selection.transformStart(0, -1);
               }
               event.preventDefault();
+              event.stopPropagation(); //required by HandsontableEditor
               break;
 
             case 8: /* backspace */
@@ -1159,6 +1172,7 @@ Handsontable.Core = function (rootElement, settings) {
                 selection.transformStart(1, 0); //move selection down
               }
               event.preventDefault();
+              event.stopPropagation(); //required by HandsontableEditor
               break;
 
             case 113: /* F2 */
@@ -1183,6 +1197,7 @@ Handsontable.Core = function (rootElement, settings) {
               else {
                 rangeModifier({row: priv.selStart.row(), col: 0});
               }
+              event.stopPropagation(); //required by HandsontableEditor
               break;
 
             case 35: /* end */
@@ -1192,6 +1207,7 @@ Handsontable.Core = function (rootElement, settings) {
               else {
                 rangeModifier({row: priv.selStart.row(), col: self.countCols() - 1});
               }
+              event.stopPropagation(); //required by HandsontableEditor
               break;
 
             case 33: /* pg up */
@@ -1199,6 +1215,7 @@ Handsontable.Core = function (rootElement, settings) {
               self.view.wt.scrollVertical(-self.countVisibleRows());
               self.view.render();
               event.preventDefault(); //don't page up the window
+              event.stopPropagation(); //required by HandsontableEditor
               break;
 
             case 34: /* pg down */
@@ -1206,6 +1223,7 @@ Handsontable.Core = function (rootElement, settings) {
               self.view.wt.scrollVertical(self.countVisibleRows());
               self.view.render();
               event.preventDefault(); //don't page down the window
+              event.stopPropagation(); //required by HandsontableEditor
               break;
 
             default:
@@ -1217,7 +1235,7 @@ Handsontable.Core = function (rootElement, settings) {
       self.copyPaste = new CopyPaste(self.rootElement[0]);
       self.copyPaste.onCut(onCut);
       self.copyPaste.onPaste(onPaste);
-      self.rootElement.on('keydown.handsontable', onKeyDown);
+      self.rootElement.on('keydown.handsontable.' + self.guid, onKeyDown);
     },
 
     /**
@@ -1226,8 +1244,9 @@ Handsontable.Core = function (rootElement, settings) {
      */
     destroy: function (revertOriginal) {
       if (typeof priv.editorDestroyer === "function") {
-        priv.editorDestroyer(revertOriginal);
+        var destroyer = priv.editorDestroyer; //this copy is needed, otherwise destroyer can enter an infinite loop
         priv.editorDestroyer = null;
+        destroyer(revertOriginal);
       }
     },
 
@@ -1253,16 +1272,26 @@ Handsontable.Core = function (rootElement, settings) {
      * Prepare text input to be displayed at given grid cell
      */
     prepare: function () {
+      if (!self.getCellMeta(priv.selStart.row(), priv.selStart.col()).isWritable) {
+        return;
+      }
+
       if (priv.settings.asyncRendering) {
         self.registerTimeout('prepareFrame', function () {
           var TD = self.view.getCellAtCoords(priv.selStart.coords());
-          TD.focus();
+          if (Handsontable.helper.isDescendant(self.rootElement[0], document.activeElement)) {
+            //we don't want to steal focus if it is outside HT (issue #408)
+            TD.focus();
+          }
           priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
         }, 0);
       }
       else {
         var TD = self.view.getCellAtCoords(priv.selStart.coords());
-        TD.focus();
+        if (Handsontable.helper.isDescendant(self.rootElement[0], document.activeElement)) {
+          //we don't want to steal focus if it is outside HT (issue #408)
+          TD.focus();
+        }
         priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
       }
     }
@@ -1564,6 +1593,10 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {Array} data
    */
   this.loadData = function (data) {
+    if (!(data instanceof Array)) {
+      throw new Error("loadData only accepts array of objects or array of arrays (" + typeof data + " given)");
+    }
+
     priv.isPopulated = false;
     priv.settings.data = data;
     if (priv.settings.dataSchema instanceof Array || data[0]  instanceof Array) {
@@ -1894,7 +1927,7 @@ Handsontable.Core = function (rootElement, settings) {
       while (dividend > 0) {
         modulo = (dividend - 1) % 26;
         columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-        dividend = parseInt((dividend - modulo) / 26);
+        dividend = parseInt((dividend - modulo) / 26, 10);
       }
       DIV.innerHTML = '<span class="colHeader">' + columnLabel + '</span>';
     }
@@ -2104,6 +2137,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
     priv.selStart.coords({row: row, col: col});
+    self.$table[0].focus(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
     if (typeof endRow === "undefined") {
       selection.setRangeEnd({row: row, col: col}, scrollToCell);
     }
@@ -2137,12 +2171,14 @@ Handsontable.Core = function (rootElement, settings) {
    */
   this.destroy = function () {
     self.clearTimeouts();
-    self.view.wt.destroy();
+    if (self.view) { //in case HT is destroyed before initialization has finished
+      self.view.wt.destroy();
+    }
     self.rootElement.empty();
     self.rootElement.removeData('handsontable');
     self.rootElement.off('.handsontable');
-    $(window).off('.handsontable');
-    $(document.documentElement).off('.handsontable');
+    $(window).off('.' + self.guid);
+    $(document.documentElement).off('.' + self.guid);
     Handsontable.PluginHooks.run(self, 'afterDestroy');
   };
 
@@ -2172,11 +2208,13 @@ Handsontable.Core = function (rootElement, settings) {
   /**
    * Handsontable version
    */
-  this.version = '0.8.15'; //inserted by grunt from package.json
+  this.version = '0.8.16'; //inserted by grunt from package.json
 };
 
 var settings = {
   'data': void 0,
+  'width': void 0,
+  'height': void 0,
   'startRows': 5,
   'startCols': 5,
   'minRows': 0,
@@ -2273,7 +2311,7 @@ Handsontable.TableView = function (instance) {
   //instance.rootElement[0].style.height = '';
   //instance.rootElement[0].style.width = '';
 
-  $(document.documentElement).on('keyup.handsontable', function (event) {
+  $(document.documentElement).on('keyup.' + instance.guid, function (event) {
     if (instance.selection.isInProgress() && !event.shiftKey) {
       instance.selection.finish();
     }
@@ -2282,7 +2320,7 @@ Handsontable.TableView = function (instance) {
   var isMouseDown
     , dragInterval;
 
-  $(document.documentElement).on('mouseup.handsontable', function (event) {
+  $(document.documentElement).on('mouseup.' + instance.guid, function (event) {
     if (instance.selection.isInProgress() && event.which === 1) { //is left mouse button
       instance.selection.finish();
     }
@@ -2299,9 +2337,8 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  $(document.documentElement).on('mousedown.handsontable', function (event) {
-    var target = event.target
-      , next = target;
+  $(document.documentElement).on('mousedown.' + instance.guid, function (event) {
+    var next = event.target;
 
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== null && next !== document.documentElement) {
@@ -2316,12 +2353,7 @@ Handsontable.TableView = function (instance) {
       that.instance.deselectCell();
     }
     else {
-      if (target.nodeName.toLowerCase() === 'input' || target.nodeName.toLowerCase() === 'textarea') {
-        that.instance.deselectCell();
-      }
-      else {
-        that.instance.destroyEditor();
-      }
+      that.instance.destroyEditor();
     }
   });
 
@@ -2466,6 +2498,10 @@ Handsontable.TableView = function (instance) {
       TD.focus();
       event.preventDefault();
       clearTextSelection();
+
+      if (settings.afterOnCellMouseDown) {
+        settings.afterOnCellMouseDown.call(that.instance, event, coords, TD);
+      }
     },
     onCellMouseOver: function (event, coords, TD) {
       var coordsObj = {row: coords[0], col: coords[1]};
@@ -2483,9 +2519,6 @@ Handsontable.TableView = function (instance) {
     },
     onCellCornerDblClick: function () {
       instance.autofill.selectAdjacent();
-    },
-    onDraw: function () {
-      $window.trigger('resize');
     }
   };
 
@@ -2495,16 +2528,22 @@ Handsontable.TableView = function (instance) {
   this.instance.forceFullRender = true; //used when data was changed
   this.render();
 
-  $window.on('resize.handsontable', function () {
+  var lastContainerWidth = that.containerWidth;
+  var lastContainerHeight = that.containerHeight;
+
+  $window.on('resize.' + instance.guid, function () {
     that.instance.registerTimeout('resizeTimeout', function () {
-      var lastContainerWidth = that.containerWidth;
-      var lastContainerHeight = that.containerHeight;
       that.determineContainerSize();
-      if (lastContainerWidth !== that.containerWidth || lastContainerHeight !== that.containerHeight) {
-        that.wt.update('width', that.containerWidth);
-        that.wt.update('height', that.containerHeight);
+      var newContainerWidth = that.containerWidth;
+      var newContainerHeight = that.containerHeight;
+
+      if (lastContainerWidth !== newContainerWidth || lastContainerHeight !== newContainerHeight) {
+        that.wt.update('width', newContainerWidth);
+        that.wt.update('height', newContainerHeight);
         that.instance.forceFullRender = true;
         that.render();
+        lastContainerWidth = newContainerWidth;
+        lastContainerHeight = newContainerHeight;
       }
     }, 60);
   });
@@ -2519,16 +2558,18 @@ Handsontable.TableView = function (instance) {
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {
-  return (this.instance.textEditor && this.instance.textEditor.isCellEdited) || (this.instance.autocompleteEditor && this.instance.autocompleteEditor.isCellEdited);
+  return (this.instance.textEditor && this.instance.textEditor.isCellEdited) || (this.instance.autocompleteEditor && this.instance.autocompleteEditor.isCellEdited) || (this.instance.handsontableEditor && this.instance.handsontableEditor.isCellEdited);
 };
 
 Handsontable.TableView.prototype.determineContainerSize = function () {
   var settings = this.instance.getSettings();
-  this.containerWidth = settings.width;
-  this.containerHeight = settings.height;
+
+  this.containerWidth = typeof settings.width === 'function' ? settings.width() : settings.width;
+  this.containerHeight = typeof settings.height === 'function' ? settings.height() : settings.height;
 
   var computedWidth = this.instance.rootElement.width();
   var computedHeight = this.instance.rootElement.height();
+
   if (settings.width === void 0 && computedWidth > 0) {
     this.containerWidth = computedWidth;
   }
@@ -2536,6 +2577,14 @@ Handsontable.TableView.prototype.determineContainerSize = function () {
   if (this.overflow === 'scroll' || this.overflow === 'auto') {
     if (settings.height === void 0 && computedHeight > 0) {
       this.containerHeight = computedHeight;
+    }
+
+    if (this.instance.rootElement[0].style.height === '') {
+      if (this.wt && this.wt.wtScroll.wtScrollbarV.visible) {
+        if (typeof this.containerHeight === 'number') { //TODO move this to Handsontable, then this typeof can be removed
+          this.containerHeight += this.wt.getSetting('scrollbarHeight');
+        }
+      }
     }
   }
 };
@@ -2623,6 +2672,49 @@ Handsontable.helper.stringify = function (value) {
     default:
       return value.toString();
   }
+};
+
+// Remove childs function
+// WARNING - this doesn't unload events and data attached by jQuery
+// http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
+Handsontable.helper.empty = function (element) {
+  var child;
+  while (child = element.lastChild) {
+    element.removeChild(child);
+  }
+};
+
+
+/**
+ * Checks if child is a descendant of given parent node
+ * http://stackoverflow.com/questions/2234979/how-to-check-in-javascript-if-one-element-is-a-child-of-another
+ * @param parent
+ * @param child
+ * @returns {boolean}
+ */
+Handsontable.helper.isDescendant = function (parent, child) {
+  var node = child.parentNode;
+  while (node != null) {
+    if (node == parent) {
+      return true;
+    }
+    node = node.parentNode;
+  }
+  return false;
+};
+
+/**
+ * Generates a random hex string. Used as namespace for Handsontable instance events.
+ * @return {String} - 16 character random string: "92b1bfc74ec4"
+ */
+Handsontable.helper.randomString = function () {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  };
+
+  return s4() + s4() + s4() + s4();
 };
 
 /**
@@ -2816,9 +2908,9 @@ Handsontable.CheckboxRenderer = function (instance, td, row, col, prop, value, c
     td.innerHTML = "#bad value#";
   }
 
-  var $input = $(td).find('input:first');
+  var $input = $(td.getElementsByTagName('input')[0]);
   $input.mousedown(function (event) {
-    if (!$(this).is(':checked')) {
+    if (!this.checked) {
       instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);
     }
     else {
@@ -2865,18 +2957,21 @@ function HandsontableTextEditorClass(instance) {
 }
 
 HandsontableTextEditorClass.prototype.createElements = function () {
+
+  var style;
+
   this.TEXTAREA = $('<textarea class="handsontableInput">');
-  this.TEXTAREA.css({
-    width: 0,
-    height: 0
-  });
+
+  style = this.TEXTAREA[0].style;
+  style.width = 0;
+  style.height = 0;
 
   this.TEXTAREA_PARENT = $('<div class="handsontableInputHolder">').append(this.TEXTAREA);
-  this.TEXTAREA_PARENT.css({
-    top: 0,
-    left: 0,
-    display: 'none'
-  });
+
+  style = this.TEXTAREA_PARENT[0].style;
+  style.top = 0;
+  style.left = 0;
+  style.display = 'none';
 
   this.instance.rootElement.append(this.TEXTAREA_PARENT);
 
@@ -2897,7 +2992,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
 
     if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
       //when CTRL or its equivalent is pressed and cell is edited, don't prepare selectable text in textarea
-      event.stopPropagation();
+      event.stopImmediatePropagation();
       return;
     }
 
@@ -2917,7 +3012,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
           that.finishEditing(false);
         }
         else {
-          event.stopPropagation();
+          event.stopImmediatePropagation();
         }
         break;
 
@@ -2926,13 +3021,13 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
           that.finishEditing(false);
         }
         else {
-          event.stopPropagation();
+          event.stopImmediatePropagation();
         }
         break;
 
       case 27: /* ESC */
         that.instance.destroyEditor(true);
-        event.stopPropagation();
+        event.stopImmediatePropagation();
         break;
 
       case 13: /* return/enter */
@@ -2941,7 +3036,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         if ((event.ctrlKey && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
           that.TEXTAREA.val(that.TEXTAREA.val() + '\n');
           that.TEXTAREA[0].focus();
-          event.stopPropagation();
+          event.stopImmediatePropagation();
         }
         else {
           that.finishEditing(false, ctrlDown);
@@ -2950,14 +3045,14 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
 
       default:
-        event.stopPropagation(); //backspace, delete, home, end, CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
+        event.stopImmediatePropagation(); //backspace, delete, home, end, CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
         break;
     }
   });
 };
 
 HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
-  this.td = td;
+  this.TD = td;
   this.row = row;
   this.col = col;
   this.prop = prop;
@@ -2976,7 +3071,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
       }
       else if (event.keyCode === 113) { //f2
         that.beginEditing(row, col, prop, true); //show edit field
-        event.stopPropagation();
+        event.stopImmediatePropagation();
         event.preventDefault(); //prevent Opera from opening Go to Page dialog
       }
       else if (event.keyCode === 13 && that.instance.getSettings().enterBeginsEditing) { //enter
@@ -2989,7 +3084,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
           that.beginEditing(row, col, prop, true); //show edit field
         }
         event.preventDefault(); //prevent new line at the end of textarea
-        event.stopPropagation();
+        event.stopImmediatePropagation();
       }
     }
   });
@@ -3070,10 +3165,6 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
     event.stopPropagation();
   });
 
-  if (!this.instance.getCellMeta(row, col).isWritable) {
-    return;
-  }
-
   if (useOriginalValue) {
     this.TEXTAREA[0].value = Handsontable.helper.stringify(this.originalValue) + (suffix || '');
   }
@@ -3119,10 +3210,10 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
     editLeft = 0;
   }
 
-  if (rowHeadersCount > 0 && parseInt($td.css('border-top-width')) > 0) {
+  if (rowHeadersCount > 0 && parseInt($td.css('border-top-width'), 10) > 0) {
     editTop += 1;
   }
-  if (colHeadersCount > 0 && parseInt($td.css('border-left-width')) > 0) {
+  if (colHeadersCount > 0 && parseInt($td.css('border-left-width'), 10) > 0) {
     editLeft += 1;
   }
 
@@ -3139,10 +3230,10 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   var width = $td.width()
     , height = $td.outerHeight() - 4;
 
-  if (parseInt($td.css('border-top-width')) > 0) {
+  if (parseInt($td.css('border-top-width'), 10) > 0) {
     height -= 1;
   }
-  if (parseInt($td.css('border-left-width')) > 0) {
+  if (parseInt($td.css('border-left-width'), 10) > 0) {
     if (rowHeadersCount > 0) {
       width -= 1;
     }
@@ -3235,6 +3326,20 @@ HandsontableAutocompleteEditorClass.prototype.createElements = function () {
   this.typeahead.matcher = function () {
     return true;
   };
+
+  var _process = this.typeahead.process;
+  this.typeahead.process = function (items) {
+    for (var i = 0, ilen = items.length; i < ilen; i++) {
+      if (items[i] === '') {
+        //this is needed because because of issue #254
+        //empty string ('') is a falsy value and breaks the loop in bootstrap-typeahead.js method `sorter`
+        //best solution would be to change line: `while (item = items.shift()) {`
+        //                                   to: `while ((item = items.shift()) !== void 0) {`
+        items[i] = '[empty string]';
+      }
+    }
+    return _process.call(this, items);
+  };
 };
 
 HandsontableAutocompleteEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
@@ -3244,20 +3349,18 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
 
   this.typeahead.listen();
 
-  this.TEXTAREA.off('keydown'); //unlisten
-  this.TEXTAREA.off('keyup'); //unlisten
-  this.TEXTAREA.off('keypress'); //unlisten
+  this.TEXTAREA.off('keydown').off('keyup').off('keypress'); //unlisten
 
   this.TEXTAREA_PARENT.off('.acEditor').on('keydown.acEditor', function (event) {
     switch (event.keyCode) {
       case 38: /* arrow up */
         that.typeahead.prev();
-        event.stopImmediatePropagation();
+        event.stopImmediatePropagation(); //stops TextEditor and core onKeyDown handler
         break;
 
       case 40: /* arrow down */
         that.typeahead.next();
-        event.stopImmediatePropagation();
+        event.stopImmediatePropagation(); //stops TextEditor and core onKeyDown handler
         break;
 
       case 13: /* enter */
@@ -3285,11 +3388,15 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
   this.typeahead.select = function () {
     var output = this.hide(); //need to hide it before destroyEditor, because destroyEditor checks if menu is expanded
     that.instance.destroyEditor(true);
+    var val = this.$menu.find('.active').attr('data-value');
+    if (val === '[empty string]') {
+      val = '';
+    }
     if (typeof cellProperties.onSelect === 'function') {
-      cellProperties.onSelect(row, col, prop, this.$menu.find('.active').attr('data-value'), this.$menu.find('.active').index());
+      cellProperties.onSelect(row, col, prop, val, this.$menu.find('.active').index());
     }
     else {
-      that.instance.setDataAtRowProp(row, prop, this.$menu.find('.active').attr('data-value'));
+      that.instance.setDataAtRowProp(row, prop, val);
     }
     return output;
   };
@@ -3407,7 +3514,7 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, value, cel
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     if (!ctrlDown && Handsontable.helper.isPrintableChar(event.keyCode)) {
       toggleCheckboxCell(instance, row, prop, cellProperties);
-      event.stopPropagation();
+      event.stopImmediatePropagation(); //stops core onKeyDown handler
       event.preventDefault(); //some keys have special behavior, eg. space bar scrolls screen down
     }
   });
@@ -3522,6 +3629,143 @@ Handsontable.DateEditor = function (instance, td, row, col, prop, value, cellPro
   }
 };
 /**
+ * This is inception. Using Handsontable as Handsontable editor
+ */
+
+function HandsontableHandsontableEditorClass(instance) {
+  if (instance) {
+    this.isCellEdited = false;
+    this.instance = instance;
+    this.createElements();
+    this.bindEvents();
+  }
+}
+
+HandsontableHandsontableEditorClass.prototype = new HandsontableTextEditorClass();
+
+HandsontableHandsontableEditorClass.prototype._createElements = HandsontableTextEditorClass.prototype.createElements;
+
+HandsontableHandsontableEditorClass.prototype.createElements = function () {
+  this._createElements();
+
+  var DIV = document.createElement('DIV');
+  DIV.className = 'handsontableEditor';
+  this.TEXTAREA_PARENT[0].appendChild(DIV);
+
+  this.$htContainer = $(DIV);
+};
+
+HandsontableHandsontableEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
+
+HandsontableHandsontableEditorClass.prototype.bindEvents = function () {
+
+  this._bindEvents();
+};
+
+HandsontableHandsontableEditorClass.prototype._bindTemporaryEvents = HandsontableTextEditorClass.prototype.bindTemporaryEvents;
+
+HandsontableHandsontableEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
+  var parent = this;
+
+  var options = {
+    colHeaders: true,
+    cells: function () {
+      return {
+        readOnly: true
+      }
+    },
+    fillHandle: false,
+    width: 2000,
+    //width: 'auto',
+    asyncRendering: false,
+    afterOnCellMouseDown: function () {
+      var sel = this.getSelected();
+      parent.TEXTAREA[0].value = this.getDataAtCell(sel[0], sel[1]);
+      parent.instance.destroyEditor();
+    },
+    beforeOnKeyDown: function (event) {
+      switch (event.keyCode) {
+        case 27: //esc
+          parent.instance.destroyEditor(true);
+          break;
+
+        case 13: //enter
+          var sel = this.getSelected();
+          parent.TEXTAREA[0].value = this.getDataAtCell(sel[0], sel[1]);
+          parent.instance.destroyEditor();
+          break;
+      }
+    }
+  };
+
+  if (cellProperties.handsontable) {
+    options = $.extend(options, cellProperties.handsontable);
+  }
+
+  this.$htContainer.handsontable(options);
+
+  this._bindTemporaryEvents(td, row, col, prop, value, cellProperties);
+};
+
+HandsontableHandsontableEditorClass.prototype._beginEditing = HandsontableTextEditorClass.prototype.beginEditing;
+
+HandsontableHandsontableEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
+  var onBeginEditing = this.instance.getSettings().onBeginEditing;
+  if (onBeginEditing && onBeginEditing() === false) {
+    return;
+  }
+
+  this._beginEditing(row, col, prop, useOriginalValue, suffix);
+
+  this.$htContainer.handsontable('selectCell', 0, 0);
+};
+
+HandsontableHandsontableEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
+
+HandsontableHandsontableEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
+  if (Handsontable.helper.isDescendant(this.instance.rootElement[0], document.activeElement)) {
+    var that = this;
+    setTimeout(function () {
+      that.TD.focus(); //return the focus to the cell must be done after destroyer to work in IE7-9
+    }, 0);
+    this.TD.focus(); //return the focus to the cell
+  }
+  this.$htContainer.handsontable('destroy');
+  this._finishEditing(isCancelled, ctrlDown);
+};
+
+HandsontableHandsontableEditorClass.prototype.isMenuExpanded = function () {
+  if (this.typeahead.$menu.is(":visible")) {
+    return this.typeahead;
+  }
+  else {
+    return false;
+  }
+};
+
+/**
+ * Handsontable editor
+ * @param {Object} instance Handsontable instance
+ * @param {Element} td Table cell where to render
+ * @param {Number} row
+ * @param {Number} col
+ * @param {String|Number} prop Row object property name
+ * @param value Original value (remember to escape unsafe HTML before inserting to DOM!)
+ * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
+ */
+Handsontable.HandsontableEditor = function (instance, td, row, col, prop, value, cellProperties) {
+  if (!instance.handsontableEditor) {
+    instance.handsontableEditor = new HandsontableHandsontableEditorClass(instance);
+  }
+  instance.handsontableEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
+
+  instance.registerEditor = instance.handsontableEditor;
+
+  return function (isCancelled) {
+    instance.handsontableEditor.finishEditing(isCancelled);
+  }
+};
+/**
  * Cell type is just a shortcut for setting bunch of cellProperties (used in getCellMeta)
  */
 
@@ -3551,14 +3795,20 @@ Handsontable.DateCell = {
   editor: Handsontable.DateEditor
 };
 
+Handsontable.HandsontableCell = {
+  renderer: Handsontable.AutocompleteRenderer, //displays small gray arrow on right side of the cell
+  editor: Handsontable.HandsontableEditor
+};
+
 //here setup the friendly aliases that are used by cellProperties.type
 Handsontable.cellTypes = {
   autocomplete: Handsontable.AutocompleteCell,
   checkbox: Handsontable.CheckboxCell,
   text: Handsontable.TextCell,
   numeric: Handsontable.NumericCell,
-  date: Handsontable.DateCell
-}
+  date: Handsontable.DateCell,
+  handsontable: Handsontable.HandsontableCell
+};
 Handsontable.PluginHooks = {
   hooks: {
     beforeInit: [],
@@ -3622,9 +3872,13 @@ function HandsontableAutoColumnSize() {
     , tmp
     , $tmp
     , tmpTbody
+    , tmpTbodyTd
     , tmpThead
+    , tmpTheadTh
     , tmpNoRenderer
+    , tmpNoRendererTd
     , tmpRenderer
+    , tmpRendererTd
     , sampleCount = 5; //number of samples to take of each value length
 
   this.beforeInit = function () {
@@ -3633,38 +3887,42 @@ function HandsontableAutoColumnSize() {
 
   this.determineColumnWidth = function (col) {
     if (!tmp) {
-      tmp = document.createElement('DIV');
-      tmp.className = 'handsontable';
-      tmp.style.position = 'absolute';
-      tmp.style.top = '0';
-      tmp.style.left = '0';
-      tmp.style.display = 'none';
 
-      tmpThead = $('<table><thead><tr><td></td></tr></thead></table>')[0];
+      var d = document;
+
+      tmpThead   = d.createElement('table');
+      tmpThead.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(d.createElement('th'));
+      tmpTheadTh = tmpThead.getElementsByTagName('th')[0];
+
+      tmpThead.className = 'htTable';
+      tmpThead.style.tableLayout = 'auto',
+      tmpThead.style.width = 'auto',
+
+      tmpTbody   = tmpThead.cloneNode(false);
+      tmpTbody.appendChild(d.createElement('tbody')).appendChild(d.createElement('tr')).appendChild(d.createElement('td'));
+      tmpTbodyTd = tmpTbody.getElementsByTagName('td')[0];
+
+      tmpNoRenderer   = tmpTbody.cloneNode(true);
+      tmpNoRendererTd = tmpNoRenderer.getElementsByTagName('td')[0];
+
+      tmpRenderer   = tmpTbody.cloneNode(true);
+      tmpRendererTd = tmpRenderer.getElementsByTagName('td')[0];
+
+      tmp = d.createElement('div');
+      tmp.className = 'handsontable hidden';
+
       tmp.appendChild(tmpThead);
-
-      tmp.appendChild(document.createElement('BR'));
-
-      tmpTbody = $('<table><tbody><tr><td></td></tr></tbody></table>')[0];
       tmp.appendChild(tmpTbody);
-
-      tmp.appendChild(document.createElement('BR'));
-
-      tmpNoRenderer = $('<table class="htTable"><tbody><tr><td></td></tr></tbody></table>')[0];
       tmp.appendChild(tmpNoRenderer);
-
-      tmp.appendChild(document.createElement('BR'));
-
-      tmpRenderer = $('<table class="htTable"><tbody><tr><td></td></tr></tbody></table>')[0];
       tmp.appendChild(tmpRenderer);
 
-      document.body.appendChild(tmp);
       $tmp = $(tmp);
 
-      $tmp.find('table').css({
-        tableLayout: 'auto',
-        width: 'auto'
-      });
+      tmpNoRenderer = $tmp.children().eq(2);
+      tmpRenderer   = $tmp.children().eq(3);
+
+      d.body.appendChild(tmp);
+
     }
 
     var rows = instance.countRows();
@@ -3690,7 +3948,7 @@ function HandsontableAutoColumnSize() {
 
     var settings = instance.getSettings();
     if (settings.colHeaders) {
-      instance.getColHeader(col, tmpThead.firstChild.firstChild.firstChild); //TH innerHTML
+      instance.getColHeader(col, tmpTheadTh); //TH innerHTML
     }
 
     var txt = '';
@@ -3701,26 +3959,28 @@ function HandsontableAutoColumnSize() {
         }
       }
     }
-    tmpTbody.firstChild.firstChild.firstChild.innerHTML = txt; //TD innerHTML
+    tmpTbodyTd.innerHTML = txt; //TD innerHTML
 
-    $(tmpRenderer.firstChild.firstChild.firstChild).empty();
-    $(tmpNoRenderer.firstChild.firstChild.firstChild).empty();
+    Handsontable.helper.empty(tmpRendererTd);
+    Handsontable.helper.empty(tmpNoRendererTd);
 
     tmp.style.display = 'block';
+
     var width = $tmp.outerWidth();
 
     var cellProperties = instance.getCellMeta(0, col);
     if (cellProperties.renderer) {
       var str = 9999999999;
 
-      tmpNoRenderer.firstChild.firstChild.firstChild.innerHTML = str;
+      tmpNoRendererTd.innerHTML = str;
 
-      cellProperties.renderer(instance, tmpRenderer.firstChild.firstChild.firstChild, 0, col, instance.colToProp(col), str, cellProperties);
+      cellProperties.renderer(instance, tmpRendererTd, 0, col, instance.colToProp(col), str, cellProperties);
 
-      width += $(tmpRenderer).width() - $(tmpNoRenderer).width(); //add renderer overhead to the calculated width
+      width += tmpRenderer.width() - tmpNoRenderer.width(); //add renderer overhead to the calculated width
     }
 
     tmp.style.display = 'none';
+
     return width;
   };
 
@@ -3814,7 +4074,7 @@ function HandsontableColumnSorting() {
 
   this.getColHeader = function (col, TH) {
     if (this.getSettings().columnSorting) {
-      $(TH).find('span.colHeader').addClass('columnSorting');
+      $(TH).find('span.colHeader')[0].className += ' columnSorting';
     }
   };
 }
@@ -3826,32 +4086,33 @@ Handsontable.PluginHooks.push('beforeSet', htSortColumn.translateRow);
 Handsontable.PluginHooks.push('afterGetColHeader', htSortColumn.getColHeader);
 function createContextMenu() {
   var instance = this
-    , defaultOptions = {
-      selector: "#" + instance.rootElement.attr('id') + ' table, #' + instance.rootElement.attr('id') + ' div',
-      trigger: 'right',
-      callback: onContextClick
-    },
-    allItems = {
-      "row_above": {name: "Insert row above", disabled: isDisabled},
-      "row_below": {name: "Insert row below", disabled: isDisabled},
-      "hsep1": "---------",
-      "col_left": {name: "Insert column on the left", disabled: isDisabled},
-      "col_right": {name: "Insert column on the right", disabled: isDisabled},
-      "hsep2": "---------",
-      "remove_row": {name: "Remove row", disabled: isDisabled},
-      "remove_col": {name: "Remove column", disabled: isDisabled},
-      "hsep3": "---------",
-      "undo": {name: "Undo", disabled: function () {
-        return !instance.isUndoAvailable();
-      }},
-      "redo": {name: "Redo", disabled: function () {
-        return !instance.isRedoAvailable();
-      }}
-    }
-    , options = {}
-    , i
-    , ilen
-    , settings = instance.getSettings();
+      , selectorId = instance.rootElement[0].id
+      , allItems = {
+        "row_above": {name: "Insert row above", disabled: isDisabled},
+        "row_below": {name: "Insert row below", disabled: isDisabled},
+        "hsep1": "---------",
+        "col_left": {name: "Insert column on the left", disabled: isDisabled},
+        "col_right": {name: "Insert column on the right", disabled: isDisabled},
+        "hsep2": "---------",
+        "remove_row": {name: "Remove row", disabled: isDisabled},
+        "remove_col": {name: "Remove column", disabled: isDisabled},
+        "hsep3": "---------",
+        "undo": {name: "Undo", disabled: function () {
+          return !instance.isUndoAvailable();
+        }},
+        "redo": {name: "Redo", disabled: function () {
+          return !instance.isRedoAvailable();
+        }}
+      }
+      , defaultOptions = {
+          selector : "#" + selectorId + ' table, #' + selectorId + ' div',
+          trigger  : 'right',
+          callback : onContextClick
+        }
+      , options = {}
+      , i
+      , ilen
+      , settings = instance.getSettings();
 
   function onContextClick(key) {
     var corners = instance.getSelected(); //[top left row, top left col, bottom right row, bottom right col]
@@ -3959,7 +4220,7 @@ function createContextMenu() {
     }
   }
 
-  if (!instance.rootElement.attr('id')) {
+  if (!selectorId) {
     throw new Error("Handsontable container must have an id");
   }
 
@@ -3967,7 +4228,8 @@ function createContextMenu() {
 }
 
 function destroyContextMenu() {
-  $.contextMenu('destroy', "#" + this.rootElement[0].id + ' table, #' + this.rootElement[0].id + ' div');
+  var id = this.rootElement[0].id;
+  $.contextMenu('destroy', "#" + id + ' table, #' + id + ' div');
 }
 
 Handsontable.PluginHooks.push('afterInit', createContextMenu);
@@ -4126,7 +4388,7 @@ function HandsontableManualColumnMove() {
         $ghost.appendTo($table.parent());
         $ghost.width($resizer.parent().width());
         $ghost.height($table.height());
-        startOffset = parseInt(th.offset().left - $table.offset().left);
+        startOffset = parseInt(th.offset().left - $table.offset().left, 10);
         $ghost[0].style.left = startOffset + 6 + 'px';
       });
       this.rootElement.on('mouseenter.handsontable', 'td, th', function (e) {
@@ -4221,19 +4483,22 @@ function HandsontableManualColumnResize() {
     if (this.getSettings().manualColumnResize) {
       var that = this;
       this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
+        var _resizer = e.target,
+            $table   = that.rootElement.find('.htCore'),
+            $grandpa = $(_resizer.parentNode.parentNode);
+
         instance = that;
-        var $resizer = $(e.target);
-        currentCol = $resizer.attr('rel');
-        start = that.rootElement.find('col').eq($resizer.parent().parent().index());
+        currentCol = _resizer.getAttribute('rel');
+        start = $(that.rootElement[0].getElementsByTagName('col')[$grandpa.index()]);
         pressed = true;
         startX = e.pageX;
         startWidth = start.width();
         currentWidth = startWidth;
-        $resizer.addClass('active');
 
-        var $table = that.rootElement.find('.htCore');
+        _resizer.className += ' active';
+
         $line.appendTo($table.parent()).height($table.height());
-        startOffset = parseInt($resizer.parent().parent().offset().left - $table.offset().left);
+        startOffset = parseInt($grandpa.offset().left - $table.offset().left, 10);
         $line[0].style.left = startOffset + currentWidth - 1 + 'px';
       });
     }
@@ -4249,7 +4514,7 @@ function HandsontableManualColumnResize() {
     if (this.getSettings().manualColumnResize) {
       var DIV = document.createElement('DIV');
       DIV.className = 'manualColumnResizer';
-      $(DIV).attr('rel', col);
+      DIV.setAttribute('rel', col);
       TH.firstChild.appendChild(DIV);
     }
   };
@@ -4555,7 +4820,7 @@ Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWid
           if (multiline && c === 0) {
             last = arr[a].length - 1;
             arr[a][last] = arr[a][last] + '\n' + rows[r][0];
-            if (multiline && countQuotes(rows[r][0]) % 2 === 1) {
+            if (multiline && (countQuotes(rows[r][0]) & 1)) { //& 1 is a bitwise way of performing mod 2
               multiline = false;
               arr[a][last] = arr[a][last].substring(0, arr[a][last].length - 1).replace(/""/g, '"');
             }
@@ -4609,7 +4874,7 @@ Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWid
 }(window));
 /**
  * walkontable 0.2.0
- * 
+ *
  * Date: Mon Mar 18 2013 18:12:25 GMT+0100 (Central European Standard Time)
 */
 
@@ -4713,11 +4978,11 @@ WalkontableBorder.prototype.appear = function (corners) {
     top = minTop - containerOffset.top - 1;
     left = minLeft - containerOffset.left - 1;
 
-    if (parseInt($from.css('border-top-width')) > 0) {
+    if (parseInt($from.css('border-top-width'), 10) > 0) {
       top += 1;
       height -= 1;
     }
-    if (parseInt($from.css('border-left-width')) > 0) {
+    if (parseInt($from.css('border-left-width'), 10) > 0) {
       left += 1;
       width -= 1;
     }
@@ -5064,6 +5329,17 @@ WalkontableDom.prototype.removeTextNodes = function (elem, parent) {
     }
   }
 };
+
+// Remove childs function
+// WARNING - this doesn't unload events and data attached by jQuery
+// http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
+WalkontableDom.prototype.empty = function (element) {
+  var child;
+  while (child = element.lastChild) {
+    element.removeChild(child);
+  }
+};
+
 
 /**
  * seems getBounding is usually faster: http://jsperf.com/offset-vs-getboundingclientrect/4
@@ -5486,7 +5762,7 @@ WalkontableScrollbar.prototype.onScroll = function (delta) {
     var total = this.instance.getSetting(keys[1]);
     var display = this.instance.getSetting(keys[2]);
     if (total > display) {
-      var newOffset = Math.round(parseInt(this.handle.style[keys[3]]) * total / parseInt(this.slider.style[keys[4]])); //offset = handlePos * totalRows / offsetRows
+      var newOffset = Math.round(parseInt(this.handle.style[keys[3]], 10) * total / parseInt(this.slider.style[keys[4]], 10)); //offset = handlePos * totalRows / offsetRows
 
       if (delta === 1) {
         if (this.type === 'vertical') {
@@ -5563,6 +5839,7 @@ WalkontableScrollbar.prototype.refresh = function () {
   }
 
   var ratio
+    , delta
     , sliderSize
     , handleSize
     , handlePosition
@@ -5623,14 +5900,16 @@ WalkontableScrollbar.prototype.refresh = function () {
   if (handleSize < 10) {
     handleSize = 15;
   }
+
   handlePosition = Math.round(sliderSize * (offsetCount / totalCount));
-  if (handlePosition > tableWidth - handleSize) {
-    handlePosition = tableWidth - handleSize;
+  if ((delta = tableWidth - handleSize) > 0 && handlePosition > delta) {
+    handlePosition = delta;
   }
 
   if (this.type === 'vertical') {
     this.handle.style.height = handleSize + 'px';
     this.handle.style.top = handlePosition + 'px';
+
   }
   else { //horizontal
     this.handle.style.width = handleSize + 'px';
@@ -5900,7 +6179,7 @@ function WalkontableSettings(instance, settings) {
         TD.innerHTML = cellData;
       }
       else {
-        TD.innerHTML = '';
+        this.wtDom.empty(TD);
       }
     },
     columnWidth: 50,
@@ -6001,6 +6280,9 @@ WalkontableSettings.prototype.displayRows = function () {
     , calculated;
 
   if (this.settings['height']) {
+    if (typeof this.settings['height'] !== 'number') {
+      throw new Error('Walkontable height parameter must be a number (' + typeof this.settings['height'] + ' given)');
+    }
     estimated = Math.ceil(this.settings['height'] / 20); //silly assumption but should be fine for now
     calculated = this.getSetting('totalRows') - this.getSetting('offsetRow');
     if (calculated < 0) {
@@ -6021,6 +6303,9 @@ WalkontableSettings.prototype.displayColumns = function () {
     , calculated;
 
   if (this.settings['width']) {
+    if (typeof this.settings['width'] !== 'number') {
+      throw new Error('Walkontable width parameter must be a number (' + typeof this.settings['width'] + ' given)');
+    }
     estimated = Math.ceil(this.settings['width'] / 50); //silly assumption but should be fine for now
     calculated = this.getSetting('totalColumns') - this.getSetting('offsetColumn');
     if (calculated < 0) {
@@ -6261,12 +6546,13 @@ WalkontableTable.prototype.refreshStretching = function () {
 };
 
 WalkontableTable.prototype.adjustAvailableNodes = function () {
-  var totalRows = this.instance.getSetting('totalRows')
-    , totalColumns = this.instance.getSetting('totalColumns')
-    , displayRows = this.instance.getSetting('displayRows')
-    , displayColumns = this.instance.getSetting('displayColumns')
+  var instance = this.instance
+    , totalRows = instance.getSetting('totalRows')
+    , totalColumns = instance.getSetting('totalColumns')
+    , displayRows = instance.getSetting('displayRows')
+    , displayColumns = instance.getSetting('displayColumns')
     , displayTds
-    , frozenColumns = this.instance.getSetting('frozenColumns')
+    , frozenColumns = instance.getSetting('frozenColumns')
     , frozenColumnsCount = frozenColumns ? frozenColumns.length : 0
     , TR
     , c;
@@ -6385,7 +6671,7 @@ WalkontableTable.prototype._doDraw = function () {
         frozenColumns[c](null, TH);
       }
       else {
-        TH.innerHTML = '';
+        this.wtDom.empty(TH);
       }
       if (this.hasEmptyCellProblem && TH.innerHTML === '') { //IE7
         TH.innerHTML = '&nbsp;';
@@ -6725,7 +7011,7 @@ Dragdealer.prototype =
 		this.wrapper = wrapper;
 		this.handle = handle;
 		this.options = options;
-		
+
 		this.disabled = this.getOption('disabled', false);
 		this.horizontal = this.getOption('horizontal', true);
 		this.vertical = this.getOption('vertical', false);
@@ -6736,10 +7022,10 @@ Dragdealer.prototype =
 		this.speed = this.getOption('speed', 10) / 100;
 		this.xPrecision = this.getOption('xPrecision', 0);
 		this.yPrecision = this.getOption('yPrecision', 0);
-		
+
 		this.callback = options.callback || null;
 		this.animationCallback = options.animationCallback || null;
-		
+
 		this.bounds = {
 			left: options.left || 0, right: -(options.right || 0),
 			top: options.top || 0, bottom: -(options.bottom || 0),
@@ -6759,7 +7045,7 @@ Dragdealer.prototype =
 			target: [0, 0]
 		};
 		this.change = [0, 0];
-		
+
 		this.activity = false;
 		this.dragging = false;
 		this.tapping = false;
@@ -6774,7 +7060,7 @@ Dragdealer.prototype =
 		this.setBoundsPadding();
 		this.setBounds();
 		this.setSteps();
-		
+
 		this.addListeners();
 	},
 	setWrapperOffset: function()
@@ -6799,11 +7085,11 @@ Dragdealer.prototype =
 		this.bounds.x0 = this.bounds.left;
 		this.bounds.x1 = this.wrapper.offsetWidth + this.bounds.right;
 		this.bounds.xRange = (this.bounds.x1 - this.bounds.x0) - this.handle.offsetWidth;
-		
+
 		this.bounds.y0 = this.bounds.top;
 		this.bounds.y1 = this.wrapper.offsetHeight + this.bounds.bottom;
 		this.bounds.yRange = (this.bounds.y1 - this.bounds.y0) - this.handle.offsetHeight;
-		
+
 		this.bounds.xStep = 1 / (this.xPrecision || Math.max(this.wrapper.offsetWidth, this.handle.offsetWidth));
 		this.bounds.yStep = 1 / (this.yPrecision || Math.max(this.wrapper.offsetHeight, this.handle.offsetHeight));
 	},
@@ -6821,7 +7107,7 @@ Dragdealer.prototype =
 	addListeners: function()
 	{
 		var self = this;
-		
+
 		this.wrapper.onselectstart = function()
 		{
 			return false;
@@ -6860,7 +7146,7 @@ Dragdealer.prototype =
 		{
 			return !self.activity;
 		}
-		
+
 		this.interval = setInterval(function(){ self.animate() }, 25);
 		self.animate(false, true);
 	},
@@ -6868,7 +7154,7 @@ Dragdealer.prototype =
 	{
 		this.activity = false;
 		Cursor.refresh(e);
-		
+
 		this.preventDefaults(e, true);
 		this.startDrag();
 		this.cancelEvent(e);
@@ -6876,7 +7162,7 @@ Dragdealer.prototype =
 	wrapperDownHandler: function(e)
 	{
 		Cursor.refresh(e);
-		
+
 		this.preventDefaults(e, true);
 		this.startTap();
 	},
@@ -6890,7 +7176,7 @@ Dragdealer.prototype =
 	{
 		this.setWrapperOffset();
 		this.setBounds();
-		
+
 		this.update();
 	},
 	enable: function()
@@ -6926,7 +7212,7 @@ Dragdealer.prototype =
 			return;
 		}
 		this.tapping = true;
-		
+
 		if(target === undefined)
 		{
 			target = [
@@ -6943,7 +7229,7 @@ Dragdealer.prototype =
 			return;
 		}
 		this.tapping = false;
-		
+
 		this.setTargetValue(this.value.current);
 		this.result();
 	},
@@ -6957,7 +7243,7 @@ Dragdealer.prototype =
 			Cursor.x - Position.get(this.handle)[0],
 			Cursor.y - Position.get(this.handle)[1]
 		];
-		
+
 		this.dragging = true;
 	},
 	stopDrag: function()
@@ -6967,7 +7253,7 @@ Dragdealer.prototype =
 			return;
 		}
 		this.dragging = false;
-		
+
 		var target = this.groupClone(this.value.current);
 		if(this.slide)
 		{
@@ -7010,13 +7296,13 @@ Dragdealer.prototype =
 		if(this.dragging)
 		{
 			var prevTarget = this.groupClone(this.value.target);
-			
+
 			var offset = [
 				Cursor.x - this.offset.wrapper[0] - this.offset.mouse[0],
 				Cursor.y - this.offset.wrapper[1] - this.offset.mouse[1]
 			];
 			this.setTargetOffset(offset, this.loose);
-			
+
 			this.change = [
 				this.value.target[0] - prevTarget[0],
 				this.value.target[1] - prevTarget[1]
@@ -7085,7 +7371,7 @@ Dragdealer.prototype =
 	setTargetValue: function(value, loose)
 	{
 		var target = loose ? this.getLooseValue(value) : this.getProperValue(value);
-		
+
 		this.groupCopy(this.value.target, target);
 		this.offset.target = this.getOffsetsByRatios(target);
 	},
@@ -7093,7 +7379,7 @@ Dragdealer.prototype =
 	{
 		var value = this.getRatiosByOffsets(offset);
 		var target = loose ? this.getLooseValue(value) : this.getProperValue(value);
-		
+
 		this.groupCopy(this.value.target, target);
 		this.offset.target = this.getOffsetsByRatios(target);
 	},
@@ -7113,7 +7399,7 @@ Dragdealer.prototype =
 		proper[1] = Math.max(proper[1], 0);
 		proper[0] = Math.min(proper[0], 1);
 		proper[1] = Math.min(proper[1], 1);
-		
+
 		if((!this.dragging && !this.tapping) || this.snap)
 		{
 			if(this.steps > 1)
@@ -7190,7 +7476,7 @@ Dragdealer.prototype =
 			e.preventDefault();
 		}
 		e.returnValue = false;
-		
+
 		if(selection && document.selection)
 		{
 			document.selection.empty();
@@ -7218,7 +7504,7 @@ Dragdealer.prototype =
  * Thanks to: Seamus Leahy for adding deltaX and deltaY
  *
  * Version: 3.0.6
- * 
+ *
  * Requires: 1.2.2+
  */
 
@@ -7242,7 +7528,7 @@ $.event.special.mousewheel = {
             this.onmousewheel = handler;
         }
     },
-    
+
     teardown: function() {
         if ( this.removeEventListener ) {
             for ( var i=types.length; i; ) {
@@ -7258,7 +7544,7 @@ $.fn.extend({
     mousewheel: function(fn) {
         return fn ? this.bind("mousewheel", fn) : this.trigger("mousewheel");
     },
-    
+
     unmousewheel: function(fn) {
         return this.unbind("mousewheel", fn);
     }
@@ -7269,27 +7555,27 @@ function handler(event) {
     var orgEvent = event || window.event, args = [].slice.call( arguments, 1 ), delta = 0, returnValue = true, deltaX = 0, deltaY = 0;
     event = $.event.fix(orgEvent);
     event.type = "mousewheel";
-    
+
     // Old school scrollwheel delta
     if ( orgEvent.wheelDelta ) { delta = orgEvent.wheelDelta/120; }
     if ( orgEvent.detail     ) { delta = -orgEvent.detail/3; }
-    
+
     // New school multidimensional scroll (touchpads) deltas
     deltaY = delta;
-    
+
     // Gecko
     if ( orgEvent.axis !== undefined && orgEvent.axis === orgEvent.HORIZONTAL_AXIS ) {
         deltaY = 0;
         deltaX = -1*delta;
     }
-    
+
     // Webkit
     if ( orgEvent.wheelDeltaY !== undefined ) { deltaY = orgEvent.wheelDeltaY/120; }
     if ( orgEvent.wheelDeltaX !== undefined ) { deltaX = -1*orgEvent.wheelDeltaX/120; }
-    
+
     // Add event and delta to the front of the arguments
     args.unshift(event, delta, deltaX, deltaY);
-    
+
     return ($.event.dispatch || $.event.handle).apply(this, args);
 }
 

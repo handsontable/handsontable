@@ -381,4 +381,33 @@ describe('Core_loadData', function () {
       expect(countCols()).toBe(2);
     });
   });
+
+  it('should throw error when trying to load a string (constructor)', function () {
+    var errors = 0;
+
+    try {
+      handsontable({
+        data: "string"
+      });
+    }
+    catch (e) {
+      errors++;
+    }
+
+    expect(errors).toBe(1);
+  });
+
+  it('should throw error when trying to load a string (loadData)', function () {
+    var errors = 0;
+
+    try {
+      handsontable();
+      loadData("string");
+    }
+    catch (e) {
+      errors++;
+    }
+
+    expect(errors).toBe(1);
+  });
 });

@@ -1,0 +1,173 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Handsontable cell type - Handsontable</title>
+
+  <!--
+  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  -->
+  <script src="../lib/jquery.js"></script>
+  <script src="../dist/jquery.handsontable.full.js"></script>
+  <link rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link rel="stylesheet" media="screen" href="css/samples.css">
+  <script src="js/samples.js"></script>
+  <script src="js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+
+  <!--
+  Facebook open graph. Don't copy this to your project :)
+  -->
+  <meta property="og:title" content="Handsontable cell type">
+  <meta property="og:description"
+        content="This page shows very specific example of using Handsontable as a cell editor in Handsontable.">
+  <meta property="og:url" content="http://handsontable.com/demo/handsontable.html">
+  <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="409">
+  <meta property="og:image:height" content="164">
+  <link rel="canonical" href="http://handsontable.com/demo/handsontable.html">
+
+  <!--
+  Google Analytics for GitHub Page. Don't copy this to your project :)
+  -->
+  <script src="js/ga.js"></script>
+
+  <script class="common">
+    function getCarData() {
+      return [
+        ["Nissan", 2009, "black", "black"],
+        ["Nissan", 2006, "blue", "blue"],
+        ["Chrysler", 2004, "yellow", "black"],
+        ["Volvo", 2012, "white", "gray"]
+      ];
+    }
+  </script>
+</head>
+
+<body>
+<a href="http://github.com/warpech/jquery-handsontable">
+  <img style="position: absolute; top: 0; right: 0; border: 0;"
+       src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"/>
+</a>
+
+<div id="container">
+  <div class="columnLayout">
+
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
+
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <a name="lazy"></a>
+
+          <h2>Handsontable cell type</h2>
+
+          <p>This page shows very specific example of using Handsontable as a cell editor in Handsontable (sometimes
+            referred as <strong>Handsontable in Handsontable</strong>).</p>
+
+          <p>This is a work in progress started in HT version 0.8.16. Use at your own risk!</p>
+
+          <div id="example1"></div>
+
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump
+              data to console
+            </button>
+          </p>
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
+
+          <script>
+            var carData = getCarData();
+
+            var manufacturerData = [
+              {name: "BMW", country: "Germany", owner: "Bayerische Motoren Werke AG"},
+              {name: "Chrysler", country: "USA", owner: "Chrysler Group LLC"},
+              {name: "Nissan", country: "Japan", owner: "Nissan Motor Company Ltd"},
+              {name: "Suzuki", country: "Japan", owner: "Suzuki Motor Corporation"},
+              {name: "Toyota", country: "Japan", owner: "Toyota Motor Corporation"},
+              {name: "Volvo", country: "Sweden", owner: "Zhejiang Geely Holding Group"}
+            ];
+
+
+            var colors = ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"];
+            var colorData = [];
+            var color;
+            while (color = colors.shift()) {
+              colorData.push([
+                [color]
+              ]);
+            }
+
+            $("#example1").handsontable({
+              asyncRendering: false,
+              data: carData,
+              startRows: 7,
+              startCols: 4,
+              colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+              columns: [
+                {
+                  type: 'handsontable',
+                  handsontable: {
+                    colHeaders: ['Marque', 'Country', 'Parent company'],
+                    data: manufacturerData
+                  }
+                },
+                {type: 'numeric'},
+                {
+                  type: 'handsontable',
+                  handsontable: {
+                    colHeaders: false,
+                    data: colorData
+                  }
+                },
+                {
+                  type: 'handsontable',
+                  handsontable: {
+                    colHeaders: false,
+                    data: colorData
+                  }
+                }
+              ]
+            });
+          </script>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

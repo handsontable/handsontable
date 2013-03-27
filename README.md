@@ -111,6 +111,8 @@ The table below presents configuration options that are interpreted by `handsont
   Option                 | Type                           | Default          | Description
 -------------------------|--------------------------------|------------------|-------------
  `data`                  | array/object/function          | []               | Initial data source that will be bound to the data grid **by reference** (editing data grid alters the data source. See [Understanding binding as reference](http://handsontable.com/demo/understanding_reference.html))
+ `width`                 | number/function                | _undefined_      | Height of the grid. Can be a number or a function that returns a number
+ `height`                | number/function                | _undefined_      | Width of the grid. Can be a number or a function that returns a number
  `minRows`               | number                         | 0                | Minimum number of rows. At least that many of rows will be created during initialization
  `minCols`               | number                         | 0                | Minimum number of columns. At least that many of columns will be created during initialization
  `maxRows`               | number                         | _Infinity_       | Maximum number of rows
@@ -146,9 +148,9 @@ The table below presents configuration options that are interpreted by `handsont
  `columnSorting`         | boolean                        | false            | Turn on [Column sorting](http://handsontable.com/demo/sorting.html)
  `currentRowClassName`   | string                         | _undefined_      | Class name for all visible rows in current selection
  `currentColClassName`   | string                         | _undefined_      | Class name for all visible columns in current selection
- `onSelection`           | function(`r`, `c`, `r2`, `c2`) | _undefined_      | Callback fired before one or more cells is selected (on mouse move). You can call `updateSettings` from inside, e.g. if you want to disable fillHandle for a specific cell. Parameters: <ul><li>`r` selection start row</li><li>`c` selection start column</li><li>`r2` selection end column</li><li>`c2` selection end column</li></ul>
+ `onSelection`           | function(`r`, `c`, `r2`, `c2`) | _undefined_      | Callback fired while one or more cells are being selected (on mouse move). Parameters: <ul><li>`r` selection start row</li><li>`c` selection start column</li><li>`r2` selection end column</li><li>`c2` selection end column</li></ul>
  `onSelectionByProp`     | function(`r`, `p`, `r2`, `p2`) | _undefined_      | The same as above, but data source object property name is used instead of the column number
- `onSelectionEnd`        | function(`r`, `c`, `r2`, `c2`) | _undefined_      | Callback fired before one or more cells is selected (on mouse up). You can call `updateSettings` from inside, e.g. if you want to disable fillHandle for a specific cell. Parameters: <ul><li>`r` selection start row</li><li>`c` selection start column</li><li>`r2` selection end column</li><li>`c2` selection end column</li></ul>
+ `onSelectionEnd`        | function(`r`, `c`, `r2`, `c2`) | _undefined_      | Callback fired after one or more cells are selected (on mouse up). Parameters: <ul><li>`r` selection start row</li><li>`c` selection start column</li><li>`r2` selection end column</li><li>`c2` selection end column</li></ul>
  `onSelectionEndByProp`  | function(`r`, `p`, `r2`, `p2`) | _undefined_      | The same as above, but data source object property name is used instead of the column number
  `onBeforeChange`        | function(`changes`)            | _undefined_      | Callback fired before one or more cells is changed. Its main purpose is to validate the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, prop, oldVal, newVal], ... ]`. You can disregard a single change by setting `changes[i][3]` to false, or cancel all edit by returning false.</li></ul>
  `onChange`              | function(`changes`, `source`)  | _undefined_      | Callback fired after one or more cells is changed. Its main use case is to save the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, prop, oldVal, newVal], ... ]`. </li><li>`source` is one of the strings: `"alter"`, `"empty"`, `"edit"`, `"populateFromArray"`, `"loadData"`, `"autofill"`, `"paste"`.</li></ul> Note: for performance reasone, the `changes` array is null for `"loadData"` source.
@@ -163,6 +165,7 @@ This is a free world so I invite you to check out alternative projects. I would 
  - [jqGrid](http://www.trirand.com/blog/)
  - [jTable](http://www.jtable.org/)
  - [jui_datagrid](http://www.pontikis.net/labs/jui_datagrid/)
+ - [ParamQuery](http://paramquery.com/)
 
 ## License 
 

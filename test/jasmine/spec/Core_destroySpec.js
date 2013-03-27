@@ -46,4 +46,29 @@ describe('Core_destroy', function () {
       expect($._data(window, 'events')).toBeFalsy(); //expect the same with async rendering
     });
   });
+
+  it('should NOT remove events from document element and window for other Handsontable instances on the page', function () {
+    //test based on Core_selectionSpec.js (should deselect currently selected cell)
+    runs(function () {
+      handsontable();
+
+      var $tmp = $('<div id="tmp"></div>').appendTo(document.body);
+      $tmp.handsontable();
+      $tmp.handsontable('destroy');
+
+      selectCell(0, 0);
+    });
+
+    waits(10);
+
+    runs(function () {
+      $("html").triggerHandler('mousedown');
+    });
+
+    waits(10);
+
+    runs(function () {
+      expect(getSelected()).toBeUndefined();
+    });
+  });
 });

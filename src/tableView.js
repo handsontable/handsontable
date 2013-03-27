@@ -28,7 +28,7 @@ Handsontable.TableView = function (instance) {
   //instance.rootElement[0].style.height = '';
   //instance.rootElement[0].style.width = '';
 
-  $(document.documentElement).on('keyup.handsontable', function (event) {
+  $(document.documentElement).on('keyup.' + instance.guid, function (event) {
     if (instance.selection.isInProgress() && !event.shiftKey) {
       instance.selection.finish();
     }
@@ -37,7 +37,7 @@ Handsontable.TableView = function (instance) {
   var isMouseDown
     , dragInterval;
 
-  $(document.documentElement).on('mouseup.handsontable', function (event) {
+  $(document.documentElement).on('mouseup.' + instance.guid, function (event) {
     if (instance.selection.isInProgress() && event.which === 1) { //is left mouse button
       instance.selection.finish();
     }
@@ -54,9 +54,8 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  $(document.documentElement).on('mousedown.handsontable', function (event) {
-    var target = event.target
-      , next = target;
+  $(document.documentElement).on('mousedown.' + instance.guid, function (event) {
+    var next = event.target;
 
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== null && next !== document.documentElement) {
@@ -71,12 +70,7 @@ Handsontable.TableView = function (instance) {
       that.instance.deselectCell();
     }
     else {
-      if (target.nodeName.toLowerCase() === 'input' || target.nodeName.toLowerCase() === 'textarea') {
-        that.instance.deselectCell();
-      }
-      else {
-        that.instance.destroyEditor();
-      }
+      that.instance.destroyEditor();
     }
   });
 
@@ -221,6 +215,10 @@ Handsontable.TableView = function (instance) {
       TD.focus();
       event.preventDefault();
       clearTextSelection();
+
+      if (settings.afterOnCellMouseDown) {
+        settings.afterOnCellMouseDown.call(that.instance, event, coords, TD);
+      }
     },
     onCellMouseOver: function (event, coords, TD) {
       var coordsObj = {row: coords[0], col: coords[1]};
@@ -238,9 +236,6 @@ Handsontable.TableView = function (instance) {
     },
     onCellCornerDblClick: function () {
       instance.autofill.selectAdjacent();
-    },
-    onDraw: function () {
-      $window.trigger('resize');
     }
   };
 
@@ -250,16 +245,22 @@ Handsontable.TableView = function (instance) {
   this.instance.forceFullRender = true; //used when data was changed
   this.render();
 
-  $window.on('resize.handsontable', function () {
+  var lastContainerWidth = that.containerWidth;
+  var lastContainerHeight = that.containerHeight;
+
+  $window.on('resize.' + instance.guid, function () {
     that.instance.registerTimeout('resizeTimeout', function () {
-      var lastContainerWidth = that.containerWidth;
-      var lastContainerHeight = that.containerHeight;
       that.determineContainerSize();
-      if (lastContainerWidth !== that.containerWidth || lastContainerHeight !== that.containerHeight) {
-        that.wt.update('width', that.containerWidth);
-        that.wt.update('height', that.containerHeight);
+      var newContainerWidth = that.containerWidth;
+      var newContainerHeight = that.containerHeight;
+
+      if (lastContainerWidth !== newContainerWidth || lastContainerHeight !== newContainerHeight) {
+        that.wt.update('width', newContainerWidth);
+        that.wt.update('height', newContainerHeight);
         that.instance.forceFullRender = true;
         that.render();
+        lastContainerWidth = newContainerWidth;
+        lastContainerHeight = newContainerHeight;
       }
     }, 60);
   });
@@ -274,16 +275,18 @@ Handsontable.TableView = function (instance) {
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {
-  return (this.instance.textEditor && this.instance.textEditor.isCellEdited) || (this.instance.autocompleteEditor && this.instance.autocompleteEditor.isCellEdited);
+  return (this.instance.textEditor && this.instance.textEditor.isCellEdited) || (this.instance.autocompleteEditor && this.instance.autocompleteEditor.isCellEdited) || (this.instance.handsontableEditor && this.instance.handsontableEditor.isCellEdited);
 };
 
 Handsontable.TableView.prototype.determineContainerSize = function () {
   var settings = this.instance.getSettings();
-  this.containerWidth = settings.width;
-  this.containerHeight = settings.height;
+
+  this.containerWidth = typeof settings.width === 'function' ? settings.width() : settings.width;
+  this.containerHeight = typeof settings.height === 'function' ? settings.height() : settings.height;
 
   var computedWidth = this.instance.rootElement.width();
   var computedHeight = this.instance.rootElement.height();
+
   if (settings.width === void 0 && computedWidth > 0) {
     this.containerWidth = computedWidth;
   }
@@ -291,6 +294,14 @@ Handsontable.TableView.prototype.determineContainerSize = function () {
   if (this.overflow === 'scroll' || this.overflow === 'auto') {
     if (settings.height === void 0 && computedHeight > 0) {
       this.containerHeight = computedHeight;
+    }
+
+    if (this.instance.rootElement[0].style.height === '') {
+      if (this.wt && this.wt.wtScroll.wtScrollbarV.visible) {
+        if (typeof this.containerHeight === 'number') { //TODO move this to Handsontable, then this typeof can be removed
+          this.containerHeight += this.wt.getSetting('scrollbarHeight');
+        }
+      }
     }
   }
 };
