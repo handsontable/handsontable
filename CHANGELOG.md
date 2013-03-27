@@ -4,6 +4,10 @@ Features:
 - performance: remove jQuery from default autocomplete and checkbox renderers
 - performance: in cell renderers, replace `innerHTML` with `createTextNode`
 
+Other:
+- `src/3rdparty/walkontable.js` has been divided into many source files in `src/3rdparty/walkontable/src/*`. Build process is updated to use Walkontable source files now
+- 3 Grunt test tasks are available now: `grunt test`, ``grunt test:handsontable`, `grunt test:walkontable`
+
 ## [0.8.16](https://github.com/warpech/jquery-handsontable/tree/v0.8.16) (Mar 26, 2013)
 
 Features:

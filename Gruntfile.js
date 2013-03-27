@@ -54,8 +54,11 @@ module.exports = function (grunt) {
 
         'src/3rdparty/jquery.autoresize.js',
         'src/3rdparty/sheetclip.js',
-        'src/3rdparty/walkontable.js',
         'src/3rdparty/copypaste.js'
+      ],
+      walkontable: [
+        'src/3rdparty/walkontable/src/*.js',
+        'src/3rdparty/walkontable/src/3rdparty/*.js'
       ],
       vendor: [
         'lib/bootstrap-typeahead.js',
@@ -72,6 +75,7 @@ module.exports = function (grunt) {
           'jquery.handsontable.js': [
             'tmp/intro.js',
             '<%= meta.src %>',
+            '<%= meta.walkontable %>',
             'src/outro.js'
           ]
         }
@@ -96,13 +100,10 @@ module.exports = function (grunt) {
 
     watch: {
       files: [
-        'src/*',
-        'src/editors/*',
-        'src/plugins/*',
-        'src/renderers/*',
-        'src/3rdparty/*',
-        'src/css/*',
-        'lib/*'
+        'src/**/*.js',
+        'src/**/*.css',
+        'lib/**/*.js',
+        'lib/**/*.css'
       ],
       tasks: ['replace', 'concat', 'clean']
     },
@@ -128,25 +129,42 @@ module.exports = function (grunt) {
     },
 
     jasmine: {
-      src: [
-        'lib/jquery.min.js',
-        // '<%= meta.src %>',
-        'jquery.handsontable.js',
-        'lib/bootstrap-typeahead.js',
-        'lib/numeral.js',
-        'lib/jQuery-contextMenu/jquery.contextMenu.js',
-        'test/jasmine/spec/SpecHelper.js'
-      ],
-      options: {
-        specs: [
-          'test/jasmine/spec/*Spec.js',
-          'test/jasmine/spec/*/*Spec.js'
+      handsontable: {
+        src: [
+          'lib/jquery.min.js',
+          'jquery.handsontable.js',
+          'lib/bootstrap-typeahead.js',
+          'lib/numeral.js',
+          'lib/jQuery-contextMenu/jquery.contextMenu.js',
+          'test/jasmine/spec/SpecHelper.js'
         ],
-        styles: [
-          'test/jasmine/css/SpecRunner.css',
-          'jquery.handsontable.css',
-          'lib/jQuery-contextMenu/jquery.contextMenu.css'
-        ]
+        options: {
+          specs: [
+            'test/jasmine/spec/*Spec.js',
+            'test/jasmine/spec/*/*Spec.js'
+          ],
+          styles: [
+            'test/jasmine/css/SpecRunner.css',
+            'jquery.handsontable.css',
+            'lib/jQuery-contextMenu/jquery.contextMenu.css'
+          ]
+        }
+      },
+      walkontable: {
+        src: [
+          'lib/jquery.min.js',
+          'src/3rdparty/walkontable/src/*.js',
+          'src/3rdparty/walkontable/src/3rdparty/*.js',
+          'src/3rdparty/walkontable/test/jasmine/SpecHelper.js'
+        ],
+        options: {
+          specs: [
+            'src/3rdparty/walkontable/test/jasmine/spec/*.spec.js'
+          ],
+          styles: [
+            'src/3rdparty/walkontable/css/walkontable.css'
+          ]
+        }
       }
     }
   });
@@ -154,6 +172,8 @@ module.exports = function (grunt) {
   // Default task.
   grunt.registerTask('default', ['replace', 'concat', 'clean']);
   grunt.registerTask('test', ['default', 'jasmine']);
+  grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
+  grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
 
   grunt.loadNpmTasks('grunt-replace');
   grunt.loadNpmTasks('grunt-contrib-clean');

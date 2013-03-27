@@ -1,0 +1,153 @@
+.wtHolder {
+  position: relative;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.3em;
+  font-size: 13px;
+}
+
+.wtHolder * {
+  box-sizing: content-box;
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+}
+
+.wtHolder table {
+  border-collapse: separate;
+  position: relative;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  -ms-user-select: none;
+  /*user-select: none; /*no browser supports unprefixed version*/
+  border-spacing: 0;
+  margin: 0;
+  border-width: 0;
+  table-layout: fixed;
+  width: 0;
+}
+
+.wtHolder col {
+  width: 50px;
+}
+
+.wtHolder col.rowHeader {
+  width: 50px;
+}
+
+.wtHolder th,
+.wtHolder td {
+  border-right: 1px solid #CCC;
+  border-bottom: 1px solid #CCC;
+  height: 22px;
+  line-height: 21px;
+  padding: 0 4px 0 4px; /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
+  background-color: #FFF;
+  font-size: 12px;
+  vertical-align: top;
+  overflow: hidden;
+}
+
+.wtHolder th:last-child {
+  /*Foundation framework fix*/
+  border-right: 1px solid #CCC;
+  border-bottom: 1px solid #CCC;
+}
+
+.wtHolder tr:first-child th.htNoFrame,
+.wtHolder th:first-child.htNoFrame,
+.wtHolder th.htNoFrame {
+  border-left-width: 0;
+  background-color: white;
+  border-color: #FFF;
+}
+
+.wtHolder th:first-child,
+.wtHolder td:first-child,
+.wtHolder .htNoFrame + th,
+.wtHolder .htNoFrame + td {
+  border-left: 1px solid #CCC;
+}
+
+.wtHolder tr:first-child th,
+.wtHolder tr:first-child td {
+  border-top: 1px solid #CCC;
+}
+
+.wtHolder thead tr:last-child th {
+  border-bottom-width: 0;
+}
+
+.wtHolder thead tr.lastChild th {
+  border-bottom-width: 0;
+}
+
+.wtHolder th {
+  background-color: #EEE;
+  color: #222;
+  text-align: center;
+  font-weight: normal;
+  white-space: nowrap;
+}
+
+.wtHolder th .small {
+  font-size: 12px;
+}
+
+.wtHolder thead th {
+  padding: 0;
+}
+
+.wtHolder th.active {
+  background-color: #CCC;
+}
+
+.wtHolder thead th .relative {
+  position: relative;
+  padding: 2px 4px;
+}
+
+/* border line */
+.wtHolder .wtBorder {
+  position: absolute;
+  font-size: 0;
+}
+
+.wtHolder td.area {
+  background-color: #EEF4FF;
+}
+
+/* fill handle */
+.wtHolder .wtBorder.corner {
+  font-size: 0;
+  cursor: crosshair;
+}
+
+.wtHolder .htBorder.htFillBorder {
+  background: red;
+  width: 1px;
+  height: 1px;
+}
+
+/**
+ * dragdealer
+ */
+
+.wtHolder .dragdealer {
+  position: relative;
+  width: 9px;
+  height: 9px;
+  background: #F8F8F8;
+  border: 1px solid #DDD;
+}
+
+.wtHolder .dragdealer .handle {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  background: #C5C5C5;
+}
+
+.wtHolder .dragdealer .disabled {
+  background: #898989;
+}
