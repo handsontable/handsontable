@@ -161,9 +161,14 @@ WalkontableDom.prototype.removeTextNodes = function (elem, parent) {
   }
 };
 
-// Remove childs function
-// WARNING - this doesn't unload events and data attached by jQuery
-// http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
+/**
+ * Remove childs function
+ * WARNING - this doesn't unload events and data attached by jQuery
+ * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
+ * @param element
+ * @returns {void}
+ */
+//
 WalkontableDom.prototype.empty = function (element) {
   var child;
   while (child = element.lastChild) {
@@ -171,6 +176,22 @@ WalkontableDom.prototype.empty = function (element) {
   }
 };
 
+/**
+ * Insert content into element trying avoid innerHTML method.
+ * @return {void}
+ */
+WalkontableDom.prototype.avoidInnerHTML = function (element, content) {
+  if ((/(<(.*)>|&(.*);)/g).test(content)) {
+    element.innerHTML = content;
+  } else {
+    var child;
+    while (child = element.lastChild) {
+      element.removeChild(child);
+    }
+
+    element.appendChild(document.createTextNode(content));
+  }
+};
 
 /**
  * seems getBounding is usually faster: http://jsperf.com/offset-vs-getboundingclientrect/4

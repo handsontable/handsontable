@@ -242,8 +242,8 @@ Handsontable.TableView = function (instance) {
   Handsontable.PluginHooks.run(this.instance, 'walkontableConfig', walkontableConfig);
 
   this.wt = new Walkontable(walkontableConfig);
-  this.instance.forceFullRender = true; //used when data was changed
-  this.render();
+  // this.instance.forceFullRender = true; //used when data was changed
+  // this.render();
 
   var lastContainerWidth = that.containerWidth;
   var lastContainerHeight = that.containerHeight;
@@ -271,7 +271,7 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  $table[0].focus(); //otherwise TextEditor tests do not pass in IE8
+  // $table[0].focus(); //otherwise TextEditor tests do not pass in IE8
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {

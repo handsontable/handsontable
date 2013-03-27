@@ -97,8 +97,8 @@ function HandsontableAutoColumnSize() {
     }
     tmpTbodyTd.innerHTML = txt; //TD innerHTML
 
-    Handsontable.helper.empty(tmpRendererTd);
-    Handsontable.helper.empty(tmpNoRendererTd);
+    instance.view.wt.wtDom.empty(tmpRendererTd);
+    instance.view.wt.wtDom.empty(tmpNoRendererTd);
 
     tmp.style.display = 'block';
 
