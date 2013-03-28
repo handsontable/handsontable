@@ -11,7 +11,14 @@ Handsontable.TableView = function (instance) {
 
   instance.rootElement.data('originalStyle', instance.rootElement.attr('style')); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
   instance.rootElement.addClass('handsontable');
-  var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
+
+  var table = document.createElement('TABLE');
+      table.className = 'htCore';
+
+      table.appendChild(document.createElement('THEAD'));
+      table.appendChild(document.createElement('TBODY'));
+
+  var $table = $(table);
 
   instance.$table = $table;
   instance.rootElement.prepend($table);

@@ -8,14 +8,21 @@ function HandsontableManualColumnResize() {
     , startWidth
     , startOffset;
 
-  var $line = $('<div class="manualColumnResizerLine"><div class="manualColumnResizer"></div></div>');
-  $line.css({
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: 0,
-    borderRight: '1px dashed #777'
-  });
+  var resizer, line;
+
+  resizer = document.createElement('DIV');
+  resizer.className = 'manualColumnResizer';
+
+  line = document.createElement('DIV');
+  line.className = 'manualColumnResizerLine';
+  line.style.position ='absolute';
+  line.style.top = 0;
+  line.style.left = 0;
+  line.style.width = 0;
+  line.style.borderRight = '1px dashed #777'
+  line.appendChild(resizer);
+
+  var $line = $(line);
 
   $(document).mousemove(function (e) {
     if (pressed) {
