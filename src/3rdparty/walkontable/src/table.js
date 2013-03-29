@@ -1,3 +1,11 @@
+
+var FLAG_VISIBLE_HORIZONTAL = 0x1; // 000001
+var FLAG_VISIBLE_VERTICAL = 0x2; // 000010
+var FLAG_PARTIALLY_VISIBLE_HORIZONTAL = 0x4; // 000100
+var FLAG_PARTIALLY_VISIBLE_VERTICAL = 0x8; // 001000
+var FLAG_NOT_VISIBLE_HORIZONTAL = 0x16; // 010000
+var FLAG_NOT_VISIBLE_VERTICAL = 0x32; // 100000
+
 function WalkontableTable(instance) {
   //reference to instance
   this.instance = instance;
@@ -280,10 +288,10 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
 WalkontableTable.prototype.draw = function (selectionsOnly) {
   if (!selectionsOnly) {
     this.tableOffset = this.wtDom.offset(this.TABLE);
-    //this.TABLE.removeChild(this.TBODY); //possible future optimization - http://jsperf.com/table-scrolling/9
+    // this.TABLE.removeChild(this.TBODY); //possible future optimization - http://jsperf.com/table-scrolling/9
     this.adjustAvailableNodes();
     this._doDraw();
-    //this.TABLE.appendChild(this.TBODY);
+    // this.TABLE.appendChild(this.TBODY);
   }
 
   this.refreshPositions(selectionsOnly);
@@ -442,13 +450,6 @@ WalkontableTable.prototype.recalcViewportCells = function () {
     this.visibilityEdgeRowRemainder = Infinity;
   }
 };
-
-var FLAG_VISIBLE_HORIZONTAL = 0x1; // 000001
-var FLAG_VISIBLE_VERTICAL = 0x2; // 000010
-var FLAG_PARTIALLY_VISIBLE_HORIZONTAL = 0x4; // 000100
-var FLAG_PARTIALLY_VISIBLE_VERTICAL = 0x8; // 001000
-var FLAG_NOT_VISIBLE_HORIZONTAL = 0x16; // 010000
-var FLAG_NOT_VISIBLE_VERTICAL = 0x32; // 100000
 
 WalkontableTable.prototype.isCellVisible = function (r, c, TD) {
   var out = 0

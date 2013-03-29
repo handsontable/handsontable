@@ -9,10 +9,14 @@ function WalkontableWheel(instance) {
       if (deltaY) {
         //ceil is needed because jquery-mousewheel reports fractional mousewheel deltas on touchpad scroll
         //see http://stackoverflow.com/questions/5527601/normalizing-mousewheel-speed-across-browsers
-        that.instance.scrollVertical(-Math.ceil(deltaY)).draw();
+        if (that.instance.wtScroll.wtScrollbarH.visible) { // if we see scrollbar
+          that.instance.scrollVertical(-Math.ceil(deltaY)).draw();
+        }
       }
       else if (deltaX) {
-        that.instance.scrollHorizontal(Math.ceil(deltaX)).draw();
+        if (that.instance.wtScroll.wtScrollbarV.visible) { // if we see scrollbar
+          that.instance.scrollHorizontal(Math.ceil(deltaX)).draw();
+        }
       }
     }, 0);
     event.preventDefault();

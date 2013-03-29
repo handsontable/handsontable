@@ -52,10 +52,14 @@ Walkontable.prototype.draw = function (selectionsOnly) {
 
 Walkontable.prototype._doDraw = function (selectionsOnly) {
   selectionsOnly = selectionsOnly && this.getSetting('offsetRow') === this.lastOffsetRow && this.getSetting('offsetColumn') === this.lastOffsetColumn;
+  if (this.drawn) {
+    this.scrollVertical(0);
+    this.scrollHorizontal(0);
+  }
   this.lastOffsetRow = this.getSetting('offsetRow');
   this.lastOffsetColumn = this.getSetting('offsetColumn');
   this.wtTable.draw(selectionsOnly);
-  this.getSetting('onDraw');
+  this.getSetting('onDraw'); // is this works?
 };
 
 Walkontable.prototype.update = function (settings, value) {

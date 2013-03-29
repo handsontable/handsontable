@@ -93,11 +93,8 @@ WalkontableScrollbar.prototype.onScroll = function (delta) {
  * @return {Number} 0..1
  */
 WalkontableScrollbar.prototype.getHandleSizeRatio = function (viewportCount, totalCount) {
-  if (!totalCount) {
+  if (!totalCount || viewportCount > totalCount) {
     return 1;
-  }
-  if (viewportCount > totalCount) { //it exists in code since long time, but does it even happen
-    viewportCount = totalCount;
   }
   return viewportCount / totalCount;
 };
