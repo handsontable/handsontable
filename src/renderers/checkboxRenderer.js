@@ -16,7 +16,7 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
     cellProperties.uncheckedTemplate = false;
   }
 
-  Handsontable.helper.empty(TD); //TODO identify under what circumstances this line can be removed
+  instance.view.wt.wtDom.empty(TD); //TODO identify under what circumstances this line can be removed
 
   var INPUT = document.createElement('INPUT');
   INPUT.className = 'htCheckboxRendererInput';

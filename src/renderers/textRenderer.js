@@ -15,7 +15,7 @@ Handsontable.TextRenderer = function (instance, TD, row, col, prop, value, cellP
     TD.innerHTML = escaped.replace(/\n/g, '<br/>');
   }
   else {
-    Handsontable.helper.empty(TD); //TODO identify under what circumstances this line can be removed
+    instance.view.wt.wtDom.empty(TD); //TODO identify under what circumstances this line can be removed
     TD.appendChild(document.createTextNode(escaped));
     //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   }

@@ -11,7 +11,14 @@ Handsontable.TableView = function (instance) {
 
   instance.rootElement.data('originalStyle', instance.rootElement.attr('style')); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
   instance.rootElement.addClass('handsontable');
-  var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
+
+  var table = document.createElement('TABLE');
+      table.className = 'htCore';
+
+      table.appendChild(document.createElement('THEAD'));
+      table.appendChild(document.createElement('TBODY'));
+
+  var $table = $(table);
 
   instance.$table = $table;
   instance.rootElement.prepend($table);
@@ -242,8 +249,8 @@ Handsontable.TableView = function (instance) {
   Handsontable.PluginHooks.run(this.instance, 'walkontableConfig', walkontableConfig);
 
   this.wt = new Walkontable(walkontableConfig);
-  this.instance.forceFullRender = true; //used when data was changed
-  this.render();
+  // this.instance.forceFullRender = true; //used when data was changed
+  // this.render();
 
   var lastContainerWidth = that.containerWidth;
   var lastContainerHeight = that.containerHeight;
@@ -271,7 +278,7 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  $table[0].focus(); //otherwise TextEditor tests do not pass in IE8
+  // $table[0].focus(); //otherwise TextEditor tests do not pass in IE8
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {

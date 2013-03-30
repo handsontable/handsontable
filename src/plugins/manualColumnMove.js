@@ -6,16 +6,17 @@ function HandsontableManualColumnMove() {
     , startX
     , startOffset;
 
-  var $ghost = $('<div class="ghost"></div>');
-  $ghost.css({
-    position: 'absolute',
-    top: '25px',
-    left: 0,
-    width: '10px',
-    height: '10px',
-    backgroundColor: '#CCC',
-    opacity: 0.7
-  });
+  var ghost = document.createElement('DIV');
+      ghost.className = 'ghost';
+      ghost.style.position = 'absolute';
+      ghost.style.top = '25px';
+      ghost.style.left = 0;
+      ghost.style.width = '10px';
+      ghost.style.height = '10px';
+      ghost.style.backgroundColor = '#CCC';
+      ghost.style.opacity = 0.7;
+
+  var $ghost = $(ghost);
 
   $(document).mousemove(function (e) {
     if (pressed) {

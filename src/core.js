@@ -1286,6 +1286,10 @@ Handsontable.Core = function (rootElement, settings) {
     this.updateSettings(settings);
     this.view = new Handsontable.TableView(this);
 
+    this.forceFullRender = true; //used when data was changed
+    this.view.render();
+    this.$table[0].focus(); //otherwise TextEditor tests do not pass in IE8
+
     if (typeof priv.firstRun === 'object') {
       fireEvent('datachange.handsontable', priv.firstRun);
       priv.firstRun = false;
@@ -1890,16 +1894,21 @@ Handsontable.Core = function (rootElement, settings) {
    */
   this.getColHeader = function (col, TH) {
     col = Handsontable.PluginModifiers.run(self, 'col', col);
-    var DIV = document.createElement('DIV');
+    var DIV  = document.createElement('DIV'),
+        SPAN = document.createElement('SPAN'),
+        avoidInnerHTML = self.view.wt.wtDom.avoidInnerHTML;
+
     DIV.className = 'relative';
+    SPAN.className = 'colHeader';
+
     if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
-      DIV.innerHTML = '<span class="colHeader">' + priv.settings.columns[col].title + '</span>';
+      avoidInnerHTML(SPAN, priv.settings.columns[col].title);
     }
     else if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
-      DIV.innerHTML = '<span class="colHeader">' + priv.settings.colHeaders[col] + '</span>';
+      avoidInnerHTML(SPAN, priv.settings.colHeaders[col]);
     }
     else if (typeof priv.settings.colHeaders === 'function') {
-      DIV.innerHTML = '<span class="colHeader">' + priv.settings.colHeaders(col) + '</span>';
+      avoidInnerHTML(SPAN, priv.settings.colHeaders(col));
     }
     else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
       var dividend = col + 1;
@@ -1910,11 +1919,13 @@ Handsontable.Core = function (rootElement, settings) {
         columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
         dividend = parseInt((dividend - modulo) / 26, 10);
       }
-      DIV.innerHTML = '<span class="colHeader">' + columnLabel + '</span>';
+      SPAN.appendChild(document.createTextNode(columnLabel));
     }
     else {
-      DIV.innerHTML = '<span class="colHeader">' + priv.settings.colHeaders + '</span>';
+      avoidInnerHTML(SPAN, priv.settings.colHeaders);
     }
+
+    DIV.appendChild(SPAN);
 
     while (TH.firstChild) {
       TH.removeChild(TH.firstChild); //empty TH node

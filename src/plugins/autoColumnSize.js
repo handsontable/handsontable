@@ -97,8 +97,8 @@ function HandsontableAutoColumnSize() {
     }
     tmpTbodyTd.innerHTML = txt; //TD innerHTML
 
-    Handsontable.helper.empty(tmpRendererTd);
-    Handsontable.helper.empty(tmpNoRendererTd);
+    instance.view.wt.wtDom.empty(tmpRendererTd);
+    instance.view.wt.wtDom.empty(tmpNoRendererTd);
 
     tmp.style.display = 'block';
 
@@ -108,7 +108,7 @@ function HandsontableAutoColumnSize() {
     if (cellProperties.renderer) {
       var str = 9999999999;
 
-      tmpNoRendererTd.innerHTML = str;
+      tmpNoRendererTd.appendChild(document.createTextNode(str));
 
       cellProperties.renderer(instance, tmpRendererTd, 0, col, instance.colToProp(col), str, cellProperties);
 

@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Jasmine Spec Runner</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+  <link rel="shortcut icon" type="image/png" href="lib/jasmine-1.2.0/jasmine_favicon.png">
+  <link rel="stylesheet" type="text/css" href="lib/jasmine-1.2.0/jasmine.css">
+  <script type="text/javascript" src="lib/jasmine-1.2.0/jasmine.js"></script>
+  <script type="text/javascript" src="lib/jasmine-1.2.0/jasmine-html.js"></script>
+
+  <!-- not required by Walkontable but used in tests -->
+  <script type="text/javascript" src="lib/jquery.min.js"></script>
+  <script type="text/javascript" src="SpecHelper.js"></script>
+
+  <!-- include source files here... -->
+  <script type="text/javascript" src="../../src/border.js"></script>
+  <script type="text/javascript" src="../../src/core.js"></script>
+  <script type="text/javascript" src="../../src/dom.js"></script>
+  <script type="text/javascript" src="../../src/event.js"></script>
+  <script type="text/javascript" src="../../src/polyfill.js"></script>
+  <script type="text/javascript" src="../../src/scroll.js"></script>
+  <script type="text/javascript" src="../../src/scrollbar.js"></script>
+  <script type="text/javascript" src="../../src/selection.js"></script>
+  <script type="text/javascript" src="../../src/settings.js"></script>
+  <script type="text/javascript" src="../../src/table.js"></script>
+  <script type="text/javascript" src="../../src/wheel.js"></script>
+  <script type="text/javascript" src="../../src/3rdparty/dragdealer.js"></script>
+  <script type="text/javascript" src="../../src/3rdparty/jquery.browser.js"></script>
+  <script type="text/javascript" src="../../src/3rdparty/jquery.mousewheel.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../css/walkontable.css">
+
+  <!-- include spec files here... -->
+  <script type="text/javascript" src="spec/core.spec.js"></script>
+  <script type="text/javascript" src="spec/settings.spec.js"></script>
+  <script type="text/javascript" src="spec/table.spec.js"></script>
+  <script type="text/javascript" src="spec/event.spec.js"></script>
+  <script type="text/javascript" src="spec/scroll.spec.js"></script>
+  <script type="text/javascript" src="spec/scrollbar.spec.js"></script>
+  <script type="text/javascript" src="spec/selection.spec.js"></script>
+  <script type="text/javascript" src="spec/dom.spec.js"></script>
+
+  <style>
+    .wtHolder .highlightRow {
+      background-color: #E7E8EF;
+    }
+
+    .wtHolder .highlightColumn {
+      background-color: #F9F9FB;
+    }
+  </style>
+
+  <script type="text/javascript">
+    (function () {
+      var jasmineEnv = jasmine.getEnv();
+      jasmineEnv.updateInterval = 1000;
+
+      var htmlReporter = new jasmine.HtmlReporter();
+
+      jasmineEnv.addReporter(htmlReporter);
+
+      jasmineEnv.specFilter = function (spec) {
+        return htmlReporter.specFilter(spec);
+      };
+
+      var currentWindowOnload = window.onload;
+
+      window.onload = function () {
+        if (currentWindowOnload) {
+          currentWindowOnload();
+        }
+        execJasmine();
+      };
+
+      function execJasmine() {
+        jasmineEnv.execute();
+      }
+
+    })();
+  </script>
+
+</head>
+
+<body>
+</body>
+</html>

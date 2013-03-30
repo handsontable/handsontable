@@ -34,6 +34,6 @@ Handsontable.AutocompleteRenderer = function (instance, TD, row, col, prop, valu
   }
 
   TEXT.appendChild(ARROW);
-  Handsontable.helper.empty(TD); //TODO identify under what circumstances this line can be removed
+  instance.view.wt.wtDom.empty(TD); //TODO identify under what circumstances this line can be removed
   TD.appendChild(TEXT);
 };
