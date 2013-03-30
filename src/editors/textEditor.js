@@ -8,25 +8,23 @@ function HandsontableTextEditorClass(instance) {
 }
 
 HandsontableTextEditorClass.prototype.createElements = function () {
-  var element;
+  this.TEXTAREA = document.createElement('TEXTAREA');
+  this.TEXTAREA.className = 'handsontableInput';
+  this.textareaStyle = this.TEXTAREA.style;
+  this.textareaStyle.width = 0;
+  this.textareaStyle.height = 0;
+  this.$textarea = $(this.TEXTAREA);
 
-  element = document.createElement('TEXTAREA');
-  element.className = 'handsontableInput';
-  this.TEXTAREA_style = element.style;
-  this.TEXTAREA_style.width = 0;
-  this.TEXTAREA_style.height = 0;
+  this.TEXTAREA_PARENT = document.createElement('DIV');
+  this.TEXTAREA_PARENT.className = 'handsontableInputHolder';
+  this.textareaParentStyle = this.TEXTAREA_PARENT.style;
+  this.textareaParentStyle.top = 0;
+  this.textareaParentStyle.left = 0;
+  this.textareaParentStyle.display = 'none';
+  this.$textareaParent = $(this.TEXTAREA_PARENT);
 
-  this.TEXTAREA = $(element);
-
-  element = document.createElement('DIV');
-  element.className = 'handsontableInputHolder';
-  this.TEXTAREA_PARENT_style = element.style;
-  this.TEXTAREA_PARENT_style.top = 0;
-  this.TEXTAREA_PARENT_style.left = 0;
-  this.TEXTAREA_PARENT_style.display = 'none';
-
-  this.TEXTAREA_PARENT = $(element).append(this.TEXTAREA);
-  this.instance.rootElement.append(this.TEXTAREA_PARENT);
+  this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
+  this.instance.rootElement[0].appendChild(this.TEXTAREA_PARENT);
 
   var that = this;
   Handsontable.PluginHooks.push('afterRender', function () {
@@ -38,7 +36,7 @@ HandsontableTextEditorClass.prototype.createElements = function () {
 
 HandsontableTextEditorClass.prototype.bindEvents = function () {
   var that = this;
-  this.TEXTAREA_PARENT.off('.editor').on('keydown.editor', function (event) {
+  this.$textareaParent.off('.editor').on('keydown.editor', function (event) {
     //if we are here then isCellEdited === true
 
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
@@ -61,7 +59,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
 
       case 39: /* arrow right */
-        if (that.getCaretPosition(that.TEXTAREA[0]) === that.TEXTAREA.val().length) {
+        if (that.getCaretPosition(that.TEXTAREA) === that.TEXTAREA.value.length) {
           that.finishEditing(false);
         }
         else {
@@ -70,7 +68,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
 
       case 37: /* arrow left */
-        if (that.getCaretPosition(that.TEXTAREA[0]) === 0) {
+        if (that.getCaretPosition(that.TEXTAREA) === 0) {
           that.finishEditing(false);
         }
         else {
@@ -87,8 +85,8 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         var selected = that.instance.getSelected();
         var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
         if ((event.ctrlKey && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
-          that.TEXTAREA.val(that.TEXTAREA.val() + '\n');
-          that.TEXTAREA[0].focus();
+          that.TEXTAREA.value = that.TEXTAREA.value + '\n';
+          that.TEXTAREA.focus();
           event.stopImmediatePropagation();
         }
         else {
@@ -210,24 +208,24 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
   this.instance.view.scrollViewport(coords);
   this.instance.view.render();
 
-  this.TEXTAREA.on('cut.editor', function (event) {
+  this.$textarea.on('cut.editor', function (event) {
     event.stopPropagation();
   });
 
-  this.TEXTAREA.on('paste.editor', function (event) {
+  this.$textarea.on('paste.editor', function (event) {
     event.stopPropagation();
   });
 
   if (useOriginalValue) {
-    this.TEXTAREA[0].value = Handsontable.helper.stringify(this.originalValue) + (suffix || '');
+    this.TEXTAREA.value = Handsontable.helper.stringify(this.originalValue) + (suffix || '');
   }
   else {
-    this.TEXTAREA[0].value = '';
+    this.TEXTAREA.value = '';
   }
 
   this.refreshDimensions(); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
-  this.TEXTAREA[0].focus();
-  this.setCaretPosition(this.TEXTAREA[0], this.TEXTAREA[0].value.length);
+  this.TEXTAREA.focus();
+  this.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
 
   if (this.instance.getSettings().asyncRendering) {
     var that = this;
@@ -274,10 +272,8 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
     editTop -= 1;
   }
 
-  this.TEXTAREA_PARENT.css({
-    top: editTop,
-    left: editLeft
-  });
+  this.textareaParentStyle.top = editTop + 'px';
+  this.textareaParentStyle.left = editLeft + 'px';
   ///end prepare textarea position
 
   var width = $td.width()
@@ -292,7 +288,7 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
     }
   }
 
-  this.TEXTAREA.autoResize({
+  this.$textarea.autoResize({
     maxHeight: 200,
     minHeight: height,
     minWidth: width,
@@ -301,7 +297,7 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
     extraSpace: 0
   });
 
-  this.TEXTAREA_PARENT_style.display = 'block';
+  this.textareaParentStyle.display = 'block';
 };
 
 HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
@@ -309,7 +305,7 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
     this.isCellEdited = false;
     if (!isCancelled) {
       var val = [
-        [$.trim(this.TEXTAREA[0].value)]
+        [$.trim(this.TEXTAREA.value)]
       ];
       if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
         var sel = this.instance.getSelected();
@@ -322,11 +318,11 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
   }
 
   this.unbindTemporaryEvents();
-  if (document.activeElement === this.TEXTAREA[0]) {
+  if (document.activeElement === this.TEXTAREA) {
     this.TD.focus(); //don't refocus the table if user focused some cell outside of HT on purpose
   }
 
-  this.TEXTAREA_PARENT_style.display = 'none';
+  this.textareaParentStyle.display = 'none';
 };
 
 /**

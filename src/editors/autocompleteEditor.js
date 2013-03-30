@@ -14,8 +14,8 @@ HandsontableAutocompleteEditorClass.prototype._createElements = HandsontableText
 HandsontableAutocompleteEditorClass.prototype.createElements = function () {
   this._createElements();
 
-  this.TEXTAREA.typeahead();
-  this.typeahead = this.TEXTAREA.data('typeahead');
+  this.$textarea.typeahead();
+  this.typeahead = this.$textarea.data('typeahead');
   this.typeahead._render = this.typeahead.render;
   this.typeahead.minLength = 0;
 
@@ -52,9 +52,9 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
 
   this.typeahead.listen();
 
-  this.TEXTAREA.off('keydown').off('keyup').off('keypress'); //unlisten
+  this.$textarea.off('keydown').off('keyup').off('keypress'); //unlisten
 
-  this.TEXTAREA_PARENT.off('.acEditor').on('keydown.acEditor', function (event) {
+  this.$textareaParent.off('.acEditor').on('keydown.acEditor', function (event) {
     switch (event.keyCode) {
       case 38: /* arrow up */
         that.typeahead.prev();
@@ -72,7 +72,7 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
     }
   });
 
-  this.TEXTAREA_PARENT.on('keyup.acEditor', function (event) {
+  this.$textareaParent.on('keyup.acEditor', function (event) {
     if (Handsontable.helper.isPrintableChar(event.keyCode) || event.keyCode === 113 || event.keyCode === 13 || event.keyCode === 8 || event.keyCode === 46) {
       that.typeahead.lookup();
     }

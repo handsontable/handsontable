@@ -20,7 +20,7 @@ HandsontableHandsontableEditorClass.prototype.createElements = function () {
 
   var DIV = document.createElement('DIV');
   DIV.className = 'handsontableEditor';
-  this.TEXTAREA_PARENT[0].appendChild(DIV);
+  this.TEXTAREA_PARENT.appendChild(DIV);
 
   this.$htContainer = $(DIV);
 };
@@ -50,7 +50,7 @@ HandsontableHandsontableEditorClass.prototype.bindTemporaryEvents = function (td
     asyncRendering: false,
     afterOnCellMouseDown: function () {
       var sel = this.getSelected();
-      parent.TEXTAREA[0].value = this.getDataAtCell(sel[0], sel[1]);
+      parent.TEXTAREA.value = this.getDataAtCell(sel[0], sel[1]);
       parent.instance.destroyEditor();
     },
     beforeOnKeyDown: function (event) {
@@ -61,7 +61,7 @@ HandsontableHandsontableEditorClass.prototype.bindTemporaryEvents = function (td
 
         case 13: //enter
           var sel = this.getSelected();
-          parent.TEXTAREA[0].value = this.getDataAtCell(sel[0], sel[1]);
+          parent.TEXTAREA.value = this.getDataAtCell(sel[0], sel[1]);
           parent.instance.destroyEditor();
           break;
       }

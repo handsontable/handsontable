@@ -29,7 +29,7 @@ HandsontableDateEditorClass.prototype.createElements = function () {
     showButtonPanel: true,
     changeMonth: true,
     changeYear: true,
-    altField: this.TEXTAREA,
+    altField: this.$textarea,
     onSelect: function () {
       that.finishEditing(false);
     }

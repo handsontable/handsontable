@@ -167,7 +167,7 @@ var keyProxy = function () {
 };
 
 var autocompleteEditor = function () {
-  return spec().$container.data('handsontable').autocompleteEditor.TEXTAREA;
+  return spec().$container.data('handsontable').autocompleteEditor.$textarea;
 };
 
 /**
