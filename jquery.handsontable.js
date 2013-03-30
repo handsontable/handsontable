@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Mar 30 2013 19:54:20 GMT+0100 (Central European Standard Time)
+ * Date: Sat Mar 30 2013 22:12:16 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3590,13 +3590,14 @@ HandsontableDateEditorClass.prototype._createElements = HandsontableTextEditorCl
 HandsontableDateEditorClass.prototype.createElements = function () {
   this._createElements();
 
-  this.datePickerdiv = $("<div>");
-  this.datePickerdivStyle = this.datePickerdiv[0].style;
-  this.datePickerdivStyle.position = 'absolute';
-  this.datePickerdivStyle.top = 0;
-  this.datePickerdivStyle.left = 0;
-  this.datePickerdivStyle.zIndex = 99;
-  this.instance.rootElement[0].appendChild(this.datePickerdiv[0]);
+  this.datePicker = document.createElement('DIV');
+  this.datePickerStyle = this.datePicker.style;
+  this.datePickerStyle.position = 'absolute';
+  this.datePickerStyle.top = 0;
+  this.datePickerStyle.left = 0;
+  this.datePickerStyle.zIndex = 99;
+  this.instance.rootElement[0].appendChild(this.datePicker);
+  this.$datePicker = $(this.datePicker);
 
   var that = this;
   var defaultOptions = {
@@ -3609,8 +3610,8 @@ HandsontableDateEditorClass.prototype.createElements = function () {
       that.finishEditing(false);
     }
   };
-  this.datePickerdiv.datepicker(defaultOptions);
-  this.datePickerdiv.hide();
+  this.$datePicker.datepicker(defaultOptions);
+  this.hideDatepicker();
 };
 
 HandsontableDateEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
@@ -3636,22 +3637,22 @@ HandsontableDateEditorClass.prototype.finishEditing = function (isCancelled, ctr
 HandsontableDateEditorClass.prototype.showDatepicker = function () {
   var $td = $(this.instance.dateEditor.TD);
   var position = $td.position();
-  this.datePickerdivStyle.top = (position.top + $td.height()) + 'px';
-  this.datePickerdivStyle.left = position.left + 'px';
+  this.datePickerStyle.top = (position.top + $td.height()) + 'px';
+  this.datePickerStyle.left = position.left + 'px';
 
   var dateOptions = {
     defaultDate: this.originalValue || void 0
   };
   $.extend(dateOptions, this.cellProperties);
-  this.datePickerdiv.datepicker("option", dateOptions);
+  this.$datePicker.datepicker("option", dateOptions);
   if (this.originalValue) {
-    this.datePickerdiv.datepicker("setDate", this.originalValue);
+    this.$datePicker.datepicker("setDate", this.originalValue);
   }
-  this.datePickerdiv.show();
+  this.datePickerStyle.display = 'block';
 };
 
 HandsontableDateEditorClass.prototype.hideDatepicker = function () {
-  this.datePickerdiv.hide();
+  this.datePickerStyle.display = 'none';
 };
 
 /**
