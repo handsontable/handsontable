@@ -669,7 +669,7 @@ describe('WalkontableTable', function () {
     wt.draw();
 
     var wtHider = $table.parents('.wtHider');
-    expect(wtHider.outerWidth()).toBe($table.outerWidth());
+    expect(wtHider.outerWidth()).toBe($table.outerWidth() - 1);//-1 because of borderCollapse: collapse
     expect(wtHider.find('col:eq(1)').width()).toBe(wtHider.find('col:eq(2)').width() - 1); //first is 106, last is 107 due to remaining part
   });
 
@@ -693,7 +693,7 @@ describe('WalkontableTable', function () {
     wt.draw();
 
     var wtHider = $table.parents('.wtHider');
-    expect(wtHider.outerWidth()).toBe($table.outerWidth());
+    expect(wtHider.outerWidth()).toBe($table.outerWidth() - 1);//-1 because of borderCollapse: collapse
     expect(wtHider.find('col:eq(1)').width()).toBeLessThan(wtHider.find('col:eq(2)').width());
   });
 
@@ -717,7 +717,7 @@ describe('WalkontableTable', function () {
     wt.draw();
 
     var wtHider = $table.parents('.wtHider');
-    expect(wtHider.outerWidth()).toBe($table.outerWidth());
+    expect(wtHider.outerWidth()).toBe($table.outerWidth() - 1);//-1 because of borderCollapse: collapse
     expect(wtHider.find('col:eq(1)').width()).toBeLessThan(wtHider.find('col:eq(2)').width());
   });
 
@@ -741,7 +741,7 @@ describe('WalkontableTable', function () {
     wt.draw();
 
     var wtHider = $table.parents('.wtHider');
-    expect(wtHider.width()).toBeGreaterThan($table.width());
+    expect(wtHider.width()).toBeGreaterThan($table.width() - 1);//-1 because of borderCollapse: collapse
     expect(wtHider.find('col:eq(1)').width()).toBe(wtHider.find('col:eq(2)').width());
   });
 
@@ -765,13 +765,13 @@ describe('WalkontableTable', function () {
     wt.draw();
 
     var wtHider = $table.parents('.wtHider');
-    expect(wtHider.outerWidth()).toBeGreaterThan($table.outerWidth());
+    expect(wtHider.outerWidth()).toBeGreaterThan($table.outerWidth());//-1 because of borderCollapse: collapse
     expect(wtHider.find('tr:first td:last').width()).toEqual(wtHider.find('tr:first td:last').prev().width());
 
     createDataArray(2, 20);
     wt.scrollHorizontal(40);
     wt.draw();
-    expect(wtHider.outerWidth()).toEqual($table.outerWidth());
+    expect(wtHider.outerWidth()).toEqual($table.outerWidth() - 1);
     expect(wtHider.find('tr:first td:last').width()).toBeGreaterThan(wtHider.find('tr:first td:last').prev().width());
 
     createDataArray(2, 4);
