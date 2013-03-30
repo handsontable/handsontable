@@ -8,13 +8,15 @@ function WalkontableScrollbar(instance, type) {
 
   //create elements
   this.slider = document.createElement('DIV');
-  this.slider.style.position = 'absolute';
-  this.slider.style.top = '0';
-  this.slider.style.left = '0';
-  this.slider.style.display = 'none';
+  this.sliderStyle = this.slider.style;
+  this.sliderStyle.position = 'absolute';
+  this.sliderStyle.top = '0';
+  this.sliderStyle.left = '0';
+  this.sliderStyle.display = 'none';
   this.slider.className = 'dragdealer ' + type;
 
   this.handle = document.createElement('DIV');
+  this.handleStyle = this.handle.style;
   this.handle.className = 'handle';
 
   this.slider.appendChild(this.handle);
@@ -61,7 +63,7 @@ WalkontableScrollbar.prototype.onScroll = function (delta) {
     var total = this.instance.getSetting(keys[1]);
     var display = this.instance.getSetting(keys[2]);
     if (total > display) {
-      var newOffset = Math.round(parseInt(this.handle.style[keys[3]], 10) * total / parseInt(this.slider.style[keys[4]], 10)); //offset = handlePos * totalRows / offsetRows
+      var newOffset = Math.round(parseInt(this.handleStyle[keys[3]], 10) * total / parseInt(this.slider.style[keys[4]], 10)); //offset = handlePos * totalRows / offsetRows
 
       if (delta === 1) {
         if (this.type === 'vertical') {
@@ -130,7 +132,7 @@ WalkontableScrollbar.prototype.refresh = function () {
     return;
   }
   else if (!this.visible) {
-    this.slider.style.display = 'none';
+    this.sliderStyle.display = 'none';
     return;
   }
 
@@ -176,9 +178,9 @@ WalkontableScrollbar.prototype.refresh = function () {
 
     sliderSize = tableHeight - 2; //2 is sliders border-width
 
-    this.slider.style.top = this.$table.position().top + 'px';
-    this.slider.style.left = tableWidth - 1 + 'px'; //1 is sliders border-width
-    this.slider.style.height = sliderSize + 'px';
+    this.sliderStyle.top = this.$table.position().top + 'px';
+    this.sliderStyle.left = tableWidth - 1 + 'px'; //1 is sliders border-width
+    this.sliderStyle.height = sliderSize + 'px';
   }
   else { //horizontal
     offsetCount = this.instance.getSetting('offsetColumn');
@@ -187,9 +189,9 @@ WalkontableScrollbar.prototype.refresh = function () {
 
     sliderSize = tableWidth - 2; //2 is sliders border-width
 
-    this.slider.style.left = this.$table.position().left + 'px';
-    this.slider.style.top = tableHeight - 1 + 'px'; //1 is sliders border-width
-    this.slider.style.width = sliderSize + 'px';
+    this.sliderStyle.left = this.$table.position().left + 'px';
+    this.sliderStyle.top = tableHeight - 1 + 'px'; //1 is sliders border-width
+    this.sliderStyle.width = sliderSize + 'px';
   }
 
   handleSize = Math.round(sliderSize * ratio);
@@ -203,16 +205,16 @@ WalkontableScrollbar.prototype.refresh = function () {
   }
 
   if (this.type === 'vertical') {
-    this.handle.style.height = handleSize + 'px';
-    this.handle.style.top = handlePosition + 'px';
+    this.handleStyle.height = handleSize + 'px';
+    this.handleStyle.top = handlePosition + 'px';
 
   }
   else { //horizontal
-    this.handle.style.width = handleSize + 'px';
-    this.handle.style.left = handlePosition + 'px';
+    this.handleStyle.width = handleSize + 'px';
+    this.handleStyle.left = handlePosition + 'px';
   }
 
-  this.slider.style.display = 'block';
+  this.sliderStyle.display = 'block';
 
   this.dragdealer.setWrapperOffset();
   this.dragdealer.setBounds();

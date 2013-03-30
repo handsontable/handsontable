@@ -6,10 +6,12 @@ function HandsontableAutoColumnSize() {
   var that = this
     , instance
     , tmp
+    , tmpStyle
     , $tmp
     , tmpTbody
     , tmpTbodyTd
     , tmpThead
+    , tmpTheadStyle
     , tmpTheadTh
     , tmpNoRenderer
     , tmpNoRendererTd
@@ -26,26 +28,28 @@ function HandsontableAutoColumnSize() {
 
       var d = document;
 
-      tmpThead   = d.createElement('table');
+      tmpThead = d.createElement('table');
       tmpThead.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(d.createElement('th'));
       tmpTheadTh = tmpThead.getElementsByTagName('th')[0];
 
       tmpThead.className = 'htTable';
-      tmpThead.style.tableLayout = 'auto',
-      tmpThead.style.width = 'auto',
+      tmpTheadStyle = tmpThead.style;
+      tmpTheadStyle.tableLayout = 'auto';
+      tmpTheadStyle.width = 'auto';
 
-      tmpTbody   = tmpThead.cloneNode(false);
+      tmpTbody = tmpThead.cloneNode(false);
       tmpTbody.appendChild(d.createElement('tbody')).appendChild(d.createElement('tr')).appendChild(d.createElement('td'));
       tmpTbodyTd = tmpTbody.getElementsByTagName('td')[0];
 
-      tmpNoRenderer   = tmpTbody.cloneNode(true);
+      tmpNoRenderer = tmpTbody.cloneNode(true);
       tmpNoRendererTd = tmpNoRenderer.getElementsByTagName('td')[0];
 
-      tmpRenderer   = tmpTbody.cloneNode(true);
+      tmpRenderer = tmpTbody.cloneNode(true);
       tmpRendererTd = tmpRenderer.getElementsByTagName('td')[0];
 
       tmp = d.createElement('div');
       tmp.className = 'handsontable hidden';
+      tmpStyle = tmp.style;
 
       tmp.appendChild(tmpThead);
       tmp.appendChild(tmpTbody);
@@ -55,7 +59,7 @@ function HandsontableAutoColumnSize() {
       $tmp = $(tmp);
 
       tmpNoRenderer = $tmp.children().eq(2);
-      tmpRenderer   = $tmp.children().eq(3);
+      tmpRenderer = $tmp.children().eq(3);
 
       d.body.appendChild(tmp);
 
@@ -100,7 +104,7 @@ function HandsontableAutoColumnSize() {
     instance.view.wt.wtDom.empty(tmpRendererTd);
     instance.view.wt.wtDom.empty(tmpNoRendererTd);
 
-    tmp.style.display = 'block';
+    tmpStyle.display = 'block';
 
     var width = $tmp.outerWidth();
 
@@ -115,7 +119,7 @@ function HandsontableAutoColumnSize() {
       width += tmpRenderer.width() - tmpNoRenderer.width(); //add renderer overhead to the calculated width
     }
 
-    tmp.style.display = 'none';
+    tmpStyle.display = 'none';
 
     return width;
   };

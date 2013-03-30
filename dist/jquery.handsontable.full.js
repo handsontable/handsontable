@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Mar 30 2013 19:40:58 GMT+0100 (Central European Standard Time)
+ * Date: Sat Mar 30 2013 19:54:20 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3003,16 +3003,18 @@ HandsontableTextEditorClass.prototype.createElements = function () {
 
   element = document.createElement('TEXTAREA');
   element.className = 'handsontableInput';
-  element.style.width = 0;
-  element.style.height = 0;
+  this.TEXTAREA_style = element.style;
+  this.TEXTAREA_style.width = 0;
+  this.TEXTAREA_style.height = 0;
 
   this.TEXTAREA = $(element);
 
   element = document.createElement('DIV');
   element.className = 'handsontableInputHolder';
-  element.style.top = 0;
-  element.style.left = 0;
-  element.style.display = 'none';
+  this.TEXTAREA_PARENT_style = element.style;
+  this.TEXTAREA_PARENT_style.top = 0;
+  this.TEXTAREA_PARENT_style.left = 0;
+  this.TEXTAREA_PARENT_style.display = 'none';
 
   this.TEXTAREA_PARENT = $(element).append(this.TEXTAREA);
   this.instance.rootElement.append(this.TEXTAREA_PARENT);
@@ -3290,7 +3292,7 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
     extraSpace: 0
   });
 
-  this.TEXTAREA_PARENT[0].style.display = 'block';
+  this.TEXTAREA_PARENT_style.display = 'block';
 };
 
 HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
@@ -3315,7 +3317,7 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
     this.TD.focus(); //don't refocus the table if user focused some cell outside of HT on purpose
   }
 
-  this.TEXTAREA_PARENT[0].style.display = 'none';
+  this.TEXTAREA_PARENT_style.display = 'none';
 };
 
 /**
@@ -3589,10 +3591,11 @@ HandsontableDateEditorClass.prototype.createElements = function () {
   this._createElements();
 
   this.datePickerdiv = $("<div>");
-  this.datePickerdiv[0].style.position = 'absolute';
-  this.datePickerdiv[0].style.top = 0;
-  this.datePickerdiv[0].style.left = 0;
-  this.datePickerdiv[0].style.zIndex = 99;
+  this.datePickerdivStyle = this.datePickerdiv[0].style;
+  this.datePickerdivStyle.position = 'absolute';
+  this.datePickerdivStyle.top = 0;
+  this.datePickerdivStyle.left = 0;
+  this.datePickerdivStyle.zIndex = 99;
   this.instance.rootElement[0].appendChild(this.datePickerdiv[0]);
 
   var that = this;
@@ -3608,33 +3611,33 @@ HandsontableDateEditorClass.prototype.createElements = function () {
   };
   this.datePickerdiv.datepicker(defaultOptions);
   this.datePickerdiv.hide();
-}
+};
 
 HandsontableDateEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
 
 HandsontableDateEditorClass.prototype.bindEvents = function () {
   this._bindEvents();
-}
+};
 
 HandsontableDateEditorClass.prototype._beginEditing = HandsontableTextEditorClass.prototype.beginEditing;
 
 HandsontableDateEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
   this._beginEditing(row, col, prop, useOriginalValue, suffix);
   this.showDatepicker();
-}
+};
 
 HandsontableDateEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
 
 HandsontableDateEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   this.hideDatepicker();
   this._finishEditing(isCancelled, ctrlDown);
-}
+};
 
 HandsontableDateEditorClass.prototype.showDatepicker = function () {
   var $td = $(this.instance.dateEditor.TD);
   var position = $td.position();
-  this.datePickerdiv[0].style.top = (position.top + $td.height()) + 'px';
-  this.datePickerdiv[0].style.left = position.left + 'px';
+  this.datePickerdivStyle.top = (position.top + $td.height()) + 'px';
+  this.datePickerdivStyle.left = position.left + 'px';
 
   var dateOptions = {
     defaultDate: this.originalValue || void 0
@@ -3645,11 +3648,11 @@ HandsontableDateEditorClass.prototype.showDatepicker = function () {
     this.datePickerdiv.datepicker("setDate", this.originalValue);
   }
   this.datePickerdiv.show();
-}
+};
 
 HandsontableDateEditorClass.prototype.hideDatepicker = function () {
   this.datePickerdiv.hide();
-}
+};
 
 /**
  * Date editor (uses jQuery UI Datepicker)
@@ -3912,10 +3915,12 @@ function HandsontableAutoColumnSize() {
   var that = this
     , instance
     , tmp
+    , tmpStyle
     , $tmp
     , tmpTbody
     , tmpTbodyTd
     , tmpThead
+    , tmpTheadStyle
     , tmpTheadTh
     , tmpNoRenderer
     , tmpNoRendererTd
@@ -3932,26 +3937,28 @@ function HandsontableAutoColumnSize() {
 
       var d = document;
 
-      tmpThead   = d.createElement('table');
+      tmpThead = d.createElement('table');
       tmpThead.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(d.createElement('th'));
       tmpTheadTh = tmpThead.getElementsByTagName('th')[0];
 
       tmpThead.className = 'htTable';
-      tmpThead.style.tableLayout = 'auto',
-      tmpThead.style.width = 'auto',
+      tmpTheadStyle = tmpThead.style;
+      tmpTheadStyle.tableLayout = 'auto';
+      tmpTheadStyle.width = 'auto';
 
-      tmpTbody   = tmpThead.cloneNode(false);
+      tmpTbody = tmpThead.cloneNode(false);
       tmpTbody.appendChild(d.createElement('tbody')).appendChild(d.createElement('tr')).appendChild(d.createElement('td'));
       tmpTbodyTd = tmpTbody.getElementsByTagName('td')[0];
 
-      tmpNoRenderer   = tmpTbody.cloneNode(true);
+      tmpNoRenderer = tmpTbody.cloneNode(true);
       tmpNoRendererTd = tmpNoRenderer.getElementsByTagName('td')[0];
 
-      tmpRenderer   = tmpTbody.cloneNode(true);
+      tmpRenderer = tmpTbody.cloneNode(true);
       tmpRendererTd = tmpRenderer.getElementsByTagName('td')[0];
 
       tmp = d.createElement('div');
       tmp.className = 'handsontable hidden';
+      tmpStyle = tmp.style;
 
       tmp.appendChild(tmpThead);
       tmp.appendChild(tmpTbody);
@@ -3961,7 +3968,7 @@ function HandsontableAutoColumnSize() {
       $tmp = $(tmp);
 
       tmpNoRenderer = $tmp.children().eq(2);
-      tmpRenderer   = $tmp.children().eq(3);
+      tmpRenderer = $tmp.children().eq(3);
 
       d.body.appendChild(tmp);
 
@@ -4006,7 +4013,7 @@ function HandsontableAutoColumnSize() {
     instance.view.wt.wtDom.empty(tmpRendererTd);
     instance.view.wt.wtDom.empty(tmpNoRendererTd);
 
-    tmp.style.display = 'block';
+    tmpStyle.display = 'block';
 
     var width = $tmp.outerWidth();
 
@@ -4021,7 +4028,7 @@ function HandsontableAutoColumnSize() {
       width += tmpRenderer.width() - tmpNoRenderer.width(); //add renderer overhead to the calculated width
     }
 
-    tmp.style.display = 'none';
+    tmpStyle.display = 'none';
 
     return width;
   };
@@ -4323,23 +4330,23 @@ function HandsontableManualColumnMove() {
     , startX
     , startOffset;
 
-  var ghost = document.createElement('DIV');
-      ghost.className = 'ghost';
-      ghost.style.position = 'absolute';
-      ghost.style.top = '25px';
-      ghost.style.left = 0;
-      ghost.style.width = '10px';
-      ghost.style.height = '10px';
-      ghost.style.backgroundColor = '#CCC';
-      ghost.style.opacity = 0.7;
+  var ghost = document.createElement('DIV')
+    , ghostStyle = ghost.style;
 
-  var $ghost = $(ghost);
+  ghost.className = 'ghost';
+  ghostStyle.position = 'absolute';
+  ghostStyle.top = '25px';
+  ghostStyle.left = 0;
+  ghostStyle.width = '10px';
+  ghostStyle.height = '10px';
+  ghostStyle.backgroundColor = '#CCC';
+  ghostStyle.opacity = 0.7;
 
   $(document).mousemove(function (e) {
     if (pressed) {
-      $ghost[0].style.left = startOffset + e.pageX - startX + 6 + 'px';
-      if ($ghost[0].style.display === 'none') {
-        $ghost[0].style.display = 'block';
+      ghostStyle.left = startOffset + e.pageX - startX + 6 + 'px';
+      if (ghostStyle.display === 'none') {
+        ghostStyle.display = 'block';
       }
     }
   });
@@ -4358,7 +4365,7 @@ function HandsontableManualColumnMove() {
       pressed = false;
       instance.forceFullRender = true;
       instance.view.render(); //updates all
-      $ghost[0].style.display = 'none';
+      ghostStyle.display = 'none';
     }
   });
 
@@ -4379,13 +4386,13 @@ function HandsontableManualColumnMove() {
         startX = e.pageX;
 
         var $table = that.rootElement.find('.htCore');
-        $ghost.appendTo($table.parent());
-        $ghost.width($resizer.parent().width());
-        $ghost.height($table.height());
+        $table.parent()[0].appendChild(ghost);
+        ghostStyle.width = $resizer.parent().width() + 'px';
+        ghostStyle.height = $table.height() + 'px';
         startOffset = parseInt(th.offset().left - $table.offset().left, 10);
-        $ghost[0].style.left = startOffset + 6 + 'px';
+        ghostStyle.left = startOffset + 6 + 'px';
       });
-      this.rootElement.on('mouseenter.handsontable', 'td, th', function (e) {
+      this.rootElement.on('mouseenter.handsontable', 'td, th', function () {
         if (pressed) {
           $('.manualColumnMover.active').removeClass('active');
           var $ths = that.rootElement.find('thead th');
@@ -4431,31 +4438,28 @@ function HandsontableManualColumnResize() {
     , start
     , startX
     , startWidth
-    , startOffset;
+    , startOffset
+    , resizer = document.createElement('DIV')
+    , line = document.createElement('DIV')
+    , lineStyle = line.style;
 
-  var resizer, line;
-
-  resizer = document.createElement('DIV');
   resizer.className = 'manualColumnResizer';
 
-  line = document.createElement('DIV');
   line.className = 'manualColumnResizerLine';
-  line.style.position ='absolute';
-  line.style.top = 0;
-  line.style.left = 0;
-  line.style.width = 0;
-  line.style.borderRight = '1px dashed #777'
+  lineStyle.position ='absolute';
+  lineStyle.top = 0;
+  lineStyle.left = 0;
+  lineStyle.width = 0;
+  lineStyle.borderRight = '1px dashed #777';
   line.appendChild(resizer);
-
-  var $line = $(line);
 
   $(document).mousemove(function (e) {
     if (pressed) {
       currentWidth = startWidth + (e.pageX - startX);
       setManualSize(currentCol, currentWidth); //save col width
-      $line[0].style.left = startOffset + currentWidth - 1 + 'px';
-      if ($line[0].style.display === 'none') {
-        $line[0].style.display = 'block';
+      lineStyle.left = startOffset + currentWidth - 1 + 'px';
+      if (lineStyle.display === 'none') {
+        lineStyle.display = 'block';
       }
     }
   });
@@ -4466,7 +4470,7 @@ function HandsontableManualColumnResize() {
       pressed = false;
       instance.forceFullRender = true;
       instance.view.render(); //updates all
-      $line[0].style.display = 'none';
+      lineStyle.display = 'none';
     }
   });
 
@@ -4498,9 +4502,10 @@ function HandsontableManualColumnResize() {
 
         _resizer.className += ' active';
 
-        $line.appendTo($table.parent()).height($table.height());
+        lineStyle.height = $table.height() + 'px';
+        $table.parent()[0].appendChild(line);
         startOffset = parseInt($grandpa.offset().left - $table.offset().left, 10);
-        $line[0].style.left = startOffset + currentWidth - 1 + 'px';
+        lineStyle.left = startOffset + currentWidth - 1 + 'px';
       });
     }
   };
@@ -4880,28 +4885,31 @@ Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWid
  * @constructor
  */
 function CopyPaste(listenerElement) {
-  var that = this;
+  var that = this
+    , style;
   listenerElement = listenerElement || document.body;
 
   this.elDiv = document.createElement('DIV');
-  this.elDiv.style.position = 'fixed';
-  this.elDiv.style.top = 0;
-  this.elDiv.style.left = 0;
+  style = this.elDiv.style;
+  style.position = 'fixed';
+  style.top = 0;
+  style.left = 0;
   listenerElement.appendChild(this.elDiv);
 
   this.elTextarea = document.createElement('TEXTAREA');
   this.elTextarea.className = 'copyPaste';
-  this.elTextarea.style.width = '1px';
-  this.elTextarea.style.height = '1px';
+  style = this.elTextarea.style;
+  style.width = '1px';
+  style.height = '1px';
   this.elDiv.appendChild(this.elTextarea);
 
-  if (typeof this.elTextarea.style.opacity !== 'undefined') {
-    this.elTextarea.style.opacity = 0;
+  if (typeof style.opacity !== 'undefined') {
+    style.opacity = 0;
   }
   else {
     /*@cc_on @if (@_jscript)
-     if(typeof this.elTextarea.style.filter === 'string') {
-     this.elTextarea.style.filter = 'alpha(opacity=0)';
+     if(typeof style.filter === 'string') {
+     style.filter = 'alpha(opacity=0)';
      }
      @end @*/
   }
@@ -4946,7 +4954,7 @@ function CopyPaste(listenerElement) {
 //http://jsperf.com/textara-selection
 //http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie
 CopyPaste.prototype.selectNodeText = function (el) {
-  this.elTextarea.select();
+  el.select();
 };
 
 CopyPaste.prototype.copyable = function (str) {
@@ -5007,22 +5015,26 @@ CopyPaste.prototype._bindEvent = (function () {
   }
 })();
 function WalkontableBorder(instance, settings) {
+  var style;
+
   //reference to instance
   this.instance = instance;
   this.settings = settings;
   this.wtDom = this.instance.wtDom;
 
   this.main = document.createElement("div");
-  this.main.style.position = 'absolute';
-  this.main.style.top = 0;
-  this.main.style.left = 0;
+  style = this.main.style;
+  style.position = 'absolute';
+  style.top = 0;
+  style.left = 0;
 
   for (var i = 0; i < 5; i++) {
     var DIV = document.createElement('DIV');
     DIV.className = 'wtBorder ' + (settings.className || '');
-    DIV.style.backgroundColor = settings.border.color;
-    DIV.style.height = settings.border.width + 'px';
-    DIV.style.width = settings.border.width + 'px';
+    style = DIV.style;
+    style.backgroundColor = settings.border.color;
+    style.height = settings.border.width + 'px';
+    style.width = settings.border.width + 'px';
     this.main.appendChild(DIV);
   }
 
@@ -5031,11 +5043,17 @@ function WalkontableBorder(instance, settings) {
   this.bottom = this.main.childNodes[2];
   this.right = this.main.childNodes[3];
 
+  this.topStyle = this.top.style;
+  this.leftStyle = this.left.style;
+  this.bottomStyle = this.bottom.style;
+  this.rightStyle = this.right.style;
+
   this.corner = this.main.childNodes[4];
   this.corner.className += ' corner';
-  this.corner.style.width = '5px';
-  this.corner.style.height = '5px';
-  this.corner.style.border = '2px solid #FFF';
+  this.cornerStyle = this.corner.style;
+  this.cornerStyle.width = '5px';
+  this.cornerStyle.height = '5px';
+  this.cornerStyle.border = '2px solid #FFF';
 
   this.disappear();
   instance.wtTable.hider.appendChild(this.main);
@@ -5117,54 +5135,54 @@ WalkontableBorder.prototype.appear = function (corners) {
   }
 
   if (hideTop) {
-    this.top.style.display = 'none';
+    this.topStyle.display = 'none';
   }
   else {
-    this.top.style.top = top + 'px';
-    this.top.style.left = left + 'px';
-    this.top.style.width = width + 'px';
-    this.top.style.display = 'block';
+    this.topStyle.top = top + 'px';
+    this.topStyle.left = left + 'px';
+    this.topStyle.width = width + 'px';
+    this.topStyle.display = 'block';
   }
 
   if (hideLeft) {
-    this.left.style.display = 'none';
+    this.leftStyle.display = 'none';
   }
   else {
-    this.left.style.top = top + 'px';
-    this.left.style.left = left + 'px';
-    this.left.style.height = height + 'px';
-    this.left.style.display = 'block';
+    this.leftStyle.top = top + 'px';
+    this.leftStyle.left = left + 'px';
+    this.leftStyle.height = height + 'px';
+    this.leftStyle.display = 'block';
   }
 
   var delta = Math.floor(this.settings.border.width / 2);
 
   if (hideBottom) {
-    this.bottom.style.display = 'none';
+    this.bottomStyle.display = 'none';
   }
   else {
-    this.bottom.style.top = top + height - delta + 'px';
-    this.bottom.style.left = left + 'px';
-    this.bottom.style.width = width + 'px';
-    this.bottom.style.display = 'block';
+    this.bottomStyle.top = top + height - delta + 'px';
+    this.bottomStyle.left = left + 'px';
+    this.bottomStyle.width = width + 'px';
+    this.bottomStyle.display = 'block';
   }
 
   if (hideRight) {
-    this.right.style.display = 'none';
+    this.rightStyle.display = 'none';
   }
   else {
-    this.right.style.top = top + 'px';
-    this.right.style.left = left + width - delta + 'px';
-    this.right.style.height = height + 1 + 'px';
-    this.right.style.display = 'block';
+    this.rightStyle.top = top + 'px';
+    this.rightStyle.left = left + width - delta + 'px';
+    this.rightStyle.height = height + 1 + 'px';
+    this.rightStyle.display = 'block';
   }
 
   if (hideBottom && hideRight || !this.hasSetting(this.settings.border.cornerVisible)) {
-    this.corner.style.display = 'none';
+    this.cornerStyle.display = 'none';
   }
   else {
-    this.corner.style.top = top + height - 4 + 'px';
-    this.corner.style.left = left + width - 4 + 'px';
-    this.corner.style.display = 'block';
+    this.cornerStyle.top = top + height - 4 + 'px';
+    this.cornerStyle.left = left + width - 4 + 'px';
+    this.cornerStyle.display = 'block';
   }
 };
 
@@ -5172,11 +5190,11 @@ WalkontableBorder.prototype.appear = function (corners) {
  * Hide border
  */
 WalkontableBorder.prototype.disappear = function () {
-  this.top.style.display = 'none';
-  this.left.style.display = 'none';
-  this.bottom.style.display = 'none';
-  this.right.style.display = 'none';
-  this.corner.style.display = 'none';
+  this.topStyle.display = 'none';
+  this.leftStyle.display = 'none';
+  this.bottomStyle.display = 'none';
+  this.rightStyle.display = 'none';
+  this.cornerStyle.display = 'none';
 };
 
 WalkontableBorder.prototype.hasSetting = function (setting) {
@@ -5839,13 +5857,15 @@ function WalkontableScrollbar(instance, type) {
 
   //create elements
   this.slider = document.createElement('DIV');
-  this.slider.style.position = 'absolute';
-  this.slider.style.top = '0';
-  this.slider.style.left = '0';
-  this.slider.style.display = 'none';
+  this.sliderStyle = this.slider.style;
+  this.sliderStyle.position = 'absolute';
+  this.sliderStyle.top = '0';
+  this.sliderStyle.left = '0';
+  this.sliderStyle.display = 'none';
   this.slider.className = 'dragdealer ' + type;
 
   this.handle = document.createElement('DIV');
+  this.handleStyle = this.handle.style;
   this.handle.className = 'handle';
 
   this.slider.appendChild(this.handle);
@@ -5892,7 +5912,7 @@ WalkontableScrollbar.prototype.onScroll = function (delta) {
     var total = this.instance.getSetting(keys[1]);
     var display = this.instance.getSetting(keys[2]);
     if (total > display) {
-      var newOffset = Math.round(parseInt(this.handle.style[keys[3]], 10) * total / parseInt(this.slider.style[keys[4]], 10)); //offset = handlePos * totalRows / offsetRows
+      var newOffset = Math.round(parseInt(this.handleStyle[keys[3]], 10) * total / parseInt(this.slider.style[keys[4]], 10)); //offset = handlePos * totalRows / offsetRows
 
       if (delta === 1) {
         if (this.type === 'vertical') {
@@ -5961,7 +5981,7 @@ WalkontableScrollbar.prototype.refresh = function () {
     return;
   }
   else if (!this.visible) {
-    this.slider.style.display = 'none';
+    this.sliderStyle.display = 'none';
     return;
   }
 
@@ -6007,9 +6027,9 @@ WalkontableScrollbar.prototype.refresh = function () {
 
     sliderSize = tableHeight - 2; //2 is sliders border-width
 
-    this.slider.style.top = this.$table.position().top + 'px';
-    this.slider.style.left = tableWidth - 1 + 'px'; //1 is sliders border-width
-    this.slider.style.height = sliderSize + 'px';
+    this.sliderStyle.top = this.$table.position().top + 'px';
+    this.sliderStyle.left = tableWidth - 1 + 'px'; //1 is sliders border-width
+    this.sliderStyle.height = sliderSize + 'px';
   }
   else { //horizontal
     offsetCount = this.instance.getSetting('offsetColumn');
@@ -6018,9 +6038,9 @@ WalkontableScrollbar.prototype.refresh = function () {
 
     sliderSize = tableWidth - 2; //2 is sliders border-width
 
-    this.slider.style.left = this.$table.position().left + 'px';
-    this.slider.style.top = tableHeight - 1 + 'px'; //1 is sliders border-width
-    this.slider.style.width = sliderSize + 'px';
+    this.sliderStyle.left = this.$table.position().left + 'px';
+    this.sliderStyle.top = tableHeight - 1 + 'px'; //1 is sliders border-width
+    this.sliderStyle.width = sliderSize + 'px';
   }
 
   handleSize = Math.round(sliderSize * ratio);
@@ -6034,16 +6054,16 @@ WalkontableScrollbar.prototype.refresh = function () {
   }
 
   if (this.type === 'vertical') {
-    this.handle.style.height = handleSize + 'px';
-    this.handle.style.top = handlePosition + 'px';
+    this.handleStyle.height = handleSize + 'px';
+    this.handleStyle.top = handlePosition + 'px';
 
   }
   else { //horizontal
-    this.handle.style.width = handleSize + 'px';
-    this.handle.style.left = handlePosition + 'px';
+    this.handleStyle.width = handleSize + 'px';
+    this.handleStyle.left = handlePosition + 'px';
   }
 
-  this.slider.style.display = 'block';
+  this.sliderStyle.display = 'block';
 
   this.dragdealer.setWrapperOffset();
   this.dragdealer.setBounds();
@@ -6368,7 +6388,6 @@ WalkontableSettings.prototype.viewportColumns = function () {
   }
   return this.getSetting('displayColumns');
 };
-
 var FLAG_VISIBLE_HORIZONTAL = 0x1; // 000001
 var FLAG_VISIBLE_VERTICAL = 0x2; // 000010
 var FLAG_PARTIALLY_VISIBLE_HORIZONTAL = 0x4; // 000100
@@ -6398,11 +6417,12 @@ function WalkontableTable(instance) {
   if (!parent || parent.nodeType !== 1 || !this.wtDom.hasClass(parent, 'wtHolder')) {
     var spreader = document.createElement('DIV');
     if (this.instance.hasSetting('width') && this.instance.hasSetting('height')) {
-      spreader.style.position = 'absolute';
-      spreader.style.top = '0';
-      spreader.style.left = '0';
-      spreader.style.width = '4000px';
-      spreader.style.height = '4000px';
+      var spreaderStyle = spreader.style;
+      spreaderStyle.position = 'absolute';
+      spreaderStyle.top = '0';
+      spreaderStyle.left = '0';
+      spreaderStyle.width = '4000px';
+      spreaderStyle.height = '4000px';
     }
     spreader.className = 'wtSpreader';
     if (parent) {
@@ -6416,7 +6436,6 @@ function WalkontableTable(instance) {
   parent = this.spreader.parentNode;
   if (!parent || parent.nodeType !== 1 || !this.wtDom.hasClass(parent, 'wtHolder')) {
     var hider = document.createElement('DIV');
-    hider.style.position = 'relative';
     hider.className = 'wtHider';
     if (parent) {
       parent.insertBefore(hider, this.spreader); //if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
@@ -6424,6 +6443,8 @@ function WalkontableTable(instance) {
     hider.appendChild(this.spreader);
   }
   this.hider = this.spreader.parentNode;
+  this.hiderStyle = this.hider.style;
+  this.hiderStyle.position = 'relative';
 
   //wtHolder
   parent = this.hider.parentNode;
@@ -6472,23 +6493,23 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
   var width = this.instance.getSetting('width');
 
   if (height || width) {
-    this.hider.style.overflow = 'hidden';
+    this.hiderStyle.overflow = 'hidden';
   }
 
   if (height) {
     if (this.instance.wtScroll.wtScrollbarH.visible) {
-      this.hider.style.height = height - this.instance.getSetting('scrollbarHeight') + 'px';
+      this.hiderStyle.height = height - this.instance.getSetting('scrollbarHeight') + 'px';
     }
     else {
-      this.hider.style.height = height + 'px';
+      this.hiderStyle.height = height + 'px';
     }
   }
   if (width) {
     if (this.instance.wtScroll.wtScrollbarV.visible) {
-      this.hider.style.width = width - this.instance.getSetting('scrollbarWidth') + 'px';
+      this.hiderStyle.width = width - this.instance.getSetting('scrollbarWidth') + 'px';
     }
     else {
-      this.hider.style.width = width + 'px';
+      this.hiderStyle.width = width + 'px';
     }
   }
 };

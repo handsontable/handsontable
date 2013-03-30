@@ -1,20 +1,24 @@
 function WalkontableBorder(instance, settings) {
+  var style;
+
   //reference to instance
   this.instance = instance;
   this.settings = settings;
   this.wtDom = this.instance.wtDom;
 
   this.main = document.createElement("div");
-  this.main.style.position = 'absolute';
-  this.main.style.top = 0;
-  this.main.style.left = 0;
+  style = this.main.style;
+  style.position = 'absolute';
+  style.top = 0;
+  style.left = 0;
 
   for (var i = 0; i < 5; i++) {
     var DIV = document.createElement('DIV');
     DIV.className = 'wtBorder ' + (settings.className || '');
-    DIV.style.backgroundColor = settings.border.color;
-    DIV.style.height = settings.border.width + 'px';
-    DIV.style.width = settings.border.width + 'px';
+    style = DIV.style;
+    style.backgroundColor = settings.border.color;
+    style.height = settings.border.width + 'px';
+    style.width = settings.border.width + 'px';
     this.main.appendChild(DIV);
   }
 
@@ -23,11 +27,17 @@ function WalkontableBorder(instance, settings) {
   this.bottom = this.main.childNodes[2];
   this.right = this.main.childNodes[3];
 
+  this.topStyle = this.top.style;
+  this.leftStyle = this.left.style;
+  this.bottomStyle = this.bottom.style;
+  this.rightStyle = this.right.style;
+
   this.corner = this.main.childNodes[4];
   this.corner.className += ' corner';
-  this.corner.style.width = '5px';
-  this.corner.style.height = '5px';
-  this.corner.style.border = '2px solid #FFF';
+  this.cornerStyle = this.corner.style;
+  this.cornerStyle.width = '5px';
+  this.cornerStyle.height = '5px';
+  this.cornerStyle.border = '2px solid #FFF';
 
   this.disappear();
   instance.wtTable.hider.appendChild(this.main);
@@ -109,54 +119,54 @@ WalkontableBorder.prototype.appear = function (corners) {
   }
 
   if (hideTop) {
-    this.top.style.display = 'none';
+    this.topStyle.display = 'none';
   }
   else {
-    this.top.style.top = top + 'px';
-    this.top.style.left = left + 'px';
-    this.top.style.width = width + 'px';
-    this.top.style.display = 'block';
+    this.topStyle.top = top + 'px';
+    this.topStyle.left = left + 'px';
+    this.topStyle.width = width + 'px';
+    this.topStyle.display = 'block';
   }
 
   if (hideLeft) {
-    this.left.style.display = 'none';
+    this.leftStyle.display = 'none';
   }
   else {
-    this.left.style.top = top + 'px';
-    this.left.style.left = left + 'px';
-    this.left.style.height = height + 'px';
-    this.left.style.display = 'block';
+    this.leftStyle.top = top + 'px';
+    this.leftStyle.left = left + 'px';
+    this.leftStyle.height = height + 'px';
+    this.leftStyle.display = 'block';
   }
 
   var delta = Math.floor(this.settings.border.width / 2);
 
   if (hideBottom) {
-    this.bottom.style.display = 'none';
+    this.bottomStyle.display = 'none';
   }
   else {
-    this.bottom.style.top = top + height - delta + 'px';
-    this.bottom.style.left = left + 'px';
-    this.bottom.style.width = width + 'px';
-    this.bottom.style.display = 'block';
+    this.bottomStyle.top = top + height - delta + 'px';
+    this.bottomStyle.left = left + 'px';
+    this.bottomStyle.width = width + 'px';
+    this.bottomStyle.display = 'block';
   }
 
   if (hideRight) {
-    this.right.style.display = 'none';
+    this.rightStyle.display = 'none';
   }
   else {
-    this.right.style.top = top + 'px';
-    this.right.style.left = left + width - delta + 'px';
-    this.right.style.height = height + 1 + 'px';
-    this.right.style.display = 'block';
+    this.rightStyle.top = top + 'px';
+    this.rightStyle.left = left + width - delta + 'px';
+    this.rightStyle.height = height + 1 + 'px';
+    this.rightStyle.display = 'block';
   }
 
   if (hideBottom && hideRight || !this.hasSetting(this.settings.border.cornerVisible)) {
-    this.corner.style.display = 'none';
+    this.cornerStyle.display = 'none';
   }
   else {
-    this.corner.style.top = top + height - 4 + 'px';
-    this.corner.style.left = left + width - 4 + 'px';
-    this.corner.style.display = 'block';
+    this.cornerStyle.top = top + height - 4 + 'px';
+    this.cornerStyle.left = left + width - 4 + 'px';
+    this.cornerStyle.display = 'block';
   }
 };
 
@@ -164,11 +174,11 @@ WalkontableBorder.prototype.appear = function (corners) {
  * Hide border
  */
 WalkontableBorder.prototype.disappear = function () {
-  this.top.style.display = 'none';
-  this.left.style.display = 'none';
-  this.bottom.style.display = 'none';
-  this.right.style.display = 'none';
-  this.corner.style.display = 'none';
+  this.topStyle.display = 'none';
+  this.leftStyle.display = 'none';
+  this.bottomStyle.display = 'none';
+  this.rightStyle.display = 'none';
+  this.cornerStyle.display = 'none';
 };
 
 WalkontableBorder.prototype.hasSetting = function (setting) {

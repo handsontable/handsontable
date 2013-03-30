@@ -5,28 +5,31 @@
  * @constructor
  */
 function CopyPaste(listenerElement) {
-  var that = this;
+  var that = this
+    , style;
   listenerElement = listenerElement || document.body;
 
   this.elDiv = document.createElement('DIV');
-  this.elDiv.style.position = 'fixed';
-  this.elDiv.style.top = 0;
-  this.elDiv.style.left = 0;
+  style = this.elDiv.style;
+  style.position = 'fixed';
+  style.top = 0;
+  style.left = 0;
   listenerElement.appendChild(this.elDiv);
 
   this.elTextarea = document.createElement('TEXTAREA');
   this.elTextarea.className = 'copyPaste';
-  this.elTextarea.style.width = '1px';
-  this.elTextarea.style.height = '1px';
+  style = this.elTextarea.style;
+  style.width = '1px';
+  style.height = '1px';
   this.elDiv.appendChild(this.elTextarea);
 
-  if (typeof this.elTextarea.style.opacity !== 'undefined') {
-    this.elTextarea.style.opacity = 0;
+  if (typeof style.opacity !== 'undefined') {
+    style.opacity = 0;
   }
   else {
     /*@cc_on @if (@_jscript)
-     if(typeof this.elTextarea.style.filter === 'string') {
-     this.elTextarea.style.filter = 'alpha(opacity=0)';
+     if(typeof style.filter === 'string') {
+     style.filter = 'alpha(opacity=0)';
      }
      @end @*/
   }
@@ -71,7 +74,7 @@ function CopyPaste(listenerElement) {
 //http://jsperf.com/textara-selection
 //http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie
 CopyPaste.prototype.selectNodeText = function (el) {
-  this.elTextarea.select();
+  el.select();
 };
 
 CopyPaste.prototype.copyable = function (str) {

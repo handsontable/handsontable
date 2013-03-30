@@ -15,10 +15,11 @@ HandsontableDateEditorClass.prototype.createElements = function () {
   this._createElements();
 
   this.datePickerdiv = $("<div>");
-  this.datePickerdiv[0].style.position = 'absolute';
-  this.datePickerdiv[0].style.top = 0;
-  this.datePickerdiv[0].style.left = 0;
-  this.datePickerdiv[0].style.zIndex = 99;
+  this.datePickerdivStyle = this.datePickerdiv[0].style;
+  this.datePickerdivStyle.position = 'absolute';
+  this.datePickerdivStyle.top = 0;
+  this.datePickerdivStyle.left = 0;
+  this.datePickerdivStyle.zIndex = 99;
   this.instance.rootElement[0].appendChild(this.datePickerdiv[0]);
 
   var that = this;
@@ -34,33 +35,33 @@ HandsontableDateEditorClass.prototype.createElements = function () {
   };
   this.datePickerdiv.datepicker(defaultOptions);
   this.datePickerdiv.hide();
-}
+};
 
 HandsontableDateEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
 
 HandsontableDateEditorClass.prototype.bindEvents = function () {
   this._bindEvents();
-}
+};
 
 HandsontableDateEditorClass.prototype._beginEditing = HandsontableTextEditorClass.prototype.beginEditing;
 
 HandsontableDateEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
   this._beginEditing(row, col, prop, useOriginalValue, suffix);
   this.showDatepicker();
-}
+};
 
 HandsontableDateEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
 
 HandsontableDateEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   this.hideDatepicker();
   this._finishEditing(isCancelled, ctrlDown);
-}
+};
 
 HandsontableDateEditorClass.prototype.showDatepicker = function () {
   var $td = $(this.instance.dateEditor.TD);
   var position = $td.position();
-  this.datePickerdiv[0].style.top = (position.top + $td.height()) + 'px';
-  this.datePickerdiv[0].style.left = position.left + 'px';
+  this.datePickerdivStyle.top = (position.top + $td.height()) + 'px';
+  this.datePickerdivStyle.left = position.left + 'px';
 
   var dateOptions = {
     defaultDate: this.originalValue || void 0
@@ -71,11 +72,11 @@ HandsontableDateEditorClass.prototype.showDatepicker = function () {
     this.datePickerdiv.datepicker("setDate", this.originalValue);
   }
   this.datePickerdiv.show();
-}
+};
 
 HandsontableDateEditorClass.prototype.hideDatepicker = function () {
   this.datePickerdiv.hide();
-}
+};
 
 /**
  * Date editor (uses jQuery UI Datepicker)

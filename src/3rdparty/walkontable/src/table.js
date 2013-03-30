@@ -1,4 +1,3 @@
-
 var FLAG_VISIBLE_HORIZONTAL = 0x1; // 000001
 var FLAG_VISIBLE_VERTICAL = 0x2; // 000010
 var FLAG_PARTIALLY_VISIBLE_HORIZONTAL = 0x4; // 000100
@@ -28,11 +27,12 @@ function WalkontableTable(instance) {
   if (!parent || parent.nodeType !== 1 || !this.wtDom.hasClass(parent, 'wtHolder')) {
     var spreader = document.createElement('DIV');
     if (this.instance.hasSetting('width') && this.instance.hasSetting('height')) {
-      spreader.style.position = 'absolute';
-      spreader.style.top = '0';
-      spreader.style.left = '0';
-      spreader.style.width = '4000px';
-      spreader.style.height = '4000px';
+      var spreaderStyle = spreader.style;
+      spreaderStyle.position = 'absolute';
+      spreaderStyle.top = '0';
+      spreaderStyle.left = '0';
+      spreaderStyle.width = '4000px';
+      spreaderStyle.height = '4000px';
     }
     spreader.className = 'wtSpreader';
     if (parent) {
@@ -46,7 +46,6 @@ function WalkontableTable(instance) {
   parent = this.spreader.parentNode;
   if (!parent || parent.nodeType !== 1 || !this.wtDom.hasClass(parent, 'wtHolder')) {
     var hider = document.createElement('DIV');
-    hider.style.position = 'relative';
     hider.className = 'wtHider';
     if (parent) {
       parent.insertBefore(hider, this.spreader); //if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
@@ -54,6 +53,8 @@ function WalkontableTable(instance) {
     hider.appendChild(this.spreader);
   }
   this.hider = this.spreader.parentNode;
+  this.hiderStyle = this.hider.style;
+  this.hiderStyle.position = 'relative';
 
   //wtHolder
   parent = this.hider.parentNode;
@@ -102,23 +103,23 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
   var width = this.instance.getSetting('width');
 
   if (height || width) {
-    this.hider.style.overflow = 'hidden';
+    this.hiderStyle.overflow = 'hidden';
   }
 
   if (height) {
     if (this.instance.wtScroll.wtScrollbarH.visible) {
-      this.hider.style.height = height - this.instance.getSetting('scrollbarHeight') + 'px';
+      this.hiderStyle.height = height - this.instance.getSetting('scrollbarHeight') + 'px';
     }
     else {
-      this.hider.style.height = height + 'px';
+      this.hiderStyle.height = height + 'px';
     }
   }
   if (width) {
     if (this.instance.wtScroll.wtScrollbarV.visible) {
-      this.hider.style.width = width - this.instance.getSetting('scrollbarWidth') + 'px';
+      this.hiderStyle.width = width - this.instance.getSetting('scrollbarWidth') + 'px';
     }
     else {
-      this.hider.style.width = width + 'px';
+      this.hiderStyle.width = width + 'px';
     }
   }
 };

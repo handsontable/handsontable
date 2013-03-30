@@ -6,31 +6,28 @@ function HandsontableManualColumnResize() {
     , start
     , startX
     , startWidth
-    , startOffset;
+    , startOffset
+    , resizer = document.createElement('DIV')
+    , line = document.createElement('DIV')
+    , lineStyle = line.style;
 
-  var resizer, line;
-
-  resizer = document.createElement('DIV');
   resizer.className = 'manualColumnResizer';
 
-  line = document.createElement('DIV');
   line.className = 'manualColumnResizerLine';
-  line.style.position ='absolute';
-  line.style.top = 0;
-  line.style.left = 0;
-  line.style.width = 0;
-  line.style.borderRight = '1px dashed #777'
+  lineStyle.position ='absolute';
+  lineStyle.top = 0;
+  lineStyle.left = 0;
+  lineStyle.width = 0;
+  lineStyle.borderRight = '1px dashed #777';
   line.appendChild(resizer);
-
-  var $line = $(line);
 
   $(document).mousemove(function (e) {
     if (pressed) {
       currentWidth = startWidth + (e.pageX - startX);
       setManualSize(currentCol, currentWidth); //save col width
-      $line[0].style.left = startOffset + currentWidth - 1 + 'px';
-      if ($line[0].style.display === 'none') {
-        $line[0].style.display = 'block';
+      lineStyle.left = startOffset + currentWidth - 1 + 'px';
+      if (lineStyle.display === 'none') {
+        lineStyle.display = 'block';
       }
     }
   });
@@ -41,7 +38,7 @@ function HandsontableManualColumnResize() {
       pressed = false;
       instance.forceFullRender = true;
       instance.view.render(); //updates all
-      $line[0].style.display = 'none';
+      lineStyle.display = 'none';
     }
   });
 
@@ -73,9 +70,10 @@ function HandsontableManualColumnResize() {
 
         _resizer.className += ' active';
 
-        $line.appendTo($table.parent()).height($table.height());
+        lineStyle.height = $table.height() + 'px';
+        $table.parent()[0].appendChild(line);
         startOffset = parseInt($grandpa.offset().left - $table.offset().left, 10);
-        $line[0].style.left = startOffset + currentWidth - 1 + 'px';
+        lineStyle.left = startOffset + currentWidth - 1 + 'px';
       });
     }
   };

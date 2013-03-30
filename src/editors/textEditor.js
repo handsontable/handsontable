@@ -12,16 +12,18 @@ HandsontableTextEditorClass.prototype.createElements = function () {
 
   element = document.createElement('TEXTAREA');
   element.className = 'handsontableInput';
-  element.style.width = 0;
-  element.style.height = 0;
+  this.TEXTAREA_style = element.style;
+  this.TEXTAREA_style.width = 0;
+  this.TEXTAREA_style.height = 0;
 
   this.TEXTAREA = $(element);
 
   element = document.createElement('DIV');
   element.className = 'handsontableInputHolder';
-  element.style.top = 0;
-  element.style.left = 0;
-  element.style.display = 'none';
+  this.TEXTAREA_PARENT_style = element.style;
+  this.TEXTAREA_PARENT_style.top = 0;
+  this.TEXTAREA_PARENT_style.left = 0;
+  this.TEXTAREA_PARENT_style.display = 'none';
 
   this.TEXTAREA_PARENT = $(element).append(this.TEXTAREA);
   this.instance.rootElement.append(this.TEXTAREA_PARENT);
@@ -299,7 +301,7 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
     extraSpace: 0
   });
 
-  this.TEXTAREA_PARENT[0].style.display = 'block';
+  this.TEXTAREA_PARENT_style.display = 'block';
 };
 
 HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
@@ -324,7 +326,7 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
     this.TD.focus(); //don't refocus the table if user focused some cell outside of HT on purpose
   }
 
-  this.TEXTAREA_PARENT[0].style.display = 'none';
+  this.TEXTAREA_PARENT_style.display = 'none';
 };
 
 /**
