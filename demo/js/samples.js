@@ -4,6 +4,7 @@
  * @param {Number} pad
  * @return {Array}
  */
+
 function trimCodeBlock(code, pad) {
   var i;
   pad = pad || 0;
@@ -27,15 +28,15 @@ function trimCodeBlock(code, pad) {
   return code;
 }
 
-$(function () {
+$(function() {
   if (!$.browser.msie || parseInt($.browser.version, 10) > 6) { //syntax coloring does not work well with IE7
-    $('.descLayout pre.javascript code').each(function () {
+    $('.descLayout pre.javascript code').each(function() {
       var $script = $(this);
       var code = trimCodeBlock($script[0].innerHTML);
       $script[0].innerHTML = code.join('\n');
     });
 
-    $('.codeLayout script').each(function () {
+    $('.codeLayout script').each(function() {
       var $script = $(this);
       var $pre = $('<pre class="javascript"></pre>');
       var $code = $('<code></code>');
@@ -48,27 +49,40 @@ $(function () {
     hljs.initHighlighting();
   }
 
-  $('.jsFiddleLink').on('click', function () {
-    var css = '</style><!-- Ugly Hack due to jsFiddle issue: http://goo.gl/BUfGZ -->\n\
-<script src="http://handsontable.com/lib/jquery.min.js"></script>\n\
-<script src="http://handsontable.com/dist/jquery.handsontable.full.js"></script>\n\
-<link rel="stylesheet" media="screen" href="http://handsontable.com/dist/jquery.handsontable.full.css">\n\
-<link rel="stylesheet" media="screen" href="http://handsontable.com/demo/css/samples.css">\n';
+  $('.jsFiddleLink').on('click', function() {
+    var css = [];
+
+    css.push('</style><!-- Ugly Hack due to jsFiddle issue: http://goo.gl/BUfGZ -->\n');
+    css.push('<script src="http://handsontable.com/lib/jquery.min.js"></script>\n');
+    css.push('<script src="http://handsontable.com/dist/jquery.handsontable.full.js"></script>\n');
+
+    if (window.Bootstrap) { // these need to be before jquery.handsontable.full.css
+      css.push('<script type="text/javascript" src="http://handsontable.com/demo/bootstrap/js/bootstrap.min.js"></script>\n');
+      css.push('<link rel="stylesheet" type="text/css" href="http://handsontable.com/demo/bootstrap/css/bootstrap.min.css">\n');
+    }
+
+    css.push('<link rel="stylesheet" media="screen" href="http://handsontable.com/dist/jquery.handsontable.full.css">\n');
+    css.push('<link rel="stylesheet" media="screen" href="http://handsontable.com/demo/css/samples.css">\n');
+
+    if (window.Bootstrap) {
+      css.push('<link rel="stylesheet" media="screen" href="http://handsontable.com/extensions/jquery.handsontable.bootstrap.css">\n');
+    }
 
     if ($.ui && $.ui.datepicker) {
-      css += '<script src="http://handsontable.com/lib/jquery-ui/js/jquery-ui.custom.min.js"></script>\n\
-<link rel="stylesheet" media="screen" href="http://handsontable.com/lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">\n';
-    }
-    if (window.Backbone) {
-      css += '<script src="http://handsontable.com/demo/js/backbone/lodash.underscore.js"></script>\n\
-<script src="http://handsontable.com/demo/js/backbone/backbone.js"></script>\n\
-<script src="http://handsontable.com/demo/js/backbone/backbone-relational/backbone-relational.js"></script>\n';
+      css.push('<script src="http://handsontable.com/lib/jquery-ui/js/jquery-ui.custom.min.js"></script>\n');
+      css.push('<link rel="stylesheet" media="screen" href="http://handsontable.com/lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">\n');
     }
 
-    css += '<style type="text/css">\n\
-body {background: white; margin: 20px;}\n\
-h2 {margin: 20px 0;}\n\n';
-    $('style.common').each(function () {
+    if (window.Backbone) {
+      css.push('<script src="http://handsontable.com/demo/js/backbone/lodash.underscore.js"></script>\n');
+      css.push('<script src="http://handsontable.com/demo/js/backbone/backbone.js"></script>\n');
+      css.push('<script src="http://handsontable.com/demo/js/backbone/backbone-relational/backbone-relational.js"></script>\n');
+    }
+
+    css.push('<style type="text/css">\nbody {background: white; margin: 20px;}\nh2 {margin: 20px 0;}\n\n');
+    css = css.join('');
+
+    $('style.common').each(function() {
       css += trimCodeBlock($(this).html()).join('\n') + '\n';
     });
 
@@ -77,10 +91,10 @@ h2 {margin: 20px 0;}\n\n';
     js += trimCodeBlock(bindDumpButton.toString(), 2).join('\n') + '\n';
     js += '  bindDumpButton();\n\n';
 
-    $('script.common').each(function () {
+    $('script.common').each(function() {
       js += trimCodeBlock($(this).html(), 2).join('\n') + '\n';
     });
-    $(this).parents('.codeLayout').find('script').not('.common').each(function () {
+    $(this).parents('.codeLayout').find('script').not('.common').each(function() {
       js += trimCodeBlock($(this).html(), 2).join('\n') + '\n';
     });
     js += '});';
@@ -112,7 +126,7 @@ h2 {margin: 20px 0;}\n\n';
 });
 
 function bindDumpButton() {
-  $('body').on('click', 'button[name=dump]', function () {
+  $('body').on('click', 'button[name=dump]', function() {
     var dump = $(this).data('dump');
     var $container = $(dump);
     console.log('data of ' + dump, $container.handsontable('getData'));
