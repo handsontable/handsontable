@@ -12,7 +12,7 @@
 }
 
 .wtHolder table {
-  border-collapse: separate;
+  border-collapse: collapse;
   position: relative;
   -webkit-user-select: none;
   -khtml-user-select: none;
