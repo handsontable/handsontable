@@ -4,6 +4,9 @@ Features:
 - performance: remove jQuery from default autocomplete and checkbox renderers
 - performance: in cell renderers, replace `innerHTML` with `createTextNode`
 
+Bugfixes:
+- empty cell not shown in Firefox when not in standards mode (#418). This is questionable as a bug but anyway we fixed it.
+
 ## [0.8.16](https://github.com/warpech/jquery-handsontable/tree/v0.8.16) (Mar 26, 2013)
 
 Features:
