@@ -14,7 +14,7 @@ var lastFrame = null;
   countFrames();
 })();
 
-var nextFrame = function (myFrame) {
+var nextFrame = function () {
   if (lastFrame === null) {
     lastFrame = frame;
   }
