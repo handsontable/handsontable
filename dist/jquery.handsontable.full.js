@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Mar 26 2013 12:27:34 GMT+0100 (Central European Standard Time)
+ * Date: Sat Mar 30 2013 17:20:52 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3231,8 +3231,8 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   var containerOffset = this.instance.rootElement.offset();
   var scrollTop = this.instance.rootElement.scrollTop();
   var scrollLeft = this.instance.rootElement.scrollLeft();
-  var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
-  var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
+  var editTop = currentOffset.top - containerOffset.top + scrollTop;
+  var editLeft = currentOffset.left - containerOffset.left + scrollLeft;
 
   var settings = this.instance.getSettings();
   var rowHeadersCount = settings.rowHeaders === false ? 0 : 1;
@@ -5010,8 +5010,8 @@ WalkontableBorder.prototype.appear = function (corners) {
     minLeft = fromOffset.left;
     width = toOffset.left + $to.outerWidth() - minLeft;
 
-    top = minTop - containerOffset.top - 1;
-    left = minLeft - containerOffset.left - 1;
+    top = minTop - containerOffset.top;
+    left = minLeft - containerOffset.left;
 
     if (parseInt($from.css('border-top-width'), 10) > 0) {
       top += 1;

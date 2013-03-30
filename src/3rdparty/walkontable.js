@@ -101,8 +101,8 @@ WalkontableBorder.prototype.appear = function (corners) {
     minLeft = fromOffset.left;
     width = toOffset.left + $to.outerWidth() - minLeft;
 
-    top = minTop - containerOffset.top - 1;
-    left = minLeft - containerOffset.left - 1;
+    top = minTop - containerOffset.top;
+    left = minLeft - containerOffset.left;
 
     if (parseInt($from.css('border-top-width'), 10) > 0) {
       top += 1;

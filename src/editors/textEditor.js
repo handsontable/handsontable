@@ -247,8 +247,8 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   var containerOffset = this.instance.rootElement.offset();
   var scrollTop = this.instance.rootElement.scrollTop();
   var scrollLeft = this.instance.rootElement.scrollLeft();
-  var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
-  var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
+  var editTop = currentOffset.top - containerOffset.top + scrollTop;
+  var editLeft = currentOffset.left - containerOffset.left + scrollLeft;
 
   var settings = this.instance.getSettings();
   var rowHeadersCount = settings.rowHeaders === false ? 0 : 1;
