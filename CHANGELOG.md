@@ -1,12 +1,13 @@
 ## HEAD
 
 Features:
-- performance: remove jQuery from default autocomplete and checkbox renderers
+- performance: remove jQuery dependency from many places
 - performance: in cell renderers, replace `innerHTML` with `createTextNode`
 - better integration with Twitter Bootstrap (fixes #78)
 
 Bugfixes:
 - empty cell not shown in Firefox when not in standards mode (#418). This is questionable as a bug but anyway we fixed it.
+- continued fix for #461
 
 Other:
 - `src/3rdparty/walkontable.js` has been divided into many source files in `src/3rdparty/walkontable/src/*`. Build process is updated to use Walkontable source files now

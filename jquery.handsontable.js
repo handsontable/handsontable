@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Mar 30 2013 17:20:52 GMT+0100 (Central European Standard Time)
+ * Date: Sat Mar 30 2013 19:40:58 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1305,6 +1305,10 @@ Handsontable.Core = function (rootElement, settings) {
     this.updateSettings(settings);
     this.view = new Handsontable.TableView(this);
 
+    this.forceFullRender = true; //used when data was changed
+    this.view.render();
+    this.$table[0].focus(); //otherwise TextEditor tests do not pass in IE8
+
     if (typeof priv.firstRun === 'object') {
       fireEvent('datachange.handsontable', priv.firstRun);
       priv.firstRun = false;
@@ -1909,16 +1913,21 @@ Handsontable.Core = function (rootElement, settings) {
    */
   this.getColHeader = function (col, TH) {
     col = Handsontable.PluginModifiers.run(self, 'col', col);
-    var DIV = document.createElement('DIV');
+    var DIV  = document.createElement('DIV'),
+        SPAN = document.createElement('SPAN'),
+        avoidInnerHTML = self.view.wt.wtDom.avoidInnerHTML;
+
     DIV.className = 'relative';
+    SPAN.className = 'colHeader';
+
     if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
-      DIV.innerHTML = '<span class="colHeader">' + priv.settings.columns[col].title + '</span>';
+      avoidInnerHTML(SPAN, priv.settings.columns[col].title);
     }
     else if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
-      DIV.innerHTML = '<span class="colHeader">' + priv.settings.colHeaders[col] + '</span>';
+      avoidInnerHTML(SPAN, priv.settings.colHeaders[col]);
     }
     else if (typeof priv.settings.colHeaders === 'function') {
-      DIV.innerHTML = '<span class="colHeader">' + priv.settings.colHeaders(col) + '</span>';
+      avoidInnerHTML(SPAN, priv.settings.colHeaders(col));
     }
     else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
       var dividend = col + 1;
@@ -1929,11 +1938,13 @@ Handsontable.Core = function (rootElement, settings) {
         columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
         dividend = parseInt((dividend - modulo) / 26, 10);
       }
-      DIV.innerHTML = '<span class="colHeader">' + columnLabel + '</span>';
+      SPAN.appendChild(document.createTextNode(columnLabel));
     }
     else {
-      DIV.innerHTML = '<span class="colHeader">' + priv.settings.colHeaders + '</span>';
+      avoidInnerHTML(SPAN, priv.settings.colHeaders);
     }
+
+    DIV.appendChild(SPAN);
 
     while (TH.firstChild) {
       TH.removeChild(TH.firstChild); //empty TH node
@@ -2294,7 +2305,14 @@ Handsontable.TableView = function (instance) {
 
   instance.rootElement.data('originalStyle', instance.rootElement.attr('style')); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
   instance.rootElement.addClass('handsontable');
-  var $table = $('<table class="htCore"><thead></thead><tbody></tbody></table>');
+
+  var table = document.createElement('TABLE');
+      table.className = 'htCore';
+
+      table.appendChild(document.createElement('THEAD'));
+      table.appendChild(document.createElement('TBODY'));
+
+  var $table = $(table);
 
   instance.$table = $table;
   instance.rootElement.prepend($table);
@@ -2525,8 +2543,8 @@ Handsontable.TableView = function (instance) {
   Handsontable.PluginHooks.run(this.instance, 'walkontableConfig', walkontableConfig);
 
   this.wt = new Walkontable(walkontableConfig);
-  this.instance.forceFullRender = true; //used when data was changed
-  this.render();
+  // this.instance.forceFullRender = true; //used when data was changed
+  // this.render();
 
   var lastContainerWidth = that.containerWidth;
   var lastContainerHeight = that.containerHeight;
@@ -2554,7 +2572,7 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  $table[0].focus(); //otherwise TextEditor tests do not pass in IE8
+  // $table[0].focus(); //otherwise TextEditor tests do not pass in IE8
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {
@@ -2673,17 +2691,6 @@ Handsontable.helper.stringify = function (value) {
       return value.toString();
   }
 };
-
-// Remove childs function
-// WARNING - this doesn't unload events and data attached by jQuery
-// http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
-Handsontable.helper.empty = function (element) {
-  var child;
-  while (child = element.lastChild) {
-    element.removeChild(child);
-  }
-};
-
 
 /**
  * Checks if child is a descendant of given parent node
@@ -2852,7 +2859,7 @@ Handsontable.TextRenderer = function (instance, TD, row, col, prop, value, cellP
     TD.innerHTML = escaped.replace(/\n/g, '<br/>');
   }
   else {
-    Handsontable.helper.empty(TD); //TODO identify under what circumstances this line can be removed
+    instance.view.wt.wtDom.empty(TD); //TODO identify under what circumstances this line can be removed
     TD.appendChild(document.createTextNode(escaped));
     //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
@@ -2893,7 +2900,7 @@ Handsontable.AutocompleteRenderer = function (instance, TD, row, col, prop, valu
   }
 
   TEXT.appendChild(ARROW);
-  Handsontable.helper.empty(TD); //TODO identify under what circumstances this line can be removed
+  instance.view.wt.wtDom.empty(TD); //TODO identify under what circumstances this line can be removed
   TD.appendChild(TEXT);
 };
 /**
@@ -2914,7 +2921,7 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
     cellProperties.uncheckedTemplate = false;
   }
 
-  Handsontable.helper.empty(TD); //TODO identify under what circumstances this line can be removed
+  instance.view.wt.wtDom.empty(TD); //TODO identify under what circumstances this line can be removed
 
   var INPUT = document.createElement('INPUT');
   INPUT.className = 'htCheckboxRendererInput';
@@ -2973,7 +2980,7 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
     if (typeof cellProperties.language !== 'undefined') {
       numeral.language(cellProperties.language)
     }
-    Handsontable.helper.empty(TD); //TODO identify under what circumstances this line can be removed
+    instance.view.wt.wtDom.empty(TD); //TODO identify under what circumstances this line can be removed
     TD.className = 'htNumeric';
     TD.appendChild(document.createTextNode(numeral(value).format(cellProperties.format || '0'))); //docs: http://numeraljs.com/
     //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
@@ -2992,22 +2999,22 @@ function HandsontableTextEditorClass(instance) {
 }
 
 HandsontableTextEditorClass.prototype.createElements = function () {
+  var element;
 
-  var style;
+  element = document.createElement('TEXTAREA');
+  element.className = 'handsontableInput';
+  element.style.width = 0;
+  element.style.height = 0;
 
-  this.TEXTAREA = $('<textarea class="handsontableInput">');
+  this.TEXTAREA = $(element);
 
-  style = this.TEXTAREA[0].style;
-  style.width = 0;
-  style.height = 0;
+  element = document.createElement('DIV');
+  element.className = 'handsontableInputHolder';
+  element.style.top = 0;
+  element.style.left = 0;
+  element.style.display = 'none';
 
-  this.TEXTAREA_PARENT = $('<div class="handsontableInputHolder">').append(this.TEXTAREA);
-
-  style = this.TEXTAREA_PARENT[0].style;
-  style.top = 0;
-  style.left = 0;
-  style.display = 'none';
-
+  this.TEXTAREA_PARENT = $(element).append(this.TEXTAREA);
   this.instance.rootElement.append(this.TEXTAREA_PARENT);
 
   var that = this;
@@ -3996,8 +4003,8 @@ function HandsontableAutoColumnSize() {
     }
     tmpTbodyTd.innerHTML = txt; //TD innerHTML
 
-    Handsontable.helper.empty(tmpRendererTd);
-    Handsontable.helper.empty(tmpNoRendererTd);
+    instance.view.wt.wtDom.empty(tmpRendererTd);
+    instance.view.wt.wtDom.empty(tmpNoRendererTd);
 
     tmp.style.display = 'block';
 
@@ -4007,7 +4014,7 @@ function HandsontableAutoColumnSize() {
     if (cellProperties.renderer) {
       var str = 9999999999;
 
-      tmpNoRendererTd.innerHTML = str;
+      tmpNoRendererTd.appendChild(document.createTextNode(str));
 
       cellProperties.renderer(instance, tmpRendererTd, 0, col, instance.colToProp(col), str, cellProperties);
 
@@ -4308,55 +4315,6 @@ Handsontable.PluginHooks.push('beforeGetCellMeta', function (row, col, cellPrope
     }
   }
 });
-
-/**
- * jQuery.browser shim that makes HT working with jQuery 1.8+
- */
-if (!jQuery.browser) {
-  (function () {
-    var matched, browser;
-
-    /*
-     * Copyright 2011, John Resig
-     * Dual licensed under the MIT or GPL Version 2 licenses.
-     * http://jquery.org/license
-     */
-    jQuery.uaMatch = function (ua) {
-      ua = ua.toLowerCase();
-
-      var match = /(chrome)[ \/]([\w.]+)/.exec(ua) ||
-        /(webkit)[ \/]([\w.]+)/.exec(ua) ||
-        /(opera)(?:.*version|)[ \/]([\w.]+)/.exec(ua) ||
-        /(msie) ([\w.]+)/.exec(ua) ||
-        ua.indexOf("compatible") < 0 && /(mozilla)(?:.*? rv:([\w.]+)|)/.exec(ua) ||
-        [];
-
-      return {
-        browser: match[ 1 ] || "",
-        version: match[ 2 ] || "0"
-      };
-    };
-
-    matched = jQuery.uaMatch(navigator.userAgent);
-    browser = {};
-
-    if (matched.browser) {
-      browser[ matched.browser ] = true;
-      browser.version = matched.version;
-    }
-
-    // Chrome is Webkit, but Webkit is also Safari.
-    if (browser.chrome) {
-      browser.webkit = true;
-    }
-    else if (browser.webkit) {
-      browser.safari = true;
-    }
-
-    jQuery.browser = browser;
-
-  })();
-}
 function HandsontableManualColumnMove() {
   var instance
     , pressed
@@ -4365,16 +4323,17 @@ function HandsontableManualColumnMove() {
     , startX
     , startOffset;
 
-  var $ghost = $('<div class="ghost"></div>');
-  $ghost.css({
-    position: 'absolute',
-    top: '25px',
-    left: 0,
-    width: '10px',
-    height: '10px',
-    backgroundColor: '#CCC',
-    opacity: 0.7
-  });
+  var ghost = document.createElement('DIV');
+      ghost.className = 'ghost';
+      ghost.style.position = 'absolute';
+      ghost.style.top = '25px';
+      ghost.style.left = 0;
+      ghost.style.width = '10px';
+      ghost.style.height = '10px';
+      ghost.style.backgroundColor = '#CCC';
+      ghost.style.opacity = 0.7;
+
+  var $ghost = $(ghost);
 
   $(document).mousemove(function (e) {
     if (pressed) {
@@ -4474,14 +4433,21 @@ function HandsontableManualColumnResize() {
     , startWidth
     , startOffset;
 
-  var $line = $('<div class="manualColumnResizerLine"><div class="manualColumnResizer"></div></div>');
-  $line.css({
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: 0,
-    borderRight: '1px dashed #777'
-  });
+  var resizer, line;
+
+  resizer = document.createElement('DIV');
+  resizer.className = 'manualColumnResizer';
+
+  line = document.createElement('DIV');
+  line.className = 'manualColumnResizerLine';
+  line.style.position ='absolute';
+  line.style.top = 0;
+  line.style.left = 0;
+  line.style.width = 0;
+  line.style.borderRight = '1px dashed #777'
+  line.appendChild(resizer);
+
+  var $line = $(line);
 
   $(document).mousemove(function (e) {
     if (pressed) {
@@ -4908,11 +4874,138 @@ Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWid
   };
 }(window));
 /**
- * walkontable 0.2.0
- *
- * Date: Mon Mar 18 2013 18:12:25 GMT+0100 (Central European Standard Time)
-*/
+ * CopyPaste.js
+ * Creates a textarea that stays hidden on the page and gets focused when user presses CTRL while not having a form input focused
+ * In future we may implement a better driver when better APIs are available
+ * @constructor
+ */
+function CopyPaste(listenerElement) {
+  var that = this;
+  listenerElement = listenerElement || document.body;
 
+  this.elDiv = document.createElement('DIV');
+  this.elDiv.style.position = 'fixed';
+  this.elDiv.style.top = 0;
+  this.elDiv.style.left = 0;
+  listenerElement.appendChild(this.elDiv);
+
+  this.elTextarea = document.createElement('TEXTAREA');
+  this.elTextarea.className = 'copyPaste';
+  this.elTextarea.style.width = '1px';
+  this.elTextarea.style.height = '1px';
+  this.elDiv.appendChild(this.elTextarea);
+
+  if (typeof this.elTextarea.style.opacity !== 'undefined') {
+    this.elTextarea.style.opacity = 0;
+  }
+  else {
+    /*@cc_on @if (@_jscript)
+     if(typeof this.elTextarea.style.filter === 'string') {
+     this.elTextarea.style.filter = 'alpha(opacity=0)';
+     }
+     @end @*/
+  }
+
+  this._bindEvent(listenerElement, 'keydown', function (event) {
+    var isCtrlDown = false;
+    if (event.metaKey) { //mac
+      isCtrlDown = true;
+    }
+    else if (event.ctrlKey && navigator.userAgent.indexOf('Mac') === -1) { //pc
+      isCtrlDown = true;
+    }
+
+    if (isCtrlDown) {
+      that.selectNodeText(that.elTextarea);
+      setTimeout(function () {
+        that.selectNodeText(that.elTextarea);
+      }, 0);
+    }
+
+    /* 67 = c
+     * 86 = v
+     * 88 = x
+     */
+    if (isCtrlDown && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
+      // that.selectNodeText(that.elTextarea);
+
+      if (event.keyCode === 88) { //works in all browsers, incl. Opera < 12.12
+        setTimeout(function () {
+          that.triggerCut(event);
+        }, 0);
+      }
+      else if (event.keyCode === 86) {
+        setTimeout(function () {
+          that.triggerPaste(event);
+        }, 0);
+      }
+    }
+  });
+}
+
+//http://jsperf.com/textara-selection
+//http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie
+CopyPaste.prototype.selectNodeText = function (el) {
+  this.elTextarea.select();
+};
+
+CopyPaste.prototype.copyable = function (str) {
+  if (typeof str !== 'string' && str.toString === void 0) {
+    throw new Error('copyable requires string parameter');
+  }
+  this.elTextarea.value = str;
+};
+
+CopyPaste.prototype.onCopy = function (fn) {
+  this.copyCallback = fn;
+};
+
+CopyPaste.prototype.onCut = function (fn) {
+  this.cutCallback = fn;
+};
+
+CopyPaste.prototype.onPaste = function (fn) {
+  this.pasteCallback = fn;
+};
+
+CopyPaste.prototype.triggerCut = function (event) {
+  var that = this;
+  if (that.cutCallback) {
+    setTimeout(function () {
+      that.cutCallback(event);
+    }, 0);
+  }
+};
+
+CopyPaste.prototype.triggerPaste = function (event, str) {
+  var that = this;
+  if (that.pasteCallback) {
+    setTimeout(function () {
+      that.pasteCallback((str || that.elTextarea.value).replace(/\n$/, ''), event); //remove trailing newline
+    }, 0);
+  }
+};
+
+//http://net.tutsplus.com/tutorials/javascript-ajax/javascript-from-null-cross-browser-event-binding/
+//http://stackoverflow.com/questions/4643249/cross-browser-event-object-normalization
+CopyPaste.prototype._bindEvent = (function () {
+  if (document.addEventListener) {
+    return function (elem, type, cb) {
+      elem.addEventListener(type, cb, false);
+    };
+  }
+  else {
+    return function (elem, type, cb) {
+      elem.attachEvent('on' + type, function () {
+        var e = window['event'];
+        e.target = e.srcElement;
+        e.relatedTarget = e.relatedTarget || e.type == 'mouseover' ? e.fromElement : e.toElement;
+        if (e.target.nodeType === 3) e.target = e.target.parentNode; //Safari bug
+        return cb.call(elem, e)
+      });
+    };
+  }
+})();
 function WalkontableBorder(instance, settings) {
   //reference to instance
   this.instance = instance;
@@ -5093,7 +5186,8 @@ WalkontableBorder.prototype.hasSetting = function (setting) {
   return !!setting;
 };
 function Walkontable(settings) {
-  var originalHeaders = [];
+  var self = this,
+      originalHeaders = [];
 
   //bootstrap from settings
   this.wtSettings = new WalkontableSettings(this, settings);
@@ -5110,7 +5204,7 @@ function Walkontable(settings) {
     }
     if (!this.hasSetting('columnHeaders')) {
       this.update('columnHeaders', function (column, TH) {
-        TH.innerHTML = originalHeaders[column];
+        self.wtDom.avoidInnerHTML(TH, originalHeaders[column]);
       });
     }
   }
@@ -5145,6 +5239,10 @@ Walkontable.prototype.draw = function (selectionsOnly) {
 
 Walkontable.prototype._doDraw = function (selectionsOnly) {
   selectionsOnly = selectionsOnly && this.getSetting('offsetRow') === this.lastOffsetRow && this.getSetting('offsetColumn') === this.lastOffsetColumn;
+  if (this.drawn) {
+    this.scrollVertical(0);
+    this.scrollHorizontal(0);
+  }
   this.lastOffsetRow = this.getSetting('offsetRow');
   this.lastOffsetColumn = this.getSetting('offsetColumn');
   this.wtTable.draw(selectionsOnly);
@@ -5365,9 +5463,14 @@ WalkontableDom.prototype.removeTextNodes = function (elem, parent) {
   }
 };
 
-// Remove childs function
-// WARNING - this doesn't unload events and data attached by jQuery
-// http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
+/**
+ * Remove childs function
+ * WARNING - this doesn't unload events and data attached by jQuery
+ * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
+ * @param element
+ * @returns {void}
+ */
+//
 WalkontableDom.prototype.empty = function (element) {
   var child;
   while (child = element.lastChild) {
@@ -5375,36 +5478,28 @@ WalkontableDom.prototype.empty = function (element) {
   }
 };
 
+/**
+ * Insert content into element trying avoid innerHTML method.
+ * @return {void}
+ */
+WalkontableDom.prototype.avoidInnerHTML = function (element, content) {
+  if ((/(<(.*)>|&(.*);)/g).test(content)) {
+    element.innerHTML = content;
+  } else {
+    var child;
+    while (child = element.lastChild) {
+      element.removeChild(child);
+    }
+
+    element.appendChild(document.createTextNode(content));
+  }
+};
 
 /**
  * seems getBounding is usually faster: http://jsperf.com/offset-vs-getboundingclientrect/4
  * but maybe offset + cache would work?
  * edit: after more tests turns out offsetLeft/Top is faster
  */
-/*WalkontableDom.prototype.offset = function (elem) {
- var rect = elem.getBoundingClientRect();
- return {
- top: rect.top + document.documentElement.scrollTop,
- left: rect.left + document.documentElement.scrollLeft
- };
- };*/
-
-/*
- WalkontableDom.prototype.offsetLeft = function (elem) {
- var offset = elem.offsetLeft;
- while (elem = elem.offsetParent) {
- offset += elem.offsetLeft;
- }
- return offset;
- };
-
- WalkontableDom.prototype.offsetTop = function (elem) {
- var offset = elem.offsetTop;
- while (elem = elem.offsetParent) {
- offset += elem.offsetTop;
- }
- return offset;
- };*/
 
 WalkontableDom.prototype.offset = function (elem) {
   var offsetLeft = elem.offsetLeft
@@ -5829,11 +5924,8 @@ WalkontableScrollbar.prototype.onScroll = function (delta) {
  * @return {Number} 0..1
  */
 WalkontableScrollbar.prototype.getHandleSizeRatio = function (viewportCount, totalCount) {
-  if (!totalCount) {
+  if (!totalCount || viewportCount > totalCount) {
     return 1;
-  }
-  if (viewportCount > totalCount) { //it exists in code since long time, but does it even happen
-    viewportCount = totalCount;
   }
   return viewportCount / totalCount;
 };
@@ -6089,99 +6181,6 @@ WalkontableSelection.prototype.draw = function (selectionsOnly) {
   }
 };
 
-/*WalkontableSelection.prototype.rectangleSize = function () {
- var that = this
- , rowLengths = {}
- , rowBegins = {}
- , rowEnds = {}
- , row
- , col
- , rowSpan
- , colSpan
- , lastRow
- , i
- , ilen
- , j
- , height = 0
- , tableSection
- , lastTableSection;
-
- this.selected.sort(function (a, b) {
- return that.wtCell.colIndex(a) - that.wtCell.colIndex(b);
- });
-
- this.selected.sort(function (a, b) {
- return that.wtCell.rowIndex(a) - that.wtCell.rowIndex(b);
- });
-
- for (i = 0, ilen = this.selected.length; i < ilen; i++) {
- tableSection = this.wtDom.closestParent(this.selected[i], ['THEAD', 'TBODY', 'TFOOT', 'TABLE']);
- if(lastTableSection && lastTableSection !== tableSection) {
- return null; //can only select cells that are in the same section (thead, tbody, tfoot or table if none of them is defined)
- }
- lastTableSection = tableSection;
-
- row = this.wtCell.rowIndex(this.selected[i]);
- col = this.wtCell.colIndex(this.selected[i]);
- rowSpan = this.selected[i].rowSpan;
- colSpan = this.selected[i].colSpan;
- for (j = 0; j < rowSpan; j++) {
- if (typeof rowBegins[row + j] === 'undefined' || col < rowBegins[row + j]) {
- rowBegins[row + j] = col;
- }
- if (typeof rowEnds[row + j] === 'undefined' || col + colSpan - 1 > rowEnds[row + j]) {
- rowEnds[row + j] = col + colSpan - 1;
- }
- if (typeof rowLengths[row + j] === 'undefined') {
- rowLengths[row + j] = 0;
- height++;
- }
- rowLengths[row + j] += colSpan;
- }
- }
-
- if (!ilen) {
- return null; //empty selection
- }
-
- lastRow = -1;
- for (i in rowBegins) {
- if (rowBegins.hasOwnProperty(i)) {
- if (lastRow !== -1 && rowBegins[i] !== lastRow) {
- return null; //selected rows begin in different column
- }
- lastRow = rowBegins[i];
- }
- }
-
- lastRow = -1;
- for (i in rowEnds) {
- if (rowEnds.hasOwnProperty(i)) {
- if (lastRow !== -1 && rowEnds[i] !== lastRow) {
- return null; //selected rows end in different column
- }
- if (rowEnds[i] !== rowBegins[i] + rowLengths[i] - 1) {
- return null; //selected rows end does not match begin + length
- }
- lastRow = rowEnds[i];
- }
- }
-
- lastRow = -1;
- for (i in rowLengths) {
- if (rowLengths.hasOwnProperty(i)) {
- if (lastRow !== -1 && rowLengths[i] !== lastRow) {
- return null; //selected rows have different length
- }
- if (lastRow !== -1 && !rowLengths.hasOwnProperty(i - 1)) {
- return null; //there is a row gap in selection
- }
- lastRow = rowLengths[i];
- }
- }
-
- return {width: lastRow, height: height};
- };*/
 function WalkontableSettings(instance, settings) {
   var that = this;
   this.instance = instance;
@@ -6211,7 +6210,7 @@ function WalkontableSettings(instance, settings) {
     cellRenderer: function (row, column, TD) {
       var cellData = that.getSetting('data', row, column);
       if (cellData !== void 0) {
-        TD.innerHTML = cellData;
+        that.instance.wtDom.avoidInnerHTML(TD, cellData);
       }
       else {
         this.wtDom.empty(TD);
@@ -6369,6 +6368,14 @@ WalkontableSettings.prototype.viewportColumns = function () {
   }
   return this.getSetting('displayColumns');
 };
+
+var FLAG_VISIBLE_HORIZONTAL = 0x1; // 000001
+var FLAG_VISIBLE_VERTICAL = 0x2; // 000010
+var FLAG_PARTIALLY_VISIBLE_HORIZONTAL = 0x4; // 000100
+var FLAG_PARTIALLY_VISIBLE_VERTICAL = 0x8; // 001000
+var FLAG_NOT_VISIBLE_HORIZONTAL = 0x16; // 010000
+var FLAG_NOT_VISIBLE_VERTICAL = 0x32; // 100000
+
 function WalkontableTable(instance) {
   //reference to instance
   this.instance = instance;
@@ -6651,10 +6658,10 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
 WalkontableTable.prototype.draw = function (selectionsOnly) {
   if (!selectionsOnly) {
     this.tableOffset = this.wtDom.offset(this.TABLE);
-    //this.TABLE.removeChild(this.TBODY); //possible future optimization - http://jsperf.com/table-scrolling/9
+    // this.TABLE.removeChild(this.TBODY); //possible future optimization - http://jsperf.com/table-scrolling/9
     this.adjustAvailableNodes();
     this._doDraw();
-    //this.TABLE.appendChild(this.TBODY);
+    // this.TABLE.appendChild(this.TBODY);
   }
 
   this.refreshPositions(selectionsOnly);
@@ -6730,7 +6737,7 @@ WalkontableTable.prototype._doDraw = function () {
       TH = TR.childNodes[c];
       cellData = typeof frozenColumns[c] === "function" ? frozenColumns[c](offsetRow + r, TH) : frozenColumns[c];
       if (cellData !== void 0) {
-        TH.innerHTML = cellData;
+        this.wtDom.avoidInnerHTML(TH, cellData);
       }
       /*
        we can assume that frozenColumns[c] function took care of inserting content into TH
@@ -6813,13 +6820,6 @@ WalkontableTable.prototype.recalcViewportCells = function () {
     this.visibilityEdgeRowRemainder = Infinity;
   }
 };
-
-var FLAG_VISIBLE_HORIZONTAL = 0x1; // 000001
-var FLAG_VISIBLE_VERTICAL = 0x2; // 000010
-var FLAG_PARTIALLY_VISIBLE_HORIZONTAL = 0x4; // 000100
-var FLAG_PARTIALLY_VISIBLE_VERTICAL = 0x8; // 001000
-var FLAG_NOT_VISIBLE_HORIZONTAL = 0x16; // 010000
-var FLAG_NOT_VISIBLE_VERTICAL = 0x32; // 100000
 
 WalkontableTable.prototype.isCellVisible = function (r, c, TD) {
   var out = 0
@@ -6931,10 +6931,14 @@ function WalkontableWheel(instance) {
       if (deltaY) {
         //ceil is needed because jquery-mousewheel reports fractional mousewheel deltas on touchpad scroll
         //see http://stackoverflow.com/questions/5527601/normalizing-mousewheel-speed-across-browsers
-        that.instance.scrollVertical(-Math.ceil(deltaY)).draw();
+        if (that.instance.wtScroll.wtScrollbarH.visible) { // if we see scrollbar
+          that.instance.scrollVertical(-Math.ceil(deltaY)).draw();
+        }
       }
       else if (deltaX) {
-        that.instance.scrollHorizontal(Math.ceil(deltaX)).draw();
+        if (that.instance.wtScroll.wtScrollbarV.visible) { // if we see scrollbar
+          that.instance.scrollHorizontal(Math.ceil(deltaX)).draw();
+        }
       }
     }, 0);
     event.preventDefault();
@@ -7046,7 +7050,7 @@ Dragdealer.prototype =
 		this.wrapper = wrapper;
 		this.handle = handle;
 		this.options = options;
-
+		
 		this.disabled = this.getOption('disabled', false);
 		this.horizontal = this.getOption('horizontal', true);
 		this.vertical = this.getOption('vertical', false);
@@ -7057,10 +7061,10 @@ Dragdealer.prototype =
 		this.speed = this.getOption('speed', 10) / 100;
 		this.xPrecision = this.getOption('xPrecision', 0);
 		this.yPrecision = this.getOption('yPrecision', 0);
-
+		
 		this.callback = options.callback || null;
 		this.animationCallback = options.animationCallback || null;
-
+		
 		this.bounds = {
 			left: options.left || 0, right: -(options.right || 0),
 			top: options.top || 0, bottom: -(options.bottom || 0),
@@ -7080,7 +7084,7 @@ Dragdealer.prototype =
 			target: [0, 0]
 		};
 		this.change = [0, 0];
-
+		
 		this.activity = false;
 		this.dragging = false;
 		this.tapping = false;
@@ -7095,7 +7099,7 @@ Dragdealer.prototype =
 		this.setBoundsPadding();
 		this.setBounds();
 		this.setSteps();
-
+		
 		this.addListeners();
 	},
 	setWrapperOffset: function()
@@ -7120,11 +7124,11 @@ Dragdealer.prototype =
 		this.bounds.x0 = this.bounds.left;
 		this.bounds.x1 = this.wrapper.offsetWidth + this.bounds.right;
 		this.bounds.xRange = (this.bounds.x1 - this.bounds.x0) - this.handle.offsetWidth;
-
+		
 		this.bounds.y0 = this.bounds.top;
 		this.bounds.y1 = this.wrapper.offsetHeight + this.bounds.bottom;
 		this.bounds.yRange = (this.bounds.y1 - this.bounds.y0) - this.handle.offsetHeight;
-
+		
 		this.bounds.xStep = 1 / (this.xPrecision || Math.max(this.wrapper.offsetWidth, this.handle.offsetWidth));
 		this.bounds.yStep = 1 / (this.yPrecision || Math.max(this.wrapper.offsetHeight, this.handle.offsetHeight));
 	},
@@ -7142,7 +7146,7 @@ Dragdealer.prototype =
 	addListeners: function()
 	{
 		var self = this;
-
+		
 		this.wrapper.onselectstart = function()
 		{
 			return false;
@@ -7181,7 +7185,7 @@ Dragdealer.prototype =
 		{
 			return !self.activity;
 		}
-
+		
 		this.interval = setInterval(function(){ self.animate() }, 25);
 		self.animate(false, true);
 	},
@@ -7189,7 +7193,7 @@ Dragdealer.prototype =
 	{
 		this.activity = false;
 		Cursor.refresh(e);
-
+		
 		this.preventDefaults(e, true);
 		this.startDrag();
 		this.cancelEvent(e);
@@ -7197,7 +7201,7 @@ Dragdealer.prototype =
 	wrapperDownHandler: function(e)
 	{
 		Cursor.refresh(e);
-
+		
 		this.preventDefaults(e, true);
 		this.startTap();
 	},
@@ -7211,7 +7215,7 @@ Dragdealer.prototype =
 	{
 		this.setWrapperOffset();
 		this.setBounds();
-
+		
 		this.update();
 	},
 	enable: function()
@@ -7247,7 +7251,7 @@ Dragdealer.prototype =
 			return;
 		}
 		this.tapping = true;
-
+		
 		if(target === undefined)
 		{
 			target = [
@@ -7264,7 +7268,7 @@ Dragdealer.prototype =
 			return;
 		}
 		this.tapping = false;
-
+		
 		this.setTargetValue(this.value.current);
 		this.result();
 	},
@@ -7278,7 +7282,7 @@ Dragdealer.prototype =
 			Cursor.x - Position.get(this.handle)[0],
 			Cursor.y - Position.get(this.handle)[1]
 		];
-
+		
 		this.dragging = true;
 	},
 	stopDrag: function()
@@ -7288,7 +7292,7 @@ Dragdealer.prototype =
 			return;
 		}
 		this.dragging = false;
-
+		
 		var target = this.groupClone(this.value.current);
 		if(this.slide)
 		{
@@ -7331,13 +7335,13 @@ Dragdealer.prototype =
 		if(this.dragging)
 		{
 			var prevTarget = this.groupClone(this.value.target);
-
+			
 			var offset = [
 				Cursor.x - this.offset.wrapper[0] - this.offset.mouse[0],
 				Cursor.y - this.offset.wrapper[1] - this.offset.mouse[1]
 			];
 			this.setTargetOffset(offset, this.loose);
-
+			
 			this.change = [
 				this.value.target[0] - prevTarget[0],
 				this.value.target[1] - prevTarget[1]
@@ -7406,7 +7410,7 @@ Dragdealer.prototype =
 	setTargetValue: function(value, loose)
 	{
 		var target = loose ? this.getLooseValue(value) : this.getProperValue(value);
-
+		
 		this.groupCopy(this.value.target, target);
 		this.offset.target = this.getOffsetsByRatios(target);
 	},
@@ -7414,7 +7418,7 @@ Dragdealer.prototype =
 	{
 		var value = this.getRatiosByOffsets(offset);
 		var target = loose ? this.getLooseValue(value) : this.getProperValue(value);
-
+		
 		this.groupCopy(this.value.target, target);
 		this.offset.target = this.getOffsetsByRatios(target);
 	},
@@ -7434,7 +7438,7 @@ Dragdealer.prototype =
 		proper[1] = Math.max(proper[1], 0);
 		proper[0] = Math.min(proper[0], 1);
 		proper[1] = Math.min(proper[1], 1);
-
+		
 		if((!this.dragging && !this.tapping) || this.snap)
 		{
 			if(this.steps > 1)
@@ -7511,7 +7515,7 @@ Dragdealer.prototype =
 			e.preventDefault();
 		}
 		e.returnValue = false;
-
+		
 		if(selection && document.selection)
 		{
 			document.selection.empty();
@@ -7531,6 +7535,54 @@ Dragdealer.prototype =
 	}
 };
 
+/**
+ * jQuery.browser shim that makes Walkontable working with jQuery 1.9+
+ */
+if (!jQuery.browser) {
+  (function () {
+    var matched, browser;
+
+    /*
+     * Copyright 2011, John Resig
+     * Dual licensed under the MIT or GPL Version 2 licenses.
+     * http://jquery.org/license
+     */
+    jQuery.uaMatch = function (ua) {
+      ua = ua.toLowerCase();
+
+      var match = /(chrome)[ \/]([\w.]+)/.exec(ua) ||
+        /(webkit)[ \/]([\w.]+)/.exec(ua) ||
+        /(opera)(?:.*version|)[ \/]([\w.]+)/.exec(ua) ||
+        /(msie) ([\w.]+)/.exec(ua) ||
+        ua.indexOf("compatible") < 0 && /(mozilla)(?:.*? rv:([\w.]+)|)/.exec(ua) ||
+        [];
+
+      return {
+        browser: match[ 1 ] || "",
+        version: match[ 2 ] || "0"
+      };
+    };
+
+    matched = jQuery.uaMatch(navigator.userAgent);
+    browser = {};
+
+    if (matched.browser) {
+      browser[ matched.browser ] = true;
+      browser.version = matched.version;
+    }
+
+    // Chrome is Webkit, but Webkit is also Safari.
+    if (browser.chrome) {
+      browser.webkit = true;
+    }
+    else if (browser.webkit) {
+      browser.safari = true;
+    }
+
+    jQuery.browser = browser;
+
+  })();
+}
 /*! Copyright (c) 2011 Brandon Aaron (http://brandonaaron.net)
  * Licensed under the MIT License (LICENSE.txt).
  *
@@ -7539,7 +7591,7 @@ Dragdealer.prototype =
  * Thanks to: Seamus Leahy for adding deltaX and deltaY
  *
  * Version: 3.0.6
- *
+ * 
  * Requires: 1.2.2+
  */
 
@@ -7563,7 +7615,7 @@ $.event.special.mousewheel = {
             this.onmousewheel = handler;
         }
     },
-
+    
     teardown: function() {
         if ( this.removeEventListener ) {
             for ( var i=types.length; i; ) {
@@ -7579,7 +7631,7 @@ $.fn.extend({
     mousewheel: function(fn) {
         return fn ? this.bind("mousewheel", fn) : this.trigger("mousewheel");
     },
-
+    
     unmousewheel: function(fn) {
         return this.unbind("mousewheel", fn);
     }
@@ -7590,163 +7642,30 @@ function handler(event) {
     var orgEvent = event || window.event, args = [].slice.call( arguments, 1 ), delta = 0, returnValue = true, deltaX = 0, deltaY = 0;
     event = $.event.fix(orgEvent);
     event.type = "mousewheel";
-
+    
     // Old school scrollwheel delta
     if ( orgEvent.wheelDelta ) { delta = orgEvent.wheelDelta/120; }
     if ( orgEvent.detail     ) { delta = -orgEvent.detail/3; }
-
+    
     // New school multidimensional scroll (touchpads) deltas
     deltaY = delta;
-
+    
     // Gecko
     if ( orgEvent.axis !== undefined && orgEvent.axis === orgEvent.HORIZONTAL_AXIS ) {
         deltaY = 0;
         deltaX = -1*delta;
     }
-
+    
     // Webkit
     if ( orgEvent.wheelDeltaY !== undefined ) { deltaY = orgEvent.wheelDeltaY/120; }
     if ( orgEvent.wheelDeltaX !== undefined ) { deltaX = -1*orgEvent.wheelDeltaX/120; }
-
+    
     // Add event and delta to the front of the arguments
     args.unshift(event, delta, deltaX, deltaY);
-
+    
     return ($.event.dispatch || $.event.handle).apply(this, args);
 }
 
 })(jQuery);
 
-/**
- * CopyPaste.js
- * Creates a textarea that stays hidden on the page and gets focused when user presses CTRL while not having a form input focused
- * In future we may implement a better driver when better APIs are available
- * @constructor
- */
-function CopyPaste(listenerElement) {
-  var that = this;
-  listenerElement = listenerElement || document.body;
-
-  this.elDiv = document.createElement('DIV');
-  this.elDiv.style.position = 'fixed';
-  this.elDiv.style.top = 0;
-  this.elDiv.style.left = 0;
-  listenerElement.appendChild(this.elDiv);
-
-  this.elTextarea = document.createElement('TEXTAREA');
-  this.elTextarea.className = 'copyPaste';
-  this.elTextarea.style.width = '1px';
-  this.elTextarea.style.height = '1px';
-  this.elDiv.appendChild(this.elTextarea);
-
-  if (typeof this.elTextarea.style.opacity !== 'undefined') {
-    this.elTextarea.style.opacity = 0;
-  }
-  else {
-    /*@cc_on @if (@_jscript)
-     if(typeof this.elTextarea.style.filter === 'string') {
-     this.elTextarea.style.filter = 'alpha(opacity=0)';
-     }
-     @end @*/
-  }
-
-  this._bindEvent(listenerElement, 'keydown', function (event) {
-    var isCtrlDown = false;
-    if (event.metaKey) { //mac
-      isCtrlDown = true;
-    }
-    else if (event.ctrlKey && navigator.userAgent.indexOf('Mac') === -1) { //pc
-      isCtrlDown = true;
-    }
-
-    if (isCtrlDown) {
-      that.selectNodeText(that.elTextarea);
-      setTimeout(function () {
-        that.selectNodeText(that.elTextarea);
-      }, 0);
-    }
-
-    /* 67 = c
-     * 86 = v
-     * 88 = x
-     */
-    if (isCtrlDown && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
-      // that.selectNodeText(that.elTextarea);
-
-      if (event.keyCode === 88) { //works in all browsers, incl. Opera < 12.12
-        setTimeout(function () {
-          that.triggerCut(event);
-        }, 0);
-      }
-      else if (event.keyCode === 86) {
-        setTimeout(function () {
-          that.triggerPaste(event);
-        }, 0);
-      }
-    }
-  });
-}
-
-//http://jsperf.com/textara-selection
-//http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie
-CopyPaste.prototype.selectNodeText = function (el) {
-  this.elTextarea.select();
-};
-
-CopyPaste.prototype.copyable = function (str) {
-  if (typeof str !== 'string' && str.toString === void 0) {
-    throw new Error('copyable requires string parameter');
-  }
-  this.elTextarea.value = str;
-};
-
-CopyPaste.prototype.onCopy = function (fn) {
-  this.copyCallback = fn;
-};
-
-CopyPaste.prototype.onCut = function (fn) {
-  this.cutCallback = fn;
-};
-
-CopyPaste.prototype.onPaste = function (fn) {
-  this.pasteCallback = fn;
-};
-
-CopyPaste.prototype.triggerCut = function (event) {
-  var that = this;
-  if (that.cutCallback) {
-    setTimeout(function () {
-      that.cutCallback(event);
-    }, 0);
-  }
-};
-
-CopyPaste.prototype.triggerPaste = function (event, str) {
-  var that = this;
-  if (that.pasteCallback) {
-    setTimeout(function () {
-      that.pasteCallback((str || that.elTextarea.value).replace(/\n$/, ''), event); //remove trailing newline
-    }, 0);
-  }
-};
-
-//http://net.tutsplus.com/tutorials/javascript-ajax/javascript-from-null-cross-browser-event-binding/
-//http://stackoverflow.com/questions/4643249/cross-browser-event-object-normalization
-CopyPaste.prototype._bindEvent = (function () {
-  if (document.addEventListener) {
-    return function (elem, type, cb) {
-      elem.addEventListener(type, cb, false);
-    };
-  }
-  else {
-    return function (elem, type, cb) {
-      elem.attachEvent('on' + type, function () {
-        var e = window['event'];
-        e.target = e.srcElement;
-        e.relatedTarget = e.relatedTarget || e.type == 'mouseover' ? e.fromElement : e.toElement;
-        if (e.target.nodeType === 3) e.target = e.target.parentNode; //Safari bug
-        return cb.call(elem, e)
-      });
-    };
-  }
-})();
 })(jQuery, window, Handsontable);
