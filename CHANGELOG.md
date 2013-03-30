@@ -3,6 +3,7 @@
 Features:
 - performance: remove jQuery from default autocomplete and checkbox renderers
 - performance: in cell renderers, replace `innerHTML` with `createTextNode`
+- better integration with Twitter Bootstrap (fixes #78)
 
 Bugfixes:
 - empty cell not shown in Firefox when not in standards mode (#418). This is questionable as a bug but anyway we fixed it.
