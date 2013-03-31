@@ -106,7 +106,7 @@ describe('WalkontableSelection', function () {
     $td1.mousedown();
     var pos1 = $top.position();
     expect(pos1.top).toBeGreaterThan(0);
-    expect(pos1.left).toBe(1);
+    expect(pos1.left).toBe(0);
 
     $td2.mousedown();
     var pos2 = $top.position();
