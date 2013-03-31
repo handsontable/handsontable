@@ -70,21 +70,37 @@ WalkontableDom.prototype.tdResetCache = function () {
   }
 };
 
-//http://snipplr.com/view/3561/addclass-removeclass-hasclass/
-WalkontableDom.prototype.hasClass = function (ele, cls) {
-  return ele.className.match(new RegExp('(\\s|^)' + cls + '(\\s|$)'));
-};
+if (document.documentElement.classList) {
+  // HTML5 classList API
+  WalkontableDom.prototype.hasClass = function (ele, cls) {
+    return ele.classList.contains(cls);
+  };
 
-WalkontableDom.prototype.addClass = function (ele, cls) {
-  if (!this.hasClass(ele, cls)) ele.className += " " + cls;
-};
+  WalkontableDom.prototype.addClass = function (ele, cls) {
+    ele.classList.add(cls);
+  };
 
-WalkontableDom.prototype.removeClass = function (ele, cls) {
-  if (this.hasClass(ele, cls)) { //is this really needed?
-    var reg = new RegExp('(\\s|^)' + cls + '(\\s|$)');
-    ele.className = ele.className.replace(reg, ' ').replace(/^\s\s*/, '').replace(/\s\s*$/, ''); //last 2 replaces do right trim (see http://blog.stevenlevithan.com/archives/faster-trim-javascript)
-  }
-};
+  WalkontableDom.prototype.removeClass = function (ele, cls) {
+    ele.classList.remove(cls);
+  };
+}
+else {
+  //http://snipplr.com/view/3561/addclass-removeclass-hasclass/
+  WalkontableDom.prototype.hasClass = function (ele, cls) {
+    return ele.className.match(new RegExp('(\\s|^)' + cls + '(\\s|$)'));
+  };
+
+  WalkontableDom.prototype.addClass = function (ele, cls) {
+    if (!this.hasClass(ele, cls)) ele.className += " " + cls;
+  };
+
+  WalkontableDom.prototype.removeClass = function (ele, cls) {
+    if (this.hasClass(ele, cls)) { //is this really needed?
+      var reg = new RegExp('(\\s|^)' + cls + '(\\s|$)');
+      ele.className = ele.className.replace(reg, ' ').replace(/^\s\s*/, '').replace(/\s\s*$/, ''); //last 2 replaces do right trim (see http://blog.stevenlevithan.com/archives/faster-trim-javascript)
+    }
+  };
+}
 
 /*//http://net.tutsplus.com/tutorials/javascript-ajax/javascript-from-null-cross-browser-event-binding/
  WalkontableDom.prototype.addEvent = (function () {
