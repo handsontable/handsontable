@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Mar 31 2013 13:43:57 GMT+0200 (Central European Daylight Time)
+ * Date: Sun Mar 31 2013 14:52:54 GMT+0200 (Central European Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2719,11 +2719,27 @@ Handsontable.helper.randomString = function () {
     return Math.floor((1 + Math.random()) * 0x10000)
       .toString(16)
       .substring(1);
-  };
+  }
 
   return s4() + s4() + s4() + s4();
 };
 
+/**
+ * Inherit without without calling parent constructor, and setting `Child.prototype.constructor` to `Child` instead of `Parent`.
+ * Creates temporary dummy function to call it as constructor.
+ * Described in ticket: https://github.com/warpech/jquery-handsontable/pull/516
+ * @param  {Object} Child  child class
+ * @param  {Object} Parent parent class
+ * @return {Object}        extended Child
+ */
+Handsontable.helper.inherit = function (Child, Parent) {
+  function Bridge() {
+  }
+  Bridge.prototype = Parent.prototype;
+  Child.prototype = new Bridge();
+  Child.prototype.constructor = Child;
+  return Child;
+};
 /**
  * Handsontable UndoRedo class
  */
@@ -2990,12 +3006,10 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
   }
 };
 function HandsontableTextEditorClass(instance) {
-  if (instance) {
-    this.isCellEdited = false;
-    this.instance = instance;
-    this.createElements();
-    this.bindEvents();
-  }
+  this.isCellEdited = false;
+  this.instance = instance;
+  this.createElements();
+  this.bindEvents();
 }
 
 HandsontableTextEditorClass.prototype.createElements = function () {
@@ -3336,21 +3350,20 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, value, cellPro
   }
 };
 function HandsontableAutocompleteEditorClass(instance) {
-  if (instance) {
     this.isCellEdited = false;
     this.instance = instance;
     this.createElements();
     this.bindEvents();
-  }
   this.emptyStringLabel = '\u00A0\u00A0\u00A0'; //3 non-breaking spaces
 }
 
-HandsontableAutocompleteEditorClass.prototype = new HandsontableTextEditorClass();
+Handsontable.helper.inherit(HandsontableAutocompleteEditorClass, HandsontableTextEditorClass);
 
-HandsontableAutocompleteEditorClass.prototype._createElements = HandsontableTextEditorClass.prototype.createElements;
-
+/**
+ * @see HandsontableTextEditorClass.prototype.createElements
+ */
 HandsontableAutocompleteEditorClass.prototype.createElements = function () {
-  this._createElements();
+  HandsontableTextEditorClass.prototype.createElements.call(this);
 
   this.$textarea.typeahead();
   this.typeahead = this.$textarea.data('typeahead');
@@ -3384,8 +3397,9 @@ HandsontableAutocompleteEditorClass.prototype.createElements = function () {
   };
 };
 
-HandsontableAutocompleteEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
-
+/**
+ * @see HandsontableTextEditorClass.prototype.bindEvents
+ */
 HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
   var that = this;
 
@@ -3417,11 +3431,12 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
     }
   });
 
-  this._bindEvents();
+
+  HandsontableTextEditorClass.prototype.bindEvents.call(this);
 };
-
-HandsontableAutocompleteEditorClass.prototype._bindTemporaryEvents = HandsontableTextEditorClass.prototype.bindTemporaryEvents;
-
+/**
+ * @see HandsontableTextEditorClass.prototype.bindTemporaryEvents
+ */
 HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
   var that = this
     , i
@@ -3467,7 +3482,7 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
     }
   }
 
-  this._bindTemporaryEvents(td, row, col, prop, value, cellProperties);
+  HandsontableTextEditorClass.prototype.bindTemporaryEvents.call(this, td, row, col, prop, value, cellProperties);
 
   function onDblClick() {
     that.beginEditing(row, col, prop, true);
@@ -3478,9 +3493,9 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
 
   this.instance.view.wt.update('onCellDblClick', onDblClick);
 };
-
-HandsontableAutocompleteEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
-
+/**
+ * @see HandsontableTextEditorClass.prototype.finishEditing
+ */
 HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (!isCancelled) {
     if (this.isMenuExpanded() && this.typeahead.$menu.find('.active').length) {
@@ -3491,7 +3506,8 @@ HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancel
       this.isCellEdited = false; //cell value was not picked from this.typeahead.select (issue #405)
     }
   }
-  this._finishEditing(isCancelled, ctrlDown);
+
+  HandsontableTextEditorClass.prototype.finishEditing.call(this, isCancelled, ctrlDown);
 };
 
 HandsontableAutocompleteEditorClass.prototype.isMenuExpanded = function () {
@@ -3573,20 +3589,19 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, value, cel
   }
 };
 function HandsontableDateEditorClass(instance) {
-  if (instance) {
     this.isCellEdited = false;
     this.instance = instance;
     this.createElements();
     this.bindEvents();
-  }
 }
 
-HandsontableDateEditorClass.prototype = new HandsontableTextEditorClass();
+Handsontable.helper.inherit(HandsontableDateEditorClass, HandsontableTextEditorClass);
 
-HandsontableDateEditorClass.prototype._createElements = HandsontableTextEditorClass.prototype.createElements;
-
+/**
+ * @see HandsontableTextEditorClass.prototype.createElements
+ */
 HandsontableDateEditorClass.prototype.createElements = function () {
-  this._createElements();
+  HandsontableTextEditorClass.prototype.createElements.call(this);
 
   this.datePicker = document.createElement('DIV');
   this.datePickerStyle = this.datePicker.style;
@@ -3612,24 +3627,20 @@ HandsontableDateEditorClass.prototype.createElements = function () {
   this.hideDatepicker();
 };
 
-HandsontableDateEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
-
-HandsontableDateEditorClass.prototype.bindEvents = function () {
-  this._bindEvents();
-};
-
-HandsontableDateEditorClass.prototype._beginEditing = HandsontableTextEditorClass.prototype.beginEditing;
-
+/**
+ * @see HandsontableTextEditorClass.prototype.beginEditing
+ */
 HandsontableDateEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
-  this._beginEditing(row, col, prop, useOriginalValue, suffix);
+  HandsontableTextEditorClass.prototype.beginEditing.call(this, row, col, prop, useOriginalValue, suffix);
   this.showDatepicker();
 };
 
-HandsontableDateEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
-
+/**
+ * @see HandsontableTextEditorClass.prototype.finishEditing
+ */
 HandsontableDateEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   this.hideDatepicker();
-  this._finishEditing(isCancelled, ctrlDown);
+  HandsontableTextEditorClass.prototype.finishEditing.call(this, isCancelled, ctrlDown);
 };
 
 HandsontableDateEditorClass.prototype.showDatepicker = function () {
@@ -3677,20 +3688,16 @@ Handsontable.DateEditor = function (instance, td, row, col, prop, value, cellPro
  */
 
 function HandsontableHandsontableEditorClass(instance) {
-  if (instance) {
     this.isCellEdited = false;
     this.instance = instance;
     this.createElements();
     this.bindEvents();
-  }
 }
 
-HandsontableHandsontableEditorClass.prototype = new HandsontableTextEditorClass();
-
-HandsontableHandsontableEditorClass.prototype._createElements = HandsontableTextEditorClass.prototype.createElements;
+Handsontable.helper.inherit(HandsontableHandsontableEditorClass, HandsontableTextEditorClass);
 
 HandsontableHandsontableEditorClass.prototype.createElements = function () {
-  this._createElements();
+  HandsontableTextEditorClass.prototype.createElements.call(this);
 
   var DIV = document.createElement('DIV');
   DIV.className = 'handsontableEditor';
@@ -3698,15 +3705,6 @@ HandsontableHandsontableEditorClass.prototype.createElements = function () {
 
   this.$htContainer = $(DIV);
 };
-
-HandsontableHandsontableEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
-
-HandsontableHandsontableEditorClass.prototype.bindEvents = function () {
-
-  this._bindEvents();
-};
-
-HandsontableHandsontableEditorClass.prototype._bindTemporaryEvents = HandsontableTextEditorClass.prototype.bindTemporaryEvents;
 
 HandsontableHandsontableEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
   var parent = this;
@@ -3748,10 +3746,8 @@ HandsontableHandsontableEditorClass.prototype.bindTemporaryEvents = function (td
 
   this.$htContainer.handsontable(options);
 
-  this._bindTemporaryEvents(td, row, col, prop, value, cellProperties);
+  HandsontableTextEditorClass.prototype.bindTemporaryEvents.call(this, td, row, col, prop, value, cellProperties);
 };
-
-HandsontableHandsontableEditorClass.prototype._beginEditing = HandsontableTextEditorClass.prototype.beginEditing;
 
 HandsontableHandsontableEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
   var onBeginEditing = this.instance.getSettings().onBeginEditing;
@@ -3759,12 +3755,10 @@ HandsontableHandsontableEditorClass.prototype.beginEditing = function (row, col,
     return;
   }
 
-  this._beginEditing(row, col, prop, useOriginalValue, suffix);
+  HandsontableTextEditorClass.prototype.beginEditing.call(this, row, col, prop, useOriginalValue, suffix);
 
   this.$htContainer.handsontable('selectCell', 0, 0);
 };
-
-HandsontableHandsontableEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
 
 HandsontableHandsontableEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (Handsontable.helper.isDescendant(this.instance.rootElement[0], document.activeElement)) {
@@ -3775,7 +3769,7 @@ HandsontableHandsontableEditorClass.prototype.finishEditing = function (isCancel
     this.TD.focus(); //return the focus to the cell
   }
   this.$htContainer.handsontable('destroy');
-  this._finishEditing(isCancelled, ctrlDown);
+  HandsontableTextEditorClass.prototype.finishEditing.call(this, isCancelled, ctrlDown);
 };
 
 HandsontableHandsontableEditorClass.prototype.isMenuExpanded = function () {
