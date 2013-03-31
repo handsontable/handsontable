@@ -12,7 +12,7 @@
 }
 
 .wtHolder table {
-  border-collapse: collapse;
+  border-collapse: separate; /*it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit*/
   position: relative;
   -webkit-user-select: none;
   -khtml-user-select: none;
