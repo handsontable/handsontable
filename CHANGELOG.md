@@ -32,6 +32,9 @@ Bugfixes:
 Other:
 - trying to load a string as a data source now throws an error
 
+Other:
+- new editor inheritance model (#516)
+
 ## [0.8.15](https://github.com/warpech/jquery-handsontable/tree/v0.8.15) (Mar 18, 2013)
 
 Features:

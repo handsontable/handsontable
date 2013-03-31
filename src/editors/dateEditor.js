@@ -1,18 +1,17 @@
 function HandsontableDateEditorClass(instance) {
-  if (instance) {
     this.isCellEdited = false;
     this.instance = instance;
     this.createElements();
     this.bindEvents();
-  }
 }
 
-HandsontableDateEditorClass.prototype = new HandsontableTextEditorClass();
+Handsontable.helper.inherit(HandsontableDateEditorClass, HandsontableTextEditorClass);
 
-HandsontableDateEditorClass.prototype._createElements = HandsontableTextEditorClass.prototype.createElements;
-
+/**
+ * @see HandsontableTextEditorClass.prototype.createElements
+ */
 HandsontableDateEditorClass.prototype.createElements = function () {
-  this._createElements();
+  HandsontableTextEditorClass.prototype.createElements.call(this);
 
   this.datePicker = document.createElement('DIV');
   this.datePickerStyle = this.datePicker.style;
@@ -38,24 +37,20 @@ HandsontableDateEditorClass.prototype.createElements = function () {
   this.hideDatepicker();
 };
 
-HandsontableDateEditorClass.prototype._bindEvents = HandsontableTextEditorClass.prototype.bindEvents;
-
-HandsontableDateEditorClass.prototype.bindEvents = function () {
-  this._bindEvents();
-};
-
-HandsontableDateEditorClass.prototype._beginEditing = HandsontableTextEditorClass.prototype.beginEditing;
-
+/**
+ * @see HandsontableTextEditorClass.prototype.beginEditing
+ */
 HandsontableDateEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
-  this._beginEditing(row, col, prop, useOriginalValue, suffix);
+  HandsontableTextEditorClass.prototype.beginEditing.call(this, row, col, prop, useOriginalValue, suffix);
   this.showDatepicker();
 };
 
-HandsontableDateEditorClass.prototype._finishEditing = HandsontableTextEditorClass.prototype.finishEditing;
-
+/**
+ * @see HandsontableTextEditorClass.prototype.finishEditing
+ */
 HandsontableDateEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   this.hideDatepicker();
-  this._finishEditing(isCancelled, ctrlDown);
+  HandsontableTextEditorClass.prototype.finishEditing.call(this, isCancelled, ctrlDown);
 };
 
 HandsontableDateEditorClass.prototype.showDatepicker = function () {
