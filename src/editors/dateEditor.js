@@ -5,13 +5,13 @@ function HandsontableDateEditorClass(instance) {
   this.bindEvents();
 }
 
-inherit(HandsontableDateEditorClass, HandsontableTextEditorClass);
+Handsontable.helper.inherit(HandsontableDateEditorClass, HandsontableTextEditorClass);
 
 /**
  * @see HandsontableTextEditorClass.prototype.createElements
  */
 HandsontableDateEditorClass.prototype.createElements = function () {
-  HandsontableTextEditorClass.prototype.createElements.apply(this,arguments);
+  HandsontableTextEditorClass.prototype.createElements.call(this);
 
   this.datePickerdiv = $("<div>");
   this.datePickerdiv[0].style.position = 'absolute';
@@ -39,15 +39,15 @@ HandsontableDateEditorClass.prototype.createElements = function () {
  * @see HandsontableTextEditorClass.prototype.beginEditing
  */
 HandsontableDateEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
-  HandsontableTextEditorClass.prototype.beginEditing.apply(this,arguments);
+  HandsontableTextEditorClass.prototype.beginEditing.call(this, row, col, prop, useOriginalValue, suffix);
   this.showDatepicker();
 }
 /**
- * @see HandsontableTextEditorClass.prototype.finishEditing 
+ * @see HandsontableTextEditorClass.prototype.finishEditing
  */
 HandsontableDateEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   this.hideDatepicker();
-  HandsontableTextEditorClass.prototype.finishEditing.apply(this,arguments);
+  HandsontableTextEditorClass.prototype.finishEditing.call(this, isCancelled, ctrlDown);
 }
 
 HandsontableDateEditorClass.prototype.showDatepicker = function () {

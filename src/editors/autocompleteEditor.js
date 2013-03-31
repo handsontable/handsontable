@@ -5,12 +5,13 @@ function HandsontableAutocompleteEditorClass(instance) {
   this.bindEvents();
 }
 
-inherit(HandsontableAutocompleteEditorClass, HandsontableTextEditorClass);
+Handsontable.helper.inherit(HandsontableAutocompleteEditorClass, HandsontableTextEditorClass);
+
 /**
  * @see HandsontableTextEditorClass.prototype.createElements
  */
 HandsontableAutocompleteEditorClass.prototype.createElements = function () {
-  HandsontableTextEditorClass.prototype.createElements.apply(this,arguments);
+  HandsontableTextEditorClass.prototype.createElements.call(this);
 
   this.TEXTAREA.typeahead();
   this.typeahead = this.TEXTAREA.data('typeahead');
@@ -66,7 +67,7 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
   });
 
 
-  HandsontableTextEditorClass.prototype.bindEvents.apply(this,arguments);
+  HandsontableTextEditorClass.prototype.bindEvents.call(this);
 };
 /**
  * @see HandsontableTextEditorClass.prototype.bindTemporaryEvents
@@ -112,7 +113,7 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
     }
   }
 
-  HandsontableTextEditorClass.prototype.bindTemporaryEvents.apply(this,arguments);
+  HandsontableTextEditorClass.prototype.bindTemporaryEvents.call(this, td, row, col, prop, value, cellProperties);
 
   function onDblClick() {
     that.beginEditing(row, col, prop, true);
@@ -137,7 +138,7 @@ HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancel
     }
   }
 
-  HandsontableTextEditorClass.prototype.finishEditing.apply(this,arguments);
+  HandsontableTextEditorClass.prototype.finishEditing.call(this, isCancelled, ctrlDown);
 };
 
 HandsontableAutocompleteEditorClass.prototype.isMenuExpanded = function () {

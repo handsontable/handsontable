@@ -42,16 +42,18 @@ Handsontable.helper.stringify = function (value) {
       return value.toString();
   }
 };
-//IDEA: move it to inner_Handsontable helpers namespace
+
 /**
  * Inherit without without calling parent constructor, and setting `Child.prototype.constructor` to `Child` instead of `Parent`.
  * Creates temporary dummy function to call it as constructor.
+ * Described in ticket: https://github.com/warpech/jquery-handsontable/pull/516
  * @param  {Object} Child  child class
  * @param  {Object} Parent parent class
  * @return {Object}        extended Child
  */
-function inherit(Child, Parent) {
-  function Bridge() {};
+Handsontable.helper.inherit = function (Child, Parent) {
+  function Bridge() {
+  }
   Bridge.prototype = Parent.prototype;
   Child.prototype = new Bridge();
   Child.prototype.constructor = Child;
