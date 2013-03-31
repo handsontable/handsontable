@@ -1,17 +1,17 @@
-## HEAD
+## [0.8.17](https://github.com/warpech/jquery-handsontable/tree/v0.8.17) (Mar 31, 2013)
 
 Features:
 - performance: remove jQuery dependency from many places
 - performance: in cell renderers, replace `innerHTML` with `createTextNode`
-- better integration with Twitter Bootstrap (fixes #78)
+- better integration with Twitter Bootstrap (fixes [#78](https://github.com/warpech/jquery-handsontable/issues/78))
 
 Bugfixes:
-- empty cell not shown in Firefox when not in standards mode (#418). This is questionable as a bug but anyway we fixed it.
+- empty cell not shown in Firefox when not in standards mode ([#418](https://github.com/warpech/jquery-handsontable/issues/418)). This is questionable as a bug but anyway we fixed it.
 - continued fix for #461
-- fix problems when removing rows/columns using context menu (#523)
+- fix problems when removing rows/columns using context menu ([#523](https://github.com/warpech/jquery-handsontable/pull/523))
 
 Other:
-- new editor inheritance model (#516)
+- new editor inheritance model ([#516](https://github.com/warpech/jquery-handsontable/pull/516))
 - `src/3rdparty/walkontable.js` has been divided into many source files in `src/3rdparty/walkontable/src/*`. Build process is updated to use Walkontable source files now
 - 3 Grunt test tasks are available now: `grunt test`, ``grunt test:handsontable`, `grunt test:walkontable`
 
