@@ -8,8 +8,10 @@ Features:
 Bugfixes:
 - empty cell not shown in Firefox when not in standards mode (#418). This is questionable as a bug but anyway we fixed it.
 - continued fix for #461
+- fix problems when removing rows/columns using context menu (#523)
 
 Other:
+- new editor inheritance model (#516)
 - `src/3rdparty/walkontable.js` has been divided into many source files in `src/3rdparty/walkontable/src/*`. Build process is updated to use Walkontable source files now
 - 3 Grunt test tasks are available now: `grunt test`, ``grunt test:handsontable`, `grunt test:walkontable`
 
@@ -31,7 +33,6 @@ Bugfixes:
 
 Other:
 - trying to load a string as a data source now throws an error
-- new editor inheritance model (#516)
 
 ## [0.8.15](https://github.com/warpech/jquery-handsontable/tree/v0.8.15) (Mar 18, 2013)
 

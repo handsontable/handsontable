@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Mar 31 2013 14:52:54 GMT+0200 (Central European Daylight Time)
+ * Date: Sun Mar 31 2013 16:22:11 GMT+0200 (Central European Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -4181,11 +4181,11 @@ function createContextMenu() {
         break;
 
       case "remove_row":
-        instance.alter(key, corners[0], corners[2]);
+        instance.alter(key, corners[0], (corners[2] - corners[0]) + 1);
         break;
 
       case "remove_col":
-        instance.alter(key, corners[1], corners[3]);
+        instance.alter(key, corners[1], (corners[3] - corners[1]) + 1);
         break;
 
       case "undo":
