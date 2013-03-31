@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Mar 31 2013 13:37:06 GMT+0200 (Central European Daylight Time)
+ * Date: Sun Mar 31 2013 13:43:57 GMT+0200 (Central European Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3342,6 +3342,7 @@ function HandsontableAutocompleteEditorClass(instance) {
     this.createElements();
     this.bindEvents();
   }
+  this.emptyStringLabel = '\u00A0\u00A0\u00A0'; //3 non-breaking spaces
 }
 
 HandsontableAutocompleteEditorClass.prototype = new HandsontableTextEditorClass();
@@ -3368,6 +3369,7 @@ HandsontableAutocompleteEditorClass.prototype.createElements = function () {
   };
 
   var _process = this.typeahead.process;
+  var that = this;
   this.typeahead.process = function (items) {
     for (var i = 0, ilen = items.length; i < ilen; i++) {
       if (items[i] === '') {
@@ -3375,7 +3377,7 @@ HandsontableAutocompleteEditorClass.prototype.createElements = function () {
         //empty string ('') is a falsy value and breaks the loop in bootstrap-typeahead.js method `sorter`
         //best solution would be to change line: `while (item = items.shift()) {`
         //                                   to: `while ((item = items.shift()) !== void 0) {`
-        items[i] = '[empty string]';
+        items[i] = that.emptyStringLabel;
       }
     }
     return _process.call(this, items);
@@ -3429,7 +3431,7 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
     var output = this.hide(); //need to hide it before destroyEditor, because destroyEditor checks if menu is expanded
     that.instance.destroyEditor(true);
     var val = this.$menu.find('.active').attr('data-value');
-    if (val === '[empty string]') {
+    if (val === that.emptyStringLabel) {
       val = '';
     }
     if (typeof cellProperties.onSelect === 'function') {
