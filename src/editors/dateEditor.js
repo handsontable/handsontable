@@ -33,7 +33,7 @@ HandsontableDateEditorClass.prototype.createElements = function () {
   };
   this.datePickerdiv.datepicker(defaultOptions);
   this.datePickerdiv.hide();
-}
+};
 
 /**
  * @see HandsontableTextEditorClass.prototype.beginEditing
@@ -41,14 +41,15 @@ HandsontableDateEditorClass.prototype.createElements = function () {
 HandsontableDateEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
   HandsontableTextEditorClass.prototype.beginEditing.call(this, row, col, prop, useOriginalValue, suffix);
   this.showDatepicker();
-}
+};
+
 /**
  * @see HandsontableTextEditorClass.prototype.finishEditing
  */
 HandsontableDateEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   this.hideDatepicker();
   HandsontableTextEditorClass.prototype.finishEditing.call(this, isCancelled, ctrlDown);
-}
+};
 
 HandsontableDateEditorClass.prototype.showDatepicker = function () {
   var $td = $(this.instance.dateEditor.TD);
@@ -65,11 +66,11 @@ HandsontableDateEditorClass.prototype.showDatepicker = function () {
     this.datePickerdiv.datepicker("setDate", this.originalValue);
   }
   this.datePickerdiv.show();
-}
+};
 
 HandsontableDateEditorClass.prototype.hideDatepicker = function () {
   this.datePickerdiv.hide();
-}
+};
 
 /**
  * Date editor (uses jQuery UI Datepicker)
