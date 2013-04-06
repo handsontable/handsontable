@@ -39,24 +39,21 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
     //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
 
-  if (!instance.checkboxInputMousedownListener) {
-    //not very elegant but easy and fast
-    instance.checkboxInputMousedownListener = function (event) {
-      if (!this.checked) {
-        instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);
-      }
-      else {
-        instance.setDataAtRowProp(row, prop, cellProperties.uncheckedTemplate);
-      }
-      event.stopPropagation(); //otherwise can confuse mousedown handler
-    };
-    instance.rootElement.on('mousedown', '.htCheckboxRendererInput', instance.checkboxInputMousedownListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
+  var $input = $(INPUT);
 
-    instance.checkboxInputMouseupListener = function (event) {
-      event.stopPropagation(); //otherwise can confuse dblclick handler
-    };
-    instance.rootElement.on('mouseup', '.htCheckboxRendererInput', instance.checkboxInputMouseupListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
-  }
+  $input.on('mousedown', function (event) {
+    if (!this.checked) {
+      instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);
+    }
+    else {
+      instance.setDataAtRowProp(row, prop, cellProperties.uncheckedTemplate);
+    }
+    event.stopPropagation(); //otherwise can confuse mousedown handler
+  });
+
+  $input.on('mouseup', function (event) {
+    event.stopPropagation(); //otherwise can confuse dblclick handler
+  });
 
   return TD;
 };

@@ -37,14 +37,14 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, value, cel
     }
   });
 
-  function onDblClick() {
+  instance.view.wt.update('onCellDblClick', function () {
     toggleCheckboxCell(instance, row, prop, cellProperties);
-  }
-
-  instance.view.wt.update('onCellDblClick', onDblClick);
+  });
 
   return function () {
     instance.$table.off(".editor");
     instance.view.wt.update('onCellDblClick', null);
   }
 };
+
+
