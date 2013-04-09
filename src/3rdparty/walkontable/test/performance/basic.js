@@ -68,7 +68,7 @@ $(window).load(function () {
     frozenRows: [function (row) {
       return row + 1
     }],
-    frozenColumns: [function (row) {
+    rowHeaders: [function (row) {
       return row + 1
     }],
     selections: {

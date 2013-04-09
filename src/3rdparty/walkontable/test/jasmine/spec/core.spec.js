@@ -95,7 +95,7 @@ describe('Walkontable', function () {
       offsetRow: 0,
       offsetColumn: 0,
       height: 200,
-      frozenColumns: ['Row']
+      rowHeaders: ['Row']
     });
     wt.draw();
     expect($table.find('thead th').length).toBe(5); //include corner TH

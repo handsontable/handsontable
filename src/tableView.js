@@ -165,7 +165,7 @@ Handsontable.TableView = function (instance) {
     displayColumns: null,
     width: this.containerWidth,
     height: this.containerHeight,
-    frozenColumns: settings.rowHeaders ? [instance.getRowHeader] : null,
+    rowHeaders: settings.rowHeaders ? [instance.getRowHeader] : null,
     columnHeaders: settings.colHeaders ? instance.getColHeader : null,
     columnWidth: instance.getColWidth,
     cellRenderer: function (row, column, TD) {
