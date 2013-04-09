@@ -4,7 +4,7 @@
  * @param settings
  * @constructor
  */
-Handsontable.Core = function (rootElement, settings) {
+Handsontable.Core = function (rootElement, settingsConstructor) {
   this.rootElement = rootElement;
   this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
 
@@ -15,7 +15,8 @@ Handsontable.Core = function (rootElement, settings) {
   var priv, datamap, grid, selection, editproxy, autofill, self = this;
 
   priv = {
-    settings: void 0,
+    settingsConstructor: settingsConstructor, // save settings class for inheritance
+    settings: new settingsConstructor(), // current settings instance
     selStart: (new Handsontable.SelectionPoint()),
     selEnd: (new Handsontable.SelectionPoint()),
     editProxy: false,
@@ -154,10 +155,10 @@ Handsontable.Core = function (rootElement, settings) {
         priv.settings.onCreateRow(index, row);
       }
       if (index === rowCount) {
-        priv.settings.data.push(row);
+        priv.settingsConstructor.prototype.data.push(row);
       }
       else {
-        priv.settings.data.splice(index, 0, row);
+        priv.settingsConstructor.prototype.data.splice(index, 0, row);
       }
       self.forceFullRender = true; //used when data was changed
     },
@@ -174,14 +175,14 @@ Handsontable.Core = function (rootElement, settings) {
       if (typeof index !== 'number' || index >= self.countCols()) {
         for (; r < rlen; r++) {
           if (typeof priv.settings.data[r] === 'undefined') {
-            priv.settings.data[r] = [];
+            priv.settingsConstructor.prototype.data[r] = [];
           }
-          priv.settings.data[r].push('');
+          priv.settingsConstructor.prototype.data[r].push('');
         }
       }
       else {
         for (; r < rlen; r++) {
-          priv.settings.data[r].splice(index, 0, '');
+          priv.settingsConstructor.prototype.data[r].splice(index, 0, '');
         }
       }
       self.forceFullRender = true; //used when data was changed
@@ -199,7 +200,7 @@ Handsontable.Core = function (rootElement, settings) {
       if (typeof index !== 'number') {
         index = -amount;
       }
-      priv.settings.data.splice(index, amount);
+      priv.settingsConstructor.prototype.data.splice(index, amount);
       self.forceFullRender = true; //used when data was changed
     },
 
@@ -219,7 +220,7 @@ Handsontable.Core = function (rootElement, settings) {
         index = -amount;
       }
       for (var r = 0, rlen = self.countRows(); r < rlen; r++) {
-        priv.settings.data[r].splice(index, amount);
+        priv.settingsConstructor.prototype.data[r].splice(index, amount);
       }
       self.forceFullRender = true; //used when data was changed
     },
@@ -1278,12 +1279,13 @@ Handsontable.Core = function (rootElement, settings) {
     }
   };
 
-  this.init = function () {
+    this.init = function () {
     Handsontable.PluginHooks.run(self, 'beforeInit');
     editproxy.init();
 
     bindEvents();
-    this.updateSettings(settings);
+
+    this.updateSettings({});
     this.view = new Handsontable.TableView(this);
 
     this.forceFullRender = true; //used when data was changed
@@ -1583,7 +1585,7 @@ Handsontable.Core = function (rootElement, settings) {
     }
 
     priv.isPopulated = false;
-    priv.settings.data = data;
+    priv.settingsConstructor.prototype.data = data;
     if (priv.settings.dataSchema instanceof Array || data[0]  instanceof Array) {
       priv.dataType = 'array';
     }
@@ -1656,28 +1658,18 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
 
-    if (void 0 === priv.settings) {
+    for (i in settings) {
+      if (i === 'data') {
+        continue; //loadData will be triggered later
+      }
+      else if (settings.hasOwnProperty(i)) {
+        priv.settingsConstructor.prototype[i] = settings[i];
 
-      priv.settings = function () {};
-      priv.settings.prototype = new settings();
-      // priv.settings.prototype.data = void 0; // to add or to remove? this is the question...
-
-    } else {
-
-      for (i in settings) {
-        if (i === 'data') {
-          continue; //loadData will be triggered later
-        }
-        else if (settings.hasOwnProperty(i)) {
-          priv.settings.prototype[i] = settings[i];
-
-          //launch extensions
-          if (Handsontable.extension[i]) {
-            priv.extensions[i] = new Handsontable.extension[i](self, settings[i]);
-          }
+        //launch extensions
+        if (Handsontable.extension[i]) {
+          priv.extensions[i] = new Handsontable.extension[i](self, settings[i]);
         }
       }
-
     }
 
     if (settings.data === void 0 && priv.settings.data === void 0) {
@@ -2213,35 +2205,35 @@ Handsontable.Core = function (rootElement, settings) {
   this.version = '@@version'; //inserted by grunt from package.json
 };
 
-var Defaults = function () {};
-    Defaults.prototype.data = void 0;
-    Defaults.prototype.width = void 0;
-    Defaults.prototype.height = void 0;
-    Defaults.prototype.startRows = 5;
-    Defaults.prototype.startCols = 5;
-    Defaults.prototype.minRows = 0;
-    Defaults.prototype.minCols = 0;
-    Defaults.prototype.maxRows = Infinity;
-    Defaults.prototype.maxCols = Infinity;
-    Defaults.prototype.minSpareRows = 0;
-    Defaults.prototype.minSpareCols = 0;
-    Defaults.prototype.multiSelect = true;
-    Defaults.prototype.fillHandle = true;
-    Defaults.prototype.undo = true;
-    Defaults.prototype.outsideClickDeselects = true;
-    Defaults.prototype.enterBeginsEditing = true;
-    Defaults.prototype.enterMoves = {row: 1, col: 0};
-    Defaults.prototype.tabMoves = {row: 0, col: 1};
-    Defaults.prototype.autoWrapRow = false;
-    Defaults.prototype.autoWrapCol = false;
-    Defaults.prototype.copyRowsLimit = 1000;
-    Defaults.prototype.copyColsLimit = 1000;
-    Defaults.prototype.currentRowClassName = void 0;
-    Defaults.prototype.currentColClassName = void 0;
-    Defaults.prototype.asyncRendering = true;
-    Defaults.prototype.stretchH = 'hybrid';
-    Defaults.prototype.isEmptyRow = void 0;
-    Defaults.prototype.isEmptyCol = void 0;
+var defaultsConstructor = function () {};
+    defaultsConstructor.prototype.data = void 0;
+    defaultsConstructor.prototype.width = void 0;
+    defaultsConstructor.prototype.height = void 0;
+    defaultsConstructor.prototype.startRows = 5;
+    defaultsConstructor.prototype.startCols = 5;
+    defaultsConstructor.prototype.minRows = 0;
+    defaultsConstructor.prototype.minCols = 0;
+    defaultsConstructor.prototype.maxRows = Infinity;
+    defaultsConstructor.prototype.maxCols = Infinity;
+    defaultsConstructor.prototype.minSpareRows = 0;
+    defaultsConstructor.prototype.minSpareCols = 0;
+    defaultsConstructor.prototype.multiSelect = true;
+    defaultsConstructor.prototype.fillHandle = true;
+    defaultsConstructor.prototype.undo = true;
+    defaultsConstructor.prototype.outsideClickDeselects = true;
+    defaultsConstructor.prototype.enterBeginsEditing = true;
+    defaultsConstructor.prototype.enterMoves = {row: 1, col: 0};
+    defaultsConstructor.prototype.tabMoves = {row: 0, col: 1};
+    defaultsConstructor.prototype.autoWrapRow = false;
+    defaultsConstructor.prototype.autoWrapCol = false;
+    defaultsConstructor.prototype.copyRowsLimit = 1000;
+    defaultsConstructor.prototype.copyColsLimit = 1000;
+    defaultsConstructor.prototype.currentRowClassName = void 0;
+    defaultsConstructor.prototype.currentColClassName = void 0;
+    defaultsConstructor.prototype.asyncRendering = true;
+    defaultsConstructor.prototype.stretchH = 'hybrid';
+    defaultsConstructor.prototype.isEmptyRow = void 0;
+    defaultsConstructor.prototype.isEmptyCol = void 0;
 
 $.fn.handsontable = function (action) {
   var i, ilen, args, output = [], userSettings;
@@ -2255,15 +2247,15 @@ $.fn.handsontable = function (action) {
       }
       else {
         var instance,
-            Settings = function () {};
-            Settings.prototype = new Defaults();
+            settingsConstructor = function () {};
+            settingsConstructor.prototype = new defaultsConstructor();
 
         for (i in userSettings) {
           if (userSettings.hasOwnProperty(i)) {
-            Settings.prototype[i] = userSettings[i];
+            settingsConstructor.prototype[i] = userSettings[i];
           }
         }
-        instance = new Handsontable.Core($this, Settings);
+        instance = new Handsontable.Core($this, settingsConstructor);
         $this.data("handsontable", instance);
         instance.init();
       }
