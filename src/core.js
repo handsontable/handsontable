@@ -2203,36 +2203,35 @@ Handsontable.Core = function (rootElement, settings) {
   this.version = '@@version'; //inserted by grunt from package.json
 };
 
-var settings = {
-  'data': void 0,
-  'width': void 0,
-  'height': void 0,
-  'startRows': 5,
-  'startCols': 5,
-  'minRows': 0,
-  'minCols': 0,
-  'maxRows': Infinity,
-  'maxCols': Infinity,
-  'minSpareRows': 0,
-  'minSpareCols': 0,
-  'multiSelect': true,
-  'fillHandle': true,
-  'undo': true,
-  'outsideClickDeselects': true,
-  'enterBeginsEditing': true,
-  'enterMoves': {row: 1, col: 0},
-  'tabMoves': {row: 0, col: 1},
-  'autoWrapRow': false,
-  'autoWrapCol': false,
-  'copyRowsLimit': 1000,
-  'copyColsLimit': 1000,
-  'currentRowClassName': void 0,
-  'currentColClassName': void 0,
-  'asyncRendering': true,
-  'stretchH': 'hybrid',
-  isEmptyRow: void 0,
-  isEmptyCol: void 0
-};
+var Defaults = function () {};
+    Defaults.prototype.data = void 0;
+    Defaults.prototype.width = void 0;
+    Defaults.prototype.height = void 0;
+    Defaults.prototype.startRows = 5;
+    Defaults.prototype.startCols = 5;
+    Defaults.prototype.minRows = 0;
+    Defaults.prototype.minCols = 0;
+    Defaults.prototype.maxRows = Infinity;
+    Defaults.prototype.maxCols = Infinity;
+    Defaults.prototype.minSpareRows = 0;
+    Defaults.prototype.minSpareCols = 0;
+    Defaults.prototype.multiSelect = true;
+    Defaults.prototype.fillHandle = true;
+    Defaults.prototype.undo = true;
+    Defaults.prototype.outsideClickDeselects = true;
+    Defaults.prototype.enterBeginsEditing = true;
+    Defaults.prototype.enterMoves = {row: 1, col: 0};
+    Defaults.prototype.tabMoves = {row: 0, col: 1};
+    Defaults.prototype.autoWrapRow = false;
+    Defaults.prototype.autoWrapCol = false;
+    Defaults.prototype.copyRowsLimit = 1000;
+    Defaults.prototype.copyColsLimit = 1000;
+    Defaults.prototype.currentRowClassName = void 0;
+    Defaults.prototype.currentColClassName = void 0;
+    Defaults.prototype.asyncRendering = true;
+    Defaults.prototype.stretchH = 'hybrid';
+    Defaults.prototype.isEmptyRow = void 0;
+    Defaults.prototype.isEmptyCol = void 0;
 
 $.fn.handsontable = function (action) {
   var i, ilen, args, output = [], userSettings;
@@ -2245,13 +2244,15 @@ $.fn.handsontable = function (action) {
         instance.updateSettings(userSettings);
       }
       else {
-        var currentSettings = $.extend(true, {}, settings), instance;
+        var Settings = function () {};
+            Settings.prototype = new Defaults();
+
         for (i in userSettings) {
           if (userSettings.hasOwnProperty(i)) {
-            currentSettings[i] = userSettings[i];
+            Settings.prototype[i] = userSettings[i];
           }
         }
-        instance = new Handsontable.Core($this, currentSettings);
+        instance = new Handsontable.Core($this, Settings);
         $this.data("handsontable", instance);
         instance.init();
       }
