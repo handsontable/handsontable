@@ -1894,9 +1894,9 @@ Handsontable.Core = function (rootElement, settings) {
    */
   this.getColHeader = function (col, TH) {
     col = Handsontable.PluginModifiers.run(self, 'col', col);
-    var DIV  = document.createElement('DIV'),
-        SPAN = document.createElement('SPAN'),
-        avoidInnerHTML = self.view.wt.wtDom.avoidInnerHTML;
+    var DIV = document.createElement('DIV'),
+      SPAN = document.createElement('SPAN'),
+      avoidInnerHTML = self.view.wt.wtDom.avoidInnerHTML;
 
     DIV.className = 'relative';
     SPAN.className = 'colHeader';
@@ -1911,15 +1911,7 @@ Handsontable.Core = function (rootElement, settings) {
       avoidInnerHTML(SPAN, priv.settings.colHeaders(col));
     }
     else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
-      var dividend = col + 1;
-      var columnLabel = '';
-      var modulo;
-      while (dividend > 0) {
-        modulo = (dividend - 1) % 26;
-        columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-        dividend = parseInt((dividend - modulo) / 26, 10);
-      }
-      SPAN.appendChild(document.createTextNode(columnLabel));
+      SPAN.appendChild(document.createTextNode(Handsontable.helper.spreadsheetColumnLabel(col)));
     }
     else {
       avoidInnerHTML(SPAN, priv.settings.colHeaders);
