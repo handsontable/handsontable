@@ -15,7 +15,7 @@ Handsontable.Core = function (rootElement, settings) {
   var priv, datamap, grid, selection, editproxy, autofill, self = this;
 
   priv = {
-    settings: {},
+    settings: void 0,
     selStart: (new Handsontable.SelectionPoint()),
     selEnd: (new Handsontable.SelectionPoint()),
     editProxy: false,
@@ -1656,18 +1656,28 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
 
-    for (i in settings) {
-      if (i === 'data') {
-        continue; //loadData will be triggered later
-      }
-      else if (settings.hasOwnProperty(i)) {
-        priv.settings[i] = settings[i];
+    if (void 0 === priv.settings) {
 
-        //launch extensions
-        if (Handsontable.extension[i]) {
-          priv.extensions[i] = new Handsontable.extension[i](self, settings[i]);
+      priv.settings = function () {};
+      priv.settings.prototype = new settings();
+      // priv.settings.prototype.data = void 0; // to add or to remove? this is the question...
+
+    } else {
+
+      for (i in settings) {
+        if (i === 'data') {
+          continue; //loadData will be triggered later
+        }
+        else if (settings.hasOwnProperty(i)) {
+          priv.settings.prototype[i] = settings[i];
+
+          //launch extensions
+          if (Handsontable.extension[i]) {
+            priv.extensions[i] = new Handsontable.extension[i](self, settings[i]);
+          }
         }
       }
+
     }
 
     if (settings.data === void 0 && priv.settings.data === void 0) {
@@ -2244,7 +2254,8 @@ $.fn.handsontable = function (action) {
         instance.updateSettings(userSettings);
       }
       else {
-        var Settings = function () {};
+        var instance,
+            Settings = function () {};
             Settings.prototype = new Defaults();
 
         for (i in userSettings) {
