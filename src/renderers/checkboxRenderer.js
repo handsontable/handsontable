@@ -42,17 +42,24 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
   var $input = $(INPUT);
 
   $input.on('mousedown', function (event) {
-    if (!this.checked) {
-      instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);
-    }
-    else {
-      instance.setDataAtRowProp(row, prop, cellProperties.uncheckedTemplate);
-    }
     event.stopPropagation(); //otherwise can confuse mousedown handler
+
+    if (!cellProperties.readOnly) {
+      if (!this.checked) {
+        instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);
+      }
+      else {
+        instance.setDataAtRowProp(row, prop, cellProperties.uncheckedTemplate);
+      }
+    }
   });
 
   $input.on('mouseup', function (event) {
     event.stopPropagation(); //otherwise can confuse dblclick handler
+
+    if (cellProperties.readOnly) {
+      this.checked = !this.checked; // little hax for prevent changing checked property
+    }
   });
 
   return TD;
