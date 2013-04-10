@@ -5,6 +5,11 @@ describe('WalkontableColumnStrategy', function () {
 
   //STRATEGY none
 
+  it("default - should work when no cell ranges provided", function () {
+    var widths = new WalkontableColumnStrategy(100, null, allCells25, 'none');
+    expect(widths.visibleCellRanges).toEqual([]);
+  });
+
   it("default - should show 4 cells", function () {
     var widths = new WalkontableColumnStrategy(100, [0, 10], allCells25, 'none');
     expect(widths.visibleCellRanges).toEqual([0, 3]);

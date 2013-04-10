@@ -155,7 +155,7 @@ WalkontableTable.prototype.refreshStretching = function () {
     }
   }
 
-  this.columnStrategy = new WalkontableColumnStrategy(containerWidthFn, [offsetColumn, totalColumns - 1], columnWidthFn, stretchH);
+  this.columnStrategy = new WalkontableColumnStrategy(containerWidthFn, totalColumns ? [offsetColumn, totalColumns - 1] : null, columnWidthFn, stretchH);
 };
 
 WalkontableTable.prototype.adjustAvailableNodes = function () {

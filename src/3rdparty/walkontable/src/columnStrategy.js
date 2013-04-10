@@ -7,15 +7,12 @@
  * @constructor
  */
 function WalkontableColumnStrategy(containerSizeFn, cellRanges, sizeAtIndex, strategy) {
-  if (!cellRanges) {
-    throw new Error('cellRanges not set');
-  }
-  else if (cellRanges % 2 === 1) {
-    throw new Error('cellRanges must have even number of elements');
-  }
-  else if (!this.isSorted(cellRanges)) {
-    throw new Error('cellRanges must be in ascending order');
-  }
+  var low
+    , high
+    , cur
+    , size
+    , i
+    , ilen;
 
   this.containerSizeFn = containerSizeFn;
   this.cacheLength = 0;
@@ -23,12 +20,15 @@ function WalkontableColumnStrategy(containerSizeFn, cellRanges, sizeAtIndex, str
   this.cache = {};
   this.visibleCellRanges = [];
 
-  var low
-    , high
-    , cur
-    , size
-    , i
-    , ilen;
+  if (!cellRanges) {
+    return;
+  }
+  else if (cellRanges % 2 === 1) {
+    throw new Error('cellRanges must have even number of elements');
+  }
+  else if (!this.isSorted(cellRanges)) {
+    throw new Error('cellRanges must be in ascending order');
+  }
 
   //step 1 - determine cells that fit containerSize and cache their widths
   for (i = 0, ilen = cellRanges.length / 2; i < ilen; i++) {
