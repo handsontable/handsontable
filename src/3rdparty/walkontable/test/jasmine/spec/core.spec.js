@@ -117,7 +117,7 @@ describe('Walkontable', function () {
     expect($table.find('tbody tr').length).toBe(20);
   });
 
-  it("should figure out the displayColumns property if width param given", function () {
+  it("should figure out how many columns to display if width param given", function () {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,

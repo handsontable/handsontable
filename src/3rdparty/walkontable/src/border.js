@@ -56,7 +56,7 @@ WalkontableBorder.prototype.appear = function (corners) {
   var offsetRow = this.instance.getSetting('offsetRow')
     , offsetColumn = this.instance.getSetting('offsetColumn')
     , displayRows = this.instance.getSetting('displayRows')
-    , displayColumns = this.instance.getSetting('displayColumns');
+    , lastColumn = this.instance.wtTable.getLastVisibleColumn();
 
   var hideTop = false, hideLeft = false, hideBottom = false, hideRight = false;
 
@@ -76,19 +76,17 @@ WalkontableBorder.prototype.appear = function (corners) {
     }
   }
 
-  if (displayColumns !== null) {
-    if (corners[1] > offsetColumn + displayColumns - 1 || corners[3] < offsetColumn) {
-      hideTop = hideLeft = hideBottom = hideRight = true;
+  if (corners[1] > lastColumn || corners[3] < offsetColumn) {
+    hideTop = hideLeft = hideBottom = hideRight = true;
+  }
+  else {
+    if (corners[1] < offsetColumn) {
+      corners[1] = offsetColumn;
+      hideLeft = true;
     }
-    else {
-      if (corners[1] < offsetColumn) {
-        corners[1] = offsetColumn;
-        hideLeft = true;
-      }
-      if (corners[3] > offsetColumn + displayColumns - 1) {
-        corners[3] = offsetColumn + displayColumns - 1;
-        hideRight = true;
-      }
+    if (corners[3] > lastColumn) {
+      corners[3] = lastColumn;
+      hideRight = true;
     }
   }
 
