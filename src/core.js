@@ -1178,6 +1178,7 @@ Handsontable.Core = function (rootElement, settings) {
               else {
                 rangeModifier({row: priv.selStart.row(), col: 0});
               }
+              event.preventDefault(); //don't scroll the window
               event.stopPropagation(); //required by HandsontableEditor
               break;
 
@@ -1188,6 +1189,7 @@ Handsontable.Core = function (rootElement, settings) {
               else {
                 rangeModifier({row: priv.selStart.row(), col: self.countCols() - 1});
               }
+              event.preventDefault(); //don't scroll the window
               event.stopPropagation(); //required by HandsontableEditor
               break;
 
