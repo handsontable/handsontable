@@ -1,5 +1,8 @@
 ## HEAD
 
+Features:
+- added "Maximize HOT table" button in first example on [Scroll demo](handsontable.com/demo/scroll.html) page ((#495)[https://github.com/warpech/jquery-handsontable/issues/495])
+
 Bugfixes:
 - clicking on checkbox renderer does not change state ((#543)[https://github.com/warpech/jquery-handsontable/issues/543])
 - checkbox readonly is not working ((#555)[https://github.com/warpech/jquery-handsontable/issues/555])
