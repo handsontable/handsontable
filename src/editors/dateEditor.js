@@ -1,8 +1,8 @@
 function HandsontableDateEditorClass(instance) {
-    this.isCellEdited = false;
-    this.instance = instance;
-    this.createElements();
-    this.bindEvents();
+  this.isCellEdited = false;
+  this.instance = instance;
+  this.createElements();
+  this.bindEvents();
 }
 
 Handsontable.helper.inherit(HandsontableDateEditorClass, HandsontableTextEditorClass);
