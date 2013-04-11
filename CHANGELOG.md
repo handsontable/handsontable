@@ -1,3 +1,8 @@
+## HEAD
+
+Bugfixes:
+- clicking on checkbox renderer does not change state ((#543)[https://github.com/warpech/jquery-handsontable/issues/543])
+
 ## [0.8.17](https://github.com/warpech/jquery-handsontable/tree/v0.8.17) (Mar 31, 2013)
 
 Features:
