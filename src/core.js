@@ -16,6 +16,7 @@ Handsontable.Core = function (rootElement, settings) {
 
   priv = {
     settings: {},
+    settingsFromDOM: {},
     selStart: (new Handsontable.SelectionPoint()),
     selEnd: (new Handsontable.SelectionPoint()),
     editProxy: false,
@@ -1284,6 +1285,7 @@ Handsontable.Core = function (rootElement, settings) {
 
     bindEvents();
     this.updateSettings(settings);
+    this.parseSettingsFromDOM();
     this.view = new Handsontable.TableView(this);
 
     this.forceFullRender = true; //used when data was changed
@@ -1562,6 +1564,38 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
+   * Parse settings from DOM and CSS
+   * @public
+   */
+  this.parseSettingsFromDOM = function () {
+    var overflow = this.rootElement.css('overflow');
+    if (overflow === 'scroll' || overflow === 'auto') {
+      this.rootElement[0].style.overflow = 'visible';
+      priv.settingsFromDOM.overflow = overflow;
+    }
+    else if (priv.settings.width === void 0 || priv.settings.height === void 0) {
+      priv.settingsFromDOM.overflow = 'auto';
+    }
+
+    if (priv.settings.width === void 0) {
+      priv.settingsFromDOM.width = this.rootElement.width();
+    }
+    else {
+      priv.settingsFromDOM.width = void 0;
+    }
+
+    priv.settingsFromDOM.height = void 0;
+    if (priv.settings.height === void 0) {
+      if (priv.settingsFromDOM.overflow === 'scroll' || priv.settingsFromDOM.overflow === 'auto') {
+        var computedHeight = this.rootElement.height();
+        if (computedHeight > 0) {
+          priv.settingsFromDOM.height = computedHeight;
+        }
+      }
+    }
+  };
+
+  /**
    * Render visible data
    * @public
    */
@@ -1711,6 +1745,14 @@ Handsontable.Core = function (rootElement, settings) {
    */
   this.getSettings = function () {
     return priv.settings;
+  };
+
+  /**
+   * Returns current settingsFromDOM object
+   * @return {Object}
+   */
+  this.getSettingsFromDOM = function () {
+    return priv.settingsFromDOM;
   };
 
   /**
@@ -1894,9 +1936,9 @@ Handsontable.Core = function (rootElement, settings) {
    */
   this.getColHeader = function (col, TH) {
     col = Handsontable.PluginModifiers.run(self, 'col', col);
-    var DIV  = document.createElement('DIV'),
-        SPAN = document.createElement('SPAN'),
-        avoidInnerHTML = self.view.wt.wtDom.avoidInnerHTML;
+    var DIV = document.createElement('DIV'),
+      SPAN = document.createElement('SPAN'),
+      avoidInnerHTML = self.view.wt.wtDom.avoidInnerHTML;
 
     DIV.className = 'relative';
     SPAN.className = 'colHeader';

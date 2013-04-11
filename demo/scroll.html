@@ -106,9 +106,11 @@
 
       <p>If you want scrollbars, just set container width, height and <code>overflow: scroll</code> in CSS.</p>
 
-      <p><button class="maximize">Maximize HOT table</button></p>
+      <p>
+        <button class="maximize">Maximize HOT table</button>
+      </p>
 
-      <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
+      <div id="example1" style="overflow: scroll"></div>
 
       <p>
         <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
@@ -128,54 +130,47 @@
         /*
          Container looks like this:
 
-         <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
+         <div id="example1" style="overflow: scroll"></div>
          */
 
-        $("#example1").handsontable({
+        var maxed = false
+          , resizeTimeout
+          , availableWidth
+          , availableHeight
+          , $example1 = $('#example1');
+
+        var calculateSize = function () {
+          var offset = $example1.offset();
+          availableWidth = window.innerWidth - offset.left + window.scrollX - 20; // 20 - scrollbar width
+          availableHeight = window.innerHeight - offset.top + window.scrollY - 20; // 20 - scrollbar height
+        };
+        $(window).on('resize', calculateSize);
+
+        $example1.handsontable({
           data: createBigData(),
+          colWidths: [55, 80, 80, 80, 80, 80, 80], //can also be a number or a function
           rowHeaders: true,
           colHeaders: true,
           minSpareRows: 1,
-          stretchH : 'all',
-          contextMenu: true
+          stretchH: 'all',
+          contextMenu: true,
+          width: function () {
+            if (maxed && availableWidth === void 0) {
+              calculateSize();
+            }
+            return maxed ? availableWidth : 400;
+          },
+          height: function () {
+            if (maxed && availableHeight === void 0) {
+              calculateSize();
+            }
+            return maxed ? availableHeight : 300;
+          }
         });
 
-        /* Maximize handler */
-
-        var maximize = (function ($, window) {
-
-          var _maxed   = false,
-              _timeout = null,
-              _resize  = window.onresize,
-
-              $container = $("#example1"),
-              _container = $container[0],
-
-              resize = function () {
-                var offset  = $container.offset(),
-                    height  = window.innerHeight - offset.top + window.scrollY - 20, // 20 - scrollbar height
-                    width   = window.innerWidth  - offset.left + window.scrollX - 20; // 20 - scrollbar width
-
-                _container.style.width  = width + 'px';
-                _container.style.height = height + 'px';
-              };
-
-          window.onresize = function () {
-            clearTimeout(_timeout);
-            if (_maxed) { _timeout = setTimeout(resize, 50); }
-            _resize();
-          }
-
-          return function () {
-            _maxed = ! _maxed;
-            if (_maxed) { resize(); }
-          }
-
-        })(jQuery, window);
-
-        $(document).on('click', '.maximize', function () {
-          maximize();
-          $("#example1").handsontable('render');
+        $('.maximize').on('click', function () {
+          maxed = !maxed;
+          $example1.handsontable('render');
         });
 
       </script>
