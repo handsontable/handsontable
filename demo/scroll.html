@@ -137,14 +137,15 @@
           , resizeTimeout
           , availableWidth
           , availableHeight
+          , $window = $(window)
           , $example1 = $('#example1');
 
         var calculateSize = function () {
           var offset = $example1.offset();
-          availableWidth = window.innerWidth - offset.left + window.scrollX - 20; // 20 - scrollbar width
-          availableHeight = window.innerHeight - offset.top + window.scrollY - 20; // 20 - scrollbar height
+          availableWidth = $window.width() - offset.left + $window.scrollLeft();
+          availableHeight = $window.height() - offset.top + $window.scrollTop();
         };
-        $(window).on('resize', calculateSize);
+        $window.on('resize', calculateSize);
 
         $example1.handsontable({
           data: createBigData(),
