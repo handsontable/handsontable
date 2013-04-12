@@ -7,6 +7,10 @@ Bugfixes:
 - clicking on checkbox renderer does not change state ((#543)[https://github.com/warpech/jquery-handsontable/issues/543])
 - checkbox readonly is not working ((#555)[https://github.com/warpech/jquery-handsontable/issues/555])
 
+Other:
+- refactored Walkontable code that measures column width strategy (for better performance and stability)
+- moved reading DOM settings from tableView.js core.js (new method `parseSettingsFromDOM`)
+
 ## [0.8.17](https://github.com/warpech/jquery-handsontable/tree/v0.8.17) (Mar 31, 2013)
 
 Features:
