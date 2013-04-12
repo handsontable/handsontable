@@ -265,7 +265,7 @@ Handsontable.TableView.prototype.isCellEdited = function () {
 };
 
 Handsontable.TableView.prototype.getWidth = function () {
-  var val = typeof this.settings.width !== void 0 ? this.settings.width : this.settingsFromDOM.width;
+  var val = this.settings.width !== void 0 ? this.settings.width : this.settingsFromDOM.width;
   return typeof val === 'function' ? val() : val;
 };
 

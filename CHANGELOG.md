@@ -1,3 +1,8 @@
+## HEAD
+
+Bugfix:
+- table width was not correctly read from container width
+
 ## [0.8.18](https://github.com/warpech/jquery-handsontable/tree/v0.8.18) (Apr 12, 2013)
 
 Features:
