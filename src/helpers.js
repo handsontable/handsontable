@@ -44,6 +44,23 @@ Handsontable.helper.stringify = function (value) {
 };
 
 /**
+ * Generates spreadsheet-like column names: A, B, C, ..., Z, AA, AB, etc
+ * @param index
+ * @returns {String}
+ */
+Handsontable.helper.spreadsheetColumnLabel = function (index) {
+  var dividend = index + 1;
+  var columnLabel = '';
+  var modulo;
+  while (dividend > 0) {
+    modulo = (dividend - 1) % 26;
+    columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
+    dividend = parseInt((dividend - modulo) / 26, 10);
+  }
+  return columnLabel;
+};
+
+/**
  * Checks if child is a descendant of given parent node
  * http://stackoverflow.com/questions/2234979/how-to-check-in-javascript-if-one-element-is-a-child-of-another
  * @param parent
@@ -86,6 +103,7 @@ Handsontable.helper.randomString = function () {
 Handsontable.helper.inherit = function (Child, Parent) {
   function Bridge() {
   }
+
   Bridge.prototype = Parent.prototype;
   Child.prototype = new Bridge();
   Child.prototype.constructor = Child;

@@ -80,7 +80,7 @@ WalkontableSelection.prototype.draw = function (selectionsOnly) {
   var offsetRow = this.instance.getSetting('offsetRow')
     , lastVisibleRow = offsetRow + this.instance.getSetting('displayRows') - 1
     , offsetColumn = this.instance.getSetting('offsetColumn')
-    , lastVisibleColumn = offsetColumn + this.instance.getSetting('displayColumns') - 1;
+    , lastVisibleColumn = this.instance.wtTable.getLastVisibleColumn();
 
   if (this.selected.length) {
     corners = this.getCorners();

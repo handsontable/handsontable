@@ -19,6 +19,7 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
     columnsConstructor: [],
     columnsSettingConflicts: ['data', 'width'],
     settings: new settingsConstructor(), // current settings instance
+    settingsFromDOM: {},
     selStart: (new Handsontable.SelectionPoint()),
     selEnd: (new Handsontable.SelectionPoint()),
     editProxy: false,
@@ -1188,6 +1189,7 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
               else {
                 rangeModifier({row: priv.selStart.row(), col: 0});
               }
+              event.preventDefault(); //don't scroll the window
               event.stopPropagation(); //required by HandsontableEditor
               break;
 
@@ -1198,6 +1200,7 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
               else {
                 rangeModifier({row: priv.selStart.row(), col: self.countCols() - 1});
               }
+              event.preventDefault(); //don't scroll the window
               event.stopPropagation(); //required by HandsontableEditor
               break;
 
@@ -1295,6 +1298,8 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
     bindEvents();
 
     this.updateSettings(priv.settings, true);
+    this.parseSettingsFromDOM();
+
     this.view = new Handsontable.TableView(this);
 
     this.forceFullRender = true; //used when data was changed
@@ -1573,6 +1578,38 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
   };
 
   /**
+   * Parse settings from DOM and CSS
+   * @public
+   */
+  this.parseSettingsFromDOM = function () {
+    var overflow = this.rootElement.css('overflow');
+    if (overflow === 'scroll' || overflow === 'auto') {
+      this.rootElement[0].style.overflow = 'visible';
+      priv.settingsFromDOM.overflow = overflow;
+    }
+    else if (priv.settings.width === void 0 || priv.settings.height === void 0) {
+      priv.settingsFromDOM.overflow = 'auto';
+    }
+
+    if (priv.settings.width === void 0) {
+      priv.settingsFromDOM.width = this.rootElement.width();
+    }
+    else {
+      priv.settingsFromDOM.width = void 0;
+    }
+
+    priv.settingsFromDOM.height = void 0;
+    if (priv.settings.height === void 0) {
+      if (priv.settingsFromDOM.overflow === 'scroll' || priv.settingsFromDOM.overflow === 'auto') {
+        var computedHeight = this.rootElement.height();
+        if (computedHeight > 0) {
+          priv.settingsFromDOM.height = computedHeight;
+        }
+      }
+    }
+  };
+
+  /**
    * Render visible data
    * @public
    */
@@ -1751,6 +1788,14 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
    */
   this.getSettings = function () {
     return priv.settings;
+  };
+
+  /**
+   * Returns current settingsFromDOM object
+   * @return {Object}
+   */
+  this.getSettingsFromDOM = function () {
+    return priv.settingsFromDOM;
   };
 
   /**
@@ -1950,9 +1995,9 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
    */
   this.getColHeader = function (col, TH) {
     col = Handsontable.PluginModifiers.run(self, 'col', col);
-    var DIV  = document.createElement('DIV'),
-        SPAN = document.createElement('SPAN'),
-        avoidInnerHTML = self.view.wt.wtDom.avoidInnerHTML;
+    var DIV = document.createElement('DIV'),
+      SPAN = document.createElement('SPAN'),
+      avoidInnerHTML = self.view.wt.wtDom.avoidInnerHTML;
 
     DIV.className = 'relative';
     SPAN.className = 'colHeader';
@@ -1967,15 +2012,7 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
       avoidInnerHTML(SPAN, priv.settings.colHeaders(col));
     }
     else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
-      var dividend = col + 1;
-      var columnLabel = '';
-      var modulo;
-      while (dividend > 0) {
-        modulo = (dividend - 1) % 26;
-        columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
-        dividend = parseInt((dividend - modulo) / 26, 10);
-      }
-      SPAN.appendChild(document.createTextNode(columnLabel));
+      SPAN.appendChild(document.createTextNode(Handsontable.helper.spreadsheetColumnLabel(col)));
     }
     else {
       avoidInnerHTML(SPAN, priv.settings.colHeaders);

@@ -106,7 +106,11 @@
 
       <p>If you want scrollbars, just set container width, height and <code>overflow: scroll</code> in CSS.</p>
 
-      <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
+      <p>
+        <button class="maximize">Maximize HOT table</button>
+      </p>
+
+      <div id="example1" style="overflow: scroll"></div>
 
       <p>
         <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
@@ -126,17 +130,50 @@
         /*
          Container looks like this:
 
-         <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
+         <div id="example1" style="overflow: scroll"></div>
          */
 
-        $("#example1").handsontable({
+        var maxed = false
+          , resizeTimeout
+          , availableWidth
+          , availableHeight
+          , $window = $(window)
+          , $example1 = $('#example1');
+
+        var calculateSize = function () {
+          var offset = $example1.offset();
+          availableWidth = $window.width() - offset.left + $window.scrollLeft();
+          availableHeight = $window.height() - offset.top + $window.scrollTop();
+        };
+        $window.on('resize', calculateSize);
+
+        $example1.handsontable({
           data: createBigData(),
           colWidths: [55, 80, 80, 80, 80, 80, 80], //can also be a number or a function
           rowHeaders: true,
           colHeaders: true,
           minSpareRows: 1,
-          contextMenu: true
+          stretchH: 'all',
+          contextMenu: true,
+          width: function () {
+            if (maxed && availableWidth === void 0) {
+              calculateSize();
+            }
+            return maxed ? availableWidth : 400;
+          },
+          height: function () {
+            if (maxed && availableHeight === void 0) {
+              calculateSize();
+            }
+            return maxed ? availableHeight : 300;
+          }
         });
+
+        $('.maximize').on('click', function () {
+          maxed = !maxed;
+          $example1.handsontable('render');
+        });
+
       </script>
     </div>
   </div>

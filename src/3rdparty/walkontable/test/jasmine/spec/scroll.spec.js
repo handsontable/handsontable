@@ -46,7 +46,7 @@ describe('WalkontableScroll', function () {
       columnHeaders: function (col, TH) {
         TH.innerHTML = plusOne(col);
       },
-      frozenColumns: [plusOne]
+      rowHeaders: [plusOne]
     });
     wt.draw().scrollHorizontal(999).draw();
     expect($table.find('tbody tr:eq(0) td:last')[0].innerHTML).toBe('c');
@@ -203,7 +203,7 @@ describe('WalkontableScroll', function () {
       offsetColumn: 2,
       height: 200,
       width: 100,
-      frozenColumns: [function (row) {
+      rowHeaders: [function (row) {
         return row + 1;
       }]
     });
@@ -221,7 +221,7 @@ describe('WalkontableScroll', function () {
       offsetColumn: 0,
       height: 200,
       width: 130,
-      frozenColumns: [function (row) {
+      rowHeaders: [function (row) {
         return row + 1;
       }]
     });

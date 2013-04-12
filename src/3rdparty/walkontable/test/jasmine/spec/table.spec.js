@@ -88,8 +88,8 @@ describe('WalkontableTable', function () {
       totalColumns: getTotalColumns,
       offsetRow: 0,
       height: 200,
-      width: 100,
-      frozenColumns: [function (row) {
+      width: 120,
+      rowHeaders: [function (row) {
         return row + 1;
       }]
     });
@@ -108,11 +108,11 @@ describe('WalkontableTable', function () {
       totalColumns: getTotalColumns,
       offsetRow: 0,
       height: 200,
-      width: 100,
+      width: 120,
       columnHeaders: function (col, TH) {
         TH.innerHTML = 'Column';
       },
-      frozenColumns: ['Row']
+      rowHeaders: ['Row']
     });
     wt.draw();
     expect($table.find('thead tr:first th').length).toBe(3); //2 columns in THEAD
@@ -138,7 +138,7 @@ describe('WalkontableTable', function () {
       columnHeaders: function (col, TH) {
         TH.innerHTML = plusOne(col);
       },
-      frozenColumns: [plusOne]
+      rowHeaders: [plusOne]
     });
     wt.draw();
     expect($table.find('tr:eq(0) th:eq(1)')[0].innerHTML).toBe('2');
@@ -202,8 +202,8 @@ describe('WalkontableTable', function () {
       offsetRow: 0,
       offsetColumn: 0,
       height: 200,
-      width: 100,
-      frozenColumns: [plusOne]
+      width: 120,
+      rowHeaders: [plusOne]
     });
     wt.draw();
 
@@ -253,7 +253,7 @@ describe('WalkontableTable', function () {
       offsetColumn: 0,
       height: 200,
       width: 100,
-      frozenColumns: [plusOne]
+      rowHeaders: [plusOne]
     });
     wt.draw();
 
@@ -439,7 +439,7 @@ describe('WalkontableTable', function () {
       height: 200,
       offsetRow: 0,
       offsetColumn: 0,
-      frozenColumns: ['Row'],
+      rowHeaders: ['Row'],
       columnHeaders: function (col, TH) {
         TH.innerHTML = col + 1;
       }
@@ -458,7 +458,7 @@ describe('WalkontableTable', function () {
       height: 200,
       offsetRow: 0,
       offsetColumn: 0,
-      frozenColumns: ['Row'],
+      rowHeaders: ['Row'],
       columnHeaders: function (col, TH) {
         TH.innerHTML = col + 1;
       }
@@ -476,7 +476,7 @@ describe('WalkontableTable', function () {
       height: 200,
       offsetRow: 0,
       offsetColumn: 0,
-      frozenColumns: ['Row'],
+      rowHeaders: ['Row'],
       columnHeaders: function (col, TH) {
         TH.innerHTML = col + 1;
       },
@@ -500,7 +500,7 @@ describe('WalkontableTable', function () {
       height: 200,
       offsetRow: 0,
       offsetColumn: 0,
-      frozenColumns: ['Row'],
+      rowHeaders: ['Row'],
       columnHeaders: function (col, TH) {
         TH.innerHTML = col + 1;
       },
@@ -522,7 +522,7 @@ describe('WalkontableTable', function () {
       height: 200,
       offsetRow: 0,
       offsetColumn: 0,
-      frozenColumns: ['Row'],
+      rowHeaders: ['Row'],
       columnHeaders: function (col, TH) {
         TH.innerHTML = col + 1;
       },
@@ -544,7 +544,7 @@ describe('WalkontableTable', function () {
       height: 200,
       offsetRow: 0,
       offsetColumn: 0,
-      frozenColumns: [
+      rowHeaders: [
         'Some',
         'thing'
       ],
@@ -574,9 +574,8 @@ describe('WalkontableTable', function () {
     wt.draw();
     $table.find('tbody td').html('');
     wt.draw();
-    expect($table.find('tbody tr:first td').length).toBeGreaterThan(3); //there are more columns though there won't be rendered
+    expect($table.find('tbody tr:first td').length).toBe(2);
     expect($table.find('tbody tr:first td:eq(1)').html()).not.toBe('');
-    expect($table.find('tbody tr:first td:eq(2)').html()).toBe('');
   });
 
   it("should not render a cell that is outside of the viewport, when width (height) is not dividable by 50 (20)", function () {
@@ -594,9 +593,8 @@ describe('WalkontableTable', function () {
     wt.draw();
     $table.find('tbody td').html('');
     wt.draw();
-    expect($table.find('tbody tr:first td').length).toBeGreaterThan(3); //there are more columns though there won't be rendered
+    expect($table.find('tbody tr:first td').length).toBe(2); //there are more columns though there won't be rendered
     expect($table.find('tbody tr:first td:eq(1)').html()).not.toBe('');
-    expect($table.find('tbody tr:first td:eq(2)').html()).toBe('');
   });
 
   it("should not render a cell when selectionsOnly == true", function () {
@@ -662,7 +660,7 @@ describe('WalkontableTable', function () {
       scrollH: 'scroll',
       scrollV: 'scroll',
       stretchH: 'all',
-      frozenColumns: [
+      rowHeaders: [
         "Col"
       ]
     });
@@ -686,7 +684,7 @@ describe('WalkontableTable', function () {
       scrollH: 'scroll',
       scrollV: 'scroll',
       stretchH: 'last',
-      frozenColumns: [
+      rowHeaders: [
         "Col"
       ]
     });
@@ -710,7 +708,7 @@ describe('WalkontableTable', function () {
       scrollH: 'auto',
       scrollV: 'auto',
       stretchH: 'last',
-      frozenColumns: [
+      rowHeaders: [
         "Col"
       ]
     });
@@ -734,7 +732,7 @@ describe('WalkontableTable', function () {
       scrollH: 'scroll',
       scrollV: 'scroll',
       stretchH: 'none',
-      frozenColumns: [
+      rowHeaders: [
         "Col"
       ]
     });
@@ -758,7 +756,7 @@ describe('WalkontableTable', function () {
       scrollH: 'auto',
       scrollV: 'auto',
       stretchH: 'hybrid',
-      frozenColumns: [
+      rowHeaders: [
         "Col"
       ]
     });
