@@ -6,11 +6,11 @@ Bugfix:
 ## [0.8.18](https://github.com/warpech/jquery-handsontable/tree/v0.8.18) (Apr 12, 2013)
 
 Features:
-- added "Maximize HOT table" button in first example on [Scroll demo](handsontable.com/demo/scroll.html) page ((#495)[https://github.com/warpech/jquery-handsontable/issues/495])
+- added "Maximize HOT table" button in first example on [Scroll demo](handsontable.com/demo/scroll.html) page ([#495](https://github.com/warpech/jquery-handsontable/issues/495))
 
 Bugfixes:
-- clicking on checkbox renderer does not change state ((#543)[https://github.com/warpech/jquery-handsontable/issues/543])
-- checkbox readonly is not working ((#555)[https://github.com/warpech/jquery-handsontable/issues/555])
+- clicking on checkbox renderer does not change state ([#543](https://github.com/warpech/jquery-handsontable/issues/543))
+- checkbox readonly is not working ([#555](https://github.com/warpech/jquery-handsontable/issues/555))
 
 Other:
 - refactored Walkontable code that measures column width strategy (for better performance and stability)
