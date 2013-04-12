@@ -1,4 +1,4 @@
-## HEAD
+## [0.8.18](https://github.com/warpech/jquery-handsontable/tree/v0.8.18) (Apr 12, 2013)
 
 Features:
 - added "Maximize HOT table" button in first example on [Scroll demo](handsontable.com/demo/scroll.html) page ((#495)[https://github.com/warpech/jquery-handsontable/issues/495])
