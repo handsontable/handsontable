@@ -20,10 +20,10 @@
 
     instance.rootElement.addClass('htRemoveRow');
 
-    if(!walkontableConfig.frozenColumns) {
-      walkontableConfig.frozenColumns = [];
+    if(!walkontableConfig.rowHeaders) {
+      walkontableConfig.rowHeaders = [];
     }
-    walkontableConfig.frozenColumns.unshift(function(row, elem){
+    walkontableConfig.rowHeaders.unshift(function(row, elem){
       if(elem.nodeName == 'COL') {
         $(elem).addClass('htRemoveRow');
         return;

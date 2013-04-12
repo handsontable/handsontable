@@ -106,7 +106,7 @@ function init() {
     offsetColumn: 0,
     height: 200,
     width: 200,
-    frozenColumns: [function (row) {
+    rowHeaders: [function (row) {
       return row + 1
     }],
     selections: {

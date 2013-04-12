@@ -18,7 +18,7 @@ function WalkontableSettings(instance, settings) {
     data: void 0,
     offsetRow: 0,
     offsetColumn: 0,
-    frozenColumns: null,
+    rowHeaders: null,
     columnHeaders: null, //this must be a function in format: function (col, TH) {}
     totalRows: void 0,
     totalColumns: void 0,
@@ -26,12 +26,7 @@ function WalkontableSettings(instance, settings) {
     height: null,
     cellRenderer: function (row, column, TD) {
       var cellData = that.getSetting('data', row, column);
-      if (cellData !== void 0) {
-        that.instance.wtDom.avoidInnerHTML(TD, cellData);
-      }
-      else {
-        this.wtDom.empty(TD);
-      }
+      that.instance.wtDom.avoidInnerHTML(TD, cellData === void 0 || cellData === null ? '' : cellData);
     },
     columnWidth: 50,
     selections: null,
@@ -149,29 +144,6 @@ WalkontableSettings.prototype.displayRows = function () {
   }
 };
 
-WalkontableSettings.prototype.displayColumns = function () {
-  var estimated
-    , calculated;
-
-  if (this.settings['width']) {
-    if (typeof this.settings['width'] !== 'number') {
-      throw new Error('Walkontable width parameter must be a number (' + typeof this.settings['width'] + ' given)');
-    }
-    estimated = Math.ceil(this.settings['width'] / 50); //silly assumption but should be fine for now
-    calculated = this.getSetting('totalColumns') - this.getSetting('offsetColumn');
-    if (calculated < 0) {
-      this.update('offsetColumn', Math.max(0, this.getSetting('totalColumns') - estimated));
-      return estimated;
-    }
-    else {
-      return Math.min(estimated, calculated);
-    }
-  }
-  else {
-    return this.getSetting('totalColumns');
-  }
-};
-
 WalkontableSettings.prototype.viewportRows = function () {
   if (this.instance.wtTable.visibilityEdgeRow !== null) {
     return this.instance.wtTable.visibilityEdgeRow - this.instance.wtTable.visibilityStartRow;
@@ -183,5 +155,5 @@ WalkontableSettings.prototype.viewportColumns = function () {
   if (this.instance.wtTable.visibilityEdgeColumn !== null) {
     return this.instance.wtTable.visibilityEdgeColumn - this.instance.wtTable.visibilityStartColumn;
   }
-  return this.getSetting('displayColumns');
+  return this.instance.wtTable.getLastVisibleColumn();
 };
