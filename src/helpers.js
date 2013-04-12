@@ -116,7 +116,5 @@ Handsontable.helper.columnFactory = function (settings, conflictList, defaultCel
     }
   }
 
-  console.log(new constructor())
-
   return constructor;
 };
