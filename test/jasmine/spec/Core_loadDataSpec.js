@@ -217,23 +217,14 @@ describe('Core_loadData', function () {
 
   //https://github.com/warpech/jquery-handsontable/pull/233
   it('Should not invoke the cells callback multiple times with the same row/col', function () {
-    var allRows = {};
-    var dupsFound = 0;
+    var count = 0;
     handsontable({
-      data: arrayOfObjects(),
+      data: arrayOfNestedObjects(),
       cells: function (row, col, prop) {
-        if (allRows[row + '']) {
-          if ($.inArray(col, allRows[row]) !== -1) {
-            dupsFound++;
-          }
-        }
-        else {
-          allRows[row + ''] = [];
-        }
-        allRows[row + ''].push(col);
+        count++;
       }
     });
-    expect(dupsFound).toEqual(0);
+    expect(count).toEqual(countRows() * countCols());
   });
 
   //https://github.com/warpech/jquery-handsontable/issues/239
