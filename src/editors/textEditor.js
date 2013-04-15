@@ -307,10 +307,10 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
       ];
       if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
         var sel = this.instance.getSelected();
-        this.instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, false, 'edit');
+        this.instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, 'edit');
       }
       else {
-        this.instance.populateFromArray({row: this.row, col: this.col}, val, null, false, 'edit');
+        this.instance.populateFromArray({row: this.row, col: this.col}, val, null, 'edit');
       }
     }
   }
