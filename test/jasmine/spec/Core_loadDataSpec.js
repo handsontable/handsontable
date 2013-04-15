@@ -219,16 +219,17 @@ describe('Core_loadData', function () {
   it('Should not invoke the cells callback multiple times with the same row/col', function () {
     var allRows = {};
     var dupsFound = 0;
-    var myData = arrayOfNestedObjects();
     handsontable({
-      data: myData,
+      data: arrayOfObjects(),
       cells: function (row, col, prop) {
         if (allRows[row + '']) {
           if ($.inArray(col, allRows[row]) !== -1) {
             dupsFound++;
           }
         }
-        allRows[row + ''] = allRows[row + ''] || [];
+        else {
+          allRows[row + ''] = [];
+        }
         allRows[row + ''].push(col);
       }
     });

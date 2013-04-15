@@ -38,15 +38,15 @@ function Walkontable(settings) {
 
 Walkontable.prototype.draw = function (selectionsOnly) {
   //this.instance.scrollViewport([this.instance.getSetting('offsetRow'), this.instance.getSetting('offsetColumn')]); //needed by WalkontableScroll -> remove row from the last scroll page should scroll viewport a row up if needed
-  if (this.hasSetting('async')) {
-    var that = this;
-    that.drawTimeout = setTimeout(function () {
-      that._doDraw(selectionsOnly);
-    }, 0);
-  }
-  else {
+  // if (this.hasSetting('async')) {
+  //   var that = this;
+  //   that.drawTimeout = setTimeout(function () {
+  //     that._doDraw(selectionsOnly);
+  //   }, 0);
+  // }
+  // else {
     this._doDraw(selectionsOnly);
-  }
+  // }
   return this;
 };
 
@@ -75,16 +75,16 @@ Walkontable.prototype.scrollHorizontal = function (delta) {
 };
 
 Walkontable.prototype.scrollViewport = function (coords) {
-  if (this.hasSetting('async')) {
-    var that = this;
-    clearTimeout(that.scrollTimeout);
-    that.scrollTimeout = setTimeout(function () {
-      that.wtScroll.scrollViewport(coords);
-    }, 0);
-  }
-  else {
+  // if (this.hasSetting('async')) {
+  //   var that = this;
+  //   clearTimeout(that.scrollTimeout);
+  //   that.scrollTimeout = setTimeout(function () {
+  //     that.wtScroll.scrollViewport(coords);
+  //   }, 0);
+  // }
+  // else {
     this.wtScroll.scrollViewport(coords);
-  }
+  // }
   return this;
 };
 

@@ -141,7 +141,6 @@ Handsontable.TableView = function (instance) {
 
   var walkontableConfig = {
     table: table,
-    async: that.settings.asyncRendering,
     stretchH: that.settings.stretchH,
     data: instance.getDataAtCell,
     totalRows: instance.countRows,
