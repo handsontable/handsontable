@@ -47,6 +47,15 @@ describe('Core.getColHeader', function () {
     expect(getColHeader(1)).toEqual('static');
   });
 
+  it('when configured as HTML value, should render that as HTML', function () {
+    handsontable({
+      colHeaders: function (index) {
+        return '<b>col' + index + '</b>';
+      }
+    });
+    expect(getColHeader(1)).toEqual('<b>col1</b>');
+  });
+
   it('when no argument given, should return as much column headers as there are columns', function () {
     handsontable({
       colHeaders: true,

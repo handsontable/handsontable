@@ -47,6 +47,15 @@ describe('Core.getRowHeader', function () {
     expect(getRowHeader(1)).toEqual('static');
   });
 
+  it('when configured as HTML value, should render that as HTML', function () {
+    handsontable({
+      rowHeaders: function (index) {
+        return '<b>row' + index + '</b>';
+      }
+    });
+    expect(getRowHeader(1)).toEqual('<b>row1</b>');
+  });
+
   it('when no argument given, should return as much row headers as there are rows', function () {
     handsontable({
       rowHeaders: true,
