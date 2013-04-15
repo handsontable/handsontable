@@ -1917,7 +1917,14 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Array|String}
    */
   this.getRowHeader = function (row) {
-    if (Object.prototype.toString.call(priv.settings.rowHeaders) === '[object Array]' && priv.settings.rowHeaders[row] !== void 0) {
+    if (row === void 0) {
+      var out = [];
+      for (var i = 0, ilen = self.countRows(); i < ilen; i++) {
+        out.push(self.getRowHeader(i));
+      }
+      return out;
+    }
+    else if (Object.prototype.toString.call(priv.settings.rowHeaders) === '[object Array]' && priv.settings.rowHeaders[row] !== void 0) {
       return priv.settings.rowHeaders[row];
     }
     else if (typeof priv.settings.rowHeaders === 'function') {

@@ -2,6 +2,7 @@
 
 Bugfixes:
 - source parameter should be `edit` when cell value is changed through editor (#566)
+- getRowHeaders returns NaN when no argument given - should return array of all row headers (#568, #352)
 
 ## [0.8.19](https://github.com/warpech/jquery-handsontable/tree/v0.8.19) (Apr 12, 2013)
 
