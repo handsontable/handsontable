@@ -65,12 +65,12 @@ $(window).load(function () {
     },
     height: 600,
     width: 600,
-    frozenRows: [function (row) {
-      return row + 1
-    }],
-    rowHeaders: [function (row) {
-      return row + 1
-    }],
+    rowHeaders: function (row, TH) {
+      TH.innerHTML = row + 1;
+    },
+    columnHeaders: function (col, TH) {
+      TH.innerHTML = col + 1;
+    },
     selections: {
       current: {
         className: 'current',

@@ -131,8 +131,7 @@ WalkontableTable.prototype.refreshStretching = function () {
     , scrollbarWidth = instance.getSetting('scrollbarWidth')
     , totalColumns = instance.getSetting('totalColumns')
     , offsetColumn = instance.getSetting('offsetColumn')
-    , rowHeaders = instance.getSetting('rowHeaders')
-    , rowHeaderWidth = rowHeaders && rowHeaders.length ? 50 : 0
+    , rowHeaderWidth = instance.hasSetting('rowHeaders') ? 50 : 0
     , containerWidth = this.instance.getSetting('width') - rowHeaderWidth;
 
   var containerWidthFn = function (cacheWidth) {
@@ -163,33 +162,30 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
     , totalRows = instance.getSetting('totalRows')
     , displayRows = instance.getSetting('displayRows')
     , displayTds
-    , rowHeaders = instance.getSetting('rowHeaders')
-    , rowHeadersCount = rowHeaders ? rowHeaders.length : 0
-    , TR
-    , c;
+    , displayThs = instance.hasSetting('rowHeaders') ? 1 : 0
+    , TR;
 
   displayRows = Math.min(displayRows, totalRows);
   this.refreshStretching();
   displayTds = this.columnStrategy.cacheLength;
 
-
   //adjust COLGROUP
-  while (this.colgroupChildrenLength < displayTds + rowHeadersCount) {
+  while (this.colgroupChildrenLength < displayTds + displayThs) {
     this.COLGROUP.appendChild(document.createElement('COL'));
     this.colgroupChildrenLength++;
   }
-  while (this.colgroupChildrenLength > displayTds + rowHeadersCount) {
+  while (this.colgroupChildrenLength > displayTds + displayThs) {
     this.COLGROUP.removeChild(this.COLGROUP.lastChild);
     this.colgroupChildrenLength--;
   }
 
   //adjust THEAD
   if (this.instance.hasSetting('columnHeaders')) {
-    while (this.theadChildrenLength < displayTds + rowHeadersCount) {
+    while (this.theadChildrenLength < displayTds + displayThs) {
       this.THEAD.firstChild.appendChild(document.createElement('TH'));
       this.theadChildrenLength++;
     }
-    while (this.theadChildrenLength > displayTds + rowHeadersCount) {
+    while (this.theadChildrenLength > displayTds + displayThs) {
       this.THEAD.firstChild.removeChild(this.THEAD.firstChild.lastChild);
       this.theadChildrenLength--;
     }
@@ -198,7 +194,7 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   //adjust TBODY
   while (this.tbodyChildrenLength < displayRows) {
     TR = document.createElement('TR');
-    for (c = 0; c < rowHeadersCount; c++) {
+    if (displayThs) {
       TR.appendChild(document.createElement('TH'));
     }
     this.TBODY.appendChild(TR);
@@ -213,13 +209,13 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   var trChildrenLength;
   for (var r = 0, rlen = TRs.length; r < rlen; r++) {
     trChildrenLength = TRs[r].childNodes.length;
-    while (trChildrenLength < displayTds + rowHeadersCount) {
+    while (trChildrenLength < displayTds + displayThs) {
       var TD = document.createElement('TD');
       TD.setAttribute('tabindex', 10000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/; 32767 is max tabindex for IE7,8
       TRs[r].appendChild(TD);
       trChildrenLength++;
     }
-    while (trChildrenLength > displayTds + rowHeadersCount) {
+    while (trChildrenLength > displayTds + displayThs) {
       TRs[r].removeChild(TRs[r].lastChild);
       trChildrenLength--;
     }
@@ -249,22 +245,17 @@ WalkontableTable.prototype._doDraw = function () {
     , totalRows = this.instance.getSetting('totalRows')
     , displayRows = this.instance.getSetting('displayRows')
     , displayTds = this.columnStrategy.cacheLength
-    , rowHeaders = this.instance.getSetting('rowHeaders')
-    , rowHeadersCount = rowHeaders ? rowHeaders.length : 0
+    , rowHeaders = this.instance.hasSetting('rowHeaders')
+    , displayThs = rowHeaders ? 1 : 0
     , TR
-    , TH
-    , TD
-    , cellData;
+    , TD;
 
   displayRows = Math.min(displayRows, totalRows);
 
   //draw COLGROUP
   for (c = 0; c < this.colgroupChildrenLength; c++) {
-    if (c < rowHeadersCount) {
+    if (c < displayThs) {
       this.wtDom.addClass(this.COLGROUP.childNodes[c], 'rowHeader');
-      if (typeof rowHeaders[c] === "function") {
-        rowHeaders[c](null, this.COLGROUP.childNodes[c])
-      }
     }
     else {
       this.wtDom.removeClass(this.COLGROUP.childNodes[c], 'rowHeader');
@@ -272,27 +263,20 @@ WalkontableTable.prototype._doDraw = function () {
   }
 
   //draw THEAD
-  if (rowHeadersCount && this.instance.hasSetting('columnHeaders')) {
-    for (c = 0; c < rowHeadersCount; c++) {
-      TH = this.THEAD.childNodes[0].childNodes[c];
-      if (typeof rowHeaders[c] === "function") {
-        rowHeaders[c](null, TH);
-      }
-      else {
-        this.wtDom.empty(TH);
-      }
-      if (this.hasEmptyCellProblem && TH.innerHTML === '') { //IE7
-        TH.innerHTML = '&nbsp;';
-      }
+  if (displayThs && this.instance.hasSetting('columnHeaders')) {
+    TD = this.THEAD.childNodes[0].firstChild; //actually it is TH but let's reuse single variable
+    this.wtDom.empty(TD);
+    if (this.hasEmptyCellProblem) { //IE7
+      TD.innerHTML = '&nbsp;';
     }
   }
 
   var columnHeaders = this.instance.hasSetting('columnHeaders');
   for (c = 0; c < displayTds; c++) {
     if (columnHeaders) {
-      this.instance.getSetting('columnHeaders', offsetColumn + c, this.THEAD.childNodes[0].childNodes[rowHeadersCount + c]);
+      this.instance.getSetting('columnHeaders', offsetColumn + c, this.THEAD.childNodes[0].childNodes[displayThs + c]);
     }
-    this.COLGROUP.childNodes[c + rowHeadersCount].style.width = this.columnStrategy.getSize(offsetColumn + c) + 'px';
+    this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(offsetColumn + c) + 'px';
   }
 
   //draw TBODY
@@ -300,18 +284,9 @@ WalkontableTable.prototype._doDraw = function () {
   this.visibilityStartRow = offsetRow; //needed bacause otherwise the values get out of sync in async mode
   this.visibilityStartColumn = offsetColumn;
   for (r = 0; r < displayRows; r++) {
-    TR = this.TBODY.childNodes[r];
-    for (c = 0; c < rowHeadersCount; c++) { //in future use nextSibling; http://jsperf.com/nextsibling-vs-indexed-childnodes
-      TH = TR.childNodes[c];
-      cellData = typeof rowHeaders[c] === "function" ? rowHeaders[c](offsetRow + r, TH) : rowHeaders[c];
-      if (cellData !== void 0) {
-        this.wtDom.avoidInnerHTML(TH, cellData);
-      }
-      /*
-       we can assume that rowHeaders[c] function took care of inserting content into TH
-       else {
-       TH.innerHTML = '';
-       }*/
+    TR = this.TBODY.childNodes[r]; //in future use nextSibling; http://jsperf.com/nextsibling-vs-indexed-childnodes
+    if (displayThs) {
+      this.instance.getSetting('rowHeaders', offsetRow + r, TR.firstChild);
     }
 
     var visibilityFullRow = null;
@@ -323,7 +298,7 @@ WalkontableTable.prototype._doDraw = function () {
         break;
       }
       else {
-        TD = TR.childNodes[c + rowHeadersCount];
+        TD = TR.childNodes[c + displayThs];
         TD.className = '';
         TD.removeAttribute('style');
         this.instance.getSetting('cellRenderer', offsetRow + r, offsetColumn + c, TD);
@@ -463,8 +438,7 @@ WalkontableTable.prototype.getCell = function (coords) {
       return -4; //column after viewport
     }
     else {
-      var rowHeaders = this.instance.getSetting('rowHeaders')
-        , rowHeadersCount = (rowHeaders ? rowHeaders.length : 0)
+      var displayThs = this.instance.hasSetting('rowHeaders') ? 1 : 0
         , tr = this.TBODY.childNodes[coords[0] - offsetRow];
 
       if (typeof tr === "undefined") { //this block is only needed in async mode
@@ -472,17 +446,16 @@ WalkontableTable.prototype.getCell = function (coords) {
         tr = this.TBODY.childNodes[coords[0] - offsetRow];
       }
 
-      return tr.childNodes[coords[1] - offsetColumn + rowHeadersCount];
+      return tr.childNodes[coords[1] - offsetColumn + displayThs];
     }
   }
 };
 
 WalkontableTable.prototype.getCoords = function (TD) {
-  var rowHeaders = this.instance.getSetting('rowHeaders')
-    , rowHeadersCount = rowHeaders ? rowHeaders.length : 0;
+  var displayThs = this.instance.hasSetting('rowHeaders') ? 1 : 0;
   return [
     this.wtDom.prevSiblings(TD.parentNode).length + this.instance.getSetting('offsetRow'),
-    TD.cellIndex + this.instance.getSetting('offsetColumn') - rowHeadersCount
+    TD.cellIndex + this.instance.getSetting('offsetColumn') - displayThs
   ];
 };
 

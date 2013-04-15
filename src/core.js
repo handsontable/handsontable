@@ -1939,42 +1939,37 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   /**
-   * Return column header at given col as HTML string
-   * @param {Number} col
-   * @param {HTMLElement} TH
+   * Return array of column headers (if they are enabled). If param `col` given, return header at given column as string
+   * @param {Number} col (Optional)
+   * @return {Array|String}
    */
-  this.getColHeader = function (col, TH) {
-    col = Handsontable.PluginModifiers.run(self, 'col', col);
-    var DIV = document.createElement('DIV'),
-      SPAN = document.createElement('SPAN'),
-      avoidInnerHTML = self.view.wt.wtDom.avoidInnerHTML;
-
-    DIV.className = 'relative';
-    SPAN.className = 'colHeader';
-
-    if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
-      avoidInnerHTML(SPAN, priv.settings.columns[col].title);
-    }
-    else if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
-      avoidInnerHTML(SPAN, priv.settings.colHeaders[col]);
-    }
-    else if (typeof priv.settings.colHeaders === 'function') {
-      avoidInnerHTML(SPAN, priv.settings.colHeaders(col));
-    }
-    else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
-      SPAN.appendChild(document.createTextNode(Handsontable.helper.spreadsheetColumnLabel(col)));
+  this.getColHeader = function (col) {
+    if (col === void 0) {
+      var out = [];
+      for (var i = 0, ilen = self.countCols(); i < ilen; i++) {
+        out.push(self.getColHeader(i));
+      }
+      return out;
     }
     else {
-      avoidInnerHTML(SPAN, priv.settings.colHeaders);
-    }
+      col = Handsontable.PluginModifiers.run(self, 'col', col);
 
-    DIV.appendChild(SPAN);
-
-    while (TH.firstChild) {
-      TH.removeChild(TH.firstChild); //empty TH node
+      if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
+        return priv.settings.columns[col].title;
+      }
+      else if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
+        return priv.settings.colHeaders[col];
+      }
+      else if (typeof priv.settings.colHeaders === 'function') {
+        return priv.settings.colHeaders(col);
+      }
+      else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
+        return Handsontable.helper.spreadsheetColumnLabel(col);
+      }
+      else {
+        return priv.settings.colHeaders;
+      }
     }
-    TH.appendChild(DIV);
-    Handsontable.PluginHooks.run(self, 'afterGetColHeader', col, TH);
   };
 
   /**

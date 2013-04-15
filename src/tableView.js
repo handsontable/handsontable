@@ -150,8 +150,12 @@ Handsontable.TableView = function (instance) {
     offsetColumn: 0,
     width: this.getWidth(),
     height: this.getHeight(),
-    rowHeaders: that.settings.rowHeaders ? [instance.getRowHeader] : null,
-    columnHeaders: that.settings.colHeaders ? instance.getColHeader : null,
+    rowHeaders: this.settings.rowHeaders ? function (index, TH) {
+      that.appendRowHeader(index, TH);
+    } : null,
+    columnHeaders: this.settings.colHeaders ? function (index, TH) {
+      that.appendColHeader(index, TH);
+    } : null,
     columnWidth: instance.getColWidth,
     cellRenderer: function (row, column, TD) {
       that.applyCellTypeMethod('renderer', TD, row, column);
@@ -315,4 +319,35 @@ Handsontable.TableView.prototype.getCellAtCoords = function (coords) {
  */
 Handsontable.TableView.prototype.scrollViewport = function (coords) {
   this.wt.scrollViewport([coords.row, coords.col]);
+};
+
+/**
+ * Append row header to a TH element
+ * @param row
+ * @param TH
+ */
+Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
+  this.wt.wtDom.avoidInnerHTML(TH, this.instance.getRowHeader(row));
+};
+
+/**
+ * Append column header to a TH element
+ * @param col
+ * @param TH
+ */
+Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
+  var DIV = document.createElement('DIV')
+    , SPAN = document.createElement('SPAN');
+
+  DIV.className = 'relative';
+  SPAN.className = 'colHeader';
+
+  this.wt.wtDom.avoidInnerHTML(SPAN, this.instance.getColHeader(col));
+  DIV.appendChild(SPAN);
+
+  while (TH.firstChild) {
+    TH.removeChild(TH.firstChild); //empty TH node
+  }
+  TH.appendChild(DIV);
+  Handsontable.PluginHooks.run(this.instance, 'afterGetColHeader', col, TH);
 };

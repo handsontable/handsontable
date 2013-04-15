@@ -89,9 +89,9 @@ describe('WalkontableTable', function () {
       offsetRow: 0,
       height: 200,
       width: 120,
-      rowHeaders: [function (row) {
-        return row + 1;
-      }]
+      rowHeaders: function (row, TH) {
+        TH.innerHTML = row + 1;
+      }
     });
     wt.draw();
     expect($table.find('tbody th, tbody td').length).toBe(30); //10*2=20 displayed cells + 10 row headers
@@ -112,7 +112,9 @@ describe('WalkontableTable', function () {
       columnHeaders: function (col, TH) {
         TH.innerHTML = 'Column';
       },
-      rowHeaders: ['Row']
+      rowHeaders: function (row, TH) {
+        TH.innerHTML = 'Row';
+      }
     });
     wt.draw();
     expect($table.find('thead tr:first th').length).toBe(3); //2 columns in THEAD
@@ -138,7 +140,9 @@ describe('WalkontableTable', function () {
       columnHeaders: function (col, TH) {
         TH.innerHTML = plusOne(col);
       },
-      rowHeaders: [plusOne]
+      rowHeaders: function (row, TH) {
+        TH.innerHTML = plusOne(row);
+      }
     });
     wt.draw();
     expect($table.find('tr:eq(0) th:eq(1)')[0].innerHTML).toBe('2');
@@ -203,7 +207,9 @@ describe('WalkontableTable', function () {
       offsetColumn: 0,
       height: 200,
       width: 120,
-      rowHeaders: [plusOne]
+      rowHeaders: function (row, TH) {
+        TH.innerHTML = plusOne(row);
+      }
     });
     wt.draw();
 
@@ -253,7 +259,9 @@ describe('WalkontableTable', function () {
       offsetColumn: 0,
       height: 200,
       width: 100,
-      rowHeaders: [plusOne]
+      rowHeaders: function (row, TH) {
+        TH.innerHTML = plusOne(row);
+      }
     });
     wt.draw();
 
@@ -439,7 +447,9 @@ describe('WalkontableTable', function () {
       height: 200,
       offsetRow: 0,
       offsetColumn: 0,
-      rowHeaders: ['Row'],
+      rowHeaders: function (row, TH) {
+        TH.innerHTML = row + 1;
+      },
       columnHeaders: function (col, TH) {
         TH.innerHTML = col + 1;
       }
@@ -458,7 +468,9 @@ describe('WalkontableTable', function () {
       height: 200,
       offsetRow: 0,
       offsetColumn: 0,
-      rowHeaders: ['Row'],
+      rowHeaders: function (row, TH) {
+        TH.innerHTML = row + 1;
+      },
       columnHeaders: function (col, TH) {
         TH.innerHTML = col + 1;
       }
@@ -476,7 +488,9 @@ describe('WalkontableTable', function () {
       height: 200,
       offsetRow: 0,
       offsetColumn: 0,
-      rowHeaders: ['Row'],
+      rowHeaders: function (row, TH) {
+        TH.innerHTML = row + 1;
+      },
       columnHeaders: function (col, TH) {
         TH.innerHTML = col + 1;
       },
@@ -500,7 +514,9 @@ describe('WalkontableTable', function () {
       height: 200,
       offsetRow: 0,
       offsetColumn: 0,
-      rowHeaders: ['Row'],
+      rowHeaders: function (row, TH) {
+        TH.innerHTML = row + 1;
+      },
       columnHeaders: function (col, TH) {
         TH.innerHTML = col + 1;
       },
@@ -522,7 +538,9 @@ describe('WalkontableTable', function () {
       height: 200,
       offsetRow: 0,
       offsetColumn: 0,
-      rowHeaders: ['Row'],
+      rowHeaders: function (row, TH) {
+        TH.innerHTML = row + 1;
+      },
       columnHeaders: function (col, TH) {
         TH.innerHTML = col + 1;
       },
@@ -533,30 +551,6 @@ describe('WalkontableTable', function () {
     expect($.inArray($table.find('tbody tr:first td:eq(1)').outerWidth(), [98, 100]) > -1).toBe(true); //IE7 reports 98, other browsers report 100
     expect($.inArray($table.find('tbody tr:first td:eq(2)').outerWidth(), [98, 100]) > -1).toBe(true); //IE7 reports 98, other browsers report 100
     expect($.inArray($table.find('tbody tr:first td:eq(3)').outerWidth(), [98, 100]) > -1).toBe(true); //IE7 reports 98, other browsers report 100
-  });
-
-  it("should render as much frozen columns as defined", function () {
-    var wt = new Walkontable({
-      table: $table[0],
-      data: getData,
-      totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      height: 200,
-      offsetRow: 0,
-      offsetColumn: 0,
-      rowHeaders: [
-        'Some',
-        'thing'
-      ],
-      columnHeaders: function (col, TH) {
-        TH.innerHTML = col + 1;
-      },
-      columnWidth: 100
-    });
-    wt.draw();
-    expect($table.find('thead tr:first th').length).toBe(getTotalColumns() + 2);
-    expect($table.find('tbody tr:first th:eq(0)').html()).toBe("Some");
-    expect($table.find('tbody tr:first th:eq(1)').html()).toBe("thing");
   });
 
   it("should not render a cell that is outside of the viewport horizontally", function () {
@@ -660,9 +654,9 @@ describe('WalkontableTable', function () {
       scrollH: 'scroll',
       scrollV: 'scroll',
       stretchH: 'all',
-      rowHeaders: [
-        "Col"
-      ]
+      rowHeaders: function (row, TH) {
+        TH.innerHTML = row + 1;
+      }
     });
     wt.draw();
 
@@ -684,9 +678,9 @@ describe('WalkontableTable', function () {
       scrollH: 'scroll',
       scrollV: 'scroll',
       stretchH: 'last',
-      rowHeaders: [
-        "Col"
-      ]
+      rowHeaders: function (row, TH) {
+        TH.innerHTML = row + 1;
+      }
     });
     wt.draw();
 
@@ -708,9 +702,9 @@ describe('WalkontableTable', function () {
       scrollH: 'auto',
       scrollV: 'auto',
       stretchH: 'last',
-      rowHeaders: [
-        "Col"
-      ]
+      rowHeaders: function (row, TH) {
+        TH.innerHTML = row + 1;
+      }
     });
     wt.draw();
 
@@ -732,9 +726,9 @@ describe('WalkontableTable', function () {
       scrollH: 'scroll',
       scrollV: 'scroll',
       stretchH: 'none',
-      rowHeaders: [
-        "Col"
-      ]
+      rowHeaders: function (row, TH) {
+        TH.innerHTML = row + 1;
+      }
     });
     wt.draw();
 
@@ -756,9 +750,9 @@ describe('WalkontableTable', function () {
       scrollH: 'auto',
       scrollV: 'auto',
       stretchH: 'hybrid',
-      rowHeaders: [
-        "Col"
-      ]
+      rowHeaders: function (row, TH) {
+        TH.innerHTML = row + 1;
+      }
     });
     wt.draw();
 
