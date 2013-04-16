@@ -167,7 +167,7 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
 
   displayRows = Math.min(displayRows, totalRows);
   this.refreshStretching();
-  displayTds = this.columnStrategy.cacheLength;
+  displayTds = this.columnStrategy.cellCount;
 
   //adjust COLGROUP
   while (this.colgroupChildrenLength < displayTds + displayThs) {
@@ -252,7 +252,7 @@ WalkontableTable.prototype._doDraw = function () {
     , offsetColumn = this.instance.getSetting('offsetColumn')
     , totalRows = this.instance.getSetting('totalRows')
     , displayRows = this.instance.getSetting('displayRows')
-    , displayTds = this.columnStrategy.cacheLength
+    , displayTds = this.columnStrategy.cellCount
     , rowHeaders = this.instance.hasSetting('rowHeaders')
     , displayThs = rowHeaders ? 1 : 0
     , TR
@@ -468,5 +468,5 @@ WalkontableTable.prototype.getCoords = function (TD) {
 };
 
 WalkontableTable.prototype.getLastVisibleColumn = function () {
-  return this.columnStrategy.visibleCellRanges[this.columnStrategy.visibleCellRanges.length - 1]
+  return this.columnStrategy.cells[this.columnStrategy.cells.length - 1]
 };
