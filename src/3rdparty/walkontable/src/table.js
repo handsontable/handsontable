@@ -205,20 +205,28 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
     this.tbodyChildrenLength--;
   }
 
+  while (this.tbodyChildrenLength > displayRows) {
+    this.TBODY.removeChild(this.TBODY.lastChild);
+    this.tbodyChildrenLength--;
+  }
+
   var TRs = this.TBODY.childNodes;
-  var trChildrenLength;
   for (var r = 0, rlen = TRs.length; r < rlen; r++) {
-    trChildrenLength = TRs[r].childNodes.length;
-    while (trChildrenLength < displayTds + displayThs) {
-      var TD = document.createElement('TD');
-      TD.setAttribute('tabindex', 10000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/; 32767 is max tabindex for IE7,8
-      TRs[r].appendChild(TD);
-      trChildrenLength++;
-    }
-    while (trChildrenLength > displayTds + displayThs) {
-      TRs[r].removeChild(TRs[r].lastChild);
-      trChildrenLength--;
-    }
+    this.adjustColumns(this.TBODY.childNodes[r], displayTds + displayThs);
+  }
+};
+
+WalkontableTable.prototype.adjustColumns = function (TR, desiredCount) {
+  var count = TR.childNodes.length;
+  while (count < desiredCount) {
+    var TD = document.createElement('TD');
+    TD.setAttribute('tabindex', 10000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/; 32767 is max tabindex for IE7,8
+    TR.appendChild(TD);
+    count++;
+  }
+  while (count > desiredCount) {
+    TR.removeChild(TR.lastChild);
+    count--;
   }
 };
 
