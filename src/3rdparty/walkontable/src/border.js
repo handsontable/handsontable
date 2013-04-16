@@ -53,15 +53,17 @@ WalkontableBorder.prototype.appear = function (corners) {
     return;
   }
 
-  var offsetRow = this.instance.getSetting('offsetRow')
-    , offsetColumn = this.instance.getSetting('offsetColumn')
-    , displayRows = this.instance.getSetting('displayRows')
-    , lastColumn = this.instance.wtTable.getLastVisibleColumn();
+  var instance = this.instance
+    , offsetRow = instance.getSetting('offsetRow')
+    , offsetColumn = instance.getSetting('offsetColumn')
+    , displayRows = instance.getSetting('displayRows')
+    , lastRow = offsetRow + displayRows - 1
+    , lastColumn = instance.wtTable.getLastVisibleColumn();
 
   var hideTop = false, hideLeft = false, hideBottom = false, hideRight = false;
 
   if (displayRows !== null) {
-    if (corners[0] > offsetRow + displayRows - 1 || corners[2] < offsetRow) {
+    if (!walkontableRangesIntersect(corners[0], corners[2], offsetRow, lastRow)) {
       hideTop = hideLeft = hideBottom = hideRight = true;
     }
     else {
@@ -69,14 +71,14 @@ WalkontableBorder.prototype.appear = function (corners) {
         corners[0] = offsetRow;
         hideTop = true;
       }
-      if (corners[2] > offsetRow + displayRows - 1) {
-        corners[2] = offsetRow + displayRows - 1;
+      if (corners[2] > lastRow) {
+        corners[2] = lastRow;
         hideBottom = true;
       }
     }
   }
 
-  if (corners[1] > lastColumn || corners[3] < offsetColumn) {
+  if (!walkontableRangesIntersect(corners[1], corners[3], offsetColumn, lastColumn)) {
     hideTop = hideLeft = hideBottom = hideRight = true;
   }
   else {
@@ -92,11 +94,11 @@ WalkontableBorder.prototype.appear = function (corners) {
 
   if (hideTop + hideLeft + hideBottom + hideRight < 4) { //at least one border is not hidden
     isMultiple = (corners[0] !== corners[2] || corners[1] !== corners[3]);
-    $from = $(this.instance.wtTable.getCell([corners[0], corners[1]]));
-    $to = isMultiple ? $(this.instance.wtTable.getCell([corners[2], corners[3]])) : $from;
+    $from = $(instance.wtTable.getCell([corners[0], corners[1]]));
+    $to = isMultiple ? $(instance.wtTable.getCell([corners[2], corners[3]])) : $from;
     fromOffset = this.wtDom.offset($from[0]);
     toOffset = isMultiple ? this.wtDom.offset($to[0]) : fromOffset;
-    containerOffset = this.wtDom.offset(this.instance.wtTable.TABLE);
+    containerOffset = this.wtDom.offset(instance.wtTable.TABLE);
 
     minTop = fromOffset.top;
     height = toOffset.top + $to.outerHeight() - minTop;
