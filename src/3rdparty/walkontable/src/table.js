@@ -231,7 +231,6 @@ WalkontableTable.prototype._doDraw = function () {
     , rowHeaders = this.instance.hasSetting('rowHeaders')
     , displayThs = rowHeaders ? 1 : 0
     , TR
-    , lastTR
     , TD;
 
   //draw COLGROUP
@@ -245,24 +244,27 @@ WalkontableTable.prototype._doDraw = function () {
   }
 
   //draw THEAD
-  if (displayThs && this.instance.hasSetting('columnHeaders')) {
-    TD = this.THEAD.childNodes[0].firstChild; //actually it is TH but let's reuse single variable
-    this.wtDom.empty(TD);
-    if (this.hasEmptyCellProblem) { //IE7
-      TD.innerHTML = '&nbsp;';
+  var columnHeaders = this.instance.hasSetting('columnHeaders');
+  if (columnHeaders) {
+    TR = this.THEAD.firstChild;
+    if (displayThs) {
+      TD = TR.firstChild; //actually it is TH but let's reuse single variable
+      this.wtDom.empty(TD);
+      if (this.hasEmptyCellProblem) { //IE7
+        TD.innerHTML = '&nbsp;';
+      }
     }
   }
 
-  var columnHeaders = this.instance.hasSetting('columnHeaders');
   for (c = 0; c < displayTds; c++) {
     if (columnHeaders) {
-      this.instance.getSetting('columnHeaders', offsetColumn + c, this.THEAD.childNodes[0].childNodes[displayThs + c]);
+      this.instance.getSetting('columnHeaders', offsetColumn + c, TR.childNodes[displayThs + c]);
     }
     this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(offsetColumn + c) + 'px';
   }
 
   //draw TBODY
-  rows : while (offsetRow + r < totalRows) {
+  while (offsetRow + r < totalRows) {
     if (r >= this.tbodyChildrenLength) {
       TR = document.createElement('TR');
       if (displayThs) {
@@ -275,9 +277,8 @@ WalkontableTable.prototype._doDraw = function () {
       TR = this.TBODY.firstChild;
     }
     else {
-      TR = lastTR.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
+      TR = TR.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
     }
-    lastTR = TR;
     this.rowStrategy.cells.push(offsetRow + r);
     this.rowStrategy.cellCount++;
 
@@ -290,22 +291,27 @@ WalkontableTable.prototype._doDraw = function () {
     this.adjustColumns(TR, displayTds + displayThs);
     this.wtDom.tdResetCache();
 
-    for (c = 0; c < displayTds; c++) { //in future use nextSibling; http://jsperf.com/nextsibling-vs-indexed-childnodes
-      TD = TR.childNodes[c + displayThs];
+    for (c = 0; c < displayTds; c++) {
+      if (c === 0) {
+        TD = TR.childNodes[c + displayThs];
+      }
+      else {
+        TD = TD.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
+      }
       TD.className = '';
       TD.removeAttribute('style');
       this.instance.getSetting('cellRenderer', offsetRow + r, this.columnStrategy.cells[c], TD);
       if (this.hasEmptyCellProblem && TD.innerHTML === '') { //IE7
         TD.innerHTML = '&nbsp;';
       }
-
-      if (c === displayTds - 1) { //when last column is rendered
-        var isCellVisible = this.isCellVisible(offsetRow + r, this.columnStrategy.cells[c], TD);
-        if (isCellVisible & (FLAG_NOT_VISIBLE_VERTICAL | FLAG_PARTIALLY_VISIBLE_VERTICAL)) { //when row is invisible or partially visible, it should be the last one
-          break rows;
-        }
-      }
     }
+
+    //after last column is rendered, check if last cell is fully displayed
+    var isCellVisible = this.isCellVisible(offsetRow + r, this.columnStrategy.cells[c], TD);
+    if (isCellVisible & (FLAG_NOT_VISIBLE_VERTICAL | FLAG_PARTIALLY_VISIBLE_VERTICAL)) { //when it is invisible or partially visible, don't render more rows
+      break;
+    }
+
     r++;
   }
   while (this.tbodyChildrenLength > totalRows - offsetRow) {
