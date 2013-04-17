@@ -276,6 +276,10 @@ describe('WalkontableSelection', function () {
   });
 
   it("should highlight cells in selected row & column", function () {
+    var rowHeight = 23; //measured in real life with walkontable.css
+    var height = 200;
+    var potentialRowCount = Math.ceil(height / rowHeight);
+
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -299,10 +303,14 @@ describe('WalkontableSelection', function () {
     wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(2);
-    expect($table.find('.highlightColumn').length).toEqual(18);
+    expect($table.find('.highlightColumn').length).toEqual((potentialRowCount - 1) * 2);
   });
 
   it("should highlight cells in selected row & column, when same class is shared between 2 selection definitions", function () {
+    var rowHeight = 23; //measured in real life with walkontable.css
+    var height = 200;
+    var potentialRowCount = Math.ceil(height / rowHeight);
+
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -329,7 +337,7 @@ describe('WalkontableSelection', function () {
     wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(3);
-    expect($table.find('.highlightColumn').length).toEqual(9);
+    expect($table.find('.highlightColumn').length).toEqual(potentialRowCount - 1);
   });
 
   it("should remove highlight when selection is deselected", function () {

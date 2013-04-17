@@ -78,7 +78,7 @@ WalkontableSelection.prototype.draw = function (selectionsOnly) {
   var corners, r, c;
 
   var offsetRow = this.instance.getSetting('offsetRow')
-    , lastVisibleRow = offsetRow + this.instance.getSetting('displayRows') - 1
+    , lastVisibleRow = this.instance.wtTable.getLastVisibleRow()
     , offsetColumn = this.instance.getSetting('offsetColumn')
     , lastVisibleColumn = this.instance.wtTable.getLastVisibleColumn();
 

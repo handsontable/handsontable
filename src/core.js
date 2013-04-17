@@ -2048,7 +2048,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Number}
    */
   this.countVisibleRows = function () {
-    return self.view.wt.getSetting('viewportRows');
+    return self.view.wt.wtTable.countVisibleRows();
   };
 
   /**
@@ -2056,7 +2056,7 @@ Handsontable.Core = function (rootElement, settings) {
    * @return {Number}
    */
   this.countVisibleCols = function () {
-    return self.view.wt.getSetting('viewportColumns');
+    return self.view.wt.wtTable.countVisibleColumns();
   };
 
   /**

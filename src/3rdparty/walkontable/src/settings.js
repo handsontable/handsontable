@@ -41,7 +41,8 @@ function WalkontableSettings(instance, settings) {
 
     //constants
     scrollbarWidth: 10,
-    scrollbarHeight: 10
+    scrollbarHeight: 10,
+    rowHeaderWidth: 50
   };
 
   //reference to settings
@@ -119,41 +120,4 @@ WalkontableSettings.prototype.rowHeight = function (row) {
 
 WalkontableSettings.prototype.columnWidth = function (column) {
   return Math.min(200, this._getSetting('columnWidth', column));
-};
-
-WalkontableSettings.prototype.displayRows = function () {
-  var estimated
-    , calculated;
-
-  if (this.settings['height']) {
-    if (typeof this.settings['height'] !== 'number') {
-      throw new Error('Walkontable height parameter must be a number (' + typeof this.settings['height'] + ' given)');
-    }
-    estimated = Math.ceil(this.settings['height'] / 20); //silly assumption but should be fine for now
-    calculated = this.getSetting('totalRows') - this.getSetting('offsetRow');
-    if (calculated < 0) {
-      this.update('offsetRow', Math.max(0, this.getSetting('totalRows') - estimated));
-      return estimated;
-    }
-    else {
-      return Math.min(estimated, calculated);
-    }
-  }
-  else {
-    return this.getSetting('totalRows');
-  }
-};
-
-WalkontableSettings.prototype.viewportRows = function () {
-  if (this.instance.wtTable.visibilityEdgeRow !== null) {
-    return this.instance.wtTable.visibilityEdgeRow - this.instance.wtTable.visibilityStartRow;
-  }
-  return this.getSetting('displayRows');
-};
-
-WalkontableSettings.prototype.viewportColumns = function () {
-  if (this.instance.wtTable.visibilityEdgeColumn !== null) {
-    return this.instance.wtTable.visibilityEdgeColumn - this.instance.wtTable.visibilityStartColumn;
-  }
-  return this.instance.wtTable.getLastVisibleColumn();
 };

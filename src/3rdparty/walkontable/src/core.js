@@ -1,6 +1,6 @@
 function Walkontable(settings) {
   var self = this,
-      originalHeaders = [];
+    originalHeaders = [];
 
   //bootstrap from settings
   this.wtSettings = new WalkontableSettings(this, settings);
@@ -89,12 +89,11 @@ Walkontable.prototype.scrollViewport = function (coords) {
 };
 
 Walkontable.prototype.getViewport = function () {
-  //TODO change it to draw values only (add this.wtTable.visibilityStartRow, this.wtTable.visibilityStartColumn)
   return [
     this.getSetting('offsetRow'),
     this.getSetting('offsetColumn'),
-    this.wtTable.visibilityEdgeRow !== null ? this.wtTable.visibilityEdgeRow : this.getSetting('totalRows') - 1,
-    this.wtTable.visibilityEdgeColumn !== null ? this.wtTable.visibilityEdgeColumn : this.getSetting('totalColumns') - 1
+    this.wtTable.getLastVisibleRow(),
+    this.wtTable.getLastVisibleColumn()
   ];
 };
 

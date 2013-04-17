@@ -56,25 +56,22 @@ WalkontableBorder.prototype.appear = function (corners) {
   var instance = this.instance
     , offsetRow = instance.getSetting('offsetRow')
     , offsetColumn = instance.getSetting('offsetColumn')
-    , displayRows = instance.getSetting('displayRows')
-    , lastRow = offsetRow + displayRows - 1
+    , lastRow = instance.wtTable.getLastVisibleRow()
     , lastColumn = instance.wtTable.getLastVisibleColumn();
 
   var hideTop = false, hideLeft = false, hideBottom = false, hideRight = false;
 
-  if (displayRows !== null) {
-    if (!walkontableRangesIntersect(corners[0], corners[2], offsetRow, lastRow)) {
-      hideTop = hideLeft = hideBottom = hideRight = true;
+  if (!walkontableRangesIntersect(corners[0], corners[2], offsetRow, lastRow)) {
+    hideTop = hideLeft = hideBottom = hideRight = true;
+  }
+  else {
+    if (corners[0] < offsetRow) {
+      corners[0] = offsetRow;
+      hideTop = true;
     }
-    else {
-      if (corners[0] < offsetRow) {
-        corners[0] = offsetRow;
-        hideTop = true;
-      }
-      if (corners[2] > lastRow) {
-        corners[2] = lastRow;
-        hideBottom = true;
-      }
+    if (corners[2] > lastRow) {
+      corners[2] = lastRow;
+      hideBottom = true;
     }
   }
 

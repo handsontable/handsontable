@@ -64,6 +64,11 @@ describe('Walkontable', function () {
   });
 
   it("should bootstrap table if empty TABLE is given", function () {
+    var rowHeight = 23; //measured in real life with walkontable.css
+    var colCount = 4;
+    var height = 200;
+    var potentialCellCount = colCount * Math.ceil(height / rowHeight);
+
     $table.remove();
     $table = $('<table>    </table>'); //should also clean the empty text nodes inside
     $table.appendTo('body');
@@ -75,11 +80,11 @@ describe('Walkontable', function () {
       totalColumns: getTotalColumns,
       offsetRow: 0,
       offsetColumn: 0,
-      height: 200,
+      height: height,
       width: 200
     });
     wt.draw();
-    expect($table.find('td').length).toBe(40);
+    expect($table.find('td').length).toBe(potentialCellCount);
   });
 
   it("should bootstrap column headers if THEAD is given", function () {
@@ -105,7 +110,8 @@ describe('Walkontable', function () {
     expect($table.find('tbody tr:first td').length).toBe(4);
   });
 
-  it("should figure out the displayRows property if height param given", function () {
+  it("should figure out the amount of rows to display if height param given", function () {
+    var rowHeight = 23; //measured in real life with walkontable.css
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -116,7 +122,7 @@ describe('Walkontable', function () {
       height: 400
     });
     wt.draw();
-    expect($table.find('tbody tr').length).toBe(20);
+    expect($table.find('tbody tr').length).toBe(Math.ceil(400 / rowHeight));
   });
 
   it("should figure out how many columns to display if width param given", function () {
