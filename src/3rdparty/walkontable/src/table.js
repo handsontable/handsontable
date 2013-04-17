@@ -264,6 +264,7 @@ WalkontableTable.prototype._doDraw = function () {
   }
 
   //draw TBODY
+  this.wtDom.tdResetCache();
   while (offsetRow + r < totalRows) {
     if (r >= this.tbodyChildrenLength) {
       TR = document.createElement('TR');
@@ -289,7 +290,6 @@ WalkontableTable.prototype._doDraw = function () {
 
     //TD
     this.adjustColumns(TR, displayTds + displayThs);
-    this.wtDom.tdResetCache();
 
     for (c = 0; c < displayTds; c++) {
       if (c === 0) {

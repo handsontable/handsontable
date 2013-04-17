@@ -4,6 +4,7 @@ Bugfixes:
 - source parameter should be `edit` when cell value is changed through editor (#566)
 - getRowHeaders returns NaN when no argument given - should return array of all row headers (#568, #352)
 - getColHeaders returns NaN when no argument given - should return array of all column headers (#569, #382)
+- selected area class name was not applied on scrolling (tdCache was not bound to instance)
 
 Other:
 - refactor row and column header DOM operations to be consistently defined in `tableView.js`

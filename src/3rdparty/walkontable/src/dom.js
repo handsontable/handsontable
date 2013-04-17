@@ -1,8 +1,10 @@
 function WalkontableDom(instance) {
   if (instance) {
     this.instance = instance;
+    if(!this.instance.tdCache) {
+      this.instance.tdCache = {};
+    }
   }
-  this.tdCache = [];
 }
 
 //goes up the DOM tree (including given element) until it finds an element that matches the nodeName
@@ -27,40 +29,44 @@ WalkontableDom.prototype.prevSiblings = function (elem) {
 };
 
 WalkontableDom.prototype.tdHasClass = function (trIndex, tdIndex, cls) {
-  return !!(this.tdCache[trIndex] && this.tdCache[trIndex][tdIndex] && this.tdCache[trIndex][tdIndex][cls]);
+  var cache = this.instance.tdCache;
+  return !!(cache[trIndex] && cache[trIndex][tdIndex] && cache[trIndex][tdIndex][cls]);
 };
 
 WalkontableDom.prototype.tdAddClass = function (trIndex, tdIndex, cls) {
   if (!this.tdHasClass(trIndex, tdIndex, cls)) {
-    if (!this.tdCache[trIndex]) {
-      this.tdCache[trIndex] = [];
+    var cache = this.instance.tdCache;
+    if (!cache[trIndex]) {
+      cache[trIndex] = [];
     }
-    if (!this.tdCache[trIndex][tdIndex]) {
-      this.tdCache[trIndex][tdIndex] = {};
-      this.tdCache[trIndex][tdIndex]._node = this.instance.wtTable.getCell([trIndex + this.instance.getSetting('offsetRow'), tdIndex + this.instance.getSetting('offsetColumn')]);
+    if (!cache[trIndex][tdIndex]) {
+      cache[trIndex][tdIndex] = {};
+      cache[trIndex][tdIndex]._node = this.instance.wtTable.getCell([trIndex + this.instance.getSetting('offsetRow'), tdIndex + this.instance.getSetting('offsetColumn')]);
     }
-    this.tdCache[trIndex][tdIndex]._node.className += " " + cls;
-    this.tdCache[trIndex][tdIndex][cls] = true;
+    cache[trIndex][tdIndex]._node.className += " " + cls;
+    cache[trIndex][tdIndex][cls] = true;
   }
 };
 
 WalkontableDom.prototype.tdRemoveClass = function (trIndex, tdIndex, cls) {
   if (this.tdHasClass(trIndex, tdIndex, cls)) {
+    var cache = this.instance.tdCache;
     var reg = new RegExp('(\\s|^)' + cls + '(\\s|$)');
-    this.tdCache[trIndex][tdIndex]._node.className = this.tdCache[trIndex][tdIndex]._node.className.replace(reg, ' ').replace(/^\s\s*/, '').replace(/\s\s*$/, ''); //last 2 replaces do right trim (see http://blog.stevenlevithan.com/archives/faster-trim-javascript)
-    this.tdCache[trIndex][tdIndex][cls] = false;
+    cache[trIndex][tdIndex]._node.className = cache[trIndex][tdIndex]._node.className.replace(reg, ' ').replace(/^\s\s*/, '').replace(/\s\s*$/, ''); //last 2 replaces do right trim (see http://blog.stevenlevithan.com/archives/faster-trim-javascript)
+    cache[trIndex][tdIndex][cls] = false;
   }
 };
 
 WalkontableDom.prototype.tdResetCache = function () {
-  for (var i in this.tdCache) {
-    if (this.tdCache.hasOwnProperty(i)) {
-      for (var j in this.tdCache[i]) {
-        if (this.tdCache[i].hasOwnProperty(j)) {
-          for (var k in this.tdCache[i][j]) {
-            if (this.tdCache[i][j].hasOwnProperty(k)) {
+  var cache = this.instance.tdCache;
+  for (var i in cache) {
+    if (cache.hasOwnProperty(i)) {
+      for (var j in cache[i]) {
+        if (cache[i].hasOwnProperty(j)) {
+          for (var k in cache[i][j]) {
+            if (cache[i][j].hasOwnProperty(k)) {
               if (k !== '_node') {
-                this.tdCache[i][j][k] = false;
+                cache[i][j][k] = false;
               }
             }
           }
