@@ -101,7 +101,7 @@ function HandsontableManualColumnResize() {
 }
 var htManualColumnResize = new HandsontableManualColumnResize();
 
-Handsontable.PluginHooks.push('beforeInit', htManualColumnResize.beforeInit);
-Handsontable.PluginHooks.push('afterInit', htManualColumnResize.afterInit);
-Handsontable.PluginHooks.push('afterGetColHeader', htManualColumnResize.getColHeader);
-Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWidth);
+Handsontable.PluginHooks.add('beforeInit', htManualColumnResize.beforeInit);
+Handsontable.PluginHooks.add('afterInit', htManualColumnResize.afterInit);
+Handsontable.PluginHooks.add('afterGetColHeader', htManualColumnResize.getColHeader);
+Handsontable.PluginHooks.add('afterGetColWidth', htManualColumnResize.getColWidth);

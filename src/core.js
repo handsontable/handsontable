@@ -12,7 +12,7 @@ Handsontable.Core = function (rootElement, settings) {
     this.rootElement[0].id = this.guid; //if root element does not have an id, assign a random id
   }
 
-  var priv, datamap, grid, selection, editproxy, autofill, self = this;
+  var priv, hooks, datamap, grid, selection, editproxy, autofill, self = this;
 
   priv = {
     settings: {},
@@ -29,6 +29,21 @@ Handsontable.Core = function (rootElement, settings) {
     dataSchema: null,
     dataType: 'array',
     firstRun: true
+  };
+
+  hooks = {
+    beforeInit: [],
+    afterInit: [],
+    afterLoadData: [],
+    beforeRender: [],
+    afterRender: [],
+    beforeGet: [],
+    beforeSet: [],
+    beforeGetCellMeta: [],
+    afterGetCellMeta: [],
+    afterGetColHeader: [],
+    afterGetColWidth: [],
+    afterDestroy: []
   };
 
   datamap = {
@@ -234,7 +249,7 @@ Handsontable.Core = function (rootElement, settings) {
     get: function (row, prop) {
       datamap.getVars.row = row;
       datamap.getVars.prop = prop;
-      Handsontable.PluginHooks.run(self, 'beforeGet', datamap.getVars);
+      self.runHooks('beforeGet', datamap.getVars);
       if (typeof datamap.getVars.prop === 'string' && datamap.getVars.prop.indexOf('.') > -1) {
         var sliced = datamap.getVars.prop.split(".");
         var out = priv.settings.data[datamap.getVars.row];
@@ -284,7 +299,7 @@ Handsontable.Core = function (rootElement, settings) {
       datamap.setVars.row = row;
       datamap.setVars.prop = prop;
       datamap.setVars.value = value;
-      Handsontable.PluginHooks.run(self, 'beforeSet', datamap.setVars);
+      self.runHooks('beforeSet', datamap.setVars);
       if (typeof datamap.setVars.prop === 'string' && datamap.setVars.prop.indexOf('.') > -1) {
         var sliced = datamap.setVars.prop.split(".");
         var out = priv.settings.data[datamap.setVars.row];
@@ -1282,7 +1297,7 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   this.init = function () {
-    Handsontable.PluginHooks.run(self, 'beforeInit');
+    self.runHooks('beforeInit');
     editproxy.init();
 
     bindEvents();
@@ -1298,7 +1313,7 @@ Handsontable.Core = function (rootElement, settings) {
       fireEvent('datachange.handsontable', priv.firstRun);
       priv.firstRun = false;
     }
-    Handsontable.PluginHooks.run(self, 'afterInit');
+    self.runHooks('afterInit');
   };
 
   function validateChanges(changes, source) {
@@ -1638,7 +1653,7 @@ Handsontable.Core = function (rootElement, settings) {
     datamap.createMap();
 
     grid.keepEmptyRows();
-    Handsontable.PluginHooks.run(self, 'afterLoadData');
+    self.runHooks('afterLoadData');
 
     if (priv.firstRun) {
       priv.firstRun = [null, 'loadData'];
@@ -1697,11 +1712,16 @@ Handsontable.Core = function (rootElement, settings) {
         continue; //loadData will be triggered later
       }
       else if (settings.hasOwnProperty(i)) {
-        priv.settings[i] = settings[i];
+        if (i in hooks) {
+          self.addHook(i, settings[i]);
+        }
+        else {
+          priv.settings[i] = settings[i];
 
-        //launch extensions
-        if (Handsontable.extension[i]) {
-          priv.extensions[i] = new Handsontable.extension[i](self, settings[i]);
+          //launch extensions
+          if (Handsontable.extension[i]) {
+            priv.extensions[i] = new Handsontable.extension[i](self, settings[i]);
+          }
         }
       }
     }
@@ -1889,7 +1909,7 @@ Handsontable.Core = function (rootElement, settings) {
     if (priv.settings.cells) {
       cellProperties = $.extend(true, cellProperties, priv.settings.cells(row, col, prop) || {});
     }
-    Handsontable.PluginHooks.run(self, 'beforeGetCellMeta', row, col, cellProperties);
+    self.runHooks('beforeGetCellMeta', row, col, cellProperties);
 
     if (typeof cellProperties.type === 'string' && Handsontable.cellTypes[cellProperties.type]) {
       type = Handsontable.cellTypes[cellProperties.type];
@@ -1907,7 +1927,7 @@ Handsontable.Core = function (rootElement, settings) {
     }
 
     cellProperties.isWritable = !cellProperties.readOnly;
-    Handsontable.PluginHooks.run(self, 'afterGetCellMeta', row, col, cellProperties);
+    self.runHooks('afterGetCellMeta', row, col, cellProperties);
     return cellProperties;
   };
 
@@ -1967,7 +1987,7 @@ Handsontable.Core = function (rootElement, settings) {
       TH.removeChild(TH.firstChild); //empty TH node
     }
     TH.appendChild(DIV);
-    Handsontable.PluginHooks.run(self, 'afterGetColHeader', col, TH);
+    self.runHooks('afterGetColHeader', col, TH);
   };
 
   /**
@@ -1987,7 +2007,7 @@ Handsontable.Core = function (rootElement, settings) {
     else {
       response.width = 50;
     }
-    Handsontable.PluginHooks.run(self, 'afterGetColWidth', col, response);
+    self.runHooks('afterGetColWidth', col, response);
     return response.width;
   };
 
@@ -2207,7 +2227,62 @@ Handsontable.Core = function (rootElement, settings) {
     self.rootElement.off('.handsontable');
     $(window).off('.' + self.guid);
     $(document.documentElement).off('.' + self.guid);
-    Handsontable.PluginHooks.run(self, 'afterDestroy');
+    self.runHooks('afterDestroy');
+  };
+
+  /**
+   * Return Handsontable instance
+   * @public
+   * @return {Object}
+   */
+  this.getInstance = function () {
+    return self.rootElement.data("handsontable");
+  };
+
+  /**
+   * Add PluginHook to this instance
+   * @public
+   */
+  this.addHook = function (key, fn) {
+    if (typeof hooks[key] === "undefined") {
+      hooks[key] = [];
+    }
+
+    if (fn instanceof Array) {
+      for (var i = 0, len = fn.length; i < len; i++) {
+        hooks[key].push(fn[i]);
+      }
+    } else {
+      hooks[key].push(fn);
+    }
+  };
+
+  /**
+   * Remove PluginHook from this instance
+   * @public
+   * @return {Boolean}
+   */
+  this.removeHook = function (key, fn) {
+    for(var i = 0, len = hooks[key].length; i < len; i++) {
+      if (hooks[key][i] == fn) {
+        hooks[key].splice(i, 1);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  /**
+   * Run all PluginHooks (global and public)
+   * @public
+   */
+  this.runHooks = function (key, p1, p2, p3, p4, p5) {
+    if (typeof hooks[key] !== 'undefined') {
+      for (var i = 0, len = hooks[key].length; i < len; i++) {
+        hooks[key][i].call(self, p1, p2, p3, p4, p5);
+      }
+    }
+    Handsontable.PluginHooks.run(self, key, p1, p2, p3, p4, p5);
   };
 
   this.timeouts = {};
@@ -2271,28 +2346,33 @@ var settings = {
 };
 
 $.fn.handsontable = function (action) {
-  var i, ilen, args, output = [], userSettings;
-  if (typeof action !== 'string') { //init
+  var i, ilen, args, output, userSettings;
+
+  // Use only first element from list
+  var _this = this.first();
+
+  // Init case
+  if (typeof action !== 'string') {
     userSettings = action || {};
-    return this.each(function () {
-      var $this = $(this);
-      if ($this.data("handsontable")) {
-        instance = $this.data("handsontable");
-        instance.updateSettings(userSettings);
-      }
-      else {
-        var currentSettings = $.extend(true, {}, settings), instance;
-        for (i in userSettings) {
-          if (userSettings.hasOwnProperty(i)) {
-            currentSettings[i] = userSettings[i];
-          }
+    if (_this.data("handsontable")) {
+      instance = _this.data("handsontable");
+      instance.updateSettings(userSettings);
+    }
+    else {
+      var currentSettings = $.extend(true, {}, settings), instance;
+      for (i in userSettings) {
+        if (userSettings.hasOwnProperty(i)) {
+          currentSettings[i] = userSettings[i];
         }
-        instance = new Handsontable.Core($this, currentSettings);
-        $this.data("handsontable", instance);
-        instance.init();
       }
-    });
+      instance = new Handsontable.Core(_this, currentSettings);
+      _this.data("handsontable", instance);
+      instance.init();
+    }
+
+    return _this;
   }
+  // Action case
   else {
     args = [];
     if (arguments.length > 1) {
@@ -2300,12 +2380,17 @@ $.fn.handsontable = function (action) {
         args.push(arguments[i]);
       }
     }
-    this.each(function () {
-      var instance = $(this).data("handsontable");
-      if (instance) {
-        output = instance[action].apply(this, args);
+
+    var instance = _this.data("handsontable");
+    if (instance) {
+      if (typeof instance[action] !== "undefined") {
+        output = instance[action].apply(_this, args);
       }
-    });
+      else {
+        throw new Error('Handsontable do not provide action: ' + action);
+      }
+    }
+
     return output;
   }
 };

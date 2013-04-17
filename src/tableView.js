@@ -275,17 +275,18 @@ Handsontable.TableView.prototype.getHeight = function () {
 };
 
 Handsontable.TableView.prototype.render = function () {
-  if (this.instance.forceFullRender) {
-    Handsontable.PluginHooks.run(this.instance, 'beforeRender');
+  var instance = this.instance;
+  if (instance.forceFullRender) {
+    instance.runHooks('beforeRender');
     this.wt.update('width', this.getWidth());
     this.wt.update('height', this.getHeight());
   }
-  this.wt.draw(!this.instance.forceFullRender);
-  this.instance.rootElement.triggerHandler('render.handsontable');
-  if (this.instance.forceFullRender) {
-    Handsontable.PluginHooks.run(this.instance, 'afterRender');
+  this.wt.draw(!instance.forceFullRender);
+  instance.rootElement.triggerHandler('render.handsontable');
+  if (instance.forceFullRender) {
+    instance.runHooks('afterRender');
   }
-  this.instance.forceFullRender = false;
+  instance.forceFullRender = false;
 };
 
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {
