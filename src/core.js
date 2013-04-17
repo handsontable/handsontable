@@ -1260,24 +1260,12 @@ Handsontable.Core = function (rootElement, settings) {
         return;
       }
 
-      // if (priv.settings.asyncRendering) {
-      //   self.registerTimeout('prepareFrame', function () {
-      //     var TD = self.view.getCellAtCoords(priv.selStart.coords());
-      //     if (Handsontable.helper.isDescendant(self.rootElement[0], document.activeElement)) {
-      //       //we don't want to steal focus if it is outside HT (issue #408)
-      //       TD.focus();
-      //     }
-      //     priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
-      //   }, 0);
-      // }
-      // else {
-        var TD = self.view.getCellAtCoords(priv.selStart.coords());
-        if (Handsontable.helper.isDescendant(self.rootElement[0], document.activeElement)) {
-          //we don't want to steal focus if it is outside HT (issue #408)
-          TD.focus();
-        }
-        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
-      // }
+      var TD = self.view.getCellAtCoords(priv.selStart.coords());
+      if (Handsontable.helper.isDescendant(self.rootElement[0], document.activeElement)) {
+        //we don't want to steal focus if it is outside HT (issue #408)
+        TD.focus();
+      }
+      priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
     }
   };
 
@@ -1378,14 +1366,7 @@ Handsontable.Core = function (rootElement, settings) {
   }
 
   var fireEvent = function (name, params) {
-    // if (priv.settings.asyncRendering) {
-    //   self.registerTimeout('fireEvent', function () {
-    //     self.rootElement.triggerHandler(name, params);
-    //   }, 0);
-    // }
-    // else {
-      self.rootElement.triggerHandler(name, params);
-    // }
+    self.rootElement.triggerHandler(name, params);
   };
 
   var bindEvents = function () {

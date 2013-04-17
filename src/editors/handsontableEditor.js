@@ -34,7 +34,6 @@ HandsontableHandsontableEditorClass.prototype.bindTemporaryEvents = function (td
     fillHandle: false,
     width: 2000,
     //width: 'auto',
-    // asyncRendering: false,
     afterOnCellMouseDown: function () {
       var sel = this.getSelected();
       parent.TEXTAREA.value = this.getDataAtCell(sel[0], sel[1]);

@@ -311,8 +311,7 @@ describe('Core_loadData', function () {
       minSpareCols: 1,
       minSpareRows: 1,
       rowHeaders: true,
-      colHeaders: true,
-      asyncRendering: false
+      colHeaders: true
     });
     selectCell(8, 0);
     loadData(data2);
@@ -342,8 +341,7 @@ describe('Core_loadData', function () {
     handsontable({
       data: data1,
       rowHeaders: true,
-      colHeaders: true,
-      asyncRendering: false
+      colHeaders: true
     });
     selectCell(7, 0);
     loadData(data2);
