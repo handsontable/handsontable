@@ -655,6 +655,11 @@ Handsontable.Core = function (rootElement, settings) {
     setRangeStart: function (coords) {
       priv.selStart.coords(coords);
       selection.setRangeEnd(coords);
+      var TD = self.view.getCellAtCoords(priv.selStart.coords());
+      if (TD && Handsontable.helper.isDescendant(self.rootElement[0], document.activeElement)) {
+        //we don't want to steal focus if it is outside HT (issue #408)
+        TD.focus();
+      }
     },
 
     /**
@@ -1261,11 +1266,8 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       var TD = self.view.getCellAtCoords(priv.selStart.coords());
-      if (Handsontable.helper.isDescendant(self.rootElement[0], document.activeElement)) {
-        //we don't want to steal focus if it is outside HT (issue #408)
-        TD.focus();
-      }
       priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
+      //presumably TD can be removed from here. Cell editor should also listen for changes if editable cell is outside from viewport
     }
   };
 
@@ -1280,7 +1282,6 @@ Handsontable.Core = function (rootElement, settings) {
 
     this.forceFullRender = true; //used when data was changed
     this.view.render();
-    this.$table[0].focus(); //otherwise TextEditor tests do not pass in IE8
 
     if (typeof priv.firstRun === 'object') {
       fireEvent('datachange.handsontable', priv.firstRun);

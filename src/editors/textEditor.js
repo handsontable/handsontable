@@ -106,6 +106,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
   this.col = col;
   this.prop = prop;
   this.originalValue = value;
+  this.lastActiveElement = document.activeElement;
   this.cellProperties = cellProperties;
 
   var that = this;
@@ -310,7 +311,7 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
 
   this.unbindTemporaryEvents();
   if (document.activeElement === this.TEXTAREA) {
-    this.TD.focus(); //don't refocus the table if user focused some cell outside of HT on purpose
+    this.lastActiveElement.focus(); //don't refocus the table if user focused some cell outside of HT on purpose
   }
 
   this.textareaParentStyle.display = 'none';

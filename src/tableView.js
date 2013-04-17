@@ -259,8 +259,6 @@ Handsontable.TableView = function (instance) {
       event.stopPropagation();
     }
   });
-
-  // table.focus(); //otherwise TextEditor tests do not pass in IE8
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {

@@ -34,6 +34,7 @@ var spec = function () {
 var handsontable = function (options) {
   var currentSpec = spec();
   currentSpec.$container.handsontable(options);
+  currentSpec.$container[0].focus(); //otherwise TextEditor tests do not pass in IE8
   return currentSpec.$container.data('handsontable');
 };
 
