@@ -405,10 +405,10 @@ WalkontableTable.prototype.getCell = function (coords) {
       var displayThs = this.instance.hasSetting('rowHeaders') ? 1 : 0
         , tr = this.TBODY.childNodes[coords[0] - offsetRow];
 
-      if (typeof tr === "undefined") { //this block is only needed in async mode
+      /*if (typeof tr === "undefined") { //this block is only needed in async mode
         this.adjustAvailableNodes();
         tr = this.TBODY.childNodes[coords[0] - offsetRow];
-      }
+      }*/
 
       return tr.childNodes[coords[1] - offsetColumn + displayThs];
     }

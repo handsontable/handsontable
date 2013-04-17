@@ -53,7 +53,6 @@ $(window).load(function () {
 
   var wt = new Walkontable({
     table: document.getElementsByTagName('TABLE')[0],
-    async: false,
     data: function (row, col) {
       return arr[row][col];
     },
@@ -107,5 +106,5 @@ $(window).load(function () {
         console.log("Benchmark finished: " + String(event.target));
       }
     })
-    .run({async: false});
+    .run();
 });
