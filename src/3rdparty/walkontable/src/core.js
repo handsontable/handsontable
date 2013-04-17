@@ -83,9 +83,6 @@ Walkontable.prototype.hasSetting = function (key) {
 };
 
 Walkontable.prototype.destroy = function () {
-  clearTimeout(this.drawTimeout);
-  clearTimeout(this.scrollTimeout);
   clearTimeout(this.wheelTimeout);
   clearTimeout(this.dblClickTimeout);
-  clearTimeout(this.selectionsTimeout);
 };
