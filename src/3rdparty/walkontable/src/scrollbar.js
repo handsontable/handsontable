@@ -223,7 +223,4 @@ WalkontableScrollbar.prototype.refresh = function () {
   }
 
   this.sliderStyle.display = 'block';
-
-  this.dragdealer.setWrapperOffset();
-  this.dragdealer.setBounds();
 };
