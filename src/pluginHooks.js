@@ -1,18 +1,26 @@
 Handsontable.PluginHooks = (function () {
   var hooks = {
     beforeInit: [],
-    afterInit: [],
-    afterLoadData: [],
     beforeRender: [],
-    afterRender: [],
     beforeGet: [],
     beforeSet: [],
     beforeGetCellMeta: [],
+
+    afterInit: [],
+    afterLoadData: [],
+    afterRender: [],
     afterGetCellMeta: [],
     afterGetColHeader: [],
     afterGetColWidth: [],
-    walkontableConfig: [],
-    afterDestroy: []
+    afterDestroy: [],
+
+    onSelection: [],
+    onSelectionByProp: [],
+    onSelectionEnd: [],
+    onSelectionEndByProp: [],
+    onBeforeChange: [],
+    onChange: [],
+    onCopyLimit: []
   };
 
   return {

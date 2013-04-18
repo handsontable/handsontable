@@ -41,7 +41,7 @@ describe('Core_datachange', function () {
 
     runs(function () {
       handsontable();
-      this.$container.on("datachange.handsontable", function (event, changes) {
+      Handsontable.PluginHooks.add("onChange", function (changes) {
         output = changes;
       });
       setDataAtCell(1, 2, "test");
@@ -59,14 +59,14 @@ describe('Core_datachange', function () {
     });
   });
 
-  it('this should point to handsontable rootElement', function () {
+  it('this.rootElement should point to handsontable rootElement', function () {
     var output = null;
     var $container = this.$container;
 
     runs(function () {
       handsontable({
         onChange: function () {
-          output = this;
+          output = this.rootElement[0];
         }
       });
       setDataAtCell(0, 0, "test");
