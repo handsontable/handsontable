@@ -162,8 +162,6 @@ Handsontable.TableView = function (instance) {
     selections: {
       current: {
         className: 'current',
-        highlightRowClassName: that.settings.currentRowClassName,
-        highlightColumnClassName: that.settings.currentColClassName,
         border: {
           width: 2,
           color: '#5292F7',
@@ -175,8 +173,6 @@ Handsontable.TableView = function (instance) {
       },
       area: {
         className: 'area',
-        highlightRowClassName: that.settings.currentRowClassName,
-        highlightColumnClassName: that.settings.currentColClassName,
         border: {
           width: 1,
           color: '#89AFF9',
@@ -185,6 +181,10 @@ Handsontable.TableView = function (instance) {
             return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
           }
         }
+      },
+      highlight: {
+        highlightRowClassName: that.settings.currentRowClassName,
+        highlightColumnClassName: that.settings.currentColClassName
       },
       fill: {
         className: 'fill',

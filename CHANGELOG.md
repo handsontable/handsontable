@@ -6,6 +6,7 @@ Bugfixes:
 - getColHeaders returns NaN when no argument given - should return array of all column headers (#569, #382)
 - selected area class name was not applied on scrolling (tdCache was not bound to instance)
 - fix cell focusing problems (#549, #506, #573)
+- currentRowClassName and currentColClassName not kept while scrolling (#455)
 
 Other:
 - refactor row and column header DOM operations to be consistently defined in `tableView.js`

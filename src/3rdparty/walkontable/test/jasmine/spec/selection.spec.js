@@ -272,7 +272,7 @@ describe('WalkontableSelection', function () {
     wt.selections.current.add([0, 1]);
     wt.selections.current.clear();
 
-    expect(wt.selections.current.getSelected().length).toEqual(0);
+    expect(wt.selections.current.selected.length).toEqual(0);
   });
 
   it("should highlight cells in selected row & column", function () {

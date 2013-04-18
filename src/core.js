@@ -681,6 +681,13 @@ Handsontable.Core = function (rootElement, settings) {
         self.view.wt.selections.area.add(priv.selEnd.arr());
       }
 
+      //set up highlight
+      if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
+      self.view.wt.selections.highlight.clear();
+        self.view.wt.selections.highlight.add(priv.selStart.arr());
+        self.view.wt.selections.highlight.add(priv.selEnd.arr());
+      }
+
       //trigger handlers
       self.rootElement.triggerHandler("selection.handsontable", [priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col()]);
       self.rootElement.triggerHandler("selectionbyprop.handsontable", [priv.selStart.row(), datamap.colToProp(priv.selStart.col()), priv.selEnd.row(), datamap.colToProp(priv.selEnd.col())]);

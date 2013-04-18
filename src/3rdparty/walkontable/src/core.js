@@ -4,7 +4,7 @@ function Walkontable(settings) {
 
   //bootstrap from settings
   this.wtSettings = new WalkontableSettings(this, settings);
-  this.wtDom = new WalkontableDom(this);
+  this.wtDom = new WalkontableDom();
   this.wtTable = new WalkontableTable(this);
   this.wtScroll = new WalkontableScroll(this);
   this.wtWheel = new WalkontableWheel(this);

@@ -93,6 +93,9 @@ function WalkontableTable(instance) {
   this.colgroupChildrenLength = this.COLGROUP.childNodes.length;
   this.theadChildrenLength = this.THEAD.firstChild ? this.THEAD.firstChild.childNodes.length : 0;
   this.tbodyChildrenLength = this.TBODY.childNodes.length;
+
+  this.oldCellCache = new WalkontableClassNameCache();
+  this.currentCellCache = new WalkontableClassNameCache();
 }
 
 WalkontableTable.prototype.refreshHiderDimensions = function () {
@@ -262,7 +265,6 @@ WalkontableTable.prototype._doDraw = function () {
   }
 
   //draw TBODY
-  this.wtDom.tdResetCache();
   while (offsetRow + r < totalRows) {
     if (r >= this.tbodyChildrenLength) {
       TR = document.createElement('TR');
@@ -325,11 +327,47 @@ WalkontableTable.prototype.refreshPositions = function (selectionsOnly) {
 };
 
 WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
-  var r;
+  var r
+    , c
+    , s
+    , slen
+    , classNames = []
+    , offsetRow = this.instance.getSetting('offsetRow')
+    , lastVisibleRow = this.instance.wtTable.getLastVisibleRow()
+    , offsetColumn = this.instance.getSetting('offsetColumn')
+    , lastVisibleColumn = this.instance.wtTable.getLastVisibleColumn();
+
+  this.oldCellCache = this.currentCellCache;
+  this.currentCellCache = new WalkontableClassNameCache();
+
   if (this.instance.selections) {
     for (r in this.instance.selections) {
       if (this.instance.selections.hasOwnProperty(r)) {
-        this.instance.selections[r].draw(selectionsOnly);
+        this.instance.selections[r].draw();
+        if (this.instance.selections[r].settings.className) {
+          classNames.push(this.instance.selections[r].settings.className);
+        }
+        if (this.instance.selections[r].settings.highlightRowClassName) {
+          classNames.push(this.instance.selections[r].settings.highlightRowClassName);
+        }
+        if (this.instance.selections[r].settings.highlightColumnClassName) {
+          classNames.push(this.instance.selections[r].settings.highlightColumnClassName);
+        }
+      }
+    }
+  }
+
+  slen = classNames.length;
+
+  for (r = offsetRow; r <= lastVisibleRow; r++) {
+    for (c = offsetColumn; c <= lastVisibleColumn; c++) {
+      for (s = 0; s < slen; s++) {
+        if (this.currentCellCache.test(r, c, classNames[s])) {
+          this.wtDom.addClass(this.getCell([r, c]), classNames[s]);
+        }
+        else if (selectionsOnly && this.oldCellCache.test(r, c, classNames[s])) {
+          this.wtDom.removeClass(this.getCell([r, c]), classNames[s]);
+        }
       }
     }
   }
@@ -404,9 +442,9 @@ WalkontableTable.prototype.getCell = function (coords) {
         , tr = this.TBODY.childNodes[coords[0] - offsetRow];
 
       /*if (typeof tr === "undefined") { //this block is only needed in async mode
-        this.adjustAvailableNodes();
-        tr = this.TBODY.childNodes[coords[0] - offsetRow];
-      }*/
+       this.adjustAvailableNodes();
+       tr = this.TBODY.childNodes[coords[0] - offsetRow];
+       }*/
 
       return tr.childNodes[coords[1] - offsetColumn + displayThs];
     }
