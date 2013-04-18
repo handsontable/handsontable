@@ -220,6 +220,7 @@ describe('Core_loadData', function () {
     var count = 0;
     handsontable({
       data: arrayOfNestedObjects(),
+      colWidths: [90, 90, 90], //need to define colWidths, otherwise HandsontableAutoColumnSize will call cells() too
       cells: function (row, col, prop) {
         count++;
       }
