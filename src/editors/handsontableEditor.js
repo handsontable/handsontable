@@ -23,7 +23,6 @@ HandsontableHandsontableEditorClass.prototype.createElements = function () {
 
 HandsontableHandsontableEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
   var parent = this;
-  this.lastActiveElement = document.activeElement;
 
   var options = {
     colHeaders: true,
@@ -79,9 +78,9 @@ HandsontableHandsontableEditorClass.prototype.finishEditing = function (isCancel
   if (Handsontable.helper.isDescendant(this.instance.rootElement[0], document.activeElement)) {
     var that = this;
     setTimeout(function () {
-      that.lastActiveElement.focus(); //return the focus to the cell must be done after destroyer to work in IE7-9
+      that.instance.listen(); //return the focus to the cell must be done after destroyer to work in IE7-9
     }, 0);
-    that.lastActiveElement.focus(); //return the focus to the cell
+    that.instance.listen(); //return the focus to the cell
   }
   this.$htContainer.handsontable('destroy');
   HandsontableTextEditorClass.prototype.finishEditing.call(this, isCancelled, ctrlDown);

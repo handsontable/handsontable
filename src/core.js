@@ -655,11 +655,6 @@ Handsontable.Core = function (rootElement, settings) {
     setRangeStart: function (coords) {
       priv.selStart.coords(coords);
       selection.setRangeEnd(coords);
-      var TD = self.view.getCellAtCoords(priv.selStart.coords());
-      if (TD && Handsontable.helper.isDescendant(self.rootElement[0], document.activeElement)) {
-        //we don't want to steal focus if it is outside HT (issue #408)
-        TD.focus();
-      }
     },
 
     /**
@@ -1265,6 +1260,7 @@ Handsontable.Core = function (rootElement, settings) {
         return;
       }
 
+      self.listen();
       var TD = self.view.getCellAtCoords(priv.selStart.coords());
       priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
       //presumably TD can be removed from here. Cell editor should also listen for changes if editable cell is outside from viewport
@@ -1278,6 +1274,7 @@ Handsontable.Core = function (rootElement, settings) {
     bindEvents();
     this.updateSettings(settings);
     this.parseSettingsFromDOM();
+    this.focusCatcher = new Handsontable.FocusCatcher(this);
     this.view = new Handsontable.TableView(this);
 
     this.forceFullRender = true; //used when data was changed
@@ -1505,6 +1502,13 @@ Handsontable.Core = function (rootElement, settings) {
     validateChanges(changes, source).then(function () {
       applyChanges(changes, source);
     });
+  };
+
+  /**
+   * Listen to keyboard input
+   */
+  this.listen = function () {
+    self.focusCatcher.listen();
   };
 
   /**
@@ -2149,7 +2153,7 @@ Handsontable.Core = function (rootElement, settings) {
       }
     }
     priv.selStart.coords({row: row, col: col});
-    self.$table[0].focus(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
+    self.listen(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
     if (typeof endRow === "undefined") {
       selection.setRangeEnd({row: row, col: col}, scrollToCell);
     }

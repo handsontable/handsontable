@@ -207,13 +207,15 @@ Handsontable.TableView = function (instance) {
       else {
         instance.selection.setRangeStart(coordsObj);
       }
-      TD.focus();
       event.preventDefault();
       clearTextSelection();
 
       if (that.settings.afterOnCellMouseDown) {
         that.settings.afterOnCellMouseDown.call(instance, event, coords, TD);
       }
+      setTimeout(function () {
+        instance.listen(); //fix IE7-8 bug that sets focus to TD after mousedown
+      });
     },
     onCellMouseOver: function (event, coords, TD) {
       var coordsObj = {row: coords[0], col: coords[1]};
@@ -237,8 +239,6 @@ Handsontable.TableView = function (instance) {
   Handsontable.PluginHooks.run(instance, 'walkontableConfig', walkontableConfig);
 
   this.wt = new Walkontable(walkontableConfig);
-  // instance.forceFullRender = true; //used when data was changed
-  // this.render();
 
   $window.on('resize.' + instance.guid, function () {
     instance.registerTimeout('resizeTimeout', function () {
