@@ -449,12 +449,15 @@ describe('AutocompleteEditor', function () {
   });
 
   it('finish editing should move the focus aways from textarea to table cell', function () {
+    var last;
+
     runs(function () {
       handsontable({
         autoComplete: getAutocompleteConfig(false)
       });
       setDataAtCell(2, 2, 'black');
       selectCell(2, 2);
+      last = document.activeElement;
     });
 
     waitsFor(nextFrame, 'next frame', 60);
@@ -470,7 +473,7 @@ describe('AutocompleteEditor', function () {
       keyDownUp(69); //e
       deselectCell();
       keyDownUp('enter');
-      expect(document.activeElement.nodeName).toEqual('TD');
+      expect(document.activeElement).toEqual(last);
     });
   });
 });
