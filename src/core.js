@@ -53,7 +53,8 @@ Handsontable.Core = function (rootElement, settings) {
     onBeforeChange: [],
     onChange: [],
     onCopyLimit: [],
-    onRemoveRow: []
+    onRemoveRow: [],
+    onRemoveCol: []
   };
 
   datamap = {
@@ -226,8 +227,8 @@ Handsontable.Core = function (rootElement, settings) {
         index = -amount;
       }
       priv.settings.data.splice(index, amount);
-      self.forceFullRender = true; //used when data was changed
       self.runHooks('onRemoveRow', index, amount);
+      self.forceFullRender = true; //used when data was changed
     },
 
     /**
@@ -248,6 +249,7 @@ Handsontable.Core = function (rootElement, settings) {
       for (var r = 0, rlen = self.countRows(); r < rlen; r++) {
         priv.settings.data[r].splice(index, amount);
       }
+      self.runHooks('onRemoveCol', index, amount);
       self.forceFullRender = true; //used when data was changed
     },
 

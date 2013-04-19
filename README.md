@@ -57,7 +57,7 @@ Your contributions to the project are very welcome! To help me merge your pull r
 3. Do not edit files `jquery.handsontable.js`, `jquery.handsontable.css`, `jquery.handsontable.full.js`, `jquery.handsontable.full.css`. Instead, try to edit files inside the `src/` directory and then use `grunt` to make a build. More information about this on wiki page [Building](https://github.com/warpech/jquery-handsontable/wiki/Building).
 4. For any change that you make, please try to also add a test case(s) in `tests/jasmine/spec/` directory. This helps me understand the issue and make sure that it will stay fixed forever.
 
-Thank you for your commitment! 
+Thank you for your commitment!
 
 ## API Reference
 
@@ -155,6 +155,10 @@ The table below presents configuration options that are interpreted by `handsont
  `onBeforeChange`        | function(`changes`)            | _undefined_      | Callback fired before one or more cells is changed. Its main purpose is to validate the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, prop, oldVal, newVal], ... ]`. You can disregard a single change by setting `changes[i][3]` to false, or cancel all edit by returning false.</li></ul>
  `onChange`              | function(`changes`, `source`)  | _undefined_      | Callback fired after one or more cells is changed. Its main use case is to save the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, prop, oldVal, newVal], ... ]`. </li><li>`source` is one of the strings: `"alter"`, `"empty"`, `"edit"`, `"populateFromArray"`, `"loadData"`, `"autofill"`, `"paste"`.</li></ul> Note: for performance reasone, the `changes` array is null for `"loadData"` source.
  `onCopyLimit`           | function()                     | _undefined_      | Callback fired if `copyRowsLimit` or `copyColumnsLimit` was reached. Callback parameters are: `selectedRowsCount`, `selectedColsCount`, `copyRowsLimit`, `copyColsLimit`
+ `onRemoveRow`           | function(`index`, `amount`)        | _undefined_      | Callback is fired when one or more rows are removed. Parameters: <ul><li>`index` is an index of starter row.</li> <li>`amount` is an anount of removed rows.</li></ul>
+ `onRemoveCol`           | function(`index`, `amount`)        | _undefined_      | Callback is fired when one or more columns are removed. Parameters: <ul><li>`index` is an index of starter column.</li> <li>`amount` is an anount of removed columns.</li></ul>
+
+
 
 ## Similar projects
 
@@ -167,7 +171,7 @@ This is a free world so I invite you to check out alternative projects. I would 
  - [jui_datagrid](http://www.pontikis.net/labs/jui_datagrid/)
  - [ParamQuery](http://paramquery.com/)
 
-## License 
+## License
 
 (The MIT License)
 

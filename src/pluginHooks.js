@@ -20,7 +20,9 @@ Handsontable.PluginHooks = (function () {
     onSelectionEndByProp: [],
     onBeforeChange: [],
     onChange: [],
-    onCopyLimit: []
+    onCopyLimit: [],
+    onRemoveRow: [],
+    onRemoveCol: []
   };
 
   return {
