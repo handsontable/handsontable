@@ -1,8 +1,4 @@
-function WalkontableDom(instance) {
-  if (instance) {
-    this.instance = instance;
-  }
-  this.tdCache = [];
+function WalkontableDom() {
 }
 
 //goes up the DOM tree (including given element) until it finds an element that matches the nodeName
@@ -24,50 +20,6 @@ WalkontableDom.prototype.prevSiblings = function (elem) {
     }
   }
   return out;
-};
-
-WalkontableDom.prototype.tdHasClass = function (trIndex, tdIndex, cls) {
-  return !!(this.tdCache[trIndex] && this.tdCache[trIndex][tdIndex] && this.tdCache[trIndex][tdIndex][cls]);
-};
-
-WalkontableDom.prototype.tdAddClass = function (trIndex, tdIndex, cls) {
-  if (!this.tdHasClass(trIndex, tdIndex, cls)) {
-    if (!this.tdCache[trIndex]) {
-      this.tdCache[trIndex] = [];
-    }
-    if (!this.tdCache[trIndex][tdIndex]) {
-      this.tdCache[trIndex][tdIndex] = {};
-      this.tdCache[trIndex][tdIndex]._node = this.instance.wtTable.getCell([trIndex + this.instance.getSetting('offsetRow'), tdIndex + this.instance.getSetting('offsetColumn')]);
-    }
-    this.tdCache[trIndex][tdIndex]._node.className += " " + cls;
-    this.tdCache[trIndex][tdIndex][cls] = true;
-  }
-};
-
-WalkontableDom.prototype.tdRemoveClass = function (trIndex, tdIndex, cls) {
-  if (this.tdHasClass(trIndex, tdIndex, cls)) {
-    var reg = new RegExp('(\\s|^)' + cls + '(\\s|$)');
-    this.tdCache[trIndex][tdIndex]._node.className = this.tdCache[trIndex][tdIndex]._node.className.replace(reg, ' ').replace(/^\s\s*/, '').replace(/\s\s*$/, ''); //last 2 replaces do right trim (see http://blog.stevenlevithan.com/archives/faster-trim-javascript)
-    this.tdCache[trIndex][tdIndex][cls] = false;
-  }
-};
-
-WalkontableDom.prototype.tdResetCache = function () {
-  for (var i in this.tdCache) {
-    if (this.tdCache.hasOwnProperty(i)) {
-      for (var j in this.tdCache[i]) {
-        if (this.tdCache[i].hasOwnProperty(j)) {
-          for (var k in this.tdCache[i][j]) {
-            if (this.tdCache[i][j].hasOwnProperty(k)) {
-              if (k !== '_node') {
-                this.tdCache[i][j][k] = false;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
 };
 
 if (document.documentElement.classList) {

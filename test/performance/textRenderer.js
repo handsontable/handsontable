@@ -19,8 +19,7 @@ $(document).ready(function () {
       {
         type: 'text'
       }
-    ],
-    asyncRendering: false
+    ]
   });
 
   $('<div id="example2"></div>').appendTo(document.body).handsontable({
@@ -32,8 +31,7 @@ $(document).ready(function () {
         type: 'autocomplete',
         source: ['test', 'test2', 'test3']
       }
-    ],
-    asyncRendering: false
+    ]
   });
 
   $('<div id="example3"></div>').appendTo(document.body).handsontable({
@@ -44,8 +42,7 @@ $(document).ready(function () {
       {
         type: 'checkbox'
       }
-    ],
-    asyncRendering: false
+    ]
   });
 
   $('<div id="example4"></div>').appendTo(document.body).handsontable({
@@ -58,20 +55,17 @@ $(document).ready(function () {
         format: '0,0.00 $',
         language: 'de-de'
       }
-    ],
-    asyncRendering: false
+    ]
   });
 
   $('<div id="example5" style=""></div>').appendTo(document.body).handsontable({
     startRows: 3,
-    startCols: 3,
-    asyncRendering: false
+    startCols: 3
   });
 
   $('<div id="example6" style="width: 100px; height: 50px; overflow: scroll"></div>').appendTo(document.body).handsontable({
     startRows: 3,
-    startCols: 3,
-    asyncRendering: false
+    startCols: 3
   });
 
   /**
@@ -131,8 +125,7 @@ $(document).ready(function () {
         type: "numeric"
       }
     ],
-    colHeaders: ['Test name', 'Operations/sec', 'RME (%)', 'Runs'],
-    asyncRendering: false
+    colHeaders: ['Test name', 'Operations/sec', 'RME (%)', 'Runs']
   });
 
   suite.on('cycle', function (event) {

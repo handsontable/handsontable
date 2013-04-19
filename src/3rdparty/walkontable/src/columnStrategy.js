@@ -10,15 +10,17 @@ function WalkontableColumnStrategy(containerSizeFn, cellRanges, sizeAtIndex, str
   var low
     , high
     , cur
+    , last = -1
     , size
     , i
     , ilen;
 
   this.containerSizeFn = containerSizeFn;
-  this.cacheLength = 0;
-  this.cacheTotalSize = 0;
-  this.cache = {};
-  this.visibleCellRanges = [];
+  this.cellSizesSum = 0;
+  this.cellSizes = {};
+  this.cells = [];
+  this.cellCount = 0;
+  this.remainingSize = 0;
 
   if (!cellRanges) {
     return;
@@ -37,56 +39,46 @@ function WalkontableColumnStrategy(containerSizeFn, cellRanges, sizeAtIndex, str
     cur = low;
     while (cur <= high) {
       size = sizeAtIndex(cur);
-      if (this.cacheTotalSize >= this.getContainerSize(this.cacheTotalSize + size)) {
+      if (this.cellSizesSum >= this.getContainerSize(this.cellSizesSum + size)) {
         break;
       }
-      this.cache[cur] = size;
-      this.cacheTotalSize += size;
-      this.cacheLength++;
-
-      if (cur === low) {
-        this.visibleCellRanges[2 * i] = cur;
+      if (cur > last) {
+        this.cellSizes[cur] = size;
+        this.cellSizesSum += size;
+        this.cells.push(cur);
+        this.cellCount++;
+        last = cur;
       }
-      this.visibleCellRanges[2 * i + 1] = cur;
-
       cur++;
-    }
-    if (this.cacheTotalSize >= this.getContainerSize(this.cacheTotalSize)) {
-      break;
     }
   }
 
-  var containerSize = this.getContainerSize(this.cacheTotalSize)
-    , remainingSize = containerSize - this.cacheTotalSize;
+  var containerSize = this.getContainerSize(this.cellSizesSum);
+
+  this.remainingSize = this.cellSizesSum - containerSize;
+  //negative value means the last cell is fully visible and there is some space left for stretching
+  //positive value means the last cell is not fully visible
 
   //step 2 - apply stretching strategy
   if (strategy === 'all') {
-    var ratio = containerSize / this.cacheTotalSize;
-    var newSize;
+    if (this.remainingSize < 0) {
+      var ratio = containerSize / this.cellSizesSum;
+      var newSize;
 
-    if (ratio > 1) { //if the ratio is smaller than 1 then it means last cell is not completely visible (=there is nothing to stretch)
-      for (i = 0, ilen = this.visibleCellRanges.length / 2; i < ilen; i++) {
-        low = this.visibleCellRanges[2 * i];
-        high = this.visibleCellRanges[2 * i + 1];
-        cur = low;
-        while (cur <= high) {
-          if (i === ilen - 1 && cur === high) {
-            this.cache[cur] += remainingSize;
-          }
-          else {
-            newSize = Math.floor(ratio * this.cache[cur]);
-            remainingSize -= newSize - this.cache[cur];
-            this.cache[cur] = newSize;
-          }
-          cur++;
-        }
+      for (i = 0, ilen = this.cells.length; i < ilen - 1; i++) { //"i < ilen - 1" is needed because last cellSize is adjusted after the loop
+        cur = this.cells[i];
+        newSize = Math.floor(ratio * this.cellSizes[cur]);
+        this.remainingSize += newSize - this.cellSizes[cur];
+        this.cellSizes[cur] = newSize;
       }
-
+      this.cellSizes[ilen - 1] -= this.remainingSize;
+      this.remainingSize = 0;
     }
   }
   else if (strategy === 'last') {
-    if (remainingSize > 0) {
-      this.cache[this.visibleCellRanges[this.visibleCellRanges.length - 1]] += remainingSize;
+    if (this.remainingSize < 0) {
+      this.cellSizes[this.cells[this.cells.length - 1]] -= this.remainingSize;
+      this.remainingSize = 0;
     }
   }
 }
@@ -100,7 +92,7 @@ WalkontableColumnStrategy.prototype.getContainerSize = function (proposedWidth) 
 };
 
 WalkontableColumnStrategy.prototype.getSize = function (index) {
-  return this.cache[index];
+  return this.cellSizes[index];
 };
 
 WalkontableColumnStrategy.prototype.isSorted = function (cellRanges) {

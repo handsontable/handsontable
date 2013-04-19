@@ -691,6 +691,13 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
         self.view.wt.selections.area.add(priv.selEnd.arr());
       }
 
+      //set up highlight
+      if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
+      self.view.wt.selections.highlight.clear();
+        self.view.wt.selections.highlight.add(priv.selStart.arr());
+        self.view.wt.selections.highlight.add(priv.selEnd.arr());
+      }
+
       //trigger handlers
       self.rootElement.triggerHandler("selection.handsontable", [priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col()]);
       self.rootElement.triggerHandler("selectionbyprop.handsontable", [priv.selStart.row(), datamap.colToProp(priv.selStart.col()), priv.selEnd.row(), datamap.colToProp(priv.selEnd.col())]);
@@ -1270,24 +1277,10 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
         return;
       }
 
-      if (priv.settings.asyncRendering) {
-        self.registerTimeout('prepareFrame', function () {
-          var TD = self.view.getCellAtCoords(priv.selStart.coords());
-          if (Handsontable.helper.isDescendant(self.rootElement[0], document.activeElement)) {
-            //we don't want to steal focus if it is outside HT (issue #408)
-            TD.focus();
-          }
-          priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
-        }, 0);
-      }
-      else {
-        var TD = self.view.getCellAtCoords(priv.selStart.coords());
-        if (Handsontable.helper.isDescendant(self.rootElement[0], document.activeElement)) {
-          //we don't want to steal focus if it is outside HT (issue #408)
-          TD.focus();
-        }
-        priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
-      }
+      self.listen();
+      var TD = self.view.getCellAtCoords(priv.selStart.coords());
+      priv.editorDestroyer = self.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
+      //presumably TD can be removed from here. Cell editor should also listen for changes if editable cell is outside from viewport
     }
   };
 
@@ -1299,12 +1292,11 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
 
     this.updateSettings(priv.settings, true);
     this.parseSettingsFromDOM();
-
+    this.focusCatcher = new Handsontable.FocusCatcher(this);
     this.view = new Handsontable.TableView(this);
 
     this.forceFullRender = true; //used when data was changed
     this.view.render();
-    this.$table[0].focus(); //otherwise TextEditor tests do not pass in IE8
 
     if (typeof priv.firstRun === 'object') {
       fireEvent('datachange.handsontable', priv.firstRun);
@@ -1390,14 +1382,7 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
   }
 
   var fireEvent = function (name, params) {
-    if (priv.settings.asyncRendering) {
-      self.registerTimeout('fireEvent', function () {
-        self.rootElement.triggerHandler(name, params);
-      }, 0);
-    }
-    else {
-      self.rootElement.triggerHandler(name, params);
-    }
+    self.rootElement.triggerHandler(name, params);
   };
 
   var bindEvents = function () {
@@ -1535,6 +1520,13 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
     validateChanges(changes, source).then(function () {
       applyChanges(changes, source);
     });
+  };
+
+  /**
+   * Listen to keyboard input
+   */
+  this.listen = function () {
+    self.focusCatcher.listen();
   };
 
   /**
@@ -1974,7 +1966,14 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
    * @return {Array|String}
    */
   this.getRowHeader = function (row) {
-    if (Object.prototype.toString.call(priv.settings.rowHeaders) === '[object Array]' && priv.settings.rowHeaders[row] !== void 0) {
+    if (row === void 0) {
+      var out = [];
+      for (var i = 0, ilen = self.countRows(); i < ilen; i++) {
+        out.push(self.getRowHeader(i));
+      }
+      return out;
+    }
+    else if (Object.prototype.toString.call(priv.settings.rowHeaders) === '[object Array]' && priv.settings.rowHeaders[row] !== void 0) {
       return priv.settings.rowHeaders[row];
     }
     else if (typeof priv.settings.rowHeaders === 'function') {
@@ -1989,42 +1988,37 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
   };
 
   /**
-   * Return column header at given col as HTML string
-   * @param {Number} col
-   * @param {HTMLElement} TH
+   * Return array of column headers (if they are enabled). If param `col` given, return header at given column as string
+   * @param {Number} col (Optional)
+   * @return {Array|String}
    */
-  this.getColHeader = function (col, TH) {
-    col = Handsontable.PluginModifiers.run(self, 'col', col);
-    var DIV = document.createElement('DIV'),
-      SPAN = document.createElement('SPAN'),
-      avoidInnerHTML = self.view.wt.wtDom.avoidInnerHTML;
-
-    DIV.className = 'relative';
-    SPAN.className = 'colHeader';
-
-    if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
-      avoidInnerHTML(SPAN, priv.settings.columns[col].title);
-    }
-    else if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
-      avoidInnerHTML(SPAN, priv.settings.colHeaders[col]);
-    }
-    else if (typeof priv.settings.colHeaders === 'function') {
-      avoidInnerHTML(SPAN, priv.settings.colHeaders(col));
-    }
-    else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
-      SPAN.appendChild(document.createTextNode(Handsontable.helper.spreadsheetColumnLabel(col)));
+  this.getColHeader = function (col) {
+    if (col === void 0) {
+      var out = [];
+      for (var i = 0, ilen = self.countCols(); i < ilen; i++) {
+        out.push(self.getColHeader(i));
+      }
+      return out;
     }
     else {
-      avoidInnerHTML(SPAN, priv.settings.colHeaders);
-    }
+      col = Handsontable.PluginModifiers.run(self, 'col', col);
 
-    DIV.appendChild(SPAN);
-
-    while (TH.firstChild) {
-      TH.removeChild(TH.firstChild); //empty TH node
+      if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
+        return priv.settings.columns[col].title;
+      }
+      else if (Object.prototype.toString.call(priv.settings.colHeaders) === '[object Array]' && priv.settings.colHeaders[col] !== void 0) {
+        return priv.settings.colHeaders[col];
+      }
+      else if (typeof priv.settings.colHeaders === 'function') {
+        return priv.settings.colHeaders(col);
+      }
+      else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
+        return Handsontable.helper.spreadsheetColumnLabel(col);
+      }
+      else {
+        return priv.settings.colHeaders;
+      }
     }
-    TH.appendChild(DIV);
-    Handsontable.PluginHooks.run(self, 'afterGetColHeader', col, TH);
   };
 
   /**
@@ -2103,7 +2097,7 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
    * @return {Number}
    */
   this.countVisibleRows = function () {
-    return self.view.wt.getSetting('viewportRows');
+    return self.view.wt.wtTable.countVisibleRows();
   };
 
   /**
@@ -2111,7 +2105,7 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
    * @return {Number}
    */
   this.countVisibleCols = function () {
-    return self.view.wt.getSetting('viewportColumns');
+    return self.view.wt.wtTable.countVisibleColumns();
   };
 
   /**
@@ -2222,7 +2216,7 @@ Handsontable.Core = function (rootElement, settingsConstructor) {
       }
     }
     priv.selStart.coords({row: row, col: col});
-    self.$table[0].focus(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
+    self.listen(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
     if (typeof endRow === "undefined") {
       selection.setRangeEnd({row: row, col: col}, scrollToCell);
     }

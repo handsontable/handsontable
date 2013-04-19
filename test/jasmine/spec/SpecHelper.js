@@ -34,6 +34,7 @@ var spec = function () {
 var handsontable = function (options) {
   var currentSpec = spec();
   currentSpec.$container.handsontable(options);
+  currentSpec.$container[0].focus(); //otherwise TextEditor tests do not pass in IE8
   return currentSpec.$container.data('handsontable');
 };
 
@@ -223,6 +224,8 @@ var setDataAtCell = handsontableMethodFactory('setDataAtCell');
 var getCell = handsontableMethodFactory('getCell');
 var getData = handsontableMethodFactory('getData');
 var getDataAtCell = handsontableMethodFactory('getDataAtCell');
+var getRowHeader = handsontableMethodFactory('getRowHeader');
+var getColHeader = handsontableMethodFactory('getColHeader');
 var alter = handsontableMethodFactory('alter');
 var loadData = handsontableMethodFactory('loadData');
 var destroyEditor = handsontableMethodFactory('destroyEditor');

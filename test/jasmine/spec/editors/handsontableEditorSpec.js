@@ -99,6 +99,8 @@ describe('HandsontableEditor', function () {
   });
 
   it('should focus the TD after HT editor is prepared and destroyed', function () {
+    var last;
+
     runs(function () {
       handsontable({
         columns: [
@@ -112,6 +114,7 @@ describe('HandsontableEditor', function () {
         ]
       });
       selectCell(2, 0);
+      last = document.activeElement;
       keyDownUp('arrow_down');
     });
 
@@ -119,7 +122,7 @@ describe('HandsontableEditor', function () {
 
     runs(function () {
       expect(getSelected()).toEqual([3, 0, 3, 0]);
-      expect(document.activeElement).toEqual(getCell(3, 0));
+      expect(document.activeElement).toEqual(last);
     });
   });
 
@@ -142,11 +145,11 @@ describe('HandsontableEditor', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(document.activeElement).toEqual(getCell(2, 0));
+      var last = document.activeElement;
       keyDownUp('enter');
-      expect(document.activeElement).not.toEqual(getCell(2, 0));
+      expect(document.activeElement).not.toEqual(last);
       keyDownUp('esc');
-      expect(document.activeElement).toEqual(getCell(2, 0));
+      expect(document.activeElement).toEqual(last);
     });
   });
 });
