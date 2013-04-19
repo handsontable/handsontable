@@ -53,7 +53,6 @@ $(window).load(function () {
 
   var wt = new Walkontable({
     table: document.getElementsByTagName('TABLE')[0],
-    async: false,
     data: function (row, col) {
       return arr[row][col];
     },
@@ -65,12 +64,12 @@ $(window).load(function () {
     },
     height: 600,
     width: 600,
-    frozenRows: [function (row) {
-      return row + 1
-    }],
-    rowHeaders: [function (row) {
-      return row + 1
-    }],
+    rowHeaders: function (row, TH) {
+      TH.innerHTML = row + 1;
+    },
+    columnHeaders: function (col, TH) {
+      TH.innerHTML = col + 1;
+    },
     selections: {
       current: {
         className: 'current',
@@ -107,5 +106,5 @@ $(window).load(function () {
         console.log("Benchmark finished: " + String(event.target));
       }
     })
-    .run({async: false});
+    .run();
 });

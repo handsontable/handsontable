@@ -7,7 +7,6 @@ function WalkontableScroll(instance) {
 WalkontableScroll.prototype.refreshScrollbars = function () {
   this.wtScrollbarH.prepare();
   this.wtScrollbarV.prepare();
-  this.instance.wtTable.recalcViewportCells();
   this.wtScrollbarH.refresh();
   this.wtScrollbarV.refresh();
 };
@@ -81,14 +80,16 @@ WalkontableScroll.prototype.scrollHorizontal = function (delta) {
       newOffsetColumn = totalColumns - 1;
     }
 
-    var TD = this.instance.wtTable.TBODY.firstChild.firstChild;
-    if (TD.nodeName === 'TH') {
-      TD = TD.nextSibling;
-    }
-    var cellOffset = this.instance.wtDom.offset(TD);
-    var tableOffset = this.instance.wtTable.tableOffset;
+    /*var TD = this.instance.wtTable.TBODY.firstChild.firstChild;
+     if (TD.nodeName === 'TH') {
+     TD = TD.nextSibling;
+     }
+     var cellOffset = this.instance.wtDom.offset(TD);
+     var tableOffset = this.instance.wtTable.tableOffset;
+     var sum = cellOffset.left - tableOffset.left;*/
 
-    var sum = cellOffset.left - tableOffset.left;
+    var sum = this.instance.getSetting('rowHeaderWidth');
+
     var col = newOffsetColumn;
     while (sum < width && col < totalColumns) {
       sum += this.instance.getSetting('columnWidth', col);
@@ -124,8 +125,8 @@ WalkontableScroll.prototype.scrollHorizontal = function (delta) {
 WalkontableScroll.prototype.scrollViewport = function (coords) {
   var offsetRow = this.instance.getSetting('offsetRow')
     , offsetColumn = this.instance.getSetting('offsetColumn')
-    , viewportRows = this.instance.getSetting('viewportRows')
-    , viewportColumns = this.instance.getSetting('viewportColumns')
+    , lastVisibleRow = this.instance.wtTable.getLastVisibleRow()
+    , lastVisibleColumn = this.instance.wtTable.getLastVisibleColumn()
     , totalRows = this.instance.getSetting('totalRows')
     , totalColumns = this.instance.getSetting('totalColumns');
 
@@ -136,37 +137,30 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     throw new Error('column ' + coords[1] + ' does not exist');
   }
 
-  viewportRows = viewportRows || 1; //for cells larger than viewport it reports 0, but we still have to treat it like visible cell
-  viewportColumns = viewportColumns || 1;
-
-  if (viewportRows < totalRows) {
-    if (coords[0] > offsetRow + viewportRows - 1) {
-      this.scrollVertical(coords[0] - (offsetRow + viewportRows - 1));
-    }
-    else if (coords[0] < offsetRow) {
-      this.scrollVertical(coords[0] - offsetRow);
-    }
-    else {
-      this.scrollVertical(0); //Craig's issue: remove row from the last scroll page should scroll viewport a row up if needed
-    }
+  if (coords[0] > lastVisibleRow) {
+    this.scrollVertical(coords[0] - lastVisibleRow + 1);
+  }
+  else if (coords[0] === lastVisibleRow && this.instance.wtTable.isLastRowIncomplete()) {
+    this.scrollVertical(coords[0] - lastVisibleRow + 1);
+  }
+  else if (coords[0] < offsetRow) {
+    this.scrollVertical(coords[0] - offsetRow);
   }
   else {
-    //this.scrollVertical(coords[0] - offsetRow); //this should not be needed anymore
+    this.scrollVertical(0); //Craig's issue: remove row from the last scroll page should scroll viewport a row up if needed
   }
 
-  if (viewportColumns > 0 && viewportColumns < totalColumns) {
-    if (coords[1] > offsetColumn + viewportColumns - 1) {
-      this.scrollHorizontal(coords[1] - (offsetColumn + viewportColumns - 1));
-    }
-    else if (coords[1] < offsetColumn) {
-      this.scrollHorizontal(coords[1] - offsetColumn);
-    }
-    else {
-      this.scrollHorizontal(0); //Craig's issue
-    }
+  if (coords[1] > lastVisibleColumn) {
+    this.scrollHorizontal(coords[1] - lastVisibleColumn + 1);
+  }
+  else if (coords[1] === lastVisibleColumn && this.instance.wtTable.isLastColumnIncomplete()) {
+    this.scrollHorizontal(coords[1] - lastVisibleColumn + 1);
+  }
+  else if (coords[1] < offsetColumn) {
+    this.scrollHorizontal(coords[1] - offsetColumn);
   }
   else {
-    //this.scrollHorizontal(coords[1] - offsetColumn); //this should not be needed anymore
+    this.scrollHorizontal(0); //Craig's issue
   }
 
   return this.instance;

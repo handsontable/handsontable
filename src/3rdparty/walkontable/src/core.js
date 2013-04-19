@@ -1,10 +1,10 @@
 function Walkontable(settings) {
   var self = this,
-      originalHeaders = [];
+    originalHeaders = [];
 
   //bootstrap from settings
   this.wtSettings = new WalkontableSettings(this, settings);
-  this.wtDom = new WalkontableDom(this);
+  this.wtDom = new WalkontableDom();
   this.wtTable = new WalkontableTable(this);
   this.wtScroll = new WalkontableScroll(this);
   this.wtWheel = new WalkontableWheel(this);
@@ -37,20 +37,6 @@ function Walkontable(settings) {
 }
 
 Walkontable.prototype.draw = function (selectionsOnly) {
-  //this.instance.scrollViewport([this.instance.getSetting('offsetRow'), this.instance.getSetting('offsetColumn')]); //needed by WalkontableScroll -> remove row from the last scroll page should scroll viewport a row up if needed
-  if (this.hasSetting('async')) {
-    var that = this;
-    that.drawTimeout = setTimeout(function () {
-      that._doDraw(selectionsOnly);
-    }, 0);
-  }
-  else {
-    this._doDraw(selectionsOnly);
-  }
-  return this;
-};
-
-Walkontable.prototype._doDraw = function (selectionsOnly) {
   selectionsOnly = selectionsOnly && this.getSetting('offsetRow') === this.lastOffsetRow && this.getSetting('offsetColumn') === this.lastOffsetColumn;
   if (this.drawn) {
     this.scrollVertical(0);
@@ -60,6 +46,7 @@ Walkontable.prototype._doDraw = function (selectionsOnly) {
   this.lastOffsetColumn = this.getSetting('offsetColumn');
   this.wtTable.draw(selectionsOnly);
   this.getSetting('onDraw');
+  return this;
 };
 
 Walkontable.prototype.update = function (settings, value) {
@@ -75,26 +62,16 @@ Walkontable.prototype.scrollHorizontal = function (delta) {
 };
 
 Walkontable.prototype.scrollViewport = function (coords) {
-  if (this.hasSetting('async')) {
-    var that = this;
-    clearTimeout(that.scrollTimeout);
-    that.scrollTimeout = setTimeout(function () {
-      that.wtScroll.scrollViewport(coords);
-    }, 0);
-  }
-  else {
-    this.wtScroll.scrollViewport(coords);
-  }
+  this.wtScroll.scrollViewport(coords);
   return this;
 };
 
 Walkontable.prototype.getViewport = function () {
-  //TODO change it to draw values only (add this.wtTable.visibilityStartRow, this.wtTable.visibilityStartColumn)
   return [
     this.getSetting('offsetRow'),
     this.getSetting('offsetColumn'),
-    this.wtTable.visibilityEdgeRow !== null ? this.wtTable.visibilityEdgeRow : this.getSetting('totalRows') - 1,
-    this.wtTable.visibilityEdgeColumn !== null ? this.wtTable.visibilityEdgeColumn : this.getSetting('totalColumns') - 1
+    this.wtTable.getLastVisibleRow(),
+    this.wtTable.getLastVisibleColumn()
   ];
 };
 
@@ -107,9 +84,6 @@ Walkontable.prototype.hasSetting = function (key) {
 };
 
 Walkontable.prototype.destroy = function () {
-  clearTimeout(this.drawTimeout);
-  clearTimeout(this.scrollTimeout);
   clearTimeout(this.wheelTimeout);
   clearTimeout(this.dblClickTimeout);
-  clearTimeout(this.selectionsTimeout);
 };
