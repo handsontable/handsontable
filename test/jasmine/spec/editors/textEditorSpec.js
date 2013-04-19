@@ -262,8 +262,7 @@ describe('TextEditor', function () {
         minRows: 4,
         minCols: 4,
         minSpareRows: 4,
-        minSpareCols: 4,
-        asyncRendering: false //TODO make sure tests pass also when async true
+        minSpareCols: 4
       });
 
       selectCell(1, 1);

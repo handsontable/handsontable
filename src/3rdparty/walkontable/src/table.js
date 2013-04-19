@@ -2,8 +2,8 @@ var FLAG_VISIBLE_HORIZONTAL = 0x1; // 000001
 var FLAG_VISIBLE_VERTICAL = 0x2; // 000010
 var FLAG_PARTIALLY_VISIBLE_HORIZONTAL = 0x4; // 000100
 var FLAG_PARTIALLY_VISIBLE_VERTICAL = 0x8; // 001000
-var FLAG_NOT_VISIBLE_HORIZONTAL = 0x16; // 010000
-var FLAG_NOT_VISIBLE_VERTICAL = 0x32; // 100000
+var FLAG_NOT_VISIBLE_HORIZONTAL = 0x10; // 010000
+var FLAG_NOT_VISIBLE_VERTICAL = 0x20; // 100000
 
 function WalkontableTable(instance) {
   //reference to instance
@@ -18,9 +18,6 @@ function WalkontableTable(instance) {
   if (this.hasCellSpacingProblem) { //IE7
     this.TABLE.cellSpacing = 0;
   }
-  this.TABLE.setAttribute('tabindex', 10000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/; 32767 is max tabindex for IE7,8
-
-  this.visibilityStartRow = this.visibilityStartColumn = this.visibilityEdgeRow = this.visibilityEdgeColumn = null;
 
   //wtSpreader
   var parent = this.TABLE.parentNode;
@@ -96,6 +93,9 @@ function WalkontableTable(instance) {
   this.colgroupChildrenLength = this.COLGROUP.childNodes.length;
   this.theadChildrenLength = this.THEAD.firstChild ? this.THEAD.firstChild.childNodes.length : 0;
   this.tbodyChildrenLength = this.TBODY.childNodes.length;
+
+  this.oldCellCache = new WalkontableClassNameCache();
+  this.currentCellCache = new WalkontableClassNameCache();
 }
 
 WalkontableTable.prototype.refreshHiderDimensions = function () {
@@ -131,8 +131,7 @@ WalkontableTable.prototype.refreshStretching = function () {
     , scrollbarWidth = instance.getSetting('scrollbarWidth')
     , totalColumns = instance.getSetting('totalColumns')
     , offsetColumn = instance.getSetting('offsetColumn')
-    , rowHeaders = instance.getSetting('rowHeaders')
-    , rowHeaderWidth = rowHeaders && rowHeaders.length ? 50 : 0
+    , rowHeaderWidth = instance.hasSetting('rowHeaders') ? instance.getSetting('rowHeaderWidth') : 0
     , containerWidth = this.instance.getSetting('width') - rowHeaderWidth;
 
   var containerWidthFn = function (cacheWidth) {
@@ -156,73 +155,55 @@ WalkontableTable.prototype.refreshStretching = function () {
   }
 
   this.columnStrategy = new WalkontableColumnStrategy(containerWidthFn, totalColumns ? [offsetColumn, totalColumns - 1] : null, columnWidthFn, stretchH);
+  this.rowStrategy = {
+    cells: [],
+    cellCount: 0,
+    remainingSize: 0
+  }
 };
 
 WalkontableTable.prototype.adjustAvailableNodes = function () {
-  var instance = this.instance
-    , totalRows = instance.getSetting('totalRows')
-    , displayRows = instance.getSetting('displayRows')
-    , displayTds
-    , rowHeaders = instance.getSetting('rowHeaders')
-    , rowHeadersCount = rowHeaders ? rowHeaders.length : 0
-    , TR
-    , c;
+  var displayTds
+    , displayThs = this.instance.hasSetting('rowHeaders') ? 1 : 0
+    , TR;
 
-  displayRows = Math.min(displayRows, totalRows);
   this.refreshStretching();
-  displayTds = this.columnStrategy.cacheLength;
-
+  displayTds = this.columnStrategy.cellCount;
 
   //adjust COLGROUP
-  while (this.colgroupChildrenLength < displayTds + rowHeadersCount) {
+  while (this.colgroupChildrenLength < displayTds + displayThs) {
     this.COLGROUP.appendChild(document.createElement('COL'));
     this.colgroupChildrenLength++;
   }
-  while (this.colgroupChildrenLength > displayTds + rowHeadersCount) {
+  while (this.colgroupChildrenLength > displayTds + displayThs) {
     this.COLGROUP.removeChild(this.COLGROUP.lastChild);
     this.colgroupChildrenLength--;
   }
 
   //adjust THEAD
   if (this.instance.hasSetting('columnHeaders')) {
-    while (this.theadChildrenLength < displayTds + rowHeadersCount) {
-      this.THEAD.firstChild.appendChild(document.createElement('TH'));
+    TR = this.THEAD.firstChild;
+    while (this.theadChildrenLength < displayTds + displayThs) {
+      TR.appendChild(document.createElement('TH'));
       this.theadChildrenLength++;
     }
-    while (this.theadChildrenLength > displayTds + rowHeadersCount) {
-      this.THEAD.firstChild.removeChild(this.THEAD.firstChild.lastChild);
+    while (this.theadChildrenLength > displayTds + displayThs) {
+      TR.removeChild(TR.lastChild);
       this.theadChildrenLength--;
     }
   }
+};
 
-  //adjust TBODY
-  while (this.tbodyChildrenLength < displayRows) {
-    TR = document.createElement('TR');
-    for (c = 0; c < rowHeadersCount; c++) {
-      TR.appendChild(document.createElement('TH'));
-    }
-    this.TBODY.appendChild(TR);
-    this.tbodyChildrenLength++;
+WalkontableTable.prototype.adjustColumns = function (TR, desiredCount) {
+  var count = TR.childNodes.length;
+  while (count < desiredCount) {
+    var TD = document.createElement('TD');
+    TR.appendChild(TD);
+    count++;
   }
-  while (this.tbodyChildrenLength > displayRows) {
-    this.TBODY.removeChild(this.TBODY.lastChild);
-    this.tbodyChildrenLength--;
-  }
-
-  var TRs = this.TBODY.childNodes;
-  var trChildrenLength;
-  for (var r = 0, rlen = TRs.length; r < rlen; r++) {
-    trChildrenLength = TRs[r].childNodes.length;
-    while (trChildrenLength < displayTds + rowHeadersCount) {
-      var TD = document.createElement('TD');
-      TD.setAttribute('tabindex', 10000); //http://www.barryvan.com.au/2009/01/onfocus-and-onblur-for-divs-in-fx/; 32767 is max tabindex for IE7,8
-      TRs[r].appendChild(TD);
-      trChildrenLength++;
-    }
-    while (trChildrenLength > displayTds + rowHeadersCount) {
-      TRs[r].removeChild(TRs[r].lastChild);
-      trChildrenLength--;
-    }
+  while (count > desiredCount) {
+    TR.removeChild(TR.lastChild);
+    count--;
   }
 };
 
@@ -242,29 +223,21 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
 };
 
 WalkontableTable.prototype._doDraw = function () {
-  var r
+  var r = 0
     , c
     , offsetRow = this.instance.getSetting('offsetRow')
     , offsetColumn = this.instance.getSetting('offsetColumn')
     , totalRows = this.instance.getSetting('totalRows')
-    , displayRows = this.instance.getSetting('displayRows')
-    , displayTds = this.columnStrategy.cacheLength
-    , rowHeaders = this.instance.getSetting('rowHeaders')
-    , rowHeadersCount = rowHeaders ? rowHeaders.length : 0
+    , displayTds = this.columnStrategy.cellCount
+    , rowHeaders = this.instance.hasSetting('rowHeaders')
+    , displayThs = rowHeaders ? 1 : 0
     , TR
-    , TH
-    , TD
-    , cellData;
-
-  displayRows = Math.min(displayRows, totalRows);
+    , TD;
 
   //draw COLGROUP
   for (c = 0; c < this.colgroupChildrenLength; c++) {
-    if (c < rowHeadersCount) {
+    if (c < displayThs) {
       this.wtDom.addClass(this.COLGROUP.childNodes[c], 'rowHeader');
-      if (typeof rowHeaders[c] === "function") {
-        rowHeaders[c](null, this.COLGROUP.childNodes[c])
-      }
     }
     else {
       this.wtDom.removeClass(this.COLGROUP.childNodes[c], 'rowHeader');
@@ -272,91 +245,78 @@ WalkontableTable.prototype._doDraw = function () {
   }
 
   //draw THEAD
-  if (rowHeadersCount && this.instance.hasSetting('columnHeaders')) {
-    for (c = 0; c < rowHeadersCount; c++) {
-      TH = this.THEAD.childNodes[0].childNodes[c];
-      if (typeof rowHeaders[c] === "function") {
-        rowHeaders[c](null, TH);
-      }
-      else {
-        this.wtDom.empty(TH);
-      }
-      if (this.hasEmptyCellProblem && TH.innerHTML === '') { //IE7
-        TH.innerHTML = '&nbsp;';
+  var columnHeaders = this.instance.hasSetting('columnHeaders');
+  if (columnHeaders) {
+    TR = this.THEAD.firstChild;
+    if (displayThs) {
+      TD = TR.firstChild; //actually it is TH but let's reuse single variable
+      this.wtDom.empty(TD);
+      if (this.hasEmptyCellProblem) { //IE7
+        TD.innerHTML = '&nbsp;';
       }
     }
   }
 
-  var columnHeaders = this.instance.hasSetting('columnHeaders');
   for (c = 0; c < displayTds; c++) {
     if (columnHeaders) {
-      this.instance.getSetting('columnHeaders', offsetColumn + c, this.THEAD.childNodes[0].childNodes[rowHeadersCount + c]);
+      this.instance.getSetting('columnHeaders', offsetColumn + c, TR.childNodes[displayThs + c]);
     }
-    this.COLGROUP.childNodes[c + rowHeadersCount].style.width = this.columnStrategy.getSize(offsetColumn + c) + 'px';
+    this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(offsetColumn + c) + 'px';
   }
 
   //draw TBODY
-  this.visibilityEdgeRow = this.visibilityEdgeColumn = null;
-  this.visibilityStartRow = offsetRow; //needed bacause otherwise the values get out of sync in async mode
-  this.visibilityStartColumn = offsetColumn;
-  for (r = 0; r < displayRows; r++) {
-    TR = this.TBODY.childNodes[r];
-    for (c = 0; c < rowHeadersCount; c++) { //in future use nextSibling; http://jsperf.com/nextsibling-vs-indexed-childnodes
-      TH = TR.childNodes[c];
-      cellData = typeof rowHeaders[c] === "function" ? rowHeaders[c](offsetRow + r, TH) : rowHeaders[c];
-      if (cellData !== void 0) {
-        this.wtDom.avoidInnerHTML(TH, cellData);
+  while (offsetRow + r < totalRows) {
+    if (r >= this.tbodyChildrenLength) {
+      TR = document.createElement('TR');
+      if (displayThs) {
+        TR.appendChild(document.createElement('TH'));
       }
-      /*
-       we can assume that rowHeaders[c] function took care of inserting content into TH
-       else {
-       TH.innerHTML = '';
-       }*/
+      this.TBODY.appendChild(TR);
+      this.tbodyChildrenLength++;
+    }
+    else if (r === 0) {
+      TR = this.TBODY.firstChild;
+    }
+    else {
+      TR = TR.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
+    }
+    this.rowStrategy.cells.push(offsetRow + r);
+    this.rowStrategy.cellCount++;
+
+    //TH
+    if (displayThs) {
+      this.instance.getSetting('rowHeaders', offsetRow + r, TR.firstChild);
     }
 
-    var visibilityFullRow = null;
-    var visibilityFullColumn = null;
-    this.wtDom.tdResetCache();
+    //TD
+    this.adjustColumns(TR, displayTds + displayThs);
 
-    for (c = 0; c < displayTds; c++) { //in future use nextSibling; http://jsperf.com/nextsibling-vs-indexed-childnodes
-      if (this.visibilityEdgeColumn !== null && offsetColumn + c > this.visibilityEdgeColumn) {
-        break;
+    for (c = 0; c < displayTds; c++) {
+      if (c === 0) {
+        TD = TR.childNodes[c + displayThs];
       }
       else {
-        TD = TR.childNodes[c + rowHeadersCount];
-        TD.className = '';
-        TD.removeAttribute('style');
-        this.instance.getSetting('cellRenderer', offsetRow + r, offsetColumn + c, TD);
-        if (this.hasEmptyCellProblem && TD.innerHTML === '') { //IE7
-          TD.innerHTML = '&nbsp;';
-        }
-
-        var visibility = this.isCellVisible(offsetRow + r, offsetColumn + c, TD);
-        if (this.visibilityEdgeColumn === null && visibility & FLAG_VISIBLE_HORIZONTAL) {
-          visibilityFullColumn = offsetColumn + c;
-        }
-        else if (this.visibilityEdgeColumn === null && visibility & FLAG_PARTIALLY_VISIBLE_HORIZONTAL) {
-          this.visibilityEdgeColumn = offsetColumn + c;
-        }
-
-        if (this.visibilityEdgeRow === null && visibility & FLAG_VISIBLE_VERTICAL) {
-          visibilityFullRow = offsetRow + r;
-        }
-        else if (this.visibilityEdgeRow === null && visibility & FLAG_PARTIALLY_VISIBLE_VERTICAL) {
-          this.visibilityEdgeRow = offsetRow + r;
-        }
+        TD = TD.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
+      }
+      TD.className = '';
+      TD.removeAttribute('style');
+      this.instance.getSetting('cellRenderer', offsetRow + r, this.columnStrategy.cells[c], TD);
+      if (this.hasEmptyCellProblem && TD.innerHTML === '') { //IE7
+        TD.innerHTML = '&nbsp;';
       }
     }
-    /*if (this.visibilityEdgeRow !== null && offsetRow + r > this.visibilityEdgeRow) {
-     break;
-     }*/
-  }
 
-  if (this.visibilityEdgeRow === null) {
-    this.visibilityEdgeRow = visibilityFullRow + 1;
+    //after last column is rendered, check if last cell is fully displayed
+    var isCellVisible = this.isCellVisible(offsetRow + r, this.columnStrategy.cells[c], TD);
+    if (isCellVisible & (FLAG_NOT_VISIBLE_VERTICAL | FLAG_PARTIALLY_VISIBLE_VERTICAL)) { //when it is invisible or partially visible, don't render more rows
+      break;
+    }
+
+    r++;
   }
-  if (this.visibilityEdgeColumn === null) {
-    this.visibilityEdgeColumn = visibilityFullColumn + 1;
+  while (this.tbodyChildrenLength > totalRows - offsetRow) {
+    this.TBODY.removeChild(this.TBODY.lastChild);
+    this.tbodyChildrenLength--;
   }
 };
 
@@ -367,24 +327,49 @@ WalkontableTable.prototype.refreshPositions = function (selectionsOnly) {
 };
 
 WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
-  var r;
+  var r
+    , c
+    , s
+    , slen
+    , classNames = []
+    , offsetRow = this.instance.getSetting('offsetRow')
+    , lastVisibleRow = this.instance.wtTable.getLastVisibleRow()
+    , offsetColumn = this.instance.getSetting('offsetColumn')
+    , lastVisibleColumn = this.instance.wtTable.getLastVisibleColumn();
+
+  this.oldCellCache = this.currentCellCache;
+  this.currentCellCache = new WalkontableClassNameCache();
+
   if (this.instance.selections) {
     for (r in this.instance.selections) {
       if (this.instance.selections.hasOwnProperty(r)) {
-        this.instance.selections[r].draw(selectionsOnly);
+        this.instance.selections[r].draw();
+        if (this.instance.selections[r].settings.className) {
+          classNames.push(this.instance.selections[r].settings.className);
+        }
+        if (this.instance.selections[r].settings.highlightRowClassName) {
+          classNames.push(this.instance.selections[r].settings.highlightRowClassName);
+        }
+        if (this.instance.selections[r].settings.highlightColumnClassName) {
+          classNames.push(this.instance.selections[r].settings.highlightColumnClassName);
+        }
       }
     }
   }
-};
 
-WalkontableTable.prototype.recalcViewportCells = function () {
-  if (this.instance.wtScroll.wtScrollbarV.visible && this.visibilityEdgeColumnRemainder <= this.instance.getSetting('scrollbarWidth')) {
-    this.visibilityEdgeColumn--;
-    this.visibilityEdgeColumnRemainder = Infinity;
-  }
-  if (this.instance.wtScroll.wtScrollbarH.visible && this.visibilityEdgeRowRemainder <= this.instance.getSetting('scrollbarHeight')) {
-    this.visibilityEdgeRow--;
-    this.visibilityEdgeRowRemainder = Infinity;
+  slen = classNames.length;
+
+  for (r = offsetRow; r <= lastVisibleRow; r++) {
+    for (c = offsetColumn; c <= lastVisibleColumn; c++) {
+      for (s = 0; s < slen; s++) {
+        if (this.currentCellCache.test(r, c, classNames[s])) {
+          this.wtDom.addClass(this.getCell([r, c]), classNames[s]);
+        }
+        else if (selectionsOnly && this.oldCellCache.test(r, c, classNames[s])) {
+          this.wtDom.removeClass(this.getCell([r, c]), classNames[s]);
+        }
+      }
+    }
   }
 };
 
@@ -393,44 +378,34 @@ WalkontableTable.prototype.isCellVisible = function (r, c, TD) {
     , cellOffset = this.wtDom.offset(TD)
     , tableOffset = this.tableOffset
     , innerOffsetTop = cellOffset.top - tableOffset.top
-    , innerOffsetLeft = cellOffset.left - tableOffset.left
     , $td = $(TD)
-    , width = $td.outerWidth()
     , height = $td.outerHeight()
-    , tableWidth = this.instance.hasSetting('width') ? this.instance.getSetting('width') : Infinity
     , tableHeight = this.instance.hasSetting('height') ? this.instance.getSetting('height') : Infinity;
 
   this.instance.wtSettings.rowHeightCache[r] = height;
 
-  /**
-   * Legend:
-   * 0 - not visible vertically
-   * 1 - not visible horizontally
-   * 2 - partially visible vertically
-   * 3 - partially visible horizontally
-   * 4 - visible
-   */
 
   if (innerOffsetTop > tableHeight) {
     out |= FLAG_NOT_VISIBLE_VERTICAL;
   }
   else if (innerOffsetTop + height > tableHeight) {
-    this.visibilityEdgeRowRemainder = tableHeight - innerOffsetTop;
+    this.rowStrategy.remainingSize = tableHeight - innerOffsetTop; //hackish but enough
     out |= FLAG_PARTIALLY_VISIBLE_VERTICAL;
   }
   else {
     out |= FLAG_VISIBLE_VERTICAL;
   }
 
-  if (innerOffsetLeft > tableWidth) {
-    out |= FLAG_NOT_VISIBLE_HORIZONTAL;
-  }
-  else if (innerOffsetLeft + width > tableWidth) {
-    this.visibilityEdgeColumnRemainder = tableWidth - innerOffsetLeft;
-    out |= FLAG_PARTIALLY_VISIBLE_HORIZONTAL;
+  if (this.columnStrategy.cells.indexOf(c) > -1) {
+    if (this.getLastVisibleColumn() === c && this.columnStrategy.remainingSize > 0) {
+      out |= FLAG_PARTIALLY_VISIBLE_HORIZONTAL;
+    }
+    else {
+      out |= FLAG_VISIBLE_HORIZONTAL;
+    }
   }
   else {
-    out |= FLAG_VISIBLE_HORIZONTAL;
+    out |= FLAG_NOT_VISIBLE_HORIZONTAL;
   }
 
   return out;
@@ -451,7 +426,7 @@ WalkontableTable.prototype.getCell = function (coords) {
   if (coords[0] < offsetRow) {
     return -1; //row before viewport
   }
-  else if (coords[0] > offsetRow + this.instance.getSetting('displayRows') - 1) {
+  else if (coords[0] > this.getLastVisibleRow()) {
     return -2; //row after viewport
   }
   else {
@@ -463,29 +438,47 @@ WalkontableTable.prototype.getCell = function (coords) {
       return -4; //column after viewport
     }
     else {
-      var rowHeaders = this.instance.getSetting('rowHeaders')
-        , rowHeadersCount = (rowHeaders ? rowHeaders.length : 0)
+      var displayThs = this.instance.hasSetting('rowHeaders') ? 1 : 0
         , tr = this.TBODY.childNodes[coords[0] - offsetRow];
 
-      if (typeof tr === "undefined") { //this block is only needed in async mode
-        this.adjustAvailableNodes();
-        tr = this.TBODY.childNodes[coords[0] - offsetRow];
-      }
+      /*if (typeof tr === "undefined") { //this block is only needed in async mode
+       this.adjustAvailableNodes();
+       tr = this.TBODY.childNodes[coords[0] - offsetRow];
+       }*/
 
-      return tr.childNodes[coords[1] - offsetColumn + rowHeadersCount];
+      return tr.childNodes[coords[1] - offsetColumn + displayThs];
     }
   }
 };
 
 WalkontableTable.prototype.getCoords = function (TD) {
-  var rowHeaders = this.instance.getSetting('rowHeaders')
-    , rowHeadersCount = rowHeaders ? rowHeaders.length : 0;
+  var displayThs = this.instance.hasSetting('rowHeaders') ? 1 : 0;
   return [
     this.wtDom.prevSiblings(TD.parentNode).length + this.instance.getSetting('offsetRow'),
-    TD.cellIndex + this.instance.getSetting('offsetColumn') - rowHeadersCount
+    TD.cellIndex + this.instance.getSetting('offsetColumn') - displayThs
   ];
 };
 
+WalkontableTable.prototype.countVisibleRows = function () {
+  return this.rowStrategy.cellCount;
+};
+
+WalkontableTable.prototype.countVisibleColumns = function () {
+  return this.columnStrategy.cellCount;
+};
+
+WalkontableTable.prototype.getLastVisibleRow = function () {
+  return this.rowStrategy.cells[this.rowStrategy.cellCount - 1];
+};
+
 WalkontableTable.prototype.getLastVisibleColumn = function () {
-  return this.columnStrategy.visibleCellRanges[this.columnStrategy.visibleCellRanges.length - 1]
+  return this.columnStrategy.cells[this.columnStrategy.cellCount - 1];
+};
+
+WalkontableTable.prototype.isLastRowIncomplete = function () {
+  return (this.rowStrategy.remainingSize > 0);
+};
+
+WalkontableTable.prototype.isLastColumnIncomplete = function () {
+  return (this.columnStrategy.remainingSize > 0);
 };

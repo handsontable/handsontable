@@ -217,22 +217,15 @@ describe('Core_loadData', function () {
 
   //https://github.com/warpech/jquery-handsontable/pull/233
   it('Should not invoke the cells callback multiple times with the same row/col', function () {
-    var allRows = {};
-    var dupsFound = 0;
-    var myData = arrayOfNestedObjects();
+    var count = 0;
     handsontable({
-      data: myData,
+      data: arrayOfNestedObjects(),
+      colWidths: [90, 90, 90], //need to define colWidths, otherwise HandsontableAutoColumnSize will call cells() too
       cells: function (row, col, prop) {
-        if (allRows[row + '']) {
-          if ($.inArray(col, allRows[row]) !== -1) {
-            dupsFound++;
-          }
-        }
-        allRows[row + ''] = allRows[row + ''] || [];
-        allRows[row + ''].push(col);
+        count++;
       }
     });
-    expect(dupsFound).toEqual(0);
+    expect(count).toEqual(countRows() * countCols());
   });
 
   //https://github.com/warpech/jquery-handsontable/issues/239
@@ -319,8 +312,7 @@ describe('Core_loadData', function () {
       minSpareCols: 1,
       minSpareRows: 1,
       rowHeaders: true,
-      colHeaders: true,
-      asyncRendering: false
+      colHeaders: true
     });
     selectCell(8, 0);
     loadData(data2);
@@ -350,8 +342,7 @@ describe('Core_loadData', function () {
     handsontable({
       data: data1,
       rowHeaders: true,
-      colHeaders: true,
-      asyncRendering: false
+      colHeaders: true
     });
     selectCell(7, 0);
     loadData(data2);

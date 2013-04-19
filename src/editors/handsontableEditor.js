@@ -3,10 +3,10 @@
  */
 
 function HandsontableHandsontableEditorClass(instance) {
-    this.isCellEdited = false;
-    this.instance = instance;
-    this.createElements();
-    this.bindEvents();
+  this.isCellEdited = false;
+  this.instance = instance;
+  this.createElements();
+  this.bindEvents();
 }
 
 Handsontable.helper.inherit(HandsontableHandsontableEditorClass, HandsontableTextEditorClass);
@@ -34,7 +34,6 @@ HandsontableHandsontableEditorClass.prototype.bindTemporaryEvents = function (td
     fillHandle: false,
     width: 2000,
     //width: 'auto',
-    asyncRendering: false,
     afterOnCellMouseDown: function () {
       var sel = this.getSelected();
       parent.TEXTAREA.value = this.getDataAtCell(sel[0], sel[1]);
@@ -79,9 +78,9 @@ HandsontableHandsontableEditorClass.prototype.finishEditing = function (isCancel
   if (Handsontable.helper.isDescendant(this.instance.rootElement[0], document.activeElement)) {
     var that = this;
     setTimeout(function () {
-      that.TD.focus(); //return the focus to the cell must be done after destroyer to work in IE7-9
+      that.instance.listen(); //return the focus to the cell must be done after destroyer to work in IE7-9
     }, 0);
-    this.TD.focus(); //return the focus to the cell
+    that.instance.listen(); //return the focus to the cell
   }
   this.$htContainer.handsontable('destroy');
   HandsontableTextEditorClass.prototype.finishEditing.call(this, isCancelled, ctrlDown);

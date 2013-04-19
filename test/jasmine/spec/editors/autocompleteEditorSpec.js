@@ -29,8 +29,7 @@ describe('AutocompleteEditor', function () {
   it('should destroy editor when value change with mouse click on suggestion', function () {
     runs(function () {
       handsontable({
-        autoComplete: getAutocompleteConfig(false),
-        asyncRendering: false //TODO make sure tests pass also when async true
+        autoComplete: getAutocompleteConfig(false)
       });
       selectCell(2, 2);
       keyDownUp('enter');
@@ -47,8 +46,7 @@ describe('AutocompleteEditor', function () {
 
   it('should destroy editor when value change with Enter on suggestion', function () {
     handsontable({
-      autoComplete: getAutocompleteConfig(true),
-      asyncRendering: false //TODO make sure tests pass also when async true
+      autoComplete: getAutocompleteConfig(true)
     });
     selectCell(2, 2);
     keyDownUp('enter');
@@ -70,8 +68,7 @@ describe('AutocompleteEditor', function () {
   it('should destroy editor when pressed Enter then Esc', function () {
     runs(function () {
       handsontable({
-        autoComplete: getAutocompleteConfig(false),
-        asyncRendering: false //TODO make sure tests pass also when async true
+        autoComplete: getAutocompleteConfig(false)
       });
       selectCell(2, 2);
       keyDownUp('enter');
@@ -88,8 +85,7 @@ describe('AutocompleteEditor', function () {
   it('should destroy editor when mouse double clicked then Esc', function () {
     runs(function () {
       handsontable({
-        autoComplete: getAutocompleteConfig(false),
-        asyncRendering: false //TODO make sure tests pass also when async true
+        autoComplete: getAutocompleteConfig(false)
       });
       selectCell(2, 2);
       $(getCell(2, 2)).trigger("dblclick");
@@ -111,8 +107,7 @@ describe('AutocompleteEditor', function () {
   it('should destroy editor when clicked outside the table', function () {
     runs(function () {
       handsontable({
-        autoComplete: getAutocompleteConfig(false),
-        asyncRendering: false //TODO make sure tests pass also when async true
+        autoComplete: getAutocompleteConfig(false)
       });
       selectCell(2, 2);
       $(getCell(2, 2)).trigger("dblclick");
@@ -147,8 +142,7 @@ describe('AutocompleteEditor', function () {
         return {
           type: Handsontable.AutocompleteCell
         };
-      },
-      asyncRendering: false //TODO make sure tests pass also when async true
+      }
     });
 
     selectCell(1, 1);
@@ -175,8 +169,7 @@ describe('AutocompleteEditor', function () {
           return {
             type: Handsontable.AutocompleteCell
           };
-        },
-        asyncRendering: false //TODO make sure tests pass also when async true
+        }
       });
 
       selectCell(1, 1);
@@ -229,8 +222,7 @@ describe('AutocompleteEditor', function () {
           {},
           {},
           {}
-        ],
-        asyncRendering: false //TODO make sure tests pass also when async true
+        ]
       });
       selectCell(0, 0);
       keyDownUp('enter');
@@ -287,8 +279,7 @@ describe('AutocompleteEditor', function () {
         ],
         onChange: function () {
           count++;
-        },
-        asyncRendering: false //TODO make sure tests pass also when async true
+        }
       });
       setDataAtCell(0, 0, 'unexistent');
     });
@@ -326,8 +317,7 @@ describe('AutocompleteEditor', function () {
       ],
       onChange: function () {
         count++;
-      },
-      asyncRendering: false //TODO make sure tests pass also when async true
+      }
     });
     setDataAtCell(0, 0, 'unexistent');
 
@@ -379,8 +369,7 @@ describe('AutocompleteEditor', function () {
         ],
         onChange: function () {
           count++;
-        },
-        asyncRendering: false //TODO make sure tests pass also when async true
+        }
       });
       setDataAtCell(0, 0, 'Acura');
     });
@@ -402,8 +391,7 @@ describe('AutocompleteEditor', function () {
   it('typing in textarea should refresh the lookup list', function () {
     runs(function () {
       handsontable({
-        autoComplete: getAutocompleteConfig(false),
-        asyncRendering: false //TODO make sure tests pass also when async true
+        autoComplete: getAutocompleteConfig(false)
       });
       selectCell(2, 2);
       keyDownUp('enter');
@@ -432,8 +420,7 @@ describe('AutocompleteEditor', function () {
           strict: true
         },
         { type: 'text'}
-      ],
-      asyncRendering: false //TODO make sure tests pass also when async true
+      ]
     });
 
     selectCell(0, 0);
@@ -448,8 +435,7 @@ describe('AutocompleteEditor', function () {
   it('cancel editing (Esc) should restore the previous value', function () {
     runs(function () {
       handsontable({
-        autoComplete: getAutocompleteConfig(false),
-        asyncRendering: false //TODO make sure tests pass also when async true
+        autoComplete: getAutocompleteConfig(false)
       });
       setDataAtCell(2, 2, 'black');
       selectCell(2, 2);
@@ -463,12 +449,15 @@ describe('AutocompleteEditor', function () {
   });
 
   it('finish editing should move the focus aways from textarea to table cell', function () {
+    var last;
+
     runs(function () {
       handsontable({
         autoComplete: getAutocompleteConfig(false)
       });
       setDataAtCell(2, 2, 'black');
       selectCell(2, 2);
+      last = document.activeElement;
     });
 
     waitsFor(nextFrame, 'next frame', 60);
@@ -484,7 +473,7 @@ describe('AutocompleteEditor', function () {
       keyDownUp(69); //e
       deselectCell();
       keyDownUp('enter');
-      expect(document.activeElement.nodeName).toEqual('TD');
+      expect(document.activeElement).toEqual(last);
     });
   });
 });

@@ -1,5 +1,5 @@
 /**
- * Dragdealer JS v0.9.5 - patched by Walkontable at line 66
+ * Dragdealer JS v0.9.5 - patched by Walkontable at lines 66, 309-310, 339-340
  * http://code.ovidiu.ch/dragdealer-js
  *
  * Copyright (c) 2010, Ovidiu Chereches
@@ -305,7 +305,10 @@ Dragdealer.prototype =
 			return;
 		}
 		this.tapping = true;
-		
+
+		this.setWrapperOffset();
+		this.setBounds();
+
 		if(target === undefined)
 		{
 			target = [
@@ -332,6 +335,10 @@ Dragdealer.prototype =
 		{
 			return;
 		}
+
+		this.setWrapperOffset();
+		this.setBounds();
+
 		this.offset.mouse = [
 			Cursor.x - Position.get(this.handle)[0],
 			Cursor.y - Position.get(this.handle)[1]
@@ -492,7 +499,7 @@ Dragdealer.prototype =
 		proper[1] = Math.max(proper[1], 0);
 		proper[0] = Math.min(proper[0], 1);
 		proper[1] = Math.min(proper[1], 1);
-		
+
 		if((!this.dragging && !this.tapping) || this.snap)
 		{
 			if(this.steps > 1)
