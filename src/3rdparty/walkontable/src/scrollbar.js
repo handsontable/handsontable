@@ -59,9 +59,9 @@ function WalkontableScrollbar(instance, type) {
 
 WalkontableScrollbar.prototype.onScroll = function (delta) {
   if (this.instance.drawn) {
-    var keys = this.type === 'vertical' ? ['offsetRow', 'totalRows', 'viewportRows', 'top', 'height'] : ['offsetColumn', 'totalColumns', 'viewportColumns', 'left', 'width'];
+    var keys = this.type === 'vertical' ? ['offsetRow', 'totalRows', 'countVisibleRows', 'top', 'height'] : ['offsetColumn', 'totalColumns', 'countVisibleColumns', 'left', 'width'];
     var total = this.instance.getSetting(keys[1]);
-    var display = this.instance.getSetting(keys[2]);
+    var display = this.instance.wtTable[keys[2]]();
     if (total > display) {
       var newOffset = Math.round(parseInt(this.handleStyle[keys[3]], 10) * total / parseInt(this.slider.style[keys[4]], 10)); //offset = handlePos * totalRows / offsetRows
 
@@ -109,12 +109,12 @@ WalkontableScrollbar.prototype.prepare = function () {
     , scroll;
 
   if (this.type === 'vertical') {
-    ratio = this.getHandleSizeRatio(this.instance.getSetting('viewportRows'), this.instance.getSetting('totalRows'));
+    ratio = this.getHandleSizeRatio(this.instance.wtTable.countVisibleRows(), this.instance.getSetting('totalRows'));
     scroll = this.instance.getSetting('scrollV');
 
   }
   else {
-    ratio = this.getHandleSizeRatio(this.instance.getSetting('viewportColumns'), this.instance.getSetting('totalColumns'));
+    ratio = this.getHandleSizeRatio(this.instance.wtTable.countVisibleColumns(), this.instance.getSetting('totalColumns'));
     scroll = this.instance.getSetting('scrollH');
   }
 
@@ -137,12 +137,12 @@ WalkontableScrollbar.prototype.refresh = function () {
   }
 
   var ratio
-    , delta
     , sliderSize
     , handleSize
     , handlePosition
     , offsetCount
     , totalCount
+    , visibleCount
     , tableOuterWidth = this.$table.outerWidth()
     , tableOuterHeight = this.$table.outerHeight()
     , tableWidth = this.instance.hasSetting('width') ? this.instance.getSetting('width') : tableOuterWidth
@@ -174,7 +174,11 @@ WalkontableScrollbar.prototype.refresh = function () {
   if (this.type === 'vertical') {
     offsetCount = this.instance.getSetting('offsetRow');
     totalCount = this.instance.getSetting('totalRows');
-    ratio = this.getHandleSizeRatio(this.instance.getSetting('viewportRows'), totalCount);
+    visibleCount = this.instance.wtTable.countVisibleRows();
+    if (this.instance.wtTable.isLastRowIncomplete()) {
+      visibleCount--;
+    }
+    ratio = this.getHandleSizeRatio(visibleCount, totalCount);
 
     sliderSize = tableHeight - 2; //2 is sliders border-width
 
@@ -185,7 +189,11 @@ WalkontableScrollbar.prototype.refresh = function () {
   else { //horizontal
     offsetCount = this.instance.getSetting('offsetColumn');
     totalCount = this.instance.getSetting('totalColumns');
-    ratio = this.getHandleSizeRatio(this.instance.getSetting('viewportColumns'), totalCount);
+    visibleCount = this.instance.wtTable.countVisibleColumns();
+    if (this.instance.wtTable.isLastColumnIncomplete()) {
+      visibleCount--;
+    }
+    ratio = this.getHandleSizeRatio(visibleCount, totalCount);
 
     sliderSize = tableWidth - 2; //2 is sliders border-width
 
@@ -199,9 +207,9 @@ WalkontableScrollbar.prototype.refresh = function () {
     handleSize = 15;
   }
 
-  handlePosition = Math.round(sliderSize * (offsetCount / totalCount));
-  if ((delta = tableWidth - handleSize) > 0 && handlePosition > delta) {
-    handlePosition = delta;
+  handlePosition = Math.floor(sliderSize * (offsetCount / totalCount));
+  if (handleSize + handlePosition > sliderSize) {
+    handlePosition = sliderSize - handleSize;
   }
 
   if (this.type === 'vertical') {
@@ -215,7 +223,4 @@ WalkontableScrollbar.prototype.refresh = function () {
   }
 
   this.sliderStyle.display = 'block';
-
-  this.dragdealer.setWrapperOffset();
-  this.dragdealer.setBounds();
 };

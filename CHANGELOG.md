@@ -1,3 +1,18 @@
+## [0.8.20](https://github.com/warpech/jquery-handsontable/tree/v0.8.20) (Apr 19, 2013)
+
+Bugfixes:
+- source parameter should be `edit` when cell value is changed through editor ([#566](https://github.com/warpech/jquery-handsontable/issues/566))
+- getRowHeaders returns NaN when no argument given - should return array of all row headers ([#568](https://github.com/warpech/jquery-handsontable/issues/568), [#352](https://github.com/warpech/jquery-handsontable/issues/352))
+- getColHeaders returns NaN when no argument given - should return array of all column headers ([#569](https://github.com/warpech/jquery-handsontable/issues/569), [#382](https://github.com/warpech/jquery-handsontable/issues/382))
+- selected area class name was not applied on scrolling (tdCache was not bound to instance)
+- fix cell focusing problems ([#549](https://github.com/warpech/jquery-handsontable/issues/549), [#506](https://github.com/warpech/jquery-handsontable/issues/506), [#573](https://github.com/warpech/jquery-handsontable/issues/573))
+- currentRowClassName and currentColClassName not kept while scrolling ([#455](https://github.com/warpech/jquery-handsontable/issues/455))
+
+Other:
+- refactor row and column header DOM operations to be consistently defined in `tableView.js`
+- remove `asyncRendering` mode that was causing more trouble than benefit
+- as the result, code is now 100 lines shorter and more stable!
+
 ## [0.8.19](https://github.com/warpech/jquery-handsontable/tree/v0.8.19) (Apr 12, 2013)
 
 Bugfix:

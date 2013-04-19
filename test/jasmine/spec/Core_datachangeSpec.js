@@ -135,11 +135,13 @@ describe('Core_datachange', function () {
   });
 
   it('onChange event object should contain documented keys and values when triggered by edit', function () {
-    var sampleData = [{
-      col1: 'a',
-      col2: 'b',
-      col3: 'c'
-    }];
+    var sampleData = [
+      {
+        col1: 'a',
+        col2: 'b',
+        col3: 'c'
+      }
+    ];
     var event = null;
 
     runs(function () {
@@ -163,6 +165,34 @@ describe('Core_datachange', function () {
       expect(event[1]).toEqual('col1');
       expect(event[2]).toEqual('a');
       expect(event[3]).toEqual('test');
+    });
+  });
+
+  it('source parameter should be `edit` when cell value is changed through editor', function () {
+    var sources = [];
+
+    handsontable({
+      data: [
+        ['Joe Red']
+      ],
+      onChange: function (changes, source) {
+        sources.push(source);
+      }
+    });
+    selectCell(0, 0);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      keyDown('enter');
+      document.activeElement.value = 'Ted';
+      keyDown('enter');
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(sources).toEqual(['loadData', 'edit']); //loadData is always the first source
     });
   });
 

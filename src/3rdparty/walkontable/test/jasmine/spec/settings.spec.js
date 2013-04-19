@@ -13,7 +13,7 @@ describe('WalkontableSettings', function () {
     }
   });
 
-  it("should return correct viewportRows/viewportCols for a grid without scrollbars", function () {
+  it("should return correct countVisibleRows/countVisibleColumns for a grid without scrollbars", function () {
     createDataArray(6, 4);
     var wt = new Walkontable({
       table: $table[0],
@@ -22,7 +22,7 @@ describe('WalkontableSettings', function () {
       totalColumns: getTotalColumns
     });
     wt.draw();
-    expect(wt.getSetting('viewportRows')).toBe(getTotalRows());
-    expect(wt.getSetting('viewportColumns')).toBe(getTotalColumns());
+    expect(wt.wtTable.countVisibleRows()).toBe(getTotalRows());
+    expect(wt.wtTable.countVisibleColumns()).toBe(getTotalColumns());
   });
 });
