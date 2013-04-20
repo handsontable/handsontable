@@ -59,7 +59,10 @@ function HandsontableColumnSorting() {
 
   this.translateRow = function (getVars) {
     if (sortingEnabled && this.sortIndex && this.sortIndex.length) {
-      getVars.row = this.sortIndex[getVars.row][0];
+      var row = this.sortIndex[getVars.row];
+      if (row) {
+        getVars.row = row[0];
+      }
     }
   };
 
