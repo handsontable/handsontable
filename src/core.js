@@ -1328,7 +1328,7 @@ Handsontable.Core = function (rootElement, settings) {
 
     for (var i = changes.length - 1; i >= 0; i--) {
       var cellProperties = self.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
-      if (cellProperties.strict && cellProperties.source) {
+      if (cellProperties.strict && cellProperties.source && !(cellProperties.allowEmpty && changes[i][3] === "")) {
         $.isFunction(cellProperties.source) ? cellProperties.source(changes[i][3], process(i)) : process(i)(cellProperties.source);
       }
     }
