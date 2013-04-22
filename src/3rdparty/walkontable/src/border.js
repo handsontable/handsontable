@@ -54,45 +54,50 @@ WalkontableBorder.prototype.appear = function (corners) {
   }
 
   var instance = this.instance
-    , offsetRow = instance.getSetting('offsetRow')
-    , offsetColumn = instance.getSetting('offsetColumn')
-    , lastRow = instance.wtTable.getLastVisibleRow()
-    , lastColumn = instance.wtTable.getLastVisibleColumn();
+    , fromRow = corners[0]
+    , fromColumn = corners[1]
+    , toRow = corners[2]
+    , toColumn = corners[3]
+    , hideTop = false
+    , hideLeft = false
+    , hideBottom = false
+    , hideRight = false;
 
-  var hideTop = false, hideLeft = false, hideBottom = false, hideRight = false;
+  if (!instance.wtTable.isRowInViewport(fromRow)) {
+    fromRow = instance.wtTable.rowFilter.visibleToSource(0);
+    hideTop = true;
+  }
 
-  if (!walkontableRangesIntersect(corners[0], corners[2], offsetRow, lastRow)) {
-    hideTop = hideLeft = hideBottom = hideRight = true;
+  if (!instance.wtTable.isRowInViewport(toRow)) {
+    toRow = instance.wtTable.getLastVisibleRow();
+    hideBottom = true;
+  }
+
+  if (hideTop && hideBottom) {
+    hideLeft = true;
+    hideRight = true;
   }
   else {
-    if (corners[0] < offsetRow) {
-      corners[0] = offsetRow;
-      hideTop = true;
-    }
-    if (corners[2] > lastRow) {
-      corners[2] = lastRow;
-      hideBottom = true;
-    }
-  }
-
-  if (!walkontableRangesIntersect(corners[1], corners[3], offsetColumn, lastColumn)) {
-    hideTop = hideLeft = hideBottom = hideRight = true;
-  }
-  else {
-    if (corners[1] < offsetColumn) {
-      corners[1] = offsetColumn;
+    if (!instance.wtTable.isColumnInViewport(fromColumn)) {
+      fromColumn = instance.wtTable.columnFilter.visibleToSource(instance.wtTable.columnFilter.fixedCount);
       hideLeft = true;
     }
-    if (corners[3] > lastColumn) {
-      corners[3] = lastColumn;
+
+    if (!instance.wtTable.isColumnInViewport(toColumn)) {
+      toColumn = instance.wtTable.getLastVisibleColumn();
       hideRight = true;
     }
   }
 
-  if (hideTop + hideLeft + hideBottom + hideRight < 4) { //at least one border is not hidden
-    isMultiple = (corners[0] !== corners[2] || corners[1] !== corners[3]);
-    $from = $(instance.wtTable.getCell([corners[0], corners[1]]));
-    $to = isMultiple ? $(instance.wtTable.getCell([corners[2], corners[3]])) : $from;
+  if (hideLeft && hideRight) {
+    hideTop = true;
+    hideBottom = true;
+  }
+
+  if (!(hideTop && hideBottom && hideLeft && hideRight)) { //at least one border is not hidden
+    isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
+    $from = $(instance.wtTable.getCell([fromRow, fromColumn]));
+    $to = isMultiple ? $(instance.wtTable.getCell([toRow, toColumn])) : $from;
     fromOffset = this.wtDom.offset($from[0]);
     toOffset = isMultiple ? this.wtDom.offset($to[0]) : fromOffset;
     containerOffset = this.wtDom.offset(instance.wtTable.TABLE);

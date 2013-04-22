@@ -232,6 +232,7 @@ WalkontableTable.prototype._doDraw = function () {
   var r = 0
     , source_r
     , c
+    , source_c
     , totalRows = this.instance.getSetting('totalRows')
     , displayTds = this.columnStrategy.cellCount
     , rowHeaders = this.instance.hasSetting('rowHeaders')
@@ -298,22 +299,23 @@ WalkontableTable.prototype._doDraw = function () {
     this.adjustColumns(TR, displayTds + displayThs);
 
     for (c = 0; c < displayTds; c++) {
+      source_c = this.columnFilter.visibleToSource(c);
       if (c === 0) {
-        TD = TR.childNodes[c + displayThs];
+        TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(source_c)];
       }
       else {
         TD = TD.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
       }
       TD.className = '';
       TD.removeAttribute('style');
-      this.instance.getSetting('cellRenderer', source_r, this.columnStrategy.cells[c], TD);
+      this.instance.getSetting('cellRenderer', source_r, source_c, TD);
       if (this.hasEmptyCellProblem && TD.innerHTML === '') { //IE7
         TD.innerHTML = '&nbsp;';
       }
     }
 
     //after last column is rendered, check if last cell is fully displayed
-    var isCellVisible = this.isCellVisible(source_r, this.columnStrategy.cells[c], TD);
+    var isCellVisible = this.isCellVisible(source_r, source_c, TD);
     if (isCellVisible & (FLAG_NOT_VISIBLE_VERTICAL | FLAG_PARTIALLY_VISIBLE_VERTICAL)) { //when it is invisible or partially visible, don't render more rows
       break;
     }
@@ -432,17 +434,17 @@ WalkontableTable.prototype.isCellVisible = function (r, c, TD) {
  *
  */
 WalkontableTable.prototype.getCell = function (coords) {
-  if (this.rowFilter.sourceToVisible(coords[0]) < 0) {
+  if (this.isRowBeforeViewport(coords[0])) {
     return -1; //row before viewport
   }
-  else if (coords[0] > this.getLastVisibleRow()) {
+  else if (this.isRowAfterViewport(coords[0])) {
     return -2; //row after viewport
   }
   else {
-    if (this.columnFilter.sourceToVisible(coords[1]) < 0) {
+    if (this.isColumnBeforeViewport(coords[1])) {
       return -3; //column before viewport
     }
-    else if (coords[1] > this.getLastVisibleColumn()) {
+    else if (this.isColumnAfterViewport(coords[1])) {
       return -4; //column after viewport
     }
     else {
@@ -480,4 +482,28 @@ WalkontableTable.prototype.isLastRowIncomplete = function () {
 
 WalkontableTable.prototype.isLastColumnIncomplete = function () {
   return (this.columnStrategy.remainingSize > 0);
+};
+
+WalkontableTable.prototype.isRowBeforeViewport = function (r) {
+  return (this.rowFilter.sourceToVisible(r) < this.rowFilter.fixedCount && r >= this.rowFilter.fixedCount);
+};
+
+WalkontableTable.prototype.isRowAfterViewport = function (r) {
+  return (r > this.getLastVisibleRow());
+};
+
+WalkontableTable.prototype.isColumnBeforeViewport = function (c) {
+  return (this.columnFilter.sourceToVisible(c) < this.columnFilter.fixedCount && c >= this.columnFilter.fixedCount);
+};
+
+WalkontableTable.prototype.isColumnAfterViewport = function (c) {
+  return (c > this.getLastVisibleColumn());
+};
+
+WalkontableTable.prototype.isRowInViewport = function (r) {
+  return (!this.isRowBeforeViewport(r) && !this.isRowAfterViewport(r));
+};
+
+WalkontableTable.prototype.isColumnInViewport = function (c) {
+  return (!this.isColumnBeforeViewport(c) && !this.isColumnAfterViewport(c));
 };

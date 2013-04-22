@@ -128,7 +128,9 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     , lastVisibleRow = this.instance.wtTable.getLastVisibleRow()
     , lastVisibleColumn = this.instance.wtTable.getLastVisibleColumn()
     , totalRows = this.instance.getSetting('totalRows')
-    , totalColumns = this.instance.getSetting('totalColumns');
+    , totalColumns = this.instance.getSetting('totalColumns')
+    , fixedRowsTop = this.instance.getSetting('fixedRowsTop')
+    , fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
 
   if (coords[0] < 0 || coords[0] > totalRows - 1) {
     throw new Error('row ' + coords[0] + ' does not exist');
@@ -143,8 +145,8 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
   else if (coords[0] === lastVisibleRow && this.instance.wtTable.isLastRowIncomplete()) {
     this.scrollVertical(coords[0] - lastVisibleRow + 1);
   }
-  else if (coords[0] < offsetRow) {
-    this.scrollVertical(coords[0] - offsetRow);
+  else if (coords[0] - fixedRowsTop < offsetRow) {
+    this.scrollVertical(coords[0] - fixedRowsTop - offsetRow);
   }
   else {
     this.scrollVertical(0); //Craig's issue: remove row from the last scroll page should scroll viewport a row up if needed
@@ -156,8 +158,8 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
   else if (coords[1] === lastVisibleColumn && this.instance.wtTable.isLastColumnIncomplete()) {
     this.scrollHorizontal(coords[1] - lastVisibleColumn + 1);
   }
-  else if (coords[1] < offsetColumn) {
-    this.scrollHorizontal(coords[1] - offsetColumn);
+  else if (coords[1] - fixedColumnsLeft < offsetColumn) {
+    this.scrollHorizontal(coords[1] - fixedColumnsLeft - offsetColumn);
   }
   else {
     this.scrollHorizontal(0); //Craig's issue

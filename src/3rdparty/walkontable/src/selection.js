@@ -54,36 +54,35 @@ WalkontableSelection.prototype.getCorners = function () {
 };
 
 WalkontableSelection.prototype.draw = function () {
-  var corners, r, c;
+  var corners, r, c, source_r, source_c;
 
   var visibleRows = this.instance.wtTable.countVisibleRows()
     , visibleColumns = this.instance.wtTable.countVisibleColumns();
 
   if (this.selected.length) {
     corners = this.getCorners();
-    this.border && this.border.appear(corners);
-
-    corners[0] = this.instance.wtTable.rowFilter.sourceToVisible(corners[0]);
-    corners[1] = this.instance.wtTable.columnFilter.sourceToVisible(corners[1]);
-    corners[2] = this.instance.wtTable.rowFilter.sourceToVisible(corners[2]);
-    corners[3] = this.instance.wtTable.columnFilter.sourceToVisible(corners[3]);
 
     for (r = 0; r < visibleRows; r++) {
       for (c = 0; c < visibleColumns; c++) {
-        if (r >= corners[0] && r <= corners[2] && c >= corners[1] && c <= corners[3]) {
+        source_r = this.instance.wtTable.rowFilter.visibleToSource(r);
+        source_c = this.instance.wtTable.columnFilter.visibleToSource(c);
+
+        if (source_r >= corners[0] && source_r <= corners[2] && source_c >= corners[1] && source_c <= corners[3]) {
           //selected cell
           this.instance.wtTable.currentCellCache.add(r, c, this.settings.className);
         }
-        else if (r >= corners[0] && r <= corners[2]) {
+        else if (source_r >= corners[0] && source_r <= corners[2]) {
           //selection is in this row
           this.instance.wtTable.currentCellCache.add(r, c, this.settings.highlightRowClassName);
         }
-        else if (c >= corners[1] && c <= corners[3]) {
+        else if (source_c >= corners[1] && source_c <= corners[3]) {
           //selection is in this column
           this.instance.wtTable.currentCellCache.add(r, c, this.settings.highlightColumnClassName);
         }
       }
     }
+
+    this.border && this.border.appear(corners); //warning! border.appear modifies corners!
   }
   else {
     this.border && this.border.disappear();

@@ -11,6 +11,7 @@ WalkontableColumnFilter.prototype = new WalkontableCellFilter();
 WalkontableColumnFilter.prototype.readSettings = function (instance) {
   this.offset = instance.wtSettings.settings.offsetColumn;
   this.total = instance.getSetting('totalColumns');
+  this.fixedCount = instance.getSetting('fixedColumnsLeft');
   this.countTH = instance.hasSetting('rowHeaders') ? 1 : 0;
 };
 
@@ -27,5 +28,5 @@ WalkontableColumnFilter.prototype.visibleRowHeadedColumnToSourceColumn = functio
 };
 
 WalkontableColumnFilter.prototype.sourceColumnToVisibleRowHeadedColumn = function (n) {
-  return this.sourceToVisible(this.unOffsettedTH(n));
+  return this.unOffsettedTH(this.sourceToVisible(n));
 };
