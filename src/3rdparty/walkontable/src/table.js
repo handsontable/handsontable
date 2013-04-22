@@ -96,6 +96,8 @@ function WalkontableTable(instance) {
 
   this.oldCellCache = new WalkontableClassNameCache();
   this.currentCellCache = new WalkontableClassNameCache();
+
+  this.columnFilter = new WalkontableColumnFilter();
 }
 
 WalkontableTable.prototype.refreshHiderDimensions = function () {
@@ -208,6 +210,8 @@ WalkontableTable.prototype.adjustColumns = function (TR, desiredCount) {
 };
 
 WalkontableTable.prototype.draw = function (selectionsOnly) {
+  this.columnFilter.readSettings(this.instance);
+
   if (!selectionsOnly) {
     this.tableOffset = this.wtDom.offset(this.TABLE);
     // this.TABLE.removeChild(this.TBODY); //possible future optimization - http://jsperf.com/table-scrolling/9
@@ -226,7 +230,6 @@ WalkontableTable.prototype._doDraw = function () {
   var r = 0
     , c
     , offsetRow = this.instance.getSetting('offsetRow')
-    , offsetColumn = this.instance.getSetting('offsetColumn')
     , totalRows = this.instance.getSetting('totalRows')
     , displayTds = this.columnStrategy.cellCount
     , rowHeaders = this.instance.hasSetting('rowHeaders')
@@ -259,9 +262,9 @@ WalkontableTable.prototype._doDraw = function () {
 
   for (c = 0; c < displayTds; c++) {
     if (columnHeaders) {
-      this.instance.getSetting('columnHeaders', offsetColumn + c, TR.childNodes[displayThs + c]);
+      this.instance.getSetting('columnHeaders', this.columnFilter.visibleColumnToSourceColumn(c), TR.childNodes[displayThs + c]);
     }
-    this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(offsetColumn + c) + 'px';
+    this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(this.columnFilter.visibleColumnToSourceColumn(c)) + 'px';
   }
 
   //draw TBODY
@@ -328,14 +331,14 @@ WalkontableTable.prototype.refreshPositions = function (selectionsOnly) {
 
 WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
   var r
+    , vc
     , c
     , s
     , slen
     , classNames = []
     , offsetRow = this.instance.getSetting('offsetRow')
-    , lastVisibleRow = this.instance.wtTable.getLastVisibleRow()
-    , offsetColumn = this.instance.getSetting('offsetColumn')
-    , lastVisibleColumn = this.instance.wtTable.getLastVisibleColumn();
+    , lastVisibleRow = this.getLastVisibleRow()
+    , visibleColumns = this.countVisibleColumns();
 
   this.oldCellCache = this.currentCellCache;
   this.currentCellCache = new WalkontableClassNameCache();
@@ -360,12 +363,13 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
   slen = classNames.length;
 
   for (r = offsetRow; r <= lastVisibleRow; r++) {
-    for (c = offsetColumn; c <= lastVisibleColumn; c++) {
+    for (vc = 0; vc < visibleColumns; vc++) {
+      c = this.columnFilter.visibleColumnToSourceColumn(vc);
       for (s = 0; s < slen; s++) {
-        if (this.currentCellCache.test(r, c, classNames[s])) {
+        if (this.currentCellCache.test(r, vc, classNames[s])) {
           this.wtDom.addClass(this.getCell([r, c]), classNames[s]);
         }
-        else if (selectionsOnly && this.oldCellCache.test(r, c, classNames[s])) {
+        else if (selectionsOnly && this.oldCellCache.test(r, vc, classNames[s])) {
           this.wtDom.removeClass(this.getCell([r, c]), classNames[s]);
         }
       }
@@ -430,32 +434,23 @@ WalkontableTable.prototype.getCell = function (coords) {
     return -2; //row after viewport
   }
   else {
-    var offsetColumn = this.instance.getSetting('offsetColumn');
-    if (coords[1] < offsetColumn) {
+    if (this.columnFilter.sourceColumnToVisibleColumn(coords[1]) < 0) {
       return -3; //column before viewport
     }
     else if (coords[1] > this.getLastVisibleColumn()) {
       return -4; //column after viewport
     }
     else {
-      var displayThs = this.instance.hasSetting('rowHeaders') ? 1 : 0
-        , tr = this.TBODY.childNodes[coords[0] - offsetRow];
-
-      /*if (typeof tr === "undefined") { //this block is only needed in async mode
-       this.adjustAvailableNodes();
-       tr = this.TBODY.childNodes[coords[0] - offsetRow];
-       }*/
-
-      return tr.childNodes[coords[1] - offsetColumn + displayThs];
+      var tr = this.TBODY.childNodes[coords[0] - offsetRow];
+      return tr.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords[1])];
     }
   }
 };
 
 WalkontableTable.prototype.getCoords = function (TD) {
-  var displayThs = this.instance.hasSetting('rowHeaders') ? 1 : 0;
   return [
     this.wtDom.prevSiblings(TD.parentNode).length + this.instance.getSetting('offsetRow'),
-    TD.cellIndex + this.instance.getSetting('offsetColumn') - displayThs
+    this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex)
   ];
 };
 

@@ -58,14 +58,17 @@ WalkontableSelection.prototype.draw = function () {
 
   var offsetRow = this.instance.getSetting('offsetRow')
     , lastVisibleRow = this.instance.wtTable.getLastVisibleRow()
-    , offsetColumn = this.instance.getSetting('offsetColumn')
-    , lastVisibleColumn = this.instance.wtTable.getLastVisibleColumn();
+    , visibleColumns = this.instance.wtTable.countVisibleColumns();
 
   if (this.selected.length) {
     corners = this.getCorners();
+    this.border && this.border.appear(corners);
+
+    corners[1] = this.instance.wtTable.columnFilter.sourceColumnToVisibleColumn(corners[1]);
+    corners[3] = this.instance.wtTable.columnFilter.sourceColumnToVisibleColumn(corners[3]);
 
     for (r = offsetRow; r <= lastVisibleRow; r++) {
-      for (c = offsetColumn; c <= lastVisibleColumn; c++) {
+      for (c = 0; c < visibleColumns; c++) {
         if (r >= corners[0] && r <= corners[2] && c >= corners[1] && c <= corners[3]) {
           //selected cell
           this.instance.wtTable.currentCellCache.add(r, c, this.settings.className);
@@ -80,8 +83,6 @@ WalkontableSelection.prototype.draw = function () {
         }
       }
     }
-
-    this.border && this.border.appear(corners);
   }
   else {
     this.border && this.border.disappear();
