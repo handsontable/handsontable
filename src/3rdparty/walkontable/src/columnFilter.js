@@ -23,9 +23,9 @@ WalkontableColumnFilter.prototype.unOffsettedTH = function (n) {
 };
 
 WalkontableColumnFilter.prototype.visibleRowHeadedColumnToSourceColumn = function (n) {
-  return this.visibleColumnToSourceColumn(this.offsettedTH(n));
+  return this.visibleToSource(this.offsettedTH(n));
 };
 
 WalkontableColumnFilter.prototype.sourceColumnToVisibleRowHeadedColumn = function (n) {
-  return this.source(this.unOffsetted(this.unFixed(this.unOffsettedTH(n))));
+  return this.sourceToVisible(this.unOffsettedTH(n));
 };

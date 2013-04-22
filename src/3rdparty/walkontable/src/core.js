@@ -68,8 +68,8 @@ Walkontable.prototype.scrollViewport = function (coords) {
 
 Walkontable.prototype.getViewport = function () {
   return [
-    this.getSetting('offsetRow'),
-    this.getSetting('offsetColumn'),
+    this.wtTable.rowFilter.visibleToSource(0),
+    this.wtTable.columnFilter.visibleToSource(0),
     this.wtTable.getLastVisibleRow(),
     this.wtTable.getLastVisibleColumn()
   ];

@@ -56,18 +56,19 @@ WalkontableSelection.prototype.getCorners = function () {
 WalkontableSelection.prototype.draw = function () {
   var corners, r, c;
 
-  var offsetRow = this.instance.getSetting('offsetRow')
-    , lastVisibleRow = this.instance.wtTable.getLastVisibleRow()
+  var visibleRows = this.instance.wtTable.countVisibleRows()
     , visibleColumns = this.instance.wtTable.countVisibleColumns();
 
   if (this.selected.length) {
     corners = this.getCorners();
     this.border && this.border.appear(corners);
 
-    corners[1] = this.instance.wtTable.columnFilter.sourceColumnToVisibleColumn(corners[1]);
-    corners[3] = this.instance.wtTable.columnFilter.sourceColumnToVisibleColumn(corners[3]);
+    corners[0] = this.instance.wtTable.rowFilter.sourceToVisible(corners[0]);
+    corners[1] = this.instance.wtTable.columnFilter.sourceToVisible(corners[1]);
+    corners[2] = this.instance.wtTable.rowFilter.sourceToVisible(corners[2]);
+    corners[3] = this.instance.wtTable.columnFilter.sourceToVisible(corners[3]);
 
-    for (r = offsetRow; r <= lastVisibleRow; r++) {
+    for (r = 0; r < visibleRows; r++) {
       for (c = 0; c < visibleColumns; c++) {
         if (r >= corners[0] && r <= corners[2] && c >= corners[1] && c <= corners[3]) {
           //selected cell

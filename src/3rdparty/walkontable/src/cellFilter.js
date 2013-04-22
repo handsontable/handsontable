@@ -38,10 +38,10 @@ WalkontableCellFilter.prototype.unFixed = function (n) {
   }
 };
 
-WalkontableCellFilter.prototype.visibleColumnToSourceColumn = function (n) {
+WalkontableCellFilter.prototype.visibleToSource = function (n) {
   return this.source(this.offsetted(this.fixed(n)));
 };
 
-WalkontableCellFilter.prototype.sourceColumnToVisibleColumn = function (n) {
+WalkontableCellFilter.prototype.sourceToVisible = function (n) {
   return this.source(this.unOffsetted(this.unFixed(n)));
 };
