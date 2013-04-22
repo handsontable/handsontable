@@ -1459,7 +1459,7 @@ Handsontable.Core = function (rootElement, settings) {
       return arg0;
     }
     else if ($.isPlainObject(arg2)) { //backwards compatibility
-      return value;
+      return arg2;
     }
     else {
       return [
