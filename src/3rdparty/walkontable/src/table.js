@@ -132,7 +132,7 @@ WalkontableTable.prototype.refreshStretching = function () {
     , totalColumns = instance.getSetting('totalColumns')
     , offsetColumn = instance.getSetting('offsetColumn')
     , rowHeaderWidth = instance.hasSetting('rowHeaders') ? instance.getSetting('rowHeaderWidth') : 0
-    , containerWidth = this.instance.getSetting('width') - rowHeaderWidth;
+    , containerWidth = instance.getSetting('width') - rowHeaderWidth;
 
   var containerWidthFn = function (cacheWidth) {
     if (scrollH === 'scroll' || (scrollH === 'auto' && cacheWidth > containerWidth)) {
