@@ -1,3 +1,11 @@
+## HEAD
+
+Feature:
+- [Fixed rows & columns](http://handsontable.com/fixed.html)
+
+Bugfix:
+- focusCatcher produced a 1x1 px red pixel in top left corner
+
 ## [0.8.20](https://github.com/warpech/jquery-handsontable/tree/v0.8.20) (Apr 19, 2013)
 
 Bugfixes:
