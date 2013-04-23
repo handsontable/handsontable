@@ -145,15 +145,12 @@ WalkontableTable.prototype.refreshStretching = function () {
   };
 
   var that = this;
-  var visibleToSource = function (i) {
-    var source_c = that.columnFilter.visibleToSource(i);
-    if (source_c < totalColumns) {
-      return source_c;
-    }
-  };
 
   var columnWidthFn = function (i) {
-    return instance.getSetting('columnWidth', i);
+    var source_c = that.columnFilter.visibleToSource(i);
+    if (source_c < totalColumns) {
+      return instance.getSetting('columnWidth', source_c);
+    }
   };
 
   if (stretchH === 'hybrid') {
@@ -165,7 +162,7 @@ WalkontableTable.prototype.refreshStretching = function () {
     }
   }
 
-  this.columnStrategy = new WalkontableColumnStrategy(containerWidthFn, visibleToSource, columnWidthFn, stretchH);
+  this.columnStrategy = new WalkontableColumnStrategy(containerWidthFn, columnWidthFn, stretchH);
   this.rowStrategy = {
     cells: [],
     cellCount: 0,
@@ -275,7 +272,7 @@ WalkontableTable.prototype._doDraw = function () {
     if (columnHeaders) {
       this.instance.getSetting('columnHeaders', this.columnFilter.visibleToSource(c), TR.childNodes[displayThs + c]);
     }
-    this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(this.columnFilter.visibleToSource(c)) + 'px';
+    this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(c) + 'px';
   }
 
   //draw TBODY
@@ -415,7 +412,7 @@ WalkontableTable.prototype.isCellVisible = function (r, c, TD) {
     out |= FLAG_VISIBLE_VERTICAL;
   }
 
-  if (this.columnStrategy.cells.indexOf(c) > -1) {
+  if (this.isColumnInViewport(c)) {
     if (this.getLastVisibleColumn() === c && this.columnStrategy.remainingSize > 0) {
       out |= FLAG_PARTIALLY_VISIBLE_HORIZONTAL;
     }
