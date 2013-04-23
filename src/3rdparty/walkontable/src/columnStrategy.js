@@ -1,18 +1,16 @@
 /**
  * WalkontableColumnStrategy
  * @param containerSizeFn
- * @param cellRanges
+ * @param cellIndexFn
  * @param sizeAtIndex
  * @param strategy - all, last, none
  * @constructor
  */
-function WalkontableColumnStrategy(containerSizeFn, cellRanges, sizeAtIndex, strategy) {
-  var low
-    , high
-    , cur
+function WalkontableColumnStrategy(containerSizeFn, cellIndexFn, sizeAtIndex, strategy) {
+  var source_c
     , last = -1
     , size
-    , i
+    , i = 0
     , ilen;
 
   this.containerSizeFn = containerSizeFn;
@@ -22,35 +20,20 @@ function WalkontableColumnStrategy(containerSizeFn, cellRanges, sizeAtIndex, str
   this.cellCount = 0;
   this.remainingSize = 0;
 
-  if (!cellRanges) {
-    return;
-  }
-  else if (cellRanges % 2 === 1) {
-    throw new Error('cellRanges must have even number of elements');
-  }
-  else if (!this.isSorted(cellRanges)) {
-    throw new Error('cellRanges must be in ascending order');
-  }
-
   //step 1 - determine cells that fit containerSize and cache their widths
-  for (i = 0, ilen = cellRanges.length / 2; i < ilen; i++) {
-    low = cellRanges[2 * i];
-    high = cellRanges[2 * i + 1];
-    cur = low;
-    while (cur <= high) {
-      size = sizeAtIndex(cur);
-      if (this.cellSizesSum >= this.getContainerSize(this.cellSizesSum + size)) {
-        break;
-      }
-      if (cur > last) {
-        this.cellSizes[cur] = size;
-        this.cellSizesSum += size;
-        this.cells.push(cur);
-        this.cellCount++;
-        last = cur;
-      }
-      cur++;
+  source_c = cellIndexFn(0);
+  while (source_c > 0 || source_c === 0) {
+    size = sizeAtIndex(source_c);
+    if (this.cellSizesSum >= this.getContainerSize(this.cellSizesSum + size)) {
+      break;
     }
+    this.cellSizes[source_c] = size;
+    this.cellSizesSum += size;
+    this.cells.push(source_c);
+    this.cellCount++;
+
+    i++;
+    source_c = cellIndexFn(i);
   }
 
   var containerSize = this.getContainerSize(this.cellSizesSum);
@@ -66,10 +49,10 @@ function WalkontableColumnStrategy(containerSizeFn, cellRanges, sizeAtIndex, str
       var newSize;
 
       for (i = 0, ilen = this.cells.length; i < ilen - 1; i++) { //"i < ilen - 1" is needed because last cellSize is adjusted after the loop
-        cur = this.cells[i];
-        newSize = Math.floor(ratio * this.cellSizes[cur]);
-        this.remainingSize += newSize - this.cellSizes[cur];
-        this.cellSizes[cur] = newSize;
+        source_c = this.cells[i];
+        newSize = Math.floor(ratio * this.cellSizes[source_c]);
+        this.remainingSize += newSize - this.cellSizes[source_c];
+        this.cellSizes[source_c] = newSize;
       }
       this.cellSizes[ilen - 1] -= this.remainingSize;
       this.remainingSize = 0;
@@ -93,15 +76,4 @@ WalkontableColumnStrategy.prototype.getContainerSize = function (proposedWidth) 
 
 WalkontableColumnStrategy.prototype.getSize = function (index) {
   return this.cellSizes[index];
-};
-
-WalkontableColumnStrategy.prototype.isSorted = function (cellRanges) {
-  for (var i = 0, ilen = cellRanges.length; i < ilen; i++) {
-    if (i > 0) {
-      if (cellRanges[i - 1] > cellRanges[i]) {
-        return false;
-      }
-    }
-  }
-  return true;
 };

@@ -1,10 +1,12 @@
 function WalkontableScroll(instance) {
   this.instance = instance;
-  this.wtScrollbarV = new WalkontableScrollbar(instance, 'vertical');
-  this.wtScrollbarH = new WalkontableScrollbar(instance, 'horizontal');
+  this.wtScrollbarV = new WalkontableVerticalScrollbar(instance);
+  this.wtScrollbarH = new WalkontableHorizontalScrollbar(instance);
 }
 
 WalkontableScroll.prototype.refreshScrollbars = function () {
+  this.wtScrollbarH.readSettings();
+  this.wtScrollbarV.readSettings();
   this.wtScrollbarH.prepare();
   this.wtScrollbarV.prepare();
   this.wtScrollbarH.refresh();
@@ -16,52 +18,37 @@ WalkontableScroll.prototype.scrollVertical = function (delta) {
     throw new Error('scrollVertical can only be called after table was drawn to DOM');
   }
 
-  var offsetRow = this.instance.getSetting('offsetRow')
-    , newOffsetRow = offsetRow + delta;
+  var instance = this.instance
+    , offset = instance.getSetting('offsetRow')
+    , fixedCount = instance.getSetting('fixedRowsTop')
+    , total = instance.getSetting('totalRows')
+    , maxSize = (instance.getSetting('height') || Infinity); //Infinity is needed, otherwise you could scroll a table that did not have height specified
 
-  if (newOffsetRow > 0) {
-    var totalRows = this.instance.getSetting('totalRows');
-    var height = (this.instance.getSetting('height') || Infinity) - this.instance.getSetting('scrollbarHeight'); //Infinity is needed, otherwise you could scroll a table that did not have height specified
-
-    if (newOffsetRow >= totalRows) {
-      newOffsetRow = totalRows - 1;
-    }
-
-    var TD = this.instance.wtTable.TBODY.firstChild.firstChild;
+  if(maxSize !== Infinity) {
+    var TD = instance.wtTable.TBODY.firstChild.firstChild;
     if (TD.nodeName === 'TH') {
       TD = TD.nextSibling;
     }
-    var cellOffset = this.instance.wtDom.offset(TD);
-    var tableOffset = this.instance.wtTable.tableOffset;
+    var cellOffset = instance.wtDom.offset(TD);
+    var tableOffset = instance.wtTable.tableOffset;
 
-    var sum = cellOffset.top - tableOffset.top;
-    var row = newOffsetRow;
-    while (sum < height && row < totalRows) {
-      sum += this.instance.getSetting('rowHeight', row);
-      row++;
+    maxSize -= cellOffset.top - tableOffset.top; //column header height
+    maxSize -= instance.getSetting('scrollbarHeight');
+  }
+
+  var newOffset = this.scrollLogic(delta, offset, total, fixedCount, maxSize, function (row) {
+    if (row - offset < fixedCount) {
+      return instance.getSetting('rowHeight', row - offset);
     }
-
-    if (sum < height) {
-      while (newOffsetRow > 0) {
-        //if sum still less than available height, we cannot scroll that far (must move offset up)
-        sum += this.instance.getSetting('rowHeight', newOffsetRow - 1);
-        if (sum < height) {
-          newOffsetRow--;
-        }
-        else {
-          break;
-        }
-      }
+    else {
+      return instance.getSetting('rowHeight', row);
     }
-  }
-  else if (newOffsetRow < 0) {
-    newOffsetRow = 0;
-  }
+  });
 
-  if (newOffsetRow !== offsetRow) {
-    this.instance.update('offsetRow', newOffsetRow);
+  if (newOffset !== offset) {
+    instance.update('offsetRow', newOffset);
   }
-  return this.instance;
+  return instance;
 };
 
 WalkontableScroll.prototype.scrollHorizontal = function (delta) {
@@ -69,39 +56,49 @@ WalkontableScroll.prototype.scrollHorizontal = function (delta) {
     throw new Error('scrollHorizontal can only be called after table was drawn to DOM');
   }
 
-  var offsetColumn = this.instance.getSetting('offsetColumn')
-    , newOffsetColumn = offsetColumn + delta;
+  var instance = this.instance
+    , offset = instance.getSetting('offsetColumn')
+    , fixedCount = instance.getSetting('fixedColumnsLeft')
+    , total = instance.getSetting('totalColumns')
+    , maxSize = instance.getSetting('width') - instance.getSetting('rowHeaderWidth');
 
-  if (newOffsetColumn > 0) {
-    var totalColumns = this.instance.getSetting('totalColumns');
-    var width = this.instance.getSetting('width');
+  var newOffset = this.scrollLogic(delta, offset, total, fixedCount, maxSize, function (col) {
+    if (col - offset < fixedCount) {
+      return instance.getSetting('columnWidth', col - offset);
+    }
+    else {
+      return instance.getSetting('columnWidth', col);
+    }
+  });
 
-    if (newOffsetColumn >= totalColumns) {
-      newOffsetColumn = totalColumns - 1;
+  if (newOffset !== offset) {
+    instance.update('offsetColumn', newOffset);
+  }
+  return instance;
+};
+
+WalkontableScroll.prototype.scrollLogic = function (delta, offset, total, fixedCount, maxSize, cellSizeFn) {
+  var newOffset = offset + delta
+    , sum = 0
+    , col;
+
+  if (newOffset > fixedCount) {
+    if (newOffset >= total - fixedCount) {
+      newOffset = total - fixedCount - 1;
     }
 
-    /*var TD = this.instance.wtTable.TBODY.firstChild.firstChild;
-     if (TD.nodeName === 'TH') {
-     TD = TD.nextSibling;
-     }
-     var cellOffset = this.instance.wtDom.offset(TD);
-     var tableOffset = this.instance.wtTable.tableOffset;
-     var sum = cellOffset.left - tableOffset.left;*/
-
-    var sum = this.instance.getSetting('rowHeaderWidth');
-
-    var col = newOffsetColumn;
-    while (sum < width && col < totalColumns) {
-      sum += this.instance.getSetting('columnWidth', col);
+    col = newOffset;
+    while (sum < maxSize && col < total) {
+      sum += cellSizeFn(col);
       col++;
     }
 
-    if (sum < width) {
-      while (newOffsetColumn > 0) {
+    if (sum < maxSize) {
+      while (newOffset > 0) {
         //if sum still less than available width, we cannot scroll that far (must move offset to the left)
-        sum += this.instance.getSetting('columnWidth', newOffsetColumn - 1);
-        if (sum < width) {
-          newOffsetColumn--;
+        sum += cellSizeFn(newOffset - 1);
+        if (sum < maxSize) {
+          newOffset--;
         }
         else {
           break;
@@ -109,14 +106,11 @@ WalkontableScroll.prototype.scrollHorizontal = function (delta) {
       }
     }
   }
-  else if (newOffsetColumn < 0) {
-    newOffsetColumn = 0;
+  else if (newOffset < 0) {
+    newOffset = 0;
   }
 
-  if (newOffsetColumn !== offsetColumn) {
-    this.instance.update('offsetColumn', newOffsetColumn);
-  }
-  return this.instance;
+  return newOffset;
 };
 
 /**

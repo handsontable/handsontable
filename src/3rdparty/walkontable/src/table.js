@@ -144,8 +144,16 @@ WalkontableTable.prototype.refreshStretching = function () {
     return containerWidth;
   };
 
-  var columnWidthFn = function (index) {
-    return instance.getSetting('columnWidth', index)
+  var that = this;
+  var visibleToSource = function (i) {
+    var source_c = that.columnFilter.visibleToSource(i);
+    if (source_c < totalColumns) {
+      return source_c;
+    }
+  };
+
+  var columnWidthFn = function (i) {
+    return instance.getSetting('columnWidth', i);
   };
 
   if (stretchH === 'hybrid') {
@@ -157,7 +165,7 @@ WalkontableTable.prototype.refreshStretching = function () {
     }
   }
 
-  this.columnStrategy = new WalkontableColumnStrategy(containerWidthFn, totalColumns ? [offsetColumn, totalColumns - 1] : null, columnWidthFn, stretchH);
+  this.columnStrategy = new WalkontableColumnStrategy(containerWidthFn, visibleToSource, columnWidthFn, stretchH);
   this.rowStrategy = {
     cells: [],
     cellCount: 0,
@@ -287,7 +295,6 @@ WalkontableTable.prototype._doDraw = function () {
     else {
       TR = TR.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
     }
-    this.rowStrategy.cells.push(source_r);
     this.rowStrategy.cellCount++;
 
     //TH
@@ -469,11 +476,11 @@ WalkontableTable.prototype.countVisibleColumns = function () {
 };
 
 WalkontableTable.prototype.getLastVisibleRow = function () {
-  return this.rowStrategy.cells[this.rowStrategy.cellCount - 1];
+  return this.rowFilter.visibleToSource(this.rowStrategy.cellCount - 1);
 };
 
 WalkontableTable.prototype.getLastVisibleColumn = function () {
-  return this.columnStrategy.cells[this.columnStrategy.cellCount - 1];
+  return this.columnFilter.visibleToSource(this.columnStrategy.cellCount - 1);
 };
 
 WalkontableTable.prototype.isLastRowIncomplete = function () {
