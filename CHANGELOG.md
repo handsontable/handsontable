@@ -1,4 +1,4 @@
-## HEAD
+## [0.8.21](https://github.com/warpech/jquery-handsontable/tree/v0.8.21) (Apr 24, 2013)
 
 Feature:
 - [Fixed rows & columns](http://handsontable.com/fixed.html)
