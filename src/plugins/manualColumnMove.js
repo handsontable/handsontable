@@ -42,6 +42,7 @@ function HandsontableManualColumnMove() {
       instance.forceFullRender = true;
       instance.view.render(); //updates all
       ghostStyle.display = 'none';
+      instance.runHooks('afterColumnMove', startCol, endCol);
     }
   });
 

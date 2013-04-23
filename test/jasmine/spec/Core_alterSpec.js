@@ -511,7 +511,6 @@ describe('Core_alter', function () {
     });
   });
 
-
   it('should fire callback on remove row', function () {
     var output;
     handsontable({
@@ -521,7 +520,7 @@ describe('Core_alter', function () {
         {data: "id"},
         {data: "name.first"}
       ],
-      onRemoveRow : function (index, amount) {
+      afterRemoveRow : function (index, amount) {
         output = [index, amount];
       }
     });
@@ -534,13 +533,12 @@ describe('Core_alter', function () {
     });
   });
 
-
   it('should fire callback on remove col', function () {
     var output;
     handsontable({
       minRows: 5,
       data: arrayOfArrays(),
-      onRemoveCol : function (index, amount) {
+      afterRemoveCol : function (index, amount) {
         output = [index, amount];
       }
     });
@@ -550,6 +548,46 @@ describe('Core_alter', function () {
 
     runs(function () {
       expect(output).toEqual([1, 1]);
+    });
+  });
+
+  it('should fire callback on create row', function () {
+    var output;
+    handsontable({
+      minRows: 5,
+      data: arrayOfNestedObjects(),
+      columns: [
+        {data: "id"},
+        {data: "name.first"}
+      ],
+      afterCreateRow : function (index, amount) {
+        output = index;
+      }
+    });
+    alter('insert_row', 3);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(output).toEqual(3);
+    });
+  });
+
+  it('should fire callback on create col', function () {
+    var output;
+    handsontable({
+      minRows: 5,
+      data: arrayOfArrays(),
+      afterCreateCol : function (index) {
+        output = index;
+      }
+    });
+    alter('insert_col', 2);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(output).toEqual(2);
     });
   });
 });
