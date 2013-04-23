@@ -92,7 +92,7 @@
 
       </pre>
 
-          <div id="example1" style="width: 300px; height: 300px; overflow: scroll"></div>
+          <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
           <p>
             <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
@@ -109,7 +109,7 @@
             /*
              Container looks like this:
 
-             <div id="example1" style="width: 300px; height: 300px; overflow: scroll"></div>
+             <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
              */
 
             var myData = createBigData();
@@ -136,106 +136,7 @@
         </div>
       </div>
     </div>
-    <!--
-    <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad">
-          <a name="fixed2"></a>
 
-          <h2>Fixed columns</h2>
-
-          <p>Specify fixed columns with <code>fixedColumnsLeft: 1</code> option.</p>
-
-          <p>Note: You'll need horizontal scrollbars, so just set a container <code>width</code> and <code>overflow: scroll</code> in CSS.</p>
-
-          <div id="example2" style="width: 300px; height: 300px; overflow: scroll"></div>
-
-          <p>
-            <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-              data to console
-            </button>
-          </p>
-        </div>
-      </div>
-
-      <div class="codeLayout">
-        <div class="pad">
-          <div class="jsFiddle">
-            <div class="jsFiddleLink">Edit in jsFiddle</div>
-          </div>
-
-          <script>
-            /*
-             Container looks like this:
-
-             <div id="example2" style="width: 300px; height: 300px; overflow: scroll"></div>
-             */
-
-            $("#example2").handsontable({
-              data: createBigData(),
-              colWidths: [65, 47, 47, 47, 47, 47, 47, 47], //can also be a number or a function
-              rowHeaders: true,
-              colHeaders: true,
-              minSpareRows: 1,
-              minSpareCols: 1,
-              fixedColumnsLeft: 1,
-              contextMenu: true
-            });
-          </script>
-        </div>
-      </div>
-    </div>
-
-    <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad">
-          <a name="fixed3"></a>
-
-          <h2>Fixed rows and columns</h2>
-
-          <p>Specify two fixed rows with <code>fixedRowsTop: 2</code> and two fixed columns with <code>fixedColumnsLeft: 2</code> option.</p>
-
-          <p>Note: You'll need horizontal scrollbars, so just set a container <code>width</code> and <code>overflow: scroll</code> in CSS.</p>
-
-          <div id="example3" style="width: 300px; height: 300px; overflow: scroll"></div>
-
-          <p>
-            <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-              data to console
-            </button>
-          </p>
-        </div>
-      </div>
-
-      <div class="codeLayout">
-        <div class="pad">
-          <div class="jsFiddle">
-            <div class="jsFiddleLink">Edit in jsFiddle</div>
-          </div>
-
-          <script>
-            /*
-             Container looks like this:
-
-             <div id="example2" style="width: 300px; height: 300px; overflow: scroll"></div>
-             */
-
-            $("#example3").handsontable({
-              data: createBigData(),
-              colWidths: [65, 47, 47, 47, 47, 47, 47, 47], //can also be a number or a function
-              rowHeaders: true,
-              colHeaders: true,
-              minSpareRows: 1,
-              minSpareCols: 1,
-              fixedColumnsLeft: 2,
-              fixedRowsTop: 2,
-              contextMenu: true
-            });
-          </script>
-        </div>
-      </div>
-    </div>
-    -->
     <div class="rowLayout">
       <div class="descLayout noMargin">
         <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
