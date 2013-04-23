@@ -12,7 +12,7 @@ describe('WalkontableColumnStrategy', function () {
   it("default - cell widths should be 25", function () {
     source = [0, 1, 2, 5, 6, 7, 8, 9, 10];
     var widths = new WalkontableColumnStrategy(100, allCells25, 'none');
-    expect(widths.cellSizes).toEqual({0: 25, 1: 25, 2: 25, 3: 25});
+    expect(widths.cellSizes).toEqual([25, 25, 25, 25]);
   });
 
   //STRATEGY none - unlimited width
@@ -46,17 +46,17 @@ describe('WalkontableColumnStrategy', function () {
   it("all - should show 4 cells and stretch their size to 28", function () {
     source = [0, 1, 2, 3, 4];
     var widths = new WalkontableColumnStrategy(140, allCells25, 'all');
-    expect(widths.cellSizes).toEqual({0: 28, 1: 28, 2: 28, 3: 28, 4: 28});
+    expect(widths.cellSizes).toEqual([28, 28, 28, 28, 28]);
   });
   it("all - should show 4 cells and stretch their size to 28 (except last one which is stretched to remaining 29)", function () {
     source = [0, 1, 2, 3, 4];
     var widths = new WalkontableColumnStrategy(141, allCells25, 'all');
-    expect(widths.cellSizes).toEqual({0: 28, 1: 28, 2: 28, 3: 28, 4: 29});
+    expect(widths.cellSizes).toEqual([28, 28, 28, 28, 29]);
   });
   it("all - should not strech if not all cells are fully visible", function () {
     source = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     var widths = new WalkontableColumnStrategy(140, allCells25, 'all');
-    expect(widths.cellSizes).toEqual({0: 25, 1: 25, 2: 25, 3: 25, 4: 25, 5: 25}); //actually visible size of last column is 15 but here goes full value
+    expect(widths.cellSizes).toEqual([25, 25, 25, 25, 25, 25]); //actually visible size of last column is 15 but here goes full value
   });
 
   //STRATEGY last
@@ -64,12 +64,12 @@ describe('WalkontableColumnStrategy', function () {
   it("last - should show 4 cells and stretch last one to 41", function () {
     source = [0, 1, 2, 3, 4];
     var widths = new WalkontableColumnStrategy(141, allCells25, 'last');
-    expect(widths.cellSizes).toEqual({0: 25, 1: 25, 2: 25, 3: 25, 4: 41});
+    expect(widths.cellSizes).toEqual([25, 25, 25, 25, 41]);
   });
   it("last - should not strech if not all cells are fully visible", function () {
     source = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     var widths = new WalkontableColumnStrategy(140, allCells25, 'last');
-    expect(widths.cellSizes).toEqual({0: 25, 1: 25, 2: 25, 3: 25, 4: 25, 5: 25}); //actually visible size of last column is 15 but here goes full value
+    expect(widths.cellSizes).toEqual([25, 25, 25, 25, 25, 25]); //actually visible size of last column is 15 but here goes full value
   });
 
   //getSize
@@ -77,7 +77,7 @@ describe('WalkontableColumnStrategy', function () {
   it("getSize should return cell size at given index", function () {
     source = [0, 1, 2, 3, 4];
     var widths = new WalkontableColumnStrategy(141, allCells25, 'last');
-    expect(widths.cellSizes).toEqual({0: 25, 1: 25, 2: 25, 3: 25, 4: 41});
+    expect(widths.cellSizes).toEqual([25, 25, 25, 25, 41]);
     expect(widths.getSize(0)).toEqual(25);
     expect(widths.getSize(4)).toEqual(41);
   });
