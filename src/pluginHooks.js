@@ -7,10 +7,12 @@ Handsontable.PluginHooks = {
     afterRender: [],
     beforeGet: [],
     beforeSet: [],
+    beforeGetCellMeta: [],
     afterGetCellMeta: [],
     afterGetColHeader: [],
     afterGetColWidth: [],
-    walkontableConfig: []
+    walkontableConfig: [],
+    afterDestroy: []
   },
 
   push: function (key, fn) {

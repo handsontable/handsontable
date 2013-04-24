@@ -56,85 +56,88 @@
 </a>
 
 <div id="container">
+  <div class="columnLayout">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad bottomSpace100">
-        <a name="lazy"></a>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <a name="lazy"></a>
 
-        <h2>Highlight current row or column</h2>
+          <h2>Highlight current row or column</h2>
 
-        <p>Use options <code>currentRowClassName</code> and <code>currentColumnClassName</code>.</p>
+          <p>Use options <code>currentRowClassName</code> and <code>currentColumnClassName</code>.</p>
 
-        <div id="example1"></div>
+          <div id="example1"></div>
 
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-            data to console
-          </button>
-        </p>
-      </div>
-    </div>
-
-    <div class="codeLayout">
-      <div class="pad">
-        <div class="jsFiddle">
-          <div class="jsFiddleLink">Edit in jsFiddle</div>
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump
+              data to console
+            </button>
+          </p>
         </div>
+      </div>
 
-        <style class="common">
-          .handsontable .currentRow {
-            background-color: #E7E8EF;
-          }
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
 
-          .handsontable .currentCol {
-            background-color: #F9F9FB;
-          }
-        </style>
+          <style class="common">
+            .handsontable .currentRow {
+              background-color: #E7E8EF;
+            }
 
-        <script>
-          var data = [
-            ["", "Kia", "Nissan", "Toyota", "Honda"],
-            ["2008", 10, 11, 12, 13],
-            ["2009", 20, 11, 14, 13],
-            ["2010", 30, 15, 12, 13]
-          ];
+            .handsontable .currentCol {
+              background-color: #F9F9FB;
+            }
+          </style>
 
-          $("#example1").handsontable({
-            data: data,
-            minRows: 5,
-            minCols: 6,
-            minSpareRows: 1,
-            currentRowClassName: 'currentRow',
-            currentColClassName: 'currentCol',
-            autoWrapRow: true,
-            colHeaders: true
-          });
+          <script>
+            var data = [
+              ["", "Kia", "Nissan", "Toyota", "Honda"],
+              ["2008", 10, 11, 12, 13],
+              ["2009", 20, 11, 14, 13],
+              ["2010", 30, 15, 12, 13]
+            ];
 
-          $("#example1").handsontable('selectCell', 3, 3);
-        </script>
+            $("#example1").handsontable({
+              data: data,
+              minRows: 5,
+              minCols: 6,
+              minSpareRows: 1,
+              currentRowClassName: 'currentRow',
+              currentColClassName: 'currentCol',
+              autoWrapRow: true,
+              colHeaders: true
+            });
+
+            $("#example1").handsontable('selectCell', 3, 3);
+          </script>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
       </div>
     </div>
   </div>

@@ -1,0 +1,34 @@
+/* table */
+.handsontable .table th, .handsontable .table td {
+    border-top: none;
+}
+
+.table caption + thead tr:first-child th,
+.table caption + thead tr:first-child td,
+.table colgroup + thead tr:first-child th,
+.table colgroup + thead tr:first-child td,
+.table thead:first-child tr:first-child th,
+.table thead:first-child tr:first-child td {
+  border-top: 1px solid #CCCCCC;
+}
+
+/* table-bordered */
+.handsontable .table-bordered {
+  border: 0;
+  border-collapse: separate;
+}
+
+.handsontable .table-bordered th,
+.handsontable .table-bordered td {
+    border-left: none;
+}
+
+.handsontable .table-bordered th:first-child,
+.handsontable .table-bordered td:first-child {
+    border-left: 1px solid #CCCCCC;
+}
+
+/* table-striped */
+.handsontable .table-striped tbody > tr:nth-child(2n+1) > th {
+    background-color: #EEE;
+}

@@ -6,22 +6,23 @@ function HandsontableManualColumnMove() {
     , startX
     , startOffset;
 
-  var $ghost = $('<div class="ghost"></div>');
-  $ghost.css({
-    position: 'absolute',
-    top: '25px',
-    left: 0,
-    width: '10px',
-    height: '10px',
-    backgroundColor: '#CCC',
-    opacity: 0.7
-  });
+  var ghost = document.createElement('DIV')
+    , ghostStyle = ghost.style;
+
+  ghost.className = 'ghost';
+  ghostStyle.position = 'absolute';
+  ghostStyle.top = '25px';
+  ghostStyle.left = 0;
+  ghostStyle.width = '10px';
+  ghostStyle.height = '10px';
+  ghostStyle.backgroundColor = '#CCC';
+  ghostStyle.opacity = 0.7;
 
   $(document).mousemove(function (e) {
     if (pressed) {
-      $ghost[0].style.left = startOffset + e.pageX - startX + 6 + 'px';
-      if ($ghost[0].style.display === 'none') {
-        $ghost[0].style.display = 'block';
+      ghostStyle.left = startOffset + e.pageX - startX + 6 + 'px';
+      if (ghostStyle.display === 'none') {
+        ghostStyle.display = 'block';
       }
     }
   });
@@ -40,7 +41,7 @@ function HandsontableManualColumnMove() {
       pressed = false;
       instance.forceFullRender = true;
       instance.view.render(); //updates all
-      $ghost[0].style.display = 'none';
+      ghostStyle.display = 'none';
     }
   });
 
@@ -61,13 +62,13 @@ function HandsontableManualColumnMove() {
         startX = e.pageX;
 
         var $table = that.rootElement.find('.htCore');
-        $ghost.appendTo($table.parent());
-        $ghost.width($resizer.parent().width());
-        $ghost.height($table.height());
-        startOffset = parseInt(th.offset().left - $table.offset().left);
-        $ghost[0].style.left = startOffset + 6 + 'px';
+        $table.parent()[0].appendChild(ghost);
+        ghostStyle.width = $resizer.parent().width() + 'px';
+        ghostStyle.height = $table.height() + 'px';
+        startOffset = parseInt(th.offset().left - $table.offset().left, 10);
+        ghostStyle.left = startOffset + 6 + 'px';
       });
-      this.rootElement.on('mouseenter.handsontable', 'td, th', function (e) {
+      this.rootElement.on('mouseenter.handsontable', 'td, th', function () {
         if (pressed) {
           $('.manualColumnMover.active').removeClass('active');
           var $ths = that.rootElement.find('thead th');

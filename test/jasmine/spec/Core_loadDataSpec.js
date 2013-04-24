@@ -7,6 +7,7 @@ describe('Core_loadData', function () {
 
   afterEach(function () {
     if (this.$container) {
+      destroy();
       this.$container.remove();
     }
   });
@@ -216,51 +217,37 @@ describe('Core_loadData', function () {
 
   //https://github.com/warpech/jquery-handsontable/pull/233
   it('Should not invoke the cells callback multiple times with the same row/col', function () {
-    var allRows = {};
-    var dupsFound = 0;
-    var myData = arrayOfNestedObjects();
+    var count = 0;
     handsontable({
-      data: myData,
+      data: arrayOfNestedObjects(),
+      colWidths: [90, 90, 90], //need to define colWidths, otherwise HandsontableAutoColumnSize will call cells() too
       cells: function (row, col, prop) {
-        if (allRows[row + '']) {
-          if ($.inArray(col, allRows[row]) !== -1) {
-            dupsFound++;
-          }
-        }
-        allRows[row + ''] = allRows[row + ''] || [];
-        allRows[row + ''].push(col);
+        count++;
       }
     });
-    expect(dupsFound).toEqual(0);
+    expect(count).toEqual(countRows() * countCols());
   });
 
   //https://github.com/warpech/jquery-handsontable/issues/239
   it('should remove empty row if source data has more empty rows than allowed by minSpareRows', function () {
-    var err;
-    try {
-      var blanks = [
-        [],
-        []
-      ];
+    var blanks = [
+      [],
+      []
+    ];
 
-      handsontable({
-        minSpareCols: 1,
-        minSpareRows: 1,
-        rowHeaders: true,
-        colHeaders: true,
-        contextMenu: false
-      });
+    handsontable({
+      minSpareCols: 1,
+      minSpareRows: 1,
+      rowHeaders: true,
+      colHeaders: true,
+      contextMenu: false
+    });
 
-      loadData(blanks);
-    }
-    catch (e) {
-      err = e;
-    }
+    loadData(blanks);
 
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(err).toBeUndefined();
       expect(countRows()).toBe(1);
     });
   });
@@ -325,14 +312,17 @@ describe('Core_loadData', function () {
       minSpareCols: 1,
       minSpareRows: 1,
       rowHeaders: true,
-      colHeaders: true,
-      asyncRendering: false
+      colHeaders: true
     });
     selectCell(8, 0);
     loadData(data2);
 
-    expect(countRows()).toBe(data2.length + 1); //+1 because of minSpareRows
-    expect(getSelected()).toEqual([5, 0, 5, 0]);
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countRows()).toBe(6); //+1 because of minSpareRows
+      expect(getSelected()).toEqual([5, 0, 5, 0]);
+    });
   });
 
   it('loading empty data should remove all rows', function () {
@@ -352,13 +342,63 @@ describe('Core_loadData', function () {
     handsontable({
       data: data1,
       rowHeaders: true,
-      colHeaders: true,
-      asyncRendering: false
+      colHeaders: true
     });
     selectCell(7, 0);
     loadData(data2);
 
-    expect(countRows()).toBe(0);
-    expect(getSelected()).toEqual(null);
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countRows()).toBe(0);
+      expect(getSelected()).toEqual(null);
+    });
+  });
+
+  it('should only have as many columns as in settings', function () {
+    var data1 = arrayOfArrays();
+
+    handsontable({
+      data: data1,
+      columns: [
+        { data: 1 },
+        { data: 3 }
+      ]
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(countCols()).toBe(2);
+    });
+  });
+
+  it('should throw error when trying to load a string (constructor)', function () {
+    var errors = 0;
+
+    try {
+      handsontable({
+        data: "string"
+      });
+    }
+    catch (e) {
+      errors++;
+    }
+
+    expect(errors).toBe(1);
+  });
+
+  it('should throw error when trying to load a string (loadData)', function () {
+    var errors = 0;
+
+    try {
+      handsontable();
+      loadData("string");
+    }
+    catch (e) {
+      errors++;
+    }
+
+    expect(errors).toBe(1);
   });
 });

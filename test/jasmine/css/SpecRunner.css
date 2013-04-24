@@ -1,0 +1,8 @@
+/**
+ * Currently, the test suite is designed to be run with the minimum screen width of 600px
+ * This stylesheet makes sure that this condition is met when using PhantomJS
+ */
+
+html {
+  min-width: 600px;
+}

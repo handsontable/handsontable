@@ -7,7 +7,7 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script src="lib/jquery.min.js"></script>
+  <script src="lib/jquery.js"></script>
   <script src="dist/jquery.handsontable.full.js"></script>
   <link rel="stylesheet" media="screen" href="dist/jquery.handsontable.full.css">
 
@@ -66,34 +66,36 @@
 
     <div class="warning">
       This is a new version <span class="ver"></span>. Most importantly, it introduces <a href="demo/scroll.html">virtual
-      rendering</a>. See <a href="https://github.com/warpech/jquery-handsontable/wiki/Changelog">Changelog</a> for more
-      info. <br>You can try the previous version here: <a
-        href="http://handsontable.com/0.7.5/" style="font-weight: bold">0.7.5</a> (please note that 0.7.x branch will
+      rendering</a>. See <a href="https://github.com/warpech/jquery-handsontable/blob/master/CHANGELOG.md">Changelog</a>
+      for more info. <br>You can try the previous version here: <a
+      href="http://handsontable.com/0.7.5/" style="font-weight: bold">0.7.5</a> (please note that 0.7.x branch will
       not be maintained anymore).
     </div>
 
     <div id="example"></div>
 
     <script>
-      var data = [
-        ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
-        ["2009", 0, 2941, 4303, 354, 5814],
-        ["2010", 5, 2905, 2867, 412, 5284],
-        ["2011", 4, 2517, 4822, 552, 6127],
-        ["2012", 2, 2422, 5399, 776, 4151]
-      ];
+      $(document).ready(function () {
+        var data = [
+          ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
+          ["2009", 0, 2941, 4303, 354, 5814],
+          ["2010", 5, 2905, 2867, 412, 5284],
+          ["2011", 4, 2517, 4822, 552, 6127],
+          ["2012", 2, 2422, 5399, 776, 4151]
+        ];
 
-      $('#example').handsontable({
-        data: data,
-        minRows: 5,
-        minCols: 6,
-        minSpareRows: 1,
-        autoWrapRow: true,
-        colHeaders: true,
-        contextMenu: true
+        $('#example').handsontable({
+          data: data,
+          minRows: 5,
+          minCols: 6,
+          minSpareRows: 1,
+          autoWrapRow: true,
+          colHeaders: true,
+          contextMenu: true
+        });
+
+        $('.ver').text($('#example').data('handsontable').version);
       });
-
-      $('.ver').html($('#example').data('handsontable').version);
     </script>
 
     <h2>Examples and how-to's</h2>
@@ -102,7 +104,7 @@
       <h3>Appearance</h3>
       <ul>
         <li>
-          <a href="demo/renderers.html">Cell renderers</a>
+          <a href="demo/renderers.html">Cell types</a>
         </li>
         <li>
           <a href="demo/renderers_html.html">Custom HTML</a>
@@ -117,13 +119,16 @@
           <a href="demo/prepopulate.html">Pre-populate new rows</a>
         </li>
         <li>
-          <a href="demo/current.html">Highlight current row &amp; column</a>
+          <a href="demo/current.html">Highlight current row/col</a>
         </li>
         <li>
           <a href="demo/sorting.html">Column sorting</a>
         </li>
         <li>
-          <a href="demo/column_resize.html">Manual column resize &amp; move</a>
+          <a href="demo/column_resize.html">Column resize &amp; move</a>
+        </li>
+        <li>
+          <a href="demo/fixed.html">Fixed rows/columns</a>
         </li>
       </ul>
     </div>
@@ -132,7 +137,16 @@
       <h3>Editing</h3>
       <ul>
         <li>
+          <a href="demo/numeric.html">Numeric</a>
+        </li>
+        <li>
+          <a href="demo/date.html">Date</a>
+        </li>
+        <li>
           <a href="demo/autocomplete.html">Autocomplete</a>
+        </li>
+        <li>
+          <a href="demo/handsontable.html">Handsontable (in HT)</a>
         </li>
         <li>
           <a href="demo/validation.html">Validation</a>
@@ -156,16 +170,22 @@
       <h3>Integration</h3>
       <ul>
         <li>
-          <a href="demo/understanding_reference.html">Understanding binding as reference</a>
+          <a href="demo/understanding_reference.html">Understand binding as reference</a>
         </li>
         <li>
-          <a href="demo/datasources.html">Array and object data sources</a>
+          <a href="demo/datasources.html">Array, object, function data source</a>
         </li>
         <li>
           <a href="demo/ajax.html">Load &amp; Save (Ajax)</a>
         </li>
         <li>
-          <a href="demo/web_component.html" style="font-weight: bold">Web Component</a> (experimental)
+          <a href="demo/callbacks.html">Callbacks</a>
+        </li>
+        <li>
+          <a href="demo/backbone.html">Backbone.js</a>
+        </li>
+        <li>
+          <a href="demo/bootstrap.html">Twitter Bootstrap</a>
         </li>
       </ul>
     </div>
@@ -177,10 +197,13 @@
           <a href="https://github.com/warpech/jquery-handsontable">API reference, Source</a>
         </li>
         <li>
-          <a href="https://github.com/warpech/jquery-handsontable/wiki/Changelog">Changelog</a>
+          <a href="https://github.com/warpech/jquery-handsontable/blob/master/CHANGELOG.md">Changelog</a>
         </li>
         <li>
           <a href="https://github.com/warpech/jquery-handsontable/issues">Issues</a>
+        </li>
+        <li>
+          <a href="https://twitter.com/handsontable">@handsontable</a>
         </li>
       </ul>
     </div>

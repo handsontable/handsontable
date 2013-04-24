@@ -45,128 +45,132 @@
 </a>
 
 <div id="container">
+  <div class="columnLayout">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad bottomSpace650">
-        <h2>Conditional formatting</h2>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h2>Conditional formatting</h2>
 
-        <p>This demo shows how to use the cell type renderer feature to make some conditional formatting:</p>
+          <p>This demo shows how to use the cell type renderer feature to make some conditional formatting:</p>
 
-        <ol>
-          <li>first row is <span style="font-weight: bold">read-only</span>, and formatted in <span
-              style="color: green; font-weight: bold">green bold</span> text
-          </li>
-          <li>all cells in the Nissan column are written in <span style="font-style: italic">italic</span></li>
-          <li>empty cells have <span style="background: silver">silver</span> background</li>
-          <li>negative numbers are written in <span style="color: red">red</span></li>
-        </ol>
+          <ol>
+            <li>first row is <span style="font-weight: bold">read-only</span>, and formatted in <span
+                style="color: green; font-weight: bold">green bold</span> text
+            </li>
+            <li>all cells in the Nissan column are written in <span style="font-style: italic">italic</span></li>
+            <li>empty cells have <span style="background: silver">silver</span> background</li>
+            <li>negative numbers are written in <span style="color: red">red</span></li>
+          </ol>
 
-        <div id="example1"></div>
+          <div id="example1"></div>
 
-        <style>
-          .negative {
-            color: red;
-          }
-        </style>
+          <style>
+            .negative {
+              color: red;
+            }
+          </style>
 
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
-        </p>
-      </div>
-    </div>
-
-    <div class="codeLayout">
-      <div class="pad">
-        <div class="jsFiddle">
-          <div class="jsFiddleLink">Edit in jsFiddle</div>
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump data to console
+            </button>
+          </p>
         </div>
+      </div>
 
-        <script>
-          function negativeValueRenderer(instance, td, row, col, prop, value, cellProperties) {
-            Handsontable.TextCell.renderer.apply(this, arguments);
-            if (parseInt(value, 10) < 0) { //if row contains negative number
-              td.className = 'negative'; //add class "negative"
-            }
-            else {
-              td.className = '';
-            }
-            if(row === 0) {
-              td.style.fontWeight = 'bold';
-              td.style.color = 'green';
-            }
-            if(cellProperties.readOnly) {
-              td.style.opacity = 0.7;
-            }
-            if(value === 'Nissan') {
-              td.style.fontStyle = 'italic';
-            }
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
 
-            if(!value || value === '') {
-              td.style.background = '#EEE';
-            }
-            else {
-              td.style.background = '';
-            }
-          }
-
-          var data = [
-            ["", "Kia", "Nissan", "Toyota", "Honda"],
-            ["2008", -5, 11, 12, 13],
-            ["2009", 20, -11, 14, 13],
-            ["2010", 30, 15, -12, "readOnly"]
-          ];
-
-          var container = $("#example1");
-          container.handsontable({
-            data: data,
-            startRows: 5,
-            startCols: 5,
-            minSpareRows: 1,
-            contextMenu: true,
-            onSelection: function (row, col, row2, col2) {
-              var meta = container.handsontable('getCellMeta', row2, col2);
-              if (meta.isWritable == false) {
-                container.handsontable('updateSettings', {fillHandle: false});
+          <script>
+            function negativeValueRenderer(instance, td, row, col, prop, value, cellProperties) {
+              Handsontable.TextCell.renderer.apply(this, arguments);
+              if (parseInt(value, 10) < 0) { //if row contains negative number
+                td.className = 'negative'; //add class "negative"
               }
               else {
-                container.handsontable('updateSettings', {fillHandle: true});
+                td.className = '';
               }
-            },
-            cells: function (row, col, prop) {
-              var cellProperties = {};
-              if (row === 0 || container.handsontable('getData')[row][col] === 'readOnly') {
-                cellProperties.readOnly = true; //make cell read-only if it is first row or the text reads 'readOnly'
+              if (row === 0) {
+                td.style.fontWeight = 'bold';
+                td.style.color = 'green';
               }
-              cellProperties.type = {
-                renderer: negativeValueRenderer
+              if (cellProperties.readOnly) {
+                td.style.opacity = 0.7;
               }
-              return cellProperties;
+              if (value === 'Nissan') {
+                td.style.fontStyle = 'italic';
+              }
+
+              if (!value || value === '') {
+                td.style.background = '#EEE';
+              }
+              else {
+                td.style.background = '';
+              }
             }
-          });
-        </script>
+
+            var data = [
+              ["", "Kia", "Nissan", "Toyota", "Honda"],
+              ["2008", -5, 11, 12, 13],
+              ["2009", 20, -11, 14, 13],
+              ["2010", 30, 15, -12, "readOnly"]
+            ];
+
+            var container = $("#example1");
+            container.handsontable({
+              data: data,
+              startRows: 5,
+              startCols: 5,
+              minSpareRows: 1,
+              contextMenu: true,
+              onSelection: function (row, col, row2, col2) {
+                var meta = container.handsontable('getCellMeta', row2, col2);
+                if (meta.isWritable == false) {
+                  container.handsontable('updateSettings', {fillHandle: false});
+                }
+                else {
+                  container.handsontable('updateSettings', {fillHandle: true});
+                }
+              },
+              cells: function (row, col, prop) {
+                var cellProperties = {};
+                if (row === 0 || container.handsontable('getData')[row][col] === 'readOnly') {
+                  cellProperties.readOnly = true; //make cell read-only if it is first row or the text reads 'readOnly'
+                }
+                cellProperties.type = {
+                  renderer: negativeValueRenderer
+                }
+                return cellProperties;
+              }
+            });
+          </script>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
       </div>
     </div>
   </div>

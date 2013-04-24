@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Autocomplete - Handsontable</title>
+  <title>Autocomplete cell type - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -22,7 +22,7 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Autocomplete">
+  <meta property="og:title" content="Autocomplete cell type">
   <meta property="og:description"
         content="This example shows the usage of the Autocomplete feature.">
   <meta property="og:url" content="http://handsontable.com/demo/autocomplete.html">
@@ -56,6 +56,7 @@
 </a>
 
 <div id="container">
+<div class="columnLayout">
 
 <div class="rowLayout">
   <div class="descLayout">
@@ -66,9 +67,9 @@
         for HTML, JavaScript &amp; jQuery
       </div>
 
-      <h2>Autocomplete</h2>
+      <h2>Autocomplete cell type</h2>
 
-      <p>This page shows how to use Handsontable with various data sources:</p>
+      <p>This page shows how to configure Handsontable with Autocomplete cell type:</p>
 
       <ul>
         <li><a href="#lazy">Autocomplete lazy mode</a></li>
@@ -81,12 +82,20 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad bottomSpace450">
+    <div class="pad">
       <a name="lazy"></a>
 
       <h2>Autocomplete lazy mode</h2>
 
       <p>This example shows the usage of the Autocomplete feature.</p>
+
+      <p>List of autocomplete suggestions is rendered by <a
+        href="https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js">Twitter Bootstrap
+        Typeahead</a> library.
+      </p>
+
+      <p>The property <code>options</code> overrides <code>$.fn.typeahead.defaults</code> from Bootstrap. It may be
+        useful to configure the number of displayed suggestions.</p>
 
       <div id="example1"></div>
 
@@ -130,9 +139,12 @@
             {
               type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
               source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
-              strict: false
+              strict: false,
+              options: {
+                items: 4 //`options` overrides `defaults` defined in bootstrap typeahead
+              }
             },
-            {},
+            {type: 'numeric'},
             {
               type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
@@ -154,7 +166,7 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad bottomSpace200">
+    <div class="pad">
       <a name="strict"></a>
 
       <h2>Autocomplete strict mode</h2>
@@ -190,7 +202,7 @@
           columns: [
             {
               type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
-              source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
+              source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo", ""], //empty string is a valid value
               strict: true
             },
             {},
@@ -215,7 +227,7 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad bottomSpace200">
+    <div class="pad">
       <a name="strict-ajax"></a>
 
       <h2>Autocomplete strict mode (Ajax)</h2>
@@ -225,9 +237,6 @@
 
       <p>To load data from remote (asynchrous) source, assign a function to the 'source' property. Function should
         perform the server side request and call the callback function when the result is available.</p>
-
-      <p>The property <strong>options</strong> overrides `defaults` defined in Bootstrap Typeahead. It may be useful to
-        configure the number of displayed suggestions.</p>
 
       <div id="example3"></div>
 
@@ -283,13 +292,14 @@
 </div>
 
 <div class="rowLayout">
-  <div class="descLayout">
+  <div class="descLayout noMargin">
     <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
       <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
         licensed under the The MIT License.</p>
     </div>
   </div>
+</div>
 </div>
 </div>
 </body>

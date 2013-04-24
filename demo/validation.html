@@ -45,95 +45,99 @@
 </a>
 
 <div id="container">
+  <div class="columnLayout">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad bottomSpace300">
-        <h2>Validation</h2>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h2>Validation</h2>
 
-        <p>Use the
-          <b>onBeforeChange</b> callback to validate changes before they are applied to the table.
-        </p>
+          <p>Use the
+            <b>onBeforeChange</b> callback to validate changes before they are applied to the table.
+          </p>
 
-        <div id="example1"></div>
+          <div id="example1"></div>
 
-        <p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
+          <p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
 
-        <pre id="example1console" class="console">Edit the above grid to see callback</pre>
+          <pre id="example1console" class="console">Edit the above grid to see callback</pre>
 
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
-        </p>
-      </div>
-    </div>
-
-    <div class="codeLayout">
-      <div class="pad">
-        <div class="jsFiddle">
-          <div class="jsFiddleLink">Edit in jsFiddle</div>
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump data to console
+            </button>
+          </p>
         </div>
+      </div>
 
-        <script>
-          var data = [
-            ["", "Kia", "Nissan", "Toyota", "Honda"],
-            ["2008", 10, 11, 12, 13],
-            ["2009", 20, 11, 14, 13],
-            ["2010", 30, 15, 12, 13]
-          ];
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
 
-          $("#example1").handsontable({
-            data: data,
-            startRows: 8,
-            startCols: 6,
-            rowHeaders: true,
-            colHeaders: true,
-            minSpareRows: 1,
-            contextMenu: true,
-            onBeforeChange: function (data) {
-              for (var i = data.length - 1; i >= 0; i--) {
-                if (data[i][3] === "foo") {
-                  data.splice(i, 1); //gently don't accept the word "foo" (remove the change at index i)
+          <script>
+            var data = [
+              ["", "Kia", "Nissan", "Toyota", "Honda"],
+              ["2008", 10, 11, 12, 13],
+              ["2009", 20, 11, 14, 13],
+              ["2010", 30, 15, 12, 13]
+            ];
+
+            $("#example1").handsontable({
+              data: data,
+              startRows: 8,
+              startCols: 6,
+              rowHeaders: true,
+              colHeaders: true,
+              minSpareRows: 1,
+              contextMenu: true,
+              onBeforeChange: function (data) {
+                for (var i = data.length - 1; i >= 0; i--) {
+                  if (data[i][3] === "foo") {
+                    data.splice(i, 1); //gently don't accept the word "foo" (remove the change at index i)
+                  }
+                  else if (data[i][3] === "bar") {
+                    //if the word bar is given, add a ! at the end of it
+                    data[i][3] = data[i][3] + '!';
+                  }
+                  else if (data[i][3] === "nuke") {
+                    //if any of pasted cells contains the word "nuke", reject the whole paste
+                    return false;
+                  }
                 }
-                else if (data[i][3] === "bar") {
-                  //if the word bar is given, add a ! at the end of it
-                  data[i][3] = data[i][3] + '!';
+              },
+              onChange: function (data, source) {
+                if (source === 'loadData') {
+                  return; //don't show this change in console
                 }
-                else if (data[i][3] === "nuke") {
-                  //if any of pasted cells contains the word "nuke", reject the whole paste
-                  return false;
-                }
+                $("#example1console").text(JSON.stringify(data));
               }
-            },
-            onChange: function (data, source) {
-              if (source === 'loadData') {
-                return; //don't show this change in console
-              }
-              $("#example1console").text(JSON.stringify(data));
-            }
-          });
-        </script>
+            });
+          </script>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
       </div>
     </div>
   </div>

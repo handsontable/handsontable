@@ -7,6 +7,7 @@ describe('TextEditor', function () {
 
   afterEach(function () {
     if (this.$container) {
+      destroy();
       this.$container.remove();
     }
   });
@@ -32,6 +33,28 @@ describe('TextEditor', function () {
     });
   });
 
+  it('should move down after editing', function () {
+    handsontable();
+    selectCell(2, 2);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      keyDown('enter');
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      keyDown('enter');
+    });
+
+    runs(function () {
+      var selection = getSelected();
+      expect(selection).toEqual([3, 2, 3, 2]);
+    });
+  });
+
   it('should move down when enterBeginsEditing equals false', function () {
     handsontable({
       enterBeginsEditing: false
@@ -53,57 +76,6 @@ describe('TextEditor', function () {
     });
   });
 
-  it('should trigger beginediting', function () {
-    var called;
-    handsontable({
-      enterBeginsEditing: true
-    });
-    selectCell(2, 2);
-    this.$container.on('beginediting.handsontable', function () {
-      called = true;
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      keyDown('enter');
-    });
-
-    waitsFor(function () {
-      return (called === true)
-    }, 200);
-
-    runs(function () {
-      expect(called).toEqual(true);
-    });
-  });
-
-  it('should trigger finishediting', function () {
-    var called;
-    handsontable({
-      enterBeginsEditing: true
-    });
-    selectCell(2, 2);
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      keyDown('enter');
-      this.$container.on('finishediting.handsontable', function () {
-        called = true;
-      });
-      keyDown('enter');
-    });
-
-    waitsFor(function () {
-      return (called === true)
-    }, 100);
-
-    runs(function () {
-      expect(called).toEqual(true);
-    });
-  });
-
   it('should render string in textarea', function () {
     handsontable();
     setDataAtCell(2, 2, "string");
@@ -118,7 +90,7 @@ describe('TextEditor', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(keyProxy()).toEqual("string");
+      expect(keyProxy().val()).toEqual("string");
     });
   });
 
@@ -136,7 +108,7 @@ describe('TextEditor', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(keyProxy()).toEqual("13");
+      expect(keyProxy().val()).toEqual("13");
     });
   });
 
@@ -154,7 +126,7 @@ describe('TextEditor', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(keyProxy()).toEqual("true");
+      expect(keyProxy().val()).toEqual("true");
     });
   });
 
@@ -172,7 +144,7 @@ describe('TextEditor', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(keyProxy()).toEqual("false");
+      expect(keyProxy().val()).toEqual("false");
     });
   });
 
@@ -190,7 +162,7 @@ describe('TextEditor', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(keyProxy()).toEqual("");
+      expect(keyProxy().val()).toEqual("");
     });
   });
 
@@ -208,7 +180,7 @@ describe('TextEditor', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
-      expect(keyProxy()).toEqual("");
+      expect(keyProxy().val()).toEqual("");
     });
   });
 
@@ -274,6 +246,59 @@ describe('TextEditor', function () {
     waitsFor(nextFrame, 'next frame', 60);
 
     runs(function () {
+      expect(isEditorVisible()).toEqual(true);
+    });
+  });
+
+  it('textarea should have cell dimensions (after render)', function () {
+    runs(function () {
+      var data = [
+        ["a", "b"],
+        ["c", "d"]
+      ];
+
+      handsontable({
+        data: data,
+        minRows: 4,
+        minCols: 4,
+        minSpareRows: 4,
+        minSpareCols: 4
+      });
+
+      selectCell(1, 1);
+      keyDownUp('enter');
+
+      data[1][1] = "dddddddddddddddddddd";
+      render();
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
+      expect(keyProxy().width()).toEqual($td.width());
+    });
+  });
+
+  it('global shortcuts (like CTRL+A) should be blocked when cell is being edited', function () {
+    handsontable();
+    selectCell(2, 2);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      keyDownUp('enter');
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      keyDown(65, {ctrlKey: true}); //CTRL+A should NOT select all table when cell is edited
+    });
+
+    runs(function () {
+      var selection = getSelected();
+      expect(selection).toEqual([2, 2, 2, 2]);
       expect(isEditorVisible()).toEqual(true);
     });
   });

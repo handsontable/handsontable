@@ -7,6 +7,7 @@ describe('Core_onKeyDown', function () {
 
   afterEach(function () {
     if (this.$container) {
+      destroy();
       this.$container.remove();
     }
   });
@@ -28,7 +29,7 @@ describe('Core_onKeyDown', function () {
 
     runs(function () {
       keyDownUp('enter');
-      this.$keyboardProxy.val('Ted');
+      keyProxy().val('Ted');
       keyDownUp('tab');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([1, 2, 1, 2]);
@@ -44,7 +45,7 @@ describe('Core_onKeyDown', function () {
 
     runs(function () {
       keyDownUp('enter');
-      this.$keyboardProxy.val('Ted');
+      keyProxy().val('Ted');
       keyDownUp('arrow_down');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([2, 1, 2, 1]);
@@ -60,7 +61,7 @@ describe('Core_onKeyDown', function () {
 
     runs(function () {
       keyDownUp('enter');
-      this.$keyboardProxy.val('Ted');
+      keyProxy().val('Ted');
       keyDownUp('arrow_up');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([0, 1, 0, 1]);
@@ -76,7 +77,7 @@ describe('Core_onKeyDown', function () {
 
     runs(function () {
       keyDownUp('enter');
-      this.$keyboardProxy.val('Ted');
+      keyProxy().val('Ted');
       keyDownUp('arrow_right');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([1, 2, 1, 2]);
@@ -93,7 +94,7 @@ describe('Core_onKeyDown', function () {
 
     runs(function () {
       keyDownUp('enter');
-      this.$keyboardProxy.val('Ted');
+      keyProxy().val('Ted');
       setCaretPosition(0); //set's text cursor to the beginning of the textarea
       keyDownUp('arrow_left');
       expect(getData()[2][2]).toEqual('Ted');

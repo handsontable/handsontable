@@ -7,6 +7,7 @@ describe('ContextMenu', function () {
 
   afterEach(function () {
     if (this.$container) {
+      destroy();
       this.$container.remove();
       $.contextMenu('destroy');
     }
@@ -35,15 +36,37 @@ describe('ContextMenu', function () {
     expect($('ul.context-menu-list li.disabled').length).toEqual(2);
   });
 
-  it('should disable Insert row in context menu when maxRows is reached', function () {
-    handsontable({
-      startCols: 5,
-      maxCols: 5,
-      contextMenu: ['col_left', 'col_right']
-    });
-    selectCell(4, 4);
-    contextMenu();
-    expect($('ul.context-menu-list li').length).toEqual(2);
-    expect($('ul.context-menu-list li.disabled').length).toEqual(2);
+  it('should work properly (remove row) after destroy and new init', function () {
+    var test = function () {
+      handsontable({
+        startRows: 5,
+        contextMenu: ['remove_row']
+      });
+      selectCell(0, 0);
+      contextMenu();
+      $('ul.context-menu-list li').first().trigger('mouseup.contextMenu');
+      expect(getData().length).toEqual(4);
+    };
+    test();
+    destroy();
+    test();
   });
+
+  it('should destroy contextMenu when Handsotnable is destroyed', function () {
+    var test = function () {
+      handsontable({
+        startRows: 5,
+        contextMenu: ['remove_row']
+      });
+      selectCell(0, 0);
+      contextMenu();
+      $('ul.context-menu-list li').first().trigger('mouseup.contextMenu');
+      expect(getData().length).toEqual(4);
+    };
+    test();
+    expect($('ul.context-menu-list').length).toEqual(1);
+    destroy();
+    expect($('ul.context-menu-list').length).toEqual(0);
+  });
+
 });

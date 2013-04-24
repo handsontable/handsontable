@@ -7,6 +7,7 @@ describe('Core_render', function () {
 
   afterEach(function () {
     if (this.$container) {
+      destroy();
       this.$container.remove();
     }
   });

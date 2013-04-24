@@ -1,7 +1,7 @@
 {
   "name": "handsontable",
   "title": "Handsontable",
-  "version": "0.8.5-webcomponent",
+  "version": "0.8.21",
   "author": {
     "name": "Marcin Warpechowski",
     "email": "marcin@nextgen.pl",
@@ -24,7 +24,9 @@
     "table",
     "ui",
     "input",
-    "ajax"
+    "ajax",
+    "handsontable",
+    "spreadsheet"
   ],
   "bugs": "https://github.com/warpech/jquery-handsontable/issues",
   "dependencies": {

@@ -1,5 +1,5 @@
 /*!
- * Benchmark.js v1.0.0-pre <http://benchmarkjs.com/>
+ * Benchmark.js v1.0.0 <http://benchmarkjs.com/>
  * Copyright 2010-2012 Mathias Bynens <http://mths.be/>
  * Based on JSLitmus.js, copyright Robert Kieffer <http://broofa.com/>
  * Modified by John-David Dalton <http://allyoucanleet.com/>
@@ -36,6 +36,21 @@
 
   /** Used to check if an object is extensible */
   var isExtensible = Object.isExtensible || function() { return true; };
+
+  /** Used to access Wade Simmons' Node microtime module */
+  var microtimeObject = req('microtime');
+
+  /** Used to access the browser's high resolution timer */
+  var perfObject = isHostType(window, 'performance') && performance;
+
+  /** Used to call the browser's high resolution timer */
+  var perfName = perfObject && (
+    perfObject.now && 'now' ||
+    perfObject.webkitNow && 'webkitNow'
+  );
+
+  /** Used to access Node's high resolution timer */
+  var processObject = isHostType(window, 'process') && process;
 
   /** Used to check if an own property is enumerable */
   var propertyIsEnumerable = {}.propertyIsEnumerable;
@@ -228,6 +243,36 @@
       support.getAllKeys = /\bvalueOf\b/.test(getAllKeys(Object.prototype));
     } catch(e) {
       support.getAllKeys = false;
+    }
+
+    /**
+     * Detect if own properties are iterated before inherited properties (all but IE < 9).
+     *
+     * @name iteratesOwnLast
+     * @memberOf Benchmark.support
+     * @type Boolean
+     */
+    support.iteratesOwnFirst = (function() {
+      var props = [];
+      function ctor() { this.x = 1; }
+      ctor.prototype = { 'y': 1 };
+      for (var prop in new ctor) { props.push(prop); }
+      return props[0] == 'x';
+    }());
+
+    /**
+     * Detect if a node's [[Class]] is resolvable (all but IE < 9)
+     * and that the JS engine errors when attempting to coerce an object to a
+     * string without a `toString` property value of `typeof` "function".
+     *
+     * @name nodeClass
+     * @memberOf Benchmark.support
+     * @type Boolean
+     */
+    try {
+      support.nodeClass = ({ 'toString': 0 } + '', toString.call(doc || 0) != '[object Object]');
+    } catch(e) {
+      support.nodeClass = true;
     }
   }());
 
@@ -568,14 +613,17 @@
     while (++index < length) {
       if ((index - start) in tail) {
         object[index] = tail[index - start];
-      } else {
+      } else if (index in object) {
         delete object[index];
       }
     }
     // delete excess elements
     deleteCount = deleteCount > elementCount ? deleteCount - elementCount : 0;
     while (deleteCount--) {
-      delete object[length + deleteCount];
+      index = length + deleteCount;
+      if (index in object) {
+        delete object[index];
+      }
     }
     object.length = length;
     return result;
@@ -669,7 +717,14 @@
 
     start = toInteger(start);
     start = start < 0 ? max(length + start, 0) : min(start, length);
-    deleteCount = min(max(toInteger(deleteCount), 0), length - start);
+
+    // support the de-facto SpiderMonkey extension
+    // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/splice#Parameters
+    // https://bugs.ecmascript.org/show_bug.cgi?id=429
+    deleteCount = arguments.length == 1
+      ? length - start
+      : min(max(toInteger(deleteCount), 0), length - start);
+
     return insert.call(object, start, deleteCount, slice.call(arguments, 2));
   }
 
@@ -919,7 +974,13 @@
       // escape the `{` for Firefox 1
       result = (/^[^{]+\{([\s\S]*)}\s*$/.exec(fn) || 0)[1];
     }
-    return (result || '').replace(/^\s+|\s+$/g, '');
+    // trim string
+    result = (result || '').replace(/^\s+|\s+$/g, '');
+
+    // detect strings containing only the "use strict" directive
+    return /^(?:\/\*+[\w|\W]*?\*\/|\/\/.*?[\n\r\u2028\u2029]|\s)*(["'])use strict\1;?$/.test(result)
+      ? ''
+      : result;
   }
 
   /**
@@ -972,36 +1033,43 @@
   }
 
   /**
-   * Checks if the specified `value` is an object created by the `Object`
-   * constructor assuming objects created by the `Object` constructor have no
-   * inherited enumerable properties and assuming there are no `Object.prototype`
-   * extensions.
+   * Checks if a given `value` is an object created by the `Object` constructor
+   * assuming objects created by the `Object` constructor have no inherited
+   * enumerable properties and that there are no `Object.prototype` extensions.
    *
    * @private
    * @param {Mixed} value The value to check.
-   * @returns {Boolean} Returns `true` if `value` is an object, else `false`.
+   * @returns {Boolean} Returns `true` if the `value` is a plain `Object` object, else `false`.
    */
-  function isObject(value) {
-    var ctor,
-        result = !!value && toString.call(value) == '[object Object]';
-
-    if (result && noArgumentsClass) {
-      // avoid false positives for `arguments` objects in IE < 9
-      result = !isArguments(value);
+  function isPlainObject(value) {
+    // avoid non-objects and false positives for `arguments` objects in IE < 9
+    var result = false;
+    if (!(value && typeof value == 'object') || isArguments(value)) {
+      return result;
     }
-    if (result) {
-      // IE < 9 presents nodes like `Object` objects:
-      // IE < 8 are missing the node's constructor property
-      // IE 8 node constructors are typeof "object"
-      ctor = value.constructor;
-      // check if the constructor is `Object` as `Object instanceof Object` is `true`
-      if ((result = isClassOf(ctor, 'Function') && ctor instanceof ctor)) {
-        // An object's own properties are iterated before inherited properties.
-        // If the last iterated key belongs to an object's own property then
-        // there are no inherited enumerable properties.
-        forProps(value, function(subValue, subKey) { result = subKey; });
-        result = result === true || hasKey(value, result);
+    // IE < 9 presents DOM nodes as `Object` objects except they have `toString`
+    // methods that are `typeof` "string" and still can coerce nodes to strings.
+    // Also check that the constructor is `Object` (i.e. `Object instanceof Object`)
+    var ctor = value.constructor;
+    if ((support.nodeClass || !(typeof value.toString != 'function' && typeof (value + '') == 'string')) &&
+        (!isClassOf(ctor, 'Function') || ctor instanceof ctor)) {
+      // In most environments an object's own properties are iterated before
+      // its inherited properties. If the last iterated property is an object's
+      // own property then there are no inherited enumerable properties.
+      if (support.iteratesOwnFirst) {
+        forProps(value, function(subValue, subKey) {
+          result = subKey;
+        });
+        return result === false || hasKey(value, result);
       }
+      // IE < 9 iterates inherited properties before own properties. If the first
+      // iterated property is an object's own property then there are no inherited
+      // enumerable properties.
+      forProps(value, function(subValue, subKey) {
+        result = !hasKey(value, subKey);
+        return false;
+      });
+      return result === false;
     }
     return result;
   }
@@ -1243,7 +1311,7 @@
               break;
 
             case '[object Object]':
-              isObject(value) && (clone = new ctor);
+              isPlainObject(value) && (clone = {});
               break;
 
             case '[object Number]':
@@ -1875,6 +1943,21 @@
    *   'onCycle': onCycle,
    *   'onComplete': onComplete
    * });
+   *
+   * // or name and options
+   * suite.add('foo', {
+   *   'fn': fn,
+   *   'onCycle': onCycle,
+   *   'onComplete': onComplete
+   * });
+   *
+   * // or options only
+   * suite.add({
+   *   'name': 'foo',
+   *   'fn': fn,
+   *   'onCycle': onCycle,
+   *   'onComplete': onComplete
+   * });
    */
   function add(name, fn, options) {
     var me = this,
@@ -2368,13 +2451,12 @@
 
       var source = {
         'setup': getSource(bench.setup, preprocess('m$.setup()')),
-        'fn': getSource(fn, preprocess('f$(' + fnArg + ')')),
+        'fn': getSource(fn, preprocess('m$.fn(' + fnArg + ')')),
         'fnArg': fnArg,
         'teardown': getSource(bench.teardown, preprocess('m$.teardown()'))
       };
 
-      var compiled = bench.compiled,
-          count = bench.count = clone.count,
+      var count = bench.count = clone.count,
           decompilable = support.decompilation || stringable,
           id = bench.id,
           isEmpty = !(source.fn || stringable),
@@ -2396,77 +2478,77 @@
         }
       }
 
-      if (!compiled) {
-        // compile in setup/teardown functions and the test loop
-        compiled = bench.compiled = createFunction(preprocess('t$'), interpolate(
-          preprocess(deferred
-            ? 'var d$=this,#{fnArg}=d$,m$=d$.benchmark._original,f$=m$.fn,su$=m$.setup,td$=m$.teardown;' +
-              // when `deferred.cycles` is `0` then...
-              'if(!d$.cycles){' +
-              // set `deferred.fn`
-              'd$.fn=function(){var #{fnArg}=d$;if(typeof f$=="function"){try{#{fn}\n}catch(e$){f$(d$)}}else{#{fn}\n}};' +
-              // set `deferred.teardown`
-              'd$.teardown=function(){d$.cycles=0;if(typeof td$=="function"){try{#{teardown}\n}catch(e$){td$()}}else{#{teardown}\n}};' +
-              // execute the benchmark's `setup`
-              'if(typeof su$=="function"){try{#{setup}\n}catch(e$){su$()}}else{#{setup}\n};' +
-              // start timer
-              't$.start(d$);' +
-              // execute `deferred.fn` and return a dummy object
-              '}d$.fn();return{}'
+      // Compile in setup/teardown functions and the test loop.
+      // Create a new compiled test, instead of using the cached `bench.compiled`,
+      // to avoid potential engine optimizations enabled over the life of the test.
+      var compiled = bench.compiled = createFunction(preprocess('t$'), interpolate(
+        preprocess(deferred
+          ? 'var d$=this,#{fnArg}=d$,m$=d$.benchmark._original,f$=m$.fn,su$=m$.setup,td$=m$.teardown;' +
+            // when `deferred.cycles` is `0` then...
+            'if(!d$.cycles){' +
+            // set `deferred.fn`
+            'd$.fn=function(){var #{fnArg}=d$;if(typeof f$=="function"){try{#{fn}\n}catch(e$){f$(d$)}}else{#{fn}\n}};' +
+            // set `deferred.teardown`
+            'd$.teardown=function(){d$.cycles=0;if(typeof td$=="function"){try{#{teardown}\n}catch(e$){td$()}}else{#{teardown}\n}};' +
+            // execute the benchmark's `setup`
+            'if(typeof su$=="function"){try{#{setup}\n}catch(e$){su$()}}else{#{setup}\n};' +
+            // start timer
+            't$.start(d$);' +
+            // execute `deferred.fn` and return a dummy object
+            '}d$.fn();return{}'
 
-            : 'var r$,s$,m$=this,f$=m$.fn,i$=m$.count,n$=t$.ns;#{setup}\n#{begin};' +
-              'while(i$--){#{fn}\n}#{end};#{teardown}\nreturn{elapsed:r$,uid:"#{uid}"}'),
+          : 'var r$,s$,m$=this,f$=m$.fn,i$=m$.count,n$=t$.ns;#{setup}\n#{begin};' +
+            'while(i$--){#{fn}\n}#{end};#{teardown}\nreturn{elapsed:r$,uid:"#{uid}"}'),
+        source
+      ));
+
+      try {
+        if (isEmpty) {
+          // Firefox may remove dead code from Function#toString results
+          // http://bugzil.la/536085
+          throw new Error('The test "' + name + '" is empty. This may be the result of dead code removal.');
+        }
+        else if (!deferred) {
+          // pretest to determine if compiled code is exits early, usually by a
+          // rogue `return` statement, by checking for a return object with the uid
+          bench.count = 1;
+          compiled = (compiled.call(bench, timer) || {}).uid == uid && compiled;
+          bench.count = count;
+        }
+      } catch(e) {
+        compiled = null;
+        clone.error = e || new Error(String(e));
+        bench.count = count;
+      }
+      // fallback when a test exits early or errors during pretest
+      if (decompilable && !compiled && !deferred && !isEmpty) {
+        compiled = createFunction(preprocess('t$'), interpolate(
+          preprocess(
+            (clone.error && !stringable
+              ? 'var r$,s$,m$=this,f$=m$.fn,i$=m$.count'
+              : 'function f$(){#{fn}\n}var r$,s$,m$=this,i$=m$.count'
+            ) +
+            ',n$=t$.ns;#{setup}\n#{begin};m$.f$=f$;while(i$--){m$.f$()}#{end};' +
+            'delete m$.f$;#{teardown}\nreturn{elapsed:r$}'
+          ),
           source
         ));
 
         try {
-          if (isEmpty) {
-            // Firefox may remove dead code from Function#toString results
-            // http://bugzil.la/536085
-            throw new Error('The test "' + name + '" is empty. This may be the result of dead code removal.');
-          }
-          else if (!deferred) {
-            // pretest to determine if compiled code is exits early, usually by a
-            // rogue `return` statement, by checking for a return object with the uid
-            bench.count = 1;
-            compiled = (compiled.call(bench, timer) || {}).uid == uid && compiled;
-            bench.count = count;
-          }
-        } catch(e) {
-          compiled = null;
-          clone.error = e || new Error(String(e));
+          // pretest one more time to check for errors
+          bench.count = 1;
+          compiled.call(bench, timer);
+          bench.compiled = compiled;
           bench.count = count;
+          delete clone.error;
         }
-        // fallback when a test exits early or errors during pretest
-        if (decompilable && !compiled && !deferred && !isEmpty) {
-          compiled = createFunction(preprocess('t$'), interpolate(
-            preprocess(
-              (clone.error && !stringable
-                ? 'var r$,s$,m$=this,f$=m$.fn,i$=m$.count'
-                : 'function f$(){#{fn}\n}var r$,s$,m$=this,i$=m$.count'
-              ) +
-              ',n$=t$.ns;#{setup}\n#{begin};m$.f$=f$;while(i$--){m$.f$()}#{end};' +
-              'delete m$.f$;#{teardown}\nreturn{elapsed:r$}'
-            ),
-            source
-          ));
-
-          try {
-            // pretest one more time to check for errors
-            bench.count = 1;
-            compiled.call(bench, timer);
+        catch(e) {
+          bench.count = count;
+          if (clone.error) {
+            compiled = null;
+          } else {
             bench.compiled = compiled;
-            bench.count = count;
-            delete clone.error;
-          }
-          catch(e) {
-            bench.count = count;
-            if (clone.error) {
-              compiled = null;
-            } else {
-              bench.compiled = compiled;
-              clone.error = e || new Error(String(e));
-            }
+            clone.error = e || new Error(String(e));
           }
         }
       }
@@ -2500,15 +2582,24 @@
           if (ns.stop) {
             ns.start();
             while (!(measured = ns.microseconds())) { }
+          } else if (ns[perfName]) {
+            divisor = 1e3;
+            measured = Function('n', 'var r,s=n.' + perfName + '();while(!(r=n.' + perfName + '()-s)){};return r')(ns);
           } else {
-            begin = timer.ns();
+            begin = ns();
             while (!(measured = ns() - begin)) { }
           }
         }
         else if (unit == 'ns') {
           divisor = 1e9;
-          begin = ns.nanoTime();
-          while (!(measured = ns.nanoTime() - begin)) { }
+          if (ns.nanoTime) {
+            begin = ns.nanoTime();
+            while (!(measured = ns.nanoTime() - begin)) { }
+          } else {
+            begin = (begin = ns())[0] + (begin[1] / divisor);
+            while (!(measured = ((measured = ns())[0] + (measured[1] / divisor)) - begin)) { }
+            divisor = 1;
+          }
         }
         else {
           begin = new ns;
@@ -2558,9 +2649,18 @@
       }
     } catch(e) { }
 
-    // detect Node's microtime module:
-    // npm install microtime
-    if ((timer.ns = (req('microtime') || { 'now': 0 }).now)) {
+    // detect `performance.now` microsecond resolution timer
+    if ((timer.ns = perfName && perfObject)) {
+      timers.push({ 'ns': timer.ns, 'res': getRes('us'), 'unit': 'us' });
+    }
+
+    // detect Node's nanosecond resolution timer available in Node >= 0.8
+    if (processObject && typeof (timer.ns = processObject.hrtime) == 'function') {
+      timers.push({ 'ns': timer.ns, 'res': getRes('ns'), 'unit': 'ns' });
+    }
+
+    // detect Wade Simmons' Node microtime module
+    if (microtimeObject && typeof (timer.ns = microtimeObject.now) == 'function') {
       timers.push({ 'ns': timer.ns,  'res': getRes('us'), 'unit': 'us' });
     }
 
@@ -2579,19 +2679,35 @@
     }
     // use API of chosen timer
     if (timer.unit == 'ns') {
-      extend(template, {
-        'begin': 's$=n$.nanoTime()',
-        'end': 'r$=(n$.nanoTime()-s$)/1e9'
-      });
+      if (timer.ns.nanoTime) {
+        extend(template, {
+          'begin': 's$=n$.nanoTime()',
+          'end': 'r$=(n$.nanoTime()-s$)/1e9'
+        });
+      } else {
+        extend(template, {
+          'begin': 's$=n$()',
+          'end': 'r$=n$(s$);r$=r$[0]+(r$[1]/1e9)'
+        });
+      }
     }
     else if (timer.unit == 'us') {
-      extend(template, timer.ns.stop ? {
-        'begin': 's$=n$.start()',
-        'end': 'r$=n$.microseconds()/1e6'
-      } : {
-        'begin': 's$=n$()',
-        'end': 'r$=(n$()-s$)/1e6'
-      });
+      if (timer.ns.stop) {
+        extend(template, {
+          'begin': 's$=n$.start()',
+          'end': 'r$=n$.microseconds()/1e6'
+        });
+      } else if (perfName) {
+        extend(template, {
+          'begin': 's$=n$.' + perfName + '()',
+          'end': 'r$=(n$.' + perfName + '()-s$)/1e3'
+        });
+      } else {
+        extend(template, {
+          'begin': 's$=n$()',
+          'end': 'r$=(n$()-s$)/1e6'
+        });
+      }
     }
 
     // define `timer` methods
@@ -2627,20 +2743,18 @@
         sample = bench.stats.sample;
 
     /**
-     * Adds a number of clones to the queue.
+     * Adds a clone to the queue.
      */
-    function enqueue(count) {
-      while (count--) {
-        queue.push(bench.clone({
-          '_original': bench,
-          'events': {
-            'abort': [update],
-            'cycle': [update],
-            'error': [update],
-            'start': [update]
-          }
-        }));
-      }
+    function enqueue() {
+      queue.push(bench.clone({
+        '_original': bench,
+        'events': {
+          'abort': [update],
+          'cycle': [update],
+          'error': [update],
+          'start': [update]
+        }
+      }));
     }
 
     /**
@@ -2746,14 +2860,14 @@
       }
       // if time permits, increase sample size to reduce the margin of error
       if (queue.length < 2 && !maxedOut) {
-        enqueue(1);
+        enqueue();
       }
       // abort the invoke cycle when done
       event.aborted = done;
     }
 
     // init queue and begin
-    enqueue(minSamples);
+    enqueue();
     invoke(queue, {
       'name': 'run',
       'args': { 'async': async },
@@ -2977,6 +3091,7 @@
 
       /**
        * The maximum time a benchmark is allowed to run before finishing (secs).
+       *
        * Note: Cycle delays aren't counted toward the maximum time.
        *
        * @memberOf Benchmark.options
@@ -3150,7 +3265,7 @@
      * @memberOf Benchmark
      * @type String
      */
-    'version': '1.0.0-pre',
+    'version': '1.0.0',
 
     // an object of environment/feature detection flags
     'support': support,
@@ -3772,7 +3887,15 @@
   });
 
   // expose Benchmark
-  if (freeExports) {
+  // some AMD build optimizers, like r.js, check for specific condition patterns like the following:
+  if (typeof define == 'function' && typeof define.amd == 'object' && define.amd) {
+    // define as an anonymous module so, through path mapping, it can be aliased
+    define(function() {
+      return Benchmark;
+    });
+  }
+  // check for `exports` after `define` in case a build optimizer adds an `exports` object
+  else if (freeExports) {
     // in Node.js or RingoJS v0.8.0+
     if (typeof module == 'object' && module && module.exports == freeExports) {
       (module.exports = Benchmark).Benchmark = Benchmark;
@@ -3781,12 +3904,6 @@
     else {
       freeExports.Benchmark = Benchmark;
     }
-  }
-  // via an AMD loader
-  else if (freeDefine) {
-    define('benchmark', function() {
-      return Benchmark;
-    });
   }
   // in a browser or Rhino
   else {

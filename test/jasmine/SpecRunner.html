@@ -4,22 +4,24 @@
 <head>
   <title>Jasmine Spec Runner</title>
 
-  <link rel="shortcut icon" type="image/png" href="lib/jasmine-1.2.0/jasmine_favicon.png">
-  <link rel="stylesheet" type="text/css" href="lib/jasmine-1.2.0/jasmine.css">
-  <script type="text/javascript" src="lib/jasmine-1.2.0/jasmine.js"></script>
-  <script type="text/javascript" src="lib/jasmine-1.2.0/jasmine-html.js"></script>
+  <link rel="shortcut icon" type="image/png" href="lib/jasmine/jasmine_favicon.png">
+  <link rel="stylesheet" type="text/css" href="lib/jasmine/jasmine.css">
+  <script type="text/javascript" src="lib/jasmine/jasmine.js"></script>
+  <script type="text/javascript" src="lib/jasmine/jasmine-html.js"></script>
   <script type="text/javascript" src="lib/jasmine-jquery.js"></script>
 
-  <!-- include spec files here... -->
+  <!-- include source files here... -->
   <script type="text/javascript" src="../../lib/jquery.min.js"></script>
   <script type="text/javascript" src="../../jquery.handsontable.js"></script>
   <script type="text/javascript" src="../../lib/bootstrap-typeahead.js"></script>
+  <script type="text/javascript" src="../../lib/numeral.js"></script>
   <script type="text/javascript" src="../../lib/jQuery-contextMenu/jquery.contextMenu.js"></script>
   <script type="text/javascript" src="../../lib/jQuery-contextMenu/jquery.ui.position.js"></script>
   <link rel="stylesheet" media="screen" href="../../lib/jQuery-contextMenu/jquery.contextMenu.css">
   <link rel="stylesheet" media="screen" href="../../jquery.handsontable.css">
 
-  <!-- include source files here... -->
+  <!-- include spec files here... -->
+  <link rel="stylesheet" media="screen" href="css/SpecRunner.css">
   <script type="text/javascript" src="spec/SpecHelper.js"></script>
   <script type="text/javascript" src="spec/Core_initSpec.js"></script>
   <script type="text/javascript" src="spec/Core_destroySpec.js"></script>
@@ -33,17 +35,23 @@
   <script type="text/javascript" src="spec/Core_onKeyDownSpec.js"></script>
   <script type="text/javascript" src="spec/Core_copySpec.js"></script>
   <script type="text/javascript" src="spec/Core_dataSchemaSpec.js"></script>
-  <script type="text/javascript" src="spec/Core_alter.js"></script>
-  <script type="text/javascript" src="spec/Core_view.js"></script>
+  <script type="text/javascript" src="spec/Core_alterSpec.js"></script>
+  <script type="text/javascript" src="spec/Core_viewSpec.js"></script>
   <script type="text/javascript" src="spec/Core_destroyEditorSpec.js"></script>
   <script type="text/javascript" src="spec/Core_getCellMetaSpec.js"></script>
+  <script type="text/javascript" src="spec/Core_getRowHeaderSpec.js"></script>
+  <script type="text/javascript" src="spec/Core_getColHeaderSpec.js"></script>
   <script type="text/javascript" src="spec/RowHeaderSpec.js"></script>
   <script type="text/javascript" src="spec/ColHeaderSpec.js"></script>
   <script type="text/javascript" src="spec/FillHandleSpec.js"></script>
   <script type="text/javascript" src="spec/renderers/textRendererSpec.js"></script>
+  <script type="text/javascript" src="spec/renderers/numericRendererSpec.js"></script>
   <script type="text/javascript" src="spec/editors/textEditorSpec.js"></script>
   <script type="text/javascript" src="spec/editors/autocompleteEditorSpec.js"></script>
+  <script type="text/javascript" src="spec/editors/numericEditorSpec.js"></script>
+  <script type="text/javascript" src="spec/editors/handsontableEditorSpec.js"></script>
   <script type="text/javascript" src="spec/plugins/contextMenuSpec.js"></script>
+  <script type="text/javascript" src="spec/plugins/columnSortingSpec.js"></script>
 
   <script type="text/javascript">
     (function () {

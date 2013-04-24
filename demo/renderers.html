@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Cell renderers - Handsontable</title>
+  <title>Cell types - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -10,6 +10,9 @@
   <script src="../lib/jquery.min.js"></script>
   <script src="../dist/jquery.handsontable.full.js"></script>
   <link rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
+  <script src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
+  <link rel="stylesheet" media="screen" href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -22,9 +25,9 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Cell renderers">
+  <meta property="og:title" content="Cell types">
   <meta property="og:description"
-        content="This example shows the default renderers available in Handsontable.">
+        content="This example shows the default renderers and editors available in Handsontable.">
   <meta property="og:url" content="http://handsontable.com/demo/renderers.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -45,94 +48,165 @@
 </a>
 
 <div id="container">
+  <div class="columnLayout">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
+
+          <h2>Cell types</h2>
+
+          <p>This page is an introduction to Handsontable cell types:</p>
+
+          <ul>
+            <li><a href="#preview">Preview of built-in and custom cell types</a></li>
+            <li><a href="#anatomy">Anatomy of a cell type</a></li>
+          </ul>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad bottomSpace550">
-        <h2>Cell renderers</h2>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <a name="preview"></a>
 
-        <p>This example shows the default renderers available in Handsontable.</p>
+          <h2>Preview of built-in and custom cell types</h2>
 
-        <div id="example1"></div>
+          <p>The below example shows all built-in cell types (in other words, combinations of cell renderers and
+            editors)
+            available in Handsontable:</p>
 
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump data to console</button>
-        </p>
-      </div>
-    </div>
+          <ul>
+            <li>text</li>
+            <li><a href="numeric.html">numeric</a></li>
+            <li>checkbox</li>
+            <li><a href="date.html">date</a></li>
+            <li><a href="autocomplete.html">autocomplete</a></li>
+          </ul>
 
-    <div class="codeLayout">
-      <div class="pad">
-        <div class="jsFiddle">
-          <div class="jsFiddleLink">Edit in jsFiddle</div>
+          <p>The same example also shows the declaration of custom cell renderers, namely <code>yellowRenderer</code>
+            and
+            <code>greenRenderer</code>.
+          </p>
+
+          <div id="example1"></div>
+
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump
+              data to console
+            </button>
+          </p>
         </div>
+      </div>
 
-        <script>
-          var data = [
-            {id: 1, name: "Ted", isActive: true, color: "orange"},
-            {id: 2, name: "John", isActive: false, color: "black"},
-            {id: 3, name: "Al", isActive: true, color: "red"},
-            {id: 4, name: "Ben", isActive: false, color: "blue"}
-          ];
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
 
-          var yellowRenderer = function (instance, td, row, col, prop, value, cellProperties) {
-            Handsontable.TextCell.renderer.apply(this, arguments);
-            $(td).css({
-              background: 'yellow'
-            });
-          };
+          <script>
+            var data = [
+              {id: 1, name: "Ted", isActive: true, color: "orange", date: "2008-01-01"},
+              {id: 2, name: "John", isActive: false, color: "black", date: null},
+              {id: 3, name: "Al", isActive: true, color: "red", date: null},
+              {id: 4, name: "Ben", isActive: false, color: "blue", date: null}
+            ];
 
-          var greenRenderer = function (instance, td, row, col, prop, value, cellProperties) {
-            Handsontable.TextCell.renderer.apply(this, arguments);
-            $(td).css({
-              background: 'green'
-            });
-          };
+            var yellowRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+              Handsontable.TextCell.renderer.apply(this, arguments);
+              $(td).css({
+                background: 'yellow'
+              });
+            };
 
-          var $container = $("#example1");
-          $container.handsontable({
-            data: data,
-            startRows: 5,
-            colHeaders: true,
-            minSpareRows: 1,
-            columns: [
-              {data: "id"},
-              {data: "name", type: {renderer: yellowRenderer}},
-              {data: "isActive", type: Handsontable.CheckboxCell},
-              {data: "color",
-                type: Handsontable.AutocompleteCell,
-                source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
+            var greenRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+              Handsontable.TextCell.renderer.apply(this, arguments);
+              $(td).css({
+                background: 'green'
+              });
+            };
+
+            var $container = $("#example1");
+            $container.handsontable({
+              data: data,
+              startRows: 5,
+              colHeaders: true,
+              minSpareRows: 1,
+              columns: [
+                {data: "id", type: 'text'},
+                //'text' is default, you don't actually have to declare it
+                {data: "name", type: {renderer: yellowRenderer}},
+                {data: "isActive", type: 'checkbox'},
+                {data: "date", type: 'date'},
+                {data: "color",
+                  type: 'autocomplete',
+                  source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
+                }
+              ],
+              cells: function (row, col, prop) {
+                if (row === 0 && col === 0) {
+                  return {type: {renderer: greenRenderer}};
+                }
               }
-            ],
-            cells: function (row, col, prop) {
-              if (row === 0 && col === 0) {
-                return {type: {renderer: greenRenderer}};
-              }
-            }
-          });
-        </script>
+            });
+          </script>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <a name="anatomy"></a>
 
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
+          <h2>Anatomy of a cell type</h2>
+
+          <p>A cell type is a predefined set of cell properties. Cell type defines what <strong>renderer</strong>
+            and <strong>editor</strong> should be used for a cell. They can also define any different cell property that
+            will be assumed for each matching cell.</p>
+
+          <p>For example writing:</p>
+
+        <pre class="javascript"><code>
+        columns: [
+          {
+            type: 'text'
+          }
+        ]
+        </code></pre>
+
+          <p>Equals:</p>
+
+        <pre class="javascript"><code>
+        columns: [
+          {
+            renderer: Handsontable.TextRenderer,
+            editor: Handsontable.TextEditor
+          }
+        ]
+        </code></pre>
+
+          This mapping is defined in file <a
+            href="https://github.com/warpech/jquery-handsontable/blob/master/src/cellTypes.js">src/cellTypes.js</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
       </div>
     </div>
   </div>

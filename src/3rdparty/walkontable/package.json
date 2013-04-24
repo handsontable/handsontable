@@ -1,0 +1,12 @@
+{
+  "name": "walkontable",
+  "description": "Table view engine that will enable virtual rendering in HTML/JavaScript",
+  "author": "Marcin Warpechowski <marcin@nextgen.pl>",
+  "version": "0.2.0",
+  "devDependencies": {
+    "grunt": "~0.4.0",
+    "grunt-contrib-concat": "~0.1.0",
+    "grunt-contrib-watch": "~0.2.0",
+    "grunt-contrib-jasmine": "~0.4.1"
+  }
+}

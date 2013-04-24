@@ -7,11 +7,13 @@ describe('Core_init', function () {
 
   afterEach(function () {
     if (this.$container) {
+      destroy();
       this.$container.remove();
     }
   });
 
   it('should respect startRows and startCols when no data is provided', function () {
+    this.$container.remove();
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
     handsontable();
 
