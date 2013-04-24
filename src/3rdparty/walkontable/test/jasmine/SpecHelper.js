@@ -26,3 +26,13 @@ var getTotalRows = function () {
 var getTotalColumns = function () {
   return spec().data[0].length;
 };
+
+beforeEach(function () {
+  var matchers = {
+    toBeInArray: function (arr) {
+      return ($.inArray(this.actual, arr) > -1);
+    }
+  };
+
+  this.addMatchers(matchers);
+});

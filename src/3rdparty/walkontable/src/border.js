@@ -54,45 +54,80 @@ WalkontableBorder.prototype.appear = function (corners) {
   }
 
   var instance = this.instance
-    , offsetRow = instance.getSetting('offsetRow')
-    , offsetColumn = instance.getSetting('offsetColumn')
-    , lastRow = instance.wtTable.getLastVisibleRow()
-    , lastColumn = instance.wtTable.getLastVisibleColumn();
+    , fromRow
+    , fromColumn
+    , toRow
+    , toColumn
+    , hideTop = false
+    , hideLeft = false
+    , hideBottom = false
+    , hideRight = false
+    , i
+    , ilen
+    , s;
 
-  var hideTop = false, hideLeft = false, hideBottom = false, hideRight = false;
+  if (!instance.wtTable.isRowInViewport(corners[0])) {
+    hideTop = true;
+  }
 
-  if (!walkontableRangesIntersect(corners[0], corners[2], offsetRow, lastRow)) {
-    hideTop = hideLeft = hideBottom = hideRight = true;
+  if (!instance.wtTable.isRowInViewport(corners[2])) {
+    hideBottom = true;
+  }
+
+  ilen = instance.wtTable.countVisibleRows();
+
+  for (i = 0; i < ilen; i++) {
+    s = instance.wtTable.rowFilter.visibleToSource(i);
+    if (s >= corners[0] && s <= corners[2]) {
+      fromRow = s;
+      break;
+    }
+  }
+
+  for (i = ilen - 1; i >= 0; i--) {
+    s = instance.wtTable.rowFilter.visibleToSource(i);
+    if (s >= corners[0] && s <= corners[2]) {
+      toRow = s;
+      break;
+    }
+  }
+
+  if (hideTop && hideBottom) {
+    hideLeft = true;
+    hideRight = true;
   }
   else {
-    if (corners[0] < offsetRow) {
-      corners[0] = offsetRow;
-      hideTop = true;
-    }
-    if (corners[2] > lastRow) {
-      corners[2] = lastRow;
-      hideBottom = true;
-    }
-  }
-
-  if (!walkontableRangesIntersect(corners[1], corners[3], offsetColumn, lastColumn)) {
-    hideTop = hideLeft = hideBottom = hideRight = true;
-  }
-  else {
-    if (corners[1] < offsetColumn) {
-      corners[1] = offsetColumn;
+    if (!instance.wtTable.isColumnInViewport(corners[1])) {
       hideLeft = true;
     }
-    if (corners[3] > lastColumn) {
-      corners[3] = lastColumn;
+
+    if (!instance.wtTable.isColumnInViewport(corners[3])) {
       hideRight = true;
+    }
+
+    ilen = instance.wtTable.countVisibleColumns();
+
+    for (i = 0; i < ilen; i++) {
+      s = instance.wtTable.columnFilter.visibleToSource(i);
+      if (s >= corners[1] && s <= corners[3]) {
+        fromColumn = s;
+        break;
+      }
+    }
+
+    for (i = ilen - 1; i >= 0; i--) {
+      s = instance.wtTable.columnFilter.visibleToSource(i);
+      if (s >= corners[1] && s <= corners[3]) {
+        toColumn = s;
+        break;
+      }
     }
   }
 
-  if (hideTop + hideLeft + hideBottom + hideRight < 4) { //at least one border is not hidden
-    isMultiple = (corners[0] !== corners[2] || corners[1] !== corners[3]);
-    $from = $(instance.wtTable.getCell([corners[0], corners[1]]));
-    $to = isMultiple ? $(instance.wtTable.getCell([corners[2], corners[3]])) : $from;
+  if (fromRow !== void 0 && fromColumn !== void 0) {
+    isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
+    $from = $(instance.wtTable.getCell([fromRow, fromColumn]));
+    $to = isMultiple ? $(instance.wtTable.getCell([toRow, toColumn])) : $from;
     fromOffset = this.wtDom.offset($from[0]);
     toOffset = isMultiple ? this.wtDom.offset($to[0]) : fromOffset;
     containerOffset = this.wtDom.offset(instance.wtTable.TABLE);
@@ -113,6 +148,10 @@ WalkontableBorder.prototype.appear = function (corners) {
       left += 1;
       width -= 1;
     }
+  }
+  else {
+    this.disappear();
+    return;
   }
 
   if (hideTop) {
@@ -157,7 +196,7 @@ WalkontableBorder.prototype.appear = function (corners) {
     this.rightStyle.display = 'block';
   }
 
-  if (hideBottom && hideRight || !this.hasSetting(this.settings.border.cornerVisible)) {
+  if (hideBottom || hideRight || !this.hasSetting(this.settings.border.cornerVisible)) {
     this.cornerStyle.display = 'none';
   }
   else {

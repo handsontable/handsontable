@@ -1,6 +1,8 @@
 # Handsontable [![Build Status](https://travis-ci.org/warpech/jquery-handsontable.png?branch=master)](https://travis-ci.org/warpech/jquery-handsontable)
 
-Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery. Requires jQuery 1.7+. Runs in IE7, IE8, IE9, Firefox, Chrome, Safari and Opera.
+Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery. Requires jQuery 1.9+ or 2.0+ (may work with 1.7+ too, but there are known issues with [IE10](https://github.com/warpech/jquery-handsontable/issues/410)). 
+
+Runs in IE7, IE8, IE9, IE10, Firefox, Chrome, Safari and Opera.
 
 See the demos at http://handsontable.com/ or fork the example on [JSFiddle](http://jsfiddle.net/warpech/hU6Kz/).
 
@@ -162,7 +164,7 @@ The table below presents configuration options that are interpreted by `handsont
 
 ## Similar projects
 
-This is a free world so I invite you to check out alternative projects. I would love to receive feedback if you would like to import some of their features to Handsontable.
+I want to stay motivated to keep Handsontable the best possible editable datagrid on the Web. Therefore, I invite you to check out alternative projects. I would love to receive feedback if you would like to import some of their features to Handsontable.
 
  - [DataTables](http://datatables.net/)
  - [SlickGrid](https://github.com/mleibman/SlickGrid)
@@ -170,6 +172,8 @@ This is a free world so I invite you to check out alternative projects. I would 
  - [jTable](http://www.jtable.org/)
  - [jui_datagrid](http://www.pontikis.net/labs/jui_datagrid/)
  - [ParamQuery](http://paramquery.com/)
+ - [Ember Table](http://addepar.github.io/ember-table/)
+ - [Backgrid.js](http://backgridjs.com/)
 
 ## License
 
