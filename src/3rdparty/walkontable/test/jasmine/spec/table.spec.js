@@ -507,10 +507,10 @@ describe('WalkontableTable', function () {
       }
     });
     wt.draw();
-    expect($.inArray($table.find('tbody tr:first td:eq(0)').outerWidth(), [48, 50]) > -1).toBe(true); //IE7 reports 48, other browsers report 50
-    expect($.inArray($table.find('tbody tr:first td:eq(1)').outerWidth(), [98, 100]) > -1).toBe(true); //IE7 reports 98, other browsers report 100
-    expect($.inArray($table.find('tbody tr:first td:eq(2)').outerWidth(), [148, 150]) > -1).toBe(true); //IE7 reports 148, other browsers report 150
-    expect($.inArray($table.find('tbody tr:first td:eq(3)').outerWidth(), [198, 200]) > -1).toBe(true); //IE7 reports 198, other browsers report 200
+    expect($table.find('tbody tr:first td:eq(0)').outerWidth()).toBeInArray([48, 50]); //IE7 reports 48, other browsers report 50
+    expect($table.find('tbody tr:first td:eq(1)').outerWidth()).toBeInArray([98, 100]); //IE7 reports 98, other browsers report 100
+    expect($table.find('tbody tr:first td:eq(2)').outerWidth()).toBeInArray([148, 150]); //IE7 reports 148, other browsers report 150
+    expect($table.find('tbody tr:first td:eq(3)').outerWidth()).toBeInArray([198, 200]); //IE7 reports 198, other browsers report 200
   });
 
   it("should use column width array to get column width", function () {
@@ -531,10 +531,10 @@ describe('WalkontableTable', function () {
       columnWidth: [50, 100, 150, 200]
     });
     wt.draw();
-    expect($.inArray($table.find('tbody tr:first td:eq(0)').outerWidth(), [48, 50]) > -1).toBe(true); //IE7 reports 48, other browsers report 50
-    expect($.inArray($table.find('tbody tr:first td:eq(1)').outerWidth(), [98, 100]) > -1).toBe(true); //IE7 reports 98, other browsers report 100
-    expect($.inArray($table.find('tbody tr:first td:eq(2)').outerWidth(), [148, 150]) > -1).toBe(true); //IE7 reports 148, other browsers report 150
-    expect($.inArray($table.find('tbody tr:first td:eq(3)').outerWidth(), [198, 200]) > -1).toBe(true); //IE7 reports 198, other browsers report 200
+    expect($table.find('tbody tr:first td:eq(0)').outerWidth()).toBeInArray([48, 50]); //IE7 reports 48, other browsers report 50
+    expect($table.find('tbody tr:first td:eq(1)').outerWidth()).toBeInArray([98, 100]); //IE7 reports 98, other browsers report 100
+    expect($table.find('tbody tr:first td:eq(2)').outerWidth()).toBeInArray([148, 150]); //IE7 reports 148, other browsers report 150
+    expect($table.find('tbody tr:first td:eq(3)').outerWidth()).toBeInArray([198, 200]); //IE7 reports 198, other browsers report 200
   });
 
   it("should use column width integer to get column width", function () {
@@ -555,10 +555,10 @@ describe('WalkontableTable', function () {
       columnWidth: 100
     });
     wt.draw();
-    expect($.inArray($table.find('tbody tr:first td:eq(0)').outerWidth(), [98, 100]) > -1).toBe(true); //IE7 reports 98, other browsers report 100
-    expect($.inArray($table.find('tbody tr:first td:eq(1)').outerWidth(), [98, 100]) > -1).toBe(true); //IE7 reports 98, other browsers report 100
-    expect($.inArray($table.find('tbody tr:first td:eq(2)').outerWidth(), [98, 100]) > -1).toBe(true); //IE7 reports 98, other browsers report 100
-    expect($.inArray($table.find('tbody tr:first td:eq(3)').outerWidth(), [98, 100]) > -1).toBe(true); //IE7 reports 98, other browsers report 100
+    expect($table.find('tbody tr:first td:eq(0)').outerWidth()).toBeInArray([98, 100]); //IE7 reports 98, other browsers report 100
+    expect($table.find('tbody tr:first td:eq(1)').outerWidth()).toBeInArray([98, 100]); //IE7 reports 98, other browsers report 100
+    expect($table.find('tbody tr:first td:eq(2)').outerWidth()).toBeInArray([98, 100]); //IE7 reports 98, other browsers report 100
+    expect($table.find('tbody tr:first td:eq(3)').outerWidth()).toBeInArray([98, 100]); //IE7 reports 98, other browsers report 100
   });
 
   it("should not render a cell that is outside of the viewport horizontally", function () {

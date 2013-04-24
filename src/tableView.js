@@ -141,7 +141,7 @@ Handsontable.TableView = function (instance) {
 
   var walkontableConfig = {
     table: table,
-    stretchH: that.settings.stretchH,
+    stretchH: this.settings.stretchH,
     data: instance.getDataAtCell,
     totalRows: instance.countRows,
     totalColumns: instance.countCols,
@@ -149,6 +149,8 @@ Handsontable.TableView = function (instance) {
     offsetColumn: 0,
     width: this.getWidth(),
     height: this.getHeight(),
+    fixedColumnsLeft: this.settings.fixedColumnsLeft,
+    fixedRowsTop: this.settings.fixedRowsTop,
     rowHeaders: this.settings.rowHeaders ? function (index, TH) {
       that.appendRowHeader(index, TH);
     } : null,

@@ -17,6 +17,8 @@ function WalkontableSettings(instance, settings) {
     data: void 0,
     offsetRow: 0,
     offsetColumn: 0,
+    fixedColumnsLeft: 0,
+    fixedRowsTop: 0,
     rowHeaders: null, //this must be a function in format: function (row, TH) {}
     columnHeaders: null, //this must be a function in format: function (col, TH) {}
     totalRows: void 0,
