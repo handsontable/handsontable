@@ -1,1 +1,0 @@
-This is an experiment. It is a re-implementation of  https://github.com/angular/angular-phonecat using Model-driven Views.

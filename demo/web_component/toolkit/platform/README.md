@@ -1,4 +1,0 @@
-Platform
-========
-
-Necessary toolkit infrastructure
