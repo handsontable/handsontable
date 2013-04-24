@@ -46,73 +46,80 @@
 </a>
 
 <div id="container">
+  <div class="columnLayout">
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad">
-        <h1><a href="../index.html">Handsontable</a></h1>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-        <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-          for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad bottomSpace100">
-        <h2>Web Component</h2>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad bottomSpace100">
+          <h2>Web Component</h2>
 
-        <p>This example shows an experimental build of Handsontable as Web Component.</p>
+          <p>This example shows an experimental build of Handsontable as Web Component.</p>
 
-        <x-handsontable id="example1" datarows="people">
-          <datacolumn value="id" title="ID"></datacolumn>
-          <datacolumn type="grayedOut" value="name.first" title="First Name" readOnly></datacolumn>
-          <datacolumn type="grayedOut" value="name.last" title="Last Name" readOnly></datacolumn>
-          <datacolumn value="age" title="Age"></datacolumn>
-          <datacolumn type="checkbox" value="languages.english" title="English" checkedTemplate="Yes"
-                      uncheckedTemplate="No"></datacolumn>
-          <datacolumn type="checkbox" value="languages.spanish" title="Spanish" checkedTemplate="Yes"
-                      uncheckedTemplate="No"></datacolumn>
-          <datacolumn type="checkbox" value="languages.french" title="French" checkedTemplate="Yes"
-                      uncheckedTemplate="No"></datacolumn>
-        </x-handsontable>
+          <x-handsontable id="example1" datarows="people">
+            <datacolumn value="id" title="ID"></datacolumn>
+            <datacolumn type="grayedOut" value="name.first" title="First Name" readOnly></datacolumn>
+            <datacolumn type="grayedOut" value="name.last" title="Last Name" readOnly></datacolumn>
+            <datacolumn value="age" title="Age"></datacolumn>
+            <datacolumn type="checkbox" value="languages.english" title="English" checkedTemplate="Yes"
+                        uncheckedTemplate="No"></datacolumn>
+            <datacolumn type="checkbox" value="languages.spanish" title="Spanish" checkedTemplate="Yes"
+                        uncheckedTemplate="No"></datacolumn>
+            <datacolumn type="checkbox" value="languages.french" title="French" checkedTemplate="Yes"
+                        uncheckedTemplate="No"></datacolumn>
+          </x-handsontable>
 
-        <p>
-          <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-            data to console
-          </button>
-        </p>
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump
+              data to console
+            </button>
+          </p>
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
+
+          <script>
+            var people = [
+              {id: 1, name: {first: 'Joe', last: 'Fabiano'}, age: '21', languages: {english: 'Yes', spanish: 'Yes', french: 'No'}},
+              {id: 2, name: {first: 'Fred', last: 'Wecler'}, age: '25', languages: {english: 'Yes', spanish: 'No', french: 'No'}},
+              {id: 3, name: {first: 'Steve', last: 'Wilson'}, age: '32', languages: {english: 'Yes', spanish: 'No', french: 'No'}},
+              {id: 4, name: {first: 'Maria', last: 'Fernandez'}, age: '27', languages: {english: 'No', spanish: 'Yes', french: 'Yes'}},
+              {id: 5, name: {first: 'Pierre', last: 'Barbault'}, age: '46', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}},
+              {id: 6, name: {first: 'Nancy', last: 'Moore'}, age: '34', languages: {english: 'Yes', spanish: 'No', french: 'No'}},
+              {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, age: '19', languages: {english: 'Yes', spanish: 'No', french: 'No'}},
+              {id: 8, name: {first: 'Wilma', last: 'Williams'}, age: '33', languages: {english: 'Yes', spanish: 'Yes', french: 'Yes'}},
+              {id: 9, name: {first: 'Sasha', last: 'Silver'}, age: '27', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}},
+              {id: 10, name: {first: 'Don', last: 'Pérignon'}, age: '42', languages: {english: 'No', spanish: 'No', french: 'Yes'}}
+            ];
+          </script>
+        </div>
       </div>
     </div>
 
-    <div class="codeLayout">
-      <div class="pad">
-        <script>
-          var people = [
-            {id: 1, name: {first: 'Joe', last: 'Fabiano'}, age: '21', languages: {english: 'Yes', spanish: 'Yes', french: 'No'}},
-            {id: 2, name: {first: 'Fred', last: 'Wecler'}, age: '25', languages: {english: 'Yes', spanish: 'No', french: 'No'}},
-            {id: 3, name: {first: 'Steve', last: 'Wilson'}, age: '32', languages: {english: 'Yes', spanish: 'No', french: 'No'}},
-            {id: 4, name: {first: 'Maria', last: 'Fernandez'}, age: '27', languages: {english: 'No', spanish: 'Yes', french: 'Yes'}},
-            {id: 5, name: {first: 'Pierre', last: 'Barbault'}, age: '46', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}},
-            {id: 6, name: {first: 'Nancy', last: 'Moore'}, age: '34', languages: {english: 'Yes', spanish: 'No', french: 'No'}},
-            {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, age: '19', languages: {english: 'Yes', spanish: 'No', french: 'No'}},
-            {id: 8, name: {first: 'Wilma', last: 'Williams'}, age: '33', languages: {english: 'Yes', spanish: 'Yes', french: 'Yes'}},
-            {id: 9, name: {first: 'Sasha', last: 'Silver'}, age: '27', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}},
-            {id: 10, name: {first: 'Don', last: 'Pérignon'}, age: '42', languages: {english: 'No', spanish: 'No', french: 'Yes'}}
-          ];
-        </script>
-      </div>
-    </div>
-  </div>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
-  <div class="rowLayout">
-    <div class="descLayout">
-      <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
-
-        <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-          licensed under the The MIT License.</p>
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
       </div>
     </div>
   </div>
