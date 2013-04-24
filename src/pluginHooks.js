@@ -6,6 +6,7 @@ Handsontable.PluginHooks = (function () {
     beforeGet: [],
     beforeSet: [],
     beforeGetCellMeta: [],
+    beforeAutofill : [],
 
     afterInit: [],
     afterLoadData: [],

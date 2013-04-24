@@ -38,6 +38,7 @@ Handsontable.Core = function (rootElement, settings) {
     beforeGet: [],
     beforeSet: [],
     beforeGetCellMeta: [],
+    beforeAutofill : [],
 
     afterInit: [],
     afterLoadData: [],
@@ -979,7 +980,7 @@ Handsontable.Core = function (rootElement, settings) {
      * Apply fill values to the area in fill border, omitting the selection border
      */
     apply: function () {
-      var drag, select, start, end;
+      var drag, select, start, end, _data;
 
       autofill.handle.isDragged = 0;
 
@@ -1039,7 +1040,11 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       if (start) {
-        grid.populateFromArray(start, SheetClip.parse(datamap.getText(priv.selStart.coords(), priv.selEnd.coords())), end, 'autofill');
+
+        _data = SheetClip.parse(datamap.getText(priv.selStart.coords(), priv.selEnd.coords()));
+        self.runHooks('beforeAutofill', start, end, _data);
+
+        grid.populateFromArray(start, _data, end, 'autofill');
 
         selection.setRangeStart({row: drag[0], col: drag[1]});
         selection.setRangeEnd({row: drag[2], col: drag[3]});
