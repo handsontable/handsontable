@@ -69,7 +69,6 @@ WalkontableScrollbar.prototype.onScroll = function (delta) {
           this.instance.scrollVertical(Infinity).draw();
         }
         else {
-          console.log("infiniti");
           this.instance.scrollHorizontal(Infinity).draw();
         }
       }
