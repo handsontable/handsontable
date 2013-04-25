@@ -68,9 +68,9 @@
           <p>This example shows an experimental build of Handsontable as Web Component.</p>
 
           <x-handsontable id="example1" datarows="people">
-            <datacolumn value="id" title="ID"></datacolumn>
-            <datacolumn type="grayedOut" value="name.first" title="First Name" readOnly></datacolumn>
-            <datacolumn type="grayedOut" value="name.last" title="Last Name" readOnly></datacolumn>
+            <datacolumn width="100" value="id" title="ID"></datacolumn>
+            <datacolumn width="100" type="grayedOut" value="name.first" title="First Name" readOnly></datacolumn>
+            <datacolumn width="100" type="grayedOut" value="name.last" title="Last Name" readOnly></datacolumn>
             <datacolumn value="age" title="Age"></datacolumn>
             <datacolumn type="checkbox" value="languages.english" title="English" checkedTemplate="Yes"
                         uncheckedTemplate="No"></datacolumn>
@@ -78,6 +78,8 @@
                         uncheckedTemplate="No"></datacolumn>
             <datacolumn type="checkbox" value="languages.french" title="French" checkedTemplate="Yes"
                         uncheckedTemplate="No"></datacolumn>
+            <datacolumn type="date" value="created_at" title="Created at" format="mm/dd/yy"></datacolumn>
+            <datacolumn type="numeric" value="price" title="Price" format="$ 0,0.00"></datacolumn>
           </x-handsontable>
 
           <p>
