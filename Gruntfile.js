@@ -106,7 +106,7 @@ module.exports = function (grunt) {
         'lib/**/*.js',
         'lib/**/*.css'
       ],
-      tasks: ['replace', 'concat', 'clean']
+      tasks: ['default']
     },
 
     clean: {
@@ -126,9 +126,20 @@ module.exports = function (grunt) {
           'tmp/core.js': 'src/core.js',
           'jquery.handsontable.css': 'src/css/jquery.handsontable.css'
         }
+      },
+      wc: {
+        options: {
+          variables: {
+            style: '<%= grunt.file.read("dist/jquery.handsontable.full.css") %>',
+            model: '<%= grunt.file.read("dist/jquery.handsontable.full.js") %>',
+            controller: '<%= grunt.file.read("src/wc/x-handsontable-controller.js") %>'
+          }
+        },
+        files: {
+          'dist/x-handsontable.html': 'src/wc/x-handsontable.html'
+        }
       }
     },
-
     jasmine: {
       handsontable: {
         src: [
@@ -171,7 +182,7 @@ module.exports = function (grunt) {
   });
 
   // Default task.
-  grunt.registerTask('default', ['replace', 'concat', 'clean']);
+  grunt.registerTask('default', ['replace:dist', 'concat', 'replace:wc', 'clean']);
   grunt.registerTask('test', ['default', 'jasmine']);
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
