@@ -10,10 +10,10 @@ function parseDatacolumn(DATACOLUMN) {
   }
 }
 
-this.component({
+Toolkit.register(this, {
   instance: null,
   ready: function () {
-    var DATACOLUMNs = this.node.querySelectorAll('datacolumn');
+    var DATACOLUMNs = this.querySelectorAll('datacolumn');
     var columns = [];
     for (var i = 0, ilen = DATACOLUMNs.length; i < ilen; i++) {
       columns.push(parseDatacolumn(DATACOLUMNs[i]));
@@ -29,8 +29,6 @@ this.component({
       colHeaders: true,
       contextMenu: true
     };
-
-    //console.log("final options", options);
 
     jQuery(this.$.htContainer).handsontable(options);
 
