@@ -3,6 +3,8 @@ function HandsontableTextEditorClass(instance) {
   this.instance = instance;
   this.createElements();
   this.bindEvents();
+
+  this.wtDom = new WalkontableDom();
 }
 
 HandsontableTextEditorClass.prototype.createElements = function () {
@@ -234,8 +236,8 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   ///start prepare textarea position
   this.TD = this.instance.getCell(this.row, this.col);
   var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
-  var currentOffset = $td.offset();
-  var containerOffset = this.instance.rootElement.offset();
+  var currentOffset = this.wtDom.offset(this.TD);
+  var containerOffset = this.wtDom.offset(this.instance.rootElement[0]);
   var scrollTop = this.instance.rootElement.scrollTop();
   var scrollLeft = this.instance.rootElement.scrollLeft();
   var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
