@@ -61,8 +61,7 @@ function HandsontableAutoColumnSize() {
       tmpNoRenderer = $tmp.children().eq(2);
       tmpRenderer = $tmp.children().eq(3);
 
-      d.body.appendChild(tmp);
-
+      instance.rootElement[0].parentNode.appendChild(tmp);
     }
 
     var rows = instance.countRows();
