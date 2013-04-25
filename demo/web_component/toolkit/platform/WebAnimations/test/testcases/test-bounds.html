@@ -1,0 +1,73 @@
+<!--
+Copyright 2013 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+<style>
+div.anim {
+  position: relative;
+  left: 0px;
+}
+</style>
+
+<div id="anim1" class="anim"></div>
+<div id="anim2" class="anim"></div>
+
+<script src="../../web-animations.js"></script>
+<script src="../anim-test-pre.js"></script>
+<script>
+
+animTestRunner.waitUntilDone();
+var animFunc = {left: ["100px", "200px"]};
+
+// Test that the animation interval uses inclusive start and end bounds.
+var elem1 = document.getElementById("anim1");
+var player1 =
+    document.timeline.play(new Animation(elem1, animFunc, 1.0));
+player1.paused = true;
+player1.currentTime = 0.0;
+setTimeout(function() {
+  test(function() { assert_equals(getComputedStyle(elem1).left, "100px") },
+      "Start bound should be inclusive");
+  player1.currentTime = 1.0;
+  setTimeout(function() {
+    test(function() { assert_equals(getComputedStyle(elem1).left, "200px") },
+        "End bound should be inclusive");
+  }, 100);
+}, 100);
+
+// Test that startDelay is applied correctly.
+var elem2 = document.getElementById("anim2");
+var player2 = document.timeline.play(
+    new Animation(elem2, animFunc, {duration: 1.0, startDelay: 1.0}));
+player2.paused = true;
+player2.currentTime = 0;
+setTimeout(function() {
+  test(function() { assert_equals(getComputedStyle(elem2).left, "0px"); },
+      "Start bound should include startDelay");
+  player2.currentTime = 1.0;
+  setTimeout(function() {
+    test(function() { assert_equals(getComputedStyle(elem2).left, "100px"); },
+        "Start bound with startDelay should be inclusive");
+    player2.currentTime = 2.0;
+    setTimeout(function() {
+      test(function() { assert_equals(getComputedStyle(elem2).left, "200px"); },
+          "End bound with startDelay should be inclusive");
+      animTestRunner.done();
+    }, 100);
+  }, 100);
+}, 100);
+
+</script>

@@ -1,0 +1,133 @@
+<!--
+Copyright 2013 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+<style>
+body {
+  background-color: green;
+}
+body div#fail {
+  display: none;
+}
+body.fail {
+  background-color: red;
+}
+body.fail div#pass {
+  display: none;
+}
+body.fail div#fail {
+  display: block;
+}
+</style>
+
+<div id="pass">PASS</div>
+<div id="fail">FAIL</div>
+<div id="anim"></div>
+
+<script src="../../web-animations.js"></script>
+<script src="../anim-test-pre.js"></script>
+<script>
+
+var fail = function(failureMessage) {
+  var div = document.createElement("div");
+  div.innerText = failureMessage;
+  document.body.appendChild(div);
+  document.body.className = "fail";
+};
+
+var check = function(actual, expected, failureMessage) {
+  if (actual !== expected) {
+    fail(failureMessage + ". Expected '" + expected + "', got '" + actual +
+        "'.");
+  }
+};
+
+var checkNotEqual = function(actual, unexpected, failureMessage) {
+  if (actual === unexpected) {
+    fail(failureMessage + ". Got unexpected '" + unexpected + "'");
+  }
+};
+
+var elem = document.getElementById("anim");
+var animFunc = {left: "100px"};
+
+// Animation
+var anim = new Animation(elem, animFunc, 1.0);
+var clone = anim.clone();
+check(clone instanceof Animation, true, "Clone should be an Animation");
+check(clone.timing.duration, 1.0, "Clone should take Timing.duration");
+check(clone.targetElement, elem, "Clone should take targetElement");
+
+anim.iterationTime = 0.1;
+clone.iterationTime = 0.2;
+check(anim.iterationTime, 0.1, "Original should have own iterationTime");
+check(clone.iterationTime, 0.2, "Clone should have own iterationTime");
+
+// ParGroup
+var parGroup = new ParGroup([anim, clone], 4.0);
+var parGroupClone = parGroup.clone();
+check(parGroupClone instanceof ParGroup, true,
+    "ParGroup clone should be a ParGroup");
+check(parGroupClone.timing.duration, 4.0,
+    "ParGroup clone should take Timing.duration");
+check(parGroupClone.children.length, 2, "ParGroup clone should clone children");
+checkNotEqual(parGroupClone.children[0], anim,
+    "ParGroup clone should clone first child");
+check(parGroupClone.children[0].duration, 1.0,
+    "ParGroup clone should clone first child");
+checkNotEqual(parGroupClone.children[1], clone,
+    "ParGroup clone should clone first child");
+check(parGroupClone.children[1].duration, 1.0,
+    "ParGroup clone should clone first child");
+
+parGroup.iterationTime = 0.3;
+parGroupClone.iterationTime = 0.4;
+check(parGroup.iterationTime, 0.3,
+    "ParGroup original should have own iterationTime");
+check(parGroupClone.iterationTime, 0.4,
+    "ParGroup clone should have own iterationTime");
+
+// SeqGroup
+var seqGroup = new SeqGroup([anim, clone], 6.0);
+var seqGroupClone = seqGroup.clone();
+check(seqGroupClone instanceof SeqGroup, true,
+    "SeqGroup clone should be a SeqGroup");
+check(seqGroupClone.timing.duration, 6.0,
+    "SeqGroup clone should take Timing.duration");
+check(seqGroupClone.children.length, 2, "SeqGroup clone should clone children");
+checkNotEqual(seqGroupClone.children[0], anim,
+    "SeqGroup clone should clone first child");
+check(seqGroupClone.children[0].duration, 1.0,
+    "SeqGroup clone should clone first child");
+checkNotEqual(seqGroupClone.children[1], clone,
+    "SeqGroup clone should clone first child");
+check(seqGroupClone.children[1].duration, 1.0,
+    "SeqGroup clone should clone first child");
+
+seqGroup.iterationTime = 0.5;
+seqGroupClone.iterationTime = 0.6;
+check(seqGroup.iterationTime, 0.5,
+    "SeqGroup original should have own iterationTime");
+check(seqGroupClone.iterationTime, 0.6,
+    "SeqGroup clone should have own iterationTime");
+
+// Child
+var childClone = anim.clone();
+check(anim.parentGroup, seqGroup);
+check(childClone.parentGroup, null,
+    "Child clone should not take parentGroup");
+
+</script>

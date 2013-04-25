@@ -1,0 +1,30 @@
+<!doctype html>
+<head>
+<meta name="viewport" content="width=device-width">
+<meta charset="UTF-8">
+<title>PointerEvents Paint</title>
+</head>
+
+<style>
+body {
+  padding: 0; margin: 0;
+}
+  canvas {
+    background: lightgreen;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+</style>
+
+<canvas width="800" height="600" touch-action="none"></canvas>
+
+<!-- Pointer events library. -->
+<script src="../../src/pointerevents.js"></script>
+<script src="paint.js"></script>
+<script>
+window.addEventListener('load', init);
+
+function init() {
+  var painter = new Paint({el: document.querySelector('canvas')});
+};
+</script>

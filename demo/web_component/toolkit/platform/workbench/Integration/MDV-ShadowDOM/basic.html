@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+<head>
+  <title></title>
+  <meta charset="UTF-8">
+  <script src="../../../ShadowDOM/shadowdom.js"></script>
+  <script src="../../../lib/patches-shadowdom-polyfill.js"></script>
+  <script src="../../../lib/template.js"></script>
+  <script src="../../../MDV/src/mdv.js"></script>
+</head>
+<body>
+  <template bind="{{}}">
+    Inside template: message is here: [{{message}}]
+  </template>
+  <script>
+    window.onload = function() {
+      body = ShadowDOMPolyfill.wrap(document.body);
+      HTMLTemplateElement.bindTree(body, {message: 'Success!'});
+      Model.notifyChanges();
+    }
+  </script>
+</body>
+</html>

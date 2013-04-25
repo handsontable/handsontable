@@ -1,0 +1,84 @@
+<!--
+Copyright 2012 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+<style>
+.anim {
+  left: 0px;
+  width: 100px;
+  height: 100px;
+  background-color: lightsteelblue;
+  position: absolute;
+}
+
+#a {
+  top: 0px
+}
+
+#b {
+  top: 100px;
+}
+
+#c {
+  top: 200px;
+}
+
+#d {
+  top: 300px;
+}
+
+#expectation {
+  position: absolute;
+  top: 0px;
+  left: 200px;
+  width: 100px;
+  height: 400px;
+  background: red;
+}
+</style>
+
+<div id="expectation"></div>
+
+<div>
+  <div id="a" class="anim a"></div>
+  <div id="b" class="anim b"></div>
+</div>
+
+<div id="fromTemplate">
+  <div id="c" class="anim a"></div>
+  <div id="d" class="anim b"></div>
+</div>
+
+<div style="height:450px"></div>
+
+<script src="../../web-animations.js"></script>
+<script src="../anim-test-pre.js"></script>
+<script>
+
+var a1 = new Animation(document.querySelector("#a"), {left: ["100px", "200px"]},
+    0.6);
+var a2 = new Animation(document.querySelector("#b"), {left: ["100px", "200px"]},
+    0.5);
+var a3 = new Animation(document.querySelector("#c"), {left: ["100px", "200px"]},
+    0.5);
+var a4 = new Animation(document.querySelector("#d"), {left: ["100px", "200px"]},
+    0.3);
+var pgroup1 = new ParGroup([a1, a2], {name: "p1"});
+var pgroup2 = new ParGroup([a3, a4], {name: "p2"});
+document.timeline.play(
+    new SeqGroup([pgroup1, pgroup2], {name: "s", playbackRate: 2}));
+
+</script>

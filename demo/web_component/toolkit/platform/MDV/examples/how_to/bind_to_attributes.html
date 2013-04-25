@@ -1,0 +1,29 @@
+<script src="../../mdv.js"></script>
+
+<h1>Bind To Attributes</h1>
+
+<ul>
+<template id="colors" repeat="{{ colors }}">
+  <li style="color: {{ color }}">The style attribute of this list item is bound</li>
+</template>
+</ul>
+
+<button id="rotateText">Rotate</button>
+
+<script>
+var t = document.getElementById('colors');
+var model = {
+  colors: [
+    { color: 'red' },
+    { color: 'blue' },
+    { color: 'green' },
+    { color: 'pink' }
+  ]
+};
+HTMLTemplateElement.bindTree(t, model);
+
+var b = document.getElementById('rotateText');
+b.addEventListener('click', function() {
+  model.colors.push(model.colors.shift());
+});
+</script>

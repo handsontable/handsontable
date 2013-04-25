@@ -1,0 +1,54 @@
+<!--
+Copyright 2012 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+<style>
+.anim {
+  left: 0px;
+  width: 100px;
+  height: 100px;
+  background-color: #FAA;
+  position: absolute;
+}
+
+#a {
+  top: 0px
+}
+</style>
+
+<div id="a" class="anim a"></div>
+
+
+<script src="../../web-animations.js"></script>
+<script src="../anim-test-pre.js"></script>
+<script>
+
+var a1 = new Animation(document.querySelector("#a"),
+    {left: ["0px", "500px"]},
+    {duration: 10, direction: 'alternating', iterationCount: Infinity});
+var player1 = document.timeline.play(a1);
+
+var a2 = new Animation(undefined,
+    {sample: function(timeFraction, iteration, target) {
+      var playbackRate = 0.01 + 10 * timeFraction;
+      player1.playbackRate  = playbackRate
+      player2.playbackRate = playbackRate;
+      document.querySelector("#a").textContent = playbackRate;
+    }},
+    a1.timing.clone());
+var player2 = document.timeline.play(a2);
+
+</script>

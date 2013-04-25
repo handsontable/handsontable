@@ -1,0 +1,157 @@
+<!--
+/*
+ * Copyright 2013 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<!DOCTYPE html>
+<style>
+.car {
+  position: absolute;
+  background-color: LightSteelBlue;
+  left: 10px;
+}
+
+.light {
+  left: 5px;
+  width: 25px;
+  height: 25px;
+  position: absolute;
+  border-radius: 100%;
+}
+
+.block {
+  position: absolute;
+  background-color: lightsteelblue;
+}
+
+.wheel {
+  position: absolute;
+  border-radius: 100%;
+  top:325px;
+  height: 50px;
+  width: 50px;
+  background-color: black;
+}
+
+.button {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  height: 2em;
+  width: 6em;
+  text-align: center;
+  font-size: 30px;
+}
+
+.button:hover {
+  background-color: green;
+}
+
+#redLight {
+  top: 5px;
+  background-color: red;
+}
+
+#orangeLight {
+  top: 35px;
+  background-color: rgb(50,50,50);
+}
+
+#greenLight {
+  top: 65px;
+  background-color: rgb(50,50,50);
+}
+
+#trafficLight {
+  position: absolute;
+  top: 10px;
+  left: 495px;
+  width: 35px;
+  height: 95px;
+  background-color: rgb(192,192,192);
+}
+
+#carA {
+  top: 200px;
+  left: 10px;
+  width: 300px;
+  height: 150px;
+}
+
+#carB {
+  top: 275px;
+  left: 315px;
+  width: 100px;
+  height: 75px;
+}
+
+#carC {
+  top: 225px;
+  left: 315px;
+  width: 75px;
+  height: 50px;
+}
+
+#wheelA {
+  left: 25px;
+}
+
+#wheelB {
+  left: 195px;
+}
+
+</style>
+
+<div id="trafficLight">
+  <div id="redLight" class="light"></div>
+  <div id="orangeLight" class="light"></div>
+  <div id="greenLight" class="light"></div>
+</div>
+<div class="car">
+  <div id="carA" class="block"></div>
+  <div id="carB" class="block"></div>
+  <div id="carC" class="block"></div>
+  <div id="wheelA" class="wheel"></div>
+  <div id="wheelB" class="wheel"></div>
+</div>
+<button id="buttonA" class="button">Go!</button>
+
+<script src="../web-animations.js"></script>
+<script>
+  var lightOff = "rgb(50,50,50)";
+
+  var sgroup = new SeqGroup([]);
+
+  var go = new ParGroup([], {}, sgroup);
+  new Animation(document.querySelector("#redLight"), {"background-color": lightOff}, {duration: 0.5}, go);
+  new Animation(document.querySelector("#greenLight"), {"background-color": "green"}, {duration: 0.5}, go);
+
+  new Animation(document.querySelector(".car"), {left: "2000px"}, {duration: 5, timingFunction: "ease-in"}, sgroup);
+
+  var maybe = new ParGroup([], {startDelay: 0.25}, sgroup);
+  new Animation(document.querySelector("#greenLight"), {"background-color": lightOff}, {duration: 0.5}, maybe);
+  new Animation(document.querySelector("#orangeLight"), {"background-color": "rgb(255,165,0)"}, {duration: 0.5}, maybe);
+
+  var stop = new ParGroup([], {startDelay: 0.25}, sgroup);
+  new Animation(document.querySelector("#orangeLight"), {"background-color": lightOff}, {duration: 0.5}, stop);
+  new Animation(document.querySelector("#redLight"), {"background-color": "red"}, {duration: 0.5}, stop);
+
+  new Animation(document.querySelector(".car"), {left: ["-500px", "10px"]}, {duration: 2, timingFunction: "ease-out"}, sgroup);
+
+  document.querySelector("#buttonA").addEventListener('mousedown', function() {
+    document.timeline.play(sgroup);
+  }, false);
+</script>

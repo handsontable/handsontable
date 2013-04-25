@@ -1,0 +1,152 @@
+<!--
+Copyright 2013 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+<style>
+body {
+  background-color: green;
+}
+body div#fail {
+  display: none;
+}
+body.fail {
+  background-color: red;
+}
+body.fail div#pass {
+  display: none;
+}
+body.fail div#fail {
+  display: block;
+}
+</style>
+
+<div id="pass">PASS</div>
+<div id="fail">FAIL</div>
+<div id="anim"></div>
+
+<script src="../../web-animations.js"></script>
+<script src="../anim-test-pre.js"></script>
+<script>
+
+var fail = function(failureMessage) {
+  var div = document.createElement("div");
+  div.innerText = failureMessage;
+  document.body.appendChild(div);
+  document.body.className = "fail";
+};
+
+var check = function(actual, expected, failureMessage) {
+  if (actual !== expected) {
+    fail(failureMessage + ". Expected '" + expected + "', got '" + actual +
+        "'.");
+  }
+};
+
+var anim = new Animation(document.getElementById("anim"), {left: "100px"},
+    1.0);
+
+// Test that updates to a TimedItem's startTime, duration or animationDuration
+// cause corresponding updates to its endTime.
+check(anim.endTime, 1.0, "Incorrect endTime");
+anim.startTime = 2.0;
+check(anim.startTime, 0.0, "startTime should be read only");
+anim.timing.duration = 3.0;
+check(anim.endTime, 3.0, "endTime does not reflect Timing.duration");
+anim.duration = 4.0;
+check(anim.endTime, 4.0, "endTime does not reflect duration");
+anim.animationDuration = 5.0;
+check(anim.endTime, 5.0, "endTime does not reflect animationDuration");
+
+// Test that TimedItem.endTime is read-only.
+anim.endTime = 6.0;
+check(anim.endTime, 5.0, "TimedItem.endTime should be read-only");
+
+// Test that updates to a TimedItem's endTime cause re-layout of a parent
+// parallel group.
+anim.duration = undefined;
+anim.animationDuration = undefined;
+var parGroup = new ParGroup([anim]);
+check(parGroup.duration, 3.0,
+    "Parallel group duration should reflect child endTime");
+check(parGroup.endTime, 3.0,
+    "Parallel group end time should reflect child endTime");
+// Update via Timing.duration
+anim.timing.duration = 8.0;
+check(parGroup.duration, 8.0,
+    "Parallel group duration should reflect updated child Timing.duration");
+check(parGroup.endTime, 8.0,
+    "Parallel group end time should reflect updated child Timing.duration");
+// Update via duration
+anim.duration = 9.0;
+check(parGroup.duration, 9.0,
+    "Parallel group duration should reflect updated child duration");
+check(parGroup.endTime, 9.0,
+    "Parallel group end time should reflect updated child duration");
+// Update via animationDuration
+anim.animationDuration = 10.0;
+check(parGroup.duration, 10.0,
+    "Parallel group duration should reflect updated child animationDuration");
+check(parGroup.endTime, 10.0,
+    "Parallel group end time should reflect updated child animationDuration");
+
+// Test that updates to a TimedItem's startDelay and animationDuration cause
+// re-layout of a parent sequence group.
+anim.duration = undefined;
+anim.animationDuration = undefined;
+var siblingAnim = new Animation(document.getElementById("anim"), {top: "100px"},
+    1.0);
+var seqGroup = new SeqGroup([anim, siblingAnim]);
+check(anim.startTime, 0.0, "Sequence group should reset child startTime");
+check(siblingAnim.startTime, 8.0, "Sequence group should set child startTime");
+check(siblingAnim.endTime, 9.0, "Sequence group should set child endTime");
+check(seqGroup.duration, 9.0,
+    "Sequence group duration should reflect child durations");
+check(seqGroup.endTime, 9.0,
+    "Sequence group end time should reflect child durations");
+// startDelay
+anim.timing.startDelay = 11.0;
+check(siblingAnim.startTime, 19.0,
+    "Sequence group should update sibling after updated child startDelay");
+check(seqGroup.duration, 20.0,
+    "Sequence group duration should reflect updated child startDelay");
+check(seqGroup.endTime, 20.0,
+    "Sequence group end time should reflect updated child startDelay");
+// animationDuration via Timing.duration
+anim.timing.duration = 12.0;
+check(siblingAnim.startTime, 23.0,
+    "Sequence group should update sibling after updated child Timing.duration");
+check(seqGroup.duration, 24.0,
+    "Sequence group duration should reflect updated child Timing.duration");
+check(seqGroup.endTime, 24.0,
+    "Sequence group end time should reflect updated child Timing.duration");
+// animationDuration via duration
+anim.duration = 13.0;
+check(siblingAnim.startTime, 24.0,
+    "Sequence group should update sibling after updated child duration");
+check(seqGroup.duration, 25.0,
+    "Sequence group duration should reflect updated child duration");
+check(seqGroup.endTime, 25.0,
+    "Sequence group end time should reflect updated child duration");
+// animationDuration
+anim.animationDuration = 14.0;
+check(siblingAnim.startTime, 25.0, "Sequence group should update sibling " +
+    "after updated child animationDuration");
+check(seqGroup.duration, 26.0,
+    "Sequence group duration should reflect updated child animationDuration");
+check(seqGroup.endTime, 26.0,
+    "Sequence group end time should reflect updated child animationDuration");
+
+</script>

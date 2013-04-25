@@ -1,0 +1,117 @@
+/*
+ * Copyright 2013 The Toolkitchen Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+
+/*
+  TODO(sorvell): include a reasonable set of default overlay opening 
+  animations. What's here right now is ad hoc.
+*/
+ 
+ /*
+    Styling a g-overlay:
+ 
+    1. use the 'opened' class to style the overlay when it is open.
+    A transition or animation can be applied to animate the overlay into place.
+    Note: there's no need to set the display property of an overlay. That's
+    managed automatically.
+ 
+    2. To apply a different animation when the overlay closes, use the 
+    'closing' class.
+ */
+ 
+/* Note that trbl: 0 + position: fixed will not 'fit to window'
+if a transform is applied to a parent of this element. That parent
+becomes the containing block; see:
+http://dev.w3.org/csswg/css3-transforms/#transform-rendering
+We address this by using script based positioning =(
+*/
+@host {
+  * {
+    position: fixed;
+    z-index: 10;
+    outline: none;
+    display: none;
+    opacity: 0.99;
+    -webkit-transition: opacity 0.001s;
+  }
+
+  /*
+    The revealed class exists because it's necessary to 'show' a node
+    before applying a transition. When an overlay is opened, it is 
+    immediately revealed (display: block) and then asynchronously the 
+    opened or closing classes are added.
+
+    Because we don't want to actually show the node before a transition
+    or animation is applied, when the node is 
+    revealed, it is made display: block but visibility: hidden.
+    It is then made visibility: visible when it is opened.
+  */
+
+  .revealed {
+    display: block;
+    visibility: hidden;
+  }
+
+  .revealed.opened {
+    opacity: 1;
+    display: block;
+    visibility: visible;
+  }
+
+  .revealed.closing {
+    display: block;
+    visibility: visible;
+  }
+
+  /* 
+    When an animation is detected (via an animationstart event) this class
+    is applied to remove any transition. This ensures only 1 animation end event
+    will be processed.
+
+    NOTE: if a rule such as a media query changes an overlay from using a css 
+    animation to a transition, the animation class must be altered or removed.
+  */
+  .animation {
+    -webkit-transition: none;
+  }
+
+  .g-overlay-fade {
+    opacity: 0;
+    -webkit-transition: all 0.218s;
+  }
+
+  .g-overlay-fade.opened {
+    opacity: 1;
+  }
+
+  .g-overlay-scale-slideup {
+    opacity: 0.0;
+    -webkit-transform: scale(1.05);
+  }
+
+  .g-overlay-scale-slideup.opened {
+    opacity: 1.0;
+    -webkit-transform: scale(1.0);
+    -webkit-transition: all 0.218s;
+  }
+
+  .g-overlay-scale-slideup.closing {
+    opacity: 0;
+    -webkit-transform: translateY(-100%);
+    -webkit-transition: all 0.4s;
+  }
+  
+  .g-overlay-shake.opened {
+    -webkit-animation-duration: 0.5s;
+    -webkit-animation-fill-mode: both;
+    -webkit-animation-name: g-overlay-shakeFadeIn;
+  }
+
+  .g-overlay-shake.closing {
+    -webkit-animation-duration: 0.5s;
+    -webkit-animation-fill-mode: both;
+    -webkit-animation-name: g-overlay-shakeFadeOut;
+  }
+}

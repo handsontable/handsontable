@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+  <head>
+    <title>publish attributes</title>
+    <script src="../../toolkit.js"></script>
+    <script src="../../tools/test/htmltest.js"></script>
+    <script src="../../node_modules/chai/chai.js"></script>
+  </head>
+  <body>
+
+    <element name="x-foo" attributes="Foo baz" constructor="XFoo">
+      <script>
+        Toolkit.register(this);
+      </script>
+    </element>
+
+    <element name="x-bar" extends="x-foo" attributes="Bar" constructor="XBar">
+      <script>
+        Toolkit.register(this);
+      </script>
+    </element>
+
+    <element name="x-zot" extends="x-bar" constructor="XZot">
+      <script>
+        Toolkit.register(this, {
+          publish: {
+            zot: 3
+          }
+        });
+      </script>
+    </element>
+
+    <element name="x-squid" extends="x-zot" attributes="squid" constructor="XSquid">
+      <script>
+        Toolkit.register(this, {
+          publish: {
+            baz: 13,
+            zot: 5,
+            squid: 7
+          }
+        });
+      </script>
+    </element>
+
+  <script>
+      var assert = chai.assert;
+      document.addEventListener('WebComponentsReady', function() {
+        //
+        assert.deepEqual(
+            XFoo.prototype.__published, 
+            {Foo: null, baz: null});
+        assert.deepEqual(
+            XBar.prototype.__published, 
+            {Foo: null, baz: null, Bar: null});
+        assert.deepEqual(
+            XZot.prototype.__published, 
+            {Foo: null, baz: null, Bar: null, zot: 3});
+        assert.deepEqual(
+            XSquid.prototype.__published, 
+            {Foo: null, baz: 13, Bar: null, zot: 5, squid: 7});
+        //
+        assert.equal(
+            Toolkit.propertyForAttribute.call(XFoo.prototype, 'foo'), 
+            'Foo');
+        XFoo.prototype.baz = true;
+        assert.isUndefined(
+            Toolkit.propertyForAttribute.call(XFoo.prototype, 'splat'));
+        //
+        done();
+      });
+    </script>
+  </body>
+</html>

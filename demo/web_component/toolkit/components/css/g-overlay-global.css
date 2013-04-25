@@ -1,0 +1,48 @@
+/*
+ * Copyright 2013 The Toolkitchen Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+
+@-webkit-keyframes g-overlay-shakeFadeIn {
+  0% {
+    opacity: 0;
+    -webkit-transform: translateX(0);
+  }
+  10% {
+    -webkit-transform: translateX(-50px);
+  }
+  30% {
+    -webkit-transform: translateX(50px);
+  }
+  50% {
+    -webkit-transform: translateX(-25px);
+  }
+  70% {
+    -webkit-transform: translateX(25px);
+  }
+  90% {
+    -webkit-transform: translateX(-13px);
+  }
+  100% {
+    -webkit-transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes g-overlay-shakeFadeOut {
+  0% {
+    opacity: 1;
+    -webkit-transform: translateX(0);
+  }
+  10% {
+    -webkit-transform: translateX(-50px);
+  }
+  30% {
+    -webkit-transform: translateX(50px);
+  }
+  100% {
+    -webkit-transform: translateX(-100%);
+    opacity: 0;
+  }
+}

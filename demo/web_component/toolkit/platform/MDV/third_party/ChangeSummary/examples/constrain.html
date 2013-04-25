@@ -1,0 +1,36 @@
+<!--
+Copyright 2012 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<h1>The world's simplest constraint-solver</h1>
+<script src="constrain.js"></script>
+<script>
+function Circle(radius) {
+  // circumference = 2*PI*radius
+  constrain(this, {
+    radius: function() { return this.circumference / (2*Math.PI); },
+    circumference: function() { return 2 * Math.PI * this.radius; }
+  });
+
+  // area = PI*r^2'
+  constrain(this, {
+    area: function() { return Math.PI * Math.pow(this.radius, 2); },
+    radius: function() { return Math.sqrt(this.area / Math.PI); }
+  });
+
+  if (radius)
+    this.radius = radius;
+}
+</script>

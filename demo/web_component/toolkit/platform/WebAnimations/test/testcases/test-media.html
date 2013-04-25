@@ -1,0 +1,338 @@
+<!--
+Copyright 2013 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+<video id="video"></video>
+
+<script src="../../web-animations.js"></script>
+<script src="../anim-test-pre.js"></script>
+<script>
+
+animTestRunner.waitUntilDone();
+
+var fail = function(failureMessage) {
+  var div = document.createElement("div");
+  div.innerText = failureMessage;
+  document.body.appendChild(div);
+  document.body.className = "fail";
+};
+
+var check = function(actual, expected, description) {
+  console.log('check', actual, expected);
+  test(function() { assert_equals(actual, expected); }, description);
+};
+
+var video = document.getElementById("video");
+var dt = document.timeline;
+
+// Don't use a local named requestAnimationFrame, to avoid potential problems
+// with hoisting.
+var raf = window.requestAnimationFrame || window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame || window.msRequestAnimationFrame;
+
+
+// Test that looping has no effect.
+video.loop = true;
+new MediaReference(video);
+check(video.loop, false, "MediaReference should disable looping");
+
+// Test intrinsic duration is Infinity before video loads.
+mediaReference = new MediaReference(video);
+check(mediaReference.duration, Infinity,
+    "Intrinsic duration should be Infinity before video loads");
+
+video.addEventListener("loadeddata", function() { continuation1(); });
+// Length is around 32s.
+addSourceToVideo("http://video.webmfiles.org/big-buck-bunny_trailer.webm");
+// Length is around 10s.
+addSourceToVideo("http://www.w3schools.com/html/mov_bbb.mp4");
+
+function addSourceToVideo(sourceString) {
+  var source = document.createElement("source");
+  source.setAttribute("src", sourceString);
+  video.appendChild(source);
+}
+
+var continuation1 = function() {
+  // Test intrinsic duration.
+  check(mediaReference.duration, video.duration,
+      "Intrinsic duration should be video duration");
+
+  // Test basic use.
+  var player = dt.play(mediaReference);
+  raf(function() {
+    raf(function() {
+      check(video.playbackRate, 1.0, "Video should have playback rate of 1.0");
+      check(video.paused, false, "Video should be playing");
+      player.source = null;
+      continuation2();
+    });
+  });
+};
+
+var continuation2 = function() {
+  // Test clipping where duration limits. Video should be frozen at end of
+  // duration.
+  var player = dt.play(new MediaReference(video, {duration: 3.0}));
+  player.paused = true;
+  player.currentTime = 3.0;
+  raf(function() {
+    test(function() {
+      assert_equals(video.currentTime, 3.0);
+      assert_equals(video.paused, true);
+    }, "Video should be frozen at duration");
+    player.source = null;
+    continuation3();
+  });
+};
+
+var continuation3 = function() {
+  // Test clipping where video length limits. Video should be frozen at end for
+  // remainder of duration.
+  var player = dt.play(
+      new MediaReference(video, {duration: video.duration + 2}));
+  player.paused = true;
+  player.currentTime = video.duration + 1;
+  raf(function() {
+    test(function() {
+      assert_equals(video.currentTime, video.duration);
+      assert_equals(video.paused, true);
+    }, "Video should be frozen at end");
+    player.currentTime = video.duration + 2;
+    raf(function() {
+      test(function() {
+        assert_equals(video.currentTime, video.duration);
+        assert_equals(video.paused, true);
+      }, "Video should be frozen after end");
+      player.source = null;
+      continuation4();
+    });
+  });
+};
+
+var continuation4 = function() {
+  // Test fill with duration limiting. Video should be frozen at end of
+  // duration.
+  var player = dt.play(new MediaReference(video, {duration: 1.0}));
+  player.currentTime = 2.0;
+  raf(function() {
+    check(video.currentTime, 1.0, "Should freeze video at duration for fill");
+    check(video.paused, true, "Video should be frozen for fill");
+    player.source = null;
+    continuation5();
+  });
+};
+
+var continuation5 = function() {
+  // Test fill with video length limiting. Video should be at end.
+  var player = dt.play(
+      new MediaReference(video, {duration: video.duration + 1}));
+  player.currentTime = video.duration + 2;
+  raf(function() {
+    check(video.currentTime, video.duration,
+        "Should freeze video at end for fill");
+    player.source = null;
+    continuation6();
+  });
+};
+
+var continuation6 = function() {
+  // Test no fill. Video should be frozen at start.
+  var player = dt.play(new MediaReference(video, {fillMode: "none"}));
+  player.currentTime = video.duration + 1;
+  raf(function() {
+    check(video.currentTime, 0,
+        "Should freeze video at start for no fill");
+    check(video.paused, true, "Video should be frozen for no fill");
+    player.source = null;
+    continuation7();
+  });
+};
+
+var continuation7 = function() {
+  // Test iterations.
+  var player = dt.play(new MediaReference(video,
+      {iterationCount: 2.0, duration: 1.0}));
+  player.paused = true;
+  player.currentTime = 1.5;
+  raf(function() {
+    check(video.currentTime, 0.5, "Video should respect iterationCount");
+    player.source = null;
+    continuation8();
+  });
+};
+
+var continuation8 = function() {
+  // Test iterationStart.
+  var player = dt.play(new MediaReference(video,
+      {iterationStart: 0.5, duration: 1.0}));
+  player.paused = true;
+  player.currentTime = 0;
+  raf(function() {
+    check(video.currentTime, 0.5, "Video should respect iterationStart");
+    player.source = null;
+    continuation9();
+  });
+};
+
+var continuation9 = function() {
+  // Test playback rate.
+  var player = dt.play(new MediaReference(video, {playbackRate: 2.0}));
+  player.paused = true;
+  player.currentTime = 1.0;
+  raf(function() {
+    test(function() {
+      assert_equals(video.currentTime, 2.0);
+      assert_equals(video.playbackRate, 2.0);
+    }, "Video should respect playbackRate");
+    player.source = null;
+    continuation10();
+  });
+};
+
+var continuation10 = function() {
+  // Test heirachy of playback rates.
+  var player = dt.play(new ParGroup([
+    new MediaReference(video, {playbackRate: 2.0}),
+  ], {playbackRate: 3.0}));
+  player.paused = true;
+  player.currentTime = 1.0;
+  raf(function() {
+    test(function() {
+      assert_equals(video.currentTime, 6.0);
+      assert_equals(video.playbackRate, 6.0);
+    }, "Video should respect playbackRate heirachy");
+    player.source = null;
+    continuation11();
+  });
+};
+
+var continuation11 = function() {
+  // Test interaction with MediaElement.defaultPlaybackRate.
+  video.defaultPlaybackRate = 4.0;
+  var player = dt.play(new MediaReference(video, {playbackRate: 1.5}));
+  player.paused = true;
+  player.currentTime = 1.0;
+  raf(function() {
+    test(function() {
+      assert_equals(video.currentTime, 6.0);
+      assert_equals(video.playbackRate, 6.0);
+    }, "Video should respect playbackRate after setting defaultPlaybackRate");
+    video.defaultPlaybackRate = 1.0;
+    player.source = null;
+    continuation12();
+  });
+};
+
+var continuation12 = function() {
+  // Test reversing.
+  var player = dt.play(new MediaReference(video, {direction: "reverse"}));
+  player.paused = true;
+  player.currentTime = 1.0;
+  raf(function() {
+    test(function() {
+      assert_equals(video.currentTime, video.duration - 1.0);
+      assert_equals(video.playbackRate, -1.0);
+    }, "Video should respect reversing");
+    player.source = null;
+    continuation13();
+  });
+};
+
+var continuation13 = function() {
+  // Test negative playback rate.
+  var player = dt.play(new MediaReference(video, {playbackRate: -0.5}));
+  player.paused = true;
+  player.currentTime = 1.0;
+  raf(function() {
+    test(function() {
+      assert_equals(video.currentTime, video.duration - 0.5);
+      assert_equals(video.playbackRate, -0.5);
+    }, "Video should respect negative playbackRate");
+    player.source = null;
+    continuation14();
+  });
+};
+
+var continuation14 = function() {
+  // Test interaction of reversing and playback rate.
+  var player = dt.play(new ParGroup([
+    new MediaReference(video, {playbackRate: -0.5}),
+  ], {playbackRate: 3.0, direction: "reverse"}));
+  player.paused = true;
+  player.currentTime = 1.0;
+  raf(function() {
+    test(function() {
+      assert_equals(video.currentTime, 1.5);
+      assert_equals(video.playbackRate, 1.5);
+    }, "Video should respect reversing and playbackRate");
+    player.source = null;
+    continuation15();
+  });
+};
+
+var continuation15 = function() {
+  // Test zero duration.
+  var player = dt.play(
+      new MediaReference(video, {duration: 0.0, iterationStart: 0.5}));
+  player.paused = true;
+  raf(function() {
+    check(video.currentTime, 0.0,
+        "Video should start at time zero when duration is zero");
+    player.currentTime = 1.0;
+    raf(function() {
+      check(video.currentTime, 0.0,
+          "Video should remain at time zero when duration is zero");
+      player.source = null;
+      continuation16();
+    });
+  });
+};
+
+var continuation16 = function() {
+  // Test zero intrinsic duration.
+  // TODO: Need to find a zero length video.
+  continuation17();
+};
+
+var continuation17 = function() {
+  // Test that media elements are removed from their MediaController.
+  video.controller = new MediaController();
+  var player = dt.play(new MediaReference(video));
+  check(video.controller, null,
+     "Video should be detached from controller when used in MediaReference");
+  // Seeking the video will throw if the controller has not been detached.
+  player.paused = true;
+  player.currentTime = 1.0;
+  raf(function() {
+    check(video.currentTime, 1.0,
+        "Detaching controller should allow video to be seeked");
+    player.source = null;
+    continuation18();
+  });
+};
+
+var continuation18 = function() {
+  // Test limited seek ranges.
+  // TODO: Need to find a video with limited seek ranges.
+  finished();
+};
+
+var finished = function() {
+  animTestRunner.done();
+};
+
+</script>

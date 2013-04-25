@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+<head>
+  <title>lib::class</title>
+  <script src="../../lib/oop.js"></script>
+</head>
+<body>
+  <script>
+    Base = $class({
+      constructor: function() {
+        this.emit('[Construct Base]')
+      },
+      emit: function(inMsg) {
+        document.body.appendChild(document.createTextNode(inMsg));
+      },
+      soundOff: function() {
+        this.emit('[Base]');
+      } 
+    });
+    //
+    Sub = $class(Base, {
+      constructor: function() {
+        this.super();
+        this.emit('[Construct Sub]')
+      },
+      soundOff: function() {
+        this.emit('[Sub]');
+        this.super();
+      } 
+    });
+    //
+    SubSub = $class(Sub, {
+      constructor: function() {
+        this.super();
+        this.emit('[Construct SubSub]')
+      },
+      soundOff: function() {
+        this.emit('[SubSub]');
+        this.super();
+      } 
+    });
+    //
+    subsub = new SubSub();
+    subsub.soundOff();
+  </script>
+</body>
+</html>

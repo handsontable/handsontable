@@ -1,0 +1,294 @@
+<script src="../platform/WebAnimations/web-animations.js"></script>
+<element name="g-animation">
+  <script>
+    /**
+     * WebAnimations module.
+     * @module Animation
+     * @main animation
+     * @example toolkitchen/labs/animation2/grid-fade.html
+     * @example toolkitchen/labs/animation2/group.html
+     */
+    /**
+     * Component for a single animation.
+     *
+     * A animation component to fade out an element:
+     *
+     *     <g-animation id="fadeout">
+     *       <g-property name="opacity">
+     *         <g-keyframe value="0" offset="0"></g-keyframe>
+     *         <g-keyframe value="1" offset="1"></g-keyframe>
+     *       <g-property>
+     *     </g-animation>
+     * @class g-animation
+     */
+     /**
+      * Fired when an animation completes
+      * @event complete
+      */
+    Toolkit.register(this, {
+      publish: {
+        animation: null,
+        /**
+         * The node being animated.
+         * @property target
+         * @type HTMLElement|Node
+         */
+        target: null,
+        // animation
+        /**
+         * Animation properties specified as a dictionary of
+         * <css properties>:<array of values>. For example,
+         * `{opacity: ['0','1']}` specifies animating the opacity
+         * from 0 to 1.
+         * The values must be strings.
+         * (https://github.com/web-animations/web-animations-js/issues/178)
+         * @property properties
+         * @type Object
+         */
+        properties: null,
+        accumulate: null,
+        composite: null,
+        // timing
+        /**
+         * Animation duration in milliseconds.
+         * @property duration
+         * @type Number
+         */
+        duration: null,
+        /**
+         * "none", "forwards", "backwards" or "both".
+         * @property fillMode
+         * @type String
+         */
+        fillMode: null,
+        /**
+         * A transition timing function.
+         * @property easing
+         * @type String
+         */
+        easing: null,
+        /**
+         * @property iterationCount
+         * @type Number
+         */
+        iterationCount: null,
+        /**
+         * Start delay in milliseconds.
+         * @property startDelay
+         * @type Number
+         */
+        startDelay: null,
+        /**
+         * "normal", "reverse", "alternate" or "alternate-reverse".
+         * @property direction
+         * @type String
+         */
+        direction: null
+      },
+      ready: function() {
+        this.asyncApply();
+      },
+      /**
+       * Plays the animation.
+       * @method play
+       */
+      play: function() {
+        // TODO: need to dirty check to make sure all side effects are
+        // applied before playing the animation.
+        window.dirtyCheck();
+        this.completeApply();
+        if (this.animation) {
+          this.cancel();
+          this.player = document.timeline.play(this.animation);
+          this.player.paused = false;
+          this.player.currentTime = 0;
+          this.monitor();
+        }
+      },
+      /**
+       * Stops the animation.
+       * @method cancel
+       */
+      cancel: function() {
+        if (this.player) {
+          this.player.source = null;
+        }
+      },
+      apply: function() {
+        this.applyJob && this.applyJob.stop();
+        this.applyJob = null;
+        this.animation = null;
+        this.animation = this.makeAnimation();
+        if (this.autoplay && this.animation) {
+          this.play();
+        }
+        if (this.animation) {
+          this.asyncApplyParent();
+        }
+        return this.animation;
+      },
+      makeAnimation: function() {
+        //this.target && console.log('makeAnimation target', this.target, 'animation', this.animationProps, 'timing', this.timingProps);
+        return this.target ? new Animation(this.target, this.animationProps, this.timingProps) : null;
+      },
+      asyncApply: function() {
+        this.applyJob = this.job(this.applyJob, this.apply);
+      },
+      completeApply: function() {
+        this.applyJob && this.applyJob.complete();
+      },
+      animationChanged: function() {
+        // TODO: attributes are not case sensitive.
+        this.send('animationchange');
+      },
+      targetChanged: function() {
+        this.asyncApply();
+      },
+      propertiesChanged: function() {
+        this.asyncApply();
+      },
+      durationChanged: function() {
+        this.asyncApply();
+      },
+      fillModeChanged: function() {
+        this.asyncApply();
+      },
+      easingChanged: function() {
+        this.asyncApply();
+      },
+      iterationCountChanged: function() {
+        this.asyncApply();
+      },
+      startDelayChanged: function() {
+        this.asyncApply();
+      },
+      directionChanged: function() {
+        this.asyncApply();
+      },
+      asyncApplyParent: function() {
+        var p = this.parentNode;
+        if (p && p.asyncApply) {
+          p.asyncApply();
+        }
+      },
+      doOnChildren: function(inFn) {
+        Array.prototype.forEach.call(this.children, inFn, this);
+      },
+      get timingProps() {
+        var props = {};
+        var timing = {
+          fillMode: 'fillMode',
+          easing: 'timingFunction',
+          startDelay: 'startDelay',
+          direction: 'direction',
+          duration: 'duration'
+        };
+        for (t in timing) {
+          this[t] !== null && (props[timing[t]] = this[t]);
+        }
+        return props;
+      },
+      get animationProps() {
+        var props = {};
+        if (!this.properties) {
+          this.doOnChildren(function(c) {
+            if (c.tagName.toLowerCase() === 'g-property') {
+              var property = c.name;
+              var values = [];
+              this.doOnChildren.call(c, function(f) {
+                values.push(f.properties);
+              });
+              props[property] = values;
+            }
+          });
+        }
+        return this.properties || props;
+      },
+      monitor: function() {
+        // TODO(sorvell): adding brittle support for an end event
+        if (this.player && this.player.source &&
+            this.player.source._isPastEndOfActiveInterval()) {
+          this.complete();
+        } else {
+          webkitRequestAnimationFrame(this.monitor.bind(this));
+        }
+      },
+      // intended for user implementation
+      complete: function() {
+        this.send('complete');
+      }
+    });
+  </script>
+</element>
+<element name="g-property">
+  <script>
+    /**
+     * An animated property. Its children should be `<g-keyframe>`
+     * elements specifying the keyframe values.
+     *
+     * Declaring an property to move down and then right:
+     *
+     *     <g-property name="transform">
+     *       <g-keyframe offset="0" value="translate(0,0)"></g-keyframe>
+     *       <g-keyframe offset="0.5" value="translate(0,100px)"></g-keyframe>
+     *       <g-keyframe offset="1" value="translate(100px,100px)"></g-keyframe>
+     *     </g-property>
+     * @class g-property
+     */
+    Toolkit.register(this, {
+      publish: {
+        /**
+         * CSS property name.
+         * @property name
+         * @type String
+         * @required
+         */
+        name: null
+      }
+    });
+  </script>
+</element>
+<element name="g-keyframe">
+  <script>
+    /**
+     * Defines the value at a keyframe for the containing `g-property`.
+     * @class g-keyframe
+     */
+    Toolkit.register(this, {
+      publish: {
+        /**
+         * From 0 to 1.
+         * @property offset
+         * @type Number
+         * @required
+         */
+        offset: null,
+        /**
+         * Property value at the animation offset.
+         * @property value
+         * @type String
+         * @required
+         */
+        value: null,
+        /**
+         * @property easing
+         * @type String
+         */
+        easing: null
+      },
+      get properties() {
+        var props = {
+          // TODO bug in webanimations polyfill
+          value: String(this.value) || "",
+        };
+        if (this.offset !== null) {
+          props.offset = this.offset;
+        }
+        if (this.easing) {
+          props.timingFunction = this.easing;
+        }
+        return props;
+      }
+    });
+  </script>
+</element>

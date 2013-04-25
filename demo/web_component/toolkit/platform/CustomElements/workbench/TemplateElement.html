@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="../custom-elements.js"></script>
+  <style>
+    e-template {
+      display: none;
+    }
+    x-foo {
+      display: block;
+    }
+  </style>
+  <script>
+    HTMLTemplateElement = document.register('e-template', {
+      prototype: Object.create(HTMLElement.prototype, {
+        readyCallback: {
+          value: function() {
+            this.parse();
+            document.upgradeElements();
+          }
+        },
+        parse: {
+          value: function() {
+            var tag = this.getAttribute('element');
+            //var script = this.querySelector('script');
+            //console.log(script.textContent);
+            var template = this;
+            var prototype = Object.create(HTMLElement.prototype, {
+              readyCallback: {
+                value: function() {
+                  template.migrateContent(this);
+                }
+              }
+            });
+            document.register(tag, {
+              prototype: prototype
+            });
+            console.log('HTMLTemplateElement: registered:', tag);
+          }
+        },
+        migrateContent: {
+          value: function(inTarget) {
+            var cn = this.childNodes;
+            for (var i=0, n; n=cn[i]; i++) {
+              if (n.localName == 'script') {
+              } else {
+                inTarget.appendChild(n.cloneNode(true));
+              }
+            }         
+          }
+        }
+      })
+    });
+    window.register = function() {};
+  </script>
+</head>
+<body>
+  <e-template element="x-foo">
+    I Expand Into Good Stuff.
+  </e-template>
+  <x-foo></x-foo>
+  <x-foo></x-foo>
+  <x-foo></x-foo>
+</body>
+</html>

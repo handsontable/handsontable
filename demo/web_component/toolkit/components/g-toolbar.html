@@ -1,0 +1,90 @@
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Toolkit Elements
+ */
+/**
+ * g-toolbar is a horizontal bar containing elements that can perform actions.
+ *
+ * Example:
+ *
+ *     <g-toolbar>
+ *       <g-icon-button src="menu.png" on-click="menuAction"></g-icon-button>
+ *       <div class="flex">Title</div>
+ *       <g-icon-button src="more.png" on-click="moreAction"></g-icon-button>
+ *     </g-toolbar>
+ *
+ * @class g-toolbar
+ */
+-->
+<element name="g-toolbar" attributes="responsive">
+  <template>
+    <style>
+      .toolbar {
+        display: -webkit-box;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-box-align: center;
+        -webkit-align-items: center;
+        align-items: center;
+        min-height: 60px;
+        background-color: whitesmoke;
+        box-shadow: inset 0px 0px 3px rgba(255, 255, 255, 1);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.28);
+      }
+      
+      /* toolbars can be made plain and nested toolbars are unstyled by default */
+      /* TODO(ffu): use :scope when it is available */
+      .toolbar[responsive=true] {
+        box-shadow: none;
+        border-bottom: 0;
+      }
+      
+      /*@polyfill .toolbar > *:not(g-toolbar) */
+      ::-webkit-distributed(:not(g-toolbar)) {
+        margin: 0 10px;
+      }
+      
+      /*@polyfill .toolbar > .flex */
+      ::-webkit-distributed(.flex) {
+        -webkit-box-flex: 1;
+        -webkit-flex: 1;
+        flex: 1;
+      }
+      
+      /* TODO(ffu): ad hoc, replace with a more thoughtful set of responsive rules */
+      @media screen and (max-width: 800px) {
+        .toolbar[responsive=true] {
+          position: fixed;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          z-index: 1;
+          background-color: whitesmoke;
+          border: 0;
+          border-top: 1px solid rgba(0, 0, 0, 0.28);
+        }
+        
+        /*@polyfill .toolbar > *.hidden-narrow */
+        ::-webkit-distributed(.hidden-narrow) {
+          display: none;
+        }
+      }
+    </style>
+    <div class="toolbar" responsive="{{responsive}}">
+      <content></content>
+    </div>
+  </template>
+  <script>
+    Toolkit.register(this, {
+      responsive: false,
+      ready: function() {
+        this.setAttribute('touch-action', 'none');
+      }
+    });
+  </script>
+</element>

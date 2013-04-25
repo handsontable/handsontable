@@ -1,0 +1,13 @@
+{
+  "name": "CustomElements",
+  "description": "Polyfill for W3C CustomElements Specification",
+  "version": "0.0.1",
+  "devDependencies": {
+    "grunt": "*",
+    "grunt-contrib-uglify": "*",
+    "grunt-contrib-yuidoc": "~0.4.0",
+    "grunt-karma": "*",
+    "mocha": "*",
+    "chai": "*"
+  }
+}

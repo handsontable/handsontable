@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>CustomElements Workbench</title>
+    <meta charset="UTF-8">
+  </head>
+  <body
+    <x-foo>XFoo One</x-foo>
+    <script>
+      XFoo = document.webkitRegister('x-foo', {
+        prototype: Object.create(HTMLElement.prototype, {
+          readyCallback: {
+            value: function() {
+              this.textContent += ' -- [upgraded]';
+            }
+          },
+          foo: {
+            value: function() {
+              this.style.cssText = 'border: 1px solid lightblue; padding: 8px;';
+            }
+          }
+        })
+      });
+      window.addEventListener('load', function() {
+        xfoo.foo();
+      });
+    </script>
+    <x-foo id="xfoo">XFoo Two</x-foo>
+  </body>
+</html>

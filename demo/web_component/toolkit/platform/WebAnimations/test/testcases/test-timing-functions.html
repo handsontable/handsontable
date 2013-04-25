@@ -1,0 +1,63 @@
+<!--
+Copyright 2012 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+<style>
+.anim {
+  left: 0px;
+  width: 200px;
+  height: 24px;
+  background-color: lightsteelblue;
+  position: relative;
+  border-bottom: solid white 1px;
+}
+
+#expectation {
+  position: absolute;
+  left: 200px;
+  width: 200px;
+  height: 200px;
+  background: red;
+}
+body { margin: 0px; }
+</style>
+
+<div id="expectation"></div>
+
+<div>
+  <div id="a" class="anim">(default)</div>
+  <div class="anim test">ease-in</div>
+  <div class="anim test">ease-out</div>
+  <div class="anim test">cubic-bezier(0, 0.2, 0.8, 1)</div>
+  <div class="anim test">steps(3, start)</div>
+  <div class="anim test">steps(3, middle)</div>
+  <div class="anim test">steps(3, end)</div>
+  <div class="anim test">cubic-bezier(0.5, -1.5, 0.5, 2.5)</div>
+</div>
+
+<script src="../../web-animations.js"></script>
+<script src="../anim-test-pre.js"></script>
+<script>
+
+document.timeline.play(new Animation(document.querySelector("#a"),
+    {left: "200px"}, {startDelay: 1, duration: 2}));
+var elems = document.querySelectorAll(".test");
+for (var i = 0; i < elems.length; i++) {
+  var element = elems[i];
+  document.timeline.play(new Animation(element, {left: "200px"},
+      {startDelay: 1, duration: 2, timingFunction: element.textContent}));
+}
+</script>

@@ -1,0 +1,1 @@
+mocha.setup({ui:'tdd'});

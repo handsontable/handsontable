@@ -1,0 +1,134 @@
+<!--
+Copyright 2013 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+<style>
+body {
+  background-color: green;
+}
+body div#fail {
+  display: none;
+}
+body.fail {
+  background-color: red;
+}
+body.fail div#pass {
+  display: none;
+}
+body.fail div#fail {
+  display: block;
+}
+</style>
+
+<div id="pass">PASS</div>
+<div id="fail">FAIL</div>
+<div id="anim"></div>
+
+<script src="../../web-animations.js"></script>
+<script src="../anim-test-pre.js"></script>
+<script>
+
+var check = function(actual, expected, failureMessage) {
+  if (actual !== expected) {
+    var div = document.createElement("div");
+    div.innerText =
+        failureMessage + ". Expected '" + expected + "', got '" + actual + "'.";
+    document.body.appendChild(div);
+    document.body.className = "fail";
+  }
+}
+
+var anim = new Animation(document.getElementById("anim"), {left: ["100px"]},
+    {iterationCount: 3.0});
+var parGroup = new ParGroup();
+var seqGroup = new SeqGroup();
+
+// Should use intrinsic duration if Timing.duration is undefined.
+// Animation
+check(anim.duration, 0.0, "Duration should use intrinsic value");
+anim.timing.duration = 1.0;
+check(anim.duration, 1.0, "Duration should use specified value");
+// ParGroup
+check(parGroup.duration, 0.0, "Duration should use intrinsic value");
+parGroup.add(anim);
+check(parGroup.duration, 3.0, "Duration should be derived from child");
+parGroup.timing.duration = 2.0;
+check(parGroup.duration, 2.0, "Duration should use specified value");
+// SeqGroup
+check(seqGroup.duration, 0.0, "Duration should use intrinsic value");
+seqGroup.add(anim);
+check(seqGroup.duration, 3.0, "Duration should be derived from child");
+seqGroup.timing.duration = 4.0;
+check(seqGroup.duration, 4.0, "Duration should use specified value");
+
+// TimedItem.duration should override TimedItem.timing.duration until explicitly
+// set to undefined.
+// Animation
+anim.timing.duration = 5.0;
+check(anim.duration, 5.0, "Failed to update duration");
+anim.duration = 6.0;
+check(anim.duration, 6.0, "Failed to override Timing.duration");
+anim.timing.duration = 7.0;
+check(anim.duration, 6.0, "Timing.duration should be overriden");
+anim.duration = null;
+check(anim.duration, null, "Timing.duration should be overriden");
+anim.duration = undefined;
+check(anim.duration, 7.0, "Timing.duration should no longer be overriden");
+// ParGroup
+parGroup.add(anim);
+parGroup.timing.duration = 8.0;
+check(parGroup.duration, 8.0, "Failed to update duration");
+parGroup.duration = 9.0;
+check(parGroup.duration, 9.0, "Failed to override Timing.duration");
+parGroup.timing.duration = 10.0;
+check(parGroup.duration, 9.0, "Timing.duration should be overriden");
+parGroup.duration = null;
+check(parGroup.duration, null, "Timing.duration should be overriden");
+parGroup.duration = undefined;
+check(parGroup.duration, 10.0, "Timing.duration should no longer be overriden");
+// SeqGroup
+seqGroup.add(anim);
+seqGroup.timing.duration = 11.0;
+check(seqGroup.duration, 11.0, "Failed to update duration");
+seqGroup.duration = 12.0;
+check(seqGroup.duration, 12.0, "Failed to override Timing.duration");
+seqGroup.timing.duration = 13.0;
+check(seqGroup.duration, 12.0, "Timing.duration should be overriden");
+seqGroup.duration = null;
+check(seqGroup.duration, null, "Timing.duration should be overriden");
+seqGroup.duration = undefined;
+check(seqGroup.duration, 13.0, "Timing.duration should no longer be overriden");
+
+// TimedItem.animationDuration should always reflect TimedItem.duration.
+anim.timing.duration = 14.0;
+check(anim.animationDuration, 42.0, "animationDuration incorrect");
+anim.duration = 15.0;
+check(anim.animationDuration, 45.0,
+    "animationDuration should use overridden duration");
+
+// TimedItem.animationDuration should override value calculated from duration
+// and iterationCount, until explicitly set to undefined.
+anim.animationDuration = 16.0;
+check(anim.animationDuration, 16.0,
+    "animationDuration should override calculated value");
+anim.animationDuration = null;
+check(anim.animationDuration, null,
+    "animationDuration should override calculated value");
+anim.animationDuration = undefined;
+check(anim.animationDuration, 45.0,
+    "animationDuration should use calculated value");
+
+</script>

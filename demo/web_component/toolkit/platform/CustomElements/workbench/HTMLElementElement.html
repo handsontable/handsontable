@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="../custom-elements.js"></script>
+  <style>
+    element, scripts {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <x-foo id="first"></x-foo>
+  <element name="x-foo">
+    <scripts>
+      this.register({
+        prototype: {
+          readyCallback: function() {
+            this.textContent = '[x-foo registered (click me)]';
+            this.addEventListener('click', function() {
+              alert('Hi' + (this.id ? ' from "' + this.id + '"' : ''));
+            });
+          }
+        }
+      });
+      setTimeout(function() {
+        document.body.appendChild(document.createElement('x-foo'));
+      }, 0);
+    </scripts>
+  </element>
+  <script>
+  </script>
+</body>
+</html>

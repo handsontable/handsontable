@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>Mocha Test: CustomElements</title>
+    <meta charset="UTF-8">
+    <!-- -->
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script src="../node_modules/chai/chai.js"></script>
+    <!-- -->
+    <script src="../custom-elements.min.js"></script>
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <script>
+      mocha.setup({ui: 'tdd'});
+    </script>
+    <!--  -->
+    <script src="CustomElements.js"></script>
+    <!--  -->
+    <script>
+      mocha.run();
+    </script>
+  </body>
+</html>

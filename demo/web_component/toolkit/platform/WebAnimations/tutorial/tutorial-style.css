@@ -1,0 +1,344 @@
+/**
+ * Copyright 2013 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ /*TODO:
+ - incorperate object notation (JSON) varibles for the test so it is easier to call
+ */
+
+#main {
+  margin: 100px auto;
+  width: 80%;
+}
+#tryIt {
+  width: 90%;
+  margin: 30px auto;
+  clear: both;
+}
+.heading {
+  background-color: #AFA;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 5px;
+  font: bold 1.2em Arial;
+  height: 25px;
+  clear: both;
+}
+#update {
+  border-radius: 10px;
+  background-color: white;
+  float: right;
+  width: 10%;
+  font: 1em Arial;
+  padding: 3px;
+}
+.code {
+  margin: 0 auto;
+  border-radius: 2px;
+  border: 1px solid black;
+  height: 600px;
+  width: 55%;
+  float: left;
+  overflow: auto;
+}
+#htmlCode {
+  width: 99%;
+  height: 28%;
+  
+}
+#jsCode {
+  width: 99%;
+  height: 28%;
+  overflow-x: hidden;
+}
+#cssCode {
+  width: 99%;
+  height: 28%;
+  float: left;
+  overflow-x: hidden;
+}
+#display {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  float: none;
+}
+.display {
+  border-radius: 2px;
+  width: 44%;
+  height: 600px;
+  clear: right;
+  float: right;
+}
+.label {
+  font: bold 1em Arial;
+  padding: 1%;
+  height: 2%;
+  float: left;
+  clear: both;
+}
+.description {
+  font: 1em sans-serif, "Comic Sans MS", cursive;
+  margin: 10px;
+  clear: both;
+  padding: 10px;
+}
+#title {
+  font: bold 2em Verdana;
+  color: #680;
+  text-align: center;
+  padding: 10px;
+  margin: 2px;
+}
+.content{
+  padding: 3px;
+  width: 80%;
+  margin: 3px auto;
+  text-align: justify;
+}
+.subTitle {
+  background-color: #ABCDEF;
+  padding: 10px; 
+}
+code {
+  color: #94704D;
+  font-size: 1.1em;
+}
+.exercises {
+  font: bold 1em "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  background: #FFFF00;
+  width: 30%;
+  float: left;
+  padding: 10px;
+  margin: 30px 3px;
+}
+a {
+  text-decoration: none;
+  color: black;
+}
+a:visited {
+  color: black;
+}
+.separator {
+  height: 50px;
+}
+.sideMenu {
+  list-style-type: none;
+  position: absolute;
+  top: 18%;
+  z-index: 0;
+}
+.sideMenu li:hover {
+  background-color: #E6E6E6;
+  color: #222;
+  cursor: pointer
+}
+.sideMenu li {
+  display: block;
+  width: 81%;
+  background-color: #737373;
+  padding: 20px;
+  color: #CCC;
+  border: 1px solid black;
+  z-index: 0;
+}
+.sideMenu li, #alphabet-menu li {
+  font: 1em "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  z-index: 0;
+}
+#menuLabel {
+  background-color: #222;
+  width: 81%;
+  padding: 20px;
+  color: #DDD;
+}
+#toggleText {
+  width: 60%;
+  display: none;
+  position: relative;
+  float: right;
+  clear: both;
+  font-size: 0.9em;
+  margin-bottom: 10px;
+}
+#toggleText:after {
+  content: '.';
+  clear: both;
+  display: block;
+  height: 0px;
+  text-indent: -999999em;
+}
+.codeSamples {
+  padding: 10px;
+  border: 1px solid black;
+  background-color: #EEE;
+  width: 80%;
+  clear: both;
+  margin-left: 10%;
+  display: block;
+}
+#hideLabel {
+  width: 10%;
+  height: 20px;
+  float: right;
+  background-color: #999999;
+  padding: 5px;
+  margin: 10px;
+  font: 0.8em "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  color: black;
+  text-align: center;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.topMenu {
+  list-style-type: none;
+  float: left;
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  margin: 0;
+}
+.topMenu li {
+  float: left;
+  margin-right: 5px;
+  position: relative;
+}
+.topMenu a {
+  padding: 10px;
+  top: 0px;
+  display: block;
+  background-color: #222;
+  width: 150px;
+  color: #DDD;
+  text-align: center;
+  border: 1px solid black;
+  text-decoration: none;
+  font: 1.1em "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+}
+.topMenu a:hover {
+  background-color: #EEE;
+  color: black;
+}
+.topMenu .subMenu {
+  list-style-type: none;
+  position: absolute;
+  left: -9999px;
+  font-size: 0.8em;
+  z-index: 990;
+}
+.topMenu .subMenu li {
+  padding-top: 1px;
+  float: none;
+  z-index: 1;
+}
+.topMenu .subMenu a {
+  white-space: nowrap;
+  background-color: rgba(34,34,34, 0.1);
+  color: #222;
+  z-index: 1;
+}
+.topMenu li:hover .subMenu {
+  left: -40px;
+  z-index: 1;
+}
+.topMenu .subMenu li:hover a {
+  background-color: rgba(34,34,34,0.9);
+  color: #EEE;
+}
+.line-separator {
+  height: 2px;
+  background: #717171;
+  border-bottom: 1px solid #313030;
+  clear: both;
+}
+.demos {
+  height: 800px;
+  width: 110%;
+  border: 0px;
+}
+#alphabet-menu {
+  list-style-type: none;
+}
+#alphabet-menu a {
+  float: left;
+  padding: 15px;
+  margin-bottom: 10px;
+  display: inline;
+  border: 1px solid white;
+  background-color: #FF3333;
+  color: black;
+  font-weight: bold;
+}
+#alphabet-menu a:hover {
+  background-color: #FFE6E6;
+  color: black;
+}
+.note {
+  color: red;
+  font-size: 0.9em;
+}
+.alphabet-title {
+  float: left;
+  clear: left;
+  width: 100%;
+  font: bold 1.5em "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  color: #6699FF;
+  margin-top: 10px;
+  border-bottom: 3px dotted #334C80;
+}
+.keywords {
+  color: red;
+}
+.datatype {
+  color: #009933;
+}
+.animViewerText {
+  top: 500px;
+}
+.backToTop {
+  float: right;
+  clear: both;
+  font: 0.6em "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  color: #6699FF;
+  margin-bottom: 0;
+}
+.content li {
+  line-height: 170%;
+}
+.properties-table {
+  margin: 3% auto;
+  border: 2px solid #EBEBEB;
+  font: 0.9em Georgia, serif;
+}
+.properties-table td {
+  padding: 8px;
+  border-bottom: 2px double #CFCFCF;
+}
+.properties-table-title td {
+  font-weight: bold;
+}
+.pass {
+  background-color: #AFA;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 5px;
+  font: bold 50pt Arial;
+  height: 1em;
+  clear: both;
+  text-align: center;
+}
+.fail {
+  visibility: hidden;
+}

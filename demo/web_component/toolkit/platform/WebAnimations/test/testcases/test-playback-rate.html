@@ -1,0 +1,131 @@
+<!--
+Copyright 2012 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+<style>
+.animContainer {
+  position: absolute;
+  left: 0px;
+}
+
+.anim {
+  left: 0px;
+  width: 100px;
+  height: 25px;
+  background-color: lightsteelblue;
+  position: relative;
+}
+
+#ca {
+  top: 50px;
+}
+
+#cb {
+  top: 250px;
+}
+
+.expectation {
+  position: absolute;
+  width: 100px;
+  background: red;
+}
+#expectation1 {
+  top: 50px;
+  left: 300px;
+  height: 175px;
+}
+#expectation2 {
+  top: 250px;
+  left: 100px;
+  height: 150px;
+}
+#expectation3 {
+  top: 400px;
+  left: 300px;
+  height: 25px;
+}
+</style>
+
+<div>All movement should be at the same speed.</div>
+
+<div class="expectation" id="expectation1"></div>
+<div class="expectation" id="expectation2"></div>
+<div class="expectation" id="expectation3"></div>
+
+<div class="animContainer" id="ca">
+  <div class="anim a" id="a"></div>
+  <div class="anim b" id="b"></div>
+  <div class="anim c" id="c"></div>
+  <div class="anim d" id="d"></div>
+  <div class="anim e" id="e"></div>
+  <div class="anim f" id="f"></div>
+  <div class="anim g" id="g"></div>
+</div>
+
+<div class="animContainer" id="cb">
+  <div class="anim a" id="h"></div>
+  <div class="anim b" id="i"></div>
+  <div class="anim c" id="j"></div>
+  <div class="anim d" id="k"></div>
+  <div class="anim e" id="l"></div>
+  <div class="anim f" id="m"></div>
+  <div class="anim g" id="n"></div>
+</div>
+
+<div style="height: 450px"></div>
+
+<script src="../../web-animations.js"></script>
+<script src="../anim-test-pre.js"></script>
+<script>
+
+var containers = ["ca", "cb"];
+
+var directions = ["normal", "reverse"];
+var groups = [];
+
+for (var i = 0; i < directions.length; i++) {
+  var dir = directions[i];
+  groups.push(new ParGroup([], {direction: dir, duration: 3}));
+}
+
+for (var i = 0; i < containers.length; i++) {
+  var container = document.getElementById(containers[i]);
+  // Test basic use.
+  new Animation(container.getElementsByClassName("a")[0],
+      {left: ["100px", "300px"]}, {duration: 1.0}, groups[i]);
+  new Animation(container.getElementsByClassName("b")[0],
+      {left: ["100px", "300px"]}, {duration: 0.5, playbackRate: 0.5},
+      groups[i]);
+  new Animation(container.getElementsByClassName("c")[0],
+      {left: ["100px", "300px"]}, {duration: 2.0, playbackRate: 2.0},
+      groups[i]);
+   // Test negative values.
+  new Animation(container.getElementsByClassName("d")[0],
+      {left: ["300px", "100px"]}, {duration: 1.0, playbackRate: -1.0},
+      groups[i]);
+  new Animation(container.getElementsByClassName("e")[0],
+      {left: ["300px", "100px"]}, {duration: 0.5, playbackRate: -0.5},
+      groups[i]);
+  new Animation(container.getElementsByClassName("f")[0],
+      {left: ["300px", "100px"]}, {duration: 2.0, playbackRate: -2.0},
+      groups[i]);
+   // Test zero.
+  new Animation(container.getElementsByClassName("g")[0],
+      {left: ["300px", "100px"]}, {duration: 1.0, playbackRate: 0.0},
+      groups[i]);
+  document.timeline.play(groups[i]);
+}
+</script>

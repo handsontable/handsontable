@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title></title>
+    <meta charset="UTF-8">
+    <style>
+      x-foo {
+        border: 1px dotted lightblue;
+        padding: 8px;
+      }
+    </style>
+  </head>
+  <body>
+      <script>
+        document.register = document.register || document.webkitRegister;
+        var proto = Object.create(HTMLElement.prototype, {
+          readyCallback: {
+            value: function() {
+              alert('callback');
+              this.textContent = "I'm a CUSTOM element called x-foo";
+            }
+          }
+        });
+        document.register('x-foo', {
+          prototype: proto,
+          lifecycle: {
+            created: proto.readyCallback
+          }
+        });
+        var xf = document.createElement('x-foo');
+        document.body.appendChild(xf);
+      </script>
+      <x-foo>I'm an unknown element called x-foo</x-foo>
+  </body>
+</html>

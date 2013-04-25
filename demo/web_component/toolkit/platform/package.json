@@ -1,0 +1,13 @@
+{
+  "name": "Platform",
+  "version": "0.0.1",
+  "devDependencies": {
+    "mocha": "*",
+    "chai": "*",
+    "grunt": "*",
+    "grunt-contrib-concat": "*",
+    "grunt-contrib-uglify": "*",
+    "grunt-contrib-yuidoc": "*",
+    "grunt-karma": "*"
+  }
+}

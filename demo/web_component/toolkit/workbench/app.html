@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+<head>
+	<title>App</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1.0">
+  <title>Icon Button</title>
+  <script src="../toolkit.js"></script>
+  <link rel="import" href="../components/g-app.html">
+  <style>
+    .content {
+      background: steelblue;
+    }
+    
+    .app-container {
+      height: 300px;
+      width: 300px;
+      border: 1px solid black;
+      background: whitesmoke;
+      position: relative;
+    }
+    
+    g-app > * {
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h4>Putting content into g-app</h4>
+  <div class="app-container">
+    <g-app>
+      <header>Simple App</header>
+      <section class="content flex">Content</section>
+      <footer>more...</footer>
+    </g-app>
+  </div>  
+  
+  <h4>Extending g-app</h4>
+    <div class="app-container">
+    <my-app></my-app>
+  </div>
+
+  <element name="my-app" extends="g-app">
+    <template>
+      <style>
+        header, section, footer {
+          padding: 10px;
+        }
+        
+        .selected {
+          background: gray;
+        }
+        
+        .content {
+          background: tomato;
+        }
+      </style>
+      <header on-tap="headerSelect">My App</header>
+      <section class="content flex">Content</section>
+      <footer>more...</footer>
+    </template>
+    <script>
+      Toolkit.register(this, {
+        ready: function() {
+          this.super(arguments);
+          this.setAttribute('touch-action', 'none');
+          console.log('app ready!');
+        },
+        headerSelect: function(inEvent, inDetail, inSender) {
+          inSender.classList.toggle('selected');
+        }
+      });
+    </script>
+  </element>
+
+</body>
+</html>

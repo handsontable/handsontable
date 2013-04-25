@@ -1,0 +1,43 @@
+/*
+ * Copyright 2013 The Toolkitchen Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+@host {
+  * {
+    display: block;
+    position: relative;
+    outline: none;
+    overflow: hidden;
+  }
+}
+
+/* TODO(sorvell): need to style only distributed children.
+  (*) styles children and all descendants.
+  Filed related issue
+  https://www.w3.org/Bugs/Public/show_bug.cgi?id=21389
+*/
+
+/*
+content::-webkit-distributed(*) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-transform: translateZ(0);
+}
+
+content::-webkit-distributed(g-panels), g-panels > g-panels {
+  position: absolute;
+}
+
+content::-webkit-distributed(.transition), g-panels > .transition {
+  -webkit-transition: all 0.218s ease-in-out;
+}
+
+content::-webkit-distributed(.animate), g-panels > .animate {
+  -webkit-animation-duration: 0.218s;
+  -webkit-animation-fill-mode: both;
+}
+*/

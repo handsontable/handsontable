@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title></title>
+    <meta charset="UTF-8">
+    <script src="../../MDV/src/mdv.js"></script>
+  </head>
+  <body>
+    <template bind="{{}}">
+      Hello from {{source}}
+    </template>
+    <script>
+      // wait for template to bootstrap on some platforms (IE)
+      window.onload = function() {
+        HTMLTemplateElement.bindTree(document.body, {
+          source: "MDV"
+        });
+        Model.notifyChanges();
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title></title>
+    <meta charset="UTF-8">
+    <script src="../../../platform.js"></script>
+    <script src="lib/util.js"></script>
+    <style>
+      div, g-A {
+        display: block;
+        border: 1px dotted red;
+        margin: 8px;
+        padding: 8px;
+      }
+    </style>
+    <script>
+      change = function() {
+        A = $("g-A");
+        A.webkitCreateShadowRoot().appendChild($("template#A").content);
+      }
+    </script>
+  </head>
+  <body onload="change()">
+      <g-A>
+        <div class="a">To DIV.a perchance</div><span class="b">To SPAN.b or not</span>
+      </g-A>
+      <template id="A">
+        A's template<br/>
+        div content:
+        <content select=".a"></content>
+        span content:
+        <content select=".b"></content>
+      </template>
+
+      <hr/>
+
+      Expected output (also, see console):
+
+      <div>
+        A's template<br/>
+        div content:
+        <div>To DIV.a perchance</div>
+        span content:
+        <span>To SPAN.b or not</span>
+      </div>
+  </body>
+</html>

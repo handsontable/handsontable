@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>CustomElements Workbench</title>
+    <meta charset="UTF-8">
+    <script src="../custom-elements.js"></script>
+  </head>
+  <body>
+    <script>
+      XFoo = document.register('x-foo', {
+        prototype: Object.create(HTMLElement.prototype, {
+          readyCallback: {
+            value: function() {
+              console.log('readyCallback:', this.textContent);
+            }
+          },
+          foo: {
+            value: function() {
+              console.log('foo');
+            }
+          }
+        })
+      });
+      // make and remove xfoo forever
+      var xfoo;
+      setInterval(function() {
+        if (xfoo) {
+          document.body.removeChild(xfoo);
+        }
+        xfoo = new XFoo();
+        document.body.appendChild(xfoo);
+      }, 1);
+    </script>
+  </body>
+</html>

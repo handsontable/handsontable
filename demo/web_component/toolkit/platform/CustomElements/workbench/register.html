@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>CustomElements Workbench</title>
+    <meta charset="UTF-8">
+    <script src="../custom-elements.js"></script>
+  </head>
+  <body>
+    <script>
+      window.onload = function() {
+        // just shows [x-foo]
+        XFoo = document.register('x-foo', {
+          prototype: Object.create(HTMLElement.prototype)
+        });
+        xfoo = new XFoo();
+        document.body.appendChild(xfoo).textContent = '[x-foo]';
+        //
+        // shows an HTML buton with text 'x-bar'
+        XBarPrototype = Object.create(HTMLButtonElement.prototype);
+        XBar = document.register('x-bar', {
+          prototype: XBarPrototype,
+          extends: 'button'
+        });
+        xbar = new XBar();
+        document.body.appendChild(xbar).textContent = 'x-bar';
+        //
+        // shows an HTML buton with text 'x-naf'
+        XNafPrototype = Object.create(XBarPrototype);
+        XNaf = document.register('x-naf', {
+          prototype: XNafPrototype,
+          extends: 'x-bar'
+        });
+        xnaf = new XNaf();
+        document.body.appendChild(xnaf).textContent = 'x-naf';
+        //
+        //
+        // shows content in italic
+        XZotPrototype = Object.create(HTMLElement.prototype);
+        XZotPrototype.bluate = function() {
+          this.style.color = 'lightblue';
+        };
+        XZotPrototype.readyCallback = function() {
+          this.style.fontStyle = 'italic';
+        };
+        XZot = document.register('x-zot', {
+          prototype: XZotPrototype
+        });
+        xzot = new XZot();
+        document.body.appendChild(xzot).textContent = 'x-zot';
+        //
+        // shows random #, in 32pt italic
+        XBazPrototype = Object.create(XZotPrototype);
+        XBazPrototype.splat = function() {
+          this.textContent = Math.random();
+        };
+        XBazPrototype.readyCallback = function() {
+          XZotPrototype.readyCallback.call(this);
+          this.style.fontSize = '32pt';
+        };
+        XBaz = document.register('x-baz', {
+          prototype: XBazPrototype,
+          extends: 'x-zot'
+        });
+        xbaz = new XBaz();
+        // shows x-baz, in 32pt italic
+        document.body.appendChild(xbaz).textContent = 'x-baz';
+      };
+    </script>
+  </body>
+</html>

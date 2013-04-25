@@ -1,0 +1,40 @@
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+
+<!-- 404 to test this failure condition -->
+<link rel="import" href="components/before-components.html">
+
+<element name="x-first">
+  <template>
+      [x-first template-]<content></content>[-x-first template]
+  </template>
+  <script>
+    var template = this.querySelector('template');
+    this.register({
+      prototype: {
+        orangify: function() {
+          this.style.backgroundColor = 'orange';
+          this.style.color = 'black';
+        },
+        appendChild: function(inChild) {
+          if (inChild.nodeType === 1) {
+            inChild.style.backgroundColor = 'lightblue';
+          }
+          return HTMLElement.prototype.appendChild.call(this, inChild);
+        }
+      },
+      lifecycle: {
+        readyCallback: function() {
+          var root = this.webkitCreateShadowRoot();
+          root.appendChild(templateContent(template));
+          this.orangify();
+        }
+      }
+    });
+  </script>
+</element>
+
+<link rel="import" href="components/moar-components.html">

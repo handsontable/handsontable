@@ -1,0 +1,220 @@
+<!--
+Copyright 2013 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Written by Steph McArthur
+-->
+
+<!DOCTYPE html>
+<style>
+body {
+  background-color: green;
+}
+body div#fail {
+  display: none;
+}
+body.fail {
+  background-color: red;
+}
+body.fail div#pass {
+  display: none;
+}
+body.fail div#fail {
+  display: block;
+}
+</style>
+
+<div id="pass">PASS</div>
+<div id="fail">FAIL</div>
+<div id="anim"></div>
+
+<script src="../../web-animations.js"></script>
+<script src="../anim-test-pre.js"></script>
+<script>
+
+var fail = function(failureMessage) {
+  var div = document.createElement("div");
+  div.innerText = failureMessage;
+  document.body.appendChild(div);
+  document.body.className = "fail";
+};
+
+var check = function(actual, expected, failureMessage) {
+  if (actual !== expected) {
+    fail(failureMessage + ". Expected '" + expected + "', got '" + actual +
+        "'.");
+  }
+};
+
+var checkNotEqual = function(actual, unexpected, failureMessage) {
+  if (actual === unexpected) {
+    fail(failureMessage + ". Got unexpected '" + unexpected + "'");
+  }
+};
+
+// Don't use a local named requestAnimationFrame, to avoid potential problems
+// with hoisting.
+var raf = window.requestAnimationFrame || window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame || window.msRequestAnimationFrame;
+
+var animation = new Animation(document.getElementById("anim"), {left: "100px"});
+var dt = document.timeline;
+
+// Test Player.timeline.
+var player1 = dt.play(animation);
+check(player1.timeline, document.timeline, "Player.timeline incorrect");
+
+// Test that TimedItem.getPlayer() and Player.source are consistent.
+checkNotEqual(player1, null, "Player should not be null");
+check(player1.source, animation, "Player.source incorrect");
+check(animation.getPlayer(), player1, "TimedItem.getPlayer() incorrect");
+
+// Test that play() always returns a new Player.
+var player2 = dt.play(animation);
+checkNotEqual(player2, player1,
+    "Repeated calls to play() should create a new Player");
+check(animation.getPlayer(), player2,
+    "Repeated play(): TimedItem.getPlayer() incorrect");
+check(player2.source, animation,
+    "Repeated play(): Player.source incorrect");
+check(player2.startTime, player1.startTime,
+    "Repeated play(): players should have same start time");
+
+// Test explicit setting of Player.source.
+player1.source = animation;
+check(player2.source, null,
+    "Set Player.source: Old Player.source incorrect");
+check(player1.source, animation,
+    "Set Player.source: New Player.source incorrect");
+check(animation.getPlayer(), player1,
+    "Set Player.source: TimedItem.getPlayer() incorrect");
+
+// Test that TimedItem.getPlayer() gives null on a detached tree.
+var animation2 =
+    new Animation(document.getElementById("anim"), {left: "100px"});
+var parGroup = new ParGroup([animation2]);
+check(parGroup.getPlayer(), null,
+    "TimedItem.getPlayer() should be null for root");
+check(animation2.getPlayer(), null,
+    "TimedItem.getPlayer() should be null for leaf");
+
+// Test that TimedItem.getPlayer() remotes to the root of the tree.
+var player3 = dt.play(parGroup);
+check(animation2.getPlayer(), player3, "TimedItem.getPlayer() should remote");
+
+// Test that calling play() on a TimedItem with a parent results in
+// reparenting.
+var player4 = dt.play(animation2);
+check(animation2.parentGroup, null, "Animation should be reparented");
+check(parGroup.children.length, 0, "Animation parent should be updated");
+check(player4.source, animation2, "Player should use reparented animation");
+
+// Test that setting a parent on a TimedItem with a Player causes the player to
+// be disconnected.
+parGroup.add(animation2);
+check(parGroup.getPlayer(), player3,
+    "TimedItem.getPlayer() should be updated for root");
+check(animation2.getPlayer(), player3,
+    "TimedItem.getPlayer() should be updated for leaf");
+check(player4.source, null, "Player.source should be updated");
+check(animation2.parentGroup, parGroup,
+    "Animation.parentGroup should be updated");
+check(parGroup.children.length, 1, "Animation parent should be updated");
+check(parGroup.children[0], animation2, "Animation parent should be updated");
+
+// Test that currentTime is zero before timeline starts.
+check(document.timeline.play(animation).currentTime, 0,
+    "currentTime should be zero before Timeline starts");
+
+// Test that startTime is zero before timeline starts.
+check(document.timeline.play(animation).startTime, 0,
+    "startTime should be zero before Timeline starts");
+
+// Test that setting currentTime has no effect until the timeline starts.
+var player5 = dt.play(animation);
+player5.currentTime = 42;
+check(player5.currentTime, 0,
+    "currentTime should always be zero before Timeline starts");
+addEventListener('load', function() {
+  setTimeout(function() {
+    check(player5.currentTime > 42, true,
+        "updates to currentTime should take effect after Timeline starts");
+  }, 0);
+});
+
+// Test that setting startTime has no effect until the timeline starts.
+var player6 = dt.play(animation);
+player6.startTime = 42;
+check(player6.currentTime, 0,
+    "currentTime should always be zero before Timeline starts");
+addEventListener('load', function() {
+  setTimeout(function() {
+    check(player6.currentTime < -41, true,
+        "updates to startTime should take effect after Timeline starts");
+  }, 0);
+});
+
+// Test that a Player's TimedItem gets a null inherited time until the
+// timeline starts.
+var animation1 = new Animation(document.getElementById("anim"), {left: "100px"});
+dt.play(animation1);
+check(animation1.localTime, null, "TimedItem's inherited time, and thus " +
+    "localTime should be null before Timeline starts");
+addEventListener('load', function() {
+  raf(function() {
+    checkNotEqual(animation1.localTime, null, "TimedItem's inherited time " +
+        "and thus localTime should not be null after Timeline starts");
+  });
+});
+
+// Test that TimedItem is updated immediately on calling Timeline.play() after
+// the timeline starts.
+addEventListener('load', function() {
+  var animation4 = new Animation(document.getElementById("anim"),
+      {left: "100px"});
+  check(animation4.localTime, null, "localTime should be null before playing");
+  document.timeline.play(animation4);
+  check(animation4.localTime, 0, "localTime should be set by playing");
+});
+
+// Test that updates to currentTime take immediate effect.
+addEventListener('load', function() {
+  var animation5 = new Animation(document.getElementById("anim"),
+      {left: "100px"});
+  document.timeline.play(animation5).currentTime = 42;
+  check(animation5.localTime, 42,
+      "Updates to Player.currentTime should take immediate effect");
+});
+
+// Test that updates to startTime take immediate effect.
+addEventListener('load', function() {
+  var animation6 = new Animation(document.getElementById("anim"),
+      {left: "100px"});
+  document.timeline.play(animation6).startTime = 42;
+  check(animation6.localTime < -41, true,
+      "Updates to Player.startTime should take immediate effect");
+});
+
+// Test that updates to source take immediate effect.
+addEventListener('load', function() {
+  var player = document.timeline.play(
+      new Animation(document.getElementById("anim"), {left: "100px"}));
+  var animation7 = new Animation(document.getElementById("anim"),
+      {left: "100px"});
+  player.source = animation7;
+  check(animation7.localTime, 0,
+      "Updates to Player.source should take immediate effect");
+});
+
+</script>

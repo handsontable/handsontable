@@ -1,0 +1,152 @@
+<!--
+Copyright 2013 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+
+<style>
+body {
+  background-color: green;
+}
+body div#fail {
+  display: none;
+}
+body.fail {
+  background-color: red;
+}
+body.fail div#pass {
+  display: none;
+}
+body.fail div#fail {
+  display: block;
+}
+div.anim {
+  position: relative;
+}
+</style>
+
+<div id="pass">PASS</div>
+<div id="fail">FAIL</div>
+<div id="target1" class="anim"></div>
+<div id="target2" class="anim"></div>
+<div id="target3" class="anim"></div>
+<div id="target4" class="anim"></div>
+
+<script src="../../web-animations.js"></script>
+<script src="../anim-test-pre.js"></script>
+<script>
+
+var check = function(actual, expected, failureMessage) {
+  if (actual != expected) {
+    var div = document.createElement("div");
+    div.innerText =
+        failureMessage + ". Expected '" + expected + "', got '" + actual + "'.";
+    document.body.appendChild(div);
+    document.body.className = "fail";
+  }
+}
+
+var leftToRight = {left: ["100px", "200px"]};
+var rightToLeft = {left: ["200px", "100px"]};
+var noop = {color: "red"};
+
+// Test that an animation uses the correct compositing order when it has a
+// grandparent that remains active longer than its parent.
+//
+// The first animation should run between times 0.0 and 1.0 and the second
+// between times 2.0 and 3.0. Both use the default fill mode of "forwards", but
+// because the second animation has a later start time, it should be composited
+// second, so the div should end up on the left.
+var target1 = document.getElementById("target1");
+var player = document.timeline.play(new ParGroup([
+  new ParGroup([
+    new Animation(target1, leftToRight, 1.0),
+  ]),
+  new SeqGroup([
+    new Animation(target1, noop, 2.0),
+    new Animation(target1, rightToLeft, 1.0),
+  ]),
+]));
+
+player.paused = true;
+player.currentTime = 3.0;
+setTimeout(function() {
+  check(getComputedStyle(target1).getPropertyValue("left"), "100px",
+      "First animation should have earlier compositing order");
+}, 100.0);
+
+// Test that compositing order takes account of playback rate.
+//
+// The start time of the first animation is 0.0. The SeqGroup has a playback
+// rate of 4.0, so the effective start time of its child animation is 2.0. So
+// the the div should end up on the left at time 3.0.
+var target2 = document.getElementById("target2");
+var player = document.timeline.play(new ParGroup([
+  new Animation(target2, leftToRight, 1.0),
+  new SeqGroup([
+    new Animation(target1, noop, 8.0),
+    new Animation(target2, rightToLeft, 4.0),
+  ], {playbackRate: 4.0}),
+]));
+
+player.paused = true;
+player.currentTime = 3.0;
+setTimeout(function() {
+  check(getComputedStyle(target2).getPropertyValue("left"), "100px",
+      "Second animation should have later compositing order");
+}, 100.0);
+
+// Test compositing order follows Player start time order.
+var target3 = document.getElementById("target3");
+var player1 = document.timeline.play(
+  new Animation(target3, {left: ["100px", "200px"]}, 1.0));
+player1.startTime += 1.0;
+var player2 = document.timeline.play(
+  new Animation(target3, {left: ["100px", "1000px"]}, 2.0));
+
+player1.paused = true;
+player1.currentTime = 2.0;
+player2.paused = true;
+player2.currentTime = 2.0;
+setTimeout(function() {
+  check(getComputedStyle(target3).getPropertyValue("left"), "200px",
+      "First animation should have latest compositing order");
+}, 100.0);
+
+// Test compositing order follows tree order.
+var target4 = document.getElementById("target4");
+var player = document.timeline.play(new ParGroup([
+  new Animation(target4, {left: ["100px", "1000px"]}, 1.0),
+  new SeqGroup([
+    new Animation(target4, {left: ["100px", "1000px"]}, 1.0),
+    new ParGroup([
+      new Animation(target4, {left: ["100px", "1000px"]}, 1.0),
+      new Animation(target4, {left: ["100px", "1000px"]}, 1.0),
+    ]),
+  ]),
+  new ParGroup([
+    new Animation(target4, {left: ["100px", "1000px"]}, 1.0),
+    new Animation(target4, {left: ["100px", "200px"]}, 1.0),
+  ]),
+]));
+
+player.paused = true;
+player.currentTime = 2.0;
+setTimeout(function() {
+  check(getComputedStyle(target4).getPropertyValue("left"), "200px",
+      "Last animation should have latest compositing order");
+}, 100.0);
+
+</script>

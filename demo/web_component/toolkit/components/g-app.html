@@ -1,0 +1,130 @@
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Toolkit Elements
+ */
+/**
+ * g-app is a basic application component that provides some convenient
+ * default styling and behavior for web applications. It can be used on 
+ * its own, but more commonly it's extended to create a custom element 
+ * for a web application. 
+ *
+ * g-app is designed to fit inside it's parent element. If g-app is placed
+ * inside document.body, then it will fill the browser window. g-app lays out
+ * its contents using a flexible box (http://www.w3.org/TR/css3-flexbox/).
+ * To make a child of g-app or its shadowDOM flex sized, the class "flex" can be, 
+ * added.
+ *
+ * Example 1: Making a simple app using g-app directly:
+ *
+ *     <g-app>
+ *       <header>Simple App</header>
+ *       <section class="content flex">Content</section>
+ *       <footer>more...</footer>
+ *     </g-app>
+ *
+ * Example 2: Making an app custom element that extends g-app
+ * 
+ *     <my-app></my-app>
+ *
+ *     <element name="my-app" extends="g-app">
+ *       <template>
+ *         <style>
+ *           header, section, footer {
+ *             padding: 10px;
+ *           }
+ *       
+ *           .selected {
+ *             background: gray;
+ *           }
+ *       
+ *           .content {
+ *             background: tomato;
+ *           }
+ *         </style>
+ *         <header on-click="headerCkick">My App</header>
+ *         <section class="content flex">Content</section>
+ *         <footer>more...</footer>
+ *       </template>
+ *       <script>
+ *         Toolkit.register(this, {
+ *           ready: function() {
+ *             this.super(arguments);
+ *             console.log('app ready!');
+ *           },
+ *           headerCkick: function(inEvent, inDetail, inSender) {
+ *             inSender.classList.toggle('selected');
+ *           }
+ *         });
+ *       < /script >
+ *     </element>
+ *
+ * @class g-app
+ */
+-->
+<element name="g-app">
+  <!-- NOTE: special processing for stylesheet so that extendors get
+  styling without having to include this styling specifically.
+  TODO(sorvell): it's probably better to do this by requiring users to include
+  an external stylesheet explicitly in g-app extendors. We can use < shadow >
+  tag to bring in @host styles, but that will not style shadowDOM elements in 
+  the extendor's shadow.
+  -->
+  <style id="g-app">
+    @host {
+      * {
+        /* fit to container */
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      
+        /* layout content using flexbox */
+        display: -webkit-box;
+        display: -webkit-flex;
+        -webkit-box-orient: vertical;
+        -webkit-flex-flow: column;
+        
+        /* convenient defaults */
+        font-family: 'Helvetica Neue', Helvetica, Arial, 'open sans', sans-serif;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+    }
+      
+    /* oobe helper for flex'ing shadow content */
+    .flex {
+      -webkit-box-flex: 1;
+      -webkit-flex: 1;
+    }
+
+    /* oobe helper for flex'ing distributed content */
+    content::-webkit-distributed(.flex) {
+      -webkit-box-flex: 1;
+      -webkit-flex: 1;
+    }
+  </style>
+  <template>
+    <content></content>
+  </template>
+  <script>
+    var style = this.querySelector('#g-app');
+    var ensureHostStyles = function(inNode) {
+      var root = inNode.webkitShadowRoot;
+      if (root) {
+        Toolkit.shimShadowDOMStyling([style], inNode.localName);
+        root.insertBefore(style.cloneNode(true), root.childNodes[0]);
+      }
+    }
+
+    Toolkit.register(this, {
+      ready: function() {
+        ensureHostStyles(this);
+      }
+    });
+  </script>
+</element>

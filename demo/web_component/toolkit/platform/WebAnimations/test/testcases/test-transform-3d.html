@@ -1,0 +1,128 @@
+<!--
+Copyright 2012 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+<style>
+
+.container {
+  -webkit-perspective: 200px;
+  -moz-perspective: 200px;
+  -webkit-perspective-origin: 400px 200px;
+  -moz-perspective-origin: 400px 200px;
+  position: absolute;
+  top: 300px;
+}
+
+.anim {
+  left: 0px;
+  width: 50px;
+  height: 50px;
+  background-color: lightsteelblue;
+  position: absolute;
+  -webkit-transform-style: preserve-3d;
+  -moz-transform-style: preserve-3d;
+  font-size: 8px;
+}
+
+.expected {
+  width: 50px;
+  height: 50px;
+  position: absolute;
+  background-color: red;
+  font-size: 8px;
+  -webkit-transform-style: preserve-3d;
+  -moz-transform-style: preserve-3d;
+}
+</style>
+<div class="container"></div>
+<script src="../../web-animations.js"></script>
+<script src="../anim-test-pre.js"></script>
+<script>
+
+var transformValues = [
+  ['translate3d(0px, 0px, 0px)', 'translate3d(20px, 40px, 60px)',
+   'translateZ(20px)'],
+  ['translateZ(50px) scale3d(1, 1, 1)', 'translateZ(50px) scale3d(1.5, 3, 5)', 'translateZ(50px) scaleZ(2)'],
+  ['rotateX(0deg)', 'rotateX(50deg)'],
+  ['rotateY(0deg)', 'rotateY(50deg)'],
+  ['rotateZ(0deg)', 'rotateZ(50deg)'],
+];
+
+var separation_x = 70;
+var separation_y = 70;
+var max_x = 1000;
+
+var toplevel = document.querySelector("div");
+
+// TODO: refactor into test harness
+function detectFeatures() {
+  var style = document.createElement('style');
+  style.textContent = '' +
+     'dummyRuleForTesting {' +
+     'width: calc(0px);' +
+     'width: -webkit-calc(0px); }';
+  document.head.appendChild(style);
+  var transformCandidates = [
+      'transform',
+      'webkitTransform',
+      'msTransform'
+  ];
+  var transformProperty = transformCandidates.filter(function(property) {
+    return property in style.sheet.cssRules[0].style;
+  })[0];
+  var calcFunction = style.sheet.cssRules[0].style.width.split('(')[0];
+  document.head.removeChild(style);
+  return {
+    transformProperty: transformProperty,
+    calcFunction: calcFunction
+  };
+}
+
+var features = detectFeatures();
+
+var y = 50;
+for (var i = 0; i < transformValues.length; i++) {
+  var x = 300;
+  for (var j = 0; j < transformValues[i].length; j++) {
+    for (var k = 0; k < transformValues[i].length; k++) {
+      if (j == k) {
+        continue;
+      }
+      toplevel.appendChild(document.createElement("div"));
+      var div = toplevel.lastChild;
+      div.className = "expected";
+      div.style.top = y + 'px';
+      div.style.left = x + 'px';
+      div.style[features.transformProperty] = transformValues[i][k];
+      toplevel.appendChild(document.createElement("div"));
+      var div = toplevel.lastChild;
+      div.className = "anim";
+      div.style.top = y + 'px';
+      div.style.left = x + 'px';
+      div.textContent = "perspective";
+      document.timeline.play(new Animation(div, {"transform":
+          [transformValues[i][j], transformValues[i][k]]}, 2));
+      x += separation_x;
+      if (x > max_x) {
+        x = 20;
+        y += separation_y;
+      }
+    }
+  }
+  y += separation_y;
+}
+
+</script>

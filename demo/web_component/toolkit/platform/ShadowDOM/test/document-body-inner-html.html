@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<script src="../shadowdom.js"></script>
+<script>
+
+var wrap = ShadowDOMPolyfill.wrap;
+var doc = wrap(document);
+
+doc.addEventListener('DOMContentLoaded', function(e) {
+  var html = '<a></a><b></b>';
+  doc.body.innerHTML = html;
+
+  var result = [
+    doc.body.innerHTML === html,
+    document.body.innerHTML === html
+  ];
+
+  parent.postMessage({
+    id: window.location.hash.slice(1),
+    result: result
+  }, '*');
+});
+
+</script>

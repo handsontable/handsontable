@@ -1,0 +1,142 @@
+<!--
+Copyright 2012 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+<style>
+.anim {
+  fill: lightsteelblue;
+  background-color: lightsteelblue;
+  height: 50px;
+  position: absolute;
+}
+
+#a {
+  width: 50px;
+}
+
+#b {
+  width: 25%;
+  top: 50px;
+}
+
+#c {
+  width: 50px;
+  top: 100px;
+}
+
+#d {
+  width: -webkit-calc(25px + 12.5%);
+  top: 150px;
+}
+
+#e {
+  width: 50px;
+  top: 200px;
+}
+
+#f {
+  width: 25%;
+  top: 250px;
+}
+
+#g {
+  width: -webkit-calc(100px - 25%);
+  top: 300px;
+}
+
+.expectation {
+  background-color: red;
+  position: absolute;
+  left: 0px;
+  height: 50px;
+}
+
+.expectation2 {
+  background-color: #F88;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 400px;
+  height: 350px;
+}
+
+.outer {
+  width: 200px;
+  background-color: green;
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  height: 350px;
+}
+
+.spacer {
+  height: 400px;
+}
+
+</style>
+
+Blue lines should all hit the deep red boundary at the same time, then
+completely cover the light red box when the animation has finished.
+
+<div class="outer">
+  <div class="expectation2"></div>
+  <div class="expectation" style="top: 0px; width: 150px"></div>
+  <div class="anim" id="a"></div>
+  <div class="expectation" style="top: 50px; width: 187.5px"></div>
+  <div class="anim" id="b"></div>
+  <div class="expectation" style="top: 100px; width: 225px"></div>
+  <div class="anim" id="c"></div>
+  <div class="expectation" style="top: 150px; width: 168.75px"></div>
+  <div class="anim" id="d"></div>
+  <div class="expectation" style="top: 200px; width: 168.75px"></div>
+  <div class="anim" id="e"></div>
+  <div class="expectation" style="top: 250px; width: 218.75px"></div>
+  <div class="anim" id="f"></div>
+  <div class="expectation" style="top: 300px; width: 131.25px"></div>
+  <div class="anim" id="g"></div>
+</div>
+<div class="spacer">
+</div>
+
+<script src="../../web-animations.js"></script>
+<script src="../anim-test-pre.js"></script>
+<script>
+
+var dt = document.timeline;
+
+dt.play(new Animation(document.querySelector(".outer"),
+    {width: "800px"}, 2));
+
+// 50px -> 0px linear, 0% -> 50% (0px -> 400px quadratic)
+dt.play(new Animation(document.querySelector("#a"), {width: "50%"}, 2));
+// 25% -> 50% (50px -> 400px quadratic)
+dt.play(new Animation(document.querySelector("#b"), {width: "50%"}, 2));
+// 50px -> 400px linear
+dt.play(new Animation(document.querySelector("#c"),
+    {width: "400px"}, 2));
+// 25px -> 0px linear, 12.5% -> 50% (25px -> 400px quadratic)
+dt.play(new Animation(document.querySelector("#d"), {width: "50%"}, 2));
+// 50px -> 100px linear, 0% -> 37.5% (0px -> 300px quadratic)
+dt.play(new Animation(document.querySelector("#e"),
+    {width: "-webkit-calc(37.5% + 100px)"}, 2));
+// 0px -> 100px linear, 25% -> 37.5% (50px -> 300px quadratic)
+dt.play(new Animation(document.querySelector("#f"),
+    {width: "-webkit-calc(37.5% + 100px)"}, 2));
+// 100px -> 100px linear, -25% -> 37.5% (-50px -> 300px quadratic)
+dt.play(new Animation(document.querySelector("#g"),
+    {width: "-webkit-calc(37.5% + 100px)"}, 2));
+
+</script>

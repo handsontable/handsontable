@@ -1,0 +1,62 @@
+<!--  Copyright 2013 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
+-->
+
+<!DOCTYPE html>
+
+<div class="content">
+
+  <div id="animNum">1</div>
+
+  <div class="heading subTitle">Create a new basic animation</div>
+
+  <div class="heading exercises">Exercise 1 - Moving Right</div>
+
+  <p class="description">Now let's code some animation out! In the 'Try It
+  Yourself' block, you should see a default div block with class named 'test'
+  and ID named 'a' coloured in red. If you don't like the colour, you can
+  always change it around. Click on 'Update' when you have finished typing in
+  your code.</p> 
+  <p class="description">Now we want to make the red rounded
+  rectangle move to 300px from left for 2 seconds. We should do the
+  following:</p>
+
+  <code class="codeSamples">new Animation(document.querySelector("#a"), {left:
+  "300px"}, 2);</code>
+
+  <div id="hideLabel" onclick="toggleSolution()">Show Solution</div> 
+  <div id="toggleText" class="codeSamples">
+    <code>new Animation(document.querySelector("#a"), {left: "300px"}, 2);</code>
+  </div>
+
+  <div id="tryIt"></div>
+
+  <ol class="description">
+    <li><code>'new Animation()'</code> creates a new animation object.</li>
+    <li>
+      <code>'document.querySelector("#a")'</code> is a DOM method which 
+      gets the element with id equals to 'a' from the HTML file. You 
+      can always use <code>'document.getElementById("a")'</code> which 
+      would result the same thing. Since we have defined its class 
+      name as well, we can also select it using 
+      <code>'document.querySelector(".test")'.</code>
+    </li>
+    <li><code>'{left: "300px"}'</code> is the effects of the animation. 
+    In this case we are letting it move to 300px from left.</li>
+    <li><code>'2'</code> will set the duration of the animation to 
+    2 seconds. The bigger the number, the slower the animation 
+    speed and vice versa.</li>
+    </ol>
+
+</div>  <!-- content ending div -->

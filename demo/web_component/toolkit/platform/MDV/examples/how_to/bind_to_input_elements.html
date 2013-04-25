@@ -1,0 +1,43 @@
+<script src="../../mdv.js"></script>
+
+<h1>Bind to Input Elements</h1>
+
+<template id="input" bind="{{ input }}">
+  <h2>Text Input</h2>
+
+  <p>The <strong>amount</strong> <em>(value: {{ amount }})</em> property is bound to both of these text input elements:</p>
+
+    <label>Text: <input value="{{ amount }}"></label>
+    <label>Number: <input type="number" value="{{ amount }}"></label>
+
+  <h2>Checkbox</h2>
+
+  <p>The <strong>toggle</strong> <em>(value: {{ toggle }})</em> property is bound to both of these check boxes</p>
+
+    <label>Checkbox 1: <input type="checkbox" checked="{{ toggle }}"></label>
+    <label>Checkbox 2: <input type="checkbox" checked="{{ toggle }}"></label>
+
+  <h2>Radio</h2>
+
+  <p><strong>radio1</strong> <em>(value: {{ radio1 }})</em>, <strong>radio2</strong> <em>(value: {{ radio2 }})</em>, and <strong>radio3</strong> <em>(value: {{ radio3 }})</em> are bound to  these radio buttons</p>
+
+    <form>
+      <label>Radio 1: <input type="radio" checked="{{ radio1 }}"></label>
+      <label>Radio 1: <input type="radio" checked="{{ radio2 }}"></label>
+      <label>Radio 1: <input type="radio" checked="{{ radio3 }}"></label>
+    </form>
+</template>
+
+<script>
+var t = document.getElementById('input');
+var model = {
+  input: {
+  	amount: 10,
+  	toggle: true,
+  	radio1: true,
+  	radio2: false,
+  	radio3: false
+  }
+};
+HTMLTemplateElement.bindTree(t, model);
+</script>

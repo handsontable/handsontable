@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title></title>
+    <script src="lib/loader.js"></script>
+    <style>
+      content, div, g-A, g-B {
+        display: block;
+        border: 1px dotted lightblue;
+        margin: 8px;
+        padding: 8px;
+      }
+      content {
+        border: 1px dotted magenta;
+      }
+    </style>
+    <script>
+      change = function() {
+        A = $("g-A");
+        var root = A.webkitCreateShadowRoot();
+        root.appendChild($("template#A").content);
+        //
+        B = root.querySelector("g-B");
+        B.webkitCreateShadowRoot().appendChild($("template#B").content);
+      }
+    </script>
+  </head>
+  <body onload="change()">
+      <g-A><span id="a1">Where am I?</span></g-A>
+
+      <template id="A">[A->]<g-B><content></content></g-B>[<-A]</template>
+      <template id="B">[B->][<content></content>][<-B]</template>
+
+      <hr/>
+
+      Expected output (also, see console):
+
+      <div>[A-&gt;]
+        <div>[B-&gt;][<span id="a1">Where am I?</span>][&lt;-B]</div>
+      [&lt;-A]</div>
+
+</body>
+</html>

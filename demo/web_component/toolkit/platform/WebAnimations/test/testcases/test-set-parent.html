@@ -1,0 +1,142 @@
+<!--
+Copyright 2013 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+<style>
+body {
+  background-color: green;
+}
+body div#fail {
+  display: none;
+}
+body.fail {
+  background-color: red;
+}
+body.fail div#pass {
+  display: none;
+}
+body.fail div#fail {
+  display: block;
+}
+</style>
+
+<div id="pass">PASS</div>
+<div id="fail">FAIL</div>
+<div id="anim"></div>
+
+<script src="../../web-animations.js"></script>
+<script src="../anim-test-pre.js"></script>
+<script>
+
+var fail = function(failureMessage) {
+  var div = document.createElement("div");
+  div.innerText = failureMessage;
+  document.body.appendChild(div);
+  document.body.className = "fail";
+};
+
+var check = function(actual, expected, failureMessage) {
+  if (actual !== expected) {
+    fail(failureMessage + ". Expected '" + expected + "', got '" + actual +
+        "'.");
+  }
+};
+
+var elem = document.getElementById("anim");
+var animFunc = {left: "100px"};
+
+// Test that Animation is constructed with no parent.
+var anim = new Animation(elem, animFunc);
+check(anim.parentGroup, null, "Child should have no parent");
+
+// Test that group is constructed with zero children.
+var parentGroup = new ParGroup();
+check(parentGroup.children.length, 0, "Parent should have zero children");
+
+// Test that parent must be an AnimationGroup when constructing.
+try {
+  new Animation(elem, animFunc, 1.0, anim);
+  fail("Creating group with Animation as parent should throw");
+} catch(e) {
+  check(e.message, "parentGroup is not a TimingGroup",
+      "Expected error exception message");
+}
+
+// Test that updates are made to child when constructing parent.
+var parentGroup = new ParGroup([anim]);
+check(anim.parentGroup, parentGroup, "Child's parentGroup should be set to parent");
+check(parentGroup.children.length, 1, "Parent should have 1 child");
+check(parentGroup.children[0], anim, "Parent should have correct child");
+
+// Test that updates are made to parent when constructing child.
+var parentGroup = new ParGroup();
+var child = new Animation(elem, animFunc, 1.0, parentGroup);
+check(child.parentGroup, parentGroup, "Child's parentGroup should be set");
+check(parentGroup.children.length, 1, "Parent should now have 1 child");
+check(parentGroup.children[0], child, "Parent should have correct child");
+
+// Test that updates are made to previous and new parents when constructing new
+// parent.
+var newParent = new ParGroup([child]);
+check(child.parentGroup, newParent,
+    "Child's parentGroup should be updated to new parent");
+check(parentGroup.children.length, 0,
+    "Previous parent should no longer have children");
+check(newParent.children.length, 1, "New parent should now have 1 child");
+check(newParent.children[0], child, "New parent should now have correct child");
+
+// Test that updates are made to previous and new parent when using add().
+var newerParent = new ParGroup();
+newerParent.add(child);
+check(child.parentGroup, newerParent,
+    "Child's parentGroup should be updated to new parent");
+check(newParent.children.length, 0,
+    "Previous parent should no longer have children");
+check(newerParent.children.length, 1, "New parent should now have 1 child");
+check(newerParent.children[0], child,
+    "New parent should now have correct child");
+
+// Test that calling add() with an existing child causes that child to be moved
+// to the end of the list of children.
+var sibling = new Animation(elem, animFunc, 1.0);
+var seqGroup = new SeqGroup([child, sibling]);
+check(seqGroup.children.length, 2, "seqGroup.children.length");
+check(seqGroup.children[0], child, "First child should be 'child'");
+check(seqGroup.children[1], sibling, "Second child should be 'sibling'");
+check(child.startTime, 0.0, "Start time of 'child'");
+check(sibling.startTime, 1.0, "Start time of 'sibling'");
+seqGroup.add(seqGroup.children[0]);
+check(seqGroup.children.length, 2, "seqGroup.children.length");
+check(seqGroup.children[0], sibling, "First child should be 'sibling'");
+check(seqGroup.children[1], child, "Second child should be 'child'");
+check(sibling.startTime, 0.0, "Start time of 'sibling'");
+check(child.startTime, 1.0, "Start time of 'child'");
+
+// Test that setting TimedItem.parentGroup is ignored.
+child.parentGroup = null;
+check(seqGroup.children.length, 2, "seqGroup.children.length");
+check(seqGroup.children[0], sibling, "First child should be 'sibling'");
+check(seqGroup.children[1], child, "Second child should be 'child'");
+check(sibling.startTime, 0.0, "Start time of 'sibling'");
+check(child.startTime, 1.0, "Start time of 'child'");
+
+// Test that TimedItem.clear() updates both parent and children.
+seqGroup.clear();
+check(seqGroup.children.length, 0, "Parent's children should be cleared");
+check(child.parentGroup, null, "Child's parentGroup should be cleared");
+check(sibling.parentGroup, null, "Sibling's parentGroup should be cleared");
+
+</script>

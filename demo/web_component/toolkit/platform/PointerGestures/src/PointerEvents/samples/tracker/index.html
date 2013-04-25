@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang=en>
+  <head>
+    <meta charset=utf-8>
+    <meta name="viewport" content="width=device-width; height=device-height; initial-scale=1.0; maximum-scale=1.0;" /> 
+    <title>PointerEvents Tracker</title>
+    <style type="text/css"> 
+
+      * {
+        -webkit-touch-callout: none; /* prevent callout to copy image, etc when tap to hold */
+        -webkit-text-size-adjust: none; /* prevent webkit from resizing text to fit */
+        /* make transparent link selection, adjust last value opacity 0 to 1.0 */
+        -webkit-tap-highlight-color: rgba(0,0,0,0); 
+        -webkit-user-select: none; /* prevent copy paste, to allow, change 'none' to 'text' */
+        -webkit-tap-highlight-color: rgba(0,0,0,0); 
+      }
+
+      body {
+        background-color: #000000;
+        margin: 0px;
+      }
+      canvas {
+        background-color:#111133;
+        display:block; 
+        position:absolute; 
+      }
+      .container {
+        width:auto;
+        text-align:center;
+        background-color:#ff0000;
+      }
+    </style>
+
+
+  </head>
+  <body onload = "init()">
+    <script src="../../src/pointerevents.js"></script>
+    <script>
+
+// shim layer with setTimeout fallback
+window.requestAnimFrame = (function(){
+  return  window.requestAnimationFrame       ||
+  window.webkitRequestAnimationFrame ||
+  window.mozRequestAnimationFrame    ||
+  window.oRequestAnimationFrame      ||
+  window.msRequestAnimationFrame     ||
+  function( callback ){
+    window.setTimeout(callback, 1000 / 60);
+  };
+})();
+
+var canvas,
+c, // c is the canvas' context 2D
+container;
+
+setupCanvas();
+var pointers;
+
+
+canvas.addEventListener( 'pointerdown', onPointerDown, false );
+canvas.addEventListener( 'pointermove', onPointerMove, false );
+canvas.addEventListener( 'pointerup', onPointerUp, false );
+window.onorientationchange = resetCanvas;
+window.onresize = resetCanvas;
+
+function resetCanvas (e) {
+  // resize the canvas - but remember - this clears the canvas too.
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  //make sure we scroll to the top left.
+  window.scrollTo(0,0); 
+}
+
+function init(){
+  pointers = {};
+  requestAnimFrame(draw);
+}
+
+function draw() {
+  c.clearRect(0,0,canvas.width, canvas.height); 
+
+  for(var pointerId in pointers)
+  {
+    var pointer = pointers[pointerId]; 
+    c.beginPath(); 
+    c.fillStyle = "white";
+    c.fillText(pointer.pointerType+ " pointerId : "+pointer.pointerId+" x:"+pointer.x+" y:"+pointer.y, pointer.x+30, pointer.y-30); 
+
+    c.beginPath(); 
+    c.strokeStyle = "cyan";
+    c.lineWidth = "6";
+    c.arc(pointer.x, pointer.y, 40, 0, Math.PI*2, true); 
+    c.stroke();
+  }
+  //c.fillText("hello", 0,0); 
+
+  requestAnimFrame(draw);
+}
+
+function onPointerDown(e) {
+  pointers[e.pointerId] = {
+    x: e.clientX,
+    y: e.clientY,
+    pointerType: e.pointerType,
+    pointerId: e.pointerId
+  };
+}
+
+function onPointerMove(e) {
+  // Prevent the browser from doing its default thing (scroll, zoom)
+  var pointer = pointers[e.pointerId];
+  if (pointer) {
+    pointer.x = e.clientX;
+    pointer.y = e.clientY;
+  }
+} 
+
+function onPointerUp(e) { 
+  delete pointers[e.pointerId];
+}
+
+
+function setupCanvas() {
+
+  canvas = document.createElement( 'canvas' );
+  canvas.setAttribute( 'touch-action', 'none' );
+  c = canvas.getContext( '2d' );
+  container = document.createElement( 'div' );
+  container.className = "container";
+
+  canvas.width = window.innerWidth; 
+  canvas.height = window.innerHeight; 
+  document.body.appendChild( container );
+  container.appendChild(canvas);	
+
+  c.strokeStyle = "#ffffff";
+  c.lineWidth =2;	
+}
+
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,98 @@
+@host {
+  * {
+    display: inline-block;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    width: 44px;
+    height: 44px;
+  }
+}
+ 
+#overlay {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  margin: 9px 0 0 22px;
+  -webkit-transform: translateX(-50%);
+  -moz-transform: translateX(-50%);
+}
+
+[valign=right] #overlay {
+  -webkit-transform: translateX(-90%);
+  -moz-transform: translateX(-90%);
+}
+
+[valign=left] #overlay {
+  -webkit-transform: translateX(-10%);
+  -moz-transform: translateX(-10%);
+}
+
+.arrow {
+  height: 1px;
+  width: 0;
+  margin: -17px auto 0;
+  border-color: transparent transparent #cfcfcf transparent;
+  border-style: solid;
+  border-width: 8px;
+}
+ 
+.arrow-inner {
+  border-bottom-color: white;
+  margin-top: -16px;
+}
+
+[valign=right] .arrow {
+  position: relative;
+  left: -7px;
+  margin-left: 90%;
+}
+
+[valign=left] .arrow {
+  position: relative;
+  left: -7px;
+  margin-left: 10%;
+}
+ 
+#menu {
+  display: block;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+/* TODO(ffu): adding responsive class won't work in native; to work in native
+automatically we'll need to add a feature to detect if we're in a responsive
+container */
+@media screen and (max-width: 800px) {
+  [responsive=true] .arrow-border, .arrow {
+    display: none;
+  }
+  
+  [responsive=true] #menu {
+    width: 100%;
+  }
+  
+  [responsive=true] #overlay  {
+    position: absolute;
+    -webkit-transform: translateX(0);
+    transform: translateX(0);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: 0;
+    border-bottom: 0;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  [responsive=true] #overlay.slideup {
+    -webkit-transform: translateY(100%);
+    transform: translateY(100%);
+    /* override g-overlay @host rule style */
+    -webkit-transition: -webkit-transform 0.218s !important;
+    transition: -webkit-transform 0.218s !important;
+  }
+  
+  [responsive=true] #overlay.slideup.opened {
+    -webkit-transform: translateY(0);
+    transform: translateY(0);
+  }
+}

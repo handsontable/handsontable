@@ -1,0 +1,50 @@
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <meta charset="UTF-8">
+    <script src="../../../platform.js"></script>
+  </head>
+  <body>
+    <script>
+      window.addEventListener('WebComponentsReady', function() {
+        body = wrap(document.body);
+        //
+        XFoo = document.register('x-foo');
+        xfoo = new XFoo();
+        body.appendChild(xfoo).textContent = '[x-foo]';
+        //
+        xfoo = document.createElement('x-foo');
+        body.appendChild(xfoo).textContent = '[x-foo2]';
+        //
+        XBarPrototype = Object.create(HTMLButtonElement.prototype);
+        XBarPrototype.orangify = function() {
+          this.style.color = 'orange';
+        };
+        XBarPrototype.created = function() {
+          this.style.fontSize = '32pt';
+        };
+        XBar = document.register('x-bar', {
+          extends: 'button',
+          prototype: XBarPrototype,
+          lifecycle: {
+            created: function() {
+              this.created();
+            }
+          }
+        });
+        xbar = new XBar();
+        body.appendChild(xbar).textContent = 'x-bar';
+        xbar.orangify();
+        //
+        xbar = document.createElement('x-bar');
+        body.appendChild(xbar).textContent = 'x-bar2';
+      });
+    </script>
+  </body>
+</html>

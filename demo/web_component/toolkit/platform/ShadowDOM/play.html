@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is goverened by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<meta charset="utf-8">
+<script src="shadowdom.js"></script>
+<style>
+
+.el,
+.sr {
+  height: 300px;
+  width: 300px;
+}
+
+</style>
+<textarea class="el" placeholder="Element host"></textarea>
+<textarea class="sr" placeholder="Shadow Root"></textarea>
+<button onclick="update()">Update</button>
+
+<div class="test">Real</div>
+
+<script>
+
+var el = document.querySelector('.test');
+var sr = el.createShadowRoot();
+
+sr.innerHTML = 'Before <content></content> After';
+
+function update() {
+  el.innerHTML = document.querySelector('.el').value;
+  sr.innerHTML = document.querySelector('.sr').value;
+}
+
+document.querySelector('.el').value = el.innerHTML;
+document.querySelector('.sr').value = sr.innerHTML;
+
+</script>

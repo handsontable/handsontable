@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<script src="../shadowdom.js"></script>
+<script>
+
+var wrap = ShadowDOMPolyfill.wrap;
+
+window.addEventListener('load', function(e) {
+  var result = [
+    e.target === wrap(document),
+    e.currentTarget === wrap(window),
+    this === wrap(window),
+    e.eventPhase === Event.AT_TARGET
+  ];
+  parent.postMessage({
+    id: window.location.hash.slice(1),
+    result: result
+  }, '*');
+});
+
+</script>

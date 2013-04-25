@@ -1,0 +1,25 @@
+{
+  "name": "mdv",
+  "version": "0.0.0",
+  "description": "ERROR: No README.md file found!",
+  "main": "grunt.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toolkitchen/mdv.git"
+  },
+  "author": "",
+  "license": "Apache License 2.0",
+  "gitHead": "cdd89f1fb6273ede781c9e00a512720df1adffff",
+  "devDependencies": {
+    "chai": "*",
+    "mocha": "*",
+    "grunt": "*"
+  }
+}

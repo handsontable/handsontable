@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title></title>
+    <meta charset="UTF-8">
+    <script src="../../tools/test/htmltest.js"></script>
+    <script src="../../node_modules/chai/chai.js"></script>
+    <script src="../../platform.js" log="foo,boo" squid="never" spoo></script>
+  </head>
+  <body>
+    <script>
+      chai.assert(window.Platform, 'Platform scope missing');
+      chai.assert.equal(Platform.flags.squid, 'never', '"squid" flag missing');
+      chai.assert(Platform.flags.spoo, '"spoo" flag missing');
+      chai.assert(window.logFlags, 'logFlags missing');
+      chai.assert(logFlags.foo, 'logFlags.foo missing');
+      chai.assert(logFlags.boo, 'logFlags.foo missing');
+      done();
+    </script>
+  </body>
+</html>

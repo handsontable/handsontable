@@ -1,0 +1,290 @@
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<!--
+/**
+ * @module Toolkit Elements
+ */
+/**
+ * g-overlay displays overlayed on top of other content. It starts out
+ * hidden and is displayed by setting it's opened property
+ * to true. A g-overlay's opened state can be toggled by calling the toggle
+ * method.
+ * 
+ * It's common to want a g-overlay to animate to its opened position. A number
+ * of helper css classes provide some basic open/close animations. For example,
+ * assigning the class g-overlay-fade to a g-overlay will make it fade into 
+ * and out of view as it opens and closes. Note, if multiple g-overlay's are
+ * opened, they should stack on top of each other.
+ * 
+ * Styling: The size and position of a g-overlay should be setup via css.
+ * g-overlay is natually sized around its content. When a g-overlay is opened
+ * it is shown and the 'opened' class is added to it. This is typically where
+ * css transitions and animations are applied. When the g-overlay is closed,
+ * the 'opened' class is removed and a 'closing' class is added. Use 'closing'
+ * to customize the closing animation. 
+ * 
+ * Classes for animating g-overlay:
+ * 
+ * * g-overlay-fade: fade in/out when opened/closed
+ * * g-overlay-scale-slideup: open: fade in and shrink; close: slide up
+ * * g-overlay-shake: open: fly in and shake; close: shake and fly out.
+ *
+ * It's common to use g-overlay to gather user input, for example a login
+ * dialog. To facilitate this, g-overlay supports automatic focusing of a 
+ * specific element when it's opened. The element to be focused should be given
+ * an autofocus attribute.
+ * 
+ * An element that should close the g-overlay will automatically do so if it
+ * is given the overlay-toggle attribute. Please note that g-overlay will 
+ * close whenever the user taps outside it or presses the escape key. The 
+ * behavior can be turned off via the autoCloseDisabled property.
+ * 
+ *     <g-overlay class="g-overlay-scale-slideup">
+ *	     <h2>Dialog</h2>
+ *       <input placeholder="say something..." autofocus"></input>
+ *       <div>I agree with this wholeheartedly.</div>
+ *       <button overlay-toggle>OK</button>
+ *     </g-overlay>
+ * 
+ * 
+ * @class g-overlay
+ */
+/**
+ * Fired when the g-overlay opened property is set.
+ * 
+ * @event open
+ * @param {Object} inDetail
+ * @param {Object} inDetail.opened the opened state
+ */
+-->
+<element name="g-overlay" 
+         attributes="opened autoCloseDisabled" 
+         on-webkitAnimationStart="openedAnimationStart"
+         on-webkitAnimationEnd="openedAnimationEnd"
+         on-webkitTransitionEnd="openedTransitionEnd"
+         on-tap="tapHandler"
+         on-keydown="keydownHandler"
+         >
+<link rel="stylesheet" href="css/g-overlay.css">
+<link rel="stylesheet" toolkit-scope="global" href="css/g-overlay-global.css">
+<template>
+  <content></content>
+</template>
+<script>
+  // TODO(sorvell): need keyhelper component.
+  var ESCAPE_KEY = 27;
+  
+  // track overlays for z-index and focus managemant
+  var overlays = [];
+  var trackOverlays = function(inOverlay) {
+    if (inOverlay.opened) {
+      var z0 = currentOverlayZ();
+      overlays.push(inOverlay);
+      var z1 = currentOverlayZ();
+      if (z1 <= z0) {
+        applyOverlayZ(inOverlay, z0);
+      } 
+    } else {
+      var i = overlays.indexOf(inOverlay);
+      if (i >= 0) {
+        overlays.splice(i, 1);
+        setZ(inOverlay, null);
+      }
+    }
+  }
+  
+  var applyOverlayZ = function(inOverlay, inAboveZ) {
+    setZ(inOverlay, inAboveZ + 2);
+  }
+  
+  var setZ = function(inNode, inZ) {
+    inNode.style.zIndex = inZ;
+  }
+
+  var currentOverlay = function() {
+    return overlays[overlays.length-1];
+  }
+  
+  var DEFAULT_Z = 10;
+  
+  var currentOverlayZ = function() {
+    var z;
+    var current = currentOverlay();
+    if (current) {
+      var z1 = window.getComputedStyle(current).zIndex;
+      if (!isNaN(z1)) {
+        z = Number(z1);
+      }
+    }
+    return z || DEFAULT_Z;
+  }
+  
+  var focusOverlay = function() {
+    var current = currentOverlay();
+    if (current) {
+      current.applyFocus();
+    }
+  }
+
+  Toolkit.register(this, {
+    /**
+     * Set opened to true to show an overlay and to false to hide it.
+     * A g-overlay may be made intially opened by setting its opened 
+     * attribute.
+     * @attribute opened
+     * @type boolean
+     * @default false
+     */
+    opened: false,
+    /**
+     * By default an overlay will close automatically if the user taps outside
+     * it or presses the escape key. Disable this behavior by setting the 
+     * autoCloseDisabled property to true.
+     * @attribute autoCloseDisabled
+     * @type boolean
+     * @default false
+     */
+    autoCloseDisabled: false,
+    timeout: 1000,
+    captureEventType: 'tap',
+    ready: function() {
+      if (this.tabIndex === undefined) {
+        this.tabIndex = -1;
+      }
+      this.setAttribute('touch-action', 'none');
+    },
+    /** 
+     * Toggle the opened state of the overlay.
+     * @method toggle
+     */
+    toggle: function() {
+      this.opened = !this.opened;
+    },
+    openedChanged: function() {
+      this.renderOpened();
+      trackOverlays(this);
+      if (!this.autoCloseDisabled) {
+        this.enableCaptureHandler(this.opened);
+      }
+      this.enableResizeHandler(this.opened);
+      this.send('opened', this.opened);
+    },
+    enableHandler: function(inEnable, inMethodName, inNode, inEventName, inCapture) {
+      var m = 'bound' + inMethodName;
+      this[m] = this[m] || this[inMethodName].bind(this);
+      
+      inNode[inEnable ? 'addEventListener' : 'removeEventListener'](
+        inEventName, this[m], inCapture);
+    },
+    enableResizeHandler: function(inEnable) {
+      this.enableHandler(inEnable, 'resizeHandler', window, 
+        'resize');
+    },
+    enableCaptureHandler: function(inEnable) {
+      this.enableHandler(inEnable, 'captureHandler', document, 
+        this.captureEventType, true);
+      if (window.PointerEventsPolyfill) {
+        if (inEnable) {
+          PointerEventsPolyfill.dispatcher.registerTarget(document);
+        } else {
+          PointerEventsPolyfill.dispatcher.unregisterTarget(document);
+        }
+      }
+    },
+    getFocusNode: function() {
+      return this.querySelector('[autofocus]') || this;
+    },
+    // TODO(sorvell): nodes stay focused when they become un-focusable due to
+    // an ancestory becoming display: none; file bug.
+    applyFocus: function() {
+      var focusNode = this.getFocusNode();
+      if (this.opened) {
+        focusNode.focus();
+      } else {
+        focusNode.blur();
+        focusOverlay();
+      }
+    },
+    renderOpened: function() {
+      this.classList.remove('closing');
+      this.classList.add('revealed');
+      // continue styling after delay so display state can change without
+      // aborting transitions
+      this.asyncMethod('continueRenderOpened');
+    },
+    continueRenderOpened: function() {
+      this.classList.toggle('opened', this.opened);
+      this.classList.toggle('closing', !this.opened);
+      //this.animating = this.asyncMethod('completeOpening', null, this.timeout);
+    },
+    completeOpening: function() {
+      //clearTimeout(this.animating);
+      this.animating = null;
+      this.classList.remove('closing');
+      this.classList.toggle('revealed', this.opened);
+      this.applyFocus();
+    },
+    openedAnimationEnd: function(e) {
+      if (!this.opened) {
+        this.classList.remove('animation');
+      }
+      // same steps as when a transition ends
+      this.openedTransitionEnd(e);
+    },
+    openedTransitionEnd: function(e) {
+      // TODO(sorvell): Necessary due to 
+      // https://bugs.webkit.org/show_bug.cgi?id=107892
+      // Remove when that bug is addressed.
+      if (e.target == this) {
+        this.completeOpening();
+        e.stopPropagation();
+        e.cancelBubble = true;
+      }
+    },
+    openedAnimationStart: function(e) {
+      this.classList.add('animation');
+      e.stopPropagation();
+      e.cancelBubble = true;
+    },
+    tapHandler: function(e) {
+      if (e.target && e.target.hasAttribute('overlay-toggle')) {
+        this.toggle();
+      } else {
+        if (this.autoCloseJob) {
+          this.autoCloseJob.stop();
+          this.autoCloseJob = null;
+        }
+      }
+    },
+    // TODO(sorvell): This approach will not work with modal. For this we need a
+    // scrim.
+    captureHandler: function(e) {
+      if (!this.autoCloseDisabled && (currentOverlay() == this) && (this 
+          != e.target) && !(this.compareDocumentPosition(e.target) &
+          Node.DOCUMENT_POSITION_CONTAINED_BY)) {
+        this.autoCloseJob = this.job(this.autoCloseJob, function() {
+          this.opened = false;
+        });
+      }
+    },
+    keydownHandler: function(e) {
+      if (!this.autoCloseDisabled && (e.keyCode == ESCAPE_KEY)) {
+        this.opened = false;
+        e.stopPropagation();
+        e.cancelBubble = true;
+      }
+    },
+    /**
+     * Extensions of g-overlay should implement the resizeHandler
+     * method to adjust the size and position of the overlay when the 
+     * browser window resizes.
+     * @method resizeHandler
+     */
+    resizeHandler: function() {
+    }
+  });
+</script>
+</element>

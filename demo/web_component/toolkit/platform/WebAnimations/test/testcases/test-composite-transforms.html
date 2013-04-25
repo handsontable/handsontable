@@ -1,0 +1,86 @@
+<!--
+Copyright 2012 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+<style>
+.anim {
+  left: 0px;
+  width: 100px;
+  height: 100px;
+  background-color: #FAA;
+  position: absolute;
+}
+
+.expected {
+  width: 100px;
+  height: 100px;
+  position: absolute;
+  border-right: 1px solid black;
+}
+
+#a {
+  top: 50px
+}
+
+#b {
+  top: 150px;
+}
+
+#c {
+  top: 250px;
+}
+
+#d {
+  top: 350px;
+}
+
+</style>
+
+<div>Right edge of each box should align with black line at end of test.</div>
+<div id="a" class="anim"></div>
+<div id="a" style="top: 50px; left: 200px;" class="expected"></div>
+<div id="b" class="anim"></div>
+<div id="b" style="top: 150px; left: 0px;" class="expected"></div>
+<div id="c" class="anim"></div>
+<div id="c" style="top: 250px; left: 200px;" class="expected"></div>
+<div id="d" class="anim"></div>
+<div id="d" style="top: 550px; left: 0px;" class="expected"></div>
+
+<div style="height: 700px;"></div>
+
+<script src="../../web-animations.js"></script>
+<script src="../anim-test-pre.js"></script>
+<script>
+
+var divs = document.querySelectorAll(".anim");
+
+var dt = document.timeline;
+
+dt.play(new Animation(divs[0],
+    {"transform": ["translate(0px, 0px)", "translate(200px, 0px)"]},
+    2));
+dt.play(new Animation(divs[1],
+    {"transform": ["rotate(0deg)", "rotate(90deg)"]}, 2));
+dt.play(new Animation(divs[2], {"transform": [
+  "translate(0px, 0px) rotate(0deg)",
+  "translate(200px, 0px) rotate(90deg)"
+]}, 2));
+dt.play(new Animation(divs[3], {"transform": [
+  "rotate(0deg) translate(0px, 0px)",
+  "rotate(90deg) translate(200px, 0px)"
+]}, 2));
+
+</script>

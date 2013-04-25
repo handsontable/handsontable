@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<!--
+Copyright 2013 The Toolkitchen Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>CustomElements Workbench</title>
+    <meta charset="UTF-8">
+    <script src="../custom-elements.js"></script>
+    <style>
+      body {
+        margin: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <style>
+      x-icon, x-star {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        background-position: center;
+      }
+      
+      [is=x-icon-button] {
+        width: 40px;
+        height: 40px;
+        padding: 7px;
+        box-sizing: border-box;
+        border: 1px solid transparent;
+        background: transparent;
+        cursor: pointer;
+      }
+      
+      [is=x-icon-button]:hover, [is=x-icon-button]:active, [is=x-icon-button].active {
+        border: 1px solid rgba(0, 0, 0, 0.16);
+        border-radius: 3px;
+        opacity: 0.8;
+      }
+      
+      [is=x-icon-button]:not(:disabled):active, [is=x-icon-button].active {
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.16);
+        background-color: rgba(0, 0, 0, 0.08);
+      }
+      
+      [is=x-icon-button]:disabled {
+        border: 1px solid transparent;
+        opacity: 0.4;
+      }
+      
+      [is=x-menu-item] {
+        display: block;
+        padding: 12px 14px;
+        margin: 10px;
+        border: 1px solid transparent;
+        border-radius: 3px;
+        background: transparent;
+        cursor: pointer;
+      }
+      
+      [is=x-menu-item].active {
+        border: 1px solid rgba(0, 0, 0, 0.16);
+        background: whitesmoke;
+      }
+      
+      [is=x-menu-item] > * {
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 10px;
+      }
+      
+      [is=x-menu], x-menu {
+        display: inline-block;
+        border: 1px solid #cfcfcf;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+        background: white;
+      }
+      
+      x-tabs {
+        display: block;
+        height: 28px;
+        line-height: 28px;
+        border: 0;
+        border-bottom: 1px solid #ccc;
+      }
+      
+      x-tabs[vertical] {
+        display: inline-block;
+        width: 71px;
+        height: 100%;
+        border: 0;
+        border-right: 1px solid #ccc;
+      }
+      
+      x-tabs > * {
+        display: inline-block;
+        min-width: 54px;
+        height: 27px;
+        line-height: 27px;
+        text-align: center;
+        padding: 0 8px;
+        cursor: default;
+        border: 1px solid transparent;
+        border-radius: 4px 4px 0 0;
+        transition: all 0.218s;
+        -webkit-transition: all 0.218s;
+        -moz-transition: all 0.218s;
+      }
+      
+      x-tabs[vertical] > * {
+        border-radius: 4px 0 0 4px;
+      }
+      
+      x-tabs > .active {
+        border: 1px solid #ccc;
+      }
+      
+      x-ratings {
+        display: inline-block;
+      }
+    </style>
+    
+    <h3>x-icon</h3>    
+    <x-icon src="images/star.svg"></x-icon>
+    <x-icon src="images/favorite.png"></x-icon>
+
+    <h3>x-icon-button (extends button and has x-icon)</h3>
+    <button is="x-icon-button" src="images/mail.png"></button>
+    <button is="x-icon-button" src="images/mail.png" active="true"></button>
+    <button is="x-icon-button" src="images/mail.png" disabled="true"></button>
+    
+    <h3>x-menu-item (extends x-icon-button)</h3>
+    <button is="x-menu-item" src="images/mail.png" label="Email Link" active="true"></button>
+    
+    <h3>x-selector</h3>
+    <x-selector>
+      <button is="x-icon-button" src="images/mail.png" active="true"></button>
+      <button is="x-icon-button" src="images/hangout.png"></button>
+      <button is="x-icon-button" src="images/favorite.png"></button>
+    </x-selector>
+    
+    <h3>x-menu (extends x-selector)</h3>
+    <x-menu>
+      <button is="x-menu-item" src="images/mail.png" label="Email Link" active="true"></button>
+      <button is="x-menu-item" src="images/hangout.png" label="Hangout"></button>
+      <button is="x-menu-item" src="images/favorite.png" label="Favorites"></button>
+    </x-menu>
+    
+    <h3>x-tabs (extends x-selector)</h3>
+    <x-tabs>
+      <div class="active">One</div>
+      <div>Two</div>
+      <div>Three</div>
+    </x-tabs>
+    <br><br>
+    <x-tabs vertical>
+      <div class="active">One</div>
+      <div>Two</div>
+      <div>Three</div>
+    </x-tabs>
+    
+    <h3>x-star (extends x-icon)</h3>
+    <x-star></x-star>
+    <x-star empty="true"></x-star>
+    
+    <h3>x-ratings (uses x-star)</h3>
+    <x-ratings value="3"></x-ratings>
+    <br>
+    <x-ratings value="6" count="12"></x-ratings>
+    
+    <script>
+      XIcon = document.register('x-icon', {
+        prototype: Object.create(HTMLElement.prototype, {
+          readyCallback: {
+            value: function() {
+              this.src = this.getAttribute('src');
+            },
+            enumerable: true
+          },
+          src: {
+            set: function(inValue) {
+              this.style.backgroundImage = 'url(' + inValue + ')';
+            },
+            enumerable: true
+          }
+        })
+      });
+      
+      XIconButton = document.register('x-icon-button', {
+        extends: 'button',
+        prototype: Object.create(HTMLButtonElement.prototype, {
+          readyCallback: {
+            value: function() {
+              this.src = this.getAttribute('src');
+              this.active = this.getAttribute('active') == 'true';
+            },
+            enumerable: true
+          },
+          src: {
+            set: function(inValue) {
+              if (!this.icon) {
+                this.icon = document.createElement('x-icon');
+                this.insertBefore(this.icon, this.firstChild);
+              }
+              this.icon.style.display = inValue ? '' : 'none';
+              this.icon.src = inValue;
+            },
+            enumerable: true
+          },
+          active: {
+            set: function(inValue) {
+              this.classList[inValue ? 'add' : 'remove']('active');
+            },
+            enumerable: true
+          }
+        })
+      });
+      
+      XMenuItem = document.register('x-menu-item', {
+        extends: 'x-icon-button',
+        prototype: Object.create(XIconButton.prototype, {
+          readyCallback: {
+            value: function() {
+              XIconButton.prototype.readyCallback.call(this);
+              this.label = this.getAttribute('label');
+            },
+            enumerable: true
+          },
+          label: {
+            set: function(inValue) {
+              if (!this.labelElement) {
+                this.labelElement = document.createElement('label');
+                this.appendChild(this.labelElement);
+              }
+              this.labelElement.textContent = inValue;
+            },
+            enumerable: true
+          }
+        })
+      });
+      
+      function findTarget(inTarget, inNodes) {
+        var n = inTarget;
+        while (n && n != this) {
+          var i = Array.prototype.indexOf.call(inNodes, n);
+          if (i >= 0) {
+            return i;
+          }
+          n = n.parentNode;
+        }
+      }
+      
+      XSelector = document.register('x-selector', {
+        prototype: Object.create(HTMLElement.prototype, {
+          readyCallback: {
+            value: function() {
+              this.addEventListener('mouseup', function(e) {
+                var item = this.children[findTarget(e.target, this.children)];
+                if (item) {
+                  Array.prototype.forEach.call(this.querySelectorAll('.active'), function(item) {
+                    item.classList.remove('active');
+                  });
+                  item.classList.add('active');
+                }
+              }.bind(this));
+            },
+            enumerable: true
+          }
+        })
+      });
+      
+      XMenu = document.register('x-menu', {
+        extends: 'x-selector',
+        prototype: Object.create(XSelector.prototype)
+      });
+      
+      XTabs = document.register('x-tabs', {
+        extends: 'x-selector',
+        prototype: Object.create(XSelector.prototype)
+      });
+      
+      XStar = document.register('x-star', {
+        extends: 'x-icon',
+        prototype: Object.create(XIcon.prototype, {
+          readyCallback: {
+            value: function() {
+              this.empty = this.getAttribute('empty') == 'true';
+            },
+            enumerable: true
+          },
+          empty: {
+            set: function(inValue) {
+              this.src = inValue ? 'images/star_blank.svg' : 'images/star.svg';
+            },
+            enumerable: true
+          }
+        })
+      });
+      
+      XRatings = document.register('x-ratings', {
+        prototype: Object.create(HTMLElement.prototype, {
+          readyCallback: {
+            value: function() {
+              this.count = Number(this.getAttribute('count')) || 5;
+              this.addEventListener('click', function(e) {
+                var i = findTarget(e.target, this.children);
+                if (i >= 0) {
+                  this.value = this.value == i + 1 ? i : i + 1;
+                }
+              }.bind(this));
+            },
+            enumerable: true
+          },
+          count: {
+            set: function(inValue) {
+              this.textContent = '';
+              for (var i = 0; i < inValue; i++) {
+                var s = document.createElement('x-star');
+                this.appendChild(s);
+              }
+              this.value = Number(this.getAttribute('value'));
+            },
+            enumerable: true
+          },
+          value: {
+            set: function(inValue) {
+              this._value = inValue;
+              Array.prototype.forEach.call(this.children, function(s, i) {
+                s.empty = i >= inValue;
+              }.bind(this));
+            },
+            get: function() {
+              return this._value;
+            },
+            enumerable: true
+          }
+        })
+      });
+    </script>
+  </body>
+</html>
