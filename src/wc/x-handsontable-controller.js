@@ -1,3 +1,5 @@
+window.numeral = this.numeral; //needed by numeral.de-de.js
+
 function parseDatacolumn(DATACOLUMN) {
   var obj = {};
 
@@ -17,7 +19,22 @@ function parseDatacolumn(DATACOLUMN) {
   obj.uncheckedTemplate = obj.uncheckedtemplate;
   delete obj.uncheckedtemplate;
 
+  if (obj.type === 'autocomplete' && typeof obj.source === 'string') {
+    obj.source = window[obj.source];
+  }
+
   return obj;
+}
+
+var publicMethods = ['updateSettings', 'loadData', 'render', 'setDataAtCell', 'setDataAtRowProp', 'getDataAtCell', 'getDataAtRowProp', 'countRows', 'countCols', 'rowOffset', 'colOffset', 'countVisibleRows', 'countVisibleCols', 'clear', 'clearUndo', 'getData', 'alter', 'getCell', 'getCellMeta', 'selectCell', 'deselectCell', 'getSelected', 'destroyEditor', 'getRowHeader', 'getColHeader', 'destroy', 'isUndoAvailable', 'isRedoAvailable', 'undo', 'redo', 'countEmptyRows', 'countEmptyCols', 'isEmptyRow', 'isEmptyCol'];
+
+var publish = {};
+for (var i = 0, ilen = publicMethods.length; i < ilen; i++) {
+  publish[publicMethods[i]] = (function (methodName) {
+    return function () {
+      return this.instance[methodName].apply(this.instance, arguments);
+    }
+  })(publicMethods[i]);
 }
 
 Toolkit.register(this, {
@@ -44,9 +61,5 @@ Toolkit.register(this, {
 
     this.instance = jQuery(this.$.htContainer).data('handsontable');
   },
-  publish: {
-    getData: function () {
-      return this.instance.getData();
-    }
-  }
+  publish: publish
 });
