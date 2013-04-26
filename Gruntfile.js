@@ -96,6 +96,13 @@ module.exports = function (grunt) {
             'lib/jQuery-contextMenu/jquery.contextMenu.css'
           ]
         }
+      },
+      wc: {
+        files: {
+          'dist_wc/css/x-handsontable.css': [
+            'dist/jquery.handsontable.full.css'
+          ]
+        }
       }
     },
 
@@ -130,13 +137,12 @@ module.exports = function (grunt) {
       wc: {
         options: {
           variables: {
-            style: '<%= grunt.file.read("dist/jquery.handsontable.full.css") %>',
             model: '<%= grunt.file.read("dist/jquery.handsontable.full.js") %>',
             controller: '<%= grunt.file.read("src/wc/x-handsontable-controller.js") %>'
           }
         },
         files: {
-          'dist/x-handsontable.html': 'src/wc/x-handsontable.html'
+          'dist_wc/x-handsontable.html': 'src/wc/x-handsontable.html'
         }
       }
     },
