@@ -104,9 +104,16 @@
           </x-handsontable>
 
           <p>
-            <button onclick="console.log('Data of x-handsontable ', document.getElementById('example1').getData())"
-                    title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button id="button1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
+            </button>
+
+            <button id="button2">
+              First id = 99
+            </button>
+
+            <button id="button3">
+              Increment all by 10
             </button>
           </p>
         </div>
@@ -133,6 +140,22 @@
             ];
 
             var genderList = ["Male", "Female"];
+
+            document.getElementById('button1').addEventListener('click', function () {
+              var data = document.getElementById('example1').getData();
+              console.log('Data of x-handsontable ', data);
+            });
+
+            document.getElementById('button2').addEventListener('click', function () {
+              document.getElementById('example1').setDataAtRowProp(0, 'id', 99)
+            });
+
+            document.getElementById('button3').addEventListener('click', function () {
+              for (var i = 0; i < people.length; i++) {
+                people[i].id += 10;
+              }
+              document.getElementById('example1').render()
+            });
           </script>
         </div>
       </div>
