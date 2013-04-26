@@ -55,13 +55,6 @@
       ];
     }
   </script>
-
-  <style class="common">
-    .dimmed {
-      font-style: italic;
-      color: #777;
-    }
-  </style>
 </head>
 
 <body>
@@ -123,18 +116,6 @@
             <div class="jsFiddleLink">Edit in jsFiddle</div>
           </div>
 
-          <script class="common">
-            function myReadonlyRenderer(instance, td, row, col, prop, value, cellProperties) {
-              Handsontable.TextCell.renderer.apply(this, arguments);
-              //use the built-in text cell renderer
-
-              if (cellProperties.readOnly) {
-                td.className = 'dimmed';
-                //apply "dimmed" class if cell has readOnly property
-              }
-            }
-          </script>
-
           <script>
             $(document).ready(function () {
               $("#example1").handsontable({
@@ -144,7 +125,6 @@
                 columns: [
                   {
                     data: "car",
-                    type: {renderer: myReadonlyRenderer},
                     readOnly: true
                   },
                   {
@@ -199,9 +179,7 @@
                 minSpareRows: 1,
                 colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
                 cells: function (row, col, prop) {
-                  var cellProperties = {
-                    type: {renderer: myReadonlyRenderer}
-                  };
+                  var cellProperties = {};
                   if ($("#example2").handsontable('getData')[row][prop] === 'Nissan') {
                     cellProperties.readOnly = true;
                   }

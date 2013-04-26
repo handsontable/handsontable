@@ -19,4 +19,7 @@ Handsontable.TextRenderer = function (instance, TD, row, col, prop, value, cellP
     TD.appendChild(document.createTextNode(escaped));
     //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
+  if (cellProperties.readOnly) {
+    TD.className = 'htDimmed';
+  }
 };
