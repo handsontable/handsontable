@@ -101,6 +101,9 @@ module.exports = function (grunt) {
         files: {
           'dist_wc/css/x-handsontable.css': [
             'dist/jquery.handsontable.full.css'
+          ],
+          'dist_wc/css/jquery-ui/css/smoothness/jquery-ui.custom.css': [
+            'lib/jquery-ui/css/smoothness/jquery-ui.custom.css'
           ]
         }
       }
