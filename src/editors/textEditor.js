@@ -3,11 +3,11 @@ function HandsontableTextEditorClass(instance) {
   this.instance = instance;
   this.createElements();
   this.bindEvents();
-
-  this.wtDom = new WalkontableDom();
 }
 
 HandsontableTextEditorClass.prototype.createElements = function () {
+  this.wtDom = new WalkontableDom();
+
   this.TEXTAREA = document.createElement('TEXTAREA');
   this.TEXTAREA.className = 'handsontableInput';
   this.textareaStyle = this.TEXTAREA.style;
