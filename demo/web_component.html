@@ -11,6 +11,10 @@
   <!-- load toolkit platform -->
   <script jsfiddle src="web_component/toolkit/toolkit.js"></script>
   <link jsfiddle rel="import" href="../dist/x-handsontable.html">
+  <script src="../lib/numeral.de-de.js"></script>
+  <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
+  <script src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
+  <link rel="stylesheet" media="screen" href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -56,6 +60,20 @@
           <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
             for HTML, JavaScript &amp; jQuery
           </div>
+
+          <h2>Web Component</h2>
+
+          <p>This page shows our effort to make a <a href="">Web Component</a>-compatible version of Handsontable.</p>
+
+          <p>All your help (review, comments, pull requests) in this area is very welcome. Please use the GitHub Issues
+            <a
+              href="https://github.com/warpech/jquery-handsontable/issues/603">ticket #603</a> to share your
+            thoughts.</p>
+
+          <ul>
+            <li><a href="#works">What works</a></li>
+            <li><a href="#doesnt-work">What doesn't work</a></li>
+          </ul>
         </div>
       </div>
     </div>
@@ -63,29 +81,32 @@
     <div class="rowLayout">
       <div class="descLayout">
         <div class="pad bottomSpace100">
-          <h2>Web Component</h2>
+          <h2>What works</h2>
 
-          <p>This example shows an experimental build of Handsontable as Web Component.</p>
+          <p>This example shows an experimental build of Handsontable as Web Component. It leverages <a
+            href="https://github.com/toolkitchen/toolkit">Toolkitchen Toolkit</a> library.</p>
+
+          <p>Cell types: <code>text</code>, <code>checkbox</code>, <code>numeric</code> and <code>autocomplete</code>
+            should work as expected.</p>
 
           <x-handsontable id="example1" datarows="people">
-            <datacolumn width="100" value="id" title="ID"></datacolumn>
-            <datacolumn width="100" type="grayedOut" value="name.first" title="First Name" readOnly></datacolumn>
+            <datacolumn width="30" value="id" title="ID"></datacolumn>
+            <datacolumn width="70" type="grayedOut" value="name.first" title="First Name" readOnly></datacolumn>
             <datacolumn width="100" type="grayedOut" value="name.last" title="Last Name" readOnly></datacolumn>
+            <datacolumn type="autocomplete" source="genderList" value="gender"
+                        title="Gender<br>(Autocomplete)"></datacolumn>
             <datacolumn value="age" title="Age"></datacolumn>
             <datacolumn type="checkbox" value="languages.english" title="English" checkedTemplate="Yes"
                         uncheckedTemplate="No"></datacolumn>
             <datacolumn type="checkbox" value="languages.spanish" title="Spanish" checkedTemplate="Yes"
                         uncheckedTemplate="No"></datacolumn>
-            <datacolumn type="checkbox" value="languages.french" title="French" checkedTemplate="Yes"
-                        uncheckedTemplate="No"></datacolumn>
-            <datacolumn type="date" value="created_at" title="Created at" format="mm/dd/yy"></datacolumn>
-            <datacolumn type="numeric" value="price" title="Price" format="$ 0,0.00"></datacolumn>
+            <datacolumn type="numeric" value="salary" title="Salary" format="$ 0,0.00"></datacolumn>
           </x-handsontable>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump
-              data to console
+            <button onclick="console.log('Data of x-handsontable ', document.getElementById('example1').getData())"
+                    title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump data to console
             </button>
           </p>
         </div>
@@ -99,16 +120,69 @@
 
           <script>
             var people = [
-              {id: 1, name: {first: 'Joe', last: 'Fabiano'}, age: '21', languages: {english: 'Yes', spanish: 'Yes', french: 'No'}},
-              {id: 2, name: {first: 'Fred', last: 'Wecler'}, age: '25', languages: {english: 'Yes', spanish: 'No', french: 'No'}},
-              {id: 3, name: {first: 'Steve', last: 'Wilson'}, age: '32', languages: {english: 'Yes', spanish: 'No', french: 'No'}},
-              {id: 4, name: {first: 'Maria', last: 'Fernandez'}, age: '27', languages: {english: 'No', spanish: 'Yes', french: 'Yes'}},
-              {id: 5, name: {first: 'Pierre', last: 'Barbault'}, age: '46', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}},
-              {id: 6, name: {first: 'Nancy', last: 'Moore'}, age: '34', languages: {english: 'Yes', spanish: 'No', french: 'No'}},
-              {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, age: '19', languages: {english: 'Yes', spanish: 'No', french: 'No'}},
-              {id: 8, name: {first: 'Wilma', last: 'Williams'}, age: '33', languages: {english: 'Yes', spanish: 'Yes', french: 'Yes'}},
-              {id: 9, name: {first: 'Sasha', last: 'Silver'}, age: '27', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}},
-              {id: 10, name: {first: 'Don', last: 'Pérignon'}, age: '42', languages: {english: 'No', spanish: 'No', french: 'Yes'}}
+              {id: 1, name: {first: 'Joe', last: 'Fabiano'}, gender: 'Male', age: '21', languages: {english: 'Yes', spanish: 'Yes', french: 'No'}, salary: 2000},
+              {id: 2, name: {first: 'Fred', last: 'Wecler'}, gender: 'Male', age: '25', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 2500},
+              {id: 3, name: {first: 'Steve', last: 'Wilson'}, gender: 'Male', age: '32', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 1700},
+              {id: 4, name: {first: 'Maria', last: 'Fernandez'}, gender: 'Female', age: '27', languages: {english: 'No', spanish: 'Yes', french: 'Yes'}, salary: 3000},
+              {id: 5, name: {first: 'Pierre', last: 'Barbault'}, gender: 'Male', age: '46', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}, salary: 1450},
+              {id: 6, name: {first: 'Nancy', last: 'Moore'}, gender: 'Female', age: '34', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 2300},
+              {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, gender: 'Female', age: '19', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 1900},
+              {id: 8, name: {first: 'Wilma', last: 'Williams'}, gender: 'Female', age: '33', languages: {english: 'Yes', spanish: 'Yes', french: 'Yes'}, salary: 2400},
+              {id: 9, name: {first: 'Sasha', last: 'Silver'}, gender: 'Male', age: '27', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}, salary: 2110},
+              {id: 10, name: {first: 'Don', last: 'Pérignon'}, gender: 'Male', age: '42', languages: {english: 'No', spanish: 'No', french: 'Yes'}, salary: 2090}
+            ];
+
+            var genderList = ["Male", "Female"];
+          </script>
+        </div>
+      </div>
+    </div>
+
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad bottomSpace100">
+          <h2>What doesn't work</h2>
+
+          <p>We had a problem with getting jQuery UI Datepicker to work in Web Component.</p>
+
+          <p>Therefore <code>date</code> column type doesn't work as expected. If you have any ideas how to improve it,
+            please let us know in GitHub Issues <a href="https://github.com/warpech/jquery-handsontable/issues/603">
+              ticket #603</a>.</p>
+
+          <x-handsontable id="example2" datarows="people2">
+            <datacolumn width="30" value="id" title="ID"></datacolumn>
+            <datacolumn width="70" type="grayedOut" value="name.first" title="First Name" readOnly></datacolumn>
+            <datacolumn width="100" type="grayedOut" value="name.last" title="Last Name" readOnly></datacolumn>
+            <datacolumn type="date" value="created_at" title="Created (Date)" format="mm/dd/yy"></datacolumn>
+          </x-handsontable>
+
+          <p>
+            <button onclick="console.log('Data of x-handsontable ', document.getElementById('example2').getData())"
+                    title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump data to console
+            </button>
+          </p>
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink">Edit in jsFiddle</div>
+          </div>
+
+          <script>
+            var people2 = [
+              {id: 1, name: {first: 'Joe', last: 'Fabiano'}, gender: 'Male', age: '21', languages: {english: 'Yes', spanish: 'Yes', french: 'No'}, salary: 2000},
+              {id: 2, name: {first: 'Fred', last: 'Wecler'}, gender: 'Male', age: '25', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 2500},
+              {id: 3, name: {first: 'Steve', last: 'Wilson'}, gender: 'Male', age: '32', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 1700},
+              {id: 4, name: {first: 'Maria', last: 'Fernandez'}, gender: 'Female', age: '27', languages: {english: 'No', spanish: 'Yes', french: 'Yes'}, salary: 3000},
+              {id: 5, name: {first: 'Pierre', last: 'Barbault'}, gender: 'Male', age: '46', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}, salary: 1450},
+              {id: 6, name: {first: 'Nancy', last: 'Moore'}, gender: 'Female', age: '34', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 2300},
+              {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, gender: 'Female', age: '19', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 1900},
+              {id: 8, name: {first: 'Wilma', last: 'Williams'}, gender: 'Female', age: '33', languages: {english: 'Yes', spanish: 'Yes', french: 'Yes'}, salary: 2400},
+              {id: 9, name: {first: 'Sasha', last: 'Silver'}, gender: 'Male', age: '27', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}, salary: 2110},
+              {id: 10, name: {first: 'Don', last: 'Pérignon'}, gender: 'Male', age: '42', languages: {english: 'No', spanish: 'No', french: 'Yes'}, salary: 2090}
             ];
           </script>
         </div>
