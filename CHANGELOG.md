@@ -1,3 +1,9 @@
+## HEAD
+
+Features:
+- text renderer now adds class name `htDimmed` to read only cells
+- `TD.htDimmed` rule added to CSS file
+
 ## [0.8.21](https://github.com/warpech/jquery-handsontable/tree/v0.8.21) (Apr 24, 2013)
 
 Feature:

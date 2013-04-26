@@ -222,6 +222,14 @@ textarea.handsontableInput {
 }
 
 /*
+TextRenderer readOnly cell
+*/
+.handsontable .htDimmed {
+  font-style: italic;
+  color: #777;
+}
+
+/*
 AutocompleteRenderer down arrow
 */
 .handsontable .htAutocomplete {
