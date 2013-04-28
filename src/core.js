@@ -319,13 +319,14 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {Number} row
      * @param {Number} prop
      * @param {String} value
+     * @param {String} [source] Optional. Source of hook runner.
      */
     setVars: {},
-    set: function (row, prop, value) {
+    set: function (row, prop, value, source) {
       datamap.setVars.row = row;
       datamap.setVars.prop = prop;
       datamap.setVars.value = value;
-      self.runHooks('beforeSet', datamap.setVars);
+      self.runHooks('beforeSet', datamap.setVars, source || "datamapGet");
       if (typeof datamap.setVars.prop === 'string' && datamap.setVars.prop.indexOf('.') > -1) {
         var sliced = datamap.setVars.prop.split(".");
         var out = priv.settings.data[datamap.setVars.row];
@@ -402,8 +403,9 @@ Handsontable.Core = function (rootElement, settings) {
      * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col"
      * @param {Number} index
      * @param {Number} amount
+     * @param {String} [source] Optional. Source of hook runner.
      */
-    alter: function (action, index, amount) {
+    alter: function (action, index, amount, source) {
       var oldData, newData, changes, r, rlen, c, clen, delta;
       oldData = $.extend(true, [], datamap.getAll());
 
@@ -472,7 +474,7 @@ Handsontable.Core = function (rootElement, settings) {
           changes.push([r, c, oldData[r] ? oldData[r][c] : null, newData[r][c]]);
         }
       }
-      self.runHooks('afterChange', changes, 'alter');
+      self.runHooks('afterChange', changes, source || 'alter');
       grid.keepEmptyRows(); //makes sure that we did not add rows that will be removed in next refresh
     },
 
@@ -1451,17 +1453,15 @@ Handsontable.Core = function (rootElement, settings) {
     self.runHooks('afterChange', changes, source || 'edit');
   }
 
-  function setDataInputToArray(arg0, arg1, arg2) {
-    if (typeof arg0 === "object") { //is it an array of changes
-      return arg0;
+  function setDataInputToArray(row, prop_or_col, value) {
+    if (typeof row === "object") { //is it an array of changes
+      return row;
     }
-    else if ($.isPlainObject(arg2)) { //backwards compatibility
+    else if ($.isPlainObject(value)) { //backwards compatibility
       return value;
     }
     else {
-      return [
-        [arg0, arg1, arg2]
-      ];
+      return [ [row, prop_or_col, value] ];
     }
   }
 
@@ -1469,7 +1469,7 @@ Handsontable.Core = function (rootElement, settings) {
    * Set data at given cell
    * @public
    * @param {Number|Array} row or array of changes in format [[row, col, value], ...]
-   * @param {Number} col
+   * @param {Number|String} col or source String
    * @param {String} value
    * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
    */
@@ -1493,6 +1493,10 @@ Handsontable.Core = function (rootElement, settings) {
       ]);
     }
 
+    if (!source && typeof row === "object") {
+      source = col;
+    }
+
     validateChanges(changes, source).then(function () {
       applyChanges(changes, source);
     });
@@ -1503,7 +1507,7 @@ Handsontable.Core = function (rootElement, settings) {
    * Set data at given row property
    * @public
    * @param {Number|Array} row or array of changes in format [[row, prop, value], ...]
-   * @param {Number} prop
+   * @param {String} prop or source String
    * @param {String} value
    * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
    */
@@ -1520,6 +1524,10 @@ Handsontable.Core = function (rootElement, settings) {
         datamap.get(input[i][0], input[i][1]),
         input[i][2]
       ]);
+    }
+
+    if (!source && typeof row === "object") {
+      source = prop;
     }
 
     validateChanges(changes, source).then(function () {

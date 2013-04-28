@@ -1,6 +1,6 @@
 # Handsontable [![Build Status](https://travis-ci.org/warpech/jquery-handsontable.png?branch=master)](https://travis-ci.org/warpech/jquery-handsontable)
 
-Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery. Requires jQuery 1.9+ or 2.0+ (may work with 1.7+ too, but there are known issues with [IE10](https://github.com/warpech/jquery-handsontable/issues/410)). 
+Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery. Requires jQuery 1.9+ or 2.0+ (may work with 1.7+ too, but there are known issues with [IE10](https://github.com/warpech/jquery-handsontable/issues/410)).
 
 Runs in IE7, IE8, IE9, IE10, Firefox, Chrome, Safari and Opera.
 
@@ -63,50 +63,14 @@ Thank you for your commitment!
 
 ## API Reference
 
-### Methods
+### Constructor
+Accepts configuration object (see **Options**)
 
-  Option                                                                               | Role        | Description
----------------------------------------------------------------------------------------|-------------|-------------
- handsontable(options)                                                                 | Constructor | Accepts configuration object (see **Options**)
- handsontable('updateSettings', options)                                               | Method      | Use it if you need to change configuration after initialization
- handsontable('loadData', data)                                                        | Method      | Reset all cells in the grid to contain data from the `data` array
- handsontable('render')                                                                | Method      | Rerender the table
- handsontable('setDataAtCell',&nbsp;row,&nbsp;col,&nbsp;value)                         | Method      | Set new value to a cell. To change many cells at once, pass an array of changes in format [[row, col, value], ...] as the only parameter. Col is the index of **visible** column (note that if columns were reordered, the current order will be used)
- handsontable('setDataAtRowProp',&nbsp;row,&nbsp;prop,&nbsp;value)                     | Method      | Same as above, except instead of `col`, you provide name of the object property (eq. [0, 'first.name', 'Jennifer'])
- handsontable('getDataAtCell', row, col)                                               | Method      | Return cell value at `row`, `col`. Col is the index of **visible** column (note that if columns were reordered, the current order will be used)
- handsontable('getDataAtRowProp', row, prop)                                           | Method      | Same as above, except instead of `col`, you provide name of the object property (eq. [0, 'first.name'])
- handsontable('countRows')                                                             | Method      | Return total number of rows in the grid
- handsontable('countCols')                                                             | Method      | Return total number of columns in the grid
- handsontable('rowOffset')                                                             | Method      | Return index of first visible row
- handsontable('colOffset')                                                             | Method      | Return index of first visible column
- handsontable('countVisibleRows')                                                      | Method      | Return number of visible rows
- handsontable('countVisibleCols')                                                      | Method      | Return number of visible columns
- handsontable('clear')                                                                 | Method      | Empty all cells
- handsontable('clearUndo')                                                             | Method      | Clear undo history
- handsontable('getData', [r, c, r2, c2])                                               | Method      | Return the current data object (the same that was passed by `data` configuration option or `loadData` method). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to get only a fragment of grid data
- handsontable('alter', 'insert_row', index, amount)                                    | Method      | Insert new row(s) above the row at given `index`. If index is `null` or `undefined`, the new row will be added after the current last row. Default `amount` equals 1
- handsontable('alter', 'insert_col', index, amount)                                    | Method      | Insert new column(s) before the column at given `index`. If index is `null` or `undefined`, the new column will be added after the current last column. Default `amount` equals 1
- handsontable('alter',&nbsp;'remove_row',&nbsp;index,&nbsp;amount)                     | Method      | Remove the row(s) at given `index`. Default `amount` equals 1
- handsontable('alter',&nbsp;'remove_col',&nbsp;index,&nbsp;amount)                     | Method      | Remove the column(s) at given `index`. Default `amount` equals 1
- handsontable('getCell', row, col)                                                     | Method      | Return &lt;td&gt; element for given `row,col`
- handsontable('getCellMeta', row, col)                                                 | Method      | Return cell properties for given `row`, `col` coordinates
- handsontable('selectCell', r, c, [r2, c2, scrollToSelection=true])                    | Method      | Select cell `r,c` or range finishing at `r2,c2`. By default, viewport will be scrolled to selection
- handsontable('deselectCell')                                                          | Method      | Deselect current selection
- handsontable('getSelected')                                                           | Method      | Return index of the currently selected cells as an array [`startRow`, `startCol`, `endRow`, `endCol`]. Start row and start col are the coordinates of the active cell (where the selection was started).
- handsontable('destroyEditor', [revertOriginal=false])                                 | Method      | Destroys current editor, renders and selects current cell. If revertOriginal == false, edited data is saved. Otherwise previous value is restored
- handsontable('getRowHeader', [row])                                                   | Method      | Return array of row headers (if they are enabled). If param `row` given, return header at given row as string
- handsontable('getColHeader', [col])                                                   | Method      | Return array of col headers (if they are enabled). If param `col` given, return header at given col as string
- handsontable('destroy')                                                               | Method      | Remove grid from DOM
- handsontable('isUndoAvailable')                                                       | Method      | Return true if undo can be performed, false otherwise
- handsontable('isRedoAvailable')                                                       | Method      | Return true if redo can be performed, false otherwise
- handsontable('undo')                                                                  | Method      | Undo last edit
- handsontable('redo')                                                                  | Method      | Redo edit (used to reverse an undo)
- handsontable('countEmptyRows', [ending])                                              | Method      | Returns number of empty rows. If the optional `ending` parameter is true, returns number of empty rows at the bottom of the table
- handsontable('countEmptyCols', [ending])                                              | Method      | Returns number of empty columns. If the optional `ending` parameter is true, returns number of empty columns at right hand edge of the table
- handsontable('isEmptyRow', row)                                                       | Method      | Return true if the row at the given index is empty, false otherwise
- handsontable('isEmptyCol', col)                                                       | Method      | Return true if the column at the given index is empty, false otherwise
+```javascript
+handsontable(options)
+```
 
-### Options
+#### Options
 
 The table below presents configuration options that are interpreted by `handsontable()` constructor:
 
@@ -150,16 +114,51 @@ The table below presents configuration options that are interpreted by `handsont
  `columnSorting`         | boolean                        | false            | Turn on [Column sorting](http://handsontable.com/demo/sorting.html)
  `currentRowClassName`   | string                         | _undefined_      | Class name for all visible rows in current selection
  `currentColClassName`   | string                         | _undefined_      | Class name for all visible columns in current selection
- `onSelection`           | function(`r`, `c`, `r2`, `c2`) | _undefined_      | Callback fired while one or more cells are being selected (on mouse move). Parameters: <ul><li>`r` selection start row</li><li>`c` selection start column</li><li>`r2` selection end column</li><li>`c2` selection end column</li></ul>
- `onSelectionByProp`     | function(`r`, `p`, `r2`, `p2`) | _undefined_      | The same as above, but data source object property name is used instead of the column number
- `onSelectionEnd`        | function(`r`, `c`, `r2`, `c2`) | _undefined_      | Callback fired after one or more cells are selected (on mouse up). Parameters: <ul><li>`r` selection start row</li><li>`c` selection start column</li><li>`r2` selection end column</li><li>`c2` selection end column</li></ul>
- `onSelectionEndByProp`  | function(`r`, `p`, `r2`, `p2`) | _undefined_      | The same as above, but data source object property name is used instead of the column number
- `onBeforeChange`        | function(`changes`)            | _undefined_      | Callback fired before one or more cells is changed. Its main purpose is to validate the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, prop, oldVal, newVal], ... ]`. You can disregard a single change by setting `changes[i][3]` to false, or cancel all edit by returning false.</li></ul>
- `onChange`              | function(`changes`, `source`)  | _undefined_      | Callback fired after one or more cells is changed. Its main use case is to save the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, prop, oldVal, newVal], ... ]`. </li><li>`source` is one of the strings: `"alter"`, `"empty"`, `"edit"`, `"populateFromArray"`, `"loadData"`, `"autofill"`, `"paste"`.</li></ul> Note: for performance reasone, the `changes` array is null for `"loadData"` source.
- `onCopyLimit`           | function()                     | _undefined_      | Callback fired if `copyRowsLimit` or `copyColumnsLimit` was reached. Callback parameters are: `selectedRowsCount`, `selectedColsCount`, `copyRowsLimit`, `copyColsLimit`
- `onRemoveRow`           | function(`index`, `amount`)        | _undefined_      | Callback is fired when one or more rows are removed. Parameters: <ul><li>`index` is an index of starter row.</li> <li>`amount` is an anount of removed rows.</li></ul>
- `onRemoveCol`           | function(`index`, `amount`)        | _undefined_      | Callback is fired when one or more columns are removed. Parameters: <ul><li>`index` is an index of starter column.</li> <li>`amount` is an anount of removed columns.</li></ul>
 
+#### Events
+In constructor options you can also add some events interfaces. For more information see [Interfaces](https://github.com/warpech/jquery-handsontable/wiki/Interfaces) and [Events](https://github.com/warpech/jquery-handsontable/wiki/Events) wiki page.
+
+### Methods
+
+  Option                                                                               | Description
+---------------------------------------------------------------------------------------|-------------
+ handsontable('updateSettings', options)                                               | Use it if you need to change configuration after initialization
+ handsontable('loadData', data)                                                        | Reset all cells in the grid to contain data from the `data` array
+ handsontable('render')                                                                | Rerender the table
+ handsontable('setDataAtCell',&nbsp;row,&nbsp;col,&nbsp;value,&nbsp;[source])          | Set new value to a cell. To change many cells at once, pass an array of changes in format [[row, col, value], ...] as the only parameter. `col` is the index of **visible** column (note that if columns were reordered, the current order will be used). `source` is a flag for before/afterChange events. If you pass only array of changes then `source` could be set as second parameter.
+ handsontable('setDataAtRowProp',&nbsp;row,&nbsp;prop,&nbsp;value,&nbsp;[source])      | Same as above, except instead of `col`, you provide name of the object property (eq. [0, 'first.name', 'Jennifer']).
+ handsontable('getDataAtCell', row, col)                                               | Return cell value at `row`, `col`. Col is the index of **visible** column (note that if columns were reordered, the current order will be used)
+ handsontable('getDataAtRowProp', row, prop)                                           | Same as above, except instead of `col`, you provide name of the object property (eq. [0, 'first.name'])
+ handsontable('countRows')                                                             | Return total number of rows in the grid
+ handsontable('countCols')                                                             | Return total number of columns in the grid
+ handsontable('rowOffset')                                                             | Return index of first visible row
+ handsontable('colOffset')                                                             | Return index of first visible column
+ handsontable('countVisibleRows')                                                      | Return number of visible rows
+ handsontable('countVisibleCols')                                                      | Return number of visible columns
+ handsontable('clear')                                                                 | Empty all cells
+ handsontable('clearUndo')                                                             | Clear undo history
+ handsontable('getData', [r, c, r2, c2])                                               | Return the current data object (the same that was passed by `data` configuration option or `loadData` method). Optionally you can provide cell range `r`, `c`, `r2`, `c2` to get only a fragment of grid data
+ handsontable('alter', 'insert_row', index, amount, [source])                          | Insert new row(s) above the row at given `index`. If index is `null` or `undefined`, the new row will be added after the current last row. Default `amount` equals 1
+ handsontable('alter', 'insert_col', index, amount, [source])                          | Insert new column(s) before the column at given `index`. If index is `null` or `undefined`, the new column will be added after the current last column. Default `amount` equals 1
+ handsontable('alter',&nbsp;'remove_row',&nbsp;index,&nbsp;amount,&nbsp;[source])      | Remove the row(s) at given `index`. Default `amount` equals 1
+ handsontable('alter',&nbsp;'remove_col',&nbsp;index,&nbsp;amount,&nbsp;[source])      | Remove the column(s) at given `index`. Default `amount` equals 1
+ handsontable('getCell', row, col)                                                     | Return &lt;td&gt; element for given `row,col`
+ handsontable('getCellMeta', row, col)                                                 | Return cell properties for given `row`, `col` coordinates
+ handsontable('selectCell',&nbsp;r,&nbsp;c,&nbsp;[r2,&nbsp;c2,&nbsp;scrollToSelection=true]) | Select cell `r,c` or range finishing at `r2,c2`. By default, viewport will be scrolled to selection
+ handsontable('deselectCell')                                                          | Deselect current selection
+ handsontable('getSelected')                                                           | Return index of the currently selected cells as an array [`startRow`, `startCol`, `endRow`, `endCol`]. Start row and start col are the coordinates of the active cell (where the selection was started).
+ handsontable('destroyEditor', [revertOriginal=false])                                 | Destroys current editor, renders and selects current cell. If revertOriginal == false, edited data is saved. Otherwise previous value is restored
+ handsontable('getRowHeader', [row])                                                   | Return array of row headers (if they are enabled). If param `row` given, return header at given row as string
+ handsontable('getColHeader', [col])                                                   | Return array of col headers (if they are enabled). If param `col` given, return header at given col as string
+ handsontable('destroy')                                                               | Remove grid from DOM
+ handsontable('isUndoAvailable')                                                       | Return true if undo can be performed, false otherwise
+ handsontable('isRedoAvailable')                                                       | Return true if redo can be performed, false otherwise
+ handsontable('undo')                                                                  | Undo last edit
+ handsontable('redo')                                                                  | Redo edit (used to reverse an undo)
+ handsontable('countEmptyRows', [ending])                                              | Returns number of empty rows. If the optional `ending` parameter is true, returns number of empty rows at the bottom of the table
+ handsontable('countEmptyCols', [ending])                                              | Returns number of empty columns. If the optional `ending` parameter is true, returns number of empty columns at right hand edge of the table
+ handsontable('isEmptyRow', row)                                                       | Return true if the row at the given index is empty, false otherwise
+ handsontable('isEmptyCol', col)                                                       | Return true if the column at the given index is empty, false otherwise
 
 
 ## Similar projects
