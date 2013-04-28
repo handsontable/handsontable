@@ -6,11 +6,12 @@ Features:
 
 Bugfix:
 - table with set `width` and undefined `height` was shrinking on window resize
+- onChange fired twice when changing an autocomplete cell (fixes [#260](https://github.com/warpech/jquery-handsontable/issues/260), [#530](https://github.com/warpech/jquery-handsontable/issues/530), [#531](https://github.com/warpech/jquery-handsontable/issues/531), [#534](https://github.com/warpech/jquery-handsontable/issues/534))
 
 ## [0.8.21](https://github.com/warpech/jquery-handsontable/tree/v0.8.21) (Apr 24, 2013)
 
 Feature:
-- [Fixed rows & columns](http://handsontable.com/fixed.html)
+- [Fixed rows & columns](http://handsontable.com/demo/fixed.html)
 
 Bugfix:
 - focusCatcher produced a 1x1 px red pixel in top left corner
