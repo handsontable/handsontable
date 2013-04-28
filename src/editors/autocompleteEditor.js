@@ -52,8 +52,6 @@ HandsontableAutocompleteEditorClass.prototype.createElements = function () {
 HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
   var that = this;
 
-  this.typeahead.listen();
-
   this.$textarea.off('keydown').off('keyup').off('keypress'); //unlisten
 
   this.$textareaParent.off('.acEditor').on('keydown.acEditor', function (event) {
