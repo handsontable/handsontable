@@ -1586,13 +1586,15 @@ Handsontable.Core = function (rootElement, settings) {
         //so we need to call getComputedStyle on cloned container
         var clone = this.rootElement[0].cloneNode(false);
         var parent = this.rootElement[0].parentNode;
-        clone.removeAttribute('id');
-        parent.appendChild(clone);
-        var computedHeight = parseInt(window.getComputedStyle(clone, null).getPropertyValue('height'), 10);
-        if (computedHeight > 0) {
-          priv.settingsFromDOM.height = computedHeight;
+        if (parent) {
+          clone.removeAttribute('id');
+          parent.appendChild(clone);
+          var computedHeight = parseInt(window.getComputedStyle(clone, null).getPropertyValue('height'), 10);
+          if (computedHeight > 0) {
+            priv.settingsFromDOM.height = computedHeight;
+          }
+          parent.removeChild(clone);
         }
-        parent.removeChild(clone);
       }
     }
   };

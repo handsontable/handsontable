@@ -58,4 +58,10 @@ describe('Core_init', function () {
       expect(this.$container.width()).toEqual(200);
     });
   });
+
+  it('should construct when container is not appended to document', function () {
+    this.$container.remove();
+    handsontable();
+    expect(getData()).toBeTruthy();
+  });
 });
