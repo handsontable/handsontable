@@ -683,7 +683,7 @@ Handsontable.Core = function (rootElement, settings) {
 
       //set up highlight
       if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
-      self.view.wt.selections.highlight.clear();
+        self.view.wt.selections.highlight.clear();
         self.view.wt.selections.highlight.add(priv.selStart.arr());
         self.view.wt.selections.highlight.add(priv.selEnd.arr());
       }
@@ -1582,10 +1582,17 @@ Handsontable.Core = function (rootElement, settings) {
     priv.settingsFromDOM.height = void 0;
     if (priv.settings.height === void 0) {
       if (priv.settingsFromDOM.overflow === 'scroll' || priv.settingsFromDOM.overflow === 'auto') {
-        var computedHeight = this.rootElement.height();
+        //this needs to read only CSS/inline style and not actual height
+        //so we need to call getComputedStyle on cloned container
+        var clone = this.rootElement[0].cloneNode(false);
+        var parent = this.rootElement[0].parentNode;
+        clone.removeAttribute('id');
+        parent.appendChild(clone);
+        var computedHeight = parseInt(window.getComputedStyle(clone, null).getPropertyValue('height'), 10);
         if (computedHeight > 0) {
           priv.settingsFromDOM.height = computedHeight;
         }
+        parent.removeChild(clone);
       }
     }
   };
@@ -1597,6 +1604,7 @@ Handsontable.Core = function (rootElement, settings) {
   this.render = function () {
     if (self.view) {
       self.forceFullRender = true; //used when data was changed
+      self.parseSettingsFromDOM();
       selection.refreshBorders(null, true);
     }
   };
