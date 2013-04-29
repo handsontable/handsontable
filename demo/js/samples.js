@@ -104,6 +104,7 @@
             tag = tag.replace('src="../', 'src="http://handsontable.com/');
             tag = tag.replace('href="bootstrap/', 'href="http://handsontable.com/demo/bootstrap/');
             tag = tag.replace('src="bootstrap/', 'src="http://handsontable.com/demo/bootstrap/');
+            tag = tag.replace('src="js/', 'src="http://handsontable.com/demo/js/');
             tag = tag.replace('src="web_component/', 'src="http://handsontable.com/demo/web_component/');
             css.push(tag)
           }
