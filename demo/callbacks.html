@@ -77,12 +77,30 @@
           <div id="example1"></div>
 
           <p>
+            <select multiple="multiple" id="example1_events" style="width: 400px; height: 250px"></select>
+          </p>
+
+          <p>Log events:</p>
+
+          <ul class="tight">
+            <li><label><input type="checkbox" checked id="check_select_all"> <strong>select all</strong></label></li>
+            <li><label><input type="checkbox" checked id="check_onSelection"> onSelection</label></li>
+            <li><label><input type="checkbox" checked id="check_onSelectionByProp"> onSelectionByProp</label></li>
+            <li><label><input type="checkbox" checked id="check_onSelectionEnd"> onSelectionEnd</label></li>
+            <li><label><input type="checkbox" checked id="check_onSelectionEndByProp"> onSelectionEndByProp</label></li>
+            <li><label><input type="checkbox" checked id="check_onBeforeChange"> onBeforeChange</label></li>
+            <li><label><input type="checkbox" checked id="check_onChange"> onChange</label></li>
+            <li><label><input type="checkbox" checked id="check_onCopyLimit"> onCopyLimit</label></li>
+          </ul>
+
+          <p>
             <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
 
-            <br>
-            <select multiple="multiple" id="example1_events" style="width: 400px; height: 100px"></select>
+            <button onclick="$('#example1_events').empty()">
+              Clear event log
+            </button>
           </p>
         </div>
       </div>
@@ -101,6 +119,26 @@
               ["2011", 4, 2517, 4822, 552, 6127],
               ["2012", 2, 2422, 5399, 776, 4151]
             ];
+
+            var start = (new Date()).getTime();
+            var i = 0;
+
+            function log_events(event, data) {
+              if (document.getElementById('check_' + event).checked) {
+                var now = (new Date()).getTime();
+                var diff = now - start;
+                $("#example1_events").prepend(
+                    $("<option/>").text([
+                      i,
+                      "@" + numeral(diff / 1000).format('0.000'),
+                      "[" + event + "]",
+                      JSON.stringify(data)
+                    ].join(" "))
+                  )
+                  .scrollTop(0);
+                i++;
+              }
+            }
 
             $('#example1').handsontable({
               data: data,
@@ -133,17 +171,18 @@
               }
             });
 
-            function log_events(event, data) {
-              var now = new Date();
-              $("#example1_events").prepend(
-                  $("<option/>").text([
-                    ":", now.getSeconds(), ":", now.getMilliseconds(),
-                    "[" + event + "]",
-                    JSON.stringify(data)
-                  ].join(" "))
-                )
-                .scrollTop(0);
-            }
+            $('#check_select_all').click(function () {
+              var state = this.checked;
+              $('input[type=checkbox]').each(function () {
+                this.checked = state;
+              });
+            });
+
+            $('input[type=checkbox]').click(function () {
+              if (!this.checked) {
+                document.getElementById('check_select_all').checked = false;
+              }
+            });
           </script>
         </div>
       </div>

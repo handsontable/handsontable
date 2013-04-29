@@ -148,6 +148,10 @@ li {
   margin-bottom: 1.3em;
 }
 
+ul.tight li {
+  margin-bottom: 0.3em;
+}
+
 ul {
   padding-left: 30px;
 }
