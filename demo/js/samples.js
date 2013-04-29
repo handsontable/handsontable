@@ -128,7 +128,8 @@
         visibility: 'hidden'
       });
       $('body').append(form);
-      $(form).submit();
+      form.submit();
+      form.remove();
     });
 
     bindDumpButton();
