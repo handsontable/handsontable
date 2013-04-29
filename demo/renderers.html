@@ -7,17 +7,17 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script src="../lib/jquery.min.js"></script>
-  <script src="../dist/jquery.handsontable.full.js"></script>
-  <link rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
   <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
-  <script src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
-  <link rel="stylesheet" media="screen" href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
+  <script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
-  <link rel="stylesheet" media="screen" href="css/samples.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css">
   <script src="js/samples.js"></script>
   <script src="js/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
@@ -73,7 +73,7 @@
 
     <div class="rowLayout">
       <div class="descLayout">
-        <div class="pad">
+        <div class="pad" data-jsfiddle="example1">
           <a name="preview"></a>
 
           <h2>Preview of built-in and custom cell types</h2>
@@ -109,10 +109,10 @@
       <div class="codeLayout">
         <div class="pad">
           <div class="jsFiddle">
-            <div class="jsFiddleLink">Edit in jsFiddle</div>
+            <div class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</div>
           </div>
 
-          <script>
+          <script data-jsfiddle="example1">
             var data = [
               {id: 1, name: "Ted", isActive: true, color: "orange", date: "2008-01-01"},
               {id: 2, name: "John", isActive: false, color: "black", date: null},

@@ -7,15 +7,15 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script src="../lib/jquery.min.js"></script>
-  <script src="../dist/jquery.handsontable.full.js"></script>
-  <script src="../lib/numeral.de-de.js"></script>
-  <link rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <script data-jsfiddle="common" src="../lib/numeral.de-de.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
-  <link rel="stylesheet" media="screen" href="css/samples.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css">
   <script src="js/samples.js"></script>
   <script src="js/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
@@ -38,7 +38,7 @@
   -->
   <script src="js/ga.js"></script>
 
-  <script class="common">
+  <script data-jsfiddle="common">
     function getCarData() {
       return [
         ["Mercedes", "A 160", 2006, 6999.9999],
@@ -74,7 +74,7 @@
 
     <div class="rowLayout">
       <div class="descLayout">
-        <div class="pad">
+        <div class="pad" data-jsfiddle="example1">
           <a name="lazy"></a>
 
           <h2>Numeric cell type</h2>
@@ -110,10 +110,10 @@
       <div class="codeLayout">
         <div class="pad">
           <div class="jsFiddle">
-            <div class="jsFiddleLink">Edit in jsFiddle</div>
+            <div class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</div>
           </div>
 
-          <script>
+          <script data-jsfiddle="example1">
             $("#example1").handsontable({
               data: getCarData(),
               startRows: 7,

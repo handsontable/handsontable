@@ -102,6 +102,8 @@
             tag = tag.replace('href="css/', 'href="http://handsontable.com/demo/css/');
             tag = tag.replace('href="../', 'href="http://handsontable.com/');
             tag = tag.replace('src="../', 'src="http://handsontable.com/');
+            tag = tag.replace('href="bootstrap/', 'href="http://handsontable.com/demo/bootstrap/');
+            tag = tag.replace('src="bootstrap/', 'src="http://handsontable.com/demo/bootstrap/');
             css.push(tag)
           }
         });

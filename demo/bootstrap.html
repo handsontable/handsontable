@@ -7,18 +7,18 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script src="../lib/jquery.js"></script>
-  <script src="../dist/jquery.handsontable.full.js"></script>
-  <script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <script data-jsfiddle="common" type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
 
-  <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
-  <link rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
-  <link rel="stylesheet" media="screen" href="../extensions/jquery.handsontable.bootstrap.css">
+  <link data-jsfiddle="common" rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../extensions/jquery.handsontable.bootstrap.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
-  <link rel="stylesheet" media="screen" href="css/samples.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css">
   <script src="js/samples.js"></script>
   <script src="js/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
@@ -53,6 +53,7 @@
       word-break: keep-all;
       word-wrap: normal;
     }
+
     input[type="checkbox"] {
       margin-top: -2px;
       position: relative;
@@ -84,25 +85,28 @@
 
     <div class="rowLayout">
       <div class="descLayout">
-        <div class="pad">
+        <div class="pad" data-jsfiddle="example1">
           <a name="lazy"></a>
 
           <h2>Twitter Bootstrap integration</h2>
 
           <p>This page demonstrate example of using Handsontable with Twitter Bootstrap.</p>
-          
-          <p>Please note that you should reset some of Bootstrap styles. You can use file [extensions/jquery.handsontable.bootstrap.css](https://github.com/warpech/jquery-handsontable/blob/master/extensions/jquery.handsontable.bootstrap.css) for that purpose.</p>
+
+          <p>Please note that you should reset some of Bootstrap styles. You can use file <a
+            href="https://github.com/warpech/jquery-handsontable/blob/master/extensions/jquery.handsontable.bootstrap.css">extensions/jquery.handsontable.bootstrap.css</a>
+            for that purpose.</p>
 
           <p class="options">
-            <label><input data-type="table-bordered" type="checkbox" /> table-bordered </label>
-            <label><input data-type="table-striped" type="checkbox" /> table-striped</label>
-            <label><input data-type="table-hover" type="checkbox" /> table-hover</label>
+            <label><input data-type="table-bordered" type="checkbox"/> table-bordered </label>
+            <label><input data-type="table-striped" type="checkbox"/> table-striped</label>
+            <label><input data-type="table-hover" type="checkbox"/> table-hover</label>
           </p>
 
-          <div id="example1" ></div>
+          <div id="example1"></div>
 
           <p>
-            <button class="btn btn-info" name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button class="btn btn-info" name="dump" data-dump="#example1"
+                    title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
             </button>
@@ -113,30 +117,30 @@
       <div class="codeLayout">
         <div class="pad">
           <div class="jsFiddle">
-            <div class="jsFiddleLink">Edit in jsFiddle</div>
+            <div class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</div>
           </div>
 
-          <script>
+          <script data-jsfiddle="example1">
 
             var data = [
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6],
-              [1,2,3,4,5,6]
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6],
+              [1, 2, 3, 4, 5, 6]
             ];
 
             $('#example1').handsontable({

@@ -7,14 +7,14 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script src="../lib/jquery.min.js"></script>
-  <script src="../dist/jquery.handsontable.full.js"></script>
-  <link rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
-  <link rel="stylesheet" media="screen" href="css/samples.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css">
   <script src="js/samples.js"></script>
   <script src="js/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
@@ -37,7 +37,7 @@
   -->
   <script src="js/ga.js"></script>
 
-  <script class="common">
+  <script data-jsfiddle="common">
     function strip_tags(input, allowed) {
       // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
       allowed = (((allowed || "") + "").toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
@@ -82,7 +82,7 @@
 
     <div class="rowLayout">
       <div class="descLayout">
-        <div class="pad">
+        <div class="pad" data-jsfiddle="example1">
           <a name="cell"></a>
 
           <h2>Rendering custom HTML in cells</h2>
@@ -105,10 +105,10 @@
       <div class="codeLayout">
         <div class="pad">
           <div class="jsFiddle">
-            <div class="jsFiddleLink">Edit in jsFiddle</div>
+            <div class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</div>
           </div>
 
-          <script>
+          <script data-jsfiddle="example1">
             var data = [
               {
                 title: "Professional JavaScript for Web Developers",
@@ -168,7 +168,7 @@
 
     <div class="rowLayout">
       <div class="descLayout">
-        <div class="pad">
+        <div class="pad" data-jsfiddle="example2">
           <a name="header"></a>
 
           <h2>Rendering custom HTML in header</h2>
@@ -192,10 +192,10 @@
       <div class="codeLayout">
         <div class="pad">
           <div class="jsFiddle">
-            <div class="jsFiddleLink">Edit in jsFiddle</div>
+            <div class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</div>
           </div>
 
-          <script>
+          <script data-jsfiddle="example2">
             var isChecked;
 
             var customRenderer = function (instance, td) {
