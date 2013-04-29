@@ -1,3 +1,8 @@
+## HEAD
+
+Bugfixes:
+- Backbone Collections throw error in loadData (#606)
+
 ## [0.8.22](https://github.com/warpech/jquery-handsontable/tree/v0.8.22) (Apr 29, 2013)
 
 Features:
