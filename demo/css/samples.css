@@ -148,6 +148,14 @@ li {
   margin-bottom: 1.3em;
 }
 
+ul {
+  padding-left: 30px;
+}
+
+ul ul {
+  margin-top: 1.5em;
+}
+
 .descLayout pre {
   margin-left: 0.5em;
 }
@@ -238,6 +246,30 @@ li {
 .codeLayout pre code {
   padding: 0;
   background: none;
+}
+
+/**
+ * documentation excerpts
+ */
+
+dl {
+  background: #FDFFFF;
+  border-left: 4px solid #F5F5FF;
+  padding: 1px 10px 1px 10px;
+  margin: 30px 0;
+}
+
+dl dt {
+  font-size: 14px;
+  font-weight: bold;
+  font-style: italic;
+  padding: 0;
+  margin: 15px 0 5px;
+}
+
+dl dd {
+  margin: 10px 0 0 0;
+  padding: 0;
 }
 
 /**
