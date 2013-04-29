@@ -97,7 +97,6 @@
             <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
-
             <button onclick="$('#example1_events').empty()">
               Clear event log
             </button>
@@ -127,13 +126,34 @@
               if (document.getElementById('check_' + event).checked) {
                 var now = (new Date()).getTime();
                 var diff = now - start;
+
+                var vals = [
+                  i,
+                  "@" + numeral(diff / 1000).format('0.000'),
+                  "[" + event + "]"
+                ];
+
+                var str;
+                for (var d = 0; d < data.length; d++) {
+                  str = JSON.stringify(data[d]);
+                  if (str.length > 20) {
+                    str = Object.prototype.toString.call(data[d]);
+                  }
+                  if (d < data.length - 1) {
+                    str += ',';
+                  }
+                  vals.push(str);
+                }
+
+                if (window.console) {
+                  console.log(i,
+                    "@" + numeral(diff / 1000).format('0.000'),
+                    "[" + event + "]",
+                    data);
+                }
+
                 $("#example1_events").prepend(
-                    $("<option/>").text([
-                      i,
-                      "@" + numeral(diff / 1000).format('0.000'),
-                      "[" + event + "]",
-                      JSON.stringify(data)
-                    ].join(" "))
+                    $("<option/>").text(vals.join(" "))
                   )
                   .scrollTop(0);
                 i++;
