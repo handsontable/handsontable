@@ -401,4 +401,54 @@ describe('Core_loadData', function () {
 
     expect(errors).toBe(1);
   });
+
+  it('should load Backbone Collection as data source', function () {
+    // code borrowed from demo/backbone.js
+
+    var CarModel = Backbone.Model.extend({});
+
+    var CarCollection = Backbone.Collection.extend({
+      model: CarModel,
+      // Backbone.Collection doesn't support `splice`, yet! Easy to add.
+      splice: hacked_splice
+    });
+
+    var cars = new CarCollection();
+
+    cars.add([
+      {make: "Dodge", model: "Ram", year: 2012, weight: 6811},
+      {make: "Toyota", model: "Camry", year: 2012, weight: 3190},
+      {make: "Smart", model: "Fortwo", year: 2012, weight: 1808}
+    ]);
+
+    handsontable({
+      data: cars,
+      columns: [
+        attr("make"),
+        attr("model"),
+        attr("year")
+      ]
+    });
+
+    // use the "good" Collection methods to emulate Array.splice
+    function hacked_splice(index, howMany /* model1, ... modelN */) {
+      var args = _.toArray(arguments).slice(2).concat({at: index}),
+        removed = this.models.slice(index, index + howMany);
+      this.remove(removed).add.apply(this, args);
+      return removed;
+    }
+
+    // normally, you'd get these from the server with .fetch()
+    function attr(attr) {
+      // this lets us remember `attr` for when when it is get/set
+      return {data: function (car, value) {
+        if (_.isUndefined(value)) {
+          return car.get(attr);
+        }
+        car.set(attr, value);
+      }};
+    }
+
+    expect(countRows()).toBe(3);
+  });
 });

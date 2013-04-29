@@ -157,7 +157,10 @@ module.exports = function (grunt) {
           'lib/bootstrap-typeahead.js',
           'lib/numeral.js',
           'lib/jQuery-contextMenu/jquery.contextMenu.js',
-          'test/jasmine/spec/SpecHelper.js'
+          'test/jasmine/spec/SpecHelper.js',
+          'demo/js/backbone/lodash.underscore.js',
+          'demo/js/backbone/backbone.js',
+          'demo/js/backbone/backbone-relational/backbone-relational.js'
         ],
         options: {
           specs: [
