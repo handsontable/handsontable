@@ -7,19 +7,19 @@
   <!--
   Loading Handsontable as Web Component
   -->
-  <script jsfiddle src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <!-- load toolkit platform -->
-  <script jsfiddle src="web_component/toolkit/toolkit.js"></script>
-  <link jsfiddle rel="import" href="../dist_wc/x-handsontable.html">
-  <script src="../lib/numeral.de-de.js"></script>
+  <script data-jsfiddle="common" src="web_component/toolkit/toolkit.js"></script>
+  <link data-jsfiddle="common" rel="import" href="../dist_wc/x-handsontable.html">
+  <script data-jsfiddle="common" src="../lib/numeral.de-de.js"></script>
   <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
-  <script src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
-  <link rel="stylesheet" media="screen" href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
+  <script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
-  <link rel="stylesheet" media="screen" href="css/samples.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css">
   <script src="js/samples.js"></script>
   <script src="js/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
@@ -88,7 +88,8 @@
 
     <div class="rowLayout">
       <div class="descLayout">
-        <div class="pad bottomSpace100">
+        <div class="pad" data-jsfiddle="example1">
+          <a name="works"></a>
           <h2>What works</h2>
 
           <p>This example shows an experimental build of Handsontable as Web Component.</p>
@@ -128,11 +129,12 @@
 
       <div class="codeLayout">
         <div class="pad">
+          <!-- Need CORS before it works
           <div class="jsFiddle">
-            <div class="jsFiddleLink">Edit in jsFiddle</div>
-          </div>
+            <div class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</div>
+          </div>-->
 
-          <script>
+          <script data-jsfiddle="example1">
             var people = [
               {id: 1, name: {first: 'Joe', last: 'Fabiano'}, gender: 'Male', age: '21', languages: {english: 'Yes', spanish: 'Yes', french: 'No'}, salary: 2000},
               {id: 2, name: {first: 'Fred', last: 'Wecler'}, gender: 'Male', age: '25', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 2500},
@@ -170,7 +172,9 @@
 
     <div class="rowLayout">
       <div class="descLayout">
-        <div class="pad bottomSpace100">
+        <div class="pad" data-jsfiddle="example2">
+          <a name="doesnt-work"></a>
+
           <h2>What doesn't work</h2>
 
           <p>We had a problem with getting jQuery UI Datepicker to work in Web Component.</p>
@@ -197,11 +201,12 @@
 
       <div class="codeLayout">
         <div class="pad">
+          <!-- Need CORS before it works
           <div class="jsFiddle">
-            <div class="jsFiddleLink">Edit in jsFiddle</div>
-          </div>
+            <div class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</div>
+          </div>-->
 
-          <script>
+          <script data-jsfiddle="example2">
             var people2 = [
               {id: 1, name: {first: 'Joe', last: 'Fabiano'}, gender: 'Male', age: '21', languages: {english: 'Yes', spanish: 'Yes', french: 'No'}, salary: 2000},
               {id: 2, name: {first: 'Fred', last: 'Wecler'}, gender: 'Male', age: '25', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 2500},
@@ -220,7 +225,7 @@
     </div>
 
     <div class="rowLayout">
-      <div class="descLayout">
+      <div class="descLayout noMargin">
         <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
 
           <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
