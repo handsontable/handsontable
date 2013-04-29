@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.8.21
+ * Handsontable 0.8.22
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Apr 24 2013 00:23:15 GMT+0200 (Central European Daylight Time)
+ * Date: Mon Apr 29 2013 02:41:45 GMT+0200 (Central European Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -702,7 +702,7 @@ Handsontable.Core = function (rootElement, settings) {
 
       //set up highlight
       if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
-      self.view.wt.selections.highlight.clear();
+        self.view.wt.selections.highlight.clear();
         self.view.wt.selections.highlight.add(priv.selStart.arr());
         self.view.wt.selections.highlight.add(priv.selEnd.arr());
       }
@@ -1601,9 +1601,18 @@ Handsontable.Core = function (rootElement, settings) {
     priv.settingsFromDOM.height = void 0;
     if (priv.settings.height === void 0) {
       if (priv.settingsFromDOM.overflow === 'scroll' || priv.settingsFromDOM.overflow === 'auto') {
-        var computedHeight = this.rootElement.height();
-        if (computedHeight > 0) {
-          priv.settingsFromDOM.height = computedHeight;
+        //this needs to read only CSS/inline style and not actual height
+        //so we need to call getComputedStyle on cloned container
+        var clone = this.rootElement[0].cloneNode(false);
+        var parent = this.rootElement[0].parentNode;
+        if (parent) {
+          clone.removeAttribute('id');
+          parent.appendChild(clone);
+          var computedHeight = parseInt(window.getComputedStyle(clone, null).getPropertyValue('height'), 10);
+          if (computedHeight > 0) {
+            priv.settingsFromDOM.height = computedHeight;
+          }
+          parent.removeChild(clone);
         }
       }
     }
@@ -1616,6 +1625,7 @@ Handsontable.Core = function (rootElement, settings) {
   this.render = function () {
     if (self.view) {
       self.forceFullRender = true; //used when data was changed
+      self.parseSettingsFromDOM();
       selection.refreshBorders(null, true);
     }
   };
@@ -2250,7 +2260,7 @@ Handsontable.Core = function (rootElement, settings) {
   /**
    * Handsontable version
    */
-  this.version = '0.8.21'; //inserted by grunt from package.json
+  this.version = '0.8.22'; //inserted by grunt from package.json
 };
 
 var settings = {
@@ -2393,7 +2403,8 @@ Handsontable.TableView = function (instance) {
 
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== null && next !== document.documentElement) {
-        if (next === instance.rootElement[0] || next.id === 'context-menu-layer' || $(next).is('.context-menu-list') || $(next).is('.typeahead li')) {
+        //X-HANDSONTABLE is the tag name in Web Components version of HOT. Removal of this breaks cell selection
+        if (next === instance.rootElement[0] || next.nodeName === 'X-HANDSONTABLE' || next.id === 'context-menu-layer' || $(next).is('.context-menu-list') || $(next).is('.typeahead li')) {
           return; //click inside container
         }
         next = next.parentNode;
@@ -2940,6 +2951,9 @@ Handsontable.TextRenderer = function (instance, TD, row, col, prop, value, cellP
     TD.appendChild(document.createTextNode(escaped));
     //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
+  if (cellProperties.readOnly) {
+    TD.className = 'htDimmed';
+  }
 };
 /**
  * Autocomplete renderer
@@ -3079,6 +3093,8 @@ function HandsontableTextEditorClass(instance) {
 }
 
 HandsontableTextEditorClass.prototype.createElements = function () {
+  this.wtDom = new WalkontableDom();
+
   this.TEXTAREA = document.createElement('TEXTAREA');
   this.TEXTAREA.className = 'handsontableInput';
   this.textareaStyle = this.TEXTAREA.style;
@@ -3307,8 +3323,8 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   ///start prepare textarea position
   this.TD = this.instance.getCell(this.row, this.col);
   var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
-  var currentOffset = $td.offset();
-  var containerOffset = this.instance.rootElement.offset();
+  var currentOffset = this.wtDom.offset(this.TD);
+  var containerOffset = this.wtDom.offset(this.instance.rootElement[0]);
   var scrollTop = this.instance.rootElement.scrollTop();
   var scrollLeft = this.instance.rootElement.scrollLeft();
   var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
@@ -3443,12 +3459,19 @@ HandsontableAutocompleteEditorClass.prototype.createElements = function () {
   var _process = this.typeahead.process;
   var that = this;
   this.typeahead.process = function (items) {
+    var cloned = false;
     for (var i = 0, ilen = items.length; i < ilen; i++) {
       if (items[i] === '') {
         //this is needed because because of issue #254
         //empty string ('') is a falsy value and breaks the loop in bootstrap-typeahead.js method `sorter`
         //best solution would be to change line: `while (item = items.shift()) {`
         //                                   to: `while ((item = items.shift()) !== void 0) {`
+        if (!cloned) {
+          //need to clone items before applying emptyStringLabel
+          //(otherwise validateChanges fails for empty string)
+          items = $.extend([], items);
+          cloned = true;
+        }
         items[i] = that.emptyStringLabel;
       }
     }
@@ -3461,8 +3484,6 @@ HandsontableAutocompleteEditorClass.prototype.createElements = function () {
  */
 HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
   var that = this;
-
-  this.typeahead.listen();
 
   this.$textarea.off('keydown').off('keyup').off('keypress'); //unlisten
 
@@ -3649,10 +3670,14 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, value, cel
 
 
 function HandsontableDateEditorClass(instance) {
-    this.isCellEdited = false;
-    this.instance = instance;
-    this.createElements();
-    this.bindEvents();
+  if (!$.datepicker) {
+    throw new Error("jQuery UI Datepicker dependency not found. Did you forget to include jquery-ui.custom.js or its substitute?");
+  }
+
+  this.isCellEdited = false;
+  this.instance = instance;
+  this.createElements();
+  this.bindEvents();
 }
 
 Handsontable.helper.inherit(HandsontableDateEditorClass, HandsontableTextEditorClass);
@@ -4022,8 +4047,7 @@ function HandsontableAutoColumnSize() {
       tmpNoRenderer = $tmp.children().eq(2);
       tmpRenderer = $tmp.children().eq(3);
 
-      d.body.appendChild(tmp);
-
+      instance.rootElement[0].parentNode.appendChild(tmp);
     }
 
     var rows = instance.countRows();
@@ -5887,6 +5911,27 @@ window.cancelRequestAnimFrame = (function () {
     window.msCancelRequestAnimationFrame ||
     clearTimeout
 })();
+
+//http://snipplr.com/view/13523/
+//modified for speed
+//http://jsperf.com/getcomputedstyle-vs-style-vs-css/8
+if (!window.getComputedStyle) {
+  (function () {
+    var elem;
+
+    var styleObj = {
+      getPropertyValue: function getPropertyValue(prop) {
+        if (prop == 'float') prop = 'styleFloat';
+        return elem.currentStyle[prop.toUpperCase()] || null;
+      }
+    }
+
+    window.getComputedStyle = function (el) {
+      elem = el;
+      return styleObj;
+    }
+  })();
+}
 /**
  * WalkontableRowFilter
  * @constructor
@@ -6135,7 +6180,6 @@ WalkontableScrollbar.prototype.onScroll = function (delta) {
           this.instance.scrollVertical(Infinity).draw();
         }
         else {
-          console.log("infiniti");
           this.instance.scrollHorizontal(Infinity).draw();
         }
       }

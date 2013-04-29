@@ -1,6 +1,7 @@
-## HEAD
+## [0.8.22](https://github.com/warpech/jquery-handsontable/tree/v0.8.22) (Apr 29, 2013)
 
 Features:
+- first version to support [W3C Web Components](http://handsontable.com/demo/web_component.html)! In this proof-of-concept state, better don't bother to follow that link in browser different than Chrome
 - text renderer now adds class name `htDimmed` to read only cells
 - `TD.htDimmed` rule added to CSS file
 
