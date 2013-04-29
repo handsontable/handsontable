@@ -14,7 +14,8 @@
   <script data-jsfiddle="common" src="../lib/numeral.de-de.js"></script>
   <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
   <script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen"
+        href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -90,6 +91,7 @@
       <div class="descLayout">
         <div class="pad" data-jsfiddle="example1">
           <a name="works"></a>
+
           <h2>What works</h2>
 
           <p>This example shows an experimental build of Handsontable as Web Component.</p>
@@ -223,6 +225,19 @@
         </div>
       </div>
     </div>
+
+    <script>
+      if (navigator.userAgent.toLowerCase().indexOf('chrome') === -1) {
+        var res = confirm("Handsontable Web Components demo was tested only in Chrome 26+. You are using different browser.\n\nDo you want to run the examples?\n\n(May freeze your browser!)");
+        if (!res) {
+          var example1 = document.getElementById('example1');
+          var example2 = document.getElementById('example2');
+
+          example1.parentNode.removeChild(example1);
+          example2.parentNode.removeChild(example2);
+        }
+      }
+    </script>
 
     <div class="rowLayout">
       <div class="descLayout noMargin">
