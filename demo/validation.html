@@ -75,7 +75,7 @@
                 <li>
                   <code>changes</code> is a 2D array containing information about each of the edited cells <code>[ [row, prop, oldVal, newVal], ... ]</code>.
                   <ul>
-                    <li>To disregard a single change, set <code>changes[i]</code> to <code>null</code> or remove it from array using <code>changes.splice(i, 1)</code>.</li>
+                    <li>To disregard a single change, <!--set <code>changes[i]</code> to <code>null</code> or--> remove it from array using <code>changes.splice(i, 1)</code>.</li>
                     <li>To alter a single change, overwrite the desired value to <code>changes[i][3]</code>.</li>
                     <li>To cancel all edit, <code>return false</code> from the callback or set array length to 0 (<code>changes.length = 0</code>).</li></ul>
                 </li>
@@ -126,7 +126,6 @@
                 for (var i = changes.length - 1; i >= 0; i--) {
                   if (changes[i][3] === "foo") {
                     changes.splice(i, 1); //gently don't accept the word "foo" (remove the change at index i)
-                    //changes[i] = null; //would have the same effect
                   }
                   else if (changes[i][3] === "bar") {
                     //if the word bar is given, add a ! at the end of it
