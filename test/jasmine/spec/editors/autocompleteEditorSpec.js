@@ -388,6 +388,24 @@ describe('AutocompleteEditor', function () {
 
   });
 
+  it('strict mode and allowEmpty returns does not trigger validation for empty string', function () {
+    handsontable({
+      data: [ ['one', 'two'] ],
+      columns: [
+        {
+          type: Handsontable.AutocompleteCell,
+          source: ['Acura', 'BMW', 'Bentley'],
+          strict: true,
+          allowEmpty: true
+        },
+        { type: 'text'}
+      ]
+    });
+    setDataAtCell(0, 0, '');
+
+    expect(getData()).toEqual([ ['', 'two'] ]);
+  });
+
   it('typing in textarea should refresh the lookup list', function () {
     runs(function () {
       handsontable({
