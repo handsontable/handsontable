@@ -1408,27 +1408,33 @@ Handsontable.Core = function (rootElement, settings) {
    * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
    */
   function applyChanges(changes, source) {
-    var i = 0
-      , ilen = changes.length;
+    var i = changes.length - 1;
 
-    if (!ilen) {
+    if (i < 0) {
       return;
     }
 
-    while (i < ilen) {
+    for (;0 <= i; i--) {
+      if (changes[i] === null) {
+        changes.splice(i, 1);
+        continue;
+      }
+
       if (priv.settings.minSpareRows) {
         while (changes[i][0] > self.countRows() - 1) {
           datamap.createRow();
         }
       }
+
       if (priv.dataType === 'array' && priv.settings.minSpareCols) {
         while (datamap.propToCol(changes[i][1]) > self.countCols() - 1) {
           datamap.createCol();
         }
       }
+
       datamap.set(changes[i][0], changes[i][1], changes[i][3]);
-      i++;
     }
+
     self.forceFullRender = true; //used when data was changed
     grid.keepEmptyRows();
     selection.refreshBorders();
