@@ -107,6 +107,7 @@ The table below presents configuration options that are interpreted by `handsont
  `autoComplete`          | array                          | _undefined_      | Autocomplete definitions. See **Defining autocomplete**
  `copyRowsLimit`         | number                         | 1000             | Maximum number of rows than can be copied to clipboard using CTRL+C
  `copyColsLimit`         | number                         | 1000             | Maximum number of columns than can be copied to clipboard using CTRL+C
+ `insertWhenPaste`       | boolean                        | false            | When set to `true` insert insted of overwrite when paste
  `stretchH`              | string                         | hybrid           | [Column stretching](http://handsontable.com/demo/scroll.html) mode. Possible values: `none, hybrid, last, all`. Hybrid mode works as `none` where there is no horizontal scrollbar, and as `last` when the horizontal scrollbar is present.
  `isEmptyRow`            | function(`r`)                  | _undefined_      | Lets you overwrite the default `isEmptyRow` method
  `isEmptyCol`            | function(`c`)                  | _undefined_      | Lets you overwrite the default `isEmptyCol` method
