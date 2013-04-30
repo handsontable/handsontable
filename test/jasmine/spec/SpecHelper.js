@@ -228,6 +228,7 @@ var getDataAtCell = handsontableMethodFactory('getDataAtCell');
 var getRowHeader = handsontableMethodFactory('getRowHeader');
 var getColHeader = handsontableMethodFactory('getColHeader');
 var alter = handsontableMethodFactory('alter');
+var populateFromArray = handsontableMethodFactory('populateFromArray');
 var loadData = handsontableMethodFactory('loadData');
 var destroyEditor = handsontableMethodFactory('destroyEditor');
 var render = handsontableMethodFactory('render');

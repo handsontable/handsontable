@@ -64,13 +64,14 @@ Thank you for your commitment!
 ## API Reference
 
 ### Constructor
-Accepts configuration object (see **Options**)
-
 ```javascript
-handsontable(options)
+$(el).handsontable(options)
 ```
+Where:
+  * `el` is standard jQuery selector
+  * `options` is configuration object (see **Options** and **Events** below)
 
-#### Options
+##### Options
 
 The table below presents configuration options that are interpreted by `handsontable()` constructor:
 
@@ -115,7 +116,7 @@ The table below presents configuration options that are interpreted by `handsont
  `currentRowClassName`   | string                         | _undefined_      | Class name for all visible rows in current selection
  `currentColClassName`   | string                         | _undefined_      | Class name for all visible columns in current selection
 
-#### Events
+##### Events
 In constructor options you can also add some events interfaces. For more information see [Interfaces](https://github.com/warpech/jquery-handsontable/wiki/Interfaces) and [Events](https://github.com/warpech/jquery-handsontable/wiki/Events) wiki page.
 
 ### Methods
@@ -129,6 +130,7 @@ In constructor options you can also add some events interfaces. For more informa
  handsontable('setDataAtRowProp',&nbsp;row,&nbsp;prop,&nbsp;value,&nbsp;[source])      | Same as above, except instead of `col`, you provide name of the object property (eq. [0, 'first.name', 'Jennifer']).
  handsontable('getDataAtCell', row, col)                                               | Return cell value at `row`, `col`. Col is the index of **visible** column (note that if columns were reordered, the current order will be used)
  handsontable('getDataAtRowProp', row, prop)                                           | Same as above, except instead of `col`, you provide name of the object property (eq. [0, 'first.name'])
+ handsontable('populateFromArray',&nbsp;start,&nbsp;input,&nbsp;stop,&nbsp;[source])   | Populate cells at position with 2d array. `start` and `stop` are object in format `{ row : xxx, col: xxx }` and they are responsible to create area of population. `input` is 2d array with changes pattern (ie. `[[1,2,3], [1,2,3]]`). `source` is a flag for before/afterChange events.
  handsontable('countRows')                                                             | Return total number of rows in the grid
  handsontable('countCols')                                                             | Return total number of columns in the grid
  handsontable('rowOffset')                                                             | Return index of first visible row
