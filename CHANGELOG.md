@@ -7,6 +7,7 @@ Features:
 Bugfixes:
 - Backbone Collections throw error in loadData (#606)
 - auto column size did not consider CSS style of each instance separately
+- vertical mousewheel scrolling does not work without horizontal scrollbar (#541)
 
 ## [0.8.22](https://github.com/warpech/jquery-handsontable/tree/v0.8.22) (Apr 29, 2013)
 
