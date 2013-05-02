@@ -2271,7 +2271,8 @@ var settings = {
   'currentColClassName': void 0,
   'stretchH': 'hybrid',
   isEmptyRow: void 0,
-  isEmptyCol: void 0
+  isEmptyCol: void 0,
+  observeDOMVisibility: true
 };
 
 $.fn.handsontable = function (action) {

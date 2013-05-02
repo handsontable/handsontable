@@ -34,9 +34,34 @@ function Walkontable(settings) {
   }
 
   this.drawn = false;
+  this.drawInterrupted = false;
 }
 
+Walkontable.prototype.isVisible = function () {
+  var next = this.wtTable.TABLE;
+  while (next !== document.documentElement) {
+    if (next === null) {
+      return false;
+    }
+    else if (next.style.display === 'none') {
+      return false;
+    }
+    else if (this.wtTable.TABLE.parentNode.clientWidth === 0) {
+      return false; //this is the technique used by jQuery is(':visible')
+    }
+    next = next.parentNode;
+  }
+  return true;
+};
+
 Walkontable.prototype.draw = function (selectionsOnly) {
+  this.drawInterrupted = false;
+  if (!selectionsOnly && !this.isVisible()) {
+    this.drawInterrupted = true; //draw interrupted because TABLE is not visible
+    return;
+  }
+
+  this.getSetting('beforeDraw', !selectionsOnly);
   selectionsOnly = selectionsOnly && this.getSetting('offsetRow') === this.lastOffsetRow && this.getSetting('offsetColumn') === this.lastOffsetColumn;
   if (this.drawn) {
     this.scrollVertical(0);

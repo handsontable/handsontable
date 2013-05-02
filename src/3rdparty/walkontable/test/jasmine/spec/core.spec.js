@@ -1,4 +1,4 @@
-describe('Walkontable', function () {
+describe('WalkontableCore', function () {
   var $table
     , debug = false;
 
@@ -137,5 +137,41 @@ describe('Walkontable', function () {
     });
     wt.draw();
     expect($table.find('tbody tr:first td').length).toBe(2);
+  });
+
+  it("should not render table that is removed from DOM", function () {
+    $table.remove();
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      offsetRow: 0,
+      offsetColumn: 0,
+      width: 100
+    });
+    wt.draw();
+    expect(wt.drawn).toBe(false);
+    expect(wt.drawInterrupted).toBe(true);
+  });
+
+  it("should not render table that is `display: none`", function () {
+    var $div = $('<div style="display: none"></div>').appendTo('body');
+    $div.append($table);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      offsetRow: 0,
+      offsetColumn: 0,
+      width: 100
+    });
+    wt.draw();
+    expect(wt.drawn).toBe(false);
+    expect(wt.drawInterrupted).toBe(true);
+
+    $div.remove();
   });
 });

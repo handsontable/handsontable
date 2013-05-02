@@ -465,11 +465,11 @@ WalkontableTable.prototype.getCoords = function (TD) {
 };
 
 WalkontableTable.prototype.countVisibleRows = function () {
-  return this.rowStrategy.cellCount;
+  return (this.rowStrategy && this.rowStrategy.cellCount) || 0;
 };
 
 WalkontableTable.prototype.countVisibleColumns = function () {
-  return this.columnStrategy.cellCount;
+  return (this.columnStrategy && this.columnStrategy.cellCount) || 0;
 };
 
 WalkontableTable.prototype.getLastVisibleRow = function () {

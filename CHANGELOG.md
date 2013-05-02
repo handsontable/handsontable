@@ -1,5 +1,9 @@
 ## HEAD
 
+Features:
+- Handsontable will not be rendered if the container is not attached to DOM or it's style is `display: none`
+- new configuration option `observeDOMVisibility` (default `true`) will attempt to rerender it once it is attached to DOM or style changed to `display: block`
+
 Bugfixes:
 - Backbone Collections throw error in loadData (#606)
 - auto column size did not consider CSS style of each instance separately

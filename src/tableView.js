@@ -236,6 +236,9 @@ Handsontable.TableView = function (instance) {
     },
     onCellCornerDblClick: function () {
       instance.autofill.selectAdjacent();
+    },
+    beforeDraw: function (force) {
+      that.beforeRender(force);
     }
   };
 
@@ -262,6 +265,15 @@ Handsontable.TableView = function (instance) {
       event.stopPropagation();
     }
   });
+
+  $documentElement.on('click.' + instance.guid, function () {
+    if (that.settings.observeDOMVisibility) {
+      if (that.wt.drawInterrupted) {
+        that.instance.forceFullRender = true;
+        that.render();
+      }
+    }
+  });
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {
@@ -278,12 +290,15 @@ Handsontable.TableView.prototype.getHeight = function () {
   return typeof val === 'function' ? val() : val;
 };
 
-Handsontable.TableView.prototype.render = function () {
-  if (this.instance.forceFullRender) {
+Handsontable.TableView.prototype.beforeRender = function (force) {
+  if (force) {
     Handsontable.PluginHooks.run(this.instance, 'beforeRender');
     this.wt.update('width', this.getWidth());
     this.wt.update('height', this.getHeight());
   }
+};
+
+Handsontable.TableView.prototype.render = function () {
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.rootElement.triggerHandler('render.handsontable');
   if (this.instance.forceFullRender) {
