@@ -71,6 +71,7 @@ HandsontableHandsontableEditorClass.prototype.beginEditing = function (row, col,
 
   HandsontableTextEditorClass.prototype.beginEditing.call(this, row, col, prop, useOriginalValue, suffix);
 
+  this.$htContainer.handsontable('render');
   this.$htContainer.handsontable('selectCell', 0, 0);
 };
 
