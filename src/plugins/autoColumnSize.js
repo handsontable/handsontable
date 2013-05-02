@@ -1,68 +1,71 @@
-/**
- * This plugin determines the optimal column size for the data that's inside it
- * @constructor
- */
 function HandsontableAutoColumnSize() {
   var that = this
     , instance
-    , tmp
-    , tmpStyle
-    , $tmp
-    , tmpTbody
-    , tmpTbodyTd
-    , tmpThead
-    , tmpTheadStyle
-    , tmpTheadTh
-    , tmpNoRenderer
-    , tmpNoRendererTd
-    , tmpRenderer
-    , tmpRendererTd
     , sampleCount = 5; //number of samples to take of each value length
 
   this.beforeInit = function () {
     this.autoColumnWidths = [];
+    this.autoColumnSizeTmp = {
+      thead: null,
+      theadTh: null,
+      theadStyle: null,
+      tbody: null,
+      tbodyTd: null,
+      noRenderer: null,
+      noRendererTd: null,
+      renderer: null,
+      rendererTd: null,
+      container: null,
+      containerStyle: null,
+      $container: null,
+      $noRenderer: null,
+      $renderer: null
+    };
   };
 
   this.determineColumnWidth = function (col) {
-    if (!tmp) {
+    var tmp = instance.autoColumnSizeTmp
+      , d;
 
-      var d = document;
+    if (!tmp.container) {
+      d = document;
 
-      tmpThead = d.createElement('table');
-      tmpThead.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(d.createElement('th'));
-      tmpTheadTh = tmpThead.getElementsByTagName('th')[0];
+      tmp.thead = d.createElement('table');
+      tmp.thead.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(d.createElement('th'));
+      tmp.theadTh = tmp.thead.getElementsByTagName('th')[0];
 
-      tmpThead.className = 'htTable';
-      tmpTheadStyle = tmpThead.style;
-      tmpTheadStyle.tableLayout = 'auto';
-      tmpTheadStyle.width = 'auto';
+      tmp.thead.className = 'htTable';
+      tmp.theadStyle = tmp.thead.style;
+      tmp.theadStyle.tableLayout = 'auto';
+      tmp.theadStyle.width = 'auto';
 
-      tmpTbody = tmpThead.cloneNode(false);
-      tmpTbody.appendChild(d.createElement('tbody')).appendChild(d.createElement('tr')).appendChild(d.createElement('td'));
-      tmpTbodyTd = tmpTbody.getElementsByTagName('td')[0];
+      tmp.tbody = tmp.thead.cloneNode(false);
+      tmp.tbody.appendChild(d.createElement('tbody')).appendChild(d.createElement('tr')).appendChild(d.createElement('td'));
+      tmp.tbodyTd = tmp.tbody.getElementsByTagName('td')[0];
 
-      tmpNoRenderer = tmpTbody.cloneNode(true);
-      tmpNoRendererTd = tmpNoRenderer.getElementsByTagName('td')[0];
+      tmp.noRenderer = tmp.tbody.cloneNode(true);
+      tmp.noRendererTd = tmp.noRenderer.getElementsByTagName('td')[0];
 
-      tmpRenderer = tmpTbody.cloneNode(true);
-      tmpRendererTd = tmpRenderer.getElementsByTagName('td')[0];
+      tmp.renderer = tmp.tbody.cloneNode(true);
+      tmp.rendererTd = tmp.renderer.getElementsByTagName('td')[0];
 
-      tmp = d.createElement('div');
-      tmp.className = 'handsontable hidden';
-      tmpStyle = tmp.style;
+      tmp.container = d.createElement('div');
+      tmp.container.className = instance.rootElement[0].className + ' hidden';
+      tmp.containerStyle = tmp.container.style;
 
-      tmp.appendChild(tmpThead);
-      tmp.appendChild(tmpTbody);
-      tmp.appendChild(tmpNoRenderer);
-      tmp.appendChild(tmpRenderer);
+      tmp.container.appendChild(tmp.thead);
+      tmp.container.appendChild(tmp.tbody);
+      tmp.container.appendChild(tmp.noRenderer);
+      tmp.container.appendChild(tmp.renderer);
 
-      $tmp = $(tmp);
+      tmp.$container = $(tmp.container);
+      tmp.$noRenderer = $(tmp.noRenderer);
+      tmp.$renderer = $(tmp.renderer);
 
-      tmpNoRenderer = $tmp.children().eq(2);
-      tmpRenderer = $tmp.children().eq(3);
-
-      instance.rootElement[0].parentNode.appendChild(tmp);
+      instance.rootElement[0].parentNode.appendChild(tmp.container);
     }
+
+    tmp.container.className = instance.rootElement[0].className + ' hidden';
 
     var rows = instance.countRows();
     var samples = {};
@@ -87,7 +90,7 @@ function HandsontableAutoColumnSize() {
 
     var settings = instance.getSettings();
     if (settings.colHeaders) {
-      instance.view.appendColHeader(col, tmpTheadTh); //TH innerHTML
+      instance.view.appendColHeader(col, tmp.theadTh); //TH innerHTML
     }
 
     var txt = '';
@@ -98,27 +101,27 @@ function HandsontableAutoColumnSize() {
         }
       }
     }
-    tmpTbodyTd.innerHTML = txt; //TD innerHTML
+    tmp.tbodyTd.innerHTML = txt; //TD innerHTML
 
-    instance.view.wt.wtDom.empty(tmpRendererTd);
-    instance.view.wt.wtDom.empty(tmpNoRendererTd);
+    instance.view.wt.wtDom.empty(tmp.rendererTd);
+    instance.view.wt.wtDom.empty(tmp.noRendererTd);
 
-    tmpStyle.display = 'block';
+    tmp.containerStyle.display = 'block';
 
-    var width = $tmp.outerWidth();
+    var width = tmp.$container.outerWidth();
 
     var cellProperties = instance.getCellMeta(0, col);
     if (cellProperties.renderer) {
       var str = 9999999999;
 
-      tmpNoRendererTd.appendChild(document.createTextNode(str));
+      tmp.noRendererTd.appendChild(document.createTextNode(str));
 
-      cellProperties.renderer(instance, tmpRendererTd, 0, col, instance.colToProp(col), str, cellProperties);
+      cellProperties.renderer(instance, tmp.rendererTd, 0, col, instance.colToProp(col), str, cellProperties);
 
-      width += tmpRenderer.width() - tmpNoRenderer.width(); //add renderer overhead to the calculated width
+      width += tmp.$renderer.width() - tmp.$noRenderer.width(); //add renderer overhead to the calculated width
     }
 
-    tmpStyle.display = 'none';
+    tmp.containerStyle.display = 'none';
 
     return width;
   };
