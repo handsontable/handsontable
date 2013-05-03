@@ -1,4 +1,4 @@
-## HEAD
+## [0.8.23](https://github.com/warpech/jquery-handsontable/tree/v0.8.23) (May 3, 2013)
 
 Features:
 - Handsontable will not be rendered if the container is not attached to DOM or it's style is `display: none`
