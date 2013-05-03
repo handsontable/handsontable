@@ -5,9 +5,9 @@ Features:
 - new configuration option `observeDOMVisibility` (default `true`) will attempt to rerender it once it is attached to DOM or style changed to `display: block`
 
 Bugfixes:
-- Backbone Collections throw error in loadData (#606)
+- Backbone Collections throw error in loadData ([#606](https://github.com/warpech/jquery-handsontable/issues/606))
 - auto column size did not consider CSS style of each instance separately
-- vertical mousewheel scrolling does not work without horizontal scrollbar (#541)
+- vertical mousewheel scrolling does not work without horizontal scrollbar ([#541](https://github.com/warpech/jquery-handsontable/issues/541))
 
 ## [0.8.22](https://github.com/warpech/jquery-handsontable/tree/v0.8.22) (Apr 29, 2013)
 
