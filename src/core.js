@@ -209,18 +209,18 @@ Handsontable.Core = function (rootElement, settings) {
       if (priv.dataType === 'object' || priv.settings.columns) {
         throw new Error("Cannot create new column. When data source in an object, you can only have as much columns as defined in first data row, data schema or in the 'columns' setting");
       }
-      var r = 0, rlen = self.countRows();
+      var r = 0, rlen = self.countRows(), data = priv.settings.data;
       if (typeof index !== 'number' || index >= self.countCols()) {
         for (; r < rlen; r++) {
-          if (typeof priv.settings.data[r] === 'undefined') {
-            priv.settings.data[r] = [];
+          if (typeof data[r] === 'undefined') {
+            data[r] = [];
           }
-          priv.settings.data[r].push('');
+          data[r].push('');
         }
       }
       else {
         for (; r < rlen; r++) {
-          priv.settings.data[r].splice(index, 0, '');
+          data[r].splice(index, 0, '');
         }
       }
       self.runHooks('afterCreateCol', index);
@@ -259,11 +259,61 @@ Handsontable.Core = function (rootElement, settings) {
       if (typeof index !== 'number') {
         index = -amount;
       }
+      var data = priv.settings.data;
       for (var r = 0, rlen = self.countRows(); r < rlen; r++) {
-        priv.settings.data[r].splice(index, amount);
+        data[r].splice(index, amount);
       }
       self.runHooks('afterRemoveCol', index, amount);
       self.forceFullRender = true; //used when data was changed
+    },
+
+    /**
+     * Add / removes data from the column
+     * @param {Number} [col] Index of column in which do you want to do splice.
+     * @param {Number} [index] Index at which to start changing the array. If negative, will begin that many elements from the end
+     * @param {Number} [amount] An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
+     * @param {Mixed} [elements] Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
+     */
+    spliceCol: function (col, index, amount/*, elements... */) {
+      var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : []
+        , before   = []
+        , removed  = []
+        , after    = []
+        , result   = []
+        , data   = priv.settings.data
+        , diff   = elements.length - amount
+        , split  = index + amount
+        , length = data.length
+        , r = 0;
+
+
+      for (; r < length; r++) {
+        if (r < index) {
+          before.push(data[r][col]);
+        }
+        else if (r >= split) {
+          after.push(data[r][col]);
+        }
+        else {
+          removed.push(data[r][col]);
+        }
+      }
+
+      result = before.concat(elements, after);
+
+      if (diff > 0) {
+        length += diff;
+        self.alter('insert_row', null, diff, 'spliceCol');
+      }
+
+      for (r = 0; r < length; r++) {
+        data[r][col] = typeof result[r] !== "undefined" ? result[r] : null;
+      }
+
+      self.forceFullRender = true; //used when data was changed
+      selection.refreshBorders();
+
+      return removed;
     },
 
     /**
@@ -1200,8 +1250,12 @@ Handsontable.Core = function (rootElement, settings) {
 
             case 8: /* backspace */
             case 46: /* delete */
-              selection.empty(event);
-              event.preventDefault();
+              if (priv.settings.onDeleteDown) {
+                priv.settings.onDeleteDown(event);
+              } else {
+                selection.empty(event);
+                event.preventDefault();
+              }
               break;
 
             case 40: /* arrow down */
@@ -1220,14 +1274,20 @@ Handsontable.Core = function (rootElement, settings) {
               break;
 
             case 13: /* return/enter */
-              var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
-              if (event.shiftKey) {
-                selection.transformStart(-enterMoves.row, -enterMoves.col); //move selection up
+              if (priv.settings.onEnterDown) {
+                priv.settings.onEnterDown(event);
+              } else {
+                var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
+
+                if (event.shiftKey) {
+                  selection.transformStart(-enterMoves.row, -enterMoves.col); //move selection up
+                }
+                else {
+                  selection.transformStart(enterMoves.row, enterMoves.col, true); //move selection down (add a new row if needed)
+                }
+
+                event.preventDefault(); //don't add newline to field
               }
-              else {
-                selection.transformStart(enterMoves.row, enterMoves.col, true); //move selection down (add a new row if needed)
-              }
-              event.preventDefault(); //don't add newline to field
               break;
 
             case 36: /* home */
@@ -1564,6 +1624,17 @@ Handsontable.Core = function (rootElement, settings) {
    */
   this.populateFromArray = function (start, input, end, source) {
     return grid.populateFromArray(start, input, end, source);
+  };
+
+  /**
+   * Add / removes data from the column
+   * @param {Number} [col] Index of column in which do you want to do splice.
+   * @param {Number} [index] Index at which to start changing the array. If negative, will begin that many elements from the end
+   * @param {Number} [amount] An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
+   * @param {Mixed} [elements] Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
+   */
+  this.spliceCol = function (col, index, amount/*, elements... */) {
+    return datamap.spliceCol.apply(null, arguments);
   };
 
   /**
