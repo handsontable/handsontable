@@ -19,31 +19,37 @@ WalkontableScroll.prototype.scrollVertical = function (delta) {
   }
 
   var instance = this.instance
+    , newOffset
     , offset = instance.getSetting('offsetRow')
     , fixedCount = instance.getSetting('fixedRowsTop')
     , total = instance.getSetting('totalRows')
     , maxSize = (instance.getSetting('height') || Infinity); //Infinity is needed, otherwise you could scroll a table that did not have height specified
 
-  if(maxSize !== Infinity) {
-    var TD = instance.wtTable.TBODY.firstChild.firstChild;
-    if (TD.nodeName === 'TH') {
-      TD = TD.nextSibling;
-    }
-    var cellOffset = instance.wtDom.offset(TD);
-    var tableOffset = instance.wtTable.tableOffset;
+  if (total > 0) {
+    if (maxSize !== Infinity) {
+      var TD = instance.wtTable.TBODY.firstChild.firstChild;
+      if (TD.nodeName === 'TH') {
+        TD = TD.nextSibling;
+      }
+      var cellOffset = instance.wtDom.offset(TD);
+      var tableOffset = instance.wtTable.tableOffset;
 
-    maxSize -= cellOffset.top - tableOffset.top; //column header height
-    maxSize -= instance.getSetting('scrollbarHeight');
+      maxSize -= cellOffset.top - tableOffset.top; //column header height
+      maxSize -= instance.getSetting('scrollbarHeight');
+    }
+
+    newOffset = this.scrollLogic(delta, offset, total, fixedCount, maxSize, function (row) {
+      if (row - offset < fixedCount) {
+        return instance.getSetting('rowHeight', row - offset);
+      }
+      else {
+        return instance.getSetting('rowHeight', row);
+      }
+    });
   }
-
-  var newOffset = this.scrollLogic(delta, offset, total, fixedCount, maxSize, function (row) {
-    if (row - offset < fixedCount) {
-      return instance.getSetting('rowHeight', row - offset);
-    }
-    else {
-      return instance.getSetting('rowHeight', row);
-    }
-  });
+  else {
+    newOffset = 0;
+  }
 
   if (newOffset !== offset) {
     instance.update('offsetRow', newOffset);
@@ -57,19 +63,25 @@ WalkontableScroll.prototype.scrollHorizontal = function (delta) {
   }
 
   var instance = this.instance
+    , newOffset
     , offset = instance.getSetting('offsetColumn')
     , fixedCount = instance.getSetting('fixedColumnsLeft')
     , total = instance.getSetting('totalColumns')
     , maxSize = instance.getSetting('width') - instance.getSetting('rowHeaderWidth');
 
-  var newOffset = this.scrollLogic(delta, offset, total, fixedCount, maxSize, function (col) {
-    if (col - offset < fixedCount) {
-      return instance.getSetting('columnWidth', col - offset);
-    }
-    else {
-      return instance.getSetting('columnWidth', col);
-    }
-  });
+  if (total > 0) {
+    newOffset = this.scrollLogic(delta, offset, total, fixedCount, maxSize, function (col) {
+      if (col - offset < fixedCount) {
+        return instance.getSetting('columnWidth', col - offset);
+      }
+      else {
+        return instance.getSetting('columnWidth', col);
+      }
+    });
+  }
+  else {
+    newOffset = 0;
+  }
 
   if (newOffset !== offset) {
     instance.update('offsetColumn', newOffset);

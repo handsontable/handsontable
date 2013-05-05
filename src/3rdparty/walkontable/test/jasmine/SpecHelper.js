@@ -4,8 +4,8 @@ var spec = function () {
 
 var createDataArray = function (rows, cols) {
   spec().data = [];
-  rows = rows || 100;
-  cols = cols || 4;
+  rows = typeof rows === 'number' ? rows : 100;
+  cols = typeof cols === 'number' ? cols : 4;
   for (var i = 0; i < rows; i++) {
     var row = [i];
     for (var j = 0; j < cols - 1; j++) {
@@ -24,7 +24,7 @@ var getTotalRows = function () {
 };
 
 var getTotalColumns = function () {
-  return spec().data[0].length;
+  return spec().data[0] ? spec().data[0].length : 0;
 };
 
 beforeEach(function () {
