@@ -3,6 +3,7 @@ function HandsontableManualColumnResize() {
     , currentCol
     , currentWidth
     , instance
+    , newSize
     , start
     , startX
     , startWidth
@@ -24,7 +25,7 @@ function HandsontableManualColumnResize() {
   $(document).mousemove(function (e) {
     if (pressed) {
       currentWidth = startWidth + (e.pageX - startX);
-      setManualSize(currentCol, currentWidth); //save col width
+      newSize = setManualSize(currentCol, currentWidth); //save col width
       lineStyle.left = startOffset + currentWidth - 1 + 'px';
       if (lineStyle.display === 'none') {
         lineStyle.display = 'block';
@@ -39,12 +40,14 @@ function HandsontableManualColumnResize() {
       instance.forceFullRender = true;
       instance.view.render(); //updates all
       lineStyle.display = 'none';
+      instance.runHooks('afterColumnResize', currentCol, newSize);
     }
   });
 
   $(document).dblclick(function (e) {
     if ($(e.target).is('.manualColumnResizer')) {
       setManualSize(currentCol, htAutoColumnSize.determineColumnWidth.call(instance, currentCol));
+      instance.runHooks('afterColumnResize', currentCol, newSize);
     }
   });
 
@@ -82,6 +85,7 @@ function HandsontableManualColumnResize() {
     width = Math.max(width, 20);
     width = Math.min(width, 500);
     instance.manualColumnWidths[col] = width;
+    return width;
   };
 
   this.getColHeader = function (col, TH) {
@@ -101,7 +105,7 @@ function HandsontableManualColumnResize() {
 }
 var htManualColumnResize = new HandsontableManualColumnResize();
 
-Handsontable.PluginHooks.push('beforeInit', htManualColumnResize.beforeInit);
-Handsontable.PluginHooks.push('afterInit', htManualColumnResize.afterInit);
-Handsontable.PluginHooks.push('afterGetColHeader', htManualColumnResize.getColHeader);
-Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWidth);
+Handsontable.PluginHooks.add('beforeInit', htManualColumnResize.beforeInit);
+Handsontable.PluginHooks.add('afterInit', htManualColumnResize.afterInit);
+Handsontable.PluginHooks.add('afterGetColHeader', htManualColumnResize.getColHeader);
+Handsontable.PluginHooks.add('afterGetColWidth', htManualColumnResize.getColWidth);

@@ -217,6 +217,7 @@ var handsontableMethodFactory = function (method) {
   }
 };
 
+var getInstance = handsontableMethodFactory('getInstance');
 var selectCell = handsontableMethodFactory('selectCell');
 var deselectCell = handsontableMethodFactory('deselectCell');
 var getSelected = handsontableMethodFactory('getSelected');

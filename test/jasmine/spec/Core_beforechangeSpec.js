@@ -12,13 +12,13 @@ describe('Core_beforechange', function () {
     }
   });
 
-  it('this should point to handsontable rootElement', function () {
+  it('this.rootElement should point to handsontable rootElement', function () {
     var output = null;
 
     runs(function () {
       handsontable({
         onBeforeChange: function () {
-          output = this;
+          output = this.rootElement[0];
         }
       });
       setDataAtCell(0, 0, "test");
@@ -29,7 +29,7 @@ describe('Core_beforechange', function () {
     }, "onBeforeChange callback called", 100);
 
     runs(function () {
-      expect(output).toEqual(this.$container.get(0));
+      expect(output).toEqual(this.$container[0]);
     });
   });
 

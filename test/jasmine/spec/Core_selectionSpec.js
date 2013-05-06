@@ -39,7 +39,7 @@ describe('Core_selection', function () {
 
     runs(function () {
       handsontable();
-      this.$container.on("selection.handsontable", function (event, r, c) {
+      Handsontable.PluginHooks.add('onSelection', function (r, c) {
         output = [r, c];
       });
       selectCell(1, 2);
@@ -55,13 +55,13 @@ describe('Core_selection', function () {
     });
   });
 
-  it('this should point to handsontable rootElement (onSelection)', function () {
+  it('this.rootElement should point to handsontable rootElement (onSelection)', function () {
     var output = null;
 
     runs(function () {
       handsontable({
         onSelection: function () {
-          output = this;
+          output = this.rootElement[0];
         }
       });
       selectCell(0, 0);
@@ -72,17 +72,17 @@ describe('Core_selection', function () {
     }, "onSelection callback called", 100);
 
     runs(function () {
-      expect(output).toEqual(this.$container.get(0));
+      expect(output).toEqual(this.$container[0]);
     });
   });
 
-  it('this should point to handsontable rootElement (onSelectionByProp)', function () {
+  it('this.rootElement should point to handsontable rootElement (onSelectionByProp)', function () {
     var output = null;
 
     runs(function () {
       handsontable({
         onSelectionByProp: function () {
-          output = this;
+          output = this.rootElement[0];
         }
       });
       selectCell(0, 0);
@@ -93,7 +93,7 @@ describe('Core_selection', function () {
     }, "onSelectionByProp callback called", 100);
 
     runs(function () {
-      expect(output).toEqual(this.$container.get(0));
+      expect(output).toEqual(this.$container[0]);
     });
   });
 

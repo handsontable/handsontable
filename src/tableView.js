@@ -292,7 +292,7 @@ Handsontable.TableView.prototype.getHeight = function () {
 
 Handsontable.TableView.prototype.beforeRender = function (force) {
   if (force) {
-    Handsontable.PluginHooks.run(this.instance, 'beforeRender');
+    instance.runHooks('beforeRender');
     this.wt.update('width', this.getWidth());
     this.wt.update('height', this.getHeight());
   }
@@ -302,7 +302,7 @@ Handsontable.TableView.prototype.render = function () {
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.rootElement.triggerHandler('render.handsontable');
   if (this.instance.forceFullRender) {
-    Handsontable.PluginHooks.run(this.instance, 'afterRender');
+   instance.runHooks('afterRender');
   }
   this.instance.forceFullRender = false;
 };
@@ -364,5 +364,5 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
     TH.removeChild(TH.firstChild); //empty TH node
   }
   TH.appendChild(DIV);
-  Handsontable.PluginHooks.run(this.instance, 'afterGetColHeader', col, TH);
+  this.instance.runHooks('afterGetColHeader', col, TH);
 };
