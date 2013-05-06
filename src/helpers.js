@@ -111,6 +111,19 @@ Handsontable.helper.inherit = function (Child, Parent) {
 };
 
 /**
+ * Perform shallow extend of a target object with extension's own properties
+ * @param {Object} target An object that will receive the new properties
+ * @param {Object} extension An object containing additional properties to merge into the target
+ */
+Handsontable.helper.extend = function (target, extension) {
+  for (var i in extension) {
+    if (extension.hasOwnProperty(i)) {
+      target[i] = extension[i];
+    }
+  }
+};
+
+/**
  * Factory for columns constructors.
  * @param {Object} GridSettings
  * @param {Array} conflictList

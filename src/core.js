@@ -12,17 +12,11 @@ Handsontable.Core = function (rootElement, userSettings) {
     , editproxy
     , autofill
     , self = this
-    , i
-    , settingsConstructor = function () {
+    , GridSettings = function () {
     };
 
-  Handsontable.helper.inherit(settingsConstructor, defaultsConstructor);
-
-  for (i in userSettings) {
-    if (userSettings.hasOwnProperty(i)) {
-      settingsConstructor.prototype[i] = userSettings[i];
-    }
-  }
+  Handsontable.helper.inherit(GridSettings, DefaultSettings); //create grid settings as a copy of default settings
+  Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
 
   this.rootElement = rootElement;
   this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
@@ -32,10 +26,9 @@ Handsontable.Core = function (rootElement, userSettings) {
   }
 
   priv = {
-    settingsConstructor: settingsConstructor, // save settings class for inheritance
-    columnsConstructor: [],
+    columnSettings: [],
     columnsSettingConflicts: ['data', 'width'],
-    settings: new settingsConstructor(), // current settings instance
+    settings: new GridSettings(), // current settings instance
     settingsFromDOM: {},
     selStart: (new Handsontable.SelectionPoint()),
     selEnd: (new Handsontable.SelectionPoint()),
@@ -175,10 +168,10 @@ Handsontable.Core = function (rootElement, userSettings) {
         priv.settings.onCreateRow(index, row);
       }
       if (index === rowCount) {
-        priv.settingsConstructor.prototype.data.push(row);
+        GridSettings.prototype.data.push(row);
       }
       else {
-        priv.settingsConstructor.prototype.data.splice(index, 0, row);
+        GridSettings.prototype.data.splice(index, 0, row);
       }
       self.forceFullRender = true; //used when data was changed
     },
@@ -192,24 +185,24 @@ Handsontable.Core = function (rootElement, userSettings) {
         throw new Error("Cannot create new column. When data source in an object, you can only have as much columns as defined in first data row, data schema or in the 'columns' setting");
       }
       var r = 0, rlen = self.countRows()
-        , constructor = Handsontable.helper.columnFactory(priv.settingsConstructor, priv.columnsSettingConflicts, Handsontable.TextCell);
+        , constructor = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
 
       if (typeof index !== 'number' || index >= self.countCols()) {
         for (; r < rlen; r++) {
           if (typeof priv.settings.data[r] === 'undefined') {
-            priv.settingsConstructor.prototype.data[r] = [];
+            GridSettings.prototype.data[r] = [];
           }
-          priv.settingsConstructor.prototype.data[r].push('');
+          GridSettings.prototype.data[r].push('');
         }
         // Add new column constructor
-        priv.columnsConstructor.push(constructor);
+        priv.columnSettings.push(constructor);
       }
       else {
         for (; r < rlen; r++) {
-          priv.settingsConstructor.prototype.data[r].splice(index, 0, '');
+          GridSettings.prototype.data[r].splice(index, 0, '');
         }
         // Add new column constructor at given index
-        priv.columnsConstructor.splice(index, 0, constructor);
+        priv.columnSettings.splice(index, 0, constructor);
       }
       self.forceFullRender = true; //used when data was changed
     },
@@ -226,7 +219,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (typeof index !== 'number') {
         index = -amount;
       }
-      priv.settingsConstructor.prototype.data.splice(index, amount);
+      GridSettings.prototype.data.splice(index, amount);
       self.forceFullRender = true; //used when data was changed
     },
 
@@ -246,9 +239,9 @@ Handsontable.Core = function (rootElement, userSettings) {
         index = -amount;
       }
       for (var r = 0, rlen = self.countRows(); r < rlen; r++) {
-        priv.settingsConstructor.prototype.data[r].splice(index, amount);
+        GridSettings.prototype.data[r].splice(index, amount);
       }
-      priv.columnsConstructor.splice(index, amount);
+      priv.columnSettings.splice(index, amount);
       self.forceFullRender = true; //used when data was changed
     },
 
@@ -1656,7 +1649,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
 
     priv.isPopulated = false;
-    priv.settingsConstructor.prototype.data = data;
+    GridSettings.prototype.data = data;
 
     if (priv.settings.dataSchema instanceof Array || data[0]  instanceof Array) {
       priv.dataType = 'array';
@@ -1738,7 +1731,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         }
         else if (settings.hasOwnProperty(i)) {
           // Update settings
-          priv.settingsConstructor.prototype[i] = settings[i];
+          GridSettings.prototype[i] = settings[i];
           //launch extensions
           if (Handsontable.extension[i]) {
             priv.extensions[i] = new Handsontable.extension[i](self, settings[i]);
@@ -1774,10 +1767,10 @@ Handsontable.Core = function (rootElement, userSettings) {
       var prop, proto, column;
 
       for (i = 0; i < clen; i++) {
-        priv.columnsConstructor[i] = Handsontable.helper.columnFactory(priv.settingsConstructor, priv.columnsSettingConflicts, Handsontable.TextCell);
+        priv.columnSettings[i] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
 
         // shortcut for prototype
-        proto = priv.columnsConstructor[i].prototype;
+        proto = priv.columnSettings[i].prototype;
 
         // Use settings provided by user
         if (settings.columns) {
@@ -1951,11 +1944,11 @@ Handsontable.Core = function (rootElement, userSettings) {
       , type
       , i;
 
-    if ("undefined" === typeof priv.columnsConstructor[col]) {
-      priv.columnsConstructor[col] = Handsontable.helper.columnFactory(priv.settingsConstructor, priv.columnsSettingConflicts, Handsontable.TextCell);
+    if ("undefined" === typeof priv.columnSettings[col]) {
+      priv.columnSettings[col] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
     }
 
-    cellConstructor.prototype = new priv.columnsConstructor[col]();
+    cellConstructor.prototype = new priv.columnSettings[col]();
 
     if (priv.settings.cells) {
       var settings = priv.settings.cells(row, col, prop) || {}
@@ -2324,9 +2317,9 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.version = '@@version'; //inserted by grunt from package.json
 };
 
-var defaultsConstructor = function () {
+var DefaultSettings = function () {
 };
-defaultsConstructor.prototype = {
+DefaultSettings.prototype = {
   data: void 0,
   width: void 0,
   height: void 0,
