@@ -2501,7 +2501,7 @@ $.fn.handsontable = function (action) {
 
     if (instance) {
       if (typeof instance[action] !== 'undefined') {
-        output = instance[action].apply(this, args);
+        output = instance[action].apply(instance, args);
       }
       else {
         throw new Error('Handsontable do not provide action: ' + action);
