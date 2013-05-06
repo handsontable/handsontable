@@ -2344,7 +2344,6 @@ DefaultSettings.prototype = {
   copyColsLimit: 1000,
   currentRowClassName: void 0,
   currentColClassName: void 0,
-  asyncRendering: true,
   stretchH: 'hybrid',
   isEmptyRow: void 0,
   isEmptyCol: void 0,
