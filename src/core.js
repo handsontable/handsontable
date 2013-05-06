@@ -30,8 +30,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     columnsSettingConflicts: ['data', 'width'],
     settings: new GridSettings(), // current settings instance
     settingsFromDOM: {},
-    selStart: (new Handsontable.SelectionPoint()),
-    selEnd: (new Handsontable.SelectionPoint()),
+    selStart: new Handsontable.SelectionPoint(),
+    selEnd: new Handsontable.SelectionPoint(),
     editProxy: false,
     isPopulated: null,
     scrollable: null,
