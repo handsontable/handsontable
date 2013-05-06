@@ -1747,7 +1747,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         continue; //loadData will be triggered later
       }
       else {
-        if (typeof hooks[i] !== 'undefined' || typeof eventMap[i] !== 'undefined') {
+        if (hooks[i] !== void 0 || eventMap[i] !== void 0) {
           self.addHook(i, settings[i]);
         }
         else {
