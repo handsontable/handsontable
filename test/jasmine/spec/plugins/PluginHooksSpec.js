@@ -108,8 +108,23 @@ describe('PluginHooks', function () {
     handsontable();
 
     getInstance().addHook('myHook', function () {
-      test = 5;
+      test += 5;
     });
+    getInstance().runHooks('myHook');
+    getInstance().runHooks('myHook');
+
+    expect(test).toEqual(10);
+  });
+
+  it('should run local hook once', function () {
+    var test = 0;
+
+    handsontable();
+
+    getInstance().addOnceHook('myHook', function () {
+      test += 5;
+    });
+    getInstance().runHooks('myHook');
     getInstance().runHooks('myHook');
 
     expect(test).toEqual(5);
