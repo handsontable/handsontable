@@ -109,3 +109,30 @@ Handsontable.helper.inherit = function (Child, Parent) {
   Child.prototype.constructor = Child;
   return Child;
 };
+
+/**
+ * Factory for columns constructors.
+ * @param  {Object} Child  child class
+ * @param  {Object} Parent parent class
+ * @return {Object}        extended Child
+ */
+Handsontable.helper.columnFactory = function (settings, conflictList, defaultCell) {
+  var i = 0, len = conflictList.length, constructor = function () {};
+
+  // Inherit prototype from settings
+  constructor.prototype = new settings();
+
+  // Clear conflict settings
+  for (; i < len; i++) {
+    constructor.prototype[conflictList[i]] = void 0;
+  }
+
+  // Inherit settings from default (text) cell
+  for (i in defaultCell) {
+    if (defaultCell.hasOwnProperty(i)) {
+      constructor.prototype[i] = defaultCell[i];
+    }
+  }
+
+  return constructor;
+};
