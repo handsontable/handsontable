@@ -1,18 +1,35 @@
 /**
  * Handsontable constructor
  * @param rootElement The jQuery element in which Handsontable DOM will be inserted
- * @param settings
+ * @param userSettings
  * @constructor
  */
-Handsontable.Core = function (rootElement, settingsConstructor) {
+Handsontable.Core = function (rootElement, userSettings) {
+  var priv
+    , datamap
+    , grid
+    , selection
+    , editproxy
+    , autofill
+    , self = this
+    , i
+    , settingsConstructor = function () {
+    };
+
+  Handsontable.helper.inherit(settingsConstructor, defaultsConstructor);
+
+  for (i in userSettings) {
+    if (userSettings.hasOwnProperty(i)) {
+      settingsConstructor.prototype[i] = userSettings[i];
+    }
+  }
+
   this.rootElement = rootElement;
   this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
 
   if (!this.rootElement[0].id) {
     this.rootElement[0].id = this.guid; //if root element does not have an id, assign a random id
   }
-
-  var priv, datamap, grid, selection, editproxy, autofill, self = this;
 
   priv = {
     settingsConstructor: settingsConstructor, // save settings class for inheritance
@@ -2350,17 +2367,7 @@ $.fn.handsontable = function (action) {
         instance.updateSettings(userSettings);
       }
       else {
-        var instance, settingsConstructor = function () {};
-
-        Handsontable.helper.inherit(settingsConstructor, defaultsConstructor);
-
-        for (i in userSettings) {
-          if (userSettings.hasOwnProperty(i)) {
-            settingsConstructor.prototype[i] = userSettings[i];
-          }
-        }
-
-        instance = new Handsontable.Core($this, settingsConstructor);
+        var instance = new Handsontable.Core($this, userSettings);
         $this.data("handsontable", instance);
         instance.init();
       }
