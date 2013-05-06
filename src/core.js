@@ -1442,7 +1442,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       return;
     }
 
-    for (;0 <= i; i--) {
+    for (; 0 <= i; i--) {
       if (changes[i] === null) {
         changes.splice(i, 1);
         continue;
@@ -1713,7 +1713,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    */
   this.updateSettings = function (settings, init) {
-    var i;
+    var i, r, rlen, c, clen;
 
     if (typeof settings.rows !== "undefined") {
       throw new Error("'rows' setting is no longer supported. do you mean startRows, minRows or maxRows?");
@@ -1732,28 +1732,28 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
 
     if (!init) {
-    for (i in settings) {
-      if (i === 'data') {
-        continue; //loadData will be triggered later
-      }
-      else if (settings.hasOwnProperty(i)) {
+      for (i in settings) {
+        if (i === 'data') {
+          continue; //loadData will be triggered later
+        }
+        else if (settings.hasOwnProperty(i)) {
           // Update settings
           priv.settingsConstructor.prototype[i] = settings[i];
-        //launch extensions
-        if (Handsontable.extension[i]) {
-          priv.extensions[i] = new Handsontable.extension[i](self, settings[i]);
+          //launch extensions
+          if (Handsontable.extension[i]) {
+            priv.extensions[i] = new Handsontable.extension[i](self, settings[i]);
+          }
         }
       }
-    }
     }
 
     // Load data or create data map
     if (settings.data === void 0 && priv.settings.data === void 0) {
       var data = [];
       var row;
-      for (var r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
+      for (r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
         row = [];
-        for (var c = 0, clen = priv.settings.startCols; c < clen; c++) {
+        for (c = 0, clen = priv.settings.startCols; c < clen; c++) {
           row.push(null);
         }
         data.push(row);
@@ -1768,7 +1768,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
 
     // Init columns constructors configuration
-    var clen = self.countCols();
+    clen = self.countCols();
 
     if (clen > 0) {
       var prop, proto, column;
@@ -1944,7 +1944,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Object}
    */
   this.getCellMeta = function (row, col) {
-    var cellConstructor = function () {}
+    var cellConstructor = function () {
+      }
       , prop = datamap.colToProp(col)
       , cellProperties
       , type
@@ -1963,7 +1964,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       for (key in settings) {
         if (settings.hasOwnProperty(key)) {
           cellConstructor.prototype[key] = settings[key];
-    }
+        }
       }
 
     }
@@ -2323,38 +2324,39 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.version = '@@version'; //inserted by grunt from package.json
 };
 
-var defaultsConstructor = function () {};
-    defaultsConstructor.prototype = {
-      data : void 0,
-      width : void 0,
-      height : void 0,
-      startRows : 5,
-      startCols : 5,
-      minRows : 0,
-      minCols : 0,
-      maxRows : Infinity,
-      maxCols : Infinity,
-      minSpareRows : 0,
-      minSpareCols : 0,
-      multiSelect : true,
-      fillHandle : true,
-      undo : true,
-      outsideClickDeselects : true,
-      enterBeginsEditing : true,
-      enterMoves : {row: 1, col: 0},
-      tabMoves : {row: 0, col: 1},
-      autoWrapRow : false,
-      autoWrapCol : false,
-      copyRowsLimit : 1000,
-      copyColsLimit : 1000,
-      currentRowClassName : void 0,
-      currentColClassName : void 0,
-      asyncRendering : true,
-      stretchH : 'hybrid',
-      isEmptyRow : void 0,
-      isEmptyCol : void 0,
-      observeDOMVisibility: true
-    };
+var defaultsConstructor = function () {
+};
+defaultsConstructor.prototype = {
+  data: void 0,
+  width: void 0,
+  height: void 0,
+  startRows: 5,
+  startCols: 5,
+  minRows: 0,
+  minCols: 0,
+  maxRows: Infinity,
+  maxCols: Infinity,
+  minSpareRows: 0,
+  minSpareCols: 0,
+  multiSelect: true,
+  fillHandle: true,
+  undo: true,
+  outsideClickDeselects: true,
+  enterBeginsEditing: true,
+  enterMoves: {row: 1, col: 0},
+  tabMoves: {row: 0, col: 1},
+  autoWrapRow: false,
+  autoWrapCol: false,
+  copyRowsLimit: 1000,
+  copyColsLimit: 1000,
+  currentRowClassName: void 0,
+  currentColClassName: void 0,
+  asyncRendering: true,
+  stretchH: 'hybrid',
+  isEmptyRow: void 0,
+  isEmptyCol: void 0,
+  observeDOMVisibility: true
+};
 
 $.fn.handsontable = function (action) {
   var i, ilen, args, output = [], userSettings;
