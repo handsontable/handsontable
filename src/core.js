@@ -1742,18 +1742,19 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
 
-    if (!init) {
-      for (i in settings) {
-        if (i === 'data') {
+    for (i in settings) {
+      if (i === 'data') {
         continue; //loadData will be triggered later
       }
-      else if (settings.hasOwnProperty(i)) {
+      else {
         if (i in hooks || i in eventMap) {
           self.addHook(i, settings[i]);
         }
         else {
-           // Update settings
-          GridSettings.prototype[i] = settings[i];
+          // Update settings
+          if (!init && settings.hasOwnProperty(i)) {
+            GridSettings.prototype[i] = settings[i];
+          }
 
           //launch extensions
           if (Handsontable.extension[i]) {
@@ -2480,7 +2481,7 @@ $.fn.handsontable = function (action) {
         instance.updateSettings(userSettings);
       }
       else {
-        var instance = new Handsontable.Core($this, userSettings);
+      var instance = new Handsontable.Core(_this, userSettings);
         _this.data("handsontable", instance);
         instance.init();
       }

@@ -292,7 +292,7 @@ Handsontable.TableView.prototype.getHeight = function () {
 
 Handsontable.TableView.prototype.beforeRender = function (force) {
   if (force) {
-    instance.runHooks('beforeRender');
+    this.instance.runHooks('beforeRender');
     this.wt.update('width', this.getWidth());
     this.wt.update('height', this.getHeight());
   }
@@ -302,7 +302,7 @@ Handsontable.TableView.prototype.render = function () {
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.rootElement.triggerHandler('render.handsontable');
   if (this.instance.forceFullRender) {
-   instance.runHooks('afterRender');
+    this.instance.runHooks('afterRender');
   }
   this.instance.forceFullRender = false;
 };

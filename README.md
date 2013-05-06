@@ -161,8 +161,6 @@ The table below presents configuration options that are interpreted by `handsont
  `onRemoveRow`           | function(`index`, `amount`)        | _undefined_      | Callback is fired when one or more rows are removed. Parameters: <ul><li>`index` is an index of starter row.</li> <li>`amount` is an anount of removed rows.</li></ul>
  `onRemoveCol`           | function(`index`, `amount`)        | _undefined_      | Callback is fired when one or more columns are removed. Parameters: <ul><li>`index` is an index of starter column.</li> <li>`amount` is an anount of removed columns.</li></ul>
 
-
-
 ## Similar projects
 
 I want to stay motivated to keep Handsontable the best possible editable datagrid on the Web. Therefore, I invite you to check out alternative projects. I would love to receive feedback if you would like to import some of their features to Handsontable.
