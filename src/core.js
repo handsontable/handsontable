@@ -1113,7 +1113,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
 
       function onPaste(str) {
-        self.addOnceHook('afterChange', function (changes, source) {
+        self.addHookOnce('afterChange', function (changes, source) {
           if (changes.length) {
             var last = changes[changes.length - 1];
             selection.setRangeEnd({row: last[0], col: self.propToCol(last[1])});
@@ -2348,7 +2348,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * Add 'once run' PluginHook to this instance
    * @public
    */
-  this.addOnceHook = function (key, fn) {
+  this.addHookOnce = function (key, fn) {
     // provide support for old versions of HOT
     if (key in eventMap) {
       key = eventMap[key];

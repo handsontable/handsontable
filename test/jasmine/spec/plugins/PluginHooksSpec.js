@@ -121,7 +121,7 @@ describe('PluginHooks', function () {
 
     handsontable();
 
-    getInstance().addOnceHook('myHook', function () {
+    getInstance().addHookOnce('myHook', function () {
       test += 5;
     });
     getInstance().runHooks('myHook');
