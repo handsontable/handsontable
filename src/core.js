@@ -53,7 +53,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     beforeGet: [],
     beforeSet: [],
     beforeGetCellMeta: [],
-    beforeAutofill : [],
+    beforeAutofill: [],
 
     afterInit: [],
     afterLoadData: [],
@@ -78,10 +78,10 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   eventMap = {
-    onBeforeChange : "beforeChange",
-    onChange       : "afterChange",
-    onCreateRow    : "afterCreateRow",
-    onCreateCol    : "afterCreateCol"
+    onBeforeChange: "beforeChange",
+    onChange: "afterChange",
+    onCreateRow: "afterCreateRow",
+    onCreateCol: "afterCreateCol"
   };
 
   datamap = {
@@ -1747,7 +1747,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         continue; //loadData will be triggered later
       }
       else {
-        if (i in hooks || i in eventMap) {
+        if (typeof hooks[i] !== 'undefined' || typeof eventMap[i] !== 'undefined') {
           self.addHook(i, settings[i]);
         }
         else {
@@ -1988,7 +1988,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     cellProperties = new cellConstructor();
 
-     self.runHooks('beforeGetCellMeta', row, col, cellProperties);
+    self.runHooks('beforeGetCellMeta', row, col, cellProperties);
 
     if (typeof cellProperties.type === 'string' && Handsontable.cellTypes[cellProperties.type]) {
       type = Handsontable.cellTypes[cellProperties.type];
@@ -2358,7 +2358,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       hooks[key] = [];
     }
 
-    var wrapper = function() {
+    var wrapper = function () {
       this.removeHook(key, wrapper);
       return fn.apply(this, arguments);
     };
@@ -2378,7 +2378,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       key = eventMap[key];
     }
 
-    for(var i = 0, len = hooks[key].length; i < len; i++) {
+    for (var i = 0, len = hooks[key].length; i < len; i++) {
       if (hooks[key][i] == fn) {
         hooks[key].splice(i, 1);
         return true;
@@ -2478,13 +2478,13 @@ $.fn.handsontable = function (action) {
     userSettings = action || {};
     if (_this.data("handsontable")) {
       instance = _this.data("handsontable");
-        instance.updateSettings(userSettings);
-      }
-      else {
+      instance.updateSettings(userSettings);
+    }
+    else {
       var instance = new Handsontable.Core(_this, userSettings);
-        _this.data("handsontable", instance);
-        instance.init();
-      }
+      _this.data("handsontable", instance);
+      instance.init();
+    }
 
     return _this;
   }
@@ -2498,7 +2498,7 @@ $.fn.handsontable = function (action) {
     }
 
     var instance = _this.data("handsontable");
-      if (instance) {
+    if (instance) {
       if (typeof instance[action] !== "undefined") {
         output = instance[action].apply(_this, args);
       }
