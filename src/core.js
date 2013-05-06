@@ -2468,25 +2468,27 @@ DefaultSettings.prototype = {
 };
 
 $.fn.handsontable = function (action) {
-  var i, ilen, args, output, userSettings;
-
-  // Use only first element from list
-  var _this = this.first();
+  var i
+    , ilen
+    , args
+    , output
+    , userSettings
+    , $this = this.first() // Use only first element from list
+    , instance = $this.data('handsontable');
 
   // Init case
   if (typeof action !== 'string') {
     userSettings = action || {};
-    if (_this.data("handsontable")) {
-      instance = _this.data("handsontable");
+    if (instance) {
       instance.updateSettings(userSettings);
     }
     else {
-      var instance = new Handsontable.Core(_this, userSettings);
-      _this.data("handsontable", instance);
+      instance = new Handsontable.Core($this, userSettings);
+      $this.data('handsontable', instance);
       instance.init();
     }
 
-    return _this;
+    return $this;
   }
   // Action case
   else {
@@ -2497,10 +2499,9 @@ $.fn.handsontable = function (action) {
       }
     }
 
-    var instance = _this.data("handsontable");
     if (instance) {
-      if (typeof instance[action] !== "undefined") {
-        output = instance[action].apply(_this, args);
+      if (typeof instance[action] !== 'undefined') {
+        output = instance[action].apply(this, args);
       }
       else {
         throw new Error('Handsontable do not provide action: ' + action);
