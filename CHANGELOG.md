@@ -2,6 +2,7 @@
 
 Bugfix:
 - fix problem of rendering an unspecified height table with no rows
+- `onBeforeChange` now allows to remove one change from array by assigning it null value (`changes[i] = null`)
 
 ## [0.8.23](https://github.com/warpech/jquery-handsontable/tree/v0.8.23) (May 3, 2013)
 
