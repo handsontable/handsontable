@@ -12,8 +12,8 @@
  *
  * Result:
  * building Handsontable will create files:
- *  - jquery.handsontable.js
- *  - jquery.handsontable.css
+ *  - dist/jquery.handsontable.js
+ *  - dist/jquery.handsontable.css
  *  - dist/jquery.handsontable.full.js
  *  - dist/jquery.handsontable.full.css
  *
@@ -73,7 +73,7 @@ module.exports = function (grunt) {
     concat: {
       dist: {
         files: {
-          'jquery.handsontable.js': [
+          'dist/jquery.handsontable.js': [
             'tmp/intro.js',
             '<%= meta.src %>',
             '<%= meta.walkontable %>',
@@ -84,7 +84,7 @@ module.exports = function (grunt) {
       full_js: {
         files: {
           'dist/jquery.handsontable.full.js': [
-            'jquery.handsontable.js',
+            'dist/jquery.handsontable.js',
             '<%= meta.vendor %>'
           ]
         }
@@ -92,7 +92,7 @@ module.exports = function (grunt) {
       full_css: {
         files: {
           'dist/jquery.handsontable.full.css': [
-            'jquery.handsontable.css',
+            'dist/jquery.handsontable.css',
             'lib/jQuery-contextMenu/jquery.contextMenu.css'
           ]
         }
@@ -134,7 +134,7 @@ module.exports = function (grunt) {
         files: {
           'tmp/intro.js': 'src/intro.js',
           'tmp/core.js': 'src/core.js',
-          'jquery.handsontable.css': 'src/css/jquery.handsontable.css'
+          'dist/jquery.handsontable.css': 'src/css/jquery.handsontable.css'
         }
       },
       wc: {
@@ -153,7 +153,7 @@ module.exports = function (grunt) {
       handsontable: {
         src: [
           'lib/jquery.min.js',
-          'jquery.handsontable.js',
+          'dist/jquery.handsontable.js',
           'lib/bootstrap-typeahead.js',
           'lib/numeral.js',
           'lib/jQuery-contextMenu/jquery.contextMenu.js',
@@ -169,7 +169,7 @@ module.exports = function (grunt) {
           ],
           styles: [
             'test/jasmine/css/SpecRunner.css',
-            'jquery.handsontable.css',
+            'dist/jquery.handsontable.css',
             'lib/jQuery-contextMenu/jquery.contextMenu.css'
           ]
         }
