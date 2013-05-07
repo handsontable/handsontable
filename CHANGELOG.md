@@ -1,9 +1,9 @@
 ## HEAD
 
 Features:
-- [Cascading Configuration model](https://github.com/warpech/jquery-handsontable/wiki/Options). Cell properties now inherit from Column properties constructor. Column properties now inherit from Handsontable Constructor.
-- new Plugin Hook architecture (described on [Interfaces](https://github.com/warpech/jquery-handsontable/wiki/Interfaces) page)
-- new Plugin Hooks available (full list on [Events](https://github.com/warpech/jquery-handsontable/wiki/Events) page):
+- improved [Options](https://github.com/warpech/jquery-handsontable/wiki/Options) model. Cell properties now inherit from Column properties constructor, which inherit from Handsontable Constructor. This is based on JavaScript prototypal inheritance, rather than `$.extend` as previously
+- new [Events](https://github.com/warpech/jquery-handsontable/wiki/Events) architecture (common for callbacks and plugin hooks)
+- new events available:
   - afterRender ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#597](https://github.com/warpech/jquery-handsontable/issues/597))
   - afterColumnResize ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#557](https://github.com/warpech/jquery-handsontable/issues/557))
   - afterColumnMove ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#557](https://github.com/warpech/jquery-handsontable/issues/557))
