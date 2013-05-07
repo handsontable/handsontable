@@ -35,6 +35,10 @@ Then, run `handsontable()` constructor on an empty div. After that, load some da
 </script>
 ```
 
+## API Reference
+
+Check out the new wiki pages: [Options](https://github.com/warpech/jquery-handsontable/wiki/Options), [Methods](https://github.com/warpech/jquery-handsontable/wiki/Methods) and [Events](https://github.com/warpech/jquery-handsontable/wiki/Events)
+
 ## Changelog
 
 To see the list of recent changes, see the [Changelog](https://github.com/warpech/jquery-handsontable/wiki/Changelog) wiki page.
@@ -60,27 +64,6 @@ Your contributions to the project are very welcome! To help me merge your pull r
 4. For any change that you make, please try to also add a test case(s) in `tests/jasmine/spec/` directory. This helps me understand the issue and make sure that it will stay fixed forever.
 
 Thank you for your commitment!
-
-## API Reference
-
-#### Constructor
-Accepts configuration object (see **Options**)
-
-```javascript
-handsontable(options)
-```
-
-#### [Options](https://github.com/warpech/jquery-handsontable/wiki/Options)
-
-Handsontable constructor accepts configuration object. See list of available [Options](https://github.com/warpech/jquery-handsontable/wiki/Options)
-
-#### [Events](https://github.com/warpech/jquery-handsontable/wiki/Events)
-
-In constructor options you can also add some events interfaces. Read about the[Interfaces](https://github.com/warpech/jquery-handsontable/wiki/Interfaces) and see the list of available [Events](https://github.com/warpech/jquery-handsontable/wiki/Events)
-
-#### [Methods](https://github.com/warpech/jquery-handsontable/wiki/Methods)
-
-After Handsontable is constructed, you can modify the grid behavior using the available public [Methods](https://github.com/warpech/jquery-handsontable/wiki/Methods)
 
 ## Similar projects
 
