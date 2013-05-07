@@ -1,6 +1,20 @@
 ## HEAD
 
-Bugfix:
+Features:
+- [Cascading Configuration model](https://github.com/warpech/jquery-handsontable/wiki/Options). Cell properties now inherit from Column properties constructor. Column properties now inherit from Handsontable Constructor.
+- new Plugin Hook architecture (described on [Interfaces](https://github.com/warpech/jquery-handsontable/wiki/Interfaces) page)
+- new Plugin Hooks available (full list on [Events](https://github.com/warpech/jquery-handsontable/wiki/Events) page):
+  - afterRender ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#597](https://github.com/warpech/jquery-handsontable/issues/597))
+  - afterColumnResize ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#557](https://github.com/warpech/jquery-handsontable/issues/557))
+  - afterColumnMove ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#557](https://github.com/warpech/jquery-handsontable/issues/557))
+  - afterCreateRow ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#122](https://github.com/warpech/jquery-handsontable/issues/122), [#344](https://github.com/warpech/jquery-handsontable/issues/344))
+  - afterCreateCol ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#122](https://github.com/warpech/jquery-handsontable/issues/122))
+  - afterRemoveRow ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#69](https://github.com/warpech/jquery-handsontable/issues/69), [#227](https://github.com/warpech/jquery-handsontable/issues/227))
+  - afterRemoveCol ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events))
+  - beforeAutofill ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#267](https://github.com/warpech/jquery-handsontable/issues/267), [#200](https://github.com/warpech/jquery-handsontable/issues/200), [#133](https://github.com/warpech/jquery-handsontable/issues/133), [#36](https://github.com/warpech/jquery-handsontable/issues/36))
+- `setDataAtCell` method now accepts `source` string as second parameter (if first parameter is `changes` array)
+
+Bugfixes:
 - fix problem of rendering an unspecified height table with no rows
 - `onBeforeChange` now allows to remove one change from array by assigning it null value (`changes[i] = null`)
 
