@@ -36,6 +36,54 @@ describe('Core_datachange', function () {
     });
   });
 
+  it('should use custom source for datachange', function () {
+    var output = null,
+        src    = null;
+
+    runs(function () {
+      handsontable({
+        onChange: function (changes, source) {
+          output = changes;
+          src = source;
+        }
+      });
+      setDataAtCell(1, 2, "abc", "test");
+    });
+
+    waitsFor(function () {
+      return (output != null)
+    }, "onChange callback called", 100);
+
+    runs(function () {
+      expect(output[0][3]).toEqual("abc");
+      expect(src).toEqual("test");
+    });
+  });
+
+  it('should use custom source for datachange with array', function () {
+    var output = null,
+        src    = null;
+
+    runs(function () {
+      handsontable({
+        onChange: function (changes, source) {
+          output = changes;
+          src = source;
+        }
+      });
+      setDataAtCell([[1, 2, "abc"]], "test");
+    });
+
+    waitsFor(function () {
+      return (output != null)
+    }, "onChange callback called", 100);
+
+    runs(function () {
+      expect(output[0][3]).toEqual("abc");
+      expect(src).toEqual("test");
+    });
+  });
+
   it('should trigger datachange event', function () {
     var output = null;
 
