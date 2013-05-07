@@ -1,4 +1,4 @@
-## [0.9.0-beta1](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 3, 2013)
+## [0.9.0-beta1](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 7, 2013)
 
 Features:
 - improved [Options](https://github.com/warpech/jquery-handsontable/wiki/Options) model. Cell properties now inherit from Column properties constructor, which inherit from Handsontable Constructor. This is based on JavaScript prototypal inheritance, rather than `$.extend` as previously
