@@ -126,7 +126,7 @@
                 cellProperties.type = {renderer: defaultValueRenderer}
                 return cellProperties;
               },
-              onBeforeChange: function (changes) {
+              beforeChange: function (changes) {
                 var instance = container.data('handsontable')
                     , i
                     , ilen = changes.length

@@ -163,7 +163,7 @@
             var $container = $("#example3");
             $container.handsontable({
               data: data3,
-              onChange: function () {
+              afterChange: function () {
                 var tmpData = $.extend(true, [], data3);
                 //now tmpData has a copy of data3 that can be manipulated
                 //without breaking the Handsontable data source object

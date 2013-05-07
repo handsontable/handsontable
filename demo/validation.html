@@ -119,7 +119,7 @@
               colHeaders: true,
               minSpareRows: 1,
               contextMenu: true,
-              onBeforeChange: function (changes, source) {
+              beforeChange: function (changes, source) {
                 for (var i = changes.length - 1; i >= 0; i--) {
                   if (changes[i][3] === "foo") {
                     changes.splice(i, 1); //gently don't accept the word "foo" (remove the change at index i)
@@ -134,7 +134,7 @@
                   }
                 }
               },
-              onChange: function (changes, source) {
+              afterChange: function (changes, source) {
                 if (source === 'loadData') {
                   return; //don't show this change in console
                 }
