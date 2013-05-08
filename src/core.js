@@ -54,19 +54,24 @@ Handsontable.Core = function (rootElement, settings) {
     afterCreateCol: [],
     afterColumnResize: [],
     afterColumnMove: [],
-
-    onSelection: [],
-    onSelectionByProp: [],
-    onSelectionEnd: [],
-    onSelectionEndByProp: [],
-    onCopyLimit: []
+    afterDeselect: [],
+    afterSelection: [],
+    afterSelectionByProp: [],
+    afterSelectionEnd: [],
+    afterSelectionEndByProp: [],
+    afterCopyLimit: []
   };
 
   eventMap = {
     onBeforeChange : "beforeChange",
     onChange       : "afterChange",
     onCreateRow    : "afterCreateRow",
-    onCreateCol    : "afterCreateCol"
+    onCreateCol    : "afterCreateCol",
+    onSelection    : "afterSelection",
+    onCopyLimit    : "afterCopyLimit",
+    onSelectionEnd : "afterSelectionEnd",
+    onSelectionByProp: "afterSelectionByProp",
+    onSelectionEndByProp: "afterSelectionEndByProp"
   };
 
   datamap = {
@@ -680,8 +685,8 @@ Handsontable.Core = function (rootElement, settings) {
      */
     finish: function () {
       var sel = self.getSelected();
-      self.runHooks("onSelectionEnd", sel[0], sel[1], sel[2], sel[3]);
-      self.runHooks("onSelectionEndByProp", sel[0], self.colToProp(sel[1]), sel[2], self.colToProp(sel[3]));
+      self.runHooks("afterSelectionEnd", sel[0], sel[1], sel[2], sel[3]);
+      self.runHooks("afterSelectionEndByProp", sel[0], self.colToProp(sel[1]), sel[2], self.colToProp(sel[3]));
       self.selection.inProgress = false;
     },
 
@@ -730,8 +735,8 @@ Handsontable.Core = function (rootElement, settings) {
       }
 
       //trigger handlers
-      self.runHooks("onSelection", priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col());
-      self.runHooks("onSelectionByProp", priv.selStart.row(), datamap.colToProp(priv.selStart.col()), priv.selEnd.row(), datamap.colToProp(priv.selEnd.col()));
+      self.runHooks("afterSelection", priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col());
+      self.runHooks("afterSelectionByProp", priv.selStart.row(), datamap.colToProp(priv.selStart.col()), priv.selEnd.row(), datamap.colToProp(priv.selEnd.col()));
       if (scrollToCell !== false) {
         self.view.scrollViewport(coords);
 
@@ -882,7 +887,7 @@ Handsontable.Core = function (rootElement, settings) {
       self.view.wt.selections.area.clear();
       editproxy.destroy();
       selection.refreshBorders();
-      self.rootElement.triggerHandler('deselect.handsontable');
+      self.runHooks('afterDeselect');
     },
 
     /**

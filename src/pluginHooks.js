@@ -22,19 +22,24 @@ Handsontable.PluginHooks = (function () {
     afterCreateCol: [],
     afterColumnResize: [],
     afterColumnMove: [],
-
-    onSelection: [],
-    onSelectionByProp: [],
-    onSelectionEnd: [],
-    onSelectionEndByProp: [],
-    onCopyLimit: []
+    afterDeselect: [],
+    afterSelection: [],
+    afterSelectionByProp: [],
+    afterSelectionEnd: [],
+    afterSelectionEndByProp: [],
+    afterCopyLimit: []
   };
 
   var eventMap = {
     onBeforeChange : "beforeChange",
     onChange       : "afterChange",
     onCreateRow    : "afterCreateRow",
-    onCreateCol    : "afterCreateCol"
+    onCreateCol    : "afterCreateCol",
+    onSelection    : "afterSelection",
+    onCopyLimit    : "afterCopyLimit",
+    onSelectionEnd : "afterSelectionEnd",
+    onSelectionByProp: "afterSelectionByProp",
+    onSelectionEndByProp: "afterSelectionEndByProp"
   };
 
   return {
