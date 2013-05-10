@@ -142,14 +142,14 @@ WalkontableScrollbar.prototype.refresh = function () {
     return;
   }
 
-  if (this.instance.hasSetting('width') && this.instance.wtScroll.wtScrollbarV.visible) {
+  if (this.instance.hasSetting('width') && this.instance.wtScrollbars.vertical.visible) {
     tableWidth -= this.instance.getSetting('scrollbarWidth');
   }
   if (tableWidth > tableOuterWidth + this.instance.getSetting('scrollbarWidth')) {
     tableWidth = tableOuterWidth;
   }
 
-  if (this.instance.hasSetting('height') && this.instance.wtScroll.wtScrollbarH.visible) {
+  if (this.instance.hasSetting('height') && this.instance.wtScrollbars.horizontal.visible) {
     tableHeight -= this.instance.getSetting('scrollbarHeight');
   }
   if (tableHeight > tableOuterHeight + this.instance.getSetting('scrollbarHeight')) {

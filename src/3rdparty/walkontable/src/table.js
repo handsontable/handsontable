@@ -110,7 +110,7 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
   }
 
   if (height) {
-    if (this.instance.wtScroll.wtScrollbarH.visible) {
+    if (this.instance.wtScrollbars.horizontal.visible) {
       this.hiderStyle.height = height - this.instance.getSetting('scrollbarHeight') + 'px';
     }
     else {
@@ -118,7 +118,7 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
     }
   }
   if (width) {
-    if (this.instance.wtScroll.wtScrollbarV.visible) {
+    if (this.instance.wtScrollbars.vertical.visible) {
       this.hiderStyle.width = width - this.instance.getSetting('scrollbarWidth') + 'px';
     }
     else {
@@ -335,7 +335,7 @@ WalkontableTable.prototype._doDraw = function () {
 };
 
 WalkontableTable.prototype.refreshPositions = function (selectionsOnly) {
-  this.instance.wtScroll.refreshScrollbars();
+  this.instance.wtScrollbars.refresh();
   this.refreshHiderDimensions();
   this.refreshSelections(selectionsOnly);
 };
