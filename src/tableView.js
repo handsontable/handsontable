@@ -238,7 +238,7 @@ Handsontable.TableView = function (instance) {
     }
   };
 
-  Handsontable.PluginHooks.run(instance, 'walkontableConfig', walkontableConfig);
+  instance.runHooks('beforInitWalkontable', walkontableConfig);
 
   this.wt = new Walkontable(walkontableConfig);
 

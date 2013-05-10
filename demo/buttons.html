@@ -105,8 +105,9 @@
               colHeaders: true,
               minSpareCols: 1,
               minSpareRows: 1,
-              contextMenu: true,
-              RemoveRow: true
+              contextMenu: false,
+              outsideClickDeselects: false,
+              removeRowPlugin: true
             });
 
             var data = [
@@ -119,11 +120,7 @@
             container.handsontable("loadData", data);
 
             $("button#selectFirst").on('click', function () {
-              setTimeout(function () {
-                //timeout is needed because Handsontable normally deselects
-                //current cell when you click outside the table
                 container.handsontable("selectCell", 0, 0);
-              }, 10);
             });
 
             $("input#rowHeaders").change(function () {
