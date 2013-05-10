@@ -55,7 +55,7 @@ function HandsontableManualColumnResize() {
       this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
         if (autoresizeTimeout == null) {
           autoresizeTimeout = setTimeout(function () {
-            if (dblclick > 2) {
+            if (dblclick >= 2) {
               setManualSize(currentCol, htAutoColumnSize.determineColumnWidth.call(instance, currentCol));
             }
             dblclick = 0;
