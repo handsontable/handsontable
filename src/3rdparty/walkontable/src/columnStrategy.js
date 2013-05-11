@@ -60,14 +60,4 @@ function WalkontableColumnStrategy(containerSizeFn, sizeAtIndex, strategy) {
   }
 }
 
-WalkontableColumnStrategy.prototype.getContainerSize = function (proposedSize) {
-  var containerSize = typeof this.containerSizeFn === 'function' ? this.containerSizeFn(proposedSize) : this.containerSizeFn;
-  if (containerSize === void 0 || containerSize === null || containerSize < 1) {
-    containerSize = Infinity;
-  }
-  return containerSize;
-};
-
-WalkontableColumnStrategy.prototype.getSize = function (index) {
-  return this.cellSizes[index];
-};
+WalkontableColumnStrategy.prototype = new WalkontableCellStrategy();

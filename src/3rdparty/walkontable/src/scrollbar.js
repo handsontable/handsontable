@@ -157,7 +157,7 @@ WalkontableScrollbar.prototype.refresh = function () {
   }
 
   if (this.type === 'vertical') {
-    if (this.instance.wtTable.isLastRowIncomplete()) {
+    if (this.instance.wtTable.rowStrategy.isLastIncomplete()) {
       visibleCount--;
     }
 
@@ -168,7 +168,7 @@ WalkontableScrollbar.prototype.refresh = function () {
     this.sliderStyle.height = sliderSize + 'px';
   }
   else { //horizontal
-    if (this.instance.wtTable.isLastColumnIncomplete()) {
+    if (this.instance.wtTable.columnStrategy.isLastIncomplete()) {
       visibleCount--;
     }
 
@@ -217,7 +217,7 @@ WalkontableVerticalScrollbar.prototype.readSettings = function () {
   this.scrollMode = this.instance.getSetting('scrollV');
   this.offset = this.instance.getSetting('offsetRow');
   this.total = this.instance.getSetting('totalRows');
-  this.visibleCount = this.instance.wtTable.countVisibleRows();
+  this.visibleCount = this.instance.wtTable.rowStrategy.countVisible();
   this.handlePosition = parseInt(this.handleStyle.top, 10);
   this.sliderSize = parseInt(this.sliderStyle.height, 10);
   this.fixedCount = this.instance.getSetting('fixedRowsTop');
@@ -237,7 +237,7 @@ WalkontableHorizontalScrollbar.prototype.readSettings = function () {
   this.scrollMode = this.instance.getSetting('scrollH');
   this.offset = this.instance.getSetting('offsetColumn');
   this.total = this.instance.getSetting('totalColumns');
-  this.visibleCount = this.instance.wtTable.countVisibleColumns();
+  this.visibleCount = this.instance.wtTable.columnStrategy.countVisible();
   this.handlePosition = parseInt(this.handleStyle.left, 10);
   this.sliderSize = parseInt(this.sliderStyle.width, 10);
   this.fixedCount = this.instance.getSetting('fixedColumnsLeft');

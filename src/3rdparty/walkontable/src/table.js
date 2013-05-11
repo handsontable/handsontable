@@ -344,14 +344,14 @@ WalkontableTable.prototype._doDraw = function () {
 
     //after last column is rendered, check if last cell is fully displayed
     this.rowStrategy.add(r, TD);
-    if (this.isLastRowIncomplete() > 0) {
+    if (this.rowStrategy.isLastIncomplete()) {
       break;
     }
 
     r++;
     source_r = this.rowFilter.visibleToSource(r);
   }
-  r = this.countVisibleRows();
+  r = this.rowStrategy.countVisible();
   while (this.tbodyChildrenLength > r) {
     this.TBODY.removeChild(this.TBODY.lastChild);
     this.tbodyChildrenLength--;
@@ -372,8 +372,8 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
     , s
     , slen
     , classNames = []
-    , visibleRows = this.countVisibleRows()
-    , visibleColumns = this.countVisibleColumns();
+    , visibleRows = this.rowStrategy.countVisible()
+    , visibleColumns = this.columnStrategy.countVisible();
 
   this.oldCellCache = this.currentCellCache;
   this.currentCellCache = new WalkontableClassNameCache();
@@ -480,28 +480,12 @@ WalkontableTable.prototype.getCoords = function (TD) {
   ];
 };
 
-WalkontableTable.prototype.countVisibleRows = function () {
-  return (this.rowStrategy && this.rowStrategy.cellCount) || 0;
-};
-
-WalkontableTable.prototype.countVisibleColumns = function () {
-  return (this.columnStrategy && this.columnStrategy.cellCount) || 0;
-};
-
 WalkontableTable.prototype.getLastVisibleRow = function () {
   return this.rowFilter.visibleToSource(this.rowStrategy.cellCount - 1);
 };
 
 WalkontableTable.prototype.getLastVisibleColumn = function () {
   return this.columnFilter.visibleToSource(this.columnStrategy.cellCount - 1);
-};
-
-WalkontableTable.prototype.isLastRowIncomplete = function () {
-  return (this.rowStrategy.remainingSize > 0);
-};
-
-WalkontableTable.prototype.isLastColumnIncomplete = function () {
-  return (this.columnStrategy.remainingSize > 0);
 };
 
 WalkontableTable.prototype.isRowBeforeViewport = function (r) {

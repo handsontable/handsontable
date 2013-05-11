@@ -137,7 +137,7 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
   if (coords[0] > lastVisibleRow) {
     this.scrollVertical(coords[0] - lastVisibleRow + 1);
   }
-  else if (coords[0] === lastVisibleRow && this.instance.wtTable.isLastRowIncomplete()) {
+  else if (coords[0] === lastVisibleRow && this.instance.wtTable.rowStrategy.isLastIncomplete()) {
     this.scrollVertical(coords[0] - lastVisibleRow + 1);
   }
   else if (coords[0] - fixedRowsTop < offsetRow) {
@@ -150,7 +150,7 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
   if (coords[1] > lastVisibleColumn) {
     this.scrollHorizontal(coords[1] - lastVisibleColumn + 1);
   }
-  else if (coords[1] === lastVisibleColumn && this.instance.wtTable.isLastColumnIncomplete()) {
+  else if (coords[1] === lastVisibleColumn && this.instance.wtTable.columnStrategy.isLastIncomplete()) {
     this.scrollHorizontal(coords[1] - lastVisibleColumn + 1);
   }
   else if (coords[1] - fixedColumnsLeft < offsetColumn) {
