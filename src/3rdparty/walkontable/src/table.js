@@ -187,7 +187,7 @@ WalkontableTable.prototype.refreshStretching = function () {
   var rowHeightFn = function (i, TD) {
     var source_r = that.rowFilter.visibleToSource(i);
     if (source_r < totalRows) {
-      return $(TD).outerHeight();
+      return that.wtDom.outerHeight(TD);
     }
   };
 

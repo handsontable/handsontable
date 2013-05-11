@@ -179,3 +179,11 @@ WalkontableDom.prototype.offset = function (elem) {
     top: offsetTop
   };
 };
+
+WalkontableDom.prototype.outerWidth = function (elem) {
+  return elem.offsetWidth;
+};
+
+WalkontableDom.prototype.outerHeight = function (elem) {
+  return elem.offsetHeight;
+};

@@ -133,9 +133,9 @@ WalkontableBorder.prototype.appear = function (corners) {
     containerOffset = this.wtDom.offset(instance.wtTable.TABLE);
 
     minTop = fromOffset.top;
-    height = toOffset.top + $to.outerHeight() - minTop;
+    height = toOffset.top + this.wtDom.outerHeight($to[0]) - minTop;
     minLeft = fromOffset.left;
-    width = toOffset.left + $to.outerWidth() - minLeft;
+    width = toOffset.left + this.wtDom.outerWidth($to[0]) - minLeft;
 
     top = minTop - containerOffset.top - 1;
     left = minLeft - containerOffset.left - 1;
