@@ -477,7 +477,7 @@ Handsontable.Core = function (rootElement, settings) {
           changes.push([r, c, oldData[r] ? oldData[r][c] : null, newData[r][c]]);
         }
       }
-      self.runHooks('afterChange', changes, 'alter');
+      self.runHooks('afterChange', changes, action);
       grid.keepEmptyRows(); //makes sure that we did not add rows that will be removed in next refresh
     },
 
