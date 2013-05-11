@@ -60,8 +60,8 @@ function WalkontableColumnStrategy(containerSizeFn, sizeAtIndex, strategy) {
   }
 }
 
-WalkontableColumnStrategy.prototype.getContainerSize = function (proposedWidth) {
-  var containerSize = typeof this.containerSizeFn === 'function' ? this.containerSizeFn(proposedWidth) : this.containerSizeFn;
+WalkontableColumnStrategy.prototype.getContainerSize = function (proposedSize) {
+  var containerSize = typeof this.containerSizeFn === 'function' ? this.containerSizeFn(proposedSize) : this.containerSizeFn;
   if (containerSize === void 0 || containerSize === null || containerSize < 1) {
     containerSize = Infinity;
   }
