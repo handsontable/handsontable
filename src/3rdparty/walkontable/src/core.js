@@ -110,7 +110,7 @@ Walkontable.prototype.hasSetting = function (key) {
 
 Walkontable.prototype.destroy = function () {
   this.wtScroll.destroy();
-  clearTimeout(this.wtScroll);
+  // clearTimeout(this.wtScroll); --- I suppose that this doesn't work like it should // codename-
   clearTimeout(this.wheelTimeout);
   clearTimeout(this.dblClickTimeout);
 };
