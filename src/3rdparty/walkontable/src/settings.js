@@ -62,8 +62,6 @@ function WalkontableSettings(instance, settings) {
       }
     }
   }
-
-  this.rowHeightCache = [];
 }
 
 /**
@@ -114,8 +112,10 @@ WalkontableSettings.prototype.has = function (key) {
  */
 
 WalkontableSettings.prototype.rowHeight = function (row) {
-  if (typeof this.rowHeightCache[row] !== 'undefined') {
-    return this.rowHeightCache[row];
+  var visible_r = this.instance.wtTable.rowFilter.sourceToVisible(row);
+  var size = this.instance.wtTable.rowStrategy.getSize(visible_r);
+  if (size !== void 0) {
+    return size;
   }
   return 20;
 };

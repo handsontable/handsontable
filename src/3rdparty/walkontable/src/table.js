@@ -130,11 +130,16 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
 WalkontableTable.prototype.refreshStretching = function () {
   var instance = this.instance
     , stretchH = instance.getSetting('stretchH')
+    , scrollV = instance.getSetting('scrollV')
     , scrollH = instance.getSetting('scrollH')
+    , scrollbarHeight = instance.getSetting('scrollbarHeight')
     , scrollbarWidth = instance.getSetting('scrollbarWidth')
+    , totalRows = instance.getSetting('totalRows')
     , totalColumns = instance.getSetting('totalColumns')
     , offsetColumn = instance.getSetting('offsetColumn')
+    , columnHeaderHeight
     , rowHeaderWidth = instance.hasSetting('rowHeaders') ? instance.getSetting('rowHeaderWidth') : 0
+    , containerHeight = instance.getSetting('height')
     , containerWidth = instance.getSetting('width') - rowHeaderWidth;
 
   var containerWidthFn = function (cacheWidth) {
@@ -162,12 +167,32 @@ WalkontableTable.prototype.refreshStretching = function () {
     }
   }
 
+  var containerHeightFn = function (cacheHeight) {
+    if (containerHeight === Infinity) {
+      return containerHeight;
+    }
+
+    if (columnHeaderHeight === void 0) {
+      var cellOffset = that.wtDom.offset(that.TBODY)
+        , tableOffset = that.tableOffset;
+      columnHeaderHeight = cellOffset.top - tableOffset.top;
+    }
+
+    if (scrollV === 'scroll' || (scrollV === 'auto' && cacheHeight > containerHeight)) {
+      return containerHeight - scrollbarHeight - columnHeaderHeight;
+    }
+    return containerHeight - columnHeaderHeight;
+  };
+
+  var rowHeightFn = function (i, TD) {
+    var source_r = that.rowFilter.visibleToSource(i);
+    if (source_r < totalRows) {
+      return $(TD).outerHeight();
+    }
+  };
+
   this.columnStrategy = new WalkontableColumnStrategy(containerWidthFn, columnWidthFn, stretchH);
-  this.rowStrategy = {
-    cells: [],
-    cellCount: 0,
-    remainingSize: 0
-  }
+  this.rowStrategy = new WalkontableRowStrategy(containerHeightFn, rowHeightFn);
 };
 
 WalkontableTable.prototype.adjustAvailableNodes = function () {
@@ -292,7 +317,6 @@ WalkontableTable.prototype._doDraw = function () {
     else {
       TR = TR.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
     }
-    this.rowStrategy.cellCount++;
 
     //TH
     if (displayThs) {
@@ -319,8 +343,8 @@ WalkontableTable.prototype._doDraw = function () {
     }
 
     //after last column is rendered, check if last cell is fully displayed
-    var isCellVisible = this.isCellVisible(source_r, source_c, TD);
-    if (isCellVisible & (FLAG_NOT_VISIBLE_VERTICAL | FLAG_PARTIALLY_VISIBLE_VERTICAL)) { //when it is invisible or partially visible, don't render more rows
+    this.rowStrategy.add(r, TD);
+    if (this.isLastRowIncomplete() > 0) {
       break;
     }
 
@@ -389,27 +413,19 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
   }
 };
 
-WalkontableTable.prototype.isCellVisible = function (r, c, TD) {
-  var out = 0
-    , cellOffset = this.wtDom.offset(TD)
-    , tableOffset = this.tableOffset
-    , innerOffsetTop = cellOffset.top - tableOffset.top
-    , $td = $(TD)
-    , height = $td.outerHeight()
-    , tableHeight = this.instance.hasSetting('height') ? this.instance.getSetting('height') : Infinity;
+WalkontableTable.prototype.isCellVisible = function (r, c) {
+  var out = 0;
 
-  this.instance.wtSettings.rowHeightCache[r] = height;
-
-
-  if (innerOffsetTop > tableHeight) {
-    out |= FLAG_NOT_VISIBLE_VERTICAL;
-  }
-  else if (innerOffsetTop + height > tableHeight) {
-    this.rowStrategy.remainingSize = tableHeight - innerOffsetTop; //hackish but enough
-    out |= FLAG_PARTIALLY_VISIBLE_VERTICAL;
+  if (this.isRowInViewport(r)) {
+    if (this.getLastVisibleRow() === c && this.rowStrategy.remainingSize > 0) {
+      out |= FLAG_PARTIALLY_VISIBLE_VERTICAL;
+    }
+    else {
+      out |= FLAG_VISIBLE_VERTICAL;
+    }
   }
   else {
-    out |= FLAG_VISIBLE_VERTICAL;
+    out |= FLAG_NOT_VISIBLE_VERTICAL;
   }
 
   if (this.isColumnInViewport(c)) {
