@@ -48,7 +48,7 @@ function WalkontableBorder(instance, settings) {
  * @param {Array} corners
  */
 WalkontableBorder.prototype.appear = function (corners) {
-  var isMultiple, $from, $to, fromOffset, toOffset, containerOffset, top, minTop, left, minLeft, height, width;
+  var isMultiple, fromTD, toTD, fromOffset, toOffset, containerOffset, top, minTop, left, minLeft, height, width;
   if (this.disabled) {
     return;
   }
@@ -126,25 +126,26 @@ WalkontableBorder.prototype.appear = function (corners) {
 
   if (fromRow !== void 0 && fromColumn !== void 0) {
     isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
-    $from = $(instance.wtTable.getCell([fromRow, fromColumn]));
-    $to = isMultiple ? $(instance.wtTable.getCell([toRow, toColumn])) : $from;
-    fromOffset = this.wtDom.offset($from[0]);
-    toOffset = isMultiple ? this.wtDom.offset($to[0]) : fromOffset;
+    fromTD = instance.wtTable.getCell([fromRow, fromColumn]);
+    toTD = isMultiple ? instance.wtTable.getCell([toRow, toColumn]) : fromTD;
+    fromOffset = this.wtDom.offset(fromTD);
+    toOffset = isMultiple ? this.wtDom.offset(toTD) : fromOffset;
     containerOffset = this.wtDom.offset(instance.wtTable.TABLE);
 
     minTop = fromOffset.top;
-    height = toOffset.top + this.wtDom.outerHeight($to[0]) - minTop;
+    height = toOffset.top + this.wtDom.outerHeight(toTD) - minTop;
     minLeft = fromOffset.left;
-    width = toOffset.left + this.wtDom.outerWidth($to[0]) - minLeft;
+    width = toOffset.left + this.wtDom.outerWidth(toTD) - minLeft;
 
     top = minTop - containerOffset.top - 1;
     left = minLeft - containerOffset.left - 1;
 
-    if (parseInt($from.css('border-top-width'), 10) > 0) {
+    var style = this.wtDom.getComputedStyle(fromTD);
+    if (parseInt(style['borderTopWidth'], 10) > 0) {
       top += 1;
       height -= 1;
     }
-    if (parseInt($from.css('border-left-width'), 10) > 0) {
+    if (parseInt(style['borderLeftWidth'], 10) > 0) {
       left += 1;
       width -= 1;
     }

@@ -59,4 +59,28 @@ describe('WalkontableDom', function () {
 
     $outer.remove();
   });
+
+  it("should return font size", function () {
+    var wtDom = new WalkontableDom();
+
+    var $html = $('<style>.bigText{font: 12px serif;}</style><div class="bigText"><span id="testable"></span></div>').appendTo('body');
+
+    var span = document.getElementById('testable');
+    var compStyle = wtDom.getComputedStyle(span);
+    expect(compStyle['fontSize'], '12px');
+
+    $html.remove();
+  });
+
+  it("should return top border width", function () {
+    var wtDom = new WalkontableDom();
+
+    var $html = $('<style>.redBorder{border: 10px solid red;}</style><div class="redBorder" id="testable"></div>').appendTo('body');
+
+    var div = document.getElementById('testable');
+    var compStyle = wtDom.getComputedStyle(div);
+    expect(compStyle['borderTopWidth'], '10px');
+
+    $html.remove();
+  });
 });

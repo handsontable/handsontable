@@ -180,6 +180,10 @@ WalkontableDom.prototype.offset = function (elem) {
   };
 };
 
+WalkontableDom.prototype.getComputedStyle = function (elem) {
+  return elem.currentStyle || document.defaultView.getComputedStyle(elem);
+};
+
 WalkontableDom.prototype.outerWidth = function (elem) {
   return elem.offsetWidth;
 };
