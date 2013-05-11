@@ -42,6 +42,7 @@ function HandsontableManualColumnMove() {
       instance.forceFullRender = true;
       instance.view.render(); //updates all
       ghostStyle.display = 'none';
+      instance.runHooks('afterColumnMove', startCol, endCol);
     }
   });
 
@@ -101,7 +102,7 @@ function HandsontableManualColumnMove() {
 }
 var htManualColumnMove = new HandsontableManualColumnMove();
 
-Handsontable.PluginHooks.push('beforeInit', htManualColumnMove.beforeInit);
-Handsontable.PluginHooks.push('afterInit', htManualColumnMove.afterInit);
-Handsontable.PluginHooks.push('afterGetColHeader', htManualColumnMove.getColHeader);
+Handsontable.PluginHooks.add('beforeInit', htManualColumnMove.beforeInit);
+Handsontable.PluginHooks.add('afterInit', htManualColumnMove.afterInit);
+Handsontable.PluginHooks.add('afterGetColHeader', htManualColumnMove.getColHeader);
 Handsontable.PluginModifiers.push('col', htManualColumnMove.modifyCol);

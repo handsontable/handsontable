@@ -71,7 +71,7 @@ function HandsontableColumnSorting() {
 }
 var htSortColumn = new HandsontableColumnSorting();
 
-Handsontable.PluginHooks.push('afterInit', htSortColumn.afterInit);
-Handsontable.PluginHooks.push('beforeGet', htSortColumn.translateRow);
-Handsontable.PluginHooks.push('beforeSet', htSortColumn.translateRow);
-Handsontable.PluginHooks.push('afterGetColHeader', htSortColumn.getColHeader);
+Handsontable.PluginHooks.add('afterInit', htSortColumn.afterInit);
+Handsontable.PluginHooks.add('beforeGet', htSortColumn.translateRow);
+Handsontable.PluginHooks.add('beforeSet', htSortColumn.translateRow);
+Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);

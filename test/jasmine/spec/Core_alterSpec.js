@@ -29,6 +29,15 @@ describe('Core_alter', function () {
     ]
   };
 
+  var arrayOfArrays = function () {
+    return [
+      ["", "Kia", "Nissan", "Toyota", "Honda"],
+      ["2008", 10, 11, 12, 13],
+      ["2009", 20, 11, 14, 13],
+      ["2010", 30, 15, 12, 13]
+    ];
+  };
+
   it('should remove row', function () {
     handsontable({
       minRows: 5,
@@ -482,7 +491,7 @@ describe('Core_alter', function () {
     });
   });
 
-  it('when amount parameter is used, should not insert more columns than allowed by maxCols', function () {
+  it('should not insert more columns than allowed by maxCols, when amount parameter is used', function () {
     handsontable({
       data: [
         ["a", "b", "c", "d", "e", "f", "g", "h"],
@@ -499,6 +508,86 @@ describe('Core_alter', function () {
       expect(this.$container.find('tr:eq(1) td:eq(1)').html()).toEqual('');
       expect(this.$container.find('tr:eq(1) td:eq(2)').html()).toEqual('');
       expect(this.$container.find('tr:eq(1) td:eq(3)').html()).toEqual('b');
+    });
+  });
+
+  it('should fire callback on remove row', function () {
+    var output;
+    handsontable({
+      minRows: 5,
+      data: arrayOfNestedObjects(),
+      columns: [
+        {data: "id"},
+        {data: "name.first"}
+      ],
+      afterRemoveRow : function (index, amount) {
+        output = [index, amount];
+      }
+    });
+    alter('remove_row', 1, 2);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(output).toEqual([1, 2]);
+    });
+  });
+
+  it('should fire callback on remove col', function () {
+    var output;
+    handsontable({
+      minRows: 5,
+      data: arrayOfArrays(),
+      afterRemoveCol : function (index, amount) {
+        output = [index, amount];
+      }
+    });
+    alter('remove_col', 1);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(output).toEqual([1, 1]);
+    });
+  });
+
+  it('should fire callback on create row', function () {
+    var output;
+    handsontable({
+      minRows: 5,
+      data: arrayOfNestedObjects(),
+      columns: [
+        {data: "id"},
+        {data: "name.first"}
+      ],
+      afterCreateRow : function (index, amount) {
+        output = index;
+      }
+    });
+    alter('insert_row', 3);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(output).toEqual(3);
+    });
+  });
+
+  it('should fire callback on create col', function () {
+    var output;
+    handsontable({
+      minRows: 5,
+      data: arrayOfArrays(),
+      afterCreateCol : function (index) {
+        output = index;
+      }
+    });
+    alter('insert_col', 2);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(output).toEqual(2);
     });
   });
 });

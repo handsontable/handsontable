@@ -12,13 +12,13 @@ describe('Core_beforechange', function () {
     }
   });
 
-  it('this should point to handsontable rootElement', function () {
+  it('this.rootElement should point to handsontable rootElement', function () {
     var output = null;
 
     runs(function () {
       handsontable({
         onBeforeChange: function () {
-          output = this;
+          output = this.rootElement[0];
         }
       });
       setDataAtCell(0, 0, "test");
@@ -29,7 +29,35 @@ describe('Core_beforechange', function () {
     }, "onBeforeChange callback called", 100);
 
     runs(function () {
-      expect(output).toEqual(this.$container.get(0));
+      expect(output).toEqual(this.$container[0]);
+    });
+  });
+
+  it('this should remove change from stack', function () {
+    var output = null;
+
+    runs(function () {
+      handsontable({
+        data : [["a", "b"], ["c", "d"]],
+        onBeforeChange: function (changes) {
+          changes[1] = null;
+        },
+        onChange : function (changes) {
+          output = changes;
+        }
+      });
+      setDataAtCell([[0, 0, "test"], [1, 0, "test"], [1, 1, "test"]]);
+    });
+
+    waitsFor(function () {
+      return (output != null)
+    }, "onChange callback called", 100);
+
+    runs(function () {
+      expect(getDataAtCell(0,0)).toEqual("test");
+      expect(getDataAtCell(1,0)).toEqual("c");
+      expect(getDataAtCell(1,1)).toEqual("test");
+      expect(output).toEqual([[0, 0, "a", "test"], [1, 1, "d", "test"]]);
     });
   });
 

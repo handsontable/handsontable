@@ -1,3 +1,26 @@
+## [0.9.0-beta1](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 7, 2013)
+
+Features:
+- improved [Options](https://github.com/warpech/jquery-handsontable/wiki/Options) model. Cell properties now inherit from Column properties constructor, which inherit from Handsontable Constructor. This is based on JavaScript prototypal inheritance, rather than `$.extend` as previously
+- new [Events](https://github.com/warpech/jquery-handsontable/wiki/Events) architecture (common for callbacks and plugin hooks)
+- new events available:
+  - afterRender ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#597](https://github.com/warpech/jquery-handsontable/issues/597))
+  - afterColumnResize ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#557](https://github.com/warpech/jquery-handsontable/issues/557))
+  - afterColumnMove ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#557](https://github.com/warpech/jquery-handsontable/issues/557))
+  - afterCreateRow ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#122](https://github.com/warpech/jquery-handsontable/issues/122), [#344](https://github.com/warpech/jquery-handsontable/issues/344))
+  - afterCreateCol ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#122](https://github.com/warpech/jquery-handsontable/issues/122))
+  - afterRemoveRow ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#69](https://github.com/warpech/jquery-handsontable/issues/69), [#227](https://github.com/warpech/jquery-handsontable/issues/227))
+  - afterRemoveCol ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events))
+  - beforeAutofill ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#200](https://github.com/warpech/jquery-handsontable/issues/200), [#133](https://github.com/warpech/jquery-handsontable/issues/133), [#36](https://github.com/warpech/jquery-handsontable/issues/36))
+- `setDataAtCell` method now accepts `source` string as second parameter (if first parameter is `changes` array)
+
+Bugfixes:
+- fix problem of rendering an unspecified height table with no rows
+- `onBeforeChange` now allows to remove one change from array by assigning it null value (`changes[i] = null`)
+
+Other:
+- move `jquery.handsontable.js` and `jquery.handsontable.css` to `dist/`
+
 ## [0.8.23](https://github.com/warpech/jquery-handsontable/tree/v0.8.23) (May 3, 2013)
 
 Features:

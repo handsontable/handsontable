@@ -145,6 +145,6 @@ function HandsontableAutoColumnSize() {
 }
 var htAutoColumnSize = new HandsontableAutoColumnSize();
 
-Handsontable.PluginHooks.push('beforeInit', htAutoColumnSize.beforeInit);
-Handsontable.PluginHooks.push('beforeRender', htAutoColumnSize.determineColumnsWidth);
-Handsontable.PluginHooks.push('afterGetColWidth', htAutoColumnSize.getColWidth);
+Handsontable.PluginHooks.add('beforeInit', htAutoColumnSize.beforeInit);
+Handsontable.PluginHooks.add('beforeRender', htAutoColumnSize.determineColumnsWidth);
+Handsontable.PluginHooks.add('afterGetColWidth', htAutoColumnSize.getColWidth);

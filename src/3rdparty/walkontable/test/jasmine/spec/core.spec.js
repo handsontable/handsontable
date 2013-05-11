@@ -174,4 +174,31 @@ describe('WalkontableCore', function () {
 
     $div.remove();
   });
+
+  it("should render empty table (limited height)", function () {
+    createDataArray(0, 5);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      height: 100
+    });
+    wt.draw();
+    wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+  });
+
+  it("should render empty table (unlimited height)", function () {
+    createDataArray(0, 5);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns
+    });
+    wt.draw();
+    wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+  });
 });

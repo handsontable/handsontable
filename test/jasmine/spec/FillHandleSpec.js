@@ -101,4 +101,48 @@ describe('FillHandle', function () {
       expect(isFillHandleVisible()).toBe(false);
     });
   });
+
+  it('should add custom value after autofill', function () {
+
+    handsontable({
+      data: [[1,2,3,4,5,6], [1,2,3,4,5,6], [1,2,3,4,5,6], [1,2,3,4,5,6]],
+      beforeAutofill: function (start, end, data) {
+        data[0][0] = "test";
+      }
+    });
+    selectCell(0, 0);
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      var fillHandle = this.$container.find('.wtBorder.corner')[0]
+        , event = jQuery.Event("mousedown");
+
+      event.target = fillHandle;
+      this.$container.find('tr:eq(0) td:eq(0)').trigger(event);
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      this.$container.find('tr:eq(1) td:eq(0)').trigger('mouseenter');
+      this.$container.find('tr:eq(2) td:eq(0)').trigger('mouseenter');
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      var fillHandle = this.$container.find('.wtBorder.corner')[0]
+        , event = jQuery.Event("mouseup");
+
+      event.target = fillHandle;
+      this.$container.find('tr:eq(2) td:eq(0)').trigger(event);
+    });
+
+    waitsFor(nextFrame, 'next frame', 60);
+
+    runs(function () {
+      expect(getDataAtCell(1,0)).toEqual("test");
+    });
+  });
 });

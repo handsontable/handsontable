@@ -1,8 +1,8 @@
 function HandsontableAutocompleteEditorClass(instance) {
-    this.isCellEdited = false;
-    this.instance = instance;
-    this.createElements();
-    this.bindEvents();
+  this.isCellEdited = false;
+  this.instance = instance;
+  this.createElements();
+  this.bindEvents();
   this.emptyStringLabel = '\u00A0\u00A0\u00A0'; //3 non-breaking spaces
 }
 
@@ -122,18 +122,18 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
 
   /* overwrite typeahead options and methods (matcher, sorter, highlighter, updater, etc) if provided in cellProperties */
   for (i in cellProperties) {
-    if (cellProperties.hasOwnProperty(i)) {
+    // if (cellProperties.hasOwnProperty(i)) {
       if (i === 'options') {
         for (j in cellProperties.options) {
-          if (cellProperties.options.hasOwnProperty(j)) {
+          // if (cellProperties.options.hasOwnProperty(j)) {
             this.typeahead.options[j] = cellProperties.options[j];
-          }
+          // }
         }
       }
       else {
         this.typeahead[i] = cellProperties[i];
       }
-    }
+    // }
   }
 
   HandsontableTextEditorClass.prototype.bindTemporaryEvents.call(this, td, row, col, prop, value, cellProperties);

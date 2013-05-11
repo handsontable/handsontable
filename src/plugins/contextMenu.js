@@ -146,5 +146,5 @@ function destroyContextMenu() {
   $.contextMenu('destroy', "#" + id + ' table, #' + id + ' div');
 }
 
-Handsontable.PluginHooks.push('afterInit', createContextMenu);
-Handsontable.PluginHooks.push('afterDestroy', destroyContextMenu);
+Handsontable.PluginHooks.add('afterInit', createContextMenu);
+Handsontable.PluginHooks.add('afterDestroy', destroyContextMenu);

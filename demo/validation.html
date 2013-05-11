@@ -39,10 +39,7 @@
 </head>
 
 <body>
-<a href="http://github.com/warpech/jquery-handsontable">
-  <img style="position: absolute; top: 0; right: 0; border: 0;"
-       src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"/>
-</a>
+<a href="http://github.com/warpech/jquery-handsontable" class="forkMeOnGitHub">Fork me on GitHub</a>
 
 <div id="container">
   <div class="columnLayout">
@@ -75,7 +72,7 @@
                 <li>
                   <code>changes</code> is a 2D array containing information about each of the edited cells <code>[ [row, prop, oldVal, newVal], ... ]</code>.
                   <ul>
-                    <li>To disregard a single change, <!--set <code>changes[i]</code> to <code>null</code> or--> remove it from array using <code>changes.splice(i, 1)</code>.</li>
+                    <li>To disregard a single change, set <code>changes[i]</code> to <code>null</code> or remove it from array using <code>changes.splice(i, 1)</code>.</li>
                     <li>To alter a single change, overwrite the desired value to <code>changes[i][3]</code>.</li>
                     <li>To cancel all edit, <code>return false</code> from the callback or set array length to 0 (<code>changes.length = 0</code>).</li></ul>
                 </li>
@@ -122,7 +119,7 @@
               colHeaders: true,
               minSpareRows: 1,
               contextMenu: true,
-              onBeforeChange: function (changes, source) {
+              beforeChange: function (changes, source) {
                 for (var i = changes.length - 1; i >= 0; i--) {
                   if (changes[i][3] === "foo") {
                     changes.splice(i, 1); //gently don't accept the word "foo" (remove the change at index i)
@@ -137,7 +134,7 @@
                   }
                 }
               },
-              onChange: function (changes, source) {
+              afterChange: function (changes, source) {
                 if (source === 'loadData') {
                   return; //don't show this change in console
                 }
