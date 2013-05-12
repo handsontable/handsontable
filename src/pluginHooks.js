@@ -1,6 +1,6 @@
 Handsontable.PluginHooks = (function () {
   var hooks = {
-    beforInitWalkontable: [],
+    beforeInitWalkontable: [],
 
     beforeInit: [],
     beforeRender: [],

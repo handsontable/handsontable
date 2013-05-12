@@ -32,7 +32,7 @@ Handsontable.Core = function (rootElement, settings) {
   };
 
   hooks = {
-    beforInitWalkontable: [],
+    beforeInitWalkontable: [],
 
     beforeInit: [],
     beforeRender: [],
