@@ -161,6 +161,25 @@ WalkontableDom.prototype.avoidInnerHTML = function (element, content) {
   }
 };
 
+WalkontableDom.prototype.isVisible = function (elem) {
+  var next = elem;
+  while (next !== document.documentElement) {
+    if (next === null) {
+      return false;
+    }
+    else if (next.style.display === 'none') {
+      return false;
+    }
+    /*else if (next !== elem && next.offsetWidth === 0) {
+     //this is the technique used by jQuery is(':visible')
+     //but in IE7, clientWidth & offsetWidth sometimes returns 0 when it shouldn't
+     return false;
+     }*/
+    next = next.parentNode;
+  }
+  return true;
+};
+
 /**
  * seems getBounding is usually faster: http://jsperf.com/offset-vs-getboundingclientrect/4
  * but maybe offset + cache would work?
