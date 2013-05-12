@@ -128,7 +128,7 @@ WalkontableScrollbar.prototype.refresh = function () {
     , handleSize
     , handlePosition
     , visibleCount = this.visibleCount
-    , tableOuterWidth = this.instance.wtDom.outerWidth(this.instance.wtTable.TABLE) || this.instance.wtDom.outerWidth(this.instance.wtTable.TBODY) || this.instance.wtDom.outerWidth(this.instance.wtTable.THEAD)
+    , tableOuterWidth = this.instance.wtDom.outerWidth(this.instance.wtTable.TABLE) || this.instance.wtDom.outerWidth(this.instance.wtTable.TBODY) || this.instance.wtDom.outerWidth(this.instance.wtTable.THEAD) //IE8 reports 0 as <table> offsetWidth
     , tableOuterHeight = this.instance.wtDom.outerHeight(this.instance.wtTable.TABLE)
     , tableWidth = this.instance.hasSetting('width') ? this.instance.getSetting('width') : tableOuterWidth
     , tableHeight = this.instance.hasSetting('height') ? this.instance.getSetting('height') : tableOuterHeight;
