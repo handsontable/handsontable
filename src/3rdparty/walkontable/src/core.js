@@ -38,26 +38,9 @@ function Walkontable(settings) {
   this.drawInterrupted = false;
 }
 
-Walkontable.prototype.isVisible = function () {
-  var next = this.wtTable.TABLE;
-  while (next !== document.documentElement) {
-    if (next === null) {
-      return false;
-    }
-    else if (next.style.display === 'none') {
-      return false;
-    }
-    else if (this.wtTable.TABLE.parentNode.clientWidth === 0) {
-      return false; //this is the technique used by jQuery is(':visible')
-    }
-    next = next.parentNode;
-  }
-  return true;
-};
-
 Walkontable.prototype.draw = function (selectionsOnly) {
   this.drawInterrupted = false;
-  if (!selectionsOnly && !this.isVisible()) {
+  if (!selectionsOnly && !this.wtDom.isVisible(this.wtTable.TABLE)) {
     this.drawInterrupted = true; //draw interrupted because TABLE is not visible
     return;
   }
