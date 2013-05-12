@@ -201,4 +201,33 @@ describe('WalkontableCore', function () {
     wt.draw();
     wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
   });
+
+  it("should render empty then filled table (limited height)", function () {
+    createDataArray(0, 5);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      height: 100
+    });
+    wt.draw();
+    createDataArray(1, 5);
+    wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+  });
+
+  it("should render empty then filled table (unlimited height)", function () {
+    createDataArray(0, 5);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns
+    });
+    wt.draw();
+    createDataArray(1, 5);
+    wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+  });
 });
