@@ -39,6 +39,10 @@ Then, run `handsontable()` constructor on an empty div. After that, load some da
 
 To see the list of recent changes, see the [Changelog](https://github.com/warpech/jquery-handsontable/wiki/Changelog) wiki page.
 
+## Questions
+
+Before you open a new [Issue](https://github.com/warpech/jquery-handsontable/issues), please check out the [Frequently Asked Questions](https://github.com/warpech/jquery-handsontable/wiki/FAQ).
+
 ## Reporting bugs and feature requests
 
 Please follow this guidelines when reporting bugs and feature requests:
