@@ -1,6 +1,10 @@
 ## [0.9.0-beta2](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 7, 2013)
 Bugfixes:
 - fix problem with destroy and animate function interval ([#456](https://github.com/warpech/jquery-handsontable/issues/456))
+- fix demo page buttons.html ([#602](https://github.com/warpech/jquery-handsontable/issues/602))
+
+Feature:
+- rename event onSelection* and onCopyLimit to afterSelection* and afterCopyLimit (see [Events](https://github.com/warpech/jquery-handsontable/wiki/Events) wiki page)
 
 ## [0.9.0-beta1](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 7, 2013)
 

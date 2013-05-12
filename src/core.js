@@ -47,6 +47,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   hooks = {
+    beforeInitWalkontable: [],
+
     beforeInit: [],
     beforeRender: [],
     beforeChange: [],
@@ -69,19 +71,24 @@ Handsontable.Core = function (rootElement, userSettings) {
     afterCreateCol: [],
     afterColumnResize: [],
     afterColumnMove: [],
-
-    onSelection: [],
-    onSelectionByProp: [],
-    onSelectionEnd: [],
-    onSelectionEndByProp: [],
-    onCopyLimit: []
+    afterDeselect: [],
+    afterSelection: [],
+    afterSelectionByProp: [],
+    afterSelectionEnd: [],
+    afterSelectionEndByProp: [],
+    afterCopyLimit: []
   };
 
   eventMap = {
     onBeforeChange: "beforeChange",
     onChange: "afterChange",
     onCreateRow: "afterCreateRow",
-    onCreateCol: "afterCreateCol"
+    onCreateCol: "afterCreateCol",
+    onSelection: "afterSelection",
+    onCopyLimit: "afterCopyLimit",
+    onSelectionEnd: "afterSelectionEnd",
+    onSelectionByProp: "afterSelectionByProp",
+    onSelectionEndByProp: "afterSelectionEndByProp"
   };
 
   datamap = {
@@ -703,9 +710,9 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Sets inProgress to false. Triggers onSelectionEnd and onSelectionEndByProp
      */
     finish: function () {
-      var sel = instance.getSelected();
-      instance.runHooks("onSelectionEnd", sel[0], sel[1], sel[2], sel[3]);
-      instance.runHooks("onSelectionEndByProp", sel[0], instance.colToProp(sel[1]), sel[2], instance.colToProp(sel[3]));
+      var sel = self.getSelected();
+      instance.runHooks("afterSelectionEnd", sel[0], sel[1], sel[2], sel[3]);
+      instance.runHooks("afterSelectionEndByProp", sel[0], instance.colToProp(sel[1]), sel[2], instance.colToProp(sel[3]));
       instance.selection.inProgress = false;
     },
 
@@ -754,8 +761,9 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
 
       //trigger handlers
-      instance.runHooks("onSelection", priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col());
-      instance.runHooks("onSelectionByProp", priv.selStart.row(), datamap.colToProp(priv.selStart.col()), priv.selEnd.row(), datamap.colToProp(priv.selEnd.col()));
+      instance.runHooks("afterSelection", priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col());
+      instance.runHooks("afterSelectionByProp", priv.selStart.row(), datamap.colToProp(priv.selStart.col()), priv.selEnd.row(), datamap.colToProp(priv.selEnd.col()));
+
       if (scrollToCell !== false) {
         instance.view.scrollViewport(coords);
 
@@ -906,7 +914,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.view.wt.selections.area.clear();
       editproxy.destroy();
       selection.refreshBorders();
-      instance.rootElement.triggerHandler('deselect.handsontable');
+      instance.runHooks('afterDeselect');
     },
 
     /**
@@ -1324,7 +1332,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.copyPaste.copyable(datamap.getText({row: startRow, col: startCol}, {row: finalEndRow, col: finalEndCol}));
 
       if (endRow !== finalEndRow || endCol !== finalEndCol) {
-        instance.runHooks("onCopyLimit", endRow - startRow + 1, endCol - startCol + 1, priv.settings.copyRowsLimit, priv.settings.copyColsLimit);
+        instance.runHooks("afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, priv.settings.copyRowsLimit, priv.settings.copyColsLimit);
       }
     },
 
