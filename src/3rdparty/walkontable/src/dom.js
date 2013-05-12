@@ -163,8 +163,11 @@ WalkontableDom.prototype.avoidInnerHTML = function (element, content) {
 
 WalkontableDom.prototype.isVisible = function (elem) {
   var next = elem;
-  while (next !== document.documentElement) {
-    if (next === null) {
+  while (next !== document.documentElement) { //until <html> reached
+    if (next === null) { //parent detached from DOM
+      return false;
+    }
+    else if (next.nodeType === 11) { //IE7 reports this after detaching element from DOM
       return false;
     }
     else if (next.style.display === 'none') {
