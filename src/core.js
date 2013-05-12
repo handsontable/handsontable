@@ -553,7 +553,7 @@ Handsontable.Core = function (rootElement, userSettings) {
           changes.push([r, c, oldData[r] ? oldData[r][c] : null, newData[r][c]]);
         }
       }
-      instance.runHooks('afterChange', changes, source || 'alter');
+      instance.runHooks('afterChange', changes, source || action);
       grid.keepEmptyRows(); //makes sure that we did not add rows that will be removed in next refresh
     },
 
