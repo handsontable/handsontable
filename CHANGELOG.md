@@ -1,3 +1,7 @@
+## [0.9.0-beta2](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 7, 2013)
+Bugfixes:
+- fix problem with destroy and animate function interval ([#456](https://github.com/warpech/jquery-handsontable/issues/456))
+
 ## [0.9.0-beta1](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 7, 2013)
 
 Features:
@@ -408,13 +412,13 @@ Mosty fixes for the Autocomplete feature as well as a new (easier) syntax for th
 
 Features (described in [README.md](https://github.com/warpech/jquery-handsontable)):
 
-  - new public method `destroyEditor` (#229). 
+  - new public method `destroyEditor` (#229).
 
 ## [0.7.0](https://github.com/warpech/jquery-handsontable/tree/v0.7.0) (Nov 5, 2012)
 
 Please note that this release has partial incompability with previous releases. It is step in a direction to make Handsontable more flexible and customisable.
 
-Adds binding to object data source (prior versions only allow 2-dimensional array data source)  
+Adds binding to object data source (prior versions only allow 2-dimensional array data source)
 Adds selective column rendering (using `columns` option)
 Now data is assigned to Handsontable as reference (prior versions had data copied)
 Adds custom cell types (currently text, autocomplete or checkbox)
@@ -453,7 +457,7 @@ Bugfixes:
   - new configuration option `outsideClickDeselects`
   - added data function reference in autocomplete match (`match: function (row, col, data)`)
 - bugfix:
-  - option `fillHandle: 'horizontal'` and `'vertical'` did not work 
+  - option `fillHandle: 'horizontal'` and `'vertical'` did not work
 
 ## [0.5.0](https://github.com/warpech/jquery-handsontable/tree/v0.5.0) (Aug 15, 2012)
 
