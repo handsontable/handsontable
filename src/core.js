@@ -315,8 +315,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         , split  = index + amount
         , length = data.length
         , r = 0;
-
-
+      // Prepare data table
       for (; r < length; r++) {
         if (r < index) {
           before.push(data[r][col]);
@@ -328,21 +327,21 @@ Handsontable.Core = function (rootElement, userSettings) {
           removed.push(data[r][col]);
         }
       }
-
-      result = before.concat(elements, after);
-
+      // Calculate result data
+      result = [].concat(before, elements, after);
+      // Create missing rows
       if (diff > 0) {
         length += diff;
         self.alter('insert_row', null, diff, 'spliceCol');
       }
-
+      // Update data in table
       for (r = 0; r < length; r++) {
         data[r][col] = typeof result[r] !== "undefined" ? result[r] : null;
       }
-
+      // Re-render table
       self.forceFullRender = true; //used when data was changed
       selection.refreshBorders();
-
+      // Return removed elements
       return removed;
     },
 
@@ -2039,12 +2038,42 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Return value at `row`, `prop`
    * @param {Number} row
-   * @param {Number} prop
+   * @param {String} prop
    * @public
    * @return value (mixed data type)
    */
   this.getDataAtRowProp = function (row, prop) {
     return datamap.get(row, prop);
+  };
+
+  /**
+   * Return value at `col`
+   * @param {Number} col
+   * @public
+   * @return value (mixed data type)
+   */
+  this.getDataAtCol = function (col) {
+    return [].concat.apply([], datamap.getRange({row: 0, col: col}, {row: priv.settings.data.length - 1, col: col}));
+  };
+
+  /**
+   * Return value at `prop`
+   * @param {String} prop
+   * @public
+   * @return value (mixed data type)
+   */
+  this.getDataAtProp = function (prop) {
+    return [].concat.apply([], datamap.getRange({row: 0, col: datamap.propToCol(prop)}, {row: priv.settings.data.length - 1, col: datamap.propToCol(prop)}));
+  };
+
+  /**
+   * Return value at `row`
+   * @param {Number} row
+   * @public
+   * @return value (mixed data type)
+   */
+  this.getDataAtRow = function (row) {
+    return priv.settings.data[row];
   };
 
   /**
