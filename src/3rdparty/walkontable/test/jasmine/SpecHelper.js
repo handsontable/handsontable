@@ -36,3 +36,7 @@ beforeEach(function () {
 
   this.addMatchers(matchers);
 });
+
+var getTableWidth = function (elem) {
+  return $(elem).outerWidth() || $(elem).find('tbody').outerWidth() || $(elem).find('thead').outerWidth(); //IE8 reports 0 as <table> offsetWidth
+};
