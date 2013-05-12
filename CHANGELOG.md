@@ -1,10 +1,23 @@
 ## [0.9.0-beta2](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 7, 2013)
-Bugfixes:
-- fix problem with destroy and animate function interval ([#456](https://github.com/warpech/jquery-handsontable/issues/456))
-- fix demo page buttons.html ([#602](https://github.com/warpech/jquery-handsontable/issues/602))
 
-Feature:
+Features:
 - rename event onSelection* and onCopyLimit to afterSelection* and afterCopyLimit (see [Events](https://github.com/warpech/jquery-handsontable/wiki/Events) wiki page)
+- new methods:
+  - getDataAtRow
+  - getDataAtCol
+  - getDataAtProp
+  - populateFromArray
+  - spliceCol
+- now avaiable inserting data when paste instead of overwriting existing data (option `insertWhenPaste`)
+
+Bugfixes:
+- fix problem with clearing `animate` function interval ([#456](https://github.com/warpech/jquery-handsontable/issues/456))
+- fix demo page buttons.html ([#602](https://github.com/warpech/jquery-handsontable/issues/602))
+- fix auto resize column when double clicked on `.manualColumnResizer` ([#594](https://github.com/warpech/jquery-handsontable/issues/602))
+- fix undo/redo event handler (change `datachange.handsontable` event to `afterChange` hook)
+
+Other:
+- new demo pages: [pagination](http://handsontable.com/demo/pagging.html) and [search](http://handsontable.com/demo/search.html)
 
 ## [0.9.0-beta1](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 7, 2013)
 
