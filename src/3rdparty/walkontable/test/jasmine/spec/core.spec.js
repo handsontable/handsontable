@@ -230,4 +230,16 @@ describe('WalkontableCore', function () {
     createDataArray(1, 5);
     wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
   });
+
+  it("should render table with rows but no columns", function () {
+    createDataArray(5, 0);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns
+    });
+    wt.draw();
+  });
 });
