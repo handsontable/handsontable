@@ -7,7 +7,6 @@ Features:
   - getDataAtCol ([docs](https://github.com/warpech/jquery-handsontable/wiki/Methods))
   - getDataAtProp ([docs](https://github.com/warpech/jquery-handsontable/wiki/Methods))
   - spliceCol ([docs](https://github.com/warpech/jquery-handsontable/wiki/Methods))
-- now avaiable inserting data when paste instead of overwriting existing data (option `insertWhenPaste`)
 
 Bugfixes:
 - fix problem with clearing `animate` function interval ([#456](https://github.com/warpech/jquery-handsontable/issues/456))
