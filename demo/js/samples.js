@@ -7,7 +7,7 @@
    */
 
   function trimCodeBlock(code, pad) {
-    var i;
+    var i, ilen;
     pad = pad || 0;
     code = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); //escape html special chars
     code = code.split('\n');
