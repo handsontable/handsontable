@@ -39,6 +39,10 @@ Then, run `handsontable()` constructor on an empty div. After that, load some da
 
 To see the list of recent changes, see the [Changelog](https://github.com/warpech/jquery-handsontable/wiki/Changelog) wiki page.
 
+## Questions
+
+Before you open a new [Issue](https://github.com/warpech/jquery-handsontable/issues), please check out the [Frequently Asked Questions](https://github.com/warpech/jquery-handsontable/wiki/FAQ).
+
 ## Reporting bugs and feature requests
 
 Please follow this guidelines when reporting bugs and feature requests:
@@ -156,7 +160,7 @@ The table below presents configuration options that are interpreted by `handsont
  `onSelectionEnd`        | function(`r`, `c`, `r2`, `c2`) | _undefined_      | Callback fired after one or more cells are selected (on mouse up). Parameters: <ul><li>`r` selection start row</li><li>`c` selection start column</li><li>`r2` selection end column</li><li>`c2` selection end column</li></ul>
  `onSelectionEndByProp`  | function(`r`, `p`, `r2`, `p2`) | _undefined_      | The same as above, but data source object property name is used instead of the column number
  `onBeforeChange`        | function(`changes`)            | _undefined_      | Callback fired before one or more cells is changed. Its main purpose is to validate the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, prop, oldVal, newVal], ... ]`. You can disregard a single change by setting `changes[i][3]` to false, or cancel all edit by returning false.</li></ul>
- `onChange`              | function(`changes`, `source`)  | _undefined_      | Callback fired after one or more cells is changed. Its main use case is to save the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, prop, oldVal, newVal], ... ]`. </li><li>`source` is one of the strings: `"alter"`, `"empty"`, `"edit"`, `"populateFromArray"`, `"loadData"`, `"autofill"`, `"paste"`.</li></ul> Note: for performance reasone, the `changes` array is null for `"loadData"` source.
+ `onChange`              | function(`changes`, `source`)  | _undefined_      | Callback fired after one or more cells is changed. Its main use case is to save the input. Parameters: <ul><li>`changes` is a 2D array containing information about each of the edited cells `[ [row, prop, oldVal, newVal], ... ]`. </li><li>`source` is one of the strings: `"alter"`, `"empty"`, `"edit"`, `"populateFromArray"`, `"loadData"`, `"autofill"`, `"paste"`.</li></ul> Note: for performance reasons, the `changes` array is null for `"loadData"` source.
  `onCopyLimit`           | function()                     | _undefined_      | Callback fired if `copyRowsLimit` or `copyColumnsLimit` was reached. Callback parameters are: `selectedRowsCount`, `selectedColsCount`, `copyRowsLimit`, `copyColsLimit`
 
 ## Similar projects
