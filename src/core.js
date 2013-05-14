@@ -714,7 +714,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @param {String} [source="populateFromArray"]
      * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
      */
-    populateFromArray: function (start, input, end, source) {
+    populateFromArray: function (start, input, end, source, method) {
       var r, rlen, c, clen, setData = [], current = {};
       rlen = input.length;
       if (rlen === 0) {
@@ -722,6 +722,20 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
       current.row = start.row;
       current.col = start.col;
+
+      // fix grid size with specified pasteMode method in settings
+      switch (method) {
+        case 'shift_down' :
+          instance.alter('insert_row', start.row, input.length);
+          break;
+        case 'shift_right' :
+          instance.alter('insert_col', start.col, input[0].length);
+          break;
+        default:
+          // overwrite and other notspecified options - just do nothing
+          break;
+      }
+
       for (r = 0; r < rlen; r++) {
         if ((end && current.row > end.row) || (!priv.settings.minSpareRows && current.row > instance.countRows() - 1) || (current.row >= priv.settings.maxRows)) {
           break;
@@ -1233,23 +1247,10 @@ Handsontable.Core = function (rootElement, userSettings) {
           , inputArray = SheetClip.parse(input)
           , coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
 
-        // fix grid size with specified pasteMode method in settings
-        switch (priv.settings.pasteMode) {
-          case 'shift_down' :
-            instance.alter('insert_row', coords.TL.row, inputArray.length);
-            break;
-          case 'shift_right' :
-            instance.alter('insert_col', coords.TL.col, inputArray[0].length);
-            break;
-          default:
-            // overwrite and other notspecified options - just do nothing
-            break;
-        }
-
         grid.populateFromArray(coords.TL, inputArray, {
           row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
           col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
-        }, 'paste');
+        }, 'paste', priv.settings.pasteMode);
       }
 
       var $body = $(document.body);
@@ -1722,13 +1723,14 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @param {Number=} endRow End row (use when you want to cut input when certain row is reached)
    * @param {Number=} endCol End column (use when you want to cut input when certain column is reached)
    * @param {String=} [source="populateFromArray"]
+   * @param {String=} [method="overwrite"]
    * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
    */
-  this.populateFromArray = function (row, col, input, endRow, endCol, source) {
+  this.populateFromArray = function (row, col, input, endRow, endCol, source, method) {
     if(typeof input !== 'object') {
       throw new Error("populateFromArray parameter `input` must be an array"); //API changed in 0.9-beta2, let's check if you use it correctly
     }
-    return grid.populateFromArray({row: row, col: col}, input, typeof endRow === 'number' ? {row: endRow, col: endCol} : null, source);
+    return grid.populateFromArray({row: row, col: col}, input, typeof endRow === 'number' ? {row: endRow, col: endCol} : null, source, method);
   };
 
   /**
