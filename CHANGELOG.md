@@ -1,13 +1,12 @@
-## [0.9.0-beta2](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 7, 2013)
+## HEAD
 
 Features:
-- rename event onSelection* and onCopyLimit to afterSelection* and afterCopyLimit (see [Events](https://github.com/warpech/jquery-handsontable/wiki/Events) wiki page)
+- consistency: now all `on*` events are renamed to `after*` (see [Events](https://github.com/warpech/jquery-handsontable/wiki/Events) wiki page)
 - new methods:
-  - getDataAtRow
-  - getDataAtCol
-  - getDataAtProp
-  - populateFromArray
-  - spliceCol
+  - getDataAtRow ([docs](https://github.com/warpech/jquery-handsontable/wiki/Methods))
+  - getDataAtCol ([docs](https://github.com/warpech/jquery-handsontable/wiki/Methods))
+  - getDataAtProp ([docs](https://github.com/warpech/jquery-handsontable/wiki/Methods))
+  - spliceCol ([docs](https://github.com/warpech/jquery-handsontable/wiki/Methods))
 - now avaiable inserting data when paste instead of overwriting existing data (option `insertWhenPaste`)
 
 Bugfixes:
