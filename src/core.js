@@ -345,6 +345,53 @@ Handsontable.Core = function (rootElement, userSettings) {
     },
 
     /**
+     * Add / removes data from the column
+     * @param {Number} col Index of column in which do you want to do splice.
+     * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
+     * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
+     * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
+     */
+    spliceRow: function (row, index, amount/*, elements... */) {
+      var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : []
+        , before   = []
+        , removed  = []
+        , after    = []
+        , result
+        , data   = GridSettings.prototype.data
+        , diff   = elements.length - amount
+        , split  = index + amount
+        , length = data.length
+        , r = 0;
+      // Prepare data table
+      for (; r < length; r++) {
+        if (r < index) {
+          before.push(data[r][col]);
+        }
+        else if (r >= split) {
+          after.push(data[r][col]);
+        }
+        else {
+          removed.push(data[r][col]);
+        }
+      }
+      // Calculate result data
+      result = [].concat(before, elements, after);
+      // Create missing rows
+      if (diff > 0) {
+        length += diff;
+        instance.alter('insert_row', null, diff, 'spliceCol', true);
+      }
+      for (r = 0; r < length; r++) {
+        data[r][col] = typeof result[r] !== "undefined" ? result[r] : null;
+      }
+      // Re-render table
+      instance.forceFullRender = true; //used when data was changed
+      selection.refreshBorders();
+      // Return removed elements
+      return removed;
+    },
+
+    /**
      * Returns single value from the data array
      * @param {Number} row
      * @param {Number} prop
@@ -531,13 +578,13 @@ Handsontable.Core = function (rootElement, userSettings) {
 
         case "remove_row":
           datamap.removeRow(index, amount);
-          grid.keepEmptyRows();
+          grid.adjustRowsAndCols();
           selection.refreshBorders(); //it will call render and prepare methods
           break;
 
         case "remove_col":
           datamap.removeCol(index, amount);
-          grid.keepEmptyRows();
+          grid.adjustRowsAndCols();
           selection.refreshBorders(); //it will call render and prepare methods
           break;
 
@@ -555,14 +602,14 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
       instance.runHooks('afterChange', changes, source || action);
       if (!keepEmptyRows) {
-        grid.keepEmptyRows(); //makes sure that we did not add rows that will be removed in next refresh
+        grid.adjustRowsAndCols(); //makes sure that we did not add rows that will be removed in next refresh
       }
     },
 
     /**
      * Makes sure there are empty rows at the bottom of the table
      */
-    keepEmptyRows: function () {
+    adjustRowsAndCols: function () {
       var r, rlen, emptyRows = instance.countEmptyRows(true), emptyCols;
 
       //should I add empty rows to data source to meet minRows?
@@ -1551,7 +1598,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
 
     instance.forceFullRender = true; //used when data was changed
-    grid.keepEmptyRows();
+    grid.adjustRowsAndCols();
     selection.refreshBorders();
     instance.runHooks('afterChange', changes, source || 'edit');
   }
@@ -1790,7 +1837,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
     datamap.createMap();
 
-    grid.keepEmptyRows();
+    grid.adjustRowsAndCols();
     instance.runHooks('afterLoadData');
 
     if (priv.firstRun) {
@@ -1920,7 +1967,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
 
-    grid.keepEmptyRows();
+    grid.adjustRowsAndCols();
     if (instance.view) {
       instance.forceFullRender = true; //used when data was changed
       selection.refreshBorders(null, true);
