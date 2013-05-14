@@ -1,4 +1,4 @@
-## [0.9.0-beta1](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 3, 2013)
+## [0.9.0-beta1](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 7, 2013)
 
 Features:
 - improved [Options](https://github.com/warpech/jquery-handsontable/wiki/Options) model. Cell properties now inherit from Column properties constructor, which inherit from Handsontable Constructor. This is based on JavaScript prototypal inheritance, rather than `$.extend` as previously
@@ -11,7 +11,7 @@ Features:
   - afterCreateCol ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#122](https://github.com/warpech/jquery-handsontable/issues/122))
   - afterRemoveRow ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#69](https://github.com/warpech/jquery-handsontable/issues/69), [#227](https://github.com/warpech/jquery-handsontable/issues/227))
   - afterRemoveCol ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events))
-  - beforeAutofill ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#267](https://github.com/warpech/jquery-handsontable/issues/267), [#200](https://github.com/warpech/jquery-handsontable/issues/200), [#133](https://github.com/warpech/jquery-handsontable/issues/133), [#36](https://github.com/warpech/jquery-handsontable/issues/36))
+  - beforeAutofill ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events), [#200](https://github.com/warpech/jquery-handsontable/issues/200), [#133](https://github.com/warpech/jquery-handsontable/issues/133), [#36](https://github.com/warpech/jquery-handsontable/issues/36))
 - `setDataAtCell` method now accepts `source` string as second parameter (if first parameter is `changes` array)
 
 Bugfixes:
