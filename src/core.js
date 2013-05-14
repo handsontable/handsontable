@@ -1584,6 +1584,9 @@ Handsontable.Core = function (rootElement, userSettings) {
       , prop;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
+      if (typeof input[i] !== 'object') {
+        throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
+      }
       if (typeof input[i][1] !== 'number') {
         throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
