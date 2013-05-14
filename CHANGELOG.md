@@ -13,6 +13,7 @@ Bugfixes:
 - fix demo page buttons.html ([#602](https://github.com/warpech/jquery-handsontable/issues/602))
 - fix auto resize column when double clicked on `.manualColumnResizer` ([#594](https://github.com/warpech/jquery-handsontable/issues/602))
 - fix undo/redo event handler (change `datachange.handsontable` event to `afterChange` hook)
+- fix inline styles in "Edit in JSFiddle" code generation
 
 Other:
 - new demo pages: [pagination](http://handsontable.com/demo/pagging.html) and [search](http://handsontable.com/demo/search.html)
