@@ -299,10 +299,10 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     /**
      * Add / removes data from the column
-     * @param {Number} [col] Index of column in which do you want to do splice.
-     * @param {Number} [index] Index at which to start changing the array. If negative, will begin that many elements from the end
-     * @param {Number} [amount] An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
-     * @param {Mixed} [elements] Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
+     * @param {Number} col Index of column in which do you want to do splice.
+     * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
+     * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
+     * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
      */
     spliceCol: function (col, index, amount/*, elements... */) {
       var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : []
@@ -1667,10 +1667,10 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   /**
    * Add / removes data from the column
-   * @param {Number} [col] Index of column in which do you want to do splice.
-   * @param {Number} [index] Index at which to start changing the array. If negative, will begin that many elements from the end
-   * @param {Number} [amount] An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
-   * @param {Mixed} [elements] Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
+   * @param {Number} col Index of column in which do you want to do splice.
+   * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
+   * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
+   * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
    */
   this.spliceCol = function (col, index, amount/*, elements... */) {
     return datamap.spliceCol.apply(null, arguments);
