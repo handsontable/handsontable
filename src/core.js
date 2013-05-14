@@ -332,14 +332,14 @@ Handsontable.Core = function (rootElement, userSettings) {
       // Create missing rows
       if (diff > 0) {
         length += diff;
-        self.alter('insert_row', null, diff, 'spliceCol');
+        instance.alter('insert_row', null, diff, 'spliceCol');
       }
       // Update data in table
       for (r = 0; r < length; r++) {
         data[r][col] = typeof result[r] !== "undefined" ? result[r] : null;
       }
       // Re-render table
-      self.forceFullRender = true; //used when data was changed
+      instance.forceFullRender = true; //used when data was changed
       selection.refreshBorders();
       // Return removed elements
       return removed;
@@ -760,7 +760,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Sets inProgress to false. Triggers onSelectionEnd and onSelectionEndByProp
      */
     finish: function () {
-      var sel = self.getSelected();
+      var sel = instance.getSelected();
       instance.runHooks("afterSelectionEnd", sel[0], sel[1], sel[2], sel[3]);
       instance.runHooks("afterSelectionEndByProp", sel[0], instance.colToProp(sel[1]), sel[2], instance.colToProp(sel[3]));
       instance.selection.inProgress = false;
@@ -1185,7 +1185,7 @@ Handsontable.Core = function (rootElement, userSettings) {
           , coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
 
         if (priv.settings.insertWhenPaste) { // insert when paste
-          self.alter('insert_row', coords.TL.row, inputArray.length);
+          instance.alter('insert_row', coords.TL.row, inputArray.length);
         }
 
         grid.populateFromArray(coords.TL, inputArray, {
