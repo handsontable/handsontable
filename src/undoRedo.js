@@ -5,9 +5,9 @@ Handsontable.UndoRedo = function (instance) {
   var that = this;
   this.instance = instance;
   this.clear();
-  instance.rootElement.on("datachange.handsontable", function (event, changes, origin) {
+  Handsontable.PluginHooks.add("afterChange", function (changes, origin) {
     if (origin !== 'undo' && origin !== 'redo') {
-      that.add(changes);
+      that.add(changes, origin);
     }
   });
 };
@@ -62,7 +62,7 @@ Handsontable.UndoRedo.prototype.isRedoAvailable = function () {
  * Add new history poins
  * @param changes
  */
-Handsontable.UndoRedo.prototype.add = function (changes) {
+Handsontable.UndoRedo.prototype.add = function (changes, source) {
   this.rev++;
   this.data.splice(this.rev); //if we are in point abcdef(g)hijk in history, remove everything after (g)
   this.data.push(changes);

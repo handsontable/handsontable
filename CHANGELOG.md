@@ -1,3 +1,24 @@
+## [0.9.0-beta2](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 7, 2013)
+
+Features:
+- rename event onSelection* and onCopyLimit to afterSelection* and afterCopyLimit (see [Events](https://github.com/warpech/jquery-handsontable/wiki/Events) wiki page)
+- new methods:
+  - getDataAtRow
+  - getDataAtCol
+  - getDataAtProp
+  - populateFromArray
+  - spliceCol
+- now avaiable inserting data when paste instead of overwriting existing data (option `insertWhenPaste`)
+
+Bugfixes:
+- fix problem with clearing `animate` function interval ([#456](https://github.com/warpech/jquery-handsontable/issues/456))
+- fix demo page buttons.html ([#602](https://github.com/warpech/jquery-handsontable/issues/602))
+- fix auto resize column when double clicked on `.manualColumnResizer` ([#594](https://github.com/warpech/jquery-handsontable/issues/602))
+- fix undo/redo event handler (change `datachange.handsontable` event to `afterChange` hook)
+
+Other:
+- new demo pages: [pagination](http://handsontable.com/demo/pagging.html) and [search](http://handsontable.com/demo/search.html)
+
 ## [0.9.0-beta1](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 7, 2013)
 
 Features:
@@ -408,13 +429,13 @@ Mosty fixes for the Autocomplete feature as well as a new (easier) syntax for th
 
 Features (described in [README.md](https://github.com/warpech/jquery-handsontable)):
 
-  - new public method `destroyEditor` (#229). 
+  - new public method `destroyEditor` (#229).
 
 ## [0.7.0](https://github.com/warpech/jquery-handsontable/tree/v0.7.0) (Nov 5, 2012)
 
 Please note that this release has partial incompability with previous releases. It is step in a direction to make Handsontable more flexible and customisable.
 
-Adds binding to object data source (prior versions only allow 2-dimensional array data source)  
+Adds binding to object data source (prior versions only allow 2-dimensional array data source)
 Adds selective column rendering (using `columns` option)
 Now data is assigned to Handsontable as reference (prior versions had data copied)
 Adds custom cell types (currently text, autocomplete or checkbox)
@@ -453,7 +474,7 @@ Bugfixes:
   - new configuration option `outsideClickDeselects`
   - added data function reference in autocomplete match (`match: function (row, col, data)`)
 - bugfix:
-  - option `fillHandle: 'horizontal'` and `'vertical'` did not work 
+  - option `fillHandle: 'horizontal'` and `'vertical'` did not work
 
 ## [0.5.0](https://github.com/warpech/jquery-handsontable/tree/v0.5.0) (Aug 15, 2012)
 

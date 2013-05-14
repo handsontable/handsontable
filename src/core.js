@@ -47,6 +47,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   hooks = {
+    beforeInitWalkontable: [],
+
     beforeInit: [],
     beforeRender: [],
     beforeChange: [],
@@ -69,19 +71,24 @@ Handsontable.Core = function (rootElement, userSettings) {
     afterCreateCol: [],
     afterColumnResize: [],
     afterColumnMove: [],
-
-    onSelection: [],
-    onSelectionByProp: [],
-    onSelectionEnd: [],
-    onSelectionEndByProp: [],
-    onCopyLimit: []
+    afterDeselect: [],
+    afterSelection: [],
+    afterSelectionByProp: [],
+    afterSelectionEnd: [],
+    afterSelectionEndByProp: [],
+    afterCopyLimit: []
   };
 
   eventMap = {
     onBeforeChange: "beforeChange",
     onChange: "afterChange",
     onCreateRow: "afterCreateRow",
-    onCreateCol: "afterCreateCol"
+    onCreateCol: "afterCreateCol",
+    onSelection: "afterSelection",
+    onCopyLimit: "afterCopyLimit",
+    onSelectionEnd: "afterSelectionEnd",
+    onSelectionByProp: "afterSelectionByProp",
+    onSelectionEndByProp: "afterSelectionEndByProp"
   };
 
   datamap = {
@@ -225,21 +232,22 @@ Handsontable.Core = function (rootElement, userSettings) {
         throw new Error("Cannot create new column. When data source in an object, you can only have as much columns as defined in first data row, data schema or in the 'columns' setting");
       }
       var r = 0, rlen = instance.countRows()
+        , data = GridSettings.prototype.data
         , constructor = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
 
       if (typeof index !== 'number' || index >= instance.countCols()) {
         for (; r < rlen; r++) {
-          if (typeof priv.settings.data[r] === 'undefined') {
-            GridSettings.prototype.data[r] = [];
+          if (typeof data[r] === 'undefined') {
+            data[r] = [];
           }
-          GridSettings.prototype.data[r].push('');
+          data[r].push('');
         }
         // Add new column constructor
         priv.columnSettings.push(constructor);
       }
       else {
         for (; r < rlen; r++) {
-          GridSettings.prototype.data[r].splice(index, 0, '');
+          data[r].splice(index, 0, '');
         }
         // Add new column constructor at given index
         priv.columnSettings.splice(index, 0, constructor);
@@ -280,12 +288,61 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (typeof index !== 'number') {
         index = -amount;
       }
+      var data = GridSettings.prototype.data;
       for (var r = 0, rlen = instance.countRows(); r < rlen; r++) {
-        GridSettings.prototype.data[r].splice(index, amount);
+        data[r].splice(index, amount);
       }
       instance.runHooks('afterRemoveCol', index, amount);
       priv.columnSettings.splice(index, amount);
       instance.forceFullRender = true; //used when data was changed
+    },
+
+    /**
+     * Add / removes data from the column
+     * @param {Number} [col] Index of column in which do you want to do splice.
+     * @param {Number} [index] Index at which to start changing the array. If negative, will begin that many elements from the end
+     * @param {Number} [amount] An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
+     * @param {Mixed} [elements] Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
+     */
+    spliceCol: function (col, index, amount/*, elements... */) {
+      var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : []
+        , before   = []
+        , removed  = []
+        , after    = []
+        , result   = []
+        , data   = priv.settings.data
+        , diff   = elements.length - amount
+        , split  = index + amount
+        , length = data.length
+        , r = 0;
+      // Prepare data table
+      for (; r < length; r++) {
+        if (r < index) {
+          before.push(data[r][col]);
+        }
+        else if (r >= split) {
+          after.push(data[r][col]);
+        }
+        else {
+          removed.push(data[r][col]);
+        }
+      }
+      // Calculate result data
+      result = [].concat(before, elements, after);
+      // Create missing rows
+      if (diff > 0) {
+        length += diff;
+        self.alter('insert_row', null, diff, 'spliceCol');
+      }
+      // Update data in table
+      for (r = 0; r < length; r++) {
+        data[r][col] = typeof result[r] !== "undefined" ? result[r] : null;
+      }
+      // Re-render table
+      self.forceFullRender = true; //used when data was changed
+      selection.refreshBorders();
+      // Return removed elements
+      return removed;
     },
 
     /**
@@ -496,7 +553,7 @@ Handsontable.Core = function (rootElement, userSettings) {
           changes.push([r, c, oldData[r] ? oldData[r][c] : null, newData[r][c]]);
         }
       }
-      instance.runHooks('afterChange', changes, source || 'alter');
+      instance.runHooks('afterChange', changes, source || action);
       grid.keepEmptyRows(); //makes sure that we did not add rows that will be removed in next refresh
     },
 
@@ -703,9 +760,9 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Sets inProgress to false. Triggers onSelectionEnd and onSelectionEndByProp
      */
     finish: function () {
-      var sel = instance.getSelected();
-      instance.runHooks("onSelectionEnd", sel[0], sel[1], sel[2], sel[3]);
-      instance.runHooks("onSelectionEndByProp", sel[0], instance.colToProp(sel[1]), sel[2], instance.colToProp(sel[3]));
+      var sel = self.getSelected();
+      instance.runHooks("afterSelectionEnd", sel[0], sel[1], sel[2], sel[3]);
+      instance.runHooks("afterSelectionEndByProp", sel[0], instance.colToProp(sel[1]), sel[2], instance.colToProp(sel[3]));
       instance.selection.inProgress = false;
     },
 
@@ -754,8 +811,9 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
 
       //trigger handlers
-      instance.runHooks("onSelection", priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col());
-      instance.runHooks("onSelectionByProp", priv.selStart.row(), datamap.colToProp(priv.selStart.col()), priv.selEnd.row(), datamap.colToProp(priv.selEnd.col()));
+      instance.runHooks("afterSelection", priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col());
+      instance.runHooks("afterSelectionByProp", priv.selStart.row(), datamap.colToProp(priv.selStart.col()), priv.selEnd.row(), datamap.colToProp(priv.selEnd.col()));
+
       if (scrollToCell !== false) {
         instance.view.scrollViewport(coords);
 
@@ -906,7 +964,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.view.wt.selections.area.clear();
       editproxy.destroy();
       selection.refreshBorders();
-      instance.rootElement.triggerHandler('deselect.handsontable');
+      instance.runHooks('afterDeselect');
     },
 
     /**
@@ -1122,9 +1180,13 @@ Handsontable.Core = function (rootElement, userSettings) {
           }
         });
 
-        var input = str.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''), //remove newline from the start and the end of the input
-          inputArray = SheetClip.parse(input),
-          coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
+        var input = str.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, '') //remove newline from the start and the end of the input
+          , inputArray = SheetClip.parse(input)
+          , coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
+
+        if (priv.settings.insertWhenPaste) { // insert when paste
+          self.alter('insert_row', coords.TL.row, inputArray.length);
+        }
 
         grid.populateFromArray(coords.TL, inputArray, {
           row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
@@ -1218,8 +1280,12 @@ Handsontable.Core = function (rootElement, userSettings) {
 
             case 8: /* backspace */
             case 46: /* delete */
-              selection.empty(event);
-              event.preventDefault();
+              if (priv.settings.onDeleteDown) {
+                priv.settings.onDeleteDown(event);
+              } else {
+                selection.empty(event);
+                event.preventDefault();
+              }
               break;
 
             case 40: /* arrow down */
@@ -1238,14 +1304,20 @@ Handsontable.Core = function (rootElement, userSettings) {
               break;
 
             case 13: /* return/enter */
-              var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
-              if (event.shiftKey) {
-                selection.transformStart(-enterMoves.row, -enterMoves.col); //move selection up
+              if (priv.settings.onEnterDown) {
+                priv.settings.onEnterDown(event);
+              } else {
+                var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
+
+                if (event.shiftKey) {
+                  selection.transformStart(-enterMoves.row, -enterMoves.col); //move selection up
+                }
+                else {
+                  selection.transformStart(enterMoves.row, enterMoves.col, true); //move selection down (add a new row if needed)
+                }
+
+                event.preventDefault(); //don't add newline to field
               }
-              else {
-                selection.transformStart(enterMoves.row, enterMoves.col, true); //move selection down (add a new row if needed)
-              }
-              event.preventDefault(); //don't add newline to field
               break;
 
             case 36: /* home */
@@ -1324,7 +1396,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.copyPaste.copyable(datamap.getText({row: startRow, col: startCol}, {row: finalEndRow, col: finalEndCol}));
 
       if (endRow !== finalEndRow || endCol !== finalEndCol) {
-        instance.runHooks("onCopyLimit", endRow - startRow + 1, endCol - startCol + 1, priv.settings.copyRowsLimit, priv.settings.copyColsLimit);
+        instance.runHooks("afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, priv.settings.copyRowsLimit, priv.settings.copyColsLimit);
       }
     },
 
@@ -1591,6 +1663,17 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.populateFromArray = function (start, input, end, source) {
     return grid.populateFromArray(start, input, end, source);
+  };
+
+  /**
+   * Add / removes data from the column
+   * @param {Number} [col] Index of column in which do you want to do splice.
+   * @param {Number} [index] Index at which to start changing the array. If negative, will begin that many elements from the end
+   * @param {Number} [amount] An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
+   * @param {Mixed} [elements] Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
+   */
+  this.spliceCol = function (col, index, amount/*, elements... */) {
+    return datamap.spliceCol.apply(null, arguments);
   };
 
   /**
@@ -1955,12 +2038,42 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Return value at `row`, `prop`
    * @param {Number} row
-   * @param {Number} prop
+   * @param {String} prop
    * @public
    * @return value (mixed data type)
    */
   this.getDataAtRowProp = function (row, prop) {
     return datamap.get(row, prop);
+  };
+
+  /**
+   * Return value at `col`
+   * @param {Number} col
+   * @public
+   * @return value (mixed data type)
+   */
+  this.getDataAtCol = function (col) {
+    return [].concat.apply([], datamap.getRange({row: 0, col: col}, {row: priv.settings.data.length - 1, col: col}));
+  };
+
+  /**
+   * Return value at `prop`
+   * @param {String} prop
+   * @public
+   * @return value (mixed data type)
+   */
+  this.getDataAtProp = function (prop) {
+    return [].concat.apply([], datamap.getRange({row: 0, col: datamap.propToCol(prop)}, {row: priv.settings.data.length - 1, col: datamap.propToCol(prop)}));
+  };
+
+  /**
+   * Return value at `row`
+   * @param {Number} row
+   * @public
+   * @return value (mixed data type)
+   */
+  this.getDataAtRow = function (row) {
+    return priv.settings.data[row];
   };
 
   /**
@@ -2469,6 +2582,7 @@ DefaultSettings.prototype = {
   autoWrapCol: false,
   copyRowsLimit: 1000,
   copyColsLimit: 1000,
+  insertWhenPaste: false,
   currentRowClassName: void 0,
   currentColClassName: void 0,
   stretchH: 'hybrid',

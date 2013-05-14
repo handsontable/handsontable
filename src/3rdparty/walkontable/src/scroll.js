@@ -4,6 +4,11 @@ function WalkontableScroll(instance) {
   this.wtScrollbarH = new WalkontableHorizontalScrollbar(instance);
 }
 
+WalkontableScroll.prototype.destroy = function () {
+  clearInterval(this.wtScrollbarV.dragdealer.interval);
+  clearInterval(this.wtScrollbarH.dragdealer.interval);
+};
+
 WalkontableScroll.prototype.refreshScrollbars = function () {
   this.wtScrollbarH.readSettings();
   this.wtScrollbarV.readSettings();
