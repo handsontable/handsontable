@@ -31,7 +31,7 @@ describe('Core_populateFromArray', function () {
           output = changes;
         }
       });
-      populateFromArray({row:0,col:0}, [["test","test"],["test","test"]], {row:1,col:1});
+      populateFromArray(0, 0, [["test","test"],["test","test"]], 1, 1);
     });
 
     waitsFor(function () {
@@ -53,7 +53,7 @@ describe('Core_populateFromArray', function () {
           output = changes;
         }
       });
-      populateFromArray({row:0,col:0}, [["test"]], {row:3,col:0});
+      populateFromArray(0, 0, [["test"]], 3, 0);
     });
 
     waitsFor(function () {

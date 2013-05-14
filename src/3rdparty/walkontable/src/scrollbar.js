@@ -6,6 +6,8 @@ WalkontableScrollbar.prototype.init = function () {
 
   //reference to instance
   this.$table = $(this.instance.wtTable.TABLE);
+  this.$thead = this.$table.find('thead');
+  this.$tbody = this.$table.find('tbody');
 
   //create elements
   this.slider = document.createElement('DIV');
@@ -128,7 +130,7 @@ WalkontableScrollbar.prototype.refresh = function () {
     , handleSize
     , handlePosition
     , visibleCount = this.visibleCount
-    , tableOuterWidth = this.$table.outerWidth()
+    , tableOuterWidth = this.$table.outerWidth() || this.$tbody.outerWidth() || this.$thead.outerWidth() //IE8 reports 0 as <table> offsetWidth
     , tableOuterHeight = this.$table.outerHeight()
     , tableWidth = this.instance.hasSetting('width') ? this.instance.getSetting('width') : tableOuterWidth
     , tableHeight = this.instance.hasSetting('height') ? this.instance.getSetting('height') : tableOuterHeight;

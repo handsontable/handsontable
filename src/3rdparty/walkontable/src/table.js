@@ -276,56 +276,58 @@ WalkontableTable.prototype._doDraw = function () {
   }
 
   //draw TBODY
-  source_r = this.rowFilter.visibleToSource(r);
-  while (source_r < totalRows) {
-    if (r >= this.tbodyChildrenLength) {
-      TR = document.createElement('TR');
-      if (displayThs) {
-        TR.appendChild(document.createElement('TH'));
+  if (displayTds > 0) {
+    source_r = this.rowFilter.visibleToSource(r);
+    while (source_r < totalRows) {
+      if (r >= this.tbodyChildrenLength) {
+        TR = document.createElement('TR');
+        if (displayThs) {
+          TR.appendChild(document.createElement('TH'));
+        }
+        this.TBODY.appendChild(TR);
+        this.tbodyChildrenLength++;
       }
-      this.TBODY.appendChild(TR);
-      this.tbodyChildrenLength++;
-    }
-    else if (r === 0) {
-      TR = this.TBODY.firstChild;
-    }
-    else {
-      TR = TR.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
-    }
-    this.rowStrategy.cellCount++;
-
-    //TH
-    if (displayThs) {
-      this.instance.getSetting('rowHeaders', source_r, TR.firstChild);
-    }
-
-    //TD
-    this.adjustColumns(TR, displayTds + displayThs);
-
-    for (c = 0; c < displayTds; c++) {
-      source_c = this.columnFilter.visibleToSource(c);
-      if (c === 0) {
-        TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(source_c)];
+      else if (r === 0) {
+        TR = this.TBODY.firstChild;
       }
       else {
-        TD = TD.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
+        TR = TR.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
       }
-      TD.className = '';
-      TD.removeAttribute('style');
-      this.instance.getSetting('cellRenderer', source_r, source_c, TD);
-      if (this.hasEmptyCellProblem && TD.innerHTML === '') { //IE7
-        TD.innerHTML = '&nbsp;';
+      this.rowStrategy.cellCount++;
+
+      //TH
+      if (displayThs) {
+        this.instance.getSetting('rowHeaders', source_r, TR.firstChild);
       }
-    }
 
-    //after last column is rendered, check if last cell is fully displayed
-    var isCellVisible = this.isCellVisible(source_r, source_c, TD);
-    if (isCellVisible & (FLAG_NOT_VISIBLE_VERTICAL | FLAG_PARTIALLY_VISIBLE_VERTICAL)) { //when it is invisible or partially visible, don't render more rows
-      break;
-    }
+      //TD
+      this.adjustColumns(TR, displayTds + displayThs);
 
-    r++;
-    source_r = this.rowFilter.visibleToSource(r);
+      for (c = 0; c < displayTds; c++) {
+        source_c = this.columnFilter.visibleToSource(c);
+        if (c === 0) {
+          TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(source_c)];
+        }
+        else {
+          TD = TD.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
+        }
+        TD.className = '';
+        TD.removeAttribute('style');
+        this.instance.getSetting('cellRenderer', source_r, source_c, TD);
+        if (this.hasEmptyCellProblem && TD.innerHTML === '') { //IE7
+          TD.innerHTML = '&nbsp;';
+        }
+      }
+
+      //after last column is rendered, check if last cell is fully displayed
+      var isCellVisible = this.isCellVisible(source_r, source_c, TD);
+      if (isCellVisible & (FLAG_NOT_VISIBLE_VERTICAL | FLAG_PARTIALLY_VISIBLE_VERTICAL)) { //when it is invisible or partially visible, don't render more rows
+        break;
+      }
+
+      r++;
+      source_r = this.rowFilter.visibleToSource(r);
+    }
   }
   r = this.countVisibleRows();
   while (this.tbodyChildrenLength > r) {

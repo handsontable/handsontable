@@ -299,17 +299,17 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     /**
      * Add / removes data from the column
-     * @param {Number} [col] Index of column in which do you want to do splice.
-     * @param {Number} [index] Index at which to start changing the array. If negative, will begin that many elements from the end
-     * @param {Number} [amount] An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
-     * @param {Mixed} [elements] Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
+     * @param {Number} col Index of column in which do you want to do splice.
+     * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
+     * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
+     * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
      */
     spliceCol: function (col, index, amount/*, elements... */) {
       var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : []
         , before   = []
         , removed  = []
         , after    = []
-        , result   = []
+        , result
         , data   = GridSettings.prototype.data
         , diff   = elements.length - amount
         , split  = index + amount
@@ -1586,6 +1586,9 @@ Handsontable.Core = function (rootElement, userSettings) {
       , prop;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
+      if (typeof input[i] !== 'object') {
+        throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
+      }
       if (typeof input[i][1] !== 'number') {
         throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
@@ -1657,22 +1660,27 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   /**
    * Populate cells at position with 2d array
-   * @param {Object} start Start selection position
+   * @param {Number} row Start row
+   * @param {Number} col Start column
    * @param {Array} input 2d array
-   * @param {Object} [end] End selection position (only for drag-down mode)
-   * @param {String} [source="populateFromArray"]
+   * @param {Number=} endRow End row (use when you want to cut input when certain row is reached)
+   * @param {Number=} endCol End column (use when you want to cut input when certain column is reached)
+   * @param {String=} [source="populateFromArray"]
    * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
    */
-  this.populateFromArray = function (start, input, end, source) {
-    return grid.populateFromArray(start, input, end, source);
+  this.populateFromArray = function (row, col, input, endRow, endCol, source) {
+    if(typeof input !== 'object') {
+      throw new Error("populateFromArray parameter `input` must be an array"); //API changed in 0.9-beta2, let's check if you use it correctly
+    }
+    return grid.populateFromArray({row: row, col: col}, input, typeof endRow === 'number' ? {row: endRow, col: endCol} : null, source);
   };
 
   /**
-   * Add / removes data from the column
-   * @param {Number} [col] Index of column in which do you want to do splice.
-   * @param {Number} [index] Index at which to start changing the array. If negative, will begin that many elements from the end
-   * @param {Number} [amount] An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
-   * @param {Mixed} [elements] Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
+   * Adds/removes data from the column
+   * @param {Number} col Index of column in which do you want to do splice.
+   * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
+   * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
+   * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
    */
   this.spliceCol = function (col, index, amount/*, elements... */) {
     return datamap.spliceCol.apply(null, arguments);
