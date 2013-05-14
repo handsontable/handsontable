@@ -2,11 +2,13 @@
 
 Features:
 - consistency: now all `on*` events are renamed to `after*` (see [Events](https://github.com/warpech/jquery-handsontable/wiki/Events) wiki page)
+- new paste methods ([docs](https://github.com/warpech/jquery-handsontable/wiki/Options))
 - new methods:
   - getDataAtRow ([docs](https://github.com/warpech/jquery-handsontable/wiki/Methods))
   - getDataAtCol ([docs](https://github.com/warpech/jquery-handsontable/wiki/Methods))
   - getDataAtProp ([docs](https://github.com/warpech/jquery-handsontable/wiki/Methods))
   - spliceCol ([docs](https://github.com/warpech/jquery-handsontable/wiki/Methods))
+  - spliceRow ([docs](https://github.com/warpech/jquery-handsontable/wiki/Methods))
 
 Bugfixes:
 - fix problem with clearing `animate` function interval ([#456](https://github.com/warpech/jquery-handsontable/issues/456))
