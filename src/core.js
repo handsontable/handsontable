@@ -306,13 +306,13 @@ Handsontable.Core = function (rootElement, userSettings) {
      */
     spliceCol: function (col, index, amount/*, elements... */) {
       var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : []
-        , before   = []
-        , removed  = []
-        , after    = []
-        , result   = []
-        , data   = priv.settings.data
-        , diff   = elements.length - amount
-        , split  = index + amount
+        , before = []
+        , removed = []
+        , after = []
+        , result = []
+        , data = priv.settings.data
+        , diff = elements.length - amount
+        , split = index + amount
         , length = data.length
         , r = 0;
       // Prepare data table
