@@ -1,4 +1,4 @@
-describe('Core_copy', function () {
+describe('Core_paste', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
@@ -21,20 +21,40 @@ describe('Core_copy', function () {
     ];
   };
 
- it('should insert instead of overwrite when paste', function () {
+ it('should shift data down instead of overwrite when paste', function () {
     handsontable({
       data: arrayOfArrays(),
-      insertWhenPaste: true
+      pasteMode: 'shift_down'
     });
-    selectCell(1, 0); //selectAll
-    triggerPaste('Kia\tNissan\tToyota')
 
-    waitsFor(nextFrame, 'next frame', 60);
+    selectCell(1, 0); //selectAll
+    triggerPaste('Kia\tNissan\tToyota');
+
+    waits(30);
 
     runs(function () {
       expect(getData().length).toEqual(5);
       expect(getData(0,0,1,4)).toEqual([["", "Kia", "Nissan", "Toyota", "Honda"],["Kia", "Nissan", "Toyota", null, null]]);
     });
+
+  });
+
+  it('should shift right insert instead of overwrite when paste', function () {
+    handsontable({
+      data: arrayOfArrays(),
+      pasteMode: 'shift_right'
+    });
+
+    selectCell(1, 0); //selectAll
+    triggerPaste('Kia\tNissan\tToyota');
+
+    waits(30);
+
+    runs(function () {
+      expect(getData()[0].length).toEqual(8);
+      expect(getData(1,0,1,7)).toEqual([["Kia", "Nissan", "Toyota", "2008", 10, 11, 12, 13]]);
+    });
+
   });
 
 });

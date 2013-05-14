@@ -1233,8 +1233,17 @@ Handsontable.Core = function (rootElement, userSettings) {
           , inputArray = SheetClip.parse(input)
           , coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
 
-        if (priv.settings.insertWhenPaste) { // insert when paste
-          instance.alter('insert_row', coords.TL.row, inputArray.length);
+        // fix grid size with specified pasteMode method in settings
+        switch (priv.settings.pasteMode) {
+          case 'shift_down' :
+            instance.alter('insert_row', coords.TL.row, inputArray.length);
+            break;
+          case 'shift_right' :
+            instance.alter('insert_col', coords.TL.col, inputArray[0].length);
+            break;
+          default:
+            // overwrite and other notspecified options - just do nothing
+            break;
         }
 
         grid.populateFromArray(coords.TL, inputArray, {
@@ -2652,7 +2661,7 @@ DefaultSettings.prototype = {
   autoWrapCol: false,
   copyRowsLimit: 1000,
   copyColsLimit: 1000,
-  insertWhenPaste: false,
+  pasteMode: 'overwrite',
   currentRowClassName: void 0,
   currentColClassName: void 0,
   stretchH: 'hybrid',
