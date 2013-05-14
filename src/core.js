@@ -309,7 +309,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         , before = []
         , removed = []
         , after = []
-        , result = []
+        , result
         , data = priv.settings.data
         , diff = elements.length - amount
         , split = index + amount
