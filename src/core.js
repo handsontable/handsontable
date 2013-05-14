@@ -345,8 +345,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     },
 
     /**
-     * Add / removes data from the column
-     * @param {Number} col Index of column in which do you want to do splice.
+     * Add / removes data from the row
+     * @param {Number} row Index of row in which do you want to do splice.
      * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
      * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
      * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
@@ -357,21 +357,21 @@ Handsontable.Core = function (rootElement, userSettings) {
         , removed  = []
         , after    = []
         , result
-        , data   = GridSettings.prototype.data
+        , data   = GridSettings.prototype.data[row]
         , diff   = elements.length - amount
         , split  = index + amount
         , length = data.length
-        , r = 0;
+        , c = 0;
       // Prepare data table
-      for (; r < length; r++) {
-        if (r < index) {
-          before.push(data[r][col]);
+      for (; c < length; c++) {
+        if (c < index) {
+          before.push(data[c]);
         }
-        else if (r >= split) {
-          after.push(data[r][col]);
+        else if (c >= split) {
+          after.push(data[c]);
         }
         else {
-          removed.push(data[r][col]);
+          removed.push(data[c]);
         }
       }
       // Calculate result data
@@ -379,10 +379,10 @@ Handsontable.Core = function (rootElement, userSettings) {
       // Create missing rows
       if (diff > 0) {
         length += diff;
-        instance.alter('insert_row', null, diff, 'spliceCol', true);
+        instance.alter('insert_col', null, diff, 'spliceRow', true);
       }
-      for (r = 0; r < length; r++) {
-        data[r][col] = typeof result[r] !== "undefined" ? result[r] : null;
+      for (c = 0; c < length; c++) {
+        data[c] = typeof result[c] !== "undefined" ? result[c] : null;
       }
       // Re-render table
       instance.forceFullRender = true; //used when data was changed
@@ -1731,6 +1731,17 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.spliceCol = function (col, index, amount/*, elements... */) {
     return datamap.spliceCol.apply(null, arguments);
+  };
+
+  /**
+   * Adds/removes data from the row
+   * @param {Number} row Index of column in which do you want to do splice.
+   * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
+   * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
+   * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
+   */
+  this.spliceRow = function (row, index, amount/*, elements... */) {
+    return datamap.spliceRow.apply(null, arguments);
   };
 
   /**
