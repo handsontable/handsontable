@@ -14,8 +14,10 @@ Bugfixes:
 - fix auto resize column when double clicked on `.manualColumnResizer` ([#594](https://github.com/warpech/jquery-handsontable/issues/602))
 - fix undo/redo event handler (change `datachange.handsontable` event to `afterChange` hook)
 - fix inline styles in "Edit in JSFiddle" code generation
+- fix horizontal scrolling in IE8 ([#583](https://github.com/warpech/jquery-handsontable/issues/583))
 
 Other:
+- rewrite Handsontable removeRow plugin (while resolving issue [#602](https://github.com/warpech/jquery-handsontable/issues/602))
 - new demo pages: [pagination](http://handsontable.com/demo/pagging.html) and [search](http://handsontable.com/demo/search.html)
 
 ## [0.9.0-beta1](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 7, 2013)
