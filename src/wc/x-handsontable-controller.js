@@ -37,7 +37,7 @@ for (var i = 0, ilen = publicMethods.length; i < ilen; i++) {
   })(publicMethods[i]);
 }
 
-Toolkit.register(this, {
+Polymer.register(this, {
   instance: null,
   ready: function () {
     var DATACOLUMNs = this.querySelectorAll('datacolumn');

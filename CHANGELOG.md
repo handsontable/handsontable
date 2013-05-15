@@ -1,3 +1,5 @@
+- update Toolkitchen Toolkit to Polymer (@3aec92c)
+
 ## [0.9.0-beta2](https://github.com/warpech/jquery-handsontable/tree/v0.9.0-beta2) (May 7, 2013)
 
 Features:
