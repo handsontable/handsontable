@@ -1,4 +1,5 @@
 Web Component updates:
+- update [Web Component demo](http://handsontable.com/) with tiny dashboard
 - update Toolkitchen Toolkit to Polymer (@3aec92c)
 - use unmodified Handsontable JS and CSS files inside the component
 
