@@ -11,8 +11,8 @@ Features:
   - spliceRow ([docs](https://github.com/warpech/jquery-handsontable/wiki/Methods))
 
 Bugfixes:
-- fix problem with clearing `animate` function interval ([#456](https://github.com/warpech/jquery-handsontable/issues/456))
 <!--- NEEDS FIX: fix demo page buttons.html ([#602](https://github.com/warpech/jquery-handsontable/issues/602))-->
+- fix problem with clearing `animate` function interval ([#456](https://github.com/warpech/jquery-handsontable/issues/456))
 - fix auto resize column when double clicked on `.manualColumnResizer` ([#594](https://github.com/warpech/jquery-handsontable/issues/594))
 - fix undo/redo event handler (change `datachange.handsontable` event to `afterChange` hook)
 - fix inline styles in "Edit in JSFiddle" code generation
