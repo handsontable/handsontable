@@ -4,12 +4,13 @@
   <meta charset='utf-8'>
   <title>Web Component - Handsontable</title>
 
-  <!--
-  Loading Handsontable as Web Component
-  -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <!-- load toolkit platform -->
+  <!-- load Polymer platform -->
   <script data-jsfiddle="common" src="web_component/polymer/polymer.min.js"></script>
+
+  <!-- jQuery works better loaded after Polymer -->
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+
+  <!-- load Handsontable as Web Component -->
   <link data-jsfiddle="common" rel="import" href="../dist_wc/x-handsontable.html">
   <link data-jsfiddle="common" rel="import" href="web_component/x-tile.html">
   <script data-jsfiddle="common" src="../lib/numeral.de-de.js"></script>
@@ -90,11 +91,14 @@
     <div class="pad">
       <h2>&lt;x-handsontable&gt; simple dashboard demo</h2>
 
-      <p><strong>Unsupported browser</strong>. This demo only works properly in Chrome 26+. Last time we checked in Firefox 20, the scrollbars did not work as expected.</p>
+      <p><strong>Unsupported browser</strong>. This demo only works properly in Chrome 26+. Last time we checked in
+        Firefox 20, the scrollbars did not work as expected.</p>
 
       <p>Testing this in unsupported browser may crash your browser.</p>
 
-      <p><button onclick="showDemo()">I don't care, show me the demo anyway!</button></p>
+      <p>
+        <button onclick="showDemo()">I don't care, show me the demo anyway!</button>
+      </p>
     </div>
   </div>
 </div>
