@@ -41,7 +41,11 @@ Check out the new wiki pages: [Options](https://github.com/warpech/jquery-handso
 
 ## Changelog
 
-To see the list of recent changes, see the [Changelog](https://github.com/warpech/jquery-handsontable/wiki/Changelog) wiki page.
+To see the list of recent changes, see the [CHANGELOG.md](./CHANGELOG.md).
+
+## Questions
+
+Before you open a new [Issue](https://github.com/warpech/jquery-handsontable/issues), please check out the [Frequently Asked Questions](https://github.com/warpech/jquery-handsontable/wiki/FAQ).
 
 ## Reporting bugs and feature requests
 

@@ -16,14 +16,11 @@ WalkontableScroll.prototype.scrollVertical = function (delta) {
 
   if (total > 0) {
     if (maxSize !== Infinity) {
-      var TD = instance.wtTable.TBODY.firstChild.firstChild;
-      if (TD.nodeName === 'TH') {
-        TD = TD.nextSibling;
-      }
-      var cellOffset = instance.wtDom.offset(TD);
-      var tableOffset = instance.wtTable.tableOffset;
+      var cellOffset = instance.wtDom.offset(instance.wtTable.TBODY)
+        , tableOffset = instance.wtTable.tableOffset
+        , columnHeaderHeight = cellOffset.top - tableOffset.top; //in future may be merged with `containerHeightFn` in WalkontableTable.prototype.refreshStretching
 
-      maxSize -= cellOffset.top - tableOffset.top; //column header height
+      maxSize -= columnHeaderHeight;
       maxSize -= instance.getSetting('scrollbarHeight');
     }
 

@@ -301,6 +301,7 @@ WalkontableTable.prototype._doDraw = function () {
   }
 
   //draw TBODY
+  if (displayTds > 0) {
   source_r = this.rowFilter.visibleToSource(r);
   while (source_r < totalRows) {
     if (r >= this.tbodyChildrenLength) {
@@ -348,8 +349,9 @@ WalkontableTable.prototype._doDraw = function () {
       break;
     }
 
-    r++;
-    source_r = this.rowFilter.visibleToSource(r);
+      r++;
+      source_r = this.rowFilter.visibleToSource(r);
+    }
   }
   r = this.rowStrategy.countVisible();
   while (this.tbodyChildrenLength > r) {

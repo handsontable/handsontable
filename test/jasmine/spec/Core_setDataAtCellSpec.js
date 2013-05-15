@@ -268,4 +268,19 @@ describe('Core_setDataAtCell', function () {
     setDataAtCell(1, 1, 'Something Else');
     expect(getDataAtCell(1, 1)).toEqual('Something Else');
   });
+
+  it('should accept changes array as 1st param and source as 2nd param', function () {
+    var callCount = 0
+      , lastSource = '';
+    handsontable({
+      afterChange: function (changes, source) {
+        callCount++;
+        lastSource = source;
+      }
+    });
+
+    setDataAtCell([[0, 0, 'new value']], 'customSource');
+    expect(getDataAtCell(0, 0)).toEqual('new value');
+    expect(lastSource).toEqual('customSource');
+  });
 });
