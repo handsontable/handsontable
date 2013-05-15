@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed May 15 2013 15:26:41 GMT+0200 (Central European Daylight Time)
+ * Date: Wed May 15 2013 19:29:24 GMT+0200 (Central European Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -6950,99 +6950,6 @@ WalkontableHorizontalScrollbar.prototype.readSettings = function () {
   this.handlePosition = parseInt(this.handleStyle.left, 10);
   this.sliderSize = parseInt(this.sliderStyle.width, 10);
   this.fixedCount = this.instance.getSetting('fixedColumnsLeft');
-};
-function WalkontableScrollbarNative() {
-}
-
-WalkontableScrollbarNative.prototype.init = function () {
-  this.fixedContainer = this.instance.wtTable.TABLE.parentNode.parentNode.parentNode;
-  this.fixed = this.instance.wtTable.TABLE.parentNode.parentNode;
-  this.$scrollHandler = $(window);
-
-  //tableView.js
-  var that = this;
-  this.$scrollHandler.on('scroll', function () {
-    console.log("SCROLLED");
-    that.onScroll();
-    that.instance.draw();
-  });
-};
-
-WalkontableScrollbarNative.prototype.onScroll = function () {
-  this.tableParentOffset = this.instance.wtDom.offset(this.fixedContainer);
-  this.windowSize = this.$scrollHandler.height();
-  this.windowScrollPosition = $(window).scrollTop();
-
-  var totalRows = this.instance.getSetting('totalRows');
-  var offsetRow = this.instance.getSetting('offsetRow');
-  var scrollDelta;
-
-  var newOffset = 0;
-  if (this.windowScrollPosition > this.tableParentOffset.top) {
-    scrollDelta = this.windowScrollPosition - this.tableParentOffset.top;
-//    newOffset = parseInt(scrollDelta / 20, 10);
-    newOffset = Math.ceil(scrollDelta / 20, 10);
-
-    newOffset = Math.min(newOffset, totalRows)
-  }
-  else {
-    newOffset = 0;
-  }
-
-  this.instance.update('offsetRow', newOffset);
-
-};
-
-WalkontableScrollbarNative.prototype.prepare = function () {
-};
-
-WalkontableScrollbarNative.prototype.refresh = function () {
-  var totalRows = this.instance.getSetting('totalRows');
-  var offsetRow = this.instance.getSetting('offsetRow');
-  console.log('offsetRows', offsetRow);
-
-  console.log('$(this.fixedContainer).height()', this.instance.wtDom.outerHeight(this.fixed));
-  console.log('totalRows - offsetRow', totalRows - this.instance.wtTable.getLastVisibleRow() - 1);
-
-  this.fixedContainer.style.paddingBottom = this.instance.wtDom.outerHeight(this.fixed) + (totalRows - this.instance.wtTable.getLastVisibleRow() - 1) * 20 + 'px';
-};
-
-WalkontableScrollbarNative.prototype.calc = function () {
-  this.tableParentOffset = this.instance.wtDom.offset(this.fixedContainer);
-  this.windowSize = this.$scrollHandler.height();
-  this.windowScrollPosition = $(window).scrollTop();
-
-  var totalRows = this.instance.getSetting('totalRows');
-  var offsetRow = this.instance.getSetting('offsetRow');
-
-  this.availableSize = null;
-
-  if (this.windowScrollPosition > this.tableParentOffset.top) {
-    this.availableSize = this.windowSize;
-
-    this.fixed.style.position = 'fixed';
-    this.fixed.style.top = '0';
-    this.fixed.style.left = this.tableParentOffset.left;
-  }
-  else {
-    this.availableSize = this.windowSize - (this.tableParentOffset.top - this.windowScrollPosition);
-    this.fixed.style.position = 'relative';
-  }
-  console.log("offsetRow", offsetRow);
-  this.fixedContainer.style.paddingTop = offsetRow * 20 + 'px';
-};
-
-///
-
-var WalkontableVerticalScrollbarNative = function (instance) {
-  this.instance = instance;
-  this.type = 'vertical';
-  this.init();
-};
-
-WalkontableVerticalScrollbarNative.prototype = new WalkontableScrollbarNative();
-
-WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
 };
 function WalkontableSelection(instance, settings) {
   this.instance = instance;
