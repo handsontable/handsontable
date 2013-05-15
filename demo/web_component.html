@@ -11,6 +11,7 @@
   <!-- load toolkit platform -->
   <script data-jsfiddle="common" src="web_component/polymer/polymer.min.js"></script>
   <link data-jsfiddle="common" rel="import" href="../dist_wc/x-handsontable.html">
+  <link data-jsfiddle="common" rel="import" href="web_component/x-tile.html">
   <script data-jsfiddle="common" src="../lib/numeral.de-de.js"></script>
   <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
   <script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
@@ -96,31 +97,14 @@
       <p>Cell types: <code>text</code>, <code>checkbox</code>, <code>numeric</code> and <code>autocomplete</code>
         should work as expected.</p>
 
-      <div class="tile green" id="ageTile">
-        <div class="small">Median Age</div>
-        <div class="big">75</div>
+      <div style="zoom: 0.84">
+        <x-tile id="ageTile" skin="green" label="Median Age" value=""></x-tile>
+        <x-tile id="maleTile" skin="blue" label="Male" value=""></x-tile>
+        <x-tile id="femaleTile" skin="pink" label="Female" value=""></x-tile>
+        <x-tile id="englishTile" skin="gray" label="English" value=""></x-tile>
+        <x-tile id="frenchTile" skin="gray" label="French" value=""></x-tile>
+        <x-tile id="spanishTile" skin="gray" label="Spanish" value=""></x-tile>
       </div>
-
-      <div class="tile blue" id="maleTile">
-        <div class="small">Male</div>
-        <div class="big">75%</div>
-      </div>
-
-      <div class="tile pink" id="femaleTile">
-        <div class="small">Female</div>
-        <div class="big">75%</div>
-      </div>
-
-      <div class="tile gray" id="englishTile">
-        <div class="small">English</div>
-        <div class="big">75%</div>
-      </div>
-
-      <div class="tile gray" id="spanishTile">
-        <div class="small">Spanish</div>
-        <div class="big">75%</div>
-      </div>
-
       <div style="clear: left"></div>
 
       <x-handsontable id="example1" datarows="people">
@@ -128,47 +112,16 @@
         <datacolumn width="70" type="grayedOut" value="name.first" title="First Name" readOnly></datacolumn>
         <datacolumn width="100" type="grayedOut" value="name.last" title="Last Name" readOnly></datacolumn>
         <datacolumn type="autocomplete" source="genderList" value="gender"
-                    title="Gender<br>(Autocomplete)"></datacolumn>
+                    title="Gender"></datacolumn>
         <datacolumn type="numeric" value="age" title="Age"></datacolumn>
         <datacolumn type="checkbox" value="languages.english" title="English" checkedTemplate="Yes"
                     uncheckedTemplate="No"></datacolumn>
         <datacolumn type="checkbox" value="languages.spanish" title="Spanish" checkedTemplate="Yes"
                     uncheckedTemplate="No"></datacolumn>
+        <datacolumn type="checkbox" value="languages.french" title="French" checkedTemplate="Yes"
+                    uncheckedTemplate="No"></datacolumn>
         <datacolumn type="numeric" value="salary" title="Salary" format="$ 0,0.00"></datacolumn>
       </x-handsontable>
-
-      <style>
-        .tile {
-          background: #0F9D23;
-          width: 78px;
-          padding: 10px 0;
-          color: #FFF;
-          margin: 0 1px 10px 0;
-          float: left;
-        }
-
-        .tile .small {
-          font-size: 90%;
-          text-align: center;
-        }
-
-        .tile .big {
-          font-size: 200%;
-          text-align: center;
-        }
-
-        .tile.pink {
-          background: hotpink;
-        }
-
-        .tile.blue {
-          background: cornflowerblue;
-        }
-
-        .tile.gray {
-          background: #222;
-        }
-      </style>
 
       <p>
         <button id="button1" title="Prints current data source to Firebug/Chrome Dev Tools">
@@ -176,11 +129,11 @@
         </button>
 
         <button id="button2">
-          First id = 99
+          Switch gender
         </button>
 
         <button id="button3">
-          Increment all by 10
+          Grow older
         </button>
       </p>
     </div>
@@ -194,6 +147,48 @@
       </div>-->
 
       <script data-jsfiddle="example1">
+        function refreshDashboard() {
+          var sum = 0
+            , total = 0
+            , male = 0
+            , female = 0
+            , english = 0
+            , french = 0
+            , spanish = 0;
+
+          people.filter(function (person) {
+            if (person.age) {
+              sum += person.age;
+              total++;
+            }
+            switch (person.gender) {
+              case 'Male':
+                male++;
+                break;
+
+              case 'Female':
+                female++;
+                break;
+            }
+            if (person.languages.english === 'Yes') {
+              english++;
+            }
+            if (person.languages.french === 'Yes') {
+              french++;
+            }
+            if (person.languages.spanish === 'Yes') {
+              spanish++;
+            }
+          });
+
+          document.getElementById('ageTile').value = Math.round(sum / total);
+          document.getElementById('maleTile').value = Math.round(100 * (male / (male + female))) + '%';
+          document.getElementById('femaleTile').value = Math.round(100 * (female / (male + female))) + '%';
+          document.getElementById('englishTile').value = Math.round(100 * (english / people.length)) + '%';
+          document.getElementById('frenchTile').value = Math.round(100 * (french / people.length)) + '%';
+          document.getElementById('spanishTile').value = Math.round(100 * (spanish / people.length)) + '%';
+        }
+
         var people = [
           {id: 1, name: {first: 'Joe', last: 'Fabiano'}, gender: 'Male', age: 21, languages: {english: 'Yes', spanish: 'Yes', french: 'No'}, salary: 2000},
           {id: 2, name: {first: 'Fred', last: 'Wecler'}, gender: 'Male', age: 25, languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 2500},
@@ -217,61 +212,25 @@
         });
 
         document.getElementById('button2').addEventListener('click', function () {
-          HOT.setDataAtRowProp(0, 'id', 99)
+          people.filter(function (person) {
+            person.gender = person.gender === 'Male' ? 'Female' : 'Male';
+          });
+          HOT.render();
         });
 
         document.getElementById('button3').addEventListener('click', function () {
-          for (var i = 0; i < people.length; i++) {
-            person.id += 10;
-          }
-
+          people.filter(function (person) {
+            person.age += 1;
+          });
+          HOT.render();
         });
 
-        function refreshDashboard() {
-          var sum = 0
-            , total = 0
-            , male = 0
-            , female = 0
-            , english = 0
-            , spanish = 0;
-
-          people.filter(function(person){
-            if (person.age) {
-              sum += person.age;
-              total++;
-            }
-            switch (person.gender) {
-              case 'Male':
-                male++;
-                break;
-
-              case 'Female':
-                female++;
-                break;
-            }
-            if (person.languages.english === 'Yes') {
-              english++;
-            }
-            if (person.languages.spanish === 'Yes') {
-              spanish++;
-            }
-          });
-
-          document.querySelector('#ageTile .big').innerHTML = Math.round(sum / total);
-          document.querySelector('#maleTile .big').innerHTML = Math.round(100 * (male / (male + female))) + '%';
-          document.querySelector('#femaleTile .big').innerHTML = Math.round(100 * (female / (male + female))) + '%';
-          document.querySelector('#englishTile .big').innerHTML = Math.round(100 * (english / people.length)) + '%';
-          document.querySelector('#spanishTile .big').innerHTML = Math.round(100 * (spanish / people.length)) + '%';
-        }
-
         document.addEventListener('WebComponentsReady', function () {
-          HOT.addHook('afterChange', function () {
+          HOT.addHook('afterRender', function () {
             refreshDashboard();
           });
           refreshDashboard();
         });
-
-
       </script>
     </div>
   </div>
