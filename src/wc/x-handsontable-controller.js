@@ -1,5 +1,3 @@
-window.numeral = this.numeral; //needed by numeral.de-de.js
-
 function parseDatacolumn(DATACOLUMN) {
   var obj = {};
 
