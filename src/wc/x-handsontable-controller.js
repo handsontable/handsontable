@@ -46,10 +46,12 @@ Polymer.register(this, {
 
     var options = {
       data: window[this.datarows],
+      width: this.width,
+      height: this.height,
       columns: columns,
       minRows: 5,
       minCols: 6,
-      minSpareRows: 0,
+      minSpareRows: this.minsparerows,
       autoWrapRow: true,
       colHeaders: true,
       contextMenu: true

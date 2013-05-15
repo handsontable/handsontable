@@ -77,15 +77,29 @@
           href="https://github.com/warpech/jquery-handsontable/issues/603">ticket #603</a> to share your
         thoughts.</p>
 
-      <ul>
+      <!--<ul>
         <li><a href="#works">What works</a></li>
         <li><a href="#doesnt-work">What doesn't work</a></li>
-      </ul>
+      </ul>-->
     </div>
   </div>
 </div>
 
-<div class="rowLayout">
+<div class="rowLayout" id="unsupported" style="display: none">
+  <div class="descLayout">
+    <div class="pad">
+      <h2>&lt;x-handsontable&gt; simple dashboard demo</h2>
+
+      <p><strong>Unsupported browser</strong>. This demo only works properly in Chrome 26+. Last time we checked in Firefox 20, the scrollbars did not work as expected.</p>
+
+      <p>Testing this in unsupported browser may crash your browser.</p>
+
+      <p><button onclick="showDemo()">I don't care, show me the demo anyway!</button></p>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout" id="supported" style="display: none">
   <div class="descLayout">
     <div class="pad" data-jsfiddle="example1">
       <a name="works"></a>
@@ -107,7 +121,7 @@
       </div>
       <div style="clear: left"></div>
 
-      <x-handsontable id="example1" datarows="people">
+      <x-handsontable id="example1" datarows="people" width="400" height="340" minsparerows="1">
         <datacolumn width="30" value="id" title="ID"></datacolumn>
         <datacolumn width="70" type="grayedOut" value="name.first" title="First Name" readOnly></datacolumn>
         <datacolumn width="100" type="grayedOut" value="name.last" title="Last Name" readOnly></datacolumn>
@@ -291,15 +305,16 @@
 </div>
 -->
 <script>
-  if (navigator.userAgent.toLowerCase().indexOf('chrome') === -1) {
-    var res = confirm("Handsontable Web Components demo was tested only in Chrome 26+. You are using different browser.\n\nDo you want to run the examples?\n\n(May freeze your browser!)");
-    if (!res) {
-      var example1 = document.getElementById('example1');
-      var example2 = document.getElementById('example2');
+  if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) {
+    document.getElementById('supported').style.display = 'block';
+  }
+  else {
+    document.getElementById('unsupported').style.display = 'block';
+  }
 
-      example1.parentNode.removeChild(example1);
-      example2.parentNode.removeChild(example2);
-    }
+  function showDemo() {
+    document.getElementById('unsupported').style.display = 'none';
+    document.getElementById('supported').style.display = 'block';
   }
 </script>
 
