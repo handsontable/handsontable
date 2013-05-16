@@ -352,7 +352,69 @@ Handsontable.Core = function (rootElement, settings) {
      */
     getText: function (start, end) {
       return SheetClip.stringify(datamap.getRange(start, end));
-    }
+    },
+    
+    /**
+     * Returns the next non empty Column number
+     * @param {integer} 1 for right, -1 for left
+     * @returns {integer}
+     */
+    getNextFilledCol: function (curRow, curCol, dir) {
+    	var range;
+    	if(dir == 1){
+    		 range = datamap.getRange({row: curRow, col: curCol}, {row: curRow, col: self.countCols() - 1});
+    		 for (var r = 0; r < range.length; r++) {
+		        for (var c = 1; c < range[r].length; c++) {
+		        	if(range[r][c] != ''){
+		        		console.log(range[r][c] + ">>>");
+						return curCol + c;
+					}
+		        }
+		      }
+    		 return self.countCols() - 1;
+    	} else {
+    		range = datamap.getRange({row: curRow, col: 0}, {row: curRow, col: curCol});
+    		
+    		 for (var r = 0; r < range.length; r++) {
+ 		        for (var c = range[r].length-2; c >=0 ;c--) {
+ 		        	if(range[r][c] != ""){
+ 		        		console.log(range[r][c] + "<<<");
+ 						return curCol - (range[r].length-1 - c);
+ 					}
+ 		        }
+ 		      }
+    		 return 0;
+    	}
+    },
+    
+    /**
+     * Returns the next non empty Row number
+     * @param {integer} 1 for down, -1 for up
+     * @returns {integer}
+     */
+    getNextFilledRow: function (curRow, curCol, dir) {
+    	var range;
+    	if(dir == 1){
+    		 range = datamap.getRange({row: curRow, col: curCol}, {row: self.countRows() - 1, col: curCol});
+    		 for (var r = 1; r < range.length; r++) {
+		        	if(range[r][0] != ''){
+		        		console.log(range[r][0] + ">>>");
+						return curRow + r;
+					}
+		      }
+    		 return self.countRows() - 1;
+    	} else {
+    		range = datamap.getRange({row: 0, col: curCol}, {row: curRow, col: curCol});
+    		
+    		 for (var r = range.length -2; r >=0 ; r--) {
+ 		        	if(range[r][0] != ""){
+ 		        		console.log(range[r][0] + "<<<");
+ 						return curRow - (range.length-1 - r);
+ 					}
+ 		      }
+    		 return 0;
+    	}
+    }    
   };
 
   grid = {
@@ -1095,6 +1157,28 @@ Handsontable.Core = function (rootElement, settings) {
             }
             else if (event.keyCode === 90) { //CTRL + Z
               priv.undoRedo && priv.undoRedo.undo();
+            }else  if (event.keyCode === 68){ //CTRL + D
+            	
+                var startRow = Math.min(priv.selStart.row(), priv.selEnd.row());
+                var startCol = Math.min(priv.selStart.col(), priv.selEnd.col());
+                var endRow = Math.max(priv.selStart.row(), priv.selEnd.row());
+                var endCol = Math.max(priv.selStart.col(), priv.selEnd.col());
+                var finalEndRow = Math.min(endRow, startRow + priv.settings.copyRowsLimit - 1);
+                var finalEndCol = Math.min(endCol, startCol + priv.settings.copyColsLimit - 1);
+
+                var inputArray = SheetClip.parse(datamap.getText({row: startRow, col: startCol}, {row: finalEndRow, col: finalEndCol}));
+
+            	var coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
+				for (var r = 0; r < inputArray.length; r++) {
+				    for (var c = 0; c < inputArray[r].length; c++) {
+				    	inputArray[r][c] = inputArray[0][c];
+				    }
+				  }
+                
+                grid.populateFromArray({row: startRow, col: startCol},inputArray, {row:finalEndRow, col: finalEndCol}, 'paste');
+                
+            	event.preventDefault();
+                event.stopPropagation(); //required by HandsontableEditor
             }
             return;
           }
@@ -1103,8 +1187,14 @@ Handsontable.Core = function (rootElement, settings) {
 
           switch (event.keyCode) {
             case 38: /* arrow up */
-              if (event.shiftKey) {
+              if(event.ctrlKey && event.shiftKey){
+            	  var nextFilledRow = datamap.getNextFilledRow(priv.selEnd.row(), priv.selStart.col(), -1);
+          		  selection.transformEnd(nextFilledRow -priv.selStart.row() - ( priv.selEnd.row() - priv.selStart.row()), 0);
+          	  }
+          	  else if (event.shiftKey) {
                 selection.transformEnd(-1, 0);
+              }else if(event.ctrlKey){
+            	  rangeModifier({row: datamap.getNextFilledRow(priv.selStart.row(), priv.selStart.col(), -1), col: priv.selStart.col()});
               }
               else {
                 selection.transformStart(-1, 0);
@@ -1126,8 +1216,14 @@ Handsontable.Core = function (rootElement, settings) {
               break;
 
             case 39: /* arrow right */
-              if (event.shiftKey) {
+        	  if(event.ctrlKey && event.shiftKey){
+        		 var nextFilledColumn = datamap.getNextFilledCol(priv.selStart.row(), priv.selEnd.col(), 1);
+        		 selection.transformEnd(0, (nextFilledColumn - priv.selStart.col() - ( priv.selEnd.col() - priv.selStart.col())));
+        	  }
+        	  else if (event.shiftKey) {
                 selection.transformEnd(0, 1);
+              }else if(event.ctrlKey){
+            	  rangeModifier({row: priv.selStart.row(), col:  datamap.getNextFilledCol(priv.selStart.row(), priv.selStart.col(), 1)});
               }
               else {
                 selection.transformStart(0, 1);
@@ -1137,8 +1233,14 @@ Handsontable.Core = function (rootElement, settings) {
               break;
 
             case 37: /* arrow left */
-              if (event.shiftKey) {
+          	  if(event.ctrlKey && event.shiftKey){
+         		 var nextFilledColumn = datamap.getNextFilledCol(priv.selStart.row(), priv.selEnd.col(), -1);
+          		selection.transformEnd(0 ,nextFilledColumn -priv.selStart.col() - ( priv.selEnd.col() - priv.selStart.col()));
+          	  }
+          	  else if (event.shiftKey) {
                 selection.transformEnd(0, -1);
+              }else if(event.ctrlKey){
+            	  rangeModifier({row: priv.selStart.row(), col: datamap.getNextFilledCol(priv.selStart.row(), priv.selStart.col(), -1)});
               }
               else {
                 selection.transformStart(0, -1);
@@ -1154,8 +1256,14 @@ Handsontable.Core = function (rootElement, settings) {
               break;
 
             case 40: /* arrow down */
-              if (event.shiftKey) {
+        	  if(event.ctrlKey && event.shiftKey){
+        		  var nextFilledRow = datamap.getNextFilledRow(priv.selEnd.row(), priv.selStart.col(), 1);
+        		  selection.transformEnd( (nextFilledRow- priv.selStart.row() - ( priv.selEnd.row() - priv.selStart.row())), 0);
+        	  }
+        	  else if (event.shiftKey) {
                 selection.transformEnd(1, 0); //expanding selection down with shift
+              }else if(event.ctrlKey){
+            	  rangeModifier({row:  datamap.getNextFilledRow(priv.selStart.row(), priv.selStart.col(), 1), col: priv.selStart.col()});
               }
               else {
                 selection.transformStart(1, 0); //move selection down
