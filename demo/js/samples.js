@@ -66,6 +66,9 @@
       }
       keys.push(runfiddle);
 
+      var index = window.location.href.lastIndexOf("/") + 1;
+      var baseUrl = window.location.href.substr(0, index);
+
       var tags = [];
       var css = '';
       var js = '';
@@ -103,13 +106,18 @@
           }
           if (tag) {
             tag = tag.replace(' data-jsfiddle="' + keys[i] + '"', '');
-            tag = tag.replace('href="css/', 'href="http://handsontable.com/demo/css/');
-            tag = tag.replace('href="../', 'href="http://handsontable.com/');
-            tag = tag.replace('src="../', 'src="http://handsontable.com/');
-            tag = tag.replace('href="bootstrap/', 'href="http://handsontable.com/demo/bootstrap/');
-            tag = tag.replace('src="bootstrap/', 'src="http://handsontable.com/demo/bootstrap/');
-            tag = tag.replace('src="js/', 'src="http://handsontable.com/demo/js/');
-            tag = tag.replace('src="web_component/', 'src="http://handsontable.com/demo/web_component/');
+
+            if (tag.indexOf('href="http') === -1 && tag.indexOf('href="//') && tag.indexOf('src="http') === -1 && tag.indexOf('src="//')) {
+              tag = tag.replace('href="', 'href="' + baseUrl);
+              tag = tag.replace('src="', 'src="' + baseUrl);
+              tag = tag.replace('demo/../', '');
+
+              if(this.nodeName === 'LINK' && this.rel === "import") {
+                //web component imports must be loaded throught a CORS-enabling proxy, because our local server does not support it yet
+                tag = tag.replace('href="http://', 'href="http://www.corsproxy.com/');
+              }
+            }
+
             tags.push(tag)
           }
         });
