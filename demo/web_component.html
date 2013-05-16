@@ -127,7 +127,7 @@
 
       <x-handsontable id="example1" datarows="people" settings="settings" width="400" minsparerows="1">
         <datacolumn width="30" readOnly value="id" title="ID"></datacolumn>
-        <datacolumn width="70" value="name.first" title="First Name" ></datacolumn>
+        <datacolumn width="70" value="name.first" title="First Name"></datacolumn>
         <datacolumn width="100" value="name.last" title="Last Name"></datacolumn>
         <datacolumn type="autocomplete" source="genderList" value="gender"
                     title="Gender"></datacolumn>
@@ -193,7 +193,6 @@
         };
 
         var genderList = ["Male", "Female"];
-        var HOT = document.getElementById('example1');
 
         function refreshDashboard() {
           var sum = 0
@@ -237,26 +236,10 @@
           document.getElementById('spanishTile').value = Math.round(100 * (spanish / people.length)) + '%';
         }
 
-        document.getElementById('button1').addEventListener('click', function () {
-          var data = HOT.getData();
-          console.log('Data of x-handsontable ', data);
-        });
-
-        document.getElementById('button2').addEventListener('click', function () {
-          people.filter(function (person) {
-            person.gender = person.gender === 'Male' ? 'Female' : 'Male';
-          });
-          HOT.render();
-        });
-
-        document.getElementById('button3').addEventListener('click', function () {
-          people.filter(function (person) {
-            person.age += 1;
-          });
-          HOT.render();
-        });
-
         document.addEventListener('WebComponentsReady', function () {
+          var HOT = document.getElementById('example1');
+
+          //Bind Handsontable events
           HOT.addHook('afterCreateRow', function () {
             applyIds();
           });
@@ -264,9 +247,30 @@
             refreshDashboard();
           });
 
+          //Refresh data, rerender Handsontable and dashboard
           applyIds();
           HOT.render();
           refreshDashboard();
+
+          //Bind button events
+          document.getElementById('button1').addEventListener('click', function () {
+            var data = HOT.getData();
+            console.log('Data of x-handsontable ', data);
+          });
+
+          document.getElementById('button2').addEventListener('click', function () {
+            people.filter(function (person) {
+              person.gender = person.gender === 'Male' ? 'Female' : 'Male';
+            });
+            HOT.render();
+          });
+
+          document.getElementById('button3').addEventListener('click', function () {
+            people.filter(function (person) {
+              person.age += 1;
+            });
+            HOT.render();
+          });
         });
 
         function applyIds() {

@@ -73,6 +73,7 @@
       var css = '';
       var js = '';
       var html = '';
+      var onDomReady = true;
 
       tags.push('</style><!-- Ugly Hack due to jsFiddle issue: http://goo.gl/BUfGZ -->\n');
 
@@ -115,6 +116,7 @@
               if(this.nodeName === 'LINK' && this.rel === "import") {
                 //web component imports must be loaded throught a CORS-enabling proxy, because our local server does not support it yet
                 tag = tag.replace('href="http://', 'href="http://www.corsproxy.com/');
+                onDomReady = false;
               }
             }
 
@@ -132,7 +134,9 @@
       js += trimCodeBlock(bindDumpButton.toString(), 2).join('\n') + '\n';
       js += '  bindDumpButton();\n\n';
 
-      js = '$(document).ready(function () {\n\n' + js + '});';
+      if(onDomReady) {
+        js = '$(document).ready(function () {\n\n' + js + '});';
+      }
 
       var form = $('<form action="http://jsfiddle.net/api/post/library/pure/" method="post" target="_blank">' +
         '<input type="text" name="title" value="Handsontable example">' +
