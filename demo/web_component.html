@@ -265,7 +265,9 @@
 
           document.getElementById('button3').addEventListener('click', function () {
             people.filter(function (person) {
-              person.age += 1;
+              if (person.age !== null) {
+                person.age = parseInt(person.age, 10) + 1; //convert string
+              }
             });
             HOT.render();
           });
