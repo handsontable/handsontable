@@ -105,17 +105,11 @@ module.exports = function (grunt) {
           'dist_wc/x-handsontable/numeral.de-de.js': [
             'lib/numeral.de-de.js'
           ],
-          'dist_wc/x-handsontable/jquery-ui.custom.min.js': [
-            'lib/jquery-ui/js/jquery-ui.custom.min.js'
-          ],
           'dist_wc/x-handsontable/jquery.handsontable.full.js': [
             'dist/jquery.handsontable.full.js'
           ],
           'dist_wc/x-handsontable/jquery.handsontable.full.css': [
             'dist/jquery.handsontable.full.css'
-          ],
-          'dist_wc/x-handsontable/jquery-ui.custom.css': [
-            'lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css'
           ]
         }
       }

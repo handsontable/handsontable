@@ -72,11 +72,6 @@
         <a
           href="https://github.com/warpech/jquery-handsontable/issues/603">ticket #603</a> to share your
         thoughts.</p>
-
-      <!--<ul>
-        <li><a href="#works">What works</a></li>
-        <li><a href="#doesnt-work">What doesn't work</a></li>
-      </ul>-->
     </div>
   </div>
 </div>
@@ -109,6 +104,9 @@
 
       <p>Cell types: <code>text</code>, <code>checkbox</code>, <code>numeric</code> and <code>autocomplete</code>
         should work as expected.</p>
+
+      <p>Only the <code>date</code> cell type won't work because jQuery UI Datepicker does not support Shadow DOM at the moment.
+      </p>
 
       <x-tile id="ageTile" skin="green" label="Median Age" value=""></x-tile>
       <x-tile id="maleTile" skin="blue" label="Male" value=""></x-tile>
@@ -289,61 +287,6 @@
     </div>
   </div>
 </div>
-<!--
-<div class="rowLayout">
-  <div class="descLayout">
-    <div class="pad" data-jsfiddle="example2">
-      <a name="doesnt-work"></a>
-
-      <h2>What doesn't work</h2>
-
-      <p>We had a problem with getting jQuery UI Datepicker to work in Web Component.</p>
-
-      <p>Therefore <code>date</code> column type doesn't work as expected. If you have any ideas how to improve it,
-        please let us know in GitHub Issues <a href="https://github.com/warpech/jquery-handsontable/issues/603">
-          ticket #603</a>.</p>
-
-      <x-handsontable id="example2" datarows="people2">
-        <datacolumn width="30" value="id" title="ID"></datacolumn>
-        <datacolumn width="70" type="grayedOut" value="name.first" title="First Name" readOnly></datacolumn>
-        <datacolumn width="100" type="grayedOut" value="name.last" title="Last Name" readOnly></datacolumn>
-        <datacolumn type="date" value="created_at" title="Created (Date)" format="mm/dd/yy"></datacolumn>
-      </x-handsontable>
-
-      <p>
-        <button onclick="console.log('Data of x-handsontable ', document.getElementById('example2').getData())"
-                title="Prints current data source to Firebug/Chrome Dev Tools">
-          Dump data to console
-        </button>
-      </p>
-    </div>
-  </div>
-
-  <div class="codeLayout">
-    <div class="pad">
-      <!-- Need CORS before it works
-      <div class="jsFiddle">
-        <div class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</div>
-      </div>--
-
-      <script data-jsfiddle="example2">
-        var people2 = [
-          {id: 1, name: {first: 'Joe', last: 'Fabiano'}, gender: 'Male', age: '21', languages: {english: 'Yes', spanish: 'Yes', french: 'No'}, salary: 2000},
-          {id: 2, name: {first: 'Fred', last: 'Wecler'}, gender: 'Male', age: '25', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 2500},
-          {id: 3, name: {first: 'Steve', last: 'Wilson'}, gender: 'Male', age: '32', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 1700},
-          {id: 4, name: {first: 'Maria', last: 'Fernandez'}, gender: 'Female', age: '27', languages: {english: 'No', spanish: 'Yes', french: 'Yes'}, salary: 3000},
-          {id: 5, name: {first: 'Pierre', last: 'Barbault'}, gender: 'Male', age: '46', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}, salary: 1450},
-          {id: 6, name: {first: 'Nancy', last: 'Moore'}, gender: 'Female', age: '34', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 2300},
-          {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, gender: 'Female', age: '19', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 1900},
-          {id: 8, name: {first: 'Wilma', last: 'Williams'}, gender: 'Female', age: '33', languages: {english: 'Yes', spanish: 'Yes', french: 'Yes'}, salary: 2400},
-          {id: 9, name: {first: 'Sasha', last: 'Silver'}, gender: 'Male', age: '27', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}, salary: 2110},
-          {id: 10, name: {first: 'Don', last: 'Pérignon'}, gender: 'Male', age: '42', languages: {english: 'No', spanish: 'No', french: 'Yes'}, salary: 2090}
-        ];
-      </script>
-    </div>
-  </div>
-</div>
--->
 <script>
   if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1 && parseInt(window.navigator.appVersion.match(/Chrome\/(\d+)\./)[1], 10) >= 26) {
     document.getElementById('supported').style.display = 'block';

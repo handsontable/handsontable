@@ -4,6 +4,7 @@ Web Component updates:
 - use unmodified Handsontable JS and CSS files inside the component
 - include all Web Component dependencies inside HTML Import (you just import Polymer and one HTML file!)
 - Web Component now uses jQuery 2.0.0 (bundled in), but in future will not depend on jQuery
+- remove jQuery UI datepicker from Web Component version (it won't work, as described here: http://bugs.jquery.com/ticket/13342)
 
 Other:
 - date cell type: upgrade to jQuery UI 1.10.3
