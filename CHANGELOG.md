@@ -2,6 +2,8 @@ Web Component updates:
 - update [Web Component demo](http://handsontable.com/) with tiny dashboard
 - update Toolkitchen Toolkit to Polymer (@3aec92c)
 - use unmodified Handsontable JS and CSS files inside the component
+- include all Web Component dependencies inside HTML Import (you just import Polymer and one HTML file!)
+- Web Component now uses jQuery 2.0.0 (bundled in), but in future will not depend on jQuery
 
 Other:
 - date cell type: upgrade to jQuery UI 1.10.3

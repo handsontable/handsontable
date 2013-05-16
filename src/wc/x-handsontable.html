@@ -1,8 +1,22 @@
 <!-- Handsontable Web Component experimental release (requires Polymer polyfill) -->
-<script src="js/jquery.handsontable.full.js"></script>
+
+<!--
+jQuery is currently needed by Handsontable.
+It is included inside the element for easier integration.
+GOOD NEWS: Future release will be independent from jQuery
+-->
+<script data-jsfiddle="common" src="x-handsontable/jquery-2.min.js"></script>
+
+<!-- Handsontable itself -->
+<script src="x-handsontable/jquery.handsontable.full.js"></script>
+
+<!-- Handsontable various cell type dependencies -->
+<script data-jsfiddle="common" src="x-handsontable/numeral.de-de.js"></script><!-- numeric cell type -->
+<script data-jsfiddle="common" src="x-handsontable/jquery-ui.custom.min.js"></script><!-- date cell type -->
+
 <element name="x-handsontable" attributes="datarows settings width height minsparerows">
-  <link rel="stylesheet" href="css/jquery-ui/css/smoothness/jquery-ui.custom.css">
-  <link rel="stylesheet" href="css/jquery.handsontable.full.css">
+  <link rel="stylesheet" href="x-handsontable/jquery-ui.custom.css"><!-- date cell type -->
+  <link rel="stylesheet" href="x-handsontable/jquery.handsontable.full.css">
 
   <template>
     <div id="htContainer"></div>
