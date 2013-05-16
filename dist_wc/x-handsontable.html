@@ -1,6 +1,6 @@
 <!-- Handsontable Web Component experimental release (requires Polymer polyfill) -->
 <script src="js/jquery.handsontable.full.js"></script>
-<element name="x-handsontable" attributes="datarows width height minsparerows">
+<element name="x-handsontable" attributes="datarows settings width height minsparerows">
   <link rel="stylesheet" href="css/jquery-ui/css/smoothness/jquery-ui.custom.css">
   <link rel="stylesheet" href="css/jquery.handsontable.full.css">
 
@@ -49,9 +49,12 @@ for (var i = 0, ilen = publicMethods.length; i < ilen; i++) {
 Polymer.register(this, {
   instance: null,
   ready: function () {
-    var DATACOLUMNs = this.querySelectorAll('datacolumn');
-    var columns = [];
-    for (var i = 0, ilen = DATACOLUMNs.length; i < ilen; i++) {
+    var DATACOLUMNs = this.querySelectorAll('datacolumn')
+      , columns = []
+      , i
+      , ilen;
+
+    for (i = 0, ilen = DATACOLUMNs.length; i < ilen; i++) {
       columns.push(parseDatacolumn(DATACOLUMNs[i]));
     }
 
@@ -67,6 +70,15 @@ Polymer.register(this, {
       colHeaders: true,
       contextMenu: true
     };
+
+    if (this.settings) {
+      var settings = window[this.settings];
+      for (i in settings) {
+        if (settings.hasOwnProperty(i)) {
+          options[i] = settings[i];
+        }
+      }
+    }
 
     jQuery(this.$.htContainer).handsontable(options);
 
