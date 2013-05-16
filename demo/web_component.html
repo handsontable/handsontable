@@ -350,7 +350,10 @@
 </div>
 -->
 <script>
-  if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) {
+  if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1 && parseInt(window.navigator.appVersion.match(/Chrome\/(\d+)\./)[1], 10) >= 26) {
+    document.getElementById('supported').style.display = 'block';
+  }
+  else if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && parseInt(navigator.userAgent.match(/Firefox\/([0-9]*)/)[1]) >= 21) {
     document.getElementById('supported').style.display = 'block';
   }
   else {
