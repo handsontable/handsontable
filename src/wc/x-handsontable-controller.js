@@ -38,9 +38,12 @@ for (var i = 0, ilen = publicMethods.length; i < ilen; i++) {
 Polymer.register(this, {
   instance: null,
   ready: function () {
-    var DATACOLUMNs = this.querySelectorAll('datacolumn');
-    var columns = [];
-    for (var i = 0, ilen = DATACOLUMNs.length; i < ilen; i++) {
+    var DATACOLUMNs = this.querySelectorAll('datacolumn')
+      , columns = []
+      , i
+      , ilen;
+
+    for (i = 0, ilen = DATACOLUMNs.length; i < ilen; i++) {
       columns.push(parseDatacolumn(DATACOLUMNs[i]));
     }
 
@@ -56,6 +59,15 @@ Polymer.register(this, {
       colHeaders: true,
       contextMenu: true
     };
+
+    if (this.settings) {
+      var settings = window[this.settings];
+      for (i in settings) {
+        if (settings.hasOwnProperty(i)) {
+          options[i] = settings[i];
+        }
+      }
+    }
 
     jQuery(this.$.htContainer).handsontable(options);
 
