@@ -65,5 +65,48 @@ describe('Core_populateFromArray', function () {
     });
   });
 
+  it('should shift values down', function () {
+    var output = null;
+
+    runs(function () {
+      handsontable({
+        data : arrayOfArrays(),
+        onChange: function (changes) {
+          output = changes;
+        }
+      });
+      populateFromArray(0, 0, [["test"]], 2, 0, null, 'shift_down');
+    });
+
+    waitsFor(function () {
+      return (output != null)
+    }, "onChange callback called", 100);
+
+    runs(function () {
+      expect(getDataAtCol(0)).toEqual(["test", "test", "test", "", "2008", "2009", "2010"]);
+    });
+  });
+
+  it('should shift values right', function () {
+    var output = null;
+
+    runs(function () {
+      handsontable({
+        data : arrayOfArrays(),
+        onChange: function (changes) {
+          output = changes;
+        }
+      });
+      populateFromArray(0, 0, [["test"]], 0, 2, null, 'shift_right');
+    });
+
+    waitsFor(function () {
+      return (output != null)
+    }, "onChange callback called", 100);
+
+    runs(function () {
+      expect(getDataAtRow(0)).toEqual(["test", "test", "test", "", "Kia", "Nissan", "Toyota", "Honda"]);
+    });
+  });
 
 });

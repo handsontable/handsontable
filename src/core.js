@@ -304,19 +304,32 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
      * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
      */
-    spliceCol: function (col, index, amount/*, elements... */) {
-      var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : []
-        , before   = []
-        , removed  = []
-        , after    = []
+    spliceCol: function (col, index, amount/*, elements..., update = true*/) {
+      var r
+        , elements = 5 <= arguments.length ? [].slice.call(arguments, 3, r = arguments.length - 1) : (r = 3, [])
+        , update = arguments[r++]
+        , before = []
+        , removed = []
+        , after = []
         , result
-        , data   = GridSettings.prototype.data
-        , diff   = elements.length - amount
-        , split  = index + amount
-        , length = data.length
-        , r = 0;
+        , data = GridSettings.prototype.data
+        , diff = elements.length - amount
+        , split = index + amount
+        , length = data.length;
+      if (update !== false) {
+        if (update != null) {
+          elements.push(update);
+          diff++;
+        }
+        update = true;
+      }
+      // Allow elements to be an array type
+      if (elements[0] instanceof Array) {
+        elements = elements[0];
+        diff = elements.length - amount;
+      }
       // Prepare data table
-      for (; r < length; r++) {
+      for (r = 0; r < length; r++) {
         if (r < index) {
           before.push(data[r][col]);
         }
@@ -329,17 +342,20 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
       // Calculate result data
       result = [].concat(before, elements, after);
+
       // Create missing rows
       if (diff > 0) {
         length += diff;
-        instance.alter('insert_row', null, diff, 'spliceCol', true);
+        if (update) {
+          instance.alter('insert_row', null, diff, 'spliceCol', true);
+        }
       }
       for (r = 0; r < length; r++) {
         data[r][col] = typeof result[r] !== "undefined" ? result[r] : null;
       }
       // Re-render table
       instance.forceFullRender = true; //used when data was changed
-      selection.refreshBorders();
+      selection.refreshBorders(null, true);
       // Return removed elements
       return removed;
     },
@@ -351,19 +367,32 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
      * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
      */
-    spliceRow: function (row, index, amount/*, elements... */) {
-      var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : []
-        , before   = []
-        , removed  = []
-        , after    = []
+    spliceRow: function (row, index, amount/*, elements..., update = true*/) {
+      var c
+        , elements = 5 <= arguments.length ? [].slice.call(arguments, 3, c = arguments.length - 1) : (c = 3, [])
+        , update = arguments[c++]
+        , before = []
+        , removed = []
+        , after = []
         , result
-        , data   = GridSettings.prototype.data[row]
-        , diff   = elements.length - amount
-        , split  = index + amount
-        , length = data.length
-        , c = 0;
+        , data = GridSettings.prototype.data[row]
+        , diff = elements.length - amount
+        , split = index + amount
+        , length = data.length;
+      if (update !== false) {
+        if (update != null) {
+          elements.push(update);
+          diff++;
+        }
+        update = true;
+      }
+      // Allow elements to be an array type
+      if (elements[0] instanceof Array) {
+        elements = elements[0];
+        diff = elements.length - amount;
+      }
       // Prepare data table
-      for (; c < length; c++) {
+      for (c = 0; c < length; c++) {
         if (c < index) {
           before.push(data[c]);
         }
@@ -379,14 +408,16 @@ Handsontable.Core = function (rootElement, userSettings) {
       // Create missing rows
       if (diff > 0) {
         length += diff;
-        instance.alter('insert_col', null, diff, 'spliceRow', true);
+        if (update) {
+          instance.alter('insert_col', null, diff, 'spliceRow', true);
+        }
       }
       for (c = 0; c < length; c++) {
         data[c] = typeof result[c] !== "undefined" ? result[c] : null;
       }
       // Re-render table
       instance.forceFullRender = true; //used when data was changed
-      selection.refreshBorders();
+      selection.refreshBorders(null, true);
       // Return removed elements
       return removed;
     },
@@ -722,20 +753,6 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
       current.row = start.row;
       current.col = start.col;
-
-      // fix grid size with specified pasteMode method in settings
-      switch (method) {
-        case 'shift_down' :
-          instance.alter('insert_row', start.row, input.length);
-          break;
-        case 'shift_right' :
-          instance.alter('insert_col', start.col, input[0].length);
-          break;
-        default:
-          // overwrite and other notspecified options - just do nothing
-          break;
-      }
-
       for (r = 0; r < rlen; r++) {
         if ((end && current.row > end.row) || (!priv.settings.minSpareRows && current.row > instance.countRows() - 1) || (current.row >= priv.settings.maxRows)) {
           break;
@@ -759,7 +776,44 @@ Handsontable.Core = function (rootElement, userSettings) {
           r = -1;
         }
       }
-      instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
+
+      // inser data with specified pasteMode method
+      switch (method) {
+        case 'shift_down' :
+          var i = 0, len = setData.length, data = {};
+          for (; i < len; i++) {
+            if (typeof data[setData[i][1]] === 'undefined') {
+              data[setData[i][1]] = [];
+            }
+            data[setData[i][1]].push(setData[i][2]);
+          }
+          for (c in data) {
+            instance.spliceCol(c, start.row, 0, data[c]);
+          }
+          break;
+        case 'shift_right' :
+          var i = 0, len = setData.length, data = [];
+          for (; i < len; i++) {
+            if (typeof data[setData[i][0]] === 'undefined') {
+              data[setData[i][0]] = [];
+            }
+            data[setData[i][0]].push(setData[i][2]);
+          }
+          i = 0;
+          for (r in data) {
+            instance.spliceRow(r, start.col, 0, data[r], i ? false : true);
+            i++;
+          }
+          break;
+        default:
+          // overwrite and other not specified options
+          instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
+          break;
+      }
+
+      instance.forceFullRender = true; //used when data was changed
+      grid.adjustRowsAndCols();
+      selection.refreshBorders(null, true);
     },
 
     /**

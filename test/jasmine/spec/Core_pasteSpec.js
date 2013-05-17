@@ -33,8 +33,8 @@ describe('Core_paste', function () {
     waits(30);
 
     runs(function () {
-      expect(getData().length).toEqual(5);
-      expect(getData(0,0,1,4)).toEqual([["", "Kia", "Nissan", "Toyota", "Honda"],["Kia", "Nissan", "Toyota", null, null]]);
+      expect(getData().length).toEqual(7);
+      expect(getData(0,0,2,4)).toEqual([["", "Kia", "Nissan", "Toyota", "Honda"],["Kia", "Nissan", "Toyota", 12, 13], ["2008", 10, 11, 14, 13]]);
     });
 
   });
