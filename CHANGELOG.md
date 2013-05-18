@@ -1,3 +1,6 @@
+Features:
+- cell renderer and editor may now be declared as strings provided they are aliased in the lookup map ([docs](https://github.com/warpech/jquery-handsontable/wiki/Options#column-options), [demo](http://handsontable.com/demo/conditional.html), [#667](https://github.com/warpech/jquery-handsontable/issues/667))
+
 Web Component updates:
 - update [Web Component demo](http://handsontable.com/) with tiny dashboard
 - update Toolkitchen Toolkit to Polymer (@3aec92c)

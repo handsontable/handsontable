@@ -306,13 +306,13 @@ Handsontable.Core = function (rootElement, userSettings) {
      */
     spliceCol: function (col, index, amount/*, elements... */) {
       var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : []
-        , before   = []
-        , removed  = []
-        , after    = []
+        , before = []
+        , removed = []
+        , after = []
         , result
-        , data   = GridSettings.prototype.data
-        , diff   = elements.length - amount
-        , split  = index + amount
+        , data = GridSettings.prototype.data
+        , diff = elements.length - amount
+        , split = index + amount
         , length = data.length
         , r = 0;
       // Prepare data table
@@ -353,13 +353,13 @@ Handsontable.Core = function (rootElement, userSettings) {
      */
     spliceRow: function (row, index, amount/*, elements... */) {
       var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : []
-        , before   = []
-        , removed  = []
-        , after    = []
+        , before = []
+        , removed = []
+        , after = []
         , result
-        , data   = GridSettings.prototype.data[row]
-        , diff   = elements.length - amount
-        , split  = index + amount
+        , data = GridSettings.prototype.data[row]
+        , diff = elements.length - amount
+        , split = index + amount
         , length = data.length
         , c = 0;
       // Prepare data table
@@ -1725,7 +1725,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
    */
   this.populateFromArray = function (row, col, input, endRow, endCol, source) {
-    if(typeof input !== 'object') {
+    if (typeof input !== 'object') {
       throw new Error("populateFromArray parameter `input` must be an array"); //API changed in 0.9-beta2, let's check if you use it correctly
     }
     return grid.populateFromArray({row: row, col: col}, input, typeof endRow === 'number' ? {row: endRow, col: endCol} : null, source);
@@ -2192,8 +2192,11 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     instance.runHooks('beforeGetCellMeta', row, col, cellProperties);
 
-    if (typeof cellProperties.type === 'string' && Handsontable.cellTypes[cellProperties.type]) {
+    if (typeof cellProperties.type === 'string') {
       type = Handsontable.cellTypes[cellProperties.type];
+      if (type === void 0) {
+        throw new Error('You declared cell type "' + cellProperties.type + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
+      }
     }
     else if (typeof cellProperties.type === 'object') {
       type = cellProperties.type;

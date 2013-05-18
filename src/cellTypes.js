@@ -42,3 +42,20 @@ Handsontable.cellTypes = {
   date: Handsontable.DateCell,
   handsontable: Handsontable.HandsontableCell
 };
+
+//here setup the friendly aliases that are used by cellProperties.renderer and cellProperties.editor
+Handsontable.cellLookup = {
+  renderer: {
+    autocomplete: Handsontable.AutocompleteRenderer,
+    checkbox: Handsontable.CheckboxRenderer,
+    text: Handsontable.TextRenderer,
+    numeric: Handsontable.NumericRenderer
+  },
+  editor: {
+    autocomplete: Handsontable.AutocompleteEditor,
+    checkbox: Handsontable.CheckboxEditor,
+    text: Handsontable.TextEditor,
+    date: Handsontable.DateEditor,
+    handsontable: Handsontable.HandsontableEditor
+  }
+};

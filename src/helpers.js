@@ -151,3 +151,19 @@ Handsontable.helper.columnFactory = function (GridSettings, conflictList, defaul
 
   return ColumnSettings;
 };
+
+/**
+ * Returns cell renderer or editor function directly or through lookup map
+ */
+Handsontable.helper.getCellMethod = function (methodName, methodFunction) {
+  if (typeof methodFunction === 'string') {
+    var result = Handsontable.cellLookup[methodName][methodFunction];
+    if (result === void 0) {
+      throw new Error('You declared cell ' + methodName + ' "' + methodFunction + '" as a string that is not mapped to a known function. Cell ' + methodName + ' must be a function or a string mapped to a function in Handsontable.cellLookup.' + methodName + ' lookup object');
+    }
+    return result;
+  }
+  else {
+    return methodFunction;
+  }
+};
