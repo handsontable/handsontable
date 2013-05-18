@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu May 16 2013 18:43:29 GMT+0200 (Central European Daylight Time)
+ * Date: Fri May 17 2013 00:19:19 GMT+0200 (Central European Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -6730,7 +6730,8 @@ WalkontableScrollbar.prototype.init = function () {
   this.handle.className = 'handle';
 
   this.slider.appendChild(this.handle);
-  this.instance.wtTable.parent.appendChild(this.slider);
+  this.container = this.instance.wtTable.parent;
+  this.container.appendChild(this.slider);
 
   var firstRun = true;
   this.dragTimeout = null;
@@ -6872,7 +6873,7 @@ WalkontableScrollbar.prototype.refresh = function () {
 
     sliderSize = tableHeight - 2; //2 is sliders border-width
 
-    this.sliderStyle.top = this.$table.position().top + 'px';
+    this.sliderStyle.top = this.instance.wtDom.offset(this.$table[0]).top - this.instance.wtDom.offset(this.container).top + 'px';
     this.sliderStyle.left = tableWidth - 1 + 'px'; //1 is sliders border-width
     this.sliderStyle.height = sliderSize + 'px';
   }
@@ -6883,7 +6884,7 @@ WalkontableScrollbar.prototype.refresh = function () {
 
     sliderSize = tableWidth - 2; //2 is sliders border-width
 
-    this.sliderStyle.left = this.$table.position().left + 'px';
+    this.sliderStyle.left = this.instance.wtDom.offset(this.$table[0]).left - this.instance.wtDom.offset(this.container).left + 'px';
     this.sliderStyle.top = tableHeight - 1 + 'px'; //1 is sliders border-width
     this.sliderStyle.width = sliderSize + 'px';
   }

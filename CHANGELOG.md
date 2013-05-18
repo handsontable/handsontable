@@ -1,3 +1,17 @@
+Features:
+- cell renderer and editor may now be declared as strings provided they are aliased in the lookup map ([docs](https://github.com/warpech/jquery-handsontable/wiki/Options#column-options), [demo](http://handsontable.com/demo/conditional.html), [#667](https://github.com/warpech/jquery-handsontable/issues/667))
+
+Web Component updates:
+- update [Web Component demo](http://handsontable.com/) with tiny dashboard
+- update Toolkitchen Toolkit to Polymer (@3aec92c)
+- use unmodified Handsontable JS and CSS files inside the component
+- include all Web Component dependencies inside HTML Import (you just import Polymer and one HTML file!)
+- Web Component now uses jQuery 2.0.0 (bundled in), but in future will not depend on jQuery
+- remove jQuery UI datepicker from Web Component version (it won't work, as described here: http://bugs.jquery.com/ticket/13342)
+
+Other:
+- date cell type: upgrade to jQuery UI 1.10.3
+
 ## [0.9.0-beta2](https://github.com/warpech/jquery-handsontable/tree/v0.9.0-beta2) (May 7, 2013)
 
 Features:

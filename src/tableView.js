@@ -309,10 +309,10 @@ Handsontable.TableView.prototype.render = function () {
 
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {
   var prop = this.instance.colToProp(col)
-    , cellProperties = this.instance.getCellMeta(row, col);
-  if (cellProperties[methodName]) {
-    return cellProperties[methodName](this.instance, td, row, col, prop, this.instance.getDataAtRowProp(row, prop), cellProperties);
-  }
+    , cellProperties = this.instance.getCellMeta(row, col)
+    , method = Handsontable.helper.getCellMethod(methodName, cellProperties[methodName]); //methodName is 'renderer' or 'editor'
+
+  return method(this.instance, td, row, col, prop, this.instance.getDataAtRowProp(row, prop), cellProperties);
 };
 
 /**
