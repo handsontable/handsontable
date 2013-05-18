@@ -2023,8 +2023,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         proto = priv.columnSettings[i].prototype;
 
         // Use settings provided by user
-        if (settings.columns) {
-          column = settings.columns[i];
+        if (GridSettings.prototype.columns) {
+          column = GridSettings.prototype.columns[i];
           for (prop in column) {
             if (column.hasOwnProperty(prop)) {
               proto[prop] = column[prop];

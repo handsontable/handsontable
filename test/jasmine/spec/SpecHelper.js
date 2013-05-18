@@ -223,6 +223,7 @@ var deselectCell = handsontableMethodFactory('deselectCell');
 var getSelected = handsontableMethodFactory('getSelected');
 var setDataAtCell = handsontableMethodFactory('setDataAtCell');
 var getCell = handsontableMethodFactory('getCell');
+var getCellMeta = handsontableMethodFactory('getCellMeta');
 var getData = handsontableMethodFactory('getData');
 var getDataAtCell = handsontableMethodFactory('getDataAtCell');
 var getDataAtRow = handsontableMethodFactory('getDataAtRow');
