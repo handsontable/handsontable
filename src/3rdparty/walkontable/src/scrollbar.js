@@ -149,7 +149,7 @@ WalkontableScrollbar.prototype.refresh = function () {
 
     this.sliderStyle.top = this.instance.wtDom.offset(this.$table[0]).top - this.instance.wtDom.offset(this.container).top + 'px';
     this.sliderStyle.left = tableWidth - 1 + 'px'; //1 is sliders border-width
-    this.sliderStyle.height = sliderSize + 'px';
+    this.sliderStyle.height = Math.max(sliderSize, 0) + 'px';
   }
   else { //horizontal
     if (this.instance.wtTable.columnStrategy.isLastIncomplete()) {
@@ -160,7 +160,7 @@ WalkontableScrollbar.prototype.refresh = function () {
 
     this.sliderStyle.left = this.instance.wtDom.offset(this.$table[0]).left - this.instance.wtDom.offset(this.container).left + 'px';
     this.sliderStyle.top = tableHeight - 1 + 'px'; //1 is sliders border-width
-    this.sliderStyle.width = sliderSize + 'px';
+    this.sliderStyle.width = Math.max(sliderSize, 0) + 'px';
   }
 
   ratio = this.getHandleSizeRatio(visibleCount, this.total);
