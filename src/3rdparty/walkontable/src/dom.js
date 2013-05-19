@@ -177,7 +177,8 @@ WalkontableDom.prototype.isVisible = function (elem) {
     return false; //IE7-8 throws "Unspecified error" when offsetParent is not found - we catch it here
   }
 
-  if (elem.offsetWidth > 0 || (elem.parentNode && elem.parentNode.offsetWidth > 0)) {
+//  if (elem.offsetWidth > 0 || (elem.parentNode && elem.parentNode.offsetWidth > 0)) { //IE10 was mistaken here
+  if (elem.offsetWidth > 0) {
     return true;
   }
 
