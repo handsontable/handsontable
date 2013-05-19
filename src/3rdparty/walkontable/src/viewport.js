@@ -1,5 +1,6 @@
 function WalkontableViewport(instance) {
   this.instance = instance;
+  this.resetSettings();
 }
 
 //used by scrollbar
@@ -42,20 +43,19 @@ WalkontableViewport.prototype.getWorkspaceActualWidth = function () {
 
 WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
   var containerHeight = this.getWorkspaceHeight(proposedHeight);
-  var columnHeaderHeight;
 
   if (containerHeight === Infinity) {
     return containerHeight;
   }
 
-  if (columnHeaderHeight === void 0) {
+  if (isNaN(this.columnHeaderHeight)) {
     var cellOffset = this.instance.wtDom.offset(this.instance.wtTable.TBODY)
       , tableOffset = this.instance.wtTable.tableOffset;
-    columnHeaderHeight = cellOffset.top - tableOffset.top;
+    this.columnHeaderHeight = cellOffset.top - tableOffset.top;
   }
 
-  if (columnHeaderHeight > 0) {
-    return containerHeight - columnHeaderHeight;
+  if (this.columnHeaderHeight > 0) {
+    return containerHeight - this.columnHeaderHeight;
   }
   else {
     return containerHeight;
@@ -64,28 +64,32 @@ WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
 
 WalkontableViewport.prototype.getViewportWidth = function (proposedWidth) {
   var containerWidth = this.getWorkspaceWidth(proposedWidth);
-  var rowHeaderWidth;
 
   if (containerWidth === Infinity) {
     return containerWidth;
   }
 
-  if (rowHeaderWidth === void 0) {
+  if (isNaN(this.rowHeaderWidth)) {
     var TR = this.instance.wtTable.TBODY ? this.instance.wtTable.TBODY.firstChild : null;
     if (TR) {
       var TD = TR.firstChild;
-      rowHeaderWidth = 0;
+      this.rowHeaderWidth = 0;
       while (TD && TD.nodeName === 'TH') {
-        rowHeaderWidth += this.instance.wtDom.outerWidth(TD);
+        this.rowHeaderWidth += this.instance.wtDom.outerWidth(TD);
         TD = TD.nextSibling;
       }
     }
   }
 
-  if (rowHeaderWidth > 0) {
-    return containerWidth - rowHeaderWidth;
+  if (this.rowHeaderWidth > 0) {
+    return containerWidth - this.rowHeaderWidth;
   }
   else {
     return containerWidth;
   }
+};
+
+WalkontableViewport.prototype.resetSettings = function () {
+  this.rowHeaderWidth = NaN;
+  this.columnHeaderHeight = NaN;
 };

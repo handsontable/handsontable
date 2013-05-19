@@ -283,6 +283,7 @@ WalkontableTable.prototype._doDraw = function () {
     , TD
     , adjusted = false;
 
+  this.instance.wtViewport.resetSettings();
 
   //draw TBODY
   if (totalColumns > 0) {
