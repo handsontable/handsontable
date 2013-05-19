@@ -214,7 +214,7 @@ describe('WalkontableTable', function () {
       offsetRow: 0,
       offsetColumn: 0,
       height: 200,
-      width: 120,
+      width: 130,
       rowHeaders: function (row, TH) {
         TH.innerHTML = plusOne(row);
       }

@@ -22,36 +22,9 @@ describe('WalkontableRowStrategy', function () {
     expect(strategy.cellSizes).toEqual([25, 25, 25, 25]);
   });
 
-  it("should show all cells if containerSize is null", function () {
+  it("should show all cells if containerSize is Infinity", function () {
     source = [0, 1, 2, 5, 6, 7, 8, 9, 10];
-    var strategy = new WalkontableRowStrategy(null, allCells25);
-    for (var i = 0; i < source.length; i++) {
-      strategy.add(i);
-    }
-    expect(strategy.cellCount).toEqual(source.length);
-  });
-
-  it("should show all cells if containerSize is undefined", function () {
-    source = [0, 1, 2, 5, 6, 7, 8, 9, 10];
-    var strategy = new WalkontableRowStrategy(void 0, allCells25);
-    for (var i = 0; i < source.length; i++) {
-      strategy.add(i);
-    }
-    expect(strategy.cellCount).toEqual(source.length);
-  });
-
-  it("should show all cells if containerSize is 0", function () {
-    source = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    var strategy = new WalkontableRowStrategy(0, allCells25);
-    for (var i = 0; i < source.length; i++) {
-      strategy.add(i);
-    }
-    expect(strategy.cellCount).toEqual(source.length);
-  });
-
-  it("should show all cells if containerSize is < 0", function () {
-    source = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    var strategy = new WalkontableRowStrategy(-10, allCells25);
+    var strategy = new WalkontableRowStrategy(Infinity, allCells25);
     for (var i = 0; i < source.length; i++) {
       strategy.add(i);
     }
@@ -62,7 +35,7 @@ describe('WalkontableRowStrategy', function () {
 
   it("getSize should return cell size at given index", function () {
     source = [0, 1, 2, 3, 4];
-    var strategy = new WalkontableRowStrategy(0, allCellsPlus100);
+    var strategy = new WalkontableRowStrategy(Infinity, allCellsPlus100);
     for (var i = 0; i < source.length; i++) {
       strategy.add(i);
     }

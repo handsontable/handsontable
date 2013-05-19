@@ -10,11 +10,7 @@ WalkontableCellStrategy.prototype.getSize = function (index) {
 };
 
 WalkontableCellStrategy.prototype.getContainerSize = function (proposedSize) {
-  var containerSize = typeof this.containerSizeFn === 'function' ? this.containerSizeFn(proposedSize) : this.containerSizeFn;
-  if (containerSize === void 0 || containerSize === null || containerSize < 1) {
-    containerSize = Infinity;
-  }
-  return containerSize;
+  return typeof this.containerSizeFn === 'function' ? this.containerSizeFn(proposedSize) : this.containerSizeFn;
 };
 
 WalkontableCellStrategy.prototype.countVisible = function () {

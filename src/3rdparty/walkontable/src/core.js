@@ -8,6 +8,7 @@ function Walkontable(settings) {
   this.wtTable = new WalkontableTable(this);
   this.wtScroll = new WalkontableScroll(this);
   this.wtScrollbars = new WalkontableScrollbars(this);
+  this.wtViewport = new WalkontableViewport(this);
   this.wtWheel = new WalkontableWheel(this);
   this.wtEvent = new WalkontableEvent(this);
 

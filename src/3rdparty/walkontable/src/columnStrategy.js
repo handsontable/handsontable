@@ -14,6 +14,7 @@ function WalkontableColumnStrategy(containerSizeFn, sizeAtIndex, strategy) {
   this.cellSizes = [];
   this.cellCount = 0;
   this.remainingSize = 0;
+  this.strategy = strategy;
 
   //step 1 - determine cells that fit containerSize and cache their widths
   while (true) {
@@ -32,13 +33,19 @@ function WalkontableColumnStrategy(containerSizeFn, sizeAtIndex, strategy) {
   }
 
   var containerSize = this.getContainerSize(this.cellSizesSum);
-
   this.remainingSize = this.cellSizesSum - containerSize;
   //negative value means the last cell is fully visible and there is some space left for stretching
   //positive value means the last cell is not fully visible
+}
 
+WalkontableColumnStrategy.prototype = new WalkontableCellStrategy();
+
+WalkontableColumnStrategy.prototype.stretch = function () {
   //step 2 - apply stretching strategy
-  if (strategy === 'all') {
+  var containerSize = this.getContainerSize(this.cellSizesSum);
+  this.remainingSize = this.cellSizesSum - containerSize;
+
+  if (this.strategy === 'all') {
     if (this.remainingSize < 0) {
       var ratio = containerSize / this.cellSizesSum;
       var newSize;
@@ -52,12 +59,10 @@ function WalkontableColumnStrategy(containerSizeFn, sizeAtIndex, strategy) {
       this.remainingSize = 0;
     }
   }
-  else if (strategy === 'last') {
+  else if (this.strategy === 'last') {
     if (this.remainingSize < 0) {
       this.cellSizes[this.cellCount - 1] -= this.remainingSize;
       this.remainingSize = 0;
     }
   }
-}
-
-WalkontableColumnStrategy.prototype = new WalkontableCellStrategy();
+};

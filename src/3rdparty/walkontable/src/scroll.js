@@ -12,18 +12,9 @@ WalkontableScroll.prototype.scrollVertical = function (delta) {
     , offset = instance.getSetting('offsetRow')
     , fixedCount = instance.getSetting('fixedRowsTop')
     , total = instance.getSetting('totalRows')
-    , maxSize = (instance.getSetting('height') || Infinity); //Infinity is needed, otherwise you could scroll a table that did not have height specified
+    , maxSize = instance.wtViewport.getViewportHeight();
 
   if (total > 0) {
-    if (maxSize !== Infinity) {
-      var cellOffset = instance.wtDom.offset(instance.wtTable.TBODY)
-        , tableOffset = instance.wtTable.tableOffset
-        , columnHeaderHeight = cellOffset.top - tableOffset.top; //in future may be merged with `containerHeightFn` in WalkontableTable.prototype.refreshStretching
-
-      maxSize -= columnHeaderHeight;
-      maxSize -= instance.getSetting('scrollbarHeight');
-    }
-
     newOffset = this.scrollLogic(delta, offset, total, fixedCount, maxSize, function (row) {
       if (row - offset < fixedCount) {
         return instance.getSetting('rowHeight', row - offset);
@@ -53,7 +44,7 @@ WalkontableScroll.prototype.scrollHorizontal = function (delta) {
     , offset = instance.getSetting('offsetColumn')
     , fixedCount = instance.getSetting('fixedColumnsLeft')
     , total = instance.getSetting('totalColumns')
-    , maxSize = instance.getSetting('width') - instance.getSetting('rowHeaderWidth');
+    , maxSize = instance.wtViewport.getViewportWidth();
 
   if (total > 0) {
     newOffset = this.scrollLogic(delta, offset, total, fixedCount, maxSize, function (col) {

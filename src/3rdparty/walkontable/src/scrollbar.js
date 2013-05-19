@@ -129,32 +129,15 @@ WalkontableScrollbar.prototype.refresh = function () {
     , handleSize
     , handlePosition
     , visibleCount = this.visibleCount
-    , tableOuterWidth = this.instance.wtDom.outerWidth(this.instance.wtTable.TABLE) || this.instance.wtDom.outerWidth(this.instance.wtTable.TBODY) || this.instance.wtDom.outerWidth(this.instance.wtTable.THEAD) //IE8 reports 0 as <table> offsetWidth
-    , tableOuterHeight = this.instance.wtDom.outerHeight(this.instance.wtTable.TABLE)
-    , tableWidth = this.instance.hasSetting('width') ? this.instance.getSetting('width') : tableOuterWidth
-    , tableHeight = this.instance.hasSetting('height') ? this.instance.getSetting('height') : tableOuterHeight;
+    , tableWidth = this.instance.wtViewport.getWorkspaceWidth()
+    , tableHeight = this.instance.wtViewport.getWorkspaceHeight();
 
-  if (!tableWidth) {
-    //throw new Error("I could not compute table width. Is the <table> element attached to the DOM?");
-    return;
-  }
-  if (!tableHeight) {
-    //throw new Error("I could not compute table height. Is the <table> element attached to the DOM?");
-    return;
+  if (tableWidth === Infinity) {
+    tableWidth = this.instance.wtViewport.getWorkspaceActualWidth();
   }
 
-  if (this.instance.hasSetting('width') && this.instance.wtScrollbars.vertical.visible) {
-    tableWidth -= this.instance.getSetting('scrollbarWidth');
-  }
-  if (tableWidth > tableOuterWidth + this.instance.getSetting('scrollbarWidth')) {
-    tableWidth = tableOuterWidth;
-  }
-
-  if (this.instance.hasSetting('height') && this.instance.wtScrollbars.horizontal.visible) {
-    tableHeight -= this.instance.getSetting('scrollbarHeight');
-  }
-  if (tableHeight > tableOuterHeight + this.instance.getSetting('scrollbarHeight')) {
-    tableHeight = tableOuterHeight;
+  if (tableHeight === Infinity) {
+    tableHeight = this.instance.wtViewport.getWorkspaceActualHeight();
   }
 
   if (this.type === 'vertical') {
