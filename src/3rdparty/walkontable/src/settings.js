@@ -43,8 +43,7 @@ function WalkontableSettings(instance, settings) {
 
     //constants
     scrollbarWidth: 10,
-    scrollbarHeight: 10,
-    rowHeaderWidth: 50
+    scrollbarHeight: 10
   };
 
   //reference to settings
