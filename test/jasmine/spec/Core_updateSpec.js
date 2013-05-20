@@ -1,4 +1,4 @@
-describe('Core_init', function () {
+describe('Core_updateSettings', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
@@ -23,13 +23,13 @@ describe('Core_init', function () {
       cells : function (row, col, prop) {
         if (row === 0 && col === 0) {
           return {
-            type : 'number'
+            type : 'numeric'
           }
         }
       }
     });
 
-    expect(getCellMeta(0, 0).type).toEqual('number');
+    expect(getCellMeta(0, 0).type).toEqual('numeric');
     expect(getCellMeta(0, 1).type).toEqual('checkbox');
 
   });
@@ -38,7 +38,7 @@ describe('Core_init', function () {
     handsontable({
       data : [[1, true]],
       columns : [
-        { type : 'number' },
+        { type : 'numeric' },
         { type : 'checkbox' }
       ]
     });
