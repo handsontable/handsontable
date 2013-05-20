@@ -15,7 +15,7 @@ Web Component updates:
 Other:
 - date cell type: upgrade to jQuery UI 1.10.3
 - introduce WalkontableViewport abstraction
-- fix problem with row header fixed width (now width is dynamically checked)
+- fix problem with row header fixed width (now width is dynamically checked) ([#402](https://github.com/warpech/jquery-handsontable/issues/402), [#475](https://github.com/warpech/jquery-handsontable/issues/475))
 
 ## [0.9.0-beta2](https://github.com/warpech/jquery-handsontable/tree/v0.9.0-beta2) (May 7, 2013)
 
