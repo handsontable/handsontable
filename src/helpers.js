@@ -152,6 +152,44 @@ Handsontable.helper.columnFactory = function (GridSettings, conflictList, defaul
   return ColumnSettings;
 };
 
+Handsontable.helper.translateRowsToColumns = function (input) {
+  var i
+    , ilen
+    , j
+    , jlen
+    , output = []
+    , olen = 0;
+
+  for (i = 0, ilen = input.length; i < ilen; i++) {
+    for (j = 0, jlen = input[i].length; j < jlen; j++) {
+      if (j == olen) {
+        output.push([]);
+        olen++;
+      }
+      output[j].push(input[i][j])
+    }
+  }
+  return output;
+};
+
+Handsontable.helper.to2dArray = function (arr) {
+  var i = 0
+    , ilen = arr.length;
+  while (i < ilen) {
+    arr[i] = [arr[i]];
+    i++;
+  }
+};
+
+Handsontable.helper.extendArray = function (arr, extension) {
+  var i = 0
+    , ilen = extension.length;
+  while (i < ilen) {
+    arr.push(extension[i]);
+    i++;
+  }
+};
+
 /**
  * Returns cell renderer or editor function directly or through lookup map
  */

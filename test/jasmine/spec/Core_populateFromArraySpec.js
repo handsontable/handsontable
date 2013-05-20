@@ -68,45 +68,44 @@ describe('Core_populateFromArray', function () {
   it('should shift values down', function () {
     var output = null;
 
-    runs(function () {
-      handsontable({
-        data : arrayOfArrays(),
-        onChange: function (changes) {
-          output = changes;
-        }
-      });
-      populateFromArray(0, 0, [["test"]], 2, 0, null, 'shift_down');
+    handsontable({
+      data : arrayOfArrays(),
+      onChange: function (changes) {
+        output = changes;
+      },
+      minSpareRows: 1
     });
+    populateFromArray(0, 0, [["test","test2"],["test3","test4"]], 2, 2, null, 'shift_down');
 
-    waitsFor(function () {
-      return (output != null)
-    }, "onChange callback called", 100);
-
-    runs(function () {
-      expect(getDataAtCol(0)).toEqual(["test", "test", "test", "", "2008", "2009", "2010"]);
-    });
+    expect(getData()).toEqual([
+      ["test", "test2", "test", "Toyota", "Honda"],
+      ["test3", "test4", "test3", 12, 13],
+      ["test", "test2", "test", 14, 13],
+      ["", "Kia", "Nissan", 12, 13],
+      ["2008", 10, 11, null, null],
+      ["2009", 20, 11, null, null],
+      ["2010", 30, 15, null, null],
+      [null, null, null, null, null]
+    ]);
   });
 
   it('should shift values right', function () {
     var output = null;
 
-    runs(function () {
-      handsontable({
-        data : arrayOfArrays(),
-        onChange: function (changes) {
-          output = changes;
-        }
-      });
-      populateFromArray(0, 0, [["test"]], 0, 2, null, 'shift_right');
+    handsontable({
+      data : arrayOfArrays(),
+      onChange: function (changes) {
+        output = changes;
+      },
+      minSpareCols: 1
     });
+    populateFromArray(0, 0, [["test","test2"],["test3","test4"]], 2, 2, null, 'shift_right');
 
-    waitsFor(function () {
-      return (output != null)
-    }, "onChange callback called", 100);
-
-    runs(function () {
-      expect(getDataAtRow(0)).toEqual(["test", "test", "test", "", "Kia", "Nissan", "Toyota", "Honda"]);
-    });
+    expect(getData()).toEqual([
+      ["test", "test2", "test", "", "Kia", "Nissan", "Toyota", "Honda", null],
+      ["test3", "test4", "test3", "2008", 10, 11, 12, 13, null],
+      ["test", "test2", "test", "2009", 20, 11, 14, 13, null],
+      ["2010", 30, 15, 12, 13, null, null, null, null]
+    ]);
   });
-
 });

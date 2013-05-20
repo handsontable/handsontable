@@ -26,7 +26,7 @@ describe('Core_splice', function () {
   it('should remove data from specified col', function () {
     handsontable({
       data: arrayOfArrays(),
-      minSpareRow: 1
+      minSpareRows: 1
     });
 
     expect(spliceCol(1, 0, 2)).toEqual(['Kia', 10]);
@@ -36,7 +36,7 @@ describe('Core_splice', function () {
   it('should insert data into specified col', function () {
     handsontable({
       data: arrayOfArrays(),
-      minSpareRow: 1
+      minSpareRows: 1
     });
 
     expect(spliceCol(1, 1, 0, 'test', 'test', 'test')).toEqual([]);
@@ -46,7 +46,7 @@ describe('Core_splice', function () {
   it('should remove and insert data into specified col', function () {
     handsontable({
       data: arrayOfArrays(),
-      minSpareRow: 1
+      minSpareRows: 1
     });
 
     expect(spliceCol(1, 0, 2, 'test', 'test', 'test')).toEqual(['Kia', 10]);
@@ -57,7 +57,8 @@ describe('Core_splice', function () {
 
   it('should remove data from specified row', function () {
     handsontable({
-      data: arrayOfArrays()
+      data: arrayOfArrays(),
+      minSpareCols: 1
     });
 
     expect(spliceRow(0, 0, 3)).toEqual(['', 'Kia', 'Nissan']);
@@ -66,7 +67,8 @@ describe('Core_splice', function () {
 
   it('should insert data into specified row', function () {
     handsontable({
-      data: arrayOfArrays()
+      data: arrayOfArrays(),
+      minSpareCols: 1
     });
 
     expect(spliceRow(0, 0, 0, 'test', 'test', 'test')).toEqual([]);
@@ -75,7 +77,8 @@ describe('Core_splice', function () {
 
   it('should remove and insert data into specified row', function () {
     handsontable({
-      data: arrayOfArrays()
+      data: arrayOfArrays(),
+      minSpareCols: 1
     });
 
     expect(spliceRow(0, 0, 2, 'test', 'test', 'test')).toEqual(['', 'Kia']);
