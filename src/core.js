@@ -304,8 +304,10 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
      * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
      */
-    spliceCol: function (col, index, amount/*, elements... */) {
-      var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : []
+    spliceCol: function (col, index, amount/*, elements..., update = true*/) {
+      var r
+        , elements = 5 <= arguments.length ? [].slice.call(arguments, 3, r = arguments.length - 1) : (r = 3, [])
+        , update = arguments[r++]
         , before = []
         , removed = []
         , after = []
@@ -313,10 +315,21 @@ Handsontable.Core = function (rootElement, userSettings) {
         , data = GridSettings.prototype.data
         , diff = elements.length - amount
         , split = index + amount
-        , length = data.length
-        , r = 0;
+        , length = data.length;
+      if (update !== false) {
+        if (update != null) {
+          elements.push(update);
+          diff++;
+        }
+        update = true;
+      }
+      // Allow elements to be an array type
+      if (elements[0] instanceof Array) {
+        elements = elements[0];
+        diff = elements.length - amount;
+      }
       // Prepare data table
-      for (; r < length; r++) {
+      for (r = 0; r < length; r++) {
         if (r < index) {
           before.push(data[r][col]);
         }
@@ -329,17 +342,20 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
       // Calculate result data
       result = [].concat(before, elements, after);
+
       // Create missing rows
       if (diff > 0) {
         length += diff;
+        if (update) {
         instance.alter('insert_row', null, diff, 'spliceCol', true);
+      }
       }
       for (r = 0; r < length; r++) {
         data[r][col] = typeof result[r] !== "undefined" ? result[r] : null;
       }
       // Re-render table
       instance.forceFullRender = true; //used when data was changed
-      selection.refreshBorders();
+      selection.refreshBorders(null, true);
       // Return removed elements
       return removed;
     },
@@ -351,8 +367,10 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
      * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
      */
-    spliceRow: function (row, index, amount/*, elements... */) {
-      var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : []
+    spliceRow: function (row, index, amount/*, elements..., update = true*/) {
+      var c
+        , elements = 5 <= arguments.length ? [].slice.call(arguments, 3, c = arguments.length - 1) : (c = 3, [])
+        , update = arguments[c++]
         , before = []
         , removed = []
         , after = []
@@ -360,10 +378,21 @@ Handsontable.Core = function (rootElement, userSettings) {
         , data = GridSettings.prototype.data[row]
         , diff = elements.length - amount
         , split = index + amount
-        , length = data.length
-        , c = 0;
+        , length = data.length;
+      if (update !== false) {
+        if (update != null) {
+          elements.push(update);
+          diff++;
+        }
+        update = true;
+      }
+      // Allow elements to be an array type
+      if (elements[0] instanceof Array) {
+        elements = elements[0];
+        diff = elements.length - amount;
+      }
       // Prepare data table
-      for (; c < length; c++) {
+      for (c = 0; c < length; c++) {
         if (c < index) {
           before.push(data[c]);
         }
@@ -379,14 +408,16 @@ Handsontable.Core = function (rootElement, userSettings) {
       // Create missing rows
       if (diff > 0) {
         length += diff;
+        if (update) {
         instance.alter('insert_col', null, diff, 'spliceRow', true);
+      }
       }
       for (c = 0; c < length; c++) {
         data[c] = typeof result[c] !== "undefined" ? result[c] : null;
       }
       // Re-render table
       instance.forceFullRender = true; //used when data was changed
-      selection.refreshBorders();
+      selection.refreshBorders(null, true);
       // Return removed elements
       return removed;
     },
@@ -714,7 +745,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @param {String} [source="populateFromArray"]
      * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
      */
-    populateFromArray: function (start, input, end, source) {
+    populateFromArray: function (start, input, end, source, method) {
       var r, rlen, c, clen, setData = [], current = {};
       rlen = input.length;
       if (rlen === 0) {
@@ -745,7 +776,44 @@ Handsontable.Core = function (rootElement, userSettings) {
           r = -1;
         }
       }
+
+      // inser data with specified pasteMode method
+      switch (method) {
+        case 'shift_down' :
+          var i = 0, len = setData.length, data = {};
+          for (; i < len; i++) {
+            if (typeof data[setData[i][1]] === 'undefined') {
+              data[setData[i][1]] = [];
+            }
+            data[setData[i][1]].push(setData[i][2]);
+          }
+          for (c in data) {
+            instance.spliceCol(c, start.row, 0, data[c]);
+          }
+          break;
+        case 'shift_right' :
+          var i = 0, len = setData.length, data = [];
+          for (; i < len; i++) {
+            if (typeof data[setData[i][0]] === 'undefined') {
+              data[setData[i][0]] = [];
+            }
+            data[setData[i][0]].push(setData[i][2]);
+          }
+          i = 0;
+          for (r in data) {
+            instance.spliceRow(r, start.col, 0, data[r], i ? false : true);
+            i++;
+          }
+          break;
+        default:
+          // overwrite and other not specified options
       instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
+          break;
+      }
+
+      instance.forceFullRender = true; //used when data was changed
+      grid.adjustRowsAndCols();
+      selection.refreshBorders(null, true);
     },
 
     /**
@@ -1233,23 +1301,10 @@ Handsontable.Core = function (rootElement, userSettings) {
           , inputArray = SheetClip.parse(input)
           , coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
 
-        // fix grid size with specified pasteMode method in settings
-        switch (priv.settings.pasteMode) {
-          case 'shift_down' :
-            instance.alter('insert_row', coords.TL.row, inputArray.length);
-            break;
-          case 'shift_right' :
-            instance.alter('insert_col', coords.TL.col, inputArray[0].length);
-            break;
-          default:
-            // overwrite and other notspecified options - just do nothing
-            break;
-        }
-
         grid.populateFromArray(coords.TL, inputArray, {
           row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
           col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
-        }, 'paste');
+        }, 'paste', priv.settings.pasteMode);
       }
 
       var $body = $(document.body);
@@ -1722,13 +1777,14 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @param {Number=} endRow End row (use when you want to cut input when certain row is reached)
    * @param {Number=} endCol End column (use when you want to cut input when certain column is reached)
    * @param {String=} [source="populateFromArray"]
+   * @param {String=} [method="overwrite"]
    * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
    */
-  this.populateFromArray = function (row, col, input, endRow, endCol, source) {
+  this.populateFromArray = function (row, col, input, endRow, endCol, source, method) {
     if (typeof input !== 'object') {
       throw new Error("populateFromArray parameter `input` must be an array"); //API changed in 0.9-beta2, let's check if you use it correctly
     }
-    return grid.populateFromArray({row: row, col: col}, input, typeof endRow === 'number' ? {row: endRow, col: endCol} : null, source);
+    return grid.populateFromArray({row: row, col: col}, input, typeof endRow === 'number' ? {row: endRow, col: endCol} : null, source, method);
   };
 
   /**
@@ -1967,8 +2023,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         proto = priv.columnSettings[i].prototype;
 
         // Use settings provided by user
-        if (settings.columns) {
-          column = settings.columns[i];
+        if (GridSettings.prototype.columns) {
+          column = GridSettings.prototype.columns[i];
           for (prop in column) {
             if (column.hasOwnProperty(prop)) {
               proto[prop] = column[prop];
