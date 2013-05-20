@@ -4,7 +4,7 @@
   /**
    * Handsontable RemoveRow extension. See `demo/buttons.html` for example usage
    */
-  Handsontable.PluginHooks.add('beforInitWalkontable', function (walkontableConfig) {
+  Handsontable.PluginHooks.add('beforeInitWalkontable', function (walkontableConfig) {
     var instance = this;
 
     if (instance.getSettings().removeRowPlugin) {
@@ -22,24 +22,24 @@
 
       instance.rootElement.addClass('htRemoveRow');
 
-      walkontableConfig.rowHeaders = function (row, elem) {
-        var div = document.createElement('div');
-        var child;
-
-        div.className = 'btn';
-        div.appendChild(document.createTextNode('x'));
-
+      walkontableConfig.rowHeaders.unshift(function (row, elem) {
+        var child
+          , div;
         while (child = elem.lastChild) {
           elem.removeChild(child);
         }
+        elem.className = 'htNoFrame htRemoveRow';
+        if (row > -1) {
+          div = document.createElement('div');
+          div.className = 'btn';
+          div.appendChild(document.createTextNode('x'));
+          elem.appendChild(div);
 
-        elem.className = 'htRemoveRow';
-        elem.appendChild(div);
-
-        $(div).on('mouseup', function() {
-          instance.alter("remove_row", row);
-        });
-      };
+          $(div).on('mouseup', function () {
+            instance.alter("remove_row", row);
+          });
+        }
+      });
 
     }
   });

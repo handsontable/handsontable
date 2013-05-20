@@ -42,7 +42,8 @@ WalkontableColumnStrategy.prototype = new WalkontableCellStrategy();
 
 WalkontableColumnStrategy.prototype.stretch = function () {
   //step 2 - apply stretching strategy
-  var containerSize = this.getContainerSize(this.cellSizesSum);
+  var containerSize = this.getContainerSize(this.cellSizesSum)
+    , i = 0;
   this.remainingSize = this.cellSizesSum - containerSize;
 
   if (this.strategy === 'all') {
@@ -50,10 +51,11 @@ WalkontableColumnStrategy.prototype.stretch = function () {
       var ratio = containerSize / this.cellSizesSum;
       var newSize;
 
-      for (i = 0; i < this.cellCount - 1; i++) { //"i < ilen - 1" is needed because last cellSize is adjusted after the loop
+      while (i < this.cellCount - 1) { //"i < this.cellCount - 1" is needed because last cellSize is adjusted after the loop
         newSize = Math.floor(ratio * this.cellSizes[i]);
         this.remainingSize += newSize - this.cellSizes[i];
         this.cellSizes[i] = newSize;
+        i++;
       }
       this.cellSizes[this.cellCount - 1] -= this.remainingSize;
       this.remainingSize = 0;

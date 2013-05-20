@@ -152,12 +152,12 @@ Handsontable.TableView = function (instance) {
     height: this.getHeight(),
     fixedColumnsLeft: this.settings.fixedColumnsLeft,
     fixedRowsTop: this.settings.fixedRowsTop,
-    rowHeaders: this.settings.rowHeaders ? function (index, TH) {
+    rowHeaders: this.settings.rowHeaders ? [function (index, TH) {
       that.appendRowHeader(index, TH);
-    } : null,
-    columnHeaders: this.settings.colHeaders ? function (index, TH) {
+    }] : [],
+    columnHeaders: this.settings.colHeaders ? [function (index, TH) {
       that.appendColHeader(index, TH);
-    } : null,
+    }] : [],
     columnWidth: instance.getColWidth,
     cellRenderer: function (row, column, TD) {
       that.applyCellTypeMethod('renderer', TD, row, column);
@@ -342,7 +342,12 @@ Handsontable.TableView.prototype.scrollViewport = function (coords) {
  * @param TH
  */
 Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
-  this.wt.wtDom.avoidInnerHTML(TH, this.instance.getRowHeader(row));
+  if (row > -1) {
+    this.wt.wtDom.avoidInnerHTML(TH, this.instance.getRowHeader(row));
+  }
+  else {
+    this.wt.wtDom.empty(TH);
+  }
 };
 
 /**

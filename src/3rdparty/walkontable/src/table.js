@@ -75,7 +75,7 @@ function WalkontableTable(instance) {
     this.TABLE.insertBefore(this.COLGROUP, this.THEAD);
   }
 
-  if (this.instance.hasSetting('columnHeaders')) {
+  if (this.instance.getSetting('columnHeaders').length) {
     if (!this.THEAD.childNodes.length) {
       var TR = document.createElement('TR');
       this.THEAD.appendChild(TR);
@@ -171,7 +171,9 @@ WalkontableTable.prototype.refreshStretching = function () {
 
 WalkontableTable.prototype.adjustAvailableNodes = function () {
   var displayTds
-    , displayThs = this.instance.hasSetting('rowHeaders') ? 1 : 0
+    , rowHeaders = this.instance.getSetting('rowHeaders')
+    , displayThs = rowHeaders.length
+    , columnHeaders = this.instance.getSetting('columnHeaders')
     , TR
     , TD
     , c;
@@ -196,7 +198,7 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   }
 
   //adjust THEAD
-  if (this.instance.hasSetting('columnHeaders')) {
+  if (columnHeaders.length) {
     TR = this.THEAD.firstChild;
     while (this.theadChildrenLength < displayTds + displayThs) {
       TR.appendChild(document.createElement('TH'));
@@ -219,21 +221,23 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   }
 
   //draw THEAD
-  var columnHeaders = this.instance.hasSetting('columnHeaders');
-  if (columnHeaders) {
+  if (columnHeaders.length) {
     TR = this.THEAD.firstChild;
     if (displayThs) {
       TD = TR.firstChild; //actually it is TH but let's reuse single variable
-      this.wtDom.empty(TD);
-      if (this.hasEmptyCellProblem) { //IE7
-        TD.innerHTML = '&nbsp;';
+      for (c = 0; c < displayThs; c++) {
+        rowHeaders[c](-displayThs + c, TD);
+        if (this.hasEmptyCellProblem) { //IE7
+          TD.innerHTML = '&nbsp;';
+        }
+        TD = TD.nextSibling;
       }
     }
   }
 
   for (c = 0; c < displayTds; c++) {
-    if (columnHeaders) {
-      this.instance.getSetting('columnHeaders', this.columnFilter.visibleToSource(c), TR.childNodes[displayThs + c]);
+    if (columnHeaders.length) {
+      columnHeaders[0](this.columnFilter.visibleToSource(c), TR.childNodes[displayThs + c]);
     }
   }
 };
@@ -277,8 +281,8 @@ WalkontableTable.prototype._doDraw = function () {
     , totalRows = this.instance.getSetting('totalRows')
     , totalColumns = this.instance.getSetting('totalColumns')
     , displayTds
-    , rowHeaders = this.instance.hasSetting('rowHeaders')
-    , displayThs = rowHeaders ? 1 : 0
+    , rowHeaders = this.instance.getSetting('rowHeaders')
+    , displayThs = rowHeaders.length
     , TR
     , TD
     , adjusted = false;
@@ -291,7 +295,7 @@ WalkontableTable.prototype._doDraw = function () {
     while (source_r < totalRows) {
       if (r >= this.tbodyChildrenLength) {
         TR = document.createElement('TR');
-        if (displayThs) {
+        for (c = 0; c < displayThs; c++) {
           TR.appendChild(document.createElement('TH'));
         }
         this.TBODY.appendChild(TR);
@@ -305,8 +309,10 @@ WalkontableTable.prototype._doDraw = function () {
       }
 
       //TH
-      if (displayThs) {
-        this.instance.getSetting('rowHeaders', source_r, TR.firstChild);
+      TD = TR.firstChild;
+      for (c = 0; c < displayThs; c++) {
+        rowHeaders[c](source_r, TD); //actually TH
+        TD = TD.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
       }
 
       if (r === 0) {
@@ -345,7 +351,7 @@ WalkontableTable.prototype._doDraw = function () {
     }
   }
 
-  if(!adjusted) {
+  if (!adjusted) {
     this.adjustAvailableNodes();
   }
 

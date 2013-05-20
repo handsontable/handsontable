@@ -17,10 +17,10 @@ function Walkontable(settings) {
     for (var c = 0, clen = this.wtTable.THEAD.childNodes[0].childNodes.length; c < clen; c++) {
       originalHeaders.push(this.wtTable.THEAD.childNodes[0].childNodes[c].innerHTML);
     }
-    if (!this.hasSetting('columnHeaders')) {
-      this.update('columnHeaders', function (column, TH) {
+    if (!this.getSetting('columnHeaders').length) {
+      this.update('columnHeaders', [function (column, TH) {
         that.wtDom.avoidInnerHTML(TH, originalHeaders[column]);
-      });
+      }]);
     }
   }
 

@@ -1,6 +1,9 @@
 Features:
 - cell renderer and editor may now be declared as strings provided they are aliased in the lookup map ([docs](https://github.com/warpech/jquery-handsontable/wiki/Options#column-options), [demo](http://handsontable.com/demo/conditional.html), [#667](https://github.com/warpech/jquery-handsontable/issues/667))
 
+Bugfixes:
+- fix demo page buttons.html ([#602](https://github.com/warpech/jquery-handsontable/issues/602))
+
 Web Component updates:
 - update [Web Component demo](http://handsontable.com/) with tiny dashboard
 - update Toolkitchen Toolkit to Polymer (@3aec92c)
@@ -27,7 +30,6 @@ Features:
   - spliceRow ([docs](https://github.com/warpech/jquery-handsontable/wiki/Methods))
 
 Bugfixes:
-<!--- NEEDS FIX: fix demo page buttons.html ([#602](https://github.com/warpech/jquery-handsontable/issues/602))-->
 - fix problem with clearing `animate` function interval ([#456](https://github.com/warpech/jquery-handsontable/issues/456))
 - fix auto resize column when double clicked on `.manualColumnResizer` ([#594](https://github.com/warpech/jquery-handsontable/issues/594))
 - fix undo/redo event handler (change `datachange.handsontable` event to `afterChange` hook)
