@@ -56,6 +56,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     beforeSet: [],
     beforeGetCellMeta: [],
     beforeAutofill: [],
+    beforeKeyDown: [],
 
     afterInit: [],
     afterLoadData: [],
@@ -1310,7 +1311,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       var $body = $(document.body);
 
       function onKeyDown(event) {
-        if (priv.settings.beforeOnKeyDown) {
+        if (priv.settings.beforeOnKeyDown) { // HOT in HOT Plugin
           priv.settings.beforeOnKeyDown.call(instance, event);
         }
 
@@ -1345,81 +1346,77 @@ Handsontable.Core = function (rootElement, userSettings) {
 
           var rangeModifier = event.shiftKey ? selection.setRangeEnd : selection.setRangeStart;
 
-          switch (event.keyCode) {
-            case 38: /* arrow up */
-              if (event.shiftKey) {
-                selection.transformEnd(-1, 0);
-              }
-              else {
-                selection.transformStart(-1, 0);
-              }
-              event.preventDefault();
-              event.stopPropagation(); //required by HandsontableEditor
-              break;
+          instance.runHooks('beforeKeyDown', event);
+          if (!event.isImmediatePropagationStopped()) {
 
-            case 9: /* tab */
-              var tabMoves = typeof priv.settings.tabMoves === 'function' ? priv.settings.tabMoves(event) : priv.settings.tabMoves;
-              if (event.shiftKey) {
-                selection.transformStart(-tabMoves.row, -tabMoves.col); //move selection left
-              }
-              else {
-                selection.transformStart(tabMoves.row, tabMoves.col, true); //move selection right (add a new column if needed)
-              }
-              event.preventDefault();
-              event.stopPropagation(); //required by HandsontableEditor
-              break;
+            switch (event.keyCode) {
+              case 38: /* arrow up */
+                if (event.shiftKey) {
+                  selection.transformEnd(-1, 0);
+                }
+                else {
+                  selection.transformStart(-1, 0);
+                }
+                event.preventDefault();
+                event.stopPropagation(); //required by HandsontableEditor
+                break;
 
-            case 39: /* arrow right */
-              if (event.shiftKey) {
-                selection.transformEnd(0, 1);
-              }
-              else {
-                selection.transformStart(0, 1);
-              }
-              event.preventDefault();
-              event.stopPropagation(); //required by HandsontableEditor
-              break;
+              case 9: /* tab */
+                var tabMoves = typeof priv.settings.tabMoves === 'function' ? priv.settings.tabMoves(event) : priv.settings.tabMoves;
+                if (event.shiftKey) {
+                  selection.transformStart(-tabMoves.row, -tabMoves.col); //move selection left
+                }
+                else {
+                  selection.transformStart(tabMoves.row, tabMoves.col, true); //move selection right (add a new column if needed)
+                }
+                event.preventDefault();
+                event.stopPropagation(); //required by HandsontableEditor
+                break;
 
-            case 37: /* arrow left */
-              if (event.shiftKey) {
-                selection.transformEnd(0, -1);
-              }
-              else {
-                selection.transformStart(0, -1);
-              }
-              event.preventDefault();
-              event.stopPropagation(); //required by HandsontableEditor
-              break;
+              case 39: /* arrow right */
+                if (event.shiftKey) {
+                  selection.transformEnd(0, 1);
+                }
+                else {
+                  selection.transformStart(0, 1);
+                }
+                event.preventDefault();
+                event.stopPropagation(); //required by HandsontableEditor
+                break;
 
-            case 8: /* backspace */
-            case 46: /* delete */
-              if (priv.settings.onDeleteDown) {
-                priv.settings.onDeleteDown(event);
-              } else {
+              case 37: /* arrow left */
+                if (event.shiftKey) {
+                  selection.transformEnd(0, -1);
+                }
+                else {
+                  selection.transformStart(0, -1);
+                }
+                event.preventDefault();
+                event.stopPropagation(); //required by HandsontableEditor
+                break;
+
+              case 8: /* backspace */
+              case 46: /* delete */
                 selection.empty(event);
                 event.preventDefault();
-              }
-              break;
+                break;
 
-            case 40: /* arrow down */
-              if (event.shiftKey) {
-                selection.transformEnd(1, 0); //expanding selection down with shift
-              }
-              else {
-                selection.transformStart(1, 0); //move selection down
-              }
-              event.preventDefault();
-              event.stopPropagation(); //required by HandsontableEditor
-              break;
+              case 40: /* arrow down */
+                if (event.shiftKey) {
+                  selection.transformEnd(1, 0); //expanding selection down with shift
+                }
+                else {
+                  selection.transformStart(1, 0); //move selection down
+                }
+                event.preventDefault();
+                event.stopPropagation(); //required by HandsontableEditor
+                break;
 
-            case 113: /* F2 */
-              event.preventDefault(); //prevent Opera from opening Go to Page dialog
-              break;
+              case 113: /* F2 */
+                event.preventDefault(); //prevent Opera from opening Go to Page dialog
+                break;
 
-            case 13: /* return/enter */
-              if (priv.settings.onEnterDown) {
-                priv.settings.onEnterDown(event);
-              } else {
+              case 13: /* return/enter */
                 var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
 
                 if (event.shiftKey) {
@@ -1430,49 +1427,50 @@ Handsontable.Core = function (rootElement, userSettings) {
                 }
 
                 event.preventDefault(); //don't add newline to field
-              }
-              break;
+                break;
 
-            case 36: /* home */
-              if (event.ctrlKey || event.metaKey) {
-                rangeModifier({row: 0, col: priv.selStart.col()});
-              }
-              else {
-                rangeModifier({row: priv.selStart.row(), col: 0});
-              }
-              event.preventDefault(); //don't scroll the window
-              event.stopPropagation(); //required by HandsontableEditor
-              break;
+              case 36: /* home */
+                if (event.ctrlKey || event.metaKey) {
+                  rangeModifier({row: 0, col: priv.selStart.col()});
+                }
+                else {
+                  rangeModifier({row: priv.selStart.row(), col: 0});
+                }
+                event.preventDefault(); //don't scroll the window
+                event.stopPropagation(); //required by HandsontableEditor
+                break;
 
-            case 35: /* end */
-              if (event.ctrlKey || event.metaKey) {
-                rangeModifier({row: instance.countRows() - 1, col: priv.selStart.col()});
-              }
-              else {
-                rangeModifier({row: priv.selStart.row(), col: instance.countCols() - 1});
-              }
-              event.preventDefault(); //don't scroll the window
-              event.stopPropagation(); //required by HandsontableEditor
-              break;
+              case 35: /* end */
+                if (event.ctrlKey || event.metaKey) {
+                  rangeModifier({row: instance.countRows() - 1, col: priv.selStart.col()});
+                }
+                else {
+                  rangeModifier({row: priv.selStart.row(), col: instance.countCols() - 1});
+                }
+                event.preventDefault(); //don't scroll the window
+                event.stopPropagation(); //required by HandsontableEditor
+                break;
 
-            case 33: /* pg up */
-              selection.transformStart(-instance.countVisibleRows(), 0);
-              instance.view.wt.scrollVertical(-instance.countVisibleRows());
-              instance.view.render();
-              event.preventDefault(); //don't page up the window
-              event.stopPropagation(); //required by HandsontableEditor
-              break;
+              case 33: /* pg up */
+                selection.transformStart(-instance.countVisibleRows(), 0);
+                instance.view.wt.scrollVertical(-instance.countVisibleRows());
+                instance.view.render();
+                event.preventDefault(); //don't page up the window
+                event.stopPropagation(); //required by HandsontableEditor
+                break;
 
-            case 34: /* pg down */
-              selection.transformStart(instance.countVisibleRows(), 0);
-              instance.view.wt.scrollVertical(instance.countVisibleRows());
-              instance.view.render();
-              event.preventDefault(); //don't page down the window
-              event.stopPropagation(); //required by HandsontableEditor
-              break;
+              case 34: /* pg down */
+                selection.transformStart(instance.countVisibleRows(), 0);
+                instance.view.wt.scrollVertical(instance.countVisibleRows());
+                instance.view.render();
+                event.preventDefault(); //don't page down the window
+                event.stopPropagation(); //required by HandsontableEditor
+                break;
 
-            default:
-              break;
+              default:
+                break;
+            }
+
           }
         }
       }
