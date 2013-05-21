@@ -101,10 +101,17 @@
                 ]
               , example = $("#example1");
 
+            var insert;
+
             example.handsontable({
               data: data,
               colHeaders: true,
               rowHeaders: true,
+              beforeChange: function (changes, source) {
+                if ((changes.length === 1) && (changes[0][2] == changes[0][3])) {
+                  insert = true;
+                }
+              },
               beforeKeyDown: function (e) {
                 var instance  = example.handsontable('getInstance')
                   , selection = instance.getSelected();
@@ -119,9 +126,10 @@
                 else if (e.keyCode === 13) {
                   e.stopImmediatePropagation();
 
-                  if (getDataAtCell(selection[0], selection[1])) {
+                  if (insert) {
                     instance.spliceCol(selection[1], selection[0], 0, '');
                     instance.selectCell(selection[0], selection[1]);
+                    insert = false;
                   }
 
                   e.preventDefault();
