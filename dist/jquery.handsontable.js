@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue May 21 2013 02:53:16 GMT+0200 (Central European Daylight Time)
+ * Date: Wed May 22 2013 01:36:21 GMT+0200 (Central European Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -26,7 +26,7 @@ var Handsontable = { //class namespace
 Handsontable.Core = function (rootElement, userSettings) {
   var priv
     , hooks
-    , eventMap
+    , legacyEventMap
     , datamap
     , grid
     , selection
@@ -65,41 +65,9 @@ Handsontable.Core = function (rootElement, userSettings) {
     firstRun: true
   };
 
-  hooks = {
-    beforeInitWalkontable: [],
+  hooks = new Handsontable.PluginHookMap();
 
-    beforeInit: [],
-    beforeRender: [],
-    beforeChange: [],
-    beforeGet: [],
-    beforeSet: [],
-    beforeGetCellMeta: [],
-    beforeAutofill: [],
-    beforeKeyDown: [],
-
-    afterInit: [],
-    afterLoadData: [],
-    afterRender: [],
-    afterChange: [],
-    afterGetCellMeta: [],
-    afterGetColHeader: [],
-    afterGetColWidth: [],
-    afterDestroy: [],
-    afterRemoveRow: [],
-    afterCreateRow: [],
-    afterRemoveCol: [],
-    afterCreateCol: [],
-    afterColumnResize: [],
-    afterColumnMove: [],
-    afterDeselect: [],
-    afterSelection: [],
-    afterSelectionByProp: [],
-    afterSelectionEnd: [],
-    afterSelectionEndByProp: [],
-    afterCopyLimit: []
-  };
-
-  eventMap = {
+  legacyEventMap = {
     onBeforeChange: "beforeChange",
     onChange: "afterChange",
     onCreateRow: "afterCreateRow",
@@ -1935,7 +1903,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         continue; //loadData will be triggered later
       }
       else {
-        if (hooks[i] !== void 0 || eventMap[i] !== void 0) {
+        if (hooks[i] !== void 0 || legacyEventMap[i] !== void 0) {
           instance.addHook(i, settings[i]);
         }
         else {
@@ -2550,8 +2518,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.addHook = function (key, fn) {
     // provide support for old versions of HOT
-    if (key in eventMap) {
-      key = eventMap[key];
+    if (key in legacyEventMap) {
+      key = legacyEventMap[key];
     }
 
     if (typeof hooks[key] === "undefined") {
@@ -2573,8 +2541,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.addHookOnce = function (key, fn) {
     // provide support for old versions of HOT
-    if (key in eventMap) {
-      key = eventMap[key];
+    if (key in legacyEventMap) {
+      key = legacyEventMap[key];
     }
 
     if (typeof hooks[key] === "undefined") {
@@ -2597,8 +2565,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.removeHook = function (key, fn) {
     // provide support for old versions of HOT
-    if (key in eventMap) {
-      key = eventMap[key];
+    if (key in legacyEventMap) {
+      key = legacyEventMap[key];
     }
 
     for (var i = 0, len = hooks[key].length; i < len; i++) {
@@ -2616,8 +2584,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.runHooks = function (key, p1, p2, p3, p4, p5) {
     // provide support for old versions of HOT
-    if (key in eventMap) {
-      key = eventMap[key];
+    if (key in legacyEventMap) {
+      key = legacyEventMap[key];
     }
 
     if (typeof hooks[key] !== 'undefined') {
@@ -4468,49 +4436,53 @@ Handsontable.cellLookup = {
     handsontable: Handsontable.HandsontableEditor
   }
 };
+Handsontable.PluginHookMap = function () {
+  this.beforeInitWalkontable = [];
+
+  this.beforeInit = [];
+  this.beforeRender = [];
+  this.beforeChange = [];
+  this.beforeGet = [];
+  this.beforeSet = [];
+  this.beforeGetCellMeta = [];
+  this.beforeAutofill = [];
+  this.beforeKeyDown = [];
+
+  this.afterInit = [];
+  this.afterLoadData = [];
+  this.afterRender = [];
+  this.afterChange = [];
+  this.afterGetCellMeta = [];
+  this.afterGetColHeader = [];
+  this.afterGetColWidth = [];
+  this.afterDestroy = [];
+  this.afterRemoveRow = [];
+  this.afterCreateRow = [];
+  this.afterRemoveCol = [];
+  this.afterCreateCol = [];
+  this.afterColumnResize = [];
+  this.afterColumnMove = [];
+  this.afterDeselect = [];
+  this.afterSelection = [];
+  this.afterSelectionByProp = [];
+  this.afterSelectionEnd = [];
+  this.afterSelectionEndByProp = [];
+  this.afterCopyLimit = [];
+};
+
+////
+
 Handsontable.PluginHooks = (function () {
-  var hooks = {
-    beforeInitWalkontable: [],
+  var hooks = new Handsontable.PluginHookMap();
 
-    beforeInit: [],
-    beforeRender: [],
-    beforeChange: [],
-    beforeGet: [],
-    beforeSet: [],
-    beforeGetCellMeta: [],
-    beforeAutofill : [],
-    beforeKeyDown: [],
-
-    afterInit: [],
-    afterLoadData: [],
-    afterRender: [],
-    afterChange: [],
-    afterGetCellMeta: [],
-    afterGetColHeader: [],
-    afterGetColWidth: [],
-    afterDestroy: [],
-    afterRemoveRow: [],
-    afterCreateRow: [],
-    afterRemoveCol: [],
-    afterCreateCol: [],
-    afterColumnResize: [],
-    afterColumnMove: [],
-    afterDeselect: [],
-    afterSelection: [],
-    afterSelectionByProp: [],
-    afterSelectionEnd: [],
-    afterSelectionEndByProp: [],
-    afterCopyLimit: []
-  };
-
-  var eventMap = {
-    onBeforeChange : "beforeChange",
-    onChange       : "afterChange",
-    onCreateRow    : "afterCreateRow",
-    onCreateCol    : "afterCreateCol",
-    onSelection    : "afterSelection",
-    onCopyLimit    : "afterCopyLimit",
-    onSelectionEnd : "afterSelectionEnd",
+  var legacyEventMap = {
+    onBeforeChange: "beforeChange",
+    onChange: "afterChange",
+    onCreateRow: "afterCreateRow",
+    onCreateCol: "afterCreateCol",
+    onSelection: "afterSelection",
+    onCopyLimit: "afterCopyLimit",
+    onSelectionEnd: "afterSelectionEnd",
     onSelectionByProp: "afterSelectionByProp",
     onSelectionEndByProp: "afterSelectionEndByProp"
   };
@@ -4518,19 +4490,19 @@ Handsontable.PluginHooks = (function () {
   return {
     add: function (key, fn) {
       // provide support for old versions of HOT
-      if (key in eventMap) {
-        key = eventMap[key];
+      if (key in legacyEventMap) {
+        key = legacyEventMap[key];
       }
 
       hooks[key].push(fn);
     },
     remove: function (key, fn) {
       // provide support for old versions of HOT
-      if (key in eventMap) {
-        key = eventMap[key];
+      if (key in legacyEventMap) {
+        key = legacyEventMap[key];
       }
 
-      for(var i = 0, len = hooks[key].length; i < len; i++) {
+      for (var i = 0, len = hooks[key].length; i < len; i++) {
         if (hooks[key][i] == fn) {
           hooks[key].splice(i, 1);
           return true;
@@ -4540,8 +4512,8 @@ Handsontable.PluginHooks = (function () {
     },
     run: function (instance, key, p1, p2, p3, p4, p5) {
       // provide support for old versions of HOT
-      if (key in eventMap) {
-        key = eventMap[key];
+      if (key in legacyEventMap) {
+        key = legacyEventMap[key];
       }
 
       //performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
