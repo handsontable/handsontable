@@ -188,8 +188,13 @@ WalkontableDom.prototype.isVisible = function (elem) {
     if (next === null) { //parent detached from DOM
       return false;
     }
-    else if (next.nodeType === 11) { //IE7 reports this after detaching element from DOM
-      return false;
+    else if (next.nodeType === 11) {
+      if (next.nodeName === '#document-fragment') { //Shadow DOM
+        return true;
+      }
+      else { //IE7 reports nodeType === 11 after detaching element from DOM
+        return false;
+      }
     }
     else if (next.style.display === 'none') {
       return false;
