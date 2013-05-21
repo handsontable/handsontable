@@ -23,9 +23,7 @@ describe('Core_beforeKeyDown', function () {
     });
     selectCell(0,0);
 
-    runs(function () {
-      this.$container.trigger('keydown');
-    });
+    keyDown('arrow_right');
 
     waitsFor(function () {
       return (called != false)
@@ -48,11 +46,7 @@ describe('Core_beforeKeyDown', function () {
     });
     selectCell(0,0);
 
-    runs(function () {
-      var e = jQuery.Event('keydown');
-      e.keyCode = 39;
-      this.$container.trigger(e);
-    });
+    keyDown('arrow_right');
 
     waitsFor(function () {
       return (called != false)
@@ -81,21 +75,8 @@ describe('Core_beforeKeyDown', function () {
 
     selectCell(0,0);
 
-    runs(function () {
-      var e;
-
-      /// Backspace
-      e = jQuery.Event('keydown');
-
-      e.keyCode = 8;
-      this.$container.trigger(e);
-
-      /// Arrow right
-      e = jQuery.Event('keydown');
-
-      e.keyCode = 39;
-      this.$container.trigger(e);
-    });
+    keyDown('backspace');
+    keyDown('arrow_right');
 
     waitsFor(function () {
       return (called > 1)
