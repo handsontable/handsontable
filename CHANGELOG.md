@@ -1,3 +1,6 @@
+Docs:
+- Demo page [Callbacks](http://handsontable.com/demo/callbacks.html) now features all callbacks
+
 ## [0.9.0](https://github.com/warpech/jquery-handsontable/tree/v0.9.0) (May 21, 2013)
 
 Features:
