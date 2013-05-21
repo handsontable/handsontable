@@ -97,3 +97,5 @@ Handsontable.DateEditor = function (instance, td, row, col, prop, value, cellPro
     instance.dateEditor.finishEditing(isCancelled);
   }
 };
+
+Handsontable.DateEditor.implementation = HandsontableDateEditorClass;
