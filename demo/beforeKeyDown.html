@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Search - Handsontable</title>
+  <title>beforeKeyDown - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -22,15 +22,15 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Search">
+  <meta property="og:title" content="beforeKeyDown">
   <meta property="og:description"
         content="">
-  <meta property="og:url" content="http://handsontable.com/demo/search.html">
+  <meta property="og:url" content="http://handsontable.com/demo/beforeKeyDown.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
-  <link rel="canonical" href="http://handsontable.com/demo/search.html">
+  <link rel="canonical" href="http://handsontable.com/demo/beforeKeyDown.html">
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
@@ -65,16 +65,13 @@
         <div class="pad" data-jsfiddle="example1">
           <a name="lazy"></a>
 
-          <h2>Search</h2>
-
-          <input id='search_field' type="text" placeholder="Search" />
+          <h2>beforeKeyDown</h2>
 
           <div id="example1"></div>
 
           <p>
             <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump
-              data to console
+              Dump data to console
             </button>
           </p>
         </div>
@@ -106,26 +103,28 @@
 
             example.handsontable({
               data: data,
-              colHeaders: true
-            });
+              colHeaders: true,
+              rowHeaders: true,
+              beforeKeyDown: function (e) {
+                var instance  = example.handsontable('getInstance')
+                  , selection = instance.getSelected();
 
-            $('#search_field').on('keyup', function (event) {
-              var value = ('' + this.value).toLowerCase(), row, col, r_len, c_len, td;
+                if (e.keyCode === 8 || e.keyCode === 46) {
+                  e.stopImmediatePropagation();
 
-              if (value) {
-                for (row = 0, r_len = data.length; row < r_len; row++) {
-                  for (col = 0, c_len = data[row].length; col < c_len; col++) {
+                  instance.spliceCol(selection[1], selection[0], 1);
 
-                    td = example.handsontable('getCell', row, col);
+                  e.preventDefault();
+                }
+                else if (e.keyCode === 13) {
+                  e.stopImmediatePropagation();
 
-                    if (('' + data[row][col]).toLowerCase().indexOf(value) > -1) {
-                      td.className = 'pass'
-                    }
-                    else {
-                      td.className = '';
-                    }
-
+                  if (getDataAtCell(selection[0], selection[1])) {
+                    instance.spliceCol(selection[1], selection[0], 0, '');
+                    instance.selectCell(selection[0], selection[1]);
                   }
+
+                  e.preventDefault();
                 }
               }
             });
