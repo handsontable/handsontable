@@ -1,3 +1,6 @@
+Docs:
+- new demo page [Options](http://handsontable.com/demo/options.html). Currently features one option but this will improve over time
+
 ## [0.9.1](https://github.com/warpech/jquery-handsontable/tree/v0.9.1) (May 22, 2013)
 
 Bugfix:

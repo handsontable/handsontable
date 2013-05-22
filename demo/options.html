@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Options - Handsontable</title>
+
+  <!--
+  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  -->
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
+  <script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen"
+        href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css">
+  <script src="js/samples.js"></script>
+  <script src="js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+
+  <!--
+  Facebook open graph. Don't copy this to your project :)
+  -->
+  <meta property="og:title" content="Options">
+  <meta property="og:description"
+        content="On this page you can preview the effects of various options.">
+  <meta property="og:url" content="http://handsontable.com/demo/options.html">
+  <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="409">
+  <meta property="og:image:height" content="164">
+  <link rel="canonical" href="http://handsontable.com/demo/options.html">
+
+  <!--
+  Google Analytics for GitHub Page. Don't copy this to your project :)
+  -->
+  <script src="js/ga.js"></script>
+</head>
+
+<body>
+<a href="http://github.com/warpech/jquery-handsontable" class="forkMeOnGitHub">Fork me on GitHub</a>
+
+<div id="container">
+  <div class="columnLayout">
+
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
+
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad" data-jsfiddle="example1">
+          <a name="preview"></a>
+
+          <h2>Options</h2>
+
+          <p>
+            This demo lets you play with some table options (currently only <code>pasteMode</code>, but more to come).
+          </p>
+
+          <p>
+            Use the drop-down menu under the table to change Handsontable options live.
+          </p>
+
+          <div id="example1"></div>
+
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump data to console
+            </button>
+          </p>
+
+          <p>
+            <label><span>pasteMode</span> <select class="handsontableOption" name="pasteMode">
+              <option value="overwrite">"overwrite" (default)</option>
+              <option value="shift_down">"shift_down"</option>
+              <option value="shift_right">"shift_right"</option>
+            </select></label>
+          </p>
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <div class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</div>
+          </div>
+
+          <script data-jsfiddle="example1">
+            var data = [
+              ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
+              ["2009", 0, 2941, 4303, 354, 5814],
+              ["2010", 5, 2905, 2867, 412, 5284],
+              ["2011", 4, 2517, 4822, 552, 6127],
+              ["2012", 2, 2422, 5399, 776, 4151]
+            ];
+
+            $('#example1').handsontable({
+              data: data,
+              minRows: 5,
+              minCols: 6,
+              minSpareRows: 1,
+              minSpareCols: 1,
+              autoWrapRow: true,
+              colHeaders: true,
+              contextMenu: true
+            });
+
+            var HOT = $('#example1').handsontable('getInstance');
+
+            $('.handsontableOption').change(function () {
+              var update = {};
+              update[this.name] = this.value;
+              HOT.updateSettings(update);
+            });
+          </script>
+        </div>
+      </div>
+    </div>
+
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
