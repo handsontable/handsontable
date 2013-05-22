@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>beforeKeyDown - Handsontable</title>
+  <title>beforeKeyDown callback - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -22,7 +22,7 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="beforeKeyDown">
+  <meta property="og:title" content="beforeKeyDown callbacks">
   <meta property="og:description"
         content="">
   <meta property="og:url" content="http://handsontable.com/demo/beforeKeyDown.html">
@@ -65,7 +65,20 @@
         <div class="pad" data-jsfiddle="example1">
           <a name="lazy"></a>
 
-          <h2>beforeKeyDown</h2>
+          <h2>beforeKeyDown callback</h2>
+
+          <p>The following demo uses <code>beforeKeyDown</code> callback to modify some key bindings:</p>
+
+          <ul>
+            <li>Pressing DELETE or BACKSPACE on a cell deletes the cell and shifts all cells beneath it in the column up
+              resulting in the cursor (which doesn't move) having the value previously beneath it, now in the current
+              cell.
+            </li>
+            <li>Pressing ENTER in a cell (not changing the value) results in pushing all the cells in the column beneath
+              this cell down one row (including current cell) resulting in a blank cell under the cursor (which hasn't
+              moved)
+            </li>
+          </ul>
 
           <div id="example1"></div>
 
@@ -83,57 +96,43 @@
             <div class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</div>
           </div>
 
-          <style data-jsfiddle="example1">
-            #search_field {
-              margin: 0 0 10px;
-            }
-            .handsontable .pass {
-              background: #ffc0ab;
-            }
-          </style>
-
           <script data-jsfiddle="example1">
-            var data = [
-                  ["Nissan", 2009, "black", "black"],
-                  ["Nissan", 2006, "blue", "blue"],
-                  ["Chrysler", 2004, "yellow", "black"],
-                  ["Volvo", 2012, "white", "gray"]
-                ]
-              , example = $("#example1");
+            var container = $("#example1")
+              , data = [
+                ["Nissan", 2009, "black", "black"],
+                ["Nissan", 2006, "blue", "blue"],
+                ["Chrysler", 2004, "yellow", "black"],
+                ["Volvo", 2012, "white", "gray"]
+              ];
 
-            var insert;
+            var lastChange = null;
 
-            example.handsontable({
+            container.handsontable({
               data: data,
               colHeaders: true,
               rowHeaders: true,
+              minSpareRows: 1,
               beforeChange: function (changes, source) {
-                if ((changes.length === 1) && (changes[0][2] == changes[0][3])) {
-                  insert = true;
-                }
+                lastChange = changes;
               },
               beforeKeyDown: function (e) {
-                var instance  = example.handsontable('getInstance')
-                  , selection = instance.getSelected();
+                var HOT = container.handsontable('getInstance')
+                  , selection = HOT.getSelected();
 
-                if (e.keyCode === 8 || e.keyCode === 46) {
+                if (e.keyCode === 8 || e.keyCode === 46) { //BACKSPACE or DELETE
                   e.stopImmediatePropagation();
-
-                  instance.spliceCol(selection[1], selection[0], 1);
-
+                  HOT.spliceCol(selection[1], selection[0], 1); //remove data at cell, shift up
                   e.preventDefault();
                 }
-                else if (e.keyCode === 13) {
-                  e.stopImmediatePropagation();
-
-                  if (insert) {
-                    instance.spliceCol(selection[1], selection[0], 0, '');
-                    instance.selectCell(selection[0], selection[1]);
-                    insert = false;
+                else if (e.keyCode === 13) { //ENTER
+                  if (lastChange && lastChange.length === 1 && lastChange[0][2] == lastChange[0][3]) { //if last change affected a single cell and did not change it's values
+                    e.stopImmediatePropagation();
+                    HOT.spliceCol(selection[1], selection[0], 0, ''); //add new cell
+                    HOT.selectCell(selection[0], selection[1]); //select new cell
                   }
-
-                  e.preventDefault();
                 }
+
+                lastChange = null;
               }
             });
 

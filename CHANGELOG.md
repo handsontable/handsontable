@@ -1,5 +1,9 @@
+Bugfix:
+- `beforeKeyDown` event is now also triggered from text editor handler
+
 Docs:
-- Demo page [Callbacks](http://handsontable.com/demo/callbacks.html) now features all callbacks
+- demo page [Callbacks](http://handsontable.com/demo/callbacks.html) now features all callbacks
+- new demo page for [beforeKeyDown](http://handsontable.com/demo/beforeKeyDown.html) event
 
 ## [0.9.0](https://github.com/warpech/jquery-handsontable/tree/v0.9.0) (May 21, 2013)
 

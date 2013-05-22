@@ -39,6 +39,11 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
   this.$textareaParent.off('.editor').on('keydown.editor', function (event) {
     //if we are here then isCellEdited === true
 
+    that.instance.runHooks('beforeKeyDown', event);
+    if(event.isImmediatePropagationStopped()) { //event was cancelled in beforeKeyDown
+      return;
+    }
+
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
     if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
