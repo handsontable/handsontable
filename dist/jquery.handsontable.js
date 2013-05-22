@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.9.0
+ * Handsontable 0.9.1
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed May 22 2013 01:36:21 GMT+0200 (Central European Daylight Time)
+ * Date: Wed May 22 2013 03:33:28 GMT+0200 (Central European Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2622,7 +2622,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.9.0'; //inserted by grunt from package.json
+  this.version = '0.9.1'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {
@@ -3612,6 +3612,11 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
   var that = this;
   this.$textareaParent.off('.editor').on('keydown.editor', function (event) {
     //if we are here then isCellEdited === true
+
+    that.instance.runHooks('beforeKeyDown', event);
+    if(event.isImmediatePropagationStopped()) { //event was cancelled in beforeKeyDown
+      return;
+    }
 
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
