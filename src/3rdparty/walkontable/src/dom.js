@@ -177,7 +177,8 @@ WalkontableDom.prototype.isVisible = function (elem) {
     return false; //IE7-8 throws "Unspecified error" when offsetParent is not found - we catch it here
   }
 
-  if (elem.offsetWidth > 0 || (elem.parentNode && elem.parentNode.offsetWidth > 0)) {
+//  if (elem.offsetWidth > 0 || (elem.parentNode && elem.parentNode.offsetWidth > 0)) { //IE10 was mistaken here
+  if (elem.offsetWidth > 0) {
     return true;
   }
 
@@ -187,8 +188,13 @@ WalkontableDom.prototype.isVisible = function (elem) {
     if (next === null) { //parent detached from DOM
       return false;
     }
-    else if (next.nodeType === 11) { //IE7 reports this after detaching element from DOM
-      return false;
+    else if (next.nodeType === 11) {
+      if (next.nodeName === '#document-fragment') { //Shadow DOM
+        return true;
+      }
+      else { //IE7 reports nodeType === 11 after detaching element from DOM
+        return false;
+      }
     }
     else if (next.style.display === 'none') {
       return false;
@@ -222,4 +228,16 @@ WalkontableDom.prototype.offset = function (elem) {
     left: offsetLeft,
     top: offsetTop
   };
+};
+
+WalkontableDom.prototype.getComputedStyle = function (elem) {
+  return elem.currentStyle || document.defaultView.getComputedStyle(elem);
+};
+
+WalkontableDom.prototype.outerWidth = function (elem) {
+  return elem.offsetWidth;
+};
+
+WalkontableDom.prototype.outerHeight = function (elem) {
+  return elem.offsetHeight;
 };

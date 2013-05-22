@@ -22,7 +22,7 @@ describe('WalkontableSettings', function () {
       totalColumns: getTotalColumns
     });
     wt.draw();
-    expect(wt.wtTable.countVisibleRows()).toBe(getTotalRows());
-    expect(wt.wtTable.countVisibleColumns()).toBe(getTotalColumns());
+    expect(wt.wtTable.rowStrategy.countVisible()).toBe(getTotalRows());
+    expect(wt.wtTable.columnStrategy.countVisible()).toBe(getTotalColumns());
   });
 });

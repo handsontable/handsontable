@@ -79,15 +79,8 @@
 
           <p>Log events:</p>
 
-          <ul class="tight">
+          <ul class="tight" id="hooksList">
             <li><label><input type="checkbox" checked id="check_select_all"> <strong>select all</strong></label></li>
-            <li><label><input type="checkbox" checked id="check_onSelection"> onSelection</label></li>
-            <li><label><input type="checkbox" checked id="check_onSelectionByProp"> onSelectionByProp</label></li>
-            <li><label><input type="checkbox" checked id="check_onSelectionEnd"> onSelectionEnd</label></li>
-            <li><label><input type="checkbox" checked id="check_onSelectionEndByProp"> onSelectionEndByProp</label></li>
-            <li><label><input type="checkbox" checked id="check_beforeChange"> beforeChange</label></li>
-            <li><label><input type="checkbox" checked id="check_afterChange"> afterChange</label></li>
-            <li><label><input type="checkbox" checked id="check_onCopyLimit"> onCopyLimit</label></li>
           </ul>
 
           <p>
@@ -116,6 +109,29 @@
               ["2012", 2, 2422, 5399, 776, 4151]
             ];
 
+            var config = {
+              data: data,
+              minRows: 5,
+              minCols: 6,
+              minSpareRows: 1,
+              autoWrapRow: true,
+              colHeaders: true,
+              contextMenu: true
+            }
+
+            var $hooksList = $('#hooksList');
+            var hooks = new Handsontable.PluginHookMap();
+            for (var hook in hooks) {
+              if (hooks.hasOwnProperty(hook)) {
+                config[hook] = (function (hook) {
+                  $hooksList.append('<li><label><input type="checkbox" checked id="check_' + hook + '"> ' + hook + '</label></li>');
+                  return function () {
+                    log_events(hook, arguments);
+                  }
+                })(hook);
+              }
+            }
+
             var start = (new Date()).getTime();
             var i = 0;
 
@@ -132,10 +148,17 @@
 
                 var str;
                 for (var d = 0; d < data.length; d++) {
-                  str = JSON.stringify(data[d]);
-                  if(str === void 0) {
+                  try {
+                    str = JSON.stringify(data[d]);
+                  }
+                  catch (e) {
+                    str = data[d].toString(); //JSON.stringify breaks on circular reference to a HTML node
+                  }
+
+                  if (str === void 0) {
                     continue;
                   }
+
                   if (str.length > 20) {
                     str = Object.prototype.toString.call(data[d]);
                   }
@@ -160,40 +183,16 @@
               }
             }
 
-            $('#example1').handsontable({
-              data: data,
-              minRows: 5,
-              minCols: 6,
-              minSpareRows: 1,
-              autoWrapRow: true,
-              colHeaders: true,
-              contextMenu: true,
-              onSelection: function () {
-                log_events("onSelection", arguments);
-              },
-              onSelectionByProp: function () {
-                log_events("onSelectionByProp", arguments);
-              },
-              onSelectionEnd: function () {
-                log_events("onSelectionEnd", arguments);
-              },
-              onSelectionEndByProp: function () {
-                log_events("onSelectionEndByProp", arguments);
-              },
-              beforeChange: function () {
-                log_events("beforeChange", arguments);
-              },
-              afterChange: function () {
-                log_events("afterChange", arguments);
-              },
-              onCopyLimit: function () {
-                log_events("onCopyLimit", arguments);
-              }
-            });
+            $('#example1').handsontable(config);
 
             $('#check_select_all').click(function () {
               var state = this.checked;
               $('input[type=checkbox]').each(function () {
+                if (state === true) {
+                  if (this.id === 'check_beforeSet' || this.id === 'check_beforeGet') {
+                    return; //too much noise in the log
+                  }
+                }
                 this.checked = state;
               });
             });

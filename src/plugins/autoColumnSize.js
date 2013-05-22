@@ -115,8 +115,8 @@ function HandsontableAutoColumnSize() {
       var str = 9999999999;
 
       tmp.noRendererTd.appendChild(document.createTextNode(str));
-
-      cellProperties.renderer(instance, tmp.rendererTd, 0, col, instance.colToProp(col), str, cellProperties);
+      var renderer = Handsontable.helper.getCellMethod('renderer', cellProperties.renderer);
+      renderer(instance, tmp.rendererTd, 0, col, instance.colToProp(col), str, cellProperties);
 
       width += tmp.$renderer.width() - tmp.$noRenderer.width(); //add renderer overhead to the calculated width
     }

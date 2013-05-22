@@ -151,3 +151,57 @@ Handsontable.helper.columnFactory = function (GridSettings, conflictList, defaul
 
   return ColumnSettings;
 };
+
+Handsontable.helper.translateRowsToColumns = function (input) {
+  var i
+    , ilen
+    , j
+    , jlen
+    , output = []
+    , olen = 0;
+
+  for (i = 0, ilen = input.length; i < ilen; i++) {
+    for (j = 0, jlen = input[i].length; j < jlen; j++) {
+      if (j == olen) {
+        output.push([]);
+        olen++;
+      }
+      output[j].push(input[i][j])
+    }
+  }
+  return output;
+};
+
+Handsontable.helper.to2dArray = function (arr) {
+  var i = 0
+    , ilen = arr.length;
+  while (i < ilen) {
+    arr[i] = [arr[i]];
+    i++;
+  }
+};
+
+Handsontable.helper.extendArray = function (arr, extension) {
+  var i = 0
+    , ilen = extension.length;
+  while (i < ilen) {
+    arr.push(extension[i]);
+    i++;
+  }
+};
+
+/**
+ * Returns cell renderer or editor function directly or through lookup map
+ */
+Handsontable.helper.getCellMethod = function (methodName, methodFunction) {
+  if (typeof methodFunction === 'string') {
+    var result = Handsontable.cellLookup[methodName][methodFunction];
+    if (result === void 0) {
+      throw new Error('You declared cell ' + methodName + ' "' + methodFunction + '" as a string that is not mapped to a known function. Cell ' + methodName + ' must be a function or a string mapped to a function in Handsontable.cellLookup.' + methodName + ' lookup object');
+    }
+    return result;
+  }
+  else {
+    return methodFunction;
+  }
+};

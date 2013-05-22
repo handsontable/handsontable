@@ -1,4 +1,29 @@
-## HEAD
+Docs:
+- Demo page [Callbacks](http://handsontable.com/demo/callbacks.html) now features all callbacks
+
+## [0.9.0](https://github.com/warpech/jquery-handsontable/tree/v0.9.0) (May 21, 2013)
+
+Features:
+- cell renderer and editor may now be declared as strings provided they are aliased in the lookup map ([docs](https://github.com/warpech/jquery-handsontable/wiki/Options#column-options), [demo](http://handsontable.com/demo/conditional.html), [#667](https://github.com/warpech/jquery-handsontable/issues/667))
+- new event hook `beforeKeyDown` ([docs](https://github.com/warpech/jquery-handsontable/wiki/Events))
+
+Bugfixes:
+- fix demo page buttons.html ([#602](https://github.com/warpech/jquery-handsontable/issues/602))
+
+Web Component updates:
+- update [Web Component demo](http://handsontable.com/) with tiny dashboard
+- update Toolkitchen Toolkit to Polymer (@3aec92c)
+- use unmodified Handsontable JS and CSS files inside the component
+- include all Web Component dependencies inside HTML Import (you just import Polymer and one HTML file!)
+- Web Component now uses jQuery 2.0.0 (bundled in), but in future will not depend on jQuery
+- remove jQuery UI datepicker from Web Component version (it won't work, as described here: http://bugs.jquery.com/ticket/13342)
+
+Other:
+- date cell type: upgrade to jQuery UI 1.10.3
+- introduce WalkontableViewport abstraction
+- fix problem with row header fixed width (now width is dynamically checked) ([#402](https://github.com/warpech/jquery-handsontable/issues/402), [#475](https://github.com/warpech/jquery-handsontable/issues/475))
+
+## [0.9.0-beta2](https://github.com/warpech/jquery-handsontable/tree/v0.9.0-beta2) (May 7, 2013)
 
 Features:
 - consistency: now all `on*` events are renamed to `after*` (see [Events](https://github.com/warpech/jquery-handsontable/wiki/Events) wiki page)
@@ -12,17 +37,16 @@ Features:
 
 Bugfixes:
 - fix problem with clearing `animate` function interval ([#456](https://github.com/warpech/jquery-handsontable/issues/456))
-- fix demo page buttons.html ([#602](https://github.com/warpech/jquery-handsontable/issues/602))
-- fix auto resize column when double clicked on `.manualColumnResizer` ([#594](https://github.com/warpech/jquery-handsontable/issues/602))
+- fix auto resize column when double clicked on `.manualColumnResizer` ([#594](https://github.com/warpech/jquery-handsontable/issues/594))
 - fix undo/redo event handler (change `datachange.handsontable` event to `afterChange` hook)
 - fix inline styles in "Edit in JSFiddle" code generation
 - fix horizontal scrolling in IE8 ([#583](https://github.com/warpech/jquery-handsontable/issues/583))
 
 Other:
-- rewrite Handsontable removeRow plugin (while resolving issue [#602](https://github.com/warpech/jquery-handsontable/issues/602))
-- new demo pages: [pagination](http://handsontable.com/demo/pagging.html) and [search](http://handsontable.com/demo/search.html)
+<!--- NEEDS FIX: rewrite Handsontable removeRow plugin (while resolving issue [#602](https://github.com/warpech/jquery-handsontable/issues/602))-->
+- new demo pages: [Pagination](http://handsontable.com/demo/pagination.html) and [Search](http://handsontable.com/demo/search.html)
 
-## [0.9.0-beta1](https://github.com/warpech/jquery-handsontable/tree/0.9) (May 7, 2013)
+## [0.9.0-beta1](https://github.com/warpech/jquery-handsontable/tree/v0.9.0-beta1) (May 7, 2013)
 
 Features:
 - improved [Options](https://github.com/warpech/jquery-handsontable/wiki/Options) model. Cell properties now inherit from Column properties constructor, which inherit from Handsontable Constructor. This is based on JavaScript prototypal inheritance, rather than `$.extend` as previously

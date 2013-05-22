@@ -19,8 +19,8 @@ function WalkontableSettings(instance, settings) {
     offsetColumn: 0,
     fixedColumnsLeft: 0,
     fixedRowsTop: 0,
-    rowHeaders: null, //this must be a function in format: function (row, TH) {}
-    columnHeaders: null, //this must be a function in format: function (col, TH) {}
+    rowHeaders: [], //this must be array of functions: [function (row, TH) {}]
+    columnHeaders: [], //this must be array of functions: [function (column, TH) {}]
     totalRows: void 0,
     totalColumns: void 0,
     width: null,
@@ -43,8 +43,7 @@ function WalkontableSettings(instance, settings) {
 
     //constants
     scrollbarWidth: 10,
-    scrollbarHeight: 10,
-    rowHeaderWidth: 50
+    scrollbarHeight: 10
   };
 
   //reference to settings
@@ -62,8 +61,6 @@ function WalkontableSettings(instance, settings) {
       }
     }
   }
-
-  this.rowHeightCache = [];
 }
 
 /**
@@ -114,8 +111,10 @@ WalkontableSettings.prototype.has = function (key) {
  */
 
 WalkontableSettings.prototype.rowHeight = function (row) {
-  if (typeof this.rowHeightCache[row] !== 'undefined') {
-    return this.rowHeightCache[row];
+  var visible_r = this.instance.wtTable.rowFilter.sourceToVisible(row);
+  var size = this.instance.wtTable.rowStrategy.getSize(visible_r);
+  if (size !== void 0) {
+    return size;
   }
   return 20;
 };

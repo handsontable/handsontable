@@ -12,7 +12,7 @@ WalkontableColumnFilter.prototype.readSettings = function (instance) {
   this.offset = instance.wtSettings.settings.offsetColumn;
   this.total = instance.getSetting('totalColumns');
   this.fixedCount = instance.getSetting('fixedColumnsLeft');
-  this.countTH = instance.hasSetting('rowHeaders') ? 1 : 0;
+  this.countTH = instance.getSetting('rowHeaders').length;
 };
 
 WalkontableColumnFilter.prototype.offsettedTH = function (n) {

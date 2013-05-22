@@ -7,6 +7,8 @@ function Walkontable(settings) {
   this.wtDom = new WalkontableDom();
   this.wtTable = new WalkontableTable(this);
   this.wtScroll = new WalkontableScroll(this);
+  this.wtScrollbars = new WalkontableScrollbars(this);
+  this.wtViewport = new WalkontableViewport(this);
   this.wtWheel = new WalkontableWheel(this);
   this.wtEvent = new WalkontableEvent(this);
 
@@ -15,10 +17,10 @@ function Walkontable(settings) {
     for (var c = 0, clen = this.wtTable.THEAD.childNodes[0].childNodes.length; c < clen; c++) {
       originalHeaders.push(this.wtTable.THEAD.childNodes[0].childNodes[c].innerHTML);
     }
-    if (!this.hasSetting('columnHeaders')) {
-      this.update('columnHeaders', function (column, TH) {
+    if (!this.getSetting('columnHeaders').length) {
+      this.update('columnHeaders', [function (column, TH) {
         that.wtDom.avoidInnerHTML(TH, originalHeaders[column]);
-      });
+      }]);
     }
   }
 
@@ -92,7 +94,7 @@ Walkontable.prototype.hasSetting = function (key) {
 };
 
 Walkontable.prototype.destroy = function () {
-  this.wtScroll.destroy();
+  this.wtScrollbars.destroy();
   clearTimeout(this.wheelTimeout);
   clearTimeout(this.dblClickTimeout);
 };

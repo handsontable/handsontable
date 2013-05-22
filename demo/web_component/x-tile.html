@@ -1,0 +1,45 @@
+<!-- <x-tile> element, a nice small companion to web_component.html demo (requires Polymer polyfill) -->
+<element name="x-tile" attributes="label value skin">
+  <template>
+    <style>
+      .tile {
+        background: #0F9D23;
+        width: 65px;
+        padding: 9px 0;
+        color: #FFF;
+        margin: 0 1px 9px 0;
+        float: left;
+      }
+
+      .tile .small {
+        font-size: 11px;
+        text-align: center;
+      }
+
+      .tile .big {
+        font-size: 22px;
+        text-align: center;
+      }
+
+      .tile.pink {
+        background: hotpink;
+      }
+
+      .tile.blue {
+        background: cornflowerblue;
+      }
+
+      .tile.gray {
+        background: #222;
+      }
+    </style>
+    <div class="tile {{ skin }}">
+      <div class="small">{{ label }}</div>
+      <div class="big">{{ value }}</div>
+    </div>
+    <content></content>
+  </template>
+  <script>
+    Polymer.register(this);
+  </script>
+</element>

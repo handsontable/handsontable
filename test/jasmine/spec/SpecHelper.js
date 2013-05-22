@@ -127,6 +127,10 @@ var handsontableKeyTriggerFactory = function (type) {
           ev.keyCode = 16;
           break;
 
+        case 'backspace':
+          ev.keyCode = 8;
+          break;
+
         default:
           throw new Error('Unrecognised key name: ' + key);
       }
@@ -223,6 +227,7 @@ var deselectCell = handsontableMethodFactory('deselectCell');
 var getSelected = handsontableMethodFactory('getSelected');
 var setDataAtCell = handsontableMethodFactory('setDataAtCell');
 var getCell = handsontableMethodFactory('getCell');
+var getCellMeta = handsontableMethodFactory('getCellMeta');
 var getData = handsontableMethodFactory('getData');
 var getDataAtCell = handsontableMethodFactory('getDataAtCell');
 var getDataAtRow = handsontableMethodFactory('getDataAtRow');

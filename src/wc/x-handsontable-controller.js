@@ -1,5 +1,3 @@
-window.numeral = this.numeral; //needed by numeral.de-de.js
-
 function parseDatacolumn(DATACOLUMN) {
   var obj = {};
 
@@ -26,7 +24,7 @@ function parseDatacolumn(DATACOLUMN) {
   return obj;
 }
 
-var publicMethods = ['updateSettings', 'loadData', 'render', 'setDataAtCell', 'setDataAtRowProp', 'getDataAtCell', 'getDataAtRowProp', 'countRows', 'countCols', 'rowOffset', 'colOffset', 'countVisibleRows', 'countVisibleCols', 'clear', 'clearUndo', 'getData', 'alter', 'getCell', 'getCellMeta', 'selectCell', 'deselectCell', 'getSelected', 'destroyEditor', 'getRowHeader', 'getColHeader', 'destroy', 'isUndoAvailable', 'isRedoAvailable', 'undo', 'redo', 'countEmptyRows', 'countEmptyCols', 'isEmptyRow', 'isEmptyCol', 'parseSettingsFromDOM'];
+var publicMethods = ['updateSettings', 'loadData', 'render', 'setDataAtCell', 'setDataAtRowProp', 'getDataAtCell', 'getDataAtRowProp', 'countRows', 'countCols', 'rowOffset', 'colOffset', 'countVisibleRows', 'countVisibleCols', 'clear', 'clearUndo', 'getData', 'alter', 'getCell', 'getCellMeta', 'selectCell', 'deselectCell', 'getSelected', 'destroyEditor', 'getRowHeader', 'getColHeader', 'destroy', 'isUndoAvailable', 'isRedoAvailable', 'undo', 'redo', 'countEmptyRows', 'countEmptyCols', 'isEmptyRow', 'isEmptyCol', 'parseSettingsFromDOM', 'addHook', 'addHookOnce'];
 
 var publish = {};
 for (var i = 0, ilen = publicMethods.length; i < ilen; i++) {
@@ -37,25 +35,39 @@ for (var i = 0, ilen = publicMethods.length; i < ilen; i++) {
   })(publicMethods[i]);
 }
 
-Toolkit.register(this, {
+Polymer.register(this, {
   instance: null,
   ready: function () {
-    var DATACOLUMNs = this.querySelectorAll('datacolumn');
-    var columns = [];
-    for (var i = 0, ilen = DATACOLUMNs.length; i < ilen; i++) {
+    var DATACOLUMNs = this.querySelectorAll('datacolumn')
+      , columns = []
+      , i
+      , ilen;
+
+    for (i = 0, ilen = DATACOLUMNs.length; i < ilen; i++) {
       columns.push(parseDatacolumn(DATACOLUMNs[i]));
     }
 
     var options = {
       data: window[this.datarows],
+      width: this.width,
+      height: this.height,
       columns: columns,
       minRows: 5,
       minCols: 6,
-      minSpareRows: 1,
+      minSpareRows: this.minsparerows,
       autoWrapRow: true,
       colHeaders: true,
       contextMenu: true
     };
+
+    if (this.settings) {
+      var settings = window[this.settings];
+      for (i in settings) {
+        if (settings.hasOwnProperty(i)) {
+          options[i] = settings[i];
+        }
+      }
+    }
 
     jQuery(this.$.htContainer).handsontable(options);
 
