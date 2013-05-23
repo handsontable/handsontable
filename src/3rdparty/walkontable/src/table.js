@@ -105,8 +105,14 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
     spreaderStyle.position = 'absolute';
     spreaderStyle.top = '0';
     spreaderStyle.left = '0';
-    spreaderStyle.width = '4000px';
-    spreaderStyle.height = '4000px';
+
+    if (this.instance.getSetting('scrollbarModelV') === 'dragdealer') {
+      spreaderStyle.height = '4000px';
+    }
+
+    if (this.instance.getSetting('scrollbarModelH') === 'dragdealer') {
+      spreaderStyle.width = '4000px';
+    }
 
     if (height === Infinity) {
       height = this.instance.wtViewport.getWorkspaceActualHeight();
@@ -355,16 +361,16 @@ WalkontableTable.prototype._doDraw = function () {
     this.adjustAvailableNodes();
   }
 
-  this.instance.wtScrollbars.refresh();
-  this.columnStrategy.stretch();
-  for (c = 0; c < displayTds; c++) {
-    this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(c) + 'px';
-  }
-
   r = this.rowStrategy.countVisible();
   while (this.tbodyChildrenLength > r) {
     this.TBODY.removeChild(this.TBODY.lastChild);
     this.tbodyChildrenLength--;
+  }
+
+  this.instance.wtScrollbars.refresh();
+  this.columnStrategy.stretch();
+  for (c = 0; c < displayTds; c++) {
+    this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(c) + 'px';
   }
 };
 
@@ -489,10 +495,12 @@ WalkontableTable.prototype.getCoords = function (TD) {
   ];
 };
 
+//returns -1 if no row is visible
 WalkontableTable.prototype.getLastVisibleRow = function () {
   return this.rowFilter.visibleToSource(this.rowStrategy.cellCount - 1);
 };
 
+//returns -1 if no column is visible
 WalkontableTable.prototype.getLastVisibleColumn = function () {
   return this.columnFilter.visibleToSource(this.columnStrategy.cellCount - 1);
 };

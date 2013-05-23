@@ -3,6 +3,11 @@ function WalkontableWheel(instance) {
 
   //reference to instance
   this.instance = instance;
+
+  if (instance.getSetting('scrollbarModelV') === 'native' || instance.getSetting('scrollbarModelH') === 'native') {
+    return;
+  }
+
   $(this.instance.wtTable.TABLE).on('mousewheel', function (event, delta, deltaX, deltaY) {
     clearTimeout(that.instance.wheelTimeout);
     that.instance.wheelTimeout = setTimeout(function () { //timeout is needed because with fast-wheel scrolling mousewheel event comes dozen times per second
