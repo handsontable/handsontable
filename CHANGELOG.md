@@ -1,3 +1,6 @@
+Bugfixes:
+- WalkontableDom.prototype.offset now returns offset relatively to the document also for position: fixed
+
 Docs:
 - new demo page [Options](http://handsontable.com/demo/options.html). Currently features one option but this will improve over time
 
