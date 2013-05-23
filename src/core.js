@@ -2320,7 +2320,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this.countVisibleRows = function () {
-    return instance.view.wt.wtTable.countVisibleRows();
+    return instance.view.wt.wtTable.rowStrategy.countVisible();
   };
 
   /**
@@ -2328,7 +2328,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this.countVisibleCols = function () {
-    return instance.view.wt.wtTable.countVisibleColumns();
+    return instance.view.wt.wtTable.columnStrategy.countVisible();
   };
 
   /**

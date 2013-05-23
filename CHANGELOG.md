@@ -1,4 +1,5 @@
 Bugfixes:
+- methods `countVisibleRows` and `countVisibleCols` were broken since version 0.9.0
 - WalkontableDom.prototype.offset now returns offset relatively to the document also for position: fixed
 
 Docs:
