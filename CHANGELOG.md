@@ -2,6 +2,7 @@ Features:
 - initial release of Native Scrollbars feature (experimental, don't use yet)
 
 Bugfixes:
+- mouse wheel didn't scroll the window when cursor was over Handsontable ([#383](https://github.com/warpech/jquery-handsontable/issues/383), [#627](https://github.com/warpech/jquery-handsontable/issues/627))
 - methods `countVisibleRows` and `countVisibleCols` were broken since version 0.9.0
 - WalkontableDom.prototype.offset now returns offset relatively to the document also for position: fixed
 

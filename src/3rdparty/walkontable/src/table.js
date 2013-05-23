@@ -528,3 +528,11 @@ WalkontableTable.prototype.isRowInViewport = function (r) {
 WalkontableTable.prototype.isColumnInViewport = function (c) {
   return (!this.isColumnBeforeViewport(c) && !this.isColumnAfterViewport(c));
 };
+
+WalkontableTable.prototype.isLastRowFullyVisible = function () {
+  return (this.getLastVisibleRow() === this.instance.getSetting('totalRows') - 1 && this.rowStrategy.remainingSize <= 0);
+};
+
+WalkontableTable.prototype.isLastColumnFullyVisible = function () {
+  return (this.getLastVisibleColumn() === this.instance.getSetting('totalColumns') - 1 && this.columnStrategy.remainingSize <= 0);
+};

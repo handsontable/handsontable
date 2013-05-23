@@ -781,4 +781,88 @@ describe('WalkontableTable', function () {
     expect(wtHider.outerWidth()).toBeGreaterThan(getTableWidth($table));
     expect(wtHider.find('tr:first td:last').width()).toEqual(wtHider.find('tr:first td:last').prev().width());
   });
+
+  describe('isLastRowFullyVisible', function () {
+    /*it('should be false because it is only partially visible', function () {
+      createDataArray(8, 4);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        width: 185,
+        height: 185,
+        scrollH: 'auto',
+        scrollV: 'auto',
+        stretchH: 'hybrid'
+      });
+      wt.draw();
+
+      expect(wt.wtTable.isLastRowFullyVisible()).toEqual(false);
+    });*/
+
+    it('should be true because it is fully visible', function () {
+      createDataArray(8, 4);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        width: 185,
+        height: 185,
+        scrollH: 'auto',
+        scrollV: 'auto',
+        stretchH: 'hybrid'
+      });
+      wt.draw();
+      wt.scrollVertical(1);
+      wt.draw();
+
+      expect(wt.wtTable.isLastRowFullyVisible()).toEqual(true);
+    });
+  });
+
+  describe('isLastColumnFullyVisible', function () {
+    it('should be false because it is only partially visible', function () {
+      createDataArray(18, 4);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        width: 209,
+        height: 185,
+        scrollH: 'auto',
+        scrollV: 'auto',
+        stretchH: 'hybrid'
+      });
+      wt.draw();
+
+      expect(wt.wtTable.isLastColumnFullyVisible()).toEqual(false); //few pixels are obstacled by scrollbar
+    });
+
+    it('should be true because it is fully visible', function () {
+      createDataArray(18, 4);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        width: 205,
+        height: 185,
+        scrollH: 'auto',
+        scrollV: 'auto',
+        stretchH: 'hybrid'
+      });
+      wt.draw();
+      wt.scrollHorizontal(1);
+      wt.draw();
+
+      expect(wt.wtTable.isLastColumnFullyVisible()).toEqual(true);
+    });
+  });
 });
