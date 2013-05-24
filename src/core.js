@@ -363,10 +363,10 @@ Handsontable.Core = function (rootElement, settings) {
     	var range;
     	if(dir == 1){
     		 range = datamap.getRange({row: curRow, col: curCol}, {row: curRow, col: self.countCols() - 1});
-    		 var isNonContinuous = range[0][0] != '' ? false:true;
+    		 var isNonContinuous = ( range[0][0] && range[0][0]) != '' ? false:true;
     		 for (var r = 0; r < range.length; r++) {
 		        for (var c = 1; c < range[r].length; c++) {
-		        	if(range[r][c] != ''){
+		        	if(range[r][c] && range[r][c] != ''){
 		        		if(isNonContinuous)
 		        			return curCol + c;
 					}else if(!isNonContinuous && c >1){
@@ -379,10 +379,10 @@ Handsontable.Core = function (rootElement, settings) {
     		 return self.countCols() - 1;
     	} else {
     		range = datamap.getRange({row: curRow, col: 0}, {row: curRow, col: curCol});
-    		var isNonContinuous = range[0][range[0].length-1] != '' ? false:true;
+    		var isNonContinuous = (range[0][range[0].length-1] && range[0][range[0].length-1]) != '' ? false:true;
     		 for (var r = 0; r < range.length; r++) {
  		        for (var c = range[r].length-2; c >=0 ;c--) {
- 		        	if(range[r][c] != ''){
+ 		        	if(range[r][c] && range[r][c] != ''){
  		        		if(isNonContinuous)
  		        			return curCol - (range[r].length-1 - c);
  					}else if(!isNonContinuous && c < range[r].length-2){
@@ -405,9 +405,9 @@ Handsontable.Core = function (rootElement, settings) {
     	var range;
     	if(dir == 1){
     		 range = datamap.getRange({row: curRow, col: curCol}, {row: self.countRows() - 1, col: curCol});
-    		 var isNonContinuous = range[0][0] != '' ? false:true;
+    		 var isNonContinuous = (range[0][0] && range[0][0] != '') ? false:true;
     		 for (var r = 1; r < range.length; r++) {
-		        	if(range[r][0] != ''){
+		        	if(range[r][0] && range[r][0] != ''){
 		        		if(isNonContinuous)
 		        			return curRow + r;	
 					}else if(!isNonContinuous && r > 1){
@@ -419,9 +419,9 @@ Handsontable.Core = function (rootElement, settings) {
     		 return self.countRows() - 1;
     	} else {
     		range = datamap.getRange({row: 0, col: curCol}, {row: curRow, col: curCol});
-    		var isNonContinuous = range[range.length -1][0] != '' ? false:true;
+    		var isNonContinuous = (range[range.length -1][0] && range[range.length -1][0]) != '' ? false:true;
     		 for (var r = range.length -2; r >=0 ; r--) {
- 		        	if(range[r][0] != ''){
+ 		        	if(range[r][0] && range[r][0] != ''){
  		        		if(isNonContinuous)
  		        			return curRow - (range.length-1 - r);
  					}else if(!isNonContinuous && r < range.length -2){
