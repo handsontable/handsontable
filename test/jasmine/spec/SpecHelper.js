@@ -82,8 +82,12 @@ var handsontableKeyTriggerFactory = function (type) {
   return function (key, extend) {
     var ev = $.Event(type);
     if (typeof key === 'string') {
+	  if (key.indexOf('ctrl+') > -1) {
+        key = key.substring(key.indexOf('ctrl+')+5);
+        ev.ctrlKey = true;
+      }
       if (key.indexOf('shift+') > -1) {
-        key = key.substring(6);
+        key = key.substring(key.indexOf('shift+')+6);
         ev.shiftKey = true;
       }
       switch (key) {
@@ -126,7 +130,13 @@ var handsontableKeyTriggerFactory = function (type) {
         case 'shift':
           ev.keyCode = 16;
           break;
-
+		
+		case 'end':
+          ev.keyCode = 35;
+          break;
+		case 'd':
+          ev.keyCode = 68;
+          break;
         default:
           throw new Error('Unrecognised key name: ' + key);
       }
@@ -147,6 +157,9 @@ var keyUp = handsontableKeyTriggerFactory('keyup');
  * Presses keyDown, then keyUp
  */
 var keyDownUp = function (key, extend) {
+ if (typeof key === 'string' && key.indexOf('ctrl+') > -1) {
+    keyDown('ctrl');
+  }
   if (typeof key === 'string' && key.indexOf('shift+') > -1) {
     keyDown('shift');
   }
@@ -156,6 +169,9 @@ var keyDownUp = function (key, extend) {
 
   if (typeof key === 'string' && key.indexOf('shift+') > -1) {
     keyUp('shift');
+  }
+  if (typeof key === 'string' && key.indexOf('ctrl+') > -1) {
+    keyUp('ctrl');
   }
 };
 
