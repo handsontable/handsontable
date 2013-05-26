@@ -19,11 +19,7 @@ describe('Core_destroy', function () {
       expect(this.$container.html()).toEqual('');
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(this.$container.html()).toEqual(''); //expect the same with async rendering
-    })
+    expect(this.$container.html()).toEqual(''); //expect the same with async rendering
   });
 
   it('should remove events from the root element, document element and window', function () {

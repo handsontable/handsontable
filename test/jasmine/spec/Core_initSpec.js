@@ -17,12 +17,8 @@ describe('Core_init', function () {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
     handsontable();
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(countRows()).toEqual(5); //as given in README.md
-      expect(countCols()).toEqual(5); //as given in README.md
-    });
+    expect(countRows()).toEqual(5); //as given in README.md
+    expect(countCols()).toEqual(5); //as given in README.md
   });
 
   it('should respect width provided in inline style', function () {
@@ -36,11 +32,7 @@ describe('Core_init', function () {
       ]
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(this.$container.width()).toEqual(200);
-    });
+    expect(this.$container.width()).toEqual(200);
   });
 
   it('should respect width provided in CSS class', function () {
@@ -52,11 +44,7 @@ describe('Core_init', function () {
       ]
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(this.$container.width()).toEqual(200);
-    });
+    expect(this.$container.width()).toEqual(200);
   });
 
   it('should construct when container is not appended to document', function () {

@@ -66,20 +66,15 @@ describe('AutocompleteEditor', function () {
   });
 
   it('should destroy editor when pressed Enter then Esc', function () {
-    runs(function () {
-      handsontable({
-        autoComplete: getAutocompleteConfig(false)
-      });
-      selectCell(2, 2);
-      keyDownUp('enter');
-      keyDownUp('esc');
+    handsontable({
+      autoComplete: getAutocompleteConfig(false)
     });
+    selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDownUp('enter');
+    keyDownUp('esc');
 
-    runs(function () {
-      expect(isAutocompleteVisible()).toEqual(false);
-    });
+    expect(isAutocompleteVisible()).toEqual(false);
   });
 
   it('should destroy editor when mouse double clicked then Esc', function () {
@@ -179,7 +174,7 @@ describe('AutocompleteEditor', function () {
       render();
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
+    waits(10);
 
     runs(function () {
       var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
@@ -451,29 +446,21 @@ describe('AutocompleteEditor', function () {
   it('finish editing should move the focus aways from textarea to table cell', function () {
     var last;
 
-    runs(function () {
-      handsontable({
-        autoComplete: getAutocompleteConfig(false)
-      });
-      setDataAtCell(2, 2, 'black');
-      selectCell(2, 2);
-      last = document.activeElement;
+    handsontable({
+      autoComplete: getAutocompleteConfig(false)
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
+    setDataAtCell(2, 2, 'black');
+    selectCell(2, 2);
 
-    runs(function () {
-      keyDownUp('enter');
-    });
+    last = document.activeElement;
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDownUp('enter');
 
-    runs(function () {
-      autocomplete().$element.val("ye");
-      keyDownUp(69); //e
-      deselectCell();
-      keyDownUp('enter');
-      expect(document.activeElement).toEqual(last);
-    });
+    autocomplete().$element.val("ye");
+    keyDownUp(69); //e
+    deselectCell();
+    keyDownUp('enter');
+    expect(document.activeElement).toEqual(last);
   });
 });

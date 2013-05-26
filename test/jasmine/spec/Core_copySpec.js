@@ -27,13 +27,9 @@ describe('Core_copy', function () {
       copyRowsLimit: 2
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
-      keyDownUp('ctrl');
-      expect(this.$container.find('textarea.copyPaste').val()).toEqual('\tKia\tNissan\tToyota\tHonda\n2008\t10\t11\t12\t13\n'); //should prepare 2 rows for copying
-    });
+    selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
+    keyDownUp('ctrl');
+    expect(this.$container.find('textarea.copyPaste').val()).toEqual('\tKia\tNissan\tToyota\tHonda\n2008\t10\t11\t12\t13\n'); //should prepare 2 rows for copying
   });
 
   it('should set copiable text until copyColsLimit is reached', function () {
@@ -42,13 +38,9 @@ describe('Core_copy', function () {
       copyColsLimit: 2
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
-      keyDownUp('ctrl');
-      expect(this.$container.find('textarea.copyPaste').val()).toEqual('\tKia\n2008\t10\n2009\t20\n2010\t30\n'); //should prepare 2 columns for copying
-    });
+    selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
+    keyDownUp('ctrl');
+    expect(this.$container.find('textarea.copyPaste').val()).toEqual('\tKia\n2008\t10\n2009\t20\n2010\t30\n'); //should prepare 2 columns for copying
   });
 
   it('should call onCopyLimit callback when copy limit was reached', function () {
@@ -63,12 +55,8 @@ describe('Core_copy', function () {
       }
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
-      keyDownUp('ctrl');
-      expect(result).toEqual([4, 5, 2, 2]);
-    });
+    selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
+    keyDownUp('ctrl');
+    expect(result).toEqual([4, 5, 2, 2]);
   });
 });

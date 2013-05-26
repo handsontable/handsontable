@@ -26,11 +26,7 @@ describe('Core_getDataAt*', function () {
       data: arrayOfArrays()
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(getDataAtRow(0)).toEqual(["", "Kia", "Nissan", "Toyota", "Honda"]);
-    });
+    expect(getDataAtRow(0)).toEqual(["", "Kia", "Nissan", "Toyota", "Honda"]);
   });
 
   it('should return data at specyfied col', function () {
@@ -38,13 +34,6 @@ describe('Core_getDataAt*', function () {
       data: arrayOfArrays()
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(getDataAtCol(1)).toEqual(["Kia", 10, 20, 30]);
-    });
+    expect(getDataAtCol(1)).toEqual(["Kia", 10, 20, 30]);
   });
-
-
-
 });

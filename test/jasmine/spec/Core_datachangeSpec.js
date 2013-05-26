@@ -229,19 +229,11 @@ describe('Core_datachange', function () {
     });
     selectCell(0, 0);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
+    document.activeElement.value = 'Ted';
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('enter');
-      document.activeElement.value = 'Ted';
-      keyDown('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(sources).toEqual(['loadData', 'edit']); //loadData is always the first source
-    });
+    expect(sources).toEqual(['loadData', 'edit']); //loadData is always the first source
   });
 
 
