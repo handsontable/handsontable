@@ -783,7 +783,7 @@ describe('WalkontableTable', function () {
   });
 
   describe('isLastRowFullyVisible', function () {
-    /*it('should be false because it is only partially visible', function () {
+    it('should be false because it is only partially visible', function () {
       createDataArray(8, 4);
 
       var wt = new Walkontable({
@@ -800,7 +800,7 @@ describe('WalkontableTable', function () {
       wt.draw();
 
       expect(wt.wtTable.isLastRowFullyVisible()).toEqual(false);
-    });*/
+    });
 
     it('should be true because it is fully visible', function () {
       createDataArray(8, 4);

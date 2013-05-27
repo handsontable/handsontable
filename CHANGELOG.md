@@ -5,6 +5,7 @@ Bugfixes:
 - mouse wheel didn't scroll the window when cursor was over Handsontable ([#383](https://github.com/warpech/jquery-handsontable/issues/383), [#627](https://github.com/warpech/jquery-handsontable/issues/627))
 - methods `countVisibleRows` and `countVisibleCols` were broken since version 0.9.0
 - WalkontableDom.prototype.offset now returns offset relatively to the document also for position: fixed
+- fix scrolling on border cases when table height was the size of the container
 
 Docs:
 - new demo page [Options](http://handsontable.com/demo/options.html). Currently features one option but this will improve over time

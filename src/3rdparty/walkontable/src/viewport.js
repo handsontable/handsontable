@@ -34,7 +34,7 @@ WalkontableViewport.prototype.getWorkspaceHeight = function (proposedHeight) {
   }
 
   if (height !== Infinity) {
-    if (proposedHeight > height) {
+    if (proposedHeight >= height) {
       height -= this.instance.getSetting('scrollbarHeight');
     }
     else if (this.instance.wtScrollbars.horizontal.visible) {
@@ -58,7 +58,7 @@ WalkontableViewport.prototype.getWorkspaceWidth = function (proposedWidth) {
   }
 
   if (width !== Infinity) {
-    if (proposedWidth > width) {
+    if (proposedWidth >= width) {
       width -= this.instance.getSetting('scrollbarWidth');
     }
     else if (this.instance.wtScrollbars.vertical.visible) {
