@@ -1,5 +1,6 @@
 Features:
 - initial release of Native Scrollbars feature (experimental, don't use yet)
+- initial release of `observeChanges` option (experimental). Available for all supported browsers except IE 7-8 (uses Object.observe when possible or a custom shim based on [Starcounter-Jack/JSON-Patch](https://github.com/Starcounter-Jack/JSON-Patch))
 
 Bugfixes:
 - mouse wheel didn't scroll the window when cursor was over Handsontable ([#383](https://github.com/warpech/jquery-handsontable/issues/383), [#627](https://github.com/warpech/jquery-handsontable/issues/627))
