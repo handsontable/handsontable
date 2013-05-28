@@ -32,6 +32,65 @@ Handsontable.PluginHookMap = function () {
   this.afterCopyLimit = [];
 };
 
+/*
+Handsontable.PluginHookClass = function () {
+
+  this.hooks = new Handsontable.PluginHookMap();
+
+  this.legacyEventMap = {
+    onBeforeChange: "beforeChange",
+    onChange: "afterChange",
+    onCreateRow: "afterCreateRow",
+    onCreateCol: "afterCreateCol",
+    onSelection: "afterSelection",
+    onCopyLimit: "afterCopyLimit",
+    onSelectionEnd: "afterSelectionEnd",
+    onSelectionByProp: "afterSelectionByProp",
+    onSelectionEndByProp: "afterSelectionEndByProp"
+  };
+
+}
+
+Handsontable.PluginHookClass.prototype.add = function (key, fn) {
+  // provide support for old versions of HOT
+  if (key in legacyEventMap) {
+    key = legacyEventMap[key];
+  }
+
+  this.hooks[key].push(fn);
+
+  return this;
+}
+
+Handsontable.PluginHookClass.prototype.remove = function (key, fn) {
+  // provide support for old versions of HOT
+  if (key in legacyEventMap) {
+    key = legacyEventMap[key];
+  }
+
+  for (var i = 0, len = hooks[key].length; i < len; i++) {
+    if (hooks[key][i] == fn) {
+      hooks[key].splice(i, 1);
+      return true;
+    }
+  }
+  return false;
+}
+
+Handsontable.PluginHookClass.prototype.run = function (instance, key, p1, p2, p3, p4, p5) {
+  // provide support for old versions of HOT
+  if (key in legacyEventMap) {
+    key = legacyEventMap[key];
+  }
+
+  //performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
+  if (typeof hooks[key] !== 'undefined') {
+    for (var i = 0, len = hooks[key].length; i < len; i++) {
+      hooks[key][i].call(instance, p1, p2, p3, p4, p5);
+    }
+  }
+}
+*/
 ////
 
 Handsontable.PluginHooks = (function () {
