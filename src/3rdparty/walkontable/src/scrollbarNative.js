@@ -16,6 +16,8 @@ WalkontableScrollbarNative.prototype.init = function () {
       that.onScroll();
 //    }, 0);
   });
+
+  this.readSettings();
 };
 
 WalkontableScrollbarNative.prototype.onScroll = function () {
@@ -45,18 +47,16 @@ WalkontableScrollbarNative.prototype.availableSize = function () {
   var availableSize;
 
   //var last = this.getLastCell();
-  var windowSize = this.$scrollHandler.height();
-  var curScroll = this.$scrollHandler.scrollTop();
-  if (curScroll > this.tableParentOffset /*&& last > -1*/) { //last -1 means that viewport is scrolled behind the table
+  if (this.windowScrollPosition > this.tableParentOffset /*&& last > -1*/) { //last -1 means that viewport is scrolled behind the table
     if (this.instance.wtTable.getLastVisibleRow() === this.total - 1) {
       availableSize = this.instance.wtDom.outerHeight(this.TABLE);
     }
     else {
-      availableSize = windowSize;
+      availableSize = this.windowSize;
     }
   }
   else {
-    availableSize = windowSize - (this.tableParentOffset - curScroll);
+    availableSize = this.windowSize - (this.tableParentOffset - this.windowScrollPosition);
   }
 
   return availableSize;
@@ -123,6 +123,7 @@ WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
   var offset = this.instance.wtDom.offset(this.fixedContainer);
   this.tableParentOffset = offset.top;
   this.tableParentOtherOffset = offset.left;
+  this.windowSize = this.$scrollHandler.height();
   this.windowScrollPosition = this.$scrollHandler.scrollTop();
   this.offset = this.instance.getSetting('offsetRow');
   this.total = this.instance.getSetting('totalRows');
@@ -176,6 +177,7 @@ WalkontableHorizontalScrollbarNative.prototype.readSettings = function () {
   var offset = this.instance.wtDom.offset(this.fixedContainer);
   this.tableParentOffset = offset.left;
   this.tableParentOtherOffset = offset.top;
+  this.windowSize = this.$scrollHandler.width();
   this.windowScrollPosition = this.$scrollHandler.scrollLeft();
   this.offset = this.instance.getSetting('offsetColumn');
   this.total = this.instance.getSetting('totalColumns');
