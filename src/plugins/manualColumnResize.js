@@ -2,11 +2,14 @@ function HandsontableManualColumnResize() {
   var pressed
     , currentCol
     , currentWidth
+    , autoresizeTimeout
     , instance
+    , newSize
     , start
     , startX
     , startWidth
     , startOffset
+    , dblclick = 0
     , resizer = document.createElement('DIV')
     , line = document.createElement('DIV')
     , lineStyle = line.style;
@@ -24,7 +27,7 @@ function HandsontableManualColumnResize() {
   $(document).mousemove(function (e) {
     if (pressed) {
       currentWidth = startWidth + (e.pageX - startX);
-      setManualSize(currentCol, currentWidth); //save col width
+      newSize = setManualSize(currentCol, currentWidth); //save col width
       lineStyle.left = startOffset + currentWidth - 1 + 'px';
       if (lineStyle.display === 'none') {
         lineStyle.display = 'block';
@@ -39,12 +42,7 @@ function HandsontableManualColumnResize() {
       instance.forceFullRender = true;
       instance.view.render(); //updates all
       lineStyle.display = 'none';
-    }
-  });
-
-  $(document).dblclick(function (e) {
-    if ($(e.target).is('.manualColumnResizer')) {
-      setManualSize(currentCol, htAutoColumnSize.determineColumnWidth.call(instance, currentCol));
+      instance.runHooks('afterColumnResize', currentCol, newSize);
     }
   });
 
@@ -55,6 +53,21 @@ function HandsontableManualColumnResize() {
   this.afterInit = function () {
     if (this.getSettings().manualColumnResize) {
       var that = this;
+
+      this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
+        if (autoresizeTimeout == null) {
+          autoresizeTimeout = setTimeout(function () {
+            if (dblclick >= 2) {
+              setManualSize(currentCol, htAutoColumnSize.determineColumnWidth.call(instance, currentCol));
+              instance.runHooks('afterColumnResize', currentCol, newSize);
+            }
+            dblclick = 0;
+            autoresizeTimeout = null;
+          }, 500);
+        }
+        dblclick++;
+      });
+
       this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
         var _resizer = e.target,
             $table   = that.rootElement.find('.htCore'),
@@ -82,6 +95,7 @@ function HandsontableManualColumnResize() {
     width = Math.max(width, 20);
     width = Math.min(width, 500);
     instance.manualColumnWidths[col] = width;
+    return width;
   };
 
   this.getColHeader = function (col, TH) {
@@ -101,7 +115,7 @@ function HandsontableManualColumnResize() {
 }
 var htManualColumnResize = new HandsontableManualColumnResize();
 
-Handsontable.PluginHooks.push('beforeInit', htManualColumnResize.beforeInit);
-Handsontable.PluginHooks.push('afterInit', htManualColumnResize.afterInit);
-Handsontable.PluginHooks.push('afterGetColHeader', htManualColumnResize.getColHeader);
-Handsontable.PluginHooks.push('afterGetColWidth', htManualColumnResize.getColWidth);
+Handsontable.PluginHooks.add('beforeInit', htManualColumnResize.beforeInit);
+Handsontable.PluginHooks.add('afterInit', htManualColumnResize.afterInit);
+Handsontable.PluginHooks.add('afterGetColHeader', htManualColumnResize.getColHeader);
+Handsontable.PluginHooks.add('afterGetColWidth', htManualColumnResize.getColWidth);

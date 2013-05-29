@@ -6,7 +6,7 @@
  * Support for old autocomplete syntax
  * For old syntax, see: https://github.com/warpech/jquery-handsontable/blob/8c9e701d090ea4620fe08b6a1a048672fadf6c7e/README.md#defining-autocomplete
  */
-Handsontable.PluginHooks.push('beforeGetCellMeta', function (row, col, cellProperties) {
+Handsontable.PluginHooks.add('beforeGetCellMeta', function (row, col, cellProperties) {
   var settings = this.getSettings(), data = this.getData(), i, ilen, a;
   if (settings.autoComplete) {
     for (i = 0, ilen = settings.autoComplete.length; i < ilen; i++) {

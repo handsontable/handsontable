@@ -152,12 +152,12 @@ Handsontable.TableView = function (instance) {
     height: this.getHeight(),
     fixedColumnsLeft: this.settings.fixedColumnsLeft,
     fixedRowsTop: this.settings.fixedRowsTop,
-    rowHeaders: this.settings.rowHeaders ? function (index, TH) {
+    rowHeaders: this.settings.rowHeaders ? [function (index, TH) {
       that.appendRowHeader(index, TH);
-    } : null,
-    columnHeaders: this.settings.colHeaders ? function (index, TH) {
+    }] : [],
+    columnHeaders: this.settings.colHeaders ? [function (index, TH) {
       that.appendColHeader(index, TH);
-    } : null,
+    }] : [],
     columnWidth: instance.getColWidth,
     cellRenderer: function (row, column, TD) {
       that.applyCellTypeMethod('renderer', TD, row, column);
@@ -242,7 +242,7 @@ Handsontable.TableView = function (instance) {
     }
   };
 
-  Handsontable.PluginHooks.run(instance, 'walkontableConfig', walkontableConfig);
+  instance.runHooks('beforeInitWalkontable', walkontableConfig);
 
   this.wt = new Walkontable(walkontableConfig);
 
@@ -292,7 +292,7 @@ Handsontable.TableView.prototype.getHeight = function () {
 
 Handsontable.TableView.prototype.beforeRender = function (force) {
   if (force) {
-    Handsontable.PluginHooks.run(this.instance, 'beforeRender');
+    this.instance.runHooks('beforeRender');
     this.wt.update('width', this.getWidth());
     this.wt.update('height', this.getHeight());
   }
@@ -302,17 +302,17 @@ Handsontable.TableView.prototype.render = function () {
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.rootElement.triggerHandler('render.handsontable');
   if (this.instance.forceFullRender) {
-    Handsontable.PluginHooks.run(this.instance, 'afterRender');
+    this.instance.runHooks('afterRender');
   }
   this.instance.forceFullRender = false;
 };
 
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {
   var prop = this.instance.colToProp(col)
-    , cellProperties = this.instance.getCellMeta(row, col);
-  if (cellProperties[methodName]) {
-    return cellProperties[methodName](this.instance, td, row, col, prop, this.instance.getDataAtRowProp(row, prop), cellProperties);
-  }
+    , cellProperties = this.instance.getCellMeta(row, col)
+    , method = Handsontable.helper.getCellMethod(methodName, cellProperties[methodName]); //methodName is 'renderer' or 'editor'
+
+  return method(this.instance, td, row, col, prop, this.instance.getDataAtRowProp(row, prop), cellProperties);
 };
 
 /**
@@ -342,7 +342,12 @@ Handsontable.TableView.prototype.scrollViewport = function (coords) {
  * @param TH
  */
 Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
-  this.wt.wtDom.avoidInnerHTML(TH, this.instance.getRowHeader(row));
+  if (row > -1) {
+    this.wt.wtDom.avoidInnerHTML(TH, this.instance.getRowHeader(row));
+  }
+  else {
+    this.wt.wtDom.empty(TH);
+  }
 };
 
 /**
@@ -364,5 +369,5 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
     TH.removeChild(TH.firstChild); //empty TH node
   }
   TH.appendChild(DIV);
-  Handsontable.PluginHooks.run(this.instance, 'afterGetColHeader', col, TH);
+  this.instance.runHooks('afterGetColHeader', col, TH);
 };

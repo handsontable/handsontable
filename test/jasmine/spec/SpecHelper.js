@@ -127,6 +127,10 @@ var handsontableKeyTriggerFactory = function (type) {
           ev.keyCode = 16;
           break;
 
+        case 'backspace':
+          ev.keyCode = 8;
+          break;
+
         default:
           throw new Error('Unrecognised key name: ' + key);
       }
@@ -217,18 +221,49 @@ var handsontableMethodFactory = function (method) {
   }
 };
 
+var getInstance = handsontableMethodFactory('getInstance');
 var selectCell = handsontableMethodFactory('selectCell');
 var deselectCell = handsontableMethodFactory('deselectCell');
 var getSelected = handsontableMethodFactory('getSelected');
 var setDataAtCell = handsontableMethodFactory('setDataAtCell');
 var getCell = handsontableMethodFactory('getCell');
+var getCellMeta = handsontableMethodFactory('getCellMeta');
 var getData = handsontableMethodFactory('getData');
 var getDataAtCell = handsontableMethodFactory('getDataAtCell');
+var getDataAtRow = handsontableMethodFactory('getDataAtRow');
+var getDataAtCol = handsontableMethodFactory('getDataAtCol');
 var getRowHeader = handsontableMethodFactory('getRowHeader');
 var getColHeader = handsontableMethodFactory('getColHeader');
 var alter = handsontableMethodFactory('alter');
+var spliceCol = handsontableMethodFactory('spliceCol');
+var spliceRow = handsontableMethodFactory('spliceRow');
+var populateFromArray = handsontableMethodFactory('populateFromArray');
 var loadData = handsontableMethodFactory('loadData');
 var destroyEditor = handsontableMethodFactory('destroyEditor');
 var render = handsontableMethodFactory('render');
 var updateSettings = handsontableMethodFactory('updateSettings');
 var destroy = handsontableMethodFactory('destroy');
+
+/**
+ * Creates 2D array of Excel-like values "A0", "A1", ...
+ * @param rowCount
+ * @param colCount
+ * @returns {Array}
+ */
+function createSpreadsheetData(rowCount, colCount) {
+  rowCount = typeof rowCount === 'number' ? rowCount : 100;
+  colCount = typeof colCount === 'number' ? colCount : 4;
+
+  var rows = []
+    , i
+    , j;
+
+  for (i = 0; i < rowCount; i++) {
+    var row = [];
+    for (j = 0; j < colCount; j++) {
+      row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
+    }
+    rows.push(row);
+  }
+  return rows;
+}

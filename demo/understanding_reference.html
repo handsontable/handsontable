@@ -40,10 +40,7 @@
 </head>
 
 <body>
-<a href="http://github.com/warpech/jquery-handsontable">
-  <img style="position: absolute; top: 0; right: 0; border: 0;"
-       src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"/>
-</a>
+<a href="http://github.com/warpech/jquery-handsontable" class="forkMeOnGitHub">Fork me on GitHub</a>
 
 <div id="container">
   <div class="columnLayout">
@@ -166,7 +163,7 @@
             var $container = $("#example3");
             $container.handsontable({
               data: data3,
-              onChange: function () {
+              afterChange: function () {
                 var tmpData = $.extend(true, [], data3);
                 //now tmpData has a copy of data3 that can be manipulated
                 //without breaking the Handsontable data source object

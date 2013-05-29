@@ -1,17 +1,6 @@
 function WalkontableScroll(instance) {
   this.instance = instance;
-  this.wtScrollbarV = new WalkontableVerticalScrollbar(instance);
-  this.wtScrollbarH = new WalkontableHorizontalScrollbar(instance);
 }
-
-WalkontableScroll.prototype.refreshScrollbars = function () {
-  this.wtScrollbarH.readSettings();
-  this.wtScrollbarV.readSettings();
-  this.wtScrollbarH.prepare();
-  this.wtScrollbarV.prepare();
-  this.wtScrollbarH.refresh();
-  this.wtScrollbarV.refresh();
-};
 
 WalkontableScroll.prototype.scrollVertical = function (delta) {
   if (!this.instance.drawn) {
@@ -19,31 +8,25 @@ WalkontableScroll.prototype.scrollVertical = function (delta) {
   }
 
   var instance = this.instance
+    , newOffset
     , offset = instance.getSetting('offsetRow')
     , fixedCount = instance.getSetting('fixedRowsTop')
     , total = instance.getSetting('totalRows')
-    , maxSize = (instance.getSetting('height') || Infinity); //Infinity is needed, otherwise you could scroll a table that did not have height specified
+    , maxSize = instance.wtViewport.getViewportHeight();
 
-  if(maxSize !== Infinity) {
-    var TD = instance.wtTable.TBODY.firstChild.firstChild;
-    if (TD.nodeName === 'TH') {
-      TD = TD.nextSibling;
-    }
-    var cellOffset = instance.wtDom.offset(TD);
-    var tableOffset = instance.wtTable.tableOffset;
-
-    maxSize -= cellOffset.top - tableOffset.top; //column header height
-    maxSize -= instance.getSetting('scrollbarHeight');
+  if (total > 0) {
+    newOffset = this.scrollLogic(delta, offset, total, fixedCount, maxSize, function (row) {
+      if (row - offset < fixedCount) {
+        return instance.getSetting('rowHeight', row - offset);
+      }
+      else {
+        return instance.getSetting('rowHeight', row);
+      }
+    });
   }
-
-  var newOffset = this.scrollLogic(delta, offset, total, fixedCount, maxSize, function (row) {
-    if (row - offset < fixedCount) {
-      return instance.getSetting('rowHeight', row - offset);
-    }
-    else {
-      return instance.getSetting('rowHeight', row);
-    }
-  });
+  else {
+    newOffset = 0;
+  }
 
   if (newOffset !== offset) {
     instance.update('offsetRow', newOffset);
@@ -57,19 +40,25 @@ WalkontableScroll.prototype.scrollHorizontal = function (delta) {
   }
 
   var instance = this.instance
+    , newOffset
     , offset = instance.getSetting('offsetColumn')
     , fixedCount = instance.getSetting('fixedColumnsLeft')
     , total = instance.getSetting('totalColumns')
-    , maxSize = instance.getSetting('width') - instance.getSetting('rowHeaderWidth');
+    , maxSize = instance.wtViewport.getViewportWidth();
 
-  var newOffset = this.scrollLogic(delta, offset, total, fixedCount, maxSize, function (col) {
-    if (col - offset < fixedCount) {
-      return instance.getSetting('columnWidth', col - offset);
-    }
-    else {
-      return instance.getSetting('columnWidth', col);
-    }
-  });
+  if (total > 0) {
+    newOffset = this.scrollLogic(delta, offset, total, fixedCount, maxSize, function (col) {
+      if (col - offset < fixedCount) {
+        return instance.getSetting('columnWidth', col - offset);
+      }
+      else {
+        return instance.getSetting('columnWidth', col);
+      }
+    });
+  }
+  else {
+    newOffset = 0;
+  }
 
   if (newOffset !== offset) {
     instance.update('offsetColumn', newOffset);
@@ -136,7 +125,7 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
   if (coords[0] > lastVisibleRow) {
     this.scrollVertical(coords[0] - lastVisibleRow + 1);
   }
-  else if (coords[0] === lastVisibleRow && this.instance.wtTable.isLastRowIncomplete()) {
+  else if (coords[0] === lastVisibleRow && this.instance.wtTable.rowStrategy.isLastIncomplete()) {
     this.scrollVertical(coords[0] - lastVisibleRow + 1);
   }
   else if (coords[0] - fixedRowsTop < offsetRow) {
@@ -149,7 +138,7 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
   if (coords[1] > lastVisibleColumn) {
     this.scrollHorizontal(coords[1] - lastVisibleColumn + 1);
   }
-  else if (coords[1] === lastVisibleColumn && this.instance.wtTable.isLastColumnIncomplete()) {
+  else if (coords[1] === lastVisibleColumn && this.instance.wtTable.columnStrategy.isLastIncomplete()) {
     this.scrollHorizontal(coords[1] - lastVisibleColumn + 1);
   }
   else if (coords[1] - fixedColumnsLeft < offsetColumn) {

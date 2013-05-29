@@ -329,6 +329,25 @@ body.home #container ul {
   margin: 0;
 }
 
+body.home #container ul ul {
+  padding: 10px 0 0 15px;
+}
+
 body.home #container ul li {
   margin: 0 0 10px 0;
+}
+
+/**
+ * fork me on GitHub (image)
+ */
+.forkMeOnGitHub {
+  display: block;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 149px;
+  height: 149px;
+  text-indent: -10000px;
+  background-repeat: no-repeat;
+  background-image: url(../image/fork-github.png);
 }

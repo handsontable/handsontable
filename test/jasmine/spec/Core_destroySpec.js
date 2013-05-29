@@ -23,28 +23,21 @@ describe('Core_destroy', function () {
 
     runs(function () {
       expect(this.$container.html()).toEqual(''); //expect the same with async rendering
-    });
+    })
   });
 
   it('should remove events from the root element, document element and window', function () {
-    runs(function () {
-      handsontable();
-      expect($._data(this.$container[0], 'events')).toBeTruthy();
-      expect($._data(document.documentElement, 'events')).toBeTruthy();
-      expect($._data(window, 'events')).toBeTruthy();
-      destroy();
-      expect($._data(this.$container[0], 'events')).toBeFalsy();
-      expect($._data(document.documentElement, 'events')).toBeFalsy();
-      expect($._data(window, 'events')).toBeFalsy();
-    });
+    handsontable();
 
-    waitsFor(nextFrame, 'next frame', 60);
+    expect($._data(this.$container[0], 'events')).toBeTruthy();
+    expect($._data(document.documentElement, 'events')).toBeTruthy();
+    expect($._data(window, 'events')).toBeTruthy();
 
-    runs(function () {
-      expect($._data(this.$container[0], 'events')).toBeFalsy(); //expect the same with async rendering
-      expect($._data(document.documentElement, 'events')).toBeFalsy(); //expect the same with async rendering
-      expect($._data(window, 'events')).toBeFalsy(); //expect the same with async rendering
-    });
+    destroy();
+
+    expect($._data(this.$container[0], 'events')).toBeFalsy();
+    expect($._data(document.documentElement, 'events')).toBeFalsy();
+    expect($._data(window, 'events')).toBeFalsy();
   });
 
   it('should NOT remove events from document element and window for other Handsontable instances on the page', function () {

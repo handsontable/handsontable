@@ -1,5 +1,5 @@
 function Walkontable(settings) {
-  var self = this,
+  var that = this,
     originalHeaders = [];
 
   //bootstrap from settings
@@ -7,6 +7,8 @@ function Walkontable(settings) {
   this.wtDom = new WalkontableDom();
   this.wtTable = new WalkontableTable(this);
   this.wtScroll = new WalkontableScroll(this);
+  this.wtScrollbars = new WalkontableScrollbars(this);
+  this.wtViewport = new WalkontableViewport(this);
   this.wtWheel = new WalkontableWheel(this);
   this.wtEvent = new WalkontableEvent(this);
 
@@ -15,10 +17,10 @@ function Walkontable(settings) {
     for (var c = 0, clen = this.wtTable.THEAD.childNodes[0].childNodes.length; c < clen; c++) {
       originalHeaders.push(this.wtTable.THEAD.childNodes[0].childNodes[c].innerHTML);
     }
-    if (!this.hasSetting('columnHeaders')) {
-      this.update('columnHeaders', function (column, TH) {
-        self.wtDom.avoidInnerHTML(TH, originalHeaders[column]);
-      });
+    if (!this.getSetting('columnHeaders').length) {
+      this.update('columnHeaders', [function (column, TH) {
+        that.wtDom.avoidInnerHTML(TH, originalHeaders[column]);
+      }]);
     }
   }
 
@@ -37,33 +39,16 @@ function Walkontable(settings) {
   this.drawInterrupted = false;
 }
 
-Walkontable.prototype.isVisible = function () {
-  var next = this.wtTable.TABLE;
-  while (next !== document.documentElement) {
-    if (next === null) {
-      return false;
-    }
-    else if (next.style.display === 'none') {
-      return false;
-    }
-    else if (this.wtTable.TABLE.parentNode.clientWidth === 0) {
-      return false; //this is the technique used by jQuery is(':visible')
-    }
-    next = next.parentNode;
-  }
-  return true;
-};
-
 Walkontable.prototype.draw = function (selectionsOnly) {
   this.drawInterrupted = false;
-  if (!selectionsOnly && !this.isVisible()) {
+  if (!selectionsOnly && !this.wtDom.isVisible(this.wtTable.TABLE)) {
     this.drawInterrupted = true; //draw interrupted because TABLE is not visible
     return;
   }
 
   this.getSetting('beforeDraw', !selectionsOnly);
   selectionsOnly = selectionsOnly && this.getSetting('offsetRow') === this.lastOffsetRow && this.getSetting('offsetColumn') === this.lastOffsetColumn;
-  if (this.drawn) {
+  if (this.drawn) { //fix offsets that might have changed
     this.scrollVertical(0);
     this.scrollHorizontal(0);
   }
@@ -109,6 +94,7 @@ Walkontable.prototype.hasSetting = function (key) {
 };
 
 Walkontable.prototype.destroy = function () {
+  this.wtScrollbars.destroy();
   clearTimeout(this.wheelTimeout);
   clearTimeout(this.dblClickTimeout);
 };

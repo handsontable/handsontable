@@ -12,8 +12,8 @@
  *
  * Result:
  * building Handsontable will create files:
- *  - jquery.handsontable.js
- *  - jquery.handsontable.css
+ *  - dist/jquery.handsontable.js
+ *  - dist/jquery.handsontable.css
  *  - dist/jquery.handsontable.full.js
  *  - dist/jquery.handsontable.full.css
  *
@@ -73,7 +73,7 @@ module.exports = function (grunt) {
     concat: {
       dist: {
         files: {
-          'jquery.handsontable.js': [
+          'dist/jquery.handsontable.js': [
             'tmp/intro.js',
             '<%= meta.src %>',
             '<%= meta.walkontable %>',
@@ -84,7 +84,7 @@ module.exports = function (grunt) {
       full_js: {
         files: {
           'dist/jquery.handsontable.full.js': [
-            'jquery.handsontable.js',
+            'dist/jquery.handsontable.js',
             '<%= meta.vendor %>'
           ]
         }
@@ -92,18 +92,24 @@ module.exports = function (grunt) {
       full_css: {
         files: {
           'dist/jquery.handsontable.full.css': [
-            'jquery.handsontable.css',
+            'dist/jquery.handsontable.css',
             'lib/jQuery-contextMenu/jquery.contextMenu.css'
           ]
         }
       },
       wc: {
         files: {
-          'dist_wc/css/x-handsontable.css': [
-            'dist/jquery.handsontable.full.css'
+          'dist_wc/x-handsontable/jquery-2.min.js': [
+            'lib/jquery-2.min.js'
           ],
-          'dist_wc/css/jquery-ui/css/smoothness/jquery-ui.custom.css': [
-            'lib/jquery-ui/css/smoothness/jquery-ui.custom.css'
+          'dist_wc/x-handsontable/numeral.de-de.js': [
+            'lib/numeral.de-de.js'
+          ],
+          'dist_wc/x-handsontable/jquery.handsontable.full.js': [
+            'dist/jquery.handsontable.full.js'
+          ],
+          'dist_wc/x-handsontable/jquery.handsontable.full.css': [
+            'dist/jquery.handsontable.full.css'
           ]
         }
       }
@@ -113,6 +119,7 @@ module.exports = function (grunt) {
       files: [
         'src/**/*.js',
         'src/**/*.css',
+        'src/**/*.html',
         'lib/**/*.js',
         'lib/**/*.css'
       ],
@@ -134,13 +141,12 @@ module.exports = function (grunt) {
         files: {
           'tmp/intro.js': 'src/intro.js',
           'tmp/core.js': 'src/core.js',
-          'jquery.handsontable.css': 'src/css/jquery.handsontable.css'
+          'dist/jquery.handsontable.css': 'src/css/jquery.handsontable.css'
         }
       },
       wc: {
         options: {
           variables: {
-            model: '<%= grunt.file.read("dist/jquery.handsontable.full.js") %>',
             controller: '<%= grunt.file.read("src/wc/x-handsontable-controller.js") %>'
           }
         },
@@ -153,7 +159,7 @@ module.exports = function (grunt) {
       handsontable: {
         src: [
           'lib/jquery.min.js',
-          'jquery.handsontable.js',
+          'dist/jquery.handsontable.js',
           'lib/bootstrap-typeahead.js',
           'lib/numeral.js',
           'lib/jQuery-contextMenu/jquery.contextMenu.js',
@@ -169,7 +175,7 @@ module.exports = function (grunt) {
           ],
           styles: [
             'test/jasmine/css/SpecRunner.css',
-            'jquery.handsontable.css',
+            'dist/jquery.handsontable.css',
             'lib/jQuery-contextMenu/jquery.contextMenu.css'
           ]
         }

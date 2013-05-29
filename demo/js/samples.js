@@ -7,7 +7,7 @@
    */
 
   function trimCodeBlock(code, pad) {
-    var i;
+    var i, ilen;
     pad = pad || 0;
     code = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); //escape html special chars
     code = code.split('\n');
@@ -66,16 +66,21 @@
       }
       keys.push(runfiddle);
 
-      var css = [];
+      var index = window.location.href.lastIndexOf("/") + 1;
+      var baseUrl = window.location.href.substr(0, index);
+
+      var tags = [];
+      var css = '';
       var js = '';
       var html = '';
+      var onDomReady = true;
 
-      css.push('</style><!-- Ugly Hack due to jsFiddle issue: http://goo.gl/BUfGZ -->\n');
+      tags.push('</style><!-- Ugly Hack due to jsFiddle issue: http://goo.gl/BUfGZ -->\n');
 
       for (var i = 0, ilen = keys.length; i < ilen; i++) {
         $('[data-jsfiddle=' + keys[i] + ']').each(function () {
-          var tag;
-          var $this = $(this);
+          var tag
+            , $this = $(this);
           if (this.nodeName === 'LINK') {
             tag = $this.outerHTML();
           }
@@ -84,6 +89,9 @@
           }
           else if (this.nodeName === 'SCRIPT') {
             js += trimCodeBlock($this.html(), 2).join('\n') + '\n';
+          }
+          else if (this.nodeName === 'STYLE') {
+            css += trimCodeBlock($this.html()).join('\n') + '\n';
           }
           else { //DIV
             var clone = $this.clone();
@@ -99,28 +107,36 @@
           }
           if (tag) {
             tag = tag.replace(' data-jsfiddle="' + keys[i] + '"', '');
-            tag = tag.replace('href="css/', 'href="http://handsontable.com/demo/css/');
-            tag = tag.replace('href="../', 'href="http://handsontable.com/');
-            tag = tag.replace('src="../', 'src="http://handsontable.com/');
-            tag = tag.replace('href="bootstrap/', 'href="http://handsontable.com/demo/bootstrap/');
-            tag = tag.replace('src="bootstrap/', 'src="http://handsontable.com/demo/bootstrap/');
-            tag = tag.replace('src="js/', 'src="http://handsontable.com/demo/js/');
-            tag = tag.replace('src="web_component/', 'src="http://handsontable.com/demo/web_component/');
-            css.push(tag)
+
+            if (tag.indexOf('href="http') === -1 && tag.indexOf('href="//') && tag.indexOf('src="http') === -1 && tag.indexOf('src="//')) {
+              tag = tag.replace('href="', 'href="' + baseUrl);
+              tag = tag.replace('src="', 'src="' + baseUrl);
+              tag = tag.replace('demo/../', '');
+
+              if(this.nodeName === 'LINK' && this.rel === "import") {
+                //web component imports must be loaded throught a CORS-enabling proxy, because our local server does not support it yet
+                tag = tag.replace('href="http://', 'href="http://www.corsproxy.com/');
+                onDomReady = false;
+              }
+            }
+
+            tags.push(tag)
           }
         });
       }
 
-      css.push('');
-      css.push('<style type="text/css">');
-      css.push('body {background: white; margin: 20px;}');
-      css.push('h2 {margin: 20px 0;}');
-      css = css.join('\n');
+      tags.push('');
+      tags.push('<style type="text/css">');
+      tags.push('body {background: white; margin: 20px;}');
+      tags.push('h2 {margin: 20px 0;}');
+      css = tags.join('\n') + '\n' + css;
 
       js += trimCodeBlock(bindDumpButton.toString(), 2).join('\n') + '\n';
       js += '  bindDumpButton();\n\n';
 
-      js = '$(document).ready(function () {\n\n' + js + '});';
+      if(onDomReady) {
+        js = '$(document).ready(function () {\n\n' + js + '});';
+      }
 
       var form = $('<form action="http://jsfiddle.net/api/post/library/pure/" method="post" target="_blank">' +
         '<input type="text" name="title" value="Handsontable example">' +

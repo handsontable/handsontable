@@ -4,38 +4,43 @@
   /**
    * Handsontable RemoveRow extension. See `demo/buttons.html` for example usage
    */
-  Handsontable.PluginHooks.push('walkontableConfig', function (walkontableConfig) {
+  Handsontable.PluginHooks.add('beforeInitWalkontable', function (walkontableConfig) {
     var instance = this;
 
-    var getButton = function (td) {
-      return $(td).parents('tr').find('th.htRemoveRow:eq(0) .btn');
-    };
+    if (instance.getSettings().removeRowPlugin) {
 
-    instance.rootElement.on('mouseover', 'tbody th, tbody td', function () {
-      getButton(this).show();
-    });
-    instance.rootElement.on('mouseout', 'tbody th, tbody td', function () {
-      getButton(this).hide();
-    });
+      var getButton = function (td) {
+        return $(td).parents('tr').find('th.htRemoveRow').eq(0).find('.btn');
+      };
 
-    instance.rootElement.addClass('htRemoveRow');
-
-    if(!walkontableConfig.rowHeaders) {
-      walkontableConfig.rowHeaders = [];
-    }
-    walkontableConfig.rowHeaders.unshift(function(row, elem){
-      if(elem.nodeName == 'COL') {
-        $(elem).addClass('htRemoveRow');
-        return;
-      }
-
-      var $div = $('<div class="btn">x</div>');
-      $div.on('mouseup', function(){
-        instance.alter("remove_row", row);
+      instance.rootElement.on('mouseover', 'tbody th, tbody td', function () {
+        getButton(this).show();
+      });
+      instance.rootElement.on('mouseout', 'tbody th, tbody td', function () {
+        getButton(this).hide();
       });
 
-      var $th = $(elem);
-      $th.addClass('htRemoveRow htNoFrame').html($div);
-    });
+      instance.rootElement.addClass('htRemoveRow');
+
+      walkontableConfig.rowHeaders.unshift(function (row, elem) {
+        var child
+          , div;
+        while (child = elem.lastChild) {
+          elem.removeChild(child);
+        }
+        elem.className = 'htNoFrame htRemoveRow';
+        if (row > -1) {
+          div = document.createElement('div');
+          div.className = 'btn';
+          div.appendChild(document.createTextNode('x'));
+          elem.appendChild(div);
+
+          $(div).on('mouseup', function () {
+            instance.alter("remove_row", row);
+          });
+        }
+      });
+
+    }
   });
 })(jQuery);

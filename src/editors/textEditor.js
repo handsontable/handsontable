@@ -27,7 +27,7 @@ HandsontableTextEditorClass.prototype.createElements = function () {
   this.instance.rootElement[0].appendChild(this.TEXTAREA_PARENT);
 
   var that = this;
-  Handsontable.PluginHooks.push('afterRender', function () {
+  Handsontable.PluginHooks.add('afterRender', function () {
     that.instance.registerTimeout('refresh_editor_dimensions', function () {
       that.refreshDimensions();
     }, 0);
@@ -38,6 +38,11 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
   var that = this;
   this.$textareaParent.off('.editor').on('keydown.editor', function (event) {
     //if we are here then isCellEdited === true
+
+    that.instance.runHooks('beforeKeyDown', event);
+    if(event.isImmediatePropagationStopped()) { //event was cancelled in beforeKeyDown
+      return;
+    }
 
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
@@ -302,10 +307,10 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
       ];
       if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
         var sel = this.instance.getSelected();
-        this.instance.populateFromArray({row: sel[0], col: sel[1]}, val, {row: sel[2], col: sel[3]}, 'edit');
+        this.instance.populateFromArray(sel[0], sel[1], val, sel[2], sel[3], 'edit');
       }
       else {
-        this.instance.populateFromArray({row: this.row, col: this.col}, val, null, 'edit');
+        this.instance.populateFromArray(this.row, this.col, val, null, null, 'edit');
       }
     }
   }

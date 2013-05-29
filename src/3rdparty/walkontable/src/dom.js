@@ -162,6 +162,56 @@ WalkontableDom.prototype.avoidInnerHTML = function (element, content) {
 };
 
 /**
+ * Returns true if element is attached to the DOM and visible, false otherwise
+ * @param elem
+ * @returns {boolean}
+ */
+WalkontableDom.prototype.isVisible = function (elem) {
+  //fast method
+  try {//try/catch performance is not a problem here: http://jsperf.com/try-catch-performance-overhead/7
+    if (!elem.offsetParent) {
+      return false; //fixes problem with UI Bootstrap <tabs> directive
+    }
+  }
+  catch (e) {
+    return false; //IE7-8 throws "Unspecified error" when offsetParent is not found - we catch it here
+  }
+
+//  if (elem.offsetWidth > 0 || (elem.parentNode && elem.parentNode.offsetWidth > 0)) { //IE10 was mistaken here
+  if (elem.offsetWidth > 0) {
+    return true;
+  }
+
+  //slow method
+  var next = elem;
+  while (next !== document.documentElement) { //until <html> reached
+    if (next === null) { //parent detached from DOM
+      return false;
+    }
+    else if (next.nodeType === 11) {
+      if (next.nodeName === '#document-fragment') { //Shadow DOM
+        return true;
+      }
+      else { //IE7 reports nodeType === 11 after detaching element from DOM
+        return false;
+      }
+    }
+    else if (next.style.display === 'none') {
+      return false;
+    }
+    /*else if (next !== elem && next.offsetWidth === 0) {
+     //this is the technique used by jQuery is(':visible')
+     //but in IE7, clientWidth & offsetWidth sometimes returns 0 when it shouldn't
+     return false;
+
+     compare with jQuery :visible selector (search jquery.js for `reliableHiddenOffsets`)
+     }*/
+    next = next.parentNode;
+  }
+  return true;
+};
+
+/**
  * seems getBounding is usually faster: http://jsperf.com/offset-vs-getboundingclientrect/4
  * but maybe offset + cache would work?
  * edit: after more tests turns out offsetLeft/Top is faster
@@ -178,4 +228,16 @@ WalkontableDom.prototype.offset = function (elem) {
     left: offsetLeft,
     top: offsetTop
   };
+};
+
+WalkontableDom.prototype.getComputedStyle = function (elem) {
+  return elem.currentStyle || document.defaultView.getComputedStyle(elem);
+};
+
+WalkontableDom.prototype.outerWidth = function (elem) {
+  return elem.offsetWidth;
+};
+
+WalkontableDom.prototype.outerHeight = function (elem) {
+  return elem.offsetHeight;
 };

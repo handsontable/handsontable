@@ -1,5 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-    "http://www.w3.org/TR/html4/loose.dtd">
+<!doctype html>
 <html>
 <head>
   <title>Jasmine Spec Runner</title>
@@ -12,13 +11,13 @@
 
   <!-- include source files here... -->
   <script type="text/javascript" src="../../lib/jquery.min.js"></script>
-  <script type="text/javascript" src="../../jquery.handsontable.js"></script>
+  <script type="text/javascript" src="../../dist/jquery.handsontable.js"></script>
   <script type="text/javascript" src="../../lib/bootstrap-typeahead.js"></script>
   <script type="text/javascript" src="../../lib/numeral.js"></script>
   <script type="text/javascript" src="../../lib/jQuery-contextMenu/jquery.contextMenu.js"></script>
   <script type="text/javascript" src="../../lib/jQuery-contextMenu/jquery.ui.position.js"></script>
   <link rel="stylesheet" media="screen" href="../../lib/jQuery-contextMenu/jquery.contextMenu.css">
-  <link rel="stylesheet" media="screen" href="../../jquery.handsontable.css">
+  <link rel="stylesheet" media="screen" href="../../dist/jquery.handsontable.css">
   <script src="../../demo/js/backbone/lodash.underscore.js"></script>
   <script src="../../demo/js/backbone/backbone.js"></script>
   <script src="../../demo/js/backbone/backbone-relational/backbone-relational.js"></script>
@@ -27,11 +26,14 @@
   <link rel="stylesheet" media="screen" href="css/SpecRunner.css">
   <script type="text/javascript" src="spec/SpecHelper.js"></script>
   <script type="text/javascript" src="spec/Core_initSpec.js"></script>
+  <script type="text/javascript" src="spec/Core_updateSpec.js"></script>
   <script type="text/javascript" src="spec/Core_destroySpec.js"></script>
   <script type="text/javascript" src="spec/Core_renderSpec.js"></script>
   <script type="text/javascript" src="spec/Core_setDataAtCellSpec.js"></script>
+  <script type="text/javascript" src="spec/Core_getDataAt___Spec.js"></script>
   <script type="text/javascript" src="spec/Core_datachangeSpec.js"></script>
   <script type="text/javascript" src="spec/Core_beforechangeSpec.js"></script>
+  <script type="text/javascript" src="spec/Core_beforeKeyDownSpec.js"></script>
   <script type="text/javascript" src="spec/Core_selectionSpec.js"></script>
   <script type="text/javascript" src="spec/Core_loadDataSpec.js"></script>
   <script type="text/javascript" src="spec/Core_keepEmptyRowsSpec.js"></script>
@@ -39,6 +41,8 @@
   <script type="text/javascript" src="spec/Core_copySpec.js"></script>
   <script type="text/javascript" src="spec/Core_dataSchemaSpec.js"></script>
   <script type="text/javascript" src="spec/Core_alterSpec.js"></script>
+  <script type="text/javascript" src="spec/Core_populateFromArraySpec.js"></script>
+  <script type="text/javascript" src="spec/Core_spliceSpec.js"></script>
   <script type="text/javascript" src="spec/Core_viewSpec.js"></script>
   <script type="text/javascript" src="spec/Core_destroyEditorSpec.js"></script>
   <script type="text/javascript" src="spec/Core_getCellMetaSpec.js"></script>
@@ -47,17 +51,26 @@
   <script type="text/javascript" src="spec/RowHeaderSpec.js"></script>
   <script type="text/javascript" src="spec/ColHeaderSpec.js"></script>
   <script type="text/javascript" src="spec/FillHandleSpec.js"></script>
+  <script type="text/javascript" src="spec/UndoRedoSpec.js"></script>
+  <script type="text/javascript" src="spec/Core_pasteSpec.js"></script>
+
+  <script type="text/javascript" src="spec/renderers/checkboxRendererSpec.js"></script>
   <script type="text/javascript" src="spec/renderers/textRendererSpec.js"></script>
   <script type="text/javascript" src="spec/renderers/numericRendererSpec.js"></script>
+
   <script type="text/javascript" src="spec/editors/textEditorSpec.js"></script>
   <script type="text/javascript" src="spec/editors/autocompleteEditorSpec.js"></script>
   <script type="text/javascript" src="spec/editors/numericEditorSpec.js"></script>
   <script type="text/javascript" src="spec/editors/handsontableEditorSpec.js"></script>
+
   <script type="text/javascript" src="spec/plugins/autoColumnSizeSpec.js"></script>
   <script type="text/javascript" src="spec/plugins/contextMenuSpec.js"></script>
   <script type="text/javascript" src="spec/plugins/columnSortingSpec.js"></script>
+  <script type="text/javascript" src="spec/plugins/PluginHooksSpec.js"></script>
 
+  <script type="text/javascript" src="spec/settings/editorSpec.js"></script>
   <script type="text/javascript" src="spec/settings/heightSpec.js"></script>
+  <script type="text/javascript" src="spec/settings/rendererSpec.js"></script>
 
   <script type="text/javascript">
     (function () {

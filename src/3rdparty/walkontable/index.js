@@ -105,9 +105,9 @@ function init() {
     offsetColumn: 0,
     height: 200,
     width: 200,
-    rowHeaders: function (row, TH) {
+    rowHeaders: [function (row, TH) {
       TH.innerHTML = row + 1;
-    },
+    }],
     selections: {
       area: {
         className: 'area',

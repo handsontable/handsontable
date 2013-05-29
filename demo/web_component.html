@@ -4,22 +4,19 @@
   <meta charset='utf-8'>
   <title>Web Component - Handsontable</title>
 
-  <!--
-  Loading Handsontable as Web Component
-  -->
-  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <!-- load toolkit platform -->
-  <script data-jsfiddle="common" src="web_component/toolkit/toolkit.js"></script>
+  <!-- load Polymer platform -->
+  <script data-jsfiddle="common" src="web_component/polymer/polymer.min.js"></script>
+
+  <!-- load Handsontable as Web Component -->
   <link data-jsfiddle="common" rel="import" href="../dist_wc/x-handsontable.html">
-  <script data-jsfiddle="common" src="../lib/numeral.de-de.js"></script>
-  <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
-  <script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen"
-        href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
+
+  <!-- load X-Tiles Web Component -->
+  <link data-jsfiddle="common" rel="import" href="web_component/x-tile.html">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css">
   <script src="js/samples.js"></script>
   <script src="js/highlight/highlight.pack.js"></script>
@@ -45,210 +42,278 @@
 </head>
 
 <body>
-<a href="http://github.com/warpech/jquery-handsontable">
-  <img style="position: absolute; top: 0; right: 0; border: 0;"
-       src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"/>
-</a>
+<a href="http://github.com/warpech/jquery-handsontable" class="forkMeOnGitHub">Fork me on GitHub</a>
 
 <div id="container">
-  <div class="columnLayout">
+<div class="columnLayout">
 
-    <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad">
-          <h1><a href="../index.html">Handsontable</a></h1>
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
+      <h1><a href="../index.html">Handsontable</a></h1>
 
-          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-            for HTML, JavaScript &amp; jQuery
-          </div>
-
-          <h2>Web Component</h2>
-
-          <p>This page shows our effort to make a <a href="">Web Component</a>-compatible version of Handsontable.</p>
-
-          <p>Our Web Component implementation leverages <a
-            href="https://github.com/toolkitchen/toolkit">Toolkitchen Toolkit</a> library. Currently, it works correctly
-            only in Google Chrome. According to the <a
-              href="http://toolkitchen.github.io/compatibility.html">browser compatibility matrix</a>, it should also
-            be possible to run it in Firefox, IE10, Safari (though right now it produces <em>Assertion failed</em> error
-            in every browser except Chrome).
-          </p>
-
-          <p>All your help (review, comments, pull requests) in this area is very welcome. Please use the GitHub Issues
-            <a
-              href="https://github.com/warpech/jquery-handsontable/issues/603">ticket #603</a> to share your
-            thoughts.</p>
-
-          <ul>
-            <li><a href="#works">What works</a></li>
-            <li><a href="#doesnt-work">What doesn't work</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad" data-jsfiddle="example1">
-          <a name="works"></a>
-
-          <h2>What works</h2>
-
-          <p>This example shows an experimental build of Handsontable as Web Component.</p>
-
-          <p>Cell types: <code>text</code>, <code>checkbox</code>, <code>numeric</code> and <code>autocomplete</code>
-            should work as expected.</p>
-
-          <x-handsontable id="example1" datarows="people">
-            <datacolumn width="30" value="id" title="ID"></datacolumn>
-            <datacolumn width="70" type="grayedOut" value="name.first" title="First Name" readOnly></datacolumn>
-            <datacolumn width="100" type="grayedOut" value="name.last" title="Last Name" readOnly></datacolumn>
-            <datacolumn type="autocomplete" source="genderList" value="gender"
-                        title="Gender<br>(Autocomplete)"></datacolumn>
-            <datacolumn value="age" title="Age"></datacolumn>
-            <datacolumn type="checkbox" value="languages.english" title="English" checkedTemplate="Yes"
-                        uncheckedTemplate="No"></datacolumn>
-            <datacolumn type="checkbox" value="languages.spanish" title="Spanish" checkedTemplate="Yes"
-                        uncheckedTemplate="No"></datacolumn>
-            <datacolumn type="numeric" value="salary" title="Salary" format="$ 0,0.00"></datacolumn>
-          </x-handsontable>
-
-          <p>
-            <button id="button1" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump data to console
-            </button>
-
-            <button id="button2">
-              First id = 99
-            </button>
-
-            <button id="button3">
-              Increment all by 10
-            </button>
-          </p>
-        </div>
+      <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+        for HTML, JavaScript &amp; jQuery
       </div>
 
-      <div class="codeLayout">
-        <div class="pad">
-          <!-- Need CORS before it works
-          <div class="jsFiddle">
-            <div class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</div>
-          </div>-->
+      <h2>Web Component</h2>
 
-          <script data-jsfiddle="example1">
-            var people = [
-              {id: 1, name: {first: 'Joe', last: 'Fabiano'}, gender: 'Male', age: '21', languages: {english: 'Yes', spanish: 'Yes', french: 'No'}, salary: 2000},
-              {id: 2, name: {first: 'Fred', last: 'Wecler'}, gender: 'Male', age: '25', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 2500},
-              {id: 3, name: {first: 'Steve', last: 'Wilson'}, gender: 'Male', age: '32', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 1700},
-              {id: 4, name: {first: 'Maria', last: 'Fernandez'}, gender: 'Female', age: '27', languages: {english: 'No', spanish: 'Yes', french: 'Yes'}, salary: 3000},
-              {id: 5, name: {first: 'Pierre', last: 'Barbault'}, gender: 'Male', age: '46', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}, salary: 1450},
-              {id: 6, name: {first: 'Nancy', last: 'Moore'}, gender: 'Female', age: '34', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 2300},
-              {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, gender: 'Female', age: '19', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 1900},
-              {id: 8, name: {first: 'Wilma', last: 'Williams'}, gender: 'Female', age: '33', languages: {english: 'Yes', spanish: 'Yes', french: 'Yes'}, salary: 2400},
-              {id: 9, name: {first: 'Sasha', last: 'Silver'}, gender: 'Male', age: '27', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}, salary: 2110},
-              {id: 10, name: {first: 'Don', last: 'Pérignon'}, gender: 'Male', age: '42', languages: {english: 'No', spanish: 'No', french: 'Yes'}, salary: 2090}
-            ];
+      <p>This page shows our effort to make a <a href="">Web Component</a>-compatible version of Handsontable.</p>
 
-            var genderList = ["Male", "Female"];
+      <p>Our Web Component implementation leverages <a
+        href="https://github.com/toolkitchen/toolkit">Toolkitchen Toolkit</a> library. Currently, it works correctly
+        only in Google Chrome. According to the <a
+          href="http://toolkitchen.github.io/compatibility.html">browser compatibility matrix</a>, it should also
+        be possible to run it in Firefox, IE10, Safari (though right now it produces <em>Assertion failed</em> error
+        in every browser except Chrome).
+      </p>
 
-            document.getElementById('button1').addEventListener('click', function () {
-              var data = document.getElementById('example1').getData();
-              console.log('Data of x-handsontable ', data);
-            });
-
-            document.getElementById('button2').addEventListener('click', function () {
-              document.getElementById('example1').setDataAtRowProp(0, 'id', 99)
-            });
-
-            document.getElementById('button3').addEventListener('click', function () {
-              for (var i = 0; i < people.length; i++) {
-                people[i].id += 10;
-              }
-              document.getElementById('example1').render()
-            });
-          </script>
-        </div>
-      </div>
-    </div>
-
-    <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad" data-jsfiddle="example2">
-          <a name="doesnt-work"></a>
-
-          <h2>What doesn't work</h2>
-
-          <p>We had a problem with getting jQuery UI Datepicker to work in Web Component.</p>
-
-          <p>Therefore <code>date</code> column type doesn't work as expected. If you have any ideas how to improve it,
-            please let us know in GitHub Issues <a href="https://github.com/warpech/jquery-handsontable/issues/603">
-              ticket #603</a>.</p>
-
-          <x-handsontable id="example2" datarows="people2">
-            <datacolumn width="30" value="id" title="ID"></datacolumn>
-            <datacolumn width="70" type="grayedOut" value="name.first" title="First Name" readOnly></datacolumn>
-            <datacolumn width="100" type="grayedOut" value="name.last" title="Last Name" readOnly></datacolumn>
-            <datacolumn type="date" value="created_at" title="Created (Date)" format="mm/dd/yy"></datacolumn>
-          </x-handsontable>
-
-          <p>
-            <button onclick="console.log('Data of x-handsontable ', document.getElementById('example2').getData())"
-                    title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump data to console
-            </button>
-          </p>
-        </div>
-      </div>
-
-      <div class="codeLayout">
-        <div class="pad">
-          <!-- Need CORS before it works
-          <div class="jsFiddle">
-            <div class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</div>
-          </div>-->
-
-          <script data-jsfiddle="example2">
-            var people2 = [
-              {id: 1, name: {first: 'Joe', last: 'Fabiano'}, gender: 'Male', age: '21', languages: {english: 'Yes', spanish: 'Yes', french: 'No'}, salary: 2000},
-              {id: 2, name: {first: 'Fred', last: 'Wecler'}, gender: 'Male', age: '25', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 2500},
-              {id: 3, name: {first: 'Steve', last: 'Wilson'}, gender: 'Male', age: '32', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 1700},
-              {id: 4, name: {first: 'Maria', last: 'Fernandez'}, gender: 'Female', age: '27', languages: {english: 'No', spanish: 'Yes', french: 'Yes'}, salary: 3000},
-              {id: 5, name: {first: 'Pierre', last: 'Barbault'}, gender: 'Male', age: '46', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}, salary: 1450},
-              {id: 6, name: {first: 'Nancy', last: 'Moore'}, gender: 'Female', age: '34', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 2300},
-              {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, gender: 'Female', age: '19', languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 1900},
-              {id: 8, name: {first: 'Wilma', last: 'Williams'}, gender: 'Female', age: '33', languages: {english: 'Yes', spanish: 'Yes', french: 'Yes'}, salary: 2400},
-              {id: 9, name: {first: 'Sasha', last: 'Silver'}, gender: 'Male', age: '27', languages: {english: 'Yes', spanish: 'No', french: 'Yes'}, salary: 2110},
-              {id: 10, name: {first: 'Don', last: 'Pérignon'}, gender: 'Male', age: '42', languages: {english: 'No', spanish: 'No', french: 'Yes'}, salary: 2090}
-            ];
-          </script>
-        </div>
-      </div>
-    </div>
-
-    <script>
-      if (navigator.userAgent.toLowerCase().indexOf('chrome') === -1) {
-        var res = confirm("Handsontable Web Components demo was tested only in Chrome 26+. You are using different browser.\n\nDo you want to run the examples?\n\n(May freeze your browser!)");
-        if (!res) {
-          var example1 = document.getElementById('example1');
-          var example2 = document.getElementById('example2');
-
-          example1.parentNode.removeChild(example1);
-          example2.parentNode.removeChild(example2);
-        }
-      }
-    </script>
-
-    <div class="rowLayout">
-      <div class="descLayout noMargin">
-        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
-
-          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-            licensed under the The MIT License.</p>
-        </div>
-      </div>
+      <p>All your help (review, comments, pull requests) in this area is very welcome. Please use the GitHub Issues
+        <a
+          href="https://github.com/warpech/jquery-handsontable/issues/603">ticket #603</a> to share your
+        thoughts.</p>
     </div>
   </div>
+</div>
+
+<div class="rowLayout" id="unsupported" style="display: none">
+  <div class="descLayout">
+    <div class="pad">
+      <h2>&lt;x-handsontable&gt; simple dashboard demo</h2>
+
+      <p><strong>Unsupported browser</strong>. This demo only works properly in Chrome 26+. Last time we checked in
+        Firefox 20, the scrollbars did not work as expected.</p>
+
+      <p>Testing this in unsupported browser may crash your browser.</p>
+
+      <p>
+        <button onclick="showDemo()">I don't care, show me the demo anyway!</button>
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout" id="supported" style="display: none">
+  <div class="descLayout">
+    <div class="pad" data-jsfiddle="example1">
+      <a name="works"></a>
+
+      <h2>&lt;x-handsontable&gt; simple dashboard demo</h2>
+
+      <p>This example shows an experimental build of Handsontable as Web Component.</p>
+
+      <p>Cell types: <code>text</code>, <code>checkbox</code>, <code>numeric</code> and <code>autocomplete</code>
+        should work as expected.</p>
+
+      <p>Only the <code>date</code> cell type won't work because jQuery UI Datepicker does not support Shadow DOM at the moment.
+      </p>
+
+      <x-tile id="ageTile" skin="green" label="Median Age" value=""></x-tile>
+      <x-tile id="maleTile" skin="blue" label="Male" value=""></x-tile>
+      <x-tile id="femaleTile" skin="pink" label="Female" value=""></x-tile>
+      <x-tile id="englishTile" skin="gray" label="English" value=""></x-tile>
+      <x-tile id="frenchTile" skin="gray" label="French" value=""></x-tile>
+      <x-tile id="spanishTile" skin="gray" label="Spanish" value=""></x-tile>
+      <div style="clear: left"></div>
+
+      <x-handsontable id="example1" datarows="people" settings="settings" width="400" minsparerows="1">
+        <datacolumn width="30" readOnly value="id" title="ID"></datacolumn>
+        <datacolumn width="70" value="name.first" title="First Name"></datacolumn>
+        <datacolumn width="100" value="name.last" title="Last Name"></datacolumn>
+        <datacolumn type="autocomplete" source="genderList" value="gender"
+                    title="Gender"></datacolumn>
+        <datacolumn type="numeric" value="age" title="Age"></datacolumn>
+        <datacolumn type="checkbox" value="languages.english" title="English" checkedTemplate="Yes"
+                    uncheckedTemplate="No"></datacolumn>
+        <datacolumn type="checkbox" value="languages.spanish" title="Spanish" checkedTemplate="Yes"
+                    uncheckedTemplate="No"></datacolumn>
+        <datacolumn type="checkbox" value="languages.french" title="French" checkedTemplate="Yes"
+                    uncheckedTemplate="No"></datacolumn>
+        <datacolumn type="numeric" value="salary" title="Salary" format="$ 0,0.00"></datacolumn>
+      </x-handsontable>
+
+      <p>
+        <button id="button1" title="Prints current data source to Firebug/Chrome Dev Tools">
+          Dump data to console
+        </button>
+
+        <button id="button2">
+          Switch gender
+        </button>
+
+        <button id="button3">
+          Grow older
+        </button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <div class="jsFiddle">
+        <div class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</div>
+      </div>
+
+      <script data-jsfiddle="example1">
+        var people = [
+          {id: 1, name: {first: 'Joe', last: 'Fabiano'}, gender: 'Male', age: 21, languages: {english: 'Yes', spanish: 'Yes', french: 'No'}, salary: 2000},
+          {id: 2, name: {first: 'Fred', last: 'Wecler'}, gender: 'Male', age: 25, languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 2500},
+          {id: 3, name: {first: 'Steve', last: 'Wilson'}, gender: 'Male', age: 32, languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 1700},
+          {id: 4, name: {first: 'Maria', last: 'Fernandez'}, gender: 'Female', age: 27, languages: {english: 'No', spanish: 'Yes', french: 'Yes'}, salary: 3000},
+          {id: 5, name: {first: 'Pierre', last: 'Barbault'}, gender: 'Male', age: 46, languages: {english: 'Yes', spanish: 'No', french: 'Yes'}, salary: 1450},
+          {id: 6, name: {first: 'Nancy', last: 'Moore'}, gender: 'Female', age: 34, languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 2300},
+          {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, gender: 'Female', age: 19, languages: {english: 'Yes', spanish: 'No', french: 'No'}, salary: 1900},
+          {id: 8, name: {first: 'Wilma', last: 'Williams'}, gender: 'Female', age: 33, languages: {english: 'Yes', spanish: 'Yes', french: 'Yes'}, salary: 2400},
+          {id: 9, name: {first: 'Sasha', last: 'Silver'}, gender: 'Male', age: 27, languages: {english: 'Yes', spanish: 'No', french: 'Yes'}, salary: 2110},
+          {id: 10, name: {first: 'Don', last: 'Pérignon'}, gender: 'Male', age: 42, languages: {english: 'No', spanish: 'No', french: 'Yes'}, salary: 2090},
+          {id: 11, name: {first: 'Aaron', last: 'Kinley'}, gender: 'Female', age: 33, languages: {english: 'Yes', spanish: 'Yes', french: 'Yes'}, salary: 2799}
+        ];
+
+        var settings = {
+          isEmptyRow: function (r) {
+            var val;
+            //c === 1 to ignore id column
+            for (var c = 1, clen = this.countCols(); c < clen; c++) {
+              val = this.getDataAtCell(r, c);
+              if (val !== '' && val !== null && typeof val !== 'undefined') {
+                return false;
+              }
+            }
+            return true;
+          }
+        };
+
+        var genderList = ["Male", "Female"];
+
+        function refreshDashboard() {
+          var sum = 0
+            , total = 0
+            , male = 0
+            , female = 0
+            , english = 0
+            , french = 0
+            , spanish = 0;
+
+          people.filter(function (person) {
+            if (person.age) {
+              sum += person.age;
+              total++;
+            }
+            switch (person.gender) {
+              case 'Male':
+                male++;
+                break;
+
+              case 'Female':
+                female++;
+                break;
+            }
+            if (person.languages.english === 'Yes') {
+              english++;
+            }
+            if (person.languages.french === 'Yes') {
+              french++;
+            }
+            if (person.languages.spanish === 'Yes') {
+              spanish++;
+            }
+          });
+
+          document.getElementById('ageTile').value = Math.round(sum / total);
+          document.getElementById('maleTile').value = Math.round(100 * (male / (male + female))) + '%';
+          document.getElementById('femaleTile').value = Math.round(100 * (female / (male + female))) + '%';
+          document.getElementById('englishTile').value = Math.round(100 * (english / people.length)) + '%';
+          document.getElementById('frenchTile').value = Math.round(100 * (french / people.length)) + '%';
+          document.getElementById('spanishTile').value = Math.round(100 * (spanish / people.length)) + '%';
+        }
+
+        document.addEventListener('WebComponentsReady', function () {
+          var HOT = document.getElementById('example1');
+
+          //Bind Handsontable events
+          HOT.addHook('afterCreateRow', function () {
+            applyIds();
+          });
+          HOT.addHook('afterRender', function () {
+            refreshDashboard();
+          });
+
+          //Refresh data, rerender Handsontable and dashboard
+          applyIds();
+          HOT.render();
+          refreshDashboard();
+
+          //Bind button events
+          document.getElementById('button1').addEventListener('click', function () {
+            var data = HOT.getData();
+            console.log('Data of x-handsontable ', data);
+          });
+
+          document.getElementById('button2').addEventListener('click', function () {
+            people.filter(function (person) {
+              person.gender = person.gender === 'Male' ? 'Female' : 'Male';
+            });
+            HOT.render();
+          });
+
+          document.getElementById('button3').addEventListener('click', function () {
+            people.filter(function (person) {
+              if (person.age !== null) {
+                person.age = parseInt(person.age, 10) + 1; //convert string
+              }
+            });
+            HOT.render();
+          });
+        });
+
+        function applyIds() {
+          people.filter(function (person) {
+            if (!person.id) {
+              person.id = autoId();
+            }
+          });
+        }
+
+        function autoId() {
+          var highest = 0;
+          people.filter(function (person) {
+            if (person.id && person.id > highest) {
+              highest = person.id;
+            }
+          });
+          return highest + 1;
+        }
+      </script>
+    </div>
+  </div>
+</div>
+<script>
+  if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1 && parseInt(window.navigator.appVersion.match(/Chrome\/(\d+)\./)[1], 10) >= 26) {
+    document.getElementById('supported').style.display = 'block';
+  }
+  else if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1 && parseInt(navigator.userAgent.match(/Firefox\/([0-9]*)/)[1]) >= 21) {
+    document.getElementById('supported').style.display = 'block';
+  }
+  else {
+    document.getElementById('unsupported').style.display = 'block';
+  }
+
+  function showDemo() {
+    document.getElementById('unsupported').style.display = 'none';
+    document.getElementById('supported').style.display = 'block';
+  }
+</script>
+
+<div class="rowLayout">
+  <div class="descLayout noMargin">
+    <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+
+      <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+        licensed under the The MIT License.</p>
+    </div>
+  </div>
+</div>
+</div>
 </div>
 </body>
 </html>

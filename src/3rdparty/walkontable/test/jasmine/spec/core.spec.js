@@ -100,9 +100,9 @@ describe('WalkontableCore', function () {
       offsetRow: 0,
       offsetColumn: 0,
       height: 200,
-      rowHeaders: function (row, TH) {
+      rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
-      }
+      }]
     });
     wt.draw();
     expect($table.find('thead th').length).toBe(5); //include corner TH
@@ -173,5 +173,73 @@ describe('WalkontableCore', function () {
     expect(wt.drawInterrupted).toBe(true);
 
     $div.remove();
+  });
+
+  it("should render empty table (limited height)", function () {
+    createDataArray(0, 5);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      height: 100
+    });
+    wt.draw();
+    wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+  });
+
+  it("should render empty table (unlimited height)", function () {
+    createDataArray(0, 5);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns
+    });
+    wt.draw();
+    wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+  });
+
+  it("should render empty then filled table (limited height)", function () {
+    createDataArray(0, 5);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      height: 100
+    });
+    wt.draw();
+    createDataArray(1, 5);
+    wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+  });
+
+  it("should render empty then filled table (unlimited height)", function () {
+    createDataArray(0, 5);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns
+    });
+    wt.draw();
+    createDataArray(1, 5);
+    wt.draw(); //second render was giving "Cannot read property 'firstChild' of null" sometimes
+  });
+
+  it("should render table with rows but no columns", function () {
+    createDataArray(5, 0);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns
+    });
+    wt.draw();
   });
 });
