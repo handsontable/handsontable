@@ -87,4 +87,27 @@ describe('Core_getCellMeta', function () {
       expect(getDataAtCell(2, 2)).toEqual('new value');
     });
   });
+
+  it('should allow to use type and renderer in `flat` notation', function () {
+    handsontable({
+      data : [[1,2,3,4],[5,6,7,8],[0,9,8,7]],
+      cells: function (row, col) {
+        if (row === 2 && col === 2) {
+          return {
+            type: 'checkbox',
+            renderer: function (instance, td, row, col, prop, value, cellProperties) {
+                //taken from demo/renderers.html
+                Handsontable.TextCell.renderer.apply(this, arguments);
+
+                td.style.background = 'yellow';
+            }
+          }
+        }
+      }
+    });
+
+    expect(getCell(2, 2).style.background).toEqual('yellow');
+    expect(getCell(1, 1).style.background).toEqual('');
+  });
+
 });
