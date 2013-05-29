@@ -1,9 +1,9 @@
-var FLAG_VISIBLE_HORIZONTAL = 0x1; // 000001
+/*var FLAG_VISIBLE_HORIZONTAL = 0x1; // 000001
 var FLAG_VISIBLE_VERTICAL = 0x2; // 000010
 var FLAG_PARTIALLY_VISIBLE_HORIZONTAL = 0x4; // 000100
 var FLAG_PARTIALLY_VISIBLE_VERTICAL = 0x8; // 001000
 var FLAG_NOT_VISIBLE_HORIZONTAL = 0x10; // 010000
-var FLAG_NOT_VISIBLE_VERTICAL = 0x20; // 100000
+var FLAG_NOT_VISIBLE_VERTICAL = 0x20; // 100000*/
 
 function WalkontableTable(instance) {
   //reference to instance
@@ -443,6 +443,7 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
   }
 };
 
+/* this function is not used currently (was used in _doDraw)
 WalkontableTable.prototype.isCellVisible = function (r, c) {
   var out = 0;
 
@@ -471,7 +472,7 @@ WalkontableTable.prototype.isCellVisible = function (r, c) {
   }
 
   return out;
-};
+};*/
 
 /**
  * getCell
