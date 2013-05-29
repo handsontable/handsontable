@@ -1,11 +1,33 @@
 function WalkontableScrollbars(instance) {
-  this.vertical = new WalkontableVerticalScrollbar(instance);
-  this.horizontal = new WalkontableHorizontalScrollbar(instance);
+  switch (instance.getSetting('scrollbarModelV')) {
+    case 'dragdealer':
+      this.vertical = new WalkontableVerticalScrollbar(instance);
+      break;
+
+    case 'native':
+      this.vertical = new WalkontableVerticalScrollbarNative(instance);
+      break;
+  }
+
+  switch (instance.getSetting('scrollbarModelH')) {
+    case 'dragdealer':
+      this.horizontal = new WalkontableHorizontalScrollbar(instance);
+      break;
+
+    case 'native':
+      this.horizontal = new WalkontableHorizontalScrollbarNative(instance);
+      break;
+  }
 }
 
 WalkontableScrollbars.prototype.destroy = function () {
-  clearInterval(this.vertical.dragdealer.interval);
-  clearInterval(this.horizontal.dragdealer.interval);
+  if (this.vertical.destroy) {
+    this.vertical.destroy();
+  }
+
+  if (this.horizontal.destroy) {
+    this.horizontal.destroy();
+  }
 };
 
 WalkontableScrollbars.prototype.refresh = function () {

@@ -29,7 +29,7 @@ WalkontableScroll.prototype.scrollVertical = function (delta) {
   }
 
   if (newOffset !== offset) {
-    instance.update('offsetRow', newOffset);
+    this.instance.wtScrollbars.vertical.scrollTo(newOffset);
   }
   return instance;
 };
@@ -61,7 +61,7 @@ WalkontableScroll.prototype.scrollHorizontal = function (delta) {
   }
 
   if (newOffset !== offset) {
-    instance.update('offsetColumn', newOffset);
+    this.instance.wtScrollbars.horizontal.scrollTo(newOffset);
   }
   return instance;
 };

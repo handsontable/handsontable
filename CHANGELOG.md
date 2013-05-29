@@ -1,3 +1,19 @@
+## [0.9.2](https://github.com/warpech/jquery-handsontable/tree/v0.9.2) (May 28, 2013)
+
+Features:
+- initial release of Native Scrollbars feature (experimental, don't use yet)
+- initial release of `observeChanges` option (experimental). Available for all supported browsers except IE 7-8 (uses Object.observe when possible or a custom shim based on [Starcounter-Jack/JSON-Patch](https://github.com/Starcounter-Jack/JSON-Patch))
+
+Bugfixes:
+- mouse wheel didn't scroll the window when cursor was over Handsontable ([#383](https://github.com/warpech/jquery-handsontable/issues/383), [#627](https://github.com/warpech/jquery-handsontable/issues/627))
+- methods `countVisibleRows` and `countVisibleCols` were broken since version 0.9.0 ([#711](https://github.com/warpech/jquery-handsontable/issues/711))
+- WalkontableDom.prototype.offset now returns offset relatively to the document also for position: fixed
+- fix scrolling on border cases when table height was the size of the container
+
+Docs:
+- new demo page [Options](http://handsontable.com/demo/options.html). Currently features one option but this will improve over time
+- added new file [CONTRIBUTING.md](CONTRIBUTING.md). Will be updated with more information soon
+
 ## [0.9.1](https://github.com/warpech/jquery-handsontable/tree/v0.9.1) (May 22, 2013)
 
 Bugfix:

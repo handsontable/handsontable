@@ -212,18 +212,30 @@ WalkontableDom.prototype.isVisible = function (elem) {
 };
 
 /**
- * seems getBounding is usually faster: http://jsperf.com/offset-vs-getboundingclientrect/4
- * but maybe offset + cache would work?
- * edit: after more tests turns out offsetLeft/Top is faster
+ * Returns elements top and left offset relative to the document. In our usage case compatible with jQuery but 2x faster
+ * @param {HTMLElement} elem
+ * @return {Object}
  */
-
 WalkontableDom.prototype.offset = function (elem) {
   var offsetLeft = elem.offsetLeft
-    , offsetTop = elem.offsetTop;
+    , offsetTop = elem.offsetTop
+    , lastElem = elem;
+
   while (elem = elem.offsetParent) {
+    if (elem === document.body) { //from my observation, document.body always has scrollLeft/scrollTop == 0
+      break;
+    }
     offsetLeft += elem.offsetLeft;
     offsetTop += elem.offsetTop;
+    lastElem = elem;
   }
+
+  if (lastElem && lastElem.style.position === 'fixed') { //slow - http://jsperf.com/offset-vs-getboundingclientrect/6
+    //if(lastElem !== document.body) { //faster but does gives false positive in Firefox
+    offsetLeft += window.pageXOffset || document.documentElement.scrollLeft;
+    offsetTop += window.pageYOffset || document.documentElement.scrollTop;
+  }
+
   return {
     left: offsetLeft,
     top: offsetTop
