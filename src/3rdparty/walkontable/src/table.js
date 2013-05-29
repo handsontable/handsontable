@@ -291,7 +291,8 @@ WalkontableTable.prototype._doDraw = function () {
     , displayThs = rowHeaders.length
     , TR
     , TD
-    , adjusted = false;
+    , adjusted = false
+    , workspaceWidth;
 
   this.instance.wtViewport.resetSettings();
 
@@ -324,11 +325,21 @@ WalkontableTable.prototype._doDraw = function () {
       if (r === 0) {
         this.adjustAvailableNodes();
         adjusted = true;
-        displayTds = this.columnStrategy.cellCount
-      }
+        displayTds = this.columnStrategy.cellCount;
 
-      //TD
-      this.adjustColumns(TR, displayTds + displayThs);
+        //TD
+        this.adjustColumns(TR, displayTds + displayThs);
+
+        workspaceWidth = this.instance.wtViewport.getWorkspaceWidth();
+        this.columnStrategy.stretch();
+        for (c = 0; c < displayTds; c++) {
+          this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(c) + 'px';
+        }
+      }
+      else {
+        //TD
+        this.adjustColumns(TR, displayTds + displayThs);
+      }
 
       for (c = 0; c < displayTds; c++) {
         source_c = this.columnFilter.visibleToSource(c);
@@ -368,9 +379,13 @@ WalkontableTable.prototype._doDraw = function () {
   }
 
   this.instance.wtScrollbars.refresh();
-  this.columnStrategy.stretch();
-  for (c = 0; c < displayTds; c++) {
-    this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(c) + 'px';
+
+  if (workspaceWidth !== this.instance.wtViewport.getWorkspaceWidth()) {
+    //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
+    this.columnStrategy.stretch();
+    for (c = 0; c < displayTds; c++) {
+      this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(c) + 'px';
+    }
   }
 };
 
