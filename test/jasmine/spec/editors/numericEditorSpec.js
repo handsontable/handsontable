@@ -38,18 +38,10 @@ describe('NumericEditor', function () {
     });
     selectCell(2, 0);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
+    document.activeElement.value = '999';
 
-    runs(function () {
-      keyDown('enter');
-      document.activeElement.value = '999';
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      destroyEditor();
-      expect(getDataAtCell(2, 0)).toEqual(999); //should be number type
-    });
+    destroyEditor();
+    expect(getDataAtCell(2, 0)).toEqual(999); //should be number type
   });
 });

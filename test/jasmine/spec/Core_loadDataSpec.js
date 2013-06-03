@@ -171,11 +171,7 @@ describe('Core_loadData', function () {
       data: arrayOfArrays()
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(countRows()).toEqual(20); //TODO why this must be checked after render?
-    });
+    expect(countRows()).toEqual(20); //TODO why this must be checked after render?
   });
 
   it('should create new rows for array of nested objects (and respect minRows)', function () {
@@ -184,22 +180,14 @@ describe('Core_loadData', function () {
       data: arrayOfNestedObjects()
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(countRows()).toEqual(20); //TODO why this must be checked after render?
-    });
+    expect(countRows()).toEqual(20); //TODO why this must be checked after render?
   });
 
   it('HTML special chars should be escaped by default', function () {
     handsontable();
     loadData(htmlData);
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(getCell(0, 0).innerHTML).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
-    });
+    expect(getCell(0, 0).innerHTML).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
   });
 
   it('should create as many rows as needed by array of objects', function () {
@@ -208,11 +196,7 @@ describe('Core_loadData', function () {
       data: arrayOfObjects()
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(getCell(9, 1).innerHTML).toEqual('Eve');
-    });
+    expect(getCell(9, 1).innerHTML).toEqual('Eve');
   });
 
   //https://github.com/warpech/jquery-handsontable/pull/233
@@ -245,11 +229,7 @@ describe('Core_loadData', function () {
 
     loadData(blanks);
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(countRows()).toBe(1);
-    });
+    expect(countRows()).toBe(1);
   });
 
   it('should remove grid rows if new data source has less of them', function () {
@@ -280,12 +260,8 @@ describe('Core_loadData', function () {
     selectCell(7, 0);
     loadData(data2);
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(countRows()).toBe(data2.length);
-      expect(getSelected()).toEqual([4, 0, 4, 0]);
-    });
+    expect(countRows()).toBe(data2.length);
+    expect(getSelected()).toEqual([4, 0, 4, 0]);
   });
 
   it('should remove grid rows if new data source has less of them (with minSpareRows)', function () {
@@ -317,12 +293,8 @@ describe('Core_loadData', function () {
     selectCell(8, 0);
     loadData(data2);
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(countRows()).toBe(6); //+1 because of minSpareRows
-      expect(getSelected()).toEqual([5, 0, 5, 0]);
-    });
+    expect(countRows()).toBe(6); //+1 because of minSpareRows
+    expect(getSelected()).toEqual([5, 0, 5, 0]);
   });
 
   it('loading empty data should remove all rows', function () {
@@ -347,12 +319,8 @@ describe('Core_loadData', function () {
     selectCell(7, 0);
     loadData(data2);
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(countRows()).toBe(0);
-      expect(getSelected()).toEqual(null);
-    });
+    expect(countRows()).toBe(0);
+    expect(getSelected()).toEqual(null);
   });
 
   it('should only have as many columns as in settings', function () {
@@ -366,11 +334,7 @@ describe('Core_loadData', function () {
       ]
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(countCols()).toBe(2);
-    });
+    expect(countCols()).toBe(2);
   });
 
   it('should throw error when trying to load a string (constructor)', function () {

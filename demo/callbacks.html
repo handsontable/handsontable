@@ -74,23 +74,25 @@
           <div id="example1"></div>
 
           <p>
-            <select multiple="multiple" id="example1_events" style="width: 400px; height: 250px"></select>
-          </p>
-
-          <p>Log events:</p>
-
-          <ul class="tight" id="hooksList">
-            <li><label><input type="checkbox" checked id="check_select_all"> <strong>select all</strong></label></li>
-          </ul>
-
-          <p>
             <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump data to console
             </button>
-            <button onclick="$('#example1_events').empty()">
-              Clear event log
-            </button>
           </p>
+
+          <h3>Events log
+            <button onclick="$('#example1_events').empty()">
+              Clear
+            </button>
+          </h3>
+
+          <div id="example1_events"
+               style="width: 400px; height: 250px; overflow: scroll; background-color: #fdfdfd; font-size: 11px"></div>
+
+          <p>Choose events to be logged:</p>
+
+          <ul class="tight" id="hooksList">
+            <li><label><input type="checkbox" id="check_select_all"> <strong>select all</strong></label></li>
+          </ul>
         </div>
       </div>
 
@@ -117,14 +119,19 @@
               autoWrapRow: true,
               colHeaders: true,
               contextMenu: true
-            }
+            };
 
             var $hooksList = $('#hooksList');
             var hooks = new Handsontable.PluginHookMap();
             for (var hook in hooks) {
               if (hooks.hasOwnProperty(hook)) {
                 config[hook] = (function (hook) {
-                  $hooksList.append('<li><label><input type="checkbox" checked id="check_' + hook + '"> ' + hook + '</label></li>');
+                  var checked = '';
+                  if (hook === 'afterLoadData' || hook === 'afterChange' || hook === 'beforeChange' || hook === 'afterSelection' || hook === 'afterSelectionEnd') {
+                    checked = 'checked';
+
+                  }
+                  $hooksList.append('<li><label><input type="checkbox" ' + checked + ' id="check_' + hook + '"> ' + hook + '</label></li>');
                   return function () {
                     log_events(hook, arguments);
                   }
@@ -176,7 +183,7 @@
                 }
 
                 $("#example1_events").prepend(
-                    $("<option/>").text(vals.join(" "))
+                    $("<div/>").text(vals.join(" "))
                   )
                   .scrollTop(0);
                 i++;

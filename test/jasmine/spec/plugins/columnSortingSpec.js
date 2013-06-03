@@ -34,17 +34,9 @@ describe('ColumnSorting', function () {
       columnSorting: true
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
+    this.$container.find('th span.columnSorting').first().click();
+    this.$container.find('th span.columnSorting').first().click();
 
-    runs(function () {
-      this.$container.find('th span.columnSorting').first().click();
-      this.$container.find('th span.columnSorting').first().click();
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(this.$container.find('tr td').first().html()).toEqual('10');
-    });
+    expect(this.$container.find('tr td').first().html()).toEqual('10');
   });
 });

@@ -2159,7 +2159,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     instance.runHooks('beforeGetCellMeta', row, col, cellProperties);
 
-    if (typeof cellProperties.type === 'string') {
+    if (typeof cellProperties.type === 'string' && cellProperties.type !== 'text') {
       type = Handsontable.cellTypes[cellProperties.type];
       if (type === void 0) {
         throw new Error('You declared cell type "' + cellProperties.type + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
@@ -2171,7 +2171,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     if (type) {
       for (i in type) {
-        if (type.hasOwnProperty(i)) {
+        if (type.hasOwnProperty(i) && cellProperties[i] === Handsontable.cellTypes.text[i]) {
           cellProperties[i] = type[i];
         }
       }

@@ -74,6 +74,7 @@ I want to stay motivated to keep Handsontable the best possible editable datagri
  - [ParamQuery](http://paramquery.com/)
  - [Ember Table](http://addepar.github.io/ember-table/)
  - [Backgrid.js](http://backgridjs.com/)
+ - [dgrid](http://dojofoundation.org/packages/dgrid/)
 
 ## License
 
