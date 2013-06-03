@@ -101,7 +101,7 @@ CopyPaste.prototype.triggerCut = function (event) {
   if (that.cutCallback) {
     setTimeout(function () {
       that.cutCallback(event);
-    }, 0);
+    }, 50);
   }
 };
 
@@ -110,7 +110,7 @@ CopyPaste.prototype.triggerPaste = function (event, str) {
   if (that.pasteCallback) {
     setTimeout(function () {
       that.pasteCallback((str || that.elTextarea.value).replace(/\n$/, ''), event); //remove trailing newline
-    }, 0);
+    }, 50);
   }
 };
 

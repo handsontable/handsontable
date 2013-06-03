@@ -13,82 +13,39 @@ describe('Core_view', function () {
   });
 
   it('should focus cell after viewport is scrolled using down arrow', function () {
-    runs(function () {
-      handsontable({
-        startRows: 20
-      });
-      selectCell(0, 0);
-      keyDown('arrow_down');
+    handsontable({
+      startRows: 20
     });
+    selectCell(0, 0);
 
-    waits(51);
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('arrow_down');
-    });
-
-    waits(51);
-
-    runs(function () {
-      keyDown('arrow_down');
-    });
-
-    waits(51);
-
-    runs(function () {
-      keyDown('arrow_down');
-    });
-
-    waits(51);
-
-    runs(function () {
-      keyDown('enter');
-    });
-
-    waits(51);
-
-    runs(function () {
-      expect(isEditorVisible()).toEqual(true);
-    });
+    expect(isEditorVisible()).toEqual(true);
   });
 
   it('should not scroll viewport when last cell is clicked', function () {
-    runs(function () {
-      this.$container.remove();
-      this.$container = $('<div id="' + id + '"></div>').appendTo('body');
-      handsontable({
-        startRows: 50
-      });
+    this.$container.remove();
+    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    handsontable({
+      startRows: 50
     });
-
-    waitsFor(nextFrame, 'next frame', 60);
 
     var lastScroll;
 
-    runs(function () {
-      $(window).scrollTop(10000);
-      lastScroll = $(window).scrollTop();
-      selectCell(47, 0);
-    });
+    $(window).scrollTop(10000);
+    lastScroll = $(window).scrollTop();
+    selectCell(47, 0);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    expect($(window).scrollTop()).toEqual(lastScroll);
 
-    runs(function () {
-      expect($(window).scrollTop()).toEqual(lastScroll);
-    });
+    keyDown('arrow_right');
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      keyDown('arrow_right');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(getSelected()).toEqual([47, 1, 47, 1]);
-      expect($(window).scrollTop()).toEqual(lastScroll);
-    });
+    expect(getSelected()).toEqual([47, 1, 47, 1]);
+    expect($(window).scrollTop()).toEqual(lastScroll);
   });
 
   it('should not shrink table when width and height is not specified for container', function () {
@@ -129,11 +86,7 @@ describe('Core_view', function () {
       height: 107
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(this.$container.height()).toEqual(107);
-    });
+    expect(this.$container.height()).toEqual(107);
   });
 
   it('should allow height to be a function', function () {
@@ -148,11 +101,7 @@ describe('Core_view', function () {
       }
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(this.$container.height()).toEqual(107);
-    });
+    expect(this.$container.height()).toEqual(107);
   });
 
   it('should allow width to be a number', function () {
@@ -165,11 +114,7 @@ describe('Core_view', function () {
       width: 107
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(this.$container.find('.wtHider').width()).toEqual(107); //rootElement is full width but this should do the trick
-    });
+    expect(this.$container.find('.wtHider').width()).toEqual(107); //rootElement is full width but this should do the trick
   });
 
   it('should allow width to be a function', function () {
@@ -184,10 +129,6 @@ describe('Core_view', function () {
       }
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(this.$container.find('.wtHider').width()).toEqual(107); //rootElement is full width but this should do the trick
-    });
+    expect(this.$container.find('.wtHider').width()).toEqual(107); //rootElement is full width but this should do the trick
   });
 });

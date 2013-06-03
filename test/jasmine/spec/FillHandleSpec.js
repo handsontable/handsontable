@@ -17,17 +17,9 @@ describe('FillHandle', function () {
       fillHandle: true
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
+    selectCell(2, 2);
 
-    runs(function () {
-      selectCell(2, 2);
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(isFillHandleVisible()).toBe(true);
-    });
+    expect(isFillHandleVisible()).toBe(true);
   });
 
   it('should not appear when fillHandle equals false', function () {
@@ -36,11 +28,7 @@ describe('FillHandle', function () {
     });
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(isFillHandleVisible()).toBe(false);
-    });
+    expect(isFillHandleVisible()).toBe(false);
   });
 
   it('should disappear when beginediting is triggered', function () {
@@ -49,17 +37,9 @@ describe('FillHandle', function () {
     });
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(isFillHandleVisible()).toBe(false);
-    });
+    expect(isFillHandleVisible()).toBe(false);
   });
 
   it('should appear when finishediting is triggered', function () {
@@ -68,18 +48,10 @@ describe('FillHandle', function () {
     });
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('enter');
-      keyDown('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(isFillHandleVisible()).toBe(true);
-    });
+    expect(isFillHandleVisible()).toBe(true);
   });
 
   it('should not appear when fillHandle equals false and finishediting is triggered', function () {
@@ -88,18 +60,10 @@ describe('FillHandle', function () {
     });
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('enter');
-      keyDown('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(isFillHandleVisible()).toBe(false);
-    });
+    expect(isFillHandleVisible()).toBe(false);
   });
 
   it('should add custom value after autofill', function () {
@@ -112,37 +76,23 @@ describe('FillHandle', function () {
     });
     selectCell(0, 0);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    var fillHandle = this.$container.find('.wtBorder.corner')[0]
+      , event = jQuery.Event("mousedown");
 
-    runs(function () {
-      var fillHandle = this.$container.find('.wtBorder.corner')[0]
-        , event = jQuery.Event("mousedown");
+    event.target = fillHandle;
+    this.$container.find('tr:eq(0) td:eq(0)').trigger(event);
 
-      event.target = fillHandle;
-      this.$container.find('tr:eq(0) td:eq(0)').trigger(event);
-    });
+    this.$container.find('tr:eq(1) td:eq(0)').trigger('mouseenter');
+    this.$container.find('tr:eq(2) td:eq(0)').trigger('mouseenter');
 
-    waitsFor(nextFrame, 'next frame', 60);
 
-    runs(function () {
-      this.$container.find('tr:eq(1) td:eq(0)').trigger('mouseenter');
-      this.$container.find('tr:eq(2) td:eq(0)').trigger('mouseenter');
-    });
+    var fillHandle = this.$container.find('.wtBorder.corner')[0]
+      , event = jQuery.Event("mouseup");
 
-    waitsFor(nextFrame, 'next frame', 60);
+    event.target = fillHandle;
+    this.$container.find('tr:eq(2) td:eq(0)').trigger(event);
 
-    runs(function () {
-      var fillHandle = this.$container.find('.wtBorder.corner')[0]
-        , event = jQuery.Event("mouseup");
 
-      event.target = fillHandle;
-      this.$container.find('tr:eq(2) td:eq(0)').trigger(event);
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(getDataAtCell(1,0)).toEqual("test");
-    });
+    expect(getDataAtCell(1,0)).toEqual("test");
   });
 });

@@ -28,3 +28,10 @@ WalkontableRowStrategy.prototype.add = function (i, TD) {
     this.remainingSize = this.cellSizesSum - containerSize;
   }
 };
+
+WalkontableRowStrategy.prototype.remove = function () {
+  var size = this.cellSizes.pop();
+  this.cellSizesSum -= size;
+  this.cellCount--;
+  this.remainingSize += size;
+};

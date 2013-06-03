@@ -16,11 +16,7 @@ describe('ColHeader', function () {
     var that = this;
     handsontable();
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(that.$container.find('thead th').length).toEqual(0);
-    });
+    expect(that.$container.find('thead th').length).toEqual(0);
   });
 
   it('should show col headers if true', function () {
@@ -29,11 +25,7 @@ describe('ColHeader', function () {
       colHeaders: true
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(that.$container.find('thead th').length).toBeGreaterThan(0);
-    });
+    expect(that.$container.find('thead th').length).toBeGreaterThan(0);
   });
 
   it('should show col headers numbered 1-10 by default', function () {
@@ -44,17 +36,13 @@ describe('ColHeader', function () {
       colHeaders: true
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      var ths = that.$container.find('thead th');
-      expect(ths.length).toEqual(startCols);
-      expect($.trim(ths.eq(0).text())).toEqual('A');
-      expect($.trim(ths.eq(1).text())).toEqual('B');
-      expect($.trim(ths.eq(2).text())).toEqual('C');
-      expect($.trim(ths.eq(3).text())).toEqual('D');
-      expect($.trim(ths.eq(4).text())).toEqual('E');
-    });
+    var ths = that.$container.find('thead th');
+    expect(ths.length).toEqual(startCols);
+    expect($.trim(ths.eq(0).text())).toEqual('A');
+    expect($.trim(ths.eq(1).text())).toEqual('B');
+    expect($.trim(ths.eq(2).text())).toEqual('C');
+    expect($.trim(ths.eq(3).text())).toEqual('D');
+    expect($.trim(ths.eq(4).text())).toEqual('E');
   });
 
   it('should show col headers with custom label', function () {
@@ -65,17 +53,13 @@ describe('ColHeader', function () {
       colHeaders: ['First', 'Second', 'Third']
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      var ths = that.$container.find('thead th');
-      expect(ths.length).toEqual(startCols);
-      expect($.trim(ths.eq(0).text())).toEqual('First');
-      expect($.trim(ths.eq(1).text())).toEqual('Second');
-      expect($.trim(ths.eq(2).text())).toEqual('Third');
-      expect($.trim(ths.eq(3).text())).toEqual('D');
-      expect($.trim(ths.eq(4).text())).toEqual('E');
-    });
+    var ths = that.$container.find('thead th');
+    expect(ths.length).toEqual(startCols);
+    expect($.trim(ths.eq(0).text())).toEqual('First');
+    expect($.trim(ths.eq(1).text())).toEqual('Second');
+    expect($.trim(ths.eq(2).text())).toEqual('Third');
+    expect($.trim(ths.eq(3).text())).toEqual('D');
+    expect($.trim(ths.eq(4).text())).toEqual('E');
   });
 
   it('should not show col headers if false', function () {
@@ -84,10 +68,6 @@ describe('ColHeader', function () {
       colHeaders: false
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(that.$container.find('th.htColHeader').length).toEqual(0);
-    });
+    expect(that.$container.find('th.htColHeader').length).toEqual(0);
   });
 });

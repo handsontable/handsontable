@@ -359,4 +359,43 @@ describe('WalkontableScroll', function () {
     wt.draw();
     expect($table.find('tbody tr:first td').length).toBeGreaterThan(3);
   });
+
+  it("should scroll to last row with very high rows", function () {
+    createDataArray(20, 100);
+
+    for (var i = 0, ilen = this.data.length; i < ilen; i++) {
+      this.data[i][0] += '\n this \nis \na \nmultiline \ncell';
+    }
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      offsetRow: 0,
+      offsetColumn: 0,
+      width: 260,
+      height: 200
+    });
+    wt.draw().scrollVertical(Infinity).draw();
+    expect($table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell([this.data.length - 1, 0])); //last rendered row should be last data row
+  });
+
+  it("should scroll to last column with very wide cells", function () {
+    createDataArray(20, 100);
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      offsetRow: 0,
+      offsetColumn: 0,
+      width: 260,
+      height: 200
+    });
+    wt.draw().scrollHorizontal(50).draw();
+    createDataArray(100, 30);
+    wt.draw();
+    expect($table.find('tbody tr:first td').length).toBeGreaterThan(3);
+  });
 });

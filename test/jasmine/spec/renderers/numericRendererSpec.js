@@ -23,10 +23,6 @@ describe('NumericRenderer', function () {
     });
     setDataAtCell(2, 2, "1000.234");
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(getCell(2, 2).innerHTML).toEqual("$1,000.23");
-    });
+    expect(getCell(2, 2).innerHTML).toEqual("$1,000.23");
   });
 });

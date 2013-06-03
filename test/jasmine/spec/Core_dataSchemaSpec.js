@@ -29,14 +29,10 @@ describe('Core_dataSchema', function () {
     });
     selectCell(0, 1);
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      keyDownUp('enter');
-      keyProxy().val('Ted');
-      keyDownUp('enter');
-      expect(getData()[0].name.first).toEqual('Ted');
-    });
+    keyDownUp('enter');
+    keyProxy().val('Ted');
+    keyDownUp('enter');
+    expect(getData()[0].name.first).toEqual('Ted');
   });
 
   it('should create new row from dataSchema (functional)', function () {
@@ -66,29 +62,17 @@ describe('Core_dataSchema', function () {
     });
     selectCell(4, 1);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    expect(countRows()).toEqual(5);
+    keyDownUp('enter');
+    keyProxy().val('Ted');
 
-    runs(function () {
-      expect(countRows()).toEqual(5);
-      keyDownUp('enter');
-      keyProxy().val('Ted');
-    });
+    //need it in next frame as long as HT is rendered in async
+    keyDownUp('enter');
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      //need it in next frame as long as HT is rendered in async
-      keyDownUp('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      //need it in next frame as long as HT is rendered in async
-      keyDownUp('enter');
-      expect(getData()[4].name.first).toEqual('Ted');
-      expect(getData()[4].id).toEqual(1004);
-      expect(countRows()).toEqual(6); //row should be added by keepEmptyRows
-    });
+    //need it in next frame as long as HT is rendered in async
+    keyDownUp('enter');
+    expect(getData()[4].name.first).toEqual('Ted');
+    expect(getData()[4].id).toEqual(1004);
+    expect(countRows()).toEqual(6); //row should be added by keepEmptyRows
   });
 });

@@ -30,7 +30,7 @@ describe('Core_paste', function () {
     selectCell(3, 4); //selectAll
     triggerPaste('Kia\tNissan\tToyota');
 
-    waits(30);
+    waits(60);
 
     runs(function () {
       var expected = arrayOfArrays();
@@ -49,7 +49,7 @@ describe('Core_paste', function () {
     selectCell(1, 0); //selectAll
     triggerPaste('Kia\tNissan\tToyota');
 
-    waits(30);
+    waits(60);
 
     runs(function () {
       expect(getData().length).toEqual(4);
@@ -68,7 +68,7 @@ describe('Core_paste', function () {
     selectCell(1, 0); //selectAll
     triggerPaste('Kia\tNissan\tToyota');
 
-    waits(30);
+    waits(60);
 
     runs(function () {
       expect(getData().length).toEqual(6);
@@ -86,7 +86,7 @@ describe('Core_paste', function () {
     selectCell(1, 0); //selectAll
     triggerPaste('Kia\tNissan\tToyota');
 
-    waits(30);
+    waits(60);
 
     runs(function () {
       expect(getData()[0].length).toEqual(5);
@@ -105,7 +105,7 @@ describe('Core_paste', function () {
     selectCell(1, 0); //selectAll
     triggerPaste('Kia\tNissan\tToyota');
 
-    waits(30);
+    waits(60);
 
     runs(function () {
       expect(getData()[0].length).toEqual(9);
