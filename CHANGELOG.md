@@ -3,6 +3,9 @@ Bugfixes:
 - fix `observeChanges` in IE9-10 and Firefox (merge Object.observe shim fixes from https://github.com/Starcounter-Jack/JSON-Patch/pull/6)
 - initial render was incomplete with Native Scrollbars on
 
+Other:
+- make Callbacks demo faster and more convenient
+
 ## [0.9.2](https://github.com/warpech/jquery-handsontable/tree/v0.9.2) (May 28, 2013)
 
 Features:
