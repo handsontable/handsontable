@@ -364,22 +364,17 @@ describe('Core_selection', function () {
       }
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
+    this.$container.find('tr:eq(0) td:eq(0)').trigger('mousedown');
+    this.$container.find('tr:eq(0) td:eq(1)').trigger('mouseenter');
+    this.$container.find('tr:eq(1) td:eq(3)').trigger('mouseenter');
 
-    var that = this;
-    runs(function () {
-      that.$container.find('tr:eq(0) td:eq(0)').trigger('mousedown');
-      that.$container.find('tr:eq(0) td:eq(1)').trigger('mouseenter');
-      that.$container.find('tr:eq(1) td:eq(3)').trigger('mouseenter');
+    var mouseup = $.Event('mouseup');
+    mouseup.which = 1; //LMB
+    this.$container.find('tr:eq(1) td:eq(3)').trigger(mouseup);
 
-      var mouseup = $.Event('mouseup');
-      mouseup.which = 1; //LMB
-      that.$container.find('tr:eq(1) td:eq(3)').trigger(mouseup);
-
-      expect(getSelected()).toEqual([0, 0, 1, 3]);
-      expect(tick).toEqual(3);
-      expect(tickEnd).toEqual(1);
-    });
+    expect(getSelected()).toEqual([0, 0, 1, 3]);
+    expect(tick).toEqual(3);
+    expect(tickEnd).toEqual(1);
   });
 
   it('should move focus to selected cell', function () {
@@ -391,12 +386,8 @@ describe('Core_selection', function () {
     $input[0].focus();
     selectCell(0, 0);
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      keyDownUp('enter');
-      expect(isEditorVisible()).toEqual(true);
-      $input.remove();
-    });
+    keyDownUp('enter');
+    expect(isEditorVisible()).toEqual(true);
+    $input.remove();
   });
 });

@@ -18,41 +18,22 @@ describe('TextEditor', function () {
     });
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      var selection = getSelected();
-      expect(selection).toEqual([2, 2, 2, 2]);
-      expect(isEditorVisible()).toEqual(true);
-    });
+    var selection = getSelected();
+    expect(selection).toEqual([2, 2, 2, 2]);
+    expect(isEditorVisible()).toEqual(true);
   });
 
   it('should move down after editing', function () {
     handsontable();
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      keyDown('enter');
-    });
-
-    runs(function () {
-      var selection = getSelected();
-      expect(selection).toEqual([3, 2, 3, 2]);
-    });
+    var selection = getSelected();
+    expect(selection).toEqual([3, 2, 3, 2]);
   });
 
   it('should move down when enterBeginsEditing equals false', function () {
@@ -61,19 +42,11 @@ describe('TextEditor', function () {
     });
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      var selection = getSelected();
-      expect(selection).toEqual([3, 2, 3, 2]);
-      expect(isEditorVisible()).toEqual(false);
-    });
+    var selection = getSelected();
+    expect(selection).toEqual([3, 2, 3, 2]);
+    expect(isEditorVisible()).toEqual(false);
   });
 
   it('should render string in textarea', function () {
@@ -81,17 +54,9 @@ describe('TextEditor', function () {
     setDataAtCell(2, 2, "string");
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(keyProxy().val()).toEqual("string");
-    });
+    expect(keyProxy().val()).toEqual("string");
   });
 
   it('should render number in textarea', function () {
@@ -99,17 +64,9 @@ describe('TextEditor', function () {
     setDataAtCell(2, 2, 13);
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(keyProxy().val()).toEqual("13");
-    });
+    expect(keyProxy().val()).toEqual("13");
   });
 
   it('should render boolean true in textarea', function () {
@@ -117,17 +74,9 @@ describe('TextEditor', function () {
     setDataAtCell(2, 2, true);
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(keyProxy().val()).toEqual("true");
-    });
+    expect(keyProxy().val()).toEqual("true");
   });
 
   it('should render boolean false in textarea', function () {
@@ -135,17 +84,9 @@ describe('TextEditor', function () {
     setDataAtCell(2, 2, false);
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(keyProxy().val()).toEqual("false");
-    });
+    expect(keyProxy().val()).toEqual("false");
   });
 
   it('should render null in textarea', function () {
@@ -153,17 +94,9 @@ describe('TextEditor', function () {
     setDataAtCell(2, 2, null);
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(keyProxy().val()).toEqual("");
-    });
+    expect(keyProxy().val()).toEqual("");
   });
 
   it('should render undefined in textarea', function () {
@@ -171,83 +104,40 @@ describe('TextEditor', function () {
     setDataAtCell(2, 2, void 0);
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(keyProxy().val()).toEqual("");
-    });
+    expect(keyProxy().val()).toEqual("");
   });
 
   it('should open editor after cancelling edit and beginning it again', function () {
     handsontable();
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('f2');
+    keyDown('esc');
+    keyDown('f2');
 
-    runs(function () {
-      keyDown('f2');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      keyDown('esc');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      keyDown('f2');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(isEditorVisible()).toEqual(true);
-    });
+    expect(isEditorVisible()).toEqual(true);
   });
 
   it('loadData should not destroy editor', function () {
     handsontable();
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('f2');
+    loadData(getData());
 
-    runs(function () {
-      keyDown('f2');
-      loadData(getData());
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(isEditorVisible()).toEqual(true);
-    });
+    expect(isEditorVisible()).toEqual(true);
   });
 
   it('updateSettings should not destroy editor', function () {
     handsontable();
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('f2');
+    updateSettings({data: getData()});
 
-    runs(function () {
-      keyDown('f2');
-      updateSettings({data: getData()});
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(isEditorVisible()).toEqual(true);
-    });
+    expect(isEditorVisible()).toEqual(true);
   });
 
   it('textarea should have cell dimensions (after render)', function () {
@@ -272,7 +162,7 @@ describe('TextEditor', function () {
       render();
     });
 
-    waitsFor(nextFrame, 'next frame', 60);
+    waits(10);
 
     runs(function () {
       var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
@@ -284,22 +174,12 @@ describe('TextEditor', function () {
     handsontable();
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDownUp('enter');
 
-    runs(function () {
-      keyDownUp('enter');
-    });
+    keyDown(65, {ctrlKey: true}); //CTRL+A should NOT select all table when cell is edited
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      keyDown(65, {ctrlKey: true}); //CTRL+A should NOT select all table when cell is edited
-    });
-
-    runs(function () {
-      var selection = getSelected();
-      expect(selection).toEqual([2, 2, 2, 2]);
-      expect(isEditorVisible()).toEqual(true);
-    });
+    var selection = getSelected();
+    expect(selection).toEqual([2, 2, 2, 2]);
+    expect(isEditorVisible()).toEqual(true);
   });
 });

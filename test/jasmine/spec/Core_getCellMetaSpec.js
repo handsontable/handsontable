@@ -23,17 +23,9 @@ describe('Core_getCellMeta', function () {
     allCellsReadOnly = true;
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(isEditorVisible()).toEqual(false);
-    });
+    expect(isEditorVisible()).toEqual(false);
   });
 
   it('should allow manual editing of cell that is no longer read only', function () {
@@ -47,17 +39,9 @@ describe('Core_getCellMeta', function () {
     allCellsReadOnly = false;
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
+    keyDown('enter');
 
-    runs(function () {
-      keyDown('enter');
-    });
-
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      expect(isEditorVisible()).toEqual(true);
-    });
+    expect(isEditorVisible()).toEqual(true);
   });
 
   it('should use default cell editor for a cell that has declared only cell renderer', function () {
@@ -78,14 +62,10 @@ describe('Core_getCellMeta', function () {
     });
     selectCell(2, 2);
 
-    waitsFor(nextFrame, 'next frame', 60);
-
-    runs(function () {
-      keyDown('enter');
-      document.activeElement.value = 'new value';
-      destroyEditor();
-      expect(getDataAtCell(2, 2)).toEqual('new value');
-    });
+    keyDown('enter');
+    document.activeElement.value = 'new value';
+    destroyEditor();
+    expect(getDataAtCell(2, 2)).toEqual('new value');
   });
 
   it('should allow to use type and renderer in `flat` notation', function () {
