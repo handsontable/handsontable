@@ -1,3 +1,5 @@
+## [0.9.3](https://github.com/warpech/jquery-handsontable/tree/v0.9.3) (Jun 4, 2013)
+
 Bugfixes:
 - scrolling to the last row/column did not work with rows of big height, or columns of big width ([#645](https://github.com/warpech/jquery-handsontable/issues/645), [#698](https://github.com/warpech/jquery-handsontable/issues/698), [#730](https://github.com/warpech/jquery-handsontable/issues/730))
 - fix `observeChanges` in IE9-10 and Firefox (merge Object.observe shim fixes from https://github.com/Starcounter-Jack/JSON-Patch/pull/6)
@@ -6,7 +8,7 @@ Bugfixes:
 - cut and paste events did not work in a reliable way in Mac Chrome and Safari
 
 Other:
-- make Callbacks demo faster and more convenient
+- make [Callbacks](http://handsontable.com/demo/callbacks.html) demo faster and more convenient
 - change async tests to sync where possible
 
 ## [0.9.2](https://github.com/warpech/jquery-handsontable/tree/v0.9.2) (May 28, 2013)
