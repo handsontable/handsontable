@@ -61,6 +61,21 @@ Handsontable.helper.spreadsheetColumnLabel = function (index) {
 };
 
 /**
+ * Checks if value of n is a numeric one
+ * http://jsperf.com/isnan-vs-isnumeric/4
+ * @param n
+ * @returns {boolean}
+ */
+Handsontable.helper.isNumeric = function (n) {
+    var t = typeof n;
+    return t == 'number' ? !isNaN(n) && isFinite(n) :
+           t == 'string' ? !n.length ? false :
+           n.length == 1 ? /\d/.test(n) :
+           /^\s*[+-]?\s*(?:(?:\d+(?:\.\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/i.test(n) :
+           t == 'object' ? !!n && typeof n.valueOf() == "number" && !(n instanceof Date) : false;
+};
+
+/**
  * Checks if child is a descendant of given parent node
  * http://stackoverflow.com/questions/2234979/how-to-check-in-javascript-if-one-element-is-a-child-of-another
  * @param parent
