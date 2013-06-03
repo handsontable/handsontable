@@ -6,6 +6,7 @@ Bugfixes:
 
 Other:
 - make Callbacks demo faster and more convenient
+- change async tests to sync where possible
 
 ## [0.9.2](https://github.com/warpech/jquery-handsontable/tree/v0.9.2) (May 28, 2013)
 
