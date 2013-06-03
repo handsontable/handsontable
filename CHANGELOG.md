@@ -1,6 +1,5 @@
 Bugfixes:
 - scrolling to the last row/column did not work with rows of big height, or columns of big width ([#645](https://github.com/warpech/jquery-handsontable/issues/645), [#698](https://github.com/warpech/jquery-handsontable/issues/698), [#730](https://github.com/warpech/jquery-handsontable/issues/730))
-- not all rows were rendered when table had rows of variable height
 - fix `observeChanges` in IE9-10 and Firefox (merge Object.observe shim fixes from https://github.com/Starcounter-Jack/JSON-Patch/pull/6)
 - initial render was incomplete with Native Scrollbars on
 - flat notation of options `cellProperties.renderer`, `cellProperties.editor` did not work as desired ([#713](https://github.com/warpech/jquery-handsontable/issues/713))
