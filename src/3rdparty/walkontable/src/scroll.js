@@ -48,7 +48,7 @@ WalkontableScroll.prototype.scrollHorizontal = function (delta) {
 
   if (total > 0) {
     newOffset = this.scrollLogic(delta, offset, total, fixedCount, maxSize, function (col) {
-      if (col - offset < fixedCount) {
+      if (col - offset < fixedCount && col - offset >= 0) {
         return instance.getSetting('columnWidth', col - offset);
       }
       else {
