@@ -675,6 +675,34 @@ describe('WalkontableTable', function () {
     expect(wtHider.find('col:eq(1)').width()).toBe(wtHider.find('col:eq(2)').width() - 1); //first is 106, last is 107 due to remaining part
   });
 
+  it("should strech all visible columns when stretchH equals 'all' (when rows are of variable height)", function () {
+    createDataArray(20, 2);
+
+    for(var i= 0, ilen=this.data.length; i<ilen; i++) {
+      if(i % 2) {
+        this.data[i][0] += " this is a cell that contains a lot of text, which will make it multi-line"
+      }
+    }
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      width: 301,
+      height: 200,
+      scrollH: 'scroll',
+      scrollV: 'scroll',
+      stretchH: 'all'
+    });
+    wt.draw();
+
+    var wtHider = $table.parents('.wtHider');
+    expect(wtHider.find('col:eq(0)').width()).toBe(145);
+    expect(wtHider.find('col:eq(1)').width()).toBe(146); //+1 more because of the remaining part
+    expect(wtHider.find('tr').length).toBe(4); //4 rows should be rendered
+  });
+
   it("should strech last visible column when stretchH equals 'last'", function () {
     createDataArray(20, 2);
 
@@ -780,5 +808,89 @@ describe('WalkontableTable', function () {
     wt.draw();
     expect(wtHider.outerWidth()).toBeGreaterThan(getTableWidth($table));
     expect(wtHider.find('tr:first td:last').width()).toEqual(wtHider.find('tr:first td:last').prev().width());
+  });
+
+  describe('isLastRowFullyVisible', function () {
+    it('should be false because it is only partially visible', function () {
+      createDataArray(8, 4);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        width: 185,
+        height: 185,
+        scrollH: 'auto',
+        scrollV: 'auto',
+        stretchH: 'hybrid'
+      });
+      wt.draw();
+
+      expect(wt.wtTable.isLastRowFullyVisible()).toEqual(false);
+    });
+
+    it('should be true because it is fully visible', function () {
+      createDataArray(8, 4);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        width: 185,
+        height: 185,
+        scrollH: 'auto',
+        scrollV: 'auto',
+        stretchH: 'hybrid'
+      });
+      wt.draw();
+      wt.scrollVertical(1);
+      wt.draw();
+
+      expect(wt.wtTable.isLastRowFullyVisible()).toEqual(true);
+    });
+  });
+
+  describe('isLastColumnFullyVisible', function () {
+    it('should be false because it is only partially visible', function () {
+      createDataArray(18, 4);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        width: 209,
+        height: 185,
+        scrollH: 'auto',
+        scrollV: 'auto',
+        stretchH: 'hybrid'
+      });
+      wt.draw();
+
+      expect(wt.wtTable.isLastColumnFullyVisible()).toEqual(false); //few pixels are obstacled by scrollbar
+    });
+
+    it('should be true because it is fully visible', function () {
+      createDataArray(18, 4);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        width: 205,
+        height: 185,
+        scrollH: 'auto',
+        scrollV: 'auto',
+        stretchH: 'hybrid'
+      });
+      wt.draw();
+      wt.scrollHorizontal(1);
+      wt.draw();
+
+      expect(wt.wtTable.isLastColumnFullyVisible()).toEqual(true);
+    });
   });
 });

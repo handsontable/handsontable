@@ -1,9 +1,9 @@
-var FLAG_VISIBLE_HORIZONTAL = 0x1; // 000001
-var FLAG_VISIBLE_VERTICAL = 0x2; // 000010
-var FLAG_PARTIALLY_VISIBLE_HORIZONTAL = 0x4; // 000100
-var FLAG_PARTIALLY_VISIBLE_VERTICAL = 0x8; // 001000
-var FLAG_NOT_VISIBLE_HORIZONTAL = 0x10; // 010000
-var FLAG_NOT_VISIBLE_VERTICAL = 0x20; // 100000
+/*var FLAG_VISIBLE_HORIZONTAL = 0x1; // 000001
+ var FLAG_VISIBLE_VERTICAL = 0x2; // 000010
+ var FLAG_PARTIALLY_VISIBLE_HORIZONTAL = 0x4; // 000100
+ var FLAG_PARTIALLY_VISIBLE_VERTICAL = 0x8; // 001000
+ var FLAG_NOT_VISIBLE_HORIZONTAL = 0x10; // 010000
+ var FLAG_NOT_VISIBLE_VERTICAL = 0x20; // 100000*/
 
 function WalkontableTable(instance) {
   //reference to instance
@@ -91,6 +91,8 @@ function WalkontableTable(instance) {
 
   this.rowFilter = new WalkontableRowFilter();
   this.columnFilter = new WalkontableColumnFilter();
+
+  this.verticalRenderReverse = false;
 }
 
 WalkontableTable.prototype.refreshHiderDimensions = function () {
@@ -105,8 +107,14 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
     spreaderStyle.position = 'absolute';
     spreaderStyle.top = '0';
     spreaderStyle.left = '0';
-    spreaderStyle.width = '4000px';
-    spreaderStyle.height = '4000px';
+
+    if (this.instance.getSetting('scrollbarModelV') === 'dragdealer') {
+      spreaderStyle.height = '4000px';
+    }
+
+    if (this.instance.getSetting('scrollbarModelH') === 'dragdealer') {
+      spreaderStyle.width = '4000px';
+    }
 
     if (height === Infinity) {
       height = this.instance.wtViewport.getWorkspaceActualHeight();
@@ -161,7 +169,12 @@ WalkontableTable.prototype.refreshStretching = function () {
   var rowHeightFn = function (i, TD) {
     var source_r = that.rowFilter.visibleToSource(i);
     if (source_r < totalRows) {
-      return that.wtDom.outerHeight(TD);
+      if (that.verticalRenderReverse) {
+        return that.wtDom.outerHeight(TD) - 1;
+      }
+      else {
+        return that.wtDom.outerHeight(TD);
+      }
     }
   };
 
@@ -278,6 +291,7 @@ WalkontableTable.prototype._doDraw = function () {
     , source_r
     , c
     , source_c
+    , offsetRow = this.instance.getSetting('offsetRow')
     , totalRows = this.instance.getSetting('totalRows')
     , totalColumns = this.instance.getSetting('totalColumns')
     , displayTds
@@ -285,20 +299,40 @@ WalkontableTable.prototype._doDraw = function () {
     , displayThs = rowHeaders.length
     , TR
     , TD
-    , adjusted = false;
+    , adjusted = false
+    , workspaceWidth;
 
   this.instance.wtViewport.resetSettings();
+
+  var noPartial = false;
+  if (this.verticalRenderReverse) {
+    if (offsetRow === totalRows - 1) {
+      noPartial = true;
+    }
+    else {
+      this.instance.update('offsetRow', offsetRow + 1); //if we are scrolling reverse
+      this.rowFilter.readSettings(this.instance);
+    }
+  }
 
   //draw TBODY
   if (totalColumns > 0) {
     source_r = this.rowFilter.visibleToSource(r);
-    while (source_r < totalRows) {
-      if (r >= this.tbodyChildrenLength) {
+
+    var first = true;
+
+    while (source_r < totalRows && source_r >= 0) {
+      if (r >= this.tbodyChildrenLength || this.verticalRenderReverse) {
         TR = document.createElement('TR');
         for (c = 0; c < displayThs; c++) {
           TR.appendChild(document.createElement('TH'));
         }
-        this.TBODY.appendChild(TR);
+        if (this.verticalRenderReverse) {
+          this.TBODY.insertBefore(TR, this.TBODY.firstChild);
+        }
+        else {
+          this.TBODY.appendChild(TR);
+        }
         this.tbodyChildrenLength++;
       }
       else if (r === 0) {
@@ -315,14 +349,27 @@ WalkontableTable.prototype._doDraw = function () {
         TD = TD.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
       }
 
-      if (r === 0) {
+      if (first) {
+//      if (r === 0) {
+        first = false;
+
         this.adjustAvailableNodes();
         adjusted = true;
-        displayTds = this.columnStrategy.cellCount
-      }
+        displayTds = this.columnStrategy.cellCount;
 
-      //TD
-      this.adjustColumns(TR, displayTds + displayThs);
+        //TD
+        this.adjustColumns(TR, displayTds + displayThs);
+
+        workspaceWidth = this.instance.wtViewport.getWorkspaceWidth();
+        this.columnStrategy.stretch();
+        for (c = 0; c < displayTds; c++) {
+          this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(c) + 'px';
+        }
+      }
+      else {
+        //TD
+        this.adjustColumns(TR, displayTds + displayThs);
+      }
 
       for (c = 0; c < displayTds; c++) {
         source_c = this.columnFilter.visibleToSource(c);
@@ -341,12 +388,38 @@ WalkontableTable.prototype._doDraw = function () {
       }
 
       //after last column is rendered, check if last cell is fully displayed
-      this.rowStrategy.add(r, TD);
-      if (this.rowStrategy.isLastIncomplete()) {
-        break;
+      if (this.verticalRenderReverse && noPartial) {
+        if (-this.wtDom.outerHeight(TR.firstChild) < this.rowStrategy.remainingSize) {
+            this.TBODY.removeChild(TR);
+            this.instance.update('offsetRow', source_r + 1);
+            this.tbodyChildrenLength--;
+            this.rowFilter.readSettings(this.instance);
+            break;
+
+        }
+        else {
+          this.rowStrategy.add(r, TD);
+        }
+        if (source_r === 0) {
+          break;
+        }
+      }
+      else {
+        this.rowStrategy.add(r, TD);
+
+        if (this.rowStrategy.isLastIncomplete()) {
+          break;
+        }
       }
 
-      r++;
+      if (this.verticalRenderReverse) {
+        this.instance.update('offsetRow', source_r - 1);
+        this.rowFilter.readSettings(this.instance);
+      }
+      else {
+        r++;
+      }
+
       source_r = this.rowFilter.visibleToSource(r);
     }
   }
@@ -355,18 +428,25 @@ WalkontableTable.prototype._doDraw = function () {
     this.adjustAvailableNodes();
   }
 
-  this.instance.wtScrollbars.refresh();
-  this.columnStrategy.stretch();
-  for (c = 0; c < displayTds; c++) {
-    this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(c) + 'px';
-  }
-
   r = this.rowStrategy.countVisible();
   while (this.tbodyChildrenLength > r) {
     this.TBODY.removeChild(this.TBODY.lastChild);
     this.tbodyChildrenLength--;
   }
-};
+
+  this.instance.wtScrollbars.refresh();
+
+  if (workspaceWidth !== this.instance.wtViewport.getWorkspaceWidth()) {
+    //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
+    this.columnStrategy.stretch();
+    for (c = 0; c < displayTds; c++) {
+      this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(c) + 'px';
+    }
+  }
+
+  this.verticalRenderReverse = false;
+}
+;
 
 WalkontableTable.prototype.refreshPositions = function (selectionsOnly) {
   this.refreshHiderDimensions();
@@ -422,35 +502,36 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
   }
 };
 
-WalkontableTable.prototype.isCellVisible = function (r, c) {
-  var out = 0;
+/* this function is not used currently (was used in _doDraw)
+ WalkontableTable.prototype.isCellVisible = function (r, c) {
+ var out = 0;
 
-  if (this.isRowInViewport(r)) {
-    if (this.getLastVisibleRow() === c && this.rowStrategy.remainingSize > 0) {
-      out |= FLAG_PARTIALLY_VISIBLE_VERTICAL;
-    }
-    else {
-      out |= FLAG_VISIBLE_VERTICAL;
-    }
-  }
-  else {
-    out |= FLAG_NOT_VISIBLE_VERTICAL;
-  }
+ if (this.isRowInViewport(r)) {
+ if (this.getLastVisibleRow() === c && this.rowStrategy.remainingSize > 0) {
+ out |= FLAG_PARTIALLY_VISIBLE_VERTICAL;
+ }
+ else {
+ out |= FLAG_VISIBLE_VERTICAL;
+ }
+ }
+ else {
+ out |= FLAG_NOT_VISIBLE_VERTICAL;
+ }
 
-  if (this.isColumnInViewport(c)) {
-    if (this.getLastVisibleColumn() === c && this.columnStrategy.remainingSize > 0) {
-      out |= FLAG_PARTIALLY_VISIBLE_HORIZONTAL;
-    }
-    else {
-      out |= FLAG_VISIBLE_HORIZONTAL;
-    }
-  }
-  else {
-    out |= FLAG_NOT_VISIBLE_HORIZONTAL;
-  }
+ if (this.isColumnInViewport(c)) {
+ if (this.getLastVisibleColumn() === c && this.columnStrategy.remainingSize > 0) {
+ out |= FLAG_PARTIALLY_VISIBLE_HORIZONTAL;
+ }
+ else {
+ out |= FLAG_VISIBLE_HORIZONTAL;
+ }
+ }
+ else {
+ out |= FLAG_NOT_VISIBLE_HORIZONTAL;
+ }
 
-  return out;
-};
+ return out;
+ };*/
 
 /**
  * getCell
@@ -489,10 +570,12 @@ WalkontableTable.prototype.getCoords = function (TD) {
   ];
 };
 
+//returns -1 if no row is visible
 WalkontableTable.prototype.getLastVisibleRow = function () {
   return this.rowFilter.visibleToSource(this.rowStrategy.cellCount - 1);
 };
 
+//returns -1 if no column is visible
 WalkontableTable.prototype.getLastVisibleColumn = function () {
   return this.columnFilter.visibleToSource(this.columnStrategy.cellCount - 1);
 };
@@ -519,4 +602,12 @@ WalkontableTable.prototype.isRowInViewport = function (r) {
 
 WalkontableTable.prototype.isColumnInViewport = function (c) {
   return (!this.isColumnBeforeViewport(c) && !this.isColumnAfterViewport(c));
+};
+
+WalkontableTable.prototype.isLastRowFullyVisible = function () {
+  return (this.getLastVisibleRow() === this.instance.getSetting('totalRows') - 1 && !this.rowStrategy.isLastIncomplete());
+};
+
+WalkontableTable.prototype.isLastColumnFullyVisible = function () {
+  return (this.getLastVisibleColumn() === this.instance.getSetting('totalColumns') - 1 && !this.columnStrategy.isLastIncomplete());
 };

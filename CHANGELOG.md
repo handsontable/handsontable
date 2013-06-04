@@ -1,5 +1,31 @@
+## [0.9.3](https://github.com/warpech/jquery-handsontable/tree/v0.9.3) (Jun 4, 2013)
+
+Bugfixes:
+- scrolling to the last row/column did not work with rows of big height, or columns of big width ([#645](https://github.com/warpech/jquery-handsontable/issues/645), [#698](https://github.com/warpech/jquery-handsontable/issues/698), [#730](https://github.com/warpech/jquery-handsontable/issues/730))
+- fix `observeChanges` in IE9-10 and Firefox (merge Object.observe shim fixes from https://github.com/Starcounter-Jack/JSON-Patch/pull/6)
+- initial render was incomplete with Native Scrollbars on
+- flat notation of options `cellProperties.renderer`, `cellProperties.editor` did not work as desired ([#713](https://github.com/warpech/jquery-handsontable/issues/713))
+- cut and paste events did not work in a reliable way in Mac Chrome and Safari
+
+Other:
+- make [Callbacks](http://handsontable.com/demo/callbacks.html) demo faster and more convenient
+- change async tests to sync where possible
+
+## [0.9.2](https://github.com/warpech/jquery-handsontable/tree/v0.9.2) (May 28, 2013)
+
+Features:
+- initial release of Native Scrollbars feature (experimental, don't use yet)
+- initial release of `observeChanges` option (experimental). Available for all supported browsers except IE 7-8 (uses Object.observe when possible or a custom shim based on [Starcounter-Jack/JSON-Patch](https://github.com/Starcounter-Jack/JSON-Patch))
+
+Bugfixes:
+- mouse wheel didn't scroll the window when cursor was over Handsontable ([#383](https://github.com/warpech/jquery-handsontable/issues/383), [#627](https://github.com/warpech/jquery-handsontable/issues/627))
+- methods `countVisibleRows` and `countVisibleCols` were broken since version 0.9.0 ([#711](https://github.com/warpech/jquery-handsontable/issues/711))
+- WalkontableDom.prototype.offset now returns offset relatively to the document also for position: fixed
+- fix scrolling on border cases when table height was the size of the container
+
 Docs:
 - new demo page [Options](http://handsontable.com/demo/options.html). Currently features one option but this will improve over time
+- added new file [CONTRIBUTING.md](CONTRIBUTING.md). Will be updated with more information soon
 
 ## [0.9.1](https://github.com/warpech/jquery-handsontable/tree/v0.9.1) (May 22, 2013)
 
