@@ -29,7 +29,7 @@ describe('PluginHooks', function () {
     handsontable();
 
     try {
-      getInstance().addHook('afterInit', function () {});
+      getInstance().PluginHooks.add('afterInit', function () {});
     } catch (e) {
       errors++;
     }
@@ -87,8 +87,8 @@ describe('PluginHooks', function () {
 
     handsontable();
 
-    getInstance().addHook('afterInit', hook);
-    getInstance().removeHook('afterInit', hook);
+    getInstance().PluginHooks.add('afterInit', hook);
+    getInstance().PluginHooks.remove('afterInit', hook);
 
     expect(test).toEqual(0);
   });
@@ -107,11 +107,11 @@ describe('PluginHooks', function () {
 
     handsontable();
 
-    getInstance().addHook('myHook', function () {
+    getInstance().PluginHooks.add('myHook', function () {
       test += 5;
     });
-    getInstance().runHooks('myHook');
-    getInstance().runHooks('myHook');
+    getInstance().PluginHooks.run('myHook');
+    getInstance().PluginHooks.run('myHook');
 
     expect(test).toEqual(10);
   });
@@ -121,11 +121,11 @@ describe('PluginHooks', function () {
 
     handsontable();
 
-    getInstance().addHookOnce('myHook', function () {
+    getInstance().PluginHooks.once('myHook', function () {
       test += 5;
     });
-    getInstance().runHooks('myHook');
-    getInstance().runHooks('myHook');
+    getInstance().PluginHooks.run('myHook');
+    getInstance().PluginHooks.run('myHook');
 
     expect(test).toEqual(5);
   });
