@@ -6,8 +6,6 @@
  */
 Handsontable.Core = function (rootElement, userSettings) {
   var priv
-    , hooks
-    , legacyEventMap
     , datamap
     , grid
     , selection
@@ -2482,8 +2480,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   (function () {
     instance.PluginHooks = new Handsontable.PluginHookClass();
 
-    var _run = instance.PluginHooks.run,
-        _exe = instance.PluginHooks.execute;
+    var _run = instance.PluginHooks.run
+      , _exe = instance.PluginHooks.execute;
 
     instance.PluginHooks.run = function (key, p1, p2, p3, p4, p5) {
       _run.call(this, instance, key, p1, p2, p3, p4, p5);
