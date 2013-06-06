@@ -9,7 +9,7 @@
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
 Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
-  if ($.isNumeric(value)) {
+  if (Handsontable.helper.isNumeric(value)) {
     if (typeof cellProperties.language !== 'undefined') {
       numeral.language(cellProperties.language)
     }
