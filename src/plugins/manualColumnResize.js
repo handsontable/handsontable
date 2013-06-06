@@ -42,7 +42,7 @@ function HandsontableManualColumnResize() {
       instance.forceFullRender = true;
       instance.view.render(); //updates all
       lineStyle.display = 'none';
-      instance.runHooks('afterColumnResize', currentCol, newSize);
+      instance.PluginHooks.run('afterColumnResize', currentCol, newSize);
     }
   });
 
@@ -59,7 +59,7 @@ function HandsontableManualColumnResize() {
           autoresizeTimeout = setTimeout(function () {
             if (dblclick >= 2) {
               setManualSize(currentCol, htAutoColumnSize.determineColumnWidth.call(instance, currentCol));
-              instance.runHooks('afterColumnResize', currentCol, newSize);
+              instance.PluginHooks.run('afterColumnResize', currentCol, newSize);
             }
             dblclick = 0;
             autoresizeTimeout = null;
