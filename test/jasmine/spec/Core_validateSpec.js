@@ -107,6 +107,64 @@ describe('Core_beforechange', function () {
 
   });
 
+  it('should be able to define custom validator function', function () {
+    var result = null;
+
+    runs(function () {
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'id', validator: function (value, cb) {
+            cb(true);
+          }},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate : function (valid) {
+          result = valid;
+        }
+      });
+      setDataAtCell(2, 0, 123);
+    });
+
+    waitsFor(function () {
+      return result !== null;
+    }, "afterValidate callback called", 100);
+
+    runs(function () {
+      expect(result).toEqual(true);
+    });
+
+  });
+
+  it('should be able to define custom validator RegExp', function () {
+    var result = null;
+
+    runs(function () {
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'id', validator: /^\d+$/ },
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate : function (valid) {
+          result = valid;
+        }
+      });
+      setDataAtCell(2, 0, 'test');
+    });
+
+    waitsFor(function () {
+      return result !== null;
+    }, "afterValidate callback called", 100);
+
+    runs(function () {
+      expect(result).toEqual(false);
+    });
+
+  });
+
   it('this in validator are pointing to cellProperties', function () {
     var result = null
       , fired = false;
@@ -130,7 +188,7 @@ describe('Core_beforechange', function () {
     });
 
     waitsFor(function () {
-      return fired
+      return fired;
     }, "afterValidate callback called", 100);
 
     runs(function () {

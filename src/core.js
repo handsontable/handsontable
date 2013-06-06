@@ -1499,7 +1499,7 @@ Handsontable.Core = function (rootElement, userSettings) {
             var validator = cellProperties.validator
               , value = changes[i][3];
 
-            if (Object.prototype.toString.call(cellProperties.validator) === '[object RegExp]') {
+            if (Object.prototype.toString.call(validator) === '[object RegExp]') {
               validator = (function (validator) {
                 return function (value, callback) {
                   callback(validator.test(value));
@@ -1507,7 +1507,7 @@ Handsontable.Core = function (rootElement, userSettings) {
               })(validator);
             }
 
-            if (typeof cellProperties.validator === 'function') {
+            if (typeof validator === 'function') {
               value = changes[i][3];
               value = instance.PluginHooks.execute("beforeValidate", value, changes[i][0], changes[i][1], source);
 
