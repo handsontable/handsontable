@@ -1,6 +1,10 @@
 Bugfixes:
 - should scroll to last row with very high rows respecting fixedRows ([#758](https://github.com/warpech/jquery-handsontable/issues/758))
 - Native Scrollbar was listening to window scroll also after table was removed from DOM
+- `numeric` cell type now correctly formats negative values and strings with dot character ([#658](https://github.com/warpech/jquery-handsontable/issues/658))
+
+Other:
+- [Numeric](http://handsontable.com/demo/numeric.html) cell type demo now shows default (USD) and custom (EUR) locale for currency formatting
 
 ## [0.9.3](https://github.com/warpech/jquery-handsontable/tree/v0.9.3) (Jun 4, 2013)
 
