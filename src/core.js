@@ -2478,8 +2478,10 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   (function () {
+    // Create new instance of plugin hooks
     instance.PluginHooks = new Handsontable.PluginHookClass();
 
+    // Upgrade methods to call of global PluginHooks instance
     var _run = instance.PluginHooks.run
       , _exe = instance.PluginHooks.execute;
 
@@ -2494,6 +2496,15 @@ Handsontable.Core = function (rootElement, userSettings) {
 
       return p1;
     };
+
+    // Map old API with new methods
+    instance.addHook = instance.PluginHooks.add;
+    instance.addHookOnce = instance.PluginHooks.once;
+
+    instance.removeHook = instance.PluginHooks.remove;
+
+    instance.runHooks = instance.PluginHooks.run;
+    instance.runHooksAndReturn = instance.PluginHooks.execute;
 
   })();
 
