@@ -9,12 +9,14 @@ WalkontableScrollbarNative.prototype.init = function () {
   this.$scrollHandler = $(window); //in future remove jQuery from here
 
   var that = this;
-//  var timeout;
-  this.$scrollHandler.on('scroll', function () {
-//    clearTimeout(timeout);
-//    timeout = setTimeout(function(){
-      that.onScroll();
-//    }, 0);
+  this.$scrollHandler.on('scroll.walkontable', function () {
+    if (!that.instance.wtTable.parent.parentNode) {
+      //Walkontable was detached from DOM, but this handler was not removed
+      that.destroy();
+      return;
+    }
+
+    that.onScroll();
   });
 
   this.readSettings();
@@ -22,7 +24,7 @@ WalkontableScrollbarNative.prototype.init = function () {
 
 WalkontableScrollbarNative.prototype.onScroll = function () {
   this.readSettings();
-  if(this.windowScrollPosition === this.lastWindowScrollPosition){
+  if (this.windowScrollPosition === this.lastWindowScrollPosition) {
     return;
   }
   this.lastWindowScrollPosition = this.windowScrollPosition;
@@ -73,6 +75,10 @@ WalkontableScrollbarNative.prototype.refresh = function () {
     this.measureAfter = (this.total - last - 1) * this.cellSize;
   }
   this.applyToDOM();
+};
+
+WalkontableScrollbarNative.prototype.destroy = function () {
+  this.$scrollHandler.off('scroll.walkontable');
 };
 
 ///

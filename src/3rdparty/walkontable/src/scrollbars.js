@@ -21,13 +21,8 @@ function WalkontableScrollbars(instance) {
 }
 
 WalkontableScrollbars.prototype.destroy = function () {
-  if (this.vertical.destroy) {
-    this.vertical.destroy();
-  }
-
-  if (this.horizontal.destroy) {
-    this.horizontal.destroy();
-  }
+  this.vertical.destroy();
+  this.horizontal.destroy();
 };
 
 WalkontableScrollbars.prototype.refresh = function () {
