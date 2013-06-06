@@ -79,15 +79,15 @@ describe('Core_getCellMeta', function () {
                 //taken from demo/renderers.html
                 Handsontable.TextCell.renderer.apply(this, arguments);
 
-                td.style.background = 'yellow';
+                td.style.backgroundColor = 'yellow';
             }
           }
         }
       }
     });
 
-    expect(getCell(2, 2).style.background).toEqual('yellow');
-    expect(getCell(1, 1).style.background).toEqual('');
+    expect(getCell(2, 2).style.backgroundColor).toEqual('yellow');
+    expect(getCell(1, 1).style.backgroundColor).toEqual('');
   });
 
 });
