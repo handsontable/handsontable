@@ -1497,13 +1497,12 @@ Handsontable.Core = function (rootElement, userSettings) {
 
           if (cellProperties.validator) {
             var validator = cellProperties.validator
-              , value = changes[i][3]
-              , valid = true;
+              , value = changes[i][3];
 
             if (Object.prototype.toString.call(cellProperties.validator) === '[object RegExp]') {
               validator = (function (validator) {
-                return function (value) {
-                  return validator.test(value);
+                return function (value, callback) {
+                  callback(validator.test(value));
                 }
               })(validator);
             }
@@ -1512,9 +1511,10 @@ Handsontable.Core = function (rootElement, userSettings) {
               value = changes[i][3];
               value = instance.PluginHooks.execute("beforeValidate", value, changes[i][0], changes[i][1], source);
 
-              valid = validator(value);
+              validator.call(cellProperties, value, function (valid) {
+                instance.PluginHooks.run("afterValidate", valid, value, changes[i][0], changes[i][1], source);
+              });
 
-              instance.PluginHooks.run("afterValidate", valid, value, changes[i][0], changes[i][1], source);
             }
 
           }
@@ -2185,7 +2185,12 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
 
+    cellProperties.row = row;
+    cellProperties.col = col;
+    cellProperties.prop = prop;
+    cellProperties.instance = instance;
     cellProperties.isWritable = !cellProperties.readOnly;
+
     instance.PluginHooks.run('afterGetCellMeta', row, col, cellProperties);
 
     return cellProperties;

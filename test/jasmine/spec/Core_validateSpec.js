@@ -106,4 +106,36 @@ describe('Core_beforechange', function () {
     });
 
   });
+
+  it('this in validator are pointing to cellProperties', function () {
+    var result = null
+      , fired = false;
+
+    runs(function () {
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'id', validator: function (value, cb) {
+            result = this;
+            cb(true);
+          }},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate : function () {
+          fired = true;
+        }
+      });
+      setDataAtCell(2, 0, 123);
+    });
+
+    waitsFor(function () {
+      return fired
+    }, "afterValidate callback called", 100);
+
+    runs(function () {
+      expect(result.instance).toEqual(getInstance());
+    });
+
+  });
 });
