@@ -1490,9 +1490,33 @@ Handsontable.Core = function (rootElement, userSettings) {
           var cellProperties = instance.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
 
           if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
-            if (changes[i][3].length > 0 && /^[0-9\s]*[.]*[0-9]*$/.test(changes[i][3])) {
+            if (changes[i][3].length > 0 && /^-?[\d\s]*\.?\d*$/.test(changes[i][3])) {
               changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
             }
+          }
+
+          if (cellProperties.validator) {
+            var validator = cellProperties.validator
+              , value = changes[i][3]
+              , valid = true;
+
+            if (Object.prototype.toString.call(cellProperties.validator) === '[object RegExp]') {
+              validator = (function (validator) {
+                return function (value) {
+                  return validator.test(value);
+                }
+              })(validator);
+            }
+
+            if (typeof cellProperties.validator === 'function') {
+              value = changes[i][3];
+              value = instance.PluginHooks.execute("beforeValidate", value, changes[i][0], changes[i][1], source);
+
+              valid = validator(value);
+
+              instance.PluginHooks.run("afterValidate", valid, value, changes[i][0], changes[i][1], source);
+            }
+
           }
         }
       }

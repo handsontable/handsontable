@@ -41,7 +41,7 @@ describe('PluginHooks', function () {
     var test = 0;
 
     handsontable({
-      'afterInit' : function () {
+      afterInit : function () {
         test = 5;
       }
     });
@@ -53,7 +53,7 @@ describe('PluginHooks', function () {
     var test = 0;
 
     handsontable({
-      'afterInit' : [function () {
+      afterInit : [function () {
         test = 5;
       }, function () {
         test++;
@@ -138,7 +138,7 @@ describe('PluginHooks', function () {
     });
 
     handsontable({
-      'afterInit' : function () {
+      afterInit : function () {
         test += 5;
       }
     });
