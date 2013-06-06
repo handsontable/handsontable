@@ -17,7 +17,7 @@ describe('Core_beforechange', function () {
 
     runs(function () {
       handsontable({
-        onBeforeChange: function () {
+        beforeChange: function () {
           output = this.rootElement[0];
         }
       });
@@ -26,7 +26,7 @@ describe('Core_beforechange', function () {
 
     waitsFor(function () {
       return (output != null)
-    }, "onBeforeChange callback called", 100);
+    }, "beforeChange callback called", 100);
 
     runs(function () {
       expect(output).toEqual(this.$container[0]);
@@ -39,10 +39,10 @@ describe('Core_beforechange', function () {
     runs(function () {
       handsontable({
         data : [["a", "b"], ["c", "d"]],
-        onBeforeChange: function (changes) {
+        beforeChange: function (changes) {
           changes[1] = null;
         },
-        onChange : function (changes) {
+        afterChange : function (changes) {
           output = changes;
         }
       });
@@ -51,7 +51,7 @@ describe('Core_beforechange', function () {
 
     waitsFor(function () {
       return (output != null)
-    }, "onChange callback called", 100);
+    }, "afterChange callback called", 100);
 
     runs(function () {
       expect(getDataAtCell(0,0)).toEqual("test");
@@ -61,13 +61,37 @@ describe('Core_beforechange', function () {
     });
   });
 
+  it('this should drop all changes when beforeChange return false', function () {
+    var fired = false;
+
+    runs(function () {
+      handsontable({
+        data : [["a", "b"], ["c", "d"]],
+        beforeChange: function (changes) {
+          fired = true;
+          return false;
+        }
+      });
+      setDataAtCell([[0, 0, "test"], [1, 0, "test"], [1, 1, "test"]]);
+    });
+
+    waitsFor(function () {
+      return fired;
+    }, "afterChange callback called", 100);
+
+    runs(function () {
+      expect(getDataAtCell(0,0)).toEqual("a");
+      expect(getDataAtCell(1,0)).toEqual("c");
+      expect(getDataAtCell(1,1)).toEqual("d");
+    });
+  });
   function beforechangeOnKeyFactory(keyCode) {
     return function () {
       var called = false;
 
       runs(function () {
         handsontable({
-          onBeforeChange: function (changes) {
+          beforeChange: function (changes) {
             if (changes[0][2] === "test" && changes[0][3] === "") {
               called = true;
             }
@@ -81,7 +105,7 @@ describe('Core_beforechange', function () {
 
       waitsFor(function () {
         return (called === true)
-      }, "onBeforeChange callback called", 100);
+      }, "beforeChange callback called", 100);
 
       runs(function () {
         expect(called).toEqual(true);

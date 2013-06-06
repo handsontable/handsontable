@@ -41,11 +41,11 @@
   <script data-jsfiddle="common">
     function getCarData() {
       return [
-        ["Mercedes", "A 160", 2006, 6999.9999],
-        ["Citroen", "C4 Coupe", 2008, 8330],
-        ["Audi", "A4 Avant", 2011, 33900],
-        ["Opel", "Astra", 2004, 7000],
-        ["BMW", "320i Coupe", 2011, 30500]
+        {car: "Mercedes A 160", year: 2006, price: 6999.9999},
+        {car: "Citroen C4 Coupe", year: 2008, price: 8330},
+        {car: "Audi A4 Avant", year: 2011, price: 33900},
+        {car: "Opel Astra", year: 2004, price: 7000},
+        {car: "BMW 320i Coupe", year: 2011, price: 30500}
       ];
     }
   </script>
@@ -115,24 +115,29 @@
               data: getCarData(),
               startRows: 7,
               startCols: 4,
-              colHeaders: ["Car", "Model", "Year", "Price"],
+              colHeaders: ["Car", "Year", "Price ($)", "Price (€)"],
               columnSorting: true,
               columns: [
                 {
-                  type: 'autocomplete',
-                  source: ["Audi", "BMW", "Chrysler", "Citroen", "Mercedes", "Nissan", "Opel", "Suzuki", "Toyota", "Volvo"],
-                  strict: false
+                  data: "car"
+                  //1nd column is simple text, no special options here
                 },
                 {
-                  //2nd cell is simple text, no special options here
-                },
-                {
+                  data: "year",
                   type: 'numeric'
                 },
                 {
+                  data: "price",
+                  type: 'numeric',
+                  format: '$0,0.00',
+                  language: 'en' //this is the default locale, set up for USD
+                },
+                {
+                  data: "price",
                   type: 'numeric',
                   format: '0,0.00 $',
-                  language: 'de-de'
+                  language: 'de-de' //i18n: use this for EUR (German)
+                  //more locales available on numeraljs.com
                 }
               ]
             });

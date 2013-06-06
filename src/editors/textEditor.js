@@ -39,7 +39,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
   this.$textareaParent.off('.editor').on('keydown.editor', function (event) {
     //if we are here then isCellEdited === true
 
-    that.instance.runHooks('beforeKeyDown', event);
+    that.instance.PluginHooks.run('beforeKeyDown', event);
     if(event.isImmediatePropagationStopped()) { //event was cancelled in beforeKeyDown
       return;
     }
