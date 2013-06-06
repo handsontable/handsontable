@@ -1,3 +1,5 @@
+## [0.9.4](https://github.com/warpech/jquery-handsontable/tree/v0.9.4) (Jun 7, 2013)
+
 Bugfixes:
 - should scroll to last row with very high rows respecting fixedRows ([#758](https://github.com/warpech/jquery-handsontable/issues/758))
 - Native Scrollbar was listening to window scroll also after table was removed from DOM
