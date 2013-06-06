@@ -3,6 +3,7 @@ Bugfixes:
 - Native Scrollbar was listening to window scroll also after table was removed from DOM
 - `numeric` cell type now correctly formats negative values and strings with dot character ([#658](https://github.com/warpech/jquery-handsontable/issues/658))
 - fix for returning false on `beforeChange` callback has no effect ([#749](https://github.com/warpech/jquery-handsontable/issues/749))
+- clicking on partially visible cell scrolled the table but did not select the desired cell
 
 Other:
 - [Numeric](http://handsontable.com/demo/numeric.html) cell type demo now shows default (USD) and custom (EUR) locale for currency formatting
