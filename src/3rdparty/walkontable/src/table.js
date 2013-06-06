@@ -169,7 +169,7 @@ WalkontableTable.prototype.refreshStretching = function () {
   var rowHeightFn = function (i, TD) {
     var source_r = that.rowFilter.visibleToSource(i);
     if (source_r < totalRows) {
-      if (that.verticalRenderReverse) {
+      if (that.verticalRenderReverse && i === 0) {
         return that.wtDom.outerHeight(TD) - 1;
       }
       else {
@@ -306,7 +306,7 @@ WalkontableTable.prototype._doDraw = function () {
 
   var noPartial = false;
   if (this.verticalRenderReverse) {
-    if (offsetRow === totalRows - 1) {
+    if (offsetRow === totalRows - this.rowFilter.fixedCount - 1) {
       noPartial = true;
     }
     else {
@@ -322,13 +322,13 @@ WalkontableTable.prototype._doDraw = function () {
     var first = true;
 
     while (source_r < totalRows && source_r >= 0) {
-      if (r >= this.tbodyChildrenLength || this.verticalRenderReverse) {
+      if (r >= this.tbodyChildrenLength || (this.verticalRenderReverse && r >= this.rowFilter.fixedCount)) {
         TR = document.createElement('TR');
         for (c = 0; c < displayThs; c++) {
           TR.appendChild(document.createElement('TH'));
         }
-        if (this.verticalRenderReverse) {
-          this.TBODY.insertBefore(TR, this.TBODY.firstChild);
+        if (this.verticalRenderReverse && r >= this.rowFilter.fixedCount) {
+          this.TBODY.insertBefore(TR, this.TBODY.childNodes[this.rowFilter.fixedCount] || this.TBODY.firstChild);
         }
         else {
           this.TBODY.appendChild(TR);
@@ -387,21 +387,20 @@ WalkontableTable.prototype._doDraw = function () {
         }
       }
 
+      offsetRow = this.instance.getSetting('offsetRow'); //refresh the value
+
       //after last column is rendered, check if last cell is fully displayed
       if (this.verticalRenderReverse && noPartial) {
         if (-this.wtDom.outerHeight(TR.firstChild) < this.rowStrategy.remainingSize) {
-            this.TBODY.removeChild(TR);
-            this.instance.update('offsetRow', source_r + 1);
-            this.tbodyChildrenLength--;
-            this.rowFilter.readSettings(this.instance);
-            break;
+          this.TBODY.removeChild(TR);
+          this.instance.update('offsetRow', offsetRow + 1);
+          this.tbodyChildrenLength--;
+          this.rowFilter.readSettings(this.instance);
+          break;
 
         }
         else {
           this.rowStrategy.add(r, TD);
-        }
-        if (source_r === 0) {
-          break;
         }
       }
       else {
@@ -412,8 +411,11 @@ WalkontableTable.prototype._doDraw = function () {
         }
       }
 
-      if (this.verticalRenderReverse) {
-        this.instance.update('offsetRow', source_r - 1);
+      if (this.verticalRenderReverse && r >= this.rowFilter.fixedCount) {
+        if (offsetRow === 0) {
+          break;
+        }
+        this.instance.update('offsetRow', offsetRow - 1);
         this.rowFilter.readSettings(this.instance);
       }
       else {

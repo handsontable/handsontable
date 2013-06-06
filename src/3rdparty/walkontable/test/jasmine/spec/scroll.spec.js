@@ -381,6 +381,31 @@ describe('WalkontableScroll', function () {
     expect($table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell([this.data.length - 1, 0])); //last rendered row should be last data row
   });
 
+  it("should scroll to last row with very high rows (respecting fixedRows)", function () {
+    createDataArray(20, 100);
+
+    for (var i = 0, ilen = this.data.length; i < ilen; i++) {
+      this.data[i][0] += '\n this \nis \na \nmultiline \ncell';
+    }
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      offsetRow: 0,
+      offsetColumn: 0,
+      fixedRowsTop: 2,
+      width: 260,
+      height: 601
+    });
+    wt.draw().scrollVertical(Infinity).draw();
+    expect($table.find('tbody tr:eq(0) td:first')[0]).toBe(wt.wtTable.getCell([0, 0])); //first rendered row should fixed row 0
+    expect($table.find('tbody tr:eq(1) td:first')[0]).toBe(wt.wtTable.getCell([1, 0])); //second rendered row should fixed row 1
+    expect($table.find('tbody tr:eq(2) td:first')[0]).toBe(wt.wtTable.getCell([16, 0])); //third rendered row should fixed row 1
+    expect($table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell([this.data.length - 1, 0])); //last rendered row should be last data row
+  });
+
   it("should scroll to last column with very wide cells", function () {
     createDataArray(20, 100);
     var wt = new Walkontable({
