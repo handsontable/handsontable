@@ -1512,7 +1512,13 @@ Handsontable.Core = function (rootElement, userSettings) {
               value = instance.PluginHooks.execute("beforeValidate", value, changes[i][0], changes[i][1], source);
 
               validator.call(cellProperties, value, function (valid) {
-                instance.PluginHooks.run("afterValidate", valid, value, changes[i][0], changes[i][1], source);
+                var pass = instance.PluginHooks.execute("afterValidate", valid, value, changes[i][0], changes[i][1], source);
+
+                if (pass === false) {
+                  changes.splice(i, 1);
+                  --i;
+                  --length;
+                }
               });
 
             }
