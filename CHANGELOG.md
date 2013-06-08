@@ -1,3 +1,6 @@
+Bugfixes:
+- autoColumnSize did not take `<table>` class into account when measuring the column width
+
 ## [0.9.4](https://github.com/warpech/jquery-handsontable/tree/v0.9.4) (Jun 7, 2013)
 
 Bugfixes:
