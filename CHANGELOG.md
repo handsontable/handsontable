@@ -8,6 +8,9 @@ Bugfixes:
 Other:
 - [Numeric](http://handsontable.com/demo/numeric.html) cell type demo now shows default (USD) and custom (EUR) locale for currency formatting
 
+Performance:
+- use `cloneNode` in cell built-in cell renderers for better performance
+
 ## [0.9.3](https://github.com/warpech/jquery-handsontable/tree/v0.9.3) (Jun 4, 2013)
 
 Bugfixes:
