@@ -1,3 +1,11 @@
+var clonableTEXT = document.createElement('DIV');
+clonableTEXT.className = 'htAutocomplete';
+
+var clonableARROW = document.createElement('DIV');
+clonableARROW.className = 'htAutocompleteArrow';
+clonableARROW.appendChild(document.createTextNode('\u25BC'));
+//this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+
 /**
  * Autocomplete renderer
  * @param {Object} instance Handsontable instance
@@ -9,13 +17,8 @@
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
 Handsontable.AutocompleteRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
-  var TEXT = document.createElement('DIV');
-  TEXT.className = 'htAutocomplete';
-
-  var ARROW = document.createElement('DIV');
-  ARROW.className = 'htAutocompleteArrow';
-  ARROW.appendChild(document.createTextNode('\u25BC'));
-  //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+  var TEXT = clonableTEXT.cloneNode(false); //this is faster than createElement
+  var ARROW = clonableARROW.cloneNode(false); //this is faster than createElement
 
   if (!instance.acArrowListener) {
     //not very elegant but easy and fast
