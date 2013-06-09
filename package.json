@@ -13,9 +13,10 @@
     "grunt-contrib-clean": "~0.4.0",
     "grunt-contrib-concat": "~0.1.0",
     "grunt-contrib-watch": "~0.2.0",
-    "grunt-contrib-jasmine": "~0.4.1"
+    "grunt-contrib-jasmine": "~0.4.1",
+    "grunt-contrib-connect": "~0.3.0"
   },
-  "scripts":{
+  "scripts": {
     "test": "grunt test -v"
   }
 }

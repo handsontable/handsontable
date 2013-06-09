@@ -197,6 +197,15 @@ module.exports = function (grunt) {
           ]
         }
       }
+    },
+    connect: {
+      server: {
+        options: {
+          port: 8080,
+          base: '.',
+          keepalive: true
+        }
+      }
     }
   });
 
@@ -211,4 +220,5 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-jasmine');
+  grunt.loadNpmTasks('grunt-contrib-connect');
 };
