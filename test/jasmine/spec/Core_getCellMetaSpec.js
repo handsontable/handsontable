@@ -70,16 +70,20 @@ describe('Core_getCellMeta', function () {
 
   it('should allow to use type and renderer in `flat` notation', function () {
     handsontable({
-      data : [[1,2,3,4],[5,6,7,8],[0,9,8,7]],
+      data: [
+        [1, 2, 3, 4],
+        [5, 6, 7, 8],
+        [0, 9, 8, 7]
+      ],
       cells: function (row, col) {
         if (row === 2 && col === 2) {
           return {
             type: 'checkbox',
             renderer: function (instance, td, row, col, prop, value, cellProperties) {
-                //taken from demo/renderers.html
-                Handsontable.TextCell.renderer.apply(this, arguments);
+              //taken from demo/renderers.html
+              Handsontable.TextCell.renderer.apply(this, arguments);
 
-                td.style.background = 'yellow';
+              td.style.background = 'yellow';
             }
           }
         }
@@ -88,6 +92,27 @@ describe('Core_getCellMeta', function () {
 
     expect(getCell(2, 2).style.background).toEqual('yellow');
     expect(getCell(1, 1).style.background).toEqual('');
+  });
+
+  it('this in cells should point to cellProperties', function () {
+    var called = 0
+      , _row
+      , _this;
+
+    handsontable({
+      cells: function (row, col, prop) {
+        called++;
+        _row = row;
+        _this = this;
+      }
+    });
+
+    var HOT = getInstance();
+
+    expect(called).toBeGreaterThan(0);
+    expect(_this.row).toEqual(_row);
+    expect(_this.renderer).toBe(Handsontable.TextRenderer);
+    expect(_this.instance).toBe(HOT);
   });
 
 });
