@@ -1,3 +1,5 @@
+- bind `cellProperties` as `this` in `cells` callback
+
 ## [0.9.3](https://github.com/warpech/jquery-handsontable/tree/v0.9.3) (Jun 4, 2013)
 
 Bugfixes:

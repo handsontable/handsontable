@@ -2144,9 +2144,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Object}
    */
   this.getCellMeta = function (row, col) {
-    var cellConstructor = function () {
-      }
-      , prop = datamap.colToProp(col)
+    var prop = datamap.colToProp(col)
       , cellProperties
       , type
       , i;
@@ -2155,21 +2153,25 @@ Handsontable.Core = function (rootElement, userSettings) {
       priv.columnSettings[col] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
     }
 
-    cellConstructor.prototype = new priv.columnSettings[col]();
+    cellProperties = new priv.columnSettings[col]();
+
+    cellProperties.row = row;
+    cellProperties.col = col;
+    cellProperties.prop = prop;
+    cellProperties.instance = instance;
 
     if (priv.settings.cells) {
-      var settings = priv.settings.cells(row, col, prop) || {}
+      var settings = priv.settings.cells.call(cellProperties, row, col, prop) || {}
         , key;
 
       for (key in settings) {
         if (settings.hasOwnProperty(key)) {
-          cellConstructor.prototype[key] = settings[key];
+          cellProperties[key] = settings[key];
         }
       }
-
     }
 
-    cellProperties = new cellConstructor();
+    cellProperties.isWritable = !cellProperties.readOnly;
 
     instance.PluginHooks.run('beforeGetCellMeta', row, col, cellProperties);
 
@@ -2190,12 +2192,6 @@ Handsontable.Core = function (rootElement, userSettings) {
         }
       }
     }
-
-    cellProperties.row = row;
-    cellProperties.col = col;
-    cellProperties.prop = prop;
-    cellProperties.instance = instance;
-    cellProperties.isWritable = !cellProperties.readOnly;
 
     instance.PluginHooks.run('afterGetCellMeta', row, col, cellProperties);
 
