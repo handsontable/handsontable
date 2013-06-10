@@ -38,29 +38,20 @@
   <script src="js/ga.js"></script>
 
   <script data-jsfiddle="common">
-    function randomString(length, chars) {
-      var result = '';
-      for (var i = length; i > 0; --i) result += chars.charAt(Math.round(Math.random() * (chars.length - 1)));
-      return result;
-    }
-
     function createBigData() {
-      var arr = [];
-      var str = 'abcdefghijklmnopqrstuvwxyz';
-      var i;
+      var rows = []
+        , i
+        , j;
 
-      for (i = 0; i < 1000; i++) {
-        arr.push([
-          i,
-          randomString(3 * (1 + Math.sin(i)), str),
-          randomString(3 * (1 + Math.sin(i + 2)), str),
-          randomString(3 * (1 + Math.sin(i + 4)), str),
-          randomString(3 * (1 + Math.sin(i + 6)), str),
-          randomString(3 * (1 + Math.sin(i + 8)), str)
-        ]);
+      for (i = 0; i < 100000; i++) {
+        var row = [];
+        for (j = 0; j < 6; j++) {
+          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
+        }
+        rows.push(row);
       }
 
-      return arr;
+      return rows;
     }
   </script>
 </head>
