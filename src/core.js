@@ -26,6 +26,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   }
 
   priv = {
+    cellSettings: [],
     columnSettings: [],
     columnsSettingConflicts: ['data', 'width'],
     settings: new GridSettings(), // current settings instance
@@ -1587,11 +1588,12 @@ Handsontable.Core = function (rootElement, userSettings) {
       value = instance.PluginHooks.execute("beforeValidate", value, cellProperties.row, cellProperties.prop, source);
 
       validator.call(cellProperties, value, function (valid) {
+        cellProperties.valid = valid;
         valid = instance.PluginHooks.execute("afterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
         callback(valid);
       });
     }
-  }
+  };
 
   function setDataInputToArray(row, prop_or_col, value) {
     if (typeof row === "object") { //is it an array of changes
@@ -2150,19 +2152,28 @@ Handsontable.Core = function (rootElement, userSettings) {
       , type
       , i;
 
+    col = Handsontable.PluginHooks.execute(instance, 'modifyCol', col); //translate col of a moved column. warning: this must be done after datamap.colToProp
+
     if ("undefined" === typeof priv.columnSettings[col]) {
       priv.columnSettings[col] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
     }
 
-    cellProperties = new priv.columnSettings[col]();
+    if (!priv.cellSettings[row]) {
+      priv.cellSettings[row] = {}
+    }
+    if (!priv.cellSettings[row][col]) {
+      priv.cellSettings[row][col] = new priv.columnSettings[col]();
+    }
+
+    cellProperties = priv.cellSettings[row][col]; //retrieve cellProperties from cache
 
     cellProperties.row = row;
     cellProperties.col = col;
     cellProperties.prop = prop;
     cellProperties.instance = instance;
 
-    if (priv.settings.cells) {
-      var settings = priv.settings.cells.call(cellProperties, row, col, prop) || {}
+    if (cellProperties.cells) {
+      var settings = cellProperties.cells.call(cellProperties, row, col, prop) || {}
         , key;
 
       for (key in settings) {
@@ -2192,6 +2203,11 @@ Handsontable.Core = function (rootElement, userSettings) {
           cellProperties[i] = type[i];
         }
       }
+    }
+
+    if (cellProperties.validator && cellProperties.valid === void 0) { //this is the first render of this cell and we need to know if it's valid
+      instance.validateCell(instance.getDataAtCell(row, col), cellProperties, function (res) {
+      }, 'getCellMeta');
     }
 
     instance.PluginHooks.run('afterGetCellMeta', row, col, cellProperties);

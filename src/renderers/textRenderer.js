@@ -22,14 +22,7 @@ Handsontable.TextRenderer = function (instance, TD, row, col, prop, value, cellP
   if (cellProperties.readOnly) {
     TD.className = 'htDimmed';
   }
-  if (cellProperties.validator && cellProperties.invalidCellClassName) {
-    instance.validateCell(value, cellProperties, function (result) {
-      if (result === false) {
-        TD.className = cellProperties.invalidCellClassName;
-      }
-    }, 'Handsontable.TextRenderer');
+  if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
+    TD.className = cellProperties.invalidCellClassName;
   }
-//  if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
-//    TD.className = cellProperties.invalidCellClassName;
-//  }
 };
