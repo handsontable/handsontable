@@ -64,4 +64,24 @@ describe('TextRenderer', function () {
     Handsontable.TextRenderer(instance, TD, 0, 0, 0, '', {readOnly: true});
     expect(TD.className).toEqual('htDimmed');
   });
+
+  it('should add class name `htInvalid` to an cell that does not validate', function () {
+    handsontable({
+      validator: function (value, callb) {
+        if (value == "A1") {
+          callb(false)
+        }
+        else {
+          callb(true)
+        }
+      }
+    });
+
+    handsontable({
+      data: createSpreadsheetData(2, 2)
+    });
+
+    expect(this.$container.find('td.htInvalid').length).toEqual(1);
+    expect(this.$container.find('td:not(.htInvalid)').length).toEqual(3);
+  });
 });

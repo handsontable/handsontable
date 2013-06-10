@@ -1496,33 +1496,13 @@ Handsontable.Core = function (rootElement, userSettings) {
           }
 
           if (cellProperties.validator) {
-            var validator = cellProperties.validator
-              , value = changes[i][3];
-
-            if (Object.prototype.toString.call(validator) === '[object RegExp]') {
-              validator = (function (validator) {
-                return function (value, callback) {
-                  callback(validator.test(value));
-                }
-              })(validator);
-            }
-
-            if (typeof validator === 'function') {
-              value = changes[i][3];
-              value = instance.PluginHooks.execute("beforeValidate", value, changes[i][0], changes[i][1], source);
-
-              validator.call(cellProperties, value, function (valid) {
-                var pass = instance.PluginHooks.execute("afterValidate", valid, value, changes[i][0], changes[i][1], source);
-
-                if (pass === false) {
-                  changes.splice(i, 1);
-                  --i;
-                  --length;
-                }
-              });
-
-            }
-
+            instance.validateCell(changes[i][3], cellProperties, function (result) {
+              if (result === false && cellProperties.allowInvalid === false) {
+                changes.splice(i, 1);
+                --i;
+                --length;
+              }
+            }, source);
           }
         }
       }
@@ -1590,6 +1570,27 @@ Handsontable.Core = function (rootElement, userSettings) {
     grid.adjustRowsAndCols();
     selection.refreshBorders();
     instance.PluginHooks.run('afterChange', changes, source || 'edit');
+  }
+
+  this.validateCell = function (value, cellProperties, callback, source) {
+    var validator = cellProperties.validator;
+
+    if (Object.prototype.toString.call(validator) === '[object RegExp]') {
+      validator = (function (validator) {
+        return function (value, callback) {
+          callback(validator.test(value));
+        }
+      })(validator);
+    }
+
+    if (typeof validator === 'function') {
+      value = instance.PluginHooks.execute("beforeValidate", value, cellProperties.row, cellProperties.prop, source);
+
+      validator.call(cellProperties, value, function (valid) {
+        valid = instance.PluginHooks.execute("afterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
+        callback(valid);
+      });
+    }
   }
 
   function setDataInputToArray(row, prop_or_col, value) {
@@ -2599,7 +2600,9 @@ DefaultSettings.prototype = {
   stretchH: 'hybrid',
   isEmptyRow: void 0,
   isEmptyCol: void 0,
-  observeDOMVisibility: true
+  observeDOMVisibility: true,
+  allowInvalid: true,
+  invalidCellClassName: 'htInvalid'
 };
 
 $.fn.handsontable = function (action) {
