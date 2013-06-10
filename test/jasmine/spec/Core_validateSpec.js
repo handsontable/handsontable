@@ -226,6 +226,29 @@ describe('Core_validate', function () {
     expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
   });
 
+  it('should add class name `htInvalid` to an cell that does not validate - after updateSettings & render', function () {
+    handsontable({
+      data: createSpreadsheetData(2, 2)
+    });
+
+    setDataAtCell(0, 0, 'test');
+
+    expect(this.$container.find('td.htInvalid').length).toEqual(0);
+
+    updateSettings({validator: function (value, callb) {
+      if (value == 'test') {
+        callb(false)
+      }
+      else {
+        callb(true)
+      }
+    }});
+    render();
+
+    expect(this.$container.find('td.htInvalid').length).toEqual(1);
+    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+  });
+
   it('should remove class name `htInvalid` when cell is edited to validate', function () {
     handsontable({
       data: createSpreadsheetData(2, 2),
