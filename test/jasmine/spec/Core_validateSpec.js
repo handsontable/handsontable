@@ -189,4 +189,60 @@ describe('Core_validate', function () {
     });
 
   });
+
+  it('should add class name `htInvalid` to an cell that does not validate - on data load', function () {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      validator: function (value, callb) {
+        if (value == "B1") {
+          callb(false)
+        }
+        else {
+          callb(true)
+        }
+      }
+    });
+
+    expect(this.$container.find('td.htInvalid').length).toEqual(1);
+    expect(this.$container.find('td:not(.htInvalid)').length).toEqual(3);
+  });
+
+  it('should add class name `htInvalid` to an cell that does not validate - on edit', function () {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      validator: function (value, callb) {
+        if (value == 'test') {
+          callb(false)
+        }
+        else {
+          callb(true)
+        }
+      }
+    });
+
+    setDataAtCell(0, 0, 'test');
+
+    expect(this.$container.find('td.htInvalid').length).toEqual(1);
+    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+  });
+
+  it('should remove class name `htInvalid` when cell is edited to validate', function () {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      validator: function (value, callb) {
+        if (value == 'A0') {
+          callb(false)
+        }
+        else {
+          callb(true)
+        }
+      }
+    });
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+
+    setDataAtCell(0, 0, 'test');
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
+  });
 });
