@@ -118,3 +118,5 @@ Handsontable.HandsontableEditor = function (instance, td, row, col, prop, value,
     instance.handsontableEditor.finishEditing(isCancelled);
   }
 };
+
+Handsontable.HandsontableEditor.implementation = HandsontableHandsontableEditorClass;

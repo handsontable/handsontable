@@ -342,3 +342,5 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, value, cellPro
     instance.textEditor.finishEditing(isCancelled);
   }
 };
+
+Handsontable.TextEditor.implementation = HandsontableTextEditorClass;

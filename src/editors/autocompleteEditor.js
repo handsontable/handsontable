@@ -192,3 +192,5 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, value,
     instance.autocompleteEditor.finishEditing(isCancelled);
   }
 };
+
+Handsontable.AutocompleteEditor.implementation = HandsontableAutocompleteEditorClass;
