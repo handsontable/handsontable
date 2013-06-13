@@ -2300,19 +2300,19 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return number of visible rows
+   * Return number of visible rows. Returns -1 if table is not visible
    * @return {Number}
    */
   this.countVisibleRows = function () {
-    return instance.view.wt.wtTable.rowStrategy.countVisible();
+    return instance.view.wt.drawn ? instance.view.wt.wtTable.rowStrategy.countVisible() : -1;
   };
 
   /**
-   * Return number of visible columns
+   * Return number of visible columns. Returns -1 if table is not visible
    * @return {Number}
    */
   this.countVisibleCols = function () {
-    return instance.view.wt.wtTable.columnStrategy.countVisible();
+    return instance.view.wt.drawn ? instance.view.wt.wtTable.columnStrategy.countVisible() : -1;
   };
 
   /**
