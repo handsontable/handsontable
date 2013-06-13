@@ -1,6 +1,6 @@
 {
   "name": "jquery-handsontable",
-  "description": "Minimalistic Excel-like data grid editor for HTML, JavaScript and jQuery",
+  "description": "Minimalistic spreadsheet-like data grid editor that provides copy/paste functionality compatible with Excel/Google Docs",
   "homepage": "http://handsontable.com/",
   "bugs": {
     "url": "https://github.com/warpech/jquery-handsontable/issues"
