@@ -236,5 +236,4 @@ describe('Core_datachange', function () {
     expect(sources).toEqual(['loadData', 'edit']); //loadData is always the first source
   });
 
-
 });
