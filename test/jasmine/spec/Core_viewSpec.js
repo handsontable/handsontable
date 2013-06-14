@@ -27,6 +27,18 @@ describe('Core_view', function () {
     expect(isEditorVisible()).toEqual(true);
   });
 
+  it('should scroll viewport when partially visible cell is clicked', function () {
+    handsontable({
+      data: createSpreadsheetData(10, 3)
+    });
+
+    expect(this.$container.find('tr:eq(2) td:eq(0)').html()).toEqual("A2");
+
+    this.$container.find('tr:eq(2) td:eq(0)').trigger('mousedown');
+    expect(this.$container.find('tr:eq(2) td:eq(0)').html()).toEqual("A3"); //test whether it scrolled
+    expect(getSelected()).toEqual([2, 0, 2, 0]); //test whether it is selected
+  });
+
   it('should not scroll viewport when last cell is clicked', function () {
     this.$container.remove();
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
