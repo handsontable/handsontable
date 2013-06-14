@@ -392,11 +392,11 @@ WalkontableTable.prototype._doDraw = function () {
       //after last column is rendered, check if last cell is fully displayed
       if (this.verticalRenderReverse && noPartial) {
         if (-this.wtDom.outerHeight(TR.firstChild) < this.rowStrategy.remainingSize) {
-          this.TBODY.removeChild(TR);
+            this.TBODY.removeChild(TR);
           this.instance.update('offsetRow', offsetRow + 1);
-          this.tbodyChildrenLength--;
-          this.rowFilter.readSettings(this.instance);
-          break;
+            this.tbodyChildrenLength--;
+            this.rowFilter.readSettings(this.instance);
+            break;
 
         }
         else {
@@ -441,14 +441,13 @@ WalkontableTable.prototype._doDraw = function () {
   if (workspaceWidth !== this.instance.wtViewport.getWorkspaceWidth()) {
     //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
     this.columnStrategy.stretch();
-    for (c = 0; c < displayTds; c++) {
+    for (c = 0; c < this.columnStrategy.cellCount; c++) {
       this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(c) + 'px';
     }
   }
 
   this.verticalRenderReverse = false;
-}
-;
+};
 
 WalkontableTable.prototype.refreshPositions = function (selectionsOnly) {
   this.refreshHiderDimensions();

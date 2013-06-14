@@ -43,6 +43,8 @@ module.exports = function (grunt) {
         'src/editors/dateEditor.js',
         'src/editors/handsontableEditor.js',
 
+        'src/validators/numericValidator.js',
+
         'src/cellTypes.js',
 
         'src/pluginHooks.js',
@@ -67,7 +69,7 @@ module.exports = function (grunt) {
         'lib/numeral.js',
         'lib/jQuery-contextMenu/jquery.contextMenu.js'
         // seems to have no effect when turned off on contextmenu.html
-        //'lib/jQuery-contextMenu/jquery.ui.position.js' 
+        //'lib/jQuery-contextMenu/jquery.ui.position.js'
       ]
     },
 

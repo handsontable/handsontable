@@ -10,6 +10,10 @@
   <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+  <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
+  <script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen"
+        href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -42,7 +46,7 @@
       // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
       allowed = (((allowed || "") + "").toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
       var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
-          commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
+        commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
       return input.replace(commentsAndPhpTags, '').replace(tags, function ($0, $1) {
         return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
       });
@@ -54,202 +58,354 @@
 <a href="http://github.com/warpech/jquery-handsontable" class="forkMeOnGitHub">Fork me on GitHub</a>
 
 <div id="container">
-  <div class="columnLayout">
+<div class="columnLayout">
 
-    <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad">
-          <h1><a href="../index.html">Handsontable</a></h1>
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
+      <h1><a href="../index.html">Handsontable</a></h1>
 
-          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-            for HTML, JavaScript &amp; jQuery
-          </div>
-
-          <h2>Custom HTML in cells and headers</h2>
-
-          <p>On this page:</p>
-
-          <ul>
-            <li><a href="#cell">Rendering custom HTML in cells</a></li>
-            <li><a href="#header">Rendering custom HTML in header</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad" data-jsfiddle="example1">
-          <a name="cell"></a>
-
-          <h2>Rendering custom HTML in cells</h2>
-
-          <p>This example shows how to use custom cell renderers to display HTML content in a cell.</p>
-
-          <p>This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS
-            attacks.</p>
-
-          <div id="example1"></div>
-
-          <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump data to console
-            </button>
-          </p>
-        </div>
+      <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+        for HTML, JavaScript &amp; jQuery
       </div>
 
-      <div class="codeLayout">
-        <div class="pad">
-          <div class="jsFiddle">
-            <div class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</div>
-          </div>
+      <h2>Custom HTML in cells and headers</h2>
 
-          <script data-jsfiddle="example1">
-            var data = [
-              {
-                title: "Professional JavaScript for Web Developers",
-                description: "This <a href='http://bit.ly/sM1bDf'>book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.",
-                cover: "http://ecx.images-amazon.com/images/I/51bRhyVTVGL._SL50_.jpg"
-              },
-              {
-                title: "JavaScript: The Good Parts",
-                description: "This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.",
-                cover: "http://ecx.images-amazon.com/images/I/51gdVAEfPUL._SL50_.jpg"
-              },
-              {
-                title: "JavaScript: The Definitive Guide",
-                description: "<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.",
-                cover: "http://ecx.images-amazon.com/images/I/51VFNL4T7kL._SL50_.jpg"
-              }
-            ];
+      <p>On this page:</p>
 
-            var descriptionRenderer = function (instance, td, row, col, prop, value, cellProperties) {
-              var escaped = Handsontable.helper.stringify(value);
-              escaped = strip_tags(escaped, '<em><b><a>'); //be sure you only allow certain HTML tags to avoid XSS threats (you should also remove unwanted HTML attributes)
-              td.innerHTML = escaped;
-              return td;
-            };
-
-            var coverRenderer = function (instance, td, row, col, prop, value, cellProperties) {
-              var escaped = Handsontable.helper.stringify(value);
-              if (escaped.indexOf('http') === 0) {
-                var $img = $('<img>');
-                $img.attr('src', value);
-                $img.on('mousedown', function (event) {
-                  event.preventDefault(); //prevent selection quirk
-                });
-                $(td).empty().append($img); //empty is needed because you are rendering to an existing cell
-              }
-              else {
-                Handsontable.TextCell.renderer.apply(this, arguments); //render as text
-              }
-              return td;
-            };
-
-            var $container = $("#example1");
-            $container.handsontable({
-              data: data,
-              colWidths: [120, 200, 80],
-              colHeaders: ["Plain text title", "HTML Description", "Cover"],
-              columns: [
-                {data: "title"},
-                {data: "description", type: {renderer: descriptionRenderer}},
-                {data: "cover", type: {renderer: coverRenderer}}
-              ]
-            });
-          </script>
-        </div>
-      </div>
-    </div>
-
-    <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad" data-jsfiddle="example2">
-          <a name="header"></a>
-
-          <h2>Rendering custom HTML in header</h2>
-
-          <p>You can also put HTML into row and column headers.</p>
-
-          <p>If you need to attach events to DOM elements like the checkbox below, just remember to identify the element
-            by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id
-            attribute must be unique.</p>
-
-          <div id="example2"></div>
-
-          <p>
-            <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump data to console
-            </button>
-          </p>
-        </div>
-      </div>
-
-      <div class="codeLayout">
-        <div class="pad">
-          <div class="jsFiddle">
-            <div class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</div>
-          </div>
-
-          <script data-jsfiddle="example2">
-            var isChecked;
-
-            var customRenderer = function (instance, td) {
-              Handsontable.TextCell.renderer.apply(this, arguments);
-              if (isChecked) {
-                td.style.backgroundColor = 'yellow';
-              }
-              else {
-                td.style.backgroundColor = 'white';
-              }
-              return td;
-            };
-
-            var $container = $("#example2");
-            $container.handsontable({
-              startCols: 2,
-              columns: [
-                {},
-                {type: {renderer: customRenderer}}
-              ],
-              colHeaders: function (col) {
-                switch (col) {
-                  case 0:
-                    return "<b>Bold</b> and <em>Beautiful</em>";
-
-                  case 1:
-                    var txt = "Some <input type='checkbox' class='checker' ";
-                    txt += isChecked ? 'checked="checked"' : '';
-                    txt += "> checkbox";
-                    return txt;
-                }
-              }
-            });
-
-            $container.on('mousedown', 'input.checker', function (event) {
-              event.stopPropagation();
-            });
-
-            $container.on('mouseup', 'input.checker', function (event) {
-              isChecked = !$(this).is(':checked');
-              $container.handsontable('render');
-            });
-          </script>
-        </div>
-      </div>
-    </div>
-
-    <div class="rowLayout">
-      <div class="descLayout noMargin">
-        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
-
-          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-            licensed under the The MIT License.</p>
-        </div>
-      </div>
+      <ul>
+        <li><a href="#cell">Rendering custom HTML in cells</a></li>
+        <li><a href="#header">Rendering custom HTML in header</a></li>
+        <li><a href="#dropdown">Changing cell type from a dropdown menu in cell header</a></li>
+      </ul>
     </div>
   </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad" data-jsfiddle="example1">
+      <a name="cell"></a>
+
+      <h2>Rendering custom HTML in cells</h2>
+
+      <p>This example shows how to use custom cell renderers to display HTML content in a cell.</p>
+
+      <p>This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS
+        attacks.</p>
+
+      <div id="example1"></div>
+
+      <p>
+        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+          Dump data to console
+        </button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <div class="jsFiddle">
+        <div class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</div>
+      </div>
+
+      <script data-jsfiddle="example1">
+        var data = [
+          {
+            title: "Professional JavaScript for Web Developers",
+            description: "This <a href='http://bit.ly/sM1bDf'>book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.",
+            cover: "http://ecx.images-amazon.com/images/I/51bRhyVTVGL._SL50_.jpg"
+          },
+          {
+            title: "JavaScript: The Good Parts",
+            description: "This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.",
+            cover: "http://ecx.images-amazon.com/images/I/51gdVAEfPUL._SL50_.jpg"
+          },
+          {
+            title: "JavaScript: The Definitive Guide",
+            description: "<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.",
+            cover: "http://ecx.images-amazon.com/images/I/51VFNL4T7kL._SL50_.jpg"
+          }
+        ];
+
+        var descriptionRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+          var escaped = Handsontable.helper.stringify(value);
+          escaped = strip_tags(escaped, '<em><b><a>'); //be sure you only allow certain HTML tags to avoid XSS threats (you should also remove unwanted HTML attributes)
+          td.innerHTML = escaped;
+          return td;
+        };
+
+        var coverRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+          var escaped = Handsontable.helper.stringify(value);
+          if (escaped.indexOf('http') === 0) {
+            var $img = $('<img>');
+            $img.attr('src', value);
+            $img.on('mousedown', function (event) {
+              event.preventDefault(); //prevent selection quirk
+            });
+            $(td).empty().append($img); //empty is needed because you are rendering to an existing cell
+          }
+          else {
+            Handsontable.TextCell.renderer.apply(this, arguments); //render as text
+          }
+          return td;
+        };
+
+        var $container = $("#example1");
+        $container.handsontable({
+          data: data,
+          colWidths: [120, 200, 80],
+          colHeaders: ["Plain text title", "HTML Description", "Cover"],
+          columns: [
+            {data: "title"},
+            {data: "description", type: {renderer: descriptionRenderer}},
+            {data: "cover", type: {renderer: coverRenderer}}
+          ]
+        });
+      </script>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad" data-jsfiddle="example2">
+      <a name="header"></a>
+
+      <h2>Rendering custom HTML in header</h2>
+
+      <p>You can also put HTML into row and column headers.</p>
+
+      <p>If you need to attach events to DOM elements like the checkbox below, just remember to identify the element
+        by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id
+        attribute must be unique.</p>
+
+      <div id="example2"></div>
+
+      <p>
+        <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">
+          Dump data to console
+        </button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <div class="jsFiddle">
+        <div class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</div>
+      </div>
+
+      <script data-jsfiddle="example2">
+        var isChecked;
+
+        var customRenderer = function (instance, td) {
+          Handsontable.TextCell.renderer.apply(this, arguments);
+          if (isChecked) {
+            td.style.backgroundColor = 'yellow';
+          }
+          else {
+            td.style.backgroundColor = 'white';
+          }
+          return td;
+        };
+
+        var $container = $("#example2");
+        $container.handsontable({
+          startCols: 2,
+          columns: [
+            {},
+            {type: {renderer: customRenderer}}
+          ],
+          colHeaders: function (col) {
+            switch (col) {
+              case 0:
+                return "<b>Bold</b> and <em>Beautiful</em>";
+
+              case 1:
+                var txt = "Some <input type='checkbox' class='checker' ";
+                txt += isChecked ? 'checked="checked"' : '';
+                txt += "> checkbox";
+                return txt;
+            }
+          }
+        });
+
+        $container.on('mousedown', 'input.checker', function (event) {
+          event.stopPropagation();
+        });
+
+        $container.on('mouseup', 'input.checker', function (event) {
+          isChecked = !$(this).is(':checked');
+          $container.handsontable('render');
+        });
+      </script>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad" data-jsfiddle="example2">
+      <a name="dropdown"></a>
+
+      <h2>Changing cell type from a dropdown menu in cell header</h2>
+
+      <p>This example makes use of a plugin hook to add a custom dropdown menu to the cell header</p>
+
+      <div id="example3"></div>
+
+      <p>
+        <button name="dump" data-dump="#example3" title="Prints current data source to Firebug/Chrome Dev Tools">
+          Dump data to console
+        </button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <div class="jsFiddle">
+        <div class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</div>
+      </div>
+
+      <style data-jsfiddle="example3">
+        .changeType {
+          border: 1px solid #bbb;
+          color: #bbb;
+          border-radius: 2px;
+          padding: 2px;
+          font-size: 9px;
+
+          float: right;
+          line-height: 12px;
+          margin: 3px 3px 0 0;
+        }
+
+        .changeType:hover {
+          border: 1px solid #777;
+          color: #777;
+          cursor: pointer;
+        }
+
+        .changeType.pressed {
+          background-color: #999;
+        }
+      </style>
+
+      <script data-jsfiddle="example3">
+        var HOT
+          , changeCol
+          , columns = [
+            {type: 'numeric'},
+            {type: 'numeric'},
+            {type: 'numeric'},
+            {type: 'numeric'},
+            {type: 'numeric'},
+            {type: 'numeric'}
+          ];
+
+        function contextMenuItem(name, value) {
+          return {name: name, type: "radio", radio: "typeRadio", value: value, events: {
+            change: function () {
+              $(this).trigger('contextmenu:hide');
+            }
+          }};
+        }
+
+        $.contextMenu({
+          selector: '.changeType',
+          items: {
+            "text": contextMenuItem("Text", "text"),
+            "numeric": contextMenuItem("Numeric", "numeric"),
+            "date": contextMenuItem("Date", "date")
+          },
+          events: {
+            show: function (opt) {
+              $.contextMenu.setInputValues(opt, {typeRadio: getColumnType(changeCol)});
+            },
+            hide: function (opt) {
+              var values = $.contextMenu.getInputValues(opt);
+              setColumnType(changeCol, values.typeRadio);
+            }
+          }
+        });
+
+        function getColumnType(i) {
+          return columns[i].type;
+        }
+
+        function setColumnType(i, type) {
+          columns[i].type = type;
+          HOT.updateSettings({columns: columns});
+          HOT.render();
+        }
+
+        var data = [
+          ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
+          ["2009", 0, 2941, 4303, 354, 5814],
+          ["2010", "fff", 2905, 2867, 412, 5284],
+          ["2011", 4, 2517, 4822, 552, 6127],
+          ["2012", 2, 2422, 5399, 776, 4151]
+        ];
+
+        $('#example3').handsontable({
+          data: data,
+          minRows: 5,
+          minCols: 6,
+          minSpareRows: 1,
+          autoWrapRow: true,
+          colHeaders: true,
+          columns: columns,
+          contextMenu: true,
+          allowInvalid: true,
+          afterGetColHeader: function (col, TH) {
+            var BUTTON = document.createElement('DIV');
+            BUTTON.className = "changeType";
+            BUTTON.appendChild(document.createTextNode('\u25BC')); //adds BLACK DOWN-POINTING TRIANGLE icon
+
+            var $button = $(BUTTON);
+            $button.click(function () {
+              changeCol = col;
+
+              var pos = $button.offset();
+              $button.contextMenu({x: pos.left, y: pos.top + $button.outerHeight() });
+              BUTTON.className = "changeType pressed";
+
+              $(document.body).one("contextmenu:hide", function () {
+                BUTTON.className = "changeType";
+              });
+            });
+
+            TH.firstChild.appendChild(BUTTON);
+          },
+          cells: function (row, col, prop) {
+            if (row === 0) {
+              var cellProperties = {
+                type: 'text' //force text type for first row
+              }
+              return cellProperties;
+            }
+          }
+        });
+
+        HOT = $('#example3').handsontable('getInstance');
+      </script>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout noMargin">
+    <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+
+      <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+        licensed under the The MIT License.</p>
+    </div>
+  </div>
+</div>
+</div>
 </div>
 </body>
 </html>

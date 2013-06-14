@@ -72,6 +72,15 @@
   outline-width: 0;
 }
 
+.handsontable td.htInvalid {
+  -webkit-transition: background-color 0.25s linear;
+  -moz-transition: background-color 0.25s linear;
+  -ms-transition: background-color 0.25s linear;
+  -o-transition: background-color 0.25s linear;
+  transition: background-color 0.25s linear;
+  background-color: red;
+}
+
 .handsontable th:last-child {
   /*Foundation framework fix*/
   border-right: 1px solid #CCC;

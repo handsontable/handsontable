@@ -22,4 +22,7 @@ Handsontable.TextRenderer = function (instance, TD, row, col, prop, value, cellP
   if (cellProperties.readOnly) {
     instance.view.wt.wtDom.addClass(TD, 'htDimmed');
   }
+  if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
+    TD.className = cellProperties.invalidCellClassName;
+  }
 };

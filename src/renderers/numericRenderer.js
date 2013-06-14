@@ -17,6 +17,9 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
     instance.view.wt.wtDom.addClass(TD, 'htNumeric');
     TD.appendChild(document.createTextNode(numeral(value).format(cellProperties.format || '0'))); //docs: http://numeraljs.com/
     //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+    if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
+      TD.className = cellProperties.invalidCellClassName;
+    }
   }
   else {
     Handsontable.TextRenderer(instance, TD, row, col, prop, value, cellProperties);
