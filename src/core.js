@@ -656,7 +656,6 @@ Handsontable.Core = function (rootElement, userSettings) {
               instance.spliceCol.apply(instance, input[c % clen]);
             }
           }
-          instance.forceFullRender = true; //used when data was changed
           break;
 
         case 'shift_right' :
@@ -675,7 +674,6 @@ Handsontable.Core = function (rootElement, userSettings) {
               instance.spliceRow.apply(instance, input[r % rlen]);
             }
           }
-          instance.forceFullRender = true; //used when data was changed
           break;
 
         case 'overwrite' :
@@ -707,11 +705,8 @@ Handsontable.Core = function (rootElement, userSettings) {
             }
           }
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
-          grid.adjustRowsAndCols();
           break;
       }
-
-      selection.refreshBorders(null, true);
     },
 
     /**
