@@ -1,4 +1,4 @@
-describe('Core_beforechange', function () {
+describe('Core_validate', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
@@ -38,7 +38,7 @@ describe('Core_beforechange', function () {
           {data: 'name'},
           {data: 'lastName'}
         ],
-        beforeValidate : function () {
+        beforeValidate: function () {
           fired = true;
         }
       });
@@ -62,7 +62,7 @@ describe('Core_beforechange', function () {
           {data: 'name'},
           {data: 'lastName'}
         ],
-        afterValidate : function () {
+        afterValidate: function () {
           fired = true;
         }
       });
@@ -86,11 +86,11 @@ describe('Core_beforechange', function () {
           {data: 'name'},
           {data: 'lastName'}
         ],
-        beforeValidate : function (value) {
-          value += 123;
+        beforeValidate: function (value) {
+          value = 999;
           return value;
         },
-        afterValidate : function (valid, value) {
+        afterValidate: function (valid, value) {
           result = value;
         }
       });
@@ -102,7 +102,7 @@ describe('Core_beforechange', function () {
     }, "beforeValidate callback called", 100);
 
     runs(function () {
-      expect(result).toEqual(246);
+      expect(result).toEqual(999);
     });
 
   });
@@ -120,7 +120,7 @@ describe('Core_beforechange', function () {
           {data: 'name'},
           {data: 'lastName'}
         ],
-        afterValidate : function (valid) {
+        afterValidate: function (valid) {
           result = valid;
         }
       });
@@ -138,34 +138,27 @@ describe('Core_beforechange', function () {
   });
 
   it('should be able to define custom validator RegExp', function () {
-    var result = null;
+    var lastInvalid = null;
 
-    runs(function () {
-      handsontable({
-        data: arrayOfObjects(),
-        columns: [
-          {data: 'id', validator: /^\d+$/ },
-          {data: 'name'},
-          {data: 'lastName'}
-        ],
-        afterValidate : function (valid) {
-          result = valid;
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', validator: /^\d+$/ },
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: function (valid, value) {
+        if (valid === false) {
+          lastInvalid = value;
         }
-      });
-      setDataAtCell(2, 0, 'test');
+      }
     });
+    setDataAtCell(2, 0, 'test');
 
-    waitsFor(function () {
-      return result !== null;
-    }, "afterValidate callback called", 100);
-
-    runs(function () {
-      expect(result).toEqual(false);
-    });
-
+    expect(lastInvalid).toEqual('test');
   });
 
-  it('this in validator are pointing to cellProperties', function () {
+  it('this in validator should point to cellProperties', function () {
     var result = null
       , fired = false;
 
@@ -180,7 +173,7 @@ describe('Core_beforechange', function () {
           {data: 'name'},
           {data: 'lastName'}
         ],
-        afterValidate : function () {
+        afterValidate: function () {
           fired = true;
         }
       });
@@ -195,5 +188,84 @@ describe('Core_beforechange', function () {
       expect(result.instance).toEqual(getInstance());
     });
 
+  });
+
+  it('should add class name `htInvalid` to an cell that does not validate - on data load', function () {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      validator: function (value, callb) {
+        if (value == "B1") {
+          callb(false)
+        }
+        else {
+          callb(true)
+        }
+      }
+    });
+
+    expect(this.$container.find('td.htInvalid').length).toEqual(1);
+    expect(this.$container.find('td:not(.htInvalid)').length).toEqual(3);
+  });
+
+  it('should add class name `htInvalid` to an cell that does not validate - on edit', function () {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      validator: function (value, callb) {
+        if (value == 'test') {
+          callb(false)
+        }
+        else {
+          callb(true)
+        }
+      }
+    });
+
+    setDataAtCell(0, 0, 'test');
+
+    expect(this.$container.find('td.htInvalid').length).toEqual(1);
+    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+  });
+
+  it('should add class name `htInvalid` to an cell that does not validate - after updateSettings & render', function () {
+    handsontable({
+      data: createSpreadsheetData(2, 2)
+    });
+
+    setDataAtCell(0, 0, 'test');
+
+    expect(this.$container.find('td.htInvalid').length).toEqual(0);
+
+    updateSettings({validator: function (value, callb) {
+      if (value == 'test') {
+        callb(false)
+      }
+      else {
+        callb(true)
+      }
+    }});
+    render();
+
+    expect(this.$container.find('td.htInvalid').length).toEqual(1);
+    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+  });
+
+  it('should remove class name `htInvalid` when cell is edited to validate', function () {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      validator: function (value, callb) {
+        if (value == 'A0') {
+          callb(false)
+        }
+        else {
+          callb(true)
+        }
+      }
+    });
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+
+    setDataAtCell(0, 0, 'test');
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
   });
 });

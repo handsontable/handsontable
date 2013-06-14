@@ -1,4 +1,4 @@
-describe('NumericEditor', function () {
+describe('NumericValidator', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
@@ -38,8 +38,10 @@ describe('NumericEditor', function () {
           {data: 'name'},
           {data: 'lastName'}
         ],
-        afterValidate : function (result) {
-          valid = result;
+        afterValidate : function (result, value) {
+          if(value === "test") {
+            valid = result;
+          }
         }
       });
       setDataAtCell(2, 0, 'test');

@@ -18,6 +18,15 @@ describe('Core_count', function () {
       });
       expect(instance.countVisibleRows()).toEqual(5);
     });
+
+    it('should return -1 if table is not rendered', function () {
+      this.$container.remove();
+      var instance = handsontable({
+        data: createSpreadsheetData(10, 10),
+        width: 100
+      });
+      expect(instance.countVisibleRows()).toEqual(-1);
+    });
   });
 
   describe('countVisibleCols', function () {
@@ -27,6 +36,15 @@ describe('Core_count', function () {
         width: 100
       });
       expect(instance.countVisibleCols()).toEqual(2);
+    });
+
+    it('should return -1 if table is not rendered', function () {
+      this.$container.remove();
+      var instance = handsontable({
+        data: createSpreadsheetData(10, 10),
+        width: 100
+      });
+      expect(instance.countVisibleCols()).toEqual(-1);
     });
   });
 });

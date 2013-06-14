@@ -61,7 +61,8 @@ describe('TextRenderer', function () {
     instance.init(); //unfortunately these 3 lines are currently needed to satisfy renderer arguments (as of v0.8.21)
 
     var TD = document.createElement('TD');
+    TD.className = "someClass";
     Handsontable.TextRenderer(instance, TD, 0, 0, 0, '', {readOnly: true});
-    expect(TD.className).toEqual('htDimmed');
+    expect(TD.className).toEqual('someClass htDimmed');
   });
 });
