@@ -56,7 +56,7 @@ Handsontable.PluginHookClass = (function () {
 
     this.hooks = {
       once : Hooks(),
-      standard : Hooks()
+      persistent : Hooks()
     };
 
     this.legacy = legacy;
@@ -86,12 +86,12 @@ Handsontable.PluginHookClass = (function () {
     };
   };
 
-  PluginHookClass.prototype.add  = addHook('standard');
+  PluginHookClass.prototype.add  = addHook('persistent');
   PluginHookClass.prototype.once = addHook('once');
 
   PluginHookClass.prototype.remove = function (key, fn) {
     var status = false
-      , hookTypes = ['standard', 'once']
+      , hookTypes = ['persistent', 'once']
       , type, x, lenx, i, leni;
 
     // provide support for old versions of HOT
@@ -118,7 +118,7 @@ Handsontable.PluginHookClass = (function () {
   };
 
   PluginHookClass.prototype.run = function (instance, key, p1, p2, p3, p4, p5) {
-    var hookTypes = ['standard', 'once']
+    var hookTypes = ['persistent', 'once']
       , type, x, lenx, i, leni;
 
     // provide support for old versions of HOT
@@ -144,7 +144,7 @@ Handsontable.PluginHookClass = (function () {
   };
 
   PluginHookClass.prototype.execute = function (instance, key, p1, p2, p3, p4, p5) {
-    var hookTypes = ['standard', 'once']
+    var hookTypes = ['persistent', 'once']
       , type, x, lenx, i, leni;
 
     // provide support for old versions of HOT
