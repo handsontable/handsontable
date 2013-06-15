@@ -73,12 +73,12 @@
 }
 
 .handsontable td.htInvalid {
-  -webkit-transition: background-color 0.25s linear;
-  -moz-transition: background-color 0.25s linear;
-  -ms-transition: background-color 0.25s linear;
-  -o-transition: background-color 0.25s linear;
-  transition: background-color 0.25s linear;
-  background-color: red;
+  -webkit-transition: background 0.75s ease;
+  -moz-transition: background 0.75s ease;
+  -ms-transition: background 0.75s ease;
+  -o-transition: background 0.75s ease;
+  transition: background 0.75s ease;
+  background-color: #ff4c42;
 }
 
 .handsontable th:last-child {

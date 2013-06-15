@@ -120,7 +120,7 @@
                 { data : 'city', type : 'text' }
               ],
               afterValidate: function (valid, value, row, prop, source) {
-                var td = hot.getCell(row, hot.propToCol(prop))
+                var td = this.instance.getCell(row, hot.propToCol(prop))
 
                 if (!valid) {
                   td.style.color = 'red';

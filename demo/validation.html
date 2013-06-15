@@ -62,32 +62,28 @@
           <h2>Validation</h2>
 
           <p>Use the
-            <b>onBeforeChange</b> callback to validate changes before they are applied to the table.
+            <b>beforeValidate</b> callback to manipulate value of changed cells before they are applied to the validator function.
+          </p><p>
+            <b>NOTICE:</b> this will not afect values of changes. This change value ONLY for validation!
           </p>
 
-          <dl>
-            <dt>onBeforeChange (<code>changes: Array</code>, <code>source: String</code>)</dt>
-            <dd>Callback fired before one or more cells is changed. Its main purpose is to validate the input. Parameters:
-              <ul>
-                <li>
-                  <code>changes</code> is a 2D array containing information about each of the edited cells <code>[ [row, prop, oldVal, newVal], ... ]</code>.
-                  <ul>
-                    <li>To disregard a single change, set <code>changes[i]</code> to <code>null</code> or remove it from array using <code>changes.splice(i, 1)</code>.</li>
-                    <li>To alter a single change, overwrite the desired value to <code>changes[i][3]</code>.</li>
-                    <li>To cancel all edit, <code>return false</code> from the callback or set array length to 0 (<code>changes.length = 0</code>).</li></ul>
-                </li>
-                <li>
-                  <code>source</code> is the name of a source of changes.
-                </li>
-              </ul>
-            </dd>
-          </dl>
+          <p>Use the
+            <b>afterValidate</b> callback to determinate if validation passed successfully or not.<br>
+            <b>You can cancel current change by returning false.</b>
+          </p>
+
+          <p>Use the
+            <b>onBeforeChange</b> callback to manipulate changes before they are applied to the table.
+          </p>
+
+          <p>For more info about this options look at <a href="https://github.com/warpech/jquery-handsontable/wiki/Events">Events manual page</a> on GitHub wiki.</p>
 
           <div id="example1"></div>
 
           <p>Callback console: <span class="code">[[row, col, oldValue, newValue], ...]</span></p>
 
-          <pre id="example1console" class="console">Edit the above grid to see callback</pre>
+          <div id="example1_events"
+               style="width: 400px; height: 250px; overflow: scroll; background-color: #fdfdfd; font-size: 11px"></div>
 
           <p>
             <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
@@ -104,11 +100,18 @@
           </div>
 
           <script data-jsfiddle="example1">
+            var nuke_validator = function (value, callback) {
+              //if any of pasted cells contains the word "nuke", reject the whole paste
+              callback(value !== 'nuke');
+            };
+
+            var ip_validator = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
+
             var data = [
-              ["", "Kia", "Nissan", "Toyota", "Honda"],
-              ["2008", 10, 11, 12, 13],
-              ["2009", 20, 11, 14, 13],
-              ["2010", 30, 15, 12, 13]
+              ["", "Kia", "Nissan", "Toyota", "0.0.0.1"],
+              ["2008", 10, 11, 12, "120.30.201.31"],
+              ["2009", 20, 11, 14, "30.20.10.11"],
+              ["2010", 30, 15, 12, "240.50.20.198"]
             ];
 
             $("#example1").handsontable({
@@ -116,9 +119,15 @@
               startRows: 8,
               startCols: 6,
               rowHeaders: true,
-              colHeaders: true,
+              colHeaders: ["A","B","MANHATTAN","D","IP"],
               minSpareRows: 1,
-              contextMenu: true,
+              contextMenu: false,
+              columns: [{},{},{validator:nuke_validator},{},{validator:ip_validator}],
+              afterValidate: function (valid, value, row, prop, source) {
+                if (!valid) {
+                  log('Entered (via '+ source +') not valid value (' + value +') on cell with coordinates: '+ row +' : '+ prop);
+                }
+              },
               beforeChange: function (changes, source) {
                 for (var i = changes.length - 1; i >= 0; i--) {
                   if (changes[i][3] === "foo") {
@@ -128,19 +137,36 @@
                     //if the word bar is given, add a ! at the end of it
                     changes[i][3] = changes[i][3] + '!';
                   }
-                  else if (changes[i][3] === "nuke") {
-                    //if any of pasted cells contains the word "nuke", reject the whole paste
-                    return false;
-                  }
                 }
               },
               afterChange: function (changes, source) {
                 if (source === 'loadData') {
                   return; //don't show this change in console
                 }
-                $("#example1console").text(JSON.stringify(changes));
+                log('Changes: ' + JSON.stringify(changes));
               }
             });
+
+            var i = 0;
+            function log(msg) {
+
+                var vals = [
+                  i,
+                ];
+
+                vals.push(msg);
+
+                if (window.console) {
+                  console.log(vals.join(" "));
+                }
+
+                $("#example1_events").prepend(
+                    $("<div/>").text(vals.join(" "))
+                  )
+                  .scrollTop(0);
+                i++;
+              }
+
           </script>
         </div>
       </div>
