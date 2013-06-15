@@ -1,20 +1,7 @@
 Handsontable.PluginHookClass = (function () {
 
-  var legacy = {
-      onBeforeChange: "beforeChange",
-      onChange: "afterChange",
-      onCreateRow: "afterCreateRow",
-      onCreateCol: "afterCreateCol",
-      onSelection: "afterSelection",
-      onCopyLimit: "afterCopyLimit",
-      onSelectionEnd: "afterSelectionEnd",
-      onSelectionByProp: "afterSelectionByProp",
-      onSelectionEndByProp: "afterSelectionEndByProp"
-    };
-
-  function PluginHookClass () {
-
-    this.hooks = {
+  var Hooks = function () {
+    return {
       // Hooks
       beforeInitWalkontable : [],
 
@@ -52,66 +39,89 @@ Handsontable.PluginHookClass = (function () {
 
       // Modifiers
       modifyCol : []
+    }
+  };
+
+  var legacy = {
+      onBeforeChange: "beforeChange",
+      onChange: "afterChange",
+      onCreateRow: "afterCreateRow",
+      onCreateCol: "afterCreateCol",
+      onSelection: "afterSelection",
+      onCopyLimit: "afterCopyLimit",
+      onSelectionEnd: "afterSelectionEnd",
+      onSelectionByProp: "afterSelectionByProp",
+      onSelectionEndByProp: "afterSelectionEndByProp"
+    };
+
+  function PluginHookClass () {
+
+    this.hooks = {
+      once : Hooks(),
+      persistent : Hooks()
     };
 
     this.legacy = legacy;
 
-  }
+  };
 
-  PluginHookClass.prototype.add = function (key, fn) {
-    // provide support for old versions of HOT
-    if (key in legacy) {
-      key = legacy[key];
-    }
-
-    if (typeof this.hooks[key] === "undefined") {
-      this.hooks[key] = [];
-    }
-
-    if (fn instanceof Array) {
-      for (var i = 0, len = fn.length; i < len; i++) {
-        this.hooks[key].push(fn[i]);
+  var addHook = function (type) {
+    return function (key, fn) {
+      // provide support for old versions of HOT
+      if (key in legacy) {
+        key = legacy[key];
       }
-    } else {
-      this.hooks[key].push(fn);
-    }
 
-    return this;
+      if (typeof this.hooks[type][key] === "undefined") {
+        this.hooks[type][key] = [];
+      }
+
+      if (fn instanceof Array) {
+        for (var i = 0, len = fn.length; i < len; i++) {
+          this.hooks[type][key].push(fn[i]);
+        }
+      } else {
+        this.hooks[type][key].push(fn);
+      }
+
+      return this;
+    };
   };
 
-  PluginHookClass.prototype.once = function (key, fn) {
-    // provide support for old versions of HOT
-    if (key in legacy) {
-      key = legacy[key];
-    }
-
-    var instance = this
-      , _remove = this.remove
-      , wrapper = function () {
-        _remove.call(instance, key, wrapper);
-
-        return fn.apply(instance, arguments);
-      };
-
-    return this.add(key, wrapper);
-  };
+  PluginHookClass.prototype.add  = addHook('persistent');
+  PluginHookClass.prototype.once = addHook('once');
 
   PluginHookClass.prototype.remove = function (key, fn) {
+    var status = false
+      , hookTypes = ['persistent', 'once']
+      , type, x, lenx, i, leni;
+
     // provide support for old versions of HOT
     if (key in legacy) {
       key = legacy[key];
     }
 
-    for (var i = 0, len = this.hooks[key].length; i < len; i++) {
-      if (this.hooks[key][i] == fn) {
-        this.hooks[key].splice(i, 1);
-        return true;
+    for (x = 0, lenx = hookTypes.length; x < lenx; x++) {
+      type = hookTypes[x];
+      if (typeof this.hooks[type][key] !== 'undefined') {
+
+        for (i = 0, leni = this.hooks[type][key].length; i < leni; i++) {
+          if (this.hooks[type][key][i] == fn) {
+            this.hooks[type][key].splice(i, 1);
+            status = true;
+            break;
+          }
+        }
+
       }
     }
-    return false;
-  }
+
+    return status;
+  };
 
   PluginHookClass.prototype.run = function (instance, key, p1, p2, p3, p4, p5) {
+    var hookTypes = ['persistent', 'once']
+      , type, x, lenx, i, leni;
 
     // provide support for old versions of HOT
     if (key in legacy) {
@@ -119,28 +129,49 @@ Handsontable.PluginHookClass = (function () {
     }
 
     //performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-    if (typeof this.hooks[key] !== 'undefined') {
-      for (var i = 0, len = this.hooks[key].length; i < len; i++) {
-        this.hooks[key][i].call(instance, p1, p2, p3, p4, p5);
+    for (x = 0, lenx = hookTypes.length; x < lenx; x++) {
+      type = hookTypes[x];
+      if (typeof this.hooks[type][key] !== 'undefined') {
+
+        for (i = 0, leni = this.hooks[type][key].length; i < leni; i++) {
+          this.hooks[type][key][i].call(instance, p1, p2, p3, p4, p5);
+
+          if (type === 'once') {
+            this.hooks[type][key].splice(i, 1);
+          }
+        }
+
       }
     }
-  }
+  };
 
   PluginHookClass.prototype.execute = function (instance, key, p1, p2, p3, p4, p5) {
+    var hookTypes = ['persistent', 'once']
+      , type, x, lenx, i, leni;
+
     // provide support for old versions of HOT
     if (key in legacy) {
       key = legacy[key];
     }
 
     //performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-    if (typeof this.hooks[key] !== 'undefined') {
-      for (var i = 0, len = this.hooks[key].length; i < len; i++) {
-        p1 = this.hooks[key][i].call(instance, p1, p2, p3, p4, p5);
+    for (x = 0, lenx = hookTypes.length; x < lenx; x++) {
+      type = hookTypes[x];
+      if (typeof this.hooks[type][key] !== 'undefined') {
+
+        for (i = 0, leni = this.hooks[type][key].length; i < leni; i++) {
+          p1 =  this.hooks[type][key][i].call(instance, p1, p2, p3, p4, p5);
+
+          if (type === 'once') {
+            this.hooks[type][key].splice(i, 1);
+          }
+        }
+
       }
     }
 
     return p1;
-  }
+  };
 
   return PluginHookClass;
 
