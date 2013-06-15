@@ -3,59 +3,63 @@
  */
 
 Handsontable.AutocompleteCell = {
-  renderer: Handsontable.AutocompleteRenderer,
-  editor: Handsontable.AutocompleteEditor
+  editor: Handsontable.AutocompleteEditor,
+  renderer: Handsontable.AutocompleteRenderer
 };
 
 Handsontable.CheckboxCell = {
-  renderer: Handsontable.CheckboxRenderer,
-  editor: Handsontable.CheckboxEditor
+  editor: Handsontable.CheckboxEditor,
+  renderer: Handsontable.CheckboxRenderer
 };
 
 Handsontable.TextCell = {
-  renderer: Handsontable.TextRenderer,
-  editor: Handsontable.TextEditor
+  editor: Handsontable.TextEditor,
+  renderer: Handsontable.TextRenderer
 };
 
 Handsontable.NumericCell = {
-  renderer: Handsontable.NumericRenderer,
   editor: Handsontable.TextEditor,
+  renderer: Handsontable.NumericRenderer,
+  validator: Handsontable.NumericValidator,
   dataType: 'number'
 };
 
 Handsontable.DateCell = {
-  renderer: Handsontable.AutocompleteRenderer, //displays small gray arrow on right side of the cell
-  editor: Handsontable.DateEditor
+  editor: Handsontable.DateEditor,
+  renderer: Handsontable.AutocompleteRenderer //displays small gray arrow on right side of the cell
 };
 
 Handsontable.HandsontableCell = {
-  renderer: Handsontable.AutocompleteRenderer, //displays small gray arrow on right side of the cell
-  editor: Handsontable.HandsontableEditor
+  editor: Handsontable.HandsontableEditor,
+  renderer: Handsontable.AutocompleteRenderer //displays small gray arrow on right side of the cell
 };
 
 //here setup the friendly aliases that are used by cellProperties.type
 Handsontable.cellTypes = {
-  autocomplete: Handsontable.AutocompleteCell,
-  checkbox: Handsontable.CheckboxCell,
   text: Handsontable.TextCell,
-  numeric: Handsontable.NumericCell,
   date: Handsontable.DateCell,
+  numeric: Handsontable.NumericCell,
+  checkbox: Handsontable.CheckboxCell,
+  autocomplete: Handsontable.AutocompleteCell,
   handsontable: Handsontable.HandsontableCell
 };
 
 //here setup the friendly aliases that are used by cellProperties.renderer and cellProperties.editor
 Handsontable.cellLookup = {
   renderer: {
-    autocomplete: Handsontable.AutocompleteRenderer,
-    checkbox: Handsontable.CheckboxRenderer,
     text: Handsontable.TextRenderer,
-    numeric: Handsontable.NumericRenderer
+    numeric: Handsontable.NumericRenderer,
+    checkbox: Handsontable.CheckboxRenderer,
+    autocomplete: Handsontable.AutocompleteRenderer
   },
   editor: {
-    autocomplete: Handsontable.AutocompleteEditor,
-    checkbox: Handsontable.CheckboxEditor,
     text: Handsontable.TextEditor,
     date: Handsontable.DateEditor,
+    checkbox: Handsontable.CheckboxEditor,
+    autocomplete: Handsontable.AutocompleteEditor,
     handsontable: Handsontable.HandsontableEditor
+  },
+  validator: {
+    numeric: Handsontable.NumericValidator
   }
 };

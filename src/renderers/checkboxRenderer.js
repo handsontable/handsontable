@@ -1,3 +1,8 @@
+var clonableINPUT = document.createElement('INPUT');
+clonableINPUT.className = 'htCheckboxRendererInput';
+clonableINPUT.type = 'checkbox';
+clonableINPUT.setAttribute('autocomplete', 'off');
+
 /**
  * Checkbox renderer
  * @param {Object} instance Handsontable instance
@@ -18,10 +23,7 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
 
   instance.view.wt.wtDom.empty(TD); //TODO identify under what circumstances this line can be removed
 
-  var INPUT = document.createElement('INPUT');
-  INPUT.className = 'htCheckboxRendererInput';
-  INPUT.type = 'checkbox';
-  INPUT.setAttribute('autocomplete', 'off');
+  var INPUT = clonableINPUT.cloneNode(false); //this is faster than createElement
 
   if (value === cellProperties.checkedTemplate || value === Handsontable.helper.stringify(cellProperties.checkedTemplate)) {
     INPUT.checked = true;

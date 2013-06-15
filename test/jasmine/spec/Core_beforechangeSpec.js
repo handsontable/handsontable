@@ -33,7 +33,7 @@ describe('Core_beforechange', function () {
     });
   });
 
-  it('this should remove change from stack', function () {
+  it('should remove change from stack', function () {
     var output = null;
 
     runs(function () {
@@ -61,7 +61,7 @@ describe('Core_beforechange', function () {
     });
   });
 
-  it('this should drop all changes when beforeChange return false', function () {
+  it('should drop all changes when beforeChange return false', function () {
     var fired = false;
 
     runs(function () {
@@ -77,7 +77,7 @@ describe('Core_beforechange', function () {
 
     waitsFor(function () {
       return fired;
-    }, "afterChange callback called", 100);
+    }, "beforeChange callback called", 100);
 
     runs(function () {
       expect(getDataAtCell(0,0)).toEqual("a");

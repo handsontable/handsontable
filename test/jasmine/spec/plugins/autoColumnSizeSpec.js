@@ -58,4 +58,25 @@ describe('AutoColumnSize', function () {
     $container1.remove();
     $container2.remove();
   });
+
+  it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', function () {
+    var $style = $('<style>.big-table td {font-size: 32px}</style>').appendTo('head');
+
+    function getFirstCellWidth($el) {
+      return $el.find('tr:eq(0) td:eq(0)').width();
+    }
+
+    handsontable({
+      data: arrayOfObjects(),
+      autoColumnSize: true
+    });
+
+    var width = getFirstCellWidth(this.$container);
+
+    this.$container.find('table').addClass('big-table');
+    render();
+    expect(getFirstCellWidth(this.$container)).toBeGreaterThan(width);
+
+    $style.remove();
+  });
 });

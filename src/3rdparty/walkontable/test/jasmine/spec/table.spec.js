@@ -563,6 +563,33 @@ describe('WalkontableTable', function () {
     expect($table.find('tbody tr:first td:eq(3)').outerWidth()).toBeInArray([98, 100]); //IE7 reports 98, other browsers report 100
   });
 
+  it("should use column width also when there are no rows", function () {
+    this.data.length = 0;
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: 4,
+      height: 200,
+      offsetRow: 0,
+      offsetColumn: 0,
+      rowHeaders: [function (row, TH) {
+        TH.innerHTML = row + 1;
+      }],
+      columnHeaders: [function (col, TH) {
+        TH.innerHTML = col + 1;
+      }],
+      columnWidth: 100
+    });
+    wt.draw();
+    //start from eq(1) because eq(0) is corner header
+    expect($table.find('thead tr:first th:eq(1)').outerWidth()).toBeInArray([98, 100]); //IE7 reports 98, other browsers report 100
+    expect($table.find('thead tr:first th:eq(2)').outerWidth()).toBeInArray([98, 100]); //IE7 reports 98, other browsers report 100
+    expect($table.find('thead tr:first th:eq(3)').outerWidth()).toBeInArray([98, 100]); //IE7 reports 98, other browsers report 100
+    expect($table.find('thead tr:first th:eq(4)').outerWidth()).toBeInArray([98, 100]); //IE7 reports 98, other browsers report 100
+  });
+
   it("should not render a cell that is outside of the viewport horizontally", function () {
     var wt = new Walkontable({
       table: $table[0],

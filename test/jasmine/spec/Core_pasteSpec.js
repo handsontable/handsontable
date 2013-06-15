@@ -114,4 +114,32 @@ describe('Core_paste', function () {
 
   });
 
+  it('should not throw an error when changes are null in `once` hook', function () {
+    var errors = 0;
+
+    try {
+      handsontable({
+        data: arrayOfArrays(),
+        afterChange: function (changes, source) {
+          if (source === 'loadData') return;
+
+          loadData(arrayOfArrays());
+        }
+      });
+
+      selectCell(1, 0); //selectAll
+      triggerPaste('Kia\tNissan\tToyota');
+
+    } catch (e) {
+      errors++;
+    }
+
+    waits(60);
+
+    runs(function () {
+      expect(errors).toEqual(0);
+    });
+
+  });
+
 });

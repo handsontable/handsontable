@@ -62,4 +62,20 @@ describe('Core_render', function () {
     var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
     expect(this.$container.find('.wtBorder.current').width()).toBeGreaterThan($td.width());
   });
+
+  it('should not render table twice', function () {
+    var counter = 0;
+
+    handsontable({
+      data: [
+        ['Joe Red']
+      ],
+      afterRender: function () {
+        counter++;
+      }
+    });
+    populateFromArray(0, 0, [['t', 'e', 's', 't']]);
+
+    expect(counter).toEqual(2); // 1 from load and 1 from populateFromArray
+  });
 });

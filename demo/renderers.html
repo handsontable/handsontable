@@ -12,7 +12,8 @@
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
   <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
   <script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen"
+        href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
@@ -150,7 +151,7 @@
               ],
               cells: function (row, col, prop) {
                 if (row === 0 && col === 0) {
-                  return {type: {renderer: greenRenderer}};
+                  this.renderer = greenRenderer;
                 }
               }
             });
@@ -173,26 +174,26 @@
           <p>For example writing:</p>
 
         <pre class="javascript"><code>
-        columns: [
+          columns: [
           {
-            type: 'text'
+          type: 'text'
           }
-        ]
+          ]
         </code></pre>
 
           <p>Equals:</p>
 
         <pre class="javascript"><code>
-        columns: [
+          columns: [
           {
-            renderer: Handsontable.TextRenderer,
-            editor: Handsontable.TextEditor
+          renderer: Handsontable.TextRenderer,
+          editor: Handsontable.TextEditor
           }
-        ]
+          ]
         </code></pre>
 
           This mapping is defined in file <a
-            href="https://github.com/warpech/jquery-handsontable/blob/master/src/cellTypes.js">src/cellTypes.js</a>
+          href="https://github.com/warpech/jquery-handsontable/blob/master/src/cellTypes.js">src/cellTypes.js</a>
         </div>
       </div>
     </div>

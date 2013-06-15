@@ -66,6 +66,9 @@ function HandsontableAutoColumnSize() {
     }
 
     tmp.container.className = instance.rootElement[0].className + ' hidden';
+    var cls = instance.$table[0].className;
+    tmp.thead.className = cls;
+    tmp.tbody.className = cls;
 
     var rows = instance.countRows();
     var samples = {};

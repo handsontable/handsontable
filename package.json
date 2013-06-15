@@ -1,21 +1,22 @@
 {
   "name": "jquery-handsontable",
-  "description": "Minimalistic Excel-like data grid editor for HTML, JavaScript and jQuery",
+  "description": "Minimalistic spreadsheet-like data grid editor that provides copy/paste functionality compatible with Excel/Google Docs",
   "homepage": "http://handsontable.com/",
   "bugs": {
     "url": "https://github.com/warpech/jquery-handsontable/issues"
   },
   "author": "Marcin Warpechowski <marcin@nextgen.pl>",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "devDependencies": {
     "grunt": "~0.4.0",
     "grunt-replace": "~0.4.4",
     "grunt-contrib-clean": "~0.4.0",
     "grunt-contrib-concat": "~0.1.0",
     "grunt-contrib-watch": "~0.2.0",
-    "grunt-contrib-jasmine": "~0.4.1"
+    "grunt-contrib-jasmine": "~0.4.1",
+    "grunt-contrib-connect": "~0.3.0"
   },
-  "scripts":{
+  "scripts": {
     "test": "grunt test -v"
   }
 }

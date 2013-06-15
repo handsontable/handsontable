@@ -24,7 +24,7 @@
   -->
   <meta property="og:title" content="Validation">
   <meta property="og:description"
-        content="Use the onBeforeChange callback to validate changes before they are applied to the table.">
+        content="Use the validator method to easily validate synchronous or asynchronous changes to a cell.">
   <meta property="og:url" content="http://handsontable.com/demo/validation.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -61,27 +61,22 @@
         <div class="pad" data-jsfiddle="example1">
           <h2>Validation</h2>
 
-          <p>Use the
-            <b>onBeforeChange</b> callback to validate changes before they are applied to the table.
+          <p>Use the <b>validator</b> (see <a
+            href="https://github.com/warpech/jquery-handsontable/wiki/Options">Options wiki page</a>) method to easily
+            validate synchronous or asynchronous changes to a cell. If you
+            need more control, <b>beforeValidate</b> and <b>afterValidate</b> plugin hooks are available (see <a
+              href="https://github.com/warpech/jquery-handsontable/wiki/Events">Events wiki page</a>).
           </p>
 
-          <dl>
-            <dt>onBeforeChange (<code>changes: Array</code>, <code>source: String</code>)</dt>
-            <dd>Callback fired before one or more cells is changed. Its main purpose is to validate the input. Parameters:
-              <ul>
-                <li>
-                  <code>changes</code> is a 2D array containing information about each of the edited cells <code>[ [row, prop, oldVal, newVal], ... ]</code>.
-                  <ul>
-                    <li>To disregard a single change, set <code>changes[i]</code> to <code>null</code> or remove it from array using <code>changes.splice(i, 1)</code>.</li>
-                    <li>To alter a single change, overwrite the desired value to <code>changes[i][3]</code>.</li>
-                    <li>To cancel all edit, <code>return false</code> from the callback or set array length to 0 (<code>changes.length = 0</code>).</li></ul>
-                </li>
-                <li>
-                  <code>source</code> is the name of a source of changes.
-                </li>
-              </ul>
-            </dd>
-          </dl>
+          <p>Use the <b>allowInvalid</b> option (see <a
+            href="https://github.com/warpech/jquery-handsontable/wiki/Options">Options wiki page</a>) to define if the
+            grid should accept input that does not validate.</p>
+
+          <p>
+            If you need to modify the input (e.g. censor bad words, uppercase first letter), use the plugin hook <b>beforeChange</b>
+            (see <a
+            href="https://github.com/warpech/jquery-handsontable/wiki/Events">Events wiki page</a>).
+          </p>
 
           <div id="example1"></div>
 
@@ -104,19 +99,32 @@
           </div>
 
           <script data-jsfiddle="example1">
-            var data = [
-              ["", "Kia", "Nissan", "Toyota", "Honda"],
-              ["2008", 10, 11, 12, 13],
-              ["2009", 20, 11, 14, 13],
-              ["2010", 30, 15, 12, 13]
+            var people = [
+              {id: 1, name: {first: 'Joe', last: 'Fabiano'}, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com'},
+              {id: 2, name: {first: 'Fred', last: 'Wecler'}, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com'},
+              {id: 3, name: {first: 'Steve', last: 'Wilson'}, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com'},
+              {id: 4, name: {first: 'Maria', last: 'Fernandez'}, ip: '0.0.0.1', email: 'M.Fernandez@ex.com'},
+              {id: 5, name: {first: 'Pierre', last: 'Barbault'}, ip: '0.0.0.1', email: 'Pierre.Barbault@ex.com'},
+              {id: 6, name: {first: 'Nancy', last: 'Moore'}, ip: '0.0.0.1', email: 'Nancy.Moore@ex.com'},
+              {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, ip: '0.0.0.1', email: 'B.MacDonald@ex.com'},
+              {id: 8, name: {first: 'Wilma', last: 'Williams'}, ip: '0.0.0.1', email: 'Wilma.Williams@ex.com'},
+              {id: 9, name: {first: 'Sasha', last: 'Silver'}, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com'},
+              {id: 10, name: {first: 'Don', last: 'Pérignon'}, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com'},
+              {id: 11, name: {first: 'Aaron', last: 'Kinley'}, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com'}
             ];
 
+            var ip_validator_regexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
+            var email_validator_fn = function (value, callback) {
+              if (/.+@.+/.test(value)) {
+                callback(true);
+              }
+              else {
+                callback(false);
+              }
+            };
+
             $("#example1").handsontable({
-              data: data,
-              startRows: 8,
-              startCols: 6,
-              rowHeaders: true,
-              colHeaders: true,
+              data: people,
               minSpareRows: 1,
               contextMenu: true,
               beforeChange: function (changes, source) {
@@ -124,22 +132,28 @@
                   if (changes[i][3] === "foo") {
                     changes.splice(i, 1); //gently don't accept the word "foo" (remove the change at index i)
                   }
-                  else if (changes[i][3] === "bar") {
-                    //if the word bar is given, add a ! at the end of it
-                    changes[i][3] = changes[i][3] + '!';
-                  }
                   else if (changes[i][3] === "nuke") {
                     //if any of pasted cells contains the word "nuke", reject the whole paste
                     return false;
                   }
+                  else if ((changes[i][1] === 'name.first' || changes[i][1] === 'name.last') && changes[i][3].charAt(0)) {
+                    changes[i][3] = changes[i][3].charAt(0).toUpperCase() + changes[i][3].slice(1); //capitalise first letter in column 1 and 2
+                  }
                 }
               },
               afterChange: function (changes, source) {
-                if (source === 'loadData') {
-                  return; //don't show this change in console
+                if (source !== 'loadData') {
+                  $("#example1console").text(JSON.stringify(changes));
                 }
-                $("#example1console").text(JSON.stringify(changes));
-              }
+              },
+              colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],
+              columns: [
+                {data: 'id', type: 'numeric'},
+                {data: 'name.first'},
+                {data: 'name.last'},
+                {data: 'ip', validator: ip_validator_regexp, allowInvalid: true},
+                {data: 'email', validator: email_validator_fn, allowInvalid: false}
+              ]
             });
           </script>
         </div>

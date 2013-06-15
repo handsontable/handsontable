@@ -20,6 +20,9 @@ Handsontable.TextRenderer = function (instance, TD, row, col, prop, value, cellP
     //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
   if (cellProperties.readOnly) {
-    TD.className = 'htDimmed';
+    instance.view.wt.wtDom.addClass(TD, 'htDimmed');
+  }
+  if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
+    TD.className = cellProperties.invalidCellClassName;
   }
 };
