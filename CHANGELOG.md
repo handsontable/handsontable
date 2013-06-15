@@ -1,11 +1,23 @@
+## [0.9.5](https://github.com/warpech/jquery-handsontable/tree/v0.9.5) (Jun 15, 2013)
+
+Feature:
+- cell validators! See the redone [Validation](http://handsontable.com/demo/validation.html) demo page. New plugin cell options: `validator`, `allowInvalid`. New plugin hooks: `beforeValidate`, `afterValidate`
+
 Bugfixes:
+- read only cells: `htDimmed` overrides all classes ([#699](https://github.com/warpech/jquery-handsontable/issues/699))
+- calling 'loadData' after a change made by a paste event will produce an error in the hooks invocation ([#783](https://github.com/warpech/jquery-handsontable/issues/783))
 - autoColumnSize did not take `<table>` class into account when measuring the column width
+- column header width was not applied correctly where there were no rows in the data source
+- methods `countVisibleRows` and `countVisibleCols` threw an exception if table is not rendered (now they return -1)
 
 Performance:
 - use `cloneNode` in cell built-in cell renderers for better performance
+- fix double rendering in populateFromArray method
+- cellProperties are now cached (not created on the fly)
 
 Other:
 - add `grunt-contrib-connect` to `Gruntfile.js` that allows to run an ad-hoc http://localhost:8080/ server with command `grunt connect`
+- ensure good integration with [Bower](http://bower.io/) front-end package manager
 - bind `cellProperties` as `this` in `cells` callback
 
 ## [0.9.4](https://github.com/warpech/jquery-handsontable/tree/v0.9.4) (Jun 7, 2013)
