@@ -1584,7 +1584,9 @@ Handsontable.Core = function (rootElement, userSettings) {
       value = instance.PluginHooks.execute("beforeValidate", value, cellProperties.row, cellProperties.prop, source);
 
       validator.call(cellProperties, value, function (valid) {
-        cellProperties.valid = valid;
+        if (cellProperties.allowInvalid) {
+          cellProperties.valid = valid;
+        }
         valid = instance.PluginHooks.execute("afterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
         callback(valid);
       });
