@@ -225,7 +225,7 @@ Handsontable.TableView = function (instance) {
         instance.listen(); //fix IE7-8 bug that sets focus to TD after mousedown
       });
     },
-    onCellMouseOver: function (event, coords, TD) {
+    onCellMouseOver: function (event, coords/*, TD*/) {
       var coordsObj = {row: coords[0], col: coords[1]};
       if (isMouseDown) {
         instance.selection.setRangeEnd(coordsObj);
@@ -348,7 +348,7 @@ Handsontable.TableView.prototype.scrollViewport = function (coords) {
  */
 Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
   if (row > -1) {
-    this.wt.wtDom.avoidInnerHTML(TH, this.instance.getRowHeader(row));
+    this.wt.wtDom.fastInnerHTML(TH, this.instance.getRowHeader(row));
   }
   else {
     this.wt.wtDom.empty(TH);
@@ -367,7 +367,7 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
   DIV.className = 'relative';
   SPAN.className = 'colHeader';
 
-  this.wt.wtDom.avoidInnerHTML(SPAN, this.instance.getColHeader(col));
+  this.wt.wtDom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
   DIV.appendChild(SPAN);
 
   while (TH.firstChild) {

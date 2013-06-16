@@ -13,10 +13,9 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
     if (typeof cellProperties.language !== 'undefined') {
       numeral.language(cellProperties.language)
     }
-    instance.view.wt.wtDom.empty(TD); //TODO identify under what circumstances this line can be removed
+    value = numeral(value).format(cellProperties.format || '0'); //docs: http://numeraljs.com/
+    instance.view.wt.wtDom.fastInnerText(TD, value); //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
     instance.view.wt.wtDom.addClass(TD, 'htNumeric');
-    TD.appendChild(document.createTextNode(numeral(value).format(cellProperties.format || '0'))); //docs: http://numeraljs.com/
-    //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
     if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
       TD.className = cellProperties.invalidCellClassName;
     }
