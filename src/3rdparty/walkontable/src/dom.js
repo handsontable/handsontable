@@ -148,8 +148,10 @@ WalkontableDom.prototype.empty = function (element) {
  * Insert content into element trying avoid innerHTML method.
  * @return {void}
  */
+WalkontableDom.prototype.HTML_CHARACTERS = /(<(.*)>|&(.*);)/g;
+
 WalkontableDom.prototype.avoidInnerHTML = function (element, content) {
-  if ((/(<(.*)>|&(.*);)/g).test(content)) {
+  if (this.HTML_CHARACTERS.test(content)) {
     element.innerHTML = content;
   } else {
     var child;
