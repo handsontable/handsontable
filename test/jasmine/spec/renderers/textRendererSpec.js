@@ -65,4 +65,12 @@ describe('TextRenderer', function () {
     Handsontable.TextRenderer(instance, TD, 0, 0, 0, '', {readOnly: true});
     expect(TD.className).toEqual('someClass htDimmed');
   });
+
+  it('should render a multiline string', function () {
+    handsontable();
+    setDataAtCell(1, 2, "a b");
+    setDataAtCell(2, 2, "a\nb");
+
+    expect($(getCell(2, 2)).height()).toBeGreaterThan($(getCell(1, 2)).height());
+  });
 });

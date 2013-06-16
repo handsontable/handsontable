@@ -144,29 +144,36 @@ WalkontableDom.prototype.empty = function (element) {
   }
 };
 
+WalkontableDom.prototype.HTML_CHARACTERS = /(<(.*)>|&(.*);)/g;
+
 /**
  * Insert content into element trying avoid innerHTML method.
  * @return {void}
  */
-WalkontableDom.prototype.HTML_CHARACTERS = /(<(.*)>|&(.*);)/g;
-
-WalkontableDom.prototype.avoidInnerHTML = function (element, content) {
+WalkontableDom.prototype.fastInnerHTML = function (element, content) {
   if (this.HTML_CHARACTERS.test(content)) {
     element.innerHTML = content;
   }
   else {
-    var child = element.firstChild;
-    if (child && child.nodeType === 3 && child.nextSibling === null) {
-      //fast lane - replace text - http://jsperf.com/replace-text-vs-reuse
-      child.textContent = content;
-    }
-    else {
-      while (child = element.lastChild) {
-        element.removeChild(child);
-      }
+    this.fastInnerText(element, content);
+  }
+};
 
-      element.appendChild(document.createTextNode(content));
-    }
+/**
+ * Insert text content into element
+ * @return {void}
+ */
+WalkontableDom.prototype.fastInnerText = function (element, content) {
+  var child = element.firstChild;
+  if (child && child.nodeType === 3 && child.nextSibling === null) {
+    //fast lane - replace existing text node
+    //http://jsperf.com/replace-text-vs-reuse
+    child.textContent = content;
+  }
+  else {
+    //slow lane - empty element and insert a text node
+    this.empty(element);
+    element.appendChild(document.createTextNode(content));
   }
 };
 
