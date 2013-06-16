@@ -163,19 +163,36 @@ WalkontableDom.prototype.fastInnerHTML = function (element, content) {
  * Insert text content into element
  * @return {void}
  */
-WalkontableDom.prototype.fastInnerText = function (element, content) {
-  var child = element.firstChild;
-  if (child && child.nodeType === 3 && child.nextSibling === null) {
-    //fast lane - replace existing text node
-    //http://jsperf.com/replace-text-vs-reuse
-    child.textContent = content;
-  }
-  else {
-    //slow lane - empty element and insert a text node
-    this.empty(element);
-    element.appendChild(document.createTextNode(content));
-  }
-};
+if (document.createTextNode('test').textContent) { //STANDARDS
+  WalkontableDom.prototype.fastInnerText = function (element, content) {
+    var child = element.firstChild;
+    if (child && child.nodeType === 3 && child.nextSibling === null) {
+      //fast lane - replace existing text node
+      //http://jsperf.com/replace-text-vs-reuse
+      child.textContent = content;
+    }
+    else {
+      //slow lane - empty element and insert a text node
+      this.empty(element);
+      element.appendChild(document.createTextNode(content));
+    }
+  };
+}
+else { //IE7-8
+  WalkontableDom.prototype.fastInnerText = function (element, content) {
+    var child = element.firstChild;
+    if (child && child.nodeType === 3 && child.nextSibling === null) {
+      //fast lane - replace existing text node
+      //http://jsperf.com/replace-text-vs-reuse
+      child.data = content;
+    }
+    else {
+      //slow lane - empty element and insert a text node
+      this.empty(element);
+      element.appendChild(document.createTextNode(content));
+    }
+  };
+}
 
 /**
  * Returns true if element is attached to the DOM and visible, false otherwise
