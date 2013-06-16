@@ -153,13 +153,20 @@ WalkontableDom.prototype.HTML_CHARACTERS = /(<(.*)>|&(.*);)/g;
 WalkontableDom.prototype.avoidInnerHTML = function (element, content) {
   if (this.HTML_CHARACTERS.test(content)) {
     element.innerHTML = content;
-  } else {
-    var child;
-    while (child = element.lastChild) {
-      element.removeChild(child);
+  }
+  else {
+    var child = element.firstChild;
+    if (child && child.nodeType === 3 && child.nextSibling === null) {
+      //fast lane - replace text - http://jsperf.com/replace-text-vs-reuse
+      child.textContent = content;
     }
+    else {
+      while (child = element.lastChild) {
+        element.removeChild(child);
+      }
 
-    element.appendChild(document.createTextNode(content));
+      element.appendChild(document.createTextNode(content));
+    }
   }
 };
 
