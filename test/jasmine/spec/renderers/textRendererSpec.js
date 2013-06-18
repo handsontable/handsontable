@@ -55,7 +55,7 @@ describe('TextRenderer', function () {
     expect(getCell(2, 2).innerHTML).toEqual("");
   });
 
-  it('should add class name `dimmed` to a read only cell', function () {
+  it('should add class name `htDimmed` to a read only cell', function () {
     var DIV = document.createElement('DIV');
     var instance = new Handsontable.Core($(DIV), {});
     instance.init(); //unfortunately these 3 lines are currently needed to satisfy renderer arguments (as of v0.8.21)

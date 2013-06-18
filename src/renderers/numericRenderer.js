@@ -14,13 +14,7 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
       numeral.language(cellProperties.language)
     }
     value = numeral(value).format(cellProperties.format || '0'); //docs: http://numeraljs.com/
-    instance.view.wt.wtDom.fastInnerText(TD, value); //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
     instance.view.wt.wtDom.addClass(TD, 'htNumeric');
-    if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
-      TD.className = cellProperties.invalidCellClassName;
-    }
   }
-  else {
-    Handsontable.TextRenderer(instance, TD, row, col, prop, value, cellProperties);
-  }
+  Handsontable.TextRenderer(instance, TD, row, col, prop, value, cellProperties);
 };
