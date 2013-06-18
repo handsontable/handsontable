@@ -2,14 +2,26 @@ function WalkontableDom() {
 }
 
 //goes up the DOM tree (including given element) until it finds an element that matches the nodeName
-WalkontableDom.prototype.closest = function (elem, nodeNames) {
-  while (elem != null) {
+WalkontableDom.prototype.closest = function (elem, nodeNames, until) {
+  while (elem != null && elem !== until) {
     if (elem.nodeType === 1 && nodeNames.indexOf(elem.nodeName) > -1) {
       return elem;
     }
     elem = elem.parentNode;
   }
   return null;
+};
+
+//goes up the DOM tree and checks if element is child of another element
+WalkontableDom.prototype.isChildOf = function (child, parent) {
+  var node = child.parentNode;
+  while (node != null) {
+    if (node == parent) {
+      return true;
+    }
+    node = node.parentNode;
+  }
+  return false;
 };
 
 WalkontableDom.prototype.prevSiblings = function (elem) {
