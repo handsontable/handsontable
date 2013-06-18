@@ -16,10 +16,7 @@ function HandsontableAutoColumnSize() {
       renderer: null,
       rendererTd: null,
       container: null,
-      containerStyle: null,
-      $container: null,
-      $noRenderer: null,
-      $renderer: null
+      containerStyle: null
     };
   };
 
@@ -57,10 +54,6 @@ function HandsontableAutoColumnSize() {
       tmp.container.appendChild(tmp.tbody);
       tmp.container.appendChild(tmp.noRenderer);
       tmp.container.appendChild(tmp.renderer);
-
-      tmp.$container = $(tmp.container);
-      tmp.$noRenderer = $(tmp.noRenderer);
-      tmp.$renderer = $(tmp.renderer);
 
       instance.rootElement[0].parentNode.appendChild(tmp.container);
     }
@@ -111,7 +104,7 @@ function HandsontableAutoColumnSize() {
 
     tmp.containerStyle.display = 'block';
 
-    var width = tmp.$container.outerWidth();
+    var width = instance.view.wt.wtDom.outerWidth(tmp.container);
 
     var cellProperties = instance.getCellMeta(0, col);
     if (cellProperties.renderer) {
@@ -121,7 +114,7 @@ function HandsontableAutoColumnSize() {
       var renderer = Handsontable.helper.getCellMethod('renderer', cellProperties.renderer);
       renderer(instance, tmp.rendererTd, 0, col, instance.colToProp(col), str, cellProperties);
 
-      width += tmp.$renderer.width() - tmp.$noRenderer.width(); //add renderer overhead to the calculated width
+      width += instance.view.wt.wtDom.outerWidth(tmp.renderer) - instance.view.wt.wtDom.outerWidth(tmp.noRenderer); //add renderer overhead to the calculated width
     }
 
     tmp.containerStyle.display = 'none';

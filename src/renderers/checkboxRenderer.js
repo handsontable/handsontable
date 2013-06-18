@@ -37,8 +37,7 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
     TD.appendChild(INPUT);
   }
   else {
-    TD.appendChild(document.createTextNode('#bad value#'));
-    //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+    instance.view.wt.wtDom.fastInnerText(TD, '#bad value#'); //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
 
   var $input = $(INPUT);

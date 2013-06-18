@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.9.5
+ * Handsontable 0.9.6
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Jun 15 2013 14:04:49 GMT+0200 (Central European Daylight Time)
+ * Date: Tue Jun 18 2013 18:56:33 GMT+0200 (Central European Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -519,7 +519,7 @@ Handsontable.Core = function (rootElement, userSettings) {
           break;
 
         default:
-          throw Error('There is no such action "' + action + '"');
+          throw new Error('There is no such action "' + action + '"');
           break;
       }
 
@@ -2430,12 +2430,12 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.isEmptyRow = function (r) {
     if (priv.settings.isEmptyRow) {
-      return priv.settings.isEmptyRow.call(this, r);
+      return priv.settings.isEmptyRow.call(instance, r);
     }
 
     var val;
-    for (var c = 0, clen = this.countCols(); c < clen; c++) {
-      val = this.getDataAtCell(r, c);
+    for (var c = 0, clen = instance.countCols(); c < clen; c++) {
+      val = instance.getDataAtCell(r, c);
       if (val !== '' && val !== null && typeof val !== 'undefined') {
         return false;
       }
@@ -2450,12 +2450,12 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.isEmptyCol = function (c) {
     if (priv.settings.isEmptyCol) {
-      return priv.settings.isEmptyCol.call(this, c);
+      return priv.settings.isEmptyCol.call(instance, c);
     }
 
     var val;
-    for (var r = 0, rlen = this.countRows(); r < rlen; r++) {
-      val = this.getDataAtCell(r, c);
+    for (var r = 0, rlen = instance.countRows(); r < rlen; r++) {
+      val = instance.getDataAtCell(r, c);
       if (val !== '' && val !== null && typeof val !== 'undefined') {
         return false;
       }
@@ -2600,7 +2600,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.9.5'; //inserted by grunt from package.json
+  this.version = '0.9.6'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {
@@ -2926,7 +2926,7 @@ Handsontable.TableView = function (instance) {
         instance.listen(); //fix IE7-8 bug that sets focus to TD after mousedown
       });
     },
-    onCellMouseOver: function (event, coords, TD) {
+    onCellMouseOver: function (event, coords/*, TD*/) {
       var coordsObj = {row: coords[0], col: coords[1]};
       if (isMouseDown) {
         instance.selection.setRangeEnd(coordsObj);
@@ -3049,7 +3049,7 @@ Handsontable.TableView.prototype.scrollViewport = function (coords) {
  */
 Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
   if (row > -1) {
-    this.wt.wtDom.avoidInnerHTML(TH, this.instance.getRowHeader(row));
+    this.wt.wtDom.fastInnerHTML(TH, this.instance.getRowHeader(row));
   }
   else {
     this.wt.wtDom.empty(TH);
@@ -3068,7 +3068,7 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
   DIV.className = 'relative';
   SPAN.className = 'colHeader';
 
-  this.wt.wtDom.avoidInnerHTML(SPAN, this.instance.getColHeader(col));
+  this.wt.wtDom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
   DIV.appendChild(SPAN);
 
   while (TH.firstChild) {
@@ -3429,15 +3429,7 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
  */
 Handsontable.TextRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
   var escaped = Handsontable.helper.stringify(value);
-  if (escaped.match(/\n/)) {
-    escaped = escaped.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); //escape html special chars
-    TD.innerHTML = escaped.replace(/\n/g, '<br/>');
-  }
-  else {
-    instance.view.wt.wtDom.empty(TD); //TODO identify under what circumstances this line can be removed
-    TD.appendChild(document.createTextNode(escaped));
-    //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
-  }
+  instance.view.wt.wtDom.fastInnerText(TD, escaped); //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   if (cellProperties.readOnly) {
     instance.view.wt.wtDom.addClass(TD, 'htDimmed');
   }
@@ -3465,7 +3457,7 @@ clonableARROW.appendChild(document.createTextNode('\u25BC'));
  */
 Handsontable.AutocompleteRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
   var TEXT = clonableTEXT.cloneNode(false); //this is faster than createElement
-  var ARROW = clonableARROW.cloneNode(false); //this is faster than createElement
+  var ARROW = clonableARROW.cloneNode(true); //this is faster than createElement
 
   if (!instance.acArrowListener) {
     //not very elegant but easy and fast
@@ -3526,8 +3518,7 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
     TD.appendChild(INPUT);
   }
   else {
-    TD.appendChild(document.createTextNode('#bad value#'));
-    //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+    instance.view.wt.wtDom.fastInnerText(TD, '#bad value#'); //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
 
   var $input = $(INPUT);
@@ -3571,17 +3562,10 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
     if (typeof cellProperties.language !== 'undefined') {
       numeral.language(cellProperties.language)
     }
-    instance.view.wt.wtDom.empty(TD); //TODO identify under what circumstances this line can be removed
+    value = numeral(value).format(cellProperties.format || '0'); //docs: http://numeraljs.com/
     instance.view.wt.wtDom.addClass(TD, 'htNumeric');
-    TD.appendChild(document.createTextNode(numeral(value).format(cellProperties.format || '0'))); //docs: http://numeraljs.com/
-    //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
-    if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
-      TD.className = cellProperties.invalidCellClassName;
-    }
   }
-  else {
-    Handsontable.TextRenderer(instance, TD, row, col, prop, value, cellProperties);
-  }
+  Handsontable.TextRenderer(instance, TD, row, col, prop, value, cellProperties);
 };
 function HandsontableTextEditorClass(instance) {
   this.isCellEdited = false;
@@ -4661,10 +4645,7 @@ function HandsontableAutoColumnSize() {
       renderer: null,
       rendererTd: null,
       container: null,
-      containerStyle: null,
-      $container: null,
-      $noRenderer: null,
-      $renderer: null
+      containerStyle: null
     };
   };
 
@@ -4702,10 +4683,6 @@ function HandsontableAutoColumnSize() {
       tmp.container.appendChild(tmp.tbody);
       tmp.container.appendChild(tmp.noRenderer);
       tmp.container.appendChild(tmp.renderer);
-
-      tmp.$container = $(tmp.container);
-      tmp.$noRenderer = $(tmp.noRenderer);
-      tmp.$renderer = $(tmp.renderer);
 
       instance.rootElement[0].parentNode.appendChild(tmp.container);
     }
@@ -4756,7 +4733,7 @@ function HandsontableAutoColumnSize() {
 
     tmp.containerStyle.display = 'block';
 
-    var width = tmp.$container.outerWidth();
+    var width = instance.view.wt.wtDom.outerWidth(tmp.container);
 
     var cellProperties = instance.getCellMeta(0, col);
     if (cellProperties.renderer) {
@@ -4766,7 +4743,7 @@ function HandsontableAutoColumnSize() {
       var renderer = Handsontable.helper.getCellMethod('renderer', cellProperties.renderer);
       renderer(instance, tmp.rendererTd, 0, col, instance.colToProp(col), str, cellProperties);
 
-      width += tmp.$renderer.width() - tmp.$noRenderer.width(); //add renderer overhead to the calculated width
+      width += instance.view.wt.wtDom.outerWidth(tmp.renderer) - instance.view.wt.wtDom.outerWidth(tmp.noRenderer); //add renderer overhead to the calculated width
     }
 
     tmp.containerStyle.display = 'none';
@@ -6443,7 +6420,7 @@ function Walkontable(settings) {
     }
     if (!this.getSetting('columnHeaders').length) {
       this.update('columnHeaders', [function (column, TH) {
-        that.wtDom.avoidInnerHTML(TH, originalHeaders[column]);
+        that.wtDom.fastInnerText(TH, originalHeaders[column]);
       }]);
     }
   }
@@ -6526,14 +6503,26 @@ function WalkontableDom() {
 }
 
 //goes up the DOM tree (including given element) until it finds an element that matches the nodeName
-WalkontableDom.prototype.closest = function (elem, nodeNames) {
-  while (elem != null) {
+WalkontableDom.prototype.closest = function (elem, nodeNames, until) {
+  while (elem != null && elem !== until) {
     if (elem.nodeType === 1 && nodeNames.indexOf(elem.nodeName) > -1) {
       return elem;
     }
     elem = elem.parentNode;
   }
   return null;
+};
+
+//goes up the DOM tree and checks if element is child of another element
+WalkontableDom.prototype.isChildOf = function (child, parent) {
+  var node = child.parentNode;
+  while (node != null) {
+    if (node == parent) {
+      return true;
+    }
+    node = node.parentNode;
+  }
+  return false;
 };
 
 WalkontableDom.prototype.prevSiblings = function (elem) {
@@ -6668,22 +6657,55 @@ WalkontableDom.prototype.empty = function (element) {
   }
 };
 
+WalkontableDom.prototype.HTML_CHARACTERS = /(<(.*)>|&(.*);)/g;
+
 /**
  * Insert content into element trying avoid innerHTML method.
  * @return {void}
  */
-WalkontableDom.prototype.avoidInnerHTML = function (element, content) {
-  if ((/(<(.*)>|&(.*);)/g).test(content)) {
+WalkontableDom.prototype.fastInnerHTML = function (element, content) {
+  if (this.HTML_CHARACTERS.test(content)) {
     element.innerHTML = content;
-  } else {
-    var child;
-    while (child = element.lastChild) {
-      element.removeChild(child);
-    }
-
-    element.appendChild(document.createTextNode(content));
+  }
+  else {
+    this.fastInnerText(element, content);
   }
 };
+
+/**
+ * Insert text content into element
+ * @return {void}
+ */
+if (document.createTextNode('test').textContent) { //STANDARDS
+  WalkontableDom.prototype.fastInnerText = function (element, content) {
+    var child = element.firstChild;
+    if (child && child.nodeType === 3 && child.nextSibling === null) {
+      //fast lane - replace existing text node
+      //http://jsperf.com/replace-text-vs-reuse
+      child.textContent = content;
+    }
+    else {
+      //slow lane - empty element and insert a text node
+      this.empty(element);
+      element.appendChild(document.createTextNode(content));
+    }
+  };
+}
+else { //IE7-8
+  WalkontableDom.prototype.fastInnerText = function (element, content) {
+    var child = element.firstChild;
+    if (child && child.nodeType === 3 && child.nextSibling === null) {
+      //fast lane - replace existing text node
+      //http://jsperf.com/replace-text-vs-reuse
+      child.data = content;
+    }
+    else {
+      //slow lane - empty element and insert a text node
+      this.empty(element);
+      element.appendChild(document.createTextNode(content));
+    }
+  };
+}
 
 /**
  * Returns true if element is attached to the DOM and visible, false otherwise
@@ -6714,10 +6736,10 @@ WalkontableDom.prototype.isVisible = function (elem) {
     }
     else if (next.nodeType === 11) {
       if (next.nodeName === '#document-fragment') { //Shadow DOM
-        return true;
+        return (true);
       }
       else { //IE7 reports nodeType === 11 after detaching element from DOM
-        return false;
+        return (false);
       }
     }
     else if (next.style.display === 'none') {
@@ -6815,8 +6837,9 @@ function WalkontableEvent(instance) {
   var lastMouseOver;
   var onMouseOver = function (event) {
     if (that.instance.hasSetting('onCellMouseOver')) {
-      var TD = that.wtDom.closest(event.target, ['TD', 'TH']);
-      if (TD && TD !== lastMouseOver) {
+      var TABLE = that.instance.wtTable.TABLE;
+      var TD = that.wtDom.closest(event.target, ['TD', 'TH'], TABLE);
+      if (TD && TD !== lastMouseOver && that.wtDom.isChildOf(TD, TABLE)) {
         lastMouseOver = TD;
         if (TD.nodeName === 'TD') {
           that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(TD), TD);
@@ -6867,11 +6890,13 @@ function WalkontableEvent(instance) {
 
 WalkontableEvent.prototype.parentCell = function (elem) {
   var cell = {};
-  cell.TD = this.wtDom.closest(elem, ['TD', 'TH']);
-  if (cell.TD) {
-    cell.coords = this.instance.wtTable.getCoords(cell.TD);
+  var TABLE = this.instance.wtTable.TABLE;
+  var TD = this.wtDom.closest(elem, ['TD', 'TH'], TABLE);
+  if (TD && this.wtDom.isChildOf(TD, TABLE)) {
+    cell.coords = this.instance.wtTable.getCoords(TD);
+    cell.TD = TD;
   }
-  else if (!cell.TD && this.wtDom.hasClass(elem, 'wtBorder') && this.wtDom.hasClass(elem, 'current') && !this.wtDom.hasClass(elem, 'corner')) {
+  else if (this.wtDom.hasClass(elem, 'wtBorder') && this.wtDom.hasClass(elem, 'current') && !this.wtDom.hasClass(elem, 'corner')) {
     cell.coords = this.instance.selections.current.selected[0];
     cell.TD = this.instance.wtTable.getCell(cell.coords);
   }
@@ -7768,7 +7793,7 @@ function WalkontableSettings(instance, settings) {
     height: null,
     cellRenderer: function (row, column, TD) {
       var cellData = that.getSetting('data', row, column);
-      that.instance.wtDom.avoidInnerHTML(TD, cellData === void 0 || cellData === null ? '' : cellData);
+      that.instance.wtDom.fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);
     },
     columnWidth: 50,
     selections: null,
@@ -9293,89 +9318,122 @@ if (!jQuery.browser) {
 
   })();
 }
-/*! Copyright (c) 2011 Brandon Aaron (http://brandonaaron.net)
+/*! Copyright (c) 2013 Brandon Aaron (http://brandonaaron.net)
  * Licensed under the MIT License (LICENSE.txt).
  *
  * Thanks to: http://adomas.org/javascript-mouse-wheel/ for some pointers.
  * Thanks to: Mathias Bank(http://www.mathias-bank.de) for a scope bug fix.
  * Thanks to: Seamus Leahy for adding deltaX and deltaY
  *
- * Version: 3.0.6
- * 
+ * Version: 3.1.3
+ *
  * Requires: 1.2.2+
  */
 
-(function($) {
-
-var types = ['DOMMouseScroll', 'mousewheel'];
-
-if ($.event.fixHooks) {
-    for ( var i=types.length; i; ) {
-        $.event.fixHooks[ types[--i] ] = $.event.mouseHooks;
+(function (factory) {
+    if ( typeof define === 'function' && define.amd ) {
+        // AMD. Register as an anonymous module.
+        define(['jquery'], factory);
+    } else if (typeof exports === 'object') {
+        // Node/CommonJS style for Browserify
+        module.exports = factory;
+    } else {
+        // Browser globals
+        factory(jQuery);
     }
-}
+}(function ($) {
 
-$.event.special.mousewheel = {
-    setup: function() {
-        if ( this.addEventListener ) {
-            for ( var i=types.length; i; ) {
-                this.addEventListener( types[--i], handler, false );
-            }
-        } else {
-            this.onmousewheel = handler;
-        }
-    },
-    
-    teardown: function() {
-        if ( this.removeEventListener ) {
-            for ( var i=types.length; i; ) {
-                this.removeEventListener( types[--i], handler, false );
-            }
-        } else {
-            this.onmousewheel = null;
+    var toFix = ['wheel', 'mousewheel', 'DOMMouseScroll', 'MozMousePixelScroll'];
+    var toBind = 'onwheel' in document || document.documentMode >= 9 ? ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'];
+    var lowestDelta, lowestDeltaXY;
+
+    if ( $.event.fixHooks ) {
+        for ( var i = toFix.length; i; ) {
+            $.event.fixHooks[ toFix[--i] ] = $.event.mouseHooks;
         }
     }
-};
 
-$.fn.extend({
-    mousewheel: function(fn) {
-        return fn ? this.bind("mousewheel", fn) : this.trigger("mousewheel");
-    },
-    
-    unmousewheel: function(fn) {
-        return this.unbind("mousewheel", fn);
+    $.event.special.mousewheel = {
+        setup: function() {
+            if ( this.addEventListener ) {
+                for ( var i = toBind.length; i; ) {
+                    this.addEventListener( toBind[--i], handler, false );
+                }
+            } else {
+                this.onmousewheel = handler;
+            }
+        },
+
+        teardown: function() {
+            if ( this.removeEventListener ) {
+                for ( var i = toBind.length; i; ) {
+                    this.removeEventListener( toBind[--i], handler, false );
+                }
+            } else {
+                this.onmousewheel = null;
+            }
+        }
+    };
+
+    $.fn.extend({
+        mousewheel: function(fn) {
+            return fn ? this.bind("mousewheel", fn) : this.trigger("mousewheel");
+        },
+
+        unmousewheel: function(fn) {
+            return this.unbind("mousewheel", fn);
+        }
+    });
+
+
+    function handler(event) {
+        var orgEvent = event || window.event,
+            args = [].slice.call(arguments, 1),
+            delta = 0,
+            deltaX = 0,
+            deltaY = 0,
+            absDelta = 0,
+            absDeltaXY = 0,
+            fn;
+        event = $.event.fix(orgEvent);
+        event.type = "mousewheel";
+
+        // Old school scrollwheel delta
+        if ( orgEvent.wheelDelta ) { delta = orgEvent.wheelDelta; }
+        if ( orgEvent.detail )     { delta = orgEvent.detail * -1; }
+
+        // New school wheel delta (wheel event)
+        if ( orgEvent.deltaY ) {
+            deltaY = orgEvent.deltaY * -1;
+            delta  = deltaY;
+        }
+        if ( orgEvent.deltaX ) {
+            deltaX = orgEvent.deltaX;
+            delta  = deltaX * -1;
+        }
+
+        // Webkit
+        if ( orgEvent.wheelDeltaY !== undefined ) { deltaY = orgEvent.wheelDeltaY; }
+        if ( orgEvent.wheelDeltaX !== undefined ) { deltaX = orgEvent.wheelDeltaX * -1; }
+
+        // Look for lowest delta to normalize the delta values
+        absDelta = Math.abs(delta);
+        if ( !lowestDelta || absDelta < lowestDelta ) { lowestDelta = absDelta; }
+        absDeltaXY = Math.max(Math.abs(deltaY), Math.abs(deltaX));
+        if ( !lowestDeltaXY || absDeltaXY < lowestDeltaXY ) { lowestDeltaXY = absDeltaXY; }
+
+        // Get a whole value for the deltas
+        fn = delta > 0 ? 'floor' : 'ceil';
+        delta  = Math[fn](delta / lowestDelta);
+        deltaX = Math[fn](deltaX / lowestDeltaXY);
+        deltaY = Math[fn](deltaY / lowestDeltaXY);
+
+        // Add event and delta to the front of the arguments
+        args.unshift(event, delta, deltaX, deltaY);
+
+        return ($.event.dispatch || $.event.handle).apply(this, args);
     }
-});
 
-
-function handler(event) {
-    var orgEvent = event || window.event, args = [].slice.call( arguments, 1 ), delta = 0, returnValue = true, deltaX = 0, deltaY = 0;
-    event = $.event.fix(orgEvent);
-    event.type = "mousewheel";
-    
-    // Old school scrollwheel delta
-    if ( orgEvent.wheelDelta ) { delta = orgEvent.wheelDelta/120; }
-    if ( orgEvent.detail     ) { delta = -orgEvent.detail/3; }
-    
-    // New school multidimensional scroll (touchpads) deltas
-    deltaY = delta;
-    
-    // Gecko
-    if ( orgEvent.axis !== undefined && orgEvent.axis === orgEvent.HORIZONTAL_AXIS ) {
-        deltaY = 0;
-        deltaX = -1*delta;
-    }
-    
-    // Webkit
-    if ( orgEvent.wheelDeltaY !== undefined ) { deltaY = orgEvent.wheelDeltaY/120; }
-    if ( orgEvent.wheelDeltaX !== undefined ) { deltaX = -1*orgEvent.wheelDeltaX/120; }
-    
-    // Add event and delta to the front of the arguments
-    args.unshift(event, delta, deltaX, deltaY);
-    
-    return ($.event.dispatch || $.event.handle).apply(this, args);
-}
-
-})(jQuery);
+}));
 
 })(jQuery, window, Handsontable);

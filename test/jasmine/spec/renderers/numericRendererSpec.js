@@ -86,4 +86,14 @@ describe('NumericRenderer', function () {
     Handsontable.NumericRenderer(instance, TD, 0, 0, 0, 'abc', {});
     expect(TD.className).toEqual('someClass');
   });
+
+  it('should add class name `htDimmed` to a read only cell', function () {
+    var DIV = document.createElement('DIV');
+    var instance = new Handsontable.Core($(DIV), {});
+    instance.init(); //unfortunately these 3 lines are currently needed to satisfy renderer arguments (as of v0.8.21)
+
+    var TD = document.createElement('TD');
+    Handsontable.NumericRenderer(instance, TD, 0, 0, 0, 123, {readOnly: true});
+    expect(TD.className).toContain('htDimmed');
+  });
 });

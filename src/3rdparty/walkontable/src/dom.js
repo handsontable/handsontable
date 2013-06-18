@@ -2,14 +2,26 @@ function WalkontableDom() {
 }
 
 //goes up the DOM tree (including given element) until it finds an element that matches the nodeName
-WalkontableDom.prototype.closest = function (elem, nodeNames) {
-  while (elem != null) {
+WalkontableDom.prototype.closest = function (elem, nodeNames, until) {
+  while (elem != null && elem !== until) {
     if (elem.nodeType === 1 && nodeNames.indexOf(elem.nodeName) > -1) {
       return elem;
     }
     elem = elem.parentNode;
   }
   return null;
+};
+
+//goes up the DOM tree and checks if element is child of another element
+WalkontableDom.prototype.isChildOf = function (child, parent) {
+  var node = child.parentNode;
+  while (node != null) {
+    if (node == parent) {
+      return true;
+    }
+    node = node.parentNode;
+  }
+  return false;
 };
 
 WalkontableDom.prototype.prevSiblings = function (elem) {
@@ -144,22 +156,55 @@ WalkontableDom.prototype.empty = function (element) {
   }
 };
 
+WalkontableDom.prototype.HTML_CHARACTERS = /(<(.*)>|&(.*);)/g;
+
 /**
  * Insert content into element trying avoid innerHTML method.
  * @return {void}
  */
-WalkontableDom.prototype.avoidInnerHTML = function (element, content) {
-  if ((/(<(.*)>|&(.*);)/g).test(content)) {
+WalkontableDom.prototype.fastInnerHTML = function (element, content) {
+  if (this.HTML_CHARACTERS.test(content)) {
     element.innerHTML = content;
-  } else {
-    var child;
-    while (child = element.lastChild) {
-      element.removeChild(child);
-    }
-
-    element.appendChild(document.createTextNode(content));
+  }
+  else {
+    this.fastInnerText(element, content);
   }
 };
+
+/**
+ * Insert text content into element
+ * @return {void}
+ */
+if (document.createTextNode('test').textContent) { //STANDARDS
+  WalkontableDom.prototype.fastInnerText = function (element, content) {
+    var child = element.firstChild;
+    if (child && child.nodeType === 3 && child.nextSibling === null) {
+      //fast lane - replace existing text node
+      //http://jsperf.com/replace-text-vs-reuse
+      child.textContent = content;
+    }
+    else {
+      //slow lane - empty element and insert a text node
+      this.empty(element);
+      element.appendChild(document.createTextNode(content));
+    }
+  };
+}
+else { //IE7-8
+  WalkontableDom.prototype.fastInnerText = function (element, content) {
+    var child = element.firstChild;
+    if (child && child.nodeType === 3 && child.nextSibling === null) {
+      //fast lane - replace existing text node
+      //http://jsperf.com/replace-text-vs-reuse
+      child.data = content;
+    }
+    else {
+      //slow lane - empty element and insert a text node
+      this.empty(element);
+      element.appendChild(document.createTextNode(content));
+    }
+  };
+}
 
 /**
  * Returns true if element is attached to the DOM and visible, false otherwise
@@ -190,10 +235,10 @@ WalkontableDom.prototype.isVisible = function (elem) {
     }
     else if (next.nodeType === 11) {
       if (next.nodeName === '#document-fragment') { //Shadow DOM
-        return true;
+        return (true);
       }
       else { //IE7 reports nodeType === 11 after detaching element from DOM
-        return false;
+        return (false);
       }
     }
     else if (next.style.display === 'none') {

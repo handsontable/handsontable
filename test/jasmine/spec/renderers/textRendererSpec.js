@@ -55,7 +55,7 @@ describe('TextRenderer', function () {
     expect(getCell(2, 2).innerHTML).toEqual("");
   });
 
-  it('should add class name `dimmed` to a read only cell', function () {
+  it('should add class name `htDimmed` to a read only cell', function () {
     var DIV = document.createElement('DIV');
     var instance = new Handsontable.Core($(DIV), {});
     instance.init(); //unfortunately these 3 lines are currently needed to satisfy renderer arguments (as of v0.8.21)
@@ -64,5 +64,13 @@ describe('TextRenderer', function () {
     TD.className = "someClass";
     Handsontable.TextRenderer(instance, TD, 0, 0, 0, '', {readOnly: true});
     expect(TD.className).toEqual('someClass htDimmed');
+  });
+
+  it('should render a multiline string', function () {
+    handsontable();
+    setDataAtCell(1, 2, "a b");
+    setDataAtCell(2, 2, "a\nb");
+
+    expect($(getCell(2, 2)).height()).toBeGreaterThan($(getCell(1, 2)).height());
   });
 });

@@ -69,7 +69,12 @@ describe('FillHandle', function () {
   it('should add custom value after autofill', function () {
 
     handsontable({
-      data: [[1,2,3,4,5,6], [1,2,3,4,5,6], [1,2,3,4,5,6], [1,2,3,4,5,6]],
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ],
       beforeAutofill: function (start, end, data) {
         data[0][0] = "test";
       }
@@ -92,7 +97,47 @@ describe('FillHandle', function () {
     event.target = fillHandle;
     this.$container.find('tr:eq(2) td:eq(0)').trigger(event);
 
+    expect(getSelected()).toEqual([0, 0, 2, 0]);
+    expect(getDataAtCell(1, 0)).toEqual("test");
+  });
 
-    expect(getDataAtCell(1,0)).toEqual("test");
+  it('should use correct cell coordinates also when Handsontable is used inside a TABLE (#355)', function () {
+    var $table = $('<table><tr><td></td></tr></table>').appendTo('body');
+    this.$container.appendTo($table.find('td'));
+
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      beforeAutofill: function (start, end, data) {
+        data[0][0] = "test";
+      }
+    });
+    selectCell(1, 1);
+
+    var fillHandle = this.$container.find('.wtBorder.corner')[0]
+      , event = jQuery.Event("mousedown");
+
+    event.target = fillHandle;
+    this.$container.find('tr:eq(0) td:eq(0)').trigger(event);
+
+    this.$container.find('tr:eq(1) td:eq(0)').trigger('mouseenter');
+    this.$container.find('tr:eq(2) td:eq(0)').trigger('mouseenter');
+
+
+    var fillHandle = this.$container.find('.wtBorder.corner')[0]
+      , event = jQuery.Event("mouseup");
+
+    event.target = fillHandle;
+    this.$container.find('tr:eq(2) td:eq(0)').trigger(event);
+
+
+    expect(getSelected()).toEqual([1, 1, 2, 1]);
+    expect(getDataAtCell(2, 1)).toEqual("test");
+
+    $table.remove();
   });
 });

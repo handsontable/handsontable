@@ -49,7 +49,12 @@ describe('ContextMenu', function () {
     };
     test();
     destroy();
-    test();
+
+    waits(50); //jquery.contextMenu.js waits that long to hide background so we must wait too
+
+    runs(function () {
+      test();
+    });
   });
 
   it('should destroy contextMenu when Handsotnable is destroyed', function () {
