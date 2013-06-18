@@ -2,7 +2,7 @@
 
 Bugfixes:
 - `isEmptyRow` produced error `this.countCols is not a function` (#632)
-- delete row extension does not show the button when grid is inside a <table> (#764)
+- delete row extension does not show the button when grid is inside a `<table>` (#764)
 - drag-down not working if Handsontable is inside a table (#355, #361, #538, #438, #671, #704) - this makes me realize how many people still use tables to create a layout
 - numeric cell renderer did not add class name `htDimmed` to a read only cell
 
