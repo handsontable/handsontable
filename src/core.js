@@ -500,7 +500,7 @@ Handsontable.Core = function (rootElement, userSettings) {
           break;
 
         default:
-          throw Error('There is no such action "' + action + '"');
+          throw new Error('There is no such action "' + action + '"');
           break;
       }
 
