@@ -1,3 +1,19 @@
+## [0.9.6](https://github.com/warpech/jquery-handsontable/tree/v0.9.6) (Jun 18, 2013)
+
+Bugfixes:
+- `isEmptyRow` produced error `this.countCols is not a function` (#632)
+- delete row extension does not show the button when grid is inside a <table> (#764)
+- drag-down not working if Handsontable is inside a table (#355, #361, #538, #438, #671, #704) - this makes me realize how many people still use tables to create a layout
+- numeric cell renderer did not add class name `htDimmed` to a read only cell
+
+Performance:
+- avoid jQuery and expensive DOM operations in several places
+
+Other:
+- add more test cases
+- upgrade jQuery contextMenu plugin to v1.6.5
+- upgrade jquery-mousewheel plugin to v3.1.3
+
 ## [0.9.5](https://github.com/warpech/jquery-handsontable/tree/v0.9.5) (Jun 15, 2013)
 
 Feature:

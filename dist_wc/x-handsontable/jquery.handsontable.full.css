@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.9.5
+ * Handsontable 0.9.6
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sat Jun 15 2013 14:04:49 GMT+0200 (Central European Daylight Time)
+ * Date: Tue Jun 18 2013 18:56:33 GMT+0200 (Central European Daylight Time)
  */
 
 .handsontable {
@@ -70,6 +70,7 @@
   vertical-align: top;
   overflow: hidden;
   outline-width: 0;
+  white-space: pre; /* preserve new line character in cell */
 }
 
 .handsontable td.htInvalid {
@@ -370,7 +371,7 @@ ul.context-menu-list li {
 /*!
  * jQuery contextMenu - Plugin for simple contextMenu handling
  *
- * Version: 1.5.25
+ * Version: 1.6.5
  *
  * Authors: Rodney Rehm, Addy Osmani (patches for FF)
  * Web: http://medialize.github.com/jQuery-contextMenu/

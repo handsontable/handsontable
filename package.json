@@ -6,7 +6,7 @@
     "url": "https://github.com/warpech/jquery-handsontable/issues"
   },
   "author": "Marcin Warpechowski <marcin@nextgen.pl>",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "devDependencies": {
     "grunt": "~0.4.0",
     "grunt-replace": "~0.4.4",
