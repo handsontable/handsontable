@@ -169,7 +169,8 @@ module.exports = function (grunt) {
           'test/jasmine/spec/SpecHelper.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
-          'demo/js/backbone/backbone-relational/backbone-relational.js'
+          'demo/js/backbone/backbone-relational/backbone-relational.js',
+          'extensions/jquery.handsontable.removeRow.js'
         ],
         options: {
           specs: [
@@ -179,7 +180,8 @@ module.exports = function (grunt) {
           styles: [
             'test/jasmine/css/SpecRunner.css',
             'dist/jquery.handsontable.css',
-            'lib/jQuery-contextMenu/jquery.contextMenu.css'
+            'lib/jQuery-contextMenu/jquery.contextMenu.css',
+            'extensions/jquery.handsontable.removeRow.css'
           ]
         }
       },

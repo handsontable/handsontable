@@ -3,6 +3,7 @@
 
   /**
    * Handsontable RemoveRow extension. See `demo/buttons.html` for example usage
+   * See `.../test/jasmine/spec/extensions/removeRowSpec.js` for tests
    */
   Handsontable.PluginHooks.add('beforeInitWalkontable', function (walkontableConfig) {
     var instance = this;
@@ -10,7 +11,7 @@
     if (instance.getSettings().removeRowPlugin) {
 
       var getButton = function (td) {
-        return $(td).parents('tr').find('th.htRemoveRow').eq(0).find('.btn');
+        return $(td).parent('tr').find('th.htRemoveRow').eq(0).find('.btn');
       };
 
       instance.rootElement.on('mouseover', 'tbody th, tbody td', function () {
