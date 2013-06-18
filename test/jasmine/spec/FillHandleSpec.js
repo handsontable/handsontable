@@ -97,7 +97,7 @@ describe('FillHandle', function () {
     event.target = fillHandle;
     this.$container.find('tr:eq(2) td:eq(0)').trigger(event);
 
-    expect(getSelected()).toEqual([0, 0, 1, 0]);
+    expect(getSelected()).toEqual([0, 0, 2, 0]);
     expect(getDataAtCell(1, 0)).toEqual("test");
   });
 
