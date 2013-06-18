@@ -235,10 +235,10 @@ WalkontableDom.prototype.isVisible = function (elem) {
     }
     else if (next.nodeType === 11) {
       if (next.nodeName === '#document-fragment') { //Shadow DOM
-        return true;
+        return (true);
       }
       else { //IE7 reports nodeType === 11 after detaching element from DOM
-        return false;
+        return (false);
       }
     }
     else if (next.style.display === 'none') {
