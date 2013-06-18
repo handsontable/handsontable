@@ -18,7 +18,7 @@ clonableARROW.appendChild(document.createTextNode('\u25BC'));
  */
 Handsontable.AutocompleteRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
   var TEXT = clonableTEXT.cloneNode(false); //this is faster than createElement
-  var ARROW = clonableARROW.cloneNode(false); //this is faster than createElement
+  var ARROW = clonableARROW.cloneNode(true); //this is faster than createElement
 
   if (!instance.acArrowListener) {
     //not very elegant but easy and fast
