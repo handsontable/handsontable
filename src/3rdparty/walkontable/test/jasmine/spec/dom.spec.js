@@ -151,4 +151,18 @@ describe('WalkontableDom', function () {
 
     $html.remove();
   });
+
+  it("should insert HTML properly", function () {
+    var $html = $('<div id="testable"></div>').appendTo('body');
+    var text = '<span>test<br>test</span>';
+    var div = document.getElementById('testable');
+
+    wtDom.fastInnerHTML(div, text);
+    wtDom.fastInnerHTML(div, text);
+
+    expect(div.childNodes[0].childNodes.length).toEqual(3);
+
+    $html.remove();
+  });
+
 });
