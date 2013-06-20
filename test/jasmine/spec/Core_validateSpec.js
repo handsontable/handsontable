@@ -268,4 +268,25 @@ describe('Core_validate', function () {
 
     expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
   });
+
+  it('should not allow for changes where data is invalid', function () {
+    var changes = 0;
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      allowInvalid: false,
+      validator: function (value, callb) {
+          callb(false)
+      },
+      afterChange: function (nvm, source) {
+        if (source !== 'loadData') {
+          changes++;
+        }
+      }
+    });
+
+    setDataAtCell(0, 0, 'test');
+
+    expect(changes).toEqual(0);
+  });
 });
