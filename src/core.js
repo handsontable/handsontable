@@ -1372,7 +1372,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.copyPaste = new CopyPaste(instance.rootElement[0]);
       instance.copyPaste.onCut(onCut);
       instance.copyPaste.onPaste(onPaste);
-      instance.rootElement.on('keydown.handsontable.' + instance.guid, onKeyDown);
+      $body.on('keydown.handsontable.' + instance.guid, onKeyDown);
     },
 
     /**
@@ -1413,7 +1413,6 @@ Handsontable.Core = function (rootElement, userSettings) {
         return;
       }
 
-      instance.listen();
       var TD = instance.view.getCellAtCoords(priv.selStart.coords());
       priv.editorDestroyer = instance.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
       //presumably TD can be removed from here. Cell editor should also listen for changes if editable cell is outside from viewport
@@ -1427,7 +1426,6 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     this.updateSettings(priv.settings, true);
     this.parseSettingsFromDOM();
-    this.focusCatcher = new Handsontable.FocusCatcher(this);
     this.view = new Handsontable.TableView(this);
 
     this.forceFullRender = true; //used when data was changed
@@ -1678,13 +1676,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     validateChanges(changes, source).then(function () {
       applyChanges(changes, source);
     });
-  };
-
-  /**
-   * Listen to keyboard input
-   */
-  this.listen = function () {
-    instance.focusCatcher.listen();
   };
 
   /**
@@ -2470,7 +2461,6 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
     priv.selStart.coords({row: row, col: col});
-    instance.listen(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
     if (typeof endRow === "undefined") {
       selection.setRangeEnd({row: row, col: col}, scrollToCell);
     }
@@ -2617,7 +2607,8 @@ DefaultSettings.prototype = {
   isEmptyCol: void 0,
   observeDOMVisibility: true,
   allowInvalid: true,
-  invalidCellClassName: 'htInvalid'
+  invalidCellClassName: 'htInvalid',
+  fragmentSelection: false
 };
 
 $.fn.handsontable = function (action) {

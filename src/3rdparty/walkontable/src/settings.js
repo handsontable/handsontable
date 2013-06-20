@@ -37,6 +37,7 @@ function WalkontableSettings(instance, settings) {
     //callbacks
     onCellMouseDown: null,
     onCellMouseOver: null,
+    onCellMouseOut: null,
     onCellDblClick: null,
     onCellCornerMouseDown: null,
     onCellCornerDblClick: null,
