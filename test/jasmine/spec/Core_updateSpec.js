@@ -103,5 +103,32 @@ describe('Core_updateSettings', function () {
     expect(getCellMeta(0, 1).readOnly).toBe(false);
   });
 
+  it('should update readOnly columns setting and override global setting', function(){
+    handsontable({
+      readOnly: true,
+      data : [['foo', true]],
+      columns : [
+        { type : 'text'
+        },
+        { type : 'checkbox' }
+      ]
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(true);
+    expect(getCellMeta(0, 1).readOnly).toBe(true);
+
+    updateSettings({
+      columns: [
+        { type : 'text',
+          readOnly: false
+        },
+        { type : 'checkbox' }
+      ]
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(false);
+    expect(getCellMeta(0, 1).readOnly).toBe(true);
+  });
+
 
 });
