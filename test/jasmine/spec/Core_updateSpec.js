@@ -55,5 +55,53 @@ describe('Core_updateSettings', function () {
 
   });
 
+  it('should update readOnly global setting', function(){
+    handsontable({
+      readOnly: true,
+      data : [['foo', true]],
+      columns : [
+        { type : 'text' },
+        { type : 'checkbox' }
+      ]
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(true);
+    expect(getCellMeta(0, 1).readOnly).toBe(true);
+
+    updateSettings({
+      readOnly: false
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(false);
+    expect(getCellMeta(0, 1).readOnly).toBe(false);
+  });
+
+  it('should update readOnly columns setting', function(){
+    handsontable({
+      data : [['foo', true]],
+      columns : [
+        { type : 'text',
+          readOnly: true
+        },
+        { type : 'checkbox' }
+      ]
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(true);
+    expect(getCellMeta(0, 1).readOnly).toBe(false);
+
+    updateSettings({
+      columns: [
+        { type : 'text',
+          readOnly: false
+        },
+        { type : 'checkbox' }
+      ]
+    });
+
+    expect(getCellMeta(0, 0).readOnly).toBe(false);
+    expect(getCellMeta(0, 1).readOnly).toBe(false);
+  });
+
 
 });
