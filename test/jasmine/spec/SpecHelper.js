@@ -267,3 +267,7 @@ function createSpreadsheetData(rowCount, colCount) {
   }
   return rows;
 }
+
+function runningIE7OrEarlier(){
+  return $.browser.msie && parseInt($.browser.version) < 8;
+}

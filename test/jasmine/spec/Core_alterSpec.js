@@ -258,7 +258,12 @@ describe('Core_alter', function () {
 
     expect(countRows()).toEqual(6);
     expect(this.$container.find('tr:eq(4) td:eq(0)').html()).toEqual('e1');
-    expect(this.$container.find('tr:last td:eq(0)').html()).toEqual('');
+
+    if(runningIE7OrEarlier()){
+      expect(this.$container.find('tr:last td:eq(0)').html()).toEqual('&nbsp;');
+    } else {
+      expect(this.$container.find('tr:last td:eq(0)').html()).toEqual('');
+    }
   });
 
   it('should insert the amount of rows at given index', function () {
@@ -274,7 +279,13 @@ describe('Core_alter', function () {
     alter('insert_row', 1, 3);
 
     expect(countRows()).toEqual(8);
-    expect(this.$container.find('tr:eq(1) td:eq(0)').html()).toEqual('');
+
+    if(runningIE7OrEarlier()){
+      expect(this.$container.find('tr:eq(1) td:eq(0)').html()).toEqual('&nbsp;');
+    } else {
+      expect(this.$container.find('tr:eq(1) td:eq(0)').html()).toEqual('');
+    }
+
     expect(this.$container.find('tr:eq(4) td:eq(0)').html()).toEqual('b1');
   });
 
@@ -292,9 +303,16 @@ describe('Core_alter', function () {
 
     expect(countRows()).toEqual(8);
     expect(this.$container.find('tr:eq(4) td:eq(0)').html()).toEqual('e1');
-    expect(this.$container.find('tr:eq(5) td:eq(0)').html()).toEqual('');
-    expect(this.$container.find('tr:eq(6) td:eq(0)').html()).toEqual('');
-    expect(this.$container.find('tr:eq(7) td:eq(0)').html()).toEqual('');
+
+    if(runningIE7OrEarlier()){
+      expect(this.$container.find('tr:eq(5) td:eq(0)').html()).toEqual('&nbsp;');
+      expect(this.$container.find('tr:eq(6) td:eq(0)').html()).toEqual('&nbsp;');
+      expect(this.$container.find('tr:eq(7) td:eq(0)').html()).toEqual('&nbsp;');
+    } else {
+      expect(this.$container.find('tr:eq(5) td:eq(0)').html()).toEqual('');
+      expect(this.$container.find('tr:eq(6) td:eq(0)').html()).toEqual('');
+      expect(this.$container.find('tr:eq(7) td:eq(0)').html()).toEqual('');
+    }
   });
 
   it('should insert not more rows than maxRows', function () {
@@ -378,9 +396,16 @@ describe('Core_alter', function () {
 
     expect(countCols()).toEqual(11);
     expect(this.$container.find('tr:eq(1) td:eq(7)').html()).toEqual('h');
-    expect(this.$container.find('tr:eq(1) td:eq(8)').html()).toEqual('');
-    expect(this.$container.find('tr:eq(1) td:eq(9)').html()).toEqual('');
-    expect(this.$container.find('tr:eq(1) td:eq(10)').html()).toEqual('');
+
+    if(runningIE7OrEarlier()){
+      expect(this.$container.find('tr:eq(1) td:eq(8)').html()).toEqual('&nbsp;');
+      expect(this.$container.find('tr:eq(1) td:eq(9)').html()).toEqual('&nbsp;');
+      expect(this.$container.find('tr:eq(1) td:eq(10)').html()).toEqual('&nbsp;');
+    } else {
+      expect(this.$container.find('tr:eq(1) td:eq(8)').html()).toEqual('');
+      expect(this.$container.find('tr:eq(1) td:eq(9)').html()).toEqual('');
+      expect(this.$container.find('tr:eq(1) td:eq(10)').html()).toEqual('');
+    }
   });
 
   it('should insert not more cols than maxCols', function () {
@@ -406,8 +431,13 @@ describe('Core_alter', function () {
     alter('insert_col', 1, 10);
 
     expect(countCols()).toEqual(10);
-    expect(this.$container.find('tr:eq(1) td:eq(1)').html()).toEqual('');
-    expect(this.$container.find('tr:eq(1) td:eq(2)').html()).toEqual('');
+    if(runningIE7OrEarlier()){
+      expect(this.$container.find('tr:eq(1) td:eq(1)').html()).toEqual('&nbsp;');
+      expect(this.$container.find('tr:eq(1) td:eq(2)').html()).toEqual('&nbsp;');
+    } else {
+      expect(this.$container.find('tr:eq(1) td:eq(1)').html()).toEqual('');
+      expect(this.$container.find('tr:eq(1) td:eq(2)').html()).toEqual('');
+    }
     expect(this.$container.find('tr:eq(1) td:eq(3)').html()).toEqual('b');
   });
 
