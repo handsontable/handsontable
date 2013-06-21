@@ -2,6 +2,8 @@ function Walkontable(settings) {
   var that = this,
     originalHeaders = [];
 
+  this.guid = 'wt_' + Handsontable.helper.randomString(); //this is the namespace for global events
+
   //bootstrap from settings
   this.wtSettings = new WalkontableSettings(this, settings);
   this.wtDom = new WalkontableDom();
@@ -94,6 +96,7 @@ Walkontable.prototype.hasSetting = function (key) {
 };
 
 Walkontable.prototype.destroy = function () {
+  $(document.body).off('.' + this.guid);
   this.wtScrollbars.destroy();
   clearTimeout(this.wheelTimeout);
   clearTimeout(this.dblClickTimeout);

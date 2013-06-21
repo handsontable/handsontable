@@ -119,7 +119,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
 
   var that = this;
 
-  this.$body.on('keydown.editor', function (event) {
+  this.$body.on('keydown.editor.' + this.instance.guid, function (event) {
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     if (!that.isCellEdited) {
       if (Handsontable.helper.isPrintableChar(event.keyCode)) {
@@ -320,6 +320,7 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
   this.unbindTemporaryEvents();
   if (document.activeElement === this.TEXTAREA) {
     //this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
+    document.activeElement.blur();
   }
 
   this.textareaParentStyle.display = 'none';

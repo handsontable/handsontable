@@ -13,10 +13,12 @@ describe('Core_destroy', function () {
   });
 
   it('should remove table from the root element', function () {
+    var that = this;
+
     runs(function () {
       handsontable();
       destroy();
-      expect(this.$container.html()).toEqual('');
+      expect(that.$container.html()).toEqual('');
     });
 
     expect(this.$container.html()).toEqual(''); //expect the same with async rendering
@@ -25,7 +27,7 @@ describe('Core_destroy', function () {
   it('should remove events from the root element, document element and window', function () {
     handsontable();
 
-    expect($._data(this.$container[0], 'events')).toBeTruthy();
+    //expect($._data(this.$container[0], 'events')).toBeTruthy(); //not true anymore after fragmentSelection feature, which changed bindings to documentElement
     expect($._data(document.documentElement, 'events')).toBeTruthy();
     expect($._data(window, 'events')).toBeTruthy();
 
@@ -33,6 +35,7 @@ describe('Core_destroy', function () {
 
     expect($._data(this.$container[0], 'events')).toBeFalsy();
     expect($._data(document.documentElement, 'events')).toBeFalsy();
+    expect($._data(document.body, 'events')).toBeFalsy();
     expect($._data(window, 'events')).toBeFalsy();
   });
 

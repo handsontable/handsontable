@@ -54,7 +54,7 @@ Handsontable.TableView = function (instance) {
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== document.documentElement) {
         //X-HANDSONTABLE is the tag name in Web Components version of HOT. Removal of this breaks cell selection
-        if(next === null) {
+        if (next === null) {
           return; //click on something that was a row but now is detached (possibly because your click triggered a rerender)
         }
         if (next === instance.rootElement[0] || next.nodeName === 'X-HANDSONTABLE' || next.id === 'context-menu-layer' || $(next).is('.context-menu-list') || $(next).is('.typeahead li')) {
@@ -207,6 +207,9 @@ Handsontable.TableView = function (instance) {
         }
       }
     },
+    hideBorderOnMouseDownOver: function () {
+      return that.settings.fragmentSelection;
+    },
     onCellMouseDown: function (event, coords, TD) {
       isMouseDown = true;
       var coordsObj = {row: coords[0], col: coords[1]};
@@ -229,17 +232,17 @@ Handsontable.TableView = function (instance) {
         that.settings.afterOnCellMouseDown.call(instance, event, coords, TD);
       }
     },
-    onCellMouseOut: function (/*event, coords, TD*/) {
-      if (isMouseDown && that.settings.fragmentSelection) {
-        clearTextSelection(); //otherwise text selection blinks during multiple cells selection
-      }
-    },
+    /*onCellMouseOut: function (/*event, coords, TD* /) {
+     if (isMouseDown && that.settings.fragmentSelection === 'single') {
+     clearTextSelection(); //otherwise text selection blinks during multiple cells selection
+     }
+     },*/
     onCellMouseOver: function (event, coords/*, TD*/) {
       var coordsObj = {row: coords[0], col: coords[1]};
       if (isMouseDown) {
-        if (that.settings.fragmentSelection) {
-          clearTextSelection(); //otherwise text selection blinks during multiple cells selection
-        }
+        /*if (that.settings.fragmentSelection === 'single') {
+         clearTextSelection(); //otherwise text selection blinks during multiple cells selection
+         }*/
         instance.selection.setRangeEnd(coordsObj);
       }
       else if (instance.autofill.handle && instance.autofill.handle.isDragged) {

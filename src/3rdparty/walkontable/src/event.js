@@ -47,7 +47,7 @@ function WalkontableEvent(instance) {
     }
   };
 
-  var lastMouseOut;
+/*  var lastMouseOut;
   var onMouseOut = function (event) {
     if (that.instance.hasSetting('onCellMouseOut')) {
       var TABLE = that.instance.wtTable.TABLE;
@@ -59,7 +59,7 @@ function WalkontableEvent(instance) {
         }
       }
     }
-  };
+  };*/
 
   var onMouseUp = function (event) {
     if (event.button !== 2) { //if not right mouse button
@@ -98,7 +98,7 @@ function WalkontableEvent(instance) {
 
   $(this.instance.wtTable.parent).on('mousedown', onMouseDown);
   $(this.instance.wtTable.TABLE).on('mouseover', onMouseOver);
-  $(this.instance.wtTable.TABLE).on('mouseout', onMouseOut);
+//  $(this.instance.wtTable.TABLE).on('mouseout', onMouseOut);
   $(this.instance.wtTable.parent).on('mouseup', onMouseUp);
 }
 

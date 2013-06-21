@@ -19,6 +19,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
 
   this.rootElement = rootElement;
+  var $document = $(document.documentElement);
+  var $body = $(document.body);
   this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
 
   if (!this.rootElement[0].id) {
@@ -1202,8 +1204,6 @@ Handsontable.Core = function (rootElement, userSettings) {
         grid.populateFromArray(areaStart, inputArray, areaEnd, 'paste', priv.settings.pasteMode);
       }
 
-      var $body = $(document.body);
-
       function onKeyDown(event) {
         if (priv.settings.beforeOnKeyDown) { // HOT in HOT Plugin
           priv.settings.beforeOnKeyDown.call(instance, event);
@@ -1372,7 +1372,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.copyPaste = new CopyPaste(instance.rootElement[0]);
       instance.copyPaste.onCut(onCut);
       instance.copyPaste.onPaste(onPaste);
-      $body.on('keydown.handsontable.' + instance.guid, onKeyDown);
+      $document.on('keydown.handsontable.' + instance.guid, onKeyDown);
     },
 
     /**
@@ -2501,7 +2501,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     instance.rootElement.removeData('handsontable');
     instance.rootElement.off('.handsontable');
     $(window).off('.' + instance.guid);
-    $(document.documentElement).off('.' + instance.guid);
+    $document.off('.' + instance.guid);
+    $body.off('.' + instance.guid);
     instance.PluginHooks.run('afterDestroy');
   };
 
