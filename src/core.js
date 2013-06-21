@@ -2617,7 +2617,8 @@ DefaultSettings.prototype = {
   isEmptyCol: void 0,
   observeDOMVisibility: true,
   allowInvalid: true,
-  invalidCellClassName: 'htInvalid'
+  invalidCellClassName: 'htInvalid',
+  readOnly: false
 };
 
 $.fn.handsontable = function (action) {
