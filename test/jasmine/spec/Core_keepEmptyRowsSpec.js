@@ -139,19 +139,11 @@ describe('Core_keepEmptyRows', function () {
 
     selectCell(1, 1);
 
-    waits(10);
+    keyDownUp('enter');
+    keyDown('arrow_down');
+    keyDownUp('enter');
 
-    runs(function () {
-      keyDownUp('enter');
-      keyDown('arrow_down');
-      keyDownUp('enter');
-    });
-
-    waits(10);
-
-    runs(function () {
-      expect(data.length).toEqual(3);
-    });
+    expect(data.length).toEqual(3);
   });
 
   it('should not create more rows that maxRows', function () {

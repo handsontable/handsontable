@@ -13,13 +13,9 @@ describe('Core_destroy', function () {
   });
 
   it('should remove table from the root element', function () {
-    runs(function () {
-      handsontable();
-      destroy();
-      expect(this.$container.html()).toEqual('');
-    });
-
-    expect(this.$container.html()).toEqual(''); //expect the same with async rendering
+    handsontable();
+    destroy();
+    expect(this.$container.html()).toEqual('');
   });
 
   it('should remove events from the root element, document element and window', function () {
@@ -38,26 +34,16 @@ describe('Core_destroy', function () {
 
   it('should NOT remove events from document element and window for other Handsontable instances on the page', function () {
     //test based on Core_selectionSpec.js (should deselect currently selected cell)
-    runs(function () {
-      handsontable();
+    handsontable();
 
-      var $tmp = $('<div id="tmp"></div>').appendTo(document.body);
-      $tmp.handsontable();
-      $tmp.handsontable('destroy');
+    var $tmp = $('<div id="tmp"></div>').appendTo(document.body);
+    $tmp.handsontable();
+    $tmp.handsontable('destroy');
 
-      selectCell(0, 0);
-    });
+    selectCell(0, 0);
 
-    waits(10);
+    $("html").triggerHandler('mousedown');
 
-    runs(function () {
-      $("html").triggerHandler('mousedown');
-    });
-
-    waits(10);
-
-    runs(function () {
-      expect(getSelected()).toBeUndefined();
-    });
+    expect(getSelected()).toBeUndefined();
   });
 });

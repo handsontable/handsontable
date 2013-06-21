@@ -30,111 +30,83 @@ describe('Core_validate', function () {
   it('should call beforeValidate', function () {
     var fired = null;
 
-    runs(function () {
-      handsontable({
-        data: arrayOfObjects(),
-        columns: [
-          {data: 'id', type: 'numeric'},
-          {data: 'name'},
-          {data: 'lastName'}
-        ],
-        beforeValidate: function () {
-          fired = true;
-        }
-      });
-      setDataAtCell(2, 0, 'test');
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      beforeValidate: function () {
+        fired = true;
+      }
     });
+    setDataAtCell(2, 0, 'test');
 
-    waitsFor(function () {
-      return (fired != null)
-    }, "beforeValidate callback called", 100);
-
+    expect(fired).toEqual(true);
   });
 
   it('should call afterValidate', function () {
     var fired = null;
 
-    runs(function () {
-      handsontable({
-        data: arrayOfObjects(),
-        columns: [
-          {data: 'id', type: 'numeric'},
-          {data: 'name'},
-          {data: 'lastName'}
-        ],
-        afterValidate: function () {
-          fired = true;
-        }
-      });
-      setDataAtCell(2, 0, 'test');
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: function () {
+        fired = true;
+      }
     });
+    setDataAtCell(2, 0, 'test');
 
-    waitsFor(function () {
-      return (fired != null)
-    }, "afterValidate callback called", 100);
-
+    expect(fired).toEqual(true);
   });
 
   it('beforeValidate should can manipulate value', function () {
     var result = null;
 
-    runs(function () {
-      handsontable({
-        data: arrayOfObjects(),
-        columns: [
-          {data: 'id', type: 'numeric'},
-          {data: 'name'},
-          {data: 'lastName'}
-        ],
-        beforeValidate: function (value) {
-          value = 999;
-          return value;
-        },
-        afterValidate: function (valid, value) {
-          result = value;
-        }
-      });
-      setDataAtCell(2, 0, 123);
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      beforeValidate: function (value) {
+        value = 999;
+        return value;
+      },
+      afterValidate: function (valid, value) {
+        result = value;
+      }
     });
+    setDataAtCell(2, 0, 123);
 
-    waitsFor(function () {
-      return (result != null)
-    }, "beforeValidate callback called", 100);
-
-    runs(function () {
-      expect(result).toEqual(999);
-    });
-
+    expect(result).toEqual(999);
   });
 
   it('should be able to define custom validator function', function () {
     var result = null;
 
-    runs(function () {
-      handsontable({
-        data: arrayOfObjects(),
-        columns: [
-          {data: 'id', validator: function (value, cb) {
-            cb(true);
-          }},
-          {data: 'name'},
-          {data: 'lastName'}
-        ],
-        afterValidate: function (valid) {
-          result = valid;
-        }
-      });
-      setDataAtCell(2, 0, 123);
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', validator: function (value, cb) {
+          cb(true);
+        }},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: function (valid) {
+        result = valid;
+      }
     });
+    setDataAtCell(2, 0, 123);
 
-    waitsFor(function () {
-      return result !== null;
-    }, "afterValidate callback called", 100);
-
-    runs(function () {
-      expect(result).toEqual(true);
-    });
-
+    expect(result).toEqual(true);
   });
 
   it('should be able to define custom validator RegExp', function () {
@@ -162,32 +134,23 @@ describe('Core_validate', function () {
     var result = null
       , fired = false;
 
-    runs(function () {
-      handsontable({
-        data: arrayOfObjects(),
-        columns: [
-          {data: 'id', validator: function (value, cb) {
-            result = this;
-            cb(true);
-          }},
-          {data: 'name'},
-          {data: 'lastName'}
-        ],
-        afterValidate: function () {
-          fired = true;
-        }
-      });
-      setDataAtCell(2, 0, 123);
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', validator: function (value, cb) {
+          result = this;
+          cb(true);
+        }},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: function () {
+        fired = true;
+      }
     });
+    setDataAtCell(2, 0, 123);
 
-    waitsFor(function () {
-      return fired;
-    }, "afterValidate callback called", 100);
-
-    runs(function () {
-      expect(result.instance).toEqual(getInstance());
-    });
-
+    expect(result.instance).toEqual(getInstance());
   });
 
   it('should add class name `htInvalid` to an cell that does not validate - on data load', function () {

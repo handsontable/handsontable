@@ -25,13 +25,7 @@ describe('Core_beforeKeyDown', function () {
 
     keyDown('arrow_right');
 
-    waitsFor(function () {
-      return (called != false)
-    }, "beforeKeyDown callback called", 100);
-
-    runs(function () {
-      expect(called).toEqual(true);
-    });
+    expect(called).toEqual(true);
   });
 
   it('should prevent hook fron running default action', function () {
@@ -48,14 +42,8 @@ describe('Core_beforeKeyDown', function () {
 
     keyDown('arrow_right');
 
-    waitsFor(function () {
-      return (called != false)
-    }, "beforeKeyDown callback called", 100);
-
-    runs(function () {
-      expect(getSelected()).toEqual([0,0,0,0]);
-      expect(getSelected()).not.toEqual([0,1,0,1]);
-    });
+    expect(getSelected()).toEqual([0,0,0,0]);
+    expect(getSelected()).not.toEqual([0,1,0,1]);
   });
 
   it('should overwrite default behavior of delete key, but not this of right arrow', function () {
@@ -78,14 +66,8 @@ describe('Core_beforeKeyDown', function () {
     keyDown('backspace');
     keyDown('arrow_right');
 
-    waitsFor(function () {
-      return (called > 1)
-    }, "beforeKeyDown callback called", 100);
-
-    runs(function () {
-      expect(getData().length).toEqual(3);
-      expect(getSelected()).toEqual([0,1,0,1]);
-    });
+    expect(getData().length).toEqual(3);
+    expect(getSelected()).toEqual([0,1,0,1]);
   });
 
   it('should run beforeKeyDown hook in cell editor handler', function () {
@@ -102,9 +84,7 @@ describe('Core_beforeKeyDown', function () {
     keyDown('enter');
     keyDown('enter');
 
-    runs(function () {
-      expect(called).toEqual(2);
-    });
+    expect(called).toEqual(2);
   });
 
 });

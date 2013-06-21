@@ -27,21 +27,17 @@ describe('AutocompleteEditor', function () {
   });
 
   it('should destroy editor when value change with mouse click on suggestion', function () {
-    runs(function () {
-      handsontable({
-        autoComplete: getAutocompleteConfig(false)
-      });
-      selectCell(2, 2);
-      keyDownUp('enter');
-
-      var li = autocomplete().$menu.find('li[data-value="green"]');
-      li.trigger('mouseenter');
-      li.trigger('click');
+    handsontable({
+      autoComplete: getAutocompleteConfig(false)
     });
+    selectCell(2, 2);
+    keyDownUp('enter');
 
-    waitsFor(function () {
-      return (getDataAtCell(2, 2) === 'green');
-    }, 100);
+    var li = autocomplete().$menu.find('li[data-value="green"]');
+    li.trigger('mouseenter');
+    li.trigger('click');
+
+    expect(getDataAtCell(2, 2)).toEqual('green')
   });
 
   it('should destroy editor when value change with Enter on suggestion', function () {
@@ -51,18 +47,12 @@ describe('AutocompleteEditor', function () {
     selectCell(2, 2);
     keyDownUp('enter');
 
-    waits(100);
+    keyDownUp('arrow_down');
+    keyDownUp('arrow_down');
+    keyDownUp('arrow_down');
+    keyDownUp('enter');
 
-    runs(function () {
-      keyDownUp('arrow_down');
-      keyDownUp('arrow_down');
-      keyDownUp('arrow_down');
-      keyDownUp('enter');
-    });
-
-    waitsFor(function () {
-      return (getDataAtCell(2, 2) === 'green');
-    }, 100);
+    expect(getDataAtCell(2, 2)).toEqual('green')
   });
 
   it('should destroy editor when pressed Enter then Esc', function () {
@@ -78,47 +68,27 @@ describe('AutocompleteEditor', function () {
   });
 
   it('should destroy editor when mouse double clicked then Esc', function () {
-    runs(function () {
-      handsontable({
-        autoComplete: getAutocompleteConfig(false)
-      });
-      selectCell(2, 2);
-      $(getCell(2, 2)).trigger("dblclick");
+    handsontable({
+      autoComplete: getAutocompleteConfig(false)
     });
+    selectCell(2, 2);
+    $(getCell(2, 2)).trigger("dblclick");
 
-    waits(51);
+    keyDownUp('esc');
 
-    runs(function () {
-      keyDownUp('esc');
-    });
-
-    waits(51);
-
-    runs(function () {
-      expect(isAutocompleteVisible()).toEqual(false);
-    });
+    expect(isAutocompleteVisible()).toEqual(false);
   });
 
   it('should destroy editor when clicked outside the table', function () {
-    runs(function () {
-      handsontable({
-        autoComplete: getAutocompleteConfig(false)
-      });
-      selectCell(2, 2);
-      $(getCell(2, 2)).trigger("dblclick");
+    handsontable({
+      autoComplete: getAutocompleteConfig(false)
     });
+    selectCell(2, 2);
+    $(getCell(2, 2)).trigger("dblclick");
 
-    waits(10);
+    $('body').click();
 
-    runs(function () {
-      $('body').click();
-    });
-
-    waits(10);
-
-    runs(function () {
-      expect(isAutocompleteVisible()).toEqual(false);
-    });
+    expect(isAutocompleteVisible()).toEqual(false);
   });
 
   it('autocomplete textarea should have cell dimensions', function () {
@@ -384,21 +354,19 @@ describe('AutocompleteEditor', function () {
   });
 
   it('typing in textarea should refresh the lookup list', function () {
-    runs(function () {
-      handsontable({
-        autoComplete: getAutocompleteConfig(false)
-      });
-      selectCell(2, 2);
-      keyDownUp('enter');
-
-      autocomplete().$element.val("e");
-      keyUp(69); //e
-      expect(autocomplete().$menu.find('li:eq(0)').data('value')).toEqual('yellow');
-
-      autocomplete().$element.val("ed");
-      keyUp(68); //e
-      expect(autocomplete().$menu.find('li:eq(0)').data('value')).toEqual('red');
+    handsontable({
+      autoComplete: getAutocompleteConfig(false)
     });
+    selectCell(2, 2);
+    keyDownUp('enter');
+
+    autocomplete().$element.val("e");
+    keyUp(69); //e
+    expect(autocomplete().$menu.find('li:eq(0)').data('value')).toEqual('yellow');
+
+    autocomplete().$element.val("ed");
+    keyUp(68); //e
+    expect(autocomplete().$menu.find('li:eq(0)').data('value')).toEqual('red');
   });
 
   it('should be able to use empty value ("")', function () {
@@ -428,19 +396,17 @@ describe('AutocompleteEditor', function () {
   });
 
   it('cancel editing (Esc) should restore the previous value', function () {
-    runs(function () {
-      handsontable({
-        autoComplete: getAutocompleteConfig(false)
-      });
-      setDataAtCell(2, 2, 'black');
-      selectCell(2, 2);
-      keyDownUp('enter');
-
-      autocomplete().$element.val("ye");
-      keyUp(69); //e
-      keyDownUp('esc');
-      expect(getDataAtCell(2, 2)).toEqual('black');
+    handsontable({
+      autoComplete: getAutocompleteConfig(false)
     });
+    setDataAtCell(2, 2, 'black');
+    selectCell(2, 2);
+    keyDownUp('enter');
+
+    autocomplete().$element.val("ye");
+    keyUp(69); //e
+    keyDownUp('esc');
+    expect(getDataAtCell(2, 2)).toEqual('black');
   });
 
   it('finish editing should move the focus aways from textarea to table cell', function () {
