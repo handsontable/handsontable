@@ -122,13 +122,18 @@ function HandsontableObserveChanges() {
           }
           next = setTimeout(slowCheck, intervals[currentInterval++]);
         };
-        [
-          "mousedown",
-          "mouseup",
-          "keydown"
-        ].forEach(function (str) {
-            window.addEventListener(str, fastCheck);
-          });
+
+        if(window.addEventListener){
+          window.addEventListener('mousedown', fastCheck);
+          window.addEventListener('mouseup', fastCheck);
+          window.addEventListener('keydown', fastCheck);
+        } else {
+          //IE7 has different syntax
+          window.attachEvent('onmousedown', fastCheck);
+          window.attachEvent('onmouseup', fastCheck);
+          window.attachEvent('onkeydown', fastCheck);
+        }
+
         next = setTimeout(slowCheck, intervals[currentInterval++]);
       }
     }
