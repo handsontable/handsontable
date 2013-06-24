@@ -70,6 +70,7 @@
           <p>
             <button name="load">Load</button>
             <button name="save">Save</button>
+            <button name="reset">Reset</button>
             <label><input type="checkbox" name="autosave" checked="checked" autocomplete="off"> Autosave</label>
           </p>
 
@@ -142,8 +143,8 @@
                     row[2] = res.cars[i].price;
                     data[res.cars[i].id - 1] = row;
                   }
+                  $console.text('Data loaded. Rows: ' + data.length);
                   handsontable.loadData(data);
-                  $console.text('Data loaded');
                 }
               });
             }).click(); //execute immediately
@@ -164,6 +165,19 @@
                 },
                 error: function () {
                   $console.text('Save error');
+                }
+              });
+            });
+
+
+            $parent.find('button[name=reset]').click(function () {
+              $.ajax({
+                url: "php/reset.php",
+                success: function (res) {
+                  $parent.find('button[name=load]').click();
+                },
+                error: function () {
+                  $console.text('Data reset failed');
                 }
               });
             });
