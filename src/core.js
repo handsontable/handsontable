@@ -1442,86 +1442,86 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   function validateChanges(changes, source) {
     var validated = $.Deferred();
-    var deferreds = [];
+    // var deferreds = [];
 
     //validate strict autocompletes
-    var process = function (i) {
-      var deferred = $.Deferred();
-      deferreds.push(deferred);
+    // var process = function (i) {
+    //   var deferred = $.Deferred();
+    //   deferreds.push(deferred);
 
-      var originalVal = changes[i][3];
-      var lowercaseVal = typeof originalVal === 'string' ? originalVal.toLowerCase() : null;
+    //   var originalVal = changes[i][3];
+    //   var lowercaseVal = typeof originalVal === 'string' ? originalVal.toLowerCase() : null;
 
-      return function (source) {
-        var found = false;
-        for (var s = 0, slen = source.length; s < slen; s++) {
-          if (originalVal === source[s]) {
-            found = true; //perfect match
-            break;
-          }
-          else if (lowercaseVal === source[s].toLowerCase()) {
-            changes[i][3] = source[s]; //good match, fix the case
-            found = true;
-            break;
-          }
-        }
-        if (!found) {
-          changes[i] = null;
-        }
-        deferred.resolve();
-      }
-    };
+    //   return function (source) {
+    //     var found = false;
+    //     for (var s = 0, slen = source.length; s < slen; s++) {
+    //       if (originalVal === source[s]) {
+    //         found = true; //perfect match
+    //         break;
+    //       }
+    //       else if (lowercaseVal === source[s].toLowerCase()) {
+    //         changes[i][3] = source[s]; //good match, fix the case
+    //         found = true;
+    //         break;
+    //       }
+    //     }
+    //     if (!found) {
+    //       changes[i] = null;
+    //     }
+    //     deferred.resolve();
+    //   }
+    // };
+//
+    // for (var i = changes.length - 1; i >= 0; i--) {
+    //   var cellProperties = instance.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
+    //   if (cellProperties.strict && cellProperties.source) {
+    //     $.isFunction(cellProperties.source) ? cellProperties.source(changes[i][3], process(i)) : process(i)(cellProperties.source);
+    //   }
+    // }
 
+    // $.when.apply($, deferreds).then(function () {
     for (var i = changes.length - 1; i >= 0; i--) {
-      var cellProperties = instance.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
-      if (cellProperties.strict && cellProperties.source) {
-        $.isFunction(cellProperties.source) ? cellProperties.source(changes[i][3], process(i)) : process(i)(cellProperties.source);
+      if (changes[i] === null) {
+        changes.splice(i, 1);
+      } else {
+        var cellProperties = instance.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
+
+        if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
+          if (changes[i][3].length > 0 && /^-?[\d\s]*\.?\d*$/.test(changes[i][3])) {
+            changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+          }
+        }
+
+        if (cellProperties.validator) {
+          instance.validateCell(changes[i][3], cellProperties, function (result) {
+            if (result === false && cellProperties.allowInvalid === false) {
+              changes.splice(i, 1);
+              --i;
+              --length;
+            }
+          }, source);
+        }
       }
     }
 
-    $.when.apply($, deferreds).then(function () {
-      for (var i = changes.length - 1; i >= 0; i--) {
-        if (changes[i] === null) {
-          changes.splice(i, 1);
-        } else {
-          var cellProperties = instance.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
-
-          if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
-            if (changes[i][3].length > 0 && /^-?[\d\s]*\.?\d*$/.test(changes[i][3])) {
-              changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
-            }
-          }
-
-          if (cellProperties.validator) {
-            instance.validateCell(changes[i][3], cellProperties, function (result) {
-              if (result === false && cellProperties.allowInvalid === false) {
-                changes.splice(i, 1);
-                --i;
-                --length;
-              }
-            }, source);
-          }
-        }
-      }
-
-      if (changes.length) {
-        var result = instance.PluginHooks.execute("beforeChange", changes, source);
-        if (typeof result === 'function') {
-          $.when(result).then(function () {
-            validated.resolve();
-          });
-        }
-        else {
-          if (result === false) {
-            changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
-          }
+    if (changes.length) {
+      var result = instance.PluginHooks.execute("beforeChange", changes, source);
+      if (typeof result === 'function') {
+        $.when(result).then(function () {
           validated.resolve();
-        }
+        });
       }
       else {
+        if (result === false) {
+          changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
+        }
         validated.resolve();
       }
-    });
+    }
+    else {
+      validated.resolve();
+    }
+    // });
 
     return $.when(validated);
   }

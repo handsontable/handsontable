@@ -253,6 +253,7 @@ describe('AutocompleteEditor', function () {
         ],
         columns: [
           {
+            allowInvalid: false,
             type: Handsontable.AutocompleteCell,
             options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
             source: function (query, process) {
@@ -303,6 +304,7 @@ describe('AutocompleteEditor', function () {
       ],
       columns: [
         {
+          allowInvalid: false,
           type: Handsontable.AutocompleteCell,
           options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
           source: ['Acura', 'BMW', 'Bentley'],
