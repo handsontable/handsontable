@@ -10,7 +10,7 @@ describe('WalkontableWheel', function () {
 
   afterEach(function () {
     if (!debug) {
-//      $('.wtHolder').remove();
+      $('.wtHolder').remove();
     }
   });
 
