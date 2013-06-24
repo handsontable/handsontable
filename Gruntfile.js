@@ -55,10 +55,12 @@ module.exports = function (grunt) {
         'src/plugins/manualColumnMove.js',
         'src/plugins/manualColumnResize.js',
         'src/plugins/observeChanges.js',
+        'src/plugins/persistentState.js',
 
         'src/3rdparty/jquery.autoresize.js',
         'src/3rdparty/sheetclip.js',
-        'src/3rdparty/copypaste.js'
+        'src/3rdparty/copypaste.js',
+        'src/3rdparty/jquery.cookie.js',
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',
