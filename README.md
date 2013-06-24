@@ -45,7 +45,9 @@ To see the list of recent changes, see the [CHANGELOG.md](./CHANGELOG.md).
 
 ## Questions
 
-Before you open a new [Issue](https://github.com/warpech/jquery-handsontable/issues), please check out the [Frequently Asked Questions](https://github.com/warpech/jquery-handsontable/wiki/FAQ).
+Please use the :new: [Handsontable Google Group](https://groups.google.com/forum/?fromgroups=#!forum/handsontable) for posting general **Questions**.
+
+Make sure the question was not answered before in [FAQ](https://github.com/warpech/jquery-handsontable/wiki/FAQ) or [GitHub Issues](https://github.com/warpech/jquery-handsontable/issues)
 
 ## Reporting bugs and feature requests
 
