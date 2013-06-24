@@ -215,9 +215,14 @@ var triggerPaste = function (str) {
 
 var handsontableMethodFactory = function (method) {
   return function () {
-    var args = Array.prototype.slice.call(arguments, 0);
-    args.unshift(method);
-    return spec().$container.handsontable.apply(spec().$container, args);
+    var instance = spec().$container.handsontable('getInstance');
+    if (!instance) {
+      if (method === 'destroy') {
+        return; //we can forgive this... maybe it was destroyed in the test
+      }
+      throw new Error('Something wrong with the test spec: Handsontable instance not found');
+    }
+    return instance[method].apply(instance, arguments);
   }
 };
 
