@@ -1940,6 +1940,9 @@ Handsontable.Core = function (rootElement, userSettings) {
     // Init columns constructors configuration
     clen = instance.countCols();
 
+    //Clear cellSettings cache
+    priv.cellSettings.length = 0;
+
     if (clen > 0) {
       var prop, proto, column;
 
@@ -2617,7 +2620,8 @@ DefaultSettings.prototype = {
   isEmptyCol: void 0,
   observeDOMVisibility: true,
   allowInvalid: true,
-  invalidCellClassName: 'htInvalid'
+  invalidCellClassName: 'htInvalid',
+  readOnly: false
 };
 
 $.fn.handsontable = function (action) {
