@@ -211,6 +211,8 @@ Handsontable.TableView = function (instance) {
       return that.settings.fragmentSelection;
     },
     onCellMouseDown: function (event, coords, TD) {
+      Handsontable.activeGuid = instance.guid;
+
       isMouseDown = true;
       var coordsObj = {row: coords[0], col: coords[1]};
       if (event.button === 2 && instance.selection.inInSelection(coordsObj)) { //right mouse button

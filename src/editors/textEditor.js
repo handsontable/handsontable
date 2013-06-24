@@ -319,8 +319,7 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
 
   this.unbindTemporaryEvents();
   if (document.activeElement === this.TEXTAREA) {
-    //this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
-    document.activeElement.blur();
+    this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
   }
 
   this.textareaParentStyle.display = 'none';

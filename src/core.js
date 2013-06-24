@@ -1,3 +1,5 @@
+Handsontable.activeGuid = null;
+
 /**
  * Handsontable constructor
  * @param rootElement The jQuery element in which Handsontable DOM will be inserted
@@ -1205,6 +1207,10 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
 
       function onKeyDown(event) {
+        if (Handsontable.activeGuid !== instance.guid) {
+          return;
+        }
+
         if (priv.settings.beforeOnKeyDown) { // HOT in HOT Plugin
           priv.settings.beforeOnKeyDown.call(instance, event);
         }
@@ -1413,6 +1419,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         return;
       }
 
+      instance.listen();
       var TD = instance.view.getCellAtCoords(priv.selStart.coords());
       priv.editorDestroyer = instance.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
       //presumably TD can be removed from here. Cell editor should also listen for changes if editable cell is outside from viewport
@@ -1676,6 +1683,20 @@ Handsontable.Core = function (rootElement, userSettings) {
     validateChanges(changes, source).then(function () {
       applyChanges(changes, source);
     });
+  };
+
+  /**
+   * Listen to keyboard input
+   */
+  this.listen = function () {
+    Handsontable.activeGuid = instance.guid;
+
+    if (document.activeElement && document.activeElement !== document.body) {
+      document.activeElement.blur();
+    }
+    else if (!document.activeElement) { //IE
+      document.body.focus();
+    }
   };
 
   /**
@@ -2461,6 +2482,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
     priv.selStart.coords({row: row, col: col});
+    instance.listen(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
     if (typeof endRow === "undefined") {
       selection.setRangeEnd({row: row, col: col}, scrollToCell);
     }
