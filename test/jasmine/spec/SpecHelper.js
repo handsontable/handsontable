@@ -1,32 +1,3 @@
-/* -- frame counter -- */
-var frame = 0;
-var lastFrame = null;
-
-(function () {
-  frame = 0;
-  lastFrame = null;
-  var countFrames = function () {
-    requestAnimFrame(function () {
-      frame++;
-      countFrames();
-    });
-  };
-  countFrames();
-})();
-
-var nextFrame = function () {
-  if (lastFrame === null) {
-    lastFrame = frame;
-  }
-  else if (frame - 2 >= lastFrame) {
-    lastFrame = null;
-    return true;
-  }
-  return false;
-};
-
-/* ------------------- */
-
 var spec = function () {
   return jasmine.getEnv().currentSpec;
 };
