@@ -129,7 +129,7 @@ describe('FillHandle', function () {
     ev = jQuery.Event('mouseup');
     ev.target = this.$container.find('.wtBorder.corner')[0]; //fill handle
 
-    this.$container.find('tr:eq(2) td:eq(0)').trigger(event);
+    this.$container.find('tr:eq(2) td:eq(0)').trigger(ev);
 
 
     expect(getSelected()).toEqual([1, 1, 2, 1]);
