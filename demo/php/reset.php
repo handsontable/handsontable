@@ -1,5 +1,14 @@
 <?php
 
-$db = new PDO('sqlite:cars.sqlite'); //will create the file in current directory. Current directory must be writable
+require_once('functions.php');
 
-$db->exec("DELETE FROM cars");
+
+try {
+    $db = getConnection();
+    resetCarsTable($db);
+    closeConnection($db);
+}
+catch (PDOException $e) {
+    print 'Exception : ' . $e->getMessage();
+}
+
