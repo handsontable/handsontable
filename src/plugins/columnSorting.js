@@ -6,40 +6,81 @@ function HandsontableColumnSorting() {
   var plugin = this;
   var sortingEnabled;
 
-  this.afterInit = function () {
+
+  this.setSortingColumn = function(col, order) {
     var instance = this;
-    if (this.getSettings().columnSorting) {
-      this.sortIndex = [];
-      this.rootElement.on('click.handsontable', '.columnSorting', function (e) {
-        var $target = $(e.target);
-        if ($target.is('.columnSorting')) {
-          var col = $target.closest('th').index();
-          if (instance.getSettings().rowHeaders) {
-            col--;
-          }
-          if (instance.sortColumn === col) {
-            instance.sortOrder = !instance.sortOrder;
-          }
-          else {
-            instance.sortColumn = col;
-            instance.sortOrder = true;
-          }
-          plugin.sort.call(instance);
-          instance.render();
+
+
+    if (instance.sortColumn === col && typeof order == 'undefined') {
+      instance.sortOrder = !instance.sortOrder;
+    } else {
+      instance.sortOrder = typeof order != 'undefined' ? order : true;
+    }
+
+    instance.sortColumn = col;
+
+
+
+  };
+
+  this.sortByColumn = function(col, order){
+    var instance = this;
+
+    plugin.setSortingColumn.call(instance, col, order);
+    plugin.sort.call(instance);
+    instance.render();
+
+    instance.PluginHooks.run('afterSorting');
+  }
+
+  var bindColumnSortingAfterClick = function(){
+    var instance = this;
+
+    instance.rootElement.on('click.handsontable', '.columnSorting', function (e) {
+      var $target = $(e.target);
+      if ($target.is('.columnSorting')) {
+        var col = $target.closest('th').index();
+        if (instance.getSettings().rowHeaders) {
+          col--;
         }
-      });
+        plugin.sortByColumn.call(instance, col);
+      }
+    });
+  };
+
+  this.init = function (source) {
+    var instance = this;
+    var sortingSettings = instance.getSettings().columnSorting;
+    var sortingColumn, sortingOrder;
+
+    sortingEnabled = Boolean(sortingSettings);
+
+    if (sortingEnabled) {
+      instance.sortIndex = [];
+
+      sortingColumn = typeof sortingSettings.column != 'undefined' ? sortingSettings.column: 0;
+      sortingOrder = typeof sortingSettings.column != 'undefined' ? sortingSettings.order : true;
+
+      plugin.sortByColumn.call(instance, sortingSettings.column, sortingSettings.order);
+
+      if(source == 'afterInit'){
+        bindColumnSortingAfterClick.call(instance);
+      }
     }
   };
+
+
 
   this.sort = function () {
     sortingEnabled = false;
     var instance = this;
-    this.sortIndex.length = 0;
-    //var data = this.getData();
+
+    instance.sortIndex.length = 0;
+
     for (var i = 0, ilen = this.countRows(); i < ilen; i++) {
-      //this.sortIndex.push([i, data[i][this.sortColumn]]);
       this.sortIndex.push([i, instance.getDataAtCell(i, this.sortColumn)]);
     }
+
     this.sortIndex.sort(function (a, b) {
       if (a[1] === b[1]) {
         return 0;
@@ -65,13 +106,14 @@ function HandsontableColumnSorting() {
 
   this.getColHeader = function (col, TH) {
     if (this.getSettings().columnSorting) {
-      $(TH).find('span.colHeader')[0].className += ' columnSorting';
+      $(TH).find('span.colHeader:first').addClass('columnSorting');
     }
   };
 }
 var htSortColumn = new HandsontableColumnSorting();
 
-Handsontable.PluginHooks.add('afterInit', htSortColumn.afterInit);
+Handsontable.PluginHooks.add('afterInit', function(){htSortColumn.init.call(this, 'afterInit')});
+Handsontable.PluginHooks.add('afterUpdateSettings', function(){htSortColumn.init.call(this, 'afterUpdateSettings')});
 Handsontable.PluginHooks.add('beforeGet', htSortColumn.translateRow);
 Handsontable.PluginHooks.add('beforeSet', htSortColumn.translateRow);
 Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
