@@ -87,6 +87,8 @@
 
           <p>Only the table view is sorted. The data source remains in the original order.</p>
 
+          <div class="state-loaded alert">State of the table has been restored. <button class="reset-state">Reset table state</button></div>
+
           <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
           <p>
@@ -105,6 +107,8 @@
           </div>
 
           <script data-jsfiddle="example1">
+
+
             $("#example1").handsontable({
               data: createBigData(),
               rowHeaders: true,
@@ -123,8 +127,50 @@
                 {}
               ],
               minSpareRows: 1,
-              contextMenu: true
+              contextMenu: true,
+              persistentState: {
+                sorting : {
+                  hook: 'afterSorting',
+                  save : function(storage){
+                    storage.saveValue('columnSorting', {
+                      column: this.sortColumn,
+                      order: this.sortOrder
+                    });
+                  },
+                  load : function(storage){
+                    var loadedState = storage.loadValue('columnSorting');
+
+                    if(loadedState){
+                      this.updateSettings({
+                         columnSorting : loadedState
+                      });
+
+                      $('.state-loaded').show();
+
+                    }
+                  }
+                }
+              }
             });
+
+            $('.reset-state').on('click', function(){
+              var HOT = $('#example1').handsontable('getInstance');
+              HOT.updateSettings({
+                columnSorting: true
+              })
+
+              HOT.resetState();
+
+              $(".state-loaded").fadeOut(300);
+            })
+
+
+
+
+
+
+
+
           </script>
         </div>
       </div>
