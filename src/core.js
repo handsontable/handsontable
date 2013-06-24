@@ -1975,6 +1975,10 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.forceFullRender = true; //used when data was changed
       selection.refreshBorders(null, true);
     }
+
+    if(!init){
+      instance.PluginHooks.run('afterUpdateSettings');
+    }
   };
 
   /**

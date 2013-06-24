@@ -17,6 +17,7 @@ Handsontable.PluginHookClass = (function () {
 
       afterInit : [],
       afterLoadData : [],
+      afterUpdateSettings: [],
       afterRender : [],
       afterChange : [],
       afterValidate: [],
