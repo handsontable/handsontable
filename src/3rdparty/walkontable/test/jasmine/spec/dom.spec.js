@@ -132,6 +132,26 @@ describe('WalkontableDom', function () {
     });
   });
 
+  describe('outerHeight', function () {
+    it('should return correct outerHeight for table', function () {
+      var $table = $('<table style="border-width: 0;"><tbody><tr><td style="border: 1px solid black"><div style="height: 30px">test</div></td></tr></tbody></table>').appendTo('body');
+
+      expect(wtDom.outerHeight($table[0])).toBe(38); //this is according to current stylesheet
+      expect($table.outerHeight()).toBe(38); //jQuery check to confirm
+
+      $table.remove();
+    });
+
+    it('should return correct outerHeight for table (with caption)', function () {
+      var $table = $('<table style="border-width: 0;"><caption style="padding: 0; margin:0"><div style="height: 30px">caption</div></caption><tbody><tr><td style="border: 1px solid black"><div style="height: 30px">test</div></td></tr></tbody></table>').appendTo('body');
+
+      expect(wtDom.outerHeight($table[0])).toBe(68); //this is according to current stylesheet
+      //expect($table.outerHeight()).toBe(68); //jQuery check is broken because of a bug in Firefox! (Firefox ignores caption, and so does jQuery)
+
+      $table.remove();
+    });
+  });
+
   it("should return font size", function () {
     var $html = $('<style>.bigText{font: 12px serif;}</style><div class="bigText"><span id="testable"></span></div>').appendTo('body');
 
