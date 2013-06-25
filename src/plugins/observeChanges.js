@@ -93,7 +93,7 @@ function HandsontableObserveChanges() {
         beforeDict.push(mirror);
       }
 
-      mirror.value = simpleCopy(obj);
+      mirror.value = deepCopy(obj);
 
       if(callback) {
         callbacks.push(callback);
@@ -249,18 +249,22 @@ function HandsontableObserveChanges() {
     }
   };
 
-  function simpleCopy(source){
-    var copy = {};
+  /*
+   Description: Performs JSON-safe deep cloning. Equivalent of JSON.parse(JSON.stringify()).
+   Based on deepClone7() by Kyle Simpson (https://github.com/getify)
+   Source: http://jsperf.com/deep-cloning-of-objects
+   */
 
-    copy.prototype = source.prototype;
-
-    for (var key in source) {
-      if(source.hasOwnProperty(key) && ['string', 'number'].indexOf(typeof source[key]) > -1){
-        copy[key] = source[key];
-      }
+  function deepCopy(objToBeCopied) {
+    if (objToBeCopied === null || !(objToBeCopied instanceof Object)) {
+      return objToBeCopied;
     }
-
-    return copy;
+    var copiedObj, fConstr = objToBeCopied.constructor;
+    copiedObj = new fConstr();
+    for (var sProp in objToBeCopied) {
+      copiedObj[sProp] = deepCopy(objToBeCopied[sProp]);
+    }
+    return copiedObj;
   }
 
 }
