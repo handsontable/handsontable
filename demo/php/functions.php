@@ -1,7 +1,8 @@
 <?php
 
 function &getConnection(){
-    return new PDO('sqlite:cars.sqlite');
+    $db = new PDO('sqlite:cars.sqlite');
+    return $db;
 }
 
 function closeConnection ($db){

@@ -22,7 +22,7 @@ try {
     2 => 'price'
   );
   
-  if ($_POST['changes']) {
+  if (isset($_POST['changes']) && $_POST['changes']) {
     foreach ($_POST['changes'] as $change) {
       $rowId  = $change[0] + 1;
       $colId  = $change[1];
@@ -47,7 +47,7 @@ try {
       $query->bindValue(':newVal', $newVal, PDO::PARAM_STR);
       $query->execute();
     }
-  } elseif ($_POST['data']) {
+  } elseif (isset($_POST['data']) && $_POST['data']) {
     $select = $db->prepare('DELETE FROM cars');
     $select->execute();
     
