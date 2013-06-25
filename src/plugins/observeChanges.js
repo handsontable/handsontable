@@ -43,8 +43,8 @@ function HandsontableObserveChanges() {
   function clearPaths(observer, node) {
     delete node.____Path;
     Object.observe(node, observer);
-    for(var key in node) {
-      var kid = node[key];
+    for(var i, nodeLen = node.length; i < nodeLen; i++) {
+      var kid = node[i];
       if(kid instanceof Object) {
         clearPaths(observer, kid);
       }
@@ -62,7 +62,9 @@ function HandsontableObserveChanges() {
           root.____Path = "";
           markPaths(observer, root);
 
-          for ( elem in arr) {
+          for (var index = 0, arrLen = arr.length; i < arrLen; i++) {
+            var elem = arr[index];
+
             if(elem.name != "____Path") {
               observeOps[elem.type].call(elem, patches, elem.object.____Path);
             }
