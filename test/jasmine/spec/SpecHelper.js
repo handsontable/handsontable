@@ -271,3 +271,11 @@ function createSpreadsheetData(rowCount, colCount) {
 function runningIE7OrEarlier(){
   return $.browser.msie && parseInt($.browser.version) < 8;
 }
+
+/**
+ * Returns value that should be returned when retrieving data from empty cell.
+ * The value varies depending on browser (IE7 hacks)
+ */
+function emptyCell() {
+  return runningIE7OrEarlier() ? '&nbsp;' : '';
+}
