@@ -19,8 +19,12 @@ function WalkontableSettings(instance, settings) {
     data: void 0,
     offsetRow: 0,
     offsetColumn: 0,
-    fixedColumnsLeft: 0,
-    fixedRowsTop: 0,
+    fixedColumnsLeft: function () {
+      return 0;
+    },
+    fixedRowsTop: function () {
+      return 0;
+    },
     rowHeaders: [], //this must be array of functions: [function (row, TH) {}]
     columnHeaders: [], //this must be array of functions: [function (column, TH) {}]
     totalRows: void 0,
@@ -96,7 +100,7 @@ WalkontableSettings.prototype._getSetting = function (key, param1, param2, param
   if (typeof this.settings[key] === 'function') {
     return this.settings[key](param1, param2, param3);
   }
-  else if (param1 !== void 0 && Object.prototype.toString.call(this.settings[key]) === '[object Array]' && param1 !== void 0) {
+  else if (param1 !== void 0 && Object.prototype.toString.call(this.settings[key]) === '[object Array]') {
     return this.settings[key][param1];
   }
   else {
