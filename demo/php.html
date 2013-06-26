@@ -52,8 +52,6 @@
           <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
             for HTML, JavaScript &amp; jQuery
           </div>
-
-          <h2>PHP example</h2>
         </div>
       </div>
     </div>
@@ -61,6 +59,8 @@
     <div class="rowLayout">
       <div class="descLayout">
         <div class="pad" data-jsfiddle="example1">
+          <h2>PHP example</h2>
+
           <p>This page loads and saves data on server. In this example, client side uses <b>$.ajax</b>. Server side uses
             <b>PHP with PDO (SQLite)</b>.</p>
 
@@ -117,7 +117,7 @@
                     dataType: "json",
                     type: "POST",
                     data: {changes: change}, //contains changed cells' data
-                    success: function (data) {
+                    success: function () {
                       $console.text('Autosaved (' + change.length + ' cell' + (change.length > 1 ? 's' : '') + ')');
                       autosaveNotification = setTimeout(function () {
                         $console.text('Changes will be autosaved');
@@ -173,7 +173,7 @@
             $parent.find('button[name=reset]').click(function () {
               $.ajax({
                 url: "php/reset.php",
-                success: function (res) {
+                success: function () {
                   $parent.find('button[name=load]').click();
                 },
                 error: function () {
