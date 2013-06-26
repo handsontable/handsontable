@@ -157,12 +157,15 @@ Handsontable.TableView = function (instance) {
     height: this.getHeight(),
     fixedColumnsLeft: this.settings.fixedColumnsLeft,
     fixedRowsTop: this.settings.fixedRowsTop,
-    rowHeaders: this.settings.rowHeaders ? [function (index, TH) {
+    rowHeaders: function(){
+      return that.settings.rowHeaders ? [function (index, TH) {
       that.appendRowHeader(index, TH);
-    }] : [],
-    columnHeaders: this.settings.colHeaders ? [function (index, TH) {
-      that.appendColHeader(index, TH);
-    }] : [],
+    }] : []},
+    columnHeaders: function () {
+      return that.settings.colHeaders ? [function (index, TH) {
+        that.appendColHeader(index, TH);
+      }] : []
+    },
     columnWidth: instance.getColWidth,
     cellRenderer: function (row, column, TD) {
       that.applyCellTypeMethod('renderer', TD, row, column);

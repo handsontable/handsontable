@@ -211,8 +211,14 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   }
 
   //adjust THEAD
+  TR = this.THEAD.firstChild;
   if (columnHeaders.length) {
-    TR = this.THEAD.firstChild;
+    if(!TR){
+      TR = document.createElement('TR');
+      this.THEAD.appendChild(TR);
+    }
+
+    this.theadChildrenLength = TR.childNodes.length;
     while (this.theadChildrenLength < displayTds + displayThs) {
       TR.appendChild(document.createElement('TH'));
       this.theadChildrenLength++;
@@ -220,6 +226,10 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
     while (this.theadChildrenLength > displayTds + displayThs) {
       TR.removeChild(TR.lastChild);
       this.theadChildrenLength--;
+    }
+  }else if(TR){
+    while(TR.firstChild){
+      TR.removeChild(TR.firstChild);
     }
   }
 
@@ -299,6 +309,7 @@ WalkontableTable.prototype._doDraw = function () {
     , displayThs = rowHeaders.length
     , TR
     , TD
+    , TH
     , adjusted = false
     , workspaceWidth;
 
@@ -343,10 +354,19 @@ WalkontableTable.prototype._doDraw = function () {
       }
 
       //TH
-      TD = TR.firstChild;
+      TH = TR.firstChild;
       for (c = 0; c < displayThs; c++) {
-        rowHeaders[c](source_r, TD); //actually TH
-        TD = TD.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
+
+        //If the number of row headers increased we need to replace TD with TH
+        if(TH.nodeName == 'TD'){
+          TD = TH;
+          TH = document.createElement('TH');
+          TR.insertBefore(TH, TD);
+          TR.removeChild(TD);
+        }
+
+        rowHeaders[c](source_r, TH); //actually TH
+        TH = TH.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
       }
 
       if (first) {
@@ -379,6 +399,15 @@ WalkontableTable.prototype._doDraw = function () {
         else {
           TD = TD.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
         }
+
+        //If the number of headers has been reduced, we need to replace excess TH with TD
+        if(TD.nodeName == 'TH'){
+          TH = TD;
+          TD = document.createElement('TD');
+          TR.insertBefore(TD, TH);
+          TR.removeChild(TH);
+        }
+
         TD.className = '';
         TD.removeAttribute('style');
         this.instance.getSetting('cellRenderer', source_r, source_c, TD);
