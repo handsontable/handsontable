@@ -44,7 +44,11 @@ describe('TextRenderer', function () {
     handsontable();
     setDataAtCell(2, 2, null);
 
-    expect(getCell(2, 2).innerHTML).toEqual("");
+    if(runningIE7OrEarlier()){
+      expect(getCell(2, 2).innerHTML).toEqual("&nbsp;");
+    } else {
+      expect(getCell(2, 2).innerHTML).toEqual("");
+    }
   });
 
   it('should render undefined', function () {
@@ -52,7 +56,11 @@ describe('TextRenderer', function () {
     setDataAtCell(2, 2, (function () {
     })());
 
-    expect(getCell(2, 2).innerHTML).toEqual("");
+    if(runningIE7OrEarlier()){
+      expect(getCell(2, 2).innerHTML).toEqual("&nbsp;");
+    } else {
+      expect(getCell(2, 2).innerHTML).toEqual("");
+    }
   });
 
   it('should add class name `htDimmed` to a read only cell', function () {
