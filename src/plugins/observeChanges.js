@@ -43,8 +43,8 @@ function HandsontableObserveChanges() {
   function clearPaths(observer, node) {
     delete node.____Path;
     Object.observe(node, observer);
-    for(var key in node) {
-      var kid = node[key];
+    for(var i, nodeLen = node.length; i < nodeLen; i++) {
+      var kid = node[i];
       if(kid instanceof Object) {
         clearPaths(observer, kid);
       }
@@ -61,11 +61,15 @@ function HandsontableObserveChanges() {
           Object.unobserve(root, observer);
           root.____Path = "";
           markPaths(observer, root);
-          arr.forEach(function (elem) {
+
+          for (var index = 0, arrLen = arr.length; i < arrLen; i++) {
+            var elem = arr[index];
+
             if(elem.name != "____Path") {
               observeOps[elem.type].call(elem, patches, elem.object.____Path);
             }
-          });
+          }
+
           clearPaths(observer, root);
         }
         if(callback) {
@@ -88,7 +92,9 @@ function HandsontableObserveChanges() {
         };
         beforeDict.push(mirror);
       }
-      mirror.value = JSON.parse(JSON.stringify(obj));
+
+      mirror.value = deepCopy(obj);
+
       if(callback) {
         callbacks.push(callback);
         var next;
@@ -118,13 +124,18 @@ function HandsontableObserveChanges() {
           }
           next = setTimeout(slowCheck, intervals[currentInterval++]);
         };
-        [
-          "mousedown",
-          "mouseup",
-          "keydown"
-        ].forEach(function (str) {
-            window.addEventListener(str, fastCheck);
-          });
+
+        if(window.addEventListener){
+          window.addEventListener('mousedown', fastCheck);
+          window.addEventListener('mouseup', fastCheck);
+          window.addEventListener('keydown', fastCheck);
+        } else {
+          //IE7 has different syntax
+          window.attachEvent('onmousedown', fastCheck);
+          window.attachEvent('onmouseup', fastCheck);
+          window.attachEvent('onkeydown', fastCheck);
+        }
+
         next = setTimeout(slowCheck, intervals[currentInterval++]);
       }
     }
@@ -165,8 +176,24 @@ function HandsontableObserveChanges() {
   }
 
   function _generate(mirror, obj, patches, path) {
-    var newKeys = Object.keys(obj);
-    var oldKeys = Object.keys(mirror);
+
+
+    var newKeys = [];
+
+    for(var key in obj){
+      if ( obj.hasOwnProperty(key) ){
+        newKeys.push(key);
+      }
+    }
+
+    var oldKeys = [];
+
+    for(var key in mirror){
+      if ( obj.hasOwnProperty(key) ){
+        oldKeys.push(key);
+      }
+    }
+
     var changed = false;
     var deleted = false;
     var added = false;
@@ -221,6 +248,25 @@ function HandsontableObserveChanges() {
       });
     }
   };
+
+  /*
+   Description: Performs JSON-safe deep cloning. Equivalent of JSON.parse(JSON.stringify()).
+   Based on deepClone7() by Kyle Simpson (https://github.com/getify)
+   Source: http://jsperf.com/deep-cloning-of-objects
+   */
+
+  function deepCopy(objToBeCopied) {
+    if (objToBeCopied === null || !(objToBeCopied instanceof Object)) {
+      return objToBeCopied;
+    }
+    var copiedObj, fConstr = objToBeCopied.constructor;
+    copiedObj = new fConstr();
+    for (var sProp in objToBeCopied) {
+      copiedObj[sProp] = deepCopy(objToBeCopied[sProp]);
+    }
+    return copiedObj;
+  }
+
 }
 var htObserveChanges = new HandsontableObserveChanges();
 
