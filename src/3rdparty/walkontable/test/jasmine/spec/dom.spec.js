@@ -1,6 +1,15 @@
 describe('WalkontableDom', function () {
   var wtDom = new WalkontableDom();
 
+  describe('fastInnerHtml', function() {
+
+      it("should recognize <div>1</div> as html", function() {
+          var text = "<div>1</div>";
+          expect(wtDom.HTML_CHARACTERS.test(text)).toEqual(true);
+          expect(wtDom.HTML_CHARACTERS.test(text)).toEqual(true);
+      })
+  });
+
   describe('offset', function () {
     var $window = $(window),
       $forceScrollbar = $('<div id="forceScrollbar"></div>').css({

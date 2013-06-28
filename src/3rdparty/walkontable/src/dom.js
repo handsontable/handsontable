@@ -156,7 +156,7 @@ WalkontableDom.prototype.empty = function (element) {
   }
 };
 
-WalkontableDom.prototype.HTML_CHARACTERS = /(<(.*)>|&(.*);)/g;
+WalkontableDom.prototype.HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
 
 /**
  * Insert content into element trying avoid innerHTML method.

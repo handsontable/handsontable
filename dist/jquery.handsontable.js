@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Jun 18 2013 18:56:33 GMT+0200 (Central European Daylight Time)
+ * Date: Fri Jun 28 2013 16:01:18 GMT-0700 (PDT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -6657,7 +6657,7 @@ WalkontableDom.prototype.empty = function (element) {
   }
 };
 
-WalkontableDom.prototype.HTML_CHARACTERS = /(<(.*)>|&(.*);)/g;
+WalkontableDom.prototype.HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
 
 /**
  * Insert content into element trying avoid innerHTML method.
