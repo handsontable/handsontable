@@ -30,84 +30,60 @@ describe('NumericValidator', function () {
   it('should not validate non numeric string', function () {
     var valid = null;
 
-    runs(function () {
-      handsontable({
-        data: arrayOfObjects(),
-        columns: [
-          {data: 'id', type: 'numeric'},
-          {data: 'name'},
-          {data: 'lastName'}
-        ],
-        afterValidate : function (result, value) {
-          if(value === "test") {
-            valid = result;
-          }
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate : function (result, value) {
+        if(value === "test") {
+          valid = result;
         }
-      });
-      setDataAtCell(2, 0, 'test');
+      }
     });
+    setDataAtCell(2, 0, 'test');
 
-    waitsFor(function () {
-      return (valid != null)
-    }, "afterValidate callback called", 100);
-
-    runs(function () {
-      expect(valid).toEqual(false);
-    });
+    expect(valid).toEqual(false);
   });
 
   it('should validate numeric string', function () {
     var valid = null;
 
-    runs(function () {
-      handsontable({
-        data: arrayOfObjects(),
-        columns: [
-          {data: 'id', type: 'numeric'},
-          {data: 'name'},
-          {data: 'lastName'}
-        ],
-        afterValidate : function (result) {
-          valid = result;
-        }
-      });
-      setDataAtCell(2, 0, '123');
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate : function (result) {
+        valid = result;
+      }
     });
+    setDataAtCell(2, 0, '123');
 
-    waitsFor(function () {
-      return (valid != null)
-    }, "afterValidate callback called", 100);
-
-    runs(function () {
-      expect(valid).toEqual(true);
-    });
+    expect(valid).toEqual(true);
   });
 
   it('should validate signed numeric string', function () {
     var valid = null;
 
-    runs(function () {
-      handsontable({
-        data: arrayOfObjects(),
-        columns: [
-          {data: 'id', type: 'numeric'},
-          {data: 'name'},
-          {data: 'lastName'}
-        ],
-        afterValidate : function (result) {
-          valid = result;
-        }
-      });
-      setDataAtCell(2, 0, '-123');
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate : function (result) {
+        valid = result;
+      }
     });
+    setDataAtCell(2, 0, '-123');
 
-    waitsFor(function () {
-      return (valid != null)
-    }, "afterValidate callback called", 100);
-
-    runs(function () {
-      expect(valid).toEqual(true);
-    });
+    expect(valid).toEqual(true);
   });
 
 });
