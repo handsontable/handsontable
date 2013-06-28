@@ -70,7 +70,7 @@
   vertical-align: top;
   overflow: hidden;
   outline-width: 0;
-  white-space: pre; /* preserve new line character in cell */
+  white-space: pre-line; /* preserve new line character in cell */
 }
 
 .handsontable td.htInvalid {
