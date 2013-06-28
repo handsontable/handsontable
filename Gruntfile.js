@@ -44,6 +44,7 @@ module.exports = function (grunt) {
         'src/editors/handsontableEditor.js',
 
         'src/validators/numericValidator.js',
+        'src/validators/autocompleteValidator.js',
 
         'src/cellTypes.js',
 

@@ -30,18 +30,18 @@ describe('Core_validate', function () {
   it('should call beforeValidate', function () {
     var fired = null;
 
-    handsontable({
-      data: arrayOfObjects(),
-      columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
-      ],
-      beforeValidate: function () {
-        fired = true;
-      }
-    });
-    setDataAtCell(2, 0, 'test');
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'id', type: 'numeric'},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        beforeValidate: function () {
+          fired = true;
+        }
+      });
+      setDataAtCell(2, 0, 'test');
 
     expect(fired).toEqual(true);
   });
@@ -49,18 +49,18 @@ describe('Core_validate', function () {
   it('should call afterValidate', function () {
     var fired = null;
 
-    handsontable({
-      data: arrayOfObjects(),
-      columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
-      ],
-      afterValidate: function () {
-        fired = true;
-      }
-    });
-    setDataAtCell(2, 0, 'test');
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'id', type: 'numeric'},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate: function () {
+          fired = true;
+        }
+      });
+      setDataAtCell(2, 0, 'test');
 
     expect(fired).toEqual(true);
   });
@@ -68,46 +68,46 @@ describe('Core_validate', function () {
   it('beforeValidate should can manipulate value', function () {
     var result = null;
 
-    handsontable({
-      data: arrayOfObjects(),
-      columns: [
-        {data: 'id', type: 'numeric'},
-        {data: 'name'},
-        {data: 'lastName'}
-      ],
-      beforeValidate: function (value) {
-        value = 999;
-        return value;
-      },
-      afterValidate: function (valid, value) {
-        result = value;
-      }
-    });
-    setDataAtCell(2, 0, 123);
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'id', type: 'numeric'},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        beforeValidate: function (value) {
+          value = 999;
+          return value;
+        },
+        afterValidate: function (valid, value) {
+          result = value;
+        }
+      });
+      setDataAtCell(2, 0, 123);
 
-    expect(result).toEqual(999);
-  });
+      expect(result).toEqual(999);
+    });
 
   it('should be able to define custom validator function', function () {
     var result = null;
 
-    handsontable({
-      data: arrayOfObjects(),
-      columns: [
-        {data: 'id', validator: function (value, cb) {
-          cb(true);
-        }},
-        {data: 'name'},
-        {data: 'lastName'}
-      ],
-      afterValidate: function (valid) {
-        result = valid;
-      }
-    });
-    setDataAtCell(2, 0, 123);
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'id', validator: function (value, cb) {
+            cb(true);
+          }},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate: function (valid) {
+          result = valid;
+        }
+      });
+      setDataAtCell(2, 0, 123);
 
-    expect(result).toEqual(true);
-  });
+      expect(result).toEqual(true);
+    });
 
   it('should be able to define custom validator RegExp', function () {
     var lastInvalid = null;
@@ -134,24 +134,24 @@ describe('Core_validate', function () {
     var result = null
       , fired = false;
 
-    handsontable({
-      data: arrayOfObjects(),
-      columns: [
-        {data: 'id', validator: function (value, cb) {
-          result = this;
-          cb(true);
-        }},
-        {data: 'name'},
-        {data: 'lastName'}
-      ],
-      afterValidate: function () {
-        fired = true;
-      }
-    });
-    setDataAtCell(2, 0, 123);
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          {data: 'id', validator: function (value, cb) {
+            result = this;
+            cb(true);
+          }},
+          {data: 'name'},
+          {data: 'lastName'}
+        ],
+        afterValidate: function () {
+          fired = true;
+        }
+      });
+      setDataAtCell(2, 0, 123);
 
-    expect(result.instance).toEqual(getInstance());
-  });
+      expect(result.instance).toEqual(getInstance());
+    });
 
   it('should add class name `htInvalid` to an cell that does not validate - on data load', function () {
     handsontable({
@@ -232,24 +232,43 @@ describe('Core_validate', function () {
     expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
   });
 
-  it('should not allow for changes where data is invalid', function () {
-    var changes = 0;
+  it('should not allow for changes where data is invalid (multiple changes, async)', function () {
+    var validatedChanges;
 
     handsontable({
-      data: createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator: function (value, callb) {
-          callb(false)
+        setTimeout(function () {
+          if (value === 'fail') {
+            callb(false)
+          }
+          else {
+            callb(true)
+          }
+        }, 10);
       },
-      afterChange: function (nvm, source) {
+      afterChange: function (changes, source) {
         if (source !== 'loadData') {
-          changes++;
+          validatedChanges = changes;
         }
       }
     });
 
-    setDataAtCell(0, 0, 'test');
+    populateFromArray(0, 0, [
+      ['A0-new'],
+      ['fail'],
+      ['A2-new']
+    ]);
 
-    expect(changes).toEqual(0);
+    waitsFor(function () {
+      return validatedChanges;
+    }, 1000);
+
+    runs(function () {
+      expect(validatedChanges.length).toEqual(2);
+      expect(validatedChanges[0]).toEqual([0, 0, 'A0', 'A0-new']);
+      expect(validatedChanges[1]).toEqual([2, 0, 'A2', 'A2-new']);
+    });
   });
 });

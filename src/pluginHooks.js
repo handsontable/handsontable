@@ -63,7 +63,7 @@ Handsontable.PluginHookClass = (function () {
 
     this.legacy = legacy;
 
-  };
+  }
 
   var addHook = function (type) {
     return function (key, fn) {
@@ -147,7 +147,7 @@ Handsontable.PluginHookClass = (function () {
 
   PluginHookClass.prototype.execute = function (instance, key, p1, p2, p3, p4, p5) {
     var hookTypes = ['persistent', 'once']
-      , type, x, lenx, i, leni;
+      , type, x, lenx, i, leni, res;
 
     // provide support for old versions of HOT
     if (key in legacy) {
@@ -160,7 +160,11 @@ Handsontable.PluginHookClass = (function () {
       if (typeof this.hooks[type][key] !== 'undefined') {
 
         for (i = 0, leni = this.hooks[type][key].length; i < leni; i++) {
-          p1 =  this.hooks[type][key][i].call(instance, p1, p2, p3, p4, p5);
+
+          res = this.hooks[type][key][i].call(instance, p1, p2, p3, p4, p5);
+          if (res !== void 0) {
+            p1 = res;
+          }
 
           if (type === 'once') {
             this.hooks[type][key].splice(i, 1);

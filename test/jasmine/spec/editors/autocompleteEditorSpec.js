@@ -4,7 +4,7 @@ describe('AutocompleteEditor', function () {
   function getAutocompleteConfig(isStrict) {
     return [
       {
-        match: function (row, col, data) {
+        match: function (row, col/*, data*/) {
           return (col === 2);
         },
         source: function () {
@@ -197,6 +197,8 @@ describe('AutocompleteEditor', function () {
       return done;
     }, 1000);
 
+    waits(10); //wait 10ms so menu has a chance to show up
+
     runs(function () {
       var li = autocomplete().$menu.find('li');
       expect(li.length).toEqual(10);
@@ -223,6 +225,7 @@ describe('AutocompleteEditor', function () {
         ],
         columns: [
           {
+            allowInvalid: false,
             type: Handsontable.AutocompleteCell,
             options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
             source: function (query, process) {
@@ -232,9 +235,8 @@ describe('AutocompleteEditor', function () {
                   query: query
                 },
                 dataType: 'json',
-                success: function (response) {
+                success: function (/*response*/) {
                   process([]); // hardcoded empty result
-                  done = true;
                 }
               });
             },
@@ -242,8 +244,13 @@ describe('AutocompleteEditor', function () {
           },
           { type: 'text'}
         ],
-        onChange: function () {
+        onChange: function (/*changes, source*/) {
           count++;
+        },
+        afterValidate: function (isValid, value) {
+          if (isValid === false && value === 'unexistent') {
+            done = true;
+          }
         }
       });
       setDataAtCell(0, 0, 'unexistent');
@@ -258,7 +265,7 @@ describe('AutocompleteEditor', function () {
         ['one', 'two'],
         ['three', 'four']
       ]);
-      expect(count).toEqual(1); //1 for loadData
+      expect(count).toEqual(1); //1 for loadData (it is not called after failed edit)
     });
 
   });
@@ -273,6 +280,7 @@ describe('AutocompleteEditor', function () {
       ],
       columns: [
         {
+          allowInvalid: false,
           type: Handsontable.AutocompleteCell,
           options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
           source: ['Acura', 'BMW', 'Bentley'],
@@ -324,7 +332,6 @@ describe('AutocompleteEditor', function () {
                 dataType: 'json',
                 success: function (response) {
                   process(response);
-                  done = true;
                 }
               });
             },
@@ -332,8 +339,11 @@ describe('AutocompleteEditor', function () {
           },
           { type: 'text'}
         ],
-        onChange: function () {
+        onChange: function (changes, source) {
           count++;
+          if (source === 'edit') {
+            done = true;
+          }
         }
       });
       setDataAtCell(0, 0, 'Acura');
