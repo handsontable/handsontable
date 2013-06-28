@@ -39,6 +39,7 @@ describe('Core_destroy', function () {
     var $tmp = $('<div id="tmp"></div>').appendTo(document.body);
     $tmp.handsontable();
     $tmp.handsontable('destroy');
+    $tmp.remove();
 
     selectCell(0, 0);
 
