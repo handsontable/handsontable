@@ -2,7 +2,7 @@
 
 This is a playground for next table view engine that will enable virtual rendering in [Handsontable](http://handsontable.com/).
 
-Works in IE7+, FF3.6+, latest Opera, Safari and Chrome.
+Works in IE8+, FF3.6+, latest Opera, Safari and Chrome.
 
 Built with almost full TDD test coverage (Jasmine).
 

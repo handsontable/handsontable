@@ -30,7 +30,6 @@
   }
 
   $(function () {
-    //if (!$.browser.msie || parseInt($.browser.version, 10) > 6) { //syntax coloring does not work well with IE7
     $('.descLayout pre.javascript code').each(function () {
       var $script = $(this);
       var code = trimCodeBlock($script[0].innerHTML);
@@ -48,7 +47,6 @@
       $pre.insertAfter($script);
     });
     hljs.initHighlighting();
-    //}
 
     //http://stackoverflow.com/questions/2419749/get-selected-elements-outer-html
     jQuery.fn.outerHTML = function (s) {

@@ -190,7 +190,7 @@ if (document.createTextNode('test').textContent) { //STANDARDS
     }
   };
 }
-else { //IE7-8
+else { //IE8
   WalkontableDom.prototype.fastInnerText = function (element, content) {
     var child = element.firstChild;
     if (child && child.nodeType === 3 && child.nextSibling === null) {
@@ -219,7 +219,7 @@ WalkontableDom.prototype.isVisible = function (elem) {
     }
   }
   catch (e) {
-    return false; //IE7-8 throws "Unspecified error" when offsetParent is not found - we catch it here
+    return false; //IE8 throws "Unspecified error" when offsetParent is not found - we catch it here
   }
 
 //  if (elem.offsetWidth > 0 || (elem.parentNode && elem.parentNode.offsetWidth > 0)) { //IE10 was mistaken here
@@ -234,23 +234,11 @@ WalkontableDom.prototype.isVisible = function (elem) {
       return false;
     }
     else if (next.nodeType === 11) {
-      if (next.nodeName === '#document-fragment') { //Shadow DOM
-        return (true);
-      }
-      else { //IE7 reports nodeType === 11 after detaching element from DOM
-        return (false);
-      }
+      return true;
     }
     else if (next.style.display === 'none') {
       return false;
     }
-    /*else if (next !== elem && next.offsetWidth === 0) {
-     //this is the technique used by jQuery is(':visible')
-     //but in IE7, clientWidth & offsetWidth sometimes returns 0 when it shouldn't
-     return false;
-
-     compare with jQuery :visible selector (search jquery.js for `reliableHiddenOffsets`)
-     }*/
     next = next.parentNode;
   }
   return true;

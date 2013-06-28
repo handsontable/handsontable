@@ -12,13 +12,6 @@ function WalkontableTable(instance) {
   this.wtDom = this.instance.wtDom;
   this.wtDom.removeTextNodes(this.TABLE);
 
-  this.hasEmptyCellProblem = ($.browser.msie && (parseInt($.browser.version, 10) <= 7));
-  this.hasCellSpacingProblem = ($.browser.msie && (parseInt($.browser.version, 10) <= 7));
-
-  if (this.hasCellSpacingProblem) { //IE7
-    this.TABLE.cellSpacing = 0;
-  }
-
   //wtSpreader
   var parent = this.TABLE.parentNode;
   if (!parent || parent.nodeType !== 1 || !this.wtDom.hasClass(parent, 'wtHolder')) {
@@ -240,9 +233,6 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
       TD = TR.firstChild; //actually it is TH but let's reuse single variable
       for (c = 0; c < displayThs; c++) {
         rowHeaders[c](-displayThs + c, TD);
-        if (this.hasEmptyCellProblem) { //IE7
-          TD.innerHTML = '&nbsp;';
-        }
         TD = TD.nextSibling;
       }
     }
@@ -382,9 +372,6 @@ WalkontableTable.prototype._doDraw = function () {
         TD.className = '';
         TD.removeAttribute('style');
         this.instance.getSetting('cellRenderer', source_r, source_c, TD);
-        if (this.hasEmptyCellProblem && TD.innerHTML === '') { //IE7
-          TD.innerHTML = '&nbsp;';
-        }
       }
 
       offsetRow = this.instance.getSetting('offsetRow'); //refresh the value

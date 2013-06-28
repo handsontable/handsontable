@@ -136,7 +136,7 @@ function HandsontableObserveChanges() {
           window.addEventListener('mouseup', fastCheck);
           window.addEventListener('keydown', fastCheck);
         } else {
-          //IE7 has different syntax
+          //IE8 has different syntax
           window.attachEvent('onmousedown', fastCheck);
           window.attachEvent('onmouseup', fastCheck);
           window.attachEvent('onkeydown', fastCheck);

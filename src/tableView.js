@@ -222,7 +222,7 @@ Handsontable.TableView = function (instance) {
         that.settings.afterOnCellMouseDown.call(instance, event, coords, TD);
       }
       setTimeout(function () {
-        instance.listen(); //fix IE7-8 bug that sets focus to TD after mousedown
+        instance.listen(); //fix IE8 bug that sets focus to TD after mousedown
       });
     },
     onCellMouseOver: function (event, coords/*, TD*/) {

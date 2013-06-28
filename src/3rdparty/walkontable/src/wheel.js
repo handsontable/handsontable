@@ -4,7 +4,7 @@ function WalkontableWheel(instance) {
   }
 
   $(instance.wtTable.TABLE).on('mousewheel', function (event, delta, deltaX, deltaY) {
-    if (!deltaX && !deltaY && delta) { //we are in IE7-8, see https://github.com/brandonaaron/jquery-mousewheel/issues/53
+    if (!deltaX && !deltaY && delta) { //we are in IE8, see https://github.com/brandonaaron/jquery-mousewheel/issues/53
       deltaY = delta;
     }
 
