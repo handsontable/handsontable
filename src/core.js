@@ -1424,7 +1424,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     instance.PluginHooks.run('beforeInit');
     editproxy.init();
 
-
     this.updateSettings(priv.settings, true);
     this.parseSettingsFromDOM();
     this.focusCatcher = new Handsontable.FocusCatcher(this);
@@ -1440,50 +1439,14 @@ Handsontable.Core = function (rootElement, userSettings) {
     instance.PluginHooks.run('afterInit');
   };
 
-  function validateChanges(changes, source) {
-    var validated = $.Deferred();
-    // var deferreds = [];
+  function validateChanges(changes, source, callback) {
+    var waitingForValidator = 0;
 
-    //validate strict autocompletes
-    // var process = function (i) {
-    //   var deferred = $.Deferred();
-    //   deferreds.push(deferred);
-
-    //   var originalVal = changes[i][3];
-    //   var lowercaseVal = typeof originalVal === 'string' ? originalVal.toLowerCase() : null;
-
-    //   return function (source) {
-    //     var found = false;
-    //     for (var s = 0, slen = source.length; s < slen; s++) {
-    //       if (originalVal === source[s]) {
-    //         found = true; //perfect match
-    //         break;
-    //       }
-    //       else if (lowercaseVal === source[s].toLowerCase()) {
-    //         changes[i][3] = source[s]; //good match, fix the case
-    //         found = true;
-    //         break;
-    //       }
-    //     }
-    //     if (!found) {
-    //       changes[i] = null;
-    //     }
-    //     deferred.resolve();
-    //   }
-    // };
-//
-    // for (var i = changes.length - 1; i >= 0; i--) {
-    //   var cellProperties = instance.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
-    //   if (cellProperties.strict && cellProperties.source) {
-    //     $.isFunction(cellProperties.source) ? cellProperties.source(changes[i][3], process(i)) : process(i)(cellProperties.source);
-    //   }
-    // }
-
-    // $.when.apply($, deferreds).then(function () {
     for (var i = changes.length - 1; i >= 0; i--) {
       if (changes[i] === null) {
         changes.splice(i, 1);
-      } else {
+      }
+      else {
         var cellProperties = instance.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
 
         if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
@@ -1493,42 +1456,46 @@ Handsontable.Core = function (rootElement, userSettings) {
         }
 
         if (cellProperties.validator) {
-          instance.validateCell(changes[i][3], cellProperties, function (result) {
-            if (result === false && cellProperties.allowInvalid === false) {
-              changes.splice(i, 1);
-              --i;
-              --length;
+          waitingForValidator++;
+          instance.validateCell(changes[i][3], cellProperties, (function (i, cellProperties) {
+            return function (result) {
+              if(typeof result !== 'boolean') {
+                throw new Error("Validation error: result is not boolean");
+              }
+              if (result === false && cellProperties.allowInvalid === false) {
+                changes.splice(i, 1);
+                --i;
+              }
+              waitingForValidator--;
+              resolve();
             }
-          }, source);
+          })(i, cellProperties)
+            , source);
         }
       }
     }
+    resolve();
 
-    if (changes.length) {
-      var result = instance.PluginHooks.execute("beforeChange", changes, source);
-      if (typeof result === 'function') {
-        $.when(result).then(function () {
-          validated.resolve();
-        });
-      }
-      else {
-        if (result === false) {
-          changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
+    function resolve() {
+      var beforeChangeResult;
+      if (waitingForValidator === 0) {
+        if (changes.length) {
+          beforeChangeResult = instance.PluginHooks.execute("beforeChange", changes, source);
+          if (typeof beforeChangeResult === 'function') {
+            $.when(result).then(function () {
+              callback(); //called when async validators and async beforeChange are resolved
+            });
+          }
+          else if (beforeChangeResult === false) {
+            changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
+          }
         }
-        validated.resolve();
+        if (typeof beforeChangeResult !== 'function') {
+          callback(); //called when async validators are resolved and beforeChange was not async
+        }
       }
     }
-    else {
-      validated.resolve();
-    }
-    // });
-
-    return $.when(validated);
   }
-
-  var fireEvent = function (name, params) {
-    instance.rootElement.triggerHandler(name, params);
-  };
 
   /**
    * Internal function to apply changes. Called after validateChanges
@@ -1642,7 +1609,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       source = col;
     }
 
-    validateChanges(changes, source).then(function () {
+    validateChanges(changes, source, function () {
       applyChanges(changes, source);
     });
   };
@@ -1675,7 +1642,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       source = prop;
     }
 
-    validateChanges(changes, source).then(function () {
+    validateChanges(changes, source, function () {
       applyChanges(changes, source);
     });
   };

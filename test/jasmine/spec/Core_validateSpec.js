@@ -268,4 +268,44 @@ describe('Core_validate', function () {
 
     expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
   });
+
+  it('should not allow for changes where data is invalid (multiple changes, async)', function () {
+    var validatedChanges;
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      validator: function (value, callb) {
+        setTimeout(function () {
+          if (value === 'fail') {
+            callb(false)
+          }
+          else {
+            callb(true)
+          }
+        }, 10);
+      },
+      afterChange: function (changes, source) {
+        if (source !== 'loadData') {
+          validatedChanges = changes;
+        }
+      }
+    });
+
+    populateFromArray(0, 0, [
+      ['A0-new'],
+      ['fail'],
+      ['A2-new']
+    ]);
+
+    waitsFor(function () {
+      return validatedChanges;
+    }, 1000);
+
+    runs(function () {
+      expect(validatedChanges.length).toEqual(2);
+      expect(validatedChanges[0]).toEqual([0, 0, 'A0', 'A0-new']);
+      expect(validatedChanges[1]).toEqual([2, 0, 'A2', 'A2-new']);
+    });
+  });
 });
