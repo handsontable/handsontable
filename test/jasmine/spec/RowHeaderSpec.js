@@ -70,4 +70,82 @@ describe('RowHeader', function () {
 
     expect(that.$container.find('tbody th').length).toEqual(0);
   });
+
+  it('should hide rows headers after updateSetting', function(){
+    var hot  = handsontable({
+      startRows: 5,
+      rowHeaders: true
+    });
+
+    expect(this.$container.find('tbody th').length).toEqual(5);
+
+    hot.updateSettings({
+      rowHeaders: false
+    });
+
+    expect(this.$container.find('tbody th').length).toEqual(0);
+  });
+
+  it('should show rows headers after updateSettings', function(){
+    var hot  = handsontable({
+      startRows: 5,
+      rowHeaders: false
+    });
+
+    expect(this.$container.find('tbody th').length).toEqual(0);
+
+    hot.updateSettings({
+      rowHeaders: true
+    });
+
+    expect(this.$container.find('tbody th').length).toEqual(5);
+  });
+
+  it('should show/hide rows headers after multiple updateSettings', function(){
+    var hot  = handsontable({
+      startRows: 5,
+      rowHeaders: false
+    });
+
+    expect(this.$container.find('tbody th').length).toEqual(0);
+
+    hot.updateSettings({
+      rowHeaders: true
+    });
+
+    expect(this.$container.find('tbody th').length).toEqual(5);
+
+    hot.updateSettings({
+      rowHeaders: false
+    });
+
+    expect(this.$container.find('tbody th').length).toEqual(0);
+
+    hot.updateSettings({
+      rowHeaders: true
+    });
+
+    expect(this.$container.find('tbody th').length).toEqual(5);
+
+  });
+
+  it('should show new rows headers after updateSettings', function(){
+    var hot  = handsontable({
+      startCols: 3,
+      rowHeaders: ['A', 'B', 'C']
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) th:eq(0)').text()).toEqual('A');
+    expect(this.$container.find('tbody tr:eq(1) th:eq(0)').text()).toEqual('B');
+    expect(this.$container.find('tbody tr:eq(2) th:eq(0)').text()).toEqual('C');
+
+    hot.updateSettings({
+      rowHeaders: ['X', 'Y', 'Z']
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) th:eq(0)').text()).toEqual('X');
+    expect(this.$container.find('tbody tr:eq(1) th:eq(0)').text()).toEqual('Y');
+    expect(this.$container.find('tbody tr:eq(2) th:eq(0)').text()).toEqual('Z');
+
+  });
 });

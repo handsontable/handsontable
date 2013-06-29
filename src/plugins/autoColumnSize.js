@@ -138,9 +138,17 @@ function HandsontableAutoColumnSize() {
       response.width = this.autoColumnWidths[col];
     }
   };
+
+  this.afterDestroy = function () {
+    instance = this;
+    if (instance.autoColumnSizeTmp.container) {
+      instance.autoColumnSizeTmp.container.parentNode.removeChild(instance.autoColumnSizeTmp.container);
+    }
+  };
 }
 var htAutoColumnSize = new HandsontableAutoColumnSize();
 
 Handsontable.PluginHooks.add('beforeInit', htAutoColumnSize.beforeInit);
 Handsontable.PluginHooks.add('beforeRender', htAutoColumnSize.determineColumnsWidth);
 Handsontable.PluginHooks.add('afterGetColWidth', htAutoColumnSize.getColWidth);
+Handsontable.PluginHooks.add('afterDestroy', htAutoColumnSize.afterDestroy);

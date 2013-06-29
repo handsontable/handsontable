@@ -120,7 +120,7 @@ describe('Core_keepEmptyRows', function () {
 
   it('should create new row when last cell in last row is edited by autocomplete', function () {
     var data = [
-          {id: 1, color: "orange" },
+          {id: 1, color: "orange" }
         ];
 
     handsontable({
@@ -139,19 +139,11 @@ describe('Core_keepEmptyRows', function () {
 
     selectCell(1, 1);
 
-    waits(10);
+    keyDownUp('enter');
+    keyDown('arrow_down');
+    keyDownUp('enter');
 
-    runs(function () {
-      keyDownUp('enter');
-      keyDown('arrow_down');
-      keyDownUp('enter');
-    });
-
-    waits(10);
-
-    runs(function () {
-      expect(data.length).toEqual(3);
-    });
+    expect(data.length).toEqual(3);
   });
 
   it('should not create more rows that maxRows', function () {

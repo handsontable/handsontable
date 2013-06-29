@@ -156,7 +156,7 @@ WalkontableDom.prototype.empty = function (element) {
   }
 };
 
-WalkontableDom.prototype.HTML_CHARACTERS = /(<(.*)>|&(.*);)/g;
+WalkontableDom.prototype.HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
 
 /**
  * Insert content into element trying avoid innerHTML method.
@@ -190,7 +190,7 @@ if (document.createTextNode('test').textContent) { //STANDARDS
     }
   };
 }
-else { //IE7-8
+else { //IE8
   WalkontableDom.prototype.fastInnerText = function (element, content) {
     var child = element.firstChild;
     if (child && child.nodeType === 3 && child.nextSibling === null) {
@@ -219,7 +219,7 @@ WalkontableDom.prototype.isVisible = function (elem) {
     }
   }
   catch (e) {
-    return false; //IE7-8 throws "Unspecified error" when offsetParent is not found - we catch it here
+    return false; //IE8 throws "Unspecified error" when offsetParent is not found - we catch it here
   }
 
 //  if (elem.offsetWidth > 0 || (elem.parentNode && elem.parentNode.offsetWidth > 0)) { //IE10 was mistaken here
@@ -234,23 +234,11 @@ WalkontableDom.prototype.isVisible = function (elem) {
       return false;
     }
     else if (next.nodeType === 11) {
-      if (next.nodeName === '#document-fragment') { //Shadow DOM
-        return (true);
-      }
-      else { //IE7 reports nodeType === 11 after detaching element from DOM
-        return (false);
-      }
+      return true;
     }
     else if (next.style.display === 'none') {
       return false;
     }
-    /*else if (next !== elem && next.offsetWidth === 0) {
-     //this is the technique used by jQuery is(':visible')
-     //but in IE7, clientWidth & offsetWidth sometimes returns 0 when it shouldn't
-     return false;
-
-     compare with jQuery :visible selector (search jquery.js for `reliableHiddenOffsets`)
-     }*/
     next = next.parentNode;
   }
   return true;
@@ -296,5 +284,50 @@ WalkontableDom.prototype.outerWidth = function (elem) {
 };
 
 WalkontableDom.prototype.outerHeight = function (elem) {
-  return elem.offsetHeight;
+  if (this.hasCaptionProblem() && elem.firstChild && elem.firstChild.nodeName === 'CAPTION') {
+    //fixes problem with Firefox ignoring <caption> in TABLE.offsetHeight
+    //jQuery (1.10.1) still has this unsolved
+    //may be better to just switch to getBoundingClientRect
+    //http://bililite.com/blog/2009/03/27/finding-the-size-of-a-table/
+    //http://lists.w3.org/Archives/Public/www-style/2009Oct/0089.html
+    //http://bugs.jquery.com/ticket/2196
+    //http://lists.w3.org/Archives/Public/www-style/2009Oct/0140.html#start140
+    return elem.offsetHeight + elem.firstChild.offsetHeight;
+  }
+  else {
+    return elem.offsetHeight;
+  }
 };
+
+(function () {
+  var hasCaptionProblem;
+
+  function detectCaptionProblem() {
+    var TABLE = document.createElement('TABLE');
+    TABLE.style.borderSpacing = 0;
+    TABLE.style.borderWidth = 0;
+    TABLE.style.padding = 0;
+    var TBODY = document.createElement('TBODY');
+    TABLE.appendChild(TBODY);
+    TBODY.appendChild(document.createElement('TR'));
+    TBODY.firstChild.appendChild(document.createElement('TD'));
+    TBODY.firstChild.firstChild.innerHTML = '<tr><td>t<br>t</td></tr>';
+
+    var CAPTION = document.createElement('CAPTION');
+    CAPTION.innerHTML = 'c<br>c<br>c<br>c';
+    CAPTION.style.padding = 0;
+    CAPTION.style.margin = 0;
+    TABLE.insertBefore(CAPTION, TBODY);
+
+    document.body.appendChild(TABLE);
+    hasCaptionProblem = (TABLE.offsetHeight < 2 * TABLE.lastChild.offsetHeight); //boolean
+    document.body.removeChild(TABLE);
+  }
+
+  WalkontableDom.prototype.hasCaptionProblem = function () {
+    if (hasCaptionProblem === void 0) {
+      detectCaptionProblem();
+    }
+    return hasCaptionProblem;
+  };
+})();

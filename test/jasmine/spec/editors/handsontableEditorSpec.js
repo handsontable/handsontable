@@ -81,8 +81,6 @@ describe('HandsontableEditor', function () {
   });
 
   it('should focus the TD after HT editor is prepared and destroyed', function () {
-    var last;
-
     handsontable({
       columns: [
         {
@@ -94,32 +92,52 @@ describe('HandsontableEditor', function () {
         }
       ]
     });
+
     selectCell(2, 0);
-    last = document.activeElement;
+    keyDownUp('arrow_down');
     keyDownUp('arrow_down');
 
-    expect(getSelected()).toEqual([3, 0, 3, 0]);
-    expect(document.activeElement).toEqual(last);
+    expect(getSelected()).toEqual([4, 0, 4, 0]);
   });
 
   it('should focus the TD after HT editor is prepared, finished (by keyboard) and destroyed', function () {
+    var selections = [];
+
     handsontable({
       columns: [
         {
           type: 'handsontable',
           handsontable: {
             colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
+            data: getManufacturerData(),
+            afterSelection: function () {
+              selections.push(['inner', arguments[0]]); //arguments[0] is selection start row
+            }
           }
         }
-      ]
+      ],
+      afterSelection: function () {
+        selections.push(['outer', arguments[0]]); //arguments[0] is selection start row
+      }
     });
-    selectCell(2, 0);
+    expect(selections.length).toBe(0);
 
-    var last = document.activeElement;
+    selectCell(1, 0);
+    expect(selections[0]).toEqual(['outer', 1]);
+
+    keyDownUp('arrow_down');
+    expect(selections[1]).toEqual(['outer', 2]);
+
     keyDownUp('enter');
-    expect(document.activeElement).not.toEqual(last);
+    expect(selections[2]).toEqual(['inner', 0]);
+
+    keyDownUp('arrow_down');
+    expect(selections[3]).toEqual(['inner', 1]);
+
     keyDownUp('esc');
-    expect(document.activeElement).toEqual(last);
+    keyDownUp('arrow_down');
+    expect(selections[4]).toEqual(['outer', 3]);
+
+    expect(selections.length).toBe(5);
   });
 });

@@ -90,6 +90,13 @@
               <option value="shift_right">"shift_right"</option>
             </select></label>
           </p>
+
+          <p>
+            <label><span>fragmentSelection</span> <select class="handsontableOption" name="fragmentSelection">
+              <option value="false">false (default)</option>
+              <option value="true">true</option>
+            </select></label>
+          </p>
         </div>
       </div>
 
@@ -123,7 +130,19 @@
 
             $('.handsontableOption').change(function () {
               var update = {};
-              update[this.name] = this.value;
+              switch (this.value) {
+                case 'true':
+                  update[this.name] = true;
+                  break;
+
+                case 'false':
+                  update[this.name] = false;
+                  break;
+
+                default:
+                  update[this.name] = this.value;
+              }
+
               HOT.updateSettings(update);
             });
           </script>

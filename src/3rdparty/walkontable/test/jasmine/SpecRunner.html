@@ -8,6 +8,7 @@
   <link rel="stylesheet" type="text/css" href="lib/jasmine/jasmine.css">
   <script type="text/javascript" src="lib/jasmine/jasmine.js"></script>
   <script type="text/javascript" src="lib/jasmine/jasmine-html.js"></script>
+  <script type="text/javascript" src="lib/jasmine-jsreporter.js"></script>
 
   <!-- not required by Walkontable but used in tests -->
   <script type="text/javascript" src="lib/jquery.min.js"></script>
@@ -56,6 +57,7 @@
   <script type="text/javascript" src="spec/columnStrategy.spec.js"></script>
   <script type="text/javascript" src="spec/rowStrategy.spec.js"></script>
   <script type="text/javascript" src="spec/helpers.spec.js"></script>
+  <script type="text/javascript" src="spec/wheel.spec.js"></script>
 
   <style>
     .wtHolder .highlightRow {
@@ -75,6 +77,7 @@
       var htmlReporter = new jasmine.HtmlReporter();
 
       jasmineEnv.addReporter(htmlReporter);
+      jasmineEnv.addReporter(new jasmine.JSReporter());
 
       jasmineEnv.specFilter = function (spec) {
         return htmlReporter.specFilter(spec);
@@ -92,6 +95,10 @@
       function execJasmine() {
         jasmineEnv.execute();
       }
+
+      afterEach(function () {
+        window.scrollTo(0, 0)
+      });
 
     })();
   </script>

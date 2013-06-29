@@ -7,7 +7,9 @@
   <link rel="stylesheet" type="text/css" href="lib/jasmine/jasmine.css">
   <script type="text/javascript" src="lib/jasmine/jasmine.js"></script>
   <script type="text/javascript" src="lib/jasmine/jasmine-html.js"></script>
+  <script type="text/javascript" src="lib/jasmine-jsreporter.js"></script>
   <script type="text/javascript" src="lib/jasmine-jquery.js"></script>
+  <script type="text/javascript" src="lib/jasmine-extensions.js"></script>
 
   <!-- include source files here... -->
   <script type="text/javascript" src="../../lib/jquery.min.js"></script>
@@ -80,6 +82,7 @@
   <script type="text/javascript" src="spec/settings/editorSpec.js"></script>
   <script type="text/javascript" src="spec/settings/heightSpec.js"></script>
   <script type="text/javascript" src="spec/settings/rendererSpec.js"></script>
+  <script type="text/javascript" src="spec/settings/fragmentSelectionSpec.js"></script>
 
   <script type="text/javascript" src="spec/extensions/removeRowSpec.js"></script>
 
@@ -93,6 +96,7 @@
       var htmlReporter = new jasmine.HtmlReporter();
 
       jasmineEnv.addReporter(htmlReporter);
+      jasmineEnv.addReporter(new jasmine.JSReporter());
 
       jasmineEnv.specFilter = function (spec) {
         return htmlReporter.specFilter(spec);
@@ -110,6 +114,10 @@
       function execJasmine() {
         jasmineEnv.execute();
       }
+
+      afterEach(function () {
+        window.scrollTo(0, 0)
+      });
 
     })();
   </script>

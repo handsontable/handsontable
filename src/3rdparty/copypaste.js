@@ -44,6 +44,10 @@ function CopyPaste(listenerElement) {
     }
 
     if (isCtrlDown) {
+      if (that.getSelectionText() != '') {
+        return; //this is needed by fragmentSelection in Handsontable. Ignore copypaste.js behavior if fragment of cell text is selected
+      }
+
       that.selectNodeText(that.elTextarea);
       setTimeout(function () {
         that.selectNodeText(that.elTextarea);
@@ -75,6 +79,17 @@ function CopyPaste(listenerElement) {
 //http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie
 CopyPaste.prototype.selectNodeText = function (el) {
   el.select();
+};
+
+//http://stackoverflow.com/questions/5379120/get-the-highlighted-selected-text
+CopyPaste.prototype.getSelectionText = function () {
+  var text = "";
+  if (window.getSelection) {
+    text = window.getSelection().toString();
+  } else if (document.selection && document.selection.type != "Control") {
+    text = document.selection.createRange().text;
+  }
+  return text;
 };
 
 CopyPaste.prototype.copyable = function (str) {

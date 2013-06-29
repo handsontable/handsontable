@@ -258,6 +258,7 @@ describe('Core_alter', function () {
 
     expect(countRows()).toEqual(6);
     expect(this.$container.find('tr:eq(4) td:eq(0)').html()).toEqual('e1');
+
     expect(this.$container.find('tr:last td:eq(0)').html()).toEqual('');
   });
 
@@ -274,7 +275,9 @@ describe('Core_alter', function () {
     alter('insert_row', 1, 3);
 
     expect(countRows()).toEqual(8);
+
     expect(this.$container.find('tr:eq(1) td:eq(0)').html()).toEqual('');
+
     expect(this.$container.find('tr:eq(4) td:eq(0)').html()).toEqual('b1');
   });
 
@@ -292,6 +295,7 @@ describe('Core_alter', function () {
 
     expect(countRows()).toEqual(8);
     expect(this.$container.find('tr:eq(4) td:eq(0)').html()).toEqual('e1');
+
     expect(this.$container.find('tr:eq(5) td:eq(0)').html()).toEqual('');
     expect(this.$container.find('tr:eq(6) td:eq(0)').html()).toEqual('');
     expect(this.$container.find('tr:eq(7) td:eq(0)').html()).toEqual('');
@@ -378,6 +382,7 @@ describe('Core_alter', function () {
 
     expect(countCols()).toEqual(11);
     expect(this.$container.find('tr:eq(1) td:eq(7)').html()).toEqual('h');
+
     expect(this.$container.find('tr:eq(1) td:eq(8)').html()).toEqual('');
     expect(this.$container.find('tr:eq(1) td:eq(9)').html()).toEqual('');
     expect(this.$container.find('tr:eq(1) td:eq(10)').html()).toEqual('');
@@ -420,7 +425,7 @@ describe('Core_alter', function () {
         {data: "id"},
         {data: "name.first"}
       ],
-      afterRemoveRow : function (index, amount) {
+      afterRemoveRow: function (index, amount) {
         output = [index, amount];
       }
     });
@@ -434,7 +439,7 @@ describe('Core_alter', function () {
     handsontable({
       minRows: 5,
       data: arrayOfArrays(),
-      afterRemoveCol : function (index, amount) {
+      afterRemoveCol: function (index, amount) {
         output = [index, amount];
       }
     });
@@ -452,7 +457,7 @@ describe('Core_alter', function () {
         {data: "id"},
         {data: "name.first"}
       ],
-      afterCreateRow : function (index, amount) {
+      afterCreateRow: function (index, amount) {
         output = index;
       }
     });
@@ -466,7 +471,7 @@ describe('Core_alter', function () {
     handsontable({
       minRows: 5,
       data: arrayOfArrays(),
-      afterCreateCol : function (index) {
+      afterCreateCol: function (index) {
         output = index;
       }
     });

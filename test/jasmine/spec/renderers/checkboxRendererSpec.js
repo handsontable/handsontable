@@ -13,50 +13,28 @@ describe('CheckboxRenderer', function () {
   });
 
   it('should reverse selection in checkboxes', function () {
-
-    runs(function () {
-      handsontable({
-        data  :  [[true],[false],[true]],
-        columns : [
-          { type: 'checkbox' }
-        ]
-      });
+    handsontable({
+      data  :  [[true],[false],[true]],
+      columns : [
+        { type: 'checkbox' }
+      ]
     });
 
-    waits(60);
+    this.$container.find('input[type="checkbox"]').trigger('mousedown');
 
-    runs(function () {
-      this.$container.find('input[type="checkbox"]').trigger('mousedown');
-    });
-
-    waits(30);
-
-    runs(function () {
-      expect(getData(0,0,2,0)).toEqual([[false],[true],[false]]);
-    });
+    expect(getData(0,0,2,0)).toEqual([[false],[true],[false]]);
   });
 
   it('shouldn\'t uncheck checkboxes', function () {
-
-    runs(function () {
-      handsontable({
-        data  :  [[true],[true],[true]],
-        columns : [
-          { type: 'checkbox', readOnly : true }
-        ]
-      });
+    handsontable({
+      data  :  [[true],[true],[true]],
+      columns : [
+        { type: 'checkbox', readOnly : true }
+      ]
     });
 
-    waits(60);
+    this.$container.find('input[type="checkbox"]').trigger('mousedown');
 
-    runs(function () {
-      this.$container.find('input[type="checkbox"]').trigger('mousedown');
-    });
-
-    waits(30);
-
-    runs(function () {
-      expect(getData(0,0,2,0)).toEqual([[true],[true],[true]]);
-    });
+    expect(getData(0,0,2,0)).toEqual([[true],[true],[true]]);
   });
 });
