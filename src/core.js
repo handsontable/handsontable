@@ -1,3 +1,5 @@
+Handsontable.activeGuid = null;
+
 /**
  * Handsontable constructor
  * @param rootElement The jQuery element in which Handsontable DOM will be inserted
@@ -19,6 +21,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
 
   this.rootElement = rootElement;
+  var $document = $(document.documentElement);
+  var $body = $(document.body);
   this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
 
   if (!this.rootElement[0].id) {
@@ -1202,9 +1206,11 @@ Handsontable.Core = function (rootElement, userSettings) {
         grid.populateFromArray(areaStart, inputArray, areaEnd, 'paste', priv.settings.pasteMode);
       }
 
-      var $body = $(document.body);
-
       function onKeyDown(event) {
+        if (Handsontable.activeGuid !== instance.guid) {
+          return;
+        }
+
         if (priv.settings.beforeOnKeyDown) { // HOT in HOT Plugin
           priv.settings.beforeOnKeyDown.call(instance, event);
         }
@@ -1372,7 +1378,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.copyPaste = new CopyPaste(instance.rootElement[0]);
       instance.copyPaste.onCut(onCut);
       instance.copyPaste.onPaste(onPaste);
-      instance.rootElement.on('keydown.handsontable.' + instance.guid, onKeyDown);
+      $document.on('keydown.handsontable.' + instance.guid, onKeyDown);
     },
 
     /**
@@ -1426,7 +1432,6 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     this.updateSettings(priv.settings, true);
     this.parseSettingsFromDOM();
-    this.focusCatcher = new Handsontable.FocusCatcher(this);
     this.view = new Handsontable.TableView(this);
 
     this.forceFullRender = true; //used when data was changed
@@ -1651,7 +1656,14 @@ Handsontable.Core = function (rootElement, userSettings) {
    * Listen to keyboard input
    */
   this.listen = function () {
-    instance.focusCatcher.listen();
+    Handsontable.activeGuid = instance.guid;
+
+    if (document.activeElement && document.activeElement !== document.body) {
+      document.activeElement.blur();
+    }
+    else if (!document.activeElement) { //IE
+      document.body.focus();
+    }
   };
 
   /**
@@ -2481,7 +2493,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     instance.rootElement.removeData('handsontable');
     instance.rootElement.off('.handsontable');
     $(window).off('.' + instance.guid);
-    $(document.documentElement).off('.' + instance.guid);
+    $document.off('.' + instance.guid);
+    $body.off('.' + instance.guid);
     instance.PluginHooks.run('afterDestroy');
   };
 
@@ -2588,6 +2601,7 @@ DefaultSettings.prototype = {
   observeDOMVisibility: true,
   allowInvalid: true,
   invalidCellClassName: 'htInvalid',
+  fragmentSelection: false,
   readOnly: false
 };
 

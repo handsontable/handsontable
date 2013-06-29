@@ -23,6 +23,8 @@ HandsontableTextEditorClass.prototype.createElements = function () {
   this.textareaParentStyle.display = 'none';
   this.$textareaParent = $(this.TEXTAREA_PARENT);
 
+  this.$body = $(document.body);
+
   this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   this.instance.rootElement[0].appendChild(this.TEXTAREA_PARENT);
 
@@ -117,7 +119,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
 
   var that = this;
 
-  this.instance.focusCatcher.$el.on('keydown.editor', function (event) {
+  this.$body.on('keydown.editor.' + this.instance.guid, function (event) {
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     if (!that.isCellEdited) {
       if (Handsontable.helper.isPrintableChar(event.keyCode)) {
@@ -153,7 +155,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
 };
 
 HandsontableTextEditorClass.prototype.unbindTemporaryEvents = function () {
-  this.instance.focusCatcher.$el.off(".editor");
+  this.$body.off(".editor");
   this.instance.view.wt.update('onCellDblClick', null);
 };
 

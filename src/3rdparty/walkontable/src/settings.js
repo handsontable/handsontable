@@ -33,10 +33,12 @@ function WalkontableSettings(instance, settings) {
     },
     columnWidth: 50,
     selections: null,
+    hideBorderOnMouseDownOver: false,
 
     //callbacks
     onCellMouseDown: null,
     onCellMouseOver: null,
+//    onCellMouseOut: null,
     onCellDblClick: null,
     onCellCornerMouseDown: null,
     onCellCornerDblClick: null,
