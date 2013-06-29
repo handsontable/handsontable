@@ -1,32 +1,3 @@
-/* -- frame counter -- */
-var frame = 0;
-var lastFrame = null;
-
-(function () {
-  frame = 0;
-  lastFrame = null;
-  var countFrames = function () {
-    requestAnimFrame(function () {
-      frame++;
-      countFrames();
-    });
-  };
-  countFrames();
-})();
-
-var nextFrame = function () {
-  if (lastFrame === null) {
-    lastFrame = frame;
-  }
-  else if (frame - 2 >= lastFrame) {
-    lastFrame = null;
-    return true;
-  }
-  return false;
-};
-
-/* ------------------- */
-
 var spec = function () {
   return jasmine.getEnv().currentSpec;
 };
@@ -72,6 +43,22 @@ var contextMenu = function () {
   var selector = "#" + instance.rootElement.attr('id') + ' table, #' + instance.rootElement.attr('id') + ' div';
   $(selector).trigger(ev);
 };
+
+/**
+ * Returns a function that triggers a mouse event
+ * @param {String} type Event type
+ * @return {Function}
+ */
+var handsontableMouseTriggerFactory = function (type) {
+  return function (element) {
+    var ev = $.Event(type);
+    ev.which = 1; //left mouse button
+    element.trigger(ev);
+  }
+};
+
+var mouseDown = handsontableMouseTriggerFactory('mousedown');
+var mouseUp = handsontableMouseTriggerFactory('mouseup');
 
 /**
  * Returns a function that triggers a key event
@@ -215,9 +202,14 @@ var triggerPaste = function (str) {
 
 var handsontableMethodFactory = function (method) {
   return function () {
-    var args = Array.prototype.slice.call(arguments, 0);
-    args.unshift(method);
-    return spec().$container.handsontable.apply(spec().$container, args);
+    var instance = spec().$container.handsontable('getInstance');
+    if (!instance) {
+      if (method === 'destroy') {
+        return; //we can forgive this... maybe it was destroyed in the test
+      }
+      throw new Error('Something wrong with the test spec: Handsontable instance not found');
+    }
+    return instance[method].apply(instance, arguments);
   }
 };
 

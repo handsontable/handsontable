@@ -1,3 +1,5 @@
+Handsontable.activeGuid = null;
+
 /**
  * Handsontable constructor
  * @param rootElement The jQuery element in which Handsontable DOM will be inserted
@@ -19,6 +21,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
 
   this.rootElement = rootElement;
+  var $document = $(document.documentElement);
+  var $body = $(document.body);
   this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
 
   if (!this.rootElement[0].id) {
@@ -1202,9 +1206,11 @@ Handsontable.Core = function (rootElement, userSettings) {
         grid.populateFromArray(areaStart, inputArray, areaEnd, 'paste', priv.settings.pasteMode);
       }
 
-      var $body = $(document.body);
-
       function onKeyDown(event) {
+        if (Handsontable.activeGuid !== instance.guid) {
+          return;
+        }
+
         if (priv.settings.beforeOnKeyDown) { // HOT in HOT Plugin
           priv.settings.beforeOnKeyDown.call(instance, event);
         }
@@ -1372,7 +1378,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.copyPaste = new CopyPaste(instance.rootElement[0]);
       instance.copyPaste.onCut(onCut);
       instance.copyPaste.onPaste(onPaste);
-      instance.rootElement.on('keydown.handsontable.' + instance.guid, onKeyDown);
+      $document.on('keydown.handsontable.' + instance.guid, onKeyDown);
     },
 
     /**
@@ -1424,10 +1430,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     instance.PluginHooks.run('beforeInit');
     editproxy.init();
 
-
     this.updateSettings(priv.settings, true);
     this.parseSettingsFromDOM();
-    this.focusCatcher = new Handsontable.FocusCatcher(this);
     this.view = new Handsontable.TableView(this);
 
     this.forceFullRender = true; //used when data was changed
@@ -1440,95 +1444,63 @@ Handsontable.Core = function (rootElement, userSettings) {
     instance.PluginHooks.run('afterInit');
   };
 
-  function validateChanges(changes, source) {
-    var validated = $.Deferred();
-    var deferreds = [];
-
-    //validate strict autocompletes
-    var process = function (i) {
-      var deferred = $.Deferred();
-      deferreds.push(deferred);
-
-      var originalVal = changes[i][3];
-      var lowercaseVal = typeof originalVal === 'string' ? originalVal.toLowerCase() : null;
-
-      return function (source) {
-        var found = false;
-        for (var s = 0, slen = source.length; s < slen; s++) {
-          if (originalVal === source[s]) {
-            found = true; //perfect match
-            break;
-          }
-          else if (lowercaseVal === source[s].toLowerCase()) {
-            changes[i][3] = source[s]; //good match, fix the case
-            found = true;
-            break;
-          }
-        }
-        if (!found) {
-          changes[i] = null;
-        }
-        deferred.resolve();
-      }
-    };
+  function validateChanges(changes, source, callback) {
+    var waitingForValidator = 0;
 
     for (var i = changes.length - 1; i >= 0; i--) {
-      var cellProperties = instance.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
-      if (cellProperties.strict && cellProperties.source) {
-        $.isFunction(cellProperties.source) ? cellProperties.source(changes[i][3], process(i)) : process(i)(cellProperties.source);
+      if (changes[i] === null) {
+        changes.splice(i, 1);
       }
-    }
+      else {
+        var cellProperties = instance.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
 
-    $.when.apply($, deferreds).then(function () {
-      for (var i = changes.length - 1; i >= 0; i--) {
-        if (changes[i] === null) {
-          changes.splice(i, 1);
-        } else {
-          var cellProperties = instance.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
-
-          if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
-            if (changes[i][3].length > 0 && /^-?[\d\s]*\.?\d*$/.test(changes[i][3])) {
-              changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
-            }
+        if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
+          if (changes[i][3].length > 0 && /^-?[\d\s]*\.?\d*$/.test(changes[i][3])) {
+            changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
           }
+        }
 
-          if (cellProperties.validator) {
-            instance.validateCell(changes[i][3], cellProperties, function (result) {
+        if (cellProperties.validator) {
+          waitingForValidator++;
+          instance.validateCell(changes[i][3], cellProperties, (function (i, cellProperties) {
+            return function (result) {
+              if (typeof result !== 'boolean') {
+                throw new Error("Validation error: result is not boolean");
+              }
               if (result === false && cellProperties.allowInvalid === false) {
                 changes.splice(i, 1);
                 --i;
-                --length;
               }
-            }, source);
-          }
+              waitingForValidator--;
+              resolve();
+            }
+          })(i, cellProperties)
+            , source);
         }
       }
+    }
+    resolve();
 
-      if (changes.length) {
-        var result = instance.PluginHooks.execute("beforeChange", changes, source);
-        if (typeof result === 'function') {
-          $.when(result).then(function () {
-            validated.resolve();
-          });
-        }
-        else {
-          if (result === false) {
+    function resolve() {
+      var beforeChangeResult;
+      if (waitingForValidator === 0) {
+        if (changes.length) {
+          beforeChangeResult = instance.PluginHooks.execute("beforeChange", changes, source);
+          if (typeof beforeChangeResult === 'function') {
+            $.when(result).then(function () {
+              callback(); //called when async validators and async beforeChange are resolved
+            });
+          }
+          else if (beforeChangeResult === false) {
             changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
           }
-          validated.resolve();
+        }
+        if (typeof beforeChangeResult !== 'function') {
+          callback(); //called when async validators are resolved and beforeChange was not async
         }
       }
-      else {
-        validated.resolve();
-      }
-    });
-
-    return $.when(validated);
+    }
   }
-
-  var fireEvent = function (name, params) {
-    instance.rootElement.triggerHandler(name, params);
-  };
 
   /**
    * Internal function to apply changes. Called after validateChanges
@@ -1642,7 +1614,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       source = col;
     }
 
-    validateChanges(changes, source).then(function () {
+    validateChanges(changes, source, function () {
       applyChanges(changes, source);
     });
   };
@@ -1675,7 +1647,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       source = prop;
     }
 
-    validateChanges(changes, source).then(function () {
+    validateChanges(changes, source, function () {
       applyChanges(changes, source);
     });
   };
@@ -1684,7 +1656,14 @@ Handsontable.Core = function (rootElement, userSettings) {
    * Listen to keyboard input
    */
   this.listen = function () {
-    instance.focusCatcher.listen();
+    Handsontable.activeGuid = instance.guid;
+
+    if (document.activeElement && document.activeElement !== document.body) {
+      document.activeElement.blur();
+    }
+    else if (!document.activeElement) { //IE
+      document.body.focus();
+    }
   };
 
   /**
@@ -1939,6 +1918,9 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     // Init columns constructors configuration
     clen = instance.countCols();
+
+    //Clear cellSettings cache
+    priv.cellSettings.length = 0;
 
     if (clen > 0) {
       var prop, proto, column;
@@ -2511,7 +2493,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     instance.rootElement.removeData('handsontable');
     instance.rootElement.off('.handsontable');
     $(window).off('.' + instance.guid);
-    $(document.documentElement).off('.' + instance.guid);
+    $document.off('.' + instance.guid);
+    $body.off('.' + instance.guid);
     instance.PluginHooks.run('afterDestroy');
   };
 
@@ -2600,6 +2583,8 @@ DefaultSettings.prototype = {
   minSpareCols: 0,
   multiSelect: true,
   fillHandle: true,
+  fixedRowsTop: 0,
+  fixedColumnsLeft: 0,
   undo: true,
   outsideClickDeselects: true,
   enterBeginsEditing: true,
@@ -2617,7 +2602,9 @@ DefaultSettings.prototype = {
   isEmptyCol: void 0,
   observeDOMVisibility: true,
   allowInvalid: true,
-  invalidCellClassName: 'htInvalid'
+  invalidCellClassName: 'htInvalid',
+  fragmentSelection: false,
+  readOnly: false
 };
 
 $.fn.handsontable = function (action) {

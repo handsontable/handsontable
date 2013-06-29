@@ -21,8 +21,12 @@ function WalkontableSettings(instance, settings) {
     offsetColumn: 0,
     fixedColumnsLeft: 0,
     fixedRowsTop: 0,
-    rowHeaders: [], //this must be array of functions: [function (row, TH) {}]
-    columnHeaders: [], //this must be array of functions: [function (column, TH) {}]
+    rowHeaders: function () {
+      return []
+    }, //this must be array of functions: [function (row, TH) {}]
+    columnHeaders: function () {
+      return []
+    }, //this must be array of functions: [function (column, TH) {}]
     totalRows: void 0,
     totalColumns: void 0,
     width: null,
@@ -33,10 +37,12 @@ function WalkontableSettings(instance, settings) {
     },
     columnWidth: 50,
     selections: null,
+    hideBorderOnMouseDownOver: false,
 
     //callbacks
     onCellMouseDown: null,
     onCellMouseOver: null,
+//    onCellMouseOut: null,
     onCellDblClick: null,
     onCellCornerMouseDown: null,
     onCellCornerDblClick: null,
@@ -96,7 +102,7 @@ WalkontableSettings.prototype._getSetting = function (key, param1, param2, param
   if (typeof this.settings[key] === 'function') {
     return this.settings[key](param1, param2, param3);
   }
-  else if (param1 !== void 0 && Object.prototype.toString.call(this.settings[key]) === '[object Array]' && param1 !== void 0) {
+  else if (param1 !== void 0 && Object.prototype.toString.call(this.settings[key]) === '[object Array]') {
     return this.settings[key][param1];
   }
   else {

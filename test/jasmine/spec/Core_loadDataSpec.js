@@ -99,70 +99,46 @@ describe('Core_loadData', function () {
   it('should trigger onChange callback when loaded array of arrays', function () {
     var called = false;
 
-    runs(function () {
-      handsontable({
-        onChange: function (changes, source) {
-          if (source === 'loadData') {
-            called = true;
-          }
+    handsontable({
+      onChange: function (changes, source) {
+        if (source === 'loadData') {
+          called = true;
         }
-      });
-      loadData(arrayOfArrays());
+      }
     });
+    loadData(arrayOfArrays());
 
-    waitsFor(function () {
-      return (called === true)
-    }, "onChange callback called", 100);
-
-    runs(function () {
-      expect(called).toEqual(true);
-    });
+    expect(called).toEqual(true);
   });
 
   it('should trigger onChange callback when loaded array of objects', function () {
     var called = false;
 
-    runs(function () {
-      handsontable({
-        onChange: function (changes, source) {
-          if (source === 'loadData') {
-            called = true;
-          }
+    handsontable({
+      onChange: function (changes, source) {
+        if (source === 'loadData') {
+          called = true;
         }
-      });
-      loadData(arrayOfObjects());
+      }
     });
+    loadData(arrayOfObjects());
 
-    waitsFor(function () {
-      return (called === true)
-    }, "onChange callback called", 100);
-
-    runs(function () {
-      expect(called).toEqual(true);
-    });
+    expect(called).toEqual(true);
   });
 
   it('should trigger onChange callback when loaded array of nested objects', function () {
     var called = false;
 
-    runs(function () {
-      handsontable({
-        onChange: function (changes, source) {
-          if (source === 'loadData') {
-            called = true;
-          }
+    handsontable({
+      onChange: function (changes, source) {
+        if (source === 'loadData') {
+          called = true;
         }
-      });
-      loadData(arrayOfNestedObjects());
+      }
     });
+    loadData(arrayOfNestedObjects());
 
-    waitsFor(function () {
-      return (called === true)
-    }, "onChange callback called", 100);
-
-    runs(function () {
-      expect(called).toEqual(true);
-    });
+    expect(called).toEqual(true);
   });
 
   it('should create new rows for array of arrays (and respect minRows)', function () {
