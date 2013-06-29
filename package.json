@@ -14,7 +14,9 @@
     "grunt-contrib-concat": "~0.1.0",
     "grunt-contrib-watch": "~0.2.0",
     "grunt-contrib-jasmine": "~0.4.1",
-    "grunt-contrib-connect": "~0.3.0"
+    "grunt-contrib-connect": "~0.3.0",
+    "grunt-saucelabs": "~4.0.4",
+    "grunt-gitinfo": "~0.1.1"
   },
   "scripts": {
     "test": "grunt test -v"

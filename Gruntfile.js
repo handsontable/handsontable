@@ -19,9 +19,37 @@
  *
  * See http://gruntjs.com/getting-started for more information about Grunt
  */
+var browsers = [
+  {
+    browserName: 'firefox',
+    platform: 'Windows 7'
+  },
+  {
+    browserName: 'chrome',
+    platform: 'Windows 7'
+  },
+  {
+    browserName: 'internet explorer',
+    version: '8',
+    platform: 'Windows 7'
+  },
+  {
+    browserName: 'internet explorer',
+    version: '9',
+    platform: 'Windows 7'
+  },
+  {
+    browserName: 'internet explorer',
+    version: '10',
+    platform: 'Windows 8'
+  }
+];
+
 module.exports = function (grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+    gitinfo: {
+    },
     meta: {
       src: [
         'tmp/core.js',
@@ -210,15 +238,53 @@ module.exports = function (grunt) {
           base: '.',
           keepalive: true
         }
+      },
+      sauce: {
+        options: {
+          port: 9999,
+          base: '.',
+          keepalive: false
+        }
+      }
+    },
+    'saucelabs-jasmine': {
+      handsontable: {
+        options: {
+          urls: ['http://localhost:9999/test/jasmine/SpecRunner.html'],
+          testTimeout: (1000 * 60 * 5),
+          tunnelTimeout: 120,
+          testInterval: 5,
+          testReadyTimeout: 5,
+//          build: process.env.TRAVIS_JOB_ID,
+          build: '<%= pkg.version %>-<%= gitinfo.local.branch.current.name %>',
+          concurrency: 3,
+          browsers: browsers,
+          testname: "Development test (Handsontable)"
+        }
+      },
+      walkontable: {
+        options: {
+          urls: ['http://localhost:9999/src/3rdparty/walkontable/test/jasmine/SpecRunner.html'],
+          testTimeout: (1000 * 60 * 5),
+          tunnelTimeout: 120,
+          testInterval: 5,
+          testReadyTimeout: 5,
+//          build: process.env.TRAVIS_JOB_ID,
+          build: '<%= pkg.version %>-<%= gitinfo.local.branch.current.name %>',
+          concurrency: 3,
+          browsers: browsers,
+          testname: "Development test (Walkontable)"
+        }
       }
     }
   });
 
   // Default task.
-  grunt.registerTask('default', ['replace:dist', 'concat', 'replace:wc', 'clean']);
+  grunt.registerTask('default', ['gitinfo', 'replace:dist', 'concat', 'replace:wc', 'clean']);
   grunt.registerTask('test', ['default', 'jasmine']);
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
+  grunt.registerTask('sauce', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable', 'saucelabs-jasmine:handsontable']);
 
   grunt.loadNpmTasks('grunt-replace');
   grunt.loadNpmTasks('grunt-contrib-clean');
@@ -226,4 +292,6 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-jasmine');
   grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-saucelabs');
+  grunt.loadNpmTasks('grunt-gitinfo');
 };
