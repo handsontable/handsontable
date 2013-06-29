@@ -45,6 +45,22 @@ var contextMenu = function () {
 };
 
 /**
+ * Returns a function that triggers a mouse event
+ * @param {String} type Event type
+ * @return {Function}
+ */
+var handsontableMouseTriggerFactory = function (type) {
+  return function (element) {
+    var ev = $.Event(type);
+    ev.which = 1; //left mouse button
+    element.trigger(ev);
+  }
+};
+
+var mouseDown = handsontableMouseTriggerFactory('mousedown');
+var mouseUp = handsontableMouseTriggerFactory('mouseup');
+
+/**
  * Returns a function that triggers a key event
  * @param {String} type Event type
  * @return {Function}
