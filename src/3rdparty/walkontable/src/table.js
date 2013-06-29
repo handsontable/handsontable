@@ -102,6 +102,13 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
   var spreaderStyle = this.spreader.style;
 
   if (height !== Infinity || width !== Infinity) {
+    if (height === Infinity) {
+      height = this.instance.wtViewport.getWorkspaceActualHeight();
+    }
+    if (width === Infinity) {
+      width = this.instance.wtViewport.getWorkspaceActualWidth();
+    }
+
     this.hiderStyle.overflow = 'hidden';
 
     spreaderStyle.position = 'absolute';
@@ -116,14 +123,7 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
       spreaderStyle.width = '4000px';
     }
 
-    if (height === Infinity) {
-      height = this.instance.wtViewport.getWorkspaceActualHeight();
-    }
     this.hiderStyle.height = height + 'px';
-
-    if (width === Infinity) {
-      width = this.instance.wtViewport.getWorkspaceActualWidth();
-    }
     this.hiderStyle.width = width + 'px';
   }
   else {
@@ -213,7 +213,7 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   //adjust THEAD
   TR = this.THEAD.firstChild;
   if (columnHeaders.length) {
-    if(!TR){
+    if (!TR) {
       TR = document.createElement('TR');
       this.THEAD.appendChild(TR);
     }
@@ -228,7 +228,7 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
       this.theadChildrenLength--;
     }
   }
-  else if(TR){
+  else if (TR) {
     this.wtDom.empty(TR);
   }
 
@@ -357,7 +357,7 @@ WalkontableTable.prototype._doDraw = function () {
       for (c = 0; c < displayThs; c++) {
 
         //If the number of row headers increased we need to replace TD with TH
-        if(TH.nodeName == 'TD'){
+        if (TH.nodeName == 'TD') {
           TD = TH;
           TH = document.createElement('TH');
           TR.insertBefore(TH, TD);
@@ -400,7 +400,7 @@ WalkontableTable.prototype._doDraw = function () {
         }
 
         //If the number of headers has been reduced, we need to replace excess TH with TD
-        if(TD.nodeName == 'TH'){
+        if (TD.nodeName == 'TH') {
           TH = TD;
           TD = document.createElement('TD');
           TR.insertBefore(TD, TH);
@@ -420,11 +420,11 @@ WalkontableTable.prototype._doDraw = function () {
       //after last column is rendered, check if last cell is fully displayed
       if (this.verticalRenderReverse && noPartial) {
         if (-this.wtDom.outerHeight(TR.firstChild) < this.rowStrategy.remainingSize) {
-            this.TBODY.removeChild(TR);
+          this.TBODY.removeChild(TR);
           this.instance.update('offsetRow', offsetRow + 1);
-            this.tbodyChildrenLength--;
-            this.rowFilter.readSettings(this.instance);
-            break;
+          this.tbodyChildrenLength--;
+          this.rowFilter.readSettings(this.instance);
+          break;
 
         }
         else {
