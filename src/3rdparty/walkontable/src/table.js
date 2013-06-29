@@ -227,10 +227,9 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
       TR.removeChild(TR.lastChild);
       this.theadChildrenLength--;
     }
-  }else if(TR){
-    while(TR.firstChild){
-      TR.removeChild(TR.firstChild);
-    }
+  }
+  else if(TR){
+    this.wtDom.empty(TR);
   }
 
   //draw COLGROUP
