@@ -165,10 +165,11 @@ Handsontable.TableView = function (instance) {
     fixedRowsTop: function () {
       return that.settings.fixedRowsTop;
     },
-    rowHeaders: function(){
+    rowHeaders: function () {
       return that.settings.rowHeaders ? [function (index, TH) {
-      that.appendRowHeader(index, TH);
-    }] : []},
+        that.appendRowHeader(index, TH);
+      }] : []
+    },
     columnHeaders: function () {
       return that.settings.colHeaders ? [function (index, TH) {
         that.appendColHeader(index, TH);

@@ -1464,7 +1464,7 @@ Handsontable.Core = function (rootElement, userSettings) {
           waitingForValidator++;
           instance.validateCell(changes[i][3], cellProperties, (function (i, cellProperties) {
             return function (result) {
-              if(typeof result !== 'boolean') {
+              if (typeof result !== 'boolean') {
                 throw new Error("Validation error: result is not boolean");
               }
               if (result === false && cellProperties.allowInvalid === false) {
