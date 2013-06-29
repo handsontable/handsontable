@@ -39,6 +39,153 @@ describe('Core_view', function () {
     expect(getSelected()).toEqual([2, 0, 2, 0]); //test whether it is selected
   });
 
+  it('should scroll viewport, respecting fixed rows', function(){
+
+    spec().$container.css({
+      width: '200px',
+      height: '100px'
+    });
+
+    handsontable({
+      data: createSpreadsheetData(10, 9),
+      fixedRowsTop: 1
+    });
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
+    expect(this.$container.find('tr:eq(0) td:eq(1)').html()).toEqual("B0");
+    expect(this.$container.find('tr:eq(0) td:eq(2)').html()).toEqual("C0");
+
+    selectCell(0, 0);
+
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
+    expect(this.$container.find('tr:eq(0) td:eq(1)').html()).toEqual("B0");
+    expect(this.$container.find('tr:eq(0) td:eq(2)').html()).toEqual("C0");
+
+  });
+
+  it('should enable to change fixedRowsTop with updateSettings', function(){
+
+    spec().$container.css({
+      width: '200px',
+      height: '100px'
+    });
+
+    var HOT = handsontable({
+      data: createSpreadsheetData(10, 9),
+      fixedRowsTop: 1
+    });
+
+    selectCell(0, 0);
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
+    expect(this.$container.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
+
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
+    expect(this.$container.find('tr:eq(1) td:eq(0)').html()).toEqual("A3");
+
+    selectCell(0, 0);
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
+    expect(this.$container.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
+
+    HOT.updateSettings({
+      fixedRowsTop: 2
+    });
+
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
+    expect(this.$container.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
+
+  });
+
+  it('should scroll viewport, respecting fixed columns', function(){
+
+    spec().$container.css({
+      width: '200px',
+      height: '100px'
+    });
+
+    handsontable({
+      data: createSpreadsheetData(10, 9),
+      fixedColumnsLeft: 1
+    });
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
+    expect(this.$container.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
+    expect(this.$container.find('tr:eq(2) td:eq(0)').html()).toEqual("A2");
+
+    selectCell(0, 3);
+
+    keyDown('arrow_right');
+    keyDown('arrow_right');
+    keyDown('arrow_right');
+    keyDown('arrow_right');
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
+    expect(this.$container.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
+    expect(this.$container.find('tr:eq(2) td:eq(0)').html()).toEqual("A2");
+
+  });
+
+
+  it('should enable to change fixedColumnsLeft with updateSettings', function(){
+
+    spec().$container.css({
+      width: '200px',
+      height: '100px'
+    });
+
+    var HOT = handsontable({
+      data: createSpreadsheetData(10, 9),
+      fixedColumnsLeft: 1
+    });
+
+    selectCell(0, 0);
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
+    expect(this.$container.find('tr:eq(0) td:eq(1)').html()).toEqual("B0");
+
+    keyDown('arrow_right');
+    keyDown('arrow_right');
+    keyDown('arrow_right');
+    keyDown('arrow_right');
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
+    expect(this.$container.find('tr:eq(0) td:eq(1)').html()).toEqual("D0");
+
+    selectCell(0, 0);
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
+    expect(this.$container.find('tr:eq(0) td:eq(1)').html()).toEqual("B0");
+
+    HOT.updateSettings({
+      fixedColumnsLeft: 2
+    });
+
+    keyDown('arrow_right');
+    keyDown('arrow_right');
+    keyDown('arrow_right');
+    keyDown('arrow_right');
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
+    expect(this.$container.find('tr:eq(0) td:eq(1)').html()).toEqual("B0");
+
+  });
+
   it('should not scroll viewport when last cell is clicked', function () {
     this.$container.remove();
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
