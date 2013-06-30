@@ -1183,11 +1183,19 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Create input field
      */
     init: function () {
-      function onCut() {
-        selection.empty();
-      }
+      priv.onPaste = function onCut() {
+        if (Handsontable.activeGuid !== instance.guid) {
+          return;
+        }
 
-      function onPaste(str) {
+        selection.empty();
+      };
+
+      priv.onPaste = function onPaste(str) {
+        if (Handsontable.activeGuid !== instance.guid) {
+          return;
+        }
+
         var input = str.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, '') //remove newline from the start and the end of the input
           , inputArray = SheetClip.parse(input)
           , coords = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()])
@@ -1204,7 +1212,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         });
 
         grid.populateFromArray(areaStart, inputArray, areaEnd, 'paste', priv.settings.pasteMode);
-      }
+      };
 
       function onKeyDown(event) {
         if (Handsontable.activeGuid !== instance.guid) {
@@ -1375,9 +1383,9 @@ Handsontable.Core = function (rootElement, userSettings) {
         }
       }
 
-      instance.copyPaste = new CopyPaste(instance.rootElement[0]);
-      instance.copyPaste.onCut(onCut);
-      instance.copyPaste.onPaste(onPaste);
+      instance.copyPaste = CopyPaste.getInstance();
+      instance.copyPaste.onCut(priv.onCut);
+      instance.copyPaste.onPaste(priv.onPaste);
       $document.on('keydown.handsontable.' + instance.guid, onKeyDown);
     },
 
@@ -2495,6 +2503,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     $(window).off('.' + instance.guid);
     $document.off('.' + instance.guid);
     $body.off('.' + instance.guid);
+    instance.copyPaste.removeCallback(priv.onCut);
+    instance.copyPaste.removeCallback(priv.onPaste);
     instance.PluginHooks.run('afterDestroy');
   };
 

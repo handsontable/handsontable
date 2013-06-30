@@ -1,3 +1,4 @@
+//fixed by warpech/jquery-handsontable (this.runnerStartedAt)
 /*
  This file is part of the Jasmine JSReporter project from Ivan De Marino.
 
@@ -101,8 +102,8 @@
   };
 
   JSReporter.prototype = {
-    reportRunnerStarting: function (runner) {
-      // Nothing to do
+    reportRunnerStarting: function () {
+      this.runnerStartedAt = new Date(); //in case we have filtered a single spec (SpecRunner.html?spec=something)
     },
 
     reportSpecStarting: function (spec) {
@@ -113,7 +114,7 @@
     reportSpecResults: function (spec) {
       // Finish timing this spec and calculate duration/delta (in sec)
       spec.finishedAt = new Date();
-      spec.durationSec = elapsedSec(spec.startedAt.getTime(), spec.finishedAt.getTime());
+      spec.durationSec = elapsedSec((spec.startedAt || this.runnerStartedAt).getTime(), spec.finishedAt.getTime());
     },
 
     reportSuiteResults: function (suite) {
