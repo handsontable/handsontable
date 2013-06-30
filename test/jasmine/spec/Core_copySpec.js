@@ -32,7 +32,7 @@ describe('Core_copy', function () {
     expect($('textarea.copyPaste').val()).toEqual('\tKia\tNissan\tToyota\tHonda\n2008\t10\t11\t12\t13\n'); //should prepare 2 rows for copying
   });
 
-  xit('should set copiable text until copyColsLimit is reached', function () {
+  it('should set copiable text until copyColsLimit is reached', function () {
     handsontable({
       data: arrayOfArrays(),
       copyColsLimit: 2
@@ -43,7 +43,7 @@ describe('Core_copy', function () {
     expect($('textarea.copyPaste').val()).toEqual('\tKia\n2008\t10\n2009\t20\n2010\t30\n'); //should prepare 2 columns for copying
   });
 
-  xit('should call onCopyLimit callback when copy limit was reached', function () {
+  it('should call onCopyLimit callback when copy limit was reached', function () {
     var result;
 
     handsontable({
