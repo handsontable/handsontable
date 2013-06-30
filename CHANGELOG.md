@@ -1,3 +1,8 @@
+## [0.9.9](https://github.com/warpech/jquery-handsontable/tree/v0.9.9) (Jun 30, 2013)
+
+Bugfix:
+- version 0.9.8 contained a fatal typo in cut (CTRL+X) callback
+
 ## [0.9.8](https://github.com/warpech/jquery-handsontable/tree/v0.9.8) (Jun 30, 2013)
 
 Bugfix:
