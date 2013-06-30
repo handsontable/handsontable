@@ -1,3 +1,8 @@
+## [0.9.8](https://github.com/warpech/jquery-handsontable/tree/v0.9.8) (Jun 30, 2013)
+
+Bugfix:
+- copy/cut/paste did not work since last version ([#846](https://github.com/warpech/jquery-handsontable/issues/846))
+
 ## [0.9.7](https://github.com/warpech/jquery-handsontable/tree/v0.9.7) (Jun 30, 2013)
 
 Features:
