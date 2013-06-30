@@ -1183,7 +1183,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Create input field
      */
     init: function () {
-      priv.onPaste = function onCut() {
+      priv.onCut = function onCut() {
         if (Handsontable.activeGuid !== instance.guid) {
           return;
         }
