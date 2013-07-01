@@ -1360,17 +1360,19 @@ Handsontable.Core = function (rootElement, userSettings) {
                 break;
 
               case 33: /* pg up */
-                selection.transformStart(-instance.countVisibleRows(), 0);
-                instance.view.wt.scrollVertical(-instance.countVisibleRows());
+                var delta = -(instance.countVisibleRows()-instance.getSettings().fixedRowsTop);
+                instance.view.wt.scrollVertical(delta);
                 instance.view.render();
+                selection.transformStart(delta, 0);
                 event.preventDefault(); //don't page up the window
                 event.stopPropagation(); //required by HandsontableEditor
                 break;
 
               case 34: /* pg down */
-                selection.transformStart(instance.countVisibleRows(), 0);
-                instance.view.wt.scrollVertical(instance.countVisibleRows());
+                var delta = instance.countVisibleRows()-instance.getSettings().fixedRowsTop;
+                instance.view.wt.scrollVertical(delta);
                 instance.view.render();
+                selection.transformStart(delta, 0);
                 event.preventDefault(); //don't page down the window
                 event.stopPropagation(); //required by HandsontableEditor
                 break;
