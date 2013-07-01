@@ -204,7 +204,9 @@ Handsontable.TableView = function (instance) {
       },
       highlight: {
         highlightRowClassName: that.settings.currentRowClassName,
-        highlightColumnClassName: that.settings.currentColClassName
+        highlightColumnClassName: that.settings.currentColClassName,
+        highlightRowHeaderClassName: that.settings.currentRowHeaderClassName,
+        highlightColumnHeaderClassName: that.settings.currentColHeaderClassName
       },
       fill: {
         className: 'fill',

@@ -819,7 +819,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
 
       //set up highlight
-      if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
+      if (priv.settings.currentRowClassName || priv.settings.currentColClassName || priv.settings.currentRowHeaderClassName || priv.settings.currentColHeaderClassName) {
         instance.view.wt.selections.highlight.clear();
         instance.view.wt.selections.highlight.add(priv.selStart.arr());
         instance.view.wt.selections.highlight.add(priv.selEnd.arr());
@@ -2597,6 +2597,8 @@ DefaultSettings.prototype = {
   pasteMode: 'overwrite',
   currentRowClassName: void 0,
   currentColClassName: void 0,
+  currentRowHeaderClassName: void 0,
+  currentColHeaderClassName: void 0,
   stretchH: 'hybrid',
   isEmptyRow: void 0,
   isEmptyCol: void 0,
