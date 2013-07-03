@@ -653,7 +653,7 @@ WalkontableTable.prototype.getColHeader = function (col) {
   if (this.isColumnBeforeViewport(col)) {
     return -3; //column before viewport
   }
-  else if (this.isRowAfterViewport(col)) {
+  else if (this.isColumnAfterViewport(col)) {
     return -4; //column after viewport
   }
   else {
