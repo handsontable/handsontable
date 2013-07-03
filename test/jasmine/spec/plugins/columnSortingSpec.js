@@ -27,6 +27,33 @@ describe('ColumnSorting', function () {
     ];
   };
 
+  it('should sort table by first visible column', function(){
+    this.$container.width(350);
+    var hot = handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [9, 8, 7, 6, 5, 4, 3, 2, 1],
+        [8, 7, 6, 5, 4, 3, 3, 1, 9],
+        [2, 3, 0, 5, 6, 7, 8, 9, 1]
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    hot.selectCell(0, 7);
+    var selected = hot.getSelected();
+
+    expect(hot.getDataAtCell(selected[0], selected[1])).toEqual(8);
+    expect(hot.colOffset()).toEqual(2);
+
+    this.$container.find('th span.columnSorting').first().click();
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('5');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('6');
+  });
+
+
   it('should sort numbers descending after 2 clicks on table header', function () {
     handsontable({
       data: arrayOfObjects(),
