@@ -39,4 +39,163 @@ describe('ColumnSorting', function () {
 
     expect(this.$container.find('tr td').first().html()).toEqual('10');
   });
+
+  it('should remove specified row from sorted table', function(){
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [3, 'D'],
+        [0, 'A'],
+        [2, 'C']
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B');
+
+    this.$container.find('th span.columnSorting').first().click();
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A');
+
+    expect(this.$container.find('tbody tr').length).toEqual(4);
+
+    hot.alter('remove_row', 0);
+
+    expect(this.$container.find('tbody tr').length).toEqual(3);
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B');
+  });
+
+  it('should add an empty row to sorted table', function(){
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'A'],
+        [3, 'D'],
+        [2, 'C']
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+
+    this.$container.find('th span.columnSorting').first().click();
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+
+    expect(this.$container.find('tbody tr').length).toEqual(4);
+
+    hot.alter('insert_row', 0);
+
+    expect(this.$container.find('tbody tr').length).toEqual(5);
+  });
+
+  it('should add an empty row to sorted table and place it at the bottom', function(){
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'A'],
+        [3, 'D'],
+        [2, 'C']
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    this.$container.find('th span.columnSorting').first().click();
+
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('');
+
+    hot.alter('insert_row', 0);
+
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('');
+    expect(this.$container.find('tbody tr:eq(5) td:eq(0)').text()).toEqual('');
+  });
+
+  it('should sort the table after value update in sorted column', function(){
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'A'],
+        [3, 'D'],
+        [2, 'C']
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+
+    this.$container.find('th span.columnSorting').first().click();
+    this.$container.find('th span.columnSorting').first().click();
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+
+    hot.setDataAtCell(1, 0, 20);
+
+    var rendered = false;
+
+    Handsontable.PluginHooks.add('afterRender', function(){
+      rendered = true;
+    });
+
+    waitsFor(function(){
+      return rendered;
+    }, 'Table to render', 1000);
+
+    runs(function(){
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('20');
+    });
+
+
+
+  });
+
+  it('should sort the table after value update in sorted column and move the selection', function(){
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'A'],
+        [3, 'D'],
+        [2, 'C']
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    this.$container.find('th span.columnSorting').first().click();
+    this.$container.find('th span.columnSorting').first().click();
+
+    hot.selectCell(1, 0);
+
+    var selected = hot.getSelected();
+
+    expect(selected[0]).toEqual(1)
+    expect(selected[1]).toEqual(0)
+
+    hot.setDataAtCell(1, 0, 20);
+
+    var rendered = false;
+
+    Handsontable.PluginHooks.add('afterRender', function(){
+      rendered = true;
+    });
+
+    waitsFor(function(){
+      return rendered;
+    }, 'Table to render', 1000);
+
+    runs(function(){
+      selected = hot.getSelected();
+
+      expect(selected[0]).toEqual(0)
+      expect(selected[1]).toEqual(0)
+    });
+  });
 });

@@ -32,8 +32,14 @@ function HandsontableColumnSorting() {
   };
 
   this.sort = function () {
-    sortingEnabled = false;
+
     var instance = this;
+
+    if(typeof instance.sortOrder == 'undefined'){
+      return;
+    }
+
+    sortingEnabled = false;
     this.sortIndex.length = 0;
     //var data = this.getData();
     for (var i = 0, ilen = this.countRows(); i < ilen; i++) {
@@ -57,9 +63,25 @@ function HandsontableColumnSorting() {
     sortingEnabled = true;
   };
 
-  this.translateRow = function (getVars) {
+  this.translateRow = function (row) {
     if (sortingEnabled && this.sortIndex && this.sortIndex.length) {
-      getVars.row = this.sortIndex[getVars.row][0];
+      return this.sortIndex[row][0];
+    }
+    return row;
+  };
+
+  this.onBeforeGetSet = function(getVars){
+    var instance = this;
+    getVars.row = plugin.translateRow.call(instance, getVars.row);
+  }
+
+  this.untranslateRow = function (row) {
+    if (sortingEnabled && this.sortIndex && this.sortIndex.length) {
+      for(var i = 0; i < this.sortIndex.length; i++){
+         if(this.sortIndex[i][0] == row){
+           return i;
+         }
+      }
     }
   };
 
@@ -68,10 +90,41 @@ function HandsontableColumnSorting() {
       $(TH).find('span.colHeader')[0].className += ' columnSorting';
     }
   };
+
+  this.afterChangeSort = function(changes, source){
+    var instance = this;
+    var sortColumnChanged = false;
+    var selection = {};
+    if(!changes){
+      return;
+    }
+
+    for(var i=0; i < changes.length; i++){
+       if(changes[i][1] == instance.sortColumn){
+         sortColumnChanged = true;
+         selection.row = plugin.translateRow.call(instance, changes[i][0]);
+         selection.col = changes[i][1];
+         break;
+       }
+    }
+
+    if(sortColumnChanged){
+      setTimeout(function(){
+        plugin.sort.call(instance);
+        instance.render();
+        instance.selectCell(plugin.untranslateRow.call(instance, selection.row), selection.col);
+      },0);
+    }
+  };
+
 }
 var htSortColumn = new HandsontableColumnSorting();
 
 Handsontable.PluginHooks.add('afterInit', htSortColumn.afterInit);
-Handsontable.PluginHooks.add('beforeGet', htSortColumn.translateRow);
-Handsontable.PluginHooks.add('beforeSet', htSortColumn.translateRow);
+Handsontable.PluginHooks.add('beforeGet', htSortColumn.onBeforeGetSet);
+Handsontable.PluginHooks.add('beforeSet', htSortColumn.onBeforeGetSet);
 Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
+
+Handsontable.PluginHooks.add('afterCreateRow', htSortColumn.sort);
+Handsontable.PluginHooks.add('afterRemoveRow', htSortColumn.sort);
+Handsontable.PluginHooks.add('afterChange', htSortColumn.afterChangeSort);
