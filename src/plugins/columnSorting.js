@@ -35,10 +35,9 @@ function HandsontableColumnSorting() {
     sortingEnabled = false;
     var instance = this;
     this.sortIndex.length = 0;
-    //var data = this.getData();
+    var colOffset = this.colOffset();
     for (var i = 0, ilen = this.countRows(); i < ilen; i++) {
-      //this.sortIndex.push([i, data[i][this.sortColumn]]);
-      this.sortIndex.push([i, instance.getDataAtCell(i, this.sortColumn)]);
+      this.sortIndex.push([i, instance.getDataAtCell(i, this.sortColumn + colOffset)]);
     }
     this.sortIndex.sort(function (a, b) {
       if (a[1] === b[1]) {
