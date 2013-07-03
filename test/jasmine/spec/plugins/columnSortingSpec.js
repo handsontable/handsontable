@@ -225,4 +225,42 @@ describe('ColumnSorting', function () {
       expect(selected[1]).toEqual(0)
     });
   });
+
+  it('should sort date columns', function(){
+
+    var hot = handsontable({
+      data: [
+          ["Mercedes", "A 160", "01/14/2006", 6999.9999],
+          ["Citroen", "C4 Coupe", "12/01/2008", 8330],
+          ["Audi", "A4 Avant", "11/19/2011", 33900],
+          ["Opel", "Astra", "02/02/2004", 7000],
+          ["BMW", "320i Coupe", "07/24/2011", 30500]
+      ],
+      columns: [
+        {},
+        {},
+        {
+          type: 'date',
+          dateFormat: 'mm/dd/yy'
+        },
+        {
+          type: 'numeric'
+        }
+      ],
+      colHeaders: true,
+      columnSorting: true
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/01\/14\/2006/);
+
+    this.$container.find('th span.columnSorting:eq(2)').click();  // DESC sort after first click
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/02\/02\/2004/);
+
+    this.$container.find('th span.columnSorting:eq(2)').click();  // ASC sort after second click
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/11\/19\/2011/);
+
+
+  });
 });

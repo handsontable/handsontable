@@ -31,6 +31,45 @@ function HandsontableColumnSorting() {
     }
   };
 
+  function defaultSort(sortOrder){
+    return function(a, b){
+      if (a[1] === b[1]) {
+        return 0;
+      }
+      if (a[1] === null) {
+        return 1;
+      }
+      if (b[1] === null) {
+        return -1;
+      }
+      if (a[1] < b[1]) return sortOrder ? -1 : 1;
+      if (a[1] > b[1]) return sortOrder ? 1 : -1;
+      return 0;
+    }
+  }
+
+  function dateSort(sortOrder){
+    return function(a, b){
+      if (a[1] === b[1]) {
+        return 0;
+      }
+      if (a[1] === null) {
+        return 1;
+      }
+      if (b[1] === null) {
+        return -1;
+      }
+      
+      var aDate = new Date(a[1]);
+      var bDate = new Date(b[1]);
+
+      if(aDate < bDate) return sortOrder ? -1 : 1;
+      if(aDate > bDate) return sortOrder ? 1 : -1;
+
+      return 0;
+    }
+  }
+
   this.sort = function () {
 
     var instance = this;
@@ -45,20 +84,18 @@ function HandsontableColumnSorting() {
     for (var i = 0, ilen = this.countRows(); i < ilen; i++) {
       this.sortIndex.push([i, instance.getDataAtCell(i, this.sortColumn + colOffset)]);
     }
-    this.sortIndex.sort(function (a, b) {
-      if (a[1] === b[1]) {
-        return 0;
-      }
-      if (a[1] === null) {
-        return 1;
-      }
-      if (b[1] === null) {
-        return -1;
-      }
-      if (a[1] < b[1]) return instance.sortOrder ? -1 : 1;
-      if (a[1] > b[1]) return instance.sortOrder ? 1 : -1;
-      return 0;
-    });
+
+    var colMeta = instance.getCellMeta(0, instance.sortColumn);
+    var sortFunction;
+    switch(colMeta.type){
+      case 'date':
+        sortFunction = dateSort;
+        break;
+      default:
+        sortFunction = defaultSort;
+    }
+
+    this.sortIndex.sort(sortFunction(instance.sortOrder));
     sortingEnabled = true;
   };
 
