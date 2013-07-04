@@ -3,6 +3,10 @@ describe('ColumnSorting', function () {
 
   beforeEach(function () {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+
+    this.sortByColumn = function(columnIndex){
+      this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').click();
+    }
   });
 
   afterEach(function () {
@@ -27,6 +31,8 @@ describe('ColumnSorting', function () {
     ];
   };
 
+
+
   it('should sort table by first visible column', function(){
     this.$container.width(350);
     var hot = handsontable({
@@ -46,7 +52,7 @@ describe('ColumnSorting', function () {
     expect(hot.getDataAtCell(selected[0], selected[1])).toEqual(8);
     expect(hot.colOffset()).toEqual(2);
 
-    this.$container.find('th span.columnSorting').first().click();
+    this.sortByColumn(0);
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('5');
@@ -61,8 +67,8 @@ describe('ColumnSorting', function () {
       columnSorting: true
     });
 
-    this.$container.find('th span.columnSorting').first().click();
-    this.$container.find('th span.columnSorting').first().click();
+    this.sortByColumn(0);
+    this.sortByColumn(0);
 
     expect(this.$container.find('tr td').first().html()).toEqual('10');
   });
@@ -82,7 +88,7 @@ describe('ColumnSorting', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
     expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B');
 
-    this.$container.find('th span.columnSorting').first().click();
+    this.sortByColumn(0);
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A');
@@ -110,7 +116,7 @@ describe('ColumnSorting', function () {
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
 
-    this.$container.find('th span.columnSorting').first().click();
+    this.sortByColumn(0);
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
 
@@ -133,7 +139,7 @@ describe('ColumnSorting', function () {
       columnSorting: true
     });
 
-    this.$container.find('th span.columnSorting').first().click();
+    this.sortByColumn(0);
 
     expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
     expect(this.$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('');
@@ -159,8 +165,8 @@ describe('ColumnSorting', function () {
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
 
-    this.$container.find('th span.columnSorting').first().click();
-    this.$container.find('th span.columnSorting').first().click();
+    this.sortByColumn(0);
+    this.sortByColumn(0);
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
 
@@ -196,8 +202,8 @@ describe('ColumnSorting', function () {
       columnSorting: true
     });
 
-    this.$container.find('th span.columnSorting').first().click();
-    this.$container.find('th span.columnSorting').first().click();
+    this.sortByColumn(0);
+    this.sortByColumn(0);
 
     hot.selectCell(1, 0);
 
@@ -221,8 +227,8 @@ describe('ColumnSorting', function () {
     runs(function(){
       selected = hot.getSelected();
 
-      expect(selected[0]).toEqual(0)
-      expect(selected[1]).toEqual(0)
+      expect(selected[0]).toEqual(0);
+      expect(selected[1]).toEqual(0);
     });
   });
 
@@ -263,4 +269,46 @@ describe('ColumnSorting', function () {
 
 
   });
+
+  it('should sort table with multiple row headers', function(){
+
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'D'],
+        [3, 'A'],
+        [2, 'C']
+      ],
+      columns: [
+        {},
+        {},
+        {
+          type: 'date',
+          dateFormat: 'mm/dd/yy'
+        },
+        {
+          type: 'numeric'
+        }
+      ],
+      colHeaders: true,
+      columnSorting: true,
+      removeRowPlugin: true //this plugin ads an extra row header, so now we have 2 instead of 1
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+
+    this.sortByColumn(0); // sort by first column
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D');
+
+    this.sortByColumn(1);  // sort by second column
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A');
+
+
+  });
+
+
 });
