@@ -1499,14 +1499,20 @@ Handsontable.Core = function (rootElement, userSettings) {
                 --i;
               }
               waitingForValidator--;
-              resolve();
+              //resolve();
             }
           })(i, cellProperties)
             , source);
         }
       }
     }
-    resolve();
+    //resolve();
+    var time = setInterval(function(){
+        if (waitingForValidator === 0) {
+            resolve();
+            clearInterval(time);
+        }
+    },100);
 
     function resolve() {
       var beforeChangeResult;
