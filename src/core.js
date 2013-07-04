@@ -1667,7 +1667,13 @@ Handsontable.Core = function (rootElement, userSettings) {
     Handsontable.activeGuid = instance.guid;
 
     if (document.activeElement && document.activeElement !== document.body) {
-      document.activeElement.blur();
+
+      if (Handsontable.helper.isOutsideInput(document.activeElement)){
+        Handsontable.activeGuid = null;
+      } else {
+        document.activeElement.blur();
+      }
+
     }
     else if (!document.activeElement) { //IE
       document.body.focus();
@@ -2460,7 +2466,8 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
     priv.selStart.coords({row: row, col: col});
-    instance.listen(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
+    document.activeElement.blur(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
+    instance.listen();
     if (typeof endRow === "undefined") {
       selection.setRangeEnd({row: row, col: col}, scrollToCell);
     }
