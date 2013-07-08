@@ -236,4 +236,35 @@ describe('PluginHooks', function () {
 
   });
 
+  it('should run two "once" hooks in desired order', function(){
+    var hot = handsontable();
+    var arr = [];
+
+    hot.addHookOnce('myHook', function(){
+      arr.push(1);
+    });
+
+    hot.addHookOnce('myHook', function(){
+      arr.push(2);
+    });
+
+    hot.runHooks('myHook');
+
+    expect(arr).toEqual([1,2]);
+  });
+
+  it('should execute two "once" hooks in desired order', function(){
+    var hot = handsontable();
+    var str = 'a';
+
+    hot.addHookOnce('myHook', function(str){
+      return str + 'b';
+    });
+
+    hot.addHookOnce('myHook', function(str){
+      return str + 'c';
+    });
+
+    expect(hot.runHooksAndReturn('myHook', str)).toEqual('abc');
+  });
 });

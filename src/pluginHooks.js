@@ -3,62 +3,62 @@ Handsontable.PluginHookClass = (function () {
   var Hooks = function () {
     return {
       // Hooks
-      beforeInitWalkontable : [],
+      beforeInitWalkontable: [],
 
-      beforeInit : [],
-      beforeRender : [],
-      beforeChange : [],
+      beforeInit: [],
+      beforeRender: [],
+      beforeChange: [],
       beforeValidate: [],
-      beforeGet : [],
-      beforeSet : [],
-      beforeGetCellMeta : [],
-      beforeAutofill : [],
-      beforeKeyDown : [],
+      beforeGet: [],
+      beforeSet: [],
+      beforeGetCellMeta: [],
+      beforeAutofill: [],
+      beforeKeyDown: [],
 
-      afterInit : [],
-      afterLoadData : [],
-      afterRender : [],
-      afterChange : [],
+      afterInit: [],
+      afterLoadData: [],
+      afterRender: [],
+      afterChange: [],
       afterValidate: [],
-      afterGetCellMeta : [],
-      afterGetColHeader : [],
-      afterGetColWidth : [],
-      afterDestroy : [],
-      afterRemoveRow : [],
-      afterCreateRow : [],
-      afterRemoveCol : [],
-      afterCreateCol : [],
-      afterColumnResize : [],
-      afterColumnMove : [],
-      afterDeselect : [],
-      afterSelection : [],
-      afterSelectionByProp : [],
-      afterSelectionEnd : [],
-      afterSelectionEndByProp : [],
-      afterCopyLimit : [],
+      afterGetCellMeta: [],
+      afterGetColHeader: [],
+      afterGetColWidth: [],
+      afterDestroy: [],
+      afterRemoveRow: [],
+      afterCreateRow: [],
+      afterRemoveCol: [],
+      afterCreateCol: [],
+      afterColumnResize: [],
+      afterColumnMove: [],
+      afterDeselect: [],
+      afterSelection: [],
+      afterSelectionByProp: [],
+      afterSelectionEnd: [],
+      afterSelectionEndByProp: [],
+      afterCopyLimit: [],
 
       // Modifiers
-      modifyCol : []
+      modifyCol: []
     }
   };
 
   var legacy = {
-      onBeforeChange: "beforeChange",
-      onChange: "afterChange",
-      onCreateRow: "afterCreateRow",
-      onCreateCol: "afterCreateCol",
-      onSelection: "afterSelection",
-      onCopyLimit: "afterCopyLimit",
-      onSelectionEnd: "afterSelectionEnd",
-      onSelectionByProp: "afterSelectionByProp",
-      onSelectionEndByProp: "afterSelectionEndByProp"
-    };
+    onBeforeChange: "beforeChange",
+    onChange: "afterChange",
+    onCreateRow: "afterCreateRow",
+    onCreateCol: "afterCreateCol",
+    onSelection: "afterSelection",
+    onCopyLimit: "afterCopyLimit",
+    onSelectionEnd: "afterSelectionEnd",
+    onSelectionByProp: "afterSelectionByProp",
+    onSelectionEndByProp: "afterSelectionEndByProp"
+  };
 
-  function PluginHookClass () {
+  function PluginHookClass() {
 
     this.hooks = {
-      once : Hooks(),
-      persistent : Hooks()
+      once: Hooks(),
+      persistent: Hooks()
     };
 
     this.legacy = legacy;
@@ -88,7 +88,7 @@ Handsontable.PluginHookClass = (function () {
     };
   };
 
-  PluginHookClass.prototype.add  = addHook('persistent');
+  PluginHookClass.prototype.add = addHook('persistent');
   PluginHookClass.prototype.once = addHook('once');
 
   PluginHookClass.prototype.remove = function (key, fn) {
@@ -138,6 +138,8 @@ Handsontable.PluginHookClass = (function () {
 
           if (type === 'once') {
             this.hooks[type][key].splice(i, 1);
+            leni--;
+            i--;
           }
         }
 
@@ -168,6 +170,8 @@ Handsontable.PluginHookClass = (function () {
 
           if (type === 'once') {
             this.hooks[type][key].splice(i, 1);
+            leni--;
+            i--;
           }
         }
 
