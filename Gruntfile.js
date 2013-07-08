@@ -99,6 +99,9 @@ module.exports = function (grunt) {
         'lib/jQuery-contextMenu/jquery.contextMenu.js'
         // seems to have no effect when turned off on contextmenu.html
         //'lib/jQuery-contextMenu/jquery.ui.position.js'
+      ],
+      shims : [
+        'lib/shims/array.filter.js'
       ]
     },
 
@@ -106,6 +109,7 @@ module.exports = function (grunt) {
       dist: {
         files: {
           'dist/jquery.handsontable.js': [
+            '<%= meta.shims %>',
             'tmp/intro.js',
             '<%= meta.src %>',
             '<%= meta.walkontable %>',
@@ -206,8 +210,8 @@ module.exports = function (grunt) {
         ],
         options: {
           specs: [
-            'test/jasmine/spec/*Spec.js',
-            'test/jasmine/spec/*/*Spec.js'
+           'test/jasmine/spec/*Spec.js',
+           'test/jasmine/spec/*/*Spec.js'
           ],
           styles: [
             'test/jasmine/css/SpecRunner.css',
