@@ -59,6 +59,12 @@ HandsontableDateEditorClass.prototype.finishEditing = function (isCancelled, ctr
 
 HandsontableDateEditorClass.prototype.showDatepicker = function () {
   var $td = $(this.instance.dateEditor.TD);
+  (function(element){
+      var offset = element.offset();
+      $('html, body').animate({
+          scrollTop: offset.top
+      }, 1000);
+  })($td);
   var position = $td.position();
   this.datePickerStyle.top = (position.top + $td.height()) + 'px';
   this.datePickerStyle.left = position.left + 'px';
