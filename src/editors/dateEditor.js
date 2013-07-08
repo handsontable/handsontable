@@ -76,6 +76,8 @@ HandsontableDateEditorClass.prototype.showDatepicker = function () {
   this.$datePicker.datepicker("option", dateOptions);
   if (this.originalValue) {
     this.$datePicker.datepicker("setDate", this.originalValue);
+  }else{
+    this.$datePicker.datepicker("setDate", new Date());
   }
   this.datePickerStyle.display = 'block';
 };
