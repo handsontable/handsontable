@@ -1453,7 +1453,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   function validateChanges(changes, source, callback) {
-    var waitingForValidator = 0;
+    var waitingForValidator = new ValidatorsQueue();
+    waitingForValidator.onQueueEmpty = resolve;
 
     for (var i = changes.length - 1; i >= 0; i--) {
       if (changes[i] === null) {
@@ -1469,7 +1470,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         }
 
         if (cellProperties.validator) {
-          waitingForValidator++;
+          waitingForValidator.addValidatorToQueue();
           instance.validateCell(changes[i][3], cellProperties, (function (i, cellProperties) {
             return function (result) {
               if (typeof result !== 'boolean') {
@@ -1479,33 +1480,54 @@ Handsontable.Core = function (rootElement, userSettings) {
                 changes.splice(i, 1);
                 --i;
               }
-              waitingForValidator--;
-              resolve();
+              waitingForValidator.removeValidatorFormQueue();
             }
           })(i, cellProperties)
             , source);
         }
       }
     }
-    resolve();
+    waitingForValidator.checkIfQueueIsEmpty();
+
+    function ValidatorsQueue(){
+      var resolved = false;
+
+      return {
+        validatorsInQueue: 0,
+        addValidatorToQueue: function(){
+          this.validatorsInQueue++;
+          resolved = false;
+        },
+        removeValidatorFormQueue: function(){
+          this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
+          this.checkIfQueueIsEmpty();
+        },
+        onQueueEmpty: function(){},
+        checkIfQueueIsEmpty: function(){
+          if(this.validatorsInQueue == 0 && resolved == false){
+            resolved = true;
+            this.onQueueEmpty();
+          }
+        }
+      };
+    }
 
     function resolve() {
       var beforeChangeResult;
-      if (waitingForValidator === 0) {
-        if (changes.length) {
-          beforeChangeResult = instance.PluginHooks.execute("beforeChange", changes, source);
-          if (typeof beforeChangeResult === 'function') {
-            $.when(result).then(function () {
-              callback(); //called when async validators and async beforeChange are resolved
-            });
-          }
-          else if (beforeChangeResult === false) {
-            changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
-          }
+
+      if (changes.length) {
+        beforeChangeResult = instance.PluginHooks.execute("beforeChange", changes, source);
+        if (typeof beforeChangeResult === 'function') {
+          $.when(result).then(function () {
+            callback(); //called when async validators and async beforeChange are resolved
+          });
         }
-        if (typeof beforeChangeResult !== 'function') {
-          callback(); //called when async validators are resolved and beforeChange was not async
+        else if (beforeChangeResult === false) {
+          changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
         }
+      }
+      if (typeof beforeChangeResult !== 'function') {
+        callback(); //called when async validators are resolved and beforeChange was not async
       }
     }
   }

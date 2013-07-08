@@ -271,4 +271,112 @@ describe('Core_validate', function () {
       expect(validatedChanges[1]).toEqual([2, 0, 'A2', 'A2-new']);
     });
   });
+
+  it('should call beforeChange exactly once after cell value edit and validator is synchronous', function(){
+    var callCounter = 0;
+
+    var hot = handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      validator: function (value, callback) {
+        callback(true);
+      },
+      beforeChange: function (changes, source) {
+        if (source !== 'loadData') {
+          callCounter++;
+        }
+      }
+    });
+
+    expect(callCounter).toEqual(0);
+
+    hot.setDataAtCell(0, 0, 10);
+
+    expect(callCounter).toEqual(1);
+
+  });
+
+  it('should call beforeChange exactly once after cell value edit and validator is asynchronous', function(){
+    var callCounter = 0;
+
+    var hot = handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      validator: function (value, callback) {
+        setTimeout(function () {
+          callback(true);
+        }, 10);
+      },
+      beforeChange: function (changes, source) {
+        if (source !== 'loadData') {
+          callCounter++;
+        }
+      }
+    });
+
+    expect(callCounter).toEqual(0);
+
+    hot.setDataAtCell(0, 0, 10);
+
+    waits(100);
+
+    runs(function(){
+      expect(callCounter).toEqual(1);
+    });
+
+  });
+
+  it('should call afterChange exactly once after cell value edit and validator is synchronous', function(){
+    var callCounter = 0;
+
+    var hot = handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      validator: function (value, callback) {
+        callback(true);
+      },
+      afterChange: function (changes, source) {
+        if (source !== 'loadData') {
+          callCounter++;
+        }
+      }
+    });
+
+    expect(callCounter).toEqual(0);
+
+    hot.setDataAtCell(0, 0, 10);
+
+    expect(callCounter).toEqual(1);
+
+  });
+
+  it('should call afterChange exactly once after cell value edit and validator is asynchronous', function(){
+    var callCounter = 0;
+
+    var hot = handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      validator: function (value, callback) {
+        setTimeout(function () {
+          callback(true);
+        }, 10);
+      },
+      afterChange: function (changes, source) {
+        if (source !== 'loadData') {
+          callCounter++;
+        }
+      }
+    });
+
+    expect(callCounter).toEqual(0);
+
+    hot.setDataAtCell(0, 0, 10);
+
+    waits(100);
+
+    runs(function(){
+      expect(callCounter).toEqual(1);
+    });
+
+  });
 });
