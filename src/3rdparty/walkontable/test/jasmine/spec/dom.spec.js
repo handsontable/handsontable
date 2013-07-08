@@ -152,6 +152,20 @@ describe('WalkontableDom', function () {
     });
   });
 
+  it('should return correct offset for table cell (table with caption)', function () {
+    var $table = $('<table style="border-width: 0;"><caption style="padding: 0; margin:0"><div style="height: 30px">caption</div></caption><tbody><tr><td style="border: 1px solid black"><div style="height: 30px">test</div></td></tr></tbody></table>').appendTo('body');
+
+    var tableOffset = wtDom.offset($table[0]);
+    var tdOffset = wtDom.offset($table.find('td')[0]);
+
+    expect(tdOffset.left - tableOffset.left).toBe(2); //this is according to current stylesheet
+    //expect($table.outerHeight()).toBe(68); //jQuery check is broken because of a bug in Firefox! (Firefox ignores caption, and so does jQuery)
+    expect(tdOffset.top - tableOffset.top).toBe(32); //this is according to current stylesheet
+    //expect($table.outerHeight()).toBe(68); //jQuery check is broken because of a bug in Firefox! (Firefox ignores caption, and so does jQuery)
+
+    $table.remove();
+  });
+
   it("should return font size", function () {
     var $html = $('<style>.bigText{font: 12px serif;}</style><div class="bigText"><span id="testable"></span></div>').appendTo('body');
 

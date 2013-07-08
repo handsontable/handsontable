@@ -250,6 +250,16 @@ WalkontableDom.prototype.isVisible = function (elem) {
  * @return {Object}
  */
 WalkontableDom.prototype.offset = function (elem) {
+  if (this.hasCaptionProblem() && elem.firstChild && elem.firstChild.nodeName === 'CAPTION') {
+    //fixes problem with Firefox ignoring <caption> in TABLE offset (see also WalkontableDom.prototype.outerHeight)
+    //http://jsperf.com/offset-vs-getboundingclientrect/8
+    var box = elem.getBoundingClientRect();
+    return {
+      top: box.top + (window.pageYOffset || document.documentElement.scrollTop) - (document.documentElement.clientTop || 0),
+      left: box.left + (window.pageXOffset || document.documentElement.scrollLeft) - (document.documentElement.clientLeft || 0)
+    };
+  }
+
   var offsetLeft = elem.offsetLeft
     , offsetTop = elem.offsetTop
     , lastElem = elem;
