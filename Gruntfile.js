@@ -148,6 +148,9 @@ module.exports = function (grunt) {
     },
 
     watch: {
+      options: {
+        livereload: true //works with Chrome LiveReload extension. See: https://github.com/gruntjs/grunt-contrib-watch
+      },
       files: [
         'src/**/*.js',
         'src/**/*.css',
