@@ -2531,20 +2531,31 @@ Handsontable.Core = function (rootElement, userSettings) {
     };
 
     instance.PluginHooks.execute = function (key, p1, p2, p3, p4, p5) {
-      p1 = _exe.call(this, instance, key, p1, p2, p3, p4, p5);
-      p1 = Handsontable.PluginHooks.execute(instance, key, p1, p2, p3, p4, p5);
+      var globalHandlerResult = Handsontable.PluginHooks.execute(instance, key, p1, p2, p3, p4, p5);
+      var localHandlerResult = _exe.call(this, instance, key, globalHandlerResult, p2, p3, p4, p5);
 
-      return p1;
+      return typeof localHandlerResult == 'undefined' ? globalHandlerResult : localHandlerResult;
+
     };
 
     // Map old API with new methods
-    instance.addHook = instance.PluginHooks.add;
-    instance.addHookOnce = instance.PluginHooks.once;
+    instance.addHook = function(){
+      instance.PluginHooks.add.apply(instance.PluginHooks, arguments);
+    };
+    instance.addHookOnce = function(){
+      instance.PluginHooks.once.apply(instance.PluginHooks, arguments);
+    };
 
-    instance.removeHook = instance.PluginHooks.remove;
+    instance.removeHook = function(){
+      instance.PluginHooks.remove.apply(instance.PluginHooks, arguments);
+    };
 
-    instance.runHooks = instance.PluginHooks.run;
-    instance.runHooksAndReturn = instance.PluginHooks.execute;
+    instance.runHooks = function(){
+      instance.PluginHooks.run.apply(instance.PluginHooks, arguments);
+    };
+    instance.runHooksAndReturn = function(){
+      return instance.PluginHooks.execute.apply(instance.PluginHooks, arguments);
+    };
 
   })();
 
