@@ -15,6 +15,6 @@ Handsontable.TextRenderer = function (instance, TD, row, col, prop, value, cellP
     instance.view.wt.wtDom.addClass(TD, 'htDimmed');
   }
   if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
-    TD.className = cellProperties.invalidCellClassName;
+    instance.view.wt.wtDom.addClass(TD, cellProperties.invalidCellClassName);
   }
 };

@@ -189,6 +189,31 @@ describe('Core_validate', function () {
     expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
   });
 
+  it('should add class name `htInvalid` to a cell without removing other classes', function () {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      type: 'numeric',
+      validator: function (value, callb) {
+        if (value == 123) {
+          callb(false)
+        }
+        else {
+          callb(true)
+        }
+      }
+    });
+
+    setDataAtCell(0, 0, 123);
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htNumeric')).toEqual(true);
+
+    setDataAtCell(0, 0, 124);
+
+    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
+    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htNumeric')).toEqual(true);
+  });
+
   it('should add class name `htInvalid` to an cell that does not validate - after updateSettings & render', function () {
     handsontable({
       data: createSpreadsheetData(2, 2)
