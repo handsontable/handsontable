@@ -46,6 +46,10 @@ Handsontable.TableView = function (instance) {
       }
       instance.autofill.handle.isDragged = 0;
     }
+
+    if(Handsontable.helper.isOutsideInput(document.activeElement)){
+      Handsontable.activeGuid = null;
+    }
   });
 
   $documentElement.on('mousedown.' + instance.guid, function (event) {
