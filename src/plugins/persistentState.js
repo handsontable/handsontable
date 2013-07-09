@@ -7,14 +7,10 @@
 
 function Storage(prefix){
 
-  $.cookie.json = true;
-
   var savedKeys = [];
 
   this.saveValue = function(key, value){
-    //TODO: Add ability to save to LocalStorage
-    $.cookie(prefix+'_'+key, value);
-
+    window.localStorage[prefix+'_'+key] = JSON.stringify(value);
     if(savedKeys.indexOf(key) == -1){
       savedKeys.push(key);
     }
@@ -25,14 +21,15 @@ function Storage(prefix){
 
     key = typeof key != 'undefined' ? key : defaultValue;
 
-    //TODO: Add ability to load from LocalStorage
-    return $.cookie(prefix+'_'+key);
+    var value = window.localStorage[prefix+'_'+key];
+
+    return typeof value == "undefined" ? void 0 : JSON.parse(value);
 
   }
 
   this.reset = function(){
     for (var index in savedKeys){
-      $.removeCookie(prefix+'_'+savedKeys[index]);
+      window.localStorage.removeItem(prefix+'_'+savedKeys[index]);
     }
     savedKeys = [];
   }
