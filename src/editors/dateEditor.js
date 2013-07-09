@@ -95,5 +95,5 @@ Handsontable.DateEditor = function (instance, td, row, col, prop, value, cellPro
   instance.dateEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
   return function (isCancelled) {
     instance.dateEditor.finishEditing(isCancelled);
-  }
+  };
 };

@@ -130,7 +130,7 @@ function createContextMenu() {
       options.callback = function (key, options) {
         handsontableCallback(key, options);
         customCallback(key, options);
-      }
+      };
     }
   }
 

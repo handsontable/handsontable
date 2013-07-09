@@ -59,10 +59,11 @@ function HandsontableObserveChanges() {
   var callbacks = [];
 
   function observe(obj, callback) {
-    var patches = [];
-    var root = obj;
+    var patches = [],
+        root = obj,
+        observer;
     if (Object.observe) {
-      var observer = function (arr) {
+      observer = function (arr) {
         if (!root.___Path) {
           Object.unobserve(root, observer);
           root.____Path = "";

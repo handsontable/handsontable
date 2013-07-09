@@ -168,12 +168,12 @@ Handsontable.TableView = function (instance) {
     rowHeaders: function () {
       return that.settings.rowHeaders ? [function (index, TH) {
         that.appendRowHeader(index, TH);
-      }] : []
+      }] : [];
     },
     columnHeaders: function () {
       return that.settings.colHeaders ? [function (index, TH) {
         that.appendColHeader(index, TH);
-      }] : []
+      }] : [];
     },
     columnWidth: instance.getColWidth,
     cellRenderer: function (row, column, TD) {
@@ -187,7 +187,7 @@ Handsontable.TableView = function (instance) {
           color: '#5292F7',
           style: 'solid',
           cornerVisible: function () {
-            return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
+            return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
           }
         }
       },
@@ -198,7 +198,7 @@ Handsontable.TableView = function (instance) {
           color: '#89AFF9',
           style: 'solid',
           cornerVisible: function () {
-            return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
+            return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();
           }
         }
       },

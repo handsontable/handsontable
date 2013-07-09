@@ -505,7 +505,6 @@ Handsontable.Core = function (rootElement, userSettings) {
 
         default:
           throw new Error('There is no such action "' + action + '"');
-          break;
       }
 
       changes = [];
@@ -681,7 +680,7 @@ Handsontable.Core = function (rootElement, userSettings) {
           }
           break;
 
-        case 'overwrite' :
+        //case 'overwrite' : // no need for this
         default:
           // overwrite and other not specified options
           current.row = start.row;
@@ -1244,10 +1243,10 @@ Handsontable.Core = function (rootElement, userSettings) {
               event.preventDefault();
             }
             else if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
-              priv.undoRedo && priv.undoRedo.redo();
+              priv.undoRedo.redo();
             }
             else if (event.keyCode === 90) { //CTRL + Z
-              priv.undoRedo && priv.undoRedo.undo();
+              priv.undoRedo.undo();
             }
             return;
           }
@@ -2148,7 +2147,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
 
     if (!priv.cellSettings[row]) {
-      priv.cellSettings[row] = {}
+      priv.cellSettings[row] = {};
     }
     if (!priv.cellSettings[row][col]) {
       priv.cellSettings[row][col] = new priv.columnSettings[col]();

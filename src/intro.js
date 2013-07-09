@@ -8,7 +8,6 @@
  *
  * Date: @@timestamp
  */
-/*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 var Handsontable = { //class namespace
   extension: {}, //extenstion namespace
