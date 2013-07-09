@@ -226,8 +226,16 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (typeof index !== 'number') {
         index = -amount;
       }
-      GridSettings.prototype.data.splice(index, amount);
+
+      // We have to map the physical row ids to logical and than perform removing with (possibly) new row id
+      var logicRows = this.physicalRowsToLogical(index, amount);
+
+      GridSettings.prototype.data = GridSettings.prototype.data.filter(function (row, index) {
+        return logicRows.indexOf(index) == -1;
+      });
+
       instance.PluginHooks.run('afterRemoveRow', index, amount);
+
       instance.forceFullRender = true; //used when data was changed
     },
 
@@ -385,6 +393,26 @@ Handsontable.Core = function (rootElement, userSettings) {
       else {
         priv.settings.data[datamap.setVars.row][datamap.setVars.prop] = datamap.setVars.value;
       }
+    },
+    /**
+     * This ridiculous piece of code maps rows Id that are present in table data to those displayed for user.
+     * The trick is, the physical row id (stored in settings.data) is not necessary the same
+     * as the logical (displayed) row id (e.g. when sorting is applied).
+     */
+    physicalRowsToLogical: function(index, amount){
+      var physicRow = (GridSettings.prototype.data.length + index) % GridSettings.prototype.data.length;
+      var logicRows = [];
+      var rowsToRemove = amount;
+
+      while(physicRow < GridSettings.prototype.data.length && rowsToRemove){
+        this.get(physicRow, 0); //this performs an actual mapping and saves the result to getVars
+        logicRows.push(this.getVars.row);
+
+        rowsToRemove--;
+        physicRow++;
+      }
+
+      return logicRows;
     },
 
     /**
@@ -2364,7 +2392,9 @@ Handsontable.Core = function (rootElement, userSettings) {
     var i = instance.countRows() - 1
       , empty = 0;
     while (i >= 0) {
-      if (instance.isEmptyRow(i)) {
+      datamap.get(i, 0);
+
+      if (instance.isEmptyRow(datamap.getVars.row)) {
         empty++;
       }
       else if (ending) {
