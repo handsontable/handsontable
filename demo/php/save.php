@@ -9,12 +9,12 @@
  * http://warpech.github.com/jquery-handsontable/
  */
 
+require_once('functions.php');
+
 try {
   //open the database
-  $db = new PDO('sqlite:cars.sqlite'); //will create the file in current directory. Current directory must be writable
-  
-  //create the database if does not exist
-  $db->exec("CREATE TABLE IF NOT EXISTS cars (id INTEGER PRIMARY KEY, manufacturer TEXT, year INTEGER, price INTEGER)");
+  $db =  getConnection();
+  createCarsTable($db);
   
   $colMap = array(
     0 => 'manufacturer',
@@ -22,7 +22,7 @@ try {
     2 => 'price'
   );
   
-  if ($_POST['changes']) {
+  if (isset($_POST['changes']) && $_POST['changes']) {
     foreach ($_POST['changes'] as $change) {
       $rowId  = $change[0] + 1;
       $colId  = $change[1];
@@ -47,7 +47,7 @@ try {
       $query->bindValue(':newVal', $newVal, PDO::PARAM_STR);
       $query->execute();
     }
-  } elseif ($_POST['data']) {
+  } elseif (isset($_POST['data']) && $_POST['data']) {
     $select = $db->prepare('DELETE FROM cars');
     $select->execute();
     
@@ -82,8 +82,7 @@ try {
   );
   echo json_encode($out);
   
-  // close the database connection
-  $db = NULL;
+  closeConnection($db);
 }
 catch (PDOException $e) {
   print 'Exception : ' . $e->getMessage();

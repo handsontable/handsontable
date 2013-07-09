@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.9.6
+ * Handsontable 0.9.9
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Jun 18 2013 18:56:33 GMT+0200 (Central European Daylight Time)
+ * Date: Sun Jun 30 2013 13:24:55 GMT+0200 (Central European Daylight Time)
  */
 
 .handsontable {
@@ -32,6 +32,7 @@
 .handsontable table {
   border-collapse: separate; /*it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit*/
   position: relative;
+  /*this actually only changes appearance of user selection - does not make text unselectable
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
@@ -70,7 +71,7 @@
   vertical-align: top;
   overflow: hidden;
   outline-width: 0;
-  white-space: pre; /* preserve new line character in cell */
+  white-space: pre-line; /* preserve new line character in cell */
 }
 
 .handsontable td.htInvalid {

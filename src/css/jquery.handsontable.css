@@ -32,6 +32,7 @@
 .handsontable table {
   border-collapse: separate; /*it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit*/
   position: relative;
+  /*this actually only changes appearance of user selection - does not make text unselectable
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
@@ -70,7 +71,7 @@
   vertical-align: top;
   overflow: hidden;
   outline-width: 0;
-  white-space: pre; /* preserve new line character in cell */
+  white-space: pre-line; /* preserve new line character in cell */
 }
 
 .handsontable td.htInvalid {

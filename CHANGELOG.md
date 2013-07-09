@@ -1,9 +1,40 @@
+## [0.9.9](https://github.com/warpech/jquery-handsontable/tree/v0.9.9) (Jun 30, 2013)
+
+Bugfix:
+- version 0.9.8 contained a fatal typo in cut (CTRL+X) callback
+
+## [0.9.8](https://github.com/warpech/jquery-handsontable/tree/v0.9.8) (Jun 30, 2013)
+
+Bugfix:
+- copy/cut/paste did not work since last version ([#846](https://github.com/warpech/jquery-handsontable/issues/846))
+
+## [0.9.7](https://github.com/warpech/jquery-handsontable/tree/v0.9.7) (Jun 30, 2013)
+
+Features:
+- new option `fragmentSelection`, which unblocks free text selection within cells ([demo](http://handsontable.com/demo/options.html), [docs](https://github.com/warpech/jquery-handsontable/wiki/Options))
+
+Bugfixes:
+- `updateSettings` method did not take effect when updating `readOnly`, `columns`, `colHeaders`, `fixedColumnsLeft`, `fixedRowsTop` ([#824](https://github.com/warpech/jquery-handsontable/issues/824), [#715](https://github.com/warpech/jquery-handsontable/issues/715), [#524](https://github.com/warpech/jquery-handsontable/issues/524))
+- numeric cell type did not respect the `readOnly` setting
+- `demo/php.html` is now fixed (runs only when PHP is installed, does not work on handsontable.com)
+- mousewheel not working in IE8 ([#817](https://github.com/warpech/jquery-handsontable/issues/817))
+- HTML in cells and headers was escaped when it shouldn't be ([#845](https://github.com/warpech/jquery-handsontable/issues/845), [#815](https://github.com/warpech/jquery-handsontable/issues/815), [#821](https://github.com/warpech/jquery-handsontable/issues/821))
+- fixed issues with asynchronous validators
+
+Other:
+- all Handsontable event listeners now listen on document body. This was needed to make `fragmentSelection` feature
+- created the [Handsontable Google Group](https://groups.google.com/forum/#!forum/handsontable). Please use it for general questions - and keep GitHub Issues for bugfixes and feature requests
+
+Tests:
+- initial integration with Sauce Labs (`grunt sauce`). More info about testing coming soon in wiki
+- dropped support for IE7, which now has [below 1%](http://gs.statcounter.com/#browser_version_partially_combined-ww-monthly-201306-201306-bar) of the global market share. IE8 is safe for now
+
 ## [0.9.6](https://github.com/warpech/jquery-handsontable/tree/v0.9.6) (Jun 18, 2013)
 
 Bugfixes:
-- `isEmptyRow` produced error `this.countCols is not a function` (#632)
-- delete row extension does not show the button when grid is inside a `<table>` (#764)
-- drag-down not working if Handsontable is inside a table (#355, #361, #538, #438, #671, #704) - this makes me realize how many people still use tables to create a layout
+- `isEmptyRow` produced error `this.countCols is not a function` ([#632](https://github.com/warpech/jquery-handsontable/issues/632))
+- delete row extension does not show the button when grid is inside a `<table>` ([#764](https://github.com/warpech/jquery-handsontable/issues/764))
+- drag-down not working if Handsontable is inside a table ([#355](https://github.com/warpech/jquery-handsontable/issues/355), [#361](https://github.com/warpech/jquery-handsontable/issues/361), [#538](https://github.com/warpech/jquery-handsontable/issues/538), [#438](https://github.com/warpech/jquery-handsontable/issues/438), [#671](https://github.com/warpech/jquery-handsontable/issues/671), [#704](https://github.com/warpech/jquery-handsontable/issues/704)) - this makes me realize how many people still use tables to create a layout
 - numeric cell renderer did not add class name `htDimmed` to a read only cell
 
 Performance:

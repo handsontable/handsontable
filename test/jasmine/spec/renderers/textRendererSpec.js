@@ -44,7 +44,7 @@ describe('TextRenderer', function () {
     handsontable();
     setDataAtCell(2, 2, null);
 
-    expect(getCell(2, 2).innerHTML).toEqual("");
+    expect(getCell(2, 2).innerHTML).toEqual('');
   });
 
   it('should render undefined', function () {
@@ -52,7 +52,7 @@ describe('TextRenderer', function () {
     setDataAtCell(2, 2, (function () {
     })());
 
-    expect(getCell(2, 2).innerHTML).toEqual("");
+    expect(getCell(2, 2).innerHTML).toEqual('');
   });
 
   it('should add class name `htDimmed` to a read only cell', function () {
@@ -72,5 +72,15 @@ describe('TextRenderer', function () {
     setDataAtCell(2, 2, "a\nb");
 
     expect($(getCell(2, 2)).height()).toBeGreaterThan($(getCell(1, 2)).height());
+  });
+
+  it('should wrap text when column width is limited', function () {
+    handsontable({
+      colWidths: [100]
+    });
+    setDataAtCell(0, 0, "short text");
+    setDataAtCell(1, 0, "long long long long long long long text");
+
+    expect($(getCell(1, 0)).height()).toBeGreaterThan($(getCell(0, 0)).height());
   });
 });

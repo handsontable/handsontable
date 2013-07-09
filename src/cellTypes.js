@@ -4,7 +4,8 @@
 
 Handsontable.AutocompleteCell = {
   editor: Handsontable.AutocompleteEditor,
-  renderer: Handsontable.AutocompleteRenderer
+  renderer: Handsontable.AutocompleteRenderer,
+  validator: Handsontable.AutocompleteValidator
 };
 
 Handsontable.CheckboxCell = {
@@ -60,6 +61,7 @@ Handsontable.cellLookup = {
     handsontable: Handsontable.HandsontableEditor
   },
   validator: {
-    numeric: Handsontable.NumericValidator
+    numeric: Handsontable.NumericValidator,
+    autocomplete: Handsontable.AutocompleteValidator
   }
 };

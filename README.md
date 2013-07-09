@@ -2,7 +2,7 @@
 
 Handsontable is a minimalistic approach to Excel-like table editor in HTML & jQuery. Requires jQuery 1.9+ or 2.0+ (may work with 1.7+ too, but there are known issues with [IE10](https://github.com/warpech/jquery-handsontable/issues/410)).
 
-Runs in IE7, IE8, IE9, IE10, Firefox, Chrome, Safari and Opera.
+Runs in IE8, IE9, IE10, Firefox, Chrome, Safari and Opera.
 
 See the demos at http://handsontable.com/ or fork the example on [JSFiddle](http://jsfiddle.net/warpech/hU6Kz/).
 
@@ -45,7 +45,9 @@ To see the list of recent changes, see the [CHANGELOG.md](./CHANGELOG.md).
 
 ## Questions
 
-Before you open a new [Issue](https://github.com/warpech/jquery-handsontable/issues), please check out the [Frequently Asked Questions](https://github.com/warpech/jquery-handsontable/wiki/FAQ).
+Please use the :new: [Handsontable Google Group](https://groups.google.com/forum/?fromgroups=#!forum/handsontable) for posting general **Questions**.
+
+Make sure the question was not answered before in [FAQ](https://github.com/warpech/jquery-handsontable/wiki/FAQ) or [GitHub Issues](https://github.com/warpech/jquery-handsontable/issues)
 
 ## Reporting bugs and feature requests
 

@@ -55,7 +55,9 @@ describe('AutoColumnSize', function () {
     expect(getFirstCellWidth($container1)).toBeLessThan(getFirstCellWidth($container2));
 
     $style.remove();
+    $container1.handsontable('destroy');
     $container1.remove();
+    $container2.handsontable('destroy');
     $container2.remove();
   });
 
@@ -78,5 +80,20 @@ describe('AutoColumnSize', function () {
     expect(getFirstCellWidth(this.$container)).toBeGreaterThan(width);
 
     $style.remove();
+  });
+
+  it('should destroy temporary element', function () {
+    handsontable({
+      autoColumnSize: true
+    });
+
+    var HOT = getInstance();
+    var tmp = HOT.autoColumnSizeTmp.container;
+
+    expect(tmp.parentNode).toBe(document.body);
+
+    destroy();
+
+    expect(tmp.parentNode).not.toBe(document.body); //null in standard browsers, #document-fragment in IE8
   });
 });
