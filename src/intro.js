@@ -17,3 +17,6 @@ var Handsontable = { //class namespace
 
 (function ($, window, Handsontable) {
   "use strict";
+
+// Override locally to prevent 3rd party libraries from trying to export
+var define = null;
