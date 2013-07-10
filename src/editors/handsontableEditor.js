@@ -29,7 +29,7 @@ HandsontableHandsontableEditorClass.prototype.bindTemporaryEvents = function (td
     cells: function () {
       return {
         readOnly: true
-      }
+      };
     },
     fillHandle: false,
     width: 2000,
@@ -116,5 +116,5 @@ Handsontable.HandsontableEditor = function (instance, td, row, col, prop, value,
 
   return function (isCancelled) {
     instance.handsontableEditor.finishEditing(isCancelled);
-  }
+  };
 };

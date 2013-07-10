@@ -23,7 +23,7 @@ var process = function (value, callback) {
     }
 
     callback(found);
-  }
+  };
 };
 
 /**
@@ -37,4 +37,4 @@ Handsontable.AutocompleteValidator = function (value, callback) {
   } else {
     callback(true);
   }
-}
+};

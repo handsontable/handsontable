@@ -11,7 +11,7 @@
 Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
   if (Handsontable.helper.isNumeric(value)) {
     if (typeof cellProperties.language !== 'undefined') {
-      numeral.language(cellProperties.language)
+      numeral.language(cellProperties.language);
     }
     value = numeral(value).format(cellProperties.format || '0'); //docs: http://numeraljs.com/
     instance.view.wt.wtDom.addClass(TD, 'htNumeric');

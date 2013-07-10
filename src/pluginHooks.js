@@ -39,7 +39,7 @@ Handsontable.PluginHookClass = (function () {
 
       // Modifiers
       modifyCol : []
-    }
+    };
   };
 
   var legacy = {

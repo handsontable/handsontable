@@ -44,7 +44,7 @@ Handsontable.CheckboxEditor = function (instance, td, row, col, prop, value, cel
   return function () {
     instance.$table.off(".editor");
     instance.view.wt.update('onCellDblClick', null);
-  }
+  };
 };
 
 

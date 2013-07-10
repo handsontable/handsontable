@@ -23,7 +23,6 @@ Handsontable.helper.stringify = function (value) {
     case 'string':
     case 'number':
       return value + '';
-      break;
 
     case 'object':
       if (value === null) {
@@ -36,7 +35,6 @@ Handsontable.helper.stringify = function (value) {
 
     case 'undefined':
       return '';
-      break;
 
     default:
       return value.toString();
@@ -84,7 +82,7 @@ Handsontable.helper.isNumeric = function (n) {
  */
 Handsontable.helper.isDescendant = function (parent, child) {
   var node = child.parentNode;
-  while (node != null) {
+  while (node !== null) {
     if (node == parent) {
       return true;
     }
@@ -181,7 +179,7 @@ Handsontable.helper.translateRowsToColumns = function (input) {
         output.push([]);
         olen++;
       }
-      output[j].push(input[i][j])
+      output[j].push(input[i][j]);
     }
   }
   return output;

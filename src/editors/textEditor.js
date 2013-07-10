@@ -171,7 +171,7 @@ HandsontableTextEditorClass.prototype.getCaretPosition = function (el) {
   else if (document.selection) {
     el.focus();
     var r = document.selection.createRange();
-    if (r == null) {
+    if (r === null) {
       return 0;
     }
     var re = el.createTextRange(),
@@ -342,5 +342,5 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, value, cellPro
   instance.textEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
   return function (isCancelled) {
     instance.textEditor.finishEditing(isCancelled);
-  }
+  };
 };

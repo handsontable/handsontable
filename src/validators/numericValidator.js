@@ -5,4 +5,4 @@
  */
 Handsontable.NumericValidator = function (value, callback) {
   callback(/^-?\d*\.?\d*$/.test(value));
-}
+};

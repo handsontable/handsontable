@@ -159,7 +159,8 @@
         wClone = this.wClone,
         hClone = this.hClone,
         el = this.el,
-        value = el.val();
+        value = el.val(),
+        newWidth;
 
       if (wClone) {
 
@@ -167,9 +168,9 @@
 
         // Calculate new width + whether to change
         var cloneWidth = wClone.outerWidth(),
-          newWidth = (cloneWidth + config.extraSpace) >= config.minWidth ?
-            cloneWidth + config.extraSpace : config.minWidth,
           currentWidth = el.width();
+        newWidth = (cloneWidth + config.extraSpace) >= config.minWidth ?
+            cloneWidth + config.extraSpace : config.minWidth;
 
         newWidth = Math.min(newWidth, config.maxWidth);
 

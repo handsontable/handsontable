@@ -29,7 +29,7 @@ Handsontable.SelectionPoint.prototype.coords = function (coords) {
   return {
     row: this._row,
     col: this._col
-  }
+  };
 };
 
 Handsontable.SelectionPoint.prototype.arr = function (arr) {
@@ -37,5 +37,5 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
     this._row = arr[0];
     this._col = arr[1];
   }
-  return [this._row, this._col]
+  return [this._row, this._col];
 };

@@ -70,7 +70,7 @@ function CopyPasteClass() {
     }
 
     if (isCtrlDown) {
-      if (document.activeElement !== that.elTextarea && that.getSelectionText() != '') {
+      if (document.activeElement !== that.elTextarea && that.getSelectionText() !== '') {
         return; //this is needed by fragmentSelection in Handsontable. Ignore copypaste.js behavior if fragment of cell text is selected
       }
 
@@ -194,11 +194,11 @@ CopyPasteClass.prototype._bindEvent = (function () {
   else {
     return function (elem, type, cb) {
       elem.attachEvent('on' + type, function () {
-        var e = window['event'];
+        var e = window.event;
         e.target = e.srcElement;
         e.relatedTarget = e.relatedTarget || e.type == 'mouseover' ? e.fromElement : e.toElement;
         if (e.target.nodeType === 3) e.target = e.target.parentNode; //Safari bug
-        return cb.call(elem, e)
+        return cb.call(elem, e);
       });
     };
   }

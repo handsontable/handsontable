@@ -46,49 +46,51 @@ var browsers = [
 ];
 
 module.exports = function (grunt) {
+  var sources = [
+     'tmp/core.js',
+     'src/focusCatcher.js',
+     'src/tableView.js',
+     'src/helpers.js',
+     'src/fillHandle.js',
+     'src/undoRedo.js',
+     'src/selectionPoint.js',
+
+     'src/renderers/textRenderer.js',
+     'src/renderers/autocompleteRenderer.js',
+     'src/renderers/checkboxRenderer.js',
+     'src/renderers/numericRenderer.js',
+
+     'src/editors/textEditor.js',
+     'src/editors/autocompleteEditor.js',
+     'src/editors/checkboxEditor.js',
+     'src/editors/dateEditor.js',
+     'src/editors/handsontableEditor.js',
+
+     'src/validators/numericValidator.js',
+     'src/validators/autocompleteValidator.js',
+
+     'src/cellTypes.js',
+
+     'src/pluginHooks.js',
+     'src/plugins/autoColumnSize.js',
+     'src/plugins/columnSorting.js',
+     'src/plugins/contextMenu.js',
+     'src/plugins/legacy.js',
+     'src/plugins/manualColumnMove.js',
+     'src/plugins/manualColumnResize.js',
+     'src/plugins/observeChanges.js',
+
+     'src/3rdparty/jquery.autoresize.js',
+     'src/3rdparty/sheetclip.js',
+     'src/3rdparty/copypaste.js'
+   ];
+  //
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     gitinfo: {
     },
     meta: {
-      src: [
-        'tmp/core.js',
-        'src/focusCatcher.js',
-        'src/tableView.js',
-        'src/helpers.js',
-        'src/fillHandle.js',
-        'src/undoRedo.js',
-        'src/selectionPoint.js',
-
-        'src/renderers/textRenderer.js',
-        'src/renderers/autocompleteRenderer.js',
-        'src/renderers/checkboxRenderer.js',
-        'src/renderers/numericRenderer.js',
-
-        'src/editors/textEditor.js',
-        'src/editors/autocompleteEditor.js',
-        'src/editors/checkboxEditor.js',
-        'src/editors/dateEditor.js',
-        'src/editors/handsontableEditor.js',
-
-        'src/validators/numericValidator.js',
-        'src/validators/autocompleteValidator.js',
-
-        'src/cellTypes.js',
-
-        'src/pluginHooks.js',
-        'src/plugins/autoColumnSize.js',
-        'src/plugins/columnSorting.js',
-        'src/plugins/contextMenu.js',
-        'src/plugins/legacy.js',
-        'src/plugins/manualColumnMove.js',
-        'src/plugins/manualColumnResize.js',
-        'src/plugins/observeChanges.js',
-
-        'src/3rdparty/jquery.autoresize.js',
-        'src/3rdparty/sheetclip.js',
-        'src/3rdparty/copypaste.js'
-      ],
+      src: sources,
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',
         'src/3rdparty/walkontable/src/3rdparty/*.js'
@@ -145,6 +147,26 @@ module.exports = function (grunt) {
           ]
         }
       }
+    },
+    
+    jshint: {
+        options: {
+            '-W015': true,  // turn off warning on indentation
+            // turn off "Expected an assignment".
+            // Maybe code can be fixed to remove this?
+            '-W030': true,
+            browser: true,
+            laxcomma: true,
+            globals: {
+              jQuery: true
+            }
+        },
+        gruntfile: {
+            src: ['Gruntfile.js']
+        },
+        src_files: {
+            src: sources
+        }
     },
 
     watch: {
@@ -280,7 +302,7 @@ module.exports = function (grunt) {
   });
 
   // Default task.
-  grunt.registerTask('default', ['gitinfo', 'replace:dist', 'concat', 'replace:wc', 'clean']);
+  grunt.registerTask('default', ['gitinfo', 'replace:dist', 'concat', 'replace:wc', 'jshint', 'clean']);
   grunt.registerTask('test', ['default', 'jasmine']);
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
@@ -289,6 +311,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-replace');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-jasmine');
   grunt.loadNpmTasks('grunt-contrib-connect');
