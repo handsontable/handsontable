@@ -3,10 +3,6 @@ describe('manualColumnResize', function () {
 
   beforeEach(function () {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
-
-    this.sortByColumn = function(columnIndex){
-      this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').click();
-    }
   });
 
   afterEach(function () {
