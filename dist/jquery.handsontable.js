@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Jun 30 2013 13:24:55 GMT+0200 (Central European Daylight Time)
+ * Date: Wed Jul 10 2013 18:02:56 GMT-0400 (EDT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -17,6 +17,10 @@ var Handsontable = { //class namespace
 
 (function ($, window, Handsontable) {
   "use strict";
+
+// Override locally to prevent 3rd party libraries from trying to export
+var define = null;
+
 Handsontable.activeGuid = null;
 
 /**
@@ -9781,3 +9785,8 @@ if (!jQuery.browser) {
 }));
 
 })(jQuery, window, Handsontable);
+
+// AMD support if present
+if (define && define.amd) {
+  define(Handsontable);
+}
