@@ -46,38 +46,66 @@ function HandsontableManualColumnMove() {
     }
   });
 
+  var bindMoveColEvents = function(){
+    var that = this;
+    this.rootElement.on('mousedown.handsontable', '.manualColumnMover', function (e) {
+      instance = that;
+
+      var $resizer = $(e.target);
+      var th = $resizer.closest('th');
+      startCol = th.index();
+      pressed = true;
+      startX = e.pageX;
+
+      var $table = that.rootElement.find('.htCore');
+      $table.parent()[0].appendChild(ghost);
+      ghostStyle.width = $resizer.parent().width() + 'px';
+      ghostStyle.height = $table.height() + 'px';
+      startOffset = parseInt(th.offset().left - $table.offset().left, 10);
+      ghostStyle.left = startOffset + 6 + 'px';
+    });
+    this.rootElement.on('mouseenter.handsontable', 'td, th', function () {
+      if (pressed) {
+        $('.manualColumnMover.active').removeClass('active');
+        var $ths = that.rootElement.find('thead th');
+        endCol = $(this).index();
+        var $hover = $ths.eq(endCol).find('.manualColumnMover').addClass('active');
+        $ths.not($hover).removeClass('active');
+      }
+    });
+  };
+
   this.beforeInit = function () {
     this.manualColumnPositions = [];
   };
 
-  this.afterInit = function () {
-    if (this.getSettings().manualColumnMove) {
-      var that = this;
-      this.rootElement.on('mousedown.handsontable', '.manualColumnMover', function (e) {
-        instance = that;
+  this.init = function (source) {
+    var instance = this;
 
-        var $resizer = $(e.target);
-        var th = $resizer.closest('th');
-        startCol = th.index();
-        pressed = true;
-        startX = e.pageX;
+    var manualColMoveEnabled = this.getSettings().manualColumnMove !== false;
 
-        var $table = that.rootElement.find('.htCore');
-        $table.parent()[0].appendChild(ghost);
-        ghostStyle.width = $resizer.parent().width() + 'px';
-        ghostStyle.height = $table.height() + 'px';
-        startOffset = parseInt(th.offset().left - $table.offset().left, 10);
-        ghostStyle.left = startOffset + 6 + 'px';
-      });
-      this.rootElement.on('mouseenter.handsontable', 'td, th', function () {
-        if (pressed) {
-          $('.manualColumnMover.active').removeClass('active');
-          var $ths = that.rootElement.find('thead th');
-          endCol = $(this).index();
-          var $hover = $ths.eq(endCol).find('.manualColumnMover').addClass('active');
-          $ths.not($hover).removeClass('active');
+    if (manualColMoveEnabled) {
+      var initialManualColumnPositions = this.getSettings().manualColumnMove;
+
+      if(initialManualColumnPositions instanceof Array){
+        this.manualColumnPositions = initialManualColumnPositions;
+      }else{
+        this.manualColumnPositions = [];
+      }
+
+      instance.forceFullRender = true;
+
+      if(source == 'afterInit'){
+        bindMoveColEvents.call(this);
+        if(this.manualColumnPositions.length > 0){
+          this.forceFullRender = true;
+          this.render();
         }
-      });
+
+      }
+
+    }else{
+      this.manualColumnPositions = [];
     }
   };
 
@@ -103,6 +131,7 @@ function HandsontableManualColumnMove() {
 var htManualColumnMove = new HandsontableManualColumnMove();
 
 Handsontable.PluginHooks.add('beforeInit', htManualColumnMove.beforeInit);
-Handsontable.PluginHooks.add('afterInit', htManualColumnMove.afterInit);
+Handsontable.PluginHooks.add('afterInit', function(){ htManualColumnMove.init.call(this, 'afterInit')});
+Handsontable.PluginHooks.add('afterUpdateSettings', function(){ htManualColumnMove.init.call(this, 'afterUpdateSettings')});
 Handsontable.PluginHooks.add('afterGetColHeader', htManualColumnMove.getColHeader);
 Handsontable.PluginHooks.add('modifyCol', htManualColumnMove.modifyCol);
