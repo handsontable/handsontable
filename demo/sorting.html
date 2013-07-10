@@ -46,7 +46,7 @@
       for (i = 0; i < 100000; i++) {
         var row = [];
         for (j = 0; j < 7; j++) {
-          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
+          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + parseInt(i, 10) + parseInt(j, 10));
         }
         rows.push(row);
       }
@@ -126,6 +126,7 @@
                 {},
                 {}
               ],
+              manualColumnMove: true,
               minSpareRows: 1,
               contextMenu: true,
               persistentState: {
@@ -142,8 +143,26 @@
 
                     if(loadedState){
                       this.updateSettings({
-                         columnSorting : loadedState
+                        columnSorting : loadedState
                       });
+
+                      $('.state-loaded').show();
+
+                    }
+                  }
+                },
+                columnOrder : {
+                  hook: 'afterColumnMove',
+                  save : function(storage){
+                    storage.saveValue('columnOrder', this.manualColumnPositions);
+                  },
+                  load : function(storage){
+                    var loadedState = storage.loadValue('columnOrder');
+
+                    if(loadedState){
+                        this.updateSettings({
+                          manualColumnMove : loadedState
+                        });
 
                       $('.state-loaded').show();
 
@@ -156,7 +175,8 @@
             $('.reset-state').on('click', function(){
               var HOT = $('#example1').handsontable('getInstance');
               HOT.updateSettings({
-                columnSorting: true
+                columnSorting: true,
+                manualColumnMove:true
               })
 
               HOT.resetState();
