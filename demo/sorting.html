@@ -127,6 +127,7 @@
                 {}
               ],
               manualColumnMove: true,
+              manualColumnResize: [100, 150, 180],
               minSpareRows: 1,
               contextMenu: true,
               persistentState: {
@@ -168,6 +169,24 @@
 
                     }
                   }
+                },
+                columnWidth : {
+                  hook: 'afterColumnResize',
+                  save : function(storage){
+                    storage.saveValue('columnWidths', this.manualColumnWidths);
+                  },
+                  load : function(storage){
+                    var loadedState = storage.loadValue('columnWidths');
+
+                    if(loadedState){
+                      this.updateSettings({
+                        manualColumnResize : loadedState
+                      });
+
+                      $('.state-loaded').show();
+
+                    }
+                  }
                 }
               }
             });
@@ -176,7 +195,8 @@
               var HOT = $('#example1').handsontable('getInstance');
               HOT.updateSettings({
                 columnSorting: true,
-                manualColumnMove:true
+                manualColumnMove:true,
+                manualColumnResize: true
               })
 
               HOT.resetState();

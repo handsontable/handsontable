@@ -46,50 +46,71 @@ function HandsontableManualColumnResize() {
     }
   });
 
+  var bindManualColumnWidthEvents = function(){
+    var that = this;
+
+    this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
+      if (autoresizeTimeout == null) {
+        autoresizeTimeout = setTimeout(function () {
+          if (dblclick >= 2) {
+            setManualSize(currentCol, htAutoColumnSize.determineColumnWidth.call(instance, currentCol));
+            instance.PluginHooks.run('afterColumnResize', currentCol, newSize);
+          }
+          dblclick = 0;
+          autoresizeTimeout = null;
+        }, 500);
+      }
+      dblclick++;
+    });
+
+    this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
+      var _resizer = e.target,
+        $table   = that.rootElement.find('.htCore'),
+        $grandpa = $(_resizer.parentNode.parentNode);
+
+      instance = that;
+      currentCol = _resizer.getAttribute('rel');
+      start = $(that.rootElement[0].getElementsByTagName('col')[$grandpa.index()]);
+      pressed = true;
+      startX = e.pageX;
+      startWidth = start.width();
+      currentWidth = startWidth;
+
+      _resizer.className += ' active';
+
+      lineStyle.height = $table.height() + 'px';
+      $table.parent()[0].appendChild(line);
+      startOffset = parseInt($grandpa.offset().left - $table.offset().left, 10);
+      lineStyle.left = startOffset + currentWidth - 1 + 'px';
+    });
+  };
+
   this.beforeInit = function () {
     this.manualColumnWidths = [];
   };
 
-  this.afterInit = function () {
-    if (this.getSettings().manualColumnResize) {
-      var that = this;
+  this.init = function (source) {
+    var instance = this;
+    var manualColumnWidthEnabled = Boolean(this.getSettings().manualColumnResize);
 
-      this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
-        if (autoresizeTimeout == null) {
-          autoresizeTimeout = setTimeout(function () {
-            if (dblclick >= 2) {
-              setManualSize(currentCol, htAutoColumnSize.determineColumnWidth.call(instance, currentCol));
-              instance.PluginHooks.run('afterColumnResize', currentCol, newSize);
-            }
-            dblclick = 0;
-            autoresizeTimeout = null;
-          }, 500);
-        }
-        dblclick++;
-      });
+    if (manualColumnWidthEnabled) {
+      var initialColumnWidths = this.getSettings().manualColumnResize;
 
-      this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
-        var _resizer = e.target,
-            $table   = that.rootElement.find('.htCore'),
-            $grandpa = $(_resizer.parentNode.parentNode);
+      if(initialColumnWidths instanceof Array){
+        this.manualColumnWidths = initialColumnWidths;
+      } else {
+        this.manualColumnWidths = [];
+      }
 
-        instance = that;
-        currentCol = _resizer.getAttribute('rel');
-        start = $(that.rootElement[0].getElementsByTagName('col')[$grandpa.index()]);
-        pressed = true;
-        startX = e.pageX;
-        startWidth = start.width();
-        currentWidth = startWidth;
-
-        _resizer.className += ' active';
-
-        lineStyle.height = $table.height() + 'px';
-        $table.parent()[0].appendChild(line);
-        startOffset = parseInt($grandpa.offset().left - $table.offset().left, 10);
-        lineStyle.left = startOffset + currentWidth - 1 + 'px';
-      });
+      if(source == 'afterInit'){
+        bindManualColumnWidthEvents.call(this);
+        instance.forceFullRender = true;
+        instance.render();
+      }
     }
   };
+
+
 
   var setManualSize = function (col, width) {
     width = Math.max(width, 20);
@@ -116,6 +137,8 @@ function HandsontableManualColumnResize() {
 var htManualColumnResize = new HandsontableManualColumnResize();
 
 Handsontable.PluginHooks.add('beforeInit', htManualColumnResize.beforeInit);
-Handsontable.PluginHooks.add('afterInit', htManualColumnResize.afterInit);
+Handsontable.PluginHooks.add('afterInit', function(){htManualColumnResize.init.call(this, 'afterInit')});
+Handsontable.PluginHooks.add('afterUpdateSettings', function(){htManualColumnResize.init.call(this, 'afterUpdateSettings')});
+
 Handsontable.PluginHooks.add('afterGetColHeader', htManualColumnResize.getColHeader);
 Handsontable.PluginHooks.add('afterGetColWidth', htManualColumnResize.getColWidth);

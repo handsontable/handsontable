@@ -82,7 +82,7 @@ function HandsontableManualColumnMove() {
   this.init = function (source) {
     var instance = this;
 
-    var manualColMoveEnabled = this.getSettings().manualColumnMove !== false;
+    var manualColMoveEnabled = Boolean(this.getSettings().manualColumnMove);
 
     if (manualColMoveEnabled) {
       var initialManualColumnPositions = this.getSettings().manualColumnMove;
