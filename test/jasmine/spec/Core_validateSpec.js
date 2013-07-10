@@ -30,18 +30,18 @@ describe('Core_validate', function () {
   it('should call beforeValidate', function () {
     var fired = null;
 
-      handsontable({
-        data: arrayOfObjects(),
-        columns: [
-          {data: 'id', type: 'numeric'},
-          {data: 'name'},
-          {data: 'lastName'}
-        ],
-        beforeValidate: function () {
-          fired = true;
-        }
-      });
-      setDataAtCell(2, 0, 'test');
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      beforeValidate: function () {
+        fired = true;
+      }
+    });
+    setDataAtCell(2, 0, 'test');
 
     expect(fired).toEqual(true);
   });
@@ -49,18 +49,18 @@ describe('Core_validate', function () {
   it('should call afterValidate', function () {
     var fired = null;
 
-      handsontable({
-        data: arrayOfObjects(),
-        columns: [
-          {data: 'id', type: 'numeric'},
-          {data: 'name'},
-          {data: 'lastName'}
-        ],
-        afterValidate: function () {
-          fired = true;
-        }
-      });
-      setDataAtCell(2, 0, 'test');
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: function () {
+        fired = true;
+      }
+    });
+    setDataAtCell(2, 0, 'test');
 
     expect(fired).toEqual(true);
   });
@@ -68,46 +68,46 @@ describe('Core_validate', function () {
   it('beforeValidate should can manipulate value', function () {
     var result = null;
 
-      handsontable({
-        data: arrayOfObjects(),
-        columns: [
-          {data: 'id', type: 'numeric'},
-          {data: 'name'},
-          {data: 'lastName'}
-        ],
-        beforeValidate: function (value) {
-          value = 999;
-          return value;
-        },
-        afterValidate: function (valid, value) {
-          result = value;
-        }
-      });
-      setDataAtCell(2, 0, 123);
-
-      expect(result).toEqual(999);
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      beforeValidate: function (value) {
+        value = 999;
+        return value;
+      },
+      afterValidate: function (valid, value) {
+        result = value;
+      }
     });
+    setDataAtCell(2, 0, 123);
+
+    expect(result).toEqual(999);
+  });
 
   it('should be able to define custom validator function', function () {
     var result = null;
 
-      handsontable({
-        data: arrayOfObjects(),
-        columns: [
-          {data: 'id', validator: function (value, cb) {
-            cb(true);
-          }},
-          {data: 'name'},
-          {data: 'lastName'}
-        ],
-        afterValidate: function (valid) {
-          result = valid;
-        }
-      });
-      setDataAtCell(2, 0, 123);
-
-      expect(result).toEqual(true);
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', validator: function (value, cb) {
+          cb(true);
+        }},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: function (valid) {
+        result = valid;
+      }
     });
+    setDataAtCell(2, 0, 123);
+
+    expect(result).toEqual(true);
+  });
 
   it('should be able to define custom validator RegExp', function () {
     var lastInvalid = null;
@@ -134,27 +134,27 @@ describe('Core_validate', function () {
     var result = null
       , fired = false;
 
-      handsontable({
-        data: arrayOfObjects(),
-        columns: [
-          {data: 'id', validator: function (value, cb) {
-            result = this;
-            cb(true);
-          }},
-          {data: 'name'},
-          {data: 'lastName'}
-        ],
-        afterValidate: function () {
-          fired = true;
-        }
-      });
-      setDataAtCell(2, 0, 123);
-
-      expect(result.instance).toEqual(getInstance());
-    });
-
-  it('should add class name `htInvalid` to an cell that does not validate - on data load', function () {
     handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', validator: function (value, cb) {
+          result = this;
+          cb(true);
+        }},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: function () {
+        fired = true;
+      }
+    });
+    setDataAtCell(2, 0, 123);
+
+    expect(result.instance).toEqual(getInstance());
+  });
+
+  it('should add class name `htInvalid` to an cell that does not validate - on validateCells', function () {
+    var hot = handsontable({
       data: createSpreadsheetData(2, 2),
       validator: function (value, callb) {
         if (value == "B1") {
@@ -164,6 +164,10 @@ describe('Core_validate', function () {
           callb(true)
         }
       }
+    });
+
+    hot.validateCells(function () {
+      hot.render();
     });
 
     expect(this.$container.find('td.htInvalid').length).toEqual(1);
@@ -214,8 +218,8 @@ describe('Core_validate', function () {
     expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htNumeric')).toEqual(true);
   });
 
-  it('should add class name `htInvalid` to an cell that does not validate - after updateSettings & render', function () {
-    handsontable({
+  it('should add class name `htInvalid` to an cell that does not validate - after validateCells & render', function () {
+    var hot = handsontable({
       data: createSpreadsheetData(2, 2)
     });
 
@@ -231,14 +235,19 @@ describe('Core_validate', function () {
         callb(true)
       }
     }});
-    render();
 
-    expect(this.$container.find('td.htInvalid').length).toEqual(1);
-    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+    hot.validateCells(function () {
+      hot.render();
+    });
+
+    runs(function () {
+      expect(this.$container.find('td.htInvalid').length).toEqual(1);
+      expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+    });
   });
 
   it('should remove class name `htInvalid` when cell is edited to validate', function () {
-    handsontable({
+    var hot = handsontable({
       data: createSpreadsheetData(2, 2),
       validator: function (value, callb) {
         if (value == 'A0') {
@@ -248,6 +257,10 @@ describe('Core_validate', function () {
           callb(true)
         }
       }
+    });
+
+    hot.validateCells(function () {
+      hot.render();
     });
 
     expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
@@ -297,7 +310,7 @@ describe('Core_validate', function () {
     });
   });
 
-  it('should call beforeChange exactly once after cell value edit and validator is synchronous', function(){
+  it('should call beforeChange exactly once after cell value edit and validator is synchronous', function () {
     var callCounter = 0;
 
     var hot = handsontable({
@@ -321,7 +334,7 @@ describe('Core_validate', function () {
 
   });
 
-  it('should call beforeChange exactly once after cell value edit and validator is asynchronous', function(){
+  it('should call beforeChange exactly once after cell value edit and validator is asynchronous', function () {
     var callCounter = 0;
 
     var hot = handsontable({
@@ -345,13 +358,13 @@ describe('Core_validate', function () {
 
     waits(100);
 
-    runs(function(){
+    runs(function () {
       expect(callCounter).toEqual(1);
     });
 
   });
 
-  it('should call afterChange exactly once after cell value edit and validator is synchronous', function(){
+  it('should call afterChange exactly once after cell value edit and validator is synchronous', function () {
     var callCounter = 0;
 
     var hot = handsontable({
@@ -375,7 +388,7 @@ describe('Core_validate', function () {
 
   });
 
-  it('should call afterChange exactly once after cell value edit and validator is asynchronous', function(){
+  it('should call afterChange exactly once after cell value edit and validator is asynchronous', function () {
     var callCounter = 0;
 
     var hot = handsontable({
@@ -399,8 +412,46 @@ describe('Core_validate', function () {
 
     waits(100);
 
-    runs(function(){
+    runs(function () {
       expect(callCounter).toEqual(1);
+    });
+
+  });
+
+  it('edited cell should stay on screen until value is validated', function () {
+    var beforeElement;
+    var afterElement;
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      afterValidate: function () {
+        beforeElement = document.activeElement;
+      },
+      afterChange: function () {
+        afterElement = document.activeElement;
+      },
+      validator: function (value, callback) {
+        setTimeout(function () {
+          callback(true);
+        }, 100);
+      }
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+    afterElement = "teraz";
+    document.activeElement.value = 'Ted';
+    keyDown('enter');
+
+    expect(document.activeElement.nodeName).toEqual('TEXTAREA');
+
+    waits(110);
+
+    runs(function () {
+      expect(beforeElement.nodeName).toEqual('TEXTAREA');
+      expect(afterElement.nodeName).toEqual('BODY');
+      expect(document.activeElement.nodeName).toEqual('BODY');
     });
 
   });

@@ -399,12 +399,12 @@ Handsontable.Core = function (rootElement, userSettings) {
      * The trick is, the physical row id (stored in settings.data) is not necessary the same
      * as the logical (displayed) row id (e.g. when sorting is applied).
      */
-    physicalRowsToLogical: function(index, amount){
+    physicalRowsToLogical: function (index, amount) {
       var physicRow = (GridSettings.prototype.data.length + index) % GridSettings.prototype.data.length;
       var logicRows = [];
       var rowsToRemove = amount;
 
-      while(physicRow < GridSettings.prototype.data.length && rowsToRemove){
+      while (physicRow < GridSettings.prototype.data.length && rowsToRemove) {
         this.get(physicRow, 0); //this performs an actual mapping and saves the result to getVars
         logicRows.push(this.getVars.row);
 
@@ -1480,6 +1480,30 @@ Handsontable.Core = function (rootElement, userSettings) {
     instance.PluginHooks.run('afterInit');
   };
 
+  function ValidatorsQueue() { //moved this one level up so it can be used in any function here. Probably this should be moved to a separate file
+    var resolved = false;
+
+    return {
+      validatorsInQueue: 0,
+      addValidatorToQueue: function () {
+        this.validatorsInQueue++;
+        resolved = false;
+      },
+      removeValidatorFormQueue: function () {
+        this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
+        this.checkIfQueueIsEmpty();
+      },
+      onQueueEmpty: function () {
+      },
+      checkIfQueueIsEmpty: function () {
+        if (this.validatorsInQueue == 0 && resolved == false) {
+          resolved = true;
+          this.onQueueEmpty();
+        }
+      }
+    };
+  }
+
   function validateChanges(changes, source, callback) {
     var waitingForValidator = new ValidatorsQueue();
     waitingForValidator.onQueueEmpty = resolve;
@@ -1516,29 +1540,6 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
     waitingForValidator.checkIfQueueIsEmpty();
-
-    function ValidatorsQueue(){
-      var resolved = false;
-
-      return {
-        validatorsInQueue: 0,
-        addValidatorToQueue: function(){
-          this.validatorsInQueue++;
-          resolved = false;
-        },
-        removeValidatorFormQueue: function(){
-          this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
-          this.checkIfQueueIsEmpty();
-        },
-        onQueueEmpty: function(){},
-        checkIfQueueIsEmpty: function(){
-          if(this.validatorsInQueue == 0 && resolved == false){
-            resolved = true;
-            this.onQueueEmpty();
-          }
-        }
-      };
-    }
 
     function resolve() {
       var beforeChangeResult;
@@ -1614,12 +1615,14 @@ Handsontable.Core = function (rootElement, userSettings) {
       value = instance.PluginHooks.execute("beforeValidate", value, cellProperties.row, cellProperties.prop, source);
 
       validator.call(cellProperties, value, function (valid) {
-        if (cellProperties.allowInvalid) {
-          cellProperties.valid = valid;
-        }
+        cellProperties.valid = valid;
         valid = instance.PluginHooks.execute("afterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
         callback(valid);
       });
+    }
+    else { //resolve callback even if validator function was not found
+      cellProperties.valid = true;
+      callback(true);
     }
   };
 
@@ -1839,7 +1842,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.render = function () {
     if (instance.view) {
-      priv.cellSettings.length = 0; //clear cellSettings cache
+      //priv.cellSettings.length = 0; //clear cellSettings cache - [Marcin] I think it's not needed here
       instance.forceFullRender = true; //used when data was changed
       instance.parseSettingsFromDOM();
       selection.refreshBorders(null, true);
@@ -2244,14 +2247,32 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
 
-    if (cellProperties.validator && cellProperties.valid === void 0) { //this is the first render of this cell and we need to know if it's valid
-      instance.validateCell(instance.getDataAtCell(row, col), cellProperties, function (res) {
-      }, 'getCellMeta');
-    }
-
     instance.PluginHooks.run('afterGetCellMeta', row, col, cellProperties);
 
     return cellProperties;
+  };
+
+  /**
+   * Validates all cells using their validator functions and calls callback when finished. Does not render the view
+   * @param callback
+   */
+  this.validateCells = function (callback) {
+    var waitingForValidator = new ValidatorsQueue();
+    waitingForValidator.onQueueEmpty = callback;
+
+    var i = instance.countRows() - 1;
+    while (i >= 0) {
+      var j = instance.countCols() - 1;
+      while (j >= 0) {
+        waitingForValidator.addValidatorToQueue();
+        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), function () {
+          waitingForValidator.removeValidatorFormQueue();
+        }, 'validateCells');
+        j--;
+      }
+      i--;
+    }
+    waitingForValidator.checkIfQueueIsEmpty();
   };
 
   /**
@@ -2591,21 +2612,21 @@ Handsontable.Core = function (rootElement, userSettings) {
     };
 
     // Map old API with new methods
-    instance.addHook = function(){
+    instance.addHook = function () {
       instance.PluginHooks.add.apply(instance.PluginHooks, arguments);
     };
-    instance.addHookOnce = function(){
+    instance.addHookOnce = function () {
       instance.PluginHooks.once.apply(instance.PluginHooks, arguments);
     };
 
-    instance.removeHook = function(){
+    instance.removeHook = function () {
       instance.PluginHooks.remove.apply(instance.PluginHooks, arguments);
     };
 
-    instance.runHooks = function(){
+    instance.runHooks = function () {
       instance.PluginHooks.run.apply(instance.PluginHooks, arguments);
     };
-    instance.runHooksAndReturn = function(){
+    instance.runHooksAndReturn = function () {
       return instance.PluginHooks.execute.apply(instance.PluginHooks, arguments);
     };
 

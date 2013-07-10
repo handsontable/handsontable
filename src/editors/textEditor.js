@@ -42,7 +42,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
     //if we are here then isCellEdited === true
 
     that.instance.PluginHooks.run('beforeKeyDown', event);
-    if(event.isImmediatePropagationStopped()) { //event was cancelled in beforeKeyDown
+    if (event.isImmediatePropagationStopped()) { //event was cancelled in beforeKeyDown
       return;
     }
 
@@ -105,6 +105,12 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
       default:
         event.stopImmediatePropagation(); //backspace, delete, home, end, CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
         break;
+    }
+
+    if (that.waiting) {
+      that.waiting = event;
+      event.stopImmediatePropagation();
+      event.preventDefault();
     }
   });
 };
@@ -186,7 +192,8 @@ HandsontableTextEditorClass.prototype.getCaretPosition = function (el) {
 /**
  * Sets caret position in edit proxy
  * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
- * @param {Number}
+ * @param {Element} el
+ * @param {Number} pos
  */
 HandsontableTextEditorClass.prototype.setCaretPosition = function (el, pos) {
   if (el.setSelectionRange) {
@@ -203,17 +210,13 @@ HandsontableTextEditorClass.prototype.setCaretPosition = function (el, pos) {
 };
 
 HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
-  if (this.isCellEdited) {
+  if (this.isCellEdited || this.waiting) {
     return;
   }
   this.isCellEdited = true;
   this.row = row;
   this.col = col;
   this.prop = prop;
-
-  var coords = {row: row, col: col};
-  this.instance.view.scrollViewport(coords);
-  this.instance.view.render();
 
   this.$textarea.on('cut.editor', function (event) {
     event.stopPropagation();
@@ -233,6 +236,10 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
   this.refreshDimensions(); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
   this.TEXTAREA.focus();
   this.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+
+  var coords = {row: row, col: col};
+  this.instance.view.scrollViewport(coords);
+  this.instance.view.render();
 };
 
 HandsontableTextEditorClass.prototype.refreshDimensions = function () {
@@ -300,29 +307,70 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   this.textareaParentStyle.display = 'block';
 };
 
+HandsontableTextEditorClass.prototype.saveValue = function (val, ctrlDown) {
+  if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
+    var sel = this.instance.getSelected();
+    this.instance.populateFromArray(sel[0], sel[1], val, sel[2], sel[3], 'edit');
+  }
+  else {
+    this.instance.populateFromArray(this.row, this.col, val, null, null, 'edit');
+  }
+};
+
 HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
+  if (this.waiting) {
+    return;
+  }
   if (this.isCellEdited) {
     this.isCellEdited = false;
     if (!isCancelled) {
       var val = [
         [$.trim(this.TEXTAREA.value)]
       ];
-      if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
-        var sel = this.instance.getSelected();
-        this.instance.populateFromArray(sel[0], sel[1], val, sel[2], sel[3], 'edit');
+
+      if (this.instance.getCellMeta(this.row, this.col).validator) {
+        this.waiting = true;
+        var that = this;
+        this.instance.addHookOnce('afterValidate', function (result) {
+          that.force = that.waiting;
+          that.waiting = false;
+          that.discardEditor(result);
+        });
       }
-      else {
-        this.instance.populateFromArray(this.row, this.col, val, null, null, 'edit');
-      }
+      this.saveValue(val, ctrlDown);
     }
   }
+  if (!this.waiting) { //otherwise afterValidate will discard the editor
+    this.discardEditor();
+  }
+};
 
-  this.unbindTemporaryEvents();
-  if (document.activeElement === this.TEXTAREA) {
-    this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
+HandsontableTextEditorClass.prototype.discardEditor = function (result) {
+  if (this.waiting) {
+    return;
   }
 
-  this.textareaParentStyle.display = 'none';
+  if (result === false) { //validator was defined and failed
+    this.isCellEdited = true;
+    this.TEXTAREA.value = this.originalValue;
+    this.TEXTAREA.focus();
+    this.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+  }
+  else {
+    if (document.activeElement === this.TEXTAREA) {
+      this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
+    }
+    this.unbindTemporaryEvents();
+
+    this.textareaParentStyle.display = 'none';
+
+    if (this.force && this.force.type) { //this is needed so when you finish editing with Enter key, the default Enter behavior (move selection down) will work after async validation
+      var ev = $.Event(this.force.type);
+      ev.keyCode = this.force.keyCode;
+      this.force = null;
+      $(document.activeElement).trigger(ev);
+    }
+  }
 };
 
 /**
