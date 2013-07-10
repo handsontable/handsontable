@@ -7,15 +7,28 @@
 
 function Storage(prefix){
 
-  var savedKeys = [];
+  var savedKeys;
+
+  var saveSavedKeys = function(){
+    window.localStorage[prefix+'__'+'persistentStateKeys'] = JSON.stringify(savedKeys);
+  }
+
+  var loadSavedKeys = function(){
+    var keysJSON = window.localStorage[prefix+'__'+'persistentStateKeys'];
+    var keys = typeof keysJSON == 'string' ? JSON.parse(keysJSON) : void 0;
+    savedKeys =  keys ? keys : [];
+  };
+
+  loadSavedKeys();
 
   this.saveValue = function(key, value){
     window.localStorage[prefix+'_'+key] = JSON.stringify(value);
     if(savedKeys.indexOf(key) == -1){
       savedKeys.push(key);
+      saveSavedKeys(savedKeys);
     }
 
-  }
+  };
 
   this.loadValue = function(key, defaultValue){
 
@@ -25,14 +38,20 @@ function Storage(prefix){
 
     return typeof value == "undefined" ? void 0 : JSON.parse(value);
 
-  }
+  };
 
   this.reset = function(){
-    for (var index in savedKeys){
+    for (var index = 0;  index < savedKeys.length; index++){
       window.localStorage.removeItem(prefix+'_'+savedKeys[index]);
     }
+    this.clearSavedKeys()
+  };
+
+  this.clearSavedKeys = function(){
     savedKeys = [];
+    saveSavedKeys();
   }
+
 
 }
 
@@ -70,14 +89,15 @@ function HandsontablePersistentState(){
       pluginSettings = instance.getSettings()['persistentState'];
 
     for (var ruleName in pluginSettings){
-      var persistentRule = pluginSettings[ruleName];
-      if(!persistentRule.hook){
-        throw new Error('No hook specified for persistent rule: \"' + ruleName + '\"');
-      }
+      (function(persistentRule){
+        if(!persistentRule.hook){
+          throw new Error('No hook specified for persistent rule: \"' + ruleName + '\"');
+        }
 
-      Handsontable.PluginHooks.add(persistentRule.hook, function () {
-        persistentRule.save.call(instance, instance.storage);
-      });
+        instance.PluginHooks.add(persistentRule.hook, function () {
+          persistentRule.save.call(instance, instance.storage);
+        });
+      })(pluginSettings[ruleName]);
 
     }
   };
