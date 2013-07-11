@@ -58,22 +58,28 @@ describe('Core_updateSettings', function () {
   it('should update readOnly global setting', function(){
     handsontable({
       readOnly: true,
-      data : [['foo', true]],
+      data : [['foo', 'bar']],
       columns : [
-        { type : 'text' },
-        { type : 'checkbox' }
+        { },
+        { }
       ]
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(true);
+
     expect(getCellMeta(0, 1).readOnly).toBe(true);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
 
     updateSettings({
       readOnly: false
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(false);
+
     expect(getCellMeta(0, 1).readOnly).toBe(false);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
   });
 
   it('should update readOnly columns setting', function(){
@@ -88,7 +94,10 @@ describe('Core_updateSettings', function () {
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(true);
+
     expect(getCellMeta(0, 1).readOnly).toBe(false);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
 
     updateSettings({
       columns: [
@@ -100,7 +109,10 @@ describe('Core_updateSettings', function () {
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(false);
+
     expect(getCellMeta(0, 1).readOnly).toBe(false);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
   });
 
   it('should update readOnly columns setting and override global setting', function(){
@@ -115,7 +127,10 @@ describe('Core_updateSettings', function () {
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(true);
+
     expect(getCellMeta(0, 1).readOnly).toBe(true);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
 
     updateSettings({
       columns: [
@@ -127,7 +142,10 @@ describe('Core_updateSettings', function () {
     });
 
     expect(getCellMeta(0, 0).readOnly).toBe(false);
+    expect($(getCell(0, 0)).hasClass('htDimmed')).toBe(false);
+
     expect(getCellMeta(0, 1).readOnly).toBe(true);
+    expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
   });
 
 
