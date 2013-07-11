@@ -455,4 +455,259 @@ describe('Core_validate', function () {
     });
 
   });
+
+  it('should validate edited cell after selecting another cell', function () {
+
+    var validated = false;
+    var validatedValue;
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      afterValidate: function () {
+        beforeElement = document.activeElement;
+      },
+      afterChange: function () {
+        afterElement = document.activeElement;
+      },
+      validator: function (value, callback) {
+        setTimeout(function () {
+          validated = true;
+          validatedValue = value;
+          callback(true);
+        }, 100);
+      }
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    document.activeElement.value = 'Ted';
+
+    selectCell(0, 1);
+
+
+    waitsFor(function () {
+      return validated;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(validatedValue).toEqual('Ted');
+    });
+
+  });
+
+  it('should leave the new value in editor if it does not validate, after hitting ENTER', function () {
+
+    var validated = false;
+    var validationResult;
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      validator: function (value, callback) {
+        setTimeout(function () {
+
+          validated = true;
+          validationResult = value.length == 2
+          callback(validationResult);
+        }, 100);
+      }
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    document.activeElement.value = 'Ted';
+
+    keyDown('enter');
+
+
+    waitsFor(function () {
+      return validated;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(validationResult).toBe(false);
+      expect(document.activeElement.value).toEqual('Ted');
+    });
+
+  });
+
+  it('should leave the new value in editor if it does not validate, after selecting another cell', function () {
+
+    var validated = false;
+    var validationResult;
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      validator: function (value, callback) {
+        setTimeout(function () {
+
+          validated = true;
+          validationResult = value.length == 2
+          callback(validationResult);
+        }, 100);
+      }
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    document.activeElement.value = 'Ted';
+
+    selectCell(1, 0);
+
+
+    waitsFor(function () {
+      return validated;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(validationResult).toBe(false);
+      expect(document.activeElement.value).toEqual('Ted');
+    });
+
+  });
+
+  it('should close the editor and save the new value if validation fails and allowInvalid is set to "true"', function(){
+    var validated = false;
+    var validationResult;
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: true,
+      validator: function (value, callback) {
+        setTimeout(function () {
+
+          validated = true;
+          validationResult = value.length == 2
+          callback(validationResult);
+        }, 100);
+      }
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    document.activeElement.value = 'Ted';
+
+    selectCell(1, 0);
+
+
+    waitsFor(function () {
+      return validated;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(validationResult).toBe(false);
+      expect(document.activeElement.nodeName).toEqual('BODY');
+      expect(getDataAtCell(0, 0)).toEqual('Ted');
+      expect(getCell(0, 0).className).toMatch(/htInvalid/);
+    });
+  });
+
+  it('should close the editor and save the new value after double clicking on a cell, if the previously edited cell validated correctly', function () {
+
+    var validated = false;
+    var validationResult;
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      validator: function (value, callback) {
+        setTimeout(function () {
+
+          validated = true;
+          validationResult = value.length == 2
+          callback(validationResult);
+        }, 100);
+      }
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    document.activeElement.value = 'AA';
+
+    expect(document.activeElement.value).toEqual('AA');
+
+    var cell = $(getCell(1,0));
+    var clicks = 0;
+
+    setTimeout(function(){
+      mouseDown(cell);
+      mouseUp(cell);
+      clicks++;
+    }, 0);
+
+    setTimeout(function(){
+      mouseDown(cell);
+      mouseUp(cell);
+      clicks++;
+    }, 100);
+
+    waitsFor(function(){
+      return clicks == 2 && validated;
+    }, 'Two clicks', 1000);
+
+    runs(function(){
+      expect(validationResult).toBe(true);
+      expect(getDataAtCell(0,0)).toEqual('AA');
+    });
+
+  });
+
+  it('should close the editor and restore the original value after double clicking on a cell, if the previously edited cell have not validated', function () {
+
+    var validated = false;
+    var validationResult;
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      validator: function (value, callback) {
+        setTimeout(function () {
+
+          validated = true;
+          validationResult = value.length == 2
+          callback(validationResult);
+        }, 100);
+      }
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    document.activeElement.value = 'AAA';
+
+    expect(document.activeElement.value).toEqual('AAA');
+
+    var cell = $(getCell(1,0));
+    var clicks = 0;
+
+    setTimeout(function(){
+      mouseDown(cell);
+      mouseUp(cell);
+      clicks++;
+    }, 0);
+
+    setTimeout(function(){
+      mouseDown(cell);
+      mouseUp(cell);
+      clicks++;
+    }, 100);
+
+    waitsFor(function(){
+      return clicks == 2 && validated;
+    }, 'Two clicks', 1000);
+
+    runs(function(){
+      expect(validationResult).toBe(false);
+      expect(getDataAtCell(0,0)).toEqual('A0');
+    });
+
+  });
+
 });

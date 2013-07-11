@@ -116,14 +116,26 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
 };
 
 HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
+  var that = this;
+
+  function onDblClick() {
+    that.TEXTAREA.value = that.originalValue;
+    that.instance.destroyEditor();
+    that.beginEditing(row, col, prop, true);
+  }
+
+  this.instance.view.wt.update('onCellDblClick', onDblClick);
+
+  if (this.isCellEdited || this.waiting) {
+    return;
+  }
+
   this.TD = td;
   this.row = row;
   this.col = col;
   this.prop = prop;
   this.originalValue = value;
   this.cellProperties = cellProperties;
-
-  var that = this;
 
   this.$body.on('keydown.editor.' + this.instance.guid, function (event) {
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
@@ -152,12 +164,6 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
       }
     }
   });
-
-  function onDblClick() {
-    that.beginEditing(row, col, prop, true);
-  }
-
-  this.instance.view.wt.update('onCellDblClick', onDblClick);
 };
 
 HandsontableTextEditorClass.prototype.unbindTemporaryEvents = function () {
@@ -350,9 +356,8 @@ HandsontableTextEditorClass.prototype.discardEditor = function (result) {
     return;
   }
 
-  if (result === false) { //validator was defined and failed
+  if (result === false && this.cellProperties.allowInvalid !== true) { //validator was defined and failed
     this.isCellEdited = true;
-    this.TEXTAREA.value = this.originalValue;
     this.TEXTAREA.focus();
     this.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
   }

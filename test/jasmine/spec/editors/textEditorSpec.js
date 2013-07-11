@@ -182,4 +182,38 @@ describe('TextEditor', function () {
     expect(selection).toEqual([2, 2, 2, 2]);
     expect(isEditorVisible()).toEqual(true);
   });
+
+  it('should open editor after double clicking on a cell', function () {
+
+    handsontable({
+      data: createSpreadsheetData(5, 2)
+    });
+
+    expect(document.activeElement.nodeName).toEqual('BODY');
+
+    var cell = $(getCell(0,0));
+    var clicks = 0;
+
+    setTimeout(function(){
+      mouseDown(cell);
+      mouseUp(cell);
+      clicks++;
+    }, 0);
+
+    setTimeout(function(){
+      mouseDown(cell);
+      mouseUp(cell);
+      clicks++;
+    }, 100);
+
+    waitsFor(function(){
+      return clicks == 2;
+    }, 'Two clicks', 1000);
+
+    runs(function(){
+      expect(document.activeElement.nodeName).toEqual('TEXTAREA');
+    });
+
+  });
+
 });
