@@ -8,6 +8,11 @@
  */
 Handsontable.PluginHooks.add('beforeGetCellMeta', function (row, col, cellProperties) {
   var settings = this.getSettings(), data = this.getData(), i, ilen, a;
+
+  //isWritable - deprecated since 0.8.0
+  cellProperties.isWritable = !cellProperties.readOnly;
+
+  //autocomplete - deprecated since 0.7.1 (see CHANGELOG.md)
   if (settings.autoComplete) {
     for (i = 0, ilen = settings.autoComplete.length; i < ilen; i++) {
       if (settings.autoComplete[i].match(row, col, data)) {

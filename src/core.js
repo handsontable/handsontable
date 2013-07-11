@@ -399,12 +399,12 @@ Handsontable.Core = function (rootElement, userSettings) {
      * The trick is, the physical row id (stored in settings.data) is not necessary the same
      * as the logical (displayed) row id (e.g. when sorting is applied).
      */
-    physicalRowsToLogical: function(index, amount){
+    physicalRowsToLogical: function (index, amount) {
       var physicRow = (GridSettings.prototype.data.length + index) % GridSettings.prototype.data.length;
       var logicRows = [];
       var rowsToRemove = amount;
 
-      while(physicRow < GridSettings.prototype.data.length && rowsToRemove){
+      while (physicRow < GridSettings.prototype.data.length && rowsToRemove) {
         this.get(physicRow, 0); //this performs an actual mapping and saves the result to getVars
         logicRows.push(this.getVars.row);
 
@@ -724,7 +724,7 @@ Handsontable.Core = function (rootElement, userSettings) {
               if ((end && current.col > end.col) || (!priv.settings.minSpareCols && current.col > instance.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
                 break;
               }
-              if (instance.getCellMeta(current.row, current.col).isWritable) {
+              if (!instance.getCellMeta(current.row, current.col).readOnly) {
                 setData.push([current.row, current.col, input[r][c]]);
               }
               current.col++;
@@ -1038,7 +1038,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       var r, c, changes = [];
       for (r = corners.TL.row; r <= corners.BR.row; r++) {
         for (c = corners.TL.col; c <= corners.BR.col; c++) {
-          if (instance.getCellMeta(r, c).isWritable) {
+          if (!instance.getCellMeta(r, c).readOnly) {
             changes.push([r, c, '']);
           }
         }
@@ -1451,7 +1451,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Prepare text input to be displayed at given grid cell
      */
     prepare: function () {
-      if (!instance.getCellMeta(priv.selStart.row(), priv.selStart.col()).isWritable) {
+      if (instance.getCellMeta(priv.selStart.row(), priv.selStart.col()).readOnly) {
         return;
       }
 
@@ -1517,22 +1517,23 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
     waitingForValidator.checkIfQueueIsEmpty();
 
-    function ValidatorsQueue(){
+    function ValidatorsQueue() {
       var resolved = false;
 
       return {
         validatorsInQueue: 0,
-        addValidatorToQueue: function(){
+        addValidatorToQueue: function () {
           this.validatorsInQueue++;
           resolved = false;
         },
-        removeValidatorFormQueue: function(){
+        removeValidatorFormQueue: function () {
           this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
           this.checkIfQueueIsEmpty();
         },
-        onQueueEmpty: function(){},
-        checkIfQueueIsEmpty: function(){
-          if(this.validatorsInQueue == 0 && resolved == false){
+        onQueueEmpty: function () {
+        },
+        checkIfQueueIsEmpty: function () {
+          if (this.validatorsInQueue == 0 && resolved == false) {
             resolved = true;
             this.onQueueEmpty();
           }
@@ -2222,8 +2223,6 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
 
-    cellProperties.isWritable = !cellProperties.readOnly;
-
     instance.PluginHooks.run('beforeGetCellMeta', row, col, cellProperties);
 
     if (typeof cellProperties.type === 'string' && cellProperties.type !== 'text') {
@@ -2591,21 +2590,21 @@ Handsontable.Core = function (rootElement, userSettings) {
     };
 
     // Map old API with new methods
-    instance.addHook = function(){
+    instance.addHook = function () {
       instance.PluginHooks.add.apply(instance.PluginHooks, arguments);
     };
-    instance.addHookOnce = function(){
+    instance.addHookOnce = function () {
       instance.PluginHooks.once.apply(instance.PluginHooks, arguments);
     };
 
-    instance.removeHook = function(){
+    instance.removeHook = function () {
       instance.PluginHooks.remove.apply(instance.PluginHooks, arguments);
     };
 
-    instance.runHooks = function(){
+    instance.runHooks = function () {
       instance.PluginHooks.run.apply(instance.PluginHooks, arguments);
     };
-    instance.runHooksAndReturn = function(){
+    instance.runHooksAndReturn = function () {
       return instance.PluginHooks.execute.apply(instance.PluginHooks, arguments);
     };
 
