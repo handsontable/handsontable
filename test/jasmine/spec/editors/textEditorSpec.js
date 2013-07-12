@@ -189,7 +189,7 @@ describe('TextEditor', function () {
       data: createSpreadsheetData(5, 2)
     });
 
-    expect(document.activeElement.nodeName).toEqual('BODY');
+    expect(document.activeElement.nodeName).not.toEqual('TEXTAREA');
 
     var cell = $(getCell(0,0));
     var clicks = 0;
