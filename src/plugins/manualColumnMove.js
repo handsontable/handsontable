@@ -42,11 +42,29 @@ function HandsontableManualColumnMove() {
       instance.forceFullRender = true;
       instance.view.render(); //updates all
       ghostStyle.display = 'none';
+
+      saveManualColumnPositions.call(instance);
+
       instance.PluginHooks.run('afterColumnMove', startCol, endCol);
     }
   });
 
-  var bindMoveColEvents = function(){
+  var saveManualColumnPositions = function () {
+    var instance = this;
+
+    instance.PluginHooks.run('persistentStateSave', 'manualColumnPositions', instance.manualColumnPositions);
+  };
+
+  var loadManualColumnPositions = function () {
+    var instance = this;
+    var storedState = {};
+    instance.PluginHooks.run('persistentStateLoad', 'manualColumnPositions', storedState);
+
+    return storedState.value;
+  };
+
+
+  var bindMoveColEvents = function () {
     var that = this;
     this.rootElement.on('mousedown.handsontable', '.manualColumnMover', function (e) {
       instance = that;
@@ -87,24 +105,29 @@ function HandsontableManualColumnMove() {
     if (manualColMoveEnabled) {
       var initialManualColumnPositions = this.getSettings().manualColumnMove;
 
-      if(initialManualColumnPositions instanceof Array){
+      var loadedManualColumnPositions = loadManualColumnPositions.call(instance);
+
+      if (typeof loadedManualColumnPositions != 'undefined') {
+        this.manualColumnPositions = loadedManualColumnPositions;
+      } else if (initialManualColumnPositions instanceof Array) {
         this.manualColumnPositions = initialManualColumnPositions;
-      }else{
+      } else {
         this.manualColumnPositions = [];
       }
 
+
       instance.forceFullRender = true;
 
-      if(source == 'afterInit'){
+      if (source == 'afterInit') {
         bindMoveColEvents.call(this);
-        if(this.manualColumnPositions.length > 0){
+        if (this.manualColumnPositions.length > 0) {
           this.forceFullRender = true;
           this.render();
         }
 
       }
 
-    }else{
+    } else {
       this.manualColumnPositions = [];
     }
   };
@@ -131,7 +154,11 @@ function HandsontableManualColumnMove() {
 var htManualColumnMove = new HandsontableManualColumnMove();
 
 Handsontable.PluginHooks.add('beforeInit', htManualColumnMove.beforeInit);
-Handsontable.PluginHooks.add('afterInit', function(){ htManualColumnMove.init.call(this, 'afterInit')});
-Handsontable.PluginHooks.add('afterUpdateSettings', function(){ htManualColumnMove.init.call(this, 'afterUpdateSettings')});
+Handsontable.PluginHooks.add('afterInit', function () {
+  htManualColumnMove.init.call(this, 'afterInit')
+});
+Handsontable.PluginHooks.add('afterUpdateSettings', function () {
+  htManualColumnMove.init.call(this, 'afterUpdateSettings')
+});
 Handsontable.PluginHooks.add('afterGetColHeader', htManualColumnMove.getColHeader);
 Handsontable.PluginHooks.add('modifyCol', htManualColumnMove.modifyCol);
