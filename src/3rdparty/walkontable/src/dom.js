@@ -145,6 +145,7 @@ WalkontableDom.prototype.removeTextNodes = function (elem, parent) {
  * Remove childs function
  * WARNING - this doesn't unload events and data attached by jQuery
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
+ * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/11 - no siginificant improvement with Chrome remove() method
  * @param element
  * @returns {void}
  */
