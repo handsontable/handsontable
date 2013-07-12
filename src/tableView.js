@@ -17,10 +17,18 @@ Handsontable.TableView = function (instance) {
   var table = document.createElement('TABLE');
   table.className = 'htCore';
   table.appendChild(document.createElement('THEAD'));
-  table.appendChild(document.createElement('TBODY'));
+  this.TBODY = document.createElement('TBODY');
+  table.appendChild(this.TBODY);
 
   instance.$table = $(table);
   instance.rootElement.prepend(instance.$table);
+
+  instance.rootElement.on('mousedown.handsontable', function (event) {
+    if (!that.isTextSelectionAllowed(event.target)) {
+      event.preventDefault(); //disable text selection in Chrome
+      clearTextSelection();
+    }
+  });
 
   $documentElement.on('keyup.' + instance.guid, function (event) {
     if (instance.selection.isInProgress() && !event.shiftKey) {
@@ -233,10 +241,6 @@ Handsontable.TableView = function (instance) {
         instance.selection.setRangeStart(coordsObj);
       }
 
-      if (!that.settings.fragmentSelection) {
-        event.preventDefault(); //disable text selection in Chrome
-        clearTextSelection();
-      }
 
       if (that.settings.afterOnCellMouseDown) {
         that.settings.afterOnCellMouseDown.call(instance, event, coords, TD);
@@ -304,6 +308,16 @@ Handsontable.TableView = function (instance) {
       }
     }
   });
+};
+
+Handsontable.TableView.prototype.isTextSelectionAllowed = function (el) {
+  if (el.nodeName === 'TEXTAREA') {
+    return (true);
+  }
+  if (this.settings.fragmentSelection && this.wt.wtDom.isChildOf(el, this.TBODY)) {
+    return (true);
+  }
+  return false;
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {
