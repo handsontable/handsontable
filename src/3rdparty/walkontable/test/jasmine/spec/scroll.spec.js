@@ -666,4 +666,42 @@ describe('WalkontableScroll', function () {
       expect($table.find('tbody tr:eq(0) td:eq(3)').html()).toBe('F0'); //scrolled right
     });
   });
+
+  describe('scrollViewport - vertically', function () {
+
+    it("should scroll to a very high row that is after viewport (with fixedRowsTop)", function () {
+      this.data = createSpreadsheetData(20, 1);
+
+      var txt = 'Very very very very very very very very very very very very very very very very very long text.';
+      this.data[4][0] = txt;
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        offsetRow: 0,
+        offsetColumn: 0,
+        width: 200,
+        height: 200,
+        fixedColumnsLeft: 2
+      });
+
+      wt.draw().scrollViewport([4, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(1);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe(txt); //scrolled down
+
+      wt.draw().scrollViewport([5, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(9);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A5'); //scrolled down
+
+      wt.draw().scrollViewport([4, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(1);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe(txt); //scrolled up
+
+      wt.draw().scrollViewport([3, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(2);
+      expect($table.find('tbody tr:eq(1) td:eq(0)').html()).toBe(txt); //scrolled up
+    });
+  });
 });
