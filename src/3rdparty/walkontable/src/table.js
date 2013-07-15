@@ -430,7 +430,7 @@ WalkontableTable.prototype._doDraw = function () {
           if (this.verticalRenderReverse && !this.isRowInViewport(mustBeInViewport)) {
             //we failed because one of the cells was by far too large. Recover by rendering from top
             this.verticalRenderReverse = false;
-            this.instance.update('offsetRow', offsetRow + 1);
+            this.instance.update('offsetRow', mustBeInViewport);
             this.draw();
             return;
           }

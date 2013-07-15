@@ -669,7 +669,7 @@ describe('WalkontableScroll', function () {
 
   describe('scrollViewport - vertically', function () {
 
-    it("should scroll to a very high row that is after viewport (with fixedRowsTop)", function () {
+    it("should scroll to a very high row that is after viewport", function () {
       this.data = createSpreadsheetData(20, 1);
 
       var txt = 'Very very very very very very very very very very very very very very very very very long text.';
@@ -683,8 +683,7 @@ describe('WalkontableScroll', function () {
         offsetRow: 0,
         offsetColumn: 0,
         width: 200,
-        height: 200,
-        fixedColumnsLeft: 2
+        height: 200
       });
 
       wt.draw().scrollViewport([4, 0]).draw();
@@ -702,6 +701,44 @@ describe('WalkontableScroll', function () {
       wt.draw().scrollViewport([3, 0]).draw();
       expect($table.find('tbody tr').length).toBe(2);
       expect($table.find('tbody tr:eq(1) td:eq(0)').html()).toBe(txt); //scrolled up
+    });
+
+    it("should scroll to a very high row that is after viewport (at the end)", function () {
+      this.data = createSpreadsheetData(20, 1);
+
+      var txt = 'Very very very very very very very very very very very very very very very very very long text.';
+      this.data[19][0] = txt;
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        offsetRow: 0,
+        offsetColumn: 0,
+        width: 200,
+        height: 200
+      });
+
+      wt.draw().scrollViewport([18, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(2);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A18');
+      expect($table.find('tbody tr:eq(1) td:eq(0)').html()).toBe(txt);
+
+      wt.draw().scrollViewport([19, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(1);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe(txt); //scrolled down
+
+      wt.draw().scrollViewport([18, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(2);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A18'); //scrolled up
+      expect($table.find('tbody tr:eq(1) td:eq(0)').html()).toBe(txt);
+
+      wt.draw().scrollViewport([17, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(3);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A17'); //scrolled up
+      expect($table.find('tbody tr:eq(1) td:eq(0)').html()).toBe('A18');
+      expect($table.find('tbody tr:eq(2) td:eq(0)').html()).toBe(txt);
     });
   });
 });
