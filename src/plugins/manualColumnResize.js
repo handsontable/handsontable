@@ -1,48 +1,46 @@
 function HandsontableManualColumnResize() {
   var pressed
+    , currentTH
     , currentCol
     , currentWidth
     , autoresizeTimeout
     , instance
     , newSize
-    , start
     , startX
     , startWidth
     , startOffset
     , dblclick = 0
     , resizer = document.createElement('DIV')
+    , handle = document.createElement('DIV')
     , line = document.createElement('DIV')
     , lineStyle = line.style;
 
   resizer.className = 'manualColumnResizer';
 
-  line.className = 'manualColumnResizerLine';
-  lineStyle.position ='absolute';
-  lineStyle.top = 0;
-  lineStyle.left = 0;
-  lineStyle.width = 0;
-  lineStyle.borderRight = '1px dashed #777';
-  line.appendChild(resizer);
+  handle.className = 'manualColumnResizerHandle';
+  resizer.appendChild(handle);
 
-  $(document).mousemove(function (e) {
+  line.className = 'manualColumnResizerLine';
+  resizer.appendChild(line);
+
+  var $document = $(document);
+
+  $document.mousemove(function (e) {
     if (pressed) {
       currentWidth = startWidth + (e.pageX - startX);
       newSize = setManualSize(currentCol, currentWidth); //save col width
-      lineStyle.left = startOffset + currentWidth - 1 + 'px';
-      if (lineStyle.display === 'none') {
-        lineStyle.display = 'block';
-      }
+      resizer.style.left = startOffset + currentWidth + 'px';
     }
   });
 
-  $(document).mouseup(function () {
+  $document.mouseup(function () {
     if (pressed) {
-      $('.manualColumnResizer.active').removeClass('active');
+      instance.view.wt.wtDom.removeClass(resizer, 'active');
       pressed = false;
       instance.forceFullRender = true;
       instance.view.render(); //updates all
-      lineStyle.display = 'none';
       instance.PluginHooks.run('afterColumnResize', currentCol, newSize);
+      refreshResizerPosition.call(instance, currentTH);
     }
   });
 
@@ -50,15 +48,58 @@ function HandsontableManualColumnResize() {
     this.manualColumnWidths = [];
   };
 
+  function refreshResizerPosition(TH) {
+    instance = this;
+    currentTH = TH;
+
+    var col = this.view.wt.wtTable.getCoords(TH)[1]; //getCoords returns array [row, col]
+    if (col >= 0) { //if not row header
+      currentCol = col;
+      var rootOffset = this.view.wt.wtDom.offset(this.rootElement[0]).left;
+      var thOffset = this.view.wt.wtDom.offset(TH).left;
+      startOffset = (thOffset - rootOffset) - 6;
+
+      resizer.style.left = startOffset + getColumnWidth.call(instance, TH) + 'px';
+
+      this.rootElement[0].appendChild(resizer);
+    }
+  }
+
+  function getColumnWidth(TH) {
+    var instance = this;
+    var thOffset = instance.view.wt.wtDom.offset(TH).left;
+    var col = instance.view.wt.wtTable.getCoords(TH)[1]; //getCoords returns array [row, col]
+    var thWidth = instance.getColWidth(col);
+    var rootOffset = instance.view.wt.wtDom.offset(instance.rootElement[0]).left;
+    var rootWidth = instance.view.wt.wtViewport.getWorkspaceWidth();
+    var maxWidth = rootOffset + rootWidth - thOffset;
+    return Math.min(thWidth, maxWidth);
+  }
+
+  function refreshLinePosition() {
+    startWidth = getColumnWidth.call(this, currentTH);
+    this.view.wt.wtDom.addClass(resizer, 'active');
+    lineStyle.height = this.view.wt.wtDom.outerHeight(this.$table[0]) + 'px';
+    pressed = true;
+  }
+
   this.afterInit = function () {
     if (this.getSettings().manualColumnResize) {
-      var that = this;
+      var instance = this;
 
-      this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
+      this.rootElement.on('mouseenter.handsontable', 'th', function (e) {
+        if (!pressed) {
+          refreshResizerPosition.call(instance, e.currentTarget);
+        }
+      });
+
+      this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function () {
         if (autoresizeTimeout == null) {
           autoresizeTimeout = setTimeout(function () {
             if (dblclick >= 2) {
               setManualSize(currentCol, htAutoColumnSize.determineColumnWidth.call(instance, currentCol));
+              instance.forceFullRender = true;
+              instance.view.render(); //updates all
               instance.PluginHooks.run('afterColumnResize', currentCol, newSize);
             }
             dblclick = 0;
@@ -69,42 +110,16 @@ function HandsontableManualColumnResize() {
       });
 
       this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
-        var _resizer = e.target,
-            $table   = that.rootElement.find('.htCore'),
-            $grandpa = $(_resizer.parentNode.parentNode);
-
-        instance = that;
-        currentCol = _resizer.getAttribute('rel');
-        start = $(that.rootElement[0].getElementsByTagName('col')[$grandpa.index()]);
-        pressed = true;
         startX = e.pageX;
-        startWidth = start.width();
-        currentWidth = startWidth;
-
-        _resizer.className += ' active';
-
-        lineStyle.height = $table.height() + 'px';
-        $table.parent()[0].appendChild(line);
-        startOffset = parseInt($grandpa.offset().left - $table.offset().left, 10);
-        lineStyle.left = startOffset + currentWidth - 1 + 'px';
+        refreshLinePosition.call(instance);
       });
     }
   };
 
   var setManualSize = function (col, width) {
     width = Math.max(width, 20);
-    width = Math.min(width, 500);
     instance.manualColumnWidths[col] = width;
     return width;
-  };
-
-  this.getColHeader = function (col, TH) {
-    if (this.getSettings().manualColumnResize) {
-      var DIV = document.createElement('DIV');
-      DIV.className = 'manualColumnResizer';
-      DIV.setAttribute('rel', col);
-      TH.firstChild.appendChild(DIV);
-    }
   };
 
   this.getColWidth = function (col, response) {
@@ -117,5 +132,4 @@ var htManualColumnResize = new HandsontableManualColumnResize();
 
 Handsontable.PluginHooks.add('beforeInit', htManualColumnResize.beforeInit);
 Handsontable.PluginHooks.add('afterInit', htManualColumnResize.afterInit);
-Handsontable.PluginHooks.add('afterGetColHeader', htManualColumnResize.getColHeader);
 Handsontable.PluginHooks.add('afterGetColWidth', htManualColumnResize.getColWidth);
