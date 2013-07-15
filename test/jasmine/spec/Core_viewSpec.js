@@ -39,7 +39,7 @@ describe('Core_view', function () {
     expect(getSelected()).toEqual([2, 0, 2, 0]); //test whether it is selected
   });
 
-  it('should scroll viewport, respecting fixed rows', function(){
+  it('should scroll viewport, respecting fixed rows', function () {
 
     spec().$container.css({
       width: '200px',
@@ -68,7 +68,7 @@ describe('Core_view', function () {
 
   });
 
-  it('should enable to change fixedRowsTop with updateSettings', function(){
+  it('should enable to change fixedRowsTop with updateSettings', function () {
 
     spec().$container.css({
       width: '200px',
@@ -112,7 +112,7 @@ describe('Core_view', function () {
 
   });
 
-  it('should scroll viewport, respecting fixed columns', function(){
+  it('should scroll viewport, respecting fixed columns', function () {
 
     spec().$container.css({
       width: '200px',
@@ -142,7 +142,7 @@ describe('Core_view', function () {
   });
 
 
-  it('should enable to change fixedColumnsLeft with updateSettings', function(){
+  it('should enable to change fixedColumnsLeft with updateSettings', function () {
 
     spec().$container.css({
       width: '200px',
@@ -170,7 +170,7 @@ describe('Core_view', function () {
     selectCell(0, 0);
 
     expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(this.$container.find('tr:eq(0) td:eq(1)').html()).toEqual("B0");
+    expect(this.$container.find('tr:eq(0) td:eq(1)').html()).toEqual("D0"); //clicking on a fixed cell should not scroll the table
 
     HOT.updateSettings({
       fixedColumnsLeft: 2

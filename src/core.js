@@ -859,9 +859,6 @@ Handsontable.Core = function (rootElement, userSettings) {
 
       if (scrollToCell !== false) {
         instance.view.scrollViewport(coords);
-
-        instance.view.wt.draw(true); //these two lines are needed to fix scrolling viewport when cell dimensions are significantly bigger than assumed by Walkontable
-        instance.view.scrollViewport(coords);
       }
       selection.refreshBorders();
     },
