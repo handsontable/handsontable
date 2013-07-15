@@ -497,7 +497,7 @@ describe('Core_validate', function () {
 
   });
 
-  it('should leave the new value in editor if it does not validate, after hitting ENTER', function () {
+  it('should leave the new value in editor if it does not validate (async validation), after hitting ENTER', function () {
 
     var validated = false;
     var validationResult;
@@ -534,7 +534,41 @@ describe('Core_validate', function () {
 
   });
 
-  it('should leave the new value in editor if it does not validate, after selecting another cell', function () {
+  it('should leave the new value in editor if it does not validate (sync validation), after hitting ENTER', function () {
+
+    var validated = false;
+    var validationResult;
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      validator: function (value, callback) {
+        validated = true;
+        validationResult = value.length == 2
+        callback(validationResult);
+      }
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    document.activeElement.value = 'Ted';
+
+    keyDown('enter');
+
+
+    waitsFor(function () {
+      return validated;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(validationResult).toBe(false);
+      expect(document.activeElement.value).toEqual('Ted');
+    });
+
+  });
+
+  it('should leave the new value in editor if it does not validate (async validation), after selecting another cell', function () {
 
     var validated = false;
     var validationResult;
@@ -545,7 +579,10 @@ describe('Core_validate', function () {
       validator: function (value, callback) {
         setTimeout(function () {
 
-          validated = true;
+          setTimeout(function () {
+            validated = true;
+          }, 0);
+
           validationResult = value.length == 2
           callback(validationResult);
         }, 100);
@@ -571,7 +608,50 @@ describe('Core_validate', function () {
 
   });
 
-  it('should close the editor and save the new value if validation fails and allowInvalid is set to "true"', function(){
+  it('should leave the new value in editor if it does not validate (sync validation), after selecting another cell', function () {
+
+    var validated = false;
+    var validationResult;
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      validator: function (value, callback) {
+        validationResult = value.length == 2
+        callback(validationResult);
+
+        /*Setting this variable has to be async, because we are not interested in when the validation happens, but when
+         the callback is being called. Since internally all the callbacks are processed asynchronously (even if they are
+         synchronous) end of validator function is not the equivalent of whole validation routine end.
+         If it still sounds weird, take a look at HandsontableTextEditorClass.prototype.finishEditing method.
+         */
+
+        setTimeout(function () {
+          validated = true;
+        }, 0);
+      }
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    document.activeElement.value = 'Ted';
+
+    selectCell(1, 0);
+
+
+    waitsFor(function () {
+      return validated;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(validationResult).toBe(false);
+      expect(document.activeElement.value).toEqual('Ted');
+    });
+
+  });
+
+  it('should close the editor and save the new value if validation fails and allowInvalid is set to "true"', function () {
     var validated = false;
     var validationResult;
 
@@ -633,28 +713,28 @@ describe('Core_validate', function () {
 
     expect(document.activeElement.value).toEqual('AA');
 
-    var cell = $(getCell(1,0));
+    var cell = $(getCell(1, 0));
     var clicks = 0;
 
-    setTimeout(function(){
+    setTimeout(function () {
       mouseDown(cell);
       mouseUp(cell);
       clicks++;
     }, 0);
 
-    setTimeout(function(){
+    setTimeout(function () {
       mouseDown(cell);
       mouseUp(cell);
       clicks++;
     }, 100);
 
-    waitsFor(function(){
+    waitsFor(function () {
       return clicks == 2 && validated;
     }, 'Two clicks', 1000);
 
-    runs(function(){
+    runs(function () {
       expect(validationResult).toBe(true);
-      expect(getDataAtCell(0,0)).toEqual('AA');
+      expect(getDataAtCell(0, 0)).toEqual('AA');
     });
 
   });
@@ -684,28 +764,28 @@ describe('Core_validate', function () {
 
     expect(document.activeElement.value).toEqual('AAA');
 
-    var cell = $(getCell(1,0));
+    var cell = $(getCell(1, 0));
     var clicks = 0;
 
-    setTimeout(function(){
+    setTimeout(function () {
       mouseDown(cell);
       mouseUp(cell);
       clicks++;
     }, 0);
 
-    setTimeout(function(){
+    setTimeout(function () {
       mouseDown(cell);
       mouseUp(cell);
       clicks++;
     }, 100);
 
-    waitsFor(function(){
+    waitsFor(function () {
       return clicks == 2 && validated;
     }, 'Two clicks', 1000);
 
-    runs(function(){
+    runs(function () {
       expect(validationResult).toBe(false);
-      expect(getDataAtCell(0,0)).toEqual('A0');
+      expect(getDataAtCell(0, 0)).toEqual('A0');
     });
 
   });

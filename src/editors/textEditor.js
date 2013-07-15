@@ -338,9 +338,11 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
         this.waiting = true;
         var that = this;
         this.instance.addHookOnce('afterValidate', function (result) {
-          that.force = that.waiting;
-          that.waiting = false;
-          that.discardEditor(result);
+          setTimeout(function(){
+            that.force = that.waiting;
+            that.waiting = false;
+            that.discardEditor(result);
+          }, 0);
         });
       }
       this.saveValue(val, ctrlDown);
