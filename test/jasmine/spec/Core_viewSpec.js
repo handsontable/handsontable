@@ -290,4 +290,28 @@ describe('Core_view', function () {
 
     expect(this.$container.find('.wtHider').width()).toEqual(107); //rootElement is full width but this should do the trick
   });
+
+  describe('maximumVisibleElementWidth', function () {
+    it('should return maximum with until right edge of the viewport', function () {
+      var hot = handsontable({
+        startRows: 2,
+        startCols: 10,
+        width: 100,
+        height: 100
+      });
+
+      expect(hot.view.maximumVisibleElementWidth(20)).toEqual(80);
+    });
+
+    it('should return maximum with until right edge of the viewport (excluding the scrollbar)', function () {
+      var hot = handsontable({
+        startRows: 10,
+        startCols: 10,
+        width: 100,
+        height: 100
+      });
+
+      expect(hot.view.maximumVisibleElementWidth(20)).toEqual(70);
+    });
+  });
 });

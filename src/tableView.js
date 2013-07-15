@@ -415,3 +415,13 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
   TH.appendChild(DIV);
   this.instance.PluginHooks.run('afterGetColHeader', col, TH);
 };
+
+/**
+ * Given a element's left position relative to the viewport, returns maximum element width until right edge of the viewport (before scrollbar)
+ * @param left
+ * @return width
+ */
+Handsontable.TableView.prototype.maximumVisibleElementWidth = function (left) {
+  var rootWidth = this.wt.wtViewport.getWorkspaceWidth();
+  return rootWidth - left;
+};

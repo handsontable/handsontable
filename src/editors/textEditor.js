@@ -290,6 +290,7 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   ///end prepare textarea position
 
   var width = $td.width()
+    , maxWidth = this.instance.view.maximumVisibleElementWidth(editLeft) - 10 //10 is TEXTAREAs border and padding
     , height = $td.outerHeight() - 4;
 
   if (parseInt($td.css('border-top-width'), 10) > 0) {
@@ -304,8 +305,8 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   this.$textarea.autoResize({
     maxHeight: 200,
     minHeight: height,
-    minWidth: width,
-    maxWidth: Math.max(168, width),
+    minWidth: Math.min(width, maxWidth),
+    maxWidth: maxWidth, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
     animate: false,
     extraSpace: 0
   });
