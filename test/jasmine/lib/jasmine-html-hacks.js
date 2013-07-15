@@ -24,7 +24,7 @@ function applyHtmlReporterHacks(htmlReporter) {
   jasmine.HtmlReporter.SuiteView.prototype.refresh = function () {
     refresh.call(this);
     if (this.suite.longestDuration) {
-      this.element.firstElementChild.innerHTML += " (longest " + this.suite.longestDuration.durationSec.toFixed(2) + ' s)';
+      this.element.firstChild.innerHTML += " (longest " + this.suite.longestDuration.durationSec.toFixed(2) + ' s)';
     }
   };
 
