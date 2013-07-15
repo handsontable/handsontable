@@ -292,7 +292,7 @@ describe('Core_view', function () {
   });
 
   describe('maximumVisibleElementWidth', function () {
-    it('should return maximum with until right edge of the viewport', function () {
+    it('should return maximum width until right edge of the viewport', function () {
       var hot = handsontable({
         startRows: 2,
         startCols: 10,
@@ -303,7 +303,7 @@ describe('Core_view', function () {
       expect(hot.view.maximumVisibleElementWidth(20)).toEqual(80);
     });
 
-    it('should return maximum with until right edge of the viewport (excluding the scrollbar)', function () {
+    it('should return maximum width until right edge of the viewport (excluding the scrollbar)', function () {
       var hot = handsontable({
         startRows: 10,
         startCols: 10,
@@ -312,6 +312,30 @@ describe('Core_view', function () {
       });
 
       expect(hot.view.maximumVisibleElementWidth(20)).toEqual(70);
+    });
+  });
+
+  describe('maximumVisibleElementHeight', function () {
+    it('should return maximum height until bottom edge of the viewport', function () {
+      var hot = handsontable({
+        startRows: 10,
+        startCols: 2,
+        width: 120,
+        height: 100
+      });
+
+      expect(hot.view.maximumVisibleElementHeight(20)).toEqual(80);
+    });
+
+    it('should return maximum height until bottom edge of the viewport (excluding the scrollbar)', function () {
+      var hot = handsontable({
+        startRows: 10,
+        startCols: 10,
+        width: 120,
+        height: 100
+      });
+
+      expect(hot.view.maximumVisibleElementHeight(20)).toEqual(70);
     });
   });
 });

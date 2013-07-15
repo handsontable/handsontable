@@ -291,7 +291,8 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
 
   var width = $td.width()
     , maxWidth = this.instance.view.maximumVisibleElementWidth(editLeft) - 10 //10 is TEXTAREAs border and padding
-    , height = $td.outerHeight() - 4;
+    , height = $td.outerHeight() - 4
+    , maxHeight = this.instance.view.maximumVisibleElementHeight(editTop) - 5; //10 is TEXTAREAs border and padding
 
   if (parseInt($td.css('border-top-width'), 10) > 0) {
     height -= 1;
@@ -302,9 +303,10 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
     }
   }
 
+  //in future may change to pure JS http://stackoverflow.com/questions/454202/creating-a-textarea-with-auto-resize
   this.$textarea.autoResize({
-    maxHeight: 200,
-    minHeight: height,
+    minHeight: Math.min(height, maxHeight),
+    maxHeight: maxHeight, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
     minWidth: Math.min(width, maxWidth),
     maxWidth: maxWidth, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
     animate: false,
