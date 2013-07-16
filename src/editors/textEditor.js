@@ -332,22 +332,29 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
   }
   if (this.isCellEdited) {
     this.isCellEdited = false;
-    if (!isCancelled) {
-      var val = [
+    var val;
+
+    if (isCancelled){
+      val = [[this.originalValue]];
+    } else {
+      val = [
         [$.trim(this.TEXTAREA.value)]
       ];
+    }
 
-      if (this.instance.getCellMeta(this.row, this.col).validator) {
-        this.waiting = true;
-        var that = this;
-        this.instance.addHookOnce('afterValidate', function (result) {
+    if (this.instance.getCellMeta(this.row, this.col).validator) {
+      this.waiting = true;
+      var that = this;
+      this.instance.addHookOnce('afterValidate', function (result) {
+        setTimeout(function(){
           that.force = that.waiting;
           that.waiting = false;
           that.discardEditor(result);
-        });
-      }
-      this.saveValue(val, ctrlDown);
+        }, 0);
+      });
     }
+    this.saveValue(val, ctrlDown);
+
   }
   if (!this.waiting) { //otherwise afterValidate will discard the editor
     this.discardEditor();
