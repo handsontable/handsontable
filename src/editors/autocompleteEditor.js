@@ -99,12 +99,13 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
   this.typeahead.select = function () {
     var output = this.hide(); //need to hide it before destroyEditor, because destroyEditor checks if menu is expanded
     that.instance.destroyEditor(true);
-    var val = this.$menu.find('.active').attr('data-value');
+    var active = this.$menu[0].querySelector('.active');
+    var val = $(active).attr('data-value');
     if (val === that.emptyStringLabel) {
       val = '';
     }
     if (typeof cellProperties.onSelect === 'function') {
-      cellProperties.onSelect(row, col, prop, val, this.$menu.find('.active').index());
+      cellProperties.onSelect(row, col, prop, val, that.instance.view.wt.wtDom.index(active));
     }
     else {
       that.instance.setDataAtRowProp(row, prop, val);
@@ -123,16 +124,16 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
   /* overwrite typeahead options and methods (matcher, sorter, highlighter, updater, etc) if provided in cellProperties */
   for (i in cellProperties) {
     // if (cellProperties.hasOwnProperty(i)) {
-      if (i === 'options') {
-        for (j in cellProperties.options) {
-          // if (cellProperties.options.hasOwnProperty(j)) {
-            this.typeahead.options[j] = cellProperties.options[j];
-          // }
-        }
+    if (i === 'options') {
+      for (j in cellProperties.options) {
+        // if (cellProperties.options.hasOwnProperty(j)) {
+        this.typeahead.options[j] = cellProperties.options[j];
+        // }
       }
-      else {
-        this.typeahead[i] = cellProperties[i];
-      }
+    }
+    else {
+      this.typeahead[i] = cellProperties[i];
+    }
     // }
   }
 

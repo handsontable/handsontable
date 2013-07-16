@@ -69,24 +69,24 @@ function HandsontableManualColumnMove() {
     this.rootElement.on('mousedown.handsontable', '.manualColumnMover', function (e) {
       instance = that;
 
-      var $resizer = $(e.target);
-      var th = $resizer.closest('th');
-      startCol = th.index();
+      var mover = e.currentTarget;
+      var TH = instance.view.wt.wtDom.closest(mover, 'TH');
+      startCol = instance.view.wt.wtDom.index(TH);
       pressed = true;
       startX = e.pageX;
 
       var $table = that.rootElement.find('.htCore');
       $table.parent()[0].appendChild(ghost);
-      ghostStyle.width = $resizer.parent().width() + 'px';
+      ghostStyle.width = instance.view.wt.wtDom.outerWidth(TH) + 'px';
       ghostStyle.height = $table.height() + 'px';
-      startOffset = parseInt(th.offset().left - $table.offset().left, 10);
+      startOffset = parseInt(instance.view.wt.wtDom.offset(TH).left - $table.offset().left, 10);
       ghostStyle.left = startOffset + 6 + 'px';
     });
     this.rootElement.on('mouseenter.handsontable', 'td, th', function () {
       if (pressed) {
         $('.manualColumnMover.active').removeClass('active');
         var $ths = that.rootElement.find('thead th');
-        endCol = $(this).index();
+        endCol = instance.view.wt.wtDom.index(this);
         var $hover = $ths.eq(endCol).find('.manualColumnMover').addClass('active');
         $ths.not($hover).removeClass('active');
       }

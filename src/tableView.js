@@ -16,7 +16,8 @@ Handsontable.TableView = function (instance) {
 
   var table = document.createElement('TABLE');
   table.className = 'htCore';
-  table.appendChild(document.createElement('THEAD'));
+  this.THEAD = document.createElement('THEAD');
+  table.appendChild(this.THEAD);
   this.TBODY = document.createElement('TBODY');
   table.appendChild(this.TBODY);
 
@@ -55,7 +56,7 @@ Handsontable.TableView = function (instance) {
       instance.autofill.handle.isDragged = 0;
     }
 
-    if(Handsontable.helper.isOutsideInput(document.activeElement)){
+    if (Handsontable.helper.isOutsideInput(document.activeElement)) {
       Handsontable.activeGuid = null;
     }
   });
@@ -233,7 +234,7 @@ Handsontable.TableView = function (instance) {
     onCellMouseDown: function (event, coords, TD) {
       Handsontable.activeGuid = instance.guid;
 
-      if(Handsontable.helper.isOutsideInput(document.activeElement)){
+      if (Handsontable.helper.isOutsideInput(document.activeElement)) {
         document.activeElement.blur();
       }
 
