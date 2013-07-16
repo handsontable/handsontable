@@ -54,6 +54,10 @@ Handsontable.TableView = function (instance) {
       }
       instance.autofill.handle.isDragged = 0;
     }
+
+    if(Handsontable.helper.isOutsideInput(document.activeElement)){
+      Handsontable.activeGuid = null;
+    }
   });
 
   $documentElement.on('mousedown.' + instance.guid, function (event) {
@@ -228,6 +232,10 @@ Handsontable.TableView = function (instance) {
     },
     onCellMouseDown: function (event, coords, TD) {
       Handsontable.activeGuid = instance.guid;
+
+      if(Handsontable.helper.isOutsideInput(document.activeElement)){
+        document.activeElement.blur();
+      }
 
       isMouseDown = true;
       var coordsObj = {row: coords[0], col: coords[1]};

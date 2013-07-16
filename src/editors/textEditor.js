@@ -138,6 +138,11 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
   this.cellProperties = cellProperties;
 
   this.$body.on('keydown.editor.' + this.instance.guid, function (event) {
+
+    if(Handsontable.activeGuid === null){
+      return;
+    }
+
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     if (!that.isCellEdited) {
       if (Handsontable.helper.isPrintableChar(event.keyCode)) {
