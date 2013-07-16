@@ -156,7 +156,7 @@ function HandsontableColumnSorting() {
       return;
     }
 
-    sortingEnabled = false;
+    sortingEnabled = false; //this is required by translateRow plugin hook
     instance.sortIndex.length = 0;
 
     var colOffset = this.colOffset();
@@ -175,7 +175,7 @@ function HandsontableColumnSorting() {
     }
 
     this.sortIndex.sort(sortFunction(instance.sortOrder));
-    sortingEnabled = true;
+    sortingEnabled = true; //this is required by translateRow plugin hook
   };
 
   this.translateRow = function (row) {
@@ -202,7 +202,7 @@ function HandsontableColumnSorting() {
 
   this.getColHeader = function (col, TH) {
     if (this.getSettings().columnSorting) {
-      $(TH).find('span.colHeader:first').addClass('columnSorting');
+      this.view.wt.wtDom.addClass(TH.querySelector('.colHeader'), 'columnSorting');
     }
   };
 

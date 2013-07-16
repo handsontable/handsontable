@@ -75,20 +75,23 @@ function HandsontableManualColumnMove() {
       pressed = true;
       startX = e.pageX;
 
-      var $table = that.rootElement.find('.htCore');
-      $table.parent()[0].appendChild(ghost);
+      var TABLE = instance.$table[0];
+      TABLE.parentNode.appendChild(ghost);
       ghostStyle.width = instance.view.wt.wtDom.outerWidth(TH) + 'px';
-      ghostStyle.height = $table.height() + 'px';
-      startOffset = parseInt(instance.view.wt.wtDom.offset(TH).left - $table.offset().left, 10);
+      ghostStyle.height = instance.view.wt.wtDom.outerHeight(TABLE) + 'px';
+      startOffset = parseInt(instance.view.wt.wtDom.offset(TH).left - instance.view.wt.wtDom.offset(TABLE).left, 10);
       ghostStyle.left = startOffset + 6 + 'px';
     });
     this.rootElement.on('mouseenter.handsontable', 'td, th', function () {
       if (pressed) {
-        $('.manualColumnMover.active').removeClass('active');
-        var $ths = that.rootElement.find('thead th');
+        var active = instance.view.THEAD.querySelector('.manualColumnMover.active');
+        if (active) {
+          instance.view.wt.wtDom.removeClass(active, 'active');
+        }
         endCol = instance.view.wt.wtDom.index(this);
-        var $hover = $ths.eq(endCol).find('.manualColumnMover').addClass('active');
-        $ths.not($hover).removeClass('active');
+        var THs = instance.view.THEAD.querySelectorAll('th');
+        var mover = THs[endCol].querySelector('.manualColumnMover');
+        instance.view.wt.wtDom.addClass(mover, 'active');
       }
     });
   };

@@ -116,7 +116,10 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
   this.typeahead.render = function (items) {
     that.typeahead._render.call(this, items);
     if (!cellProperties.strict) {
-      this.$menu.find('li:eq(0)').removeClass('active');
+      var li = this.$menu[0].querySelector('.active');
+      if (li) {
+        that.instance.view.wt.wtDom.removeClass(li, 'active')
+      }
     }
     return this;
   };
@@ -153,7 +156,7 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
  */
 HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (!isCancelled) {
-    if (this.isMenuExpanded() && this.typeahead.$menu.find('.active').length) {
+    if (this.isMenuExpanded() && this.typeahead.$menu[0].querySelector('.active')) {
       this.typeahead.select();
       this.isCellEdited = false; //cell value was updated by this.typeahead.select (issue #405)
     }
