@@ -310,5 +310,79 @@ describe('ColumnSorting', function () {
 
   });
 
+  it('should allow to define sorting column and order during initialization', function(){
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'D'],
+        [3, 'A'],
+        [2, 'C']
+      ],
+      colHeaders: true,
+      columnSorting: {
+        column: 0,
+        order: true
+      }
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D');
+  });
+
+  it('should allow to change sorting column with updateSettings', function(){
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'D'],
+        [3, 'A'],
+        [2, 'C']
+      ],
+      colHeaders: true,
+      columnSorting: {
+        column: 0,
+        order: true
+      }
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D');
+
+    updateSettings({
+      columnSorting: {
+        column: 1,
+        order: true
+      }
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A');
+  });
+
+  it('should allow to change sorting order with updateSettings', function(){
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'D'],
+        [3, 'A'],
+        [2, 'C']
+      ],
+      colHeaders: true,
+      columnSorting: {
+        column: 0,
+        order: true
+      }
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+
+    updateSettings({
+      columnSorting: {
+        column: 0,
+        order: false
+      }
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+  });
 
 });

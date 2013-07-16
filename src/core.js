@@ -2015,6 +2015,11 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
 
+
+    if(!init){
+      instance.PluginHooks.run('afterUpdateSettings');
+    }
+
     grid.adjustRowsAndCols();
     if (instance.view) {
       instance.forceFullRender = true; //used when data was changed

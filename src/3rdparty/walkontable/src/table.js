@@ -530,37 +530,6 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
   }
 };
 
-/* this function is not used currently (was used in _doDraw)
- WalkontableTable.prototype.isCellVisible = function (r, c) {
- var out = 0;
-
- if (this.isRowInViewport(r)) {
- if (this.getLastVisibleRow() === c && this.rowStrategy.remainingSize > 0) {
- out |= FLAG_PARTIALLY_VISIBLE_VERTICAL;
- }
- else {
- out |= FLAG_VISIBLE_VERTICAL;
- }
- }
- else {
- out |= FLAG_NOT_VISIBLE_VERTICAL;
- }
-
- if (this.isColumnInViewport(c)) {
- if (this.getLastVisibleColumn() === c && this.columnStrategy.remainingSize > 0) {
- out |= FLAG_PARTIALLY_VISIBLE_HORIZONTAL;
- }
- else {
- out |= FLAG_VISIBLE_HORIZONTAL;
- }
- }
- else {
- out |= FLAG_NOT_VISIBLE_HORIZONTAL;
- }
-
- return out;
- };*/
-
 /**
  * getCell
  * @param {Array} coords
