@@ -300,7 +300,12 @@ WalkontableTable.prototype._doDraw = function () {
     , TD
     , TH
     , adjusted = false
-    , workspaceWidth;
+    , workspaceWidth
+    , mustBeInViewport;
+
+  if (this.verticalRenderReverse) {
+    mustBeInViewport = offsetRow;
+  }
 
   this.instance.wtViewport.resetSettings();
 
@@ -415,13 +420,20 @@ WalkontableTable.prototype._doDraw = function () {
 
         }
         else {
-          this.rowStrategy.add(r, TD);
+          this.rowStrategy.add(r, TD, this.verticalRenderReverse);
         }
       }
       else {
-        this.rowStrategy.add(r, TD);
+        this.rowStrategy.add(r, TD, this.verticalRenderReverse);
 
         if (this.rowStrategy.isLastIncomplete()) {
+          if (this.verticalRenderReverse && !this.isRowInViewport(mustBeInViewport)) {
+            //we failed because one of the cells was by far too large. Recover by rendering from top
+            this.verticalRenderReverse = false;
+            this.instance.update('offsetRow', mustBeInViewport);
+            this.draw();
+            return;
+          }
           break;
         }
       }

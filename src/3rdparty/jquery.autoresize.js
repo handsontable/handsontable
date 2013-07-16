@@ -48,6 +48,8 @@
     left: -9999,
     opacity: 0,
     overflow: 'hidden',
+    overflowX: 'hidden',
+    overflowY: 'hidden',
     border: '1px solid black',
     padding: '0.49em' //this must be about the width of caps W character
   };
@@ -85,7 +87,7 @@
     if (this.nodeName === 'textarea') {
       el.css({
         resize: 'none',
-        overflowY: 'hidden'
+        overflowY: 'none'
       });
     }
 
@@ -149,7 +151,8 @@
         .removeAttr('name')
         .removeAttr('id')
         .attr('tabIndex', -1)
-        .css(autoResize.cloneCSSValues);
+        .css(autoResize.cloneCSSValues)
+        .css('overflowY', 'scroll');
 
     },
 
@@ -210,14 +213,18 @@
         this.previousScrollTop = scrollTop;
 
         if (scrollTop >= config.maxHeight) {
-          el.css('overflowY', '');
-          return;
+          scrollTop = config.maxHeight;
         }
-
-        el.css('overflowY', 'hidden');
 
         if (scrollTop < config.minHeight) {
           scrollTop = config.minHeight;
+        }
+
+        if(scrollTop == config.maxHeight && newWidth == config.maxWidth) {
+          el.css('overflowY', 'scroll');
+        }
+        else {
+          el.css('overflowY', 'hidden');
         }
 
         config.onResize.call(el);
