@@ -107,8 +107,8 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
     }
 
-    if (that.waiting) {
-      that.waiting = event;
+    if ((that.waiting || that.force) && !event.isImmediatePropagationStopped()) {
+      that.waiting = that.force = event;
       event.stopImmediatePropagation();
       event.preventDefault();
     }
@@ -139,7 +139,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
 
   this.$body.on('keydown.editor.' + this.instance.guid, function (event) {
 
-    if(Handsontable.activeGuid === null){
+    if (Handsontable.activeGuid === null) {
       return;
     }
 
@@ -185,7 +185,7 @@ HandsontableTextEditorClass.prototype.getCaretPosition = function (el) {
   if (el.selectionStart) {
     return el.selectionStart;
   }
-  else if (document.selection) {
+  else if (document.selection) { //IE8
     el.focus();
     var r = document.selection.createRange();
     if (r == null) {
@@ -211,7 +211,7 @@ HandsontableTextEditorClass.prototype.setCaretPosition = function (el, pos) {
     el.focus();
     el.setSelectionRange(pos, pos);
   }
-  else if (el.createTextRange) {
+  else if (el.createTextRange) { //IE8
     var range = el.createTextRange();
     range.collapse(true);
     range.moveEnd('character', pos);
@@ -339,29 +339,31 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
     this.isCellEdited = false;
     var val;
 
-    if (isCancelled){
-      val = [[this.originalValue]];
+    if (isCancelled) {
+      val = [
+        [this.originalValue]
+      ];
     } else {
       val = [
         [$.trim(this.TEXTAREA.value)]
       ];
     }
 
-    if (this.instance.getCellMeta(this.row, this.col).validator) {
+    var hasValidator = this.instance.getCellMeta(this.row, this.col).validator;
+
+    if (hasValidator) {
       this.waiting = true;
       var that = this;
       this.instance.addHookOnce('afterValidate', function (result) {
-        setTimeout(function(){
-          that.force = that.waiting;
-          that.waiting = false;
-          that.discardEditor(result);
-        }, 0);
+        that.force = that.waiting;
+        that.waiting = false;
+        that.discardEditor(result);
       });
     }
     this.saveValue(val, ctrlDown);
 
   }
-  if (!this.waiting) { //otherwise afterValidate will discard the editor
+  if (!hasValidator) { //otherwise afterValidate will discard the editor
     this.discardEditor();
   }
 };
@@ -373,8 +375,13 @@ HandsontableTextEditorClass.prototype.discardEditor = function (result) {
 
   if (result === false && this.cellProperties.allowInvalid !== true) { //validator was defined and failed
     this.isCellEdited = true;
-    this.TEXTAREA.focus();
-    this.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+    var that = this;
+    setTimeout(function () {
+      if (that.instance.view.wt.wtDom.isVisible(that.TEXTAREA)) {
+        that.TEXTAREA.focus();
+        that.setCaretPosition(that.TEXTAREA, that.TEXTAREA.value.length);
+      }
+    }, 0);
   }
   else {
     if (document.activeElement === this.TEXTAREA) {

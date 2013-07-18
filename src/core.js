@@ -1718,7 +1718,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     if (document.activeElement && document.activeElement !== document.body) {
 
-      if (Handsontable.helper.isOutsideInput(document.activeElement)){
+      if (Handsontable.helper.isOutsideInput(document.activeElement)) {
         Handsontable.activeGuid = null;
       } else {
         document.activeElement.blur();
@@ -2016,7 +2016,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
 
 
-    if(!init){
+    if (!init) {
       instance.PluginHooks.run('afterUpdateSettings');
     }
 
@@ -2538,7 +2538,9 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
     priv.selStart.coords({row: row, col: col});
-    document.activeElement.blur(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
+    if (document.activeElement && document.activeElement !== document.documentElement && document.activeElement !== document.body) {
+      document.activeElement.blur(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
+    }
     instance.listen();
     if (typeof endRow === "undefined") {
       selection.setRangeEnd({row: row, col: col}, scrollToCell);
