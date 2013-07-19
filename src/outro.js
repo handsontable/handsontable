@@ -2,5 +2,5 @@
 
 // AMD support if present
 if (define && define.amd) {
-  define(Handsontable);
+  define('Handsontable', [], Handsontable);
 }
