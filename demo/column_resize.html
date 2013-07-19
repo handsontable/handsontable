@@ -96,6 +96,7 @@
 
           <p>Double click on the column resize handle to automatically adjust column width.</p>
 
+          <div class="state-loaded example1 alert">State of the table has been restored. <button class="reset-state1">Reset table state</button></div>
           <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
           <p>
@@ -120,9 +121,12 @@
               colHeaders: true,
               colWidths: [55, 80, 80, 80, 80, 80, 80],
               manualColumnResize: true,
-              minSpareRows: 1
+              minSpareRows: 1,
+              persistentState: true
             });
+
           </script>
+
         </div>
       </div>
     </div>
@@ -138,10 +142,12 @@
 
           <p>In the left part of column header a draggable column move handle will appear.</p>
 
+          <div class="state-loaded example2 alert">State of the table has been restored. <button class="reset-state2">Reset table state</button></div>
+
           <div id="example2" style="width: 400px; height: 300px; overflow: scroll"></div>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+            <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
               data to console
             </button>
@@ -163,8 +169,11 @@
               colWidths: [55, 80, 80, 80, 80, 80, 80],
               manualColumnMove: true,
               manualColumnResize: true,
-              minSpareRows: 1
+              minSpareRows: 1,
+              persistentState: true
             });
+
+
           </script>
         </div>
       </div>
@@ -182,5 +191,60 @@
   </div>
 
 </div>
+<script type="text/javascript">
+  (function(){
+    var HOT = $('#example1').handsontable('getInstance');
+
+    $('.reset-state1').on('click', function(){
+
+      HOT.PluginHooks.run('persistentStateReset');
+
+      HOT.updateSettings({
+        manualColumnResize: true
+      })
+
+      $(".state-loaded.example1").fadeOut(300);
+    });
+
+
+    var storedData = {};
+
+    HOT.PluginHooks.run('persistentStateLoad', '_persistentStateKeys', storedData);
+
+    var savedKeys = storedData.value;
+
+    if(savedKeys && savedKeys.length > 0){
+      $(".state-loaded.example1").show();
+    }
+  })();
+
+  (function(){
+    var HOT = $('#example2').handsontable('getInstance');
+
+    $('.reset-state2').on('click', function(){
+
+      HOT.PluginHooks.run('persistentStateReset');
+
+      HOT.updateSettings({
+        manualColumnMove:true,
+        manualColumnResize: true
+      })
+
+      $(".state-loaded.example2").fadeOut(300);
+    });
+
+
+    var storedData = {};
+
+    HOT.PluginHooks.run('persistentStateLoad', '_persistentStateKeys', storedData);
+
+    var savedKeys = storedData.value;
+
+    if(savedKeys && savedKeys.length > 0){
+      $(".state-loaded.example2").show();
+    }
+  })();
+</script>
+
 </body>
 </html>
