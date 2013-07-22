@@ -158,6 +158,13 @@ function HandsontableManualColumnResize() {
 
   var setManualSize = function (col, width) {
     width = Math.max(width, 20);
+
+    /**
+     *  We need to run col through modifyCol hook, in case the order of displayed columns is different than the order
+     *  in data source. For instance, this order can be modified by manualColumnMove plugin.
+     */
+    col = instance.PluginHooks.execute('modifyCol', col);
+
     instance.manualColumnWidths[col] = width;
     return width;
   };
