@@ -8,6 +8,10 @@ function WalkontableWheel(instance) {
       deltaY = delta;
     }
 
+    if (!deltaX && !deltaY) { //this happens in IE8 test case
+      return;
+    }
+
     if (deltaY > 0 && instance.getSetting('offsetRow') === 0) {
       return; //attempt to scroll up when it's already showing first row
     }
