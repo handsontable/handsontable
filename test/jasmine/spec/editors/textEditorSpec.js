@@ -189,28 +189,52 @@ describe('TextEditor', function () {
       data: createSpreadsheetData(5, 2)
     });
 
-    var cell = $(getCell(0,0));
+    var cell = $(getCell(0, 0));
     var clicks = 0;
 
-    setTimeout(function(){
+    setTimeout(function () {
       mouseDown(cell);
       mouseUp(cell);
       clicks++;
     }, 0);
 
-    setTimeout(function(){
+    setTimeout(function () {
       mouseDown(cell);
       mouseUp(cell);
       clicks++;
     }, 100);
 
-    waitsFor(function(){
+    waitsFor(function () {
       return clicks == 2;
     }, 'Two clicks', 1000);
 
-    runs(function(){
+    runs(function () {
       expect(document.activeElement.nodeName).toEqual('TEXTAREA');
     });
+
+  });
+
+  it('editor size should not exceed the viewport after text edit', function () {
+
+    handsontable({
+      data: createSpreadsheetData(10, 5),
+      width: 200,
+      height: 200
+    });
+
+    selectCell(2, 2);
+
+    keyDown('enter');
+
+    expect(isEditorVisible()).toEqual(true);
+
+    document.activeElement.value = 'Very very very very very very very very very very very very very very very very very long text';
+    keyDownUp(32); //space - trigger textarea resize
+
+    var $textarea = $(document.activeElement);
+    var $wtHider = this.$container.find('.wtHider');
+    expect($textarea.offset().left + $textarea.outerWidth()).toEqual($wtHider.offset().left + $wtHider.outerWidth());
+    expect($textarea.offset().top + $textarea.outerHeight()).toEqual($wtHider.offset().top + $wtHider.outerHeight());
 
   });
 

@@ -107,8 +107,8 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
     }
 
-    if (that.waiting) {
-      that.waiting = event;
+    if ((that.waiting || that.force) && !event.isImmediatePropagationStopped()) {
+      that.waiting = that.force = event;
       event.stopImmediatePropagation();
       event.preventDefault();
     }
@@ -138,6 +138,11 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
   this.cellProperties = cellProperties;
 
   this.$body.on('keydown.editor.' + this.instance.guid, function (event) {
+
+    if (Handsontable.activeGuid === null) {
+      return;
+    }
+
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     if (!that.isCellEdited) {
       if (Handsontable.helper.isPrintableChar(event.keyCode)) {
@@ -180,7 +185,7 @@ HandsontableTextEditorClass.prototype.getCaretPosition = function (el) {
   if (el.selectionStart) {
     return el.selectionStart;
   }
-  else if (document.selection) {
+  else if (document.selection) { //IE8
     el.focus();
     var r = document.selection.createRange();
     if (r == null) {
@@ -206,7 +211,7 @@ HandsontableTextEditorClass.prototype.setCaretPosition = function (el, pos) {
     el.focus();
     el.setSelectionRange(pos, pos);
   }
-  else if (el.createTextRange) {
+  else if (el.createTextRange) { //IE8
     var range = el.createTextRange();
     range.collapse(true);
     range.moveEnd('character', pos);
@@ -290,7 +295,9 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   ///end prepare textarea position
 
   var width = $td.width()
-    , height = $td.outerHeight() - 4;
+    , maxWidth = this.instance.view.maximumVisibleElementWidth(editLeft) - 10 //10 is TEXTAREAs border and padding
+    , height = $td.outerHeight() - 4
+    , maxHeight = this.instance.view.maximumVisibleElementHeight(editTop) - 5; //10 is TEXTAREAs border and padding
 
   if (parseInt($td.css('border-top-width'), 10) > 0) {
     height -= 1;
@@ -301,11 +308,12 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
     }
   }
 
+  //in future may change to pure JS http://stackoverflow.com/questions/454202/creating-a-textarea-with-auto-resize
   this.$textarea.autoResize({
-    maxHeight: 200,
-    minHeight: height,
-    minWidth: width,
-    maxWidth: Math.max(168, width),
+    minHeight: Math.min(height, maxHeight),
+    maxHeight: maxHeight, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
+    minWidth: Math.min(width, maxWidth),
+    maxWidth: maxWidth, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
     animate: false,
     extraSpace: 0
   });
@@ -331,29 +339,31 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
     this.isCellEdited = false;
     var val;
 
-    if (isCancelled){
-      val = [[this.originalValue]];
+    if (isCancelled) {
+      val = [
+        [this.originalValue]
+      ];
     } else {
       val = [
         [$.trim(this.TEXTAREA.value)]
       ];
     }
 
-    if (this.instance.getCellMeta(this.row, this.col).validator) {
+    var hasValidator = this.instance.getCellMeta(this.row, this.col).validator;
+
+    if (hasValidator) {
       this.waiting = true;
       var that = this;
       this.instance.addHookOnce('afterValidate', function (result) {
-        setTimeout(function(){
-          that.force = that.waiting;
-          that.waiting = false;
-          that.discardEditor(result);
-        }, 0);
+        that.force = that.waiting;
+        that.waiting = false;
+        that.discardEditor(result);
       });
     }
     this.saveValue(val, ctrlDown);
 
   }
-  if (!this.waiting) { //otherwise afterValidate will discard the editor
+  if (!hasValidator) { //otherwise afterValidate will discard the editor
     this.discardEditor();
   }
 };
@@ -365,8 +375,13 @@ HandsontableTextEditorClass.prototype.discardEditor = function (result) {
 
   if (result === false && this.cellProperties.allowInvalid !== true) { //validator was defined and failed
     this.isCellEdited = true;
-    this.TEXTAREA.focus();
-    this.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+    var that = this;
+    setTimeout(function () {
+      if (that.instance.view.wt.wtDom.isVisible(that.TEXTAREA)) {
+        that.TEXTAREA.focus();
+        that.setCaretPosition(that.TEXTAREA, that.TEXTAREA.value.length);
+      }
+    }, 0);
   }
   else {
     if (document.activeElement === this.TEXTAREA) {

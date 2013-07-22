@@ -43,3 +43,44 @@ beforeEach(function () {
 var getTableWidth = function (elem) {
   return $(elem).outerWidth() || $(elem).find('tbody').outerWidth() || $(elem).find('thead').outerWidth(); //IE8 reports 0 as <table> offsetWidth
 };
+
+/**
+ * Creates 2D array of Excel-like values "A0", "A1", ...
+ * @param rowCount
+ * @param colCount
+ * @returns {Array}
+ */
+function createSpreadsheetData(rowCount, colCount) {
+  rowCount = typeof rowCount === 'number' ? rowCount : 100;
+  colCount = typeof colCount === 'number' ? colCount : 4;
+
+  var rows = []
+    , i
+    , j;
+
+  for (i = 0; i < rowCount; i++) {
+    var row = [];
+    for (j = 0; j < colCount; j++) {
+      row.push(spreadsheetColumnLabel(j) + i);
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+/**
+ * Generates spreadsheet-like column names: A, B, C, ..., Z, AA, AB, etc
+ * @param index
+ * @returns {String}
+ */
+function spreadsheetColumnLabel(index) {
+  var dividend = index + 1;
+  var columnLabel = '';
+  var modulo;
+  while (dividend > 0) {
+    modulo = (dividend - 1) % 26;
+    columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
+    dividend = parseInt((dividend - modulo) / 26, 10);
+  }
+  return columnLabel;
+}

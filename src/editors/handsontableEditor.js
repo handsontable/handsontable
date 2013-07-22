@@ -87,15 +87,6 @@ HandsontableHandsontableEditorClass.prototype.finishEditing = function (isCancel
   HandsontableTextEditorClass.prototype.finishEditing.call(this, isCancelled, ctrlDown);
 };
 
-HandsontableHandsontableEditorClass.prototype.isMenuExpanded = function () {
-  if (this.typeahead.$menu.is(":visible")) {
-    return this.typeahead;
-  }
-  else {
-    return false;
-  }
-};
-
 /**
  * Handsontable editor
  * @param {Object} instance Handsontable instance

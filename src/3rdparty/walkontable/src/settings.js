@@ -126,7 +126,3 @@ WalkontableSettings.prototype.rowHeight = function (row) {
   }
   return 20;
 };
-
-WalkontableSettings.prototype.columnWidth = function (column) {
-  return Math.min(200, this._getSetting('columnWidth', column));
-};

@@ -310,5 +310,124 @@ describe('ColumnSorting', function () {
 
   });
 
+  it('should allow to define sorting column and order during initialization', function(){
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'D'],
+        [3, 'A'],
+        [2, 'C']
+      ],
+      colHeaders: true,
+      columnSorting: {
+        column: 0,
+        order: true
+      }
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D');
+  });
+
+  it('should allow to change sorting column with updateSettings', function(){
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'D'],
+        [3, 'A'],
+        [2, 'C']
+      ],
+      colHeaders: true,
+      columnSorting: {
+        column: 0,
+        order: true
+      }
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D');
+
+    updateSettings({
+      columnSorting: {
+        column: 1,
+        order: true
+      }
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A');
+  });
+
+  it('should allow to change sorting order with updateSettings', function(){
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'D'],
+        [3, 'A'],
+        [2, 'C']
+      ],
+      colHeaders: true,
+      columnSorting: {
+        column: 0,
+        order: true
+      }
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+
+    updateSettings({
+      columnSorting: {
+        column: 0,
+        order: false
+      }
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+  });
+
+  it("should NOT sort spare rows", function () {
+    var myData = [
+      {a: false, b: 2, c: 3},
+      {a: true, b: 11, c: -4},
+      {a: false, b: 10, c: 11}
+    ];
+
+    function customIsEmptyRow(row) {
+      var data = getData();
+      return data[row].isNew;
+    }
+
+    handsontable({
+      data: myData,
+      minSpareRows: 1,
+      rowHeaders: true,
+      colHeaders: ["A", "B", "C"],
+      columns: [
+        { data: "a", type: "checkbox" },
+        { data: "b", type: "text" },
+        { data: "c", type: "text" }
+      ],
+      dataSchema: {isNew: true, a: false}, // default for a to avoid #bad value#
+      columnSorting: true,
+      isEmptyRow: customIsEmptyRow
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0) :checkbox').is(':checked')).toBe(false);
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0) :checkbox').is(':checked')).toBe(true);
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0) :checkbox').is(':checked')).toBe(false);
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0) :checkbox').is(':checked')).toBe(false); //spare row
+
+    updateSettings({
+      columnSorting: {
+        column: 0,
+        order: false
+      }
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0) :checkbox').is(':checked')).toBe(false);
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0) :checkbox').is(':checked')).toBe(false);
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0) :checkbox').is(':checked')).toBe(true);
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0) :checkbox').is(':checked')).toBe(false); //spare row
+  });
 
 });

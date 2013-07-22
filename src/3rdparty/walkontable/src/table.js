@@ -300,7 +300,12 @@ WalkontableTable.prototype._doDraw = function () {
     , TD
     , TH
     , adjusted = false
-    , workspaceWidth;
+    , workspaceWidth
+    , mustBeInViewport;
+
+  if (this.verticalRenderReverse) {
+    mustBeInViewport = offsetRow;
+  }
 
   this.instance.wtViewport.resetSettings();
 
@@ -415,13 +420,20 @@ WalkontableTable.prototype._doDraw = function () {
 
         }
         else {
-          this.rowStrategy.add(r, TD);
+          this.rowStrategy.add(r, TD, this.verticalRenderReverse);
         }
       }
       else {
-        this.rowStrategy.add(r, TD);
+        this.rowStrategy.add(r, TD, this.verticalRenderReverse);
 
         if (this.rowStrategy.isLastIncomplete()) {
+          if (this.verticalRenderReverse && !this.isRowInViewport(mustBeInViewport)) {
+            //we failed because one of the cells was by far too large. Recover by rendering from top
+            this.verticalRenderReverse = false;
+            this.instance.update('offsetRow', mustBeInViewport);
+            this.draw();
+            return;
+          }
           break;
         }
       }
@@ -518,37 +530,6 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
   }
 };
 
-/* this function is not used currently (was used in _doDraw)
- WalkontableTable.prototype.isCellVisible = function (r, c) {
- var out = 0;
-
- if (this.isRowInViewport(r)) {
- if (this.getLastVisibleRow() === c && this.rowStrategy.remainingSize > 0) {
- out |= FLAG_PARTIALLY_VISIBLE_VERTICAL;
- }
- else {
- out |= FLAG_VISIBLE_VERTICAL;
- }
- }
- else {
- out |= FLAG_NOT_VISIBLE_VERTICAL;
- }
-
- if (this.isColumnInViewport(c)) {
- if (this.getLastVisibleColumn() === c && this.columnStrategy.remainingSize > 0) {
- out |= FLAG_PARTIALLY_VISIBLE_HORIZONTAL;
- }
- else {
- out |= FLAG_VISIBLE_HORIZONTAL;
- }
- }
- else {
- out |= FLAG_NOT_VISIBLE_HORIZONTAL;
- }
-
- return out;
- };*/
-
 /**
  * getCell
  * @param {Array} coords
@@ -581,7 +562,7 @@ WalkontableTable.prototype.getCell = function (coords) {
 
 WalkontableTable.prototype.getCoords = function (TD) {
   return [
-    this.rowFilter.visibleToSource(this.wtDom.prevSiblings(TD.parentNode).length),
+    this.rowFilter.visibleToSource(this.wtDom.index(TD.parentNode)),
     this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex)
   ];
 };

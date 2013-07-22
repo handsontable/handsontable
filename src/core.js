@@ -859,9 +859,6 @@ Handsontable.Core = function (rootElement, userSettings) {
 
       if (scrollToCell !== false) {
         instance.view.scrollViewport(coords);
-
-        instance.view.wt.draw(true); //these two lines are needed to fix scrolling viewport when cell dimensions are significantly bigger than assumed by Walkontable
-        instance.view.scrollViewport(coords);
       }
       selection.refreshBorders();
     },
@@ -1251,7 +1248,8 @@ Handsontable.Core = function (rootElement, userSettings) {
           priv.settings.beforeOnKeyDown.call(instance, event);
         }
 
-        if ($body.children('.context-menu-list:visible').length) {
+        if (Array.prototype.filter.call(document.body.querySelectorAll('.context-menu-list'), instance.view.wt.wtDom.isVisible).length) { //faster than $body.children('.context-menu-list:visible').length
+          //if right-click context menu is visible, do not execute this keydown handler (arrow keys will navigate the context menu)
           return;
         }
 
@@ -1720,7 +1718,13 @@ Handsontable.Core = function (rootElement, userSettings) {
     Handsontable.activeGuid = instance.guid;
 
     if (document.activeElement && document.activeElement !== document.body) {
-      document.activeElement.blur();
+
+      if (Handsontable.helper.isOutsideInput(document.activeElement)) {
+        Handsontable.activeGuid = null;
+      } else {
+        document.activeElement.blur();
+      }
+
     }
     else if (!document.activeElement) { //IE
       document.body.focus();
@@ -2010,6 +2014,11 @@ Handsontable.Core = function (rootElement, userSettings) {
       else if (!autofill.handle && settings.fillHandle !== false) {
         autofill.init();
       }
+    }
+
+
+    if (!init) {
+      instance.PluginHooks.run('afterUpdateSettings');
     }
 
     grid.adjustRowsAndCols();
@@ -2530,7 +2539,10 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
     priv.selStart.coords({row: row, col: col});
-    instance.listen(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
+    if (document.activeElement && document.activeElement !== document.documentElement && document.activeElement !== document.body) {
+      document.activeElement.blur(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
+    }
+    instance.listen();
     if (typeof endRow === "undefined") {
       selection.setRangeEnd({row: row, col: col}, scrollToCell);
     }

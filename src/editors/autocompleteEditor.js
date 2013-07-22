@@ -99,12 +99,13 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
   this.typeahead.select = function () {
     var output = this.hide(); //need to hide it before destroyEditor, because destroyEditor checks if menu is expanded
     that.instance.destroyEditor(true);
-    var val = this.$menu.find('.active').attr('data-value');
+    var active = this.$menu[0].querySelector('.active');
+    var val = $(active).attr('data-value');
     if (val === that.emptyStringLabel) {
       val = '';
     }
     if (typeof cellProperties.onSelect === 'function') {
-      cellProperties.onSelect(row, col, prop, val, this.$menu.find('.active').index());
+      cellProperties.onSelect(row, col, prop, val, that.instance.view.wt.wtDom.index(active));
     }
     else {
       that.instance.setDataAtRowProp(row, prop, val);
@@ -115,7 +116,10 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
   this.typeahead.render = function (items) {
     that.typeahead._render.call(this, items);
     if (!cellProperties.strict) {
-      this.$menu.find('li:eq(0)').removeClass('active');
+      var li = this.$menu[0].querySelector('.active');
+      if (li) {
+        that.instance.view.wt.wtDom.removeClass(li, 'active')
+      }
     }
     return this;
   };
@@ -123,16 +127,16 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
   /* overwrite typeahead options and methods (matcher, sorter, highlighter, updater, etc) if provided in cellProperties */
   for (i in cellProperties) {
     // if (cellProperties.hasOwnProperty(i)) {
-      if (i === 'options') {
-        for (j in cellProperties.options) {
-          // if (cellProperties.options.hasOwnProperty(j)) {
-            this.typeahead.options[j] = cellProperties.options[j];
-          // }
-        }
+    if (i === 'options') {
+      for (j in cellProperties.options) {
+        // if (cellProperties.options.hasOwnProperty(j)) {
+        this.typeahead.options[j] = cellProperties.options[j];
+        // }
       }
-      else {
-        this.typeahead[i] = cellProperties[i];
-      }
+    }
+    else {
+      this.typeahead[i] = cellProperties[i];
+    }
     // }
   }
 
@@ -152,7 +156,7 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
  */
 HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (!isCancelled) {
-    if (this.isMenuExpanded() && this.typeahead.$menu.find('.active').length) {
+    if (this.isMenuExpanded() && this.typeahead.$menu[0].querySelector('.active')) {
       this.typeahead.select();
       this.isCellEdited = false; //cell value was updated by this.typeahead.select (issue #405)
     }
@@ -165,7 +169,7 @@ HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancel
 };
 
 HandsontableAutocompleteEditorClass.prototype.isMenuExpanded = function () {
-  if (this.typeahead.$menu.is(":visible")) {
+  if (this.instance.view.wt.wtDom.isVisible(this.typeahead.$menu[0])) {
     return this.typeahead;
   }
   else {

@@ -16,11 +16,20 @@ Handsontable.TableView = function (instance) {
 
   var table = document.createElement('TABLE');
   table.className = 'htCore';
-  table.appendChild(document.createElement('THEAD'));
-  table.appendChild(document.createElement('TBODY'));
+  this.THEAD = document.createElement('THEAD');
+  table.appendChild(this.THEAD);
+  this.TBODY = document.createElement('TBODY');
+  table.appendChild(this.TBODY);
 
   instance.$table = $(table);
   instance.rootElement.prepend(instance.$table);
+
+  instance.rootElement.on('mousedown.handsontable', function (event) {
+    if (!that.isTextSelectionAllowed(event.target)) {
+      event.preventDefault(); //disable text selection in Chrome
+      clearTextSelection();
+    }
+  });
 
   $documentElement.on('keyup.' + instance.guid, function (event) {
     if (instance.selection.isInProgress() && !event.shiftKey) {
@@ -45,6 +54,10 @@ Handsontable.TableView = function (instance) {
         instance.autofill.apply();
       }
       instance.autofill.handle.isDragged = 0;
+    }
+
+    if (Handsontable.helper.isOutsideInput(document.activeElement)) {
+      Handsontable.activeGuid = null;
     }
   });
 
@@ -221,6 +234,10 @@ Handsontable.TableView = function (instance) {
     onCellMouseDown: function (event, coords, TD) {
       Handsontable.activeGuid = instance.guid;
 
+      if (Handsontable.helper.isOutsideInput(document.activeElement)) {
+        document.activeElement.blur();
+      }
+
       isMouseDown = true;
       var coordsObj = {row: coords[0], col: coords[1]};
       if (event.button === 2 && instance.selection.inInSelection(coordsObj)) { //right mouse button
@@ -233,10 +250,6 @@ Handsontable.TableView = function (instance) {
         instance.selection.setRangeStart(coordsObj);
       }
 
-      if (!that.settings.fragmentSelection) {
-        event.preventDefault(); //disable text selection in Chrome
-        clearTextSelection();
-      }
 
       if (that.settings.afterOnCellMouseDown) {
         that.settings.afterOnCellMouseDown.call(instance, event, coords, TD);
@@ -304,6 +317,16 @@ Handsontable.TableView = function (instance) {
       }
     }
   });
+};
+
+Handsontable.TableView.prototype.isTextSelectionAllowed = function (el) {
+  if (el.nodeName === 'TEXTAREA') {
+    return (true);
+  }
+  if (this.settings.fragmentSelection && this.wt.wtDom.isChildOf(el, this.TBODY)) {
+    return (true);
+  }
+  return false;
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {
@@ -400,4 +423,24 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
   }
   TH.appendChild(DIV);
   this.instance.PluginHooks.run('afterGetColHeader', col, TH);
+};
+
+/**
+ * Given a element's left position relative to the viewport, returns maximum element width until the right edge of the viewport (before scrollbar)
+ * @param {Number} left
+ * @return {Number}
+ */
+Handsontable.TableView.prototype.maximumVisibleElementWidth = function (left) {
+  var rootWidth = this.wt.wtViewport.getWorkspaceWidth();
+  return rootWidth - left;
+};
+
+/**
+ * Given a element's top position relative to the viewport, returns maximum element height until the bottom edge of the viewport (before scrollbar)
+ * @param {Number} top
+ * @return {Number}
+ */
+Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
+  var rootHeight = this.wt.wtViewport.getWorkspaceHeight();
+  return rootHeight - top;
 };
