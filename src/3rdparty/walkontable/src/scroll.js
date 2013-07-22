@@ -75,7 +75,8 @@ WalkontableScroll.prototype.scrollLogicVertical = function (delta, offset, total
     newOffset = total - fixedCount - 1;
     setReverseRenderFn(true);
   }
-  else if (newOffset < 0) {
+
+  if (newOffset < 0) {
     newOffset = 0;
   }
 

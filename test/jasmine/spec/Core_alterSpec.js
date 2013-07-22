@@ -226,6 +226,39 @@ describe('Core_alter', function () {
     expect(this.$container.find('tr:eq(1) td:last').html()).toEqual('e');
   });
 
+  it("should remove rows from table with fixedRows", function () {
+    handsontable({
+      data: [
+        ["a1", "a2", "a3"],
+        ["b1", "b2", "b3"]
+      ],
+      fixedRowsTop: 1,
+      minSpareRows: 0
+    });
+
+    alter('remove_row', 1);
+
+    expect(countRows()).toEqual(1);
+
+  });
+
+  it("should remove all rows from table with fixedRows", function () {
+    handsontable({
+      data: [
+        ["a1", "a2", "a3"],
+        ["b1", "b2", "b3"]
+      ],
+      fixedRowsTop: 1,
+      minSpareRows: 0
+    });
+
+    alter('remove_row', 1);
+    alter('remove_row', 1);
+
+    expect(countRows()).toEqual(0);
+
+  });
+
   /*insert_row*/
 
   it('should insert row at given index', function () {
