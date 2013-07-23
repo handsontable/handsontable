@@ -115,6 +115,80 @@ describe('Core_selection', function () {
     textarea.remove();
   });
 
+  it('should allow to type in external input while holding current selection information', function () {
+    var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
+    var keyPressed, activeElementName;
+    handsontable({
+      outsideClickDeselects: false
+    });
+    selectCell(0, 0);
+
+    textarea.focus();
+    textarea.trigger('mousedown');
+    textarea.trigger('mouseup');
+    activeElementName = document.activeElement;
+
+    $(activeElementName).on('keydown', function(event){
+       keyPressed = event.keyCode;
+    });
+
+    var LETTER_a_KEY = 97;
+    var event = $.Event('keydown');
+    event.keyCode = LETTER_a_KEY;
+
+    $(document.activeElement).trigger(event);
+
+    expect(Handsontable.activeGuid).toBeNull();
+
+    //textarea should receive the event and be an active element
+    expect(keyPressed).toEqual(LETTER_a_KEY);
+    expect(activeElementName).toBe(document.getElementById('test_textarea'));
+
+    //should preserve selection, close editor and save changes
+    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getDataAtCell(0, 0)).toBeNull();
+
+    textarea.remove();
+  });
+
+  it('should allow to type in external input after opening cell editor', function () {
+    var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
+    var keyPressed, activeElementName;
+    handsontable({
+      outsideClickDeselects: false
+    });
+    selectCell(0, 0);
+    keyDown('enter');
+    document.activeElement.value = 'Foo';
+
+    textarea.focus();
+    textarea.trigger('mousedown');
+    textarea.trigger('mouseup');
+    activeElementName = document.activeElement;
+
+    $(activeElementName).on('keydown', function(event){
+      keyPressed = event.keyCode;
+    });
+
+    var LETTER_a_KEY = 97;
+    var event = $.Event('keydown');
+    event.keyCode = LETTER_a_KEY;
+
+    $(document.activeElement).trigger(event);
+
+    expect(Handsontable.activeGuid).toBeNull();
+
+    //textarea should receive the event and be an active element
+    expect(keyPressed).toEqual(LETTER_a_KEY);
+    expect(activeElementName).toBe(document.getElementById('test_textarea'));
+
+    //should preserve selection, close editor and save changes
+    expect(getSelected()).toEqual([0, 0, 0, 0]);
+    expect(getDataAtCell(0, 0)).toEqual('Foo');
+
+    textarea.remove();
+  });
+
   it('should fix start range if provided is out of bounds (to the left)', function () {
     handsontable({
       startRows: 5,

@@ -46,7 +46,7 @@
       for (i = 0; i < 100000; i++) {
         var row = [];
         for (j = 0; j < 7; j++) {
-          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
+          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + parseInt(i, 10) + parseInt(j, 10));
         }
         rows.push(row);
       }
@@ -87,6 +87,8 @@
 
           <p>Only the table view is sorted. The data source remains in the original order.</p>
 
+          <div class="state-loaded alert">State of the table has been restored. <button class="reset-state">Reset table state</button></div>
+
           <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
           <p>
@@ -105,6 +107,8 @@
           </div>
 
           <script data-jsfiddle="example1">
+
+
             $("#example1").handsontable({
               data: createBigData(),
               rowHeaders: true,
@@ -112,9 +116,7 @@
               colWidths: [55, 80, 80, 80, 80, 80, 80],
               columnSorting: true,
               columns: [
-                {
-                  type: 'numeric'
-                },
+                {},
                 {},
                 {},
                 {},
@@ -122,9 +124,40 @@
                 {},
                 {}
               ],
+              manualColumnMove: true,
+              manualColumnResize: true,
               minSpareRows: 1,
-              contextMenu: true
+              contextMenu: true,
+              persistentState: true
             });
+
+            var HOT = $('#example1').handsontable('getInstance');
+
+            $('.reset-state').on('click', function(){
+
+              HOT.PluginHooks.run('persistentStateReset');
+
+              HOT.updateSettings({
+                columnSorting: true,
+                manualColumnMove:true,
+                manualColumnResize: true
+              });
+
+              $(".state-loaded").fadeOut(300);
+            });
+
+
+            var storedData = {};
+
+            HOT.PluginHooks.run('persistentStateLoad', '_persistentStateKeys', storedData);
+
+            var savedKeys = storedData.value;
+
+            if(savedKeys && savedKeys.length > 0){
+              $(".state-loaded").show();
+            }
+
+
           </script>
         </div>
       </div>

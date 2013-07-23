@@ -226,8 +226,16 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (typeof index !== 'number') {
         index = -amount;
       }
-      GridSettings.prototype.data.splice(index, amount);
+
+      // We have to map the physical row ids to logical and than perform removing with (possibly) new row id
+      var logicRows = this.physicalRowsToLogical(index, amount);
+
+      GridSettings.prototype.data = GridSettings.prototype.data.filter(function (row, index) {
+        return logicRows.indexOf(index) == -1;
+      });
+
       instance.PluginHooks.run('afterRemoveRow', index, amount);
+
       instance.forceFullRender = true; //used when data was changed
     },
 
@@ -385,6 +393,26 @@ Handsontable.Core = function (rootElement, userSettings) {
       else {
         priv.settings.data[datamap.setVars.row][datamap.setVars.prop] = datamap.setVars.value;
       }
+    },
+    /**
+     * This ridiculous piece of code maps rows Id that are present in table data to those displayed for user.
+     * The trick is, the physical row id (stored in settings.data) is not necessary the same
+     * as the logical (displayed) row id (e.g. when sorting is applied).
+     */
+    physicalRowsToLogical: function (index, amount) {
+      var physicRow = (GridSettings.prototype.data.length + index) % GridSettings.prototype.data.length;
+      var logicRows = [];
+      var rowsToRemove = amount;
+
+      while (physicRow < GridSettings.prototype.data.length && rowsToRemove) {
+        this.get(physicRow, 0); //this performs an actual mapping and saves the result to getVars
+        logicRows.push(this.getVars.row);
+
+        rowsToRemove--;
+        physicRow++;
+      }
+
+      return logicRows;
     },
 
     /**
@@ -696,7 +724,7 @@ Handsontable.Core = function (rootElement, userSettings) {
               if ((end && current.col > end.col) || (!priv.settings.minSpareCols && current.col > instance.countCols() - 1) || (current.col >= priv.settings.maxCols)) {
                 break;
               }
-              if (instance.getCellMeta(current.row, current.col).isWritable) {
+              if (!instance.getCellMeta(current.row, current.col).readOnly) {
                 setData.push([current.row, current.col, input[r][c]]);
               }
               current.col++;
@@ -830,9 +858,6 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.PluginHooks.run("afterSelectionByProp", priv.selStart.row(), datamap.colToProp(priv.selStart.col()), priv.selEnd.row(), datamap.colToProp(priv.selEnd.col()));
 
       if (scrollToCell !== false) {
-        instance.view.scrollViewport(coords);
-
-        instance.view.wt.draw(true); //these two lines are needed to fix scrolling viewport when cell dimensions are significantly bigger than assumed by Walkontable
         instance.view.scrollViewport(coords);
       }
       selection.refreshBorders();
@@ -1010,7 +1035,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       var r, c, changes = [];
       for (r = corners.TL.row; r <= corners.BR.row; r++) {
         for (c = corners.TL.col; c <= corners.BR.col; c++) {
-          if (instance.getCellMeta(r, c).isWritable) {
+          if (!instance.getCellMeta(r, c).readOnly) {
             changes.push([r, c, '']);
           }
         }
@@ -1223,7 +1248,8 @@ Handsontable.Core = function (rootElement, userSettings) {
           priv.settings.beforeOnKeyDown.call(instance, event);
         }
 
-        if ($body.children('.context-menu-list:visible').length) {
+        if (Array.prototype.filter.call(document.body.querySelectorAll('.context-menu-list'), instance.view.wt.wtDom.isVisible).length) { //faster than $body.children('.context-menu-list:visible').length
+          //if right-click context menu is visible, do not execute this keydown handler (arrow keys will navigate the context menu)
           return;
         }
 
@@ -1423,7 +1449,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Prepare text input to be displayed at given grid cell
      */
     prepare: function () {
-      if (!instance.getCellMeta(priv.selStart.row(), priv.selStart.col()).isWritable) {
+      if (instance.getCellMeta(priv.selStart.row(), priv.selStart.col()).readOnly) {
         return;
       }
 
@@ -1452,8 +1478,33 @@ Handsontable.Core = function (rootElement, userSettings) {
     instance.PluginHooks.run('afterInit');
   };
 
+  function ValidatorsQueue() { //moved this one level up so it can be used in any function here. Probably this should be moved to a separate file
+    var resolved = false;
+
+    return {
+      validatorsInQueue: 0,
+      addValidatorToQueue: function () {
+        this.validatorsInQueue++;
+        resolved = false;
+      },
+      removeValidatorFormQueue: function () {
+        this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
+        this.checkIfQueueIsEmpty();
+      },
+      onQueueEmpty: function () {
+      },
+      checkIfQueueIsEmpty: function () {
+        if (this.validatorsInQueue == 0 && resolved == false) {
+          resolved = true;
+          this.onQueueEmpty();
+        }
+      }
+    };
+  }
+
   function validateChanges(changes, source, callback) {
-    var waitingForValidator = 0;
+    var waitingForValidator = new ValidatorsQueue();
+    waitingForValidator.onQueueEmpty = resolve;
 
     for (var i = changes.length - 1; i >= 0; i--) {
       if (changes[i] === null) {
@@ -1469,7 +1520,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         }
 
         if (cellProperties.validator) {
-          waitingForValidator++;
+          waitingForValidator.addValidatorToQueue();
           instance.validateCell(changes[i][3], cellProperties, (function (i, cellProperties) {
             return function (result) {
               if (typeof result !== 'boolean') {
@@ -1479,33 +1530,31 @@ Handsontable.Core = function (rootElement, userSettings) {
                 changes.splice(i, 1);
                 --i;
               }
-              waitingForValidator--;
-              resolve();
+              waitingForValidator.removeValidatorFormQueue();
             }
           })(i, cellProperties)
             , source);
         }
       }
     }
-    resolve();
+    waitingForValidator.checkIfQueueIsEmpty();
 
     function resolve() {
       var beforeChangeResult;
-      if (waitingForValidator === 0) {
-        if (changes.length) {
-          beforeChangeResult = instance.PluginHooks.execute("beforeChange", changes, source);
-          if (typeof beforeChangeResult === 'function') {
-            $.when(result).then(function () {
-              callback(); //called when async validators and async beforeChange are resolved
-            });
-          }
-          else if (beforeChangeResult === false) {
-            changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
-          }
+
+      if (changes.length) {
+        beforeChangeResult = instance.PluginHooks.execute("beforeChange", changes, source);
+        if (typeof beforeChangeResult === 'function') {
+          $.when(result).then(function () {
+            callback(); //called when async validators and async beforeChange are resolved
+          });
         }
-        if (typeof beforeChangeResult !== 'function') {
-          callback(); //called when async validators are resolved and beforeChange was not async
+        else if (beforeChangeResult === false) {
+          changes.splice(0, changes.length); //invalidate all changes (remove everything from array)
         }
+      }
+      if (typeof beforeChangeResult !== 'function') {
+        callback(); //called when async validators are resolved and beforeChange was not async
       }
     }
   }
@@ -1564,12 +1613,14 @@ Handsontable.Core = function (rootElement, userSettings) {
       value = instance.PluginHooks.execute("beforeValidate", value, cellProperties.row, cellProperties.prop, source);
 
       validator.call(cellProperties, value, function (valid) {
-        if (cellProperties.allowInvalid) {
-          cellProperties.valid = valid;
-        }
+        cellProperties.valid = valid;
         valid = instance.PluginHooks.execute("afterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
         callback(valid);
       });
+    }
+    else { //resolve callback even if validator function was not found
+      cellProperties.valid = true;
+      callback(true);
     }
   };
 
@@ -1667,7 +1718,13 @@ Handsontable.Core = function (rootElement, userSettings) {
     Handsontable.activeGuid = instance.guid;
 
     if (document.activeElement && document.activeElement !== document.body) {
-      document.activeElement.blur();
+
+      if (Handsontable.helper.isOutsideInput(document.activeElement)) {
+        Handsontable.activeGuid = null;
+      } else {
+        document.activeElement.blur();
+      }
+
     }
     else if (!document.activeElement) { //IE
       document.body.focus();
@@ -1789,7 +1846,6 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.render = function () {
     if (instance.view) {
-      priv.cellSettings.length = 0; //clear cellSettings cache
       instance.forceFullRender = true; //used when data was changed
       instance.parseSettingsFromDOM();
       selection.refreshBorders(null, true);
@@ -1958,6 +2014,11 @@ Handsontable.Core = function (rootElement, userSettings) {
       else if (!autofill.handle && settings.fillHandle !== false) {
         autofill.init();
       }
+    }
+
+
+    if (!init) {
+      instance.PluginHooks.run('afterUpdateSettings');
     }
 
     grid.adjustRowsAndCols();
@@ -2172,8 +2233,6 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
 
-    cellProperties.isWritable = !cellProperties.readOnly;
-
     instance.PluginHooks.run('beforeGetCellMeta', row, col, cellProperties);
 
     if (typeof cellProperties.type === 'string' && cellProperties.type !== 'text') {
@@ -2194,14 +2253,32 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
 
-    if (cellProperties.validator && cellProperties.valid === void 0) { //this is the first render of this cell and we need to know if it's valid
-      instance.validateCell(instance.getDataAtCell(row, col), cellProperties, function (res) {
-      }, 'getCellMeta');
-    }
-
     instance.PluginHooks.run('afterGetCellMeta', row, col, cellProperties);
 
     return cellProperties;
+  };
+
+  /**
+   * Validates all cells using their validator functions and calls callback when finished. Does not render the view
+   * @param callback
+   */
+  this.validateCells = function (callback) {
+    var waitingForValidator = new ValidatorsQueue();
+    waitingForValidator.onQueueEmpty = callback;
+
+    var i = instance.countRows() - 1;
+    while (i >= 0) {
+      var j = instance.countCols() - 1;
+      while (j >= 0) {
+        waitingForValidator.addValidatorToQueue();
+        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), function () {
+          waitingForValidator.removeValidatorFormQueue();
+        }, 'validateCells');
+        j--;
+      }
+      i--;
+    }
+    waitingForValidator.checkIfQueueIsEmpty();
   };
 
   /**
@@ -2360,7 +2437,9 @@ Handsontable.Core = function (rootElement, userSettings) {
     var i = instance.countRows() - 1
       , empty = 0;
     while (i >= 0) {
-      if (instance.isEmptyRow(i)) {
+      datamap.get(i, 0);
+
+      if (instance.isEmptyRow(datamap.getVars.row)) {
         empty++;
       }
       else if (ending) {
@@ -2460,7 +2539,10 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
     priv.selStart.coords({row: row, col: col});
-    instance.listen(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
+    if (document.activeElement && document.activeElement !== document.documentElement && document.activeElement !== document.body) {
+      document.activeElement.blur(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
+    }
+    instance.listen();
     if (typeof endRow === "undefined") {
       selection.setRangeEnd({row: row, col: col}, scrollToCell);
     }
@@ -2531,20 +2613,31 @@ Handsontable.Core = function (rootElement, userSettings) {
     };
 
     instance.PluginHooks.execute = function (key, p1, p2, p3, p4, p5) {
-      p1 = _exe.call(this, instance, key, p1, p2, p3, p4, p5);
-      p1 = Handsontable.PluginHooks.execute(instance, key, p1, p2, p3, p4, p5);
+      var globalHandlerResult = Handsontable.PluginHooks.execute(instance, key, p1, p2, p3, p4, p5);
+      var localHandlerResult = _exe.call(this, instance, key, globalHandlerResult, p2, p3, p4, p5);
 
-      return p1;
+      return typeof localHandlerResult == 'undefined' ? globalHandlerResult : localHandlerResult;
+
     };
 
     // Map old API with new methods
-    instance.addHook = instance.PluginHooks.add;
-    instance.addHookOnce = instance.PluginHooks.once;
+    instance.addHook = function () {
+      instance.PluginHooks.add.apply(instance.PluginHooks, arguments);
+    };
+    instance.addHookOnce = function () {
+      instance.PluginHooks.once.apply(instance.PluginHooks, arguments);
+    };
 
-    instance.removeHook = instance.PluginHooks.remove;
+    instance.removeHook = function () {
+      instance.PluginHooks.remove.apply(instance.PluginHooks, arguments);
+    };
 
-    instance.runHooks = instance.PluginHooks.run;
-    instance.runHooksAndReturn = instance.PluginHooks.execute;
+    instance.runHooks = function () {
+      instance.PluginHooks.run.apply(instance.PluginHooks, arguments);
+    };
+    instance.runHooksAndReturn = function () {
+      return instance.PluginHooks.execute.apply(instance.PluginHooks, arguments);
+    };
 
   })();
 

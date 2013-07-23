@@ -137,7 +137,7 @@
               contextMenu: true,
               onSelection: function (row, col, row2, col2) {
                 var meta = container.handsontable('getCellMeta', row2, col2);
-                if (meta.isWritable == false) {
+                if (meta.readOnly) {
                   container.handsontable('updateSettings', {fillHandle: false});
                 }
                 else {
