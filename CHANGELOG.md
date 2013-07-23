@@ -1,4 +1,4 @@
-## HEAD
+## [0.9.10](https://github.com/warpech/jquery-handsontable/tree/v0.9.10) (Jul 23, 2013)
 
 Features:
 - New option: `persistentState` ([docs](https://github.com/warpech/jquery-handsontable/wiki/Options)). Settings of manualColumnMove, manualColumnResize and columnSorting can be restored on page load using localStorage. See [Column resize](http://handsontable.com/demo/column_resize.html) and [Sorting](http://handsontable.com/demo/sorting.html) demos
