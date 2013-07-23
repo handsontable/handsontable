@@ -209,9 +209,6 @@ module.exports = function (grunt) {
            'test/jasmine/spec/*Spec.js',
            'test/jasmine/spec/*/*Spec.js'
           ],
-          vendor: [
-            'test/jasmine/lib/jasmine-extensions.js'
-          ],
           styles: [
             'test/jasmine/css/SpecRunner.css',
             'dist/jquery.handsontable.css',
