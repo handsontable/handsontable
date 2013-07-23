@@ -1,3 +1,44 @@
+## [0.9.10](https://github.com/warpech/jquery-handsontable/tree/v0.9.10) (Jul 23, 2013)
+
+Features:
+- New option: `persistentState` ([docs](https://github.com/warpech/jquery-handsontable/wiki/Options)). Settings of manualColumnMove, manualColumnResize and columnSorting can be restored on page load using localStorage. See [Column resize](http://handsontable.com/demo/column_resize.html) and [Sorting](http://handsontable.com/demo/sorting.html) demos
+
+Bugfixes (sorting):
+- issues with create/update/delete operations on a sorted table ([#793](https://github.com/warpech/jquery-handsontable/issues/793), [#542](https://github.com/warpech/jquery-handsontable/issues/542), [#746](https://github.com/warpech/jquery-handsontable/issues/746))
+- added proper sorting for `date` column type ([#720](https://github.com/warpech/jquery-handsontable/issues/720))
+- sorting tables with spare rows that contain not empty cells  ([#857](https://github.com/warpech/jquery-handsontable/issues/857))
+
+Bugfixes (validation):
+- cell editors now work better with async cell validators
+- validator should add class name `htInvalid` to a cell without removing other classes
+
+Bugfixes (big cells):
+- remove maximum column width 200px limit ([#422](https://github.com/warpech/jquery-handsontable/issues/422))
+- refactor manualColumnResize plugin, now it works ok also with columns wider than viewport
+- refactor scrollViewport to correctly scroll to cells wider than viewport (should just cut the part that is not visible)
+- refactor scrollViewport to correctly scroll to cells higher than viewport (should just cut the part that is not visible)
+- cell editor could not handle long values correctly ([#393](https://github.com/warpech/jquery-handsontable/issues/393), [#441](https://github.com/warpech/jquery-handsontable/issues/441), [#804](https://github.com/warpech/jquery-handsontable/issues/804))
+- scrollbar handle size does not depend on row height anymore, which solves problem of jumpy scrollbar behavior for rows of variable height [SC#527](https://github.com/Starcounter/Starcounter/issues/527)
+- it should not be allowed to select fragments of Handsontable chrome (even if `fragmentSelection` set to true)
+- fix cell selection positioning for tables with `<caption>`
+
+Bugfixes (other):
+- removing rows from table with fixed rows ([#805](https://github.com/warpech/jquery-handsontable/issues/805))
+- issues with selecting inputs/textareas/selects outside of HOT ([#408](https://github.com/warpech/jquery-handsontable/issues/408))
+- fixed API methods `addHook`, `addHookOnce`, `removeHook`, `runHooks`, `runHooksAndReturn` to manipulate local hooks
+- fixed calling `beforeChange` and `afterChange` hooks multiple times while editing a single value in a column with synchronous validator ([#864](https://github.com/warpech/jquery-handsontable/issues/864))
+
+Performance:
+- replace jQuery `find` with `querySelector` where possible
+- replace jQuery `index` with `wtDom.index` where possible - up to 8x faster
+- replace jQuery `:visible` with `wtDom.isVisible` where possible
+
+Other:
+- updated Grunt packages
+- added livereload to `grunt watch` - works with Chrome LiveReload extension. See: https://github.com/gruntjs/grunt-contrib-watch
+- remove the deprecated `isWritable` cell property from code and demo; add it temporarily to `src/plugins/legacy.js` so it does not break your code (to be removed in 1.0 or sooner)
+- now all tests pass in IE8-10, FF, Ch, also with `grunt sauce`
+
 ## [0.9.9](https://github.com/warpech/jquery-handsontable/tree/v0.9.9) (Jun 30, 2013)
 
 Bugfix:
