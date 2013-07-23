@@ -70,7 +70,7 @@ function CopyPasteClass() {
     }
 
     if (isCtrlDown) {
-      if (document.activeElement !== that.elTextarea && that.getSelectionText() != '') {
+      if (document.activeElement !== that.elTextarea && (that.getSelectionText() != '' || ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(document.activeElement.nodeName) != -1)) {
         return; //this is needed by fragmentSelection in Handsontable. Ignore copypaste.js behavior if fragment of cell text is selected
       }
 

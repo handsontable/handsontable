@@ -387,4 +387,31 @@ describe('Core_selection', function () {
     expect(isEditorVisible()).toEqual(true);
     $input.remove();
   });
+
+  //This test should cover the #893 case, but it always passes. It seems like the keydown event (with CTRL key pressed) isn't delivered.
+  it("should not move focus from outside elements on CTRL keydown event, when no cell is selected", function () {
+    var $input = $('<input type="text"/>');
+    $('body').append($input);
+
+    handsontable();
+
+    var selection = getSelected();
+
+    selectCell(0, 0);
+
+    expect(document.activeElement.nodeName).toBeInArray('BODY', 'HTML');
+
+    $input.focus();
+
+    expect(document.activeElement.nodeName).toBe('INPUT');
+
+    var keyDownEvent = $.Event('keydown', {ctrlKey: true, metaKey: true});
+    $input.trigger(keyDownEvent);
+
+    expect(document.activeElement.nodeName).toBe('INPUT');
+
+    $input.remove();
+
+
+  });
 });

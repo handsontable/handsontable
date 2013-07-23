@@ -209,6 +209,9 @@ module.exports = function (grunt) {
            'test/jasmine/spec/*Spec.js',
            'test/jasmine/spec/*/*Spec.js'
           ],
+          vendor: [
+            'test/jasmine/lib/jasmine-extensions.js'
+          ],
           styles: [
             'test/jasmine/css/SpecRunner.css',
             'dist/jquery.handsontable.css',
@@ -219,7 +222,8 @@ module.exports = function (grunt) {
             'lib/jquery.min.js',
             'lib/bootstrap-typeahead.js',
             'lib/numeral.js',
-            'lib/jQuery-contextMenu/jquery.contextMenu.js'
+            'lib/jQuery-contextMenu/jquery.contextMenu.js',
+            'test/jasmine/lib/jasmine-extensions.js'
           ],
           helpers: [
             'test/jasmine/spec/SpecHelper.js',
