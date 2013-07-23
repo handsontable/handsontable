@@ -39,6 +39,9 @@ function HandsontableColumnSorting() {
     var instance = this;
 
     if (typeof col == 'undefined') {
+      delete instance.sortColumn;
+      delete instance.sortOrder;
+
       return;
     } else if (instance.sortColumn === col && typeof order == 'undefined') {
       instance.sortOrder = !instance.sortOrder;
