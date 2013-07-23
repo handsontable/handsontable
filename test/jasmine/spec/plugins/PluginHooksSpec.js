@@ -173,4 +173,98 @@ describe('PluginHooks', function () {
 
   });
 
+  it('should add a local hook with addHooks method', function(){
+    var hot1 = handsontable();
+
+    var test = 0;
+
+    hot1.addHook('myHook', function(){
+      test += 5;
+    });
+
+    hot1.runHooks('myHook');
+
+    expect(test).toEqual(5);
+  });
+
+  it('should remove a local hook with removeHook method', function(){
+    var hot1 = handsontable();
+
+    var test = 0;
+    var handler = function(){
+      test += 5;
+    };
+
+    hot1.addHook('myHook', handler);
+
+    hot1.runHooks('myHook');
+    hot1.runHooks('myHook');
+    expect(test).toEqual(10);
+
+    hot1.removeHook('myHook', handler);
+    hot1.runHooks('myHook');
+
+    expect(test).toEqual(10);
+  });
+
+  it('should add a local hook with addHookOnce method and run it just once', function(){
+    var hot1 = handsontable();
+
+    var test = 0;
+    var handler = function(){
+      test += 5;
+    };
+
+    hot1.addHookOnce('myHook', handler);
+
+    hot1.runHooks('myHook');
+    hot1.runHooks('myHook');
+    expect(test).toEqual(5);
+
+  });
+
+  it('should run hook with runHooksAndReturn and return value', function(){
+    var hot = handsontable();
+
+    var handler = function(){
+      return 5;
+    };
+
+    hot.addHook('myHook', handler);
+
+    expect(hot.runHooksAndReturn('myHook')).toEqual(5);
+
+  });
+
+  it('should run two "once" hooks in desired order', function(){
+    var hot = handsontable();
+    var arr = [];
+
+    hot.addHookOnce('myHook', function(){
+      arr.push(1);
+    });
+
+    hot.addHookOnce('myHook', function(){
+      arr.push(2);
+    });
+
+    hot.runHooks('myHook');
+
+    expect(arr).toEqual([1,2]);
+  });
+
+  it('should execute two "once" hooks in desired order', function(){
+    var hot = handsontable();
+    var str = 'a';
+
+    hot.addHookOnce('myHook', function(str){
+      return str + 'b';
+    });
+
+    hot.addHookOnce('myHook', function(str){
+      return str + 'c';
+    });
+
+    expect(hot.runHooksAndReturn('myHook', str)).toEqual('abc');
+  });
 });

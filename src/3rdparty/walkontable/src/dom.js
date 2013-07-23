@@ -24,14 +24,20 @@ WalkontableDom.prototype.isChildOf = function (child, parent) {
   return false;
 };
 
-WalkontableDom.prototype.prevSiblings = function (elem) {
-  var out = [];
-  while ((elem = elem.previousSibling) != null) {
-    if (elem.nodeType === 1) {
-      out.push(elem);
-    }
+/**
+ * Counts index of element within its parent
+ * WARNING: for performance reasons, assumes there are only element nodes (no text nodes). This is true for Walkotnable
+ * Otherwise would need to check for nodeType or use previousElementSibling
+ * @see http://jsperf.com/sibling-index/10
+ * @param {Element} elem
+ * @return {Number}
+ */
+WalkontableDom.prototype.index = function (elem) {
+  var i = 0;
+  while (elem = elem.previousSibling) {
+    ++i
   }
-  return out;
+  return i;
 };
 
 if (document.documentElement.classList) {
@@ -145,6 +151,7 @@ WalkontableDom.prototype.removeTextNodes = function (elem, parent) {
  * Remove childs function
  * WARNING - this doesn't unload events and data attached by jQuery
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
+ * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/11 - no siginificant improvement with Chrome remove() method
  * @param element
  * @returns {void}
  */
@@ -250,6 +257,16 @@ WalkontableDom.prototype.isVisible = function (elem) {
  * @return {Object}
  */
 WalkontableDom.prototype.offset = function (elem) {
+  if (this.hasCaptionProblem() && elem.firstChild && elem.firstChild.nodeName === 'CAPTION') {
+    //fixes problem with Firefox ignoring <caption> in TABLE offset (see also WalkontableDom.prototype.outerHeight)
+    //http://jsperf.com/offset-vs-getboundingclientrect/8
+    var box = elem.getBoundingClientRect();
+    return {
+      top: box.top + (window.pageYOffset || document.documentElement.scrollTop) - (document.documentElement.clientTop || 0),
+      left: box.left + (window.pageXOffset || document.documentElement.scrollLeft) - (document.documentElement.clientLeft || 0)
+    };
+  }
+
   var offsetLeft = elem.offsetLeft
     , offsetTop = elem.offsetTop
     , lastElem = elem;

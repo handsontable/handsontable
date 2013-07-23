@@ -39,7 +39,7 @@ describe('Core_view', function () {
     expect(getSelected()).toEqual([2, 0, 2, 0]); //test whether it is selected
   });
 
-  it('should scroll viewport, respecting fixed rows', function(){
+  it('should scroll viewport, respecting fixed rows', function () {
 
     spec().$container.css({
       width: '200px',
@@ -68,7 +68,7 @@ describe('Core_view', function () {
 
   });
 
-  it('should enable to change fixedRowsTop with updateSettings', function(){
+  it('should enable to change fixedRowsTop with updateSettings', function () {
 
     spec().$container.css({
       width: '200px',
@@ -112,7 +112,7 @@ describe('Core_view', function () {
 
   });
 
-  it('should scroll viewport, respecting fixed columns', function(){
+  it('should scroll viewport, respecting fixed columns', function () {
 
     spec().$container.css({
       width: '200px',
@@ -142,7 +142,7 @@ describe('Core_view', function () {
   });
 
 
-  it('should enable to change fixedColumnsLeft with updateSettings', function(){
+  it('should enable to change fixedColumnsLeft with updateSettings', function () {
 
     spec().$container.css({
       width: '200px',
@@ -170,7 +170,7 @@ describe('Core_view', function () {
     selectCell(0, 0);
 
     expect(this.$container.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(this.$container.find('tr:eq(0) td:eq(1)').html()).toEqual("B0");
+    expect(this.$container.find('tr:eq(0) td:eq(1)').html()).toEqual("D0"); //clicking on a fixed cell should not scroll the table
 
     HOT.updateSettings({
       fixedColumnsLeft: 2
@@ -289,5 +289,53 @@ describe('Core_view', function () {
     });
 
     expect(this.$container.find('.wtHider').width()).toEqual(107); //rootElement is full width but this should do the trick
+  });
+
+  describe('maximumVisibleElementWidth', function () {
+    it('should return maximum width until right edge of the viewport', function () {
+      var hot = handsontable({
+        startRows: 2,
+        startCols: 10,
+        width: 100,
+        height: 100
+      });
+
+      expect(hot.view.maximumVisibleElementWidth(20)).toEqual(80);
+    });
+
+    it('should return maximum width until right edge of the viewport (excluding the scrollbar)', function () {
+      var hot = handsontable({
+        startRows: 10,
+        startCols: 10,
+        width: 100,
+        height: 100
+      });
+
+      expect(hot.view.maximumVisibleElementWidth(20)).toEqual(70);
+    });
+  });
+
+  describe('maximumVisibleElementHeight', function () {
+    it('should return maximum height until bottom edge of the viewport', function () {
+      var hot = handsontable({
+        startRows: 10,
+        startCols: 2,
+        width: 120,
+        height: 100
+      });
+
+      expect(hot.view.maximumVisibleElementHeight(20)).toEqual(80);
+    });
+
+    it('should return maximum height until bottom edge of the viewport (excluding the scrollbar)', function () {
+      var hot = handsontable({
+        startRows: 10,
+        startCols: 10,
+        width: 120,
+        height: 100
+      });
+
+      expect(hot.view.maximumVisibleElementHeight(20)).toEqual(70);
+    });
   });
 });

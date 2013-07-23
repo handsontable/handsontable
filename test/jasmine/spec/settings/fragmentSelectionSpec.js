@@ -95,6 +95,36 @@ describe('settings', function () {
         sel = sel.replace(/\s/g, ''); //tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
         expect(sel).toEqual('B0C0D0');
       });
+
+      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to false', function () {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
+          fragmentSelection: false
+        });
+        var $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
+        this.$container.append($div);
+        selectElementText($div[0], 1);
+
+        mouseDown($div);
+
+        var sel = getSelected();
+        expect(sel).toEqual(false);
+      });
+
+      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to true', function () {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
+          fragmentSelection: true
+        });
+        var $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
+        this.$container.append($div);
+        selectElementText($div[0], 1);
+
+        mouseDown($div);
+
+        var sel = getSelected();
+        expect(sel).toEqual(false);
+      });
     });
 
     describe('dynamic', function () {

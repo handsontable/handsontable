@@ -42,7 +42,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
     //if we are here then isCellEdited === true
 
     that.instance.PluginHooks.run('beforeKeyDown', event);
-    if(event.isImmediatePropagationStopped()) { //event was cancelled in beforeKeyDown
+    if (event.isImmediatePropagationStopped()) { //event was cancelled in beforeKeyDown
       return;
     }
 
@@ -106,10 +106,30 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         event.stopImmediatePropagation(); //backspace, delete, home, end, CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
         break;
     }
+
+    if ((that.waiting || that.force) && !event.isImmediatePropagationStopped()) {
+      that.waiting = that.force = event;
+      event.stopImmediatePropagation();
+      event.preventDefault();
+    }
   });
 };
 
 HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
+  var that = this;
+
+  function onDblClick() {
+    that.TEXTAREA.value = that.originalValue;
+    that.instance.destroyEditor();
+    that.beginEditing(row, col, prop, true);
+  }
+
+  this.instance.view.wt.update('onCellDblClick', onDblClick);
+
+  if (this.isCellEdited || this.waiting) {
+    return;
+  }
+
   this.TD = td;
   this.row = row;
   this.col = col;
@@ -117,9 +137,12 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
   this.originalValue = value;
   this.cellProperties = cellProperties;
 
-  var that = this;
-
   this.$body.on('keydown.editor.' + this.instance.guid, function (event) {
+
+    if (Handsontable.activeGuid === null) {
+      return;
+    }
+
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     if (!that.isCellEdited) {
       if (Handsontable.helper.isPrintableChar(event.keyCode)) {
@@ -146,12 +169,6 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
       }
     }
   });
-
-  function onDblClick() {
-    that.beginEditing(row, col, prop, true);
-  }
-
-  this.instance.view.wt.update('onCellDblClick', onDblClick);
 };
 
 HandsontableTextEditorClass.prototype.unbindTemporaryEvents = function () {
@@ -168,7 +185,7 @@ HandsontableTextEditorClass.prototype.getCaretPosition = function (el) {
   if (el.selectionStart) {
     return el.selectionStart;
   }
-  else if (document.selection) {
+  else if (document.selection) { //IE8
     el.focus();
     var r = document.selection.createRange();
     if (r == null) {
@@ -186,14 +203,15 @@ HandsontableTextEditorClass.prototype.getCaretPosition = function (el) {
 /**
  * Sets caret position in edit proxy
  * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
- * @param {Number}
+ * @param {Element} el
+ * @param {Number} pos
  */
 HandsontableTextEditorClass.prototype.setCaretPosition = function (el, pos) {
   if (el.setSelectionRange) {
     el.focus();
     el.setSelectionRange(pos, pos);
   }
-  else if (el.createTextRange) {
+  else if (el.createTextRange) { //IE8
     var range = el.createTextRange();
     range.collapse(true);
     range.moveEnd('character', pos);
@@ -203,17 +221,13 @@ HandsontableTextEditorClass.prototype.setCaretPosition = function (el, pos) {
 };
 
 HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
-  if (this.isCellEdited) {
+  if (this.isCellEdited || this.waiting) {
     return;
   }
   this.isCellEdited = true;
   this.row = row;
   this.col = col;
   this.prop = prop;
-
-  var coords = {row: row, col: col};
-  this.instance.view.scrollViewport(coords);
-  this.instance.view.render();
 
   this.$textarea.on('cut.editor', function (event) {
     event.stopPropagation();
@@ -233,6 +247,10 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
   this.refreshDimensions(); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
   this.TEXTAREA.focus();
   this.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+
+  var coords = {row: row, col: col};
+  this.instance.view.scrollViewport(coords);
+  this.instance.view.render();
 };
 
 HandsontableTextEditorClass.prototype.refreshDimensions = function () {
@@ -277,7 +295,9 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   ///end prepare textarea position
 
   var width = $td.width()
-    , height = $td.outerHeight() - 4;
+    , maxWidth = this.instance.view.maximumVisibleElementWidth(editLeft) - 10 //10 is TEXTAREAs border and padding
+    , height = $td.outerHeight() - 4
+    , maxHeight = this.instance.view.maximumVisibleElementHeight(editTop) - 5; //10 is TEXTAREAs border and padding
 
   if (parseInt($td.css('border-top-width'), 10) > 0) {
     height -= 1;
@@ -288,11 +308,12 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
     }
   }
 
+  //in future may change to pure JS http://stackoverflow.com/questions/454202/creating-a-textarea-with-auto-resize
   this.$textarea.autoResize({
-    maxHeight: 200,
-    minHeight: height,
-    minWidth: width,
-    maxWidth: Math.max(168, width),
+    minHeight: Math.min(height, maxHeight),
+    maxHeight: maxHeight, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
+    minWidth: Math.min(width, maxWidth),
+    maxWidth: maxWidth, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
     animate: false,
     extraSpace: 0
   });
@@ -300,29 +321,83 @@ HandsontableTextEditorClass.prototype.refreshDimensions = function () {
   this.textareaParentStyle.display = 'block';
 };
 
+HandsontableTextEditorClass.prototype.saveValue = function (val, ctrlDown) {
+  if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
+    var sel = this.instance.getSelected();
+    this.instance.populateFromArray(sel[0], sel[1], val, sel[2], sel[3], 'edit');
+  }
+  else {
+    this.instance.populateFromArray(this.row, this.col, val, null, null, 'edit');
+  }
+};
+
 HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
+  if (this.waiting) {
+    return;
+  }
   if (this.isCellEdited) {
     this.isCellEdited = false;
-    if (!isCancelled) {
-      var val = [
+    var val;
+
+    if (isCancelled) {
+      val = [
+        [this.originalValue]
+      ];
+    } else {
+      val = [
         [$.trim(this.TEXTAREA.value)]
       ];
-      if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
-        var sel = this.instance.getSelected();
-        this.instance.populateFromArray(sel[0], sel[1], val, sel[2], sel[3], 'edit');
+    }
+
+    var hasValidator = this.instance.getCellMeta(this.row, this.col).validator;
+
+    if (hasValidator) {
+      this.waiting = true;
+      var that = this;
+      this.instance.addHookOnce('afterValidate', function (result) {
+        that.force = that.waiting;
+        that.waiting = false;
+        that.discardEditor(result);
+      });
+    }
+    this.saveValue(val, ctrlDown);
+
+  }
+  if (!hasValidator) { //otherwise afterValidate will discard the editor
+    this.discardEditor();
+  }
+};
+
+HandsontableTextEditorClass.prototype.discardEditor = function (result) {
+  if (this.waiting) {
+    return;
+  }
+
+  if (result === false && this.cellProperties.allowInvalid !== true) { //validator was defined and failed
+    this.isCellEdited = true;
+    var that = this;
+    setTimeout(function () {
+      if (that.instance.view.wt.wtDom.isVisible(that.TEXTAREA)) {
+        that.TEXTAREA.focus();
+        that.setCaretPosition(that.TEXTAREA, that.TEXTAREA.value.length);
       }
-      else {
-        this.instance.populateFromArray(this.row, this.col, val, null, null, 'edit');
-      }
+    }, 0);
+  }
+  else {
+    if (document.activeElement === this.TEXTAREA) {
+      this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
+    }
+    this.unbindTemporaryEvents();
+
+    this.textareaParentStyle.display = 'none';
+
+    if (this.force && this.force.type) { //this is needed so when you finish editing with Enter key, the default Enter behavior (move selection down) will work after async validation
+      var ev = $.Event(this.force.type);
+      ev.keyCode = this.force.keyCode;
+      this.force = null;
+      $(document.activeElement).trigger(ev);
     }
   }
-
-  this.unbindTemporaryEvents();
-  if (document.activeElement === this.TEXTAREA) {
-    this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
-  }
-
-  this.textareaParentStyle.display = 'none';
 };
 
 /**

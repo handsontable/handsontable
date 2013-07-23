@@ -220,3 +220,15 @@ Handsontable.helper.getCellMethod = function (methodName, methodFunction) {
     return methodFunction;
   }
 };
+
+/**
+ * Determines if the given DOM element is an input field placed outside of HOT.
+ * Notice: By 'input' we mean input, textarea and select nodes
+ * @param element - DOM element
+ * @returns {boolean}
+ */
+Handsontable.helper.isOutsideInput = function(element){
+  var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
+
+  return inputs.indexOf(element.nodeName) > -1 && element.className.indexOf('handsontableInput') == -1;
+}

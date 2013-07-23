@@ -84,6 +84,7 @@ module.exports = function (grunt) {
         'src/plugins/manualColumnMove.js',
         'src/plugins/manualColumnResize.js',
         'src/plugins/observeChanges.js',
+        'src/plugins/persistentState.js',
 
         'src/3rdparty/jquery.autoresize.js',
         'src/3rdparty/sheetclip.js',
@@ -99,6 +100,9 @@ module.exports = function (grunt) {
         'lib/jQuery-contextMenu/jquery.contextMenu.js'
         // seems to have no effect when turned off on contextmenu.html
         //'lib/jQuery-contextMenu/jquery.ui.position.js'
+      ],
+      shims : [
+        'lib/shims/array.filter.js'
       ]
     },
 
@@ -106,6 +110,7 @@ module.exports = function (grunt) {
       dist: {
         files: {
           'dist/jquery.handsontable.js': [
+            '<%= meta.shims %>',
             'tmp/intro.js',
             '<%= meta.src %>',
             '<%= meta.walkontable %>',
@@ -148,6 +153,9 @@ module.exports = function (grunt) {
     },
 
     watch: {
+      options: {
+        livereload: true //works with Chrome LiveReload extension. See: https://github.com/gruntjs/grunt-contrib-watch
+      },
       files: [
         'src/**/*.js',
         'src/**/*.css',
@@ -203,8 +211,8 @@ module.exports = function (grunt) {
         ],
         options: {
           specs: [
-            'test/jasmine/spec/*Spec.js',
-            'test/jasmine/spec/*/*Spec.js'
+           'test/jasmine/spec/*Spec.js',
+           'test/jasmine/spec/*/*Spec.js'
           ],
           styles: [
             'test/jasmine/css/SpecRunner.css',

@@ -117,6 +117,11 @@ function HandsontableAutoColumnSize() {
       width += instance.view.wt.wtDom.outerWidth(tmp.renderer) - instance.view.wt.wtDom.outerWidth(tmp.noRenderer); //add renderer overhead to the calculated width
     }
 
+    var maxWidth = instance.view.wt.wtViewport.getViewportWidth() - 2; //2 is some overhead for cell border
+    if (width > maxWidth) {
+      width = maxWidth;
+    }
+
     tmp.containerStyle.display = 'none';
 
     return width;
