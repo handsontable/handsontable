@@ -169,7 +169,7 @@ HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancel
 };
 
 HandsontableAutocompleteEditorClass.prototype.isMenuExpanded = function () {
-  if (this.typeahead.$menu.is(":visible")) {
+  if (this.instance.view.wt.wtDom.isVisible(this.typeahead.$menu[0])) {
     return this.typeahead;
   }
   else {

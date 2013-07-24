@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.9.9
+ * Handsontable 0.9.10
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Sun Jun 30 2013 13:24:55 GMT+0200 (Central European Daylight Time)
+ * Date: Tue Jul 23 2013 15:18:14 GMT+0200 (Central European Daylight Time)
  */
 
 .handsontable {
@@ -162,18 +162,33 @@
 
 .handsontable .manualColumnResizer {
   position: absolute;
-  right: -1px;
   top: 0;
-  background-color: transparent;
-  width: 5px;
-  height: 25px;
-  z-index: 999;
   cursor: col-resize;
 }
 
-.handsontable th .manualColumnResizer:hover,
-.handsontable .manualColumnResizerLine .manualColumnResizer {
+.handsontable .manualColumnResizerHandle {
+  background-color: transparent;
+  width: 5px;
+  height: 25px;
+}
+
+.handsontable .manualColumnResizer:hover .manualColumnResizerHandle,
+.handsontable .manualColumnResizer.active .manualColumnResizerHandle {
   background-color: #AAB;
+}
+
+.handsontable .manualColumnResizerLine {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-color: #AAB;
+  display: none;
+  width: 0;
+  border-right: 1px dashed #777;
+}
+
+.handsontable .manualColumnResizer.active .manualColumnResizerLine {
+  display: block;
 }
 
 .handsontable .columnSorting:hover {

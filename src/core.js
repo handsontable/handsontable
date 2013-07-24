@@ -1248,7 +1248,8 @@ Handsontable.Core = function (rootElement, userSettings) {
           priv.settings.beforeOnKeyDown.call(instance, event);
         }
 
-        if ($body.children('.context-menu-list:visible').length) {
+        if (Array.prototype.filter.call(document.body.querySelectorAll('.context-menu-list'), instance.view.wt.wtDom.isVisible).length) { //faster than $body.children('.context-menu-list:visible').length
+          //if right-click context menu is visible, do not execute this keydown handler (arrow keys will navigate the context menu)
           return;
         }
 

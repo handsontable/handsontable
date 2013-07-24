@@ -39,6 +39,9 @@ function HandsontableColumnSorting() {
     var instance = this;
 
     if (typeof col == 'undefined') {
+      delete instance.sortColumn;
+      delete instance.sortOrder;
+
       return;
     } else if (instance.sortColumn === col && typeof order == 'undefined') {
       instance.sortOrder = !instance.sortOrder;
@@ -160,7 +163,7 @@ function HandsontableColumnSorting() {
     instance.sortIndex.length = 0;
 
     var colOffset = this.colOffset();
-    for (var i = 0, ilen = this.countRows(); i < ilen; i++) {
+    for (var i = 0, ilen = this.countRows() - instance.getSettings()['minSpareRows']; i < ilen; i++) {
       this.sortIndex.push([i, instance.getDataAtCell(i, this.sortColumn + colOffset)]);
     }
 
@@ -175,6 +178,12 @@ function HandsontableColumnSorting() {
     }
 
     this.sortIndex.sort(sortFunction(instance.sortOrder));
+
+    //Append spareRows
+    for(var i = this.sortIndex.length; i < instance.countRows(); i++){
+      this.sortIndex.push([i, instance.getDataAtCell(i, this.sortColumn + colOffset)]);
+    }
+
     sortingEnabled = true; //this is required by translateRow plugin hook
   };
 
