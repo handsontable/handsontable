@@ -709,6 +709,9 @@ describe('Core_validate', function () {
     selectCell(0, 0);
     keyDown('enter');
 
+    var editor = $('.handsontableInputHolder');
+    expect(editor.is(':visible')).toBe(true);
+
     document.activeElement.value = 'AA';
 
     expect(document.activeElement.value).toEqual('AA');
@@ -733,6 +736,7 @@ describe('Core_validate', function () {
     }, 'Two clicks', 1000);
 
     runs(function () {
+      expect(editor.is(':visible')).toBe(false);
       expect(validationResult).toBe(true);
       expect(getDataAtCell(0, 0)).toEqual('AA');
     });
@@ -749,7 +753,6 @@ describe('Core_validate', function () {
       allowInvalid: false,
       validator: function (value, callback) {
         setTimeout(function () {
-
           validated = true;
           validationResult = value.length == 2
           callback(validationResult);
@@ -790,4 +793,52 @@ describe('Core_validate', function () {
 
   });
 
+  it("should close the editor and restore the original value after trying to save the original value with ENTER and then canceling with ESC", function () {
+    var validated = 0;
+    var validationResult;
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      validator: function (value, callback) {
+        validated++;
+        validationResult = value.length == 2
+        callback(validationResult);
+      }
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    var editor = $('.handsontableInputHolder');
+
+    document.activeElement.value = 'Ted';
+
+    keyDown('enter');
+
+    waitsFor(function () {
+      return validated == 1;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(editor.is(':visible')).toBe(true);
+      expect(validationResult).toBe(false);
+      expect(document.activeElement.value).toEqual('Ted');
+    });
+
+    runs(function(){
+      keyDown('esc');
+    });
+
+    waitsFor(function () {
+      return validated == 2;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(editor.is(':visible')).toBe(false);
+      expect(validationResult).toBe(true);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+    });
+
+  });
 });
