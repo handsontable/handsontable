@@ -23,19 +23,15 @@ describe('AutoColumnSize', function () {
       data: arrayOfObjects()
     });
 
-    var width0 = this.$container.find('tr:eq(0) td:eq(0)').width();
-    var width1 = this.$container.find('tr:eq(0) td:eq(1)').width();
-    var width2 = this.$container.find('tr:eq(0) td:eq(2)').width();
+    var width0 = colWidth(this.$container, 0);
+    var width1 = colWidth(this.$container, 1);
+    var width2 = colWidth(this.$container, 2);
 
     expect(width0).toBeLessThan(width1);
     expect(width1).toBeLessThan(width2);
   });
 
   it('should consider CSS style of each instance separately', function () {
-    function getFirstCellWidth($el) {
-      return $el.find('tr:eq(0) td:eq(0)').width();
-    }
-
     var $style = $('<style>.big td {font-size: 40px}</style>').appendTo('head');
     var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
       data: arrayOfObjects()
@@ -44,15 +40,15 @@ describe('AutoColumnSize', function () {
       data: arrayOfObjects()
     });
 
-    expect(getFirstCellWidth($container1)).toEqual(getFirstCellWidth($container2));
+    expect(colWidth($container1, 0)).toEqual(colWidth($container2, 0));
 
     $container1.addClass('big').handsontable('render');
     $container2.handsontable('render');
-    expect(getFirstCellWidth($container1)).toBeGreaterThan(getFirstCellWidth($container2));
+    expect(colWidth($container1, 0)).toBeGreaterThan(colWidth($container2, 0));
 
     $container1.removeClass('big').handsontable('render');
     $container2.addClass('big').handsontable('render');
-    expect(getFirstCellWidth($container1)).toBeLessThan(getFirstCellWidth($container2));
+    expect(colWidth($container1, 0)).toBeLessThan(colWidth($container2, 0));
 
     $style.remove();
     $container1.handsontable('destroy');
@@ -64,20 +60,16 @@ describe('AutoColumnSize', function () {
   it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', function () {
     var $style = $('<style>.big-table td {font-size: 32px}</style>').appendTo('head');
 
-    function getFirstCellWidth($el) {
-      return $el.find('tr:eq(0) td:eq(0)').width();
-    }
-
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true
     });
 
-    var width = getFirstCellWidth(this.$container);
+    var width = colWidth(this.$container, 0);
 
     this.$container.find('table').addClass('big-table');
     render();
-    expect(getFirstCellWidth(this.$container)).toBeGreaterThan(width);
+    expect(colWidth(this.$container, 0)).toBeGreaterThan(width);
 
     $style.remove();
   });
@@ -98,10 +90,6 @@ describe('AutoColumnSize', function () {
   });
 
   it('should not set column width wider than the viewport', function () {
-    function getFirstCellWidth($el) {
-      return $el.find('tr:eq(0) td:eq(0)').width();
-    }
-
     handsontable({
       data: arrayOfObjects(),
       autoColumnSize: true,
@@ -112,6 +100,6 @@ describe('AutoColumnSize', function () {
 
     setDataAtCell(0, 0, 'LongLongLongLongLongLongLongLongLongLongLongLongLongLongCell');
 
-    expect(getFirstCellWidth(this.$container)).toBeLessThan(45); //remaining part is used by row header and scrollbar
+    expect(colWidth(this.$container, 0)).toBeLessThan(55); //remaining part is used by row header and scrollbar
   });
 });
