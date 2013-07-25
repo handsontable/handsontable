@@ -76,12 +76,8 @@ HandsontableHandsontableEditorClass.prototype.beginEditing = function (row, col,
 };
 
 HandsontableHandsontableEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
-  if (Handsontable.helper.isDescendant(this.instance.rootElement[0], document.activeElement)) {
-    //var that = this;
-    setTimeout(function () {
-      //that.instance.listen(); //return the focus to the cell must be done after destroyer to work in IE7-9
-    }, 0);
-    //that.instance.listen(); //return the focus to the cell
+  if (this.$htContainer.handsontable('isListening')) { //if focus is still in the HOT editor
+    this.instance.listen(); //return the focus to the parent HOT instance
   }
   this.$htContainer.handsontable('destroy');
   HandsontableTextEditorClass.prototype.finishEditing.call(this, isCancelled, ctrlDown);

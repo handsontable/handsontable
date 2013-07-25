@@ -39,6 +39,9 @@ HandsontableTextEditorClass.prototype.createElements = function () {
 HandsontableTextEditorClass.prototype.bindEvents = function () {
   var that = this;
   this.$textareaParent.off('.editor').on('keydown.editor', function (event) {
+    if (!that.isCellEdited) {
+      return;
+    }
     //if we are here then isCellEdited === true
 
     that.instance.PluginHooks.run('beforeKeyDown', event);
@@ -138,8 +141,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
   this.cellProperties = cellProperties;
 
   this.$body.on('keydown.editor.' + this.instance.guid, function (event) {
-
-    if (Handsontable.activeGuid === null) {
+    if (!that.instance.isListening()) {
       return;
     }
 
