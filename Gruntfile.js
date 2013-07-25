@@ -248,6 +248,7 @@ module.exports = function (grunt) {
           ],
           helpers: [
             'src/3rdparty/walkontable/test/jasmine/SpecHelper.js',
+            'test/jasmine/lib/nodeShim.js',
             'src/3rdparty/walkontable/test/jasmine/test-init.js'
 
           ],
