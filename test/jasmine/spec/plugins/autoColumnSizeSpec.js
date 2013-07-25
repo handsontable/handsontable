@@ -102,4 +102,39 @@ describe('AutoColumnSize', function () {
 
     expect(colWidth(this.$container, 0)).toBeLessThan(55); //remaining part is used by row header and scrollbar
   });
+
+  it('should not trigger autoColumnSize when column width is defined (through colWidths)', function () {
+    handsontable({
+      data: arrayOfObjects(),
+      autoColumnSize: true,
+      colWidths: [70, 70, 70],
+      width: 500,
+      height: 100,
+      rowHeaders: true
+    });
+
+    setDataAtCell(0, 0, 'LongLongLongLong');
+
+    expect(colWidth(this.$container, 0)).toBe(70);
+  });
+
+  it('should not trigger autoColumnSize when column width is defined (through columns.width)', function () {
+    handsontable({
+      data: arrayOfObjects(),
+      autoColumnSize: true,
+      colWidth: 77,
+      columns: [
+        {width: 70},
+        {width: 70},
+        {width: 70}
+      ],
+      width: 500,
+      height: 100,
+      rowHeaders: true
+    });
+
+    setDataAtCell(0, 0, 'LongLongLongLong');
+
+    expect(colWidth(this.$container, 0)).toBe(70);
+  });
 });

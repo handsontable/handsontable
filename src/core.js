@@ -2343,20 +2343,30 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
+   * Return column width from settings (no guessing). Private use intended
+   * @param {Number} col
+   * @return {Number}
+   */
+  this._getColWidthFromSettings = function (col) {
+    if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
+      return priv.settings.columns[col].width;
+    }
+    else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
+      return priv.settings.colWidths[col];
+    }
+  };
+
+  /**
    * Return column width
    * @param {Number} col
    * @return {Number}
    */
   this.getColWidth = function (col) {
     col = Handsontable.PluginHooks.execute(instance, 'modifyCol', col);
-    var response = {};
-    if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
-      response.width = priv.settings.columns[col].width;
-    }
-    else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
-      response.width = priv.settings.colWidths[col];
-    }
-    else {
+    var response = {
+      width: instance._getColWidthFromSettings(col)
+    };
+    if(!response.width) {
       response.width = 50;
     }
     instance.PluginHooks.run('afterGetColWidth', col, response);
