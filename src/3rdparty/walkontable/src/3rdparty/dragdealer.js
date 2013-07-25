@@ -250,7 +250,6 @@ Dragdealer.prototype =
 		
 		this.preventDefaults(e, true);
 		this.startDrag();
-		this.cancelEvent(e);
 	},
 	wrapperDownHandler: function(e)
 	{
@@ -263,7 +262,6 @@ Dragdealer.prototype =
 	{
 		this.stopDrag();
 		this.stopTap();
-		//this.cancelEvent(e);
 	},
 	documentResizeHandler: function(e)
 	{

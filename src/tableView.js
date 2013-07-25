@@ -85,6 +85,10 @@ Handsontable.TableView = function (instance) {
     }
   });
 
+  instance.rootElement.on('mousedown.handsontable', '.dragdealer', function (event) {
+    instance.destroyEditor();
+  });
+
   instance.$table.on('selectstart', function (event) {
     if (that.settings.fragmentSelection) {
       return;
