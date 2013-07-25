@@ -198,12 +198,7 @@ module.exports = function (grunt) {
     jasmine: {
       handsontable: {
         src: [
-          'lib/jquery.min.js',
           'dist/jquery.handsontable.js',
-          'lib/bootstrap-typeahead.js',
-          'lib/numeral.js',
-          'lib/jQuery-contextMenu/jquery.contextMenu.js',
-          'test/jasmine/spec/SpecHelper.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
@@ -219,15 +214,27 @@ module.exports = function (grunt) {
             'dist/jquery.handsontable.css',
             'lib/jQuery-contextMenu/jquery.contextMenu.css',
             'extensions/jquery.handsontable.removeRow.css'
-          ]
+          ],
+          vendor: [
+            'lib/jquery.min.js',
+            'lib/bootstrap-typeahead.js',
+            'lib/numeral.js',
+            'lib/jQuery-contextMenu/jquery.contextMenu.js',
+            'test/jasmine/lib/jasmine-extensions.js'
+          ],
+          helpers: [
+            'test/jasmine/spec/SpecHelper.js',
+            'test/jasmine/lib/nodeShim.js',
+            'test/jasmine/spec/test-init.js'
+          ],
+          outfile: 'test/jasmine/SpecRunner.html',
+          keepRunner: true
         }
       },
       walkontable: {
         src: [
-          'lib/jquery.min.js',
           'src/3rdparty/walkontable/src/*.js',
-          'src/3rdparty/walkontable/src/3rdparty/*.js',
-          'src/3rdparty/walkontable/test/jasmine/SpecHelper.js'
+          'src/3rdparty/walkontable/src/3rdparty/*.js'
         ],
         options: {
           specs: [
@@ -235,7 +242,17 @@ module.exports = function (grunt) {
           ],
           styles: [
             'src/3rdparty/walkontable/css/walkontable.css'
-          ]
+          ],
+          vendor: [
+            'lib/jquery.min.js'
+          ],
+          helpers: [
+            'src/3rdparty/walkontable/test/jasmine/SpecHelper.js',
+            'src/3rdparty/walkontable/test/jasmine/test-init.js'
+
+          ],
+          outfile: 'src/3rdparty/walkontable/test/jasmine/SpecRunner.html',
+          keepRunner: true
         }
       }
     },

@@ -26,6 +26,7 @@ describe('Core_destroy', function () {
     expect($._data(window, 'events')).toBeTruthy();
 
     destroy();
+    $(document.documentElement).off('.copypaste'); //remove copypaste.js listeners, which are not removed by destroy (because copypaste is a singleton for whole page)
 
     expect($._data(this.$container[0], 'events')).toBeFalsy();
     expect($._data(document.documentElement, 'events')).toBeFalsy();
