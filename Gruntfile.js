@@ -20,14 +20,14 @@
  * See http://gruntjs.com/getting-started for more information about Grunt
  */
 var browsers = [
-  {
+  /*{
     browserName: 'firefox',
     platform: 'Windows 7'
   },
   {
     browserName: 'chrome',
     platform: 'Windows 7'
-  },
+  },*/
   {
     browserName: 'internet explorer',
     version: '8',
@@ -276,10 +276,6 @@ module.exports = function (grunt) {
       handsontable: {
         options: {
           urls: ['http://localhost:9999/test/jasmine/SpecRunner.html'],
-          testTimeout: (1000 * 60 * 5),
-          tunnelTimeout: 120,
-          testInterval: 5,
-          testReadyTimeout: 5,
 //          build: process.env.TRAVIS_JOB_ID,
           build: '<%= pkg.version %>-<%= gitinfo.local.branch.current.name %>',
           concurrency: 3,
@@ -290,10 +286,6 @@ module.exports = function (grunt) {
       walkontable: {
         options: {
           urls: ['http://localhost:9999/src/3rdparty/walkontable/test/jasmine/SpecRunner.html'],
-          testTimeout: (1000 * 60 * 5),
-          tunnelTimeout: 120,
-          testInterval: 5,
-          testReadyTimeout: 5,
 //          build: process.env.TRAVIS_JOB_ID,
           build: '<%= pkg.version %>-<%= gitinfo.local.branch.current.name %>',
           concurrency: 3,
