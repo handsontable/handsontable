@@ -227,6 +227,7 @@ module.exports = function (grunt) {
             'test/jasmine/spec/test-init.js'
           ],
           outfile: 'test/jasmine/SpecRunner.html',
+          template: 'test/jasmine/templates/SpecRunner.tmpl',
           keepRunner: true
         }
       },
@@ -251,6 +252,7 @@ module.exports = function (grunt) {
 
           ],
           outfile: 'src/3rdparty/walkontable/test/jasmine/SpecRunner.html',
+          template: 'test/jasmine/templates/SpecRunner.tmpl',
           keepRunner: true
         }
       }
