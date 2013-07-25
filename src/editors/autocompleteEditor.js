@@ -1,5 +1,4 @@
 function HandsontableAutocompleteEditorClass(instance) {
-  this.isCellEdited = false;
   this.instance = instance;
   this.createElements();
   this.bindEvents();
@@ -158,10 +157,10 @@ HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancel
   if (!isCancelled) {
     if (this.isMenuExpanded() && this.typeahead.$menu[0].querySelector('.active')) {
       this.typeahead.select();
-      this.isCellEdited = false; //cell value was updated by this.typeahead.select (issue #405)
+      this.state = this.STATE_FINISHED; //cell value was updated by this.typeahead.select (issue #405)
     }
     else if (this.cellProperties.strict) {
-      this.isCellEdited = false; //cell value was not picked from this.typeahead.select (issue #405)
+      this.state = this.STATE_FINISHED; //cell value was not picked from this.typeahead.select (issue #405)
     }
   }
 

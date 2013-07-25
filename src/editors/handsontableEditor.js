@@ -3,7 +3,6 @@
  */
 
 function HandsontableHandsontableEditorClass(instance) {
-  this.isCellEdited = false;
   this.instance = instance;
   this.createElements();
   this.bindEvents();
