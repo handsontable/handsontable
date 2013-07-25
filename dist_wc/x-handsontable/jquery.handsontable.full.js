@@ -41,7 +41,7 @@ if (!Array.prototype.filter) {
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Jul 23 2013 15:18:14 GMT+0200 (Central European Daylight Time)
+ * Date: Thu Jul 25 2013 09:33:05 GMT-0400 (EDT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -52,6 +52,10 @@ var Handsontable = { //class namespace
 
 (function ($, window, Handsontable) {
   "use strict";
+
+// Override locally to prevent 3rd party libraries from trying to export
+var define = null;
+
 Handsontable.activeGuid = null;
 
 /**
@@ -10540,6 +10544,12 @@ if (!jQuery.browser) {
 }));
 
 })(jQuery, window, Handsontable);
+
+// AMD support if present
+if (define && define.amd) {
+  define('handsontable', [], Handsontable);
+}
+
 /* =============================================================
  * bootstrap-typeahead.js v2.3.1
  * http://twitter.github.com/bootstrap/javascript.html#typeahead
