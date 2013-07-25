@@ -108,7 +108,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
     }
 
     if ((that.waiting || that.force) && !event.isImmediatePropagationStopped()) {
-      that.waiting = that.force = event;
+      that.waitingEvent = event;
       event.stopImmediatePropagation();
       event.preventDefault();
     }
@@ -391,10 +391,10 @@ HandsontableTextEditorClass.prototype.discardEditor = function (result) {
 
     this.textareaParentStyle.display = 'none';
 
-    if (this.force && this.force.type) { //this is needed so when you finish editing with Enter key, the default Enter behavior (move selection down) will work after async validation
-      var ev = $.Event(this.force.type);
-      ev.keyCode = this.force.keyCode;
-      this.force = null;
+    if (this.waitingEvent && this.waitingEvent.type) { //this is needed so when you finish editing with Enter key, the default Enter behavior (move selection down) will work after async validation
+      var ev = $.Event(this.waitingEvent.type);
+      ev.keyCode = this.waitingEvent.keyCode;
+      this.waitingEvent = null;
       $(document.activeElement).trigger(ev);
     }
   }
