@@ -68,6 +68,8 @@
               href="https://github.com/warpech/jquery-handsontable/wiki/Events">Events wiki page</a>).
           </p>
 
+          <p>In the below example, <code>email_validator_fn</code> is an async validator that resolves after 1000 ms.</p>
+
           <p>Use the <b>allowInvalid</b> option (see <a
             href="https://github.com/warpech/jquery-handsontable/wiki/Options">Options wiki page</a>) to define if the
             grid should accept input that does not validate.</p>
@@ -115,12 +117,14 @@
 
             var ip_validator_regexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
             var email_validator_fn = function (value, callback) {
-              if (/.+@.+/.test(value)) {
-                callback(true);
-              }
-              else {
-                callback(false);
-              }
+              setTimeout(function(){
+                if (/.+@.+/.test(value)) {
+                  callback(true);
+                }
+                else {
+                  callback(false);
+                }
+              }, 1000);
             };
 
             $("#example1").handsontable({

@@ -42,42 +42,96 @@ function HandsontableManualColumnMove() {
       instance.forceFullRender = true;
       instance.view.render(); //updates all
       ghostStyle.display = 'none';
+
+      saveManualColumnPositions.call(instance);
+
       instance.PluginHooks.run('afterColumnMove', startCol, endCol);
     }
   });
+
+  var saveManualColumnPositions = function () {
+    var instance = this;
+
+    instance.PluginHooks.run('persistentStateSave', 'manualColumnPositions', instance.manualColumnPositions);
+  };
+
+  var loadManualColumnPositions = function () {
+    var instance = this;
+    var storedState = {};
+    instance.PluginHooks.run('persistentStateLoad', 'manualColumnPositions', storedState);
+
+    return storedState.value;
+  };
+
+
+  var bindMoveColEvents = function () {
+    var that = this;
+    this.rootElement.on('mousedown.handsontable', '.manualColumnMover', function (e) {
+      instance = that;
+
+      var mover = e.currentTarget;
+      var TH = instance.view.wt.wtDom.closest(mover, 'TH');
+      startCol = instance.view.wt.wtDom.index(TH);
+      pressed = true;
+      startX = e.pageX;
+
+      var TABLE = instance.$table[0];
+      TABLE.parentNode.appendChild(ghost);
+      ghostStyle.width = instance.view.wt.wtDom.outerWidth(TH) + 'px';
+      ghostStyle.height = instance.view.wt.wtDom.outerHeight(TABLE) + 'px';
+      startOffset = parseInt(instance.view.wt.wtDom.offset(TH).left - instance.view.wt.wtDom.offset(TABLE).left, 10);
+      ghostStyle.left = startOffset + 6 + 'px';
+    });
+    this.rootElement.on('mouseenter.handsontable', 'td, th', function () {
+      if (pressed) {
+        var active = instance.view.THEAD.querySelector('.manualColumnMover.active');
+        if (active) {
+          instance.view.wt.wtDom.removeClass(active, 'active');
+        }
+        endCol = instance.view.wt.wtDom.index(this);
+        var THs = instance.view.THEAD.querySelectorAll('th');
+        var mover = THs[endCol].querySelector('.manualColumnMover');
+        instance.view.wt.wtDom.addClass(mover, 'active');
+      }
+    });
+  };
 
   this.beforeInit = function () {
     this.manualColumnPositions = [];
   };
 
-  this.afterInit = function () {
-    if (this.getSettings().manualColumnMove) {
-      var that = this;
-      this.rootElement.on('mousedown.handsontable', '.manualColumnMover', function (e) {
-        instance = that;
+  this.init = function (source) {
+    var instance = this;
 
-        var $resizer = $(e.target);
-        var th = $resizer.closest('th');
-        startCol = th.index();
-        pressed = true;
-        startX = e.pageX;
+    var manualColMoveEnabled = Boolean(this.getSettings().manualColumnMove);
 
-        var $table = that.rootElement.find('.htCore');
-        $table.parent()[0].appendChild(ghost);
-        ghostStyle.width = $resizer.parent().width() + 'px';
-        ghostStyle.height = $table.height() + 'px';
-        startOffset = parseInt(th.offset().left - $table.offset().left, 10);
-        ghostStyle.left = startOffset + 6 + 'px';
-      });
-      this.rootElement.on('mouseenter.handsontable', 'td, th', function () {
-        if (pressed) {
-          $('.manualColumnMover.active').removeClass('active');
-          var $ths = that.rootElement.find('thead th');
-          endCol = $(this).index();
-          var $hover = $ths.eq(endCol).find('.manualColumnMover').addClass('active');
-          $ths.not($hover).removeClass('active');
+    if (manualColMoveEnabled) {
+      var initialManualColumnPositions = this.getSettings().manualColumnMove;
+
+      var loadedManualColumnPositions = loadManualColumnPositions.call(instance);
+
+      if (typeof loadedManualColumnPositions != 'undefined') {
+        this.manualColumnPositions = loadedManualColumnPositions;
+      } else if (initialManualColumnPositions instanceof Array) {
+        this.manualColumnPositions = initialManualColumnPositions;
+      } else {
+        this.manualColumnPositions = [];
+      }
+
+
+      instance.forceFullRender = true;
+
+      if (source == 'afterInit') {
+        bindMoveColEvents.call(this);
+        if (this.manualColumnPositions.length > 0) {
+          this.forceFullRender = true;
+          this.render();
         }
-      });
+
+      }
+
+    } else {
+      this.manualColumnPositions = [];
     }
   };
 
@@ -103,6 +157,11 @@ function HandsontableManualColumnMove() {
 var htManualColumnMove = new HandsontableManualColumnMove();
 
 Handsontable.PluginHooks.add('beforeInit', htManualColumnMove.beforeInit);
-Handsontable.PluginHooks.add('afterInit', htManualColumnMove.afterInit);
+Handsontable.PluginHooks.add('afterInit', function () {
+  htManualColumnMove.init.call(this, 'afterInit')
+});
+Handsontable.PluginHooks.add('afterUpdateSettings', function () {
+  htManualColumnMove.init.call(this, 'afterUpdateSettings')
+});
 Handsontable.PluginHooks.add('afterGetColHeader', htManualColumnMove.getColHeader);
 Handsontable.PluginHooks.add('modifyCol', htManualColumnMove.modifyCol);

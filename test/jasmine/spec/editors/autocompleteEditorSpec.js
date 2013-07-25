@@ -421,6 +421,7 @@ describe('AutocompleteEditor', function () {
 
   it('finish editing should move the focus aways from textarea to table cell', function () {
     var last;
+    var finishEdit = false;
 
     handsontable({
       autoComplete: getAutocompleteConfig(false)
@@ -436,7 +437,18 @@ describe('AutocompleteEditor', function () {
     autocomplete().$element.val("ye");
     keyDownUp(69); //e
     deselectCell();
-    keyDownUp('enter');
-    expect(document.activeElement).toEqual(last);
+    setTimeout(function(){
+      keyDownUp('enter');
+     finishEdit = true;
+    },0);
+
+    waitsFor(function(){
+      return finishEdit;
+    }, 'Edition finish', 1000);
+
+    runs(function(){
+      expect(document.activeElement.nodeName).toEqual(last.nodeName);
+    });
+
   });
 });

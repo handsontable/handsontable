@@ -423,4 +423,322 @@ describe('WalkontableScroll', function () {
     wt.draw();
     expect($table.find('tbody tr:first td').length).toBeGreaterThan(3);
   });
+
+  describe('scrollViewport - horizontally', function () {
+    it("should scroll to last column on the right", function () {
+      this.data = createSpreadsheetData(10, 10);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        columnWidth: 50,
+        offsetRow: 0,
+        offsetColumn: 0,
+        width: 200,
+        height: 200
+      });
+      wt.draw().scrollViewport([0, 9]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(3);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('H0');
+      expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('I0');
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('J0');
+    });
+
+    it("should not scroll back to a column that is in viewport", function () {
+      this.data = createSpreadsheetData(10, 10);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        columnWidth: 50,
+        offsetRow: 0,
+        offsetColumn: 0,
+        width: 200,
+        height: 200
+      });
+      wt.draw().scrollViewport([0, 9]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(3);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('H0');
+      expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('I0');
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('J0');
+
+      wt.draw().scrollViewport([0, 9]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(3);
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('J0'); //nothing changed
+
+      wt.draw().scrollViewport([0, 8]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(3);
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('J0'); //nothing changed
+
+      wt.draw().scrollViewport([0, 7]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(3);
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('J0'); //nothing changed
+    });
+
+    it("should scroll back to a column that is before viewport", function () {
+      this.data = createSpreadsheetData(10, 10);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        columnWidth: 50,
+        offsetRow: 0,
+        offsetColumn: 0,
+        width: 200,
+        height: 200
+      });
+      wt.draw().scrollViewport([0, 9]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(3);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('H0');
+      expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('I0');
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('J0');
+
+      wt.draw().scrollViewport([0, 6]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(4);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('G0');
+      expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('H0');
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('I0');
+      expect($table.find('tbody tr:eq(0) td:eq(3)').html()).toBe('J0');
+
+      wt.draw().scrollViewport([0, 8]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(4);
+      expect($table.find('tbody tr:eq(0) td:eq(3)').html()).toBe('J0'); //nothing changed
+
+      wt.draw().scrollViewport([0, 9]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(3);
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('J0'); //scrolled right
+    });
+
+    it("should scroll to a column that is after viewport", function () {
+      this.data = createSpreadsheetData(10, 10);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        columnWidth: 50,
+        offsetRow: 0,
+        offsetColumn: 0,
+        width: 200,
+        height: 200
+      });
+      wt.draw().scrollViewport([0, 2]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(4);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A0');
+      expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('B0');
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('C0');
+      expect($table.find('tbody tr:eq(0) td:eq(3)').html()).toBe('D0'); //nothing changed
+
+      wt.draw().scrollViewport([0, 3]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(4);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('B0');
+      expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('C0');
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('D0');
+      expect($table.find('tbody tr:eq(0) td:eq(3)').html()).toBe('E0'); //scrolled right
+    });
+
+    it("should scroll to a wide column that is after viewport", function () {
+      this.data = createSpreadsheetData(10, 10);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        columnWidth: function (col) {
+          if (col === 3) {
+            return 100
+          }
+          else {
+            return 50
+          }
+        },
+        offsetRow: 0,
+        offsetColumn: 0,
+        width: 200,
+        height: 200
+      });
+
+      wt.draw().scrollViewport([0, 3]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(3);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('C0');
+      expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('D0');
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('E0'); //scrolled right
+    });
+
+    it("should scroll to a very wide column that is after viewport", function () {
+      this.data = createSpreadsheetData(10, 10);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        columnWidth: function (col) {
+          if (col === 3) {
+            return 300
+          }
+          else {
+            return 50
+          }
+        },
+        offsetRow: 0,
+        offsetColumn: 0,
+        width: 200,
+        height: 200
+      });
+
+      wt.draw().scrollViewport([0, 3]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(1);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('D0'); //scrolled right
+
+      wt.draw().scrollViewport([0, 2]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(2);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('C0'); //scrolled left
+      expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('D0');
+
+      wt.draw().scrollViewport([0, 3]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(1);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('D0'); //scrolled right
+
+      wt.draw().scrollViewport([0, 4]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(4);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('E0');
+      expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('F0');
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('G0');
+      expect($table.find('tbody tr:eq(0) td:eq(3)').html()).toBe('H0'); //scrolled right
+    });
+
+    it("should scroll to a very wide column that is after viewport (with fixedColumnsLeft)", function () {
+      this.data = createSpreadsheetData(1, 10);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        columnWidth: function (col) {
+          if (col === 3) {
+            return 300
+          }
+          else {
+            return 50
+          }
+        },
+        offsetRow: 0,
+        offsetColumn: 0,
+        width: 200,
+        height: 200,
+        fixedColumnsLeft: 2
+      });
+
+      wt.draw().scrollViewport([0, 3]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(3);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A0');
+      expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('B0');
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('D0'); //scrolled right
+
+      wt.draw().scrollViewport([0, 2]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(4);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A0');
+      expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('B0');
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('C0'); //scrolled left
+      expect($table.find('tbody tr:eq(0) td:eq(3)').html()).toBe('D0');
+
+      wt.draw().scrollViewport([0, 3]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(3);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A0');
+      expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('B0');
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('D0'); //scrolled right
+
+      wt.draw().scrollViewport([0, 4]).draw();
+      expect($table.find('tbody tr:eq(0) td').length).toBe(4);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A0');
+      expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('B0');
+      expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('E0');
+      expect($table.find('tbody tr:eq(0) td:eq(3)').html()).toBe('F0'); //scrolled right
+    });
+  });
+
+  describe('scrollViewport - vertically', function () {
+
+    it("should scroll to a very high row that is after viewport", function () {
+      this.data = createSpreadsheetData(20, 1);
+
+      var txt = 'Very very very very very very very very very very very very very very very very very long text.';
+      this.data[4][0] = txt;
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        offsetRow: 0,
+        offsetColumn: 0,
+        width: 200,
+        height: 200
+      });
+
+      wt.draw().scrollViewport([4, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(1);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe(txt); //scrolled down
+
+      wt.draw().scrollViewport([5, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(9);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A5'); //scrolled down
+
+      wt.draw().scrollViewport([4, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(1);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe(txt); //scrolled up
+
+      wt.draw().scrollViewport([3, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(2);
+      expect($table.find('tbody tr:eq(1) td:eq(0)').html()).toBe(txt); //scrolled up
+    });
+
+    it("should scroll to a very high row that is after viewport (at the end)", function () {
+      this.data = createSpreadsheetData(20, 1);
+
+      var txt = 'Very very very very very very very very very very very very very very very very very long text.';
+      this.data[19][0] = txt;
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        offsetRow: 0,
+        offsetColumn: 0,
+        width: 200,
+        height: 200
+      });
+
+      wt.draw().scrollViewport([18, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(2);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A18');
+      expect($table.find('tbody tr:eq(1) td:eq(0)').html()).toBe(txt);
+
+      wt.draw().scrollViewport([19, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(1);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe(txt); //scrolled down
+
+      wt.draw().scrollViewport([18, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(2);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A18'); //scrolled up
+      expect($table.find('tbody tr:eq(1) td:eq(0)').html()).toBe(txt);
+
+      wt.draw().scrollViewport([17, 0]).draw();
+      expect($table.find('tbody tr').length).toBe(3);
+      expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A17'); //scrolled up
+      expect($table.find('tbody tr:eq(1) td:eq(0)').html()).toBe('A18');
+      expect($table.find('tbody tr:eq(2) td:eq(0)').html()).toBe(txt);
+    });
+  });
 });
