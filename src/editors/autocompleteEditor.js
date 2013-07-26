@@ -60,7 +60,7 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
 
   this.$textarea.off('keydown').off('keyup').off('keypress'); //unlisten
 
-  this.$textareaParent.off('.acEditor').on('keydown.acEditor', function (event) {
+  this.$textarea.off('.acEditor').on('keydown.acEditor', function (event) {
     switch (event.keyCode) {
       case 38: /* arrow up */
         that.typeahead.prev();
@@ -78,7 +78,7 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
     }
   });
 
-  this.$textareaParent.on('keyup.acEditor', function (event) {
+  this.$textarea.on('keyup.acEditor', function (event) {
     if (Handsontable.helper.isPrintableChar(event.keyCode) || event.keyCode === 113 || event.keyCode === 13 || event.keyCode === 8 || event.keyCode === 46) {
       that.typeahead.lookup();
     }

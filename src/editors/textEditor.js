@@ -28,7 +28,6 @@ HandsontableTextEditorClass.prototype.createElements = function () {
   this.textareaParentStyle.top = 0;
   this.textareaParentStyle.left = 0;
   this.textareaParentStyle.display = 'none';
-  this.$textareaParent = $(this.TEXTAREA_PARENT);
 
   this.$body = $(document.body);
 
@@ -46,14 +45,8 @@ HandsontableTextEditorClass.prototype.createElements = function () {
 HandsontableTextEditorClass.prototype.bindEvents = function () {
   var that = this;
 
-  this.$textareaParent.off('.editor').on('keydown.editor', function (event) {
+  this.$textarea.off('.editor').on('keydown.editor', function (event) {
     if (that.state !== that.STATE_EDITING) {
-      return;
-    }
-
-    that.instance.PluginHooks.run('beforeKeyDown', event);
-
-    if (event.isImmediatePropagationStopped()) { //event was cancelled in beforeKeyDown
       return;
     }
 
@@ -149,8 +142,8 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
   this.originalValue = value;
   this.cellProperties = cellProperties;
 
-  this.$body.on('keydown.editor.' + this.instance.guid, function (event) {
-    if (!that.instance.isListening() || that.state !== that.STATE_VIRGIN) {
+  this.beforeKeyDownHook = function (event) {
+    if (that.state !== that.STATE_VIRGIN) {
       return;
     }
 
@@ -159,6 +152,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
     if (Handsontable.helper.isPrintableChar(event.keyCode)) {
       if (!ctrlDown) { //disregard CTRL-key shortcuts
         that.beginEditing(row, col, prop);
+        event.stopImmediatePropagation();
       }
     }
     else if (event.keyCode === 113) { //f2
@@ -178,11 +172,12 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
       event.preventDefault(); //prevent new line at the end of textarea
       event.stopImmediatePropagation();
     }
-  });
+  };
+  that.instance.addHookOnce('beforeKeyDown', this.beforeKeyDownHook);
 };
 
 HandsontableTextEditorClass.prototype.unbindTemporaryEvents = function () {
-  this.$body.off(".editor");
+  this.instance.removeHook('beforeKeyDown', this.beforeKeyDownHook);
   this.instance.view.wt.update('onCellDblClick', null);
 };
 
