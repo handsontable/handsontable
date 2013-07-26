@@ -73,7 +73,8 @@ describe('ColumnSorting', function () {
     expect(this.$container.find('tr td').first().html()).toEqual('10');
   });
 
-  it('should remove specified row from sorted table', function(){
+  it('should remove specified row from sorted table and NOT sort the table again', function(){
+
     var hot = handsontable({
       data: [
         [1, 'B'],
@@ -85,21 +86,25 @@ describe('ColumnSorting', function () {
       columnSorting: true
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B');
-
     this.sortByColumn(0);
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
 
     expect(this.$container.find('tbody tr').length).toEqual(4);
 
-    hot.alter('remove_row', 0);
+    //Now if sort is launched, sorting ordered will be reversed
+    hot.sortOrder = false;
+
+
+    hot.alter('remove_row', 2);
 
     expect(this.$container.find('tbody tr').length).toEqual(3);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
   });
 
   it('should add an empty row to sorted table', function(){
@@ -125,9 +130,10 @@ describe('ColumnSorting', function () {
     hot.alter('insert_row', 0);
 
     expect(this.$container.find('tbody tr').length).toEqual(5);
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('');
   });
 
-  it('should add an empty row to sorted table and place it at the bottom', function(){
+  it('should add an empty row to sorted table at a given index', function(){
     var hot = handsontable({
       data: [
         [1, 'B'],
@@ -144,14 +150,19 @@ describe('ColumnSorting', function () {
     expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
     expect(this.$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('');
 
-    hot.alter('insert_row', 0);
+    hot.alter('insert_row', 2);
 
-    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
-    expect(this.$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('');
-    expect(this.$container.find('tbody tr:eq(5) td:eq(0)').text()).toEqual('');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('');
+
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
   });
 
-  it('should sort the table after value update in sorted column', function(){
+  it('should NOT sort the table after value update in sorted column', function(){
     var hot = handsontable({
       data: [
         [1, 'B'],
@@ -169,67 +180,17 @@ describe('ColumnSorting', function () {
     this.sortByColumn(0);
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
 
     hot.setDataAtCell(1, 0, 20);
 
-    var rendered = false;
+    render();
 
-    Handsontable.PluginHooks.add('afterRender', function(){
-      rendered = true;
-    });
-
-    waitsFor(function(){
-      return rendered;
-    }, 'Table to render', 1000);
-
-    runs(function(){
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('20');
-    });
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('20');
 
 
 
-  });
-
-  it('should sort the table after value update in sorted column and move the selection', function(){
-    var hot = handsontable({
-      data: [
-        [1, 'B'],
-        [0, 'A'],
-        [3, 'D'],
-        [2, 'C']
-      ],
-      colHeaders: true,
-      columnSorting: true
-    });
-
-    this.sortByColumn(0);
-    this.sortByColumn(0);
-
-    hot.selectCell(1, 0);
-
-    var selected = hot.getSelected();
-
-    expect(selected[0]).toEqual(1)
-    expect(selected[1]).toEqual(0)
-
-    hot.setDataAtCell(1, 0, 20);
-
-    var rendered = false;
-
-    Handsontable.PluginHooks.add('afterRender', function(){
-      rendered = true;
-    });
-
-    waitsFor(function(){
-      return rendered;
-    }, 'Table to render', 1000);
-
-    runs(function(){
-      selected = hot.getSelected();
-
-      expect(selected[0]).toEqual(0);
-      expect(selected[1]).toEqual(0);
-    });
   });
 
   it('should sort date columns', function(){
@@ -452,6 +413,54 @@ describe('ColumnSorting', function () {
     });
 
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+  });
+
+  it("should expose sort method when columnSorting is enabled", function () {
+    var hot = handsontable();
+
+    expect(hot.getSettings()['columnSorting']).toBeFalsy();
+    expect(hot.sort).toBeUndefined();
+
+    updateSettings({
+      columnSorting: true
+    });
+
+    expect(hot.getSettings()['columnSorting']).toBe(true);
+    expect(hot.sort).toBeDefined();
+    expect(typeof hot.sort).toBe('function');
+
+    updateSettings({
+      columnSorting: false
+    });
+
+    expect(hot.getSettings()['columnSorting']).toBeFalsy();
+    expect(hot.sort).toBeUndefined();
+
+  });
+
+  it("should sort table using HOT.sort method", function () {
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'D'],
+        [3, 'A'],
+        [2, 'C']
+      ],
+      columnSorting: true
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
+
+    hot.sort(0, true);
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+
   });
 
 });

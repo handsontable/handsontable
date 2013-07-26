@@ -28,10 +28,20 @@ function HandsontableColumnSorting() {
       }
       plugin.sortByColumn.call(instance, sortingColumn, sortingOrder);
 
+      instance.sort = function(){
+        var args = Array.prototype.slice.call(arguments);
+
+        return plugin.sortByColumn.apply(instance, args)
+      }
 
       if (source == 'afterInit') {
         bindColumnSortingAfterClick.call(instance);
+
+        instance.addHook('afterCreateRow', plugin.afterCreateRow);
+        instance.addHook('afterRemoveRow', plugin.afterRemoveRow);
       }
+    } else {
+      delete instance.sort;
     }
   };
 
@@ -215,6 +225,37 @@ function HandsontableColumnSorting() {
     }
   };
 
+  this.afterCreateRow = function(index, amount){
+    var instance = this;
+    instance.sortIndex.splice(index, 0, [index, instance.getData()[index][this.sortColumn + instance.colOffset()]]);
+
+    for(var i = 0; i < instance.sortIndex.length; i++){
+      if(i == index) continue;
+
+      if (instance.sortIndex[i][0] >= index){
+        instance.sortIndex[i][0] += 1;
+      }
+    }
+
+    saveSortingState.call(instance);
+
+  };
+
+  this.afterRemoveRow = function(index, amount){
+    var instance = this;
+    instance.sortIndex.splice(index, amount);
+
+    for(var i = 0; i < instance.sortIndex.length; i++){
+
+      if (instance.sortIndex[i][0] > index){
+        instance.sortIndex[i][0] -= amount;
+      }
+    }
+
+    saveSortingState.call(instance);
+
+  };
+
   this.afterChangeSort = function (changes/*, source*/) {
     var instance = this;
     var sortColumnChanged = false;
@@ -253,6 +294,3 @@ Handsontable.PluginHooks.add('beforeGet', htSortColumn.onBeforeGetSet);
 Handsontable.PluginHooks.add('beforeSet', htSortColumn.onBeforeGetSet);
 Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
 
-Handsontable.PluginHooks.add('afterCreateRow', htSortColumn.sort);
-Handsontable.PluginHooks.add('afterRemoveRow', htSortColumn.sort);
-Handsontable.PluginHooks.add('afterChange', htSortColumn.afterChangeSort);
