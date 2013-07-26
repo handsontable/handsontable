@@ -46,6 +46,8 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
   var that = this;
 
   this.$textarea.off('.editor').on('keydown.editor', function (event) {
+    that.waitingEvent = null;
+
     if (that.state !== that.STATE_EDITING) {
       return;
     }
@@ -384,13 +386,10 @@ HandsontableTextEditorClass.prototype.discardEditor = function (result) {
 
   if (result === false && this.cellProperties.allowInvalid !== true) { //validator was defined and failed
     this.state = this.STATE_EDITING;
-    var that = this;
-    setTimeout(function () {
-      if (that.instance.view.wt.wtDom.isVisible(that.TEXTAREA)) {
-        that.TEXTAREA.focus();
-        that.setCaretPosition(that.TEXTAREA, that.TEXTAREA.value.length);
-      }
-    }, 0);
+    if (this.instance.view.wt.wtDom.isVisible(this.TEXTAREA)) {
+      this.TEXTAREA.focus();
+      this.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+    }
   }
   else {
     this.state = this.STATE_FINISHED;

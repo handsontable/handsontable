@@ -509,7 +509,7 @@ describe('Core_validate', function () {
         setTimeout(function () {
 
           validated = true;
-          validationResult = value.length == 2
+          validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
       }
@@ -544,7 +544,7 @@ describe('Core_validate', function () {
       allowInvalid: false,
       validator: function (value, callback) {
         validated = true;
-        validationResult = value.length == 2
+        validationResult = value.length == 2;
         callback(validationResult);
       }
     });
@@ -583,7 +583,7 @@ describe('Core_validate', function () {
             validated = true;
           }, 0);
 
-          validationResult = value.length == 2
+          validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
       }
@@ -617,7 +617,7 @@ describe('Core_validate', function () {
       data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator: function (value, callback) {
-        validationResult = value.length == 2
+        validationResult = value.length == 2;
         callback(validationResult);
 
         /*Setting this variable has to be async, because we are not interested in when the validation happens, but when
@@ -662,7 +662,7 @@ describe('Core_validate', function () {
         setTimeout(function () {
 
           validated = true;
-          validationResult = value.length == 2
+          validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
       }
@@ -700,7 +700,7 @@ describe('Core_validate', function () {
         setTimeout(function () {
 
           validated = true;
-          validationResult = value.length == 2
+          validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
       }
@@ -754,7 +754,7 @@ describe('Core_validate', function () {
       validator: function (value, callback) {
         setTimeout(function () {
           validated = true;
-          validationResult = value.length == 2
+          validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
       }
@@ -802,7 +802,7 @@ describe('Core_validate', function () {
       allowInvalid: false,
       validator: function (value, callback) {
         validated++;
-        validationResult = value.length == 2
+        validationResult = value.length == 2;
         callback(validationResult);
       }
     });
@@ -826,7 +826,7 @@ describe('Core_validate', function () {
       expect(document.activeElement.value).toEqual('Ted');
     });
 
-    runs(function(){
+    runs(function () {
       keyDown('esc');
     });
 
@@ -840,5 +840,35 @@ describe('Core_validate', function () {
       expect(getDataAtCell(0, 0)).toEqual('A0');
     });
 
+  });
+
+  it('should listen to key changes after cell is corrected (allowInvalid: false)', function () {
+    handsontable({
+      data: arrayOfObjects(),
+      allowInvalid: false,
+      columns: [
+        {data: 'id', type: 'numeric', validator: function (val, cb) {
+          cb(parseInt(val, 10) > 100);
+        }},
+        {data: 'name'},
+        {data: 'lastName'}
+      ]
+    });
+    selectCell(2, 0);
+
+    keyDownUp('enter');
+    document.activeElement.value = '99';
+
+    keyDownUp('enter'); //should be ignored
+    expect(isEditorVisible()).toBe(true);
+
+    document.activeElement.value = '999';
+    keyDownUp(40); //should be accepted
+    expect(isEditorVisible()).toBe(false);
+
+    expect(getSelected()).toEqual([3, 0, 3, 0]);
+
+    keyDownUp(38);
+    expect(getSelected()).toEqual([2, 0, 2, 0]);
   });
 });
