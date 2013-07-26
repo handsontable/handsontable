@@ -46,7 +46,12 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
   var that = this;
 
   this.$textarea.off('.editor').on('keydown.editor', function (event) {
-    that.waitingEvent = null;
+    if(that.state === that.STATE_WAITING) {
+      event.stopImmediatePropagation();
+    }
+    else {
+      that.waitingEvent = null;
+    }
 
     if (that.state !== that.STATE_EDITING) {
       return;

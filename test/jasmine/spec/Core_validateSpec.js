@@ -863,12 +863,45 @@ describe('Core_validate', function () {
     expect(isEditorVisible()).toBe(true);
 
     document.activeElement.value = '999';
-    keyDownUp(40); //should be accepted
+    keyDownUp('enter'); //should be accepted
     expect(isEditorVisible()).toBe(false);
 
     expect(getSelected()).toEqual([3, 0, 3, 0]);
 
-    keyDownUp(38);
+    keyDownUp('arrow_up');
     expect(getSelected()).toEqual([2, 0, 2, 0]);
+  });
+
+  it('should not allow keyboard movement until cell is validated', function () {
+    handsontable({
+      data: arrayOfObjects(),
+      allowInvalid: false,
+      columns: [
+        {data: 'id', type: 'numeric', validator: function (val, cb) {
+          setTimeout(function () {
+            cb(parseInt(val, 10) > 100);
+          }, 100);
+        }},
+        {data: 'name'},
+        {data: 'lastName'}
+      ]
+    });
+    selectCell(2, 0);
+
+    keyDownUp('enter');
+    document.activeElement.value = '999';
+    keyDownUp('enter'); //should be accepted but only after 100 ms
+
+    keyDownUp('arrow_right');
+    keyDownUp('arrow_right');
+    expect(isEditorVisible()).toBe(true);
+    expect(getSelected()).toEqual([2, 0, 2, 0]);
+
+    waits(110);
+
+    runs(function () {
+      expect(isEditorVisible()).toBe(false);
+      expect(getSelected()).toEqual([3, 0, 3, 0]);
+    });
   });
 });
