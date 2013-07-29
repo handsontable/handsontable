@@ -152,7 +152,8 @@ WalkontableScrollbar.prototype.refresh = function () {
     this.sliderStyle.height = Math.max(sliderSize, 0) + 'px';
   }
   else { //horizontal
-    if (this.instance.wtTable.columnStrategy.isLastIncomplete()) {
+    var isLastIncomplete = this.instance.wtTable.columnStrategy.isLastIncomplete();
+    if (isLastIncomplete) {
       visibleCount--;
     }
 
@@ -170,7 +171,7 @@ WalkontableScrollbar.prototype.refresh = function () {
   }
 
   handlePosition = Math.floor(sliderSize * (this.offset / this.total));
-  if (handleSize + handlePosition > sliderSize) {
+  if (handleSize + handlePosition > sliderSize || (!isLastIncomplete && this.offset + visibleCount == this.total)) {
     handlePosition = sliderSize - handleSize;
   }
 
