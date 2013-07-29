@@ -238,4 +238,44 @@ describe('TextEditor', function () {
 
   });
 
+  it("should open editor after selecting cell in another table and hitting enter", function () {
+    this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
+
+    var hot1 = handsontable();
+    var hot2 = handsontable2.call(this);
+
+    this.$container.find('tbody tr:eq(0) td:eq(0)').mousedown();
+
+    //Open editor in HOT1
+    keyDown('enter');
+    var editor = $('.handsontableInputHolder');
+    expect(editor.is(':visible')).toBe(true);
+
+    //Close editor in HOT1
+    keyDown('enter');
+    expect(editor.is(':visible')).toBe(false);
+
+
+
+    this.$container2.find('tbody tr:eq(0) td:eq(0)').mousedown();
+
+    expect(hot1.getSelected()).toBeUndefined();
+    expect(hot2.getSelected()).toEqual([0, 0, 0, 0]);
+
+    //Open editor in HOT2
+    keyDown('enter');
+    editor = $('.handsontableInputHolder');
+    expect(editor.is(':visible')).toBe(true);
+
+    this.$container2.remove();
+
+    function handsontable2(options) {
+      var container = this.$container2;
+      container.handsontable(options);
+      container[0].focus(); //otherwise TextEditor tests do not pass in IE8
+      return container.data('handsontable');
+    }
+
+  });
+
 });
