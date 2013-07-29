@@ -509,7 +509,7 @@ describe('Core_validate', function () {
         setTimeout(function () {
 
           validated = true;
-          validationResult = value.length == 2
+          validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
       }
@@ -544,7 +544,7 @@ describe('Core_validate', function () {
       allowInvalid: false,
       validator: function (value, callback) {
         validated = true;
-        validationResult = value.length == 2
+        validationResult = value.length == 2;
         callback(validationResult);
       }
     });
@@ -583,7 +583,7 @@ describe('Core_validate', function () {
             validated = true;
           }, 0);
 
-          validationResult = value.length == 2
+          validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
       }
@@ -617,7 +617,7 @@ describe('Core_validate', function () {
       data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator: function (value, callback) {
-        validationResult = value.length == 2
+        validationResult = value.length == 2;
         callback(validationResult);
 
         /*Setting this variable has to be async, because we are not interested in when the validation happens, but when
@@ -662,7 +662,7 @@ describe('Core_validate', function () {
         setTimeout(function () {
 
           validated = true;
-          validationResult = value.length == 2
+          validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
       }
@@ -700,7 +700,7 @@ describe('Core_validate', function () {
         setTimeout(function () {
 
           validated = true;
-          validationResult = value.length == 2
+          validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
       }
@@ -708,6 +708,9 @@ describe('Core_validate', function () {
 
     selectCell(0, 0);
     keyDown('enter');
+
+    var editor = $('.handsontableInputHolder');
+    expect(editor.is(':visible')).toBe(true);
 
     document.activeElement.value = 'AA';
 
@@ -733,6 +736,7 @@ describe('Core_validate', function () {
     }, 'Two clicks', 1000);
 
     runs(function () {
+      expect(editor.is(':visible')).toBe(false);
       expect(validationResult).toBe(true);
       expect(getDataAtCell(0, 0)).toEqual('AA');
     });
@@ -749,9 +753,8 @@ describe('Core_validate', function () {
       allowInvalid: false,
       validator: function (value, callback) {
         setTimeout(function () {
-
           validated = true;
-          validationResult = value.length == 2
+          validationResult = value.length == 2;
           callback(validationResult);
         }, 100);
       }
@@ -790,4 +793,115 @@ describe('Core_validate', function () {
 
   });
 
+  it("should close the editor and restore the original value after trying to save the original value with ENTER and then canceling with ESC", function () {
+    var validated = 0;
+    var validationResult;
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
+      allowInvalid: false,
+      validator: function (value, callback) {
+        validated++;
+        validationResult = value.length == 2;
+        callback(validationResult);
+      }
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    var editor = $('.handsontableInputHolder');
+
+    document.activeElement.value = 'Ted';
+
+    keyDown('enter');
+
+    waitsFor(function () {
+      return validated == 1;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(editor.is(':visible')).toBe(true);
+      expect(validationResult).toBe(false);
+      expect(document.activeElement.value).toEqual('Ted');
+    });
+
+    runs(function () {
+      keyDown('esc');
+    });
+
+    waitsFor(function () {
+      return validated == 2;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(editor.is(':visible')).toBe(false);
+      expect(validationResult).toBe(true);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+    });
+
+  });
+
+  it('should listen to key changes after cell is corrected (allowInvalid: false)', function () {
+    handsontable({
+      data: arrayOfObjects(),
+      allowInvalid: false,
+      columns: [
+        {data: 'id', type: 'numeric', validator: function (val, cb) {
+          cb(parseInt(val, 10) > 100);
+        }},
+        {data: 'name'},
+        {data: 'lastName'}
+      ]
+    });
+    selectCell(2, 0);
+
+    keyDownUp('enter');
+    document.activeElement.value = '99';
+
+    keyDownUp('enter'); //should be ignored
+    expect(isEditorVisible()).toBe(true);
+
+    document.activeElement.value = '999';
+    keyDownUp('enter'); //should be accepted
+    expect(isEditorVisible()).toBe(false);
+
+    expect(getSelected()).toEqual([3, 0, 3, 0]);
+
+    keyDownUp('arrow_up');
+    expect(getSelected()).toEqual([2, 0, 2, 0]);
+  });
+
+  it('should not allow keyboard movement until cell is validated', function () {
+    handsontable({
+      data: arrayOfObjects(),
+      allowInvalid: false,
+      columns: [
+        {data: 'id', type: 'numeric', validator: function (val, cb) {
+          setTimeout(function () {
+            cb(parseInt(val, 10) > 100);
+          }, 100);
+        }},
+        {data: 'name'},
+        {data: 'lastName'}
+      ]
+    });
+    selectCell(2, 0);
+
+    keyDownUp('enter');
+    document.activeElement.value = '999';
+    keyDownUp('enter'); //should be accepted but only after 100 ms
+
+    keyDownUp('arrow_right');
+    keyDownUp('arrow_right');
+    expect(isEditorVisible()).toBe(true);
+    expect(getSelected()).toEqual([2, 0, 2, 0]);
+
+    waits(110);
+
+    runs(function () {
+      expect(isEditorVisible()).toBe(false);
+      expect(getSelected()).toEqual([3, 0, 3, 0]);
+    });
+  });
 });

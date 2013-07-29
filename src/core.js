@@ -1209,7 +1209,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      */
     init: function () {
       priv.onCut = function onCut() {
-        if (Handsontable.activeGuid !== instance.guid) {
+        if (!instance.isListening()) {
           return;
         }
 
@@ -1217,7 +1217,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       };
 
       priv.onPaste = function onPaste(str) {
-        if (Handsontable.activeGuid !== instance.guid) {
+        if (!instance.isListening()) {
           return;
         }
 
@@ -1240,7 +1240,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       };
 
       function onKeyDown(event) {
-        if (Handsontable.activeGuid !== instance.guid) {
+        if (!instance.isListening()) {
           return;
         }
 
@@ -1453,7 +1453,6 @@ Handsontable.Core = function (rootElement, userSettings) {
         return;
       }
 
-      instance.listen();
       var TD = instance.view.getCellAtCoords(priv.selStart.coords());
       priv.editorDestroyer = instance.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
       //presumably TD can be removed from here. Cell editor should also listen for changes if editable cell is outside from viewport
@@ -1594,7 +1593,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     instance.forceFullRender = true; //used when data was changed
     grid.adjustRowsAndCols();
-    selection.refreshBorders();
+    selection.refreshBorders(null, true);
     instance.PluginHooks.run('afterChange', changes, source || 'edit');
   }
 
@@ -1712,23 +1711,31 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Listen to keyboard input
+   * Listen to document body keyboard input
    */
   this.listen = function () {
     Handsontable.activeGuid = instance.guid;
 
     if (document.activeElement && document.activeElement !== document.body) {
-
-      if (Handsontable.helper.isOutsideInput(document.activeElement)) {
-        Handsontable.activeGuid = null;
-      } else {
-        document.activeElement.blur();
-      }
-
+      document.activeElement.blur();
     }
     else if (!document.activeElement) { //IE
       document.body.focus();
     }
+  };
+
+  /**
+   * Stop listening to document body keyboard input
+   */
+  this.unlisten = function () {
+    Handsontable.activeGuid = null;
+  };
+
+  /**
+   * Returns true if current Handsontable instance is listening on document body keyboard input
+   */
+  this.isListening = function () {
+    return Handsontable.activeGuid === instance.guid;
   };
 
   /**
@@ -2343,20 +2350,30 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
+   * Return column width from settings (no guessing). Private use intended
+   * @param {Number} col
+   * @return {Number}
+   */
+  this._getColWidthFromSettings = function (col) {
+    if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
+      return priv.settings.columns[col].width;
+    }
+    else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
+      return priv.settings.colWidths[col];
+    }
+  };
+
+  /**
    * Return column width
    * @param {Number} col
    * @return {Number}
    */
   this.getColWidth = function (col) {
     col = Handsontable.PluginHooks.execute(instance, 'modifyCol', col);
-    var response = {};
-    if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
-      response.width = priv.settings.columns[col].width;
-    }
-    else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
-      response.width = priv.settings.colWidths[col];
-    }
-    else {
+    var response = {
+      width: instance._getColWidthFromSettings(col)
+    };
+    if (!response.width) {
       response.width = 50;
     }
     instance.PluginHooks.run('afterGetColWidth', col, response);

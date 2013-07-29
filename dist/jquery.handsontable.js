@@ -34,14 +34,14 @@ if (!Array.prototype.filter) {
 }
 
 /**
- * Handsontable 0.9.10
+ * Handsontable 0.9.11
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Jul 23 2013 15:18:14 GMT+0200 (Central European Daylight Time)
+ * Date: Mon Jul 29 2013 07:50:52 GMT+0200 (Central European Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1263,7 +1263,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      */
     init: function () {
       priv.onCut = function onCut() {
-        if (Handsontable.activeGuid !== instance.guid) {
+        if (!instance.isListening()) {
           return;
         }
 
@@ -1271,7 +1271,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       };
 
       priv.onPaste = function onPaste(str) {
-        if (Handsontable.activeGuid !== instance.guid) {
+        if (!instance.isListening()) {
           return;
         }
 
@@ -1294,7 +1294,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       };
 
       function onKeyDown(event) {
-        if (Handsontable.activeGuid !== instance.guid) {
+        if (!instance.isListening()) {
           return;
         }
 
@@ -1507,7 +1507,6 @@ Handsontable.Core = function (rootElement, userSettings) {
         return;
       }
 
-      instance.listen();
       var TD = instance.view.getCellAtCoords(priv.selStart.coords());
       priv.editorDestroyer = instance.view.applyCellTypeMethod('editor', TD, priv.selStart.row(), priv.selStart.col());
       //presumably TD can be removed from here. Cell editor should also listen for changes if editable cell is outside from viewport
@@ -1648,7 +1647,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     instance.forceFullRender = true; //used when data was changed
     grid.adjustRowsAndCols();
-    selection.refreshBorders();
+    selection.refreshBorders(null, true);
     instance.PluginHooks.run('afterChange', changes, source || 'edit');
   }
 
@@ -1766,23 +1765,31 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Listen to keyboard input
+   * Listen to document body keyboard input
    */
   this.listen = function () {
     Handsontable.activeGuid = instance.guid;
 
     if (document.activeElement && document.activeElement !== document.body) {
-
-      if (Handsontable.helper.isOutsideInput(document.activeElement)) {
-        Handsontable.activeGuid = null;
-      } else {
-        document.activeElement.blur();
-      }
-
+      document.activeElement.blur();
     }
     else if (!document.activeElement) { //IE
       document.body.focus();
     }
+  };
+
+  /**
+   * Stop listening to document body keyboard input
+   */
+  this.unlisten = function () {
+    Handsontable.activeGuid = null;
+  };
+
+  /**
+   * Returns true if current Handsontable instance is listening on document body keyboard input
+   */
+  this.isListening = function () {
+    return Handsontable.activeGuid === instance.guid;
   };
 
   /**
@@ -2397,20 +2404,30 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
+   * Return column width from settings (no guessing). Private use intended
+   * @param {Number} col
+   * @return {Number}
+   */
+  this._getColWidthFromSettings = function (col) {
+    if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
+      return priv.settings.columns[col].width;
+    }
+    else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
+      return priv.settings.colWidths[col];
+    }
+  };
+
+  /**
    * Return column width
    * @param {Number} col
    * @return {Number}
    */
   this.getColWidth = function (col) {
     col = Handsontable.PluginHooks.execute(instance, 'modifyCol', col);
-    var response = {};
-    if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
-      response.width = priv.settings.columns[col].width;
-    }
-    else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
-      response.width = priv.settings.colWidths[col];
-    }
-    else {
+    var response = {
+      width: instance._getColWidthFromSettings(col)
+    };
+    if (!response.width) {
       response.width = 50;
     }
     instance.PluginHooks.run('afterGetColWidth', col, response);
@@ -2721,7 +2738,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.9.10'; //inserted by grunt from package.json
+  this.version = '0.9.11'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {
@@ -2868,7 +2885,7 @@ Handsontable.TableView = function (instance) {
     }
 
     if (Handsontable.helper.isOutsideInput(document.activeElement)) {
-      Handsontable.activeGuid = null;
+      instance.unlisten();
     }
   });
 
@@ -3043,11 +3060,7 @@ Handsontable.TableView = function (instance) {
       return that.settings.fragmentSelection;
     },
     onCellMouseDown: function (event, coords, TD) {
-      Handsontable.activeGuid = instance.guid;
-
-      if (Handsontable.helper.isOutsideInput(document.activeElement)) {
-        document.activeElement.blur();
-      }
+      instance.listen();
 
       isMouseDown = true;
       var coordsObj = {row: coords[0], col: coords[1]};
@@ -3759,13 +3772,20 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
   Handsontable.TextRenderer(instance, TD, row, col, prop, value, cellProperties);
 };
 function HandsontableTextEditorClass(instance) {
-  this.isCellEdited = false;
   this.instance = instance;
   this.createElements();
   this.bindEvents();
 }
 
 HandsontableTextEditorClass.prototype.createElements = function () {
+  this.STATE_VIRGIN = 'STATE_VIRGIN'; //before editing
+  this.STATE_EDITING = 'STATE_EDITING';
+  this.STATE_WAITING = 'STATE_WAITING'; //waiting for async validation
+  this.STATE_FINISHED = 'STATE_FINISHED';
+
+  this.state = this.STATE_VIRGIN;
+  this.waitingEvent = null;
+
   this.wtDom = new WalkontableDom();
 
   this.TEXTAREA = document.createElement('TEXTAREA');
@@ -3781,7 +3801,6 @@ HandsontableTextEditorClass.prototype.createElements = function () {
   this.textareaParentStyle.top = 0;
   this.textareaParentStyle.left = 0;
   this.textareaParentStyle.display = 'none';
-  this.$textareaParent = $(this.TEXTAREA_PARENT);
 
   this.$body = $(document.body);
 
@@ -3798,11 +3817,16 @@ HandsontableTextEditorClass.prototype.createElements = function () {
 
 HandsontableTextEditorClass.prototype.bindEvents = function () {
   var that = this;
-  this.$textareaParent.off('.editor').on('keydown.editor', function (event) {
-    //if we are here then isCellEdited === true
 
-    that.instance.PluginHooks.run('beforeKeyDown', event);
-    if (event.isImmediatePropagationStopped()) { //event was cancelled in beforeKeyDown
+  this.$textarea.off('.editor').on('keydown.editor', function (event) {
+    if(that.state === that.STATE_WAITING) {
+      event.stopImmediatePropagation();
+    }
+    else {
+      that.waitingEvent = null;
+    }
+
+    if (that.state !== that.STATE_EDITING) {
       return;
     }
 
@@ -3816,6 +3840,9 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
 
     switch (event.keyCode) {
       case 38: /* arrow up */
+        that.finishEditing(false);
+        break;
+
       case 40: /* arrow down */
         that.finishEditing(false);
         break;
@@ -3867,8 +3894,8 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
     }
 
-    if ((that.waiting || that.force) && !event.isImmediatePropagationStopped()) {
-      that.waiting = that.force = event;
+    if (that.state !== that.STATE_FINISHED && !event.isImmediatePropagationStopped()) {
+      that.waitingEvent = event;
       event.stopImmediatePropagation();
       event.preventDefault();
     }
@@ -3878,6 +3905,8 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
 HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
   var that = this;
 
+  this.state = this.STATE_VIRGIN;
+
   function onDblClick() {
     that.TEXTAREA.value = that.originalValue;
     that.instance.destroyEditor();
@@ -3886,10 +3915,6 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
 
   this.instance.view.wt.update('onCellDblClick', onDblClick);
 
-  if (this.isCellEdited || this.waiting) {
-    return;
-  }
-
   this.TD = td;
   this.row = row;
   this.col = col;
@@ -3897,42 +3922,42 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
   this.originalValue = value;
   this.cellProperties = cellProperties;
 
-  this.$body.on('keydown.editor.' + this.instance.guid, function (event) {
-
-    if (Handsontable.activeGuid === null) {
+  this.beforeKeyDownHook = function (event) {
+    if (that.state !== that.STATE_VIRGIN) {
       return;
     }
 
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-    if (!that.isCellEdited) {
-      if (Handsontable.helper.isPrintableChar(event.keyCode)) {
-        if (!ctrlDown) { //disregard CTRL-key shortcuts
-          that.beginEditing(row, col, prop);
-        }
-      }
-      else if (event.keyCode === 113) { //f2
-        that.beginEditing(row, col, prop, true); //show edit field
-        event.stopImmediatePropagation();
-        event.preventDefault(); //prevent Opera from opening Go to Page dialog
-      }
-      else if (event.keyCode === 13 && that.instance.getSettings().enterBeginsEditing) { //enter
-        var selected = that.instance.getSelected();
-        var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
-        if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
-          that.beginEditing(row, col, prop, true, '\n'); //show edit field
-        }
-        else {
-          that.beginEditing(row, col, prop, true); //show edit field
-        }
-        event.preventDefault(); //prevent new line at the end of textarea
+
+    if (Handsontable.helper.isPrintableChar(event.keyCode)) {
+      if (!ctrlDown) { //disregard CTRL-key shortcuts
+        that.beginEditing(row, col, prop);
         event.stopImmediatePropagation();
       }
     }
-  });
+    else if (event.keyCode === 113) { //f2
+      that.beginEditing(row, col, prop, true); //show edit field
+      event.stopImmediatePropagation();
+      event.preventDefault(); //prevent Opera from opening Go to Page dialog
+    }
+    else if (event.keyCode === 13 && that.instance.getSettings().enterBeginsEditing) { //enter
+      var selected = that.instance.getSelected();
+      var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
+      if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
+        that.beginEditing(row, col, prop, true, '\n'); //show edit field
+      }
+      else {
+        that.beginEditing(row, col, prop, true); //show edit field
+      }
+      event.preventDefault(); //prevent new line at the end of textarea
+      event.stopImmediatePropagation();
+    }
+  };
+  that.instance.addHookOnce('beforeKeyDown', this.beforeKeyDownHook);
 };
 
 HandsontableTextEditorClass.prototype.unbindTemporaryEvents = function () {
-  this.$body.off(".editor");
+  this.instance.removeHook('beforeKeyDown', this.beforeKeyDownHook);
   this.instance.view.wt.update('onCellDblClick', null);
 };
 
@@ -3981,10 +4006,12 @@ HandsontableTextEditorClass.prototype.setCaretPosition = function (el, pos) {
 };
 
 HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
-  if (this.isCellEdited || this.waiting) {
+  if (this.state !== this.STATE_VIRGIN) {
     return;
   }
-  this.isCellEdited = true;
+
+  this.state = this.STATE_EDITING;
+
   this.row = row;
   this.col = col;
   this.prop = prop;
@@ -4014,7 +4041,7 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
 };
 
 HandsontableTextEditorClass.prototype.refreshDimensions = function () {
-  if (!this.isCellEdited) {
+  if (this.state !== this.STATE_EDITING) {
     return;
   }
 
@@ -4092,11 +4119,13 @@ HandsontableTextEditorClass.prototype.saveValue = function (val, ctrlDown) {
 };
 
 HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
-  if (this.waiting) {
+  var hasValidator = false;
+
+  if (this.state == this.STATE_WAITING || this.state == this.STATE_FINISHED) {
     return;
   }
-  if (this.isCellEdited) {
-    this.isCellEdited = false;
+
+  if (this.state == this.STATE_EDITING) {
     var val;
 
     if (isCancelled) {
@@ -4109,41 +4138,39 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
       ];
     }
 
-    var hasValidator = this.instance.getCellMeta(this.row, this.col).validator;
+    hasValidator = this.instance.getCellMeta(this.row, this.col).validator;
 
     if (hasValidator) {
-      this.waiting = true;
+      this.state = this.STATE_WAITING;
       var that = this;
       this.instance.addHookOnce('afterValidate', function (result) {
-        that.force = that.waiting;
-        that.waiting = false;
+        that.state = that.STATE_FINISHED;
         that.discardEditor(result);
       });
     }
     this.saveValue(val, ctrlDown);
-
   }
-  if (!hasValidator) { //otherwise afterValidate will discard the editor
+
+  if (!hasValidator) {
+    this.state = this.STATE_FINISHED;
     this.discardEditor();
   }
 };
 
 HandsontableTextEditorClass.prototype.discardEditor = function (result) {
-  if (this.waiting) {
+  if (this.state !== this.STATE_FINISHED) {
     return;
   }
 
   if (result === false && this.cellProperties.allowInvalid !== true) { //validator was defined and failed
-    this.isCellEdited = true;
-    var that = this;
-    setTimeout(function () {
-      if (that.instance.view.wt.wtDom.isVisible(that.TEXTAREA)) {
-        that.TEXTAREA.focus();
-        that.setCaretPosition(that.TEXTAREA, that.TEXTAREA.value.length);
-      }
-    }, 0);
+    this.state = this.STATE_EDITING;
+    if (this.instance.view.wt.wtDom.isVisible(this.TEXTAREA)) {
+      this.TEXTAREA.focus();
+      this.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+    }
   }
   else {
+    this.state = this.STATE_FINISHED;
     if (document.activeElement === this.TEXTAREA) {
       this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
     }
@@ -4151,10 +4178,10 @@ HandsontableTextEditorClass.prototype.discardEditor = function (result) {
 
     this.textareaParentStyle.display = 'none';
 
-    if (this.force && this.force.type) { //this is needed so when you finish editing with Enter key, the default Enter behavior (move selection down) will work after async validation
-      var ev = $.Event(this.force.type);
-      ev.keyCode = this.force.keyCode;
-      this.force = null;
+    if (this.waitingEvent) { //this is needed so when you finish editing with Enter key, the default Enter behavior (move selection down) will work after async validation
+      var ev = $.Event(this.waitingEvent.type);
+      ev.keyCode = this.waitingEvent.keyCode;
+      this.waitingEvent = null;
       $(document.activeElement).trigger(ev);
     }
   }
@@ -4174,13 +4201,14 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, value, cellPro
   if (!instance.textEditor) {
     instance.textEditor = new HandsontableTextEditorClass(instance);
   }
-  instance.textEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
+  if (instance.textEditor.state === instance.textEditor.STATE_VIRGIN || instance.textEditor.state === instance.textEditor.STATE_FINISHED) {
+    instance.textEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
+  }
   return function (isCancelled) {
     instance.textEditor.finishEditing(isCancelled);
   }
 };
 function HandsontableAutocompleteEditorClass(instance) {
-  this.isCellEdited = false;
   this.instance = instance;
   this.createElements();
   this.bindEvents();
@@ -4242,7 +4270,7 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
 
   this.$textarea.off('keydown').off('keyup').off('keypress'); //unlisten
 
-  this.$textareaParent.off('.acEditor').on('keydown.acEditor', function (event) {
+  this.$textarea.off('.acEditor').on('keydown.acEditor', function (event) {
     switch (event.keyCode) {
       case 38: /* arrow up */
         that.typeahead.prev();
@@ -4260,7 +4288,7 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
     }
   });
 
-  this.$textareaParent.on('keyup.acEditor', function (event) {
+  this.$textarea.on('keyup.acEditor', function (event) {
     if (Handsontable.helper.isPrintableChar(event.keyCode) || event.keyCode === 113 || event.keyCode === 13 || event.keyCode === 8 || event.keyCode === 46) {
       that.typeahead.lookup();
     }
@@ -4339,10 +4367,10 @@ HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancel
   if (!isCancelled) {
     if (this.isMenuExpanded() && this.typeahead.$menu[0].querySelector('.active')) {
       this.typeahead.select();
-      this.isCellEdited = false; //cell value was updated by this.typeahead.select (issue #405)
+      this.state = this.STATE_FINISHED; //cell value was updated by this.typeahead.select (issue #405)
     }
     else if (this.cellProperties.strict) {
-      this.isCellEdited = false; //cell value was not picked from this.typeahead.select (issue #405)
+      this.state = this.STATE_FINISHED; //cell value was not picked from this.typeahead.select (issue #405)
     }
   }
 
@@ -4532,7 +4560,6 @@ Handsontable.DateEditor = function (instance, td, row, col, prop, value, cellPro
  */
 
 function HandsontableHandsontableEditorClass(instance) {
-  this.isCellEdited = false;
   this.instance = instance;
   this.createElements();
   this.bindEvents();
@@ -4605,12 +4632,8 @@ HandsontableHandsontableEditorClass.prototype.beginEditing = function (row, col,
 };
 
 HandsontableHandsontableEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
-  if (Handsontable.helper.isDescendant(this.instance.rootElement[0], document.activeElement)) {
-    //var that = this;
-    setTimeout(function () {
-      //that.instance.listen(); //return the focus to the cell must be done after destroyer to work in IE7-9
-    }, 0);
-    //that.instance.listen(); //return the focus to the cell
+  if (this.$htContainer.handsontable('isListening')) { //if focus is still in the HOT editor
+    this.instance.listen(); //return the focus to the parent HOT instance
   }
   this.$htContainer.handsontable('destroy');
   HandsontableTextEditorClass.prototype.finishEditing.call(this, isCancelled, ctrlDown);
@@ -5080,7 +5103,9 @@ function HandsontableAutoColumnSize() {
     if (settings.autoColumnSize || !settings.colWidths) {
       var cols = this.countCols();
       for (var c = 0; c < cols; c++) {
-        this.autoColumnWidths[c] = that.determineColumnWidth(c);
+        if (!instance._getColWidthFromSettings(c)) {
+          this.autoColumnWidths[c] = that.determineColumnWidth(c);
+        }
       }
     }
   };
@@ -6763,7 +6788,7 @@ function CopyPasteClass() {
     }
 
     if (isCtrlDown) {
-      if (document.activeElement !== that.elTextarea && that.getSelectionText() != '') {
+      if (document.activeElement !== that.elTextarea && (that.getSelectionText() != '' || ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(document.activeElement.nodeName) != -1)) {
         return; //this is needed by fragmentSelection in Handsontable. Ignore copypaste.js behavior if fragment of cell text is selected
       }
 
@@ -6818,9 +6843,9 @@ CopyPasteClass.prototype.copyable = function (str) {
   this.elTextarea.value = str;
 };
 
-CopyPasteClass.prototype.onCopy = function (fn) {
+/*CopyPasteClass.prototype.onCopy = function (fn) {
   this.copyCallbacks.push(fn);
-};
+};*/
 
 CopyPasteClass.prototype.onCut = function (fn) {
   this.cutCallbacks.push(fn);
@@ -6876,23 +6901,19 @@ CopyPasteClass.prototype.triggerPaste = function (event, str) {
   }
 };
 
-//http://net.tutsplus.com/tutorials/javascript-ajax/javascript-from-null-cross-browser-event-binding/
-//http://stackoverflow.com/questions/4643249/cross-browser-event-object-normalization
+//old version used this:
+// - http://net.tutsplus.com/tutorials/javascript-ajax/javascript-from-null-cross-browser-event-binding/
+// - http://stackoverflow.com/questions/4643249/cross-browser-event-object-normalization
+//but that cannot work with jQuery.trigger
 CopyPasteClass.prototype._bindEvent = (function () {
-  if (document.addEventListener) {
+  if (window.jQuery) { //if jQuery exists, use jQuery event (for compatibility with $.trigger and $.triggerHandler, which can only trigger jQuery events - and we use that in tests)
     return function (elem, type, cb) {
-      elem.addEventListener(type, cb, false);
+      $(elem).on(type + '.copypaste', cb);
     };
   }
   else {
     return function (elem, type, cb) {
-      elem.attachEvent('on' + type, function () {
-        var e = window['event'];
-        e.target = e.srcElement;
-        e.relatedTarget = e.relatedTarget || e.type == 'mouseover' ? e.fromElement : e.toElement;
-        if (e.target.nodeType === 3) e.target = e.target.parentNode; //Safari bug
-        return cb.call(elem, e)
-      });
+      elem.addEventListener(type, cb, false); //sorry, IE8 will only work with jQuery
     };
   }
 })();

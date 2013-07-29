@@ -55,14 +55,14 @@ describe('Core_selection', function () {
   it('this.rootElement should point to handsontable rootElement (onSelectionByProp)', function () {
     var output = null;
 
-      handsontable({
-        onSelectionByProp: function () {
-          output = this.rootElement[0];
-        }
-      });
-      selectCell(0, 0);
+    handsontable({
+      onSelectionByProp: function () {
+        output = this.rootElement[0];
+      }
+    });
+    selectCell(0, 0);
 
-      expect(output).toEqual(this.$container[0]);
+    expect(output).toEqual(this.$container[0]);
   });
 
   it('should focus external textarea when clicked during editing', function () {
@@ -117,7 +117,7 @@ describe('Core_selection', function () {
 
   it('should allow to type in external input while holding current selection information', function () {
     var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
-    var keyPressed, activeElementName;
+    var keyPressed;
     handsontable({
       outsideClickDeselects: false
     });
@@ -126,10 +126,9 @@ describe('Core_selection', function () {
     textarea.focus();
     textarea.trigger('mousedown');
     textarea.trigger('mouseup');
-    activeElementName = document.activeElement;
 
-    $(activeElementName).on('keydown', function(event){
-       keyPressed = event.keyCode;
+    textarea.on('keydown', function (event) {
+      keyPressed = event.keyCode;
     });
 
     var LETTER_a_KEY = 97;
@@ -138,11 +137,9 @@ describe('Core_selection', function () {
 
     $(document.activeElement).trigger(event);
 
-    expect(Handsontable.activeGuid).toBeNull();
-
     //textarea should receive the event and be an active element
     expect(keyPressed).toEqual(LETTER_a_KEY);
-    expect(activeElementName).toBe(document.getElementById('test_textarea'));
+    expect(document.activeElement).toBe(document.getElementById('test_textarea'));
 
     //should preserve selection, close editor and save changes
     expect(getSelected()).toEqual([0, 0, 0, 0]);
@@ -153,7 +150,7 @@ describe('Core_selection', function () {
 
   it('should allow to type in external input after opening cell editor', function () {
     var textarea = $('<textarea id="test_textarea"></textarea>').prependTo($('body'));
-    var keyPressed, activeElementName;
+    var keyPressed;
     handsontable({
       outsideClickDeselects: false
     });
@@ -164,9 +161,8 @@ describe('Core_selection', function () {
     textarea.focus();
     textarea.trigger('mousedown');
     textarea.trigger('mouseup');
-    activeElementName = document.activeElement;
 
-    $(activeElementName).on('keydown', function(event){
+    textarea.on('keydown', function (event) {
       keyPressed = event.keyCode;
     });
 
@@ -176,11 +172,9 @@ describe('Core_selection', function () {
 
     $(document.activeElement).trigger(event);
 
-    expect(Handsontable.activeGuid).toBeNull();
-
     //textarea should receive the event and be an active element
     expect(keyPressed).toEqual(LETTER_a_KEY);
-    expect(activeElementName).toBe(document.getElementById('test_textarea'));
+    expect(document.activeElement).toBe(document.getElementById('test_textarea'));
 
     //should preserve selection, close editor and save changes
     expect(getSelected()).toEqual([0, 0, 0, 0]);
@@ -386,5 +380,30 @@ describe('Core_selection', function () {
     keyDownUp('enter');
     expect(isEditorVisible()).toEqual(true);
     $input.remove();
+  });
+
+  //This test should cover the #893 case, but it always passes. It seems like the keydown event (with CTRL key pressed) isn't delivered.
+  it("should not move focus from outside elements on CTRL keydown event, when no cell is selected", function () {
+    var $input = $('<input type="text"/>');
+    $('body').append($input);
+
+    handsontable();
+
+    selectCell(0, 0);
+
+    expect(document.activeElement.nodeName).toBeInArray('BODY', 'HTML');
+
+    $input.focus();
+
+    expect(document.activeElement.nodeName).toBe('INPUT');
+
+    var keyDownEvent = $.Event('keydown', {ctrlKey: true, metaKey: true});
+    $input.trigger(keyDownEvent);
+
+    expect(document.activeElement.nodeName).toBe('INPUT');
+
+    $input.remove();
+
+
   });
 });
