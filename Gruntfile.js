@@ -21,13 +21,13 @@
  */
 var browsers = [
   /*{
-    browserName: 'firefox',
-    platform: 'Windows 7'
-  },
-  {
-    browserName: 'chrome',
-    platform: 'Windows 7'
-  },*/
+   browserName: 'firefox',
+   platform: 'Windows 7'
+   },
+   {
+   browserName: 'chrome',
+   platform: 'Windows 7'
+   },*/
   {
     browserName: 'internet explorer',
     version: '8',
@@ -101,7 +101,7 @@ module.exports = function (grunt) {
         // seems to have no effect when turned off on contextmenu.html
         //'lib/jQuery-contextMenu/jquery.ui.position.js'
       ],
-      shims : [
+      shims: [
         'lib/shims/array.filter.js'
       ]
     },
@@ -206,8 +206,8 @@ module.exports = function (grunt) {
         ],
         options: {
           specs: [
-           'test/jasmine/spec/*Spec.js',
-           'test/jasmine/spec/*/*Spec.js'
+            'test/jasmine/spec/*Spec.js',
+            'test/jasmine/spec/*/*Spec.js'
           ],
           styles: [
             'test/jasmine/css/SpecRunner.css',
@@ -305,6 +305,8 @@ module.exports = function (grunt) {
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
   grunt.registerTask('sauce', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable', 'saucelabs-jasmine:handsontable']);
+  grunt.registerTask('sauce:handsontable', ['default', 'connect:sauce', 'saucelabs-jasmine:handsontable']);
+  grunt.registerTask('sauce:walkontable', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable']);
 
   grunt.loadNpmTasks('grunt-replace');
   grunt.loadNpmTasks('grunt-contrib-clean');
