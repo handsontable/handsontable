@@ -49,18 +49,58 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
   }
   else {
     $input.on('mousedown', function (event) {
-      if (!this.checked) {
-        instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);
-      }
-      else {
-        instance.setDataAtRowProp(row, prop, cellProperties.uncheckedTemplate);
-      }
-
       event.stopPropagation(); //otherwise can confuse cell mousedown handler
     });
 
     $input.on('mouseup', function (event) {
       event.stopPropagation(); //otherwise can confuse cell dblclick handler
+    });
+
+    $input.on('change', function(){
+      if (this.checked) {
+        instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);
+      }
+      else {
+        instance.setDataAtRowProp(row, prop, cellProperties.uncheckedTemplate);
+      }
+    });
+  }
+
+  if(!instance.CheckboxRenderer || !instance.CheckboxRenderer.beforeKeyDownHookBound){
+    instance.CheckboxRenderer = {
+      beforeKeyDownHookBound : true
+    };
+
+    instance.addHook('beforeKeyDown', function(event){
+       if(event.keyCode == 32){
+         event.stopImmediatePropagation();
+         event.preventDefault();
+
+         var selection = instance.getSelected();
+         var $cell, $checkbox, cellProperties;
+         var selStart = {
+           row: Math.min(selection[0], selection[2]),
+           col: Math.min(selection[1], selection[3])
+         };
+
+         var selEnd = {
+           row: Math.max(selection[0], selection[2]),
+           col: Math.max(selection[1], selection[3])
+         };
+
+         for(var row = selStart.row; row <= selEnd.row; row++ ){
+           for(var col = selEnd.col; col <= selEnd.col; col++){
+             $cell = $(instance.getCell(row, col));
+             cellProperties = instance.getCellMeta(row, col);
+             $checkbox = $cell.find(':checkbox');
+
+             if($checkbox.length > 0 && !cellProperties.readOnly){
+               $checkbox.prop('checked', !$checkbox.prop('checked'));
+             }
+
+           }
+         }
+       }
     });
   }
 
