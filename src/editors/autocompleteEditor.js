@@ -1,5 +1,4 @@
 function HandsontableAutocompleteEditorClass(instance) {
-  this.isCellEdited = false;
   this.instance = instance;
   this.createElements();
   this.bindEvents();
@@ -61,7 +60,7 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
 
   this.$textarea.off('keydown').off('keyup').off('keypress'); //unlisten
 
-  this.$textareaParent.off('.acEditor').on('keydown.acEditor', function (event) {
+  this.$textarea.off('.acEditor').on('keydown.acEditor', function (event) {
     switch (event.keyCode) {
       case 38: /* arrow up */
         that.typeahead.prev();
@@ -79,7 +78,7 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
     }
   });
 
-  this.$textareaParent.on('keyup.acEditor', function (event) {
+  this.$textarea.on('keyup.acEditor', function (event) {
     if (Handsontable.helper.isPrintableChar(event.keyCode) || event.keyCode === 113 || event.keyCode === 13 || event.keyCode === 8 || event.keyCode === 46) {
       that.typeahead.lookup();
     }
@@ -158,10 +157,10 @@ HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancel
   if (!isCancelled) {
     if (this.isMenuExpanded() && this.typeahead.$menu[0].querySelector('.active')) {
       this.typeahead.select();
-      this.isCellEdited = false; //cell value was updated by this.typeahead.select (issue #405)
+      this.state = this.STATE_FINISHED; //cell value was updated by this.typeahead.select (issue #405)
     }
     else if (this.cellProperties.strict) {
-      this.isCellEdited = false; //cell value was not picked from this.typeahead.select (issue #405)
+      this.state = this.STATE_FINISHED; //cell value was not picked from this.typeahead.select (issue #405)
     }
   }
 
