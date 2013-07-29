@@ -20,14 +20,14 @@
  * See http://gruntjs.com/getting-started for more information about Grunt
  */
 var browsers = [
-  {
-    browserName: 'firefox',
-    platform: 'Windows 7'
-  },
-  {
-    browserName: 'chrome',
-    platform: 'Windows 7'
-  },
+  /*{
+   browserName: 'firefox',
+   platform: 'Windows 7'
+   },
+   {
+   browserName: 'chrome',
+   platform: 'Windows 7'
+   },*/
   {
     browserName: 'internet explorer',
     version: '8',
@@ -101,7 +101,7 @@ module.exports = function (grunt) {
         // seems to have no effect when turned off on contextmenu.html
         //'lib/jQuery-contextMenu/jquery.ui.position.js'
       ],
-      shims : [
+      shims: [
         'lib/shims/array.filter.js'
       ]
     },
@@ -198,12 +198,7 @@ module.exports = function (grunt) {
     jasmine: {
       handsontable: {
         src: [
-          'lib/jquery.min.js',
           'dist/jquery.handsontable.js',
-          'lib/bootstrap-typeahead.js',
-          'lib/numeral.js',
-          'lib/jQuery-contextMenu/jquery.contextMenu.js',
-          'test/jasmine/spec/SpecHelper.js',
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
@@ -211,23 +206,36 @@ module.exports = function (grunt) {
         ],
         options: {
           specs: [
-           'test/jasmine/spec/*Spec.js',
-           'test/jasmine/spec/*/*Spec.js'
+            'test/jasmine/spec/*Spec.js',
+            'test/jasmine/spec/*/*Spec.js'
           ],
           styles: [
             'test/jasmine/css/SpecRunner.css',
             'dist/jquery.handsontable.css',
             'lib/jQuery-contextMenu/jquery.contextMenu.css',
             'extensions/jquery.handsontable.removeRow.css'
-          ]
+          ],
+          vendor: [
+            'lib/jquery.min.js',
+            'lib/bootstrap-typeahead.js',
+            'lib/numeral.js',
+            'lib/jQuery-contextMenu/jquery.contextMenu.js',
+            'test/jasmine/lib/jasmine-extensions.js'
+          ],
+          helpers: [
+            'test/jasmine/spec/SpecHelper.js',
+            'test/jasmine/lib/nodeShim.js',
+            'test/jasmine/spec/test-init.js'
+          ],
+          outfile: 'test/jasmine/SpecRunner.html',
+          template: 'test/jasmine/templates/SpecRunner.tmpl',
+          keepRunner: true
         }
       },
       walkontable: {
         src: [
-          'lib/jquery.min.js',
           'src/3rdparty/walkontable/src/*.js',
-          'src/3rdparty/walkontable/src/3rdparty/*.js',
-          'src/3rdparty/walkontable/test/jasmine/SpecHelper.js'
+          'src/3rdparty/walkontable/src/3rdparty/*.js'
         ],
         options: {
           specs: [
@@ -235,7 +243,19 @@ module.exports = function (grunt) {
           ],
           styles: [
             'src/3rdparty/walkontable/css/walkontable.css'
-          ]
+          ],
+          vendor: [
+            'lib/jquery.min.js'
+          ],
+          helpers: [
+            'src/3rdparty/walkontable/test/jasmine/SpecHelper.js',
+            'test/jasmine/lib/nodeShim.js',
+            'src/3rdparty/walkontable/test/jasmine/test-init.js'
+
+          ],
+          outfile: 'src/3rdparty/walkontable/test/jasmine/SpecRunner.html',
+          template: 'test/jasmine/templates/SpecRunner.tmpl',
+          keepRunner: true
         }
       }
     },
@@ -259,10 +279,6 @@ module.exports = function (grunt) {
       handsontable: {
         options: {
           urls: ['http://localhost:9999/test/jasmine/SpecRunner.html'],
-          testTimeout: (1000 * 60 * 5),
-          tunnelTimeout: 120,
-          testInterval: 5,
-          testReadyTimeout: 5,
 //          build: process.env.TRAVIS_JOB_ID,
           build: '<%= pkg.version %>-<%= gitinfo.local.branch.current.name %>',
           concurrency: 3,
@@ -273,10 +289,6 @@ module.exports = function (grunt) {
       walkontable: {
         options: {
           urls: ['http://localhost:9999/src/3rdparty/walkontable/test/jasmine/SpecRunner.html'],
-          testTimeout: (1000 * 60 * 5),
-          tunnelTimeout: 120,
-          testInterval: 5,
-          testReadyTimeout: 5,
 //          build: process.env.TRAVIS_JOB_ID,
           build: '<%= pkg.version %>-<%= gitinfo.local.branch.current.name %>',
           concurrency: 3,
@@ -293,6 +305,8 @@ module.exports = function (grunt) {
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
   grunt.registerTask('sauce', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable', 'saucelabs-jasmine:handsontable']);
+  grunt.registerTask('sauce:handsontable', ['default', 'connect:sauce', 'saucelabs-jasmine:handsontable']);
+  grunt.registerTask('sauce:walkontable', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable']);
 
   grunt.loadNpmTasks('grunt-replace');
   grunt.loadNpmTasks('grunt-contrib-clean');

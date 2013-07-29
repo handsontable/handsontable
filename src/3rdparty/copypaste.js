@@ -70,7 +70,7 @@ function CopyPasteClass() {
     }
 
     if (isCtrlDown) {
-      if (document.activeElement !== that.elTextarea && that.getSelectionText() != '') {
+      if (document.activeElement !== that.elTextarea && (that.getSelectionText() != '' || ['INPUT', 'SELECT', 'TEXTAREA'].indexOf(document.activeElement.nodeName) != -1)) {
         return; //this is needed by fragmentSelection in Handsontable. Ignore copypaste.js behavior if fragment of cell text is selected
       }
 
@@ -125,9 +125,9 @@ CopyPasteClass.prototype.copyable = function (str) {
   this.elTextarea.value = str;
 };
 
-CopyPasteClass.prototype.onCopy = function (fn) {
+/*CopyPasteClass.prototype.onCopy = function (fn) {
   this.copyCallbacks.push(fn);
-};
+};*/
 
 CopyPasteClass.prototype.onCut = function (fn) {
   this.cutCallbacks.push(fn);
@@ -183,23 +183,19 @@ CopyPasteClass.prototype.triggerPaste = function (event, str) {
   }
 };
 
-//http://net.tutsplus.com/tutorials/javascript-ajax/javascript-from-null-cross-browser-event-binding/
-//http://stackoverflow.com/questions/4643249/cross-browser-event-object-normalization
+//old version used this:
+// - http://net.tutsplus.com/tutorials/javascript-ajax/javascript-from-null-cross-browser-event-binding/
+// - http://stackoverflow.com/questions/4643249/cross-browser-event-object-normalization
+//but that cannot work with jQuery.trigger
 CopyPasteClass.prototype._bindEvent = (function () {
-  if (document.addEventListener) {
+  if (window.jQuery) { //if jQuery exists, use jQuery event (for compatibility with $.trigger and $.triggerHandler, which can only trigger jQuery events - and we use that in tests)
     return function (elem, type, cb) {
-      elem.addEventListener(type, cb, false);
+      $(elem).on(type + '.copypaste', cb);
     };
   }
   else {
     return function (elem, type, cb) {
-      elem.attachEvent('on' + type, function () {
-        var e = window['event'];
-        e.target = e.srcElement;
-        e.relatedTarget = e.relatedTarget || e.type == 'mouseover' ? e.fromElement : e.toElement;
-        if (e.target.nodeType === 3) e.target = e.target.parentNode; //Safari bug
-        return cb.call(elem, e)
-      });
+      elem.addEventListener(type, cb, false); //sorry, IE8 will only work with jQuery
     };
   }
 })();

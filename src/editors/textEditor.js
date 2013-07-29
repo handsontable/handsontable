@@ -1,11 +1,18 @@
 function HandsontableTextEditorClass(instance) {
-  this.isCellEdited = false;
   this.instance = instance;
   this.createElements();
   this.bindEvents();
 }
 
 HandsontableTextEditorClass.prototype.createElements = function () {
+  this.STATE_VIRGIN = 'STATE_VIRGIN'; //before editing
+  this.STATE_EDITING = 'STATE_EDITING';
+  this.STATE_WAITING = 'STATE_WAITING'; //waiting for async validation
+  this.STATE_FINISHED = 'STATE_FINISHED';
+
+  this.state = this.STATE_VIRGIN;
+  this.waitingEvent = null;
+
   this.wtDom = new WalkontableDom();
 
   this.TEXTAREA = document.createElement('TEXTAREA');
@@ -21,7 +28,6 @@ HandsontableTextEditorClass.prototype.createElements = function () {
   this.textareaParentStyle.top = 0;
   this.textareaParentStyle.left = 0;
   this.textareaParentStyle.display = 'none';
-  this.$textareaParent = $(this.TEXTAREA_PARENT);
 
   this.$body = $(document.body);
 
@@ -38,11 +44,16 @@ HandsontableTextEditorClass.prototype.createElements = function () {
 
 HandsontableTextEditorClass.prototype.bindEvents = function () {
   var that = this;
-  this.$textareaParent.off('.editor').on('keydown.editor', function (event) {
-    //if we are here then isCellEdited === true
 
-    that.instance.PluginHooks.run('beforeKeyDown', event);
-    if (event.isImmediatePropagationStopped()) { //event was cancelled in beforeKeyDown
+  this.$textarea.off('.editor').on('keydown.editor', function (event) {
+    if(that.state === that.STATE_WAITING) {
+      event.stopImmediatePropagation();
+    }
+    else {
+      that.waitingEvent = null;
+    }
+
+    if (that.state !== that.STATE_EDITING) {
       return;
     }
 
@@ -56,6 +67,9 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
 
     switch (event.keyCode) {
       case 38: /* arrow up */
+        that.finishEditing(false);
+        break;
+
       case 40: /* arrow down */
         that.finishEditing(false);
         break;
@@ -107,8 +121,8 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
     }
 
-    if ((that.waiting || that.force) && !event.isImmediatePropagationStopped()) {
-      that.waiting = that.force = event;
+    if (that.state !== that.STATE_FINISHED && !event.isImmediatePropagationStopped()) {
+      that.waitingEvent = event;
       event.stopImmediatePropagation();
       event.preventDefault();
     }
@@ -118,6 +132,8 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
 HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
   var that = this;
 
+  this.state = this.STATE_VIRGIN;
+
   function onDblClick() {
     that.TEXTAREA.value = that.originalValue;
     that.instance.destroyEditor();
@@ -126,10 +142,6 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
 
   this.instance.view.wt.update('onCellDblClick', onDblClick);
 
-  if (this.isCellEdited || this.waiting) {
-    return;
-  }
-
   this.TD = td;
   this.row = row;
   this.col = col;
@@ -137,42 +149,42 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
   this.originalValue = value;
   this.cellProperties = cellProperties;
 
-  this.$body.on('keydown.editor.' + this.instance.guid, function (event) {
-
-    if (Handsontable.activeGuid === null) {
+  this.beforeKeyDownHook = function (event) {
+    if (that.state !== that.STATE_VIRGIN) {
       return;
     }
 
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-    if (!that.isCellEdited) {
-      if (Handsontable.helper.isPrintableChar(event.keyCode)) {
-        if (!ctrlDown) { //disregard CTRL-key shortcuts
-          that.beginEditing(row, col, prop);
-        }
-      }
-      else if (event.keyCode === 113) { //f2
-        that.beginEditing(row, col, prop, true); //show edit field
-        event.stopImmediatePropagation();
-        event.preventDefault(); //prevent Opera from opening Go to Page dialog
-      }
-      else if (event.keyCode === 13 && that.instance.getSettings().enterBeginsEditing) { //enter
-        var selected = that.instance.getSelected();
-        var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
-        if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
-          that.beginEditing(row, col, prop, true, '\n'); //show edit field
-        }
-        else {
-          that.beginEditing(row, col, prop, true); //show edit field
-        }
-        event.preventDefault(); //prevent new line at the end of textarea
+
+    if (Handsontable.helper.isPrintableChar(event.keyCode)) {
+      if (!ctrlDown) { //disregard CTRL-key shortcuts
+        that.beginEditing(row, col, prop);
         event.stopImmediatePropagation();
       }
     }
-  });
+    else if (event.keyCode === 113) { //f2
+      that.beginEditing(row, col, prop, true); //show edit field
+      event.stopImmediatePropagation();
+      event.preventDefault(); //prevent Opera from opening Go to Page dialog
+    }
+    else if (event.keyCode === 13 && that.instance.getSettings().enterBeginsEditing) { //enter
+      var selected = that.instance.getSelected();
+      var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
+      if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
+        that.beginEditing(row, col, prop, true, '\n'); //show edit field
+      }
+      else {
+        that.beginEditing(row, col, prop, true); //show edit field
+      }
+      event.preventDefault(); //prevent new line at the end of textarea
+      event.stopImmediatePropagation();
+    }
+  };
+  that.instance.addHookOnce('beforeKeyDown', this.beforeKeyDownHook);
 };
 
 HandsontableTextEditorClass.prototype.unbindTemporaryEvents = function () {
-  this.$body.off(".editor");
+  this.instance.removeHook('beforeKeyDown', this.beforeKeyDownHook);
   this.instance.view.wt.update('onCellDblClick', null);
 };
 
@@ -221,10 +233,12 @@ HandsontableTextEditorClass.prototype.setCaretPosition = function (el, pos) {
 };
 
 HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
-  if (this.isCellEdited || this.waiting) {
+  if (this.state !== this.STATE_VIRGIN) {
     return;
   }
-  this.isCellEdited = true;
+
+  this.state = this.STATE_EDITING;
+
   this.row = row;
   this.col = col;
   this.prop = prop;
@@ -254,7 +268,7 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
 };
 
 HandsontableTextEditorClass.prototype.refreshDimensions = function () {
-  if (!this.isCellEdited) {
+  if (this.state !== this.STATE_EDITING) {
     return;
   }
 
@@ -332,11 +346,13 @@ HandsontableTextEditorClass.prototype.saveValue = function (val, ctrlDown) {
 };
 
 HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
-  if (this.waiting) {
+  var hasValidator = false;
+
+  if (this.state == this.STATE_WAITING || this.state == this.STATE_FINISHED) {
     return;
   }
-  if (this.isCellEdited) {
-    this.isCellEdited = false;
+
+  if (this.state == this.STATE_EDITING) {
     var val;
 
     if (isCancelled) {
@@ -349,41 +365,39 @@ HandsontableTextEditorClass.prototype.finishEditing = function (isCancelled, ctr
       ];
     }
 
-    var hasValidator = this.instance.getCellMeta(this.row, this.col).validator;
+    hasValidator = this.instance.getCellMeta(this.row, this.col).validator;
 
     if (hasValidator) {
-      this.waiting = true;
+      this.state = this.STATE_WAITING;
       var that = this;
       this.instance.addHookOnce('afterValidate', function (result) {
-        that.force = that.waiting;
-        that.waiting = false;
+        that.state = that.STATE_FINISHED;
         that.discardEditor(result);
       });
     }
     this.saveValue(val, ctrlDown);
-
   }
-  if (!hasValidator) { //otherwise afterValidate will discard the editor
+
+  if (!hasValidator) {
+    this.state = this.STATE_FINISHED;
     this.discardEditor();
   }
 };
 
 HandsontableTextEditorClass.prototype.discardEditor = function (result) {
-  if (this.waiting) {
+  if (this.state !== this.STATE_FINISHED) {
     return;
   }
 
   if (result === false && this.cellProperties.allowInvalid !== true) { //validator was defined and failed
-    this.isCellEdited = true;
-    var that = this;
-    setTimeout(function () {
-      if (that.instance.view.wt.wtDom.isVisible(that.TEXTAREA)) {
-        that.TEXTAREA.focus();
-        that.setCaretPosition(that.TEXTAREA, that.TEXTAREA.value.length);
-      }
-    }, 0);
+    this.state = this.STATE_EDITING;
+    if (this.instance.view.wt.wtDom.isVisible(this.TEXTAREA)) {
+      this.TEXTAREA.focus();
+      this.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+    }
   }
   else {
+    this.state = this.STATE_FINISHED;
     if (document.activeElement === this.TEXTAREA) {
       this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
     }
@@ -391,10 +405,10 @@ HandsontableTextEditorClass.prototype.discardEditor = function (result) {
 
     this.textareaParentStyle.display = 'none';
 
-    if (this.force && this.force.type) { //this is needed so when you finish editing with Enter key, the default Enter behavior (move selection down) will work after async validation
-      var ev = $.Event(this.force.type);
-      ev.keyCode = this.force.keyCode;
-      this.force = null;
+    if (this.waitingEvent) { //this is needed so when you finish editing with Enter key, the default Enter behavior (move selection down) will work after async validation
+      var ev = $.Event(this.waitingEvent.type);
+      ev.keyCode = this.waitingEvent.keyCode;
+      this.waitingEvent = null;
       $(document.activeElement).trigger(ev);
     }
   }
@@ -414,7 +428,9 @@ Handsontable.TextEditor = function (instance, td, row, col, prop, value, cellPro
   if (!instance.textEditor) {
     instance.textEditor = new HandsontableTextEditorClass(instance);
   }
-  instance.textEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
+  if (instance.textEditor.state === instance.textEditor.STATE_VIRGIN || instance.textEditor.state === instance.textEditor.STATE_FINISHED) {
+    instance.textEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
+  }
   return function (isCancelled) {
     instance.textEditor.finishEditing(isCancelled);
   }

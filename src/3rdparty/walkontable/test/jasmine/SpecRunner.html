@@ -1,110 +1,114 @@
 <!doctype html>
 <html>
 <head>
+  <meta charset="utf-8">
   <title>Jasmine Spec Runner</title>
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-
-  <link rel="shortcut icon" type="image/png" href="lib/jasmine/jasmine_favicon.png">
   <link rel="stylesheet" type="text/css" href="lib/jasmine/jasmine.css">
-  <script type="text/javascript" src="lib/jasmine/jasmine.js"></script>
-  <script type="text/javascript" src="lib/jasmine/jasmine-html.js"></script>
-  <script type="text/javascript" src="lib/jasmine-jsreporter.js"></script>
 
-  <!-- not required by Walkontable but used in tests -->
-  <script type="text/javascript" src="lib/jquery.min.js"></script>
-  <script type="text/javascript" src="SpecHelper.js"></script>
-
-  <!-- include source files here... -->
-  <script type="text/javascript" src="../../src/border.js"></script>
-  <script type="text/javascript" src="../../src/core.js"></script>
-  <script type="text/javascript" src="../../src/dom.js"></script>
-  <script type="text/javascript" src="../../src/event.js"></script>
-  <script type="text/javascript" src="../../src/polyfill.js"></script>
-  <script type="text/javascript" src="../../src/scroll.js"></script>
-  <script type="text/javascript" src="../../src/scrollbar.js"></script>
-  <script type="text/javascript" src="../../src/scrollbarNative.js"></script>
-  <script type="text/javascript" src="../../src/scrollbars.js"></script>
-  <script type="text/javascript" src="../../src/selection.js"></script>
-  <script type="text/javascript" src="../../src/settings.js"></script>
-  <script type="text/javascript" src="../../src/table.js"></script>
-  <script type="text/javascript" src="../../src/viewport.js"></script>
-  <script type="text/javascript" src="../../src/classNameCache.js"></script>
-  <script type="text/javascript" src="../../src/wheel.js"></script>
-  <script type="text/javascript" src="../../src/cellFilter.js"></script>
-  <script type="text/javascript" src="../../src/rowFilter.js"></script>
-  <script type="text/javascript" src="../../src/columnFilter.js"></script>
-  <script type="text/javascript" src="../../src/cellStrategy.js"></script>
-  <script type="text/javascript" src="../../src/columnStrategy.js"></script>
-  <script type="text/javascript" src="../../src/rowStrategy.js"></script>
-  <script type="text/javascript" src="../../src/helpers.js"></script>
-  <script type="text/javascript" src="../../src/3rdparty/dragdealer.js"></script>
-  <script type="text/javascript" src="../../src/3rdparty/jquery.browser.js"></script>
-  <script type="text/javascript" src="../../src/3rdparty/jquery.mousewheel.js"></script>
   <link rel="stylesheet" type="text/css" href="../../css/walkontable.css">
 
-  <!-- include spec files here... -->
-  <script type="text/javascript" src="spec/core.spec.js"></script>
-  <script type="text/javascript" src="spec/settings.spec.js"></script>
-  <script type="text/javascript" src="spec/table.spec.js"></script>
-  <script type="text/javascript" src="spec/event.spec.js"></script>
-  <script type="text/javascript" src="spec/scroll.spec.js"></script>
-  <script type="text/javascript" src="spec/scrollbar.spec.js"></script>
-  <script type="text/javascript" src="spec/scrollbarNative.spec.js"></script>
-  <script type="text/javascript" src="spec/selection.spec.js"></script>
-  <script type="text/javascript" src="spec/dom.spec.js"></script>
-  <script type="text/javascript" src="spec/cellFilter.spec.js"></script>
-  <script type="text/javascript" src="spec/columnFilter.spec.js"></script>
-  <script type="text/javascript" src="spec/columnStrategy.spec.js"></script>
-  <script type="text/javascript" src="spec/rowStrategy.spec.js"></script>
-  <script type="text/javascript" src="spec/helpers.spec.js"></script>
-  <script type="text/javascript" src="spec/wheel.spec.js"></script>
 
-  <style>
-    .wtHolder .highlightRow {
-      background-color: #E7E8EF;
-    }
 
-    .wtHolder .highlightColumn {
-      background-color: #F9F9FB;
-    }
-  </style>
+  <script src="lib/jasmine/phantom-polyfill.js"></script>
+  <script src="lib/jasmine/jasmine.js"></script>
+  <script src="lib/jasmine/jasmine-html.js"></script>
 
-  <script type="text/javascript">
-    (function () {
-      var jasmineEnv = jasmine.getEnv();
-      jasmineEnv.updateInterval = 1000;
 
-      var htmlReporter = new jasmine.HtmlReporter();
+  
+  <script src="../../../../../lib/jquery.min.js"></script>
+  
+  <script src="SpecHelper.js"></script>
+  
+  <script src="../../../../../test/jasmine/lib/nodeShim.js"></script>
+  
+  <script src="test-init.js"></script>
+  
+  <script src="../../src/border.js"></script>
+  
+  <script src="../../src/cellFilter.js"></script>
+  
+  <script src="../../src/cellStrategy.js"></script>
+  
+  <script src="../../src/classNameCache.js"></script>
+  
+  <script src="../../src/columnFilter.js"></script>
+  
+  <script src="../../src/columnStrategy.js"></script>
+  
+  <script src="../../src/core.js"></script>
+  
+  <script src="../../src/dom.js"></script>
+  
+  <script src="../../src/event.js"></script>
+  
+  <script src="../../src/helpers.js"></script>
+  
+  <script src="../../src/polyfill.js"></script>
+  
+  <script src="../../src/rowFilter.js"></script>
+  
+  <script src="../../src/rowStrategy.js"></script>
+  
+  <script src="../../src/scroll.js"></script>
+  
+  <script src="../../src/scrollbar.js"></script>
+  
+  <script src="../../src/scrollbarNative.js"></script>
+  
+  <script src="../../src/scrollbars.js"></script>
+  
+  <script src="../../src/selection.js"></script>
+  
+  <script src="../../src/settings.js"></script>
+  
+  <script src="../../src/table.js"></script>
+  
+  <script src="../../src/viewport.js"></script>
+  
+  <script src="../../src/wheel.js"></script>
+  
+  <script src="../../src/3rdparty/dragdealer.js"></script>
+  
+  <script src="../../src/3rdparty/jquery.browser.js"></script>
+  
+  <script src="../../src/3rdparty/jquery.mousewheel.js"></script>
+  
+  <script src="spec/cellFilter.spec.js"></script>
+  
+  <script src="spec/columnFilter.spec.js"></script>
+  
+  <script src="spec/columnStrategy.spec.js"></script>
+  
+  <script src="spec/core.spec.js"></script>
+  
+  <script src="spec/dom.spec.js"></script>
+  
+  <script src="spec/event.spec.js"></script>
+  
+  <script src="spec/helpers.spec.js"></script>
+  
+  <script src="spec/rowStrategy.spec.js"></script>
+  
+  <script src="spec/scroll.spec.js"></script>
+  
+  <script src="spec/scrollbar.spec.js"></script>
+  
+  <script src="spec/scrollbarNative.spec.js"></script>
+  
+  <script src="spec/selection.spec.js"></script>
+  
+  <script src="spec/settings.spec.js"></script>
+  
+  <script src="spec/table.spec.js"></script>
+  
+  <script src="spec/wheel.spec.js"></script>
+  
 
-      jasmineEnv.addReporter(htmlReporter);
-      jasmineEnv.addReporter(new jasmine.JSReporter());
 
-      jasmineEnv.specFilter = function (spec) {
-        return htmlReporter.specFilter(spec);
-      };
-
-      var currentWindowOnload = window.onload;
-
-      window.onload = function () {
-        if (currentWindowOnload) {
-          currentWindowOnload();
-        }
-        execJasmine();
-      };
-
-      function execJasmine() {
-        jasmineEnv.execute();
-      }
-
-      afterEach(function () {
-        window.scrollTo(0, 0)
-      });
-
-    })();
-  </script>
+  <script src="lib/jasmine/reporter.js"></script>
+  <script src="lib/jasmine/jasmine-helper.js"></script>
 
 </head>
-
 <body>
 </body>
 </html>

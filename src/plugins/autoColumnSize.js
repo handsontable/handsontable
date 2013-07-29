@@ -133,7 +133,9 @@ function HandsontableAutoColumnSize() {
     if (settings.autoColumnSize || !settings.colWidths) {
       var cols = this.countCols();
       for (var c = 0; c < cols; c++) {
-        this.autoColumnWidths[c] = that.determineColumnWidth(c);
+        if (!instance._getColWidthFromSettings(c)) {
+          this.autoColumnWidths[c] = that.determineColumnWidth(c);
+        }
       }
     }
   };

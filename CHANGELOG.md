@@ -1,3 +1,12 @@
+## [0.9.11](https://github.com/warpech/jquery-handsontable/tree/v0.9.11) (Jul 29, 2013)
+
+This version fixes some severe cell listener issues introduced in the last version.
+
+Bugfixes:
+- selecting a cell in another table when already focused on an existing table does not bring focus to the new table ([#924](https://github.com/warpech/jquery-handsontable/issues/924))
+- cannot change more than 2 numeric cells ([#911](https://github.com/warpech/jquery-handsontable/issues/911), [#922](https://github.com/warpech/jquery-handsontable/issues/922))
+- Focus lost after Ctrl+(A or Z or Y) ([#910](https://github.com/warpech/jquery-handsontable/issues/910), [#893](https://github.com/warpech/jquery-handsontable/issues/893))
+
 ## [0.9.10](https://github.com/warpech/jquery-handsontable/tree/v0.9.10) (Jul 23, 2013)
 
 Features:
