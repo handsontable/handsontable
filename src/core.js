@@ -1838,6 +1838,11 @@ Handsontable.Core = function (rootElement, userSettings) {
           clone.removeAttribute('id');
           parent.appendChild(clone);
           var computedHeight = parseInt(window.getComputedStyle(clone, null).getPropertyValue('height'), 10);
+
+          if(isNaN(computedHeight) && clone.currentStyle){
+            computedHeight = parseInt(clone.currentStyle.height, 10)
+          }
+
           if (computedHeight > 0) {
             priv.settingsFromDOM.height = computedHeight;
           }

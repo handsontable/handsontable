@@ -233,8 +233,8 @@ describe('TextEditor', function () {
 
     var $textarea = $(document.activeElement);
     var $wtHider = this.$container.find('.wtHider');
-    expect($textarea.offset().left + $textarea.outerWidth()).toEqual($wtHider.offset().left + $wtHider.outerWidth());
-    expect($textarea.offset().top + $textarea.outerHeight()).toEqual($wtHider.offset().top + $wtHider.outerHeight());
+    expect($textarea.offset().left + $textarea.outerWidth()).not.toBeGreaterThan($wtHider.offset().left + $wtHider.outerWidth());
+    expect($textarea.offset().top + $textarea.outerHeight()).not.toBeGreaterThan($wtHider.offset().top + $wtHider.outerHeight());
 
   });
 
