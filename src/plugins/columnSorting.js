@@ -67,12 +67,15 @@ function HandsontableColumnSorting() {
     var instance = this;
 
     plugin.setSortingColumn.call(instance, col, order);
+
+    instance.PluginHooks.run('beforeColumnSort', instance.sortColumn, instance.sortOrder);
+
     plugin.sort.call(instance);
     instance.render();
 
     saveSortingState.call(instance);
 
-    instance.PluginHooks.run('afterSorting');
+    instance.PluginHooks.run('afterColumnSort', instance.sortColumn, instance.sortOrder);
   };
 
   var saveSortingState = function () {

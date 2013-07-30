@@ -463,4 +463,82 @@ describe('ColumnSorting', function () {
 
   });
 
+  it("should reset column sorting with updateSettings", function () {
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'D'],
+        [3, 'A'],
+        [2, 'C']
+      ],
+      colHeaders: true,
+      columnSorting: {
+        column: 0,
+        order: true
+      }
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+
+    updateSettings({
+      columnSorting: true
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+  });
+
+  it("should fire beforeColumnSort event before sorting data", function () {
+
+    var hot = handsontable({
+      data: [[2], [4], [1], [3]],
+      columnSorting: true
+    });
+
+    this.beforeColumnSortHandler = function(){
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('4');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+    };
+
+    spyOn(this, 'beforeColumnSortHandler');
+
+    hot.addHook('beforeColumnSort', this.beforeColumnSortHandler);
+
+    var sortColumn = 0;
+    var sortOrder = true;
+
+    hot.sort(sortColumn, sortOrder);
+
+    expect(this.beforeColumnSortHandler.callCount).toEqual(1);
+    expect(this.beforeColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0);
+  });
+
+  it("should fire afterColumnSort event before data has been sorted", function () {
+
+    var hot = handsontable({
+      data: [[2], [4], [1], [3]],
+      columnSorting: true
+    });
+
+    this.afterColumnSortHandler = function(){
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('4');
+    };
+
+    spyOn(this, 'afterColumnSortHandler');
+
+    hot.addHook('afterColumnSort', this.afterColumnSortHandler);
+
+    var sortColumn = 0;
+    var sortOrder = true;
+
+    hot.sort(sortColumn, sortOrder);
+
+    expect(this.afterColumnSortHandler.callCount).toEqual(1);
+    expect(this.afterColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0);
+  });
+
 });
