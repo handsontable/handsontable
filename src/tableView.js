@@ -11,7 +11,9 @@ Handsontable.TableView = function (instance) {
   this.settings = instance.getSettings();
   this.settingsFromDOM = instance.getSettingsFromDOM();
 
-  instance.rootElement.data('originalStyle', instance.rootElement.attr('style')); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
+  instance.rootElement.data('originalStyle', instance.rootElement[0].getAttribute('style')); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
+  // in IE7 getAttribute('style') returns an object instead of a string, but we only support IE8+
+
   instance.rootElement.addClass('handsontable');
 
   var table = document.createElement('TABLE');
