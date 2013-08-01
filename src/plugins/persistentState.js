@@ -69,7 +69,7 @@ function Storage(prefix) {
       var instance = this,
         pluginSettings = instance.getSettings()['persistentState'];
 
-      plugin.enabled = Boolean(pluginSettings);
+      plugin.enabled = !!(pluginSettings);
 
       if (!plugin.enabled) {
         removeHooks.call(instance);

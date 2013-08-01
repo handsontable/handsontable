@@ -9,7 +9,7 @@
   function init() {
     var instance = this;
 
-    var pluginEnabled = Boolean(instance.getSettings().removeRowPlugin);
+    var pluginEnabled = !!(instance.getSettings().removeRowPlugin);
 
     if (pluginEnabled) {
       bindMouseEvents();

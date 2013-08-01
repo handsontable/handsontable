@@ -12,7 +12,7 @@ function HandsontableColumnSorting() {
     var sortingSettings = instance.getSettings().columnSorting;
     var sortingColumn, sortingOrder;
 
-    sortingEnabled = Boolean(sortingSettings);
+    sortingEnabled = !!(sortingSettings);
 
     if (sortingEnabled) {
       instance.sortIndex = [];

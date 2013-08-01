@@ -1,7 +1,7 @@
 (function(Handsontable){
   function init(){
     var instance = this;
-    var pluginEnabled = Boolean(instance.getSettings().contextMenu);
+    var pluginEnabled = !!(instance.getSettings().contextMenu);
 
     if(pluginEnabled){
       createContextMenu.call(instance);
