@@ -152,10 +152,6 @@ WalkontableScrollbar.prototype.refresh = function () {
     this.sliderStyle.height = Math.max(sliderSize, 0) + 'px';
   }
   else { //horizontal
-    if (this.instance.wtTable.columnStrategy.isLastIncomplete()) {
-      visibleCount--;
-    }
-
     sliderSize = tableWidth - 2; //2 is sliders border-width
 
     this.sliderStyle.left = this.instance.wtDom.offset(this.$table[0]).left - this.instance.wtDom.offset(this.container).left + 'px';
@@ -243,4 +239,11 @@ WalkontableHorizontalScrollbar.prototype.readSettings = function () {
   this.handlePosition = parseInt(this.handleStyle.left, 10);
   this.sliderSize = parseInt(this.sliderStyle.width, 10);
   this.fixedCount = this.instance.getSetting('fixedColumnsLeft');
+};
+
+WalkontableHorizontalScrollbar.prototype.getHandleSizeRatio = function (viewportCount, totalCount) {
+  if (!totalCount || viewportCount > totalCount || viewportCount == totalCount) {
+    return 1;
+  }
+  return viewportCount / totalCount;
 };
