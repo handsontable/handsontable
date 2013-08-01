@@ -32,7 +32,7 @@ describe('AutoColumnSize', function () {
   });
 
   it('should consider CSS style of each instance separately', function () {
-    var $style = $('<style>.big td {font-size: 40px}</style>').appendTo('head');
+    var $style = $('<style>.big .htCore td {font-size: 40px}</style>').appendTo('head');
     var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
       data: arrayOfObjects()
     });
@@ -58,7 +58,7 @@ describe('AutoColumnSize', function () {
   });
 
   it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', function () {
-    var $style = $('<style>.big-table td {font-size: 32px}</style>').appendTo('head');
+    var $style = $('<style>.htCore.big-table td {font-size: 32px}</style>').appendTo('head');
 
     handsontable({
       data: arrayOfObjects(),
