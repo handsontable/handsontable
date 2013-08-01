@@ -77,7 +77,7 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
          event.preventDefault();
 
          var selection = instance.getSelected();
-         var $cell, $checkbox, cellProperties;
+         var cell, checkbox, cellProperties;
          var selStart = {
            row: Math.min(selection[0], selection[2]),
            col: Math.min(selection[1], selection[3])
@@ -90,12 +90,14 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
 
          for(var row = selStart.row; row <= selEnd.row; row++ ){
            for(var col = selEnd.col; col <= selEnd.col; col++){
-             $cell = $(instance.getCell(row, col));
+             cell = instance.getCell(row, col);
              cellProperties = instance.getCellMeta(row, col);
-             $checkbox = $cell.find(':checkbox');
+             checkbox = cell.querySelectorAll('input[type=checkbox]');
 
-             if($checkbox.length > 0 && !cellProperties.readOnly){
-               $checkbox.prop('checked', !$checkbox.prop('checked'));
+             if(checkbox.length > 0 && !cellProperties.readOnly){
+               for(var i = 0, len = checkbox.length; i < len; i++){
+                 checkbox[i].checked = !checkbox[i].checked;
+               }
              }
 
            }
