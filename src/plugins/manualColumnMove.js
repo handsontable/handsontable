@@ -18,37 +18,6 @@ function HandsontableManualColumnMove() {
   ghostStyle.backgroundColor = '#CCC';
   ghostStyle.opacity = 0.7;
 
-  $(document).mousemove(function (e) {
-    if (pressed) {
-      ghostStyle.left = startOffset + e.pageX - startX + 6 + 'px';
-      if (ghostStyle.display === 'none') {
-        ghostStyle.display = 'block';
-      }
-    }
-  });
-
-  $(document).mouseup(function () {
-    if (pressed) {
-      if (startCol < endCol) {
-        endCol--;
-      }
-      if (instance.getSettings().rowHeaders) {
-        startCol--;
-        endCol--;
-      }
-      instance.manualColumnPositions.splice(endCol, 0, instance.manualColumnPositions.splice(startCol, 1)[0]);
-      $('.manualColumnMover.active').removeClass('active');
-      pressed = false;
-      instance.forceFullRender = true;
-      instance.view.render(); //updates all
-      ghostStyle.display = 'none';
-
-      saveManualColumnPositions.call(instance);
-
-      instance.PluginHooks.run('afterColumnMove', startCol, endCol);
-    }
-  });
-
   var saveManualColumnPositions = function () {
     var instance = this;
 
@@ -65,13 +34,44 @@ function HandsontableManualColumnMove() {
 
 
   var bindMoveColEvents = function () {
-    var that = this;
-    this.rootElement.on('mousedown.handsontable', '.manualColumnMover', function (e) {
-      instance = that;
+    var instance = this;
+
+    $(document).on('mousemove.' + instance.guid, function (e) {
+      if (pressed) {
+        ghostStyle.left = startOffset + e.pageX - startX + 6 + 'px';
+        if (ghostStyle.display === 'none') {
+          ghostStyle.display = 'block';
+        }
+      }
+    });
+
+    $(document).on('mouseup.' + instance.guid, function () {
+      if (pressed) {
+        if (startCol < endCol) {
+          endCol--;
+        }
+        if (instance.getSettings().rowHeaders) {
+          startCol--;
+          endCol--;
+        }
+        instance.manualColumnPositions.splice(endCol, 0, instance.manualColumnPositions.splice(startCol, 1)[0]);
+        $('.manualColumnMover.active').removeClass('active');
+        pressed = false;
+        instance.forceFullRender = true;
+        instance.view.render(); //updates all
+        ghostStyle.display = 'none';
+
+        saveManualColumnPositions.call(instance);
+
+        instance.PluginHooks.run('afterColumnMove', startCol, endCol);
+      }
+    });
+
+    this.rootElement.on('mousedown.' + instance.guid, '.manualColumnMover', function (e) {
 
       var mover = e.currentTarget;
       var TH = instance.view.wt.wtDom.closest(mover, 'TH');
-      startCol = instance.view.wt.wtDom.index(TH);
+      startCol = instance.view.wt.wtDom.index(TH) + instance.colOffset();
       pressed = true;
       startX = e.pageX;
 
@@ -82,19 +82,30 @@ function HandsontableManualColumnMove() {
       startOffset = parseInt(instance.view.wt.wtDom.offset(TH).left - instance.view.wt.wtDom.offset(TABLE).left, 10);
       ghostStyle.left = startOffset + 6 + 'px';
     });
-    this.rootElement.on('mouseenter.handsontable', 'td, th', function () {
+
+    this.rootElement.on('mouseenter.' + instance.guid, 'td, th', function () {
       if (pressed) {
         var active = instance.view.THEAD.querySelector('.manualColumnMover.active');
         if (active) {
           instance.view.wt.wtDom.removeClass(active, 'active');
         }
-        endCol = instance.view.wt.wtDom.index(this);
+        endCol = instance.view.wt.wtDom.index(this) + instance.colOffset();
         var THs = instance.view.THEAD.querySelectorAll('th');
         var mover = THs[endCol].querySelector('.manualColumnMover');
         instance.view.wt.wtDom.addClass(mover, 'active');
       }
     });
+
+    instance.addHook('afterDestroy', unbindMoveColEvents);
   };
+
+  var unbindMoveColEvents = function(){
+    var instance = this;
+    $(document).off('mouseup.' + instance.guid);
+    $(document).off('mousemove.' + instance.guid);
+    instance.rootElement.off('mousedown.' + instance.guid);
+    instance.rootElement.off('mouseenter.' + instance.guid);
+  }
 
   this.beforeInit = function () {
     this.manualColumnPositions = [];
@@ -131,6 +142,7 @@ function HandsontableManualColumnMove() {
       }
 
     } else {
+      unbindMoveColEvents.call(this);
       this.manualColumnPositions = [];
     }
   };
@@ -160,6 +172,7 @@ Handsontable.PluginHooks.add('beforeInit', htManualColumnMove.beforeInit);
 Handsontable.PluginHooks.add('afterInit', function () {
   htManualColumnMove.init.call(this, 'afterInit')
 });
+
 Handsontable.PluginHooks.add('afterUpdateSettings', function () {
   htManualColumnMove.init.call(this, 'afterUpdateSettings')
 });
