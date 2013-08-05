@@ -149,7 +149,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
   this.originalValue = value;
   this.cellProperties = cellProperties;
 
-  this.beforeKeyDownHook = function (event) {
+  this.beforeKeyDownHook = function beforeKeyDownHook (event) {
     if (that.state !== that.STATE_VIRGIN) {
       return;
     }
@@ -178,6 +178,8 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
       }
       event.preventDefault(); //prevent new line at the end of textarea
       event.stopImmediatePropagation();
+    } else if (event.keyCode == 16){ //shift
+      that.instance.addHookOnce('beforeKeyDown', beforeKeyDownHook);
     }
   };
   that.instance.addHookOnce('beforeKeyDown', this.beforeKeyDownHook);
