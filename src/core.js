@@ -1217,7 +1217,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       };
 
       priv.onPaste = function onPaste(str) {
-        if (!instance.isListening()) {
+        if (!instance.isListening() || !selection.isSelected()) {
           return;
         }
 
