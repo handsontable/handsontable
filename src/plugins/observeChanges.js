@@ -5,8 +5,88 @@ function HandsontableObserveChanges() {
   // json-patch.js 0.3
   // (c) 2013 Joachim Wester
   // MIT license
+  var plugin = this;
+
+  var objOps = {
+    add: function (obj, key) {
+      obj[key] = this.value;
+      return true;
+    },
+    remove: function (obj, key) {
+      delete obj[key];
+      return true;
+    },
+    replace: function (obj, key) {
+      obj[key] = this.value;
+      return true;
+    },
+    move: function (obj, key, tree) {
+      var temp = {
+        op: "_get",
+        path: this.from
+      };
+      apply(tree, [
+        temp
+      ]);
+      apply(tree, [
+        {
+          op: "remove",
+          path: this.from
+        }
+      ]);
+      apply(tree, [
+        {
+          op: "add",
+          path: this.path,
+          value: temp.value
+        }
+      ]);
+      return true;
+    },
+    copy: function (obj, key, tree) {
+      var temp = {
+        op: "_get",
+        path: this.from
+      };
+      apply(tree, [
+        temp
+      ]);
+      apply(tree, [
+        {
+          op: "add",
+          path: this.path,
+          value: temp.value
+        }
+      ]);
+      return true;
+    },
+    test: function (obj, key) {
+      return (JSON.stringify(obj[key]) === JSON.stringify(this.value));
+    },
+    _get: function (obj, key) {
+      this.value = obj[key];
+    }
+  };
+
+  var arrOps = {
+    add: function (arr, i) {
+      arr.splice(i, 0, this.value);
+    },
+    remove: function (arr, i) {
+      arr.splice(i, 1);
+    },
+    replace: function (arr, i) {
+      arr[i] = this.value;
+    },
+    move: objOps.move,
+    copy: objOps.copy,
+    test: objOps.test,
+    _get: objOps._get
+  };
+
   var observeOps = {
     'new': function (patches, path) {
+      //single quotes needed because 'new' is a keyword in IE8
       var patch = {
         op: "add",
         path: path + "/" + this.name,
@@ -31,11 +111,12 @@ function HandsontableObserveChanges() {
     }
   };
 
+  // ES6 symbols are not here yet. Used to calculate the json pointer to each object
   function markPaths(observer, node) {
-    for (var key in node) {
-      if (node.hasOwnProperty(key)) {
+    for(var key in node) {
+      if(node.hasOwnProperty(key)) {
         var kid = node[key];
-        if (kid instanceof Object) {
+        if(kid instanceof Object) {
           Object.unobserve(kid, observer);
           kid.____Path = node.____Path + "/" + key;
           markPaths(observer, kid);
@@ -43,106 +124,95 @@ function HandsontableObserveChanges() {
       }
     }
   }
-
+  // Detach poor mans ES6 symbols
   function clearPaths(observer, node) {
     delete node.____Path;
     Object.observe(node, observer);
-    for (var i = 0, nodeLen = node.length; i < nodeLen; i++) {
-      var kid = node[i];
-      if (kid instanceof Object) {
-        clearPaths(observer, kid);
+    for(var key in node) {
+      if(node.hasOwnProperty(key)) {
+        var kid = node[key];
+        if(kid instanceof Object) {
+          clearPaths(observer, kid);
+        }
       }
     }
   }
 
   var beforeDict = [];
-  var callbacks = [];
+
+  function unobserve(root, observer) {
+    if(Object.observe) {
+      Object.unobserve(root, observer);
+      markPaths(observer, root);
+    } else {
+      clearTimeout(observer.next);
+      observer.unbindWindowEvents();
+    }
+  }
+
+  var intervals = [
+    100,
+    1000,
+    10000,
+    60000
+  ];
 
   function observe(obj, callback) {
     var patches = [];
     var root = obj;
-    if (Object.observe) {
+    if(Object.observe) {
       var observer = function (arr) {
-        if (!root.___Path) {
+        if(!root.___Path) {
           Object.unobserve(root, observer);
           root.____Path = "";
           markPaths(observer, root);
-
-          for (var index = 0, arrLen = arr.length; i < arrLen; i++) {
-            var elem = arr[index];
-
-            if (elem.name != "____Path") {
-              observeOps[elem.type].call(elem, patches, elem.object.____Path);
+          var a = 0, alen = arr.length;
+          while(a < alen) {
+            if(arr[a].name != "____Path") {
+              observeOps[arr[a].type].call(arr[a], patches, arr[a].object.____Path);
             }
+            a++;
           }
-
           clearPaths(observer, root);
         }
-        if (callback) {
-          callback.call(patches);
+        if(callback) {
+          callback(patches);
         }
+        observer.patches = patches;
+        patches = [];
       };
     } else {
       observer = {
       };
       var mirror;
-      for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
-        if (beforeDict[i].obj === obj) {
+      for(var i = 0, ilen = beforeDict.length; i < ilen; i++) {
+        if(beforeDict[i].obj === obj) {
           mirror = beforeDict[i];
           break;
         }
       }
-      if (!mirror) {
+      if(!mirror) {
         mirror = {
           obj: obj
         };
         beforeDict.push(mirror);
       }
+      mirror.value = JSON.parse(JSON.stringify(obj))// Faster than ES5 clone - http://jsperf.com/deep-cloning-of-objects/5
+      ;
+      if(callback) {
+        //callbacks.push(callback); this has no purpose
+        observer.callback = callback;
+        observer.next = null;
+        observer.currentInterval = 0;
 
-      mirror.value = deepCopy(obj);
-
-      if (callback) {
-        callbacks.push(callback);
-        var next;
-        var intervals = [
-          100
-        ];
-        var currentInterval = 0;
-        var dirtyCheck = function () {
-          var temp = generate(observer);
-          if (temp.length > 0) {
-            observer.patches = [];
-            callback.call(null, temp);
-          }
-        };
-        var fastCheck = function () {
-          clearTimeout(next);
-          next = setTimeout(function () {
-            dirtyCheck();
-            currentInterval = 0;
-            next = setTimeout(slowCheck, intervals[currentInterval++]);
-          }, 0);
-        };
-        var slowCheck = function () {
-          dirtyCheck();
-          if (currentInterval == intervals.length) {
-            currentInterval = intervals.length - 1;
-          }
-          next = setTimeout(slowCheck, intervals[currentInterval++]);
-        };
-
-        if (window.addEventListener) {
-          window.addEventListener('mousedown', fastCheck);
-          window.addEventListener('mouseup', fastCheck);
-          window.addEventListener('keydown', fastCheck);
-        } else {
-          //IE8 has different syntax
-          window.attachEvent('onmousedown', fastCheck);
-          window.attachEvent('onmouseup', fastCheck);
-          window.attachEvent('onkeydown', fastCheck);
+        if(typeof window !== 'undefined') {
+          //not Node
+          bindWindowEvents(observer);
         }
 
-        next = setTimeout(slowCheck, intervals[currentInterval++]);
+        observer.next = setTimeout(function(){
+          slowCheck(observer);
+        }, intervals[observer.currentInterval++]);
       }
     }
     observer.patches = patches;
@@ -150,67 +220,134 @@ function HandsontableObserveChanges() {
     return _observe(observer, obj, patches);
   }
 
-  /// Listen to changes on an object tree, accumulate patches
   function _observe(observer, obj, patches) {
-    if (Object.observe) {
+    if(Object.observe) {
       Object.observe(obj, observer);
-    }
-    for (var key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        var v = obj[key];
-        if (v && typeof (v) === "object") {
-          _observe(observer, v, patches);
+      for(var key in obj) {
+        if(obj.hasOwnProperty(key)) {
+          var v = obj[key];
+          if(v && typeof (v) === "object") {
+            _observe(observer, v, patches)//path+key);
+            ;
+          }
         }
       }
     }
     return observer;
   }
 
+  function dirtyCheck (observer) {
+    generate(observer);
+  }
+
+  function fastCheck (observer) {
+    clearTimeout(observer.next);
+    observer.next = setTimeout(function () {
+      dirtyCheck(observer);
+      observer.currentInterval = 0;
+      observer.next = setTimeout(function(){
+        slowCheck(observer);
+      }, intervals[observer.currentInterval++]);
+    }, 0);
+  }
+
+  function slowCheck (observer) {
+    dirtyCheck(observer);
+    if(observer.currentInterval == intervals.length) {
+      observer.currentInterval = intervals.length - 1;
+    }
+    observer.next = setTimeout(function(){
+      slowCheck(observer);
+    }, intervals[observer.currentInterval++]);
+  }
+
+  function bindWindowEvents(observer){
+
+    var fastCheckObserver = function(){
+      fastCheck(observer);
+    };
+
+    if(window.addEventListener) {
+      //standards
+      window.addEventListener('mousedown', fastCheckObserver);
+      window.addEventListener('mouseup', fastCheckObserver);
+      window.addEventListener('keydown', fastCheckObserver);
+
+      observer.unbindWindowEvents = function(){
+        window.removeEventListener('mousedown', fastCheckObserver);
+        window.removeEventListener('mouseup', fastCheckObserver);
+        window.removeEventListener('keydown', fastCheckObserver);
+      };
+
+    } else {
+      //IE8
+      window.attachEvent('onmousedown', fastCheckObserver);
+      window.attachEvent('onmouseup', fastCheckObserver);
+      window.attachEvent('onkeydown', fastCheckObserver);
+
+      observer.unbindWindowEvents = function(){
+        window.detachEvent('mousedown', fastCheckObserver);
+        window.detachEvent('mouseup', fastCheckObserver);
+        window.detachEvent('keydown', fastCheckObserver);
+      };
+    }
+  }
+
   function generate(observer) {
-    if (Object.observe) {
+    if(Object.observe) {
       Object.deliverChangeRecords(observer);
     } else {
       var mirror;
-      for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
-        if (beforeDict[i].obj === observer.object) {
+      for(var i = 0, ilen = beforeDict.length; i < ilen; i++) {
+        if(beforeDict[i].obj === observer.object) {
           mirror = beforeDict[i];
           break;
         }
       }
       _generate(mirror.value, observer.object, observer.patches, "");
     }
-    return observer.patches;
+    var temp = observer.patches;
+    if(temp.length > 0) {
+      observer.patches = [];
+      if(observer.callback) {
+        observer.callback(temp);
+      }
+    }
+    return temp;
   }
 
+  var _objectKeys;
+  if(Object.keys) {
+    //standards
+    _objectKeys = Object.keys;
+  } else {
+    //IE8 shim
+    _objectKeys = function (obj) {
+      var keys = [];
+      for(var o in obj) {
+        if(obj.hasOwnProperty(o)) {
+          keys.push(o);
+        }
+      }
+      return keys;
+    };
+  }
+
+  // Dirty check if obj is different from mirror, generate patches and update mirror
   function _generate(mirror, obj, patches, path) {
-    var newKeys = []
-      , oldKeys = []
-      , key;
-
-    for (key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        newKeys.push(key);
-      }
-    }
-
-    for (key in mirror) {
-      if (mirror.hasOwnProperty(key)) {
-        oldKeys.push(key);
-      }
-    }
-
+    var newKeys = _objectKeys(obj);
+    var oldKeys = _objectKeys(mirror);
     var changed = false;
     var deleted = false;
-    var t;
-    for (t = 0; t < oldKeys.length; t++) {
-      key = oldKeys[t];
+    for(var t = 0; t < oldKeys.length; t++) {
+      var key = oldKeys[t];
       var oldVal = mirror[key];
-      if (obj.hasOwnProperty(key)) {
+      if(obj.hasOwnProperty(key)) {
         var newVal = obj[key];
-        if (oldVal instanceof Object) {
+        if(oldVal instanceof Object) {
           _generate(oldVal, newVal, patches, path + "/" + key);
         } else {
-          if (oldVal != newVal) {
+          if(oldVal != newVal) {
             changed = true;
             patches.push({
               op: "replace",
@@ -225,15 +362,16 @@ function HandsontableObserveChanges() {
           op: "remove",
           path: path + "/" + key
         });
-        deleted = true;
+        deleted = true// property has been deleted
+        ;
       }
     }
-    if (!deleted && newKeys.length == oldKeys.length) {
+    if(!deleted && newKeys.length == oldKeys.length) {
       return;
     }
-    for (t = 0; t < newKeys.length; t++) {
-      key = newKeys[t];
-      if (!mirror.hasOwnProperty(key)) {
+    for(var t = 0; t < newKeys.length; t++) {
+      var key = newKeys[t];
+      if(!mirror.hasOwnProperty(key)) {
         patches.push({
           op: "add",
           path: path + "/" + key,
@@ -243,41 +381,74 @@ function HandsontableObserveChanges() {
     }
   }
 
+  var _isArray;
+  if(Array.isArray) {
+    //standards; http://jsperf.com/isarray-shim/4
+    _isArray = Array.isArray;
+  } else {
+    //IE8 shim
+    _isArray = function (obj) {
+      return obj.push && typeof obj.length === 'number';
+    };
+  }
+  /// Apply a json-patch operation on an object tree
+  function apply(tree, patches, listen) {
+    var result = false, p = 0, plen = patches.length, patch;
+    while(p < plen) {
+      patch = patches[p];
+      // Find the object
+      var keys = patch.path.split('/');
+      var obj = tree;
+      var t = 1;//skip empty element - http://jsperf.com/to-shift-or-not-to-shift
+
+      var len = keys.length;
+      while(true) {
+        if(_isArray(obj)) {
+          var index = parseInt(keys[t], 10);
+          t++;
+          if(t >= len) {
+            result = arrOps[patch.op].call(patch, obj, index, tree)// Apply patch
+            ;
+            break;
+          }
+          obj = obj[index];
+        } else {
+          var key = keys[t];
+          if(key.indexOf('~') != -1) {
+            key = key.replace('~1', '/').replace('~0', '~');
+          }// escape chars
+
+          t++;
+          if(t >= len) {
+            result = objOps[patch.op].call(patch, obj, key, tree)// Apply patch
+            ;
+            break;
+          }
+          obj = obj[key];
+        }
+      }
+      p++;
+    }
+    return result;
+  }
+
   //end shim code
 
 
-  this.afterLoadData = function () {
-    if (!this.observer && this.getSettings().observeChanges) {
-      var that = this;
-      this.observer = observe(this.getData(), function () {
-        that.render();
+  this.init = function () {
+    var instance = this;
+    var pluginEnabled = instance.getSettings().observeChanges;
+
+    if (!instance.observer && pluginEnabled) {
+      instance.observer = observe(instance.getData(), function () {
+          instance.render();
       });
+    } else if (instance.observer && !pluginEnabled){
+      unobserve(instance.getData(), instance.observer);
     }
   };
-
-  /*
-   Description: Performs JSON-safe deep cloning. Equivalent of JSON.parse(JSON.stringify()).
-   Based on deepClone7() by Kyle Simpson (https://github.com/getify)
-   Source: http://jsperf.com/deep-cloning-of-objects,
-   http://jsperf.com/structured-clone-objects/2
-   https://developer.mozilla.org/en-US/docs/Web/Guide/DOM/The_structured_clone_algorithm
-   */
-
-  function deepCopy(objToBeCopied) {
-    if (objToBeCopied === null || !(objToBeCopied instanceof Object)) {
-      return objToBeCopied;
-    }
-    var copiedObj, fConstr = objToBeCopied.constructor;
-    copiedObj = new fConstr();
-    for (var sProp in objToBeCopied) {
-      if (objToBeCopied.hasOwnProperty(sProp)) {
-        copiedObj[sProp] = deepCopy(objToBeCopied[sProp]);
-      }
-    }
-    return copiedObj;
-  }
-
 }
 var htObserveChanges = new HandsontableObserveChanges();
 
-Handsontable.PluginHooks.add('afterLoadData', htObserveChanges.afterLoadData);
+Handsontable.PluginHooks.add('afterLoadData', htObserveChanges.init);
+Handsontable.PluginHooks.add('afterUpdateSettings', htObserveChanges.init);
