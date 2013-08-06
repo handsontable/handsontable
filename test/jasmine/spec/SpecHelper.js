@@ -271,7 +271,7 @@ function createSpreadsheetData(rowCount, colCount) {
  * @returns {Number}
  */
 function colWidth($elem, col) {
-  var TD = $elem[0].querySelector('TR').querySelectorAll('TD')[col];
+  var TD = $elem[0].querySelector('TBODY TR').querySelectorAll('TD')[col];
   if (!TD) {
     throw new Error("Cannot find table column of index '" + col + "'");
   }
