@@ -296,6 +296,42 @@ describe('Core_view', function () {
     expect(this.$container.find('.wtHider').width()).toEqual(107); //rootElement is full width but this should do the trick
   });
 
+  it("should fire beforeRender event after table has been scrolled", function () {
+
+    var hot = handsontable({
+      data: createSpreadsheetData(20, 3)
+    });
+
+    var beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
+
+    hot.addHook('beforeRender', beforeRenderCallback);
+
+    $(hot.view.wt.wtTable.TABLE).trigger('mousewheel', [0, 0, -1]);
+
+    waitsFor(function(){
+      return beforeRenderCallback.calls.length > 0;
+    }, 'beforeRender event to fire', 1000);
+
+  });
+
+  it("should fire afterRender event after table has been scrolled", function () {
+
+    var hot = handsontable({
+      data: createSpreadsheetData(20, 3)
+    });
+
+    var afterRenderCallback = jasmine.createSpy('afterRenderCallback');
+
+    hot.addHook('afterRender', afterRenderCallback);
+
+    $(hot.view.wt.wtTable.TABLE).trigger('mousewheel', [0, 0, -1]);
+
+    waitsFor(function(){
+      return afterRenderCallback.calls.length > 0;
+    }, 'afterRender event to fire', 1000);
+
+  });
+
   describe('maximumVisibleElementWidth', function () {
     it('should return maximum width until right edge of the viewport', function () {
       var hot = handsontable({
