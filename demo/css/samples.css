@@ -200,10 +200,9 @@ ul ul {
 }
 
 .jsFiddleLink {
-  float: left;
   display: inline-block;
   padding: 6px 9px;
-  margin: 0 1px;
+  margin: 0;
   font-size: 12px;
   line-height: 24px;
   text-align: center;
@@ -395,10 +394,9 @@ body.home .columnLayout h2 {
 * buttons
 **/
 button {
-  float: left;
   display: inline-block;
   padding: 6px 9px;
-  margin: 0 1px;
+  margin: 0 2px;
   font-size: 12px;
   line-height: 24px;
   text-align: center;
@@ -419,6 +417,13 @@ button:first-child {
   margin-left: 0;
 }
 
+button.mini {
+  padding: 3px 5px;
+  font-size: 11px;
+  line-height: 16px;
+  margin-top: -3px;
+}
+
 .show-source {
   background-color: #8fbb6d;
 }
@@ -433,4 +438,8 @@ button:first-child {
 
 .show-source.shown:before {
   content: 'Hide source code';
+}
+
+.inline-buttons button{
+  float: left;
 }
