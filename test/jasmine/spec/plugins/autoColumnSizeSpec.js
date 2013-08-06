@@ -31,6 +31,111 @@ describe('AutoColumnSize', function () {
     expect(width1).toBeLessThan(width2);
   });
 
+  it('should be possible to disable plugin using updateSettings', function () {
+
+    handsontable({
+      data: arrayOfObjects()
+    });
+
+    var width0 = colWidth(this.$container, 0);
+    var width1 = colWidth(this.$container, 1);
+    var width2 = colWidth(this.$container, 2);
+
+    expect(width0).toBeLessThan(width1);
+    expect(width1).toBeLessThan(width2);
+
+    updateSettings({
+      autoColumnSize: false
+    });
+
+    width0 = colWidth(this.$container, 0);
+    width1 = colWidth(this.$container, 1);
+    width2 = colWidth(this.$container, 2);
+
+    expect(width0).toEqual(width1);
+    expect(width0).toEqual(width2);
+    expect(width1).toEqual(width2);
+  });
+
+  it('should apply disabling/enabling plugin using updateSettings, only to a particular HOT instance', function () {
+
+    this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
+
+
+    handsontable({
+      data: arrayOfObjects()
+    });
+
+    this.$container2.handsontable({
+      data: arrayOfObjects()
+    });
+
+    var widths = {
+      1: [],
+      2: []
+    }
+
+    widths[1][0] = colWidth(this.$container, 0);
+    widths[1][1] = colWidth(this.$container, 1);
+    widths[1][2] = colWidth(this.$container, 2);
+
+    widths[2][0] = colWidth(this.$container2, 0);
+    widths[2][1] = colWidth(this.$container2, 1);
+    widths[2][2] = colWidth(this.$container2, 2);
+
+    expect(widths[1][0]).toBeLessThan(widths[1][1]);
+    expect(widths[1][1]).toBeLessThan(widths[1][2]);
+
+    expect(widths[2][0]).toBeLessThan(widths[2][1]);
+    expect(widths[2][1]).toBeLessThan(widths[2][2]);
+
+    updateSettings({
+      autoColumnSize: false
+    });
+
+    widths[1][0] = colWidth(this.$container, 0);
+    widths[1][1] = colWidth(this.$container, 1);
+    widths[1][2] = colWidth(this.$container, 2);
+
+    widths[2][0] = colWidth(this.$container2, 0);
+    widths[2][1] = colWidth(this.$container2, 1);
+    widths[2][2] = colWidth(this.$container2, 2);
+
+    expect(widths[1][0]).toEqual(widths[1][1]);
+    expect(widths[1][0]).toEqual(widths[1][2]);
+    expect(widths[1][1]).toEqual(widths[1][2]);
+
+    expect(widths[2][0]).toBeLessThan(widths[2][1]);
+    expect(widths[2][1]).toBeLessThan(widths[2][2]);
+  });
+
+  it('should be possible to enable plugin using updateSettings', function () {
+
+    handsontable({
+      data: arrayOfObjects(),
+      autoColumnSize: false
+    });
+
+    var width0 = colWidth(this.$container, 0);
+    var width1 = colWidth(this.$container, 1);
+    var width2 = colWidth(this.$container, 2);
+
+    expect(width0).toEqual(width1);
+    expect(width0).toEqual(width2);
+    expect(width1).toEqual(width2);
+
+    updateSettings({
+      autoColumnSize: true
+    });
+
+    width0 = colWidth(this.$container, 0);
+    width1 = colWidth(this.$container, 1);
+    width2 = colWidth(this.$container, 2);
+
+    expect(width0).toBeLessThan(width1);
+    expect(width1).toBeLessThan(width2);
+  });
+
   it('should consider CSS style of each instance separately', function () {
     var $style = $('<style>.big .htCore td {font-size: 40px}</style>').appendTo('head');
     var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
