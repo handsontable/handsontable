@@ -18,6 +18,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     };
 
   Handsontable.helper.inherit(GridSettings, DefaultSettings); //create grid settings as a copy of default settings
+  Handsontable.helper.extend(GridSettings.prototype, Handsontable.TextCell); //overwrite defaults with default cell
+  expandType(userSettings);
   Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
 
   this.rootElement = rootElement;
@@ -191,7 +193,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
       var r = 0, rlen = instance.countRows()
         , data = GridSettings.prototype.data
-        , constructor = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
+        , constructor = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
 
       if (typeof index !== 'number' || index >= instance.countCols()) {
         for (; r < rlen; r++) {
@@ -1997,7 +1999,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       var prop, proto, column;
 
       for (i = 0; i < clen; i++) {
-        priv.columnSettings[i] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
+        priv.columnSettings[i] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
 
         // shortcut for prototype
         proto = priv.columnSettings[i].prototype;
@@ -2005,11 +2007,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         // Use settings provided by user
         if (GridSettings.prototype.columns) {
           column = GridSettings.prototype.columns[i];
-          for (prop in column) {
-            if (column.hasOwnProperty(prop)) {
-              proto[prop] = column[prop];
-            }
-          }
+          expandType(column);
+          Handsontable.helper.extend(proto, column);
         }
       }
     }
@@ -2034,6 +2033,27 @@ Handsontable.Core = function (rootElement, userSettings) {
       selection.refreshBorders(null, true);
     }
   };
+
+  function expandType(obj) {
+    if (obj.hasOwnProperty('type')) { //ignore obj.prototype.type
+      var type
+        , i;
+      if (typeof obj.type === 'object') {
+        type = obj.type;
+      }
+      else if (typeof obj.type === 'string') {
+        type = Handsontable.cellTypes[obj.type];
+        if (type === void 0) {
+          throw new Error('You declared cell type "' + obj.type + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
+        }
+      }
+      for (i in type) {
+        if (type.hasOwnProperty(i) && !obj.hasOwnProperty(i)) {
+          obj[i] = type[i];
+        }
+      }
+    }
+  }
 
   /**
    * Returns current settings object
@@ -2196,10 +2216,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     return priv.settings.data[row];
   };
 
-  function overWriteSettings() {
-
-  }
-
   /**
    * Returns cell meta data object corresponding to params row, col
    * @param {Number} row
@@ -2209,14 +2225,12 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.getCellMeta = function (row, col) {
     var prop = datamap.colToProp(col)
-      , cellProperties
-      , type
-      , i;
+      , cellProperties;
 
     col = Handsontable.PluginHooks.execute(instance, 'modifyCol', col); //translate col of a moved column. warning: this must be done after datamap.colToProp
 
     if ("undefined" === typeof priv.columnSettings[col]) {
-      priv.columnSettings[col] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
+      priv.columnSettings[col] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
     }
 
     if (!priv.cellSettings[row]) {
@@ -2234,60 +2248,14 @@ Handsontable.Core = function (rootElement, userSettings) {
     cellProperties.instance = instance;
 
     instance.PluginHooks.run('beforeGetCellMeta', row, col, cellProperties);
-
-    if (typeof cellProperties.type === 'object') {
-      for (i in cellProperties.type) {
-        if (cellProperties.type.hasOwnProperty(i)) {
-          cellProperties[i] = cellProperties.type[i];
-        }
-      }
-    }
-    else if (typeof cellProperties.type === 'string') {
-      type = Handsontable.cellTypes[cellProperties.type];
-      if (type === void 0) {
-        throw new Error('You declared cell type "' + cellProperties.type + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
-      }
-      for (i in type) {
-        if (type.hasOwnProperty(i) && cellProperties[i] === void 0) {
-          cellProperties[i] = type[i];
-        }
-      }
-    }
+    expandType(cellProperties); //for `type` added in beforeGetCellMeta
 
     if (cellProperties.cells) {
-      var settings = cellProperties.cells.call(cellProperties, row, col, prop) || {}
-        , key;
-      type = void 0;
+      var settings = cellProperties.cells.call(cellProperties, row, col, prop);
 
-      if (typeof settings.type === 'object') {
-        for (i in settings.type) {
-          if (settings.type.hasOwnProperty(i)) {
-            cellProperties[i] = settings.type[i];
-          }
-        }
-      }
-      else if (typeof settings.type === 'string') {
-        type = Handsontable.cellTypes[settings.type];
-        if (type === void 0) {
-          throw new Error('You declared cell type "' + settings.type + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
-        }
-        for (i in type) {
-          if (type.hasOwnProperty(i)/* && cellProperties[i] === void 0*/) {
-            cellProperties[i] = type[i];
-          }
-        }
-      }
-
-      for (key in settings) {
-        if (settings.hasOwnProperty(key)) {
-          cellProperties[key] = settings[key];
-        }
-      }
-    }
-
-    for (i in Handsontable.TextCell) {
-      if (Handsontable.TextCell.hasOwnProperty(i) && cellProperties[i] === void 0) {
-        cellProperties[i] = Handsontable.TextCell[i];
+      if (settings) {
+        expandType(settings); //for `type` added in cells
+        Handsontable.helper.extend(cellProperties, settings);
       }
     }
 
