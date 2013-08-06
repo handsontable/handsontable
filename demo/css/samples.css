@@ -63,6 +63,15 @@ body {
   margin: 0 40px 0 40px;
 }
 
+.pad:after{
+  content: ".";
+  display: block;
+  clear: both;
+  visibility: hidden;
+  line-height: 0;
+  height: 0;
+}
+
 .descLayout .pad {
   float: right;
 }
@@ -191,14 +200,20 @@ ul ul {
 }
 
 .jsFiddleLink {
+  float: left;
+  display: inline-block;
+  padding: 6px 9px;
+  margin: 0 1px;
+  font-size: 12px;
+  line-height: 24px;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  border: none;
+  -moz-user-select: none;
   background-color: #4285c8;
   color: white;
-  font-size: 12px;
-  line-height: 36px;
-  height: 36px;
-  padding: 0 8px;
-  float: left;
-  cursor: pointer;
 }
 
 .jsFiddleLink:hover {
@@ -380,15 +395,20 @@ body.home .columnLayout h2 {
 * buttons
 **/
 button {
-  border: none;
-  background-color: #bbb;
-  color: white;
-  font-size: 12px;
-  line-height: 36px;
-  height: 36px;
-  padding: 0 8px;
   float: left;
+  display: inline-block;
+  padding: 6px 9px;
+  margin: 0 1px;
+  font-size: 12px;
+  line-height: 24px;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
   cursor: pointer;
+  border: none;
+  -moz-user-select: none;
+  background-color: #bbb;
+  color: white
 }
 
 button:hover {
