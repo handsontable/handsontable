@@ -358,11 +358,11 @@ Handsontable.TableView.prototype.onDraw = function(force){
   if (force) {
     this.instance.PluginHooks.run('afterRender');
   }
-  this.instance.forceFullRender = false;
 };
 
 Handsontable.TableView.prototype.render = function () {
   this.wt.draw(!this.instance.forceFullRender);
+  this.instance.forceFullRender = false;
   this.instance.rootElement.triggerHandler('render.handsontable');
 };
 
