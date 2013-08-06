@@ -158,11 +158,11 @@ Handsontable.helper.columnFactory = function (GridSettings, conflictList, defaul
   }
 
   // Inherit settings from default (text) cell
-  for (i in defaultCell) {
+  /*for (i in defaultCell) {
     if (defaultCell.hasOwnProperty(i)) {
       ColumnSettings.prototype[i] = defaultCell[i];
     }
-  }
+  }*/
 
   return ColumnSettings;
 };
@@ -227,8 +227,8 @@ Handsontable.helper.getCellMethod = function (methodName, methodFunction) {
  * @param element - DOM element
  * @returns {boolean}
  */
-Handsontable.helper.isOutsideInput = function(element){
+Handsontable.helper.isOutsideInput = function (element) {
   var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
 
   return inputs.indexOf(element.nodeName) > -1 && element.className.indexOf('handsontableInput') == -1;
-}
+};
