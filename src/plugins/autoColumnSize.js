@@ -100,7 +100,7 @@
 
       var cellProperties = instance.getCellMeta(0, col);
       if (cellProperties.renderer) {
-        var str = 9999999999;
+        var str = instance.getDataAtCell(0, col) || '';
 
         tmp.noRendererTd.appendChild(document.createTextNode(str));
         var renderer = Handsontable.helper.getCellMethod('renderer', cellProperties.renderer);
