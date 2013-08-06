@@ -191,7 +191,7 @@ ul ul {
 }
 
 .jsFiddleLink {
-  background-color: #355E95;
+  background-color: #4285c8;
   color: white;
   font-size: 12px;
   line-height: 36px;
@@ -337,6 +337,14 @@ body.home #container ul li {
   margin: 0 0 10px 0;
 }
 
+body.home pre.javascript {
+  display: none;
+}
+
+body.home .columnLayout h2 {
+  margin-top: 12px;
+}
+
 /**
  * fork me on GitHub (image)
  */
@@ -366,4 +374,43 @@ body.home #container ul li {
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
     border-radius: 4px;
+}
+
+/**
+* buttons
+**/
+button {
+  border: none;
+  background-color: #bbb;
+  color: white;
+  font-size: 12px;
+  line-height: 36px;
+  height: 36px;
+  padding: 0 8px;
+  float: left;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #999999;
+}
+
+button:first-child {
+  margin-left: 0;
+}
+
+.show-source {
+  background-color: #8fbb6d;
+}
+
+.show-source:hover {
+  background-color: #76bb4c;
+}
+
+.show-source:before {
+   content: 'Show source code';
+ }
+
+.show-source.shown:before {
+  content: 'Hide source code';
 }
