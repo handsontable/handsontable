@@ -110,10 +110,10 @@ module.exports = function (grunt) {
       dist: {
         files: {
           'dist/jquery.handsontable.js': [
-            '<%= meta.shims %>',
             'tmp/intro.js',
             '<%= meta.src %>',
             '<%= meta.walkontable %>',
+            '<%= meta.shims %>',
             'src/outro.js'
           ]
         }
