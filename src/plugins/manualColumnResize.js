@@ -3,13 +3,11 @@ function HandsontableManualColumnResize() {
     , currentTH
     , currentCol
     , currentWidth
-    , autoresizeTimeout
     , instance
     , newSize
     , startX
     , startWidth
     , startOffset
-    , dblclick = 0
     , resizer = document.createElement('DIV')
     , handle = document.createElement('DIV')
     , line = document.createElement('DIV')
@@ -37,12 +35,16 @@ function HandsontableManualColumnResize() {
     if (pressed) {
       instance.view.wt.wtDom.removeClass(resizer, 'active');
       pressed = false;
-      instance.forceFullRender = true;
-      instance.view.render(); //updates all
 
-      saveManualColumnWidths.call(instance);
+      if(newSize != startWidth){
+        instance.forceFullRender = true;
+        instance.view.render(); //updates all
 
-      instance.PluginHooks.run('afterColumnResize', currentCol, newSize);
+        saveManualColumnWidths.call(instance);
+
+        instance.PluginHooks.run('afterColumnResize', currentCol, newSize);
+      }
+
       refreshResizerPosition.call(instance, currentTH);
     }
   });
@@ -97,6 +99,8 @@ function HandsontableManualColumnResize() {
 
   var bindManualColumnWidthEvents = function () {
     var instance = this;
+    var dblclick = 0;
+    var autoresizeTimeout = null;
 
     this.rootElement.on('mouseenter.handsontable', 'th', function (e) {
       if (!pressed) {
@@ -108,7 +112,8 @@ function HandsontableManualColumnResize() {
       if (autoresizeTimeout == null) {
         autoresizeTimeout = setTimeout(function () {
           if (dblclick >= 2) {
-            setManualSize(currentCol, htAutoColumnSize.determineColumnWidth.call(instance, currentCol));
+            newSize = htAutoColumnSize.determineColumnWidth.call(instance, currentCol);
+            setManualSize(currentCol, newSize);
             instance.forceFullRender = true;
             instance.view.render(); //updates all
             instance.PluginHooks.run('afterColumnResize', currentCol, newSize);
@@ -123,6 +128,7 @@ function HandsontableManualColumnResize() {
     this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
       startX = e.pageX;
       refreshLinePosition.call(instance);
+      newSize = startWidth;
     });
   };
 
