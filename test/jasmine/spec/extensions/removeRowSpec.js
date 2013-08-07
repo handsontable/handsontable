@@ -40,4 +40,55 @@ describe('RemoveRowSpec', function () {
 
     $table.remove();
   });
+
+  it("should be possible to enable plugin using updateSettings", function () {
+    handsontable();
+
+    expect(this.$container.find('tbody th.htRemoveRow').length).toBe(0);
+
+    updateSettings({
+      removeRowPlugin: true
+    });
+
+    expect(this.$container.find('tbody th.htRemoveRow').length).toBe(5);
+  });
+
+  it("should be possible to disable plugin using updateSettings", function () {
+    handsontable({
+      removeRowPlugin: true
+    });
+
+    expect(this.$container.find('tbody th.htRemoveRow').length).toBe(5);
+
+    updateSettings({
+      removeRowPlugin: false
+    });
+
+    expect(this.$container.find('tbody th.htRemoveRow').length).toBe(0);
+  });
+
+  it('should apply enablig/disabling plugin only to particular HOT instance', function(){
+    this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
+
+    var hot1 = handsontable({
+      removeRowPlugin: true
+    });
+
+    this.$container2.handsontable({
+      removeRowPlugin: true
+    });
+
+    var hot2 = this.$container2.handsontable('getInstance');
+
+    expect(this.$container.find('tbody th.htRemoveRow').length).toBe(5);
+    expect(this.$container2.find('tbody th.htRemoveRow').length).toBe(5);
+
+    hot2.updateSettings({
+      removeRowPlugin: false
+    });
+
+    expect(this.$container.find('tbody th.htRemoveRow').length).toBe(5);
+    expect(this.$container2.find('tbody th.htRemoveRow').length).toBe(0);
+
+  });
 });

@@ -18,6 +18,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     };
 
   Handsontable.helper.inherit(GridSettings, DefaultSettings); //create grid settings as a copy of default settings
+  Handsontable.helper.extend(GridSettings.prototype, Handsontable.TextCell); //overwrite defaults with default cell
+  expandType(userSettings);
   Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
 
   this.rootElement = rootElement;
@@ -191,7 +193,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
       var r = 0, rlen = instance.countRows()
         , data = GridSettings.prototype.data
-        , constructor = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
+        , constructor = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
 
       if (typeof index !== 'number' || index >= instance.countCols()) {
         for (; r < rlen; r++) {
@@ -1838,6 +1840,11 @@ Handsontable.Core = function (rootElement, userSettings) {
           clone.removeAttribute('id');
           parent.appendChild(clone);
           var computedHeight = parseInt(window.getComputedStyle(clone, null).getPropertyValue('height'), 10);
+
+          if(isNaN(computedHeight) && clone.currentStyle){
+            computedHeight = parseInt(clone.currentStyle.height, 10)
+          }
+
           if (computedHeight > 0) {
             priv.settingsFromDOM.height = computedHeight;
           }
@@ -1997,7 +2004,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       var prop, proto, column;
 
       for (i = 0; i < clen; i++) {
-        priv.columnSettings[i] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
+        priv.columnSettings[i] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
 
         // shortcut for prototype
         proto = priv.columnSettings[i].prototype;
@@ -2005,11 +2012,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         // Use settings provided by user
         if (GridSettings.prototype.columns) {
           column = GridSettings.prototype.columns[i];
-          for (prop in column) {
-            if (column.hasOwnProperty(prop)) {
-              proto[prop] = column[prop];
-            }
-          }
+          expandType(column);
+          Handsontable.helper.extend(proto, column);
         }
       }
     }
@@ -2034,6 +2038,27 @@ Handsontable.Core = function (rootElement, userSettings) {
       selection.refreshBorders(null, true);
     }
   };
+
+  function expandType(obj) {
+    if (obj.hasOwnProperty('type')) { //ignore obj.prototype.type
+      var type
+        , i;
+      if (typeof obj.type === 'object') {
+        type = obj.type;
+      }
+      else if (typeof obj.type === 'string') {
+        type = Handsontable.cellTypes[obj.type];
+        if (type === void 0) {
+          throw new Error('You declared cell type "' + obj.type + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
+        }
+      }
+      for (i in type) {
+        if (type.hasOwnProperty(i) && !obj.hasOwnProperty(i)) {
+          obj[i] = type[i];
+        }
+      }
+    }
+  }
 
   /**
    * Returns current settings object
@@ -2205,14 +2230,13 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.getCellMeta = function (row, col) {
     var prop = datamap.colToProp(col)
-      , cellProperties
-      , type
-      , i;
+      , cellProperties;
 
-    col = Handsontable.PluginHooks.execute(instance, 'modifyCol', col); //translate col of a moved column. warning: this must be done after datamap.colToProp
+    row = translateRowIndex(row);
+    col = translateColIndex(col);
 
     if ("undefined" === typeof priv.columnSettings[col]) {
-      priv.columnSettings[col] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
+      priv.columnSettings[col] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
     }
 
     if (!priv.cellSettings[row]) {
@@ -2229,40 +2253,45 @@ Handsontable.Core = function (rootElement, userSettings) {
     cellProperties.prop = prop;
     cellProperties.instance = instance;
 
-    if (cellProperties.cells) {
-      var settings = cellProperties.cells.call(cellProperties, row, col, prop) || {}
-        , key;
-
-      for (key in settings) {
-        if (settings.hasOwnProperty(key)) {
-          cellProperties[key] = settings[key];
-        }
-      }
-    }
-
     instance.PluginHooks.run('beforeGetCellMeta', row, col, cellProperties);
+    expandType(cellProperties); //for `type` added in beforeGetCellMeta
 
-    if (typeof cellProperties.type === 'string' && cellProperties.type !== 'text') {
-      type = Handsontable.cellTypes[cellProperties.type];
-      if (type === void 0) {
-        throw new Error('You declared cell type "' + cellProperties.type + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
-      }
-    }
-    else if (typeof cellProperties.type === 'object') {
-      type = cellProperties.type;
-    }
+    if (cellProperties.cells) {
+      var settings = cellProperties.cells.call(cellProperties, row, col, prop);
 
-    if (type) {
-      for (i in type) {
-        if (type.hasOwnProperty(i) && cellProperties[i] === Handsontable.cellTypes.text[i]) {
-          cellProperties[i] = type[i];
-        }
+      if (settings) {
+        expandType(settings); //for `type` added in cells
+        Handsontable.helper.extend(cellProperties, settings);
       }
     }
 
     instance.PluginHooks.run('afterGetCellMeta', row, col, cellProperties);
 
     return cellProperties;
+
+    /**
+     * If displayed rows order is different than the order of rows stored in memory (i.e. sorting is applied)
+     * we need to translate logical (stored) row index to physical (displayed) index.
+     * @param row - original row index
+     * @returns {int} translated row index
+     */
+    function translateRowIndex(row){
+      var getVars  = {row: row};
+
+      instance.PluginHooks.execute('beforeGet', getVars);
+
+      return getVars.row;
+    }
+
+    /**
+     * If displayed columns order is different than the order of columns stored in memory (i.e. column were moved using manualColumnMove plugin)
+     * we need to translate logical (stored) column index to physical (displayed) index.
+     * @param col - original column index
+     * @returns {int} - translated column index
+     */
+    function translateColIndex(col){
+      return Handsontable.PluginHooks.execute(instance, 'modifyCol', col); // warning: this must be done after datamap.colToProp
+    }
   };
 
   /**

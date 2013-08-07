@@ -115,7 +115,11 @@ var handsontableKeyTriggerFactory = function (type) {
           break;
 
         case 'backspace':
-          ev.keyCode = 8;
+        ev.keyCode = 8;
+        break;
+
+        case 'space':
+          ev.keyCode = 32;
           break;
 
         default:

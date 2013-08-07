@@ -23,13 +23,19 @@
   top: 0;
 }
 
-.handsontable * {
+.handsontable table,
+.handsontable tbody,
+.handsontable thead,
+.handsontable td,
+.handsontable th,
+.handsontable div
+{
   box-sizing: content-box;
   -webkit-box-sizing: content-box;
   -moz-box-sizing: content-box;
 }
 
-.handsontable table {
+.handsontable table.htCore {
   border-collapse: separate; /*it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit*/
   position: relative;
   /*this actually only changes appearance of user selection - does not make text unselectable
@@ -50,16 +56,16 @@
   max-height: none;
 }
 
-.handsontable col {
+.handsontable .htCore col {
   width: 50px;
 }
 
-.handsontable col.rowHeader {
+.handsontable .htCore col.rowHeader {
   width: 50px;
 }
 
-.handsontable th,
-.handsontable td {
+.handsontable .htCore th,
+.handsontable .htCore td {
   border-right: 1px solid #CCC;
   border-bottom: 1px solid #CCC;
   height: 22px;
@@ -74,7 +80,7 @@
   white-space: pre-line; /* preserve new line character in cell */
 }
 
-.handsontable td.htInvalid {
+.handsontable .htCore td.htInvalid {
   -webkit-transition: background 0.75s ease;
   -moz-transition: background 0.75s ease;
   -ms-transition: background 0.75s ease;
@@ -83,41 +89,41 @@
   background-color: #ff4c42;
 }
 
-.handsontable th:last-child {
+.handsontable .htCore th:last-child {
   /*Foundation framework fix*/
   border-right: 1px solid #CCC;
   border-bottom: 1px solid #CCC;
 }
 
-.handsontable tr:first-child th.htNoFrame,
-.handsontable th:first-child.htNoFrame,
-.handsontable th.htNoFrame {
+.handsontable .htCore tr:first-child th.htNoFrame,
+.handsontable .htCore th:first-child.htNoFrame,
+.handsontable .htCore th.htNoFrame {
   border-left-width: 0;
   background-color: white;
   border-color: #FFF;
 }
 
-.handsontable th:first-child,
-.handsontable td:first-child,
-.handsontable .htNoFrame + th,
-.handsontable .htNoFrame + td {
+.handsontable .htCore th:first-child,
+.handsontable .htCore td:first-child,
+.handsontable .htCore .htNoFrame + th,
+.handsontable .htCore .htNoFrame + td {
   border-left: 1px solid #CCC;
 }
 
-.handsontable tr:first-child th,
-.handsontable tr:first-child td {
+.handsontable .htCore tr:first-child th,
+.handsontable .htCore tr:first-child td {
   border-top: 1px solid #CCC;
 }
 
-.handsontable thead tr:last-child th {
+.handsontable .htCore thead tr:last-child th {
   border-bottom-width: 0;
 }
 
-.handsontable thead tr.lastChild th {
+.handsontable .htCore thead tr.lastChild th {
   border-bottom-width: 0;
 }
 
-.handsontable th {
+.handsontable .htCore th {
   background-color: #EEE;
   color: #222;
   text-align: center;
@@ -125,19 +131,19 @@
   white-space: nowrap;
 }
 
-.handsontable th .small {
+.handsontable .htCore th .small {
   font-size: 12px;
 }
 
-.handsontable thead th {
+.handsontable .htCore thead th {
   padding: 0;
 }
 
-.handsontable th.active {
+.handsontable .htCore th.active {
   background-color: #CCC;
 }
 
-.handsontable thead th .relative {
+.handsontable .htCore thead th .relative {
   position: relative;
   padding: 2px 4px;
 }

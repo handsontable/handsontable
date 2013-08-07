@@ -99,7 +99,7 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
     var output = this.hide(); //need to hide it before destroyEditor, because destroyEditor checks if menu is expanded
     that.instance.destroyEditor(true);
     var active = this.$menu[0].querySelector('.active');
-    var val = $(active).attr('data-value');
+    var val = active.getAttribute('data-value');
     if (val === that.emptyStringLabel) {
       val = '';
     }
