@@ -24,7 +24,8 @@ describe('manualColumnResize', function () {
     var mouseDownEvent = new $.Event('mousedown', {pageX: resizerPosition.left});
     $resizer.trigger(mouseDownEvent);
 
-    var delta = width - $th.outerWidth();
+    var thBorderWidth = 2;
+    var delta = width - $th.outerWidth() + thBorderWidth;
     var mouseMoveEvent = new $.Event('mousemove', {pageX: resizerPosition.left + delta});
     $resizer.trigger(mouseMoveEvent);
 
@@ -120,6 +121,37 @@ describe('manualColumnResize', function () {
     for(var i = 1; i < $columnHeaders.length; i++){
       expect($columnHeaders.eq(i).width()).toEqual(initialColumnWidths[i]);
     }
+
+  });
+
+  it("should adjust resize handles position after table size changed", function(){
+    var maxed = false;
+
+    handsontable({
+      colHeaders: true,
+      manualColumnResize: true,
+      stretchH: 'all',
+      width: function () {
+        return maxed ? 614 : 200;
+      }
+    });
+
+    this.$container.find('thead th:eq(0)').mouseenter();
+
+    var resizer = this.$container.find('.manualColumnResizer');
+    var handle = resizer.find('.manualColumnResizerHandle');
+    var th0 = this.$container.find('thead th:eq(0)');
+
+    expect(resizer.offset().left + handle.outerWidth()).toEqual(th0.offset().left + th0.outerWidth() - 1);
+
+    maxed = true;
+
+    render();
+
+    this.$container.find('thead th:eq(0)').mouseenter();
+
+    expect(resizer.offset().left + handle.outerWidth()).toEqual(th0.offset().left + th0.outerWidth() - 1);
+
 
   });
 });
