@@ -73,6 +73,7 @@ function HandsontableManualColumnResize() {
       startOffset = (thOffset - rootOffset) - 6;
 
       resizer.style.left = startOffset + getColumnWidth.call(instance, TH) + 'px';
+      handle.style.height = TH.offsetHeight + 'px';
 
       this.rootElement[0].appendChild(resizer);
     }
