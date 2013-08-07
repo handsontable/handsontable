@@ -11,7 +11,7 @@ Features
 
 Bugfixes
 
-- added more specyfic selectrors in CSS, so that jQuery UI styles and default HandsonTable styles does not interfere ([#498](https://github.com/warpech/jquery-handsontable/issues/498))
+- added more specific selectors in CSS, so that jQuery UI styles and default HandsonTable styles does not interfere ([#498](https://github.com/warpech/jquery-handsontable/issues/498))
 - fixed moving table column, when table is scrolled horizotally ([#527](https://github.com/warpech/jquery-handsontable/issues/527))
 - `afterRender` event is now fired after every table scroll ([#733](https://github.com/warpech/jquery-handsontable/issues/733))
 - fixed inserting and removing rows form sorted table ([#915](https://github.com/warpech/jquery-handsontable/issues/915))
