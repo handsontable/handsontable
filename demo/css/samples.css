@@ -63,6 +63,15 @@ body {
   margin: 0 40px 0 40px;
 }
 
+.pad:after{
+  content: ".";
+  display: block;
+  clear: both;
+  visibility: hidden;
+  line-height: 0;
+  height: 0;
+}
+
 .descLayout .pad {
   float: right;
 }
@@ -191,14 +200,19 @@ ul ul {
 }
 
 .jsFiddleLink {
-  background-color: #355E95;
-  color: white;
+  display: inline-block;
+  padding: 6px 9px;
+  margin: 0;
   font-size: 12px;
-  line-height: 36px;
-  height: 36px;
-  padding: 0 8px;
-  float: left;
+  line-height: 24px;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
   cursor: pointer;
+  border: none;
+  -moz-user-select: none;
+  background-color: #4285c8;
+  color: white;
 }
 
 .jsFiddleLink:hover {
@@ -337,6 +351,14 @@ body.home #container ul li {
   margin: 0 0 10px 0;
 }
 
+body.home pre.javascript {
+  display: none;
+}
+
+body.home .columnLayout h2 {
+  margin-top: 12px;
+}
+
 /**
  * fork me on GitHub (image)
  */
@@ -366,4 +388,58 @@ body.home #container ul li {
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
     border-radius: 4px;
+}
+
+/**
+* buttons
+**/
+button {
+  display: inline-block;
+  padding: 6px 9px;
+  margin: 0 2px;
+  font-size: 12px;
+  line-height: 24px;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  border: none;
+  -moz-user-select: none;
+  background-color: #bbb;
+  color: white
+}
+
+button:hover {
+  background-color: #999999;
+}
+
+button:first-child {
+  margin-left: 0;
+}
+
+button.mini {
+  padding: 3px 5px;
+  font-size: 11px;
+  line-height: 16px;
+  margin-top: -3px;
+}
+
+.show-source {
+  background-color: #8fbb6d;
+}
+
+.show-source:hover {
+  background-color: #76bb4c;
+}
+
+.show-source:before {
+   content: 'Show source code';
+ }
+
+.show-source.shown:before {
+  content: 'Hide source code';
+}
+
+.inline-buttons button{
+  float: left;
 }
