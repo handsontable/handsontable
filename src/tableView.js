@@ -87,6 +87,10 @@ Handsontable.TableView = function (instance) {
     }
   });
 
+  instance.rootElement.on('mousedown.handsontable', '.dragdealer', function (event) {
+    instance.destroyEditor();
+  });
+
   instance.$table.on('selectstart', function (event) {
     if (that.settings.fragmentSelection) {
       return;
@@ -280,6 +284,9 @@ Handsontable.TableView = function (instance) {
     },
     beforeDraw: function (force) {
       that.beforeRender(force);
+    },
+    onDraw: function(force){
+      that.onDraw(force);
     }
   };
 
@@ -349,13 +356,16 @@ Handsontable.TableView.prototype.beforeRender = function (force) {
   }
 };
 
-Handsontable.TableView.prototype.render = function () {
-  this.wt.draw(!this.instance.forceFullRender);
-  this.instance.rootElement.triggerHandler('render.handsontable');
-  if (this.instance.forceFullRender) {
+Handsontable.TableView.prototype.onDraw = function(force){
+  if (force) {
     this.instance.PluginHooks.run('afterRender');
   }
+};
+
+Handsontable.TableView.prototype.render = function () {
+  this.wt.draw(!this.instance.forceFullRender);
   this.instance.forceFullRender = false;
+  this.instance.rootElement.triggerHandler('render.handsontable');
 };
 
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {

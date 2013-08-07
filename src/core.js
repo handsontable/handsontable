@@ -1838,6 +1838,11 @@ Handsontable.Core = function (rootElement, userSettings) {
           clone.removeAttribute('id');
           parent.appendChild(clone);
           var computedHeight = parseInt(window.getComputedStyle(clone, null).getPropertyValue('height'), 10);
+
+          if(isNaN(computedHeight) && clone.currentStyle){
+            computedHeight = parseInt(clone.currentStyle.height, 10)
+          }
+
           if (computedHeight > 0) {
             priv.settingsFromDOM.height = computedHeight;
           }
@@ -2209,7 +2214,8 @@ Handsontable.Core = function (rootElement, userSettings) {
       , type
       , i;
 
-    col = Handsontable.PluginHooks.execute(instance, 'modifyCol', col); //translate col of a moved column. warning: this must be done after datamap.colToProp
+    row = translateRowIndex(row);
+    col = translateColIndex(col);
 
     if ("undefined" === typeof priv.columnSettings[col]) {
       priv.columnSettings[col] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
@@ -2263,6 +2269,30 @@ Handsontable.Core = function (rootElement, userSettings) {
     instance.PluginHooks.run('afterGetCellMeta', row, col, cellProperties);
 
     return cellProperties;
+
+    /**
+     * If displayed rows order is different than the order of rows stored in memory (i.e. sorting is applied)
+     * we need to translate logical (stored) row index to physical (displayed) index.
+     * @param row - original row index
+     * @returns {int} translated row index
+     */
+    function translateRowIndex(row){
+      var getVars  = {row: row};
+
+      instance.PluginHooks.execute('beforeGet', getVars);
+
+      return getVars.row;
+    }
+
+    /**
+     * If displayed columns order is different than the order of columns stored in memory (i.e. column were moved using manualColumnMove plugin)
+     * we need to translate logical (stored) column index to physical (displayed) index.
+     * @param col - original column index
+     * @returns {int} - translated column index
+     */
+    function translateColIndex(col){
+      return Handsontable.PluginHooks.execute(instance, 'modifyCol', col); // warning: this must be done after datamap.colToProp
+    }
   };
 
   /**
