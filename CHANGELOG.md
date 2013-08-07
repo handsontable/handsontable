@@ -1,4 +1,4 @@
-## [0.9.12](https://github.com/warpech/jquery-handsontable/tree/v0.9.11) (Aug 06, 2013)
+## Head
 Features
 
 - closing cell editors when table is being scrolled ([#914](https://github.com/warpech/jquery-handsontable/issues/914))
@@ -18,6 +18,7 @@ Bugfixes
 - added proper mapping of cell properties when table is sorted ([#917](https://github.com/warpech/jquery-handsontable/issues/917))
 - fixed IE `Array.filter()` shim ([#934](https://github.com/warpech/jquery-handsontable/issues/934))
 - fixed tests, so that they all pass on Sauce Labs servers
+- fixed support for legacy syntax in cells method `return {type: {renderer: function(){ /*...*/ }}`
 
 
 
