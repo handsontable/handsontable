@@ -153,7 +153,6 @@
       tmp.thead.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(d.createElement('th'));
       tmp.theadTh = tmp.thead.getElementsByTagName('th')[0];
 
-      tmp.thead.className = 'htTable';
       tmp.theadStyle = tmp.thead.style;
       tmp.theadStyle.tableLayout = 'auto';
       tmp.theadStyle.width = 'auto';

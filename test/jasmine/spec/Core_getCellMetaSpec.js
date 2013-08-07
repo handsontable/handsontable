@@ -163,4 +163,18 @@ describe('Core_getCellMeta', function () {
 
   });
 
+  it('should inherit readOnly from cell type (legacy)', function () {
+    handsontable({
+      data : [[1,2]],
+      cells : function (row, col, prop) {
+        return {
+          type : {
+            readOnly: true
+          }
+        }
+      }
+    });
+    expect(getCellMeta(0, 0).readOnly).toEqual(true);
+  });
+
 });
