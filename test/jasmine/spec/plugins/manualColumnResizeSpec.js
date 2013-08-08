@@ -122,4 +122,18 @@ describe('manualColumnResize', function () {
     }
 
   });
+
+  it("should make the resize handle the same height as the header", function () {
+    handsontable({
+      colHeaders: ["A Long Header That Will Wrap To Multiple Columns"],
+      manualColumnResize: true
+    })
+
+    var $th = this.$container.find('thead tr:eq(0) th:eq(0)');
+    $th.css('white-space', 'normal'); // Bug only repros if you override the CSS white-space property.
+    $th.trigger('mouseenter');
+
+    var $handle = this.$container.find('.manualColumnResizerHandle');
+    expect($handle.outerHeight()).toEqual($th.outerHeight());
+  })
 });
