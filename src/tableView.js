@@ -11,7 +11,9 @@ Handsontable.TableView = function (instance) {
   this.settings = instance.getSettings();
   this.settingsFromDOM = instance.getSettingsFromDOM();
 
-  instance.rootElement.data('originalStyle', instance.rootElement.attr('style')); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
+  instance.rootElement.data('originalStyle', instance.rootElement[0].getAttribute('style')); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
+  // in IE7 getAttribute('style') returns an object instead of a string, but we only support IE8+
+
   instance.rootElement.addClass('handsontable');
 
   var table = document.createElement('TABLE');
@@ -83,6 +85,10 @@ Handsontable.TableView = function (instance) {
     else {
       instance.destroyEditor();
     }
+  });
+
+  instance.rootElement.on('mousedown.handsontable', '.dragdealer', function (event) {
+    instance.destroyEditor();
   });
 
   instance.$table.on('selectstart', function (event) {
@@ -278,6 +284,9 @@ Handsontable.TableView = function (instance) {
     },
     beforeDraw: function (force) {
       that.beforeRender(force);
+    },
+    onDraw: function(force){
+      that.onDraw(force);
     }
   };
 
@@ -347,13 +356,16 @@ Handsontable.TableView.prototype.beforeRender = function (force) {
   }
 };
 
-Handsontable.TableView.prototype.render = function () {
-  this.wt.draw(!this.instance.forceFullRender);
-  this.instance.rootElement.triggerHandler('render.handsontable');
-  if (this.instance.forceFullRender) {
+Handsontable.TableView.prototype.onDraw = function(force){
+  if (force) {
     this.instance.PluginHooks.run('afterRender');
   }
+};
+
+Handsontable.TableView.prototype.render = function () {
+  this.wt.draw(!this.instance.forceFullRender);
   this.instance.forceFullRender = false;
+  this.instance.rootElement.triggerHandler('render.handsontable');
 };
 
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {

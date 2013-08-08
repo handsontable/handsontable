@@ -115,4 +115,66 @@ describe('Core_getCellMeta', function () {
     expect(_this.instance).toBe(HOT);
   });
 
+  it("should get proper cellProperties when order of displayed rows is different than order of stored data", function () {
+    var hot = handsontable({
+      data: [
+        ['C'],
+        ['A'],
+        ['B']
+      ],
+      minSpareRows: 1,
+      cells: function (row, col, prop) {
+        var cellProperties = {};
+        if (getData()[row][col] === 'A') {
+          cellProperties.readOnly = true;
+        }
+        return cellProperties;
+      }
+    });
+
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(false);
+
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(true);
+
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('B');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
+
+    //Column sorting changes the order of displayed rows while keeping table data unchanged
+    updateSettings({
+      columnSorting: {
+        column: 0,
+        order: true
+      }
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(true);
+
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('B');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(false);
+
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('C');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
+
+
+
+  });
+
+  it('should inherit readOnly from cell type (legacy)', function () {
+    handsontable({
+      data : [[1,2]],
+      cells : function (row, col, prop) {
+        return {
+          type : {
+            readOnly: true
+          }
+        }
+      }
+    });
+    expect(getCellMeta(0, 0).readOnly).toEqual(true);
+  });
+
 });

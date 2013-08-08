@@ -88,7 +88,8 @@ module.exports = function (grunt) {
 
         'src/3rdparty/jquery.autoresize.js',
         'src/3rdparty/sheetclip.js',
-        'src/3rdparty/copypaste.js'
+        'src/3rdparty/copypaste.js',
+        'src/3rdparty/json-patch-duplex.js'
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',
@@ -110,10 +111,10 @@ module.exports = function (grunt) {
       dist: {
         files: {
           'dist/jquery.handsontable.js': [
-            '<%= meta.shims %>',
             'tmp/intro.js',
             '<%= meta.src %>',
             '<%= meta.walkontable %>',
+            '<%= meta.shims %>',
             'src/outro.js'
           ]
         }

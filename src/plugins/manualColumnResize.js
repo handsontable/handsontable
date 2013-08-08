@@ -132,7 +132,7 @@ function HandsontableManualColumnResize() {
 
   this.init = function (source) {
     var instance = this;
-    var manualColumnWidthEnabled = Boolean(this.getSettings().manualColumnResize);
+    var manualColumnWidthEnabled = !!(this.getSettings().manualColumnResize);
 
     if (manualColumnWidthEnabled) {
       var initialColumnWidths = this.getSettings().manualColumnResize;
