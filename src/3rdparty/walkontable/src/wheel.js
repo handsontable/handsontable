@@ -3,7 +3,8 @@ function WalkontableWheel(instance) {
     return;
   }
 
-  $(instance.wtTable.TABLE).on('mousewheel', function (event, delta, deltaX, deltaY) {
+  //spreader === instance.wtTable.TABLE.parentNode
+  $(instance.wtTable.spreader).on('mousewheel', function (event, delta, deltaX, deltaY) {
     if (!deltaX && !deltaY && delta) { //we are in IE8, see https://github.com/brandonaaron/jquery-mousewheel/issues/53
       deltaY = delta;
     }

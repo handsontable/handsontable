@@ -9,7 +9,10 @@ describe('ContextMenu', function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
-      $.contextMenu('destroy');
+
+      if($('ul.context-menu-list').length > 0){
+        $.contextMenu('destroy');
+      }
     }
   });
 
@@ -74,4 +77,143 @@ describe('ContextMenu', function () {
     expect($('ul.context-menu-list').length).toEqual(0);
   });
 
+  it('should destroy contextMenu when Handsotnable is destroyed', function () {
+    var test = function () {
+      handsontable({
+        startRows: 5,
+        contextMenu: ['remove_row']
+      });
+      selectCell(0, 0);
+      contextMenu();
+      $('ul.context-menu-list li').first().trigger('mouseup.contextMenu');
+      expect(getData().length).toEqual(4);
+    };
+    test();
+    expect($('ul.context-menu-list').length).toEqual(1);
+    destroy();
+    expect($('ul.context-menu-list').length).toEqual(0);
+  });
+
+  it("should be possible to enable contextMenu using updateSettings", function () {
+    handsontable({
+      contextMenu: false
+    });
+
+    expect($('ul.context-menu-list').length).toBe(0);
+
+    updateSettings({
+      contextMenu: true
+    });
+
+    expect($('ul.context-menu-list').length).toBe(1);
+
+  });
+
+  it("should be possible to disable contextMenu using updateSettings", function () {
+    handsontable({
+      contextMenu: true
+    });
+
+    expect($('ul.context-menu-list').length).toBe(1);
+
+    updateSettings({
+      contextMenu: false
+    });
+
+    expect($('ul.context-menu-list').length).toBe(0);
+
+  });
+
+  it("should be possible to enable/disable contextMenu multiple times, using updateSettings", function () {
+    handsontable({
+      contextMenu: true
+    });
+
+    expect($('ul.context-menu-list').length).toBe(1);
+
+    expect($('ul.context-menu-list').is(':visible')).toBe(false);
+    contextMenu();
+    expect($('ul.context-menu-list').is(':visible')).toBe(true);
+
+
+    updateSettings({
+      contextMenu: false
+    });
+
+    expect($('ul.context-menu-list').length).toBe(0);
+
+    expect($('ul.context-menu-list').is(':visible')).toBe(false);
+    contextMenu();
+    expect($('ul.context-menu-list').is(':visible')).toBe(false);
+
+    updateSettings({
+      contextMenu: true
+    });
+
+    expect($('ul.context-menu-list').length).toBe(1);
+
+    expect($('ul.context-menu-list').is(':visible')).toBe(false);
+    contextMenu();
+    expect($('ul.context-menu-list').is(':visible')).toBe(true);
+
+  });
+
+  it("should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT ", function () {
+    this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
+
+    var hot1 = handsontable({
+      contextMenu: false
+    });
+
+    this.$container2.handsontable({
+      contextMenu: true
+    });
+
+    var hot2 = this.$container2.handsontable('getInstance');
+
+    contextMenu();
+    expect($('ul.context-menu-list').is(':visible')).toBe(false);
+
+    contextMenu2();
+    expect($('ul.context-menu-list').is(':visible')).toBe(true);
+
+    hideContextMenu.call(hot2);
+
+    waitsFor(function(){
+      return $('ul.context-menu-list:visible').length == 0
+    }, 'Hiding context menu', 1000);
+
+    runs(function(){
+
+      hot1.updateSettings({
+         contextMenu: true
+      });
+
+      hot2.updateSettings({
+        contextMenu: false
+      });
+
+      contextMenu2();
+      expect($('ul.context-menu-list').is(':visible')).toBe(false);
+
+      contextMenu();
+      expect($('ul.context-menu-list').is(':visible')).toBe(true);
+
+      hot2.destroy();
+      this.$container2.remove();
+    });
+
+    function contextMenu2(){
+      var ev = $.Event('contextmenu');
+      ev.button = 2;
+      var selector = "#" + hot2.rootElement.attr('id') + ' table, #' + hot2.rootElement.attr('id') + ' div';
+      $(selector).trigger(ev);
+    }
+
+    function hideContextMenu(){
+      var selector = "#" + this.rootElement.attr('id') + ' table, #' + this.rootElement.attr('id') + ' div';
+      $(selector).contextMenu('hide')
+    }
+
+  });
 });

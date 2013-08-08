@@ -1,3 +1,29 @@
+## [0.9.12](https://github.com/warpech/jquery-handsontable/tree/v0.9.12) (Aug 7, 2013)
+
+Features:
+
+- closing cell editors when table is being scrolled ([#914](https://github.com/warpech/jquery-handsontable/issues/914))
+- added `sort()` method to programmatically sort table
+- plugin `contextMenu` can now be enabled or disabled using `updateSettings()` method
+- extension `removeRow` can now be enabled or disabled using `updateSettings()` method ([#934](https://github.com/warpech/jquery-handsontable/issues/934))
+- plugin `observeChanges` can now be enabled or disabled using `updateSettings()` method
+- plugin `autoColumnSize` can now be enabled or disabled using `updateSettings()` method
+- 2 new events: `beforColumnSort` and `afterColumnSort` fired before and after table sort
+
+Bugfixes:
+
+- fixed incorrect width of horizontal scrollbar when scrolled to rightmost column ([#909](https://github.com/warpech/jquery-handsontable/issues/909))
+- fix ability to check/uncheck checkboxes using spacebar ([#895](https://github.com/warpech/jquery-handsontable/issues/895))
+- added more specific selectors in CSS, so that jQuery UI styles and default HandsonTable styles does not interfere ([#498](https://github.com/warpech/jquery-handsontable/issues/498))
+- fixed moving table column, when table is scrolled horizontally ([#527](https://github.com/warpech/jquery-handsontable/issues/527))
+- `afterRender` event is now fired after every table scroll ([#733](https://github.com/warpech/jquery-handsontable/issues/733))
+- fixed inserting and removing rows form sorted table ([#915](https://github.com/warpech/jquery-handsontable/issues/915))
+- added proper mapping of cell properties when table is sorted ([#917](https://github.com/warpech/jquery-handsontable/issues/917))
+- fixed IE `Array.filter()` shim ([#934](https://github.com/warpech/jquery-handsontable/issues/934))
+- fixed tests, so that they all pass on Sauce Labs servers
+- fixed support for legacy syntax in cells method `return {type: {renderer: function(){ /*...*/ }}`
+- autoColumnSize plugin no longer tests column width using number '9999999999' (now it takes first value from data source)
+
 ## [0.9.11](https://github.com/warpech/jquery-handsontable/tree/v0.9.11) (Jul 29, 2013)
 
 This version fixes some severe cell listener issues introduced in the last version.

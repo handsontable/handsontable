@@ -142,10 +142,9 @@ Handsontable.helper.extend = function (target, extension) {
  * Factory for columns constructors.
  * @param {Object} GridSettings
  * @param {Array} conflictList
- * @param {Object} defaultCell
  * @return {Object} ColumnSettings
  */
-Handsontable.helper.columnFactory = function (GridSettings, conflictList, defaultCell) {
+Handsontable.helper.columnFactory = function (GridSettings, conflictList) {
   var i = 0, len = conflictList.length, ColumnSettings = function () {
   };
 
@@ -155,13 +154,6 @@ Handsontable.helper.columnFactory = function (GridSettings, conflictList, defaul
   // Clear conflict settings
   for (; i < len; i++) {
     ColumnSettings.prototype[conflictList[i]] = void 0;
-  }
-
-  // Inherit settings from default (text) cell
-  for (i in defaultCell) {
-    if (defaultCell.hasOwnProperty(i)) {
-      ColumnSettings.prototype[i] = defaultCell[i];
-    }
   }
 
   return ColumnSettings;
@@ -227,8 +219,8 @@ Handsontable.helper.getCellMethod = function (methodName, methodFunction) {
  * @param element - DOM element
  * @returns {boolean}
  */
-Handsontable.helper.isOutsideInput = function(element){
+Handsontable.helper.isOutsideInput = function (element) {
   var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
 
   return inputs.indexOf(element.nodeName) > -1 && element.className.indexOf('handsontableInput') == -1;
-}
+};
