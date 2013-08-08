@@ -7,14 +7,17 @@
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
-  <script src="lib/jquery.js"></script>
-  <script src="dist/jquery.handsontable.full.js"></script>
-  <link rel="stylesheet" media="screen" href="dist/jquery.handsontable.full.css">
+  <script data-jsfiddle="common" src="lib/jquery.js"></script>
+  <script data-jsfiddle="common" src="dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="dist/jquery.handsontable.full.css">
 
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
-  <link rel="stylesheet" media="screen" href="demo/css/samples.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="demo/css/samples.css">
+  <script src="demo/js/samples.js"></script>
+  <script src="demo/js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="demo/js/highlight/styles/github.css">
 
   <!--
   Facebook open graph. Don't copy this to your project :)
@@ -40,63 +43,99 @@
 <div id="container">
 
 <div class="centerLayout">
-<h1>
-  <a href="index.html">Handsontable <span class="ver small"></span></a>
+  <h1>
+    <a href="index.html">Handsontable <span class="ver small"></span></a>
 
-  <iframe id="githubWatch"
-          src="demo/github-buttons/github-btn.html?user=warpech&repo=jquery-handsontable&type=watch&count=true"
-          frameborder="0" scrolling="0" width="104" height="20"></iframe>
+    <iframe id="githubWatch"
+            src="demo/github-buttons/github-btn.html?user=warpech&repo=jquery-handsontable&type=watch&count=true"
+            frameborder="0" scrolling="0" width="104" height="20"></iframe>
 
-  <iframe id="githubFork"
-          src="demo/github-buttons/github-btn.html?user=warpech&repo=jquery-handsontable&type=fork&count=true"
-          frameborder="0" scrolling="0" width="87" height="20"></iframe>
-</h1>
+    <iframe id="githubFork"
+            src="demo/github-buttons/github-btn.html?user=warpech&repo=jquery-handsontable&type=fork&count=true"
+            frameborder="0" scrolling="0" width="87" height="20"></iframe>
+  </h1>
 
-<div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-  for HTML, JavaScript &amp; jQuery
+  <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+    for HTML, JavaScript &amp; jQuery
+  </div>
+
+  <div class="warning" id="domainNotice">
+    This page has been moved to
+    <a href="http://handsontable.com/">http://handsontable.com/</a>. Please update your bookmarks.
+  </div>
+
+  <div class="warning">
+    This is a new version <span class="ver"></span>. It introduces more plugin hooks (for <a
+    href="https://github.com/warpech/jquery-handsontable/wiki/Events">Events and Callbacks</a>) and more flexible <a
+    href="https://github.com/warpech/jquery-handsontable/wiki/Options">Options</a>. <br>It should fully compatible
+    with 0.8 API. If not, please take a look at the migration guide in <a
+    href="https://github.com/warpech/jquery-handsontable/wiki">Wiki</a> or write us a note on <a
+    href="https://github.com/warpech/jquery-handsontable/issues">GitHub Issues</a>. <br>For details on what's changed,
+    see
+    <a
+      href="https://github.com/warpech/jquery-handsontable/blob/master/CHANGELOG.md">Changelog</a>.
+  </div>
 </div>
 
-<div class="warning" id="domainNotice">
-  This page has been moved to
-  <a href="http://handsontable.com/">http://handsontable.com/</a>. Please update your bookmarks.
-</div>
+<div class="columnLayout" style="min-height: 0;">
+  <div class="rowLayout">
+    <div class="descLayout">
+        <div class="pad" data-jsfiddle="example">
+          <h2>Basic usage</h2>
+          <div id="example"></div>
+        </div>
+    </div>
+    <div class="codeLayout">
+      <div class="pad">
 
-<div class="warning">
-  This is a new version <span class="ver"></span>. It introduces more plugin hooks (for <a
-  href="https://github.com/warpech/jquery-handsontable/wiki/Events">Events and Callbacks</a>) and more flexible <a
-  href="https://github.com/warpech/jquery-handsontable/wiki/Options">Options</a>. <br>It should fully compatible
-  with 0.8 API. If not, please take a look at the migration guide in <a
-  href="https://github.com/warpech/jquery-handsontable/wiki">Wiki</a> or write us a note on <a
-  href="https://github.com/warpech/jquery-handsontable/issues">GitHub Issues</a>. <br>For details on what's changed, see <a
-  href="https://github.com/warpech/jquery-handsontable/blob/master/CHANGELOG.md">Changelog</a>.
-</div>
 
-<div id="example"></div>
 
-<script>
-  $(document).ready(function () {
-    var data = [
-      ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
-      ["2009", 0, 2941, 4303, 354, 5814],
-      ["2010", 5, 2905, 2867, 412, 5284],
-      ["2011", 4, 2517, 4822, 552, 6127],
-      ["2012", 2, 2422, 5399, 776, 4151]
-    ];
+        <div class="jsFiddle inline-buttons">
+          <button type="button" class="show-source"></button>
+          <button class="jsFiddleLink" data-runfiddle="example">Edit in jsFiddle</button>
+          <button name="dump" data-dump="#example" title="Prints current data source to Firebug/Chrome Dev Tools">
+            Dump data to console
+          </button>
+        </div>
 
-    $('#example').handsontable({
-      data: data,
-      minRows: 5,
-      minCols: 6,
-      minSpareRows: 1,
-      autoWrapRow: true,
-      colHeaders: true,
-      contextMenu: true
+
+
+        <script data-jsfiddle="example">
+            var data = [
+              ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
+              ["2009", 0, 2941, 4303, 354, 5814],
+              ["2010", 5, 2905, 2867, 412, 5284],
+              ["2011", 4, 2517, 4822, 552, 6127],
+              ["2012", 2, 2422, 5399, 776, 4151]
+            ];
+
+            $('#example').handsontable({
+              data: data,
+              minSpareRows: 1,
+              colHeaders: true,
+              contextMenu: true
+            });
+
+        </script>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    $('.show-source').click(function(event){
+      event.preventDefault();
+
+      $(this).toggleClass('shown');
+      $('pre.javascript').toggle();
+
     });
-
     $('.ver').text($('#example').data('handsontable').version);
-  });
-</script>
+  </script>
 
+</div>
+
+
+<div class="centerLayout">
 <h2>Examples and how-to's</h2>
 
 <div class="linkColumn first">

@@ -1,47 +1,12 @@
 /**
- * Array.filter() shim by Trevor Menagh (https://github.com/trevmex) with some modifications
- */
-
-if (!Array.prototype.filter) {
-  Array.prototype.filter = function (fun, thisp) {
-    "use strict";
-
-    if (typeof this === "undefined" || this === null) {
-      throw new TypeError();
-    }
-    if (typeof fun !== "function") {
-      throw new TypeError();
-    }
-
-    thisp = thisp || this;
-
-    var len = this.length,
-      res = [],
-      i,
-      val;
-
-    for (i = 0; i < len; i += 1) {
-      if (this.hasOwnProperty(i)) {
-        val = this[i]; // in case fun mutates this
-        if (fun.call(thisp, val, i, this)) {
-          res.push(val);
-        }
-      }
-    }
-
-    return res;
-  };
-}
-
-/**
- * Handsontable 0.9.11
+ * Handsontable 0.9.12
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Jul 29 2013 07:50:52 GMT+0200 (Central European Daylight Time)
+ * Date: Wed Aug 07 2013 10:24:00 GMT+0200 (Central European Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -72,6 +37,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     };
 
   Handsontable.helper.inherit(GridSettings, DefaultSettings); //create grid settings as a copy of default settings
+  Handsontable.helper.extend(GridSettings.prototype, Handsontable.TextCell); //overwrite defaults with default cell
+  expandType(userSettings);
   Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
 
   this.rootElement = rootElement;
@@ -245,7 +212,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
       var r = 0, rlen = instance.countRows()
         , data = GridSettings.prototype.data
-        , constructor = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
+        , constructor = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
 
       if (typeof index !== 'number' || index >= instance.countCols()) {
         for (; r < rlen; r++) {
@@ -1892,6 +1859,11 @@ Handsontable.Core = function (rootElement, userSettings) {
           clone.removeAttribute('id');
           parent.appendChild(clone);
           var computedHeight = parseInt(window.getComputedStyle(clone, null).getPropertyValue('height'), 10);
+
+          if(isNaN(computedHeight) && clone.currentStyle){
+            computedHeight = parseInt(clone.currentStyle.height, 10)
+          }
+
           if (computedHeight > 0) {
             priv.settingsFromDOM.height = computedHeight;
           }
@@ -2051,7 +2023,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       var prop, proto, column;
 
       for (i = 0; i < clen; i++) {
-        priv.columnSettings[i] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
+        priv.columnSettings[i] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
 
         // shortcut for prototype
         proto = priv.columnSettings[i].prototype;
@@ -2059,11 +2031,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         // Use settings provided by user
         if (GridSettings.prototype.columns) {
           column = GridSettings.prototype.columns[i];
-          for (prop in column) {
-            if (column.hasOwnProperty(prop)) {
-              proto[prop] = column[prop];
-            }
-          }
+          expandType(column);
+          Handsontable.helper.extend(proto, column);
         }
       }
     }
@@ -2088,6 +2057,27 @@ Handsontable.Core = function (rootElement, userSettings) {
       selection.refreshBorders(null, true);
     }
   };
+
+  function expandType(obj) {
+    if (obj.hasOwnProperty('type')) { //ignore obj.prototype.type
+      var type
+        , i;
+      if (typeof obj.type === 'object') {
+        type = obj.type;
+      }
+      else if (typeof obj.type === 'string') {
+        type = Handsontable.cellTypes[obj.type];
+        if (type === void 0) {
+          throw new Error('You declared cell type "' + obj.type + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
+        }
+      }
+      for (i in type) {
+        if (type.hasOwnProperty(i) && !obj.hasOwnProperty(i)) {
+          obj[i] = type[i];
+        }
+      }
+    }
+  }
 
   /**
    * Returns current settings object
@@ -2259,14 +2249,13 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.getCellMeta = function (row, col) {
     var prop = datamap.colToProp(col)
-      , cellProperties
-      , type
-      , i;
+      , cellProperties;
 
-    col = Handsontable.PluginHooks.execute(instance, 'modifyCol', col); //translate col of a moved column. warning: this must be done after datamap.colToProp
+    row = translateRowIndex(row);
+    col = translateColIndex(col);
 
     if ("undefined" === typeof priv.columnSettings[col]) {
-      priv.columnSettings[col] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts, Handsontable.TextCell);
+      priv.columnSettings[col] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
     }
 
     if (!priv.cellSettings[row]) {
@@ -2283,40 +2272,45 @@ Handsontable.Core = function (rootElement, userSettings) {
     cellProperties.prop = prop;
     cellProperties.instance = instance;
 
-    if (cellProperties.cells) {
-      var settings = cellProperties.cells.call(cellProperties, row, col, prop) || {}
-        , key;
-
-      for (key in settings) {
-        if (settings.hasOwnProperty(key)) {
-          cellProperties[key] = settings[key];
-        }
-      }
-    }
-
     instance.PluginHooks.run('beforeGetCellMeta', row, col, cellProperties);
+    expandType(cellProperties); //for `type` added in beforeGetCellMeta
 
-    if (typeof cellProperties.type === 'string' && cellProperties.type !== 'text') {
-      type = Handsontable.cellTypes[cellProperties.type];
-      if (type === void 0) {
-        throw new Error('You declared cell type "' + cellProperties.type + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
-      }
-    }
-    else if (typeof cellProperties.type === 'object') {
-      type = cellProperties.type;
-    }
+    if (cellProperties.cells) {
+      var settings = cellProperties.cells.call(cellProperties, row, col, prop);
 
-    if (type) {
-      for (i in type) {
-        if (type.hasOwnProperty(i) && cellProperties[i] === Handsontable.cellTypes.text[i]) {
-          cellProperties[i] = type[i];
-        }
+      if (settings) {
+        expandType(settings); //for `type` added in cells
+        Handsontable.helper.extend(cellProperties, settings);
       }
     }
 
     instance.PluginHooks.run('afterGetCellMeta', row, col, cellProperties);
 
     return cellProperties;
+
+    /**
+     * If displayed rows order is different than the order of rows stored in memory (i.e. sorting is applied)
+     * we need to translate logical (stored) row index to physical (displayed) index.
+     * @param row - original row index
+     * @returns {int} translated row index
+     */
+    function translateRowIndex(row){
+      var getVars  = {row: row};
+
+      instance.PluginHooks.execute('beforeGet', getVars);
+
+      return getVars.row;
+    }
+
+    /**
+     * If displayed columns order is different than the order of columns stored in memory (i.e. column were moved using manualColumnMove plugin)
+     * we need to translate logical (stored) column index to physical (displayed) index.
+     * @param col - original column index
+     * @returns {int} - translated column index
+     */
+    function translateColIndex(col){
+      return Handsontable.PluginHooks.execute(instance, 'modifyCol', col); // warning: this must be done after datamap.colToProp
+    }
   };
 
   /**
@@ -2738,7 +2732,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.9.11'; //inserted by grunt from package.json
+  this.version = '0.9.12'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {
@@ -2839,7 +2833,9 @@ Handsontable.TableView = function (instance) {
   this.settings = instance.getSettings();
   this.settingsFromDOM = instance.getSettingsFromDOM();
 
-  instance.rootElement.data('originalStyle', instance.rootElement.attr('style')); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
+  instance.rootElement.data('originalStyle', instance.rootElement[0].getAttribute('style')); //needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
+  // in IE7 getAttribute('style') returns an object instead of a string, but we only support IE8+
+
   instance.rootElement.addClass('handsontable');
 
   var table = document.createElement('TABLE');
@@ -2911,6 +2907,10 @@ Handsontable.TableView = function (instance) {
     else {
       instance.destroyEditor();
     }
+  });
+
+  instance.rootElement.on('mousedown.handsontable', '.dragdealer', function (event) {
+    instance.destroyEditor();
   });
 
   instance.$table.on('selectstart', function (event) {
@@ -3106,6 +3106,9 @@ Handsontable.TableView = function (instance) {
     },
     beforeDraw: function (force) {
       that.beforeRender(force);
+    },
+    onDraw: function(force){
+      that.onDraw(force);
     }
   };
 
@@ -3175,13 +3178,16 @@ Handsontable.TableView.prototype.beforeRender = function (force) {
   }
 };
 
-Handsontable.TableView.prototype.render = function () {
-  this.wt.draw(!this.instance.forceFullRender);
-  this.instance.rootElement.triggerHandler('render.handsontable');
-  if (this.instance.forceFullRender) {
+Handsontable.TableView.prototype.onDraw = function(force){
+  if (force) {
     this.instance.PluginHooks.run('afterRender');
   }
+};
+
+Handsontable.TableView.prototype.render = function () {
+  this.wt.draw(!this.instance.forceFullRender);
   this.instance.forceFullRender = false;
+  this.instance.rootElement.triggerHandler('render.handsontable');
 };
 
 Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {
@@ -3413,10 +3419,9 @@ Handsontable.helper.extend = function (target, extension) {
  * Factory for columns constructors.
  * @param {Object} GridSettings
  * @param {Array} conflictList
- * @param {Object} defaultCell
  * @return {Object} ColumnSettings
  */
-Handsontable.helper.columnFactory = function (GridSettings, conflictList, defaultCell) {
+Handsontable.helper.columnFactory = function (GridSettings, conflictList) {
   var i = 0, len = conflictList.length, ColumnSettings = function () {
   };
 
@@ -3426,13 +3431,6 @@ Handsontable.helper.columnFactory = function (GridSettings, conflictList, defaul
   // Clear conflict settings
   for (; i < len; i++) {
     ColumnSettings.prototype[conflictList[i]] = void 0;
-  }
-
-  // Inherit settings from default (text) cell
-  for (i in defaultCell) {
-    if (defaultCell.hasOwnProperty(i)) {
-      ColumnSettings.prototype[i] = defaultCell[i];
-    }
   }
 
   return ColumnSettings;
@@ -3498,11 +3496,11 @@ Handsontable.helper.getCellMethod = function (methodName, methodFunction) {
  * @param element - DOM element
  * @returns {boolean}
  */
-Handsontable.helper.isOutsideInput = function(element){
+Handsontable.helper.isOutsideInput = function (element) {
   var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
 
   return inputs.indexOf(element.nodeName) > -1 && element.className.indexOf('handsontableInput') == -1;
-}
+};
 /**
  * Handsontable UndoRedo class
  */
@@ -3734,18 +3732,60 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
   }
   else {
     $input.on('mousedown', function (event) {
-      if (!this.checked) {
-        instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);
-      }
-      else {
-        instance.setDataAtRowProp(row, prop, cellProperties.uncheckedTemplate);
-      }
-
       event.stopPropagation(); //otherwise can confuse cell mousedown handler
     });
 
     $input.on('mouseup', function (event) {
       event.stopPropagation(); //otherwise can confuse cell dblclick handler
+    });
+
+    $input.on('change', function(){
+      if (this.checked) {
+        instance.setDataAtRowProp(row, prop, cellProperties.checkedTemplate);
+      }
+      else {
+        instance.setDataAtRowProp(row, prop, cellProperties.uncheckedTemplate);
+      }
+    });
+  }
+
+  if(!instance.CheckboxRenderer || !instance.CheckboxRenderer.beforeKeyDownHookBound){
+    instance.CheckboxRenderer = {
+      beforeKeyDownHookBound : true
+    };
+
+    instance.addHook('beforeKeyDown', function(event){
+       if(event.keyCode == 32){
+         event.stopImmediatePropagation();
+         event.preventDefault();
+
+         var selection = instance.getSelected();
+         var cell, checkbox, cellProperties;
+         var selStart = {
+           row: Math.min(selection[0], selection[2]),
+           col: Math.min(selection[1], selection[3])
+         };
+
+         var selEnd = {
+           row: Math.max(selection[0], selection[2]),
+           col: Math.max(selection[1], selection[3])
+         };
+
+         for(var row = selStart.row; row <= selEnd.row; row++ ){
+           for(var col = selEnd.col; col <= selEnd.col; col++){
+             cell = instance.getCell(row, col);
+             cellProperties = instance.getCellMeta(row, col);
+             checkbox = cell.querySelectorAll('input[type=checkbox]');
+
+             if(checkbox.length > 0 && !cellProperties.readOnly){
+               for(var i = 0, len = checkbox.length; i < len; i++){
+                 checkbox[i].checked = !checkbox[i].checked;
+               }
+             }
+
+           }
+         }
+       }
     });
   }
 
@@ -4309,7 +4349,7 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
     var output = this.hide(); //need to hide it before destroyEditor, because destroyEditor checks if menu is expanded
     that.instance.destroyEditor(true);
     var active = this.$menu[0].querySelector('.active');
-    var val = $(active).attr('data-value');
+    var val = active.getAttribute('data-value');
     if (val === that.emptyStringLabel) {
       val = '';
     }
@@ -4968,40 +5008,161 @@ Handsontable.PluginHookClass = (function () {
 
 Handsontable.PluginHooks = new Handsontable.PluginHookClass();
 
-function HandsontableAutoColumnSize() {
-  var that = this
-    , instance
-    , sampleCount = 5; //number of samples to take of each value length
+(function(Handsontable){
 
-  this.beforeInit = function () {
-    this.autoColumnWidths = [];
-    this.autoColumnSizeTmp = {
-      thead: null,
-      theadTh: null,
-      theadStyle: null,
-      tbody: null,
-      tbodyTd: null,
-      noRenderer: null,
-      noRendererTd: null,
-      renderer: null,
-      rendererTd: null,
-      container: null,
-      containerStyle: null
+  function HandsontableAutoColumnSize() {
+    var plugin = this
+      , sampleCount = 5; //number of samples to take of each value length
+
+    this.beforeInit = function () {
+      var instance = this;
+      instance.autoColumnWidths = [];
+
+      if(instance.getSettings().autoColumnSize !== false){
+
+        if(!instance.autoColumnSizeTmp){
+          instance.autoColumnSizeTmp = {
+            thead: null,
+            theadTh: null,
+            theadStyle: null,
+            tbody: null,
+            tbodyTd: null,
+            noRenderer: null,
+            noRendererTd: null,
+            renderer: null,
+            rendererTd: null,
+            container: null,
+            containerStyle: null
+          };
+        }
+
+        instance.addHook('beforeRender', htAutoColumnSize.determineColumnsWidth);
+        instance.addHook('afterGetColWidth', htAutoColumnSize.getColWidth);
+        instance.addHook('afterDestroy', htAutoColumnSize.afterDestroy);
+      } else {
+        instance.removeHook('beforeRender', htAutoColumnSize.determineColumnsWidth);
+        instance.removeHook('afterGetColWidth', htAutoColumnSize.getColWidth);
+        instance.removeHook('afterDestroy', htAutoColumnSize.afterDestroy);
+
+        plugin.afterDestroy.call(instance);
+
+      }
+
     };
-  };
 
-  this.determineColumnWidth = function (col) {
-    var tmp = instance.autoColumnSizeTmp
-      , d;
+    this.determineColumnWidth = function (col) {
+      var instance = this
+        , tmp = instance.autoColumnSizeTmp
+        , d;
 
-    if (!tmp.container) {
-      d = document;
+      if (!tmp.container) {
+        createTmpContainer.call(tmp, instance);
+        instance.rootElement[0].parentNode.appendChild(tmp.container);
+      }
+
+      tmp.container.className = instance.rootElement[0].className + ' hidden';
+      var cls = instance.$table[0].className;
+      tmp.thead.className = cls;
+      tmp.tbody.className = cls;
+
+      var rows = instance.countRows();
+      var samples = {};
+      var maxLen = 0;
+      for (var r = 0; r < rows; r++) {
+        var value = Handsontable.helper.stringify(instance.getDataAtCell(r, col));
+        var len = value.length;
+        if (len > maxLen) {
+          maxLen = len;
+        }
+        if (!samples[len]) {
+          samples[len] = {
+            needed: sampleCount,
+            strings: []
+          };
+        }
+        if (samples[len].needed) {
+          samples[len].strings.push(value);
+          samples[len].needed--;
+        }
+      }
+
+      var settings = instance.getSettings();
+      if (settings.colHeaders) {
+        instance.view.appendColHeader(col, tmp.theadTh); //TH innerHTML
+      }
+
+      var txt = '';
+      for (var i in samples) {
+        if (samples.hasOwnProperty(i)) {
+          for (var j = 0, jlen = samples[i].strings.length; j < jlen; j++) {
+            txt += samples[i].strings[j] + '<br>';
+          }
+        }
+      }
+      tmp.tbodyTd.innerHTML = txt; //TD innerHTML
+
+      instance.view.wt.wtDom.empty(tmp.rendererTd);
+      instance.view.wt.wtDom.empty(tmp.noRendererTd);
+
+      tmp.containerStyle.display = 'block';
+
+      var width = instance.view.wt.wtDom.outerWidth(tmp.container);
+
+      var cellProperties = instance.getCellMeta(0, col);
+      if (cellProperties.renderer) {
+        var str = instance.getDataAtCell(0, col);
+
+        tmp.noRendererTd.appendChild(document.createTextNode(str));
+        var renderer = Handsontable.helper.getCellMethod('renderer', cellProperties.renderer);
+        renderer(instance, tmp.rendererTd, 0, col, instance.colToProp(col), str, cellProperties);
+
+        width += instance.view.wt.wtDom.outerWidth(tmp.renderer) - instance.view.wt.wtDom.outerWidth(tmp.noRenderer); //add renderer overhead to the calculated width
+      }
+
+      var maxWidth = instance.view.wt.wtViewport.getViewportWidth() - 2; //2 is some overhead for cell border
+      if (width > maxWidth) {
+        width = maxWidth;
+      }
+
+      tmp.containerStyle.display = 'none';
+
+      return width;
+    };
+
+    this.determineColumnsWidth = function () {
+      var instance = this;
+      var settings = this.getSettings();
+      if (settings.autoColumnSize || !settings.colWidths) {
+        var cols = this.countCols();
+        for (var c = 0; c < cols; c++) {
+          if (!instance._getColWidthFromSettings(c)) {
+            this.autoColumnWidths[c] = plugin.determineColumnWidth.call(instance, c);
+          }
+        }
+      }
+    };
+
+    this.getColWidth = function (col, response) {
+      if (this.autoColumnWidths[col] && this.autoColumnWidths[col] > response.width) {
+        response.width = this.autoColumnWidths[col];
+      }
+    };
+
+    this.afterDestroy = function () {
+      var instance = this;
+      if (instance.autoColumnSizeTmp && instance.autoColumnSizeTmp.container && instance.autoColumnSizeTmp.container.parentNode) {
+        instance.autoColumnSizeTmp.container.parentNode.removeChild(instance.autoColumnSizeTmp.container);
+      }
+    };
+
+    function createTmpContainer(instance) {
+      var d = document
+        , tmp = this;
 
       tmp.thead = d.createElement('table');
       tmp.thead.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(d.createElement('th'));
       tmp.theadTh = tmp.thead.getElementsByTagName('th')[0];
 
-      tmp.thead.className = 'htTable';
       tmp.theadStyle = tmp.thead.style;
       tmp.theadStyle.tableLayout = 'auto';
       tmp.theadStyle.width = 'auto';
@@ -5025,110 +5186,15 @@ function HandsontableAutoColumnSize() {
       tmp.container.appendChild(tmp.noRenderer);
       tmp.container.appendChild(tmp.renderer);
 
-      instance.rootElement[0].parentNode.appendChild(tmp.container);
-    }
+    };
+  }
 
-    tmp.container.className = instance.rootElement[0].className + ' hidden';
-    var cls = instance.$table[0].className;
-    tmp.thead.className = cls;
-    tmp.tbody.className = cls;
+  var htAutoColumnSize = new HandsontableAutoColumnSize();
 
-    var rows = instance.countRows();
-    var samples = {};
-    var maxLen = 0;
-    for (var r = 0; r < rows; r++) {
-      var value = Handsontable.helper.stringify(instance.getDataAtCell(r, col));
-      var len = value.length;
-      if (len > maxLen) {
-        maxLen = len;
-      }
-      if (!samples[len]) {
-        samples[len] = {
-          needed: sampleCount,
-          strings: []
-        };
-      }
-      if (samples[len].needed) {
-        samples[len].strings.push(value);
-        samples[len].needed--;
-      }
-    }
+  Handsontable.PluginHooks.add('beforeInit', htAutoColumnSize.beforeInit);
+  Handsontable.PluginHooks.add('afterUpdateSettings', htAutoColumnSize.beforeInit);
 
-    var settings = instance.getSettings();
-    if (settings.colHeaders) {
-      instance.view.appendColHeader(col, tmp.theadTh); //TH innerHTML
-    }
-
-    var txt = '';
-    for (var i in samples) {
-      if (samples.hasOwnProperty(i)) {
-        for (var j = 0, jlen = samples[i].strings.length; j < jlen; j++) {
-          txt += samples[i].strings[j] + '<br>';
-        }
-      }
-    }
-    tmp.tbodyTd.innerHTML = txt; //TD innerHTML
-
-    instance.view.wt.wtDom.empty(tmp.rendererTd);
-    instance.view.wt.wtDom.empty(tmp.noRendererTd);
-
-    tmp.containerStyle.display = 'block';
-
-    var width = instance.view.wt.wtDom.outerWidth(tmp.container);
-
-    var cellProperties = instance.getCellMeta(0, col);
-    if (cellProperties.renderer) {
-      var str = 9999999999;
-
-      tmp.noRendererTd.appendChild(document.createTextNode(str));
-      var renderer = Handsontable.helper.getCellMethod('renderer', cellProperties.renderer);
-      renderer(instance, tmp.rendererTd, 0, col, instance.colToProp(col), str, cellProperties);
-
-      width += instance.view.wt.wtDom.outerWidth(tmp.renderer) - instance.view.wt.wtDom.outerWidth(tmp.noRenderer); //add renderer overhead to the calculated width
-    }
-
-    var maxWidth = instance.view.wt.wtViewport.getViewportWidth() - 2; //2 is some overhead for cell border
-    if (width > maxWidth) {
-      width = maxWidth;
-    }
-
-    tmp.containerStyle.display = 'none';
-
-    return width;
-  };
-
-  this.determineColumnsWidth = function () {
-    instance = this;
-    var settings = this.getSettings();
-    if (settings.autoColumnSize || !settings.colWidths) {
-      var cols = this.countCols();
-      for (var c = 0; c < cols; c++) {
-        if (!instance._getColWidthFromSettings(c)) {
-          this.autoColumnWidths[c] = that.determineColumnWidth(c);
-        }
-      }
-    }
-  };
-
-  this.getColWidth = function (col, response) {
-    if (this.autoColumnWidths[col] && this.autoColumnWidths[col] > response.width) {
-      response.width = this.autoColumnWidths[col];
-    }
-  };
-
-  this.afterDestroy = function () {
-    instance = this;
-    if (instance.autoColumnSizeTmp.container) {
-      instance.autoColumnSizeTmp.container.parentNode.removeChild(instance.autoColumnSizeTmp.container);
-    }
-  };
-}
-var htAutoColumnSize = new HandsontableAutoColumnSize();
-
-Handsontable.PluginHooks.add('beforeInit', htAutoColumnSize.beforeInit);
-Handsontable.PluginHooks.add('beforeRender', htAutoColumnSize.determineColumnsWidth);
-Handsontable.PluginHooks.add('afterGetColWidth', htAutoColumnSize.getColWidth);
-Handsontable.PluginHooks.add('afterDestroy', htAutoColumnSize.afterDestroy);
+})(Handsontable);
 
 /**
  * This plugin sorts the view by a column (but does not sort the data source!)
@@ -5144,7 +5210,7 @@ function HandsontableColumnSorting() {
     var sortingSettings = instance.getSettings().columnSorting;
     var sortingColumn, sortingOrder;
 
-    sortingEnabled = Boolean(sortingSettings);
+    sortingEnabled = !!(sortingSettings);
 
     if (sortingEnabled) {
       instance.sortIndex = [];
@@ -5160,10 +5226,20 @@ function HandsontableColumnSorting() {
       }
       plugin.sortByColumn.call(instance, sortingColumn, sortingOrder);
 
+      instance.sort = function(){
+        var args = Array.prototype.slice.call(arguments);
+
+        return plugin.sortByColumn.apply(instance, args)
+      }
 
       if (source == 'afterInit') {
         bindColumnSortingAfterClick.call(instance);
+
+        instance.addHook('afterCreateRow', plugin.afterCreateRow);
+        instance.addHook('afterRemoveRow', plugin.afterRemoveRow);
       }
+    } else {
+      delete instance.sort;
     }
   };
 
@@ -5189,12 +5265,15 @@ function HandsontableColumnSorting() {
     var instance = this;
 
     plugin.setSortingColumn.call(instance, col, order);
+
+    instance.PluginHooks.run('beforeColumnSort', instance.sortColumn, instance.sortOrder);
+
     plugin.sort.call(instance);
     instance.render();
 
     saveSortingState.call(instance);
 
-    instance.PluginHooks.run('afterSorting');
+    instance.PluginHooks.run('afterColumnSort', instance.sortColumn, instance.sortOrder);
   };
 
   var saveSortingState = function () {
@@ -5347,6 +5426,37 @@ function HandsontableColumnSorting() {
     }
   };
 
+  this.afterCreateRow = function(index, amount){
+    var instance = this;
+    instance.sortIndex.splice(index, 0, [index, instance.getData()[index][this.sortColumn + instance.colOffset()]]);
+
+    for(var i = 0; i < instance.sortIndex.length; i++){
+      if(i == index) continue;
+
+      if (instance.sortIndex[i][0] >= index){
+        instance.sortIndex[i][0] += 1;
+      }
+    }
+
+    saveSortingState.call(instance);
+
+  };
+
+  this.afterRemoveRow = function(index, amount){
+    var instance = this;
+    instance.sortIndex.splice(index, amount);
+
+    for(var i = 0; i < instance.sortIndex.length; i++){
+
+      if (instance.sortIndex[i][0] > index){
+        instance.sortIndex[i][0] -= amount;
+      }
+    }
+
+    saveSortingState.call(instance);
+
+  };
+
   this.afterChangeSort = function (changes/*, source*/) {
     var instance = this;
     var sortColumnChanged = false;
@@ -5385,11 +5495,21 @@ Handsontable.PluginHooks.add('beforeGet', htSortColumn.onBeforeGetSet);
 Handsontable.PluginHooks.add('beforeSet', htSortColumn.onBeforeGetSet);
 Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
 
-Handsontable.PluginHooks.add('afterCreateRow', htSortColumn.sort);
-Handsontable.PluginHooks.add('afterRemoveRow', htSortColumn.sort);
-Handsontable.PluginHooks.add('afterChange', htSortColumn.afterChangeSort);
-function createContextMenu() {
-  var instance = this
+
+(function(Handsontable){
+  function init(){
+    var instance = this;
+    var pluginEnabled = !!(instance.getSettings().contextMenu);
+
+    if(pluginEnabled){
+      createContextMenu.call(instance);
+    } else {
+      destroyContextMenu.call(instance);
+    }
+  }
+
+  function createContextMenu() {
+    var instance = this
       , selectorId = instance.rootElement[0].id
       , allItems = {
         "row_above": {name: "Insert row above", disabled: isDisabled},
@@ -5409,135 +5529,135 @@ function createContextMenu() {
         }}
       }
       , defaultOptions = {
-          selector : "#" + selectorId + ' table, #' + selectorId + ' div',
-          trigger  : 'right',
-          callback : onContextClick
-        }
+        selector : "#" + selectorId + ' table, #' + selectorId + ' div',
+        trigger  : 'right',
+        callback : onContextClick
+      }
       , options = {}
       , i
       , ilen
       , settings = instance.getSettings();
 
-  function onContextClick(key) {
-    var corners = instance.getSelected(); //[top left row, top left col, bottom right row, bottom right col]
+    function onContextClick(key) {
+      var corners = instance.getSelected(); //[top left row, top left col, bottom right row, bottom right col]
 
-    if (!corners) {
-      return; //needed when there are 2 grids on a page
-    }
-
-    switch (key) {
-      case "row_above":
-        instance.alter("insert_row", corners[0]);
-        break;
-
-      case "row_below":
-        instance.alter("insert_row", corners[2] + 1);
-        break;
-
-      case "col_left":
-        instance.alter("insert_col", corners[1]);
-        break;
-
-      case "col_right":
-        instance.alter("insert_col", corners[3] + 1);
-        break;
-
-      case "remove_row":
-        instance.alter(key, corners[0], (corners[2] - corners[0]) + 1);
-        break;
-
-      case "remove_col":
-        instance.alter(key, corners[1], (corners[3] - corners[1]) + 1);
-        break;
-
-      case "undo":
-        instance.undo();
-        break;
-
-      case "redo":
-        instance.redo();
-        break;
-    }
-  }
-
-  function isDisabled(key) {
-    //TODO rewrite
-    /*if (instance.blockedCols.main.find('th.htRowHeader.active').length && (key === "remove_col" || key === "col_left" || key === "col_right")) {
-     return true;
-     }
-     else if (instance.blockedRows.main.find('th.htColHeader.active').length && (key === "remove_row" || key === "row_above" || key === "row_below")) {
-     return true;
-     }
-     else*/
-    if (instance.countRows() >= instance.getSettings().maxRows && (key === "row_above" || key === "row_below")) {
-      return true;
-    }
-    else if (instance.countCols() >= instance.getSettings().maxCols && (key === "col_left" || key === "col_right")) {
-      return true;
-    }
-    else {
-      return false;
-    }
-  }
-
-  if (!settings.contextMenu) {
-    return;
-  }
-  else if (settings.contextMenu === true) { //contextMenu is true
-    options.items = allItems;
-  }
-  else if (Object.prototype.toString.apply(settings.contextMenu) === '[object Array]') { //contextMenu is an array
-    options.items = {};
-    for (i = 0, ilen = settings.contextMenu.length; i < ilen; i++) {
-      var key = settings.contextMenu[i];
-      if (typeof allItems[key] === 'undefined') {
-        throw new Error('Context menu key "' + key + '" is not recognised');
+      if (!corners) {
+        return; //needed when there are 2 grids on a page
       }
-      options.items[key] = allItems[key];
+
+      switch (key) {
+        case "row_above":
+          instance.alter("insert_row", corners[0]);
+          break;
+
+        case "row_below":
+          instance.alter("insert_row", corners[2] + 1);
+          break;
+
+        case "col_left":
+          instance.alter("insert_col", corners[1]);
+          break;
+
+        case "col_right":
+          instance.alter("insert_col", corners[3] + 1);
+          break;
+
+        case "remove_row":
+          instance.alter(key, corners[0], (corners[2] - corners[0]) + 1);
+          break;
+
+        case "remove_col":
+          instance.alter(key, corners[1], (corners[3] - corners[1]) + 1);
+          break;
+
+        case "undo":
+          instance.undo();
+          break;
+
+        case "redo":
+          instance.redo();
+          break;
+      }
     }
-  }
-  else if (Object.prototype.toString.apply(settings.contextMenu) === '[object Object]') { //contextMenu is an options object as defined in http://medialize.github.com/jQuery-contextMenu/docs.html
-    options = settings.contextMenu;
-    if (options.items) {
-      for (i in options.items) {
-        if (options.items.hasOwnProperty(i) && allItems[i]) {
-          if (typeof options.items[i] === 'string') {
-            options.items[i] = allItems[i];
-          }
-          else {
-            options.items[i] = $.extend(true, allItems[i], options.items[i]);
+
+    function isDisabled(key) {
+      //TODO rewrite
+      /*if (instance.blockedCols.main.find('th.htRowHeader.active').length && (key === "remove_col" || key === "col_left" || key === "col_right")) {
+       return true;
+       }
+       else if (instance.blockedRows.main.find('th.htColHeader.active').length && (key === "remove_row" || key === "row_above" || key === "row_below")) {
+       return true;
+       }
+       else*/
+      if (instance.countRows() >= instance.getSettings().maxRows && (key === "row_above" || key === "row_below")) {
+        return true;
+      }
+      else if (instance.countCols() >= instance.getSettings().maxCols && (key === "col_left" || key === "col_right")) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+
+    if (settings.contextMenu === true) { //contextMenu is true
+      options.items = allItems;
+    }
+    else if (Object.prototype.toString.apply(settings.contextMenu) === '[object Array]') { //contextMenu is an array
+      options.items = {};
+      for (i = 0, ilen = settings.contextMenu.length; i < ilen; i++) {
+        var key = settings.contextMenu[i];
+        if (typeof allItems[key] === 'undefined') {
+          throw new Error('Context menu key "' + key + '" is not recognised');
+        }
+        options.items[key] = allItems[key];
+      }
+    }
+    else if (Object.prototype.toString.apply(settings.contextMenu) === '[object Object]') { //contextMenu is an options object as defined in http://medialize.github.com/jQuery-contextMenu/docs.html
+      options = settings.contextMenu;
+      if (options.items) {
+        for (i in options.items) {
+          if (options.items.hasOwnProperty(i) && allItems[i]) {
+            if (typeof options.items[i] === 'string') {
+              options.items[i] = allItems[i];
+            }
+            else {
+              options.items[i] = $.extend(true, allItems[i], options.items[i]);
+            }
           }
         }
       }
-    }
-    else {
-      options.items = allItems;
-    }
+      else {
+        options.items = allItems;
+      }
 
-    if (options.callback) {
-      var handsontableCallback = defaultOptions.callback;
-      var customCallback = options.callback;
-      options.callback = function (key, options) {
-        handsontableCallback(key, options);
-        customCallback(key, options);
+      if (options.callback) {
+        var handsontableCallback = defaultOptions.callback;
+        var customCallback = options.callback;
+        options.callback = function (key, options) {
+          handsontableCallback(key, options);
+          customCallback(key, options);
+        }
       }
     }
+
+    if (!selectorId) {
+      throw new Error("Handsontable container must have an id");
+    }
+
+    $.contextMenu($.extend(true, defaultOptions, options));
   }
 
-  if (!selectorId) {
-    throw new Error("Handsontable container must have an id");
+  function destroyContextMenu() {
+    var id = this.rootElement[0].id;
+    $.contextMenu('destroy', "#" + id + ' table, #' + id + ' div');
   }
 
-  $.contextMenu($.extend(true, defaultOptions, options));
-}
+  Handsontable.PluginHooks.add('afterInit', init);
+  Handsontable.PluginHooks.add('afterUpdateSettings', init);
+  Handsontable.PluginHooks.add('afterDestroy', destroyContextMenu);
 
-function destroyContextMenu() {
-  var id = this.rootElement[0].id;
-  $.contextMenu('destroy', "#" + id + ' table, #' + id + ' div');
-}
-
-Handsontable.PluginHooks.add('afterInit', createContextMenu);
-Handsontable.PluginHooks.add('afterDestroy', destroyContextMenu);
+})(Handsontable);
 /**
  * This plugin adds support for legacy features, deprecated APIs, etc.
  */
@@ -5602,37 +5722,6 @@ function HandsontableManualColumnMove() {
   ghostStyle.backgroundColor = '#CCC';
   ghostStyle.opacity = 0.7;
 
-  $(document).mousemove(function (e) {
-    if (pressed) {
-      ghostStyle.left = startOffset + e.pageX - startX + 6 + 'px';
-      if (ghostStyle.display === 'none') {
-        ghostStyle.display = 'block';
-      }
-    }
-  });
-
-  $(document).mouseup(function () {
-    if (pressed) {
-      if (startCol < endCol) {
-        endCol--;
-      }
-      if (instance.getSettings().rowHeaders) {
-        startCol--;
-        endCol--;
-      }
-      instance.manualColumnPositions.splice(endCol, 0, instance.manualColumnPositions.splice(startCol, 1)[0]);
-      $('.manualColumnMover.active').removeClass('active');
-      pressed = false;
-      instance.forceFullRender = true;
-      instance.view.render(); //updates all
-      ghostStyle.display = 'none';
-
-      saveManualColumnPositions.call(instance);
-
-      instance.PluginHooks.run('afterColumnMove', startCol, endCol);
-    }
-  });
-
   var saveManualColumnPositions = function () {
     var instance = this;
 
@@ -5649,13 +5738,44 @@ function HandsontableManualColumnMove() {
 
 
   var bindMoveColEvents = function () {
-    var that = this;
-    this.rootElement.on('mousedown.handsontable', '.manualColumnMover', function (e) {
-      instance = that;
+    var instance = this;
+
+    $(document).on('mousemove.' + instance.guid, function (e) {
+      if (pressed) {
+        ghostStyle.left = startOffset + e.pageX - startX + 6 + 'px';
+        if (ghostStyle.display === 'none') {
+          ghostStyle.display = 'block';
+        }
+      }
+    });
+
+    $(document).on('mouseup.' + instance.guid, function () {
+      if (pressed) {
+        if (startCol < endCol) {
+          endCol--;
+        }
+        if (instance.getSettings().rowHeaders) {
+          startCol--;
+          endCol--;
+        }
+        instance.manualColumnPositions.splice(endCol, 0, instance.manualColumnPositions.splice(startCol, 1)[0]);
+        $('.manualColumnMover.active').removeClass('active');
+        pressed = false;
+        instance.forceFullRender = true;
+        instance.view.render(); //updates all
+        ghostStyle.display = 'none';
+
+        saveManualColumnPositions.call(instance);
+
+        instance.PluginHooks.run('afterColumnMove', startCol, endCol);
+      }
+    });
+
+    this.rootElement.on('mousedown.' + instance.guid, '.manualColumnMover', function (e) {
 
       var mover = e.currentTarget;
       var TH = instance.view.wt.wtDom.closest(mover, 'TH');
-      startCol = instance.view.wt.wtDom.index(TH);
+      startCol = instance.view.wt.wtDom.index(TH) + instance.colOffset();
       pressed = true;
       startX = e.pageX;
 
@@ -5666,19 +5786,30 @@ function HandsontableManualColumnMove() {
       startOffset = parseInt(instance.view.wt.wtDom.offset(TH).left - instance.view.wt.wtDom.offset(TABLE).left, 10);
       ghostStyle.left = startOffset + 6 + 'px';
     });
-    this.rootElement.on('mouseenter.handsontable', 'td, th', function () {
+
+    this.rootElement.on('mouseenter.' + instance.guid, 'td, th', function () {
       if (pressed) {
         var active = instance.view.THEAD.querySelector('.manualColumnMover.active');
         if (active) {
           instance.view.wt.wtDom.removeClass(active, 'active');
         }
-        endCol = instance.view.wt.wtDom.index(this);
+        endCol = instance.view.wt.wtDom.index(this) + instance.colOffset();
         var THs = instance.view.THEAD.querySelectorAll('th');
         var mover = THs[endCol].querySelector('.manualColumnMover');
         instance.view.wt.wtDom.addClass(mover, 'active');
       }
     });
+
+    instance.addHook('afterDestroy', unbindMoveColEvents);
   };
+
+  var unbindMoveColEvents = function(){
+    var instance = this;
+    $(document).off('mouseup.' + instance.guid);
+    $(document).off('mousemove.' + instance.guid);
+    instance.rootElement.off('mousedown.' + instance.guid);
+    instance.rootElement.off('mouseenter.' + instance.guid);
+  }
 
   this.beforeInit = function () {
     this.manualColumnPositions = [];
@@ -5687,7 +5818,7 @@ function HandsontableManualColumnMove() {
   this.init = function (source) {
     var instance = this;
 
-    var manualColMoveEnabled = Boolean(this.getSettings().manualColumnMove);
+    var manualColMoveEnabled = !!(this.getSettings().manualColumnMove);
 
     if (manualColMoveEnabled) {
       var initialManualColumnPositions = this.getSettings().manualColumnMove;
@@ -5715,6 +5846,7 @@ function HandsontableManualColumnMove() {
       }
 
     } else {
+      unbindMoveColEvents.call(this);
       this.manualColumnPositions = [];
     }
   };
@@ -5744,6 +5876,7 @@ Handsontable.PluginHooks.add('beforeInit', htManualColumnMove.beforeInit);
 Handsontable.PluginHooks.add('afterInit', function () {
   htManualColumnMove.init.call(this, 'afterInit')
 });
+
 Handsontable.PluginHooks.add('afterUpdateSettings', function () {
   htManualColumnMove.init.call(this, 'afterUpdateSettings')
 });
@@ -5884,7 +6017,7 @@ function HandsontableManualColumnResize() {
 
   this.init = function (source) {
     var instance = this;
-    var manualColumnWidthEnabled = Boolean(this.getSettings().manualColumnResize);
+    var manualColumnWidthEnabled = !!(this.getSettings().manualColumnResize);
 
     if (manualColumnWidthEnabled) {
       var initialColumnWidths = this.getSettings().manualColumnResize;
@@ -5939,288 +6072,23 @@ Handsontable.PluginHooks.add('afterUpdateSettings', function () {
 Handsontable.PluginHooks.add('afterGetColWidth', htManualColumnResize.getColWidth);
 
 function HandsontableObserveChanges() {
-  // begin shim code
-  // fragments from https://github.com/Starcounter-Jack/JSON-Patch/blob/master/src/json-patch-duplex.js
-  //
-  // json-patch.js 0.3
-  // (c) 2013 Joachim Wester
-  // MIT license
-  var observeOps = {
-    'new': function (patches, path) {
-      var patch = {
-        op: "add",
-        path: path + "/" + this.name,
-        value: this.object[this.name]
-      };
-      patches.push(patch);
-    },
-    deleted: function (patches, path) {
-      var patch = {
-        op: "remove",
-        path: path + "/" + this.name
-      };
-      patches.push(patch);
-    },
-    updated: function (patches, path) {
-      var patch = {
-        op: "replace",
-        path: path + "/" + this.name,
-        value: this.object[this.name]
-      };
-      patches.push(patch);
-    }
-  };
+  this.init = function () {
+    var instance = this;
+    var pluginEnabled = instance.getSettings().observeChanges;
 
-  function markPaths(observer, node) {
-    for (var key in node) {
-      if (node.hasOwnProperty(key)) {
-        var kid = node[key];
-        if (kid instanceof Object) {
-          Object.unobserve(kid, observer);
-          kid.____Path = node.____Path + "/" + key;
-          markPaths(observer, kid);
-        }
-      }
-    }
-  }
-
-  function clearPaths(observer, node) {
-    delete node.____Path;
-    Object.observe(node, observer);
-    for (var i = 0, nodeLen = node.length; i < nodeLen; i++) {
-      var kid = node[i];
-      if (kid instanceof Object) {
-        clearPaths(observer, kid);
-      }
-    }
-  }
-
-  var beforeDict = [];
-  var callbacks = [];
-
-  function observe(obj, callback) {
-    var patches = [];
-    var root = obj;
-    if (Object.observe) {
-      var observer = function (arr) {
-        if (!root.___Path) {
-          Object.unobserve(root, observer);
-          root.____Path = "";
-          markPaths(observer, root);
-
-          for (var index = 0, arrLen = arr.length; i < arrLen; i++) {
-            var elem = arr[index];
-
-            if (elem.name != "____Path") {
-              observeOps[elem.type].call(elem, patches, elem.object.____Path);
-            }
-          }
-
-          clearPaths(observer, root);
-        }
-        if (callback) {
-          callback.call(patches);
-        }
-      };
-    } else {
-      observer = {
-      };
-      var mirror;
-      for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
-        if (beforeDict[i].obj === obj) {
-          mirror = beforeDict[i];
-          break;
-        }
-      }
-      if (!mirror) {
-        mirror = {
-          obj: obj
-        };
-        beforeDict.push(mirror);
-      }
-
-      mirror.value = deepCopy(obj);
-
-      if (callback) {
-        callbacks.push(callback);
-        var next;
-        var intervals = [
-          100
-        ];
-        var currentInterval = 0;
-        var dirtyCheck = function () {
-          var temp = generate(observer);
-          if (temp.length > 0) {
-            observer.patches = [];
-            callback.call(null, temp);
-          }
-        };
-        var fastCheck = function () {
-          clearTimeout(next);
-          next = setTimeout(function () {
-            dirtyCheck();
-            currentInterval = 0;
-            next = setTimeout(slowCheck, intervals[currentInterval++]);
-          }, 0);
-        };
-        var slowCheck = function () {
-          dirtyCheck();
-          if (currentInterval == intervals.length) {
-            currentInterval = intervals.length - 1;
-          }
-          next = setTimeout(slowCheck, intervals[currentInterval++]);
-        };
-
-        if (window.addEventListener) {
-          window.addEventListener('mousedown', fastCheck);
-          window.addEventListener('mouseup', fastCheck);
-          window.addEventListener('keydown', fastCheck);
-        } else {
-          //IE8 has different syntax
-          window.attachEvent('onmousedown', fastCheck);
-          window.attachEvent('onmouseup', fastCheck);
-          window.attachEvent('onkeydown', fastCheck);
-        }
-
-        next = setTimeout(slowCheck, intervals[currentInterval++]);
-      }
-    }
-    observer.patches = patches;
-    observer.object = obj;
-    return _observe(observer, obj, patches);
-  }
-
-  /// Listen to changes on an object tree, accumulate patches
-  function _observe(observer, obj, patches) {
-    if (Object.observe) {
-      Object.observe(obj, observer);
-    }
-    for (var key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        var v = obj[key];
-        if (v && typeof (v) === "object") {
-          _observe(observer, v, patches);
-        }
-      }
-    }
-    return observer;
-  }
-
-  function generate(observer) {
-    if (Object.observe) {
-      Object.deliverChangeRecords(observer);
-    } else {
-      var mirror;
-      for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
-        if (beforeDict[i].obj === observer.object) {
-          mirror = beforeDict[i];
-          break;
-        }
-      }
-      _generate(mirror.value, observer.object, observer.patches, "");
-    }
-    return observer.patches;
-  }
-
-  function _generate(mirror, obj, patches, path) {
-    var newKeys = []
-      , oldKeys = []
-      , key;
-
-    for (key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        newKeys.push(key);
-      }
-    }
-
-    for (key in mirror) {
-      if (mirror.hasOwnProperty(key)) {
-        oldKeys.push(key);
-      }
-    }
-
-    var changed = false;
-    var deleted = false;
-    var t;
-    for (t = 0; t < oldKeys.length; t++) {
-      key = oldKeys[t];
-      var oldVal = mirror[key];
-      if (obj.hasOwnProperty(key)) {
-        var newVal = obj[key];
-        if (oldVal instanceof Object) {
-          _generate(oldVal, newVal, patches, path + "/" + key);
-        } else {
-          if (oldVal != newVal) {
-            changed = true;
-            patches.push({
-              op: "replace",
-              path: path + "/" + key,
-              value: newVal
-            });
-            mirror[key] = newVal;
-          }
-        }
-      } else {
-        patches.push({
-          op: "remove",
-          path: path + "/" + key
-        });
-        deleted = true;
-      }
-    }
-    if (!deleted && newKeys.length == oldKeys.length) {
-      return;
-    }
-    for (t = 0; t < newKeys.length; t++) {
-      key = newKeys[t];
-      if (!mirror.hasOwnProperty(key)) {
-        patches.push({
-          op: "add",
-          path: path + "/" + key,
-          value: obj[key]
-        });
-      }
-    }
-  }
-
-  //end shim code
-
-
-  this.afterLoadData = function () {
-    if (!this.observer && this.getSettings().observeChanges) {
-      var that = this;
-      this.observer = observe(this.getData(), function () {
-        that.render();
+    if (!instance.observer && pluginEnabled) {
+      instance.observer = jsonpatch.observe(instance.getData(), function () {
+          instance.render();
       });
+    } else if (instance.observer && !pluginEnabled){
+      jsonpatch.unobserve(instance.getData(), instance.observer);
     }
   };
-
-  /*
-   Description: Performs JSON-safe deep cloning. Equivalent of JSON.parse(JSON.stringify()).
-   Based on deepClone7() by Kyle Simpson (https://github.com/getify)
-   Source: http://jsperf.com/deep-cloning-of-objects,
-   http://jsperf.com/structured-clone-objects/2
-   https://developer.mozilla.org/en-US/docs/Web/Guide/DOM/The_structured_clone_algorithm
-   */
-
-  function deepCopy(objToBeCopied) {
-    if (objToBeCopied === null || !(objToBeCopied instanceof Object)) {
-      return objToBeCopied;
-    }
-    var copiedObj, fConstr = objToBeCopied.constructor;
-    copiedObj = new fConstr();
-    for (var sProp in objToBeCopied) {
-      if (objToBeCopied.hasOwnProperty(sProp)) {
-        copiedObj[sProp] = deepCopy(objToBeCopied[sProp]);
-      }
-    }
-    return copiedObj;
-  }
-
 }
 var htObserveChanges = new HandsontableObserveChanges();
 
-Handsontable.PluginHooks.add('afterLoadData', htObserveChanges.afterLoadData);
+Handsontable.PluginHooks.add('afterLoadData', htObserveChanges.init);
+Handsontable.PluginHooks.add('afterUpdateSettings', htObserveChanges.init);
 /*
  *
  * Plugin enables saving table state
@@ -6292,7 +6160,7 @@ function Storage(prefix) {
       var instance = this,
         pluginSettings = instance.getSettings()['persistentState'];
 
-      plugin.enabled = Boolean(pluginSettings);
+      plugin.enabled = !!(pluginSettings);
 
       if (!plugin.enabled) {
         removeHooks.call(instance);
@@ -6917,6 +6785,437 @@ CopyPasteClass.prototype._bindEvent = (function () {
     };
   }
 })();
+var jsonpatch;
+(function (jsonpatch) {
+    var objOps = {
+        add: function (obj, key) {
+            obj[key] = this.value;
+            return true;
+        },
+        remove: function (obj, key) {
+            delete obj[key];
+            return true;
+        },
+        replace: function (obj, key) {
+            obj[key] = this.value;
+            return true;
+        },
+        move: function (obj, key, tree) {
+            var temp = {
+                op: "_get",
+                path: this.from
+            };
+            apply(tree, [
+                temp
+            ]);
+            apply(tree, [
+                {
+                    op: "remove",
+                    path: this.from
+                }
+            ]);
+            apply(tree, [
+                {
+                    op: "add",
+                    path: this.path,
+                    value: temp.value
+                }
+            ]);
+            return true;
+        },
+        copy: function (obj, key, tree) {
+            var temp = {
+                op: "_get",
+                path: this.from
+            };
+            apply(tree, [
+                temp
+            ]);
+            apply(tree, [
+                {
+                    op: "add",
+                    path: this.path,
+                    value: temp.value
+                }
+            ]);
+            return true;
+        },
+        test: function (obj, key) {
+            return (JSON.stringify(obj[key]) === JSON.stringify(this.value));
+        },
+        _get: function (obj, key) {
+            this.value = obj[key];
+        }
+    };
+    var arrOps = {
+        add: function (arr, i) {
+            arr.splice(i, 0, this.value);
+        },
+        remove: function (arr, i) {
+            arr.splice(i, 1);
+        },
+        replace: function (arr, i) {
+            arr[i] = this.value;
+        },
+        move: objOps.move,
+        copy: objOps.copy,
+        test: objOps.test,
+        _get: objOps._get
+    };
+    var observeOps = {
+        'new': function (patches, path) {
+            //single quotes needed because 'new' is a keyword in IE8
+            var patch = {
+                op: "add",
+                path: path + "/" + this.name,
+                value: this.object[this.name]
+            };
+            patches.push(patch);
+        },
+        deleted: function (patches, path) {
+            var patch = {
+                op: "remove",
+                path: path + "/" + this.name
+            };
+            patches.push(patch);
+        },
+        updated: function (patches, path) {
+            var patch = {
+                op: "replace",
+                path: path + "/" + this.name,
+                value: this.object[this.name]
+            };
+            patches.push(patch);
+        }
+    };
+    // ES6 symbols are not here yet. Used to calculate the json pointer to each object
+    function markPaths(observer, node) {
+        for(var key in node) {
+            if(node.hasOwnProperty(key)) {
+                var kid = node[key];
+                if(kid instanceof Object) {
+                    Object.unobserve(kid, observer);
+                    kid.____Path = node.____Path + "/" + key;
+                    markPaths(observer, kid);
+                }
+            }
+        }
+    }
+    // Detach poor mans ES6 symbols
+    function clearPaths(observer, node) {
+        delete node.____Path;
+        Object.observe(node, observer);
+        for(var key in node) {
+            if(node.hasOwnProperty(key)) {
+                var kid = node[key];
+                if(kid instanceof Object) {
+                    clearPaths(observer, kid);
+                }
+            }
+        }
+    }
+    var beforeDict = [];
+    //var callbacks = []; this has no purpose
+    jsonpatch.intervals;
+    function unobserve(root, observer) {
+        if(Object.observe) {
+            Object.unobserve(root, observer);
+            markPaths(observer, root);
+        } else {
+            clearTimeout(observer.next);
+            observer.unbindWindowEvents();
+        }
+    }
+    jsonpatch.unobserve = unobserve;
+    function observe(obj, callback) {
+        var patches = [];
+        var root = obj;
+        if(Object.observe) {
+            var observer = function (arr) {
+                if(!root.___Path) {
+                    Object.unobserve(root, observer);
+                    root.____Path = "";
+                    markPaths(observer, root);
+                    var a = 0, alen = arr.length;
+                    while(a < alen) {
+                        if(arr[a].name != "____Path") {
+                            observeOps[arr[a].type].call(arr[a], patches, arr[a].object.____Path);
+                        }
+                        a++;
+                    }
+                    clearPaths(observer, root);
+                }
+                if(callback) {
+                    callback(patches);
+                }
+                observer.patches = patches;
+                patches = [];
+            };
+        } else {
+            observer = {
+            };
+            var mirror;
+            for(var i = 0, ilen = beforeDict.length; i < ilen; i++) {
+                if(beforeDict[i].obj === obj) {
+                    mirror = beforeDict[i];
+                    break;
+                }
+            }
+            if(!mirror) {
+                mirror = {
+                    obj: obj
+                };
+                beforeDict.push(mirror);
+            }
+            mirror.value = JSON.parse(JSON.stringify(obj))// Faster than ES5 clone - http://jsperf.com/deep-cloning-of-objects/5
+            ;
+            if(callback) {
+                //callbacks.push(callback); this has no purpose
+                observer.callback = callback;
+                observer.next = null;
+                this.intervals = this.intervals || [
+                    100, 
+                    1000, 
+                    10000, 
+                    60000
+                ];
+
+                observer.currentInterval = 0;
+
+                if(typeof window !== 'undefined') {
+                    //not Node
+                    bindWindowEvents(observer);
+                }
+
+                observer.next = setTimeout(function(){
+                  slowCheck(observer);
+                }, this.intervals[observer.currentInterval++]);
+            }
+        }
+        observer.patches = patches;
+        observer.object = obj;
+        return _observe(observer, obj, patches);
+    }
+    jsonpatch.observe = observe;
+    /// Listen to changes on an object tree, accumulate patches
+    function _observe(observer, obj, patches) {
+        if(Object.observe) {
+            Object.observe(obj, observer);
+            for(var key in obj) {
+                if(obj.hasOwnProperty(key)) {
+                    var v = obj[key];
+                    if(v && typeof (v) === "object") {
+                        _observe(observer, v, patches)//path+key);
+                        ;
+                    }
+                }
+            }
+        }
+        return observer;
+    }
+
+    function dirtyCheck (observer) {
+      generate(observer);
+    }
+
+    function fastCheck (observer) {
+      clearTimeout(observer.next);
+      observer.next = setTimeout(function () {
+        dirtyCheck(observer);
+        observer.currentInterval = 0;
+        observer.next = setTimeout(function(){
+          slowCheck(observer);
+        }, jsonpatch.intervals[observer.currentInterval++]);
+      }, 0);
+    }
+
+    function slowCheck (observer) {
+      dirtyCheck(observer);
+      if(observer.currentInterval == jsonpatch.intervals.length) {
+        observer.currentInterval = jsonpatch.intervals.length - 1;
+      }
+      observer.next = setTimeout(function(){
+        slowCheck(observer);
+      }, jsonpatch.intervals[observer.currentInterval++]);
+    }
+
+    function bindWindowEvents(observer){
+
+      var fastCheckObserver = function(){
+        fastCheck(observer);
+      };
+
+      if(window.addEventListener) {
+        //standards
+        window.addEventListener('mousedown', fastCheckObserver);
+        window.addEventListener('mouseup', fastCheckObserver);
+        window.addEventListener('keydown', fastCheckObserver);
+
+        observer.unbindWindowEvents = function(){
+          window.removeEventListener('mousedown', fastCheckObserver);
+          window.removeEventListener('mouseup', fastCheckObserver);
+          window.removeEventListener('keydown', fastCheckObserver);
+        };
+
+      } else {
+        //IE8
+        window.attachEvent('onmousedown', fastCheckObserver);
+        window.attachEvent('onmouseup', fastCheckObserver);
+        window.attachEvent('onkeydown', fastCheckObserver);
+
+        observer.unbindWindowEvents = function(){
+          window.detachEvent('mousedown', fastCheckObserver);
+          window.detachEvent('mouseup', fastCheckObserver);
+          window.detachEvent('keydown', fastCheckObserver);
+        };
+      }
+    }
+
+    function generate(observer) {
+        if(Object.observe) {
+            Object.deliverChangeRecords(observer);
+        } else {
+            var mirror;
+            for(var i = 0, ilen = beforeDict.length; i < ilen; i++) {
+                if(beforeDict[i].obj === observer.object) {
+                    mirror = beforeDict[i];
+                    break;
+                }
+            }
+            _generate(mirror.value, observer.object, observer.patches, "");
+        }
+        var temp = observer.patches;
+        if(temp.length > 0) {
+            observer.patches = [];
+            if(observer.callback) {
+                observer.callback(temp);
+            }
+        }
+        return temp;
+    }
+    jsonpatch.generate = generate;
+    var _objectKeys;
+    if(Object.keys) {
+        //standards
+        _objectKeys = Object.keys;
+    } else {
+        //IE8 shim
+        _objectKeys = function (obj) {
+            var keys = [];
+            for(var o in obj) {
+                if(obj.hasOwnProperty(o)) {
+                    keys.push(o);
+                }
+            }
+            return keys;
+        };
+    }
+    // Dirty check if obj is different from mirror, generate patches and update mirror
+    function _generate(mirror, obj, patches, path) {
+        var newKeys = _objectKeys(obj);
+        var oldKeys = _objectKeys(mirror);
+        var changed = false;
+        var deleted = false;
+        for(var t = 0; t < oldKeys.length; t++) {
+            var key = oldKeys[t];
+            var oldVal = mirror[key];
+            if(obj.hasOwnProperty(key)) {
+                var newVal = obj[key];
+                if(oldVal instanceof Object) {
+                    _generate(oldVal, newVal, patches, path + "/" + key);
+                } else {
+                    if(oldVal != newVal) {
+                        changed = true;
+                        patches.push({
+                            op: "replace",
+                            path: path + "/" + key,
+                            value: newVal
+                        });
+                        mirror[key] = newVal;
+                    }
+                }
+            } else {
+                patches.push({
+                    op: "remove",
+                    path: path + "/" + key
+                });
+                deleted = true// property has been deleted
+                ;
+            }
+        }
+        if(!deleted && newKeys.length == oldKeys.length) {
+            return;
+        }
+        for(var t = 0; t < newKeys.length; t++) {
+            var key = newKeys[t];
+            if(!mirror.hasOwnProperty(key)) {
+                patches.push({
+                    op: "add",
+                    path: path + "/" + key,
+                    value: obj[key]
+                });
+            }
+        }
+    }
+    var _isArray;
+    if(Array.isArray) {
+        //standards; http://jsperf.com/isarray-shim/4
+        _isArray = Array.isArray;
+    } else {
+        //IE8 shim
+        _isArray = function (obj) {
+            return obj.push && typeof obj.length === 'number';
+        };
+    }
+    /// Apply a json-patch operation on an object tree
+    function apply(tree, patches, listen) {
+        var result = false, p = 0, plen = patches.length, patch;
+        while(p < plen) {
+            patch = patches[p];
+            // Find the object
+            var keys = patch.path.split('/');
+            var obj = tree;
+            var t = 1;//skip empty element - http://jsperf.com/to-shift-or-not-to-shift
+            
+            var len = keys.length;
+            while(true) {
+                if(_isArray(obj)) {
+                    var index = parseInt(keys[t], 10);
+                    t++;
+                    if(t >= len) {
+                        result = arrOps[patch.op].call(patch, obj, index, tree)// Apply patch
+                        ;
+                        break;
+                    }
+                    obj = obj[index];
+                } else {
+                    var key = keys[t];
+                    if(key.indexOf('~') != -1) {
+                        key = key.replace('~1', '/').replace('~0', '~');
+                    }// escape chars
+                    
+                    t++;
+                    if(t >= len) {
+                        result = objOps[patch.op].call(patch, obj, key, tree)// Apply patch
+                        ;
+                        break;
+                    }
+                    obj = obj[key];
+                }
+            }
+            p++;
+        }
+        return result;
+    }
+    jsonpatch.apply = apply;
+})(jsonpatch || (jsonpatch = {}));
+if(typeof exports !== "undefined") {
+    exports.apply = jsonpatch.apply;
+    exports.observe = jsonpatch.observe;
+    exports.unobserve = jsonpatch.unobserve;
+    exports.generate = jsonpatch.generate;
+}
+
 function WalkontableBorder(instance, settings) {
   var style;
 
@@ -7476,7 +7775,7 @@ Walkontable.prototype.draw = function (selectionsOnly) {
   this.lastOffsetRow = this.getSetting('offsetRow');
   this.lastOffsetColumn = this.getSetting('offsetColumn');
   this.wtTable.draw(selectionsOnly);
-  this.getSetting('onDraw');
+  this.getSetting('onDraw',  !selectionsOnly);
   return this;
 };
 
@@ -8468,10 +8767,6 @@ WalkontableScrollbar.prototype.refresh = function () {
     this.sliderStyle.height = Math.max(sliderSize, 0) + 'px';
   }
   else { //horizontal
-    if (this.instance.wtTable.columnStrategy.isLastIncomplete()) {
-      visibleCount--;
-    }
-
     sliderSize = tableWidth - 2; //2 is sliders border-width
 
     this.sliderStyle.left = this.instance.wtDom.offset(this.$table[0]).left - this.instance.wtDom.offset(this.container).left + 'px';
@@ -8559,6 +8854,13 @@ WalkontableHorizontalScrollbar.prototype.readSettings = function () {
   this.handlePosition = parseInt(this.handleStyle.left, 10);
   this.sliderSize = parseInt(this.sliderStyle.width, 10);
   this.fixedCount = this.instance.getSetting('fixedColumnsLeft');
+};
+
+WalkontableHorizontalScrollbar.prototype.getHandleSizeRatio = function (viewportCount, totalCount) {
+  if (!totalCount || viewportCount > totalCount || viewportCount == totalCount) {
+    return 1;
+  }
+  return viewportCount / totalCount;
 };
 function WalkontableScrollbarNative() {
   this.lastWindowScrollPosition = NaN;
@@ -9754,7 +10056,8 @@ function WalkontableWheel(instance) {
     return;
   }
 
-  $(instance.wtTable.TABLE).on('mousewheel', function (event, delta, deltaX, deltaY) {
+  //spreader === instance.wtTable.TABLE.parentNode
+  $(instance.wtTable.spreader).on('mousewheel', function (event, delta, deltaX, deltaY) {
     if (!deltaX && !deltaY && delta) { //we are in IE8, see https://github.com/brandonaaron/jquery-mousewheel/issues/53
       deltaY = delta;
     }
@@ -10048,7 +10351,6 @@ Dragdealer.prototype =
 		
 		this.preventDefaults(e, true);
 		this.startDrag();
-		this.cancelEvent(e);
 	},
 	wrapperDownHandler: function(e)
 	{
@@ -10061,7 +10363,6 @@ Dragdealer.prototype =
 	{
 		this.stopDrag();
 		this.stopTap();
-		//this.cancelEvent(e);
 	},
 	documentResizeHandler: function(e)
 	{
@@ -10559,6 +10860,59 @@ if (!jQuery.browser) {
     }
 
 }));
+
+/**
+ * Array.filter() shim by Trevor Menagh (https://github.com/trevmex) with some modifications
+ */
+
+if (!Array.prototype.filter) {
+  Array.prototype.filter = function (fun, thisp) {
+    "use strict";
+
+    if (typeof this === "undefined" || this === null) {
+      throw new TypeError();
+    }
+    if (typeof fun !== "function") {
+      throw new TypeError();
+    }
+
+    thisp = thisp || this;
+
+    if (isNodeList(thisp)) {
+      thisp = convertNodeListToArray(thisp);
+    }
+
+    var len = thisp.length,
+      res = [],
+      i,
+      val;
+
+    for (i = 0; i < len; i += 1) {
+      if (thisp.hasOwnProperty(i)) {
+        val = thisp[i]; // in case fun mutates this
+        if (fun.call(thisp, val, i, thisp)) {
+          res.push(val);
+        }
+      }
+    }
+
+    return res;
+
+    function isNodeList(object) {
+      return /NodeList/i.test(object.item);
+    }
+
+    function convertNodeListToArray(nodeList) {
+      var array = [];
+
+      for (var i = 0, len = nodeList.length; i < len; i++){
+        array[i] = nodeList[i]
+      }
+
+      return array;
+    }
+  };
+}
 
 })(jQuery, window, Handsontable);
 /* =============================================================
