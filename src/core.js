@@ -435,6 +435,33 @@ Handsontable.Core = function (rootElement, userSettings) {
     getAll: function () {
       return priv.settings.data;
     },
+    
+    
+    /**
+     * Returns the data array without values: null, '' and undefined 
+     * @return {Array}
+     */
+    getNonEmpty: function () {
+      var nonEmpty = []; 
+      var foundNonEmpty = false;
+      
+      for (var r = instance.countRows()-1; r >= 0 ; r--) {
+        for (var c = instance.countCols()-1; c >= 0; c--) {
+          var value = priv.settings.data[r][c];
+          if (value !== null && value !== '' && typeof value !== 'undefined') {
+            console.log(r, c, priv.settings.data[r][c]);
+            foundNonEmpty = true;
+            break;
+          }
+        }
+        if (foundNonEmpty==true) {
+            nonEmpty.splice(0, 0, priv.settings.data[r].slice(0,c+1));
+        } else if (r==0) {
+            return [[]];
+        }
+      }
+      return nonEmpty;
+    },
 
     /**
      * Returns data range as array
@@ -1928,7 +1955,11 @@ Handsontable.Core = function (rootElement, userSettings) {
       return datamap.getRange({row: r, col: c}, {row: r2, col: c2});
     }
   };
-
+  
+  this.getNonEmptyData = function() {
+    return datamap.getNonEmpty();
+  }
+  
   /**
    * Update settings
    * @public
