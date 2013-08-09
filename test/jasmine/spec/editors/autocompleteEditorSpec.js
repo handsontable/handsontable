@@ -110,15 +110,23 @@ describe('AutocompleteEditor', function () {
 
 
   });
+
+  it('should restore the old value when hovered over a autocomplete menu item and then clicked outside of the table', function () {
     handsontable({
       autoComplete: getAutocompleteConfig(false)
     });
+
     selectCell(2, 2);
-    $(getCell(2, 2)).trigger("dblclick");
 
-    $('body').click();
+    expect(getDataAtCell(2,2)).toBeNull();
 
-    expect(isAutocompleteVisible()).toEqual(false);
+    keyDownUp('enter');
+
+    autocomplete().$menu.find('li:eq(1)').mouseenter();
+
+    $('body').mousedown();
+
+    expect(getDataAtCell(2,2)).toBeNull();
   });
 
   it('autocomplete textarea should have cell dimensions', function () {

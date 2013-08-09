@@ -195,7 +195,8 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, value,
     instance.autocompleteEditor = new HandsontableAutocompleteEditorClass(instance);
   }
   instance.autocompleteEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
-  return function (isCancelled) {
+  return function () {
+    var isCancelled = true;
     instance.autocompleteEditor.finishEditing(isCancelled);
   }
 };
