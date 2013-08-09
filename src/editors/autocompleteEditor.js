@@ -97,7 +97,7 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
 
   this.typeahead.select = function () {
     var output = this.hide(); //need to hide it before destroyEditor, because destroyEditor checks if menu is expanded
-    that.instance.destroyEditor(true);
+
     var active = this.$menu[0].querySelector('.active');
     var val = active.getAttribute('data-value');
     if (val === that.emptyStringLabel) {
@@ -107,8 +107,11 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
       cellProperties.onSelect(row, col, prop, val, that.instance.view.wt.wtDom.index(active));
     }
     else {
-      that.instance.setDataAtRowProp(row, prop, val);
+      that.TEXTAREA.value = val;
     }
+
+    that.finishEditing();
+
     return output;
   };
 
@@ -155,12 +158,13 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
  */
 HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (!isCancelled) {
-    if (this.isMenuExpanded() && this.typeahead.$menu[0].querySelector('.active')) {
-      this.typeahead.select();
-      this.state = this.STATE_FINISHED; //cell value was updated by this.typeahead.select (issue #405)
-    }
-    else if (this.cellProperties.strict) {
-      this.state = this.STATE_FINISHED; //cell value was not picked from this.typeahead.select (issue #405)
+    if (this.isMenuExpanded()) {
+      if(this.typeahead.$menu[0].querySelector('.active')){
+        this.typeahead.select();
+        this.state = this.STATE_FINISHED;
+      } else if (this.cellProperties.strict) {
+        this.state = this.STATE_FINISHED;
+      }
     }
   }
 
