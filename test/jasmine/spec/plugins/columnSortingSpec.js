@@ -514,6 +514,25 @@ describe('ColumnSorting', function () {
     expect(this.beforeColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0);
   });
 
+  it("should add beforeColumnSort event listener in constructor", function () {
+
+    var beforeColumnSortCallback = jasmine.createSpy('beforeColumnSortHandler');
+
+    var hot = handsontable({
+      data: [[2], [4], [1], [3]],
+      columnSorting: true,
+      beforeColumnSort: beforeColumnSortCallback
+    });
+
+    var sortColumn = 0;
+    var sortOrder = true;
+
+    hot.sort(sortColumn, sortOrder);
+
+    expect(beforeColumnSortCallback.callCount).toEqual(1);
+    expect(beforeColumnSortCallback).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0);
+  });
+
   it("should fire afterColumnSort event before data has been sorted", function () {
 
     var hot = handsontable({
@@ -539,6 +558,25 @@ describe('ColumnSorting', function () {
 
     expect(this.afterColumnSortHandler.callCount).toEqual(1);
     expect(this.afterColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0);
+  });
+
+  it("should add beforeColumnSort event listener in constructor", function () {
+
+    var afterColumnSortCallback = jasmine.createSpy('afterColumnSortHandler');
+
+    var hot = handsontable({
+      data: [[2], [4], [1], [3]],
+      columnSorting: true,
+      beforeColumnSort: afterColumnSortCallback
+    });
+
+    var sortColumn = 0;
+    var sortOrder = true;
+
+    hot.sort(sortColumn, sortOrder);
+
+    expect(afterColumnSortCallback.callCount).toEqual(1);
+    expect(afterColumnSortCallback).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0);
   });
 
 });

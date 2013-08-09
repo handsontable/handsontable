@@ -68,6 +68,10 @@ function HandsontableColumnSorting() {
 
     plugin.setSortingColumn.call(instance, col, order);
 
+    if(typeof instance.sortColumn == 'undefined'){
+      return;
+    }
+
     instance.PluginHooks.run('beforeColumnSort', instance.sortColumn, instance.sortOrder);
 
     plugin.sort.call(instance);
