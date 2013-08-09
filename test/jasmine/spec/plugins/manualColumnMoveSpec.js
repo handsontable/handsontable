@@ -177,4 +177,35 @@ describe('manualColumnMove', function () {
       $secondColHeader.trigger('mouseup');
     }
   });
+
+  it("should not move the column if you click the handle without dragging", function () {
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+      ],
+      colHeaders: true,
+      manualColumnMove: true
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
+
+    selectCell(0, 0);
+
+    var $colHeader = this.$container.find('thead tr:eq(0) th:eq(2)');
+    var $manualColumnMover = $colHeader.find('.manualColumnMover');
+
+    //Grab the column
+    var mouseDownEvent = $.Event('mousedown');
+    mouseDownEvent.pageX = $manualColumnMover.position().left;
+    $manualColumnMover.trigger(mouseDownEvent);
+
+    //Drop it without dragging
+    $colHeader.trigger('mouseup');
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
+  })
 });

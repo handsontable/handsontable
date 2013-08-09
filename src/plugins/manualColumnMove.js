@@ -72,6 +72,7 @@ function HandsontableManualColumnMove() {
       var mover = e.currentTarget;
       var TH = instance.view.wt.wtDom.closest(mover, 'TH');
       startCol = instance.view.wt.wtDom.index(TH) + instance.colOffset();
+      endCol = startCol;
       pressed = true;
       startX = e.pageX;
 
