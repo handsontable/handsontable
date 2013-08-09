@@ -62,6 +62,12 @@ var handsontableMouseTriggerFactory = function (type) {
 
 var mouseDown = handsontableMouseTriggerFactory('mousedown');
 var mouseUp = handsontableMouseTriggerFactory('mouseup');
+var mouseDoubleClick = function(element){
+    mouseDown(element);
+    mouseUp(element);
+    mouseDown(element);
+    mouseUp(element);
+};
 
 /**
  * Returns a function that triggers a key event
