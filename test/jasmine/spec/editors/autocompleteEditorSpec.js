@@ -68,18 +68,48 @@ describe('AutocompleteEditor', function () {
   });
 
   it('should destroy editor when mouse double clicked then Esc', function () {
-    handsontable({
+    var hot = handsontable({
       autoComplete: getAutocompleteConfig(false)
     });
     selectCell(2, 2);
-    $(getCell(2, 2)).trigger("dblclick");
 
-    keyDownUp('esc');
+    mouseDoubleClick(getCell(2,2));
 
-    expect(isAutocompleteVisible()).toEqual(false);
+    waitsFor(function(){
+      return hot.autocompleteEditor.isMenuExpanded();
+    }, 'Autocomplete menu open', 1000);
+
+    runs(function(){
+      expect(isAutocompleteVisible()).toEqual(true);
+
+      keyDownUp('esc');
+
+      expect(isAutocompleteVisible()).toEqual(false);
+    });
   });
 
   it('should destroy editor when clicked outside the table', function () {
+    var hot = handsontable({
+      autoComplete: getAutocompleteConfig(false)
+    });
+    selectCell(2, 2);
+
+    mouseDoubleClick(getCell(2,2));
+
+    waitsFor(function(){
+      return hot.autocompleteEditor.isMenuExpanded();
+    }, 'Autocomplete menu open', 1000);
+
+    runs(function(){
+      expect(isAutocompleteVisible()).toEqual(true);
+
+      $('body').mousedown();
+
+      expect(isAutocompleteVisible()).toEqual(false);
+    });
+
+
+  });
     handsontable({
       autoComplete: getAutocompleteConfig(false)
     });
