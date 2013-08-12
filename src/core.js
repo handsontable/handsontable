@@ -436,9 +436,8 @@ Handsontable.Core = function (rootElement, userSettings) {
       return priv.settings.data;
     },
     
-    
     /**
-     * Returns the data array without values: null, '' and undefined 
+     * Returns the data array with trailing items equal to null, and '' removed 
      * @return {Array}
      */
     getNonEmpty: function () {
@@ -449,7 +448,6 @@ Handsontable.Core = function (rootElement, userSettings) {
         for (var c = instance.countCols()-1; c >= 0; c--) {
           var value = priv.settings.data[r][c];
           if (value !== null && value !== '' && typeof value !== 'undefined') {
-            console.log(r, c, priv.settings.data[r][c]);
             foundNonEmpty = true;
             break;
           }
