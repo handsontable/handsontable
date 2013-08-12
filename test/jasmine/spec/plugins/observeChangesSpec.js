@@ -233,4 +233,222 @@ describe('HandsontableObserveChanges', function () {
     });
 
   });
+
+  it("should be possible to pause observing changes without disabling the plugin", function () {
+    var data = createSpreadsheetData(2, 2);
+    var hot = createHOT(data, true);
+
+    var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+    hot.addHook('afterRender', afterRenderSpy);
+
+    data[0][0] = 'new string';
+
+    waitsFor(function(){
+      return afterRenderSpy.callCount > 0;
+    }, 'Table render', 1000);
+
+    runs(function () {
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('new string');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A1');
+    });
+
+    runs(function(){
+      hot.pauseObservingChanges();
+
+      data[1][0] = 'another new string';
+    });
+
+    waits(100);
+
+
+    runs(function(){
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('new string');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A1');
+    });
+
+
+
+    runs(function(){
+      hot.render();
+
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('new string');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('another new string');
+    });
+
+  });
+
+  it("should be possible to resume observing changes after it was paused", function () {
+    var data = createSpreadsheetData(2, 2);
+    var hot = createHOT(data, true);
+
+    var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+    hot.addHook('afterRender', afterRenderSpy);
+
+    hot.pauseObservingChanges();
+
+    data[0][0] = 'new string';
+
+    waits(100);
+
+    runs(function(){
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('A0');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A1');
+    });
+
+    runs(function(){
+      hot.resumeObservingChanges();
+      data[1][0] = 'another new string';
+      afterRenderSpy.reset();
+    });
+
+    waitsFor(function(){
+      return afterRenderSpy.calls.length > 0;
+    }, 'Table render', 1000);
+
+
+    runs(function(){
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('new string');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('another new string');
+    });
+
+
+
+  });
+
+  it("should fire afterChangesObserved event after changes has been noticed", function () {
+    var data = createSpreadsheetData(2, 2);
+    var hot = createHOT(data, true);
+
+    var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+    hot.addHook('afterChangesObserved', afterChangesObservedCallback);
+
+    data[0][0] = 'new string';
+
+    waitsFor(function(){
+      return afterChangesObservedCallback.calls.length > 0;
+    }, 'afterChangesObserved event fire', 1000);
+
+
+    runs(function(){
+      expect(afterChangesObservedCallback.calls.length).toEqual(1);
+    });
+  });
+
+  describe("using HOT data manipulation methods, when observeChanges plugin is enabled", function () {
+    it("should run render ONCE after detecting that new row has been added", function () {
+      var data = createSpreadsheetData(2, 2);
+      var hot = createHOT(data, true);
+
+      var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+      hot.addHook('afterRender', afterRenderSpy);
+
+      var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+      hot.addHook('afterChangesObserved', afterChangesObservedCallback);
+
+      alter('insert_row');
+
+      waitsFor(function(){
+        return afterChangesObservedCallback.calls.length > 0;
+      }, 'afterChangesObserved event fire', 1000);
+
+      runs(function () {
+        expect(countRows()).toEqual(3);
+        expect(afterRenderSpy.calls.length).toEqual(1);
+      });
+    });
+
+    it("should run render ONCE after detecting that row has been removed", function () {
+      var data = createSpreadsheetData(2, 2);
+      var hot = createHOT(data, true);
+
+      var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+      hot.addHook('afterRender', afterRenderSpy);
+
+      var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+      hot.addHook('afterChangesObserved', afterChangesObservedCallback);
+
+      alter('remove_row');
+
+      waitsFor(function(){
+        return afterChangesObservedCallback.calls.length > 0;
+      }, 'afterChangesObserved event fire', 1000);
+
+
+      runs(function () {
+        expect(countRows()).toEqual(1);
+        expect(afterChangesObservedCallback.calls.length).toEqual(1);
+        expect(afterRenderSpy.calls.length).toEqual(1);
+      });
+    });
+
+    it("should run render ONCE after detecting that new column has been added", function () {
+      var data = createSpreadsheetData(2, 2);
+      var hot = createHOT(data, true);
+
+      var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+      hot.addHook('afterRender', afterRenderSpy);
+
+      var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+      hot.addHook('afterChangesObserved', afterChangesObservedCallback);
+
+      alter('insert_col');
+
+      waitsFor(function(){
+        return afterChangesObservedCallback.calls.length > 0;
+      }, 'afterChangesObserved event fire', 1000);
+
+      runs(function () {
+        expect(countCols()).toEqual(3);
+        expect(afterRenderSpy.calls.length).toEqual(1);
+      });
+    });
+
+    it("should run render ONCE after detecting that column has been removed", function () {
+      var data = createSpreadsheetData(2, 2);
+      var hot = createHOT(data, true);
+
+      var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+      hot.addHook('afterRender', afterRenderSpy);
+
+      var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+      hot.addHook('afterChangesObserved', afterChangesObservedCallback);
+
+      alter('remove_col');
+
+      waitsFor(function(){
+        return afterChangesObservedCallback.calls.length > 0;
+      }, 'afterChangesObserved event fire', 1000);
+
+
+      runs(function () {
+        expect(countCols()).toEqual(1);
+        expect(afterChangesObservedCallback.calls.length).toEqual(1);
+        expect(afterRenderSpy.calls.length).toEqual(1);
+      });
+    });
+
+    it("should run render ONCE after detecting that table data has changed", function () {
+      var data = createSpreadsheetData(2, 2);
+      var hot = createHOT(data, true);
+
+      var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+      hot.addHook('afterRender', afterRenderSpy);
+
+      var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+      hot.addHook('afterChangesObserved', afterChangesObservedCallback);
+
+      setDataAtCell(0, 0, 'new value');
+
+      waitsFor(function(){
+        return afterChangesObservedCallback.calls.length > 0;
+      }, 'afterChangesObserved event fire', 1000);
+
+
+      runs(function () {
+        expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('new value');
+        expect(afterChangesObservedCallback.calls.length).toEqual(1);
+        expect(afterRenderSpy.calls.length).toEqual(1);
+      });
+    });
+  });
 });
