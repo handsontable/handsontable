@@ -29,13 +29,79 @@
       instance.observeChangesActive = true;
     };
 
-    instance.observer = jsonpatch.observe(instance.getData(), function () {
+    instance.observer = jsonpatch.observe(instance.getData(), function (patches) {
       if(instance.observeChangesActive){
+        runHookForOperation.call(instance, patches);
         instance.render();
       }
 
       instance.runHooks('afterChangesObserved');
     });
+  }
+
+  function runHookForOperation(rawPatches){
+    var instance = this;
+    var patches = removeMultipleAddOrRemoveColPatches(rawPatches);
+
+    for(var i = 0, len = patches.length; i < len; i++){
+      var patch = patches[i];
+      var parsedPath = parsePath(patch.path);
+
+
+      switch(patch.op){
+        case 'add':
+          if(isNaN(parsedPath.col)){
+            instance.runHooks('afterCreateRow', parsedPath.row);
+          } else {
+            instance.runHooks('afterCreateCol', parsedPath.col);
+          }
+          break;
+
+        case 'remove':
+          if(isNaN(parsedPath.col)){
+            instance.runHooks('afterRemoveRow', parsedPath.row, 1);
+          } else {
+            instance.runHooks('afterRemoveCol', parsedPath.col, 1);
+          }
+          break;
+
+        case 'replace':
+          instance.runHooks('afterChange', [parsedPath.row, parsedPath.col, null, patch.value], 'external');
+          break;
+      }
+    }
+
+    /**
+     * Removing or adding column will produce one patch for each table row.
+     * This function leaves only one patch for each column add/remove operation
+     */
+    function removeMultipleAddOrRemoveColPatches(rawPatches){
+      var newOrRemovedColumns = [];
+
+      return rawPatches.filter(function(patch){
+        var parsedPath = parsePath(patch.path);
+
+        if(['add', 'remove'].indexOf(patch.op) != -1 && !isNaN(parsedPath.col)){
+          if(newOrRemovedColumns.indexOf(parsedPath.col) != -1){
+            return false;
+          } else {
+            newOrRemovedColumns.push(parsedPath.col);
+          }
+        }
+
+        return true;
+      });
+
+    }
+
+    function parsePath(path){
+      var match = path.match(/^\/(\d)\/?(\d)?$/);
+
+      return {
+        row: parseInt(match[1], 10),
+        col: parseInt(match[2], 10)
+      }
+    }
   }
 
   function destroy(){
