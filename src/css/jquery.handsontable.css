@@ -256,7 +256,7 @@ textarea.handsontableInput {
 /*
 TextRenderer readOnly cell
 */
-.handsontable .htDimmed {
+.handsontable .htCore .htDimmed {
   font-style: italic;
   color: #777;
 }
@@ -294,7 +294,7 @@ CheckboxRenderer
 /*
 NumericRenderer
 */
-.handsontable .htNumeric {
+.handsontable .htCore .htNumeric {
   text-align: right;
 }
 
