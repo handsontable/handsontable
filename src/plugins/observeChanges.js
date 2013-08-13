@@ -41,7 +41,7 @@
 
   function runHookForOperation(rawPatches){
     var instance = this;
-    var patches = removeMultipleAddOrRemoveColPatches(rawPatches);
+    var patches = cleanPatches(rawPatches);
 
     for(var i = 0, len = patches.length; i < len; i++){
       var patch = patches[i];
@@ -71,6 +71,15 @@
       }
     }
 
+    function cleanPatches(rawPatches){
+      var patches;
+
+      patches = removeLengthRelatedPatches(rawPatches);
+      patches = removeMultipleAddOrRemoveColPatches(patches);
+
+      return patches;
+    }
+
     /**
      * Removing or adding column will produce one patch for each table row.
      * This function leaves only one patch for each column add/remove operation
@@ -92,6 +101,16 @@
         return true;
       });
 
+    }
+
+    /**
+     * If observeChanges uses native Object.observe method, then it produces patches for length property.
+     * This function removes them.
+     */
+    function removeLengthRelatedPatches(rawPatches){
+      return rawPatches.filter(function(patch){
+        return !/[/]length/ig.test(patch.path);
+      })
     }
 
     function parsePath(path){
