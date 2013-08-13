@@ -5,7 +5,7 @@ Handsontable.UndoRedo = function (instance) {
   var that = this;
   this.instance = instance;
   this.clear();
-  Handsontable.PluginHooks.add("afterChange", function (changes, origin) {
+  instance.addHook("afterChange", function (changes, origin) {
     if (origin !== 'undo' && origin !== 'redo') {
       that.add(changes, origin);
     }
