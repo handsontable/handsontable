@@ -541,4 +541,50 @@ describe('ColumnSorting', function () {
     expect(this.afterColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0);
   });
 
+  it("should display new row added directly to dataSource, when observeChanges plugin is enabled", function () {
+    var data = [
+      [1, 'B'],
+      [0, 'A'],
+      [3, 'D'],
+      [2, 'C']
+    ];
+
+    var hot = handsontable({
+      data: data,
+      colHeaders: true,
+      columnSorting: true,
+      observeChanges: true
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
+
+    this.sortByColumn(0);
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+
+    expect(this.$container.find('tbody tr').length).toEqual(4);
+
+    var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+    hot.addHook('afterChangesObserved', afterChangesObservedCallback);
+
+    data.push([5, 'E']);
+
+    waitsFor(function(){
+      return afterChangesObservedCallback.calls.length > 0;
+    }, 'afterChangesObserved event fire', 1000);
+
+    runs(function(){
+      expect(countRows()).toEqual(5);
+      expect(this.$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('5');
+      expect(this.$container.find('tbody tr:eq(4) td:eq(1)').text()).toEqual('E');
+    });
+
+
+  });
 });
