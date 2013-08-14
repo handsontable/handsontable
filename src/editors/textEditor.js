@@ -178,7 +178,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
       }
       event.preventDefault(); //prevent new line at the end of textarea
       event.stopImmediatePropagation();
-    } else if (event.keyCode == 16){ //shift
+    } else { // other non printable character
       that.instance.addHookOnce('beforeKeyDown', beforeKeyDownHook);
     }
   };
