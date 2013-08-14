@@ -19,7 +19,8 @@ describe('UndoRedo', function () {
       });
       var HOT = getInstance();
 
-      setDataAtCell(0, 0, 'new value');
+      setDataAtCell(0, 0, 'X0');
+      expect(getDataAtCell(0, 0)).toBe('X0');
 
       HOT.undo();
       expect(getDataAtCell(0, 0)).toBe('A0');
@@ -95,6 +96,147 @@ describe('UndoRedo', function () {
       var keyboardEvent = $.Event('keydown', {ctrlKey: true, keyCode: 'Z'.charCodeAt(0)});
       this.$container.trigger(keyboardEvent);
       expect(getDataAtCell(0, 0)).toBe('A0');
+    });
+
+    it("should undo multiple changes", function () {
+      handsontable({
+        data: createSpreadsheetData(2, 2)
+      });
+      var HOT = getInstance();
+
+      setDataAtCell(0, 0, 'X0');
+      setDataAtCell(1, 0, 'X1');
+      setDataAtCell(0, 1, 'Y0');
+      setDataAtCell(1, 1, 'Y1');
+
+      expect(getDataAtCell(0, 0)).toBe('X0');
+      expect(getDataAtCell(1, 0)).toBe('X1');
+      expect(getDataAtCell(0, 1)).toBe('Y0');
+      expect(getDataAtCell(1, 1)).toBe('Y1');
+
+      HOT.undo();
+      expect(getDataAtCell(0, 0)).toBe('X0');
+      expect(getDataAtCell(1, 0)).toBe('X1');
+      expect(getDataAtCell(0, 1)).toBe('Y0');
+      expect(getDataAtCell(1, 1)).toBe('B1');
+
+      HOT.undo();
+      expect(getDataAtCell(0, 0)).toBe('X0');
+      expect(getDataAtCell(1, 0)).toBe('X1');
+      expect(getDataAtCell(0, 1)).toBe('B0');
+      expect(getDataAtCell(1, 1)).toBe('B1');
+
+      HOT.undo();
+      expect(getDataAtCell(0, 0)).toBe('X0');
+      expect(getDataAtCell(1, 0)).toBe('A1');
+      expect(getDataAtCell(0, 1)).toBe('B0');
+      expect(getDataAtCell(1, 1)).toBe('B1');
+
+      HOT.undo();
+      expect(getDataAtCell(0, 0)).toBe('A0');
+      expect(getDataAtCell(1, 0)).toBe('A1');
+      expect(getDataAtCell(0, 1)).toBe('B0');
+      expect(getDataAtCell(1, 1)).toBe('B1');
+
+      HOT.undo();
+      expect(getDataAtCell(0, 0)).toBe('A0');
+      expect(getDataAtCell(1, 0)).toBe('A1');
+      expect(getDataAtCell(0, 1)).toBe('B0');
+      expect(getDataAtCell(1, 1)).toBe('B1');
+
+    });
+
+    it('should undo multiple row creations', function () {
+      var HOT = handsontable({
+        data: createSpreadsheetData(2, 2)
+      });
+
+      expect(countRows()).toEqual(2);
+
+      alter('insert_row');
+      alter('insert_row');
+      alter('insert_row');
+      alter('insert_row');
+
+      expect(countRows()).toEqual(6);
+
+      HOT.undo();
+      expect(countRows()).toEqual(5);
+
+      HOT.undo();
+      expect(countRows()).toEqual(4);
+
+      HOT.undo();
+      expect(countRows()).toEqual(3);
+
+      HOT.undo();
+      expect(countRows()).toEqual(2);
+
+      HOT.undo();
+      expect(countRows()).toEqual(2);
+
+    });
+
+    it('should undo multiple row removals', function () {
+      var HOT = handsontable({
+        data: createSpreadsheetData(4, 2)
+      });
+
+      expect(countRows()).toEqual(4);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+      expect(getDataAtCell(2, 0)).toEqual('A2');
+      expect(getDataAtCell(2, 1)).toEqual('B2');
+      expect(getDataAtCell(3, 0)).toEqual('A3');
+      expect(getDataAtCell(3, 1)).toEqual('B3');
+
+      alter('remove_row');
+      alter('remove_row');
+      alter('remove_row');
+
+      expect(countRows()).toEqual(1);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+
+      HOT.undo();
+      expect(countRows()).toEqual(2);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+
+      HOT.undo();
+      expect(countRows()).toEqual(3);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+      expect(getDataAtCell(2, 0)).toEqual('A2');
+      expect(getDataAtCell(2, 1)).toEqual('B2');
+
+      HOT.undo();
+      expect(countRows()).toEqual(4);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+      expect(getDataAtCell(2, 0)).toEqual('A2');
+      expect(getDataAtCell(2, 1)).toEqual('B2');
+      expect(getDataAtCell(3, 0)).toEqual('A3');
+      expect(getDataAtCell(3, 1)).toEqual('B3');
+
+      HOT.undo();
+      expect(countRows()).toEqual(4);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+      expect(getDataAtCell(2, 0)).toEqual('A2');
+      expect(getDataAtCell(2, 1)).toEqual('B2');
+      expect(getDataAtCell(3, 0)).toEqual('A3');
+      expect(getDataAtCell(3, 1)).toEqual('B3');
     });
 
     it('should undo changes only for table where the change actually took place', function(){
@@ -263,6 +405,169 @@ describe('UndoRedo', function () {
       this.$container.trigger(keyboardEvent);
 
       expect(getDataAtCell(0, 0)).toBe('new value');
+    });
+
+    it("should redo multiple changes", function () {
+      handsontable({
+        data: createSpreadsheetData(2, 2)
+      });
+      var HOT = getInstance();
+
+      setDataAtCell(0, 0, 'X0');
+      setDataAtCell(1, 0, 'X1');
+      setDataAtCell(0, 1, 'Y0');
+      setDataAtCell(1, 1, 'Y1');
+
+      expect(getDataAtCell(0, 0)).toBe('X0');
+      expect(getDataAtCell(1, 0)).toBe('X1');
+      expect(getDataAtCell(0, 1)).toBe('Y0');
+      expect(getDataAtCell(1, 1)).toBe('Y1');
+
+      HOT.undo();
+      HOT.undo();
+      HOT.undo();
+      HOT.undo();
+
+      expect(getDataAtCell(0, 0)).toBe('A0');
+      expect(getDataAtCell(1, 0)).toBe('A1');
+      expect(getDataAtCell(0, 1)).toBe('B0');
+      expect(getDataAtCell(1, 1)).toBe('B1');
+
+      HOT.redo();
+      expect(getDataAtCell(0, 0)).toBe('X0');
+      expect(getDataAtCell(1, 0)).toBe('A1');
+      expect(getDataAtCell(0, 1)).toBe('B0');
+      expect(getDataAtCell(1, 1)).toBe('B1');
+
+      HOT.redo();
+      expect(getDataAtCell(0, 0)).toBe('X0');
+      expect(getDataAtCell(1, 0)).toBe('X1');
+      expect(getDataAtCell(0, 1)).toBe('B0');
+      expect(getDataAtCell(1, 1)).toBe('B1');
+
+      HOT.redo();
+      expect(getDataAtCell(0, 0)).toBe('X0');
+      expect(getDataAtCell(1, 0)).toBe('X1');
+      expect(getDataAtCell(0, 1)).toBe('Y0');
+      expect(getDataAtCell(1, 1)).toBe('B1');
+
+      HOT.redo();
+      expect(getDataAtCell(0, 0)).toBe('X0');
+      expect(getDataAtCell(1, 0)).toBe('X1');
+      expect(getDataAtCell(0, 1)).toBe('Y0');
+      expect(getDataAtCell(1, 1)).toBe('Y1');
+
+      HOT.redo();
+      expect(getDataAtCell(0, 0)).toBe('X0');
+      expect(getDataAtCell(1, 0)).toBe('X1');
+      expect(getDataAtCell(0, 1)).toBe('Y0');
+      expect(getDataAtCell(1, 1)).toBe('Y1');
+
+    });
+
+    it('should redo multiple row creations', function () {
+      var HOT = handsontable({
+        data: createSpreadsheetData(2, 2)
+      });
+
+      expect(countRows()).toEqual(2);
+
+      alter('insert_row');
+      alter('insert_row');
+      alter('insert_row');
+      alter('insert_row');
+
+      expect(countRows()).toEqual(6);
+
+      HOT.undo();
+      HOT.undo();
+      HOT.undo();
+      HOT.undo();
+
+      expect(countRows()).toEqual(2);
+
+      HOT.redo();
+      expect(countRows()).toEqual(3);
+
+      HOT.redo();
+      expect(countRows()).toEqual(4);
+
+      HOT.redo();
+      expect(countRows()).toEqual(5);
+
+
+      HOT.redo();
+      expect(countRows()).toEqual(6);
+
+
+      HOT.redo();
+      expect(countRows()).toEqual(6);
+
+
+    });
+
+    it('should undo multiple row removals', function () {
+      var HOT = handsontable({
+        data: createSpreadsheetData(4, 2)
+      });
+
+      expect(countRows()).toEqual(4);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+      expect(getDataAtCell(2, 0)).toEqual('A2');
+      expect(getDataAtCell(2, 1)).toEqual('B2');
+      expect(getDataAtCell(3, 0)).toEqual('A3');
+      expect(getDataAtCell(3, 1)).toEqual('B3');
+
+      alter('remove_row');
+      alter('remove_row');
+      alter('remove_row');
+
+      expect(countRows()).toEqual(1);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+
+      HOT.undo();
+      HOT.undo();
+      HOT.undo();
+
+      expect(countRows()).toEqual(4);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+      expect(getDataAtCell(2, 0)).toEqual('A2');
+      expect(getDataAtCell(2, 1)).toEqual('B2');
+      expect(getDataAtCell(3, 0)).toEqual('A3');
+      expect(getDataAtCell(3, 1)).toEqual('B3');
+
+      HOT.redo();
+      expect(countRows()).toEqual(3);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+      expect(getDataAtCell(2, 0)).toEqual('A2');
+      expect(getDataAtCell(2, 1)).toEqual('B2');
+
+      HOT.redo();
+      expect(countRows()).toEqual(2);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+
+      HOT.redo();
+      expect(countRows()).toEqual(1);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+
+      HOT.redo();
+      expect(countRows()).toEqual(1);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
     });
 
     it('should redo changes only for table where the change actually took place', function(){

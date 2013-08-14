@@ -6,11 +6,10 @@ Handsontable.UndoRedo = function (instance) {
   this.instance = instance;
   this.doneActions = [];
   this.undoneActions = [];
+  this.ignoreNewActions = false;
   instance.addHook("afterChange", function (changes, origin) {
-    if (origin !== 'undo' && origin !== 'redo') {
-      var action = new Handsontable.UndoRedo.ChangeAction(changes);
-      plugin.do(action);
-    }
+    var action = new Handsontable.UndoRedo.ChangeAction(changes);
+    plugin.do(action);
   });
 
   instance.addHook("afterCreateRow", function (index, amount) {
@@ -27,9 +26,11 @@ Handsontable.UndoRedo = function (instance) {
   });
 };
 
-Handsontable.UndoRedo.prototype.do = function(action){
-  this.doneActions.push(action);
-  this.undoneActions.length = 0;
+Handsontable.UndoRedo.prototype.do = function (action) {
+  if (!this.ignoreNewActions) {
+    this.doneActions.push(action);
+    this.undoneActions.length = 0;
+  }
 };
 
 /**
@@ -38,7 +39,11 @@ Handsontable.UndoRedo.prototype.do = function(action){
 Handsontable.UndoRedo.prototype.undo = function () {
   if (this.isUndoAvailable()) {
     var action = this.doneActions.pop();
+
+    this.ignoreNewActions = true;
     action.undo(this.instance);
+    this.ignoreNewActions = false;
+
     this.undoneActions.push(action);
   }
 };
@@ -49,7 +54,11 @@ Handsontable.UndoRedo.prototype.undo = function () {
 Handsontable.UndoRedo.prototype.redo = function () {
   if (this.isRedoAvailable()) {
     var action = this.undoneActions.pop();
+
+    this.ignoreNewActions = true;
     action.redo(this.instance);
+    this.ignoreNewActions = true;
+
     this.doneActions.push(action);
   }
 };
@@ -78,52 +87,55 @@ Handsontable.UndoRedo.prototype.clear = function () {
   this.undoneActions.length = 0;
 };
 
-Handsontable.UndoRedo.Action = function(){};
-Handsontable.UndoRedo.Action.prototype.undo = function(){};
-Handsontable.UndoRedo.Action.prototype.redo = function(){};
+Handsontable.UndoRedo.Action = function () {
+};
+Handsontable.UndoRedo.Action.prototype.undo = function () {
+};
+Handsontable.UndoRedo.Action.prototype.redo = function () {
+};
 
-Handsontable.UndoRedo.ChangeAction = function(changes){
+Handsontable.UndoRedo.ChangeAction = function (changes) {
   this.changes = changes;
 };
 Handsontable.helper.inherit(Handsontable.UndoRedo.ChangeAction, Handsontable.UndoRedo.Action);
-Handsontable.UndoRedo.ChangeAction.prototype.undo = function(instance){
+Handsontable.UndoRedo.ChangeAction.prototype.undo = function (instance) {
   var data = $.extend(true, [], this.changes);
-  for(var i= 0, len = data.length; i < len; i++){
+  for (var i = 0, len = data.length; i < len; i++) {
     data[i].splice(3, 1);
   }
   instance.setDataAtRowProp(data, null, null, 'undo');
 
 };
-Handsontable.UndoRedo.ChangeAction.prototype.redo = function(instance){
+Handsontable.UndoRedo.ChangeAction.prototype.redo = function (instance) {
   var data = $.extend(true, [], this.changes);
-  for(var i= 0, len = data.length; i < len; i++){
+  for (var i = 0, len = data.length; i < len; i++) {
     data[i].splice(2, 1);
   }
   instance.setDataAtRowProp(data, null, null, 'redo');
 
 };
 
-Handsontable.UndoRedo.CreateRowAction = function(index, amount){
+Handsontable.UndoRedo.CreateRowAction = function (index, amount) {
   this.index = index;
   this.amount = amount;
 };
 Handsontable.helper.inherit(Handsontable.UndoRedo.CreateRowAction, Handsontable.UndoRedo.Action);
-Handsontable.UndoRedo.CreateRowAction.prototype.undo = function(instance){
+Handsontable.UndoRedo.CreateRowAction.prototype.undo = function (instance) {
   instance.alter('remove_row', this.index, this.amount);
 };
-Handsontable.UndoRedo.CreateRowAction.prototype.redo = function(instance){
+Handsontable.UndoRedo.CreateRowAction.prototype.redo = function (instance) {
   instance.alter('insert_row', this.index + 1, this.amount);
 };
 
-Handsontable.UndoRedo.RemoveRowAction = function(index, data){
+Handsontable.UndoRedo.RemoveRowAction = function (index, data) {
   this.index = index;
   this.data = data;
 };
 Handsontable.helper.inherit(Handsontable.UndoRedo.RemoveRowAction, Handsontable.UndoRedo.Action);
-Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function(instance){
+Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function (instance) {
   instance.alter('insert_row', this.index, this.data.length);
   instance.populateFromArray(this.index, 0, this.data);
 };
-Handsontable.UndoRedo.RemoveRowAction.prototype.redo = function(instance){
+Handsontable.UndoRedo.RemoveRowAction.prototype.redo = function (instance) {
   instance.alter('remove_row', this.index, this.amount);
 };
