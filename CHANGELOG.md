@@ -1,4 +1,4 @@
-## Head
+## [0.9.13](https://github.com/warpech/jquery-handsontable/tree/v0.9.13) (Aug 16, 2013)
 
 Features:
 - removed the need to declare `.handsontable .htCore td` in user CSS. Now `.handsontable td` works ok ([#965](https://github.com/warpech/jquery-handsontable/issues/965), [#956](https://github.com/warpech/jquery-handsontable/issues/956))
@@ -13,7 +13,7 @@ Bugfixes:
 - fixed inserting and removing rows when columnSorting is enabled, but table hasn't been sorted yet ([#915](https://github.com/warpech/jquery-handsontable/issues/915))
 - toggling checkbox state using spacebar did not update the data source and trigger afterChange event ([#895](https://github.com/warpech/jquery-handsontable/issues/895))
 - context menu functions did not work properly when the cell selection was performed upwards or leftwards  ([#674](https://github.com/warpech/jquery-handsontable/issues/674))
-- `observeChanges` should not register changes made with Handsontable (only changes from the outside)
+- `observeChanges` should register only external changes, not changes made with Handsontable (which led to plugin hooks triggered twice)
 - error adding row when column sorting is in effect ([#858](https://github.com/warpech/jquery-handsontable/issues/858))
 - Opening autocomplete list, hovering over a list item and then clicking outside of the table will close the editor and won't change cell value ([#638](https://github.com/warpech/jquery-handsontable/issues/638))
 

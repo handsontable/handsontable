@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.9.12
+ * Handsontable 0.9.13
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Aug 07 2013 10:24:00 GMT+0200 (Central European Daylight Time)
+ * Date: Fri Aug 16 2013 00:58:19 GMT+0200 (Central European Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -251,9 +251,12 @@ Handsontable.Core = function (rootElement, userSettings) {
       // We have to map the physical row ids to logical and than perform removing with (possibly) new row id
       var logicRows = this.physicalRowsToLogical(index, amount);
 
-      GridSettings.prototype.data = GridSettings.prototype.data.filter(function (row, index) {
+      var newData = GridSettings.prototype.data.filter(function (row, index) {
         return logicRows.indexOf(index) == -1;
       });
+
+      GridSettings.prototype.data.length = 0;
+      Array.prototype.push.apply(GridSettings.prototype.data, newData);
 
       instance.PluginHooks.run('afterRemoveRow', index, amount);
 
@@ -499,11 +502,10 @@ Handsontable.Core = function (rootElement, userSettings) {
       var oldData, newData, changes, r, rlen, c, clen, delta;
       oldData = $.extend(true, [], datamap.getAll());
 
+      amount = amount || 1;
+
       switch (action) {
         case "insert_row":
-          if (!amount) {
-            amount = 1;
-          }
           delta = 0;
           while (delta < amount && instance.countRows() < priv.settings.maxRows) {
             datamap.createRow(index);
@@ -521,9 +523,6 @@ Handsontable.Core = function (rootElement, userSettings) {
           break;
 
         case "insert_col":
-          if (!amount) {
-            amount = 1;
-          }
           delta = 0;
           while (delta < amount && instance.countCols() < priv.settings.maxCols) {
             datamap.createCol(index);
@@ -542,12 +541,20 @@ Handsontable.Core = function (rootElement, userSettings) {
 
         case "remove_row":
           datamap.removeRow(index, amount);
+          priv.cellSettings.splice(index, amount);
           grid.adjustRowsAndCols();
           selection.refreshBorders(); //it will call render and prepare methods
           break;
 
         case "remove_col":
           datamap.removeCol(index, amount);
+
+          for(var row = 0, len = datamap.getAll().length; row < len; row++){
+            priv.cellSettings[row].splice(index, amount);
+          }
+
+          priv.columnSettings.splice(index, amount);
+
           grid.adjustRowsAndCols();
           selection.refreshBorders(); //it will call render and prepare methods
           break;
@@ -1238,7 +1245,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       };
 
       priv.onPaste = function onPaste(str) {
-        if (!instance.isListening()) {
+        if (!instance.isListening() || !selection.isSelected()) {
           return;
         }
 
@@ -2259,7 +2266,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
 
     if (!priv.cellSettings[row]) {
-      priv.cellSettings[row] = {}
+      priv.cellSettings[row] = [];
     }
     if (!priv.cellSettings[row][col]) {
       priv.cellSettings[row][col] = new priv.columnSettings[col]();
@@ -2732,7 +2739,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.9.12'; //inserted by grunt from package.json
+  this.version = '0.9.13'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {
@@ -3780,6 +3787,7 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
              if(checkbox.length > 0 && !cellProperties.readOnly){
                for(var i = 0, len = checkbox.length; i < len; i++){
                  checkbox[i].checked = !checkbox[i].checked;
+                 $(checkbox[i]).trigger('change');
                }
              }
 
@@ -3962,7 +3970,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
   this.originalValue = value;
   this.cellProperties = cellProperties;
 
-  this.beforeKeyDownHook = function (event) {
+  this.beforeKeyDownHook = function beforeKeyDownHook (event) {
     if (that.state !== that.STATE_VIRGIN) {
       return;
     }
@@ -3970,6 +3978,10 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
     if (Handsontable.helper.isPrintableChar(event.keyCode)) {
+      //here we are whitelisting all possible printable chars that can open the editor.
+      //in future, if there are some problems to find out if a char is printable, it would be better to invert this
+      //check (blacklist of non-printable chars should be shorter than whitelist of printable chars)
+
       if (!ctrlDown) { //disregard CTRL-key shortcuts
         that.beginEditing(row, col, prop);
         event.stopImmediatePropagation();
@@ -3991,6 +4003,8 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
       }
       event.preventDefault(); //prevent new line at the end of textarea
       event.stopImmediatePropagation();
+    } else if ([8, 9, 33, 34, 35, 36, 37, 38, 39, 40, 46].indexOf(event.keyCode) == -1){ // other non printable character
+     that.instance.addHookOnce('beforeKeyDown', beforeKeyDownHook);
     }
   };
   that.instance.addHookOnce('beforeKeyDown', this.beforeKeyDownHook);
@@ -4347,7 +4361,7 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
 
   this.typeahead.select = function () {
     var output = this.hide(); //need to hide it before destroyEditor, because destroyEditor checks if menu is expanded
-    that.instance.destroyEditor(true);
+
     var active = this.$menu[0].querySelector('.active');
     var val = active.getAttribute('data-value');
     if (val === that.emptyStringLabel) {
@@ -4357,8 +4371,11 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
       cellProperties.onSelect(row, col, prop, val, that.instance.view.wt.wtDom.index(active));
     }
     else {
-      that.instance.setDataAtRowProp(row, prop, val);
+      that.TEXTAREA.value = val;
     }
+
+    that.finishEditing();
+
     return output;
   };
 
@@ -4405,12 +4422,13 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
  */
 HandsontableAutocompleteEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (!isCancelled) {
-    if (this.isMenuExpanded() && this.typeahead.$menu[0].querySelector('.active')) {
-      this.typeahead.select();
-      this.state = this.STATE_FINISHED; //cell value was updated by this.typeahead.select (issue #405)
-    }
-    else if (this.cellProperties.strict) {
-      this.state = this.STATE_FINISHED; //cell value was not picked from this.typeahead.select (issue #405)
+    if (this.isMenuExpanded()) {
+      if(this.typeahead.$menu[0].querySelector('.active')){
+        this.typeahead.select();
+        this.state = this.STATE_FINISHED;
+      } else if (this.cellProperties.strict) {
+        this.state = this.STATE_FINISHED;
+      }
     }
   }
 
@@ -4441,7 +4459,8 @@ Handsontable.AutocompleteEditor = function (instance, td, row, col, prop, value,
     instance.autocompleteEditor = new HandsontableAutocompleteEditorClass(instance);
   }
   instance.autocompleteEditor.bindTemporaryEvents(td, row, col, prop, value, cellProperties);
-  return function (isCancelled) {
+  return function () {
+    var isCancelled = true;
     instance.autocompleteEditor.finishEditing(isCancelled);
   }
 };
@@ -4521,7 +4540,7 @@ HandsontableDateEditorClass.prototype.createElements = function () {
   this.datePickerStyle.top = 0;
   this.datePickerStyle.left = 0;
   this.datePickerStyle.zIndex = 99;
-  this.instance.rootElement[0].appendChild(this.datePicker);
+  document.body.appendChild(this.datePicker);
   this.$datePicker = $(this.datePicker);
 
   var that = this;
@@ -4557,9 +4576,9 @@ HandsontableDateEditorClass.prototype.finishEditing = function (isCancelled, ctr
 
 HandsontableDateEditorClass.prototype.showDatepicker = function () {
   var $td = $(this.instance.dateEditor.TD);
-  var position = $td.position();
-  this.datePickerStyle.top = (position.top + $td.height()) + 'px';
-  this.datePickerStyle.left = position.left + 'px';
+  var offset = $td.offset();
+  this.datePickerStyle.top = (offset.top + $td.height()) + 'px';
+  this.datePickerStyle.left = offset.left + 'px';
 
   var dateOptions = {
     defaultDate: this.originalValue || void 0
@@ -5039,10 +5058,14 @@ Handsontable.PluginHooks = new Handsontable.PluginHookClass();
         instance.addHook('beforeRender', htAutoColumnSize.determineColumnsWidth);
         instance.addHook('afterGetColWidth', htAutoColumnSize.getColWidth);
         instance.addHook('afterDestroy', htAutoColumnSize.afterDestroy);
+
+        instance.determineColumnWidth = plugin.determineColumnWidth;
       } else {
         instance.removeHook('beforeRender', htAutoColumnSize.determineColumnsWidth);
         instance.removeHook('afterGetColWidth', htAutoColumnSize.getColWidth);
         instance.removeHook('afterDestroy', htAutoColumnSize.afterDestroy);
+
+        delete instance.determineColumnWidth;
 
         plugin.afterDestroy.call(instance);
 
@@ -5426,8 +5449,17 @@ function HandsontableColumnSorting() {
     }
   };
 
+  function isSorted(instance){
+    return typeof instance.sortColumn != 'undefined';
+  }
+
   this.afterCreateRow = function(index, amount){
     var instance = this;
+
+    if(!isSorted(instance)){
+      return;
+    }
+
     instance.sortIndex.splice(index, 0, [index, instance.getData()[index][this.sortColumn + instance.colOffset()]]);
 
     for(var i = 0; i < instance.sortIndex.length; i++){
@@ -5444,6 +5476,11 @@ function HandsontableColumnSorting() {
 
   this.afterRemoveRow = function(index, amount){
     var instance = this;
+
+    if(!isSorted(instance)){
+      return;
+    }
+
     instance.sortIndex.splice(index, amount);
 
     for(var i = 0; i < instance.sortIndex.length; i++){
@@ -5539,35 +5576,52 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
       , settings = instance.getSettings();
 
     function onContextClick(key) {
-      var corners = instance.getSelected(); //[top left row, top left col, bottom right row, bottom right col]
+      var corners = instance.getSelected(); //[selection start row, selection start col, selection end row, selection end col]
 
       if (!corners) {
         return; //needed when there are 2 grids on a page
       }
 
+      /**
+       * `selection` variable contains normalized selection coordinates.
+       * selection.start - top left corner of selection area
+       * selection.end - bottom right corner of selection area
+       */
+
+      var selection = {
+        start: new Handsontable.SelectionPoint(),
+        end: new Handsontable.SelectionPoint()
+      };
+
+      selection.start.row(Math.min(corners[0], corners[2]));
+      selection.start.col(Math.min(corners[1], corners[3]));
+
+      selection.end.row(Math.max(corners[0], corners[2]));
+      selection.end.col(Math.max(corners[1], corners[3]));
+
       switch (key) {
         case "row_above":
-          instance.alter("insert_row", corners[0]);
+          instance.alter("insert_row", selection.start.row());
           break;
 
         case "row_below":
-          instance.alter("insert_row", corners[2] + 1);
+          instance.alter("insert_row", selection.end.row() + 1);
           break;
 
         case "col_left":
-          instance.alter("insert_col", corners[1]);
+          instance.alter("insert_col", selection.start.col());
           break;
 
         case "col_right":
-          instance.alter("insert_col", corners[3] + 1);
+          instance.alter("insert_col", selection.end.col() + 1);
           break;
 
         case "remove_row":
-          instance.alter(key, corners[0], (corners[2] - corners[0]) + 1);
+          instance.alter(key, selection.start.row(), (selection.end.row() - selection.start.row()) + 1);
           break;
 
         case "remove_col":
-          instance.alter(key, corners[1], (corners[3] - corners[1]) + 1);
+          instance.alter(key, selection.start.col(), (selection.end.col() - selection.start.col()) + 1);
           break;
 
         case "undo":
@@ -5888,13 +5942,11 @@ function HandsontableManualColumnResize() {
     , currentTH
     , currentCol
     , currentWidth
-    , autoresizeTimeout
     , instance
     , newSize
     , startX
     , startWidth
     , startOffset
-    , dblclick = 0
     , resizer = document.createElement('DIV')
     , handle = document.createElement('DIV')
     , line = document.createElement('DIV')
@@ -5922,12 +5974,16 @@ function HandsontableManualColumnResize() {
     if (pressed) {
       instance.view.wt.wtDom.removeClass(resizer, 'active');
       pressed = false;
-      instance.forceFullRender = true;
-      instance.view.render(); //updates all
 
-      saveManualColumnWidths.call(instance);
+      if(newSize != startWidth){
+        instance.forceFullRender = true;
+        instance.view.render(); //updates all
 
-      instance.PluginHooks.run('afterColumnResize', currentCol, newSize);
+        saveManualColumnWidths.call(instance);
+
+        instance.PluginHooks.run('afterColumnResize', currentCol, newSize);
+      }
+
       refreshResizerPosition.call(instance, currentTH);
     }
   });
@@ -5956,8 +6012,8 @@ function HandsontableManualColumnResize() {
       var rootOffset = this.view.wt.wtDom.offset(this.rootElement[0]).left;
       var thOffset = this.view.wt.wtDom.offset(TH).left;
       startOffset = (thOffset - rootOffset) - 6;
-
-      resizer.style.left = startOffset + getColumnWidth.call(instance, TH) + 'px';
+      var thStyle = this.view.wt.wtDom.getComputedStyle(TH);
+      resizer.style.left = startOffset + parseInt(this.view.wt.wtDom.outerWidth(TH), 10) + 'px';
 
       this.rootElement[0].appendChild(resizer);
     }
@@ -5974,14 +6030,18 @@ function HandsontableManualColumnResize() {
   }
 
   function refreshLinePosition() {
-    startWidth = getColumnWidth.call(this, currentTH);
-    this.view.wt.wtDom.addClass(resizer, 'active');
-    lineStyle.height = this.view.wt.wtDom.outerHeight(this.$table[0]) + 'px';
-    pressed = true;
+    var instance = this;
+    var thBorderWidth = 2 * parseInt(this.view.wt.wtDom.getComputedStyle(currentTH).borderWidth, 10);
+    startWidth = parseInt(this.view.wt.wtDom.outerWidth(currentTH), 10);
+    instance.view.wt.wtDom.addClass(resizer, 'active');
+    lineStyle.height = instance.view.wt.wtDom.outerHeight(instance.$table[0]) + 'px';
+    pressed = instance;
   }
 
   var bindManualColumnWidthEvents = function () {
     var instance = this;
+    var dblclick = 0;
+    var autoresizeTimeout = null;
 
     this.rootElement.on('mouseenter.handsontable', 'th', function (e) {
       if (!pressed) {
@@ -5993,7 +6053,8 @@ function HandsontableManualColumnResize() {
       if (autoresizeTimeout == null) {
         autoresizeTimeout = setTimeout(function () {
           if (dblclick >= 2) {
-            setManualSize(currentCol, htAutoColumnSize.determineColumnWidth.call(instance, currentCol));
+            newSize = instance.determineColumnWidth.call(instance, currentCol);
+            setManualSize(currentCol, newSize);
             instance.forceFullRender = true;
             instance.view.render(); //updates all
             instance.PluginHooks.run('afterColumnResize', currentCol, newSize);
@@ -6008,6 +6069,7 @@ function HandsontableManualColumnResize() {
     this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
       startX = e.pageX;
       refreshLinePosition.call(instance);
+      newSize = startWidth;
     });
   };
 
@@ -6071,24 +6133,192 @@ Handsontable.PluginHooks.add('afterUpdateSettings', function () {
 });
 Handsontable.PluginHooks.add('afterGetColWidth', htManualColumnResize.getColWidth);
 
-function HandsontableObserveChanges() {
-  this.init = function () {
+(function HandsontableObserveChanges() {
+
+  Handsontable.PluginHooks.add('afterLoadData', init);
+  Handsontable.PluginHooks.add('afterUpdateSettings', init);
+
+  function init() {
     var instance = this;
     var pluginEnabled = instance.getSettings().observeChanges;
 
     if (!instance.observer && pluginEnabled) {
-      instance.observer = jsonpatch.observe(instance.getData(), function () {
-          instance.render();
-      });
-    } else if (instance.observer && !pluginEnabled){
-      jsonpatch.unobserve(instance.getData(), instance.observer);
-    }
-  };
-}
-var htObserveChanges = new HandsontableObserveChanges();
+      createObserver.call(instance);
+      bindEvents.call(instance);
 
-Handsontable.PluginHooks.add('afterLoadData', htObserveChanges.init);
-Handsontable.PluginHooks.add('afterUpdateSettings', htObserveChanges.init);
+    } else if (!pluginEnabled){
+      destroy.call(instance);
+    }
+  }
+
+  function createObserver(){
+    var instance = this;
+
+    instance.observeChangesActive = true;
+
+    instance.pauseObservingChanges = function(){
+      instance.observeChangesActive = false;
+    };
+
+    instance.resumeObservingChanges = function(){
+      instance.observeChangesActive = true;
+    };
+
+    instance.observer = jsonpatch.observe(instance.getData(), function (patches) {
+      if(instance.observeChangesActive){
+        runHookForOperation.call(instance, patches);
+        instance.render();
+      }
+
+      instance.runHooks('afterChangesObserved');
+    });
+  }
+
+  function runHookForOperation(rawPatches){
+    var instance = this;
+    var patches = cleanPatches(rawPatches);
+
+    for(var i = 0, len = patches.length; i < len; i++){
+      var patch = patches[i];
+      var parsedPath = parsePath(patch.path);
+
+
+      switch(patch.op){
+        case 'add':
+          if(isNaN(parsedPath.col)){
+            instance.runHooks('afterCreateRow', parsedPath.row);
+          } else {
+            instance.runHooks('afterCreateCol', parsedPath.col);
+          }
+          break;
+
+        case 'remove':
+          if(isNaN(parsedPath.col)){
+            instance.runHooks('afterRemoveRow', parsedPath.row, 1);
+          } else {
+            instance.runHooks('afterRemoveCol', parsedPath.col, 1);
+          }
+          break;
+
+        case 'replace':
+          instance.runHooks('afterChange', [parsedPath.row, parsedPath.col, null, patch.value], 'external');
+          break;
+      }
+    }
+
+    function cleanPatches(rawPatches){
+      var patches;
+
+      patches = removeLengthRelatedPatches(rawPatches);
+      patches = removeMultipleAddOrRemoveColPatches(patches);
+
+      return patches;
+    }
+
+    /**
+     * Removing or adding column will produce one patch for each table row.
+     * This function leaves only one patch for each column add/remove operation
+     */
+    function removeMultipleAddOrRemoveColPatches(rawPatches){
+      var newOrRemovedColumns = [];
+
+      return rawPatches.filter(function(patch){
+        var parsedPath = parsePath(patch.path);
+
+        if(['add', 'remove'].indexOf(patch.op) != -1 && !isNaN(parsedPath.col)){
+          if(newOrRemovedColumns.indexOf(parsedPath.col) != -1){
+            return false;
+          } else {
+            newOrRemovedColumns.push(parsedPath.col);
+          }
+        }
+
+        return true;
+      });
+
+    }
+
+    /**
+     * If observeChanges uses native Object.observe method, then it produces patches for length property.
+     * This function removes them.
+     */
+    function removeLengthRelatedPatches(rawPatches){
+      return rawPatches.filter(function(patch){
+        return !/[/]length/ig.test(patch.path);
+      })
+    }
+
+    function parsePath(path){
+      var match = path.match(/^\/(\d)\/?(\d)?$/);
+
+      return {
+        row: parseInt(match[1], 10),
+        col: parseInt(match[2], 10)
+      }
+    }
+  }
+
+  function destroy(){
+    var instance = this;
+
+    if (instance.observer){
+      destroyObserver.call(instance);
+      unbindEvents.call(instance);
+    }
+  }
+
+  function destroyObserver(){
+    var instance = this;
+
+    jsonpatch.unobserve(instance.getData(), instance.observer);
+    delete instance.observeChangesActive;
+    delete instance.pauseObservingChanges;
+    delete instance.resumeObservingChanges;
+  }
+
+  function bindEvents(){
+    var instance = this;
+    instance.addHook('afterDestroy', destroy);
+
+    instance.addHook('afterCreateRow', afterTableAlter);
+    instance.addHook('afterRemoveRow', afterTableAlter);
+
+    instance.addHook('afterCreateCol', afterTableAlter);
+    instance.addHook('afterRemoveCol', afterTableAlter);
+
+    instance.addHook('afterChange', function(changes, source){
+      if(source != 'loadData'){
+        afterTableAlter.call(this);
+      }
+    });
+  }
+
+  function unbindEvents(){
+    var instance = this;
+    instance.removeHook('afterDestroy', destroy);
+
+    instance.removeHook('afterCreateRow', afterTableAlter);
+    instance.removeHook('afterRemoveRow', afterTableAlter);
+
+    instance.removeHook('afterCreateCol', afterTableAlter);
+    instance.removeHook('afterRemoveCol', afterTableAlter);
+
+    instance.removeHook('afterChange', afterTableAlter);
+  }
+
+  function afterTableAlter(){
+    var instance = this;
+
+    instance.pauseObservingChanges();
+
+    instance.addHookOnce('afterChangesObserved', function(){
+      instance.resumeObservingChanges();
+    });
+
+  }
+})();
+
+
 /*
  *
  * Plugin enables saving table state
