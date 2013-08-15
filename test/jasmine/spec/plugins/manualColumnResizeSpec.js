@@ -25,7 +25,7 @@ describe('manualColumnResize', function () {
     var mouseDownEvent = new $.Event('mousedown', {pageX: resizerPosition.left});
     $resizer.trigger(mouseDownEvent);
 
-    var delta = width - $th.outerWidth();
+    var delta = width - $th.width();
     var mouseMoveEvent = new $.Event('mousemove', {pageX: resizerPosition.left + delta});
     $resizer.trigger(mouseMoveEvent);
 
@@ -157,7 +157,7 @@ describe('manualColumnResize', function () {
 
     expect(colWidth(this.$container, 0)).toEqual(50);
 
-    resizeColumn(0, 50);
+    resizeColumn(0, 48);
 
     expect(afterColumnResizeCallback).not.toHaveBeenCalled();
     expect(colWidth(this.$container, 0)).toEqual(50);
@@ -195,7 +195,7 @@ describe('manualColumnResize', function () {
 
   });
 
-  it("should trigger an afterColumnResize event after column size changes, after double click", function () {
+  it("should trigger an afterColumnResize after column size changes, after double click", function () {
 
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
@@ -236,4 +236,34 @@ describe('manualColumnResize', function () {
 
   });
   
+  it("should adjust resize handles position after table size changed", function(){
+    var maxed = false;
+
+    handsontable({
+      colHeaders: true,
+      manualColumnResize: true,
+      stretchH: 'all',
+      width: function () {
+        return maxed ? 614 : 200;
+      }
+    });
+
+    this.$container.find('thead th:eq(0)').mouseenter();
+
+    var resizer = this.$container.find('.manualColumnResizer');
+    var handle = resizer.find('.manualColumnResizerHandle');
+    var th0 = this.$container.find('thead th:eq(0)');
+
+    expect(resizer.offset().left + handle.outerWidth()).toEqual(th0.offset().left + th0.outerWidth() - 1);
+
+    maxed = true;
+
+    render();
+
+    this.$container.find('thead th:eq(0)').mouseenter();
+
+    expect(resizer.offset().left + handle.outerWidth()).toEqual(th0.offset().left + th0.outerWidth() - 1);
+
+
+  });
 });
