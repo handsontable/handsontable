@@ -29,10 +29,14 @@
         instance.addHook('beforeRender', htAutoColumnSize.determineColumnsWidth);
         instance.addHook('afterGetColWidth', htAutoColumnSize.getColWidth);
         instance.addHook('afterDestroy', htAutoColumnSize.afterDestroy);
+
+        instance.determineColumnWidth = plugin.determineColumnWidth;
       } else {
         instance.removeHook('beforeRender', htAutoColumnSize.determineColumnsWidth);
         instance.removeHook('afterGetColWidth', htAutoColumnSize.getColWidth);
         instance.removeHook('afterDestroy', htAutoColumnSize.afterDestroy);
+
+        delete instance.determineColumnWidth;
 
         plugin.afterDestroy.call(instance);
 

@@ -13,11 +13,12 @@ describe('manualColumnResize', function () {
   });
 
   function resizeColumn(displayedColumnIndex, width) {
-    var $th = this.$container.find('thead tr:eq(0) th:eq(' + displayedColumnIndex +')');
+    var $container = spec().$container;
+    var $th = $container.find('thead tr:eq(0) th:eq(' + displayedColumnIndex +')');
 
     $th.trigger('mouseenter');
 
-    var $resizer = this.$container.find('.manualColumnResizer');
+    var $resizer = $container.find('.manualColumnResizer');
     var resizerPosition = $resizer.position();
 
 
@@ -122,4 +123,117 @@ describe('manualColumnResize', function () {
     }
 
   });
+
+  it("should trigger an afterColumnResize event after column size changes", function () {
+
+    var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
+
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      afterColumnResize: afterColumnResizeCallback
+    });
+
+    expect(colWidth(this.$container, 0)).toEqual(50);
+
+    resizeColumn(0, 100);
+
+    expect(afterColumnResizeCallback).toHaveBeenCalledWith(0, 100, void 0, void 0, void 0);
+    expect(colWidth(this.$container, 0)).toEqual(100);
+
+  });
+
+  it("should not trigger an afterColumnResize event if column size does not change (mouseMove event width delta = 0)", function () {
+
+    var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
+
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      afterColumnResize: afterColumnResizeCallback
+    });
+
+    expect(colWidth(this.$container, 0)).toEqual(50);
+
+    resizeColumn(0, 50);
+
+    expect(afterColumnResizeCallback).not.toHaveBeenCalled();
+    expect(colWidth(this.$container, 0)).toEqual(50);
+
+  });
+
+  it("should not trigger an afterColumnResize event if column size does not change (no mouseMove event)", function () {
+
+    var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
+
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      afterColumnResize: afterColumnResizeCallback
+    });
+
+    expect(colWidth(this.$container, 0)).toEqual(50);
+
+    var $th = this.$container.find('thead tr:eq(0) th:eq(0)');
+
+    $th.trigger('mouseenter');
+
+    var $resizer = this.$container.find('.manualColumnResizer');
+    var resizerPosition = $resizer.position();
+
+
+    var mouseDownEvent = new $.Event('mousedown', {pageX: resizerPosition.left});
+    $resizer.trigger(mouseDownEvent);
+
+    $resizer.trigger('mouseup');
+
+    expect(afterColumnResizeCallback).not.toHaveBeenCalled();
+    expect(colWidth(this.$container, 0)).toEqual(50);
+
+  });
+
+  it("should trigger an afterColumnResize event after column size changes, after double click", function () {
+
+    var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
+
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      afterColumnResize: afterColumnResizeCallback
+    });
+
+    expect(colWidth(this.$container, 0)).toEqual(50);
+
+    var $th = this.$container.find('thead tr:eq(0) th:eq(0)');
+
+    $th.trigger('mouseenter');
+
+    var $resizer = this.$container.find('.manualColumnResizer');
+    var resizerPosition = $resizer.position();
+
+
+    var mouseDownEvent = new $.Event('mousedown', {pageX: resizerPosition.left});
+    $resizer.trigger(mouseDownEvent);
+    $resizer.trigger('mouseup');
+
+    mouseDownEvent = new $.Event('mousedown', {pageX: resizerPosition.left});
+    $resizer.trigger(mouseDownEvent);
+    $resizer.trigger('mouseup');
+
+
+    waitsFor(function(){
+      return afterColumnResizeCallback.calls.length > 0;
+    }, 'Column resize', 1000);
+
+    runs(function(){
+      expect(afterColumnResizeCallback).toHaveBeenCalledWith(0, 25, void 0, void 0, void 0);
+      expect(colWidth(this.$container, 0)).toEqual(25);
+    });
+
+  });
+  
 });
