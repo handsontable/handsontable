@@ -74,8 +74,7 @@ function HandsontableManualColumnResize() {
       var thOffset = this.view.wt.wtDom.offset(TH).left;
       startOffset = (thOffset - rootOffset) - 6;
       var thStyle = this.view.wt.wtDom.getComputedStyle(TH);
-      var thBorderWidth = 2 * parseInt(thStyle.borderRightWidth, 10);
-      resizer.style.left = startOffset + parseInt(thStyle.width, 10) + thBorderWidth + 'px';
+      resizer.style.left = startOffset + parseInt(this.view.wt.wtDom.outerWidth(TH), 10) + 'px';
 
       this.rootElement[0].appendChild(resizer);
     }
@@ -93,7 +92,8 @@ function HandsontableManualColumnResize() {
 
   function refreshLinePosition() {
     var instance = this;
-    startWidth = parseInt(instance.view.wt.wtDom.getComputedStyle(currentTH).width, 10);
+    var thBorderWidth = 2 * parseInt(this.view.wt.wtDom.getComputedStyle(currentTH).borderWidth, 10);
+    startWidth = parseInt(this.view.wt.wtDom.outerWidth(currentTH), 10);
     instance.view.wt.wtDom.addClass(resizer, 'active');
     lineStyle.height = instance.view.wt.wtDom.outerHeight(instance.$table[0]) + 'px';
     pressed = instance;

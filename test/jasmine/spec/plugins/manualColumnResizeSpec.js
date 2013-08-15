@@ -25,7 +25,7 @@ describe('manualColumnResize', function () {
     var mouseDownEvent = new $.Event('mousedown', {pageX: resizerPosition.left});
     $resizer.trigger(mouseDownEvent);
 
-    var delta = width - $th.width();
+    var delta = width - $th.width() - 2;
     var mouseMoveEvent = new $.Event('mousemove', {pageX: resizerPosition.left + delta});
     $resizer.trigger(mouseMoveEvent);
 
@@ -157,7 +157,7 @@ describe('manualColumnResize', function () {
 
     expect(colWidth(this.$container, 0)).toEqual(50);
 
-    resizeColumn(0, 48);
+    resizeColumn(0, 50);
 
     expect(afterColumnResizeCallback).not.toHaveBeenCalled();
     expect(colWidth(this.$container, 0)).toEqual(50);
@@ -230,8 +230,12 @@ describe('manualColumnResize', function () {
     }, 'Column resize', 1000);
 
     runs(function(){
-      expect(afterColumnResizeCallback).toHaveBeenCalledWith(0, 25, void 0, void 0, void 0);
-      expect(colWidth(this.$container, 0)).toEqual(25);
+      expect(afterColumnResizeCallback.calls.length).toEqual(1);
+      expect(afterColumnResizeCallback.calls[0].args[0]).toEqual(0);
+
+      //All modern browsers returns width = 25px, but IE8 seems to compute width differently and returns 24px
+      expect(afterColumnResizeCallback.calls[0].args[1]).toBeInArray(24, 25);
+      expect(colWidth(this.$container, 0)).toBeInArray(24, 25);
     });
 
   });
