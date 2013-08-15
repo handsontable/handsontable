@@ -56,16 +56,16 @@
   max-height: none;
 }
 
-.handsontable .htCore col {
+.handsontable col {
   width: 50px;
 }
 
-.handsontable .htCore col.rowHeader {
+.handsontable col.rowHeader {
   width: 50px;
 }
 
-.handsontable .htCore th,
-.handsontable .htCore td {
+.handsontable th,
+.handsontable td {
   border-right: 1px solid #CCC;
   border-bottom: 1px solid #CCC;
   height: 22px;
@@ -80,7 +80,7 @@
   white-space: pre-line; /* preserve new line character in cell */
 }
 
-.handsontable .htCore td.htInvalid {
+.handsontable td.htInvalid {
   -webkit-transition: background 0.75s ease;
   -moz-transition: background 0.75s ease;
   -ms-transition: background 0.75s ease;
@@ -89,41 +89,41 @@
   background-color: #ff4c42;
 }
 
-.handsontable .htCore th:last-child {
+.handsontable th:last-child {
   /*Foundation framework fix*/
   border-right: 1px solid #CCC;
   border-bottom: 1px solid #CCC;
 }
 
-.handsontable .htCore tr:first-child th.htNoFrame,
-.handsontable .htCore th:first-child.htNoFrame,
-.handsontable .htCore th.htNoFrame {
+.handsontable tr:first-child th.htNoFrame,
+.handsontable th:first-child.htNoFrame,
+.handsontable th.htNoFrame {
   border-left-width: 0;
   background-color: white;
   border-color: #FFF;
 }
 
-.handsontable .htCore th:first-child,
-.handsontable .htCore td:first-child,
-.handsontable .htCore .htNoFrame + th,
-.handsontable .htCore .htNoFrame + td {
+.handsontable th:first-child,
+.handsontable td:first-child,
+.handsontable .htNoFrame + th,
+.handsontable .htNoFrame + td {
   border-left: 1px solid #CCC;
 }
 
-.handsontable .htCore tr:first-child th,
-.handsontable .htCore tr:first-child td {
+.handsontable tr:first-child th,
+.handsontable tr:first-child td {
   border-top: 1px solid #CCC;
 }
 
-.handsontable .htCore thead tr:last-child th {
+.handsontable thead tr:last-child th {
   border-bottom-width: 0;
 }
 
-.handsontable .htCore thead tr.lastChild th {
+.handsontable thead tr.lastChild th {
   border-bottom-width: 0;
 }
 
-.handsontable .htCore th {
+.handsontable th {
   background-color: #EEE;
   color: #222;
   text-align: center;
@@ -131,19 +131,19 @@
   white-space: nowrap;
 }
 
-.handsontable .htCore th .small {
+.handsontable th .small {
   font-size: 12px;
 }
 
-.handsontable .htCore thead th {
+.handsontable thead th {
   padding: 0;
 }
 
-.handsontable .htCore th.active {
+.handsontable th.active {
   background-color: #CCC;
 }
 
-.handsontable .htCore thead th .relative {
+.handsontable thead th .relative {
   position: relative;
   padding: 2px 4px;
 }
@@ -256,7 +256,7 @@ textarea.handsontableInput {
 /*
 TextRenderer readOnly cell
 */
-.handsontable .htCore .htDimmed {
+.handsontable .htDimmed {
   font-style: italic;
   color: #777;
 }
@@ -294,7 +294,7 @@ CheckboxRenderer
 /*
 NumericRenderer
 */
-.handsontable .htCore .htNumeric {
+.handsontable .htNumeric {
   text-align: right;
 }
 
