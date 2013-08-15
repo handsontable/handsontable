@@ -23,7 +23,7 @@ HandsontableDateEditorClass.prototype.createElements = function () {
   this.datePickerStyle.top = 0;
   this.datePickerStyle.left = 0;
   this.datePickerStyle.zIndex = 99;
-  this.instance.rootElement[0].appendChild(this.datePicker);
+  document.body.appendChild(this.datePicker);
   this.$datePicker = $(this.datePicker);
 
   var that = this;
@@ -59,9 +59,9 @@ HandsontableDateEditorClass.prototype.finishEditing = function (isCancelled, ctr
 
 HandsontableDateEditorClass.prototype.showDatepicker = function () {
   var $td = $(this.instance.dateEditor.TD);
-  var position = $td.position();
-  this.datePickerStyle.top = (position.top + $td.height()) + 'px';
-  this.datePickerStyle.left = position.left + 'px';
+  var offset = $td.offset();
+  this.datePickerStyle.top = (offset.top + $td.height()) + 'px';
+  this.datePickerStyle.left = offset.left + 'px';
 
   var dateOptions = {
     defaultDate: this.originalValue || void 0

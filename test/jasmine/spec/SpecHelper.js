@@ -51,6 +51,9 @@ var contextMenu = function () {
  */
 var handsontableMouseTriggerFactory = function (type) {
   return function (element) {
+    if(!(element instanceof jQuery)){
+      element = $(element);
+    }
     var ev = $.Event(type);
     ev.which = 1; //left mouse button
     element.trigger(ev);
@@ -59,6 +62,12 @@ var handsontableMouseTriggerFactory = function (type) {
 
 var mouseDown = handsontableMouseTriggerFactory('mousedown');
 var mouseUp = handsontableMouseTriggerFactory('mouseup');
+var mouseDoubleClick = function(element){
+    mouseDown(element);
+    mouseUp(element);
+    mouseDown(element);
+    mouseUp(element);
+};
 
 /**
  * Returns a function that triggers a key event
@@ -239,6 +248,7 @@ var destroyEditor = handsontableMethodFactory('destroyEditor');
 var render = handsontableMethodFactory('render');
 var updateSettings = handsontableMethodFactory('updateSettings');
 var destroy = handsontableMethodFactory('destroy');
+var addHook = handsontableMethodFactory('addHook');
 
 /**
  * Creates 2D array of Excel-like values "A0", "A1", ...
@@ -271,7 +281,7 @@ function createSpreadsheetData(rowCount, colCount) {
  * @returns {Number}
  */
 function colWidth($elem, col) {
-  var TD = $elem[0].querySelector('TR').querySelectorAll('TD')[col];
+  var TD = $elem[0].querySelector('TBODY TR').querySelectorAll('TD')[col];
   if (!TD) {
     throw new Error("Cannot find table column of index '" + col + "'");
   }

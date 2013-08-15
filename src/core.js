@@ -232,9 +232,12 @@ Handsontable.Core = function (rootElement, userSettings) {
       // We have to map the physical row ids to logical and than perform removing with (possibly) new row id
       var logicRows = this.physicalRowsToLogical(index, amount);
 
-      GridSettings.prototype.data = GridSettings.prototype.data.filter(function (row, index) {
+      var newData = GridSettings.prototype.data.filter(function (row, index) {
         return logicRows.indexOf(index) == -1;
       });
+
+      GridSettings.prototype.data.length = 0;
+      Array.prototype.push.apply(GridSettings.prototype.data, newData);
 
       instance.PluginHooks.run('afterRemoveRow', index, amount);
 
@@ -480,11 +483,10 @@ Handsontable.Core = function (rootElement, userSettings) {
       var oldData, newData, changes, r, rlen, c, clen, delta;
       oldData = $.extend(true, [], datamap.getAll());
 
+      amount = amount || 1;
+
       switch (action) {
         case "insert_row":
-          if (!amount) {
-            amount = 1;
-          }
           delta = 0;
           while (delta < amount && instance.countRows() < priv.settings.maxRows) {
             datamap.createRow(index);
@@ -502,9 +504,6 @@ Handsontable.Core = function (rootElement, userSettings) {
           break;
 
         case "insert_col":
-          if (!amount) {
-            amount = 1;
-          }
           delta = 0;
           while (delta < amount && instance.countCols() < priv.settings.maxCols) {
             datamap.createCol(index);
@@ -523,12 +522,20 @@ Handsontable.Core = function (rootElement, userSettings) {
 
         case "remove_row":
           datamap.removeRow(index, amount);
+          priv.cellSettings.splice(index, amount);
           grid.adjustRowsAndCols();
           selection.refreshBorders(); //it will call render and prepare methods
           break;
 
         case "remove_col":
           datamap.removeCol(index, amount);
+
+          for(var row = 0, len = datamap.getAll().length; row < len; row++){
+            priv.cellSettings[row].splice(index, amount);
+          }
+
+          priv.columnSettings.splice(index, amount);
+
           grid.adjustRowsAndCols();
           selection.refreshBorders(); //it will call render and prepare methods
           break;
@@ -1219,7 +1226,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       };
 
       priv.onPaste = function onPaste(str) {
-        if (!instance.isListening()) {
+        if (!instance.isListening() || !selection.isSelected()) {
           return;
         }
 
@@ -2240,7 +2247,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
 
     if (!priv.cellSettings[row]) {
-      priv.cellSettings[row] = {}
+      priv.cellSettings[row] = [];
     }
     if (!priv.cellSettings[row][col]) {
       priv.cellSettings[row][col] = new priv.columnSettings[col]();
