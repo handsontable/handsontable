@@ -239,6 +239,7 @@ var destroyEditor = handsontableMethodFactory('destroyEditor');
 var render = handsontableMethodFactory('render');
 var updateSettings = handsontableMethodFactory('updateSettings');
 var destroy = handsontableMethodFactory('destroy');
+var addHook = handsontableMethodFactory('addHook');
 
 /**
  * Creates 2D array of Excel-like values "A0", "A1", ...
