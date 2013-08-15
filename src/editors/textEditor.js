@@ -157,6 +157,10 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
     if (Handsontable.helper.isPrintableChar(event.keyCode)) {
+      //here we are whitelisting all possible printable chars that can open the editor.
+      //in future, if there are some problems to find out if a char is printable, it would be better to invert this
+      //check (blacklist of non-printable chars should be shorter than whitelist of printable chars)
+
       if (!ctrlDown) { //disregard CTRL-key shortcuts
         that.beginEditing(row, col, prop);
         event.stopImmediatePropagation();
