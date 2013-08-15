@@ -228,8 +228,17 @@ function HandsontableColumnSorting() {
     }
   };
 
+  function isSorted(instance){
+    return typeof instance.sortColumn != 'undefined';
+  }
+
   this.afterCreateRow = function(index, amount){
     var instance = this;
+
+    if(!isSorted(instance)){
+      return;
+    }
+
     instance.sortIndex.splice(index, 0, [index, instance.getData()[index][this.sortColumn + instance.colOffset()]]);
 
     for(var i = 0; i < instance.sortIndex.length; i++){
@@ -246,6 +255,11 @@ function HandsontableColumnSorting() {
 
   this.afterRemoveRow = function(index, amount){
     var instance = this;
+
+    if(!isSorted(instance)){
+      return;
+    }
+
     instance.sortIndex.splice(index, amount);
 
     for(var i = 0; i < instance.sortIndex.length; i++){
