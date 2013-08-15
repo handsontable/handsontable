@@ -10,7 +10,7 @@ describe('ContextMenu', function () {
       destroy();
       this.$container.remove();
 
-      if($('ul.context-menu-list').length > 0){
+      if ($('ul.context-menu-list').length > 0) {
         $.contextMenu('destroy');
       }
     }
@@ -179,14 +179,14 @@ describe('ContextMenu', function () {
 
     hideContextMenu.call(hot2);
 
-    waitsFor(function(){
+    waitsFor(function () {
       return $('ul.context-menu-list:visible').length == 0
     }, 'Hiding context menu', 1000);
 
-    runs(function(){
+    runs(function () {
 
       hot1.updateSettings({
-         contextMenu: true
+        contextMenu: true
       });
 
       hot2.updateSettings({
@@ -203,17 +203,269 @@ describe('ContextMenu', function () {
       this.$container2.remove();
     });
 
-    function contextMenu2(){
+    function contextMenu2() {
       var ev = $.Event('contextmenu');
       ev.button = 2;
       var selector = "#" + hot2.rootElement.attr('id') + ' table, #' + hot2.rootElement.attr('id') + ' div';
       $(selector).trigger(ev);
     }
 
-    function hideContextMenu(){
+    function hideContextMenu() {
       var selector = "#" + this.rootElement.attr('id') + ' table, #' + this.rootElement.attr('id') + ' div';
       $(selector).contextMenu('hide')
     }
 
+  });
+
+  it("should insert row above selection", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true
+    });
+
+    var afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
+    hot.addHook('afterCreateRow', afterCreateRowCallback);
+
+    expect(countRows()).toEqual(4);
+
+    selectCell(1, 0, 3, 0);
+
+    contextMenu();
+
+    $('ul.context-menu-list li').not('.context-menu-separator').eq(0).trigger('mouseup.contextMenu'); //Insert row above
+
+    expect(afterCreateRowCallback).toHaveBeenCalledWith(1, undefined, undefined, undefined, undefined);
+    expect(countRows()).toEqual(5);
+  });
+
+  it("should insert row above selection (reverse selection)", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true
+    });
+
+    var afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
+    hot.addHook('afterCreateRow', afterCreateRowCallback);
+
+    expect(countRows()).toEqual(4);
+
+    selectCell(3, 0, 1, 0);
+
+    contextMenu();
+
+    $('ul.context-menu-list li').not('.context-menu-separator').eq(0).trigger('mouseup.contextMenu'); //Insert row above
+
+    expect(afterCreateRowCallback).toHaveBeenCalledWith(1, undefined, undefined, undefined, undefined);
+    expect(countRows()).toEqual(5);
+  });
+
+  it("should insert row below selection", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true
+    });
+
+    var afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
+    hot.addHook('afterCreateRow', afterCreateRowCallback);
+
+    expect(countRows()).toEqual(4);
+
+    selectCell(1, 0, 3, 0);
+
+    contextMenu();
+
+    $('ul.context-menu-list li').not('.context-menu-separator').eq(1).trigger('mouseup.contextMenu'); //Insert row below
+
+    expect(afterCreateRowCallback).toHaveBeenCalledWith(4, undefined, undefined, undefined, undefined);
+    expect(countRows()).toEqual(5);
+  });
+
+  it("should insert row below selection (reverse selection)", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true
+    });
+
+    var afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
+    hot.addHook('afterCreateRow', afterCreateRowCallback);
+
+    expect(countRows()).toEqual(4);
+
+    selectCell(3, 0, 1, 0);
+
+    contextMenu();
+
+    $('ul.context-menu-list li').not('.context-menu-separator').eq(1).trigger('mouseup.contextMenu'); //Insert row below
+
+    expect(afterCreateRowCallback).toHaveBeenCalledWith(4, undefined, undefined, undefined, undefined);
+    expect(countRows()).toEqual(5);
+  });
+
+  it("should insert column on the left of selection", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true
+    });
+
+    var afterCreateColCallback = jasmine.createSpy('afterCreateColCallback');
+    hot.addHook('afterCreateCol', afterCreateColCallback);
+
+    expect(countCols()).toEqual(4);
+
+    selectCell(0, 1, 0, 3);
+
+    contextMenu();
+
+    $('ul.context-menu-list li').not('.context-menu-separator').eq(2).trigger('mouseup.contextMenu'); //Insert col on he left
+
+    expect(afterCreateColCallback).toHaveBeenCalledWith(1, undefined, undefined, undefined, undefined);
+    expect(countCols()).toEqual(5);
+  });
+
+  it("should insert column on the left of selection (reverse selection)", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true
+    });
+
+    var afterCreateColCallback = jasmine.createSpy('afterCreateColCallback');
+    hot.addHook('afterCreateCol', afterCreateColCallback);
+
+    expect(countCols()).toEqual(4);
+
+    selectCell(0, 3, 0, 1);
+
+    contextMenu();
+
+    $('ul.context-menu-list li').not('.context-menu-separator').eq(2).trigger('mouseup.contextMenu'); //Insert col on he left
+
+    expect(afterCreateColCallback).toHaveBeenCalledWith(1, undefined, undefined, undefined, undefined);
+    expect(countCols()).toEqual(5);
+  });
+
+  it("should insert column on the right of selection", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true
+    });
+
+    var afterCreateColCallback = jasmine.createSpy('afterCreateColCallback');
+    hot.addHook('afterCreateCol', afterCreateColCallback);
+
+    expect(countCols()).toEqual(4);
+
+    selectCell(0, 1, 0, 3);
+
+    contextMenu();
+
+    $('ul.context-menu-list li').not('.context-menu-separator').eq(3).trigger('mouseup.contextMenu'); //Insert col on he right
+
+    expect(afterCreateColCallback).toHaveBeenCalledWith(4, undefined, undefined, undefined, undefined);
+    expect(countCols()).toEqual(5);
+  });
+
+  it("should insert column on the right of selection (reverse selection)", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true
+    });
+
+    var afterCreateColCallback = jasmine.createSpy('afterCreateColCallback');
+    hot.addHook('afterCreateCol', afterCreateColCallback);
+
+    expect(countCols()).toEqual(4);
+
+    selectCell(0, 3, 0, 1);
+
+    contextMenu();
+
+    $('ul.context-menu-list li').not('.context-menu-separator').eq(3).trigger('mouseup.contextMenu'); //Insert col on he right
+
+    expect(afterCreateColCallback).toHaveBeenCalledWith(4, undefined, undefined, undefined, undefined);
+    expect(countCols()).toEqual(5);
+  });
+
+  it("should remove selected rows", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true
+    });
+
+    var afterRemoveRowCallback = jasmine.createSpy('afterRemoveRowCallback');
+    hot.addHook('afterRemoveRow', afterRemoveRowCallback);
+
+    expect(countRows()).toEqual(4);
+
+    selectCell(1, 0, 3, 0);
+
+    contextMenu();
+
+    $('ul.context-menu-list li').not('.context-menu-separator').eq(4).trigger('mouseup.contextMenu'); //Remove row
+
+    expect(countRows()).toEqual(1);
+    expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined);
+  });
+
+  it("should remove selected rows (reverse selection)", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true
+    });
+
+    var afterRemoveRowCallback = jasmine.createSpy('afterRemoveRowCallback');
+    hot.addHook('afterRemoveRow', afterRemoveRowCallback);
+
+    expect(countRows()).toEqual(4);
+
+    selectCell(3, 0, 1, 0);
+
+    contextMenu();
+
+    $('ul.context-menu-list li').not('.context-menu-separator').eq(4).trigger('mouseup.contextMenu'); //Remove row
+
+    expect(countRows()).toEqual(1);
+    expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined);
+  });
+
+  it("should remove selected columns", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true
+    });
+
+    var afterRemoveColCallback = jasmine.createSpy('afterRemoveColCallback');
+    hot.addHook('afterRemoveCol', afterRemoveColCallback);
+
+    expect(countCols()).toEqual(4);
+
+    selectCell(0, 1, 0, 3);
+
+    contextMenu();
+
+    $('ul.context-menu-list li').not('.context-menu-separator').eq(5).trigger('mouseup.contextMenu'); //Remove col
+
+    expect(countCols()).toEqual(1);
+    expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined);
+  });
+
+  it("should remove selected columns (reverse selection)", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true
+    });
+
+    var afterRemoveColCallback = jasmine.createSpy('afterRemoveColCallback');
+    hot.addHook('afterRemoveCol', afterRemoveColCallback);
+
+    expect(countCols()).toEqual(4);
+
+    selectCell(0, 3, 0, 1);
+
+    contextMenu();
+
+    $('ul.context-menu-list li').not('.context-menu-separator').eq(5).trigger('mouseup.contextMenu'); //Remove col
+
+    expect(countCols()).toEqual(1);
+    expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined);
   });
 });

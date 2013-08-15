@@ -541,4 +541,42 @@ describe('ColumnSorting', function () {
     expect(this.afterColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0);
   });
 
+  it("should insert row when plugin is enabled, but table hasn't been sorted", function () {
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'D'],
+        [3, 'A'],
+        [2, 'C']
+      ],
+      columnSorting: true
+    });
+
+    expect(countRows()).toEqual(4);
+    expect(hot.sortColumn).toBeUndefined();
+
+    alter('insert_row');
+
+    expect(countRows()).toEqual(5);
+  });
+
+  it("should remove row when plugin is enabled, but table hasn't been sorted", function () {
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'D'],
+        [3, 'A'],
+        [2, 'C']
+      ],
+      columnSorting: true
+    });
+
+    expect(countRows()).toEqual(4);
+    expect(hot.sortColumn).toBeUndefined();
+
+    alter('remove_row');
+
+    expect(countRows()).toEqual(3);
+  });
+
 });

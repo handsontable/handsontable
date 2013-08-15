@@ -97,6 +97,7 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
              if(checkbox.length > 0 && !cellProperties.readOnly){
                for(var i = 0, len = checkbox.length; i < len; i++){
                  checkbox[i].checked = !checkbox[i].checked;
+                 $(checkbox[i]).trigger('change');
                }
              }
 

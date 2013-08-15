@@ -48,11 +48,15 @@ describe('CheckboxRenderer', function () {
       ]
     });
 
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
     var checkboxes = this.$container.find(':checkbox');
 
     expect(checkboxes.eq(0).prop('checked')).toBe(true);
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[true], [true], [true]]);
 
     selectCell(0, 0);
 
@@ -61,6 +65,9 @@ describe('CheckboxRenderer', function () {
     expect(checkboxes.eq(0).prop('checked')).toBe(false);
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[false], [true], [true]]);
+    expect(afterChangeCallback.calls.length).toEqual(1);
+    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined);
 
 
   });
@@ -73,11 +80,15 @@ describe('CheckboxRenderer', function () {
       ]
     });
 
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
     var checkboxes = this.$container.find(':checkbox');
 
     expect(checkboxes.eq(0).prop('checked')).toBe(true);
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[true], [true], [true]]);
 
     selectCell(0, 0);
 
@@ -86,33 +97,44 @@ describe('CheckboxRenderer', function () {
     expect(checkboxes.eq(0).prop('checked')).toBe(true);
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[true], [true], [true]]);
+    expect(afterChangeCallback).not.toHaveBeenCalled();
 
 
   });
 
-
-
   it("should reverse checkboxes state after hitting space, when multiple cells are selected", function () {
-    handsontable({
+    var hot = handsontable({
       data  :  [[true],[false],[true]],
       columns : [
         { type: 'checkbox'}
       ]
     });
 
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
     var checkboxes = this.$container.find(':checkbox');
 
     expect(checkboxes.eq(0).prop('checked')).toBe(true);
     expect(checkboxes.eq(1).prop('checked')).toBe(false);
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[true],[false],[true]]);
 
     selectCell(0, 0, 2, 0);
 
     keyDown('space');
 
+    checkboxes = this.$container.find(':checkbox');
+
     expect(checkboxes.eq(0).prop('checked')).toBe(false);
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
     expect(checkboxes.eq(2).prop('checked')).toBe(false);
+    expect(getData()).toEqual([[false],[true],[false]]);
+    expect(afterChangeCallback.calls.length).toEqual(3);
+    expect(afterChangeCallback.calls[0].args[0]).toEqual([[0, 0, true, false]], 'edit', undefined, undefined, undefined);
+    expect(afterChangeCallback.calls[1].args[0]).toEqual([[1, 0, false, true]], 'edit', undefined, undefined, undefined);
+    expect(afterChangeCallback.calls[2].args[0]).toEqual([[2, 0, true, false]], 'edit', undefined, undefined, undefined);
 
 
   });
@@ -125,19 +147,30 @@ describe('CheckboxRenderer', function () {
       ]
     });
 
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
     var checkboxes = this.$container.find(':checkbox');
 
     expect(checkboxes.eq(0).prop('checked')).toBe(true);
     expect(checkboxes.eq(1).prop('checked')).toBe(false);
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[true],[false],[true]]);
 
     selectCell(2, 0, 0, 0); //selStart = [2,0], selEnd = [0,0]
 
     keyDown('space');
 
+    checkboxes = this.$container.find(':checkbox');
+
     expect(checkboxes.eq(0).prop('checked')).toBe(false);
     expect(checkboxes.eq(1).prop('checked')).toBe(true);
     expect(checkboxes.eq(2).prop('checked')).toBe(false);
+    expect(getData()).toEqual([[false],[true],[false]]);
+    expect(afterChangeCallback.calls.length).toEqual(3);
+    expect(afterChangeCallback.calls[0].args[0]).toEqual([[0, 0, true, false]], 'edit', undefined, undefined, undefined);
+    expect(afterChangeCallback.calls[1].args[0]).toEqual([[1, 0, false, true]], 'edit', undefined, undefined, undefined);
+    expect(afterChangeCallback.calls[2].args[0]).toEqual([[2, 0, true, false]], 'edit', undefined, undefined, undefined);
 
 
   });

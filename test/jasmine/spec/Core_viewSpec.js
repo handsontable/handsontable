@@ -18,10 +18,15 @@ describe('Core_view', function () {
     });
     selectCell(0, 0);
 
+    expect(document.activeElement.nodeName).toBe('BODY');
+
     keyDown('arrow_down');
     keyDown('arrow_down');
     keyDown('arrow_down');
     keyDown('arrow_down');
+
+    expect(getSelected()).toEqual([4, 0, 4, 0]);
+
     keyDown('enter');
 
     expect(isEditorVisible()).toEqual(true);

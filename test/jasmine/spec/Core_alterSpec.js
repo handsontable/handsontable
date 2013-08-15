@@ -259,6 +259,24 @@ describe('Core_alter', function () {
 
   });
 
+  it("should remove row's cellProperties", function () {
+    handsontable({
+      startCols: 1,
+      startRows: 3
+    });
+
+    getCellMeta(0, 0).someValue = [0, 0];
+    getCellMeta(1, 0).someValue = [1, 0];
+    getCellMeta(2, 0).someValue = [2, 0];
+
+    alter('remove_row', 0);
+
+    expect(getCellMeta(0, 0).someValue).toEqual([1, 0]);
+    expect(getCellMeta(1, 0).someValue).toEqual([2, 0]);
+
+
+  });
+
   /*insert_row*/
 
   it('should insert row at given index', function () {
@@ -479,6 +497,24 @@ describe('Core_alter', function () {
     alter('remove_col', 1);
 
     expect(output).toEqual([1, 1]);
+  });
+
+  it("should remove column's properties", function () {
+    handsontable({
+      startCols: 3,
+      startRows: 1
+    });
+
+    getCellMeta(0, 0).someValue = [0, 0];
+    getCellMeta(0, 1).someValue = [0, 1];
+    getCellMeta(0, 2).someValue = [0, 2];
+
+    alter('remove_col', 0);
+
+    expect(getCellMeta(0, 0).someValue).toEqual([0, 1]);
+    expect(getCellMeta(0, 1).someValue).toEqual([0, 2]);
+
+
   });
 
   it('should fire callback on create row', function () {
