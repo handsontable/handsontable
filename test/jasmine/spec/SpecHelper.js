@@ -51,6 +51,9 @@ var contextMenu = function () {
  */
 var handsontableMouseTriggerFactory = function (type) {
   return function (element) {
+    if(!(element instanceof jQuery)){
+      element = $(element);
+    }
     var ev = $.Event(type);
     ev.which = 1; //left mouse button
     element.trigger(ev);
@@ -59,6 +62,12 @@ var handsontableMouseTriggerFactory = function (type) {
 
 var mouseDown = handsontableMouseTriggerFactory('mousedown');
 var mouseUp = handsontableMouseTriggerFactory('mouseup');
+var mouseDoubleClick = function(element){
+    mouseDown(element);
+    mouseUp(element);
+    mouseDown(element);
+    mouseUp(element);
+};
 
 /**
  * Returns a function that triggers a key event
