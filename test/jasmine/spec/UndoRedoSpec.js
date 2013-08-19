@@ -118,6 +118,38 @@ describe('UndoRedo', function () {
       expect(getDataAtCell(3, 1)).toEqual('B3');
     });
 
+    it('should undo creation of a single column', function () {
+      var HOT = handsontable({
+        data: createSpreadsheetData(2, 2)
+      });
+
+      expect(countCols()).toEqual(2);
+
+      alter('insert_col');
+
+      expect(countCols()).toEqual(3);
+
+      HOT.undo();
+
+      expect(countCols()).toEqual(2);
+    });
+
+    it('should undo creation of multiple columns', function () {
+      var HOT = handsontable({
+        data: createSpreadsheetData(2, 2)
+      });
+
+      expect(countCols()).toEqual(2);
+
+      alter('insert_col', 1, 5);
+
+      expect(countCols()).toEqual(7);
+
+      HOT.undo();
+
+      expect(countCols()).toEqual(2);
+    });
+
     it('should undo single change after hitting CTRL+Z', function () {
       handsontable({
         data: createSpreadsheetData(2, 2)
@@ -439,6 +471,46 @@ describe('UndoRedo', function () {
       expect(countRows()).toEqual(1);
       expect(getDataAtCell(0, 0)).toEqual('A0');
       expect(getDataAtCell(0, 1)).toEqual('B0');
+    });
+
+    it('should redo creation of a single column', function () {
+      var HOT = handsontable({
+        data: createSpreadsheetData(2, 2)
+      });
+
+      expect(countCols()).toEqual(2);
+
+      alter('insert_col');
+
+      expect(countCols()).toEqual(3);
+
+      HOT.undo();
+
+      expect(countCols()).toEqual(2);
+
+      HOT.redo();
+
+      expect(countCols()).toEqual(3);
+    });
+
+    it('should redo creation of multiple columns', function () {
+      var HOT = handsontable({
+        data: createSpreadsheetData(2, 2)
+      });
+
+      expect(countCols()).toEqual(2);
+
+      alter('insert_col', 1, 5);
+
+      expect(countCols()).toEqual(7);
+
+      HOT.undo();
+
+      expect(countCols()).toEqual(2);
+
+      HOT.redo();
+
+      expect(countCols()).toEqual(7);
     });
 
     it('should redo single change after hitting CTRL+Y', function () {

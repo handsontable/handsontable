@@ -193,7 +193,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
 
 
-      instance.PluginHooks.run('afterCreateRow', index, amount);
+      instance.PluginHooks.run('afterCreateRow', index, numberOfCreatedRows);
       instance.forceFullRender = true; //used when data was changed
 
       return numberOfCreatedRows;
@@ -201,35 +201,53 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     /**
      * Creates col at the right of the data array
-     * @param {Object} [index] Optional. Index of the column before which the new column will be inserted
+     * @param {Number} [index] Optional. Index of the column before which the new column will be inserted
+ *   * @param {Number} [amount] Optional.
      */
-    createCol: function (index) {
+    createCol: function (index, amount) {
       if (priv.dataType === 'object' || priv.settings.columns) {
         throw new Error("Cannot create new column. When data source in an object, you can only have as much columns as defined in first data row, data schema or in the 'columns' setting");
       }
-      var r = 0, rlen = instance.countRows()
+      var rlen = instance.countRows()
         , data = GridSettings.prototype.data
-        , constructor = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
+        , constructor
+        , numberOfCreatedCols = 0
+        , currentIndex;
 
-      if (typeof index !== 'number' || index >= instance.countCols()) {
-        for (; r < rlen; r++) {
-          if (typeof data[r] === 'undefined') {
-            data[r] = [];
+      if (!amount) {
+        amount = 1;
+      }
+
+      currentIndex = index;
+
+      while (numberOfCreatedCols < amount && instance.countCols() < priv.settings.maxCols){
+        constructor = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
+        if (typeof index !== 'number' || index >= instance.countCols()) {
+          for (var r = 0; r < rlen; r++) {
+            if (typeof data[r] === 'undefined') {
+              data[r] = [];
+            }
+            data[r].push(null);
           }
-          data[r].push(null);
+          // Add new column constructor
+          priv.columnSettings.push(constructor);
         }
-        // Add new column constructor
-        priv.columnSettings.push(constructor);
-      }
-      else {
-        for (; r < rlen; r++) {
-          data[r].splice(index, 0, null);
+        else {
+          for (var r = 0 ; r < rlen; r++) {
+            data[r].splice(currentIndex, 0, null);
+          }
+          // Add new column constructor at given index
+          priv.columnSettings.splice(currentIndex, 0, constructor);
         }
-        // Add new column constructor at given index
-        priv.columnSettings.splice(index, 0, constructor);
+
+        numberOfCreatedCols++;
+        currentIndex++;
       }
-      instance.PluginHooks.run('afterCreateCol', index);
+
+      instance.PluginHooks.run('afterCreateCol', index, numberOfCreatedCols);
       instance.forceFullRender = true; //used when data was changed
+
+      return numberOfCreatedCols;
     },
 
     /**
@@ -514,14 +532,8 @@ Handsontable.Core = function (rootElement, userSettings) {
           break;
 
         case "insert_col":
-          if (!amount) {
-            amount = 1;
-          }
-          delta = 0;
-          while (delta < amount && instance.countCols() < priv.settings.maxCols) {
-            datamap.createCol(index);
-            delta++;
-          }
+          delta = datamap.createCol(index, amount);
+
           if (delta) {
             if (priv.selStart.exists() && priv.selStart.col() >= index) {
               priv.selStart.col(priv.selStart.col() + delta);

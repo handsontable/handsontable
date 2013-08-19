@@ -24,6 +24,11 @@ Handsontable.UndoRedo = function (instance) {
     var action = new Handsontable.UndoRedo.RemoveRowAction(index, removedData);
     plugin.do(action);
   });
+
+  instance.addHook("afterCreateCol", function (index, amount) {
+    var action = new Handsontable.UndoRedo.CreateColumnAction(index, amount);
+    plugin.do(action);
+  });
 };
 
 Handsontable.UndoRedo.prototype.do = function (action) {
@@ -138,4 +143,16 @@ Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function (instance) {
 };
 Handsontable.UndoRedo.RemoveRowAction.prototype.redo = function (instance) {
   instance.alter('remove_row', this.index, this.data.length);
+};
+
+Handsontable.UndoRedo.CreateColumnAction = function (index, amount) {
+  this.index = index;
+  this.amount = amount;
+};
+Handsontable.helper.inherit(Handsontable.UndoRedo.CreateColumnAction, Handsontable.UndoRedo.Action);
+Handsontable.UndoRedo.CreateColumnAction.prototype.undo = function (instance) {
+  instance.alter('remove_col', this.index, this.amount);
+};
+Handsontable.UndoRedo.CreateColumnAction.prototype.redo = function (instance) {
+  instance.alter('insert_col', this.index + 1, this.amount);
 };
