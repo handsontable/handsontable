@@ -137,5 +137,5 @@ Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function (instance) {
   instance.populateFromArray(this.index, 0, this.data);
 };
 Handsontable.UndoRedo.RemoveRowAction.prototype.redo = function (instance) {
-  instance.alter('remove_row', this.index, this.amount);
+  instance.alter('remove_row', this.index, this.data.length);
 };

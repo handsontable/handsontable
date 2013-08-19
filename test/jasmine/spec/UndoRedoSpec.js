@@ -84,6 +84,40 @@ describe('UndoRedo', function () {
       expect(getDataAtCell(1, 1)).toEqual('B1')
     });
 
+    it('should undo removal of multiple rows', function () {
+      var HOT = handsontable({
+        data: createSpreadsheetData(4, 2)
+      });
+
+      expect(countRows()).toEqual(4);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+      expect(getDataAtCell(2, 0)).toEqual('A2');
+      expect(getDataAtCell(2, 1)).toEqual('B2');
+      expect(getDataAtCell(3, 0)).toEqual('A3');
+      expect(getDataAtCell(3, 1)).toEqual('B3');
+
+      alter('remove_row', 1, 3);
+
+      expect(countRows()).toEqual(1);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+
+      HOT.undo();
+
+      expect(countRows()).toEqual(4);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+      expect(getDataAtCell(2, 0)).toEqual('A2');
+      expect(getDataAtCell(2, 1)).toEqual('B2');
+      expect(getDataAtCell(3, 0)).toEqual('A3');
+      expect(getDataAtCell(3, 1)).toEqual('B3');
+    });
+
     it('should undo single change after hitting CTRL+Z', function () {
       handsontable({
         data: createSpreadsheetData(2, 2)
@@ -359,6 +393,46 @@ describe('UndoRedo', function () {
       expect(getDataAtCell(0, 1)).toEqual('B0');
       expect(getDataAtCell(1, 0)).toEqual('A1');
       expect(getDataAtCell(1, 1)).toEqual('B1');
+
+      HOT.redo();
+
+      expect(countRows()).toEqual(1);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+    });
+
+    it('should redo removal of multiple rows', function () {
+      var HOT = handsontable({
+        data: createSpreadsheetData(4, 2)
+      });
+
+      expect(countRows()).toEqual(4);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+      expect(getDataAtCell(2, 0)).toEqual('A2');
+      expect(getDataAtCell(2, 1)).toEqual('B2');
+      expect(getDataAtCell(3, 0)).toEqual('A3');
+      expect(getDataAtCell(3, 1)).toEqual('B3');
+
+      alter('remove_row', 1, 3);
+
+      expect(countRows()).toEqual(1);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+
+      HOT.undo();
+
+      expect(countRows()).toEqual(4);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+      expect(getDataAtCell(2, 0)).toEqual('A2');
+      expect(getDataAtCell(2, 1)).toEqual('B2');
+      expect(getDataAtCell(3, 0)).toEqual('A3');
+      expect(getDataAtCell(3, 1)).toEqual('B3');
 
       HOT.redo();
 
