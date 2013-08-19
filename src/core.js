@@ -292,12 +292,16 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (typeof index !== 'number') {
         index = -amount;
       }
+
+      instance.PluginHooks.run('beforeRemoveCol', index, amount);
+
       var data = GridSettings.prototype.data;
       for (var r = 0, rlen = instance.countRows(); r < rlen; r++) {
         data[r].splice(index, amount);
       }
-      instance.PluginHooks.run('afterRemoveCol', index, amount);
       priv.columnSettings.splice(index, amount);
+
+      instance.PluginHooks.run('afterRemoveCol', index, amount);
       instance.forceFullRender = true; //used when data was changed
     },
 
