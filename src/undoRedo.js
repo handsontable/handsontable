@@ -29,6 +29,19 @@ Handsontable.UndoRedo = function (instance) {
     var action = new Handsontable.UndoRedo.CreateColumnAction(index, amount);
     plugin.do(action);
   });
+
+  instance.addHook("beforeRemoveCol", function (index, amount) {
+    var originalData = plugin.instance.getData();
+    index = ( originalData.length + index ) % originalData.length;
+    var removedData = [];
+    
+    for(var i = 0, len = originalData.length; i < len; i++){
+      removedData[i] = originalData[i].slice(index, index + amount);
+    }
+    
+    var action = new Handsontable.UndoRedo.RemoveColumnAction(index, removedData);
+    plugin.do(action);
+  });
 };
 
 Handsontable.UndoRedo.prototype.do = function (action) {
@@ -155,4 +168,18 @@ Handsontable.UndoRedo.CreateColumnAction.prototype.undo = function (instance) {
 };
 Handsontable.UndoRedo.CreateColumnAction.prototype.redo = function (instance) {
   instance.alter('insert_col', this.index + 1, this.amount);
+};
+
+Handsontable.UndoRedo.RemoveColumnAction = function (index, data) {
+  this.index = index;
+  this.data = data;
+  this.amount = this.data[0].length;
+};
+Handsontable.helper.inherit(Handsontable.UndoRedo.RemoveColumnAction, Handsontable.UndoRedo.Action);
+Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function (instance) {
+  instance.alter('insert_col', this.index, this.amount);
+  instance.populateFromArray(0, this.index, this.data);
+};
+Handsontable.UndoRedo.RemoveColumnAction.prototype.redo = function (instance) {
+  instance.alter('remove_col', this.index, this.amount);
 };

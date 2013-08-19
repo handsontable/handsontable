@@ -150,6 +150,74 @@ describe('UndoRedo', function () {
       expect(countCols()).toEqual(2);
     });
 
+    it('should undo removal of single column', function () {
+      var HOT = handsontable({
+        data: createSpreadsheetData(2, 2)
+      });
+
+      expect(countCols()).toEqual(2);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+
+      alter('remove_col');
+
+      expect(countCols()).toEqual(1);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toBeUndefined();
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toBeUndefined();
+
+      HOT.undo();
+
+      expect(countCols()).toEqual(2);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1')
+    });
+
+    it('should undo removal of multiple columns', function () {
+      var HOT = handsontable({
+        data: createSpreadsheetData(2, 4)
+      });
+
+      expect(countCols()).toEqual(4);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(0, 2)).toEqual('C0');
+      expect(getDataAtCell(0, 3)).toEqual('D0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+      expect(getDataAtCell(1, 2)).toEqual('C1');
+      expect(getDataAtCell(1, 3)).toEqual('D1');
+
+      alter('remove_col', 1, 3);
+
+      expect(countCols()).toEqual(1);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toBeUndefined();
+      expect(getDataAtCell(0, 2)).toBeUndefined();
+      expect(getDataAtCell(0, 3)).toBeUndefined();
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toBeUndefined();
+      expect(getDataAtCell(1, 2)).toBeUndefined();
+      expect(getDataAtCell(1, 3)).toBeUndefined();
+
+      HOT.undo();
+
+      expect(countCols()).toEqual(4);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(0, 2)).toEqual('C0');
+      expect(getDataAtCell(0, 3)).toEqual('D0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+      expect(getDataAtCell(1, 2)).toEqual('C1');
+      expect(getDataAtCell(1, 3)).toEqual('D1');
+    });
+
     it('should undo single change after hitting CTRL+Z', function () {
       handsontable({
         data: createSpreadsheetData(2, 2)
@@ -511,6 +579,94 @@ describe('UndoRedo', function () {
       HOT.redo();
 
       expect(countCols()).toEqual(7);
+    });
+
+    it('should redo removal of single column', function () {
+      var HOT = handsontable({
+        data: createSpreadsheetData(2, 2)
+      });
+
+      expect(countCols()).toEqual(2);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+
+      alter('remove_col');
+
+      expect(countCols()).toEqual(1);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toBeUndefined();
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toBeUndefined();
+
+      HOT.undo();
+
+      expect(countCols()).toEqual(2);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+
+      HOT.redo();
+
+      expect(countCols()).toEqual(1);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toBeUndefined();
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toBeUndefined();
+    });
+
+    it('should redo removal of multiple columns', function () {
+      var HOT = handsontable({
+        data: createSpreadsheetData(2, 4)
+      });
+
+      expect(countCols()).toEqual(4);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(0, 2)).toEqual('C0');
+      expect(getDataAtCell(0, 3)).toEqual('D0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+      expect(getDataAtCell(1, 2)).toEqual('C1');
+      expect(getDataAtCell(1, 3)).toEqual('D1');
+
+      alter('remove_col', 1, 3);
+
+      expect(countCols()).toEqual(1);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toBeUndefined();
+      expect(getDataAtCell(0, 2)).toBeUndefined();
+      expect(getDataAtCell(0, 3)).toBeUndefined();
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toBeUndefined();
+      expect(getDataAtCell(1, 2)).toBeUndefined();
+      expect(getDataAtCell(1, 3)).toBeUndefined();
+
+      HOT.undo();
+
+      expect(countCols()).toEqual(4);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toEqual('B0');
+      expect(getDataAtCell(0, 2)).toEqual('C0');
+      expect(getDataAtCell(0, 3)).toEqual('D0');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toEqual('B1');
+      expect(getDataAtCell(1, 2)).toEqual('C1');
+      expect(getDataAtCell(1, 3)).toEqual('D1');
+
+      HOT.redo();
+
+      expect(countCols()).toEqual(1);
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 1)).toBeUndefined();
+      expect(getDataAtCell(0, 2)).toBeUndefined();
+      expect(getDataAtCell(0, 3)).toBeUndefined();
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(1, 1)).toBeUndefined();
+      expect(getDataAtCell(1, 2)).toBeUndefined();
+      expect(getDataAtCell(1, 3)).toBeUndefined();
     });
 
     it('should redo single change after hitting CTRL+Y', function () {
