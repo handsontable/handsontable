@@ -1,3 +1,11 @@
+## [0.9.14](https://github.com/warpech/jquery-handsontable/tree/v0.9.13) (Aug 20, 2013)
+
+Bugfixes:
+
+- fixed selecting date using jQuery UI Datepicker ([#970](https://github.com/warpech/jquery-handsontable/issues/970))
+- fixed opening cell editor after clearing cell data with Delete or Backspace ([#975](https://github.com/warpech/jquery-handsontable/issues/975))
+
+
 ## [0.9.13](https://github.com/warpech/jquery-handsontable/tree/v0.9.13) (Aug 16, 2013)
 
 Features:

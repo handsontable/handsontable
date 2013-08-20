@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.9.13
+ * Handsontable 0.9.14
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Aug 16 2013 00:58:19 GMT+0200 (Central European Daylight Time)
+ * Date: Tue Aug 20 2013 14:50:33 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2739,7 +2739,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.9.13'; //inserted by grunt from package.json
+  this.version = '0.9.14'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {
@@ -4003,7 +4003,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
       }
       event.preventDefault(); //prevent new line at the end of textarea
       event.stopImmediatePropagation();
-    } else if ([8, 9, 33, 34, 35, 36, 37, 38, 39, 40, 46].indexOf(event.keyCode) == -1){ // other non printable character
+    } else if ([9, 33, 34, 35, 36, 37, 38, 39, 40].indexOf(event.keyCode) == -1){ // other non printable character
      that.instance.addHookOnce('beforeKeyDown', beforeKeyDownHook);
     }
   };
@@ -4522,8 +4522,13 @@ function HandsontableDateEditorClass(instance) {
 
   this.isCellEdited = false;
   this.instance = instance;
+  var that = this;
   this.createElements();
   this.bindEvents();
+
+  this.instance.addHook('afterDestroy', function(){
+    that.destroyElements();
+  })
 }
 
 Handsontable.helper.inherit(HandsontableDateEditorClass, HandsontableTextEditorClass);
@@ -4535,6 +4540,7 @@ HandsontableDateEditorClass.prototype.createElements = function () {
   HandsontableTextEditorClass.prototype.createElements.call(this);
 
   this.datePicker = document.createElement('DIV');
+  this.instance.view.wt.wtDom.addClass(this.datePicker, 'htDatepickerHolder');
   this.datePickerStyle = this.datePicker.style;
   this.datePickerStyle.position = 'absolute';
   this.datePickerStyle.top = 0;
@@ -4555,7 +4561,20 @@ HandsontableDateEditorClass.prototype.createElements = function () {
     }
   };
   this.$datePicker.datepicker(defaultOptions);
+
+  /**
+   * Prevent recognizing clicking on jQuery Datepicker as clicking outside of table
+   */
+  this.$datePicker.on('mousedown', function(event){
+    event.stopPropagation();
+  });
+
   this.hideDatepicker();
+};
+
+HandsontableDateEditorClass.prototype.destroyElements = function(){
+  this.$datePicker.datepicker('destroy');
+  this.$datePicker.remove();
 };
 
 /**
