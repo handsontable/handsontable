@@ -5,8 +5,13 @@ function HandsontableDateEditorClass(instance) {
 
   this.isCellEdited = false;
   this.instance = instance;
+  var that = this;
   this.createElements();
   this.bindEvents();
+
+  this.instance.addHook('afterDestroy', function(){
+    that.destroyElements();
+  })
 }
 
 Handsontable.helper.inherit(HandsontableDateEditorClass, HandsontableTextEditorClass);
@@ -18,6 +23,7 @@ HandsontableDateEditorClass.prototype.createElements = function () {
   HandsontableTextEditorClass.prototype.createElements.call(this);
 
   this.datePicker = document.createElement('DIV');
+  this.instance.view.wt.wtDom.addClass(this.datePicker, 'htDatepickerHolder');
   this.datePickerStyle = this.datePicker.style;
   this.datePickerStyle.position = 'absolute';
   this.datePickerStyle.top = 0;
@@ -38,7 +44,20 @@ HandsontableDateEditorClass.prototype.createElements = function () {
     }
   };
   this.$datePicker.datepicker(defaultOptions);
+
+  /**
+   * Prevent recognizing clicking on jQuery Datepicker as clicking outside of table
+   */
+  this.$datePicker.on('mousedown', function(event){
+    event.stopPropagation();
+  });
+
   this.hideDatepicker();
+};
+
+HandsontableDateEditorClass.prototype.destroyElements = function(){
+  this.$datePicker.datepicker('destroy');
+  this.$datePicker.remove();
 };
 
 /**
