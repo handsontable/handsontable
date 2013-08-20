@@ -203,6 +203,7 @@ module.exports = function (grunt) {
           'demo/js/backbone/lodash.underscore.js',
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
+          'lib/jquery-ui/js/jquery-ui.custom.js',
           'extensions/jquery.handsontable.removeRow.js'
         ],
         options: {
@@ -214,6 +215,7 @@ module.exports = function (grunt) {
             'test/jasmine/css/SpecRunner.css',
             'dist/jquery.handsontable.css',
             'lib/jQuery-contextMenu/jquery.contextMenu.css',
+            'lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css',
             'extensions/jquery.handsontable.removeRow.css'
           ],
           vendor: [

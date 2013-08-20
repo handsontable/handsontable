@@ -1,3 +1,11 @@
+## [0.9.14](https://github.com/warpech/jquery-handsontable/tree/v0.9.13) (Aug 20, 2013)
+
+Bugfixes:
+
+- fixed selecting date using jQuery UI Datepicker ([#970](https://github.com/warpech/jquery-handsontable/issues/970))
+- fixed opening cell editor after clearing cell data with Delete or Backspace ([#975](https://github.com/warpech/jquery-handsontable/issues/975))
+
+
 ## [0.9.13](https://github.com/warpech/jquery-handsontable/tree/v0.9.13) (Aug 16, 2013)
 
 Features:
@@ -14,7 +22,7 @@ Bugfixes:
 - toggling checkbox state using spacebar did not update the data source and trigger afterChange event ([#895](https://github.com/warpech/jquery-handsontable/issues/895))
 - context menu functions did not work properly when the cell selection was performed upwards or leftwards  ([#674](https://github.com/warpech/jquery-handsontable/issues/674))
 - `observeChanges` should register only external changes, not changes made with Handsontable (which led to plugin hooks triggered twice)
-- error adding row when column sorting is in effect ([#858](https://github.com/warpech/jquery-handsontable/issues/858))
+- ~~error adding row when column sorting is in effect ([#858](https://github.com/warpech/jquery-handsontable/issues/858))~~ - still not fixed. We will address it with high priority
 - Opening autocomplete list, hovering over a list item and then clicking outside of the table will close the editor and won't change cell value ([#638](https://github.com/warpech/jquery-handsontable/issues/638))
 
 ## [0.9.12](https://github.com/warpech/jquery-handsontable/tree/v0.9.12) (Aug 7, 2013)
