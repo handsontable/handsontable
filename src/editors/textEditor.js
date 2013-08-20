@@ -182,7 +182,7 @@ HandsontableTextEditorClass.prototype.bindTemporaryEvents = function (td, row, c
       }
       event.preventDefault(); //prevent new line at the end of textarea
       event.stopImmediatePropagation();
-    } else if ([8, 9, 33, 34, 35, 36, 37, 38, 39, 40, 46].indexOf(event.keyCode) == -1){ // other non printable character
+    } else if ([9, 33, 34, 35, 36, 37, 38, 39, 40].indexOf(event.keyCode) == -1){ // other non printable character
      that.instance.addHookOnce('beforeKeyDown', beforeKeyDownHook);
     }
   };
