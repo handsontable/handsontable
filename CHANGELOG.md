@@ -1,4 +1,4 @@
-## [0.9.14](https://github.com/warpech/jquery-handsontable/tree/v0.9.13) (Aug 20, 2013)
+## [0.9.14](https://github.com/warpech/jquery-handsontable/tree/v0.9.14) (Aug 20, 2013)
 
 Bugfixes:
 
