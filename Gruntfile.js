@@ -64,6 +64,7 @@ module.exports = function (grunt) {
         'src/renderers/autocompleteRenderer.js',
         'src/renderers/checkboxRenderer.js',
         'src/renderers/numericRenderer.js',
+        'src/renderers/passwordRenderer.js',
 
         'src/editors/textEditor.js',
         'src/editors/autocompleteEditor.js',
