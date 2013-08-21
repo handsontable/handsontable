@@ -71,6 +71,7 @@ module.exports = function (grunt) {
         'src/editors/checkboxEditor.js',
         'src/editors/dateEditor.js',
         'src/editors/handsontableEditor.js',
+        'src/editors/passwordEditor.js',
 
         'src/validators/numericValidator.js',
         'src/validators/autocompleteValidator.js',

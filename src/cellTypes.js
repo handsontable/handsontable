@@ -36,7 +36,7 @@ Handsontable.HandsontableCell = {
 };
 
 Handsontable.PasswordCell = {
-  editor: Handsontable.TextEditor,
+  editor: Handsontable.PasswordEditor,
   renderer: Handsontable.PasswordRenderer
 };
 
@@ -65,7 +65,8 @@ Handsontable.cellLookup = {
     date: Handsontable.DateEditor,
     checkbox: Handsontable.CheckboxEditor,
     autocomplete: Handsontable.AutocompleteEditor,
-    handsontable: Handsontable.HandsontableEditor
+    handsontable: Handsontable.HandsontableEditor,
+    password: Handsontable.PasswordEditor
   },
   validator: {
     numeric: Handsontable.NumericValidator,
