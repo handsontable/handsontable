@@ -177,4 +177,51 @@ describe('manualColumnMove', function () {
       $secondColHeader.trigger('mouseup');
     }
   });
+
+  it("should mark apropriate column as invalid, when column order is changed", function () {
+    handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"},
+        {id: 6, name: "Chuck", lastName: "Jackson"},
+        {id: 7, name: "Meg", lastName: "Jansen"},
+        {id: 8, name: "Rob", lastName: "Norris"},
+        {id: 9, name: "Sean", lastName: "O'Hara"},
+        {id: 10, name: "Eve", lastName: "Branson"}
+      ],
+      colHeaders: true,
+      manualColumnMove: [2, 0, 1],
+      columns: [
+        {
+          type: 'numeric',
+          data: 'id'},
+        {
+          data: 'name'
+        },
+        {
+          data: 'lastName'
+        }
+      ],
+      allowInvalid: true
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(this.$container.find('.htInvalid').length).toEqual(0);
+
+    selectCell(0, 1);
+    keyDown('enter');
+    var editor = $('.handsontableInput');
+    editor.val('foo');
+    keyDown('enter');
+
+    expect(this.$container.find('.htInvalid').length).toEqual(1);
+    expect(this.$container.find('.htInvalid').text()).toMatch('foo');
+
+  });
 });
