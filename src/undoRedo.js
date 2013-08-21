@@ -8,8 +8,10 @@ Handsontable.UndoRedo = function (instance) {
   this.undoneActions = [];
   this.ignoreNewActions = false;
   instance.addHook("afterChange", function (changes, origin) {
-    var action = new Handsontable.UndoRedo.ChangeAction(changes);
-    plugin.do(action);
+    if(changes){
+      var action = new Handsontable.UndoRedo.ChangeAction(changes);
+      plugin.do(action);
+    }
   });
 
   instance.addHook("afterCreateRow", function (index, amount) {
@@ -34,11 +36,11 @@ Handsontable.UndoRedo = function (instance) {
     var originalData = plugin.instance.getData();
     index = ( originalData.length + index ) % originalData.length;
     var removedData = [];
-    
-    for(var i = 0, len = originalData.length; i < len; i++){
+
+    for (var i = 0, len = originalData.length; i < len; i++) {
       removedData[i] = originalData[i].slice(index, index + amount);
     }
-    
+
     var action = new Handsontable.UndoRedo.RemoveColumnAction(index, removedData);
     plugin.do(action);
   });
@@ -151,8 +153,12 @@ Handsontable.UndoRedo.RemoveRowAction = function (index, data) {
 };
 Handsontable.helper.inherit(Handsontable.UndoRedo.RemoveRowAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function (instance) {
-  instance.alter('insert_row', this.index, this.data.length);
-  instance.populateFromArray(this.index, 0, this.data);
+  var spliceArgs = [this.index, this.data.length];
+  Array.prototype.push.apply(spliceArgs, this.data);
+
+  Array.prototype.splice.apply(instance.getData(), spliceArgs);
+
+  instance.render();
 };
 Handsontable.UndoRedo.RemoveRowAction.prototype.redo = function (instance) {
   instance.alter('remove_row', this.index, this.data.length);
@@ -177,8 +183,17 @@ Handsontable.UndoRedo.RemoveColumnAction = function (index, data) {
 };
 Handsontable.helper.inherit(Handsontable.UndoRedo.RemoveColumnAction, Handsontable.UndoRedo.Action);
 Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function (instance) {
-  instance.alter('insert_col', this.index, this.amount);
-  instance.populateFromArray(0, this.index, this.data);
+  var row, spliceArgs;
+  for (var i = 0, len = instance.getData().length; i < len; i++) {
+    row = instance.getDataAtRow(i);
+
+    spliceArgs = [this.index, this.amount];
+    Array.prototype.push.apply(spliceArgs, this.data[i]);
+
+    Array.prototype.splice.apply(row, spliceArgs);
+  }
+
+  instance.render();
 };
 Handsontable.UndoRedo.RemoveColumnAction.prototype.redo = function (instance) {
   instance.alter('remove_col', this.index, this.amount);
