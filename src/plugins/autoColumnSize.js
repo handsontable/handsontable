@@ -12,11 +12,10 @@
 
         if (!instance.autoColumnSizeTmp) {
           instance.autoColumnSizeTmp = {
-            thead: null,
+            table: null,
+            tableStyle: null,
             theadTh: null,
-            theadStyle: null,
             tbody: null,
-            tbodyTd: null,
             container: null,
             containerStyle: null
           };
@@ -46,13 +45,10 @@
 
       if (!tmp.container) {
         createTmpContainer.call(tmp, instance);
-        instance.rootElement[0].parentNode.appendChild(tmp.container);
       }
 
-      tmp.container.className = instance.rootElement[0].className + ' hidden';
-      var cls = instance.$table[0].className;
-      tmp.thead.className = cls;
-      tmp.tbody.className = cls;
+      tmp.container.className = instance.rootElement[0].className + ' htAutoColumnSize';
+      tmp.table.className = instance.$table[0].className;
 
       var rows = instance.countRows();
       var samples = {};
@@ -98,16 +94,15 @@
         }
       }
 
-      tmp.containerStyle.display = 'block';
-
+      var parent = instance.rootElement[0].parentNode;
+      parent.appendChild(tmp.container);
       var width = instance.view.wt.wtDom.outerWidth(tmp.container);
+      parent.removeChild(tmp.container);
 
       var maxWidth = instance.view.wt.wtViewport.getViewportWidth() - 2; //2 is some overhead for cell border
       if (width > maxWidth) {
         width = maxWidth;
       }
-
-      tmp.containerStyle.display = 'none';
 
       return width;
     };
@@ -142,23 +137,22 @@
       var d = document
         , tmp = this;
 
-      tmp.thead = d.createElement('table');
-      tmp.thead.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(d.createElement('th'));
-      tmp.theadTh = tmp.thead.getElementsByTagName('th')[0];
+      tmp.table = d.createElement('table');
+      tmp.theadTh = d.createElement('th');
+      tmp.table.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(tmp.theadTh);
 
-      tmp.theadStyle = tmp.thead.style;
-      tmp.theadStyle.tableLayout = 'auto';
-      tmp.theadStyle.width = 'auto';
+      tmp.tableStyle = tmp.table.style;
+      tmp.tableStyle.tableLayout = 'auto';
+      tmp.tableStyle.width = 'auto';
 
-      tmp.tbody = tmp.thead.cloneNode(false);
-      tmp.tbody.appendChild(d.createElement('tbody'));
+      tmp.tbody = d.createElement('tbody');
+      tmp.table.appendChild(tmp.tbody);
 
       tmp.container = d.createElement('div');
       tmp.container.className = instance.rootElement[0].className + ' hidden';
       tmp.containerStyle = tmp.container.style;
 
-      tmp.container.appendChild(tmp.thead);
-      tmp.container.appendChild(tmp.tbody);
+      tmp.container.appendChild(tmp.table);
     }
   }
 

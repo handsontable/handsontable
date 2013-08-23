@@ -16,8 +16,7 @@
   font-size: 13px;
 }
 
-.handsontable.hidden {
-  display: none;
+.handsontable.htAutoColumnSize {
   visibility: hidden;
   left: 0;
   position: absolute;
