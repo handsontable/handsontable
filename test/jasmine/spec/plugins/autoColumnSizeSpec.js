@@ -73,7 +73,7 @@ describe('AutoColumnSize', function () {
     var widths = {
       1: [],
       2: []
-    }
+    };
 
     widths[1][0] = colWidth(this.$container, 0);
     widths[1][1] = colWidth(this.$container, 1);
@@ -241,5 +241,27 @@ describe('AutoColumnSize', function () {
     setDataAtCell(0, 0, 'LongLongLongLong');
 
     expect(colWidth(this.$container, 0)).toBe(70);
+  });
+
+  it('should consider renderer that uses conditional formatting for specific row & column index', function () {
+    var data = arrayOfObjects();
+    data.push({id: "2", name: "Rocket Man", lastName: "In a tin can"});
+    handsontable({
+      data: data,
+      columns: [
+        {data: 'id'},
+        {data: 'name'}
+      ],
+      autoColumnSize: true,
+      renderer: function (instance, td, row, col, prop, value, cellProperties) {
+        //taken from demo/renderers.html
+        Handsontable.TextCell.renderer.apply(this, arguments);
+        if (row === 1 && col === 0) {
+          td.style.padding = "100px";
+        }
+      }
+    });
+
+    expect(colWidth(this.$container, 0)).toBeGreaterThan(colWidth(this.$container, 1));
   });
 });

@@ -18,6 +18,7 @@
 
 .handsontable.hidden {
   display: none;
+  visibility: hidden;
   left: 0;
   position: absolute;
   top: 0;
