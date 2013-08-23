@@ -107,6 +107,9 @@ describe('AutoColumnSize', function () {
 
     expect(widths[2][0]).toBeLessThan(widths[2][1]);
     expect(widths[2][1]).toBeLessThan(widths[2][2]);
+
+    this.$container2.handsontable('destroy');
+    this.$container2.remove();
   });
 
   it('should be possible to enable plugin using updateSettings', function () {
