@@ -2397,6 +2397,9 @@ Handsontable.Core = function (rootElement, userSettings) {
     else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
       return priv.settings.colWidths[col];
     }
+    else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Function]') {
+      return priv.settings.colWidths(col);
+    }
   };
 
   /**
