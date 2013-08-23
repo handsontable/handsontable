@@ -8,9 +8,9 @@
     var hashLength = cellProperties.hashLength || value.length;
     var hashSymbol = cellProperties.hashSymbol || '*';
 
-    for( hash = ''; hash.length < hashLength; hash += hashSymbol);
+    for( hash = ''; hash.split(hashSymbol).length - 1 < hashLength; hash += hashSymbol);
 
-    instance.view.wt.wtDom.fastInnerText(TD, hash);
+    instance.view.wt.wtDom.fastInnerHTML(TD, hash);
 
   };
 })(Handsontable);
