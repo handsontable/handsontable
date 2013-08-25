@@ -14,7 +14,31 @@ describe('settings', function () {
     });
 
     describe('defined in constructor', function () {
+      it('should consider colWidths provided as number', function () {
+        handsontable({
+          colWidths: 123
+        });
+
+        expect(colWidth(this.$container, 0)).toBe(123);
+      });
+
+      it('should consider colWidths provided as string', function () {
+        handsontable({
+          colWidths: "123"
+        });
+
+        expect(colWidth(this.$container, 0)).toBe(123);
+      });
+
       it('should consider colWidths provided as array of numbers', function () {
+        handsontable({
+          colWidths: [123]
+        });
+
+        expect(colWidth(this.$container, 0)).toBe(123);
+      });
+
+      it('should consider colWidths provided as array of strings', function () {
         handsontable({
           colWidths: [123]
         });
@@ -28,9 +52,20 @@ describe('settings', function () {
             if (index === 0) {
               return 123;
             }
-            else {
-              return 50;
+            return 50;
+          }
+        });
+
+        expect(colWidth(this.$container, 0)).toBe(123);
+      });
+
+      it('should consider colWidth provided as function that returns string', function () {
+        handsontable({
+          colWidths: function (index) {
+            if (index === 0) {
+              return "123";
             }
+            return "50";
           }
         });
 

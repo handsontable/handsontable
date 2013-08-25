@@ -2394,11 +2394,21 @@ Handsontable.Core = function (rootElement, userSettings) {
     if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
       return priv.settings.columns[col].width;
     }
-    else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
-      return priv.settings.colWidths[col];
-    }
-    else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Function]') {
-      return priv.settings.colWidths(col);
+    else {
+      var width = priv.settings.colWidths;
+      switch (typeof width) {
+        case 'object': //array
+          width = width[col];
+          break;
+
+        case 'function':
+          width = width(col);
+          break;
+      }
+      if (typeof width === 'string') {
+        width = parseInt(width, 10);
+      }
+      return width;
     }
   };
 
