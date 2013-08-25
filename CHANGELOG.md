@@ -1,10 +1,18 @@
+## [0.9.15](https://github.com/warpech/jquery-handsontable/tree/v0.9.15) (Aug 26, 2013)
+
+Features:
+- `colWidths` property of the constructor may now be of type: number, string, array, function (was only array) ([#947](https://github.com/warpech/jquery-handsontable/issues/947), [#997](https://github.com/warpech/jquery-handsontable/issues/997))
+- `widths` property of `columns` or `cells` option may now be of type: number, string (was only number)
+
+Bugfix:
+- autoColumnSize now calculates width using the actual cell renderer ([#486](https://github.com/warpech/jquery-handsontable/issues/486))
+
 ## [0.9.14](https://github.com/warpech/jquery-handsontable/tree/v0.9.14) (Aug 20, 2013)
 
 Bugfixes:
 
 - fixed selecting date using jQuery UI Datepicker ([#970](https://github.com/warpech/jquery-handsontable/issues/970))
 - fixed opening cell editor after clearing cell data with Delete or Backspace ([#975](https://github.com/warpech/jquery-handsontable/issues/975))
-
 
 ## [0.9.13](https://github.com/warpech/jquery-handsontable/tree/v0.9.13) (Aug 16, 2013)
 

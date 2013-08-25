@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.9.14
+ * Handsontable 0.9.15
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Aug 20 2013 14:50:33 GMT+0200 (CEST)
+ * Date: Mon Aug 26 2013 00:13:33 GMT+0200 (Central European Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2410,12 +2410,26 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this._getColWidthFromSettings = function (col) {
-    if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
-      return priv.settings.columns[col].width;
+    var cellProperties = instance.getCellMeta(0, col);
+    var width = cellProperties.width;
+    if (width === void 0 || width === priv.settings.width) {
+      width = cellProperties.colWidths;
     }
-    else if (Object.prototype.toString.call(priv.settings.colWidths) === '[object Array]' && priv.settings.colWidths[col] !== void 0) {
-      return priv.settings.colWidths[col];
+    if (width !== void 0) {
+      switch (typeof width) {
+        case 'object': //array
+          width = width[col];
+          break;
+
+        case 'function':
+          width = width(col);
+          break;
+      }
+      if (typeof width === 'string') {
+        width = parseInt(width, 10);
+      }
     }
+    return width;
   };
 
   /**
@@ -2739,7 +2753,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.9.14'; //inserted by grunt from package.json
+  this.version = '0.9.15'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {
@@ -5046,7 +5060,7 @@ Handsontable.PluginHookClass = (function () {
 
 Handsontable.PluginHooks = new Handsontable.PluginHookClass();
 
-(function(Handsontable){
+(function (Handsontable) {
 
   function HandsontableAutoColumnSize() {
     var plugin = this
@@ -5056,19 +5070,14 @@ Handsontable.PluginHooks = new Handsontable.PluginHookClass();
       var instance = this;
       instance.autoColumnWidths = [];
 
-      if(instance.getSettings().autoColumnSize !== false){
+      if (instance.getSettings().autoColumnSize !== false) {
 
-        if(!instance.autoColumnSizeTmp){
+        if (!instance.autoColumnSizeTmp) {
           instance.autoColumnSizeTmp = {
-            thead: null,
+            table: null,
+            tableStyle: null,
             theadTh: null,
-            theadStyle: null,
             tbody: null,
-            tbodyTd: null,
-            noRenderer: null,
-            noRendererTd: null,
-            renderer: null,
-            rendererTd: null,
             container: null,
             containerStyle: null
           };
@@ -5094,18 +5103,14 @@ Handsontable.PluginHooks = new Handsontable.PluginHookClass();
 
     this.determineColumnWidth = function (col) {
       var instance = this
-        , tmp = instance.autoColumnSizeTmp
-        , d;
+        , tmp = instance.autoColumnSizeTmp;
 
       if (!tmp.container) {
         createTmpContainer.call(tmp, instance);
-        instance.rootElement[0].parentNode.appendChild(tmp.container);
       }
 
-      tmp.container.className = instance.rootElement[0].className + ' hidden';
-      var cls = instance.$table[0].className;
-      tmp.thead.className = cls;
-      tmp.tbody.className = cls;
+      tmp.container.className = instance.rootElement[0].className + ' htAutoColumnSize';
+      tmp.table.className = instance.$table[0].className;
 
       var rows = instance.countRows();
       var samples = {};
@@ -5123,7 +5128,7 @@ Handsontable.PluginHooks = new Handsontable.PluginHookClass();
           };
         }
         if (samples[len].needed) {
-          samples[len].strings.push(value);
+          samples[len].strings.push({value: value, row: r});
           samples[len].needed--;
         }
       }
@@ -5133,40 +5138,33 @@ Handsontable.PluginHooks = new Handsontable.PluginHookClass();
         instance.view.appendColHeader(col, tmp.theadTh); //TH innerHTML
       }
 
-      var txt = '';
+      instance.view.wt.wtDom.empty(tmp.tbody);
+
+      var cellProperties = instance.getCellMeta(0, col);
+      var renderer = Handsontable.helper.getCellMethod('renderer', cellProperties.renderer);
+
       for (var i in samples) {
         if (samples.hasOwnProperty(i)) {
           for (var j = 0, jlen = samples[i].strings.length; j < jlen; j++) {
-            txt += samples[i].strings[j] + '<br>';
+            var tr = document.createElement('tr');
+            var td = document.createElement('td');
+            renderer(instance, td, samples[i].strings[j].row, col, instance.colToProp(col), samples[i].strings[j].value, cellProperties);
+            r++;
+            tr.appendChild(td);
+            tmp.tbody.appendChild(tr);
           }
         }
       }
-      tmp.tbodyTd.innerHTML = txt; //TD innerHTML
 
-      instance.view.wt.wtDom.empty(tmp.rendererTd);
-      instance.view.wt.wtDom.empty(tmp.noRendererTd);
-
-      tmp.containerStyle.display = 'block';
-
+      var parent = instance.rootElement[0].parentNode;
+      parent.appendChild(tmp.container);
       var width = instance.view.wt.wtDom.outerWidth(tmp.container);
-
-      var cellProperties = instance.getCellMeta(0, col);
-      if (cellProperties.renderer) {
-        var str = instance.getDataAtCell(0, col);
-
-        tmp.noRendererTd.appendChild(document.createTextNode(str));
-        var renderer = Handsontable.helper.getCellMethod('renderer', cellProperties.renderer);
-        renderer(instance, tmp.rendererTd, 0, col, instance.colToProp(col), str, cellProperties);
-
-        width += instance.view.wt.wtDom.outerWidth(tmp.renderer) - instance.view.wt.wtDom.outerWidth(tmp.noRenderer); //add renderer overhead to the calculated width
-      }
+      parent.removeChild(tmp.container);
 
       var maxWidth = instance.view.wt.wtViewport.getViewportWidth() - 2; //2 is some overhead for cell border
       if (width > maxWidth) {
         width = maxWidth;
       }
-
-      tmp.containerStyle.display = 'none';
 
       return width;
     };
@@ -5201,34 +5199,23 @@ Handsontable.PluginHooks = new Handsontable.PluginHookClass();
       var d = document
         , tmp = this;
 
-      tmp.thead = d.createElement('table');
-      tmp.thead.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(d.createElement('th'));
-      tmp.theadTh = tmp.thead.getElementsByTagName('th')[0];
+      tmp.table = d.createElement('table');
+      tmp.theadTh = d.createElement('th');
+      tmp.table.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(tmp.theadTh);
 
-      tmp.theadStyle = tmp.thead.style;
-      tmp.theadStyle.tableLayout = 'auto';
-      tmp.theadStyle.width = 'auto';
+      tmp.tableStyle = tmp.table.style;
+      tmp.tableStyle.tableLayout = 'auto';
+      tmp.tableStyle.width = 'auto';
 
-      tmp.tbody = tmp.thead.cloneNode(false);
-      tmp.tbody.appendChild(d.createElement('tbody')).appendChild(d.createElement('tr')).appendChild(d.createElement('td'));
-      tmp.tbodyTd = tmp.tbody.getElementsByTagName('td')[0];
-
-      tmp.noRenderer = tmp.tbody.cloneNode(true);
-      tmp.noRendererTd = tmp.noRenderer.getElementsByTagName('td')[0];
-
-      tmp.renderer = tmp.tbody.cloneNode(true);
-      tmp.rendererTd = tmp.renderer.getElementsByTagName('td')[0];
+      tmp.tbody = d.createElement('tbody');
+      tmp.table.appendChild(tmp.tbody);
 
       tmp.container = d.createElement('div');
       tmp.container.className = instance.rootElement[0].className + ' hidden';
       tmp.containerStyle = tmp.container.style;
 
-      tmp.container.appendChild(tmp.thead);
-      tmp.container.appendChild(tmp.tbody);
-      tmp.container.appendChild(tmp.noRenderer);
-      tmp.container.appendChild(tmp.renderer);
-
-    };
+      tmp.container.appendChild(tmp.table);
+    }
   }
 
   var htAutoColumnSize = new HandsontableAutoColumnSize();
@@ -7034,437 +7021,376 @@ CopyPasteClass.prototype._bindEvent = (function () {
     };
   }
 })();
+// json-patch-duplex.js 0.3.2
+// (c) 2013 Joachim Wester
+// MIT license
 var jsonpatch;
 (function (jsonpatch) {
-    var objOps = {
-        add: function (obj, key) {
-            obj[key] = this.value;
-            return true;
-        },
-        remove: function (obj, key) {
-            delete obj[key];
-            return true;
-        },
-        replace: function (obj, key) {
-            obj[key] = this.value;
-            return true;
-        },
-        move: function (obj, key, tree) {
-            var temp = {
-                op: "_get",
-                path: this.from
-            };
-            apply(tree, [
-                temp
-            ]);
-            apply(tree, [
-                {
-                    op: "remove",
-                    path: this.from
-                }
-            ]);
-            apply(tree, [
-                {
-                    op: "add",
-                    path: this.path,
-                    value: temp.value
-                }
-            ]);
-            return true;
-        },
-        copy: function (obj, key, tree) {
-            var temp = {
-                op: "_get",
-                path: this.from
-            };
-            apply(tree, [
-                temp
-            ]);
-            apply(tree, [
-                {
-                    op: "add",
-                    path: this.path,
-                    value: temp.value
-                }
-            ]);
-            return true;
-        },
-        test: function (obj, key) {
-            return (JSON.stringify(obj[key]) === JSON.stringify(this.value));
-        },
-        _get: function (obj, key) {
-            this.value = obj[key];
-        }
-    };
-    var arrOps = {
-        add: function (arr, i) {
-            arr.splice(i, 0, this.value);
-        },
-        remove: function (arr, i) {
-            arr.splice(i, 1);
-        },
-        replace: function (arr, i) {
-            arr[i] = this.value;
-        },
-        move: objOps.move,
-        copy: objOps.copy,
-        test: objOps.test,
-        _get: objOps._get
-    };
-    var observeOps = {
-        'new': function (patches, path) {
-            //single quotes needed because 'new' is a keyword in IE8
-            var patch = {
-                op: "add",
-                path: path + "/" + this.name,
-                value: this.object[this.name]
-            };
-            patches.push(patch);
-        },
-        deleted: function (patches, path) {
-            var patch = {
-                op: "remove",
-                path: path + "/" + this.name
-            };
-            patches.push(patch);
-        },
-        updated: function (patches, path) {
-            var patch = {
-                op: "replace",
-                path: path + "/" + this.name,
-                value: this.object[this.name]
-            };
-            patches.push(patch);
-        }
-    };
-    // ES6 symbols are not here yet. Used to calculate the json pointer to each object
-    function markPaths(observer, node) {
-        for(var key in node) {
-            if(node.hasOwnProperty(key)) {
-                var kid = node[key];
-                if(kid instanceof Object) {
-                    Object.unobserve(kid, observer);
-                    kid.____Path = node.____Path + "/" + key;
-                    markPaths(observer, kid);
-                }
-            }
-        }
+  var objOps = {
+    add: function (obj, key) {
+      obj[key] = this.value;
+      return true;
+    },
+    remove: function (obj, key) {
+      delete obj[key];
+      return true;
+    },
+    replace: function (obj, key) {
+      obj[key] = this.value;
+      return true;
+    },
+    move: function (obj, key, tree) {
+      var temp = { op: "_get", path: this.from };
+      apply(tree, [temp]);
+      apply(tree, [
+        { op: "remove", path: this.from }
+      ]);
+      apply(tree, [
+        { op: "add", path: this.path, value: temp.value }
+      ]);
+      return true;
+    },
+    copy: function (obj, key, tree) {
+      var temp = { op: "_get", path: this.from };
+      apply(tree, [temp]);
+      apply(tree, [
+        { op: "add", path: this.path, value: temp.value }
+      ]);
+      return true;
+    },
+    test: function (obj, key) {
+      return (JSON.stringify(obj[key]) === JSON.stringify(this.value));
+    },
+    _get: function (obj, key) {
+      this.value = obj[key];
     }
-    // Detach poor mans ES6 symbols
-    function clearPaths(observer, node) {
-        delete node.____Path;
-        Object.observe(node, observer);
-        for(var key in node) {
-            if(node.hasOwnProperty(key)) {
-                var kid = node[key];
-                if(kid instanceof Object) {
-                    clearPaths(observer, kid);
-                }
-            }
-        }
+  };
+
+  var arrOps = {
+    add: function (arr, i) {
+      arr.splice(i, 0, this.value);
+    },
+    remove: function (arr, i) {
+      arr.splice(i, 1);
+    },
+    replace: function (arr, i) {
+      arr[i] = this.value;
+    },
+    move: objOps.move,
+    copy: objOps.copy,
+    test: objOps.test,
+    _get: objOps._get
+  };
+
+  var observeOps = {
+    'new': function (patches, path) {
+      var patch = {
+        op: "add",
+        path: path + "/" + this.name,
+        value: this.object[this.name]
+      };
+      patches.push(patch);
+    },
+    deleted: function (patches, path) {
+      var patch = {
+        op: "remove",
+        path: path + "/" + this.name
+      };
+      patches.push(patch);
+    },
+    updated: function (patches, path) {
+      var patch = {
+        op: "replace",
+        path: path + "/" + this.name,
+        value: this.object[this.name]
+      };
+      patches.push(patch);
     }
-    var beforeDict = [];
-    //var callbacks = []; this has no purpose
-    jsonpatch.intervals;
-    function unobserve(root, observer) {
-        if(Object.observe) {
-            Object.unobserve(root, observer);
-            markPaths(observer, root);
-        } else {
-            clearTimeout(observer.next);
-            observer.unbindWindowEvents();
+  };
+
+  // ES6 symbols are not here yet. Used to calculate the json pointer to each object
+  function markPaths(observer, node) {
+    for (var key in node) {
+      if (node.hasOwnProperty(key)) {
+        var kid = node[key];
+        if (kid instanceof Object) {
+          Object.unobserve(kid, observer);
+          kid.____Path = node.____Path + "/" + key;
+          markPaths(observer, kid);
         }
+      }
     }
-    jsonpatch.unobserve = unobserve;
-    function observe(obj, callback) {
-        var patches = [];
-        var root = obj;
-        if(Object.observe) {
-            var observer = function (arr) {
-                if(!root.___Path) {
-                    Object.unobserve(root, observer);
-                    root.____Path = "";
-                    markPaths(observer, root);
-                    var a = 0, alen = arr.length;
-                    while(a < alen) {
-                        if(arr[a].name != "____Path") {
-                            observeOps[arr[a].type].call(arr[a], patches, arr[a].object.____Path);
-                        }
-                        a++;
-                    }
-                    clearPaths(observer, root);
-                }
-                if(callback) {
-                    callback(patches);
-                }
-                observer.patches = patches;
-                patches = [];
-            };
-        } else {
-            observer = {
-            };
-            var mirror;
-            for(var i = 0, ilen = beforeDict.length; i < ilen; i++) {
-                if(beforeDict[i].obj === obj) {
-                    mirror = beforeDict[i];
-                    break;
-                }
-            }
-            if(!mirror) {
-                mirror = {
-                    obj: obj
-                };
-                beforeDict.push(mirror);
-            }
-            mirror.value = JSON.parse(JSON.stringify(obj))// Faster than ES5 clone - http://jsperf.com/deep-cloning-of-objects/5
-            ;
-            if(callback) {
-                //callbacks.push(callback); this has no purpose
-                observer.callback = callback;
-                observer.next = null;
-                this.intervals = this.intervals || [
-                    100, 
-                    1000, 
-                    10000, 
-                    60000
-                ];
+  }
 
-                observer.currentInterval = 0;
+  // Detach poor mans ES6 symbols
+  function clearPaths(observer, node) {
+    delete node.____Path;
+    Object.observe(node, observer);
+    for (var key in node) {
+      if (node.hasOwnProperty(key)) {
+        var kid = node[key];
+        if (kid instanceof Object) {
+          clearPaths(observer, kid);
+        }
+      }
+    }
+  }
 
-                if(typeof window !== 'undefined') {
-                    //not Node
-                    bindWindowEvents(observer);
-                }
+  var beforeDict = [];
 
-                observer.next = setTimeout(function(){
-                  slowCheck(observer);
-                }, this.intervals[observer.currentInterval++]);
+  //var callbacks = []; this has no purpose
+  jsonpatch.intervals;
+
+  function unobserve(root, observer) {
+    if (Object.observe) {
+      Object.unobserve(root, observer);
+      markPaths(observer, root);
+    } else {
+      clearTimeout(observer.next);
+    }
+  }
+  jsonpatch.unobserve = unobserve;
+
+  function observe(obj, callback) {
+    var patches = [];
+    var root = obj;
+    var observer;
+    if (Object.observe) {
+      observer = function (arr) {
+        if (!root.___Path) {
+          Object.unobserve(root, observer);
+          root.____Path = "";
+          markPaths(observer, root);
+
+          var a = 0, alen = arr.length;
+          while (a < alen) {
+            if (arr[a].name != "____Path") {
+              observeOps[arr[a].type].call(arr[a], patches, arr[a].object.____Path);
             }
+            a++;
+          }
+
+          clearPaths(observer, root);
+        }
+        if (callback) {
+          callback(patches);
         }
         observer.patches = patches;
-        observer.object = obj;
-        return _observe(observer, obj, patches);
-    }
-    jsonpatch.observe = observe;
-    /// Listen to changes on an object tree, accumulate patches
-    function _observe(observer, obj, patches) {
-        if(Object.observe) {
-            Object.observe(obj, observer);
-            for(var key in obj) {
-                if(obj.hasOwnProperty(key)) {
-                    var v = obj[key];
-                    if(v && typeof (v) === "object") {
-                        _observe(observer, v, patches)//path+key);
-                        ;
-                    }
-                }
-            }
-        }
-        return observer;
-    }
-
-    function dirtyCheck (observer) {
-      generate(observer);
-    }
-
-    function fastCheck (observer) {
-      clearTimeout(observer.next);
-      observer.next = setTimeout(function () {
-        dirtyCheck(observer);
-        observer.currentInterval = 0;
-        observer.next = setTimeout(function(){
-          slowCheck(observer);
-        }, jsonpatch.intervals[observer.currentInterval++]);
-      }, 0);
-    }
-
-    function slowCheck (observer) {
-      dirtyCheck(observer);
-      if(observer.currentInterval == jsonpatch.intervals.length) {
-        observer.currentInterval = jsonpatch.intervals.length - 1;
-      }
-      observer.next = setTimeout(function(){
-        slowCheck(observer);
-      }, jsonpatch.intervals[observer.currentInterval++]);
-    }
-
-    function bindWindowEvents(observer){
-
-      var fastCheckObserver = function(){
-        fastCheck(observer);
+        patches = [];
       };
+    } else {
+      observer = {};
 
-      if(window.addEventListener) {
-        //standards
-        window.addEventListener('mousedown', fastCheckObserver);
-        window.addEventListener('mouseup', fastCheckObserver);
-        window.addEventListener('keydown', fastCheckObserver);
+      var mirror;
+      for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
+        if (beforeDict[i].obj === obj) {
+          mirror = beforeDict[i];
+          break;
+        }
+      }
 
-        observer.unbindWindowEvents = function(){
-          window.removeEventListener('mousedown', fastCheckObserver);
-          window.removeEventListener('mouseup', fastCheckObserver);
-          window.removeEventListener('keydown', fastCheckObserver);
+      if (!mirror) {
+        mirror = { obj: obj };
+        beforeDict.push(mirror);
+      }
+
+      mirror.value = JSON.parse(JSON.stringify(obj));
+
+      if (callback) {
+        //callbacks.push(callback); this has no purpose
+        observer.callback = callback;
+        observer.next = null;
+        var intervals = this.intervals || [100, 1000, 10000, 60000];
+        var currentInterval = 0;
+
+        var dirtyCheck = function () {
+          generate(observer);
         };
+        var fastCheck = function () {
+          clearTimeout(observer.next);
+          observer.next = setTimeout(function () {
+            dirtyCheck();
+            currentInterval = 0;
+            observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+          }, 0);
+        };
+        var slowCheck = function () {
+          dirtyCheck();
+          if (currentInterval == intervals.length)
+            currentInterval = intervals.length - 1;
+          observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+        };
+        if (typeof window !== 'undefined') {
+          if (window.addEventListener) {
+            window.addEventListener('mousedown', fastCheck);
+            window.addEventListener('mouseup', fastCheck);
+            window.addEventListener('keydown', fastCheck);
+          } else {
+            window.attachEvent('onmousedown', fastCheck);
+            window.attachEvent('onmouseup', fastCheck);
+            window.attachEvent('onkeydown', fastCheck);
+          }
+        }
+        observer.next = setTimeout(slowCheck, intervals[currentInterval++]);
+      }
+    }
+    observer.patches = patches;
+    observer.object = obj;
+    return _observe(observer, obj, patches);
+  }
+  jsonpatch.observe = observe;
 
+  /// Listen to changes on an object tree, accumulate patches
+  function _observe(observer, obj, patches) {
+    if (Object.observe) {
+      Object.observe(obj, observer);
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          var v = obj[key];
+          if (v && typeof (v) === "object") {
+            _observe(observer, v, patches);
+          }
+        }
+      }
+    }
+    return observer;
+  }
+
+  function generate(observer) {
+    if (Object.observe) {
+      Object.deliverChangeRecords(observer);
+    } else {
+      var mirror;
+      for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
+        if (beforeDict[i].obj === observer.object) {
+          mirror = beforeDict[i];
+          break;
+        }
+      }
+      _generate(mirror.value, observer.object, observer.patches, "");
+    }
+    var temp = observer.patches;
+    if (temp.length > 0) {
+      observer.patches = [];
+      if (observer.callback) {
+        observer.callback(temp);
+      }
+    }
+    return temp;
+  }
+  jsonpatch.generate = generate;
+
+  var _objectKeys;
+  if (Object.keys) {
+    _objectKeys = Object.keys;
+  } else {
+    _objectKeys = function (obj) {
+      var keys = [];
+      for (var o in obj) {
+        if (obj.hasOwnProperty(o)) {
+          keys.push(o);
+        }
+      }
+      return keys;
+    };
+  }
+
+  // Dirty check if obj is different from mirror, generate patches and update mirror
+  function _generate(mirror, obj, patches, path) {
+    var newKeys = _objectKeys(obj);
+    var oldKeys = _objectKeys(mirror);
+    var changed = false;
+    var deleted = false;
+
+    for (var t = 0; t < oldKeys.length; t++) {
+      var key = oldKeys[t];
+      var oldVal = mirror[key];
+      if (obj.hasOwnProperty(key)) {
+        var newVal = obj[key];
+        if (oldVal instanceof Object) {
+          _generate(oldVal, newVal, patches, path + "/" + key);
+        } else {
+          if (oldVal != newVal) {
+            changed = true;
+            patches.push({ op: "replace", path: path + "/" + key, value: newVal });
+            mirror[key] = newVal;
+          }
+        }
       } else {
-        //IE8
-        window.attachEvent('onmousedown', fastCheckObserver);
-        window.attachEvent('onmouseup', fastCheckObserver);
-        window.attachEvent('onkeydown', fastCheckObserver);
-
-        observer.unbindWindowEvents = function(){
-          window.detachEvent('mousedown', fastCheckObserver);
-          window.detachEvent('mouseup', fastCheckObserver);
-          window.detachEvent('keydown', fastCheckObserver);
-        };
+        patches.push({ op: "remove", path: path + "/" + key });
+        delete mirror[key];
+        deleted = true;
       }
     }
 
-    function generate(observer) {
-        if(Object.observe) {
-            Object.deliverChangeRecords(observer);
-        } else {
-            var mirror;
-            for(var i = 0, ilen = beforeDict.length; i < ilen; i++) {
-                if(beforeDict[i].obj === observer.object) {
-                    mirror = beforeDict[i];
-                    break;
-                }
-            }
-            _generate(mirror.value, observer.object, observer.patches, "");
-        }
-        var temp = observer.patches;
-        if(temp.length > 0) {
-            observer.patches = [];
-            if(observer.callback) {
-                observer.callback(temp);
-            }
-        }
-        return temp;
+    if (!deleted && newKeys.length == oldKeys.length) {
+      return;
     }
-    jsonpatch.generate = generate;
-    var _objectKeys;
-    if(Object.keys) {
-        //standards
-        _objectKeys = Object.keys;
-    } else {
-        //IE8 shim
-        _objectKeys = function (obj) {
-            var keys = [];
-            for(var o in obj) {
-                if(obj.hasOwnProperty(o)) {
-                    keys.push(o);
-                }
-            }
-            return keys;
-        };
-    }
-    // Dirty check if obj is different from mirror, generate patches and update mirror
-    function _generate(mirror, obj, patches, path) {
-        var newKeys = _objectKeys(obj);
-        var oldKeys = _objectKeys(mirror);
-        var changed = false;
-        var deleted = false;
-        for(var t = 0; t < oldKeys.length; t++) {
-            var key = oldKeys[t];
-            var oldVal = mirror[key];
-            if(obj.hasOwnProperty(key)) {
-                var newVal = obj[key];
-                if(oldVal instanceof Object) {
-                    _generate(oldVal, newVal, patches, path + "/" + key);
-                } else {
-                    if(oldVal != newVal) {
-                        changed = true;
-                        patches.push({
-                            op: "replace",
-                            path: path + "/" + key,
-                            value: newVal
-                        });
-                        mirror[key] = newVal;
-                    }
-                }
-            } else {
-                patches.push({
-                    op: "remove",
-                    path: path + "/" + key
-                });
-                deleted = true// property has been deleted
-                ;
-            }
-        }
-        if(!deleted && newKeys.length == oldKeys.length) {
-            return;
-        }
-        for(var t = 0; t < newKeys.length; t++) {
-            var key = newKeys[t];
-            if(!mirror.hasOwnProperty(key)) {
-                patches.push({
-                    op: "add",
-                    path: path + "/" + key,
-                    value: obj[key]
-                });
-            }
-        }
-    }
-    var _isArray;
-    if(Array.isArray) {
-        //standards; http://jsperf.com/isarray-shim/4
-        _isArray = Array.isArray;
-    } else {
-        //IE8 shim
-        _isArray = function (obj) {
-            return obj.push && typeof obj.length === 'number';
-        };
-    }
-    /// Apply a json-patch operation on an object tree
-    function apply(tree, patches, listen) {
-        var result = false, p = 0, plen = patches.length, patch;
-        while(p < plen) {
-            patch = patches[p];
-            // Find the object
-            var keys = patch.path.split('/');
-            var obj = tree;
-            var t = 1;//skip empty element - http://jsperf.com/to-shift-or-not-to-shift
-            
-            var len = keys.length;
-            while(true) {
-                if(_isArray(obj)) {
-                    var index = parseInt(keys[t], 10);
-                    t++;
-                    if(t >= len) {
-                        result = arrOps[patch.op].call(patch, obj, index, tree)// Apply patch
-                        ;
-                        break;
-                    }
-                    obj = obj[index];
-                } else {
-                    var key = keys[t];
-                    if(key.indexOf('~') != -1) {
-                        key = key.replace('~1', '/').replace('~0', '~');
-                    }// escape chars
-                    
-                    t++;
-                    if(t >= len) {
-                        result = objOps[patch.op].call(patch, obj, key, tree)// Apply patch
-                        ;
-                        break;
-                    }
-                    obj = obj[key];
-                }
-            }
-            p++;
-        }
-        return result;
-    }
-    jsonpatch.apply = apply;
-})(jsonpatch || (jsonpatch = {}));
-if(typeof exports !== "undefined") {
-    exports.apply = jsonpatch.apply;
-    exports.observe = jsonpatch.observe;
-    exports.unobserve = jsonpatch.unobserve;
-    exports.generate = jsonpatch.generate;
-}
 
+    for (var t = 0; t < newKeys.length; t++) {
+      var key = newKeys[t];
+      if (!mirror.hasOwnProperty(key)) {
+        patches.push({ op: "add", path: path + "/" + key, value: obj[key] });
+        mirror[key] = JSON.parse(JSON.stringify(obj[key]));
+      }
+    }
+  }
+
+  var _isArray;
+  if (Array.isArray) {
+    _isArray = Array.isArray;
+  } else {
+    _isArray = function (obj) {
+      return obj.push && typeof obj.length === 'number';
+    };
+  }
+
+  /// Apply a json-patch operation on an object tree
+  function apply(tree, patches, listen) {
+    var result = false, p = 0, plen = patches.length, patch;
+    while (p < plen) {
+      patch = patches[p];
+
+      // Find the object
+      var keys = patch.path.split('/');
+      var obj = tree;
+      var t = 1;
+      var len = keys.length;
+      while (true) {
+        if (_isArray(obj)) {
+          var index = parseInt(keys[t], 10);
+          t++;
+          if (t >= len) {
+            result = arrOps[patch.op].call(patch, obj, index, tree);
+            break;
+          }
+          obj = obj[index];
+        } else {
+          var key = keys[t];
+          if (key.indexOf('~') != -1)
+            key = key.replace('~1', '/').replace('~0', '~');
+          t++;
+          if (t >= len) {
+            result = objOps[patch.op].call(patch, obj, key, tree);
+            break;
+          }
+          obj = obj[key];
+        }
+      }
+      p++;
+    }
+    return result;
+  }
+  jsonpatch.apply = apply;
+})(jsonpatch || (jsonpatch = {}));
+
+if (typeof exports !== "undefined") {
+  exports.apply = jsonpatch.apply;
+  exports.observe = jsonpatch.observe;
+  exports.unobserve = jsonpatch.unobserve;
+  exports.generate = jsonpatch.generate;
+}
+//# sourceMappingURL=json-patch-duplex.js.map
 function WalkontableBorder(instance, settings) {
   var style;
 
