@@ -1,4 +1,4 @@
-(function(Handsontable){
+(function (Handsontable) {
 
   function HandsontableAutoColumnSize() {
     var plugin = this
@@ -8,19 +8,14 @@
       var instance = this;
       instance.autoColumnWidths = [];
 
-      if(instance.getSettings().autoColumnSize !== false){
+      if (instance.getSettings().autoColumnSize !== false) {
 
-        if(!instance.autoColumnSizeTmp){
+        if (!instance.autoColumnSizeTmp) {
           instance.autoColumnSizeTmp = {
-            thead: null,
+            table: null,
+            tableStyle: null,
             theadTh: null,
-            theadStyle: null,
             tbody: null,
-            tbodyTd: null,
-            noRenderer: null,
-            noRendererTd: null,
-            renderer: null,
-            rendererTd: null,
             container: null,
             containerStyle: null
           };
@@ -46,18 +41,14 @@
 
     this.determineColumnWidth = function (col) {
       var instance = this
-        , tmp = instance.autoColumnSizeTmp
-        , d;
+        , tmp = instance.autoColumnSizeTmp;
 
       if (!tmp.container) {
         createTmpContainer.call(tmp, instance);
-        instance.rootElement[0].parentNode.appendChild(tmp.container);
       }
 
-      tmp.container.className = instance.rootElement[0].className + ' hidden';
-      var cls = instance.$table[0].className;
-      tmp.thead.className = cls;
-      tmp.tbody.className = cls;
+      tmp.container.className = instance.rootElement[0].className + ' htAutoColumnSize';
+      tmp.table.className = instance.$table[0].className;
 
       var rows = instance.countRows();
       var samples = {};
@@ -75,7 +66,7 @@
           };
         }
         if (samples[len].needed) {
-          samples[len].strings.push(value);
+          samples[len].strings.push({value: value, row: r});
           samples[len].needed--;
         }
       }
@@ -85,40 +76,33 @@
         instance.view.appendColHeader(col, tmp.theadTh); //TH innerHTML
       }
 
-      var txt = '';
+      instance.view.wt.wtDom.empty(tmp.tbody);
+
+      var cellProperties = instance.getCellMeta(0, col);
+      var renderer = Handsontable.helper.getCellMethod('renderer', cellProperties.renderer);
+
       for (var i in samples) {
         if (samples.hasOwnProperty(i)) {
           for (var j = 0, jlen = samples[i].strings.length; j < jlen; j++) {
-            txt += samples[i].strings[j] + '<br>';
+            var tr = document.createElement('tr');
+            var td = document.createElement('td');
+            renderer(instance, td, samples[i].strings[j].row, col, instance.colToProp(col), samples[i].strings[j].value, cellProperties);
+            r++;
+            tr.appendChild(td);
+            tmp.tbody.appendChild(tr);
           }
         }
       }
-      tmp.tbodyTd.innerHTML = txt; //TD innerHTML
 
-      instance.view.wt.wtDom.empty(tmp.rendererTd);
-      instance.view.wt.wtDom.empty(tmp.noRendererTd);
-
-      tmp.containerStyle.display = 'block';
-
+      var parent = instance.rootElement[0].parentNode;
+      parent.appendChild(tmp.container);
       var width = instance.view.wt.wtDom.outerWidth(tmp.container);
-
-      var cellProperties = instance.getCellMeta(0, col);
-      if (cellProperties.renderer) {
-        var str = instance.getDataAtCell(0, col);
-
-        tmp.noRendererTd.appendChild(document.createTextNode(str));
-        var renderer = Handsontable.helper.getCellMethod('renderer', cellProperties.renderer);
-        renderer(instance, tmp.rendererTd, 0, col, instance.colToProp(col), str, cellProperties);
-
-        width += instance.view.wt.wtDom.outerWidth(tmp.renderer) - instance.view.wt.wtDom.outerWidth(tmp.noRenderer); //add renderer overhead to the calculated width
-      }
+      parent.removeChild(tmp.container);
 
       var maxWidth = instance.view.wt.wtViewport.getViewportWidth() - 2; //2 is some overhead for cell border
       if (width > maxWidth) {
         width = maxWidth;
       }
-
-      tmp.containerStyle.display = 'none';
 
       return width;
     };
@@ -153,34 +137,23 @@
       var d = document
         , tmp = this;
 
-      tmp.thead = d.createElement('table');
-      tmp.thead.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(d.createElement('th'));
-      tmp.theadTh = tmp.thead.getElementsByTagName('th')[0];
+      tmp.table = d.createElement('table');
+      tmp.theadTh = d.createElement('th');
+      tmp.table.appendChild(d.createElement('thead')).appendChild(d.createElement('tr')).appendChild(tmp.theadTh);
 
-      tmp.theadStyle = tmp.thead.style;
-      tmp.theadStyle.tableLayout = 'auto';
-      tmp.theadStyle.width = 'auto';
+      tmp.tableStyle = tmp.table.style;
+      tmp.tableStyle.tableLayout = 'auto';
+      tmp.tableStyle.width = 'auto';
 
-      tmp.tbody = tmp.thead.cloneNode(false);
-      tmp.tbody.appendChild(d.createElement('tbody')).appendChild(d.createElement('tr')).appendChild(d.createElement('td'));
-      tmp.tbodyTd = tmp.tbody.getElementsByTagName('td')[0];
-
-      tmp.noRenderer = tmp.tbody.cloneNode(true);
-      tmp.noRendererTd = tmp.noRenderer.getElementsByTagName('td')[0];
-
-      tmp.renderer = tmp.tbody.cloneNode(true);
-      tmp.rendererTd = tmp.renderer.getElementsByTagName('td')[0];
+      tmp.tbody = d.createElement('tbody');
+      tmp.table.appendChild(tmp.tbody);
 
       tmp.container = d.createElement('div');
       tmp.container.className = instance.rootElement[0].className + ' hidden';
       tmp.containerStyle = tmp.container.style;
 
-      tmp.container.appendChild(tmp.thead);
-      tmp.container.appendChild(tmp.tbody);
-      tmp.container.appendChild(tmp.noRenderer);
-      tmp.container.appendChild(tmp.renderer);
-
-    };
+      tmp.container.appendChild(tmp.table);
+    }
   }
 
   var htAutoColumnSize = new HandsontableAutoColumnSize();

@@ -22,7 +22,7 @@ describe('Performance', function () {
       startCols: 4
     });
 
-    expect(spy.callCount).toEqual(20); //16 in main table and 4 in autocellsize
+    expect(spy.callCount).toEqual(32); //16 in main table and 16 in autocellsize
   });
 
   it('should call getCellMeta once for each cell', function () {
@@ -36,6 +36,6 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(20); //16 in main table and 4 in autocellsize
+    expect(count).toEqual(28); //16 in main table and 4 in autocellsize and 8 in getColWidth
   });
 });
