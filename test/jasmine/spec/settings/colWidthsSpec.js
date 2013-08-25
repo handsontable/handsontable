@@ -72,5 +72,71 @@ describe('settings', function () {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
     });
+
+    describe('defined in updateSettings', function () {
+      it('should consider colWidths provided as number', function () {
+        handsontable();
+        updateSettings({
+          colWidths: 123
+        });
+
+        expect(colWidth(this.$container, 0)).toBe(123);
+      });
+
+      it('should consider colWidths provided as string', function () {
+        handsontable();
+        updateSettings({
+          colWidths: "123"
+        });
+
+        expect(colWidth(this.$container, 0)).toBe(123);
+      });
+
+      it('should consider colWidths provided as array of numbers', function () {
+        handsontable();
+        updateSettings({
+          colWidths: [123]
+        });
+
+        expect(colWidth(this.$container, 0)).toBe(123);
+      });
+
+      it('should consider colWidths provided as array of strings', function () {
+        handsontable();
+        updateSettings({
+          colWidths: [123]
+        });
+
+        expect(colWidth(this.$container, 0)).toBe(123);
+      });
+
+      it('should consider colWidth provided as function that returns number', function () {
+        handsontable();
+        updateSettings({
+          colWidths: function (index) {
+            if (index === 0) {
+              return 123;
+            }
+            return 50;
+          }
+        });
+
+        expect(colWidth(this.$container, 0)).toBe(123);
+      });
+
+      it('should consider colWidth provided as function that returns string', function () {
+        handsontable();
+        updateSettings({
+          colWidths: function (index) {
+            if (index === 0) {
+              return "123";
+            }
+            return "50";
+          }
+        });
+
+        expect(colWidth(this.$container, 0)).toBe(123);
+      });
+    });
   });
 });
