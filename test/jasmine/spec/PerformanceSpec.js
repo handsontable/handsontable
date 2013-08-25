@@ -36,6 +36,6 @@ describe('Performance', function () {
       }
     });
 
-    expect(count).toEqual(20); //16 in main table and 4 in autocellsize
+    expect(count).toEqual(28); //16 in main table and 4 in autocellsize and 8 in getColWidth
   });
 });
