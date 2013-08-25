@@ -2391,12 +2391,10 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this._getColWidthFromSettings = function (col) {
-    var width;
-    if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
-      width = priv.settings.columns[col].width;
-    }
-    else {
-      width = priv.settings.colWidths;
+    var cellProperties = instance.getCellMeta(null, col);
+    var width = cellProperties.width;
+    if (width === void 0 || width === priv.settings.width) {
+      width = cellProperties.colWidths;
     }
     if (width !== void 0) {
       switch (typeof width) {

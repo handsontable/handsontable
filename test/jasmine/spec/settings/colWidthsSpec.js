@@ -222,5 +222,31 @@ describe('settings', function () {
         expect(colWidth(this.$container, 0)).toBe(123);
       });
     });
+
+    describe('defined in cells', function () {
+      it('should consider width provided as number', function () {
+        handsontable({
+          cells: function (row, col) {
+            if (col === 0) {
+              this.width = 123;
+            }
+          }
+        });
+
+        expect(colWidth(this.$container, 0)).toBe(123);
+      });
+
+      it('should consider width provided as string', function () {
+        handsontable({
+          cells: function (row, col) {
+            if (col === 0) {
+              this.width = "123";
+            }
+          }
+        });
+
+        expect(colWidth(this.$container, 0)).toBe(123);
+      });
+    });
   });
 });
