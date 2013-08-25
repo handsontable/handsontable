@@ -185,7 +185,7 @@ describe('Core_loadData', function () {
         count++;
       }
     });
-    expect(count).toEqual(countRows() * countCols());
+    expect(count).toEqual(countRows() * countCols() + countCols()); //+ countCols() is to get column width information
   });
 
   //https://github.com/warpech/jquery-handsontable/issues/239

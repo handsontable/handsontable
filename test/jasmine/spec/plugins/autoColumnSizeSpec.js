@@ -73,7 +73,7 @@ describe('AutoColumnSize', function () {
     var widths = {
       1: [],
       2: []
-    }
+    };
 
     widths[1][0] = colWidth(this.$container, 0);
     widths[1][1] = colWidth(this.$container, 1);
@@ -107,6 +107,9 @@ describe('AutoColumnSize', function () {
 
     expect(widths[2][0]).toBeLessThan(widths[2][1]);
     expect(widths[2][1]).toBeLessThan(widths[2][2]);
+
+    this.$container2.handsontable('destroy');
+    this.$container2.remove();
   });
 
   it('should be possible to enable plugin using updateSettings', function () {
@@ -187,7 +190,7 @@ describe('AutoColumnSize', function () {
     var HOT = getInstance();
     var tmp = HOT.autoColumnSizeTmp.container;
 
-    expect(tmp.parentNode).toBe(document.body);
+    expect(tmp.nodeName).toBeDefined();
 
     destroy();
 
@@ -241,5 +244,27 @@ describe('AutoColumnSize', function () {
     setDataAtCell(0, 0, 'LongLongLongLong');
 
     expect(colWidth(this.$container, 0)).toBe(70);
+  });
+
+  it('should consider renderer that uses conditional formatting for specific row & column index', function () {
+    var data = arrayOfObjects();
+    data.push({id: "2", name: "Rocket Man", lastName: "In a tin can"});
+    handsontable({
+      data: data,
+      columns: [
+        {data: 'id'},
+        {data: 'name'}
+      ],
+      autoColumnSize: true,
+      renderer: function (instance, td, row, col, prop, value, cellProperties) {
+        //taken from demo/renderers.html
+        Handsontable.TextCell.renderer.apply(this, arguments);
+        if (row === 1 && col === 0) {
+          td.style.padding = "100px";
+        }
+      }
+    });
+
+    expect(colWidth(this.$container, 0)).toBeGreaterThan(colWidth(this.$container, 1));
   });
 });
