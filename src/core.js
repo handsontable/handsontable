@@ -2391,11 +2391,14 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this._getColWidthFromSettings = function (col) {
+    var width;
     if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].width) {
-      return priv.settings.columns[col].width;
+      width = priv.settings.columns[col].width;
     }
     else {
-      var width = priv.settings.colWidths;
+      width = priv.settings.colWidths;
+    }
+    if (width !== void 0) {
       switch (typeof width) {
         case 'object': //array
           width = width[col];
@@ -2408,8 +2411,8 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (typeof width === 'string') {
         width = parseInt(width, 10);
       }
-      return width;
     }
+    return width;
   };
 
   /**
