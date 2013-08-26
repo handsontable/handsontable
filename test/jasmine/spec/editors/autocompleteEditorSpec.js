@@ -538,4 +538,46 @@ describe('AutocompleteEditor', function () {
     expect(afterChangeCallback.calls.length).toEqual(1);
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 2, null, 'red']], 'edit', undefined, undefined, undefined);
   });
+
+  it("should allow any value in non strict mode (close editor with ENTER)", function () {
+    var hot = handsontable({
+      autoComplete: getAutocompleteConfig(false)
+    });
+
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    hot.addHook('afterChange', afterChangeCallback);
+
+    selectCell(0,2);
+
+    keyDownUp('enter');
+
+
+    var editor = $('.handsontableInput');
+    editor.val('foo')
+
+    keyDownUp('enter');
+
+    expect(getDataAtCell(0,2)).toEqual('foo');
+  });
+
+  it("should allow any value in non strict mode (close editor by clicking on table)", function () {
+    var hot = handsontable({
+      autoComplete: getAutocompleteConfig(false)
+    });
+
+    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    hot.addHook('afterChange', afterChangeCallback);
+
+    selectCell(0,2);
+
+    keyDownUp('enter');
+
+
+    var editor = $('.handsontableInput');
+    editor.val('foo')
+
+    this.$container.find('tbody tr:eq(0) td:eq(0)').mousedown();
+
+    expect(getDataAtCell(0,2)).toEqual('foo');
+  });
 });
