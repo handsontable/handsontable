@@ -92,14 +92,18 @@ HandsontableAutocompleteEditorClass.prototype.bindEvents = function () {
  */
 HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
   var that = this
+    , typeahead = this.typeahead
+    , _hide = this.typeahead.hide
     , i
     , j;
 
-  this.typeahead.select = function () {
-    var output = this.hide(); //need to hide it before destroyEditor, because destroyEditor checks if menu is expanded
 
+
+  this.typeahead._valueSelected = false;
+
+  this.typeahead.select = function () {
     var active = this.$menu[0].querySelector('.active');
-    var val = active.getAttribute('data-value');
+    var val = active ? active.getAttribute('data-value') : that.TEXTAREA.value;
     if (val === that.emptyStringLabel) {
       val = '';
     }
@@ -110,9 +114,26 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
       that.TEXTAREA.value = val;
     }
 
+    this._valueSelected = true;
+
+    _hide.call(this); //need to hide it before destroyEditor, because destroyEditor checks if menu is expanded
     that.finishEditing();
 
-    return output;
+    return this;
+  };
+
+
+
+  this.typeahead.hide = function () {
+    if (!typeahead._valueSelected && !cellProperties.strict){
+      typeahead.select();
+    } else {
+      _hide.call(this);
+    }
+
+    typeahead._valueSelected = false;
+
+    return this;
   };
 
   this.typeahead.render = function (items) {
