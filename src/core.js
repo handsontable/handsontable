@@ -42,7 +42,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     editProxy: false,
     isPopulated: null,
     scrollable: null,
-    undoRedo: null,
     extensions: {},
     colToProp: null,
     propToCol: null,
@@ -1290,14 +1289,8 @@ Handsontable.Core = function (rootElement, userSettings) {
               selection.selectAll(); //select all cells
               editproxy.setCopyableText();
               event.preventDefault();
+              event.stopImmediatePropagation();
             }
-            else if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
-              priv.undoRedo && priv.undoRedo.redo();
-            }
-            else if (event.keyCode === 90) { //CTRL + Z
-              priv.undoRedo && priv.undoRedo.undo();
-            }
-            return;
           }
 
           var rangeModifier = event.shiftKey ? selection.setRangeEnd : selection.setRangeStart;
@@ -1928,7 +1921,6 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.render();
     }
     priv.isPopulated = true;
-    instance.clearUndo();
   };
 
   /**
@@ -1961,15 +1953,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
     if (typeof settings.cols !== "undefined") {
       throw new Error("'cols' setting is no longer supported. do you mean startCols, minCols or maxCols?");
-    }
-
-    if (typeof settings.undo !== "undefined") {
-      if (priv.undoRedo && settings.undo === false) {
-        priv.undoRedo = null;
-      }
-      else if (!priv.undoRedo && settings.undo === true) {
-        priv.undoRedo = new Handsontable.UndoRedo(instance);
-      }
     }
 
     for (i in settings) {
@@ -2103,46 +2086,6 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.clear = function () {
     selection.selectAll();
     selection.empty();
-  };
-
-  /**
-   * Return true if undo can be performed, false otherwise
-   * @public
-   */
-  this.isUndoAvailable = function () {
-    return priv.undoRedo && priv.undoRedo.isUndoAvailable();
-  };
-
-  /**
-   * Return true if redo can be performed, false otherwise
-   * @public
-   */
-  this.isRedoAvailable = function () {
-    return priv.undoRedo && priv.undoRedo.isRedoAvailable();
-  };
-
-  /**
-   * Undo last edit
-   * @public
-   */
-  this.undo = function () {
-    priv.undoRedo && priv.undoRedo.undo();
-  };
-
-  /**
-   * Redo edit (used to reverse an undo)
-   * @public
-   */
-  this.redo = function () {
-    priv.undoRedo && priv.undoRedo.redo();
-  };
-
-  /**
-   * Clears undo history
-   * @public
-   */
-  this.clearUndo = function () {
-    priv.undoRedo && priv.undoRedo.clear();
   };
 
   /**
@@ -2754,7 +2697,6 @@ DefaultSettings.prototype = {
   fillHandle: true,
   fixedRowsTop: 0,
   fixedColumnsLeft: 0,
-  undo: true,
   outsideClickDeselects: true,
   enterBeginsEditing: true,
   enterMoves: {row: 1, col: 0},
