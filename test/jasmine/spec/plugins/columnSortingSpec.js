@@ -587,8 +587,9 @@ describe('ColumnSorting', function () {
         [2, 'A'],
         [1, 'C']
       ],
+      colHeaders: true,
       columnSorting: { ignoreFixedRows: true },
-      fixedRowsTop: 2;
+      fixedRowsTop: 2
     });
 
     expect(hot.getDataAtCell(0, 0)).toEqual(3);
