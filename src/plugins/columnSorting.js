@@ -200,7 +200,7 @@ function HandsontableColumnSorting() {
 
     this.sortIndex.sort(sortFunction(instance.sortOrder));
 
-    for (var i = 0; i < rowOffset; i++) {
+    for (var i = rowOffset - 1; i >= 0; i--) {
       this.sortIndex.unshift([i, instance.getDataAtCell(i, this.sortColumn + colOffset)])
     }
     
