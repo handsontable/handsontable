@@ -287,3 +287,13 @@ function colWidth($elem, col) {
   }
   return TD.offsetWidth;
 }
+
+/**
+ * Returns value that has been rendered in table cell
+ * @param {Number} trIndex
+ * @param {Number} tdIndex
+ * @returns {String}
+ */
+function getRenderedValue(trIndex, tdIndex){
+  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).text();
+}

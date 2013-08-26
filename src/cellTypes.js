@@ -35,6 +35,11 @@ Handsontable.HandsontableCell = {
   renderer: Handsontable.AutocompleteRenderer //displays small gray arrow on right side of the cell
 };
 
+Handsontable.PasswordCell = {
+  editor: Handsontable.PasswordEditor,
+  renderer: Handsontable.PasswordRenderer
+};
+
 //here setup the friendly aliases that are used by cellProperties.type
 Handsontable.cellTypes = {
   text: Handsontable.TextCell,
@@ -42,7 +47,8 @@ Handsontable.cellTypes = {
   numeric: Handsontable.NumericCell,
   checkbox: Handsontable.CheckboxCell,
   autocomplete: Handsontable.AutocompleteCell,
-  handsontable: Handsontable.HandsontableCell
+  handsontable: Handsontable.HandsontableCell,
+  password: Handsontable.PasswordCell
 };
 
 //here setup the friendly aliases that are used by cellProperties.renderer and cellProperties.editor
@@ -51,14 +57,16 @@ Handsontable.cellLookup = {
     text: Handsontable.TextRenderer,
     numeric: Handsontable.NumericRenderer,
     checkbox: Handsontable.CheckboxRenderer,
-    autocomplete: Handsontable.AutocompleteRenderer
+    autocomplete: Handsontable.AutocompleteRenderer,
+    password: Handsontable.PasswordRenderer
   },
   editor: {
     text: Handsontable.TextEditor,
     date: Handsontable.DateEditor,
     checkbox: Handsontable.CheckboxEditor,
     autocomplete: Handsontable.AutocompleteEditor,
-    handsontable: Handsontable.HandsontableEditor
+    handsontable: Handsontable.HandsontableEditor,
+    password: Handsontable.PasswordEditor
   },
   validator: {
     numeric: Handsontable.NumericValidator,
