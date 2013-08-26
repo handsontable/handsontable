@@ -578,5 +578,28 @@ describe('ColumnSorting', function () {
 
     expect(countRows()).toEqual(3);
   });
+  
+  it("should exclude fixed rows from sorting", function () {
+    var hot = handsontable({
+      data: [
+        [3, 'header 1'],
+        [0, 'header 2'],
+        [2, 'A'],
+        [1, 'C']
+      ],
+      colHeaders: true,
+      columnSorting: { ignoreFixedRows: true },
+      fixedRowsTop: 2
+    });
+
+    expect(hot.getDataAtCell(0, 0)).toEqual(3);
+
+    this.sortByColumn(0);
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
+  });
 
 });

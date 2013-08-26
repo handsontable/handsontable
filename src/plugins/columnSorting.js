@@ -5,6 +5,7 @@
 function HandsontableColumnSorting() {
   var plugin = this;
   var sortingEnabled;
+  var ignoreFixedRows;
 
 
   this.init = function (source) {
@@ -15,6 +16,7 @@ function HandsontableColumnSorting() {
     sortingEnabled = !!(sortingSettings);
 
     if (sortingEnabled) {
+      ignoreFixedRows = sortingSettings.ignoreFixedRows;
       instance.sortIndex = [];
 
       var loadedSortingState = loadSortingState.call(instance);
@@ -176,7 +178,13 @@ function HandsontableColumnSorting() {
     instance.sortIndex.length = 0;
 
     var colOffset = this.colOffset();
-    for (var i = 0, ilen = this.countRows() - instance.getSettings()['minSpareRows']; i < ilen; i++) {
+    var rowOffset = 0;
+    var settings = instance.getSettings()
+    if (ignoreFixedRows && settings.fixedRowsTop > 0) {
+      rowOffset = settings.fixedRowsTop;
+    }
+    
+    for (var i = rowOffset, ilen = this.countRows() - instance.getSettings()['minSpareRows']; i < ilen; i++) {
       this.sortIndex.push([i, instance.getDataAtCell(i, this.sortColumn + colOffset)]);
     }
 
@@ -192,6 +200,10 @@ function HandsontableColumnSorting() {
 
     this.sortIndex.sort(sortFunction(instance.sortOrder));
 
+    for (var i = rowOffset - 1; i >= 0; i--) {
+      this.sortIndex.unshift([i, instance.getDataAtCell(i, this.sortColumn + colOffset)])
+    }
+    
     //Append spareRows
     for(var i = this.sortIndex.length; i < instance.countRows(); i++){
       this.sortIndex.push([i, instance.getDataAtCell(i, this.sortColumn + colOffset)]);
