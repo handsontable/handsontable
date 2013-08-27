@@ -224,8 +224,7 @@
   height: 1px;
 }
 
-/* textarea border color */
-textarea.handsontableInput {
+.handsontableInput {
   border: 2px solid #5292F7;
   outline-width: 0;
   margin: 0;

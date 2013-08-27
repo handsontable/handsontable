@@ -36,7 +36,7 @@ function HandsontableManualColumnMove() {
   var bindMoveColEvents = function () {
     var instance = this;
 
-    $(document).on('mousemove.' + instance.guid, function (e) {
+    instance.rootElement.on('mousemove.manualColumnMove', function (e) {
       if (pressed) {
         ghostStyle.left = startOffset + e.pageX - startX + 6 + 'px';
         if (ghostStyle.display === 'none') {
@@ -45,7 +45,7 @@ function HandsontableManualColumnMove() {
       }
     });
 
-    $(document).on('mouseup.' + instance.guid, function () {
+    instance.rootElement.on('mouseup.manualColumnMove', function () {
       if (pressed) {
         if (startCol < endCol) {
           endCol--;
@@ -67,7 +67,7 @@ function HandsontableManualColumnMove() {
       }
     });
 
-    this.rootElement.on('mousedown.' + instance.guid, '.manualColumnMover', function (e) {
+    instance.rootElement.on('mousedown.manualColumnMove', '.manualColumnMover', function (e) {
 
       var mover = e.currentTarget;
       var TH = instance.view.wt.wtDom.closest(mover, 'TH');
@@ -83,7 +83,7 @@ function HandsontableManualColumnMove() {
       ghostStyle.left = startOffset + 6 + 'px';
     });
 
-    this.rootElement.on('mouseenter.' + instance.guid, 'td, th', function () {
+    instance.rootElement.on('mouseenter.manualColumnMove', 'td, th', function () {
       if (pressed) {
         var active = instance.view.THEAD.querySelector('.manualColumnMover.active');
         if (active) {
@@ -101,10 +101,10 @@ function HandsontableManualColumnMove() {
 
   var unbindMoveColEvents = function(){
     var instance = this;
-    $(document).off('mouseup.' + instance.guid);
-    $(document).off('mousemove.' + instance.guid);
-    instance.rootElement.off('mousedown.' + instance.guid);
-    instance.rootElement.off('mouseenter.' + instance.guid);
+    instance.rootElement.off('mouseup.manualColumnMove');
+    instance.rootElement.off('mousemove.manualColumnMove');
+    instance.rootElement.off('mousedown.manualColumnMove');
+    instance.rootElement.off('mouseenter.manualColumnMove');
   }
 
   this.beforeInit = function () {

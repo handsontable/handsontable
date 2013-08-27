@@ -234,7 +234,7 @@ describe('ContextMenu', function () {
 
     $('ul.context-menu-list li').not('.context-menu-separator').eq(0).trigger('mouseup.contextMenu'); //Insert row above
 
-    expect(afterCreateRowCallback).toHaveBeenCalledWith(1, undefined, undefined, undefined, undefined);
+    expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined);
     expect(countRows()).toEqual(5);
   });
 
@@ -255,7 +255,7 @@ describe('ContextMenu', function () {
 
     $('ul.context-menu-list li').not('.context-menu-separator').eq(0).trigger('mouseup.contextMenu'); //Insert row above
 
-    expect(afterCreateRowCallback).toHaveBeenCalledWith(1, undefined, undefined, undefined, undefined);
+    expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined);
     expect(countRows()).toEqual(5);
   });
 
@@ -276,7 +276,7 @@ describe('ContextMenu', function () {
 
     $('ul.context-menu-list li').not('.context-menu-separator').eq(1).trigger('mouseup.contextMenu'); //Insert row below
 
-    expect(afterCreateRowCallback).toHaveBeenCalledWith(4, undefined, undefined, undefined, undefined);
+    expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined);
     expect(countRows()).toEqual(5);
   });
 
@@ -297,7 +297,7 @@ describe('ContextMenu', function () {
 
     $('ul.context-menu-list li').not('.context-menu-separator').eq(1).trigger('mouseup.contextMenu'); //Insert row below
 
-    expect(afterCreateRowCallback).toHaveBeenCalledWith(4, undefined, undefined, undefined, undefined);
+    expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined);
     expect(countRows()).toEqual(5);
   });
 
@@ -318,7 +318,7 @@ describe('ContextMenu', function () {
 
     $('ul.context-menu-list li').not('.context-menu-separator').eq(2).trigger('mouseup.contextMenu'); //Insert col on he left
 
-    expect(afterCreateColCallback).toHaveBeenCalledWith(1, undefined, undefined, undefined, undefined);
+    expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined);
     expect(countCols()).toEqual(5);
   });
 
@@ -339,7 +339,7 @@ describe('ContextMenu', function () {
 
     $('ul.context-menu-list li').not('.context-menu-separator').eq(2).trigger('mouseup.contextMenu'); //Insert col on he left
 
-    expect(afterCreateColCallback).toHaveBeenCalledWith(1, undefined, undefined, undefined, undefined);
+    expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined);
     expect(countCols()).toEqual(5);
   });
 
@@ -360,7 +360,7 @@ describe('ContextMenu', function () {
 
     $('ul.context-menu-list li').not('.context-menu-separator').eq(3).trigger('mouseup.contextMenu'); //Insert col on he right
 
-    expect(afterCreateColCallback).toHaveBeenCalledWith(4, undefined, undefined, undefined, undefined);
+    expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined);
     expect(countCols()).toEqual(5);
   });
 
@@ -381,7 +381,7 @@ describe('ContextMenu', function () {
 
     $('ul.context-menu-list li').not('.context-menu-separator').eq(3).trigger('mouseup.contextMenu'); //Insert col on he right
 
-    expect(afterCreateColCallback).toHaveBeenCalledWith(4, undefined, undefined, undefined, undefined);
+    expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined);
     expect(countCols()).toEqual(5);
   });
 

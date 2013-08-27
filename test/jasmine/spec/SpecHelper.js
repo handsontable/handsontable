@@ -231,10 +231,12 @@ var selectCell = handsontableMethodFactory('selectCell');
 var deselectCell = handsontableMethodFactory('deselectCell');
 var getSelected = handsontableMethodFactory('getSelected');
 var setDataAtCell = handsontableMethodFactory('setDataAtCell');
+var setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
 var getCell = handsontableMethodFactory('getCell');
 var getCellMeta = handsontableMethodFactory('getCellMeta');
 var getData = handsontableMethodFactory('getData');
 var getDataAtCell = handsontableMethodFactory('getDataAtCell');
+var getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
 var getDataAtRow = handsontableMethodFactory('getDataAtRow');
 var getDataAtCol = handsontableMethodFactory('getDataAtCol');
 var getRowHeader = handsontableMethodFactory('getRowHeader');
@@ -286,4 +288,14 @@ function colWidth($elem, col) {
     throw new Error("Cannot find table column of index '" + col + "'");
   }
   return TD.offsetWidth;
+}
+
+/**
+ * Returns value that has been rendered in table cell
+ * @param {Number} trIndex
+ * @param {Number} tdIndex
+ * @returns {String}
+ */
+function getRenderedValue(trIndex, tdIndex){
+  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).text();
 }

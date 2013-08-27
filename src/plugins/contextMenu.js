@@ -24,10 +24,10 @@
         "remove_col": {name: "Remove column", disabled: isDisabled},
         "hsep3": "---------",
         "undo": {name: "Undo", disabled: function () {
-          return !instance.isUndoAvailable();
+          return !instance.undoRedo || !instance.isUndoAvailable();
         }},
         "redo": {name: "Redo", disabled: function () {
-          return !instance.isRedoAvailable();
+          return !instance.undoRedo || !instance.isRedoAvailable();
         }}
       }
       , defaultOptions = {

@@ -113,7 +113,7 @@ describe('AutocompleteEditor', function () {
 
   it('should restore the old value when hovered over a autocomplete menu item and then clicked outside of the table', function () {
     handsontable({
-      autoComplete: getAutocompleteConfig(false)
+      autoComplete: getAutocompleteConfig(true)
     });
 
     selectCell(2, 2);
@@ -123,8 +123,9 @@ describe('AutocompleteEditor', function () {
     keyDownUp('enter');
 
     autocomplete().$menu.find('li:eq(1)').mouseenter();
+    autocomplete().$menu.find('li:eq(1)').mouseleave();
 
-    $('body').mousedown();
+    this.$container.mousedown();
 
     expect(getDataAtCell(2,2)).toBeNull();
   });
@@ -537,5 +538,40 @@ describe('AutocompleteEditor', function () {
 
     expect(afterChangeCallback.calls.length).toEqual(1);
     expect(afterChangeCallback).toHaveBeenCalledWith([[0, 2, null, 'red']], 'edit', undefined, undefined, undefined);
+  });
+
+  it("should allow any value in non strict mode (close editor with ENTER)", function () {
+    var hot = handsontable({
+      autoComplete: getAutocompleteConfig(false)
+    });
+
+    selectCell(0,2);
+
+    keyDownUp('enter');
+
+
+    var editor = $('.handsontableInput');
+    editor.val('foo');
+
+    keyDownUp('enter');
+
+    expect(getDataAtCell(0,2)).toEqual('foo');
+  });
+
+  it("should allow any value in non strict mode (close editor by clicking on table)", function () {
+    var hot = handsontable({
+      autoComplete: getAutocompleteConfig(false)
+    });
+
+    selectCell(0,2);
+
+    keyDownUp('enter');
+
+    var editor = $('.handsontableInput');
+    editor.val('foo');
+
+    this.$container.find('tbody tr:eq(0) td:eq(0)').mousedown();
+
+    expect(getDataAtCell(0,2)).toEqual('foo');
   });
 });

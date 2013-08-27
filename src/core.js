@@ -42,7 +42,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     editProxy: false,
     isPopulated: null,
     scrollable: null,
-    undoRedo: null,
     extensions: {},
     colToProp: null,
     propToCol: null,
@@ -151,69 +150,103 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Creates row at the bottom of the data array
      * @param {Number} [index] Optional. Index of the row before which the new row will be inserted
      */
-    createRow: function (index) {
+    createRow: function (index, amount) {
       var row
-        , rowCount = instance.countRows();
+        , colCount = instance.countCols()
+        , numberOfCreatedRows = 0
+        , currentIndex;
 
-      if (typeof index !== 'number' || index >= rowCount) {
-        index = rowCount;
+      if (!amount) {
+        amount = 1;
       }
 
-      if (priv.dataType === 'array') {
-        row = [];
-        for (var c = 0, clen = instance.countCols(); c < clen; c++) {
-          row.push(null);
+      if (typeof index !== 'number' || index >= instance.countRows()) {
+        index = instance.countRows();
+      }
+
+      currentIndex = index;
+      while (numberOfCreatedRows < amount && instance.countRows() < priv.settings.maxRows) {
+
+        if (priv.dataType === 'array') {
+          row = [];
+          for (var c = 0; c < colCount; c++) {
+            row.push(null);
+          }
         }
-      }
-      else if (priv.dataType === 'function') {
-        row = priv.settings.dataSchema(index);
-      }
-      else {
-        row = $.extend(true, {}, datamap.getSchema());
+        else if (priv.dataType === 'function') {
+          row = priv.settings.dataSchema(index);
+        }
+        else {
+          row = $.extend(true, {}, datamap.getSchema());
+        }
+
+        if (index === instance.countRows()) {
+          GridSettings.prototype.data.push(row);
+        }
+        else {
+          GridSettings.prototype.data.splice(index, 0, row);
+        }
+
+        numberOfCreatedRows++;
+        currentIndex++;
       }
 
-      if (index === rowCount) {
-        GridSettings.prototype.data.push(row);
-      }
-      else {
-        GridSettings.prototype.data.splice(index, 0, row);
-      }
 
-      instance.PluginHooks.run('afterCreateRow', index);
+      instance.PluginHooks.run('afterCreateRow', index, numberOfCreatedRows);
       instance.forceFullRender = true; //used when data was changed
+
+      return numberOfCreatedRows;
     },
 
     /**
      * Creates col at the right of the data array
-     * @param {Object} [index] Optional. Index of the column before which the new column will be inserted
+     * @param {Number} [index] Optional. Index of the column before which the new column will be inserted
+ *   * @param {Number} [amount] Optional.
      */
-    createCol: function (index) {
+    createCol: function (index, amount) {
       if (priv.dataType === 'object' || priv.settings.columns) {
         throw new Error("Cannot create new column. When data source in an object, you can only have as much columns as defined in first data row, data schema or in the 'columns' setting");
       }
-      var r = 0, rlen = instance.countRows()
+      var rlen = instance.countRows()
         , data = GridSettings.prototype.data
-        , constructor = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
+        , constructor
+        , numberOfCreatedCols = 0
+        , currentIndex;
 
-      if (typeof index !== 'number' || index >= instance.countCols()) {
-        for (; r < rlen; r++) {
-          if (typeof data[r] === 'undefined') {
-            data[r] = [];
+      if (!amount) {
+        amount = 1;
+      }
+
+      currentIndex = index;
+
+      while (numberOfCreatedCols < amount && instance.countCols() < priv.settings.maxCols){
+        constructor = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
+        if (typeof index !== 'number' || index >= instance.countCols()) {
+          for (var r = 0; r < rlen; r++) {
+            if (typeof data[r] === 'undefined') {
+              data[r] = [];
+            }
+            data[r].push(null);
           }
-          data[r].push(null);
+          // Add new column constructor
+          priv.columnSettings.push(constructor);
         }
-        // Add new column constructor
-        priv.columnSettings.push(constructor);
-      }
-      else {
-        for (; r < rlen; r++) {
-          data[r].splice(index, 0, null);
+        else {
+          for (var r = 0 ; r < rlen; r++) {
+            data[r].splice(currentIndex, 0, null);
+          }
+          // Add new column constructor at given index
+          priv.columnSettings.splice(currentIndex, 0, constructor);
         }
-        // Add new column constructor at given index
-        priv.columnSettings.splice(index, 0, constructor);
+
+        numberOfCreatedCols++;
+        currentIndex++;
       }
-      instance.PluginHooks.run('afterCreateCol', index);
+
+      instance.PluginHooks.run('afterCreateCol', index, numberOfCreatedCols);
       instance.forceFullRender = true; //used when data was changed
+
+      return numberOfCreatedCols;
     },
 
     /**
@@ -231,6 +264,8 @@ Handsontable.Core = function (rootElement, userSettings) {
 
       // We have to map the physical row ids to logical and than perform removing with (possibly) new row id
       var logicRows = this.physicalRowsToLogical(index, amount);
+
+      instance.PluginHooks.run('beforeRemoveRow', index, amount);
 
       var newData = GridSettings.prototype.data.filter(function (row, index) {
         return logicRows.indexOf(index) == -1;
@@ -259,12 +294,16 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (typeof index !== 'number') {
         index = -amount;
       }
+
+      instance.PluginHooks.run('beforeRemoveCol', index, amount);
+
       var data = GridSettings.prototype.data;
       for (var r = 0, rlen = instance.countRows(); r < rlen; r++) {
         data[r].splice(index, amount);
       }
-      instance.PluginHooks.run('afterRemoveCol', index, amount);
       priv.columnSettings.splice(index, amount);
+
+      instance.PluginHooks.run('afterRemoveCol', index, amount);
       instance.forceFullRender = true; //used when data was changed
     },
 
@@ -487,11 +526,8 @@ Handsontable.Core = function (rootElement, userSettings) {
 
       switch (action) {
         case "insert_row":
-          delta = 0;
-          while (delta < amount && instance.countRows() < priv.settings.maxRows) {
-            datamap.createRow(index);
-            delta++;
-          }
+          delta = datamap.createRow(index, amount);
+
           if (delta) {
             if (priv.selStart.exists() && priv.selStart.row() >= index) {
               priv.selStart.row(priv.selStart.row() + delta);
@@ -504,11 +540,8 @@ Handsontable.Core = function (rootElement, userSettings) {
           break;
 
         case "insert_col":
-          delta = 0;
-          while (delta < amount && instance.countCols() < priv.settings.maxCols) {
-            datamap.createCol(index);
-            delta++;
-          }
+          delta = datamap.createCol(index, amount);
+
           if (delta) {
             if (priv.selStart.exists() && priv.selStart.col() >= index) {
               priv.selStart.col(priv.selStart.col() + delta);
@@ -545,14 +578,6 @@ Handsontable.Core = function (rootElement, userSettings) {
           break;
       }
 
-      changes = [];
-      newData = datamap.getAll();
-      for (r = 0, rlen = newData.length; r < rlen; r++) {
-        for (c = 0, clen = newData[r].length; c < clen; c++) {
-          changes.push([r, c, oldData[r] ? oldData[r][c] : null, newData[r][c]]);
-        }
-      }
-      instance.PluginHooks.run('afterChange', changes, source || action);
       if (!keepEmptyRows) {
         grid.adjustRowsAndCols(); //makes sure that we did not add rows that will be removed in next refresh
       }
@@ -903,33 +928,34 @@ Handsontable.Core = function (rootElement, userSettings) {
         if (force && priv.settings.minSpareRows > 0) {
           instance.alter("insert_row", instance.countRows());
         }
-        else if (priv.settings.autoWrapCol && priv.selStart.col() + colDelta < instance.countCols() - 1) {
+        else if (priv.settings.autoWrapCol) {
           rowDelta = 1 - instance.countRows();
-          colDelta = 1;
+          colDelta = priv.selStart.col() + colDelta == instance.countCols() - 1 ? 1 - instance.countCols() : 1;
         }
       }
       else if (priv.settings.autoWrapCol && priv.selStart.row() + rowDelta < 0 && priv.selStart.col() + colDelta >= 0) {
         rowDelta = instance.countRows() - 1;
-        colDelta = -1;
+        colDelta = priv.selStart.col() + colDelta == 0 ? instance.countCols() - 1 : -1;
       }
+
       if (priv.selStart.col() + colDelta > instance.countCols() - 1) {
         if (force && priv.settings.minSpareCols > 0) {
           instance.alter("insert_col", instance.countCols());
         }
-        else if (priv.settings.autoWrapRow && priv.selStart.row() + rowDelta < instance.countRows() - 1) {
-          rowDelta = 1;
+        else if (priv.settings.autoWrapRow) {
+          rowDelta = priv.selStart.row() + rowDelta == instance.countRows() - 1 ? 1 - instance.countRows() : 1;
           colDelta = 1 - instance.countCols();
         }
       }
       else if (priv.settings.autoWrapRow && priv.selStart.col() + colDelta < 0 && priv.selStart.row() + rowDelta >= 0) {
-        rowDelta = -1;
+        rowDelta = priv.selStart.row() + rowDelta == 0 ? instance.countRows() - 1 : -1;
         colDelta = instance.countCols() - 1;
       }
 
       var totalRows = instance.countRows();
       var totalCols = instance.countCols();
       var coords = {
-        row: (priv.selStart.row() + rowDelta),
+        row: priv.selStart.row() + rowDelta,
         col: priv.selStart.col() + colDelta
       };
 
@@ -1277,14 +1303,8 @@ Handsontable.Core = function (rootElement, userSettings) {
               selection.selectAll(); //select all cells
               editproxy.setCopyableText();
               event.preventDefault();
+              event.stopImmediatePropagation();
             }
-            else if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
-              priv.undoRedo && priv.undoRedo.redo();
-            }
-            else if (event.keyCode === 90) { //CTRL + Z
-              priv.undoRedo && priv.undoRedo.undo();
-            }
-            return;
           }
 
           var rangeModifier = event.shiftKey ? selection.setRangeEnd : selection.setRangeStart;
@@ -1519,7 +1539,9 @@ Handsontable.Core = function (rootElement, userSettings) {
         changes.splice(i, 1);
       }
       else {
-        var cellProperties = instance.getCellMeta(changes[i][0], datamap.propToCol(changes[i][1]));
+        var col = datamap.propToCol(changes[i][1]);
+        var logicalCol = instance.runHooksAndReturn('modifyCol', col); //column order may have changes, so we need to translate physical col index (stored in datasource) to logical (displayed to user)
+        var cellProperties = instance.getCellMeta(changes[i][0], logicalCol);
 
         if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && /^-?[\d\s]*\.?\d*$/.test(changes[i][3])) {
@@ -1915,7 +1937,6 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.render();
     }
     priv.isPopulated = true;
-    instance.clearUndo();
   };
 
   /**
@@ -1948,15 +1969,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
     if (typeof settings.cols !== "undefined") {
       throw new Error("'cols' setting is no longer supported. do you mean startCols, minCols or maxCols?");
-    }
-
-    if (typeof settings.undo !== "undefined") {
-      if (priv.undoRedo && settings.undo === false) {
-        priv.undoRedo = null;
-      }
-      else if (!priv.undoRedo && settings.undo === true) {
-        priv.undoRedo = new Handsontable.UndoRedo(instance);
-      }
     }
 
     for (i in settings) {
@@ -2090,46 +2102,6 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.clear = function () {
     selection.selectAll();
     selection.empty();
-  };
-
-  /**
-   * Return true if undo can be performed, false otherwise
-   * @public
-   */
-  this.isUndoAvailable = function () {
-    return priv.undoRedo && priv.undoRedo.isUndoAvailable();
-  };
-
-  /**
-   * Return true if redo can be performed, false otherwise
-   * @public
-   */
-  this.isRedoAvailable = function () {
-    return priv.undoRedo && priv.undoRedo.isRedoAvailable();
-  };
-
-  /**
-   * Undo last edit
-   * @public
-   */
-  this.undo = function () {
-    priv.undoRedo && priv.undoRedo.undo();
-  };
-
-  /**
-   * Redo edit (used to reverse an undo)
-   * @public
-   */
-  this.redo = function () {
-    priv.undoRedo && priv.undoRedo.redo();
-  };
-
-  /**
-   * Clears undo history
-   * @public
-   */
-  this.clearUndo = function () {
-    priv.undoRedo && priv.undoRedo.clear();
   };
 
   /**
@@ -2755,7 +2727,6 @@ DefaultSettings.prototype = {
   fillHandle: true,
   fixedRowsTop: 0,
   fixedColumnsLeft: 0,
-  undo: true,
   outsideClickDeselects: true,
   enterBeginsEditing: true,
   enterMoves: {row: 1, col: 0},
