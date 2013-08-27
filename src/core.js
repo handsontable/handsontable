@@ -1121,10 +1121,11 @@ Handsontable.Core = function (rootElement, userSettings) {
             break rows;
           }
         }
-        if (!!data[r][select[1] - 1] || !!data[r][select[3] + 1]) {
-          maxR = r;
-        }
+		if (data[r][select[1]] === null || data[r][select[3]] === "") {
+		  maxR = r;
+		}
       }
+	  maxR = (typeof maxR === 'undefined') ? maxR : maxR - priv.settings.minSpareRows;
       if (maxR) {
         instance.view.wt.selections.fill.clear();
         instance.view.wt.selections.fill.add([select[0], select[1]]);
