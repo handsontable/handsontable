@@ -1,3 +1,17 @@
+## [0.9.16](https://github.com/warpech/jquery-handsontable/tree/v0.9.16) (Aug 27, 2013)
+
+Features:
+
+- New cell type: `password`
+- Rebuilt UndoRedo module
+
+Bugfix:
+
+- fixed using manualColumnMove with multiple HOT instances  ([#999](https://github.com/warpech/jquery-handsontable/issues/999))
+- fixed autoWrapCol and autoWrapRow behaviour ([#992](https://github.com/warpech/jquery-handsontable/issues/992))
+- autocomplete fields will now behave the same as regular fields after closing editor by clicking on another cell (if in non strict mode)  ([#991](https://github.com/warpech/jquery-handsontable/issues/991))
+- fixed validation after changing column order ([#980](https://github.com/warpech/jquery-handsontable/issues/980))
+
 ## [0.9.15](https://github.com/warpech/jquery-handsontable/tree/v0.9.15) (Aug 26, 2013)
 
 Features:
