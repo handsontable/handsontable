@@ -154,7 +154,7 @@
   };
   Handsontable.helper.inherit(Handsontable.UndoRedo.RemoveRowAction, Handsontable.UndoRedo.Action);
   Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function (instance) {
-    var spliceArgs = [this.index, this.data.length];
+    var spliceArgs = [this.index, 0];
     Array.prototype.push.apply(spliceArgs, this.data);
 
     Array.prototype.splice.apply(instance.getData(), spliceArgs);
@@ -188,7 +188,7 @@
     for (var i = 0, len = instance.getData().length; i < len; i++) {
       row = instance.getDataAtRow(i);
 
-      spliceArgs = [this.index, this.amount];
+      spliceArgs = [this.index, 0];
       Array.prototype.push.apply(spliceArgs, this.data[i]);
 
       Array.prototype.splice.apply(row, spliceArgs);
