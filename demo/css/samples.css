@@ -63,7 +63,7 @@ body {
   margin: 0 40px 0 40px;
 }
 
-.pad:after{
+.pad:after {
   content: ".";
   display: block;
   clear: both;
@@ -200,17 +200,6 @@ ul ul {
 }
 
 .jsFiddleLink {
-  display: inline-block;
-  padding: 6px 9px;
-  margin: 0;
-  font-size: 12px;
-  line-height: 24px;
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: middle;
-  cursor: pointer;
-  border: none;
-  -moz-user-select: none;
   background-color: #4285c8;
   color: white;
 }
@@ -330,7 +319,7 @@ body.home .centerLayout {
 
 body.home .linkColumn {
   float: left;
-  margin-left: 72px;
+  margin-left: 89px;
 }
 
 body.home .linkColumn.first {
@@ -375,29 +364,31 @@ body.home .columnLayout h2 {
 }
 
 .state-loaded {
-    display: none;
+  display: none;
 }
 
 .alert {
-    color: #c09853;
-    padding: 8px 35px 8px 14px;
-    margin-bottom: 20px;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
-    background-color: #fcf8e3;
-    border: 1px solid #fbeed5;
-    -webkit-border-radius: 4px;
-    -moz-border-radius: 4px;
-    border-radius: 4px;
+  color: #c09853;
+  padding: 8px 35px 8px 14px;
+  margin-bottom: 20px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  background-color: #fcf8e3;
+  border: 1px solid #fbeed5;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
 }
 
 /**
 * buttons
 **/
-button {
+button,
+.button {
+  font-family: Helvetica, Arial, FreeSans, sans-serif; /*Firefox tries to use system font on button*/
   display: inline-block;
   padding: 6px 9px;
-  margin: 0 2px;
-  font-size: 12px;
+  margin: 0 2px 0 0;
+  font-size: 13px;
   line-height: 24px;
   text-align: center;
   white-space: nowrap;
@@ -406,15 +397,13 @@ button {
   border: none;
   -moz-user-select: none;
   background-color: #bbb;
-  color: white
+  color: white;
 }
 
-button:hover {
+button:hover,
+.button:hover {
   background-color: #999999;
-}
-
-button:first-child {
-  margin-left: 0;
+  text-decoration: none;
 }
 
 button.mini {
@@ -433,13 +422,38 @@ button.mini {
 }
 
 .show-source:before {
-   content: 'Show source code';
- }
+  content: 'Show source code';
+}
 
 .show-source.shown:before {
   content: 'Hide source code';
 }
 
-.inline-buttons button{
+.inline-buttons button,
+.inline-buttons .button {
   float: left;
+}
+
+.button-github {
+  background-color: #9a9a9a;
+}
+
+.button-github:hover {
+  background-color: #7a7a7a;
+}
+
+.button-twitter {
+  background-color: #00ACED;
+}
+
+.button-twitter:hover {
+  background-color: #0095CC;
+}
+
+.button-google-groups {
+  background-color: #D44332;
+}
+
+.button-google-groups:hover {
+  background-color: #BC2520;
 }
