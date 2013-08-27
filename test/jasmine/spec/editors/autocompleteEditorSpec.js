@@ -113,7 +113,7 @@ describe('AutocompleteEditor', function () {
 
   it('should restore the old value when hovered over a autocomplete menu item and then clicked outside of the table', function () {
     handsontable({
-      autoComplete: getAutocompleteConfig(false)
+      autoComplete: getAutocompleteConfig(true)
     });
 
     selectCell(2, 2);
@@ -123,8 +123,9 @@ describe('AutocompleteEditor', function () {
     keyDownUp('enter');
 
     autocomplete().$menu.find('li:eq(1)').mouseenter();
+    autocomplete().$menu.find('li:eq(1)').mouseleave();
 
-    $('body').mousedown();
+    this.$container.mousedown();
 
     expect(getDataAtCell(2,2)).toBeNull();
   });
@@ -544,16 +545,13 @@ describe('AutocompleteEditor', function () {
       autoComplete: getAutocompleteConfig(false)
     });
 
-    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
-    hot.addHook('afterChange', afterChangeCallback);
-
     selectCell(0,2);
 
     keyDownUp('enter');
 
 
     var editor = $('.handsontableInput');
-    editor.val('foo')
+    editor.val('foo');
 
     keyDownUp('enter');
 
@@ -565,16 +563,12 @@ describe('AutocompleteEditor', function () {
       autoComplete: getAutocompleteConfig(false)
     });
 
-    var afterChangeCallback = jasmine.createSpy('afterChangeCallback');
-    hot.addHook('afterChange', afterChangeCallback);
-
     selectCell(0,2);
 
     keyDownUp('enter');
 
-
     var editor = $('.handsontableInput');
-    editor.val('foo')
+    editor.val('foo');
 
     this.$container.find('tbody tr:eq(0) td:eq(0)').mousedown();
 
