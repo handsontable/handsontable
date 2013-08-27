@@ -248,29 +248,29 @@
   function onAfterChange(changes, source){
     var instance = this;
     if (source == 'loadData'){
-      instance.undoRedo.clear();
+      return instance.undoRedo.clear();
     }
   }
 
   function exposeUndoRedoMethods(instance){
     instance.undo = function(){
-      instance.undoRedo.undo();
+      return instance.undoRedo.undo();
     };
 
     instance.redo = function(){
-      instance.undoRedo.redo();
+      return instance.undoRedo.redo();
     };
 
     instance.isUndoAvailable = function(){
-      instance.undoRedo.isUndoAvailable();
+      return instance.undoRedo.isUndoAvailable();
     };
 
     instance.isRedoAvailable = function(){
-      instance.undoRedo.isRedoAvailable();
+      return instance.undoRedo.isRedoAvailable();
     };
 
     instance.clearUndo = function(){
-      instance.undoRedo.clear();
+      return instance.undoRedo.clear();
     };
   }
 
