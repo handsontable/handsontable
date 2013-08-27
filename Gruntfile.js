@@ -57,7 +57,6 @@ module.exports = function (grunt) {
         'src/tableView.js',
         'src/helpers.js',
         'src/fillHandle.js',
-        'src/undoRedo.js',
         'src/selectionPoint.js',
 
         'src/renderers/textRenderer.js',
@@ -87,6 +86,7 @@ module.exports = function (grunt) {
         'src/plugins/manualColumnResize.js',
         'src/plugins/observeChanges.js',
         'src/plugins/persistentState.js',
+        'src/plugins/undoRedo.js',
 
         'src/3rdparty/jquery.autoresize.js',
         'src/3rdparty/sheetclip.js',
