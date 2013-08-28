@@ -52,8 +52,6 @@ Polymer('x-handsontable', {
       width: this.width,
       height: this.height,
       columns: columns,
-      minRows: 5,
-      minCols: 6,
       minSpareRows: this.minsparerows,
       autoWrapRow: true,
       colHeaders: true,
