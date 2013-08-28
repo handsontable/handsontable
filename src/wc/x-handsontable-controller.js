@@ -35,9 +35,9 @@ for (var i = 0, ilen = publicMethods.length; i < ilen; i++) {
   })(publicMethods[i]);
 }
 
-Polymer.register(this, {
+Polymer('x-handsontable', {
   instance: null,
-  ready: function () {
+  created: function () {
     var DATACOLUMNs = this.querySelectorAll('datacolumn')
       , columns = []
       , i
