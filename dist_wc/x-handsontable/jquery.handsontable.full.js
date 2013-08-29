@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Aug 27 2013 12:38:58 GMT+0200 (CEST)
+ * Date: Thu Aug 29 2013 09:15:51 GMT-0400 (EDT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -583,7 +583,8 @@ Handsontable.Core = function (rootElement, userSettings) {
           datamap.removeCol(index, amount);
 
           for(var row = 0, len = datamap.getAll().length; row < len; row++){
-            priv.cellSettings[row].splice(index, amount);
+            if(priv.cellSettings[row] !== undefined)
+              priv.cellSettings[row].splice(index, amount);
           }
 
           priv.columnSettings.splice(index, amount);
