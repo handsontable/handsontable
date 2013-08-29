@@ -564,7 +564,8 @@ Handsontable.Core = function (rootElement, userSettings) {
           datamap.removeCol(index, amount);
 
           for(var row = 0, len = datamap.getAll().length; row < len; row++){
-            priv.cellSettings[row].splice(index, amount);
+            if(priv.cellSettings[row] !== undefined)
+              priv.cellSettings[row].splice(index, amount);
           }
 
           priv.columnSettings.splice(index, amount);
