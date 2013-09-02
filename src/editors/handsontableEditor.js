@@ -93,9 +93,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
       event.preventDefault();
     }
   });
-};
 
-HandsontableHandsontableEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
   var parent = this;
 
   var options = {
@@ -114,11 +112,13 @@ HandsontableHandsontableEditorClass.prototype.bindTemporaryEvents = function (td
     }
   };
 
-  if (cellProperties.handsontable) {
-    options = $.extend(options, cellProperties.handsontable);
-  }
-
   this.$htContainer.handsontable(options);
+};
+
+HandsontableHandsontableEditorClass.prototype.bindTemporaryEvents = function (td, row, col, prop, value, cellProperties) {
+  if (cellProperties.handsontable) {
+    this.$htContainer.handsontable('updateSettings', cellProperties.handsontable);
+  }
 
   HandsontableTextEditorClass.prototype.bindTemporaryEvents.call(this, td, row, col, prop, value, cellProperties);
 };
@@ -141,7 +141,6 @@ HandsontableHandsontableEditorClass.prototype.finishEditing = function (isCancel
   if (this.$htContainer.handsontable('isListening')) { //if focus is still in the HOT editor
     this.instance.listen(); //return the focus to the parent HOT instance
   }
-  this.$htContainer.handsontable('destroy');
   HandsontableTextEditorClass.prototype.finishEditing.call(this, isCancelled, ctrlDown);
 };
 
