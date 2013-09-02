@@ -135,44 +135,28 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
 
   /* overwrite typeahead options and methods (matcher, sorter, highlighter, updater, etc) if provided in cellProperties */
   for (i in cellProperties) {
-    // if (cellProperties.hasOwnProperty(i)) {
     if (i === 'options') {
       for (j in cellProperties.options) {
-        // if (cellProperties.options.hasOwnProperty(j)) {
         this.typeahead.options[j] = cellProperties.options[j];
-        // }
       }
     }
     else {
       this.typeahead[i] = cellProperties[i];
     }
-    // }
   }
 
   HandsontableTextEditorClass.prototype.bindTemporaryEvents.call(this, td, row, col, prop, value, cellProperties);
 
-  var _cellMouseDown = that.instance.view.wt.wtSettings.settings['onCellMouseDown'];
+};
 
-  function onCellMouseDown(){
-    that.instance.destroyEditor();
-    that.beginEditing(row, col, prop, true);
-    that.instance.registerTimeout('IE9_align_fix', function () { //otherwise is misaligned in IE9
-      that.typeahead.lookup();
-    }, 1);
+HandsontableAutocompleteEditorClass.prototype.beginEditing = function () {
+  HandsontableTextEditorClass.prototype.beginEditing.apply(this, arguments);
 
-    _cellMouseDown.apply(this, arguments);
-  }
+  var that = this;
 
-  this.instance.view.wt.update('onCellMouseDown', onCellMouseDown);
-
-  function onDblClick() {
-    that.beginEditing(row, col, prop, true);
-    that.instance.registerTimeout('IE9_align_fix', function () { //otherwise is misaligned in IE9
-      that.typeahead.lookup();
-    }, 1);
-  }
-
-  this.instance.view.wt.update('onCellDblClick', onDblClick);
+  this.instance.registerTimeout('IE9_align_fix', function () { //otherwise is misaligned in IE9
+    that.typeahead.lookup();
+  }, 1);
 };
 /**
  * @see HandsontableTextEditorClass.prototype.finishEditing
