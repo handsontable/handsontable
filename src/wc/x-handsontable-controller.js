@@ -68,7 +68,8 @@ function parseHandsontable(HANDSONTABLE) {
     colHeaders: readBool(HANDSONTABLE.colheaders),
     fillHandle: readBool(HANDSONTABLE.fillhandle),
     autoWrapRow: true,
-    contextMenu: true
+    contextMenu: true,
+    observeChanges: true
   };
 
   function hasTitle(column) {
