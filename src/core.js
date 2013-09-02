@@ -1922,7 +1922,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.loadData = function (data) {
     if (!(data.push && data.splice)) { //check if data is array. Must use duck-type check so Backbone Collections also pass it
-      throw new Error("loadData only accepts array of objects or array of arrays (" + typeof data + " given)");
+      //when data is not an array, attempt to make a single-row array of it
+      data = [data];
     }
 
     priv.isPopulated = false;
