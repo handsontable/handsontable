@@ -53,6 +53,22 @@ describe('Core_alter', function () {
     expect(getData().length).toEqual(5); //new row should be added by keepEmptyRows
   });
 
+  it('should fire beforeRemoveRow event before removing row', function () {
+    var onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
+
+    var hot = handsontable({
+      data: arrayOfNestedObjects(),
+      columns: [
+        {data: "id"},
+        {data: "name.first"}
+      ],
+      beforeRemoveRow: onBeforeRemoveRow
+    });
+    alter('remove_row');
+
+    expect(onBeforeRemoveRow).toHaveBeenCalledWith(countRows(), 1, undefined, undefined, undefined);
+  });
+
   it('should not remove rows below minRows', function () {
     handsontable({
       startRows: 5,
@@ -483,6 +499,17 @@ describe('Core_alter', function () {
     alter('remove_row', 1, 2);
 
     expect(output).toEqual([1, 2]);
+  });
+
+  it('should fire beforeRemoveCol event before removing col', function () {
+    var onBeforeRemoveCol = jasmine.createSpy('onBeforeRemoveCol');
+
+    var hot = handsontable({
+      beforeRemoveCol: onBeforeRemoveCol
+    });
+    alter('remove_col');
+
+    expect(onBeforeRemoveCol).toHaveBeenCalledWith(countCols(), 1, undefined, undefined, undefined);
   });
 
   it('should fire callback on remove col', function () {
