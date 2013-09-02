@@ -21,11 +21,30 @@ function parseDatacolumn(DATACOLUMN) {
     obj.source = window[obj.source];
   }
 
-  var HOT = DATACOLUMN.getElementsByTagName('x-handsontable')
-  if (HOT.length) {
-    obj.handsontable = parseHandsontable(HOT[0]);
+  var HANDSONTABLE = DATACOLUMN.getElementsByTagName('x-handsontable');
+  if (HANDSONTABLE.length) {
+    obj.handsontable = parseHandsontable(HANDSONTABLE[0]);
   }
 
+  return obj;
+}
+
+function getModel(HANDSONTABLE) {
+  if(HANDSONTABLE.templateInstance) {
+    return HANDSONTABLE.templateInstance.model;
+  }
+  else {
+    return window;
+  }
+}
+
+function getModelPath(HANDSONTABLE, path) {
+  var obj = getModel(HANDSONTABLE);
+  var keys = path.split('.');
+  var len = keys.length;
+  for (var i = 0; i < len; i++) {
+    obj = obj[keys[i]];
+  }
   return obj;
 }
 
@@ -41,7 +60,7 @@ function parseHandsontable(HANDSONTABLE) {
   }
 
   var options = {
-    data: window[HANDSONTABLE.datarows],
+    data: getModelPath(HANDSONTABLE, HANDSONTABLE.datarows),
     width: HANDSONTABLE.width,
     height: HANDSONTABLE.height,
     columns: columns,
@@ -61,7 +80,7 @@ function parseHandsontable(HANDSONTABLE) {
   }
 
   if (HANDSONTABLE.settings) {
-    var settings = window[HANDSONTABLE.settings];
+    var settings = getModelPath(HANDSONTABLE, HANDSONTABLE.settings);
     for (i in settings) {
       if (settings.hasOwnProperty(i)) {
         options[i] = settings[i];
