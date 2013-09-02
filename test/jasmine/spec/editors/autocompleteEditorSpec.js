@@ -76,7 +76,7 @@ describe('AutocompleteEditor', function () {
     mouseDoubleClick(getCell(2,2));
 
     waitsFor(function(){
-      return hot.autocompleteEditor.isMenuExpanded();
+      return autocomplete().$menu.is(':visible');
     }, 'Autocomplete menu open', 1000);
 
     runs(function(){
@@ -97,7 +97,7 @@ describe('AutocompleteEditor', function () {
     mouseDoubleClick(getCell(2,2));
 
     waitsFor(function(){
-      return hot.autocompleteEditor.isMenuExpanded();
+      return autocomplete().$menu.is(':visible');
     }, 'Autocomplete menu open', 1000);
 
     runs(function(){

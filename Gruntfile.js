@@ -55,6 +55,8 @@ module.exports = function (grunt) {
         'tmp/core.js',
         'src/focusCatcher.js',
         'src/tableView.js',
+        'src/editors.js',
+        'src/editManager.js',
         'src/helpers.js',
         'src/fillHandle.js',
         'src/selectionPoint.js',
@@ -65,6 +67,7 @@ module.exports = function (grunt) {
         'src/renderers/numericRenderer.js',
         'src/renderers/passwordRenderer.js',
 
+        'src/editors/BaseEditor.js',
         'src/editors/textEditor.js',
         'src/editors/autocompleteEditor.js',
         'src/editors/checkboxEditor.js',

@@ -1,4 +1,4 @@
-describe('TextEditor', function () {
+describe('NewTextEditor', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
@@ -14,7 +14,8 @@ describe('TextEditor', function () {
 
   it('should begin editing when enterBeginsEditing equals true', function () {
     handsontable({
-      enterBeginsEditing: true
+      enterBeginsEditing: true,
+      editor: 'text'
     });
     selectCell(2, 2);
 
@@ -26,7 +27,9 @@ describe('TextEditor', function () {
   });
 
   it('should move down after editing', function () {
-    handsontable();
+    handsontable({
+      editor: 'text'
+    });
     selectCell(2, 2);
 
     keyDown('enter');
@@ -109,14 +112,38 @@ describe('TextEditor', function () {
     expect(keyProxy().val()).toEqual("");
   });
 
+  it('should open editor after hitting F2', function () {
+    handsontable();
+    selectCell(2, 2);
+
+    var editor = $('.handsontableInput');
+    expect(isEditorVisible()).toEqual(false);
+    keyDown('f2');
+    expect(isEditorVisible()).toEqual(true);
+  });
+
+  it('should close editor after hitting ESC', function () {
+    handsontable();
+    selectCell(2, 2);
+
+    var editor = $('.handsontableInput');
+    expect(isEditorVisible()).toEqual(false);
+    keyDown('f2');
+    expect(isEditorVisible()).toEqual(true);
+    keyDown('esc');
+    expect(isEditorVisible()).toEqual(false);
+  });
+
   it('should open editor after cancelling edit and beginning it again', function () {
     handsontable();
     selectCell(2, 2);
 
+    expect(isEditorVisible()).toEqual(false);
     keyDown('f2');
+    expect(isEditorVisible()).toEqual(true);
     keyDown('esc');
+    expect(isEditorVisible()).toEqual(false);
     keyDown('f2');
-
     expect(isEditorVisible()).toEqual(true);
   });
 
@@ -358,7 +385,6 @@ describe('TextEditor', function () {
 
     expect(editorHolder.is(':visible')).toBe(true);
   });
-
 
   it("should be able to open editor after clearing cell data with BACKSPACE", function () {
     var hot = handsontable({

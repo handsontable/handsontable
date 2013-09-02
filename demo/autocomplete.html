@@ -134,7 +134,7 @@
           colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
           columns: [
             {
-              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              type: {renderer: myAutocompleteRenderer, editor: 'autocomplete'},
               source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
               strict: false,
               options: {
@@ -143,13 +143,13 @@
             },
             {type: 'numeric'},
             {
-              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              type: {renderer: myAutocompleteRenderer, editor: 'autocomplete'},
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
               highlighter: colorHighlighter,
               strict: false
             },
             {
-              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              type: {renderer: myAutocompleteRenderer, editor: 'autocomplete'},
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
               highlighter: colorHighlighter,
               strict: false
@@ -198,19 +198,19 @@
           colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
           columns: [
             {
-              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              type: {renderer: myAutocompleteRenderer, editor: 'autocomplete'},
               source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo", ""], //empty string is a valid value
               strict: true
             },
             {},
             {
-              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              type: {renderer: myAutocompleteRenderer, editor: 'autocomplete'},
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
               highlighter: colorHighlighter,
               strict: true
             },
             {
-              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              type: {renderer: myAutocompleteRenderer, editor: 'autocomplete'},
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
               highlighter: colorHighlighter,
               strict: true
@@ -262,7 +262,7 @@
           colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
           columns: [
             {
-              type: {renderer: myAutocompleteRenderer, editor: Handsontable.AutocompleteEditor},
+              type: {renderer: myAutocompleteRenderer, editor: 'autocomplete'},
               options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
               source: function (query, process) {
                 $.ajax({

@@ -172,7 +172,7 @@ var keyProxy = function () {
 };
 
 var autocompleteEditor = function () {
-  return spec().$container.data('handsontable').autocompleteEditor.$textarea;
+  return spec().$container.find('.handsontableInput');
 };
 
 /**
@@ -297,5 +297,15 @@ function colWidth($elem, col) {
  * @returns {String}
  */
 function getRenderedValue(trIndex, tdIndex){
-  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).text();
+  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).html();
+}
+
+/**
+ * Returns nodes that have been rendered in table cell
+ * @param {Number} trIndex
+ * @param {Number} tdIndex
+ * @returns {String}
+ */
+function getRenderedContent(trIndex, tdIndex){
+  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).children()
 }
