@@ -261,6 +261,13 @@ TextRenderer readOnly cell
 }
 
 /*
+TextRenderer placeholder value
+*/
+.handsontable .htPlaceholder {
+  color: #999;
+}
+
+/*
 AutocompleteRenderer down arrow
 */
 .handsontable .htAutocomplete {

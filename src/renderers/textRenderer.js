@@ -9,6 +9,10 @@
  * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
  */
 Handsontable.TextRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
+  if (!value && cellProperties.placeholder) {
+    value = cellProperties.placeholder;
+    instance.view.wt.wtDom.addClass(TD, 'htPlaceholder');
+  }
   var escaped = Handsontable.helper.stringify(value);
   instance.view.wt.wtDom.fastInnerText(TD, escaped); //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   if (cellProperties.readOnly) {
