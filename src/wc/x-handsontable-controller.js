@@ -43,7 +43,9 @@ function getModelPath(HANDSONTABLE, path) {
   var keys = path.split('.');
   var len = keys.length;
   for (var i = 0; i < len; i++) {
-    obj = obj[keys[i]];
+    if (obj[keys[i]]) {
+      obj = obj[keys[i]];
+    }
   }
   return obj;
 }
