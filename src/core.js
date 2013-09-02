@@ -2066,6 +2066,14 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
 
+    if (typeof settings.className !== "undefined") {
+      if (GridSettings.prototype.className) {
+        instance.rootElement.removeClass(GridSettings.prototype.className);
+      }
+      if (settings.className) {
+        instance.rootElement.addClass(settings.className);
+      }
+    }
 
     if (!init) {
       instance.PluginHooks.run('afterUpdateSettings');
@@ -2077,6 +2085,20 @@ Handsontable.Core = function (rootElement, userSettings) {
       selection.refreshBorders(null, true);
     }
   };
+
+  this.getValue = function () {
+    if (GridSettings.prototype.getValue) {
+      if (typeof GridSettings.prototype.getValue === 'function') {
+        return GridSettings.prototype.getValue.call(instance);
+      }
+      else {
+        var sel = instance.getSelected();
+        return instance.getData()[sel[0]][GridSettings.prototype.getValue];
+      }
+    }
+    var sel = instance.getSelected();
+    return instance.getDataAtCell(sel[0], sel[1]);
+  }
 
   function expandType(obj) {
     if (obj.hasOwnProperty('type')) { //ignore obj.prototype.type

@@ -13,11 +13,10 @@ GOOD NEWS: Future release will be independent from jQuery
 <!-- Handsontable various cell type dependencies -->
 <script data-jsfiddle="common" src="x-handsontable/numeral.de-de.js"></script><!-- numeric cell type -->
 
-<polymer-element name="x-handsontable" attributes="datarows settings width height minsparerows">
+<polymer-element name="x-handsontable" attributes="datarows settings width height minsparerows colheaders fillhandle">
   <template>
     <link rel="stylesheet" href="x-handsontable/jquery.handsontable.full.css">
-    <div id="htContainer"></div>
-    <content></content>
+    <div id="htContainer" style="clear: both"></div>
   </template>
   <script>
 @@controller

@@ -389,3 +389,56 @@ ul.context-menu-list li {
 .handsontable .dragdealer .disabled {
   background: #898989;
 }
+
+/**
+ * Handsontable in Handsontable
+ */
+
+.handsontable .handsontable .wtHider {
+  padding: 0 0 5px 0;
+}
+
+.handsontable .handsontable table {
+  box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+/**
+ * Handsontable listbox theme
+ */
+
+.handsontable.listbox table {
+  border: 1px solid #ccc;
+  border-collapse: separate;
+  background: white;
+}
+
+.handsontable.listbox th,
+.handsontable.listbox tr:first-child th,
+.handsontable.listbox tr:last-child th,
+.handsontable.listbox tr:first-child td,
+.handsontable.listbox td {
+  border-width: 0;
+}
+
+.handsontable.listbox th,
+.handsontable.listbox td {
+  white-space: nowrap;
+}
+
+.handsontable.listbox td.htDimmed {
+  cursor: default;
+  color: inherit;
+  font-style: inherit;
+}
+
+.handsontable.listbox .wtBorder {
+  visibility: hidden;
+}
+
+.handsontable.listbox .current {
+  font-weight: bold;
+}
+
+.handsontable.listbox tr:hover td {
+  background: #eee;
+}

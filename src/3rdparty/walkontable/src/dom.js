@@ -377,16 +377,20 @@ WalkontableDom.prototype.outerHeight = function (elem) {
    * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
    * @param {Element} el
    * @param {Number} pos
+   * @param {Number} endPos
    */
-  WalkontableDom.prototype.setCaretPosition = function (el, pos) {
+  WalkontableDom.prototype.setCaretPosition = function (el, pos, endPos) {
+    if (endPos === void 0) {
+      endPos = pos;
+    }
     if (el.setSelectionRange) {
       el.focus();
-      el.setSelectionRange(pos, pos);
+      el.setSelectionRange(pos, endPos);
     }
     else if (el.createTextRange) { //IE8
       var range = el.createTextRange();
       range.collapse(true);
-      range.moveEnd('character', pos);
+      range.moveEnd('character', endPos);
       range.moveStart('character', pos);
       range.select();
     }
