@@ -146,7 +146,7 @@ describe('FillHandle', function () {
         ["", "", "test", "", "", ""],
         ["", "", "", "", "", ""],
         ["", "", null, "", "", ""],
-        ["", "", null, "", "", ""]
+        ["", "", , "", "", ""]
       ]
     });
     selectCell(0, 2);
@@ -168,9 +168,9 @@ describe('FillHandle', function () {
     handsontable({
       data: [
         ["", "test 1", "test 2", "test 3", "test 4", "test 5"],
+        ["", null, null, null, null, null],
         ["", "", "", "", "", ""],
-        ["", "", "", "", "", ""],
-        ["", "", "", "", "", ""]
+        ["", , , , , ]
       ]
     });
     selectCell(0, 1);

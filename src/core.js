@@ -1121,7 +1121,8 @@ Handsontable.Core = function (rootElement, userSettings) {
             break rows;
           }
         }
-		if (data[r][select[1]] === null || data[r][select[3]] === "") {
+        if ((data[r][select[1]] === null || data[r][select[1]] === "" || typeof data[r][select[1]] === "undefined") ||
+            (data[r][select[3]] === null || data[r][select[3]] === "" || typeof data[r][select[3]] === "undefined")) {
 		  maxR = r;
 		}
       }

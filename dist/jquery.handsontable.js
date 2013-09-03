@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Aug 27 2013 14:02:35 GMT-0400 (Eastern Daylight Time)
+ * Date: Tue Sep 03 2013 08:47:03 GMT-0400 (Eastern Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1140,7 +1140,8 @@ Handsontable.Core = function (rootElement, userSettings) {
             break rows;
           }
         }
-		if (data[r][select[1]] === null || data[r][select[3]] === "") {
+        if ((data[r][select[1]] === null || data[r][select[1]] === "" || typeof data[r][select[1]] === "undefined") ||
+            (data[r][select[3]] === null || data[r][select[3]] === "" || typeof data[r][select[3]] === "undefined")) {
 		  maxR = r;
 		}
       }
