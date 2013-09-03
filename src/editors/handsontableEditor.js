@@ -42,8 +42,6 @@ HandsontableHandsontableEditorClass.prototype.bindEvents = function () {
       return;
     }
 
-    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-
     if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
       //when CTRL or its equivalent is pressed and cell is edited, don't prepare selectable text in textarea
       event.stopImmediatePropagation();
