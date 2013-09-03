@@ -61,6 +61,14 @@ function parseHandsontable(HANDSONTABLE) {
     }
   }
 
+  var observeChanges;
+  if(HANDSONTABLE.observechanges === void 0 || HANDSONTABLE.observechanges === null) {
+    observeChanges = true;
+  }
+  else {
+    observeChanges = readBool(HANDSONTABLE.observechanges);
+  }
+
   var options = {
     data: getModelPath(HANDSONTABLE, HANDSONTABLE.datarows),
     width: HANDSONTABLE.width,
@@ -71,7 +79,7 @@ function parseHandsontable(HANDSONTABLE) {
     fillHandle: readBool(HANDSONTABLE.fillhandle),
     autoWrapRow: true,
     contextMenu: true,
-    observeChanges: true,
+    observeChanges: observeChanges,
     getValue: HANDSONTABLE.getvalue
   };
 
