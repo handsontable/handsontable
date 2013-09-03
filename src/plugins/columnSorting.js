@@ -4,17 +4,15 @@
  */
 function HandsontableColumnSorting() {
   var plugin = this;
-  var sortingEnabled;
-
 
   this.init = function (source) {
     var instance = this;
     var sortingSettings = instance.getSettings().columnSorting;
     var sortingColumn, sortingOrder;
 
-    sortingEnabled = !!(sortingSettings);
+    instance.sortingEnabled = !!(sortingSettings);
 
-    if (sortingEnabled) {
+    if (instance.sortingEnabled) {
       instance.sortIndex = [];
 
       var loadedSortingState = loadSortingState.call(instance);
@@ -172,7 +170,7 @@ function HandsontableColumnSorting() {
       return;
     }
 
-    sortingEnabled = false; //this is required by translateRow plugin hook
+    instance.sortingEnabled = false; //this is required by translateRow plugin hook
     instance.sortIndex.length = 0;
 
     var colOffset = this.colOffset();
@@ -197,12 +195,13 @@ function HandsontableColumnSorting() {
       this.sortIndex.push([i, instance.getDataAtCell(i, this.sortColumn + colOffset)]);
     }
 
-    sortingEnabled = true; //this is required by translateRow plugin hook
+    instance.sortingEnabled = true; //this is required by translateRow plugin hook
   };
 
   this.translateRow = function (row) {
-    if (sortingEnabled && this.sortIndex && this.sortIndex.length) {
-      return this.sortIndex[row][0];
+    var instance = this;
+    if (instance.sortingEnabled && instance.sortIndex && instance.sortIndex.length) {
+      return instance.sortIndex[row][0];
     }
     return row;
   };

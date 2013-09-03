@@ -579,4 +579,27 @@ describe('ColumnSorting', function () {
     expect(countRows()).toEqual(3);
   });
 
+  it("should apply sorting when there are two tables and only one has sorting enabled and has been already sorted (#1020)", function () {
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'D'],
+        [3, 'A'],
+        [2, 'C']
+      ],
+      columnSorting: {
+        column: 1
+      }
+    });
+
+    this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
+    this.$container2.handsontable();
+    var hot2 = this.$container2.handsontable('getInstance');
+
+    selectCell(0, 1);
+    keyDown('enter');
+    expect($('.handsontableInput').val()).toEqual('A');
+
+  });
+
 });
