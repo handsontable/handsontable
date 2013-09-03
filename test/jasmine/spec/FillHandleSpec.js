@@ -137,4 +137,82 @@ describe('FillHandle', function () {
 
     document.body.removeChild($table[0]);
   });
+  
+  it('should fill proceeding empty or null rows within selected cell column with value from selected cell', function () {
+    var ev;
+
+    handsontable({
+      data: [
+        ["", "", "test", "", "", ""],
+        ["", "", "", "", "", ""],
+        ["", "", null, "", "", ""],
+        ["", "", , "", "", ""]
+      ]
+    });
+    selectCell(0, 2);
+	
+	var fillHandle = this.$container.find('.wtBorder.corner')[0]; //fill handle
+	$(fillHandle).trigger("mousedown");
+	$(fillHandle).trigger("mouseup");
+	$(fillHandle).trigger("mousedown");
+	$(fillHandle).trigger("mouseup");
+
+    expect(getDataAtCell(1, 2)).toEqual("test");
+	expect(getDataAtCell(2, 2)).toEqual("test");
+	expect(getDataAtCell(3, 2)).toEqual("test");
+  });
+  
+  it("should fill proceeding empty or null rows within selected cell columns with values from selected cells", function () {
+    var ev;
+
+    handsontable({
+      data: [
+        ["", "test 1", "test 2", "test 3", "test 4", "test 5"],
+        ["", null, null, null, null, null],
+        ["", "", "", "", "", ""],
+        ["", , , , , ]
+      ]
+    });
+    selectCell(0, 1);
+
+    this.$container.find('tr:eq(0) td:eq(1)').trigger("mousedown");
+    this.$container.find('tr:eq(0) td:eq(2)').trigger("mouseenter");
+    this.$container.find('tr:eq(0) td:eq(3)').trigger("mouseenter");
+    this.$container.find('tr:eq(0) td:eq(4)').trigger("mouseenter");
+    this.$container.find('tr:eq(0) td:eq(5)').trigger("mouseenter");
+	this.$container.find('tr:eq(0) td:eq(5)').trigger("mouseup");
+
+	// Validate selected cells
+	expect(getSelected()).toEqual([0, 1, 0, 5]);
+	
+	var fillHandle = this.$container.find('.wtBorder.corner')[0]; //fill handle
+	$(fillHandle).trigger("mousedown");
+	$(fillHandle).trigger("mouseup");
+	$(fillHandle).trigger("mousedown");
+	$(fillHandle).trigger("mouseup");
+
+	// Validate selected cells after autofill
+    expect(getSelected()).toEqual([0, 1, 3, 5]);
+	
+	// Validate row 2
+    expect(getDataAtCell(1, 1)).toEqual("test 1");
+	expect(getDataAtCell(1, 2)).toEqual("test 2");
+	expect(getDataAtCell(1, 3)).toEqual("test 3");
+	expect(getDataAtCell(1, 4)).toEqual("test 4");
+	expect(getDataAtCell(1, 5)).toEqual("test 5");
+
+	// Validate row 3
+	expect(getDataAtCell(2, 1)).toEqual("test 1");
+	expect(getDataAtCell(2, 2)).toEqual("test 2");
+	expect(getDataAtCell(2, 3)).toEqual("test 3");
+	expect(getDataAtCell(2, 4)).toEqual("test 4");
+	expect(getDataAtCell(2, 5)).toEqual("test 5");
+
+	// Validate row 4
+	expect(getDataAtCell(3, 1)).toEqual("test 1");
+	expect(getDataAtCell(3, 2)).toEqual("test 2");
+	expect(getDataAtCell(3, 3)).toEqual("test 3");
+	expect(getDataAtCell(3, 4)).toEqual("test 4");
+	expect(getDataAtCell(3, 5)).toEqual("test 5");
+  });
 });
