@@ -115,7 +115,7 @@ function readBool(val) {
 
 Polymer('x-handsontable', {
   instance: null,
-  created: function () {
+  enteredDocument: function () {
     jQuery(this.$.htContainer).handsontable(parseHandsontable(this));
 
     this.instance = jQuery(this.$.htContainer).data('handsontable');
