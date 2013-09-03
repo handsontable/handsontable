@@ -20,14 +20,14 @@ HandsontableHandsontableEditorClass.prototype.createElements = function () {
   this.$htContainer = $(DIV);
 };
 
-HandsontableTextEditorClass.prototype.moveSelectedOption = function (rowDelta, colDelta) {
+HandsontableHandsontableEditorClass.prototype.moveSelectedOption = function (rowDelta, colDelta) {
   var HOT = this.$htContainer.handsontable('getInstance');
   var sel = HOT.getSelected();
   HOT.selectCell(sel[0] + rowDelta, sel[1] + colDelta);
   this.wtDom.setCaretPosition(this.$textarea[0], 0, this.$textarea[0].value.length);
 };
 
-HandsontableTextEditorClass.prototype.bindEvents = function () {
+HandsontableHandsontableEditorClass.prototype.bindEvents = function () {
   var that = this;
 
   this.$textarea.off('.editor').on('keydown.editor', function (event) {
