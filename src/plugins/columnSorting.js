@@ -34,6 +34,10 @@ function HandsontableColumnSorting() {
         return plugin.sortByColumn.apply(instance, args)
       }
 
+      if (typeof instance.getSettings().observeChanges == 'undefined'){
+        enableObserveChangesPlugin.call(instance);
+      }
+
       if (source == 'afterInit') {
         bindColumnSortingAfterClick.call(instance);
 
@@ -125,6 +129,15 @@ function HandsontableColumnSorting() {
       return instance.view.wt.wtDom.index(TH) - countRowHeaders();
     }
   };
+
+  function enableObserveChangesPlugin () {
+    var instance = this;
+    instance.registerTimeout('enableObserveChanges', function(){
+      instance.updateSettings({
+        observeChanges: true
+      });
+    }, 0);
+  }
 
   function defaultSort(sortOrder) {
     return function (a, b) {
