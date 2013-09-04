@@ -120,23 +120,63 @@ describe('UndoRedo', function () {
           expect(getDataAtCell(3, 1)).toEqual('B3');
         });
 
-        it('should undo creation of a single column', function () {
+        it('should undo creation of a single column (colHeaders: undefined)', function () {
           var HOT = handsontable({
-            data: createSpreadsheetData(2, 2)
+            data: createSpreadsheetData(2, 3)
           });
-
-          expect(countCols()).toEqual(2);
-
-          alter('insert_col');
 
           expect(countCols()).toEqual(3);
 
+          alter('insert_col');
+
+          expect(countCols()).toEqual(4);
+
           HOT.undo();
 
-          expect(countCols()).toEqual(2);
+          expect(countCols()).toEqual(3);
         });
 
-        it('should undo creation of multiple columns', function () {
+        it('should undo creation of a single column (colHeaders: true)', function () {
+          var HOT = handsontable({
+            data: createSpreadsheetData(2, 3),
+            colHeaders: true
+          });
+
+          expect(countCols()).toEqual(3);
+          expect(getColHeader()).toEqual(['A', 'B', 'C']);
+
+          alter('insert_col');
+
+          expect(countCols()).toEqual(4);
+          expect(getColHeader()).toEqual(['A', 'B', 'C', 'D']);
+
+          HOT.undo();
+
+          expect(countCols()).toEqual(3);
+          expect(getColHeader()).toEqual(['A', 'B', 'C']);
+        });
+
+        it('should undo creation of a single column (colHeaders: Array)', function () {
+          var HOT = handsontable({
+            data: createSpreadsheetData(2, 3),
+            colHeaders: ['Header1', 'Header2', 'Header3']
+          });
+
+          expect(countCols()).toEqual(3);
+          expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3']);
+
+          alter('insert_col', 1);
+
+          expect(countCols()).toEqual(4);
+          expect(getColHeader()).toEqual(['Header1', 'B', 'Header2', 'Header3']);
+
+          HOT.undo();
+
+          expect(countCols()).toEqual(3);
+          expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3']);
+        });
+
+        it('should undo creation of multiple columns (colHeaders: undefined)', function () {
           var HOT = handsontable({
             data: createSpreadsheetData(2, 2)
           });
@@ -152,7 +192,49 @@ describe('UndoRedo', function () {
           expect(countCols()).toEqual(2);
         });
 
-        it('should undo removal of single column', function () {
+        it('should undo creation of multiple columns (colHeaders: true)', function () {
+          var HOT = handsontable({
+            data: createSpreadsheetData(2, 2),
+            colHeaders: true
+          });
+
+          expect(countCols()).toEqual(2);
+          expect(getColHeader()).toEqual(['A', 'B']);
+
+
+          alter('insert_col', 1, 5);
+
+          expect(countCols()).toEqual(7);
+          expect(getColHeader()).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G']);
+
+          HOT.undo();
+
+          expect(countCols()).toEqual(2);
+          expect(getColHeader()).toEqual(['A', 'B']);
+        });
+
+        it('should undo creation of multiple columns (colHeaders: Array)', function () {
+          var HOT = handsontable({
+            data: createSpreadsheetData(2, 2),
+            colHeaders: ['Header1', 'Header2']
+          });
+
+          expect(countCols()).toEqual(2);
+          expect(getColHeader()).toEqual(['Header1', 'Header2']);
+
+
+          alter('insert_col', 1, 5);
+
+          expect(countCols()).toEqual(7);
+          expect(getColHeader()).toEqual(['Header1', 'B', 'C', 'D', 'E', 'F', 'Header2']);
+
+          HOT.undo();
+
+          expect(countCols()).toEqual(2);
+          expect(getColHeader()).toEqual(['Header1', 'Header2']);
+        });
+
+        it('should undo removal of single column (colHeaders: undefined)', function () {
           var HOT = handsontable({
             data: createSpreadsheetData(2, 2)
           });
@@ -177,10 +259,82 @@ describe('UndoRedo', function () {
           expect(getDataAtCell(0, 0)).toEqual('A0');
           expect(getDataAtCell(0, 1)).toEqual('B0');
           expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1')
+          expect(getDataAtCell(1, 1)).toEqual('B1');
+
+
         });
 
-        it('should undo removal of multiple columns', function () {
+        it('should undo removal of single column (colHeaders: true)', function () {
+          var HOT = handsontable({
+            data: createSpreadsheetData(2, 2),
+            colHeaders: true
+          });
+
+          expect(countCols()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 1)).toEqual('B0');
+          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 1)).toEqual('B1');
+          expect(getColHeader()).toEqual(['A', 'B']);
+
+          alter('remove_col');
+
+          expect(countCols()).toEqual(1);
+          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 1)).toBeUndefined();
+          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 1)).toBeUndefined();
+          expect(getColHeader()).toEqual(['A']);
+
+          HOT.undo();
+
+          expect(countCols()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 1)).toEqual('B0');
+          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 1)).toEqual('B1');
+
+          expect(getColHeader()).toEqual(['A', 'B']);
+
+        });
+
+        it('should undo removal of single column (colHeaders: Array)', function () {
+          var HOT = handsontable({
+            data: createSpreadsheetData(2, 2),
+            colHeaders: ['Header1', 'Header2']
+          });
+
+          expect(countCols()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 1)).toEqual('B0');
+          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 1)).toEqual('B1');
+          expect(getColHeader()).toEqual(['Header1', 'Header2']);
+
+          alter('remove_col');
+
+          expect(countCols()).toEqual(1);
+          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 1)).toBeUndefined();
+          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 1)).toBeUndefined();
+          expect(getColHeader()).toEqual(['Header1']);
+
+          HOT.undo();
+
+          expect(countCols()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 1)).toEqual('B0');
+          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 1)).toEqual('B1');
+
+          expect(getColHeader()).toEqual(['Header1', 'Header2']);
+
+        });
+
+
+
+        it('should undo removal of multiple columns (colHeaders: undefined)', function () {
           var HOT = handsontable({
             data: createSpreadsheetData(2, 4)
           });
@@ -218,6 +372,94 @@ describe('UndoRedo', function () {
           expect(getDataAtCell(1, 1)).toEqual('B1');
           expect(getDataAtCell(1, 2)).toEqual('C1');
           expect(getDataAtCell(1, 3)).toEqual('D1');
+        });
+
+        it('should undo removal of multiple columns (colHeaders: true)', function () {
+          var HOT = handsontable({
+            data: createSpreadsheetData(2, 4),
+            colHeaders: true
+          });
+
+          expect(countCols()).toEqual(4);
+          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 1)).toEqual('B0');
+          expect(getDataAtCell(0, 2)).toEqual('C0');
+          expect(getDataAtCell(0, 3)).toEqual('D0');
+          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 2)).toEqual('C1');
+          expect(getDataAtCell(1, 3)).toEqual('D1');
+          expect(getColHeader()).toEqual(['A', 'B', 'C', 'D']);
+
+          alter('remove_col', 1, 3);
+
+          expect(countCols()).toEqual(1);
+          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 1)).toBeUndefined();
+          expect(getDataAtCell(0, 2)).toBeUndefined();
+          expect(getDataAtCell(0, 3)).toBeUndefined();
+          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 1)).toBeUndefined();
+          expect(getDataAtCell(1, 2)).toBeUndefined();
+          expect(getDataAtCell(1, 3)).toBeUndefined();
+          expect(getColHeader()).toEqual(['A']);
+
+          HOT.undo();
+
+          expect(countCols()).toEqual(4);
+          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 1)).toEqual('B0');
+          expect(getDataAtCell(0, 2)).toEqual('C0');
+          expect(getDataAtCell(0, 3)).toEqual('D0');
+          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 2)).toEqual('C1');
+          expect(getDataAtCell(1, 3)).toEqual('D1');
+          expect(getColHeader()).toEqual(['A', 'B', 'C', 'D']);
+        });
+
+        it('should undo removal of multiple columns (colHeaders: Array)', function () {
+          var HOT = handsontable({
+            data: createSpreadsheetData(2, 4),
+            colHeaders: ['Header1', 'Header2', 'Header3', 'Header4']
+          });
+
+          expect(countCols()).toEqual(4);
+          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 1)).toEqual('B0');
+          expect(getDataAtCell(0, 2)).toEqual('C0');
+          expect(getDataAtCell(0, 3)).toEqual('D0');
+          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 2)).toEqual('C1');
+          expect(getDataAtCell(1, 3)).toEqual('D1');
+          expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3', 'Header4']);
+
+          alter('remove_col', 1, 2);
+
+          expect(countCols()).toEqual(2);
+          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 1)).toEqual('D0');
+          expect(getDataAtCell(0, 2)).toBeUndefined();
+          expect(getDataAtCell(0, 3)).toBeUndefined();
+          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 1)).toEqual('D1');
+          expect(getDataAtCell(1, 2)).toBeUndefined();
+          expect(getDataAtCell(1, 3)).toBeUndefined();
+          expect(getColHeader()).toEqual(['Header1', 'Header4']);
+
+          HOT.undo();
+
+          expect(countCols()).toEqual(4);
+          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 1)).toEqual('B0');
+          expect(getDataAtCell(0, 2)).toEqual('C0');
+          expect(getDataAtCell(0, 3)).toEqual('D0');
+          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 2)).toEqual('C1');
+          expect(getDataAtCell(1, 3)).toEqual('D1');
+          expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3', 'Header4']);
         });
 
         it("should undo multiple changes", function () {
