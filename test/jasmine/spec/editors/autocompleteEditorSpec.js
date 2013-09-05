@@ -574,4 +574,54 @@ describe('AutocompleteEditor', function () {
 
     expect(getDataAtCell(0,2)).toEqual('foo');
   });
+
+  it("should invoke beginEditing only once after dobleclicking on a cell (#1011)", function () {
+    var hot = handsontable({
+      autoComplete: getAutocompleteConfig(false)
+    });
+
+    selectCell(0, 2);
+
+    spyOn(hot.autocompleteEditor, 'beginEditing');
+
+    expect(hot.autocompleteEditor.beginEditing.calls.length).toBe(0);
+
+    mouseDoubleClick(getCell(0, 2));
+
+    expect(hot.autocompleteEditor.beginEditing.calls.length).toBe(1);
+
+    mouseDoubleClick(getCell(1, 2));
+
+    expect(hot.autocompleteEditor.beginEditing.calls.length).toBe(2);
+
+    mouseDoubleClick(getCell(2, 2));
+
+    expect(hot.autocompleteEditor.beginEditing.calls.length).toBe(3);
+  });
+
+  it("should not affect other cell values after clicking on autocomplete cell (#1021)", function () {
+    var hot = handsontable({
+      autoComplete: getAutocompleteConfig(false),
+      data: [
+        [null, null, 'yellow', null],
+        [null, null, 'red', null],
+        [null, null, 'blue', null]
+      ]
+    });
+
+    expect(getCell(0, 2).innerText).toMatch('yellow');
+
+    mouseDoubleClick(getCell(0, 2));
+
+    expect(getCell(1, 2).innerText).toMatch('red');
+
+    mouseDoubleClick(getCell(1, 2));
+
+    expect(getCell(2, 2).innerText).toMatch('blue');
+
+    mouseDoubleClick(getCell(2, 2));
+
+    expect(getDataAtCol(2)).toEqual(['yellow', 'red', 'blue']);
+  });
+
 });
