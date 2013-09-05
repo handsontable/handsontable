@@ -124,6 +124,8 @@ function readBool(val) {
 Polymer('x-handsontable', {
   instance: null,
   enteredDocument: function () {
+    this.shadowRoot.applyAuthorStyles = true; //only way I know to let override Shadow DOM styles (just define ".handsontable td" in page stylesheet)
+
     jQuery(this.$.htContainer).handsontable(parseHandsontable(this));
 
     this.instance = jQuery(this.$.htContainer).data('handsontable');
