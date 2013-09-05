@@ -1,3 +1,35 @@
+## [0.9.17](https://github.com/warpech/jquery-handsontable/tree/v0.9.17) (Sep 5, 2013)
+
+Features:
+- `beforeRemoveRow` and `beforeRemoveCol` events are now invoked with absolute index
+- if table has custom column headers, removing column will also remove the corresponding header
+
+
+Bugfix:
+
+- fixed crashing the whole page when autocomplete is on ([#1011](https://github.com/warpech/jquery-handsontable/issues/1011))
+- fixed changing multiple cells values when using autocomplete ([#1021](https://github.com/warpech/jquery-handsontable/issues/1021))
+- fixed handling multiple tables with different sorting options on the same page ([#1020](https://github.com/warpech/jquery-handsontable/issues/1020))
+- fixed undoing row removal from tables which data source is array of objects ([#966](https://github.com/warpech/jquery-handsontable/issues/966))
+- fixed undoing column removal
+- fixed removing columns form table which has more rows than can be rendered in viewport ([#1012](https://github.com/warpech/jquery-handsontable/issues/1012))
+- fixed marking Undo/Redo in context menu as enabled/disabled
+- fixed adding new rows directly to data source, when table is sorted ([#858](https://github.com/warpech/jquery-handsontable/issues/858))
+
+## [0.9.16](https://github.com/warpech/jquery-handsontable/tree/v0.9.16) (Aug 27, 2013)
+
+Features:
+
+- New cell type: `password`
+- Rebuilt UndoRedo module
+
+Bugfix:
+
+- fixed using manualColumnMove with multiple HOT instances  ([#999](https://github.com/warpech/jquery-handsontable/issues/999))
+- fixed autoWrapCol and autoWrapRow behaviour ([#992](https://github.com/warpech/jquery-handsontable/issues/992))
+- autocomplete fields will now behave the same as regular fields after closing editor by clicking on another cell (if in non strict mode)  ([#991](https://github.com/warpech/jquery-handsontable/issues/991))
+- fixed validation after changing column order ([#980](https://github.com/warpech/jquery-handsontable/issues/980))
+
 ## [0.9.15](https://github.com/warpech/jquery-handsontable/tree/v0.9.15) (Aug 26, 2013)
 
 Features:
