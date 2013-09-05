@@ -80,7 +80,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
 
       case 39: /* arrow right */
-        if (that.getCaretPosition(that.TEXTAREA) === that.TEXTAREA.value.length) {
+        if (that.wtDom.getCaretPosition(that.TEXTAREA) === that.TEXTAREA.value.length) {
           that.finishEditing(false);
         }
         else {
@@ -89,7 +89,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
 
       case 37: /* arrow left */
-        if (that.getCaretPosition(that.TEXTAREA) === 0) {
+        if (that.wtDom.getCaretPosition(that.TEXTAREA) === 0) {
           that.finishEditing(false);
         }
         else {
@@ -194,50 +194,6 @@ HandsontableTextEditorClass.prototype.unbindTemporaryEvents = function () {
   this.instance.view.wt.update('onCellDblClick', null);
 };
 
-/**
- * Returns caret position in edit proxy
- * @author http://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
- * @return {Number}
- */
-HandsontableTextEditorClass.prototype.getCaretPosition = function (el) {
-  if (el.selectionStart) {
-    return el.selectionStart;
-  }
-  else if (document.selection) { //IE8
-    el.focus();
-    var r = document.selection.createRange();
-    if (r == null) {
-      return 0;
-    }
-    var re = el.createTextRange(),
-      rc = re.duplicate();
-    re.moveToBookmark(r.getBookmark());
-    rc.setEndPoint('EndToStart', re);
-    return rc.text.length;
-  }
-  return 0;
-};
-
-/**
- * Sets caret position in edit proxy
- * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
- * @param {Element} el
- * @param {Number} pos
- */
-HandsontableTextEditorClass.prototype.setCaretPosition = function (el, pos) {
-  if (el.setSelectionRange) {
-    el.focus();
-    el.setSelectionRange(pos, pos);
-  }
-  else if (el.createTextRange) { //IE8
-    var range = el.createTextRange();
-    range.collapse(true);
-    range.moveEnd('character', pos);
-    range.moveStart('character', pos);
-    range.select();
-  }
-};
-
 HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
   if (this.state !== this.STATE_VIRGIN) {
     return;
@@ -266,7 +222,7 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
 
   this.refreshDimensions(); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
   this.TEXTAREA.focus();
-  this.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+  this.wtDom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
 
   var coords = {row: row, col: col};
   this.instance.view.scrollViewport(coords);
@@ -399,7 +355,7 @@ HandsontableTextEditorClass.prototype.discardEditor = function (result) {
     this.state = this.STATE_EDITING;
     if (this.instance.view.wt.wtDom.isVisible(this.TEXTAREA)) {
       this.TEXTAREA.focus();
-      this.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+      this.wtDom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
     }
   }
   else {

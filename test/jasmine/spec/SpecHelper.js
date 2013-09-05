@@ -276,6 +276,24 @@ function createSpreadsheetData(rowCount, colCount) {
   return rows;
 }
 
+function createSpreadsheetObjectData(rowCount, colCount) {
+  rowCount = typeof rowCount === 'number' ? rowCount : 100;
+  colCount = typeof colCount === 'number' ? colCount : 4;
+
+  var rows = []
+    , i
+    , j;
+
+  for (i = 0; i < rowCount; i++) {
+    var row = {};
+    for (j = 0; j < colCount; j++) {
+      row['prop'+j] = Handsontable.helper.spreadsheetColumnLabel(j) + i
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
 /**
  * Returns column width for HOT container
  * @param $elem
