@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.9.16
+ * Handsontable 0.9.17
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Aug 27 2013 12:38:58 GMT+0200 (CEST)
+ * Date: Thu Sep 05 2013 12:18:23 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -281,6 +281,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         index = -amount;
       }
 
+      index = (instance.countRows() + index) % instance.countRows();
+
       // We have to map the physical row ids to logical and than perform removing with (possibly) new row id
       var logicRows = this.physicalRowsToLogical(index, amount);
 
@@ -313,6 +315,8 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (typeof index !== 'number') {
         index = -amount;
       }
+
+      index = (instance.countCols() + index) % instance.countCols();
 
       instance.PluginHooks.run('beforeRemoveCol', index, amount);
 
@@ -562,6 +566,13 @@ Handsontable.Core = function (rootElement, userSettings) {
           delta = datamap.createCol(index, amount);
 
           if (delta) {
+
+            if(Handsontable.helper.isArray(instance.getSettings().colHeaders)){
+              var spliceArray = [index, 0];
+              spliceArray.length += delta; //inserts empty (undefined) elements at the end of an array
+              Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); //inserts empty (undefined) elements into the colHeader array
+            }
+
             if (priv.selStart.exists() && priv.selStart.col() >= index) {
               priv.selStart.col(priv.selStart.col() + delta);
               selection.transformEnd(0, delta); //will call render() internally
@@ -583,7 +594,16 @@ Handsontable.Core = function (rootElement, userSettings) {
           datamap.removeCol(index, amount);
 
           for(var row = 0, len = datamap.getAll().length; row < len; row++){
-            priv.cellSettings[row].splice(index, amount);
+            if(row in priv.cellSettings){  //if row hasn't been rendered it wouldn't have cellSettings
+              priv.cellSettings[row].splice(index, amount);
+            }
+          }
+
+          if(Handsontable.helper.isArray(instance.getSettings().colHeaders)){
+            if(typeof index == 'undefined'){
+              index = -1;
+            }
+            instance.getSettings().colHeaders.splice(index, amount);
           }
 
           priv.columnSettings.splice(index, amount);
@@ -2725,7 +2745,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.9.16'; //inserted by grunt from package.json
+  this.version = '0.9.17'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {
@@ -3493,6 +3513,16 @@ Handsontable.helper.isOutsideInput = function (element) {
 
   return inputs.indexOf(element.nodeName) > -1 && element.className.indexOf('handsontableInput') == -1;
 };
+
+/**
+ * Determines whether given object is an Array.
+ * Note: String is not an Array
+ * @param {*} obj
+ * @returns {boolean}
+ */
+Handsontable.helper.isArray = function(obj){
+  return Array.isArray ? Array.isArray(obj) : Object.prototype.toString.call(obj) == '[object Array]';
+};
 Handsontable.SelectionPoint = function () {
   this._row = null; //private use intended
   this._col = null;
@@ -3825,7 +3855,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
 
       case 39: /* arrow right */
-        if (that.getCaretPosition(that.TEXTAREA) === that.TEXTAREA.value.length) {
+        if (that.wtDom.getCaretPosition(that.TEXTAREA) === that.TEXTAREA.value.length) {
           that.finishEditing(false);
         }
         else {
@@ -3834,7 +3864,7 @@ HandsontableTextEditorClass.prototype.bindEvents = function () {
         break;
 
       case 37: /* arrow left */
-        if (that.getCaretPosition(that.TEXTAREA) === 0) {
+        if (that.wtDom.getCaretPosition(that.TEXTAREA) === 0) {
           that.finishEditing(false);
         }
         else {
@@ -3939,50 +3969,6 @@ HandsontableTextEditorClass.prototype.unbindTemporaryEvents = function () {
   this.instance.view.wt.update('onCellDblClick', null);
 };
 
-/**
- * Returns caret position in edit proxy
- * @author http://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
- * @return {Number}
- */
-HandsontableTextEditorClass.prototype.getCaretPosition = function (el) {
-  if (el.selectionStart) {
-    return el.selectionStart;
-  }
-  else if (document.selection) { //IE8
-    el.focus();
-    var r = document.selection.createRange();
-    if (r == null) {
-      return 0;
-    }
-    var re = el.createTextRange(),
-      rc = re.duplicate();
-    re.moveToBookmark(r.getBookmark());
-    rc.setEndPoint('EndToStart', re);
-    return rc.text.length;
-  }
-  return 0;
-};
-
-/**
- * Sets caret position in edit proxy
- * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
- * @param {Element} el
- * @param {Number} pos
- */
-HandsontableTextEditorClass.prototype.setCaretPosition = function (el, pos) {
-  if (el.setSelectionRange) {
-    el.focus();
-    el.setSelectionRange(pos, pos);
-  }
-  else if (el.createTextRange) { //IE8
-    var range = el.createTextRange();
-    range.collapse(true);
-    range.moveEnd('character', pos);
-    range.moveStart('character', pos);
-    range.select();
-  }
-};
-
 HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
   if (this.state !== this.STATE_VIRGIN) {
     return;
@@ -4011,7 +3997,7 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
 
   this.refreshDimensions(); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
   this.TEXTAREA.focus();
-  this.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+  this.wtDom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
 
   var coords = {row: row, col: col};
   this.instance.view.scrollViewport(coords);
@@ -4144,7 +4130,7 @@ HandsontableTextEditorClass.prototype.discardEditor = function (result) {
     this.state = this.STATE_EDITING;
     if (this.instance.view.wt.wtDom.isVisible(this.TEXTAREA)) {
       this.TEXTAREA.focus();
-      this.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+      this.wtDom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
     }
   }
   else {
@@ -4323,44 +4309,28 @@ HandsontableAutocompleteEditorClass.prototype.bindTemporaryEvents = function (td
 
   /* overwrite typeahead options and methods (matcher, sorter, highlighter, updater, etc) if provided in cellProperties */
   for (i in cellProperties) {
-    // if (cellProperties.hasOwnProperty(i)) {
     if (i === 'options') {
       for (j in cellProperties.options) {
-        // if (cellProperties.options.hasOwnProperty(j)) {
         this.typeahead.options[j] = cellProperties.options[j];
-        // }
       }
     }
     else {
       this.typeahead[i] = cellProperties[i];
     }
-    // }
   }
 
   HandsontableTextEditorClass.prototype.bindTemporaryEvents.call(this, td, row, col, prop, value, cellProperties);
 
-  var _cellMouseDown = that.instance.view.wt.wtSettings.settings['onCellMouseDown'];
+};
 
-  function onCellMouseDown(){
-    that.instance.destroyEditor();
-    that.beginEditing(row, col, prop, true);
-    that.instance.registerTimeout('IE9_align_fix', function () { //otherwise is misaligned in IE9
-      that.typeahead.lookup();
-    }, 1);
+HandsontableAutocompleteEditorClass.prototype.beginEditing = function () {
+  HandsontableTextEditorClass.prototype.beginEditing.apply(this, arguments);
 
-    _cellMouseDown.apply(this, arguments);
-  }
+  var that = this;
 
-  this.instance.view.wt.update('onCellMouseDown', onCellMouseDown);
-
-  function onDblClick() {
-    that.beginEditing(row, col, prop, true);
-    that.instance.registerTimeout('IE9_align_fix', function () { //otherwise is misaligned in IE9
-      that.typeahead.lookup();
-    }, 1);
-  }
-
-  this.instance.view.wt.update('onCellDblClick', onDblClick);
+  this.instance.registerTimeout('IE9_align_fix', function () { //otherwise is misaligned in IE9
+    that.typeahead.lookup();
+  }, 1);
 };
 /**
  * @see HandsontableTextEditorClass.prototype.finishEditing
@@ -5225,17 +5195,15 @@ Handsontable.PluginHooks = new Handsontable.PluginHookClass();
  */
 function HandsontableColumnSorting() {
   var plugin = this;
-  var sortingEnabled;
-
 
   this.init = function (source) {
     var instance = this;
     var sortingSettings = instance.getSettings().columnSorting;
     var sortingColumn, sortingOrder;
 
-    sortingEnabled = !!(sortingSettings);
+    instance.sortingEnabled = !!(sortingSettings);
 
-    if (sortingEnabled) {
+    if (instance.sortingEnabled) {
       instance.sortIndex = [];
 
       var loadedSortingState = loadSortingState.call(instance);
@@ -5253,6 +5221,10 @@ function HandsontableColumnSorting() {
         var args = Array.prototype.slice.call(arguments);
 
         return plugin.sortByColumn.apply(instance, args)
+      }
+
+      if (typeof instance.getSettings().observeChanges == 'undefined'){
+        enableObserveChangesPlugin.call(instance);
       }
 
       if (source == 'afterInit') {
@@ -5347,6 +5319,15 @@ function HandsontableColumnSorting() {
     }
   };
 
+  function enableObserveChangesPlugin () {
+    var instance = this;
+    instance.registerTimeout('enableObserveChanges', function(){
+      instance.updateSettings({
+        observeChanges: true
+      });
+    }, 0);
+  }
+
   function defaultSort(sortOrder) {
     return function (a, b) {
       if (a[1] === b[1]) {
@@ -5393,7 +5374,7 @@ function HandsontableColumnSorting() {
       return;
     }
 
-    sortingEnabled = false; //this is required by translateRow plugin hook
+    instance.sortingEnabled = false; //this is required by translateRow plugin hook
     instance.sortIndex.length = 0;
 
     var colOffset = this.colOffset();
@@ -5418,12 +5399,13 @@ function HandsontableColumnSorting() {
       this.sortIndex.push([i, instance.getDataAtCell(i, this.sortColumn + colOffset)]);
     }
 
-    sortingEnabled = true; //this is required by translateRow plugin hook
+    instance.sortingEnabled = true; //this is required by translateRow plugin hook
   };
 
   this.translateRow = function (row) {
-    if (sortingEnabled && this.sortIndex && this.sortIndex.length) {
-      return this.sortIndex[row][0];
+    var instance = this;
+    if (instance.sortingEnabled && instance.sortIndex && instance.sortIndex.length) {
+      return instance.sortIndex[row][0];
     }
     return row;
   };
@@ -6249,11 +6231,10 @@ Handsontable.PluginHooks.add('afterGetColWidth', htManualColumnResize.getColWidt
     }
 
     function parsePath(path){
-      var match = path.match(/^\/(\d)\/?(\d)?$/);
-
+      var match = path.match(/^\/(\d+)\/?(.*)?$/);
       return {
         row: parseInt(match[1], 10),
-        col: parseInt(match[2], 10)
+        col: /^\d*$/.test(match[2]) ? parseInt(match[2], 10) : match[2]
       }
     }
   }
@@ -6504,14 +6485,19 @@ function Storage(prefix) {
 
     instance.addHook("beforeRemoveCol", function (index, amount) {
       var originalData = plugin.instance.getData();
-      index = ( originalData.length + index ) % originalData.length;
+      index = ( plugin.instance.countCols() + index ) % plugin.instance.countCols();
       var removedData = [];
 
       for (var i = 0, len = originalData.length; i < len; i++) {
         removedData[i] = originalData[i].slice(index, index + amount);
       }
 
-      var action = new Handsontable.UndoRedo.RemoveColumnAction(index, removedData);
+      var headers;
+      if(Handsontable.helper.isArray(instance.getSettings().colHeaders)){
+        headers = instance.getSettings().colHeaders.slice(index, index + removedData.length);
+      }
+
+      var action = new Handsontable.UndoRedo.RemoveColumnAction(index, removedData, headers);
       plugin.done(action);
     });
   };
@@ -6623,7 +6609,7 @@ function Storage(prefix) {
   };
   Handsontable.helper.inherit(Handsontable.UndoRedo.RemoveRowAction, Handsontable.UndoRedo.Action);
   Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function (instance) {
-    var spliceArgs = [this.index, this.data.length];
+    var spliceArgs = [this.index, 0];
     Array.prototype.push.apply(spliceArgs, this.data);
 
     Array.prototype.splice.apply(instance.getData(), spliceArgs);
@@ -6646,10 +6632,11 @@ function Storage(prefix) {
     instance.alter('insert_col', this.index + 1, this.amount);
   };
 
-  Handsontable.UndoRedo.RemoveColumnAction = function (index, data) {
+  Handsontable.UndoRedo.RemoveColumnAction = function (index, data, headers) {
     this.index = index;
     this.data = data;
     this.amount = this.data[0].length;
+    this.headers = headers;
   };
   Handsontable.helper.inherit(Handsontable.UndoRedo.RemoveColumnAction, Handsontable.UndoRedo.Action);
   Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function (instance) {
@@ -6657,10 +6644,17 @@ function Storage(prefix) {
     for (var i = 0, len = instance.getData().length; i < len; i++) {
       row = instance.getDataAtRow(i);
 
-      spliceArgs = [this.index, this.amount];
+      spliceArgs = [this.index, 0];
       Array.prototype.push.apply(spliceArgs, this.data[i]);
 
       Array.prototype.splice.apply(row, spliceArgs);
+
+    }
+
+    if(typeof this.headers != 'undefined'){
+      spliceArgs = [this.index, 0];
+      Array.prototype.push.apply(spliceArgs, this.headers)
+      Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArgs);
     }
 
     instance.render();
@@ -6717,29 +6711,29 @@ function Storage(prefix) {
   function onAfterChange(changes, source){
     var instance = this;
     if (source == 'loadData'){
-      instance.undoRedo.clear();
+      return instance.undoRedo.clear();
     }
   }
 
   function exposeUndoRedoMethods(instance){
     instance.undo = function(){
-      instance.undoRedo.undo();
+      return instance.undoRedo.undo();
     };
 
     instance.redo = function(){
-      instance.undoRedo.redo();
+      return instance.undoRedo.redo();
     };
 
     instance.isUndoAvailable = function(){
-      instance.undoRedo.isUndoAvailable();
+      return instance.undoRedo.isUndoAvailable();
     };
 
     instance.isRedoAvailable = function(){
-      instance.undoRedo.isRedoAvailable();
+      return instance.undoRedo.isRedoAvailable();
     };
 
     instance.clearUndo = function(){
-      instance.undoRedo.clear();
+      return instance.undoRedo.clear();
     };
   }
 
@@ -8624,6 +8618,50 @@ WalkontableDom.prototype.outerHeight = function (elem) {
       detectCaptionProblem();
     }
     return hasCaptionProblem;
+  };
+
+  /**
+   * Returns caret position in text input
+   * @author http://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
+   * @return {Number}
+   */
+  WalkontableDom.prototype.getCaretPosition = function (el) {
+    if (el.selectionStart) {
+      return el.selectionStart;
+    }
+    else if (document.selection) { //IE8
+      el.focus();
+      var r = document.selection.createRange();
+      if (r == null) {
+        return 0;
+      }
+      var re = el.createTextRange(),
+        rc = re.duplicate();
+      re.moveToBookmark(r.getBookmark());
+      rc.setEndPoint('EndToStart', re);
+      return rc.text.length;
+    }
+    return 0;
+  };
+
+  /**
+   * Sets caret position in text input
+   * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
+   * @param {Element} el
+   * @param {Number} pos
+   */
+  WalkontableDom.prototype.setCaretPosition = function (el, pos) {
+    if (el.setSelectionRange) {
+      el.focus();
+      el.setSelectionRange(pos, pos);
+    }
+    else if (el.createTextRange) { //IE8
+      var range = el.createTextRange();
+      range.collapse(true);
+      range.moveEnd('character', pos);
+      range.moveStart('character', pos);
+      range.select();
+    }
   };
 })();
 
