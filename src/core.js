@@ -568,7 +568,9 @@ Handsontable.Core = function (rootElement, userSettings) {
           datamap.removeCol(index, amount);
 
           for(var row = 0, len = datamap.getAll().length; row < len; row++){
-            priv.cellSettings[row].splice(index, amount);
+            if(row in priv.cellSettings){  //if row hasn't been rendered it wouldn't have cellSettings
+              priv.cellSettings[row].splice(index, amount);
+            }
           }
 
           priv.columnSettings.splice(index, amount);

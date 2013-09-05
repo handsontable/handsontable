@@ -540,8 +540,22 @@ describe('Core_alter', function () {
 
     expect(getCellMeta(0, 0).someValue).toEqual([0, 1]);
     expect(getCellMeta(0, 1).someValue).toEqual([0, 2]);
+  });
 
+  it("should remove column when not all rows are visible in the viewport", function () {
+    this.$container.height(100);
 
+    handsontable({
+      startCols: 3,
+      startRows: 20
+    });
+
+    expect(this.$container.find('tbody tr').length).toBeLessThan(20);
+    expect(countCols()).toEqual(3);
+
+    alter('remove_col', 0);
+
+    expect(countCols()).toEqual(2);
   });
 
   it('should fire callback on create row', function () {
