@@ -2093,17 +2093,18 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   this.getValue = function () {
+    var sel = instance.getSelected();
     if (GridSettings.prototype.getValue) {
       if (typeof GridSettings.prototype.getValue === 'function') {
         return GridSettings.prototype.getValue.call(instance);
       }
-      else {
-        var sel = instance.getSelected();
+      else if (sel) {
         return instance.getData()[sel[0]][GridSettings.prototype.getValue];
       }
     }
-    var sel = instance.getSelected();
-    return instance.getDataAtCell(sel[0], sel[1]);
+    else if (sel) {
+      return instance.getDataAtCell(sel[0], sel[1]);
+    }
   }
 
   function expandType(obj) {

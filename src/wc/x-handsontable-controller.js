@@ -11,6 +11,8 @@ function parseDatacolumn(DATACOLUMN) {
   obj.readOnly = obj.readonly;
   delete obj.readonly;
 
+  obj.strict = readBool(obj.strict);
+
   obj.checkedTemplate = obj.checkedtemplate;
   delete obj.checkedtemplate;
 

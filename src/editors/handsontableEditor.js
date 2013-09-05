@@ -23,7 +23,12 @@ HandsontableHandsontableEditorClass.prototype.createElements = function () {
 HandsontableHandsontableEditorClass.prototype.moveSelectedOption = function (rowDelta, colDelta) {
   var HOT = this.$htContainer.handsontable('getInstance');
   var sel = HOT.getSelected();
-  HOT.selectCell(sel[0] + rowDelta, sel[1] + colDelta);
+  if (sel) {
+    HOT.selectCell(sel[0] + rowDelta, sel[1] + colDelta);
+  }
+  else {
+    HOT.selectCell(0, 0);
+  }
   this.wtDom.setCaretPosition(this.$textarea[0], 0, this.$textarea[0].value.length);
 };
 
@@ -76,8 +81,8 @@ HandsontableHandsontableEditorClass.prototype.bindEvents = function () {
         break;
 
       case 13: /* return/enter */
-        that.TEXTAREA.value = that.$htContainer.handsontable('getInstance').getValue();
-        that.instance.destroyEditor();
+        that.finishEditing(false);
+        event.preventDefault();
         break;
 
       default:
@@ -89,6 +94,12 @@ HandsontableHandsontableEditorClass.prototype.bindEvents = function () {
       that.waitingEvent = event;
       event.stopImmediatePropagation();
       event.preventDefault();
+    }
+  });
+
+  this.$textarea.on('mousedown.editor', function () {
+    if (!that.cellProperties.strict) {
+      that.$htContainer.handsontable('deselectCell');
     }
   });
 
@@ -130,7 +141,9 @@ HandsontableHandsontableEditorClass.prototype.beginEditing = function (row, col,
   HandsontableTextEditorClass.prototype.beginEditing.call(this, row, col, prop, useOriginalValue, suffix);
 
   this.$htContainer.handsontable('render');
-  this.$htContainer.handsontable('selectCell', 0, 0);
+  if (this.cellProperties.strict) {
+    this.$htContainer.handsontable('selectCell', 0, 0);
+  }
 
   this.wtDom.setCaretPosition(this.$textarea[0], 0, this.$textarea[0].value.length);
 };
@@ -138,6 +151,9 @@ HandsontableHandsontableEditorClass.prototype.beginEditing = function (row, col,
 HandsontableHandsontableEditorClass.prototype.finishEditing = function (isCancelled, ctrlDown) {
   if (this.$htContainer.handsontable('isListening')) { //if focus is still in the HOT editor
     this.instance.listen(); //return the focus to the parent HOT instance
+  }
+  if (this.$htContainer.handsontable('getSelected')) {
+    this.TEXTAREA.value = this.$htContainer.handsontable('getInstance').getValue();
   }
   HandsontableTextEditorClass.prototype.finishEditing.call(this, isCancelled, ctrlDown);
 };
