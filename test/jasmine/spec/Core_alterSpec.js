@@ -483,6 +483,47 @@ describe('Core_alter', function () {
     expect(this.$container.find('tr:eq(1) td:eq(3)').html()).toEqual('b');
   });
 
+
+  it("should not create column header together with the column, if headers were NOT specified explicitly", function () {
+
+    handsontable({
+      startCols: 3,
+      startRows: 2,
+      colHeaders: true
+    });
+
+    expect(getColHeader()).toEqual(['A', 'B', 'C']);
+
+    expect(countCols()).toEqual(3);
+
+    alter('insert_col', 1);
+
+    expect(countCols()).toEqual(4);
+
+    expect(getColHeader()).toEqual(['A', 'B', 'C', 'D']);
+
+  });
+
+  it("should create column header together with the column, if headers were specified explicitly", function () {
+
+    handsontable({
+      startCols: 3,
+      startRows: 2,
+      colHeaders: ['Header0', 'Header1', 'Header2']
+    });
+
+    expect(getColHeader()).toEqual(['Header0', 'Header1', 'Header2']);
+
+    expect(countCols()).toEqual(3);
+
+    alter('insert_col', 1);
+
+    expect(countCols()).toEqual(4);
+
+    expect(getColHeader()).toEqual(['Header0', 'B', 'Header1', 'Header2']);
+
+  });
+
   it('should fire callback on remove row', function () {
     var output;
     handsontable({
@@ -556,6 +597,46 @@ describe('Core_alter', function () {
     alter('remove_col', 0);
 
     expect(countCols()).toEqual(2);
+  });
+
+  it("should not remove column header together with the column, if headers were NOT specified explicitly", function () {
+
+    handsontable({
+      startCols: 3,
+      startRows: 2,
+      colHeaders: true
+    });
+
+    expect(getColHeader()).toEqual(['A', 'B', 'C']);
+
+    expect(countCols()).toEqual(3);
+
+    alter('remove_col', 1);
+
+    expect(countCols()).toEqual(2);
+
+    expect(getColHeader()).toEqual(['A', 'B']);
+
+  });
+
+  it("should remove column header together with the column, if headers were specified explicitly", function () {
+
+    handsontable({
+      startCols: 3,
+      startRows: 2,
+      colHeaders: ['Header0', 'Header1', 'Header2']
+    });
+
+    expect(getColHeader()).toEqual(['Header0', 'Header1', 'Header2']);
+
+    expect(countCols()).toEqual(3);
+
+    alter('remove_col', 1);
+
+    expect(countCols()).toEqual(2);
+
+    expect(getColHeader()).toEqual(['Header0', 'Header2']);
+
   });
 
   it('should fire callback on create row', function () {
