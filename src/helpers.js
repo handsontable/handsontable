@@ -203,8 +203,11 @@ Handsontable.helper.extendArray = function (arr, extension) {
 Handsontable.helper.getCellMethod = function (methodName, methodFunction) {
   if (typeof methodFunction === 'string') {
     var result = Handsontable.cellLookup[methodName][methodFunction];
-    if (result === void 0) {
-      throw new Error('You declared cell ' + methodName + ' "' + methodFunction + '" as a string that is not mapped to a known function. Cell ' + methodName + ' must be a function or a string mapped to a function in Handsontable.cellLookup.' + methodName + ' lookup object');
+    if (result === void 0 && methodName === 'renderer') {
+      return function (instance, TD, row, col, prop, value, cellProperties) {
+        cellProperties.rendererTemplate = methodFunction;
+        return Handsontable.TextRenderer.apply(instance, arguments);
+      }
     }
     return result;
   }
