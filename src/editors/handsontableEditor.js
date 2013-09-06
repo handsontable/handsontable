@@ -143,6 +143,7 @@ HandsontableHandsontableEditorClass.prototype.beginEditing = function (row, col,
   this.$htContainer.handsontable('render');
   if (this.cellProperties.strict) {
     this.$htContainer.handsontable('selectCell', 0, 0);
+    this.$textarea[0].style.visibility = 'hidden';
   }
 
   this.wtDom.setCaretPosition(this.$textarea[0], 0, this.$textarea[0].value.length);
