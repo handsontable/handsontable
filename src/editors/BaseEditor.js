@@ -78,14 +78,6 @@
 
     this.state = Handsontable.EditorState.EDITING;
 
-    this.$textarea.on('cut.editor', function (event) {
-      event.stopPropagation();
-    });
-
-    this.$textarea.on('paste.editor', function (event) {
-      event.stopPropagation();
-    });
-
     initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
 
     this.val(Handsontable.helper.stringify(initialValue));
@@ -152,16 +144,10 @@
 
     if (result === false && this.cellProperties.allowInvalid !== true) { //validator was defined and failed
       this.state = Handsontable.EditorState.EDITING;
-      if (wtDom.isVisible(this.TEXTAREA)) {
-        this.focus();
-        deferred.reject();
-      }
+      this.focus();
+      deferred.reject();
     }
     else {
-      if (document.activeElement === this.TEXTAREA) {
-        this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
-      }
-
       this.close();
       this._opened = false;
 

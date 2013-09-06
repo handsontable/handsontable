@@ -23,6 +23,10 @@
 
   TextEditor.prototype.close = function(){
     this.textareaParentStyle.display = 'none';
+
+    if (document.activeElement === this.TEXTAREA) {
+      this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
+    }
   };
 
   TextEditor.prototype.focus = function(){
@@ -203,6 +207,14 @@
     }
 
     this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
+
+    this.$textarea.on('cut.editor', function (event) {
+      event.stopPropagation();
+    });
+
+    this.$textarea.on('paste.editor', function (event) {
+      event.stopPropagation();
+    });
   };
 
   Handsontable.editors.TextEditor = TextEditor;
