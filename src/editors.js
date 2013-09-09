@@ -39,18 +39,21 @@
      * @returns {Function} editorClass
      */
     getEditor: function (editorName, hotInstance) {
-      switch (typeof editorName) {
-        case 'function':
-          return new editorName(hotInstance);
-        case 'string':
-          if (!(editorName in registeredEditors)) {
-            throw Error('No editor registered under name "' + editorName + '"');
-          }
-
-          return registeredEditors[editorName].getInstance(hotInstance);
+      if (typeof editorName == 'function'){
+        var editorClass = editorName;
+        editorName = editorClass.toString();
+        this.registerEditor(editorName, editorClass);
       }
 
-      throw Error('Only strings and functions can be passed as "editor" parameter ');
+      if (typeof editorName != 'string'){
+        throw Error('Only strings and functions can be passed as "editor" parameter ');
+      }
+
+      if (!(editorName in registeredEditors)) {
+        throw Error('No editor registered under name "' + editorName + '"');
+      }
+
+      return registeredEditors[editorName].getInstance(hotInstance);
     }
 
   };
