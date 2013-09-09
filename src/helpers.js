@@ -206,7 +206,19 @@ Handsontable.helper.getCellMethod = function (methodName, methodFunction) {
     if (result === void 0 && methodName === 'renderer') {
       return function (instance, TD, row, col, prop, value, cellProperties) {
         cellProperties.rendererTemplate = methodFunction;
-        return Handsontable.TextRenderer.apply(instance, arguments);
+        var editor = cellProperties.editor;
+        /*
+        In future
+        1. remove AutocompleteRenderer
+        2. make the "arrow" be added by editor itself using a plugin hook inserted in tableView.js (at the end of cellRenderer: ...)
+        3. editor add the arrow if cellProperty.arrow === "true"
+         */
+        if (editor === Handsontable.HandsontableEditor || editor === Handsontable.DateEditor || editor === Handsontable.AutocompleteEditor) {
+          return Handsontable.AutocompleteRenderer.apply(instance, arguments);
+        }
+        else {
+          return Handsontable.TextRenderer.apply(instance, arguments);
+        }
       }
     }
     return result;
