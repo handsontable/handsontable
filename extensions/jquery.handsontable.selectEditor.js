@@ -7,6 +7,36 @@
       .addClass('htSelectEditor')
       .hide();
     this.instance.rootElement.append(this.select);
+
+
+    var editor = this;
+    this.onBeforeKeyDown = function (event) {
+      switch (event.keyCode){
+        case Handsontable.helper.keyCode.ARROW_UP:
+
+          var previousOption = editor.select.find('option:selected').prev();
+
+          if (previousOption.length == 1){
+            previousOption.prop('selected', true);
+          }
+
+          event.stopImmediatePropagation();
+          event.preventDefault();
+          break;
+
+        case Handsontable.helper.keyCode.ARROW_DOWN:
+
+          var nextOption = editor.select.find('option:selected').next();
+
+          if (nextOption.length == 1){
+            nextOption.prop('selected', true);
+          }
+
+          event.stopImmediatePropagation();
+          event.preventDefault();
+          break;
+      }
+    };
   };
 
   SelectEditor.prototype.prepare = function(){
@@ -45,10 +75,13 @@
 
     this.select.show();
     this.select.offset($(this.TD).offset());
+
+    this.instance.addHook('beforeKeyDown', this.onBeforeKeyDown);
   };
 
   SelectEditor.prototype.close = function () {
     this.select.hide();
+    this.instance.removeHook('beforeKeyDown', this.onBeforeKeyDown);
   };
 
   Handsontable.editors.SelectEditor = SelectEditor;
