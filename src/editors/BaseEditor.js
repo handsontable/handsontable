@@ -25,16 +25,12 @@
     throw Error('Editor val() method unimplemented');
   };
 
-  BaseEditor.prototype.open = function(row, col, prop, useOriginalValue, suffix){
+  BaseEditor.prototype.open = function(){
     throw Error('Editor open() method unimplemented');
   };
 
-  BaseEditor.prototype.close = function(restoreOriginalValue){
+  BaseEditor.prototype.close = function(){
     throw Error('Editor close() method unimplemented');
-  };
-
-  BaseEditor.prototype.toString = function(restoreOriginalValue){
-    throw Error('Editor toString() method unimplemented');
   };
 
   BaseEditor.prototype.prepare = function(row, col, prop, td, originalValue, cellProperties){
