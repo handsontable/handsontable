@@ -2381,6 +2381,14 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
+   * Returns active editor object
+   * @returns {Object}
+   */
+  this.getActiveEditor = function(){
+    return editManager.getActiveEditor();
+  };
+
+  /**
    * Return Handsontable instance
    * @public
    * @return {Object}
