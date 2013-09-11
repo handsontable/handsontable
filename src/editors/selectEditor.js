@@ -13,19 +13,46 @@
     Handsontable.editors.BaseEditor.prototype.prepare.apply(this, arguments);
 
 
-    var options = this.cellProperties.options || [];
+    var selectOptions = this.cellProperties.selectOptions;
+    var options;
+
+    if (typeof selectOptions == 'function'){
+      options =  this.prepareOptions(selectOptions(this.row, this.col, this.prop))
+    } else {
+      options =  this.prepareOptions(selectOptions);
+    }
+
     var optionElements = [];
 
-    options.forEach(function(option){
-      var optionElement = $('<option />');
-      optionElement.val(option);
-      optionElement.html(option);
+    for (var option in options){
+      if (options.hasOwnProperty(option)){
+        var optionElement = $('<option />');
+        optionElement.val(option);
+        optionElement.html(options[option]);
 
-      optionElements.push(optionElement);
-    });
+        optionElements.push(optionElement);
+      }
+    }
 
     this.select.empty();
     this.select.append(optionElements);
+
+  };
+
+  SelectEditor.prototype.prepareOptions = function(optionsToPrepare){
+
+    var preparedOptions = {};
+
+    if (Handsontable.helper.isArray(optionsToPrepare)){
+      for(var i = 0, len = optionsToPrepare.length; i < len; i++){
+        preparedOptions[optionsToPrepare[i]] = optionsToPrepare[i];
+      }
+    }
+    else if (typeof optionsToPrepare == 'object') {
+      preparedOptions = optionsToPrepare;
+    }
+
+    return preparedOptions;
 
   };
 

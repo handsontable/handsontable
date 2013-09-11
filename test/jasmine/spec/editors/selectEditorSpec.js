@@ -39,7 +39,7 @@ describe('selectEditor', function () {
 
   });
 
-  it("should populate select with given options", function () {
+  it("should populate select with given options (array)", function () {
     var options = [
       'Misubishi', 'Chevrolet', 'Lamborgini'
     ];
@@ -48,7 +48,7 @@ describe('selectEditor', function () {
       columns: [
         {
           editor: 'select',
-          options: options
+          selectOptions: options
         }
       ]
     });
@@ -59,7 +59,114 @@ describe('selectEditor', function () {
 
     keyDown('enter');
 
-    expect(editor.find('option').length).toEqual(options.length);
+    var $options = editor.find('option');
+
+    expect($options.length).toEqual(options.length);
+    expect($options.eq(0).val()).toMatch(options[0]);
+    expect($options.eq(0).html()).toMatch(options[0]);
+    expect($options.eq(1).val()).toMatch(options[1]);
+    expect($options.eq(1).html()).toMatch(options[1]);
+    expect($options.eq(2).val()).toMatch(options[2]);
+    expect($options.eq(2).html()).toMatch(options[2]);
+  });
+
+  it("should populate select with given options (object)", function () {
+    var options = {
+      'mit' : 'Misubishi',
+      'che' : 'Chevrolet',
+      'lam' : 'Lamborgini'
+    };
+
+    handsontable({
+      columns: [
+        {
+          editor: 'select',
+          selectOptions: options
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+
+    var editor = $('.htSelectEditor');
+
+    keyDown('enter');
+
+    var $options = editor.find('option');
+
+    expect($options.eq(0).val()).toMatch('mit');
+    expect($options.eq(0).html()).toMatch(options['mit']);
+    expect($options.eq(1).val()).toMatch('che');
+    expect($options.eq(1).html()).toMatch(options['che']);
+    expect($options.eq(2).val()).toMatch('lam');
+    expect($options.eq(2).html()).toMatch(options['lam']);
+  });
+
+  it("should populate select with given options (function:array)", function () {
+    var options = function () {
+      return [
+        'Misubishi', 'Chevrolet', 'Lamborgini'
+      ];
+    };
+
+    handsontable({
+      columns: [
+        {
+          editor: 'select',
+          selectOptions: options
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+
+    var editor = $('.htSelectEditor');
+
+    keyDown('enter');
+
+    var $options = editor.find('option');
+
+    expect($options.length).toEqual(options().length);
+    expect($options.eq(0).val()).toMatch(options()[0]);
+    expect($options.eq(0).html()).toMatch(options()[0]);
+    expect($options.eq(1).val()).toMatch(options()[1]);
+    expect($options.eq(1).html()).toMatch(options()[1]);
+    expect($options.eq(2).val()).toMatch(options()[2]);
+    expect($options.eq(2).html()).toMatch(options()[2]);
+  });
+
+  it("should populate select with given options (function:object)", function () {
+    var options = function () {
+      return {
+        'mit' : 'Misubishi',
+        'che' : 'Chevrolet',
+        'lam' : 'Lamborgini'
+      }
+    };
+
+    handsontable({
+      columns: [
+        {
+          editor: 'select',
+          selectOptions: options
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+
+    var editor = $('.htSelectEditor');
+
+    keyDown('enter');
+
+    var $options = editor.find('option');
+
+    expect($options.eq(0).val()).toMatch('mit');
+    expect($options.eq(0).html()).toMatch(options()['mit']);
+    expect($options.eq(1).val()).toMatch('che');
+    expect($options.eq(1).html()).toMatch(options()['che']);
+    expect($options.eq(2).val()).toMatch('lam');
+    expect($options.eq(2).html()).toMatch(options()['lam']);
   });
 
   it("should mark option matching cell value as selected", function () {
@@ -76,7 +183,7 @@ describe('selectEditor', function () {
       columns: [
         {
           editor: 'select',
-          options: options
+          selectOptions: options
         }
       ]
     });
