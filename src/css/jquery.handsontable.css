@@ -252,6 +252,11 @@
   height: 1px;
 }
 
+.htSelectEditor {
+  -webkit-appearance: menulist-button !important;
+  position: absolute;
+}
+
 /*
 TextRenderer readOnly cell
 */
