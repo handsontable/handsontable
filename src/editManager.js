@@ -3,7 +3,7 @@
 
   var registeredEditors = {};
 
-  Handsontable.EditManager = function(instance, priv, selection, datamap){
+  Handsontable.EditorManager = function(instance, priv, selection, datamap){
     var self = this;
     var $document = $(document);
     var keyCodes = Handsontable.helper.keyCode;

@@ -10,15 +10,15 @@ In Handsontable 1.0.0 we have rewritten most of the editors module to make it (h
 and easier to extend. This tutorial will give you a comprehensive knowledge about how the whole process of cell edition works,
  how Handsontable Core manages editors, how editor life cycle looks like and finally, how to create your own editors.
 
-## EditManager
-`Handsontable.EditManager` is a class responsible for handling all editors available in Handsontable. If `Handsontable.Core` needs
-to interact with editors it uses `Handsontable.EditManager` object. `Handsontable.EditManager` object is instantiated
-in `init()` method which is run, after you invoke `handsontable()` constructor for the first time. The reference for `Handsontable.EditManager`
+## EditorManager
+`Handsontable.EditorManager` is a class responsible for handling all editors available in Handsontable. If `Handsontable.Core` needs
+to interact with editors it uses `Handsontable.EditorManager` object. `Handsontable.EditorManager` object is instantiated
+in `init()` method which is run, after you invoke `handsontable()` constructor for the first time. The reference for `Handsontable.EditorManager`
 object is kept private in Handsontable instance and you cannot access it. However, there are ways to alter the default
-behaviour of `Handsontable.EditManager`, more on that later.
+behaviour of `Handsontable.EditorManager`, more on that later.
 
-### EditManager tasks
-`EditManager` has 4 main tasks:
+### EditorManager tasks
+`EditorManager` has 4 main tasks:
 
 * selecting proper editor for an active cell
 * preparing editor to be displayed
@@ -28,35 +28,35 @@ behaviour of `Handsontable.EditManager`, more on that later.
 We will discuss each of those tasks in detail.
 
 #### Selecting proper editor for an active cell
-When user selects a cell `EditManager` finds the editor class assigned to this cell, examining the value of `editor` property.
+When user selects a cell `EditorManager` finds the editor class assigned to this cell, examining the value of `editor` property.
 You can define `editor` property globally (for all cells in table), per column (for all cells in column) or for each cell
 individually. For more details see [How cascading configuration works](https://github.com/warpech/jquery-handsontable/wiki/Options#how-does-cascading-configuration-work).
 
 //TODO: add link to registering editors
 
 The value of `editor` property can be either a string representing an editor (such as 'text', 'autocomplete', 'checkbox' etc.),
-or an editor class. `EditManager` will then get an instance of editor class and the first very important thing to remember is:
+or an editor class. `EditorManager` will then get an instance of editor class and the first very important thing to remember is:
 **there is always one instance of certain editor class in a single table**, in other words each editor class object
  **is a singleton** within a single table, which means that it's constructor will be invoked only once per table.
  If you have 3 tables on a page, each table will have its own instance of editor class.
  This has some important implications that you have to consider creating your own editor.
 
 #### Preparing editor to be displayed
-When `EditManager` obtain editor class instance (editor object) it invokes its `prepare` method. The `prepare` method
+When `EditorManager` obtain editor class instance (editor object) it invokes its `prepare` method. The `prepare` method
 sets editor objects properties related to the selected cell, but does not display the editor. `prepare` is called each time
 user selects a cell. In some cases it can be invoked multiple times for the same cell, without changing the selection.
 
 #### Displaying editor
-When editor is prepared the `EditManager` waits for user event that triggers cell edition. Those events are:
+When editor is prepared the `EditorManager` waits for user event that triggers cell edition. Those events are:
 
 * pressing <kbd>ENTER</kbd>
 * double clicking cell
 * pressing <kbd>F2</kbd>
 
-If any of those events is triggered, `EditManager` calls editor's `beginEditing()` method, which should display the editor.
+If any of those events is triggered, `EditorManager` calls editor's `beginEditing()` method, which should display the editor.
 
 #### Closing editor
-When editor is opened the `EditManager` waits for user event that should end cell edition. Those events are:
+When editor is opened the `EditorManager` waits for user event that should end cell edition. Those events are:
 
 * clicking on another cell (saves changes)
 * pressing <kbd>ENTER</kbd> (saves changes)
@@ -66,18 +66,18 @@ When editor is opened the `EditManager` waits for user event that should end cel
 * pressing <kbd>HOME</kbd>, <kbd>END</kbd> (saved changes)
 * pressing <kbd>PAGE_UP</kbd>, <kbd>PAGE_DOWN</kbd> (saved changes)
 
-If any of those events is triggered, `EditManager` calls editor's `finishEditing()` method, which should try to save changes
+If any of those events is triggered, `EditorManager` calls editor's `finishEditing()` method, which should try to save changes
 (unless <kbd>ESC</kbd> key has been pressed) and close the editor.
 
 ### Overriding EditorManager default behaviour
 You may want to change the default events that causes editor to open or close. For example, your editor might use
 <kbd>ARROW_UP</kbd> and <kbd>ARROW_DOWN</kbd> events to perform some actions (for example increasing or decreasing cell value)
-and you don't want `EditManager` to close the editor when user press those keys. That's why `EditManager` runs `beforeKeyDown`
+and you don't want `EditorManager` to close the editor when user press those keys. That's why `EditorManager` runs `beforeKeyDown`
 hook before processing user events. If you register a listener for `beforeKeyDown`, that call `stopImmediatePropagation()`
-on `event` object `EditManager` won perform its default action. More on overriding `EditorManager`'s behaviour in section
+on `event` object `EditorManager` won perform its default action. More on overriding `EditorManager`'s behaviour in section
 "SelectEditor - creating editor from scratch".
 
-You should now have a better understanding on how `EditManager` works. Let's go a bit deeper and see what methods every
+You should now have a better understanding on how `EditorManager` works. Let's go a bit deeper and see what methods every
 editor class must implement and what those methods do.
 
 ## BaseEditor
@@ -344,7 +344,7 @@ Things to do:
     * `open()`
     * `close()`
     * `focus()`
-1. Override the default `EditManager` behaviour, so that pressing <kbd>ARROW_UP</kbd> and <kbd>ARROW_DOWN</kbd> keys
+1. Override the default `EditorManager` behaviour, so that pressing <kbd>ARROW_UP</kbd> and <kbd>ARROW_DOWN</kbd> keys
 won't close the editor, but instead change the currently selected value.
 1. Register editor.
 
@@ -369,7 +369,7 @@ The key to choose the best solution is to understand when each of those methods 
 
 `init()` method is called during
 creation of editor class object. That happens at most one per table instance, because once the object is created it is
-reused every time `EditManager` asks for this editor class instance (see [Singleton pattern](http://en.wikipedia.org/wiki/Singleton_pattern) for details).
+reused every time `EditorManager` asks for this editor class instance (see [Singleton pattern](http://en.wikipedia.org/wiki/Singleton_pattern) for details).
 
 `prepare()` method is called every time user selects a cell that has this particular editor class set as `editor` property.
 So, if whe set `SelectEditor` as editor for an entire column, then selecting any cell in this column will invoke `prepare()`
@@ -567,11 +567,11 @@ We know that our editor works, but let's add one more tweak to it. Currently, wh
 it be nice, if pressing up and down arrow keys changed the currently selected value? User could navigate to the cell, hit
 <kbd>ENTER</kbd>, choose the desired value and save changes by hitting <kbd>ENTER</kbd> again. It would be possible to
 work with the table without even laying your hand on a mouse. Sounds pretty good, but how to override the default behaviour?
-After all, it's the `EditManager` who decides when to close the editor.
+After all, it's the `EditorManager` who decides when to close the editor.
 
-Don't worry. Although, you don't have a direct access to `EditManager` instance, you can still override its behaviour.
-Before `EditManager` starts to process keyboard events it triggers `beforeKeyDown` hook. If any of the listening functions
- invoke `stopImmediatePropagation()` method on an `event` object `EditManager` won't process this event any further. Therefore,
+Don't worry. Although, you don't have a direct access to `EditorManager` instance, you can still override its behaviour.
+Before `EditorManager` starts to process keyboard events it triggers `beforeKeyDown` hook. If any of the listening functions
+ invoke `stopImmediatePropagation()` method on an `event` object `EditorManager` won't process this event any further. Therefore,
  all we have to do is register a `beforeKeyDown` listener function that checks whether <kbd>ARROW_UP</kbd> or <kbd>ARROW_DOWN</kbd>
  has been pressed and if so, stops event propagation and changes the currently selected value in `<select>` list accordingly.
 
@@ -596,7 +596,7 @@ var onBeforeKeyDown = function (event) {
         previousOption.prop('selected', true);  // mark it as selected
       }
 
-      event.stopImmediatePropagation();         // prevent EditManager from processing this event
+      event.stopImmediatePropagation();         // prevent EditorManager from processing this event
       event.preventDefault();                   // prevent browser from scrolling the page up
       break;
 
@@ -608,7 +608,7 @@ var onBeforeKeyDown = function (event) {
         nextOption.prop('selected', true);      // mark it as selected
       }
 
-      event.stopImmediatePropagation();         // prevent EditManager from processing this event
+      event.stopImmediatePropagation();         // prevent EditorManager from processing this event
       event.preventDefault();                   // prevent browser from scrolling the page down
       break;
     }

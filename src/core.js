@@ -11,7 +11,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     , datamap
     , grid
     , selection
-    , editManager
+    , editorManager
     , autofill
     , instance = this
     , GridSettings = function () {
@@ -903,11 +903,11 @@ Handsontable.Core = function (rootElement, userSettings) {
      */
     refreshBorders: function (revertOriginal, keepEditor) {
       if (!keepEditor) {
-        editManager.destroyEditor(revertOriginal);
+        editorManager.destroyEditor(revertOriginal);
       }
       instance.view.render();
       if (selection.isSelected() && !keepEditor) {
-        editManager.prepareEditor();
+        editorManager.prepareEditor();
       }
     },
 
@@ -1036,7 +1036,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       priv.selEnd = new Handsontable.SelectionPoint(); //create new empty point to remove the existing one
       instance.view.wt.selections.current.clear();
       instance.view.wt.selections.area.clear();
-      editManager.destroyEditor();
+      editorManager.destroyEditor();
       selection.refreshBorders();
       instance.PluginHooks.run('afterDeselect');
     },
@@ -1241,7 +1241,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     instance.PluginHooks.run('beforeInit');
 
     this.view = new Handsontable.TableView(this);
-    editManager = new Handsontable.EditManager(instance, priv, selection, datamap);
+    editorManager = new Handsontable.EditorManager(instance, priv, selection, datamap);
 
     this.updateSettings(priv.settings, true);
     this.parseSettingsFromDOM();
@@ -2385,7 +2385,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @returns {Object}
    */
   this.getActiveEditor = function(){
-    return editManager.getActiveEditor();
+    return editorManager.getActiveEditor();
   };
 
   /**
