@@ -144,11 +144,9 @@
 
 
       if (that.state !== Handsontable.EditorState.EDITING) {
-        if (Handsontable.helper.isPrintableChar(event.keyCode)) {
-          if (!ctrlDown) { //disregard CTRL-key shortcuts
-            that.beginEditing('');
-            event.stopImmediatePropagation();
-          }
+        if (!Handsontable.helper.isMetaKey(event.keyCode) && !ctrlDown) {
+          that.beginEditing('');
+          event.stopImmediatePropagation();
         }
         return;
       }
