@@ -28,13 +28,17 @@ describe('NumericEditor', function () {
   };
 
   it('should convert numeric value to number (object data source)', function () {
+
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
     handsontable({
       data: arrayOfObjects(),
       columns: [
         {data: 'id', type: 'numeric'},
         {data: 'name'},
         {data: 'lastName'}
-      ]
+      ],
+      afterValidate: onAfterValidate
     });
     selectCell(2, 0);
 
@@ -42,10 +46,22 @@ describe('NumericEditor', function () {
     document.activeElement.value = '999';
 
     destroyEditor();
-    expect(getDataAtCell(2, 0)).toEqual(999); //should be number type
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(typeof getDataAtCell(2, 0)).toEqual('number');
+      expect(getDataAtCell(2, 0)).toEqual(999);
+    });
+
   });
 
   it('should allow custom validator', function () {
+
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
     handsontable({
       data: arrayOfObjects(),
       allowInvalid: false,
@@ -55,7 +71,8 @@ describe('NumericEditor', function () {
         }},
         {data: 'name'},
         {data: 'lastName'}
-      ]
+      ],
+      afterValidate: onAfterValidate
     });
     selectCell(2, 0);
 
@@ -63,12 +80,29 @@ describe('NumericEditor', function () {
     document.activeElement.value = '99';
 
     destroyEditor();
-    expect(getDataAtCell(2, 0)).not.toEqual(99); //should be ignored
 
-    keyDown('enter');
-    document.activeElement.value = '999';
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
 
-    destroyEditor();
-    expect(getDataAtCell(2, 0)).toEqual(999); //should be number type
+    runs(function () {
+      expect(getDataAtCell(2, 0)).not.toEqual(99); //should be ignored
+    });
+
+    runs(function () {
+      document.activeElement.value = '999';
+
+      onAfterValidate.reset();
+      destroyEditor();
+    });
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(getDataAtCell(2, 0)).toEqual(999);
+    });
+
   });
 });

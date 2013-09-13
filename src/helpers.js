@@ -47,6 +47,10 @@ Handsontable.helper.isMetaKey = function (keyCode) {
   return metaKeys.indexOf(keyCode) != -1;
 };
 
+Handsontable.helper.isCtrlKey = function (keyCode) {
+  return [17, 224, 91, 93].indexOf(keyCode) != -1;
+};
+
 /**
  * Converts a value to string
  * @param value

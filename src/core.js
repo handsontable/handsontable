@@ -1390,19 +1390,28 @@ Handsontable.Core = function (rootElement, userSettings) {
       })(validator);
     }
 
-    if (typeof validator === 'function') {
+    if (typeof validator == 'function') {
+
       value = instance.PluginHooks.execute("beforeValidate", value, cellProperties.row, cellProperties.prop, source);
 
-      validator.call(cellProperties, value, function (valid) {
-        cellProperties.valid = valid;
-        valid = instance.PluginHooks.execute("afterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
-        callback(valid);
+      // To provide consistent behaviour, validation should be always asynchronous
+      setTimeout(function () {
+        validator.call(cellProperties, value, function (valid) {
+          cellProperties.valid = valid;
+
+          valid = instance.PluginHooks.execute("afterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
+
+          callback(valid);
+        });
       });
-    }
-    else { //resolve callback even if validator function was not found
+
+    } else { //resolve callback even if validator function was not found
       cellProperties.valid = true;
       callback(true);
     }
+
+
+
   };
 
   function setDataInputToArray(row, prop_or_col, value) {

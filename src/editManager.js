@@ -8,7 +8,6 @@
     var $document = $(document);
     var keyCodes = Handsontable.helper.keyCode;
 
-    var editorDestroyer;
     var activeEditor;
 
     var init = function () {
@@ -58,29 +57,16 @@
           return;
         }
 
-        if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
+        if (Handsontable.helper.isCtrlKey(event.keyCode)) {
           //when CTRL is pressed, prepare selectable text in textarea
           //http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
           self.setCopyableText();
           return;
         }
 
-
-
         instance.PluginHooks.run('beforeKeyDown', event);
 
         if (!event.isImmediatePropagationStopped()) {
-
-          if(activeEditor.state === Handsontable.EditorState.WAITING) {
-            if(!activeEditor.waitingEvent){
-              activeEditor.waitingEvent = event;
-            }
-
-            event.stopImmediatePropagation();
-            return;
-          }
-
-          activeEditor.waitingEvent = null;
 
           priv.lastKeyCode = event.keyCode;
           if (selection.isSelected()) {
@@ -94,58 +80,58 @@
               }
             }
 
+          if (!activeEditor.isWaiting()) {
+            if (!Handsontable.helper.isMetaKey(event.keyCode) && !ctrlDown) {
+              self.openEditor('');
+              event.stopPropagation(); //required by HandsontableEditor
+              return;
+            }
+          }
+
           var rangeModifier = event.shiftKey ? selection.setRangeEnd : selection.setRangeStart;
 
             switch (event.keyCode) {
               case keyCodes.ARROW_UP:
-                if(self.isEditorOpened()){
-                   self.closeEditorAndSaveChanges(ctrlDown)
-                     .done(function(){
-                       moveSelectionUp(event.shiftKey);
-                     });
-                } else {
-                  moveSelectionUp(event.shiftKey);
+
+                if (self.isEditorOpened() && !activeEditor.isWaiting()){
+                  self.closeEditorAndSaveChanges(ctrlDown);
                 }
+
+                moveSelectionUp(event.shiftKey);
+
                 event.preventDefault();
                 event.stopPropagation(); //required by HandsontableEditor
                 break;
 
               case keyCodes.ARROW_DOWN:
-                if(self.isEditorOpened()){
-                  self.closeEditorAndSaveChanges(ctrlDown)
-                    .done(function(){
-                      moveSelectionDown(event.shiftKey);
-                    });
-                } else {
-                  moveSelectionDown(event.shiftKey);
+                if (self.isEditorOpened() && !activeEditor.isWaiting()){
+                  self.closeEditorAndSaveChanges(ctrlDown);
                 }
+
+                moveSelectionDown(event.shiftKey);
 
                 event.preventDefault();
                 event.stopPropagation(); //required by HandsontableEditor
                 break;
 
               case keyCodes.ARROW_RIGHT:
-                if(self.isEditorOpened()){
-                  self.closeEditorAndSaveChanges(ctrlDown)
-                    .done(function(){
-                      moveSelectionRight(event.shiftKey);
-                    });
-                } else {
-                  moveSelectionRight(event.shiftKey);
+                if(self.isEditorOpened()  && !activeEditor.isWaiting()){
+                  self.closeEditorAndSaveChanges(ctrlDown);
                 }
+
+                moveSelectionRight(event.shiftKey);
+
                 event.preventDefault();
                 event.stopPropagation(); //required by HandsontableEditor
                 break;
 
               case keyCodes.ARROW_LEFT:
-                if(self.isEditorOpened()){
-                  self.closeEditorAndSaveChanges(ctrlDown)
-                    .done(function(){
-                      moveSelectionLeft(event.shiftKey);
-                    });
-                } else {
-                  moveSelectionLeft(event.shiftKey);
+                if(self.isEditorOpened() && !activeEditor.isWaiting()){
+                  self.closeEditorAndSaveChanges(ctrlDown);
                 }
+
+                moveSelectionLeft(event.shiftKey);
+
                 event.preventDefault();
                 event.stopPropagation(); //required by HandsontableEditor
                 break;
@@ -175,15 +161,21 @@
 
               case keyCodes.ENTER: /* return/enter */
                 if(self.isEditorOpened()){
-                  self.closeEditorAndSaveChanges(ctrlDown).done(function(){
-                    moveSelectionAfterEnter(event.shiftKey);
-                  });
+
+                  if (activeEditor.state !== Handsontable.EditorState.WAITING){
+                    self.closeEditorAndSaveChanges(ctrlDown);
+                  }
+
+                  moveSelectionAfterEnter(event.shiftKey);
+
                 } else {
+
                   if (instance.getSettings().enterBeginsEditing){
                     self.openEditor();
                   } else {
                     moveSelectionAfterEnter(event.shiftKey);
                   }
+
                 }
 
                 event.preventDefault(); //don't add newline to field
@@ -312,11 +304,7 @@
      * @param {Boolean} revertOriginal
      */
     this.destroyEditor = function (revertOriginal) {
-      if (typeof editorDestroyer === "function") {
-        var destroyer = editorDestroyer; //this copy is needed, otherwise destroyer can enter an infinite loop
-        editorDestroyer = null;
-        destroyer(revertOriginal);
-      }
+      this.closeEditor(revertOriginal);
     };
 
     this.getActiveEditor = function () {
@@ -347,10 +335,28 @@
       }
     };
 
+    var pendingPrepare = false;
+
     /**
      * Prepare text input to be displayed at given grid cell
      */
     this.prepareEditor = function () {
+
+      if (activeEditor && activeEditor.state === Handsontable.EditorState.WAITING){
+
+        if(!pendingPrepare){
+          pendingPrepare = true;
+
+          this.closeEditor().done(function(){
+            pendingPrepare = false;
+            self.prepareEditor();
+          });
+
+        }
+
+        return;
+      }
+
       var row = priv.selStart.row();
       var col = priv.selStart.col();
       var prop = instance.colToProp(col);
@@ -363,9 +369,6 @@
 
       activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
 
-      editorDestroyer = function(isCancelled){
-        activeEditor.finishEditing(isCancelled);
-      };
     };
 
     this.isEditorOpened = function () {
@@ -377,6 +380,17 @@
     };
 
     this.closeEditor = function (restoreOriginalValue, ctrlDown) {
+
+      if (!activeEditor){
+        var deferred = $.Deferred();
+
+        setTimeout(function(){
+           deferred.reject();
+        });
+
+        return deferred.promise();
+      }
+
       return activeEditor.finishEditing(restoreOriginalValue, ctrlDown);
     };
 

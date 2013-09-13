@@ -13,6 +13,7 @@
     this.state = Handsontable.EditorState.VIRGIN;
 
     this._opened = false;
+    this._closeDeferred = null;
 
     this.init();
   }
@@ -87,13 +88,19 @@
 
   BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown) {
 
-    var deferred = $.Deferred();
+    if (this.isWaiting()) {
+      return this._closeDeferred.promise();
+    }
 
-    if (this.state == Handsontable.EditorState.WAITING || this.state == Handsontable.EditorState.FINISHED) {
+    this._closeDeferred = $.Deferred();
+
+    if (this.state == Handsontable.EditorState.VIRGIN){
+      var that = this;
       setTimeout(function(){
-        deferred.reject();
-      })
-      return deferred.promise();
+        that._closeDeferred.resolve();
+      });
+
+      return this._closeDeferred.promise();
     }
 
     if (this.state == Handsontable.EditorState.EDITING) {
@@ -109,28 +116,27 @@
         ];
       }
 
-      var hasValidator = this.instance.getCellMeta(this.row, this.col).validator;
+      this.state = Handsontable.EditorState.WAITING;
 
-      if (hasValidator) {
-        this.state = Handsontable.EditorState.WAITING;
+      this.saveValue(val, ctrlDown);
+
+      if(this.cellProperties.validator){
         var that = this;
         this.instance.addHookOnce('afterValidate', function (result) {
           that.state = Handsontable.EditorState.FINISHED;
-          that.discardEditor(deferred, result);
+          that.discardEditor(result);
         });
+      } else {
+        this.state = Handsontable.EditorState.FINISHED;
+        this.discardEditor(true);
       }
-      this.saveValue(val, ctrlDown);
+
     }
 
-    if (!hasValidator) {
-      this.state = Handsontable.EditorState.FINISHED;
-      this.discardEditor(deferred);
-    }
-
-    return deferred.promise();
+    return this._closeDeferred.promise();
   };
 
-  BaseEditor.prototype.discardEditor = function (deferred, result) {
+  BaseEditor.prototype.discardEditor = function (result) {
 
     var wtDom = new WalkontableDom();
 
@@ -139,29 +145,31 @@
     }
 
     if (result === false && this.cellProperties.allowInvalid !== true) { //validator was defined and failed
-      this.state = Handsontable.EditorState.EDITING;
+
+      this.instance.selectCell(this.row, this.col);
       this.focus();
-      deferred.reject();
+
+      this.state = Handsontable.EditorState.EDITING;
+
+      this._closeDeferred.reject();
     }
     else {
       this.close();
       this._opened = false;
 
-      if (this.waitingEvent) { //this is needed so when you finish editing with Enter key, the default Enter behavior (move selection down) will work after async validation
-        var ev = $.Event(this.waitingEvent.type);
-        ev.keyCode = this.waitingEvent.keyCode;
-        this.waitingEvent = null;
-        $(document.activeElement).trigger(ev);
-      }
+      this.state = Handsontable.EditorState.VIRGIN;
 
-      deferred.resolve();
+      this._closeDeferred.resolve();
     }
 
-    this.state = Handsontable.EditorState.VIRGIN;
   };
 
   BaseEditor.prototype.isOpened = function(){
     return this._opened;
+  };
+
+  BaseEditor.prototype.isWaiting = function () {
+    return this.state === Handsontable.EditorState.WAITING;
   };
 
   Handsontable.editors.BaseEditor = BaseEditor;

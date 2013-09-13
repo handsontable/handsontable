@@ -123,6 +123,8 @@ describe('Core_keepEmptyRows', function () {
           {id: 1, color: "orange" }
         ];
 
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
     handsontable({
       data: data,
       startRows: 5,
@@ -134,16 +136,25 @@ describe('Core_keepEmptyRows', function () {
           type: 'autocomplete',
           source: ["yellow", "red", "orange"]
         }
-      ]
+      ],
+      afterValidate: onAfterValidate
     });
 
     selectCell(1, 1);
 
     keyDownUp('enter');
     keyDown('arrow_down');
+
+    onAfterValidate.reset();
     keyDownUp('enter');
 
-    expect(data.length).toEqual(3);
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(data.length).toEqual(3);
+    });
   });
 
   it('should not create more rows that maxRows', function () {

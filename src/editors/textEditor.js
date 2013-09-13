@@ -15,10 +15,78 @@
     }
   };
 
+  var onBeforeKeyDown =  function onBeforeKeyDown(event){
+
+    var instance = this;
+    var that = instance.getActiveEditor();
+
+    var keyCodes = Handsontable.helper.keyCode;
+    var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+
+
+    //Process only events that have been fired in the editor
+    if (event.target !== that.TEXTAREA){
+      return;
+    }
+
+    if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
+      //when CTRL or its equivalent is pressed and cell is edited, don't prepare selectable text in textarea
+      event.stopImmediatePropagation();
+      return;
+    }
+
+    switch (event.keyCode) {
+      case keyCodes.ARROW_RIGHT:
+        if (wtDom.getCaretPosition(that.TEXTAREA) !== that.TEXTAREA.value.length) {
+          event.stopImmediatePropagation();
+        }
+        break;
+
+      case keyCodes.ARROW_LEFT: /* arrow left */
+        if (wtDom.getCaretPosition(that.TEXTAREA) !== 0) {
+          event.stopImmediatePropagation();
+        }
+        break;
+
+      case keyCodes.ENTER:
+        var selected = that.instance.getSelected();
+        var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
+        if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
+          if(that.isOpened()){
+            that.val(that.val() + '\n');
+            that.focus();
+          } else {
+            that.beginEditing(that.originalValue + '\n')
+          }
+          event.stopImmediatePropagation();
+        }
+        event.preventDefault(); //don't add newline to field
+        break;
+
+      case keyCodes.A:
+      case keyCodes.X:
+      case keyCodes.C:
+      case keyCodes.V:
+        if(ctrlDown){
+          event.stopImmediatePropagation(); //CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
+          break;
+        }
+      case keyCodes.BACKSPACE:
+      case keyCodes.DELETE:
+      case keyCodes.HOME:
+      case keyCodes.END:
+        event.stopImmediatePropagation(); //backspace, delete, home, end should only work locally when cell is edited (not in table context)
+        break;
+    }
+
+  };
+
   TextEditor.prototype.open = function(){
     this.refreshDimensions(); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
     this.TEXTAREA.focus();
     wtDom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+
+    this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   };
 
   TextEditor.prototype.close = function(){
@@ -27,6 +95,8 @@
     if (document.activeElement === this.TEXTAREA) {
       this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
     }
+
+    this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
   };
 
   TextEditor.prototype.focus = function(){
@@ -136,75 +206,6 @@
 
   TextEditor.prototype.bindEvents = function () {
     var that = this;
-
-    function onBeforeKeyDown(event){
-
-      var keyCodes = Handsontable.helper.keyCode;
-      var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-
-
-      if (that.state !== Handsontable.EditorState.EDITING) {
-        if (!Handsontable.helper.isMetaKey(event.keyCode) && !ctrlDown) {
-          that.beginEditing('');
-          event.stopImmediatePropagation();
-        }
-        return;
-      }
-
-
-      if (event.keyCode === 17 || event.keyCode === 224 || event.keyCode === 91 || event.keyCode === 93) {
-        //when CTRL or its equivalent is pressed and cell is edited, don't prepare selectable text in textarea
-        event.stopImmediatePropagation();
-        return;
-      }
-
-      switch (event.keyCode) {
-        case keyCodes.ARROW_RIGHT:
-          if (wtDom.getCaretPosition(that.TEXTAREA) !== that.TEXTAREA.value.length) {
-            event.stopImmediatePropagation();
-          }
-          break;
-
-        case keyCodes.ARROW_LEFT: /* arrow left */
-          if (wtDom.getCaretPosition(that.TEXTAREA) !== 0) {
-            event.stopImmediatePropagation();
-          }
-          break;
-
-        case keyCodes.ENTER:
-          var selected = that.instance.getSelected();
-          var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
-          if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
-            if(that.isOpened()){
-              that.val(that.val() + '\n');
-              that.focus();
-            } else {
-              that.beginEditing(that.originalValue + '\n')
-            }
-            event.stopImmediatePropagation();
-          }
-          event.preventDefault(); //don't add newline to field
-          break;
-
-        case keyCodes.A:
-        case keyCodes.X:
-        case keyCodes.C:
-        case keyCodes.V:
-          if(ctrlDown){
-            event.stopImmediatePropagation(); //CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
-            break;
-          }
-        case keyCodes.BACKSPACE:
-        case keyCodes.DELETE:
-        case keyCodes.HOME:
-        case keyCodes.END:
-          event.stopImmediatePropagation(); //backspace, delete, home, end should only work locally when cell is edited (not in table context)
-          break;
-      }
-
-    }
-
-    this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
 
     this.$textarea.on('cut.editor', function (event) {
       event.stopPropagation();
