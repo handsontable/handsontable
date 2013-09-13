@@ -21,7 +21,7 @@ WalkontableScrollbar.prototype.init = function () {
   this.handle.className = 'handle';
 
   this.slider.appendChild(this.handle);
-  this.container = this.instance.wtTable.parent;
+  this.container = this.instance.wtTable.holder;
   this.container.appendChild(this.slider);
 
   var firstRun = true;

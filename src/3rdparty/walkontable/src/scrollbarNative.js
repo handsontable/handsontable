@@ -10,7 +10,7 @@ WalkontableScrollbarNative.prototype.init = function () {
 
   var that = this;
   this.$scrollHandler.on('scroll.walkontable', function () {
-    if (!that.instance.wtTable.parent.parentNode) {
+    if (!that.instance.wtTable.holder.parentNode) {
       //Walkontable was detached from DOM, but this handler was not removed
       that.destroy();
       return;
