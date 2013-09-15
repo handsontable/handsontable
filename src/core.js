@@ -205,7 +205,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      */
     createCol: function (index, amount) {
       if (priv.dataType === 'object' || priv.settings.columns) {
-        throw new Error("Cannot create new column. When data source in an object, you can only have as much columns as defined in first data row, data schema or in the 'columns' setting");
+        throw new Error("Cannot create new column. When data source is an object, you can only have as many columns as defined in the first data row, the data schema or in the 'columns' setting");
       }
       var rlen = instance.countRows()
         , data = GridSettings.prototype.data
