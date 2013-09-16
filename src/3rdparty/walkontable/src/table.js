@@ -310,7 +310,6 @@ WalkontableTable.prototype._doDraw = function () {
     , adjusted = false
     , workspaceWidth
     , mustBeInViewport
-    , outs = 0
     , res;
 
   if (this.verticalRenderReverse) {
@@ -446,13 +445,9 @@ WalkontableTable.prototype._doDraw = function () {
         res = this.rowStrategy.add(r, TD, this.verticalRenderReverse);
 
         if (res === false) {
-          outs++;
           if (!this.instance.isNativeScroll) {
             this.rowStrategy.removeOutstanding();
           }
-        }
-        if (outs > this.instance.wtScrollbars.vertical.maxOuts * 2) {
-          break;
         }
 
         if (this.rowStrategy.isLastIncomplete()) {
@@ -463,9 +458,7 @@ WalkontableTable.prototype._doDraw = function () {
             this.draw();
             return;
           }
-          if (!this.instance.isNativeScroll) {
-            break;
-          }
+          break;
         }
       }
 
