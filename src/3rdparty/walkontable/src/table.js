@@ -164,6 +164,9 @@ WalkontableTable.prototype.refreshStretching = function () {
   };
 
   var rowHeightFn = function (i, TD) {
+    if (that.instance.isNativeScroll) {
+      return 23;
+    }
     var source_r = that.rowFilter.visibleToSource(i);
     if (source_r < totalRows) {
       if (that.verticalRenderReverse && i === 0) {
