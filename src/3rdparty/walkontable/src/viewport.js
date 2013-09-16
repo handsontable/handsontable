@@ -76,6 +76,17 @@ WalkontableViewport.prototype.getWorkspaceActualWidth = function () {
   return this.instance.wtDom.outerWidth(this.instance.wtTable.TABLE) || this.instance.wtDom.outerWidth(this.instance.wtTable.TBODY) || this.instance.wtDom.outerWidth(this.instance.wtTable.THEAD); //IE8 reports 0 as <table> offsetWidth;
 };
 
+WalkontableViewport.prototype.getColumnHeaderHeight = function () {
+  if (isNaN(this.columnHeaderHeight)) {
+    var cellOffset = this.instance.wtDom.offset(this.instance.wtTable.TBODY)
+      , tableOffset = this.instance.wtTable.tableOffset;
+    this.columnHeaderHeight = cellOffset.top - tableOffset.top;
+  }
+  else {
+    return this.columnHeaderHeight;
+  }
+};
+
 WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
   var containerHeight = this.getWorkspaceHeight(proposedHeight);
 
@@ -83,27 +94,16 @@ WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
     return containerHeight;
   }
 
-  if (isNaN(this.columnHeaderHeight)) {
-    var cellOffset = this.instance.wtDom.offset(this.instance.wtTable.TBODY)
-      , tableOffset = this.instance.wtTable.tableOffset;
-    this.columnHeaderHeight = cellOffset.top - tableOffset.top;
-  }
-
-  if (this.columnHeaderHeight > 0) {
-    return containerHeight - this.columnHeaderHeight;
+  var columnHeaderHeight = this.getColumnHeaderHeight();
+  if (columnHeaderHeight > 0) {
+  return containerHeight - columnHeaderHeight;
   }
   else {
     return containerHeight;
   }
 };
 
-WalkontableViewport.prototype.getViewportWidth = function (proposedWidth) {
-  var containerWidth = this.getWorkspaceWidth(proposedWidth);
-
-  if (containerWidth === Infinity) {
-    return containerWidth;
-  }
-
+WalkontableViewport.prototype.getRowHeaderHeight = function () {
   if (isNaN(this.rowHeaderWidth)) {
     var TR = this.instance.wtTable.TBODY ? this.instance.wtTable.TBODY.firstChild : null;
     if (TR) {
@@ -115,9 +115,21 @@ WalkontableViewport.prototype.getViewportWidth = function (proposedWidth) {
       }
     }
   }
+  else {
+    return this.rowHeaderWidth;
+  }
+};
 
-  if (this.rowHeaderWidth > 0) {
-    return containerWidth - this.rowHeaderWidth;
+WalkontableViewport.prototype.getViewportWidth = function (proposedWidth) {
+  var containerWidth = this.getWorkspaceWidth(proposedWidth);
+
+  if (containerWidth === Infinity) {
+    return containerWidth;
+  }
+
+  var rowHeaderWidth = this.getRowHeaderHeight();
+  if (rowHeaderWidth > 0) {
+  return containerWidth - rowHeaderWidth;
   }
   else {
     return containerWidth;
