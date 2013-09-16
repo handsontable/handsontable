@@ -1,1 +1,2 @@
-})(jQuery, window, Handsontable);
+return Handsontable;
+}));
