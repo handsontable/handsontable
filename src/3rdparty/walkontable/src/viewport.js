@@ -1,6 +1,14 @@
 function WalkontableViewport(instance) {
   this.instance = instance;
   this.resetSettings();
+
+  if (this.instance.isNativeScroll) {
+    var that = this;
+    that.clientHeight = document.documentElement.clientHeight; //browser viewport height
+    $(window).on('resize', function () {
+      that.clientHeight = document.documentElement.clientHeight;
+    });
+  }
 }
 
 /*WalkontableViewport.prototype.isInSightVertical = function () {
@@ -23,7 +31,7 @@ function WalkontableViewport(instance) {
 //used by scrollbar
 WalkontableViewport.prototype.getWorkspaceHeight = function (proposedHeight) {
   if (this.instance.isNativeScroll) {
-    return document.documentElement.clientHeight;
+    return this.clientHeight;
   }
 
   var height = this.instance.getSetting('height');
