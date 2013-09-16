@@ -1,11 +1,14 @@
 function WalkontableScrollbarNative() {
   this.lastWindowScrollPosition = NaN;
+  this.maxOuts = 10; //max outs in one direction (before and after table)
 }
 
 WalkontableScrollbarNative.prototype.init = function () {
-  this.fixedContainer = this.instance.wtTable.TABLE.parentNode.parentNode.parentNode;
-  this.fixed = this.instance.wtTable.TABLE.parentNode.parentNode;
   this.TABLE = this.instance.wtTable.TABLE;
+  this.fixed = this.instance.wtTable.hider;
+  this.fixedContainer = this.instance.wtTable.holder;
+  this.fixed.style.position = 'absolute';
+  this.fixed.style.left = '0';
   this.$scrollHandler = $(window); //in future remove jQuery from here
 
   var that = this;
@@ -22,8 +25,13 @@ WalkontableScrollbarNative.prototype.init = function () {
   this.readSettings();
 };
 
-WalkontableScrollbarNative.prototype.onScroll = function () {
+WalkontableScrollbarNative.prototype.onScroll = function (forcePosition) {
   this.readSettings();
+  if (forcePosition) {
+
+    this.windowScrollPosition = forcePosition;
+  }
+
   if (this.windowScrollPosition === this.lastWindowScrollPosition) {
     return;
   }
@@ -32,11 +40,31 @@ WalkontableScrollbarNative.prototype.onScroll = function () {
   var scrollDelta;
   var newOffset = 0;
 
-  if (this.windowScrollPosition > this.tableParentOffset) {
+  if (1 == 1 || this.windowScrollPosition > this.tableParentOffset) {
     scrollDelta = this.windowScrollPosition - this.tableParentOffset;
-    newOffset = Math.ceil(scrollDelta / 20, 10);
-    newOffset = Math.min(newOffset, this.total)
+
+    partialOffset = 0;
+    if (scrollDelta > 0) {
+      var sum = 0;
+      var last;
+      for (var i = 0; i < this.total; i++) {
+        last = this.instance.getSetting('rowHeight', i);
+        sum += last;
+        if (sum > scrollDelta) {
+          break;
+        }
+      }
+
+      if (this.offset > 0) {
+        partialOffset = (sum - scrollDelta);
+      }
+      newOffset = i;
+      newOffset = Math.min(newOffset, this.total);
+    }
   }
+
+  this.curOuts = newOffset > this.maxOuts ? this.maxOuts : newOffset;
+  newOffset -= this.curOuts;
 
   this.instance.update('offsetRow', newOffset);
   this.instance.draw();
@@ -48,7 +76,6 @@ WalkontableScrollbarNative.prototype.prepare = function () {
 WalkontableScrollbarNative.prototype.availableSize = function () {
   var availableSize;
 
-  //var last = this.getLastCell();
   if (this.windowScrollPosition > this.tableParentOffset /*&& last > -1*/) { //last -1 means that viewport is scrolled behind the table
     if (this.instance.wtTable.getLastVisibleRow() === this.total - 1) {
       availableSize = this.instance.wtDom.outerHeight(this.TABLE);
@@ -66,13 +93,13 @@ WalkontableScrollbarNative.prototype.availableSize = function () {
 
 WalkontableScrollbarNative.prototype.refresh = function () {
   var last = this.getLastCell();
-  this.measureBefore = this.offset * this.cellSize;
+  this.measureBefore = this.sumCellSizes(0, this.offset);
   this.measureInside = this.getTableSize();
   if (last === -1) { //last -1 means that viewport is scrolled behind the table
     this.measureAfter = 0;
   }
   else {
-    this.measureAfter = (this.total - last - 1) * this.cellSize;
+    this.measureAfter = this.sumCellSizes(last, this.total - last);
   }
   this.applyToDOM();
 };
@@ -86,43 +113,42 @@ WalkontableScrollbarNative.prototype.destroy = function () {
 var WalkontableVerticalScrollbarNative = function (instance) {
   this.instance = instance;
   this.type = 'vertical';
-  this.cellSize = 20;
+  this.cellSize = 23;
   this.init();
 };
 
 WalkontableVerticalScrollbarNative.prototype = new WalkontableScrollbarNative();
 
 WalkontableVerticalScrollbarNative.prototype.getLastCell = function () {
-  return this.instance.wtTable.getLastVisibleRow();
+  return this.instance.getSetting('offsetRow') + this.instance.wtTable.tbodyChildrenLength - 1;
 };
 
 WalkontableVerticalScrollbarNative.prototype.getTableSize = function () {
   return this.instance.wtDom.outerHeight(this.TABLE);
 };
 
-WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
-  if (this.windowScrollPosition > this.tableParentOffset /*&& last > -1*/) { //last -1 means that viewport is scrolled behind the table
-    this.fixed.style.position = 'fixed';
-    this.fixed.style.top = '0';
-    this.fixed.style.left = this.tableParentOtherOffset;
-  }
-  else {
-    this.fixed.style.position = 'relative';
-  }
+var partialOffset = 0;
 
-  var debug = false;
-  if (debug) {
-    //this.fixedContainer.style.borderTop = this.measureBefore + 'px solid red';
-    //this.fixedContainer.style.borderBottom = (this.tableSize + this.measureAfter) + 'px solid blue';
+WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, length) {
+  var sum = 0;
+  while (from < length) {
+    sum += this.instance.getSetting('rowHeight', from);
+    from++;
   }
-  else {
-    this.fixedContainer.style.paddingTop = this.measureBefore + 'px';
-    this.fixedContainer.style.paddingBottom = (this.measureInside + this.measureAfter) + 'px';
-  }
+  return sum;
+};
+
+WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
+  var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
+  this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, this.total) + 'px';
+  this.fixed.style.top = this.measureBefore + 'px';
+  this.fixed.style.bottom = '';
 };
 
 WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {
-  this.$scrollHandler.scrollTop(this.tableParentOffset + cell * this.cellSize);
+  var newY = this.tableParentOffset + cell * this.cellSize;
+  this.$scrollHandler.scrollTop(newY);
+  this.onScroll(newY);
 };
 
 WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
@@ -155,24 +181,8 @@ WalkontableHorizontalScrollbarNative.prototype.getTableSize = function () {
 };
 
 WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
-  if (this.windowScrollPosition > this.tableParentOffset /*&& last > -1*/) { //last -1 means that viewport is scrolled behind the table
-    this.fixed.style.position = 'fixed';
-    this.fixed.style.left = '0';
-    this.fixed.style.top = this.tableParentOtherOffset;
-  }
-  else {
-    this.fixed.style.position = 'relative';
-  }
-
-  var debug = false;
-  if (debug) {
-    //this.fixedContainer.style.borderLeft = this.measureBefore + 'px solid red';
-    //this.fixedContainer.style.borderBottom = (this.tableSize + this.measureAfter) + 'px solid blue';
-  }
-  else {
-    this.fixedContainer.style.paddingLeft = this.measureBefore + 'px';
-    this.fixedContainer.style.paddingRight = (this.measureInside + this.measureAfter) + 'px';
-  }
+  this.fixedContainer.style.paddingLeft = this.measureBefore + 'px';
+  this.fixedContainer.style.paddingRight = this.measureAfter + 'px';
 };
 
 WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (cell) {

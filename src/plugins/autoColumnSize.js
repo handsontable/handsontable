@@ -96,7 +96,7 @@
 
       var parent = instance.rootElement[0].parentNode;
       parent.appendChild(tmp.container);
-      var width = instance.view.wt.wtDom.outerWidth(tmp.container);
+      var width = instance.view.wt.wtDom.outerWidth(tmp.table);
       parent.removeChild(tmp.container);
 
       var maxWidth = instance.view.wt.wtViewport.getViewportWidth() - 2; //2 is some overhead for cell border

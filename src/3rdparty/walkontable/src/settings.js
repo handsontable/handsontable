@@ -117,12 +117,20 @@ WalkontableSettings.prototype.has = function (key) {
 /**
  * specific methods
  */
-
 WalkontableSettings.prototype.rowHeight = function (row) {
-  var visible_r = this.instance.wtTable.rowFilter.sourceToVisible(row);
-  var size = this.instance.wtTable.rowStrategy.getSize(visible_r);
-  if (size !== void 0) {
-    return size;
+  if (!this.instance.rowHeightCache) {
+    this.instance.rowHeightCache = [];
   }
-  return 20;
+  if (this.instance.rowHeightCache[row] === void 0) {
+    var visible_r = this.instance.wtTable.rowFilter.sourceToVisible(row);
+    var size = this.instance.wtTable.rowStrategy.getSize(visible_r);
+    if (size !== void 0) {
+      this.instance.rowHeightCache[row] = size;
+      return size;
+    }
+    return 23;
+  }
+  else {
+    return this.instance.rowHeightCache[row];
+  }
 };

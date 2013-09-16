@@ -22,6 +22,10 @@ function WalkontableViewport(instance) {
 
 //used by scrollbar
 WalkontableViewport.prototype.getWorkspaceHeight = function (proposedHeight) {
+  if (this.instance.isNativeScroll) {
+    return document.documentElement.clientHeight;
+  }
+
   var height = this.instance.getSetting('height');
 
   if (height === Infinity || height === void 0 || height === null || height < 1) {
@@ -82,9 +86,7 @@ WalkontableViewport.prototype.getColumnHeaderHeight = function () {
       , tableOffset = this.instance.wtTable.tableOffset;
     this.columnHeaderHeight = cellOffset.top - tableOffset.top;
   }
-  else {
-    return this.columnHeaderHeight;
-  }
+  return this.columnHeaderHeight;
 };
 
 WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
@@ -96,7 +98,7 @@ WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
 
   var columnHeaderHeight = this.getColumnHeaderHeight();
   if (columnHeaderHeight > 0) {
-  return containerHeight - columnHeaderHeight;
+    return containerHeight - columnHeaderHeight;
   }
   else {
     return containerHeight;
@@ -115,9 +117,7 @@ WalkontableViewport.prototype.getRowHeaderHeight = function () {
       }
     }
   }
-  else {
-    return this.rowHeaderWidth;
-  }
+  return this.rowHeaderWidth;
 };
 
 WalkontableViewport.prototype.getViewportWidth = function (proposedWidth) {
@@ -129,7 +129,7 @@ WalkontableViewport.prototype.getViewportWidth = function (proposedWidth) {
 
   var rowHeaderWidth = this.getRowHeaderHeight();
   if (rowHeaderWidth > 0) {
-  return containerWidth - rowHeaderWidth;
+    return containerWidth - rowHeaderWidth;
   }
   else {
     return containerWidth;

@@ -1,5 +1,5 @@
 function WalkontableWheel(instance) {
-  if (instance.getSetting('scrollbarModelV') === 'native' || instance.getSetting('scrollbarModelH') === 'native') {
+  if (instance.isNativeScroll) {
     return;
   }
 
