@@ -118,7 +118,7 @@ var WalkontableVerticalScrollbarNative = function (instance) {
 
   var that = this;
   WalkontableCellStrategy.prototype.isLastIncomplete = function () { //monkey patch needed. In future get rid of it to improve performance
-    return this.remainingSize > that.sumCellSizes(that.offset - that.curOuts, that.offset);
+    return this.remainingSize > that.sumCellSizes(that.offset, that.offset + that.curOuts);
   };
 };
 
