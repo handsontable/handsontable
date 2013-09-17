@@ -164,16 +164,13 @@ WalkontableTable.prototype.refreshStretching = function () {
   };
 
   var rowHeightFn = function (i, TD) {
-    if (that.instance.isNativeScroll) {
-      return 23;
-    }
     var source_r = that.rowFilter.visibleToSource(i);
     if (source_r < totalRows) {
       if (that.verticalRenderReverse && i === 0) {
-        return that.wtDom.outerHeight(TD) - 1;
+        return that.instance.getSetting('rowHeight', source_r, TD) - 1;
       }
       else {
-        return that.wtDom.outerHeight(TD);
+        return that.instance.getSetting('rowHeight', source_r, TD);
       }
     }
   };

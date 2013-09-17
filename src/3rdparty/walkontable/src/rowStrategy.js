@@ -16,7 +16,7 @@ function WalkontableRowStrategy(containerSizeFn, sizeAtIndex) {
 WalkontableRowStrategy.prototype = new WalkontableCellStrategy();
 
 WalkontableRowStrategy.prototype.add = function (i, TD, reverse) {
-  if (this.remainingSize < 0) {
+  if (!this.isLastIncomplete()) {
     var size = this.sizeAtIndex(i, TD);
     if (size === void 0) {
       return false; //total rows exceeded
@@ -32,7 +32,7 @@ WalkontableRowStrategy.prototype.add = function (i, TD, reverse) {
     this.cellCount++;
     this.remainingSize = this.cellSizesSum - containerSize;
 
-    if (reverse && this.remainingSize > 0) { //something is outside of the screen, maybe even some full rows?
+    if (reverse && this.isLastIncomplete()) { //something is outside of the screen, maybe even some full rows?
       return false;
     }
     return true;
