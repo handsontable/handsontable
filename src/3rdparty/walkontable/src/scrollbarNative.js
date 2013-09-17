@@ -118,7 +118,11 @@ var WalkontableVerticalScrollbarNative = function (instance) {
 
   var that = this;
   WalkontableCellStrategy.prototype.isLastIncomplete = function () { //monkey patch needed. In future get rid of it to improve performance
-    return this.remainingSize > that.sumCellSizes(that.offset, that.offset + that.curOuts);
+    /*
+     * this.remainingSize = window viewport reduced by sum of all rendered cells (also those before the visible part)
+     * that.sumCellSizes(...) = sum of the sizes of cells that are before the visible part + 1 cell that is partially visible on top of the screen
+     */
+    return this.remainingSize > that.sumCellSizes(that.offset, that.offset + that.curOuts + 1);
   };
 };
 
