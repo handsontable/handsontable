@@ -66,10 +66,10 @@ module.exports = function (grunt) {
         'src/renderers/passwordRenderer.js',
 
         'src/editors/textEditor.js',
-        'src/editors/autocompleteEditor.js',
         'src/editors/checkboxEditor.js',
         'src/editors/dateEditor.js',
         'src/editors/handsontableEditor.js',
+        'src/editors/autocompleteEditor.js',
         'src/editors/passwordEditor.js',
 
         'src/validators/numericValidator.js',

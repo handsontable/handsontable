@@ -239,8 +239,6 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 1px;
-  height: 1px;
   z-index: 100;
 }
 
@@ -402,6 +400,10 @@ ul.context-menu-list li {
  * Handsontable listbox theme
  */
 
+.handsontable.listbox {
+  margin: 0;
+}
+
 .handsontable.listbox table {
   border: 1px solid #ccc;
   border-collapse: separate;
@@ -419,6 +421,7 @@ ul.context-menu-list li {
 .handsontable.listbox th,
 .handsontable.listbox td {
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .handsontable.listbox td.htDimmed {

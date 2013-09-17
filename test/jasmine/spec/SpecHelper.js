@@ -29,10 +29,6 @@ var isFillHandleVisible = function () {
   return !!spec().$container.find('.wtBorder.corner:visible').length;
 };
 
-var isAutocompleteVisible = function () {
-  return !!(autocompleteEditor() && autocompleteEditor().data("typeahead") && autocompleteEditor().data("typeahead").$menu.is(":visible"));
-};
-
 /**
  * Shows context menu
  */
@@ -197,7 +193,7 @@ var setCaretPosition = function (pos) {
  * Returns autocomplete instance
  */
 var autocomplete = function () {
-  return spec().$container.find('.handsontableInput').data("typeahead");
+  return spec().$container.find('.autocompleteEditor');
 };
 
 /**

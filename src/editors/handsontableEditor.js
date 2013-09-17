@@ -106,6 +106,10 @@ HandsontableHandsontableEditorClass.prototype.bindEvents = function () {
   var parent = this;
 
   var options = {
+    startRows: 0,
+    startCols: 0,
+    minRows: 0,
+    minCols: 0,
     className: 'listbox',
     cells: function () {
       return {
@@ -113,8 +117,6 @@ HandsontableHandsontableEditorClass.prototype.bindEvents = function () {
       }
     },
     fillHandle: false,
-    width: 2000,
-    //width: 'auto',
     afterOnCellMouseDown: function () {
       parent.TEXTAREA.value = this.getValue();
       parent.instance.destroyEditor();
