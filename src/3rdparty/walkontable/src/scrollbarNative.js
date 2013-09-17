@@ -26,7 +26,7 @@ WalkontableScrollbarNative.prototype.init = function () {
 };
 
 WalkontableScrollbarNative.prototype.onScroll = function (forcePosition) {
-  this.readSettings();
+  this.readSettings(); //read window scroll position
   if (forcePosition) {
 
     this.windowScrollPosition = forcePosition;
@@ -67,6 +67,7 @@ WalkontableScrollbarNative.prototype.onScroll = function (forcePosition) {
   newOffset -= this.curOuts;
 
   this.instance.update('offsetRow', newOffset);
+  this.readSettings(); //read new offset
   this.instance.draw();
 };
 
