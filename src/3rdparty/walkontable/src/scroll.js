@@ -131,6 +131,25 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     , fixedRowsTop = this.instance.getSetting('fixedRowsTop')
     , fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
 
+  if (this.instance.isNativeScroll) {
+    var TD = this.instance.wtTable.getCell(coords);
+    if (typeof TD === 'object') {
+      var offset = WalkontableDom.prototype.offset(TD);
+      var outerHeight = WalkontableDom.prototype.outerHeight(TD);
+      var scrollY = window.scrollY;
+      var clientHeight = document.documentElement.clientHeight;
+      if (outerHeight < clientHeight) {
+        if (offset.top < scrollY) {
+          TD.scrollIntoView(true);
+        }
+        else if (offset.top + outerHeight > scrollY + clientHeight) {
+          TD.scrollIntoView(false);
+        }
+      }
+      return;
+    }
+  }
+
   if (coords[0] < 0 || coords[0] > totalRows - 1) {
     throw new Error('row ' + coords[0] + ' does not exist');
   }
@@ -179,8 +198,8 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     this.instance.wtScrollbars.horizontal.scrollTo(scrollTo - fixedColumnsLeft);
   }
   /*else {
-    //no scroll
-  }*/
+   //no scroll
+   }*/
 
   return this.instance;
 };

@@ -17,17 +17,24 @@
             theadTh: null,
             tbody: null,
             container: null,
-            containerStyle: null
+            containerStyle: null,
+            determineBeforeNextRender: true
           };
         }
 
-        instance.addHook('beforeRender', htAutoColumnSize.determineColumnsWidth);
+        instance.addHook('beforeRender', htAutoColumnSize.performScheduledDetermine);
+        instance.addHook('beforeRenderMethod', htAutoColumnSize.scheduleDetermine);
+        instance.addHook('beforeChange', htAutoColumnSize.scheduleDetermine);
+        instance.addHook('afterUpdateSettings', htAutoColumnSize.scheduleDetermine);
         instance.addHook('afterGetColWidth', htAutoColumnSize.getColWidth);
         instance.addHook('afterDestroy', htAutoColumnSize.afterDestroy);
 
         instance.determineColumnWidth = plugin.determineColumnWidth;
       } else {
-        instance.removeHook('beforeRender', htAutoColumnSize.determineColumnsWidth);
+        instance.removeHook('beforeRender', htAutoColumnSize.performScheduledDetermine);
+        instance.removeHook('beforeRenderMethod', htAutoColumnSize.scheduleDetermine);
+        instance.removeHook('beforeChange', htAutoColumnSize.scheduleDetermine);
+        instance.removeHook('afterUpdateSettings', htAutoColumnSize.scheduleDetermine);
         instance.removeHook('afterGetColWidth', htAutoColumnSize.getColWidth);
         instance.removeHook('afterDestroy', htAutoColumnSize.afterDestroy);
 
@@ -37,6 +44,17 @@
 
       }
 
+    };
+
+    this.scheduleDetermine = function () {
+      this.autoColumnSizeTmp.determineBeforeNextRender = true;
+    };
+
+    this.performScheduledDetermine = function () {
+      if (this.autoColumnSizeTmp.determineBeforeNextRender) {
+        htAutoColumnSize.determineColumnsWidth.apply(this, arguments);
+        this.autoColumnSizeTmp.determineBeforeNextRender = false;
+      }
     };
 
     this.determineColumnWidth = function (col) {
@@ -96,7 +114,7 @@
 
       var parent = instance.rootElement[0].parentNode;
       parent.appendChild(tmp.container);
-      var width = instance.view.wt.wtDom.outerWidth(tmp.container);
+      var width = instance.view.wt.wtDom.outerWidth(tmp.table);
       parent.removeChild(tmp.container);
 
       var maxWidth = instance.view.wt.wtViewport.getViewportWidth() - 2; //2 is some overhead for cell border

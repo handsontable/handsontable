@@ -117,12 +117,19 @@ WalkontableSettings.prototype.has = function (key) {
 /**
  * specific methods
  */
-
-WalkontableSettings.prototype.rowHeight = function (row) {
-  var visible_r = this.instance.wtTable.rowFilter.sourceToVisible(row);
-  var size = this.instance.wtTable.rowStrategy.getSize(visible_r);
-  if (size !== void 0) {
+WalkontableSettings.prototype.rowHeight = function (row, TD) {
+  if (!this.instance.rowHeightCache) {
+    this.instance.rowHeightCache = []; //hack. This cache is being invalidated in WOT core.js
+  }
+  if (this.instance.rowHeightCache[row] === void 0) {
+    var size = 23; //guess
+    if (TD) {
+      size = this.instance.wtDom.outerHeight(TD); //measure
+      this.instance.rowHeightCache[row] = size; //cache only something we measured
+    }
     return size;
   }
-  return 20;
+  else {
+    return this.instance.rowHeightCache[row];
+  }
 };

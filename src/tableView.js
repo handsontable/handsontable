@@ -450,5 +450,8 @@ Handsontable.TableView.prototype.maximumVisibleElementWidth = function (left) {
  */
 Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
   var rootHeight = this.wt.wtViewport.getWorkspaceHeight();
+  if(this.wt.isNativeScroll) {
+    return rootHeight;
+  }
   return rootHeight - top;
 };
