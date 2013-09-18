@@ -16,10 +16,10 @@ function WalkontableRowStrategy(containerSizeFn, sizeAtIndex) {
 WalkontableRowStrategy.prototype = new WalkontableCellStrategy();
 
 WalkontableRowStrategy.prototype.add = function (i, TD, reverse) {
-  if (this.remainingSize < 0) {
+  if (!this.isLastIncomplete()) {
     var size = this.sizeAtIndex(i, TD);
     if (size === void 0) {
-      return; //total rows exceeded
+      return false; //total rows exceeded
     }
     var containerSize = this.getContainerSize(this.cellSizesSum + size);
     if (reverse) {
@@ -32,19 +32,23 @@ WalkontableRowStrategy.prototype.add = function (i, TD, reverse) {
     this.cellCount++;
     this.remainingSize = this.cellSizesSum - containerSize;
 
-    if (reverse && this.remainingSize > 0) { //something is outside of the screen, maybe even some full rows?
-      while (this.cellCount > 0 && this.cellSizes[this.cellCount - 1] < this.remainingSize) { //this row is completely off screen!
-        this.cellSizesSum -= this.cellSizes[this.cellCount - 1];
-        this.cellCount--;
-        this.cellSizes.length = this.cellCount; //remove it from array
-      }
+    if (reverse && this.isLastIncomplete()) { //something is outside of the screen, maybe even some full rows?
+      return false;
     }
+    return true;
   }
+  return false;
 };
 
 WalkontableRowStrategy.prototype.remove = function () {
   var size = this.cellSizes.pop();
   this.cellSizesSum -= size;
   this.cellCount--;
-  this.remainingSize += size;
+  this.remainingSize -= size;
+};
+
+WalkontableRowStrategy.prototype.removeOutstanding = function () {
+  while (this.cellCount > 0 && this.cellSizes[this.cellCount - 1] < this.remainingSize) { //this row is completely off screen!
+    this.remove();
+  }
 };
