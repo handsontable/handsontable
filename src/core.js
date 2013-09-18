@@ -2765,7 +2765,9 @@ DefaultSettings.prototype = {
   allowInvalid: true,
   invalidCellClassName: 'htInvalid',
   fragmentSelection: false,
-  readOnly: false
+  readOnly: false,
+  scrollbarModelV: 'dragdealer',
+  scrollbarModelH: 'dragdealer'
 };
 
 $.fn.handsontable = function (action) {

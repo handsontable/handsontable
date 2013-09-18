@@ -205,6 +205,10 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
   this.col = col;
   this.prop = prop;
 
+  var coords = {row: row, col: col};
+  this.instance.view.scrollViewport(coords); //viewport must be scrolled and rerendered before TEXTAREA is positioned
+  this.instance.view.render();
+
   this.$textarea.on('cut.editor', function (event) {
     event.stopPropagation();
   });
@@ -223,10 +227,7 @@ HandsontableTextEditorClass.prototype.beginEditing = function (row, col, prop, u
   this.refreshDimensions(); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
   this.TEXTAREA.focus();
   this.wtDom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
-
-  var coords = {row: row, col: col};
-  this.instance.view.scrollViewport(coords);
-  this.instance.view.render();
+  this.instance.view.render(); //only rerender the selections (FillHandle should disappear when beginediting is triggered)
 };
 
 HandsontableTextEditorClass.prototype.refreshDimensions = function () {

@@ -1,6 +1,14 @@
 function WalkontableViewport(instance) {
   this.instance = instance;
   this.resetSettings();
+
+  if (this.instance.isNativeScroll) {
+    var that = this;
+    that.clientHeight = document.documentElement.clientHeight; //browser viewport height
+    $(window).on('resize', function () {
+      that.clientHeight = document.documentElement.clientHeight;
+    });
+  }
 }
 
 /*WalkontableViewport.prototype.isInSightVertical = function () {
@@ -22,6 +30,10 @@ function WalkontableViewport(instance) {
 
 //used by scrollbar
 WalkontableViewport.prototype.getWorkspaceHeight = function (proposedHeight) {
+  if (this.instance.isNativeScroll) {
+    return this.clientHeight;
+  }
+
   var height = this.instance.getSetting('height');
 
   if (height === Infinity || height === void 0 || height === null || height < 1) {
@@ -76,6 +88,15 @@ WalkontableViewport.prototype.getWorkspaceActualWidth = function () {
   return this.instance.wtDom.outerWidth(this.instance.wtTable.TABLE) || this.instance.wtDom.outerWidth(this.instance.wtTable.TBODY) || this.instance.wtDom.outerWidth(this.instance.wtTable.THEAD); //IE8 reports 0 as <table> offsetWidth;
 };
 
+WalkontableViewport.prototype.getColumnHeaderHeight = function () {
+  if (isNaN(this.columnHeaderHeight)) {
+    var cellOffset = this.instance.wtDom.offset(this.instance.wtTable.TBODY)
+      , tableOffset = this.instance.wtTable.tableOffset;
+    this.columnHeaderHeight = cellOffset.top - tableOffset.top;
+  }
+  return this.columnHeaderHeight;
+};
+
 WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
   var containerHeight = this.getWorkspaceHeight(proposedHeight);
 
@@ -83,27 +104,16 @@ WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
     return containerHeight;
   }
 
-  if (isNaN(this.columnHeaderHeight)) {
-    var cellOffset = this.instance.wtDom.offset(this.instance.wtTable.TBODY)
-      , tableOffset = this.instance.wtTable.tableOffset;
-    this.columnHeaderHeight = cellOffset.top - tableOffset.top;
-  }
-
-  if (this.columnHeaderHeight > 0) {
-    return containerHeight - this.columnHeaderHeight;
+  var columnHeaderHeight = this.getColumnHeaderHeight();
+  if (columnHeaderHeight > 0) {
+    return containerHeight - columnHeaderHeight;
   }
   else {
     return containerHeight;
   }
 };
 
-WalkontableViewport.prototype.getViewportWidth = function (proposedWidth) {
-  var containerWidth = this.getWorkspaceWidth(proposedWidth);
-
-  if (containerWidth === Infinity) {
-    return containerWidth;
-  }
-
+WalkontableViewport.prototype.getRowHeaderHeight = function () {
   if (isNaN(this.rowHeaderWidth)) {
     var TR = this.instance.wtTable.TBODY ? this.instance.wtTable.TBODY.firstChild : null;
     if (TR) {
@@ -115,9 +125,19 @@ WalkontableViewport.prototype.getViewportWidth = function (proposedWidth) {
       }
     }
   }
+  return this.rowHeaderWidth;
+};
 
-  if (this.rowHeaderWidth > 0) {
-    return containerWidth - this.rowHeaderWidth;
+WalkontableViewport.prototype.getViewportWidth = function (proposedWidth) {
+  var containerWidth = this.getWorkspaceWidth(proposedWidth);
+
+  if (containerWidth === Infinity) {
+    return containerWidth;
+  }
+
+  var rowHeaderWidth = this.getRowHeaderHeight();
+  if (rowHeaderWidth > 0) {
+    return containerWidth - rowHeaderWidth;
   }
   else {
     return containerWidth;
