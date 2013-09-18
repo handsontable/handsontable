@@ -1,6 +1,5 @@
 (function(Handsontable){
   var TextEditor = Handsontable.editors.BaseEditor.prototype.extend();
-  var wtDom = new WalkontableDom();
 
   TextEditor.prototype.init = function(){
     this.createElements();
@@ -25,7 +24,7 @@
 
 
     //Process only events that have been fired in the editor
-    if (event.target !== that.TEXTAREA){
+    if (event.target !== that.TEXTAREA || event.isImmediatePropagationStopped()){
       return;
     }
 
@@ -37,13 +36,13 @@
 
     switch (event.keyCode) {
       case keyCodes.ARROW_RIGHT:
-        if (wtDom.getCaretPosition(that.TEXTAREA) !== that.TEXTAREA.value.length) {
+        if (that.wtDom.getCaretPosition(that.TEXTAREA) !== that.TEXTAREA.value.length) {
           event.stopImmediatePropagation();
         }
         break;
 
       case keyCodes.ARROW_LEFT: /* arrow left */
-        if (wtDom.getCaretPosition(that.TEXTAREA) !== 0) {
+        if (that.wtDom.getCaretPosition(that.TEXTAREA) !== 0) {
           event.stopImmediatePropagation();
         }
         break;
@@ -84,7 +83,7 @@
   TextEditor.prototype.open = function(){
     this.refreshDimensions(); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
     this.TEXTAREA.focus();
-    wtDom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+    this.wtDom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
 
     this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   };
@@ -101,23 +100,23 @@
 
   TextEditor.prototype.focus = function(){
     this.TEXTAREA.focus();
-    wtDom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
   };
 
   TextEditor.prototype.createElements = function () {
     this.$body = $(document.body);
+    this.wtDom = new WalkontableDom();
 
     this.TEXTAREA = document.createElement('TEXTAREA');
     this.$textarea = $(this.TEXTAREA);
 
-    wtDom.addClass(this.TEXTAREA, 'handsontableInput');
+    this.wtDom.addClass(this.TEXTAREA, 'handsontableInput');
 
     this.textareaStyle = this.TEXTAREA.style;
     this.textareaStyle.width = 0;
     this.textareaStyle.height = 0;
 
     this.TEXTAREA_PARENT = document.createElement('DIV');
-    wtDom.addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
+    this.wtDom.addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
 
     this.textareaParentStyle = this.TEXTAREA_PARENT.style;
     this.textareaParentStyle.top = 0;
@@ -144,8 +143,8 @@
     ///start prepare textarea position
     this.TD = this.instance.getCell(this.row, this.col);
     var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
-    var currentOffset = wtDom.offset(this.TD);
-    var containerOffset = wtDom.offset(this.instance.rootElement[0]);
+    var currentOffset = this.wtDom.offset(this.TD);
+    var containerOffset = this.wtDom.offset(this.instance.rootElement[0]);
     var scrollTop = this.instance.rootElement.scrollTop();
     var scrollLeft = this.instance.rootElement.scrollLeft();
     var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;

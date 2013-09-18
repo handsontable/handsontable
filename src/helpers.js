@@ -245,8 +245,23 @@ Handsontable.helper.extendArray = function (arr, extension) {
 Handsontable.helper.getCellMethod = function (methodName, methodFunction) {
   if (typeof methodFunction === 'string') {
     var result = Handsontable.cellLookup[methodName][methodFunction];
-    if (result === void 0) {
-      throw new Error('You declared cell ' + methodName + ' "' + methodFunction + '" as a string that is not mapped to a known function. Cell ' + methodName + ' must be a function or a string mapped to a function in Handsontable.cellLookup.' + methodName + ' lookup object');
+    if (result === void 0 && methodName === 'renderer') {
+      return function (instance, TD, row, col, prop, value, cellProperties) {
+        cellProperties.rendererTemplate = methodFunction;
+        var editor = cellProperties.editor;
+        /*
+        In future
+        1. remove AutocompleteRenderer
+        2. make the "arrow" be added by editor itself using a plugin hook inserted in tableView.js (at the end of cellRenderer: ...)
+        3. editor add the arrow if cellProperty.arrow === "true"
+         */
+        if (editor === Handsontable.HandsontableEditor || editor === Handsontable.DateEditor || editor === Handsontable.AutocompleteEditor) {
+          return Handsontable.AutocompleteRenderer.apply(instance, arguments);
+        }
+        else {
+          return Handsontable.TextRenderer.apply(instance, arguments);
+        }
+      }
     }
     return result;
   }
@@ -301,4 +316,38 @@ Handsontable.helper.keyCode = {
   X: 88,
   C: 67,
   V: 86
+};
+
+/**
+ * Determines whether given object is an Array.
+ * Note: String is not an Array
+ * @param {*} obj
+ * @returns {boolean}
+ */
+Handsontable.helper.isArray = function(obj){
+  return Array.isArray ? Array.isArray(obj) : Object.prototype.toString.call(obj) == '[object Array]';
+};
+
+Handsontable.helper.pivot = function (arr) {
+  var pivotedArr = [];
+
+  if(!arr || arr.length == 0 || !arr[0] || arr[0].length == 0){
+    return pivotedArr;
+  }
+
+  var rowCount = arr.length;
+  var colCount = arr[0].length;
+
+  for(var i = 0; i < rowCount; i++){
+    for(var j = 0; j < colCount; j++){
+      if(!pivotedArr[j]){
+        pivotedArr[j] = [];
+      }
+
+      pivotedArr[j][i] = arr[i][j];
+    }
+  }
+
+  return pivotedArr;
+
 }

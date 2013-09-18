@@ -53,6 +53,22 @@ describe('Core_alter', function () {
     expect(getData().length).toEqual(5); //new row should be added by keepEmptyRows
   });
 
+  it('should fire beforeRemoveRow event before removing row', function () {
+    var onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
+
+    var hot = handsontable({
+      data: arrayOfNestedObjects(),
+      columns: [
+        {data: "id"},
+        {data: "name.first"}
+      ],
+      beforeRemoveRow: onBeforeRemoveRow
+    });
+    alter('remove_row');
+
+    expect(onBeforeRemoveRow).toHaveBeenCalledWith(countRows(), 1, undefined, undefined, undefined);
+  });
+
   it('should not remove rows below minRows', function () {
     handsontable({
       startRows: 5,
@@ -467,6 +483,47 @@ describe('Core_alter', function () {
     expect(this.$container.find('tr:eq(1) td:eq(3)').html()).toEqual('b');
   });
 
+
+  it("should not create column header together with the column, if headers were NOT specified explicitly", function () {
+
+    handsontable({
+      startCols: 3,
+      startRows: 2,
+      colHeaders: true
+    });
+
+    expect(getColHeader()).toEqual(['A', 'B', 'C']);
+
+    expect(countCols()).toEqual(3);
+
+    alter('insert_col', 1);
+
+    expect(countCols()).toEqual(4);
+
+    expect(getColHeader()).toEqual(['A', 'B', 'C', 'D']);
+
+  });
+
+  it("should create column header together with the column, if headers were specified explicitly", function () {
+
+    handsontable({
+      startCols: 3,
+      startRows: 2,
+      colHeaders: ['Header0', 'Header1', 'Header2']
+    });
+
+    expect(getColHeader()).toEqual(['Header0', 'Header1', 'Header2']);
+
+    expect(countCols()).toEqual(3);
+
+    alter('insert_col', 1);
+
+    expect(countCols()).toEqual(4);
+
+    expect(getColHeader()).toEqual(['Header0', 'B', 'Header1', 'Header2']);
+
+  });
+
   it('should fire callback on remove row', function () {
     var output;
     handsontable({
@@ -483,6 +540,17 @@ describe('Core_alter', function () {
     alter('remove_row', 1, 2);
 
     expect(output).toEqual([1, 2]);
+  });
+
+  it('should fire beforeRemoveCol event before removing col', function () {
+    var onBeforeRemoveCol = jasmine.createSpy('onBeforeRemoveCol');
+
+    var hot = handsontable({
+      beforeRemoveCol: onBeforeRemoveCol
+    });
+    alter('remove_col');
+
+    expect(onBeforeRemoveCol).toHaveBeenCalledWith(countCols(), 1, undefined, undefined, undefined);
   });
 
   it('should fire callback on remove col', function () {
@@ -513,7 +581,61 @@ describe('Core_alter', function () {
 
     expect(getCellMeta(0, 0).someValue).toEqual([0, 1]);
     expect(getCellMeta(0, 1).someValue).toEqual([0, 2]);
+  });
 
+  it("should remove column when not all rows are visible in the viewport", function () {
+    this.$container.height(100);
+
+    handsontable({
+      startCols: 3,
+      startRows: 20
+    });
+
+    expect(this.$container.find('tbody tr').length).toBeLessThan(20);
+    expect(countCols()).toEqual(3);
+
+    alter('remove_col', 0);
+
+    expect(countCols()).toEqual(2);
+  });
+
+  it("should not remove column header together with the column, if headers were NOT specified explicitly", function () {
+
+    handsontable({
+      startCols: 3,
+      startRows: 2,
+      colHeaders: true
+    });
+
+    expect(getColHeader()).toEqual(['A', 'B', 'C']);
+
+    expect(countCols()).toEqual(3);
+
+    alter('remove_col', 1);
+
+    expect(countCols()).toEqual(2);
+
+    expect(getColHeader()).toEqual(['A', 'B']);
+
+  });
+
+  it("should remove column header together with the column, if headers were specified explicitly", function () {
+
+    handsontable({
+      startCols: 3,
+      startRows: 2,
+      colHeaders: ['Header0', 'Header1', 'Header2']
+    });
+
+    expect(getColHeader()).toEqual(['Header0', 'Header1', 'Header2']);
+
+    expect(countCols()).toEqual(3);
+
+    alter('remove_col', 1);
+
+    expect(countCols()).toEqual(2);
+
+    expect(getColHeader()).toEqual(['Header0', 'Header2']);
 
   });
 

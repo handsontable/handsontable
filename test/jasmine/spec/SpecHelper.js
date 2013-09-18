@@ -29,10 +29,6 @@ var isFillHandleVisible = function () {
   return !!spec().$container.find('.wtBorder.corner:visible').length;
 };
 
-var isAutocompleteVisible = function () {
-  return !!(autocompleteEditor() && autocompleteEditor().data("typeahead") && autocompleteEditor().data("typeahead").$menu.is(":visible"));
-};
-
 /**
  * Shows context menu
  */
@@ -197,7 +193,7 @@ var setCaretPosition = function (pos) {
  * Returns autocomplete instance
  */
 var autocomplete = function () {
-  return spec().$container.find('.handsontableInput').data("typeahead");
+  return spec().$container.find('.autocompleteEditor');
 };
 
 /**
@@ -270,6 +266,24 @@ function createSpreadsheetData(rowCount, colCount) {
     var row = [];
     for (j = 0; j < colCount; j++) {
       row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+function createSpreadsheetObjectData(rowCount, colCount) {
+  rowCount = typeof rowCount === 'number' ? rowCount : 100;
+  colCount = typeof colCount === 'number' ? colCount : 4;
+
+  var rows = []
+    , i
+    , j;
+
+  for (i = 0; i < rowCount; i++) {
+    var row = {};
+    for (j = 0; j < colCount; j++) {
+      row['prop'+j] = Handsontable.helper.spreadsheetColumnLabel(j) + i
     }
     rows.push(row);
   }

@@ -11,9 +11,6 @@
 
 .handsontable {
   position: relative;
-  font-family: Arial, Helvetica, sans-serif;
-  line-height: 1.3em;
-  font-size: 13px;
 }
 
 .handsontable.htAutoColumnSize {
@@ -73,7 +70,6 @@
   line-height: 21px;
   padding: 0 4px 0 4px; /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
   background-color: #FFF;
-  font-size: 12px;
   vertical-align: top;
   overflow: hidden;
   outline-width: 0;
@@ -129,10 +125,6 @@
   text-align: center;
   font-weight: normal;
   white-space: nowrap;
-}
-
-.handsontable th .small {
-  font-size: 12px;
 }
 
 .handsontable thead th {
@@ -231,13 +223,12 @@
   padding: 1px 4px 0 2px;
   font-family: Arial, Helvetica, sans-serif; /*repeat from .handsontable (inherit doesn't work with IE<8) */
   line-height: 1.3em; /*repeat from .handsontable (inherit doesn't work with IE<8) */
-  font-size: 13px;
+  font-size: inherit;
   box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
   resize: none;
 
   /*below are needed to overwrite stuff added by jQuery UI Bootstrap theme*/
   display: inline-block;
-  font-size: 13px;
   color: #000;
   -webkit-border-radius: 0;
   -moz-border-radius: 0;
@@ -248,8 +239,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 1px;
-  height: 1px;
+  z-index: 100;
 }
 
 .htSelectEditor {
@@ -263,6 +253,13 @@ TextRenderer readOnly cell
 .handsontable .htDimmed {
   font-style: italic;
   color: #777;
+}
+
+/*
+TextRenderer placeholder value
+*/
+.handsontable .htPlaceholder {
+  color: #999;
 }
 
 /*
@@ -305,9 +302,6 @@ NumericRenderer
 /* typeahead rules. Needed only if you are using the autocomplete feature */
 .handsontable .typeahead {
   position: absolute;
-  font-family: Arial, Helvetica, sans-serif;
-  line-height: 1.3em;
-  font-size: 13px;
   z-index: 10;
   top: 100%;
   left: 0;
@@ -393,4 +387,62 @@ ul.context-menu-list li {
 
 .handsontable .dragdealer .disabled {
   background: #898989;
+}
+
+/**
+ * Handsontable in Handsontable
+ */
+
+.handsontable .handsontable .wtHider {
+  padding: 0 0 5px 0;
+}
+
+.handsontable .handsontable table {
+  box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+/**
+ * Handsontable listbox theme
+ */
+
+.handsontable.listbox {
+  margin: 0;
+}
+
+.handsontable.listbox table {
+  border: 1px solid #ccc;
+  border-collapse: separate;
+  background: white;
+}
+
+.handsontable.listbox th,
+.handsontable.listbox tr:first-child th,
+.handsontable.listbox tr:last-child th,
+.handsontable.listbox tr:first-child td,
+.handsontable.listbox td {
+  border-width: 0;
+}
+
+.handsontable.listbox th,
+.handsontable.listbox td {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.handsontable.listbox td.htDimmed {
+  cursor: default;
+  color: inherit;
+  font-style: inherit;
+}
+
+.handsontable.listbox .wtBorder {
+  visibility: hidden;
+}
+
+.handsontable.listbox .current {
+  font-weight: bold;
+}
+
+.handsontable.listbox tr:hover td {
+  background: #eee;
 }

@@ -261,6 +261,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         index = -amount;
       }
 
+      index = (instance.countRows() + index) % instance.countRows();
+
       // We have to map the physical row ids to logical and than perform removing with (possibly) new row id
       var logicRows = this.physicalRowsToLogical(index, amount);
 
@@ -293,6 +295,8 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (typeof index !== 'number') {
         index = -amount;
       }
+
+      index = (instance.countCols() + index) % instance.countCols();
 
       instance.PluginHooks.run('beforeRemoveCol', index, amount);
 
@@ -542,6 +546,13 @@ Handsontable.Core = function (rootElement, userSettings) {
           delta = datamap.createCol(index, amount);
 
           if (delta) {
+
+            if(Handsontable.helper.isArray(instance.getSettings().colHeaders)){
+              var spliceArray = [index, 0];
+              spliceArray.length += delta; //inserts empty (undefined) elements at the end of an array
+              Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); //inserts empty (undefined) elements into the colHeader array
+            }
+
             if (priv.selStart.exists() && priv.selStart.col() >= index) {
               priv.selStart.col(priv.selStart.col() + delta);
               selection.transformEnd(0, delta); //will call render() internally
@@ -563,7 +574,16 @@ Handsontable.Core = function (rootElement, userSettings) {
           datamap.removeCol(index, amount);
 
           for(var row = 0, len = datamap.getAll().length; row < len; row++){
-            priv.cellSettings[row].splice(index, amount);
+            if(row in priv.cellSettings){  //if row hasn't been rendered it wouldn't have cellSettings
+              priv.cellSettings[row].splice(index, amount);
+            }
+          }
+
+          if(Handsontable.helper.isArray(instance.getSettings().colHeaders)){
+            if(typeof index == 'undefined'){
+              index = -1;
+            }
+            instance.getSettings().colHeaders.splice(index, amount);
           }
 
           priv.columnSettings.splice(index, amount);
@@ -1662,7 +1682,13 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.loadData = function (data) {
     if (!(data.push && data.splice)) { //check if data is array. Must use duck-type check so Backbone Collections also pass it
-      throw new Error("loadData only accepts array of objects or array of arrays (" + typeof data + " given)");
+      //when data is not an array, attempt to make a single-row array of it
+      if (typeof data === 'object') {
+        data = [data];
+      }
+      else {
+        throw new Error("loadData only accepts array of objects or array of arrays (" + typeof data + " given)");
+      }
     }
 
     priv.isPopulated = false;
@@ -1806,6 +1832,14 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
 
+    if (typeof settings.className !== "undefined") {
+      if (GridSettings.prototype.className) {
+        instance.rootElement.removeClass(GridSettings.prototype.className);
+      }
+      if (settings.className) {
+        instance.rootElement.addClass(settings.className);
+      }
+    }
 
     if (!init) {
       instance.PluginHooks.run('afterUpdateSettings');
@@ -1817,6 +1851,21 @@ Handsontable.Core = function (rootElement, userSettings) {
       selection.refreshBorders(null, true);
     }
   };
+
+  this.getValue = function () {
+    var sel = instance.getSelected();
+    if (GridSettings.prototype.getValue) {
+      if (typeof GridSettings.prototype.getValue === 'function') {
+        return GridSettings.prototype.getValue.call(instance);
+      }
+      else if (sel) {
+        return instance.getData()[sel[0]][GridSettings.prototype.getValue];
+      }
+    }
+    else if (sel) {
+      return instance.getDataAtCell(sel[0], sel[1]);
+    }
+  }
 
   function expandType(obj) {
     if (obj.hasOwnProperty('type')) { //ignore obj.prototype.type
