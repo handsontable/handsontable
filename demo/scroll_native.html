@@ -60,73 +60,83 @@
 <a href="http://github.com/warpech/jquery-handsontable" class="forkMeOnGitHub">Fork me on GitHub</a>
 
 <div id="container">
-<div class="columnLayout">
+  <div class="columnLayout">
 
-<div class="rowLayout">
-  <div class="descLayout">
-    <div class="pad">
-      <h1><a href="../index.html">Handsontable</a></h1>
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
 
-      <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-        for HTML, JavaScript &amp; jQuery
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad" data-jsfiddle="example1">
+          <a name="both"></a>
+
+          <h2>Native Scrollbar</h2>
+
+          <p>This demo shows table of 100 000 rows. Only visible part is rendered. Native window scrollbar is used to
+            scroll through the table.</p>
+
+          <p>This feature is considered <strong>experimental</strong> - not for production use. Normally you should use
+            the
+            <a href="http://handsontable.com/demo/scroll.html">built-in scrollbars</a> that come with Handsontable.
+          </p>
+
+          <p>Currently this feature only works with vertical scrollbar and does NOT work in of a DIV that has <code>overflow:
+            scroll</code></p>
+
+          <p>This feature will continue to be developed. Comments are welcome.</p>
+
+          <div id="example1"></div>
+
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump
+              data to console
+            </button>
+          </p>
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+          </div>
+
+          <script data-jsfiddle="example1">
+            $('#example1').handsontable({
+              data: createBigData(),
+              colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
+              rowHeaders: true,
+              colHeaders: true,
+              minSpareRows: 1,
+              stretchH: 'all',
+              contextMenu: true,
+              scrollbarModelV: 'native'
+            });
+          </script>
+        </div>
+      </div>
+    </div>
+
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
       </div>
     </div>
   </div>
-</div>
-
-<div class="rowLayout">
-  <div class="descLayout">
-    <div class="pad" data-jsfiddle="example1">
-      <a name="both"></a>
-
-      <h2>Native Scrollbar</h2>
-
-      <p>This demo shows table of 1000 rows. Only visible part is rendered. Native window scrollbar is used to scroll through the table.</p>
-
-      <p>This feature is considered <strong>experimental</strong> - not for production use.</p>
-
-      <div id="example1" style="overflow: scroll"></div>
-
-      <p>
-        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
-          data to console
-        </button>
-      </p>
-    </div>
-  </div>
-
-  <div class="codeLayout">
-    <div class="pad">
-      <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
-      </div>
-
-      <script data-jsfiddle="example1">
-        $('#example1').handsontable({
-          data: createBigData(),
-          colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
-          rowHeaders: true,
-          colHeaders: true,
-          minSpareRows: 1,
-          stretchH: 'all',
-          contextMenu: true,
-          scrollbarModelV: 'native'
-        });
-      </script>
-    </div>
-  </div>
-</div>
-
-<div class="rowLayout">
-  <div class="descLayout noMargin">
-    <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
-
-      <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-        licensed under the The MIT License.</p>
-    </div>
-  </div>
-</div>
-</div>
 </div>
 </body>
 </html>
