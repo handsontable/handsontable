@@ -22,19 +22,13 @@
           };
         }
 
-        instance.addHook('beforeRender', htAutoColumnSize.performScheduledDetermine);
-        instance.addHook('beforeRenderMethod', htAutoColumnSize.scheduleDetermine);
-        instance.addHook('beforeChange', htAutoColumnSize.scheduleDetermine);
-        instance.addHook('afterUpdateSettings', htAutoColumnSize.scheduleDetermine);
+        instance.addHook('beforeRender', htAutoColumnSize.determineIfChanged);
         instance.addHook('afterGetColWidth', htAutoColumnSize.getColWidth);
         instance.addHook('afterDestroy', htAutoColumnSize.afterDestroy);
 
         instance.determineColumnWidth = plugin.determineColumnWidth;
       } else {
-        instance.removeHook('beforeRender', htAutoColumnSize.performScheduledDetermine);
-        instance.removeHook('beforeRenderMethod', htAutoColumnSize.scheduleDetermine);
-        instance.removeHook('beforeChange', htAutoColumnSize.scheduleDetermine);
-        instance.removeHook('afterUpdateSettings', htAutoColumnSize.scheduleDetermine);
+        instance.removeHook('beforeRender', htAutoColumnSize.determineIfChanged);
         instance.removeHook('afterGetColWidth', htAutoColumnSize.getColWidth);
         instance.removeHook('afterDestroy', htAutoColumnSize.afterDestroy);
 
@@ -46,14 +40,9 @@
 
     };
 
-    this.scheduleDetermine = function () {
-      this.autoColumnSizeTmp.determineBeforeNextRender = true;
-    };
-
-    this.performScheduledDetermine = function () {
-      if (this.autoColumnSizeTmp.determineBeforeNextRender) {
+    this.determineIfChanged = function (force) {
+      if (force) {
         htAutoColumnSize.determineColumnsWidth.apply(this, arguments);
-        this.autoColumnSizeTmp.determineBeforeNextRender = false;
       }
     };
 

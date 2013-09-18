@@ -1908,13 +1908,11 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    */
   this.render = function () {
-    instance.PluginHooks.run('beforeRenderMethod');
     if (instance.view) {
       instance.forceFullRender = true; //used when data was changed
       instance.parseSettingsFromDOM();
       selection.refreshBorders(null, true);
     }
-    instance.PluginHooks.run('afterRenderMethod');
   };
 
   /**
