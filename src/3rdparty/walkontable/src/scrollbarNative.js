@@ -1,7 +1,17 @@
 function WalkontableScrollbarNative() {
   this.lastWindowScrollPosition = NaN;
   this.maxOuts = 10; //max outs in one direction (before and after table)
+  this.lastBegin = 0;
+  this.lastEnd = 0;
 }
+
+/*
+ Possible optimizations:
+ [x] don't rerender if scroll delta is smaller than the fragment outside of the viewport
+ [ ] move .style.top change before .draw()
+ [ ] put .draw() in requestAnimationFrame
+ [ ] don't rerender rows that remain visible after the scroll
+ */
 
 WalkontableScrollbarNative.prototype.init = function () {
   this.TABLE = this.instance.wtTable.TABLE;
@@ -35,6 +45,11 @@ WalkontableScrollbarNative.prototype.onScroll = function (forcePosition) {
   if (this.windowScrollPosition === this.lastWindowScrollPosition) {
     return;
   }
+
+  if (this.windowScrollPosition > this.lastBegin && this.windowScrollPosition + this.windowSize < this.lastEnd) {
+    return;
+  }
+
   this.lastWindowScrollPosition = this.windowScrollPosition;
 
   var scrollDelta;
@@ -153,6 +168,9 @@ WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
   this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, this.total) + 'px';
   this.fixed.style.top = this.measureBefore + 'px';
   this.fixed.style.bottom = '';
+
+  this.lastBegin = this.tableParentOffset + this.measureBefore;
+  this.lastEnd = this.lastBegin + headerSize + this.instance.wtTable.rowStrategy.cellSizesSum;
 };
 
 WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {
