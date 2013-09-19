@@ -25,15 +25,15 @@
 .handsontable thead,
 .handsontable td,
 .handsontable th,
-.handsontable div
-{
+.handsontable div {
   box-sizing: content-box;
   -webkit-box-sizing: content-box;
   -moz-box-sizing: content-box;
 }
 
 .handsontable table.htCore {
-  border-collapse: separate; /*it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit*/
+  border-collapse: separate;
+  /*it must be separate, otherwise there are offset miscalculations in WebKit: http://stackoverflow.com/questions/2655987/border-collapse-differences-in-ff-and-webkit*/
   position: relative;
   /*this actually only changes appearance of user selection - does not make text unselectable
   -webkit-user-select: none;
@@ -68,12 +68,14 @@
   height: 22px;
   empty-cells: show;
   line-height: 21px;
-  padding: 0 4px 0 4px; /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
+  padding: 0 4px 0 4px;
+  /* top, bottom padding different than 0 is handled poorly by FF with HTML5 doctype */
   background-color: #FFF;
   vertical-align: top;
   overflow: hidden;
   outline-width: 0;
-  white-space: pre-line; /* preserve new line character in cell */
+  white-space: pre-line;
+  /* preserve new line character in cell */
 }
 
 .handsontable td.htInvalid {
@@ -192,6 +194,7 @@
 }
 
 /* border line */
+
 .handsontable .wtBorder {
   position: absolute;
   font-size: 0;
@@ -202,6 +205,7 @@
 }
 
 /* fill handle */
+
 .handsontable .wtBorder.corner {
   font-size: 0;
   cursor: crosshair;
@@ -218,13 +222,14 @@
   outline-width: 0;
   margin: 0;
   padding: 1px 4px 0 2px;
-  font-family: Arial, Helvetica, sans-serif; /*repeat from .handsontable (inherit doesn't work with IE<8) */
-  line-height: 1.3em; /*repeat from .handsontable (inherit doesn't work with IE<8) */
+  font-family: Arial, Helvetica, sans-serif;
+  /*repeat from .handsontable (inherit doesn't work with IE<8) */
+  line-height: 1.3em;
+  /*repeat from .handsontable (inherit doesn't work with IE<8) */
   font-size: inherit;
   -webkit-box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
   box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
   resize: none;
-
   /*below are needed to overwrite stuff added by jQuery UI Bootstrap theme*/
   display: inline-block;
   color: #000;
@@ -246,6 +251,7 @@
 /*
 TextRenderer readOnly cell
 */
+
 .handsontable .htDimmed {
   font-style: italic;
   color: #777;
@@ -254,6 +260,7 @@ TextRenderer readOnly cell
 /*
 TextRenderer placeholder value
 */
+
 .handsontable .htPlaceholder {
   color: #999;
 }
@@ -261,6 +268,7 @@ TextRenderer placeholder value
 /*
 AutocompleteRenderer down arrow
 */
+
 .handsontable .htAutocomplete {
   position: relative;
   padding-right: 20px;
@@ -284,6 +292,7 @@ AutocompleteRenderer down arrow
 /*
 CheckboxRenderer
 */
+
 .handsontable .htCheckboxRendererInput.noValue {
   opacity: 0.5;
 }
@@ -291,11 +300,13 @@ CheckboxRenderer
 /*
 NumericRenderer
 */
+
 .handsontable .htNumeric {
   text-align: right;
 }
 
 /* typeahead rules. Needed only if you are using the autocomplete feature */
+
 .handsontable .typeahead {
   position: absolute;
   z-index: 10;
@@ -351,12 +362,14 @@ NumericRenderer
 }
 
 /*context menu rules*/
+
 ul.context-menu-list {
   color: black;
 }
 
 ul.context-menu-list li {
-  margin-bottom: 0; /*Foundation framework fix*/
+  margin-bottom: 0;
+  /*Foundation framework fix*/
 }
 
 /**
@@ -391,6 +404,7 @@ ul.context-menu-list li {
 }
 
 .handsontable .handsontable table {
+  -webkit-box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
   box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
 }
 
