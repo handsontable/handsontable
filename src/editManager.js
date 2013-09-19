@@ -1,8 +1,6 @@
 (function(Handsontable){
   'use strict';
 
-  var registeredEditors = {};
-
   Handsontable.EditorManager = function(instance, priv, selection, datamap){
     var self = this;
     var $document = $(document);

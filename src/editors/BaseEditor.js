@@ -139,9 +139,6 @@
   };
 
   BaseEditor.prototype.discardEditor = function (result) {
-
-    var wtDom = new WalkontableDom();
-
     if (this.state !== Handsontable.EditorState.FINISHED) {
       return;
     }

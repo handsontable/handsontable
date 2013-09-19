@@ -204,8 +204,6 @@
   };
 
   TextEditor.prototype.bindEvents = function () {
-    var that = this;
-
     this.$textarea.on('cut.editor', function (event) {
       event.stopPropagation();
     });

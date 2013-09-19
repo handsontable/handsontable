@@ -1,6 +1,5 @@
 function HandsontableManualColumnMove() {
-  var instance
-    , pressed
+  var pressed
     , startCol
     , endCol
     , startX
