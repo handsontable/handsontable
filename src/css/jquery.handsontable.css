@@ -78,9 +78,6 @@
 
 .handsontable td.htInvalid {
   -webkit-transition: background 0.75s ease;
-  -moz-transition: background 0.75s ease;
-  -ms-transition: background 0.75s ease;
-  -o-transition: background 0.75s ease;
   transition: background 0.75s ease;
   background-color: #ff4c42;
 }
@@ -224,14 +221,13 @@
   font-family: Arial, Helvetica, sans-serif; /*repeat from .handsontable (inherit doesn't work with IE<8) */
   line-height: 1.3em; /*repeat from .handsontable (inherit doesn't work with IE<8) */
   font-size: inherit;
+  -webkit-box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
   box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
   resize: none;
 
   /*below are needed to overwrite stuff added by jQuery UI Bootstrap theme*/
   display: inline-block;
   color: #000;
-  -webkit-border-radius: 0;
-  -moz-border-radius: 0;
   border-radius: 0;
 }
 
@@ -317,12 +313,9 @@ NumericRenderer
   border-style: solid;
   border-width: 1px;
   -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
   -webkit-background-clip: padding-box;
   background-clip: padding-box;
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
   border-radius: 4px;
 }
 

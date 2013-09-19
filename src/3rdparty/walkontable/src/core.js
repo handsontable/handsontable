@@ -9,8 +9,8 @@ function Walkontable(settings) {
   this.wtDom = new WalkontableDom();
   this.wtTable = new WalkontableTable(this);
   this.wtScroll = new WalkontableScroll(this);
-  this.wtScrollbars = new WalkontableScrollbars(this);
   this.wtViewport = new WalkontableViewport(this);
+  this.wtScrollbars = new WalkontableScrollbars(this);
   this.wtWheel = new WalkontableWheel(this);
   this.wtEvent = new WalkontableEvent(this);
 
@@ -39,6 +39,15 @@ function Walkontable(settings) {
 
   this.drawn = false;
   this.drawInterrupted = false;
+
+  if (window.Handsontable) {
+    Handsontable.PluginHooks.add('beforeChange', function () {
+      if (that.rowHeightCache) {
+        that.rowHeightCache.length = 0;
+      }
+    });
+
+  }
 }
 
 Walkontable.prototype.draw = function (selectionsOnly) {

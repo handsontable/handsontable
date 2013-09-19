@@ -413,4 +413,29 @@ describe('NewTextEditor', function () {
   });
 
 
+  it("should scroll editor to a cell, if trying to edit cell that is outside of the viewport", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(20, 20),
+      width: 100,
+      height: 50
+    });
+
+    selectCell(0, 0);
+
+    expect(getCell(0, 0)).not.toBeNull();
+    expect(getCell(19, 19)).toBeNull();
+
+    hot.view.scrollViewport({row: 19, col: 19});
+    hot.render();
+
+    expect(getCell(0, 0)).toBeNull();
+    expect(getCell(19, 19)).not.toBeNull();
+
+    keyDown('enter');
+
+    expect(getCell(0, 0)).not.toBeNull();
+    expect(getCell(19, 19)).toBeNull();
+  });
+
+
 });

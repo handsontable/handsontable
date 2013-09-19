@@ -1,9 +1,20 @@
+## [0.9.18](https://github.com/warpech/jquery-handsontable/tree/v0.9.18) (Sep 19, 2013)
+
+Features:
+- native browser scrollbars feature becomes usable, but currently only works vertically ([demo](http://handsontable.com/demo/scroll_native.html))
+
+Bugfixes:
+- it was possible to move a column by just double clicking on move handle ([#963](https://github.com/warpech/jquery-handsontable/issues/963))
+- can't edit a cell that is outside of the viewport ([#1035](https://github.com/warpech/jquery-handsontable/issues/1035))
+- context-menu-layer was not removed from DOM after $.contextMenu destroy
+- cleanup CSS from excessive vendor prefixes
+- performance improvement of scrolling with autoColumnSize
+
 ## [0.9.17](https://github.com/warpech/jquery-handsontable/tree/v0.9.17) (Sep 5, 2013)
 
 Features:
 - `beforeRemoveRow` and `beforeRemoveCol` events are now invoked with absolute index
 - if table has custom column headers, removing column will also remove the corresponding header
-
 
 Bugfix:
 
