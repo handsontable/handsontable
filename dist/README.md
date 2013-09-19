@@ -19,7 +19,6 @@ If you are a "Bob the Builder" kind of hacker, you will need to load Handsontabl
 ```html
 <script src="lib/jquery.min.js"></script>
 <script src="dist/jquery.handsontable.js"></script>
-<script src="lib/bootstrap-typeahead.js"></script>
 <script src="lib/jQuery-contextMenu/jquery.contextMenu.js"></script>
 <script src="lib/jQuery-contextMenu/jquery.ui.position.js"></script>
 <link rel="stylesheet" media="screen" href="dist/jquery.handsontable.css">

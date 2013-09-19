@@ -102,7 +102,6 @@ module.exports = function (grunt) {
         'src/3rdparty/walkontable/src/3rdparty/*.js'
       ],
       vendor: [
-        'lib/bootstrap-typeahead.js',
         'lib/numeral.js',
         'lib/jQuery-contextMenu/jquery.contextMenu.js'
         // seems to have no effect when turned off on contextmenu.html
@@ -226,7 +225,6 @@ module.exports = function (grunt) {
           ],
           vendor: [
             'lib/jquery.min.js',
-            'lib/bootstrap-typeahead.js',
             'lib/numeral.js',
             'lib/jQuery-contextMenu/jquery.contextMenu.js',
             'test/jasmine/lib/jasmine-extensions.js'
