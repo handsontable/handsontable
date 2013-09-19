@@ -73,6 +73,9 @@
       return;
     }
 
+    this.instance.view.scrollViewport({row: this.row, col: this.col});
+    this.instance.view.render();
+
     this.state = Handsontable.EditorState.EDITING;
 
     initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
@@ -82,8 +85,7 @@
     this.open();
     this._opened = true;
 
-    this.instance.view.scrollViewport({row: this.row, col: this.col});
-    this.instance.view.render();
+    this.instance.view.render(); //only rerender the selections (FillHandle should disappear when beginediting is triggered)
   };
 
   BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown) {
