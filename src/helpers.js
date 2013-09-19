@@ -115,7 +115,7 @@ Handsontable.helper.isNumeric = function (n) {
 
 Handsontable.helper.isArray = function (obj) {
   return Object.prototype.toString.call(obj).match(/array/i) !== null;
-}
+};
 
 /**
  * Checks if child is a descendant of given parent node
@@ -350,4 +350,4 @@ Handsontable.helper.pivot = function (arr) {
 
   return pivotedArr;
 
-}
+};

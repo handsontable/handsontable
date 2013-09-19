@@ -106,7 +106,7 @@ function HandsontableManualColumnMove() {
     instance.rootElement.off('mousemove.manualColumnMove');
     instance.rootElement.off('mousedown.manualColumnMove');
     instance.rootElement.off('mouseenter.manualColumnMove');
-  }
+  };
 
   this.beforeInit = function () {
     this.manualColumnPositions = [];

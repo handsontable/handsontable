@@ -49,7 +49,7 @@
     var baseClass = this.constructor;
     function Editor(){
       baseClass.apply(this, arguments);
-    };
+    }
 
     return Handsontable.helper.inherit(Editor, baseClass);
   };

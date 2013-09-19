@@ -18,7 +18,7 @@
       return instances[hotInstance.guid];
     }
 
-  };
+  }
 
   var registeredEditors = {};
 

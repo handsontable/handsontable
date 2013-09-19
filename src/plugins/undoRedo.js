@@ -203,7 +203,7 @@
 
     if(typeof this.headers != 'undefined'){
       spliceArgs = [this.index, 0];
-      Array.prototype.push.apply(spliceArgs, this.headers)
+      Array.prototype.push.apply(spliceArgs, this.headers);
       Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArgs);
     }
 

@@ -51,7 +51,7 @@
     });
 
     this.hideDatepicker();
-  }
+  };
 
   DateEditor.prototype.destroyElements = function () {
     this.$datePicker.datepicker('destroy');

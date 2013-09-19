@@ -30,7 +30,7 @@ function HandsontableColumnSorting() {
         var args = Array.prototype.slice.call(arguments);
 
         return plugin.sortByColumn.apply(instance, args)
-      }
+      };
 
       if (typeof instance.getSettings().observeChanges == 'undefined'){
         enableObserveChangesPlugin.call(instance);

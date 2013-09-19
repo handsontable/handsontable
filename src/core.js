@@ -1865,7 +1865,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     else if (sel) {
       return instance.getDataAtCell(sel[0], sel[1]);
     }
-  }
+  };
 
   function expandType(obj) {
     if (obj.hasOwnProperty('type')) { //ignore obj.prototype.type

@@ -37,4 +37,4 @@ Handsontable.AutocompleteValidator = function (value, callback) {
   } else {
     callback(true);
   }
-}
+};
