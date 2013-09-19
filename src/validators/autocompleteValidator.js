@@ -33,7 +33,7 @@ var process = function (value, callback) {
  */
 Handsontable.AutocompleteValidator = function (value, callback) {
   if (this.strict && this.source) {
-    $.isFunction(this.source) ? this.source(value, process(value, callback)) : process(value, callback)(this.source);
+    typeof this.source === 'function' ? this.source(value, process(value, callback)) : process(value, callback)(this.source);
   } else {
     callback(true);
   }

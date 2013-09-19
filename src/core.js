@@ -1696,7 +1696,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     if (priv.settings.dataSchema instanceof Array || data[0]  instanceof Array) {
       priv.dataType = 'array';
     }
-    else if ($.isFunction(priv.settings.dataSchema)) {
+    else if (typeof priv.settings.dataSchema === 'function') {
       priv.dataType = 'function';
     }
     else {
