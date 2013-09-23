@@ -25,7 +25,7 @@ Handsontable.AutocompleteRenderer = function (instance, TD, row, col, prop, valu
     instance.acArrowListener = function () {
       instance.view.wt.getSetting('onCellDblClick');
     };
-    instance.rootElement.on('mouseup', '.htAutocompleteArrow', instance.acArrowListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
+    instance.rootElement.on('mousedown', '.htAutocompleteArrow', instance.acArrowListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
   }
 
   Handsontable.TextRenderer(instance, TEXT, row, col, prop, value, cellProperties);
