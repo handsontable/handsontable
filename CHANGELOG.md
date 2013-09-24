@@ -20,12 +20,15 @@ Two features that come in handy for plugin developers:
 
 ## [0.10.0-beta1](https://github.com/warpech/jquery-handsontable/tree/v0.10.0-beta1) (Sep 24, 2013)
 
-Features:
-- new, cleaner editors API
-- all native editors are now public
-- replaced Bootstrap Typeahead with native solution in Autocomplete editor
-- added Select editor
-- added native scroll
+Big functional changes in 0.10 branch:
+- an easier API for creating cell editors (see docs)
+- [`autocomplete`](http://handsontable.com/demo/autocomplete.html) cell type now uses Handsontable as the options list (previously was using Bootstrap Typeahead)
+
+Bugfixes:
+- [native scrollbars](http://handsontable.com/demo/scroll_native.html) performance improvement
+
+Code quality improvements:
+- change some of jQuery usage ($.isFunction, $.trim) to plain JavaScript
 
 ## [0.9.18](https://github.com/warpech/jquery-handsontable/tree/v0.9.18) (Sep 19, 2013)
 
