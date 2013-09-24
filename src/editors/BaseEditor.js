@@ -13,9 +13,14 @@
     this.state = Handsontable.EditorState.VIRGIN;
 
     this._opened = false;
-    this._closeDeferred = null;
+    this._closeCallback = function () {
+    };
 
     this.init();
+  }
+
+  BaseEditor.prototype._fireCallbacks = function(result) {
+    this._closeCallback(result);
   }
 
   BaseEditor.prototype.init = function(){
@@ -88,21 +93,29 @@
     this.instance.view.render(); //only rerender the selections (FillHandle should disappear when beginediting is triggered)
   };
 
-  BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown) {
+  BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown, callback) {
 
-    if (this.isWaiting()) {
-      return this._closeDeferred.promise();
+    if (callback) {
+      var old = this._closeCallback;
+      this._closeCallback = function (result) {
+        old(result);
+        callback(result);
+      };
     }
 
-    this._closeDeferred = $.Deferred();
+    if (this.isWaiting()) {
+      return;
+    }
 
-    if (this.state == Handsontable.EditorState.VIRGIN){
+    this._closeCallback = function () {
+    };
+
+    if (this.state == Handsontable.EditorState.VIRGIN) {
       var that = this;
-      setTimeout(function(){
-        that._closeDeferred.resolve();
+      setTimeout(function () {
+        that._fireCallbacks(true);
       });
-
-      return this._closeDeferred.promise();
+      return;
     }
 
     if (this.state == Handsontable.EditorState.EDITING) {
@@ -134,8 +147,6 @@
       }
 
     }
-
-    return this._closeDeferred.promise();
   };
 
   BaseEditor.prototype.discardEditor = function (result) {
@@ -150,7 +161,7 @@
 
       this.state = Handsontable.EditorState.EDITING;
 
-      this._closeDeferred.reject();
+      this._fireCallbacks(false);
     }
     else {
       this.close();
@@ -158,7 +169,7 @@
 
       this.state = Handsontable.EditorState.VIRGIN;
 
-      this._closeDeferred.resolve();
+      this._fireCallbacks(true);
     }
 
   };

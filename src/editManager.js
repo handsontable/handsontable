@@ -2,7 +2,7 @@
   'use strict';
 
   Handsontable.EditorManager = function(instance, priv, selection, datamap){
-    var self = this;
+    var that = this;
     var $document = $(document);
     var keyCodes = Handsontable.helper.keyCode;
 
@@ -58,7 +58,7 @@
         if (Handsontable.helper.isCtrlKey(event.keyCode)) {
           //when CTRL is pressed, prepare selectable text in textarea
           //http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
-          self.setCopyableText();
+          that.setCopyableText();
           return;
         }
 
@@ -72,7 +72,7 @@
             if (Handsontable.helper.isPrintableChar(event.keyCode) && ctrlDown) {
               if (event.keyCode === 65) { //CTRL + A
                 selection.selectAll(); //select all cells
-                self.setCopyableText();
+                that.setCopyableText();
                 event.preventDefault();
                 event.stopImmediatePropagation();
               }
@@ -80,7 +80,7 @@
 
           if (!activeEditor.isWaiting()) {
             if (!Handsontable.helper.isMetaKey(event.keyCode) && !ctrlDown) {
-              self.openEditor('');
+              that.openEditor('');
               event.stopPropagation(); //required by HandsontableEditor
               return;
             }
@@ -91,8 +91,8 @@
             switch (event.keyCode) {
               case keyCodes.ARROW_UP:
 
-                if (self.isEditorOpened() && !activeEditor.isWaiting()){
-                  self.closeEditorAndSaveChanges(ctrlDown);
+                if (that.isEditorOpened() && !activeEditor.isWaiting()){
+                  that.closeEditorAndSaveChanges(ctrlDown);
                 }
 
                 moveSelectionUp(event.shiftKey);
@@ -102,8 +102,8 @@
                 break;
 
               case keyCodes.ARROW_DOWN:
-                if (self.isEditorOpened() && !activeEditor.isWaiting()){
-                  self.closeEditorAndSaveChanges(ctrlDown);
+                if (that.isEditorOpened() && !activeEditor.isWaiting()){
+                  that.closeEditorAndSaveChanges(ctrlDown);
                 }
 
                 moveSelectionDown(event.shiftKey);
@@ -113,8 +113,8 @@
                 break;
 
               case keyCodes.ARROW_RIGHT:
-                if(self.isEditorOpened()  && !activeEditor.isWaiting()){
-                  self.closeEditorAndSaveChanges(ctrlDown);
+                if(that.isEditorOpened()  && !activeEditor.isWaiting()){
+                  that.closeEditorAndSaveChanges(ctrlDown);
                 }
 
                 moveSelectionRight(event.shiftKey);
@@ -124,8 +124,8 @@
                 break;
 
               case keyCodes.ARROW_LEFT:
-                if(self.isEditorOpened() && !activeEditor.isWaiting()){
-                  self.closeEditorAndSaveChanges(ctrlDown);
+                if(that.isEditorOpened() && !activeEditor.isWaiting()){
+                  that.closeEditorAndSaveChanges(ctrlDown);
                 }
 
                 moveSelectionLeft(event.shiftKey);
@@ -153,15 +153,15 @@
                 break;
 
               case keyCodes.F2: /* F2 */
-                self.openEditor();
+                that.openEditor();
                 event.preventDefault(); //prevent Opera from opening Go to Page dialog
                 break;
 
               case keyCodes.ENTER: /* return/enter */
-                if(self.isEditorOpened()){
+                if(that.isEditorOpened()){
 
                   if (activeEditor.state !== Handsontable.EditorState.WAITING){
-                    self.closeEditorAndSaveChanges(ctrlDown);
+                    that.closeEditorAndSaveChanges(ctrlDown);
                   }
 
                   moveSelectionAfterEnter(event.shiftKey);
@@ -169,7 +169,7 @@
                 } else {
 
                   if (instance.getSettings().enterBeginsEditing){
-                    self.openEditor();
+                    that.openEditor();
                   } else {
                     moveSelectionAfterEnter(event.shiftKey);
                   }
@@ -181,8 +181,8 @@
                 break;
 
               case keyCodes.ESCAPE:
-                if(self.isEditorOpened()){
-                  self.closeEditorAndRestoreOriginalValue(ctrlDown);
+                if(that.isEditorOpened()){
+                  that.closeEditorAndRestoreOriginalValue(ctrlDown);
                 }
                 event.preventDefault();
                 break;
@@ -236,7 +236,7 @@
 
       function onDblClick() {
 //        that.instance.destroyEditor();
-        self.openEditor();
+        that.openEditor();
       }
 
       instance.view.wt.update('onCellDblClick', onDblClick);
@@ -345,9 +345,9 @@
         if(!pendingPrepare){
           pendingPrepare = true;
 
-          this.closeEditor().done(function(){
+          this.closeEditor(false, false, function(){
             pendingPrepare = false;
-            self.prepareEditor();
+            that.prepareEditor();
           });
 
         }
@@ -377,19 +377,16 @@
       activeEditor.beginEditing(initialValue);
     };
 
-    this.closeEditor = function (restoreOriginalValue, ctrlDown) {
+    this.closeEditor = function (restoreOriginalValue, ctrlDown, callback) {
 
       if (!activeEditor){
-        var deferred = $.Deferred();
-
-        setTimeout(function(){
-           deferred.reject();
-        });
-
-        return deferred.promise();
+        if(callback) {
+          callback(false);
+        }
       }
-
-      return activeEditor.finishEditing(restoreOriginalValue, ctrlDown);
+      else {
+        activeEditor.finishEditing(restoreOriginalValue, ctrlDown, callback);
+      }
     };
 
     this.closeEditorAndSaveChanges = function(ctrlDown){
