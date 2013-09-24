@@ -123,6 +123,10 @@ WalkontableScroll.prototype.scrollLogicHorizontal = function (delta, offset, tot
  * Scrolls viewport to a cell by minimum number of cells
  */
 WalkontableScroll.prototype.scrollViewport = function (coords) {
+  if (!this.instance.drawn) {
+    return;
+  }
+
   var offsetRow = this.instance.getSetting('offsetRow')
     , offsetColumn = this.instance.getSetting('offsetColumn')
     , lastVisibleRow = this.instance.wtTable.getLastVisibleRow()
