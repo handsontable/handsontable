@@ -56,7 +56,7 @@ module.exports = function (grunt) {
         'src/focusCatcher.js',
         'src/tableView.js',
         'src/editors.js',
-        'src/editManager.js',
+        'src/editorManager.js',
         'src/helpers.js',
         'src/fillHandle.js',
         'src/selectionPoint.js',
