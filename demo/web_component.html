@@ -117,19 +117,19 @@
       <div style="clear: left"></div>
 
       <x-handsontable id="example1" datarows="people" settings="settings" width="400" minsparerows="1">
-        <datacolumn width="30" readOnly value="id" title="ID"></datacolumn>
-        <datacolumn width="70" value="name.first" title="First Name"></datacolumn>
-        <datacolumn width="100" value="name.last" title="Last Name"></datacolumn>
-        <datacolumn type="autocomplete" source="genderList" value="gender"
-                    title="Gender"></datacolumn>
-        <datacolumn type="numeric" value="age" title="Age"></datacolumn>
-        <datacolumn type="checkbox" value="languages.english" title="English" checkedTemplate="Yes"
-                    uncheckedTemplate="No"></datacolumn>
-        <datacolumn type="checkbox" value="languages.spanish" title="Spanish" checkedTemplate="Yes"
-                    uncheckedTemplate="No"></datacolumn>
-        <datacolumn type="checkbox" value="languages.french" title="French" checkedTemplate="Yes"
-                    uncheckedTemplate="No"></datacolumn>
-        <datacolumn type="numeric" value="salary" title="Salary" format="$ 0,0.00"></datacolumn>
+        <hot-column id="col1" width="30" readOnly value="id" title="ID"></hot-column>
+        <hot-column width="70" value="name.first" title="First Name"></hot-column>
+        <hot-column width="100" value="name.last" title="Last Name"></hot-column>
+        <hot-column type="autocomplete" source="genderList" value="gender"
+                    title="Gender"></hot-column>
+        <hot-column type="numeric" value="age" title="Age"></hot-column>
+        <hot-column type="checkbox" value="languages.english" title="English" checkedTemplate="Yes"
+                    uncheckedTemplate="No"></hot-column>
+        <hot-column type="checkbox" value="languages.spanish" title="Spanish" checkedTemplate="Yes"
+                    uncheckedTemplate="No"></hot-column>
+        <hot-column type="checkbox" value="languages.french" title="French" checkedTemplate="Yes"
+                    uncheckedTemplate="No"></hot-column>
+        <hot-column type="numeric" value="salary" title="Salary" format="$ 0,0.00"></hot-column>
       </x-handsontable>
 
       <p>

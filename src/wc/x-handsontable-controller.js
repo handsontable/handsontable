@@ -1,8 +1,8 @@
-function parseDatacolumn(DATACOLUMN) {
+function parseDatacolumn(HOTCOLUMN) {
   var obj = {};
 
-  for (var i = 0, ilen = DATACOLUMN.attributes.length; i < ilen; i++) {
-    obj[DATACOLUMN.attributes[i].name] = DATACOLUMN.attributes[i].value || true;
+  for (var i = 0, ilen = HOTCOLUMN.attributes.length; i < ilen; i++) {
+    obj[HOTCOLUMN.attributes[i].name] = HOTCOLUMN.attributes[i].value || true;
   }
 
   obj.data = obj.value;
@@ -23,7 +23,7 @@ function parseDatacolumn(DATACOLUMN) {
     obj.source = window[obj.source];
   }
 
-  var HANDSONTABLE = DATACOLUMN.getElementsByTagName('x-handsontable');
+  var HANDSONTABLE = HOTCOLUMN.getElementsByTagName('x-handsontable');
   if (HANDSONTABLE.length) {
     obj.handsontable = parseHandsontable(HANDSONTABLE[0]);
   }
@@ -58,7 +58,7 @@ function parseDatacolumns(HANDSONTABLE) {
     , ilen;
 
   for (i = 0, ilen = HANDSONTABLE.childNodes.length; i < ilen; i++) {
-    if (HANDSONTABLE.childNodes[i].nodeName === 'DATACOLUMN') {
+    if (HANDSONTABLE.childNodes[i].nodeName === 'HOT-COLUMN') {
       columns.push(parseDatacolumn(HANDSONTABLE.childNodes[i]));
     }
   }
@@ -71,7 +71,7 @@ function parseHandsontable(HANDSONTABLE) {
   var columns = parseDatacolumns(HANDSONTABLE);
 
   for (i = 0, ilen = HANDSONTABLE.childNodes.length; i < ilen; i++) {
-    if (HANDSONTABLE.childNodes[i].nodeName === 'DATACOLUMN') {
+    if (HANDSONTABLE.childNodes[i].nodeName === 'HOT-COLUMN') {
       var observer = new MutationObserver(function (mutations) {
         var settingsChanged = false;
 
