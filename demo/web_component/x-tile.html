@@ -1,5 +1,5 @@
 <!-- <x-tile> element, a nice small companion to web_component.html demo (requires Polymer polyfill) -->
-<element name="x-tile" attributes="label value skin">
+<polymer-element name="x-tile" attributes="label value skin">
   <template>
     <style>
       .tile {
@@ -40,6 +40,6 @@
     <content></content>
   </template>
   <script>
-    Polymer.register(this);
+    Polymer('x-tile', this);
   </script>
-</element>
+</polymer-element>
