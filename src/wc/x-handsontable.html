@@ -17,8 +17,29 @@ GOOD NEWS: Future release will be independent from jQuery
   <template>
     <link rel="stylesheet" href="x-handsontable/jquery.handsontable.full.css">
     <div id="htContainer" style="clear: both"></div>
+    <content></content>
   </template>
   <script>
 @@controller
+  </script>
+</polymer-element>
+
+<polymer-element name="hot-column">
+  <template>
+
+  </template>
+  <script>
+    Polymer('hot-column', {
+      enteredView: function () {
+
+      },
+      attributeChanged: function () {
+        this.parentNode && this.parentNode.onMutation();
+      },
+      publish: {
+        width: '',
+        header: ''
+      }
+    });
   </script>
 </polymer-element>

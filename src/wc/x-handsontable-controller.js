@@ -70,43 +70,11 @@ function parseHandsontable(HANDSONTABLE) {
   var i;
   var columns = parseDatacolumns(HANDSONTABLE);
 
-  for (i = 0, ilen = HANDSONTABLE.childNodes.length; i < ilen; i++) {
-    if (HANDSONTABLE.childNodes[i].nodeName === 'HOT-COLUMN') {
-      var observer = new MutationObserver(function (mutations) {
-        var settingsChanged = false;
-
-        mutations.forEach(function (mutation) {
-          if (mutation.type === 'attributes') {
-            settingsChanged = true;
-          }
-        });
-
-        if (settingsChanged) {
-          HANDSONTABLE.updateSettings({columns: parseDatacolumns(HANDSONTABLE)});
-        }
-      });
-
-      // configuration of the observer:
-      var config = { attributes: true, childList: true, characterData: true };
-
-      // pass in the target node, as well as the observer options
-      observer.observe(HANDSONTABLE.childNodes[i], config);
-    }
-  }
-
   var options = {
   };
 
   if (columns.length) {
     options.columns = columns;
-  }
-
-  function hasTitle(column) {
-    return column.title !== void 0;
-  }
-
-  if (columns.filter(hasTitle).length && options.colHeaders !== false) {
-    options.colHeaders = true;
   }
 
   if (HANDSONTABLE.settings) {
@@ -176,13 +144,16 @@ function readBool(val) {
 
 Polymer('x-handsontable', {
   instance: null,
-  ready: function () {
+  enteredView: function () {
     this.shadowRoot.applyAuthorStyles = true; //only way I know to let override Shadow DOM styles (just define ".handsontable td" in page stylesheet)
     jQuery(this.$.htContainer).handsontable(parseHandsontable(this));
     this.instance = jQuery(this.$.htContainer).data('handsontable');
   },
-  enteredDocument: function () {
-    this.render();
+  onMutation: function() {
+    var columns = parseDatacolumns(this);
+    if (columns.length) {
+      this.updateSettings({columns: columns});
+    }
   },
   publish: publish
 });

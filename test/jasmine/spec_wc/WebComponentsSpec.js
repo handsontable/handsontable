@@ -13,6 +13,8 @@ describe('WebComponents', function () {
       return ready;
     }, 1000);
 
+    waits(0);
+
     runs(function () {
       expect(hot.getCell(0, 0).nodeName).toBe('TD');
       hot.parentNode.removeChild(hot);
@@ -26,6 +28,8 @@ describe('WebComponents', function () {
     waitsFor(function () {
       return ready;
     }, 1000);
+
+    waits(0);
 
     runs(function () {
       expect(hot.getSettings().pasteMode).toBe('overwrite');
@@ -41,6 +45,8 @@ describe('WebComponents', function () {
     waitsFor(function () {
       return ready;
     }, 1000);
+
+    waits(100);
 
     runs(function () {
       hot.pasteMode = 'shift_down';
