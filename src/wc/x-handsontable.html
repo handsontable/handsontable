@@ -13,12 +13,33 @@ GOOD NEWS: Future release will be independent from jQuery
 <!-- Handsontable various cell type dependencies -->
 <script data-jsfiddle="common" src="x-handsontable/numeral.de-de.js"></script><!-- numeric cell type -->
 
-<polymer-element name="x-handsontable" attributes="datarows settings width height minsparerows colheaders fillhandle getvalue observechanges">
+<polymer-element name="x-handsontable">
   <template>
     <link rel="stylesheet" href="x-handsontable/jquery.handsontable.full.css">
     <div id="htContainer" style="clear: both"></div>
+    <content></content>
   </template>
   <script>
 @@controller
+  </script>
+</polymer-element>
+
+<polymer-element name="hot-column">
+  <template>
+
+  </template>
+  <script>
+    Polymer('hot-column', {
+      enteredView: function () {
+
+      },
+      attributeChanged: function () {
+        this.parentNode && this.parentNode.onMutation();
+      },
+      publish: {
+        width: '',
+        header: ''
+      }
+    });
   </script>
 </polymer-element>

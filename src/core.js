@@ -1680,14 +1680,25 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @param {Array} data
    */
   this.loadData = function (data) {
-    if (!(data.push && data.splice)) { //check if data is array. Must use duck-type check so Backbone Collections also pass it
-      //when data is not an array, attempt to make a single-row array of it
-      if (typeof data === 'object') {
+    if (typeof data === 'object' && data !== null) {
+      if (!(data.push && data.splice)) { //check if data is array. Must use duck-type check so Backbone Collections also pass it
+        //when data is not an array, attempt to make a single-row array of it
         data = [data];
       }
-      else {
-        throw new Error("loadData only accepts array of objects or array of arrays (" + typeof data + " given)");
+    }
+    else if(data === null) {
+      data = [];
+      var row;
+      for (var r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
+        row = [];
+        for (var c = 0, clen = priv.settings.startCols; c < clen; c++) {
+          row.push(null);
+        }
+        data.push(row);
       }
+    }
+    else {
+      throw new Error("loadData only accepts array of objects or array of arrays (" + typeof data + " given)");
     }
 
     priv.isPopulated = false;
@@ -1747,7 +1758,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    */
   this.updateSettings = function (settings, init) {
-    var i, r, rlen, c, clen;
+    var i, ilen, clen;
 
     if (typeof settings.rows !== "undefined") {
       throw new Error("'rows' setting is no longer supported. do you mean startRows, minRows or maxRows?");
@@ -1780,22 +1791,22 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     // Load data or create data map
     if (settings.data === void 0 && priv.settings.data === void 0) {
-      var data = [];
-      var row;
-      for (r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
-        row = [];
-        for (c = 0, clen = priv.settings.startCols; c < clen; c++) {
-          row.push(null);
-        }
-        data.push(row);
-      }
-      instance.loadData(data); //data source created just now
+      instance.loadData(null); //data source created just now
     }
     else if (settings.data !== void 0) {
       instance.loadData(settings.data); //data source given as option
     }
     else if (settings.columns !== void 0) {
       datamap.createMap();
+    }
+
+    if (settings.columns !== void 0) {
+      for (i = 0, ilen = settings.columns.length; i < ilen; i++) {
+        if (GridSettings.prototype.colHeaders !== false) {
+          GridSettings.prototype.colHeaders = true;
+        }
+        break;
+      }
     }
 
     // Init columns constructors configuration
@@ -2565,6 +2576,7 @@ DefaultSettings.prototype = {
   scrollbarModelV: 'dragdealer',
   scrollbarModelH: 'dragdealer'
 };
+Handsontable.DefaultSettings = DefaultSettings;
 
 $.fn.handsontable = function (action) {
   var i
