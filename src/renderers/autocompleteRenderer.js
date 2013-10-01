@@ -28,7 +28,9 @@ Handsontable.AutocompleteRenderer = function (instance, TD, row, col, prop, valu
     instance.rootElement.on('mouseup', '.htAutocompleteArrow', instance.acArrowListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
   }
 
-  Handsontable.TextRenderer(instance, TEXT, row, col, prop, value, cellProperties);
+  Handsontable.TextRenderer(instance, TD, row, col, prop, value, cellProperties);
+  var escaped = Handsontable.helper.stringify(value);
+  instance.view.wt.wtDom.fastInnerText(TEXT, escaped);
 
   if (!TEXT.firstChild) { //http://jsperf.com/empty-node-if-needed
     //otherwise empty fields appear borderless in demo/renderers.html (IE)
