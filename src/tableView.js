@@ -29,6 +29,8 @@ Handsontable.TableView = function (instance) {
   instance.rootElement.on('mousedown.handsontable', function (event) {
     if (!that.isTextSelectionAllowed(event.target)) {
       clearTextSelection();
+      event.preventDefault();
+      window.focus(); //make sure that window that contains HOT is active. Important when HOT is in iframe.
     }
   });
 
