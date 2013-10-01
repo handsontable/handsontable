@@ -78,4 +78,15 @@ describe('Core_render', function () {
 
     expect(counter).toEqual(2); // 1 from load and 1 from populateFromArray
   });
+
+  it('should run afterRenderer hook', function () {
+    handsontable({
+      data : [[1,2,3,4,5],[1,2,3,4,5]],
+      afterRenderer: function (td, row, col, prop, value, cellProperties) {
+        td.innerHTML = 'Changed by plugin';
+      }
+    });
+
+    expect(this.$container.find('td:eq(0)')[0].innerHTML).toEqual('Changed by plugin');
+  });
 });

@@ -372,7 +372,14 @@ Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td,
     , cellProperties = this.instance.getCellMeta(row, col)
     , method = Handsontable.helper.getCellMethod(methodName, cellProperties[methodName]); //methodName is 'renderer' or 'editor'
 
-  return method(this.instance, td, row, col, prop, this.instance.getDataAtRowProp(row, prop), cellProperties);
+  var value = this.instance.getDataAtRowProp(row, prop);
+  var res = method(this.instance, td, row, col, prop, value, cellProperties);
+
+  if (methodName === 'renderer') {
+    this.instance.PluginHooks.run('afterRenderer', td, row, col, prop, value, cellProperties);
+  }
+
+  return res;
 };
 
 /**
