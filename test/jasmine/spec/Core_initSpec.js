@@ -52,4 +52,25 @@ describe('Core_init', function () {
     handsontable();
     expect(getData()).toBeTruthy();
   });
+
+  it('Handsontable.Dom should be available as a helper to the plugins', function () {
+    //all public methods of WalkontableDom should be exposed here
+    expect(Handsontable.Dom.closest).toBeDefined();
+    expect(Handsontable.Dom.isChildOf).toBeDefined();
+    expect(Handsontable.Dom.index).toBeDefined();
+    expect(Handsontable.Dom.hasClass).toBeDefined();
+    expect(Handsontable.Dom.addClass).toBeDefined();
+    expect(Handsontable.Dom.removeClass).toBeDefined();
+    expect(Handsontable.Dom.removeTextNodes).toBeDefined();
+    expect(Handsontable.Dom.empty).toBeDefined();
+    expect(Handsontable.Dom.fastInnerHTML).toBeDefined();
+    expect(Handsontable.Dom.fastInnerText).toBeDefined();
+    expect(Handsontable.Dom.isVisible).toBeDefined();
+    expect(Handsontable.Dom.offset).toBeDefined();
+    expect(Handsontable.Dom.getComputedStyle).toBeDefined();
+    expect(Handsontable.Dom.outerWidth).toBeDefined();
+    expect(Handsontable.Dom.outerHeight).toBeDefined();
+    expect(Handsontable.Dom.getCaretPosition).toBeDefined();
+    expect(Handsontable.Dom.setCaretPosition).toBeDefined();
+  });
 });
