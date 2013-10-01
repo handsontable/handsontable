@@ -1,3 +1,9 @@
+## [0.9.19](https://github.com/warpech/jquery-handsontable/tree/v0.9.19) (Oct 01, 2013)
+
+Two features that come in handy for plugin developers:
+- new plugin hook: `afterRenderer`
+- (previously private) DOM helpers are now exposed as `Handosontable.Dom` (see [api](https://github.com/warpech/jquery-handsontable/blob/master/src/3rdparty/walkontable/src/dom.js))
+
 ## [0.9.18](https://github.com/warpech/jquery-handsontable/tree/v0.9.18) (Sep 19, 2013)
 
 Features:
