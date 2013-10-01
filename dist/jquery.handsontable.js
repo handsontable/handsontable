@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.9.18
+ * Handsontable 0.9.19
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Sep 19 2013 01:45:41 GMT+0200 (Central European Daylight Time)
+ * Date: Tue Oct 01 2013 13:17:18 GMT+0200 (Central European Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2745,7 +2745,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.9.18'; //inserted by grunt from package.json
+  this.version = '0.9.19'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {
@@ -3209,7 +3209,14 @@ Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td,
     , cellProperties = this.instance.getCellMeta(row, col)
     , method = Handsontable.helper.getCellMethod(methodName, cellProperties[methodName]); //methodName is 'renderer' or 'editor'
 
-  return method(this.instance, td, row, col, prop, this.instance.getDataAtRowProp(row, prop), cellProperties);
+  var value = this.instance.getDataAtRowProp(row, prop);
+  var res = method(this.instance, td, row, col, prop, value, cellProperties);
+
+  if (methodName === 'renderer') {
+    this.instance.PluginHooks.run('afterRenderer', td, row, col, prop, value, cellProperties);
+  }
+
+  return res;
 };
 
 /**
@@ -3291,6 +3298,13 @@ Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
   }
   return rootHeight - top;
 };
+
+/**
+ * DOM helper optimized for maximum performance
+ * It is recommended for Handsontable plugins and renderers, because it is much faster than jQuery
+ * @type {WalkonableDom}
+ */
+Handsontable.Dom = new WalkontableDom();
 
 /**
  * Returns true if keyCode represents a printable character
@@ -4861,6 +4875,7 @@ Handsontable.PluginHookClass = (function () {
       afterLoadData : [],
       afterUpdateSettings: [],
       afterRender : [],
+      afterRenderer : [],
       afterChange : [],
       afterValidate: [],
       afterGetCellMeta: [],
