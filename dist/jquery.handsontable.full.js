@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Oct 01 2013 13:17:18 GMT+0200 (Central European Daylight Time)
+ * Date: Thu Oct 03 2013 12:25:34 GMT-0700 (PDT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -8070,7 +8070,7 @@ WalkontableCellStrategy.prototype.countVisible = function () {
 };
 
 WalkontableCellStrategy.prototype.isLastIncomplete = function () {
-  return this.remainingSize >= 0;
+  return this.remainingSize > 0;
 };
 /**
  * WalkontableClassNameList
