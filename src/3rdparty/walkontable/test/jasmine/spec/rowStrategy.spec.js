@@ -22,6 +22,33 @@ describe('WalkontableRowStrategy', function () {
     expect(strategy.cellSizes).toEqual([25, 25, 25, 25]);
   });
 
+  it("should show 4 cells if container size is 99", function () {
+    source = [0, 1, 2, 5, 6, 7, 8, 9, 10];
+    var strategy = new WalkontableRowStrategy(99, allCells25);
+    for (var i = 0; i < source.length; i++) {
+      strategy.add(i);
+    }
+    expect(strategy.cellCount).toEqual(4);
+  });
+  
+  it("should show 4 cells if container size is 100", function () {
+    source = [0, 1, 2, 5, 6, 7, 8, 9, 10];
+    var strategy = new WalkontableRowStrategy(100, allCells25);
+    for (var i = 0; i < source.length; i++) {
+      strategy.add(i);
+    }
+    expect(strategy.cellCount).toEqual(4);
+  });
+  
+  it("should show 5 cells if container size is 101", function () {
+	    source = [0, 1, 2, 5, 6, 7, 8, 9, 10];
+	    var strategy = new WalkontableRowStrategy(101, allCells25);
+	    for (var i = 0; i < source.length; i++) {
+	      strategy.add(i);
+	    }
+	    expect(strategy.cellCount).toEqual(5);
+	  });
+  
   it("should show all cells if containerSize is Infinity", function () {
     source = [0, 1, 2, 5, 6, 7, 8, 9, 10];
     var strategy = new WalkontableRowStrategy(Infinity, allCells25);

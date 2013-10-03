@@ -233,9 +233,6 @@ WalkontableHorizontalScrollbar.prototype.readSettings = function () {
   this.offset = this.instance.getSetting('offsetColumn');
   this.total = this.instance.getSetting('totalColumns');
   this.visibleCount = this.instance.wtTable.columnStrategy.countVisible();
-  if(this.visibleCount > 1 && this.instance.wtTable.columnStrategy.isLastIncomplete()) {
-    this.visibleCount--;
-  }
   this.handlePosition = parseInt(this.handleStyle.left, 10);
   this.sliderSize = parseInt(this.sliderStyle.width, 10);
   this.fixedCount = this.instance.getSetting('fixedColumnsLeft');

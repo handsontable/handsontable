@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Tue Oct 01 2013 13:17:18 GMT+0200 (Central European Daylight Time)
+ * Date: Thu Oct 03 2013 15:12:25 GMT-0700 (PDT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -9410,9 +9410,6 @@ WalkontableHorizontalScrollbar.prototype.readSettings = function () {
   this.offset = this.instance.getSetting('offsetColumn');
   this.total = this.instance.getSetting('totalColumns');
   this.visibleCount = this.instance.wtTable.columnStrategy.countVisible();
-  if(this.visibleCount > 1 && this.instance.wtTable.columnStrategy.isLastIncomplete()) {
-    this.visibleCount--;
-  }
   this.handlePosition = parseInt(this.handleStyle.left, 10);
   this.sliderSize = parseInt(this.sliderStyle.width, 10);
   this.fixedCount = this.instance.getSetting('fixedColumnsLeft');
