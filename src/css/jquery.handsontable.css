@@ -453,3 +453,45 @@ ul.context-menu-list li {
 .handsontable.listbox tr:hover td {
   background: #eee;
 }
+
+.htContextMenu {
+  display: none;
+  position: absolute;
+}
+
+.handsontable .htContextMenu table tbody tr td {
+  background: #f5f5f5;
+  border-width: 0;
+  padding: 2px 6px 0px 6px;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.handsontable .htContextMenu table tbody tr td.htDimmed{
+  font-style: normal;
+  color: #323232;
+}
+
+.handsontable .htContextMenu table tbody tr td:hover {
+  background: rgb(66, 133, 200);
+  color: #f5f5f5;
+}
+
+.handsontable .htContextMenu table tbody tr td.htSeparator {
+  border-top: 1px solid #bbb;
+  height: 0;
+  padding: 0;
+}
+
+.handsontable .htContextMenu table tbody tr td.htDisabled {
+  color: #999;
+}
+
+.handsontable .htContextMenu table tbody tr td.htDisabled:hover {
+  background: #f5f5f5;
+  color: #999;
+  cursor: default;
+  cursor: not-allowed;
+}

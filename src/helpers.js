@@ -290,6 +290,9 @@ Handsontable.helper.isOutsideInput = function (element) {
 };
 
 Handsontable.helper.keyCode = {
+  MOUSE_LEFT: 1,
+  MOUSE_RIGHT: 3,
+  MOUSE_MIDDLE: 2,
   BACKSPACE: 8,
   COMMA: 188,
   DELETE: 46,
@@ -357,4 +360,10 @@ Handsontable.helper.pivot = function (arr) {
 
   return pivotedArr;
 
+};
+
+Handsontable.helper.proxy = function (fun, context) {
+  return function () {
+    return fun.apply(context, arguments);
+  };
 };

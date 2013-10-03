@@ -1,185 +1,274 @@
-(function(Handsontable){
-  function init(){
-    var instance = this;
-    var pluginEnabled = !!(instance.getSettings().contextMenu);
+(function (Handsontable) {
+  'use strict';
 
-    if(pluginEnabled){
-      createContextMenu.call(instance);
-    } else {
-      destroyContextMenu.call(instance);
+  function ContextMenu(instance){
+    this.instance = instance;
+    var contextMenu = this;
+
+    this.menu = createMenu();
+    this.enabled = true;
+
+    this.bindMouseEvents();
+
+    this.instance.addHook('afterDestroy', function () {
+       contextMenu.destroy();
+    });
+
+    this.defaultOptions = {
+      items: {
+        'insert_above': {
+          name: 'Insert row above',
+          callback: function(instance, selection){
+            instance.alter("insert_row", selection.start.row());
+          }
+        },
+        'insert_below': {
+          name: 'Insert row below',
+          callback: function(instance, selection){
+            instance.alter("insert_row", selection.end.row() + 1);
+          }
+        },
+        "hsep1": "---------",
+        'insert_left': {
+          name: 'Insert column on the left',
+          callback: function(instance, selection){
+            instance.alter("insert_col", selection.start.col());
+          }
+        },
+        'insert_right': {
+          name: 'Insert column on the right',
+          callback: function(instance, selection){
+            instance.alter("insert_col", selection.end.col() + 1);
+          }
+        },
+        "hsep2": "---------",
+        'remove_row': {
+          name: 'Remove row',
+          callback: function(instance, selection){
+            var amount = selection.end.row() - selection.start.row() + 1;
+            instance.alter("remove_row", selection.start.row(), amount);
+          }
+        },
+        'remove_col': {
+          name: 'Remove column',
+          callback: function(instance, selection){
+            var amount = selection.end.col() - selection.start.col() + 1;
+            instance.alter("remove_col", selection.start.col(), amount);
+          }
+        },
+        "hsep3": "---------",
+        'undo': {
+          name: 'Undo',
+          callback: function(instance){
+            instance.undo();
+          },
+          disabled: function (instance) {
+            return instance.undoRedo && !instance.undoRedo.isUndoAvailable();
+          }
+        },
+        'redo': {
+          name: 'Redo',
+          callback: function(instance){
+            instance.redo();
+          },
+          disabled: function (instance) {
+            return instance.undoRedo && !instance.undoRedo.isRedoAvailable();
+          }
+        }
+
+      }
+    };
+
+    this.options = {};
+    Handsontable.helper.extend(this.options, this.defaultOptions);
+
+    function createMenu(){
+      var menu = document.createElement('DIV');
+      Handsontable.Dom.addClass(menu, 'htContextMenu');
+      instance.rootElement[0].appendChild(menu);
+
+      return menu;
     }
   }
 
-  function createContextMenu() {
-    var instance = this
-      , selectorId = instance.rootElement[0].id
-      , allItems = {
-        "row_above": {name: "Insert row above", disabled: isDisabled},
-        "row_below": {name: "Insert row below", disabled: isDisabled},
-        "hsep1": "---------",
-        "col_left": {name: "Insert column on the left", disabled: isDisabled},
-        "col_right": {name: "Insert column on the right", disabled: isDisabled},
-        "hsep2": "---------",
-        "remove_row": {name: "Remove row", disabled: isDisabled},
-        "remove_col": {name: "Remove column", disabled: isDisabled},
-        "hsep3": "---------",
-        "undo": {name: "Undo", disabled: function () {
-          return !instance.undoRedo || !instance.isUndoAvailable();
-        }},
-        "redo": {name: "Redo", disabled: function () {
-          return !instance.undoRedo || !instance.isRedoAvailable();
-        }}
-      }
-      , defaultOptions = {
-        selector : "#" + selectorId + ' table, #' + selectorId + ' div',
-        trigger  : 'right',
-        callback : onContextClick
-      }
-      , options = {}
-      , i
-      , ilen
-      , settings = instance.getSettings();
+  ContextMenu.prototype.bindMouseEvents = function (){
 
-    function onContextClick(key) {
-      var corners = instance.getSelected(); //[selection start row, selection start col, selection end row, selection end col]
+    function contextMenuOpenListener(event){
 
-      if (!corners) {
-        return; //needed when there are 2 grids on a page
+      event.preventDefault();
+
+      if(event.target.nodeName != 'TD'){
+        return;
       }
 
-      /**
-       * `selection` variable contains normalized selection coordinates.
-       * selection.start - top left corner of selection area
-       * selection.end - bottom right corner of selection area
-       */
+      var containerOffset = Handsontable.Dom.offset(this.instance.rootElement[0]);
 
-      var selection = {
-        start: new Handsontable.SelectionPoint(),
-        end: new Handsontable.SelectionPoint()
-      };
+      this.show(event.pageY - containerOffset.top, event.pageX - containerOffset.left);
 
-      selection.start.row(Math.min(corners[0], corners[2]));
-      selection.start.col(Math.min(corners[1], corners[3]));
-
-      selection.end.row(Math.max(corners[0], corners[2]));
-      selection.end.col(Math.max(corners[1], corners[3]));
-
-      switch (key) {
-        case "row_above":
-          instance.alter("insert_row", selection.start.row());
-          break;
-
-        case "row_below":
-          instance.alter("insert_row", selection.end.row() + 1);
-          break;
-
-        case "col_left":
-          instance.alter("insert_col", selection.start.col());
-          break;
-
-        case "col_right":
-          instance.alter("insert_col", selection.end.col() + 1);
-          break;
-
-        case "remove_row":
-          instance.alter(key, selection.start.row(), (selection.end.row() - selection.start.row()) + 1);
-          break;
-
-        case "remove_col":
-          instance.alter(key, selection.start.col(), (selection.end.col() - selection.start.col()) + 1);
-          break;
-
-        case "undo":
-          instance.undo();
-          break;
-
-        case "redo":
-          instance.redo();
-          break;
-      }
+      $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(contextMenuCloseListener, this));
     }
 
-    function isDisabled(key) {
-      //TODO rewrite
-      /*if (instance.blockedCols.main.find('th.htRowHeader.active').length && (key === "remove_col" || key === "col_left" || key === "col_right")) {
-       return true;
-       }
-       else if (instance.blockedRows.main.find('th.htColHeader.active').length && (key === "remove_row" || key === "row_above" || key === "row_below")) {
-       return true;
-       }
-       else*/
-      if (instance.countRows() >= instance.getSettings().maxRows && (key === "row_above" || key === "row_below")) {
-        return true;
-      }
-      else if (instance.countCols() >= instance.getSettings().maxCols && (key === "col_left" || key === "col_right")) {
-        return true;
-      }
-      else {
-        return false;
-      }
+    function contextMenuCloseListener(event){
+      this.hide();
+      $(document).off('mousedown.htContextMenu');
     }
 
-    if (settings.contextMenu === true) { //contextMenu is true
-      options.items = allItems;
-    }
-    else if (Object.prototype.toString.apply(settings.contextMenu) === '[object Array]') { //contextMenu is an array
-      options.items = {};
-      for (i = 0, ilen = settings.contextMenu.length; i < ilen; i++) {
-        var key = settings.contextMenu[i];
-        if (typeof allItems[key] === 'undefined') {
-          throw new Error('Context menu key "' + key + '" is not recognised');
-        }
-        options.items[key] = allItems[key];
+    this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
+
+
+    function contextMenuAction(){
+
+      var hot = $(this.menu).handsontable('getInstance')
+      var selectedItemIndex = hot.getSelected()[0];
+      var selectedItem = hot.getData()[selectedItemIndex];
+
+      if (selectedItem.disabled === true || (typeof selectedItem.disabled == 'function' && selectedItem.disabled(this.instance) === true)){
+        return;
       }
+
+      if(typeof selectedItem.callback != 'function'){
+        return;
+      }
+
+      var corners = this.instance.getSelected();
+      var normalizedSelection = ContextMenu.utils.normalizeSelection(corners);
+
+      selectedItem.callback(this.instance, normalizedSelection);
+
     }
-    else if (Object.prototype.toString.apply(settings.contextMenu) === '[object Object]') { //contextMenu is an options object as defined in http://medialize.github.com/jQuery-contextMenu/docs.html
-      options = settings.contextMenu;
-      if (options.items) {
-        for (i in options.items) {
-          if (options.items.hasOwnProperty(i) && allItems[i]) {
-            if (typeof options.items[i] === 'string') {
-              options.items[i] = allItems[i];
+
+    $(this.menu).on('mousedown', Handsontable.helper.proxy(contextMenuAction, this));
+  };
+
+  ContextMenu.prototype.unbindMouseEvents = function () {
+    this.instance.rootElement.off('contextmenu.htContextMenu');
+    $(document).off('mousedown.htContextMenu');
+  };
+
+  ContextMenu.prototype.show = function(top, left){
+
+    this.menu.style.display = 'block';
+
+    top = typeof top == 'undefined' ? 0 : top;
+    left = typeof left == 'undefined' ? 0 : left;
+
+    this.menu.style.left = left + 'px';
+    this.menu.style.top = top + 'px';
+
+    var parentInstance = this.instance;
+
+    $(this.menu).handsontable({
+      data: ContextMenu.utils.convertItemsToArray(this.options.items),
+      colHeaders: false,
+      colWidths: [160],
+      readOnly: true,
+      columns: [
+        {
+          data: 'name',
+          renderer: function(instance, TD, row, col, prop, value, cellProperties){
+
+            var item = instance.getData()[row];
+
+            if(/^-+$/i.test(value)){
+              Handsontable.Dom.addClass(TD, 'htSeparator');
+            } else {
+              Handsontable.TextRenderer.apply(this, arguments);
             }
-            else {
-              options.items[i] = $.extend(true, allItems[i], options.items[i]);
+
+            if (item.disabled === true || (typeof item.disabled == 'function' && item.disabled(parentInstance) === true)){
+              Handsontable.Dom.addClass(TD, 'htDisabled');
+            } else {
+              Handsontable.Dom.removeClass(TD, 'htDisabled');
             }
           }
         }
-      }
-      else {
-        options.items = allItems;
-      }
+      ]
+    });
 
-      if (options.callback) {
-        var handsontableCallback = defaultOptions.callback;
-        var customCallback = options.callback;
-        options.callback = function (key, options) {
-          handsontableCallback(key, options);
-          customCallback(key, options);
+  };
+
+  ContextMenu.utils = {};
+  ContextMenu.utils.convertItemsToArray = function (items) {
+    var itemArray = [];
+    for(var item in items){
+      if(items.hasOwnProperty(item)){
+        if(typeof items[item] == 'string'){
+          itemArray.push({name: items[item]});
+        } else {
+          itemArray.push(items[item]);
         }
       }
     }
 
-    if (!selectorId) {
-      throw new Error("Handsontable container must have an id");
+    return itemArray;
+  };
+
+  ContextMenu.utils.normalizeSelection = function(corners){
+    var selection = {
+      start: new Handsontable.SelectionPoint(),
+      end: new Handsontable.SelectionPoint()
+    };
+
+    selection.start.row(Math.min(corners[0], corners[2]));
+    selection.start.col(Math.min(corners[1], corners[3]));
+
+    selection.end.row(Math.max(corners[0], corners[2]));
+    selection.end.col(Math.max(corners[1], corners[3]));
+
+    return selection;
+  };
+
+  ContextMenu.prototype.hide = function(){
+    this.menu.style.display = 'none';
+    $(this.menu).handsontable('destroy');
+  };
+
+  ContextMenu.prototype.enable = function () {
+    if(!this.enabled){
+      this.enabled = true;
+      this.bindMouseEvents();
+    }
+  };
+
+  ContextMenu.prototype.disable = function () {
+    if(this.enabled){
+      this.enabled = false;
+      this.hide();
+      this.unbindMouseEvents();
+    }
+  };
+
+  ContextMenu.prototype.destroy = function () {
+    this.hide();
+    this.unbindMouseEvents();
+
+    if(this.menu.parentNode){
+      this.menu.parentNode.removeChild(this.menu);
+    }
+  };
+
+  function init(){
+    var instance = this;
+
+    if(instance.getSettings().contextMenu){
+      if(!instance.contextMenu){
+        instance.contextMenu = new ContextMenu(instance);
+      }
+
+      instance.contextMenu.enable();
+
+    }  else if(instance.contextMenu){
+      instance.contextMenu.destroy();
+      delete instance.contextMenu;
     }
 
-    $.contextMenu($.extend(true, defaultOptions, options));
-  }
 
-  function destroyContextMenu() {
-    var id = this.rootElement[0].id;
-    $.contextMenu('destroy', "#" + id + ' table, #' + id + ' div');
 
-    /*
-     * There is a bug in $.contextMenu: 'destroy' does not remove layer when selector is provided. When the below line
-     * is removed, running the context menu tests in Jasmine will produce invisible layers that are never removed from DOM
-     */
-    $(document.querySelectorAll('#context-menu-layer')).remove();
   }
 
   Handsontable.PluginHooks.add('afterInit', init);
   Handsontable.PluginHooks.add('afterUpdateSettings', init);
-  Handsontable.PluginHooks.add('afterDestroy', destroyContextMenu);
+
+  Handsontable.ContextMenu = ContextMenu;
 
 })(Handsontable);
