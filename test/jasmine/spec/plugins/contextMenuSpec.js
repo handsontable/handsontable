@@ -18,7 +18,7 @@ describe('ContextMenu', function () {
 
 
 
-  it("should open menu after right click", function () {
+  it("should open menu after right click on table cell", function () {
     var hot = handsontable({
       contextMenu: true
     });
@@ -27,6 +27,23 @@ describe('ContextMenu', function () {
     expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
 
     $(getCell(0,0)).trigger('contextmenu');
+
+    expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
+
+
+  });
+
+  it("should open menu after right click active cell border", function () {
+    var hot = handsontable({
+      contextMenu: true
+    });
+
+    expect(hot.contextMenu).toBeDefined();
+    expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
+
+    selectCell(0, 0);
+
+    this.$container.find('.wtBorder.current:eq(0)').trigger('contextmenu');
 
     expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
 
@@ -490,21 +507,271 @@ describe('ContextMenu', function () {
       expect(getDataAtCell(0, 0)).toEqual('XX');
     });
 
+    it("should display only the specified actions", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: ['remove_row', 'undo']
+      });
+
+      contextMenu();
+
+      expect($(hot.contextMenu.menu).find('tbody td').length).toEqual(2);
+    });
+
+
 
   });
 
   describe("disabling actions", function () {
-    xit('should disable Insert row in context menu when maxRows is reached', function () {
-      handsontable({
-        startRows: 5,
-        maxRows: 5,
+
+    it("should disable undo and redo action if undoRedo plugin is not enabled ", function () {
+      var hot = handsontable({
+        contextMenu: true,
+        undoRedo: false
+      });
+
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+
+      expect($menu.find('tbody td:eq(9)').text()).toEqual('Undo');
+      expect($menu.find('tbody td:eq(9)').hasClass('htDisabled')).toBe(true);
+      expect($menu.find('tbody td:eq(10)').text()).toEqual('Redo');
+      expect($menu.find('tbody td:eq(10)').hasClass('htDisabled')).toBe(true);
+
+    });
+
+    it("should disable undo when there is nothing to undo ", function () {
+      var hot = handsontable({
         contextMenu: true
       });
-      selectCell(4, 4);
+
       contextMenu();
-      expect($('ul.context-menu-list li').length).toEqual(2);
-      expect($('ul.context-menu-list li.disabled').length).toEqual(2);
+      var $menu = $(hot.contextMenu.menu);
+
+      expect(hot.undoRedo.isUndoAvailable()).toBe(false);
+      expect($menu.find('tbody td:eq(9)').text()).toEqual('Undo');
+      expect($menu.find('tbody td:eq(9)').hasClass('htDisabled')).toBe(true);
+
+      closeContextMenu();
+
+      setDataAtCell(0, 0, 'foo');
+
+      contextMenu();
+
+      expect(hot.undoRedo.isUndoAvailable()).toBe(true);
+      expect($menu.find('tbody td:eq(9)').hasClass('htDisabled')).toBe(false);
+
     });
+
+    it("should disable redo when there is nothing to redo ", function () {
+      var hot = handsontable({
+        contextMenu: true
+      });
+
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+
+      expect(hot.undoRedo.isRedoAvailable()).toBe(false);
+      expect($menu.find('tbody td:eq(10)').text()).toEqual('Redo');
+      expect($menu.find('tbody td:eq(10)').hasClass('htDisabled')).toBe(true);
+
+      closeContextMenu();
+
+      setDataAtCell(0, 0, 'foo');
+      hot.undo();
+
+      contextMenu();
+
+      expect(hot.undoRedo.isRedoAvailable()).toBe(true);
+      expect($menu.find('tbody td:eq(10)').hasClass('htDisabled')).toBe(false);
+
+    });
+
+    it('should disable Insert row in context menu when maxRows is reached', function () {
+      var hot = handsontable({
+        contextMenu: true,
+        maxRows: 6
+      });
+
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+
+      expect($menu.find('tbody td:eq(0)').text()).toEqual('Insert row above');
+      expect($menu.find('tbody td:eq(0)').hasClass('htDisabled')).toBe(false);
+      expect($menu.find('tbody td:eq(1)').text()).toEqual('Insert row below');
+      expect($menu.find('tbody td:eq(1)').hasClass('htDisabled')).toBe(false);
+
+      closeContextMenu();
+
+      alter('insert_row');
+
+      contextMenu();
+
+      expect($menu.find('tbody td:eq(0)').hasClass('htDisabled')).toBe(true);
+      expect($menu.find('tbody td:eq(1)').hasClass('htDisabled')).toBe(true);
+
+    });
+
+    it('should disable Insert col in context menu when maxCols is reached', function () {
+      var hot = handsontable({
+        contextMenu: true,
+        maxCols: 6
+      });
+
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+
+      expect($menu.find('tbody td:eq(3)').text()).toEqual('Insert column on the left');
+      expect($menu.find('tbody td:eq(3)').hasClass('htDisabled')).toBe(false);
+      expect($menu.find('tbody td:eq(4)').text()).toEqual('Insert column on the right');
+      expect($menu.find('tbody td:eq(4)').hasClass('htDisabled')).toBe(false);
+
+      closeContextMenu();
+
+      alter('insert_col');
+
+      contextMenu();
+
+      expect($menu.find('tbody td:eq(3)').hasClass('htDisabled')).toBe(true);
+      expect($menu.find('tbody td:eq(4)').hasClass('htDisabled')).toBe(true);
+
+    });
+  });
+
+  describe("custom options", function () {
+    it("should have custom items list", function () {
+
+      var callback1 = jasmine.createSpy('callback1');
+      var callback2 = jasmine.createSpy('callback2');
+
+      var hot = handsontable({
+        contextMenu: {
+          items: {
+            cust1: {
+              name: 'CustomItem1',
+              callback: callback1
+            },
+            cust2: {
+              name: 'CustomItem2',
+              callback: callback2
+            }
+          }
+        }
+      });
+
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+
+      expect($menu.find('tbody td').length).toEqual(2);
+      expect($menu.find('tbody td').text()).toEqual(['CustomItem1', 'CustomItem2'].join(''));
+
+      $menu.find('tbody td:eq(0)').trigger('mousedown');
+
+      expect(callback1.calls.length).toEqual(1);
+      expect(callback2.calls.length).toEqual(0);
+
+      contextMenu();
+      $menu.find('tbody td:eq(1)').trigger('mousedown');
+
+      expect(callback1.calls.length).toEqual(1);
+      expect(callback2.calls.length).toEqual(1);
+
+    });
+
+    it("should enable to define item options globally", function () {
+
+      var callback = jasmine.createSpy('callback');
+
+      var hot = handsontable({
+        contextMenu: {
+          callback: callback,
+          items: {
+            cust1: {
+              name: 'CustomItem1'
+            },
+            cust2: {
+              name: 'CustomItem2'
+            }
+          }
+        }
+      });
+
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+
+      $menu.find('tbody td:eq(0)').trigger('mousedown');
+
+      expect(callback.calls.length).toEqual(1);
+
+      contextMenu();
+      $menu.find('tbody td:eq(1)').trigger('mousedown');
+
+      expect(callback.calls.length).toEqual(2);
+
+    });
+
+    it("should override default items options", function () {
+      var callback = jasmine.createSpy('callback');
+
+      var hot = handsontable({
+        contextMenu: {
+          items: {
+            'remove_row': {
+              callback: callback
+            },
+            'remove_col': {
+              name: 'Delete column'
+            }
+          }
+        }
+      });
+
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+
+      expect($menu.find('tbody td').length).toEqual(2);
+      expect($menu.find('tbody td').text()).toEqual(['Remove row', 'Delete column'].join(''));
+
+      $menu.find('tbody td:eq(0)').trigger('mousedown');
+
+      expect(callback.calls.length).toEqual(1);
+
+      expect(countCols()).toEqual(5);
+
+      contextMenu();
+      $menu.find('tbody td:eq(1)').trigger('mousedown');
+
+      expect(countCols()).toEqual(4);
+
+    });
+
+    it("should fire item callback after item has been clicked", function () {
+
+      var customItem = {
+        name: 'Custom item',
+        callback: function(){}
+      };
+
+      spyOn(customItem, 'callback');
+
+      var hot = handsontable({
+        contextMenu: {
+          items: {
+            'customItemKey' : customItem
+          }
+        }
+      });
+
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+
+      $menu.find('tbody td:eq(0)').trigger('mousedown');
+
+      expect(customItem.callback.calls.length).toEqual(1);
+      expect(customItem.callback.calls[0].args[0]).toEqual('customItemKey');
+
+    });
+
   });
 
 

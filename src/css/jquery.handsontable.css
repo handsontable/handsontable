@@ -459,10 +459,14 @@ ul.context-menu-list li {
   position: absolute;
 }
 
+.handsontable .htContextMenu table.htCore {
+  outline: 1px solid #bbb;
+}
+
 .handsontable .htContextMenu table tbody tr td {
-  background: #f5f5f5;
+  background: white;
   border-width: 0;
-  padding: 2px 6px 0px 6px;
+  padding: 4px 6px 0px 6px;
   cursor: pointer;
   overflow: hidden;
   white-space: nowrap;
@@ -475,8 +479,7 @@ ul.context-menu-list li {
 }
 
 .handsontable .htContextMenu table tbody tr td:hover {
-  background: rgb(66, 133, 200);
-  color: #f5f5f5;
+  background: rgb(233, 233, 233);
 }
 
 .handsontable .htContextMenu table tbody tr td.htSeparator {
@@ -490,7 +493,7 @@ ul.context-menu-list li {
 }
 
 .handsontable .htContextMenu table tbody tr td.htDisabled:hover {
-  background: #f5f5f5;
+  background: white;
   color: #999;
   cursor: default;
   cursor: not-allowed;

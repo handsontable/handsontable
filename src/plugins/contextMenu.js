@@ -1,7 +1,7 @@
 (function (Handsontable) {
   'use strict';
 
-  function ContextMenu(instance){
+  function ContextMenu(instance, customOptions){
     this.instance = instance;
     var contextMenu = this;
 
@@ -16,63 +16,75 @@
 
     this.defaultOptions = {
       items: {
-        'insert_above': {
+        'row_above': {
           name: 'Insert row above',
-          callback: function(instance, selection){
-            instance.alter("insert_row", selection.start.row());
+          callback: function(key, selection){
+            this.alter("insert_row", selection.start.row());
+          },
+          disabled: function () {
+            return this.countRows() >= this.getSettings().maxRows;
           }
         },
-        'insert_below': {
+        'row_below': {
           name: 'Insert row below',
-          callback: function(instance, selection){
-            instance.alter("insert_row", selection.end.row() + 1);
+          callback: function(key, selection){
+            this.alter("insert_row", selection.end.row() + 1);
+          },
+          disabled: function () {
+            return this.countRows() >= this.getSettings().maxRows;
           }
         },
-        "hsep1": "---------",
-        'insert_left': {
+        "hsep1": ContextMenu.SEPARATOR,
+        'col_left': {
           name: 'Insert column on the left',
-          callback: function(instance, selection){
-            instance.alter("insert_col", selection.start.col());
+          callback: function(key, selection){
+            this.alter("insert_col", selection.start.col());
+          },
+          disabled: function () {
+            return this.countCols() >= this.getSettings().maxCols;
           }
         },
-        'insert_right': {
+        'col_right': {
           name: 'Insert column on the right',
-          callback: function(instance, selection){
-            instance.alter("insert_col", selection.end.col() + 1);
+          callback: function(key, selection){
+            this.alter("insert_col", selection.end.col() + 1);
+          },
+          disabled: function () {
+            return this.countCols() >= this.getSettings().maxCols;
           }
         },
-        "hsep2": "---------",
+        "hsep2": ContextMenu.SEPARATOR,
         'remove_row': {
           name: 'Remove row',
-          callback: function(instance, selection){
+          callback: function(key, selection){
             var amount = selection.end.row() - selection.start.row() + 1;
-            instance.alter("remove_row", selection.start.row(), amount);
+            this.alter("remove_row", selection.start.row(), amount);
           }
         },
         'remove_col': {
           name: 'Remove column',
-          callback: function(instance, selection){
+          callback: function(key, selection){
             var amount = selection.end.col() - selection.start.col() + 1;
-            instance.alter("remove_col", selection.start.col(), amount);
+            this.alter("remove_col", selection.start.col(), amount);
           }
         },
-        "hsep3": "---------",
+        "hsep3": ContextMenu.SEPARATOR,
         'undo': {
           name: 'Undo',
-          callback: function(instance){
-            instance.undo();
+          callback: function(){
+            this.undo();
           },
-          disabled: function (instance) {
-            return instance.undoRedo && !instance.undoRedo.isUndoAvailable();
+          disabled: function () {
+            return this.undoRedo && !this.undoRedo.isUndoAvailable();
           }
         },
         'redo': {
           name: 'Redo',
-          callback: function(instance){
-            instance.redo();
+          callback: function(){
+            this.redo();
           },
-          disabled: function (instance) {
-            return instance.undoRedo && !instance.undoRedo.isRedoAvailable();
+          disabled: function () {
+            return this.undoRedo && !this.undoRedo.isRedoAvailable();
           }
         }
 
@@ -81,6 +93,8 @@
 
     this.options = {};
     Handsontable.helper.extend(this.options, this.defaultOptions);
+
+    this.updateOptions(customOptions);
 
     function createMenu(){
       var menu = document.createElement('DIV');
@@ -97,7 +111,7 @@
 
       event.preventDefault();
 
-      if(event.target.nodeName != 'TD'){
+      if(event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))){
         return;
       }
 
@@ -122,7 +136,7 @@
       var selectedItemIndex = hot.getSelected()[0];
       var selectedItem = hot.getData()[selectedItemIndex];
 
-      if (selectedItem.disabled === true || (typeof selectedItem.disabled == 'function' && selectedItem.disabled(this.instance) === true)){
+      if (selectedItem.disabled === true || (typeof selectedItem.disabled == 'function' && selectedItem.disabled.call(this.instance) === true)){
         return;
       }
 
@@ -133,7 +147,7 @@
       var corners = this.instance.getSelected();
       var normalizedSelection = ContextMenu.utils.normalizeSelection(corners);
 
-      selectedItem.callback(this.instance, normalizedSelection);
+      selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection);
 
     }
 
@@ -158,7 +172,7 @@
     var parentInstance = this.instance;
 
     $(this.menu).handsontable({
-      data: ContextMenu.utils.convertItemsToArray(this.options.items),
+      data: ContextMenu.utils.convertItemsToArray(this.getItems()),
       colHeaders: false,
       colWidths: [160],
       readOnly: true,
@@ -175,7 +189,7 @@
               Handsontable.TextRenderer.apply(this, arguments);
             }
 
-            if (item.disabled === true || (typeof item.disabled == 'function' && item.disabled(parentInstance) === true)){
+            if (item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(parentInstance) === true)){
               Handsontable.Dom.addClass(TD, 'htDisabled');
             } else {
               Handsontable.Dom.removeClass(TD, 'htDisabled');
@@ -187,16 +201,64 @@
 
   };
 
+  ContextMenu.prototype.getItems = function () {
+    var items = {};
+    function Item(rawItem){
+      if(typeof rawItem == 'string'){
+        this.name = rawItem;
+      } else {
+        Handsontable.helper.extend(this, rawItem);
+      }
+    }
+    Item.prototype = this.options;
+
+    for(var itemName in this.options.items){
+      if(this.options.items.hasOwnProperty(itemName) && (!this.itemsFilter || this.itemsFilter.indexOf(itemName) != -1)){
+        items[itemName] = new Item(this.options.items[itemName]);
+      }
+    }
+
+    return items;
+
+  };
+
+  ContextMenu.prototype.updateOptions = function(newOptions){
+    newOptions = newOptions || {};
+
+    if(newOptions.items){
+      for(var itemName in newOptions.items){
+        var item = {};
+
+        if(newOptions.items.hasOwnProperty(itemName)
+          && this.defaultOptions.items.hasOwnProperty(itemName)
+          && Handsontable.helper.isObject(newOptions.items[itemName])){
+          Handsontable.helper.extend(item, this.defaultOptions.items[itemName]);
+          Handsontable.helper.extend(item, newOptions.items[itemName]);
+          newOptions.items[itemName] = item;
+        }
+
+      }
+    }
+
+    Handsontable.helper.extend(this.options, newOptions);
+  };
+
   ContextMenu.utils = {};
   ContextMenu.utils.convertItemsToArray = function (items) {
     var itemArray = [];
-    for(var item in items){
-      if(items.hasOwnProperty(item)){
-        if(typeof items[item] == 'string'){
-          itemArray.push({name: items[item]});
+    var item;
+    for(var itemName in items){
+      if(items.hasOwnProperty(itemName)){
+        if(typeof items[itemName] == 'string'){
+          item = {name: items[item]};
+        } else if (items[itemName].visible !== false) {
+          item = items[itemName];
         } else {
-          itemArray.push(items[item]);
+          continue;
         }
+
+        item.key = itemName;
+        itemArray.push(item);
       }
     }
 
@@ -247,15 +309,27 @@
     }
   };
 
+  ContextMenu.prototype.filterItems = function(itemsToLeave){
+    this.itemsFilter = itemsToLeave;
+  };
+
+  ContextMenu.SEPARATOR = "---------";
+
   function init(){
     var instance = this;
+    var contextMenuSetting = instance.getSettings().contextMenu;
+    var customOptions = Handsontable.helper.isObject(contextMenuSetting) ? contextMenuSetting : {};
 
-    if(instance.getSettings().contextMenu){
+    if(contextMenuSetting){
       if(!instance.contextMenu){
-        instance.contextMenu = new ContextMenu(instance);
+        instance.contextMenu = new ContextMenu(instance, customOptions);
       }
 
       instance.contextMenu.enable();
+
+      if(Handsontable.helper.isArray(contextMenuSetting)){
+        instance.contextMenu.filterItems(contextMenuSetting);
+      }
 
     }  else if(instance.contextMenu){
       instance.contextMenu.destroy();
