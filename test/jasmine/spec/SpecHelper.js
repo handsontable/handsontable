@@ -47,6 +47,10 @@ var contextMenu = function () {
   $(cell).trigger(ev);
 };
 
+var closeContextMenu = function () {
+  $(document).trigger('mousedown');
+};
+
 /**
  * Returns a function that triggers a mouse event
  * @param {String} type Event type
