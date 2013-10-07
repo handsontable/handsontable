@@ -37,7 +37,12 @@ var contextMenu = function () {
   var hot = spec().$container.data('handsontable');
   var selected = hot.getSelected();
 
-  var cell = selected ? getCell(selected[0], selected[1]) : getCell(0, 0);
+  if(!selected){
+    hot.selectCell(0, 0);
+    selected = hot.getSelected();
+  }
+
+  var cell = getCell(selected[0], selected[1]);
 
   $(cell).trigger(ev);
 };
