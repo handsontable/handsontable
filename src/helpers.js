@@ -329,6 +329,16 @@ Handsontable.helper.keyCode = {
 };
 
 /**
+ * Determines whether given object is a plain Object.
+ * Note: String and Array are not plain Objects
+ * @param {*} obj
+ * @returns {boolean}
+ */
+Handsontable.helper.isObject = function (obj) {
+  return Object.prototype.toString.call(obj) == '[object Object]';
+};
+
+/**
  * Determines whether given object is an Array.
  * Note: String is not an Array
  * @param {*} obj
