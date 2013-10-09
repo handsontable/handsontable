@@ -98,11 +98,11 @@ describe('ColumnSorting', function () {
     hot.sortOrder = false;
 
 
-    hot.alter('remove_row', 2);
+    hot.alter('remove_row', 0);
 
     expect(this.$container.find('tbody tr').length).toEqual(3);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
   });
 
@@ -118,18 +118,24 @@ describe('ColumnSorting', function () {
       columnSorting: true
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-
     this.sortByColumn(0);
-
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
 
     expect(this.$container.find('tbody tr').length).toEqual(4);
 
-    hot.alter('insert_row', 0);
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
 
-    expect(this.$container.find('tbody tr').length).toEqual(5);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('');
+    hot.alter('insert_row', 1, 2);
+
+    expect(this.$container.find('tbody tr').length).toEqual(6);
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('2');
+    expect(this.$container.find('tbody tr:eq(5) td:eq(0)').text()).toEqual('3');
   });
 
   it('should add an empty row to sorted table at a given index', function () {
