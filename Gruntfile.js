@@ -315,6 +315,23 @@ module.exports = function (grunt) {
   grunt.registerTask('sauce:handsontable', ['default', 'connect:sauce', 'saucelabs-jasmine:handsontable']);
   grunt.registerTask('sauce:walkontable', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable']);
 
+
+  grunt.registerTask('singletest', 'Runs all tests from a single Spec file.\nSyntax: grunt singletest:[handsontable, walkontable]:<file>', function (taskName, specFile) {
+    var context = {
+      taskName: taskName,
+      specFile: specFile
+    };
+
+    var configProperty = grunt.template.process('jasmine.<%=taskName%>.options.specs', {data: context});
+    var task = grunt.template.process('jasmine:<%=taskName%>', {data: context});
+    var specPath =  grunt.template.process('test/jasmine/spec/<%=specFile%>', {data: context});
+
+    grunt.config.set(configProperty, [specPath]);
+
+    grunt.task.run(task);
+  });
+
+
   grunt.loadNpmTasks('grunt-replace');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-concat');
