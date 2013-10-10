@@ -765,4 +765,101 @@ describe('ColumnSorting', function () {
     expect($('.handsontableInput').val()).toEqual('A');
 
   });
+
+  it("should reset sorting after loading new data", function () {
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'D'],
+        [3, 'A'],
+        [2, 'C']
+      ],
+      columnSorting: true
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
+
+    hot.sort(0, true);
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+
+    loadData([
+      [50, 'E'],
+      [10, 'G'],
+      [30, 'F'],
+      [60, 'I'],
+      [40, 'J'],
+      [20, 'H']
+    ]);
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('50');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('10');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('30');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('60');
+    expect(this.$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('40');
+    expect(this.$container.find('tbody tr:eq(5) td:eq(0)').text()).toEqual('20');
+
+  });
+
+  it("should reset sorting after loading new data (default sorting column and order set)", function () {
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'D'],
+        [3, 'A'],
+        [2, 'C']
+      ],
+      columnSorting: {
+        column: 1,
+        order: true
+      }
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('0');
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(1)').text()).toEqual('B');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(1)').text()).toEqual('C');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(1)').text()).toEqual('D');
+
+    hot.sort(0, true);
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+
+    loadData([
+      [50, 'E'],
+      [10, 'G'],
+      [30, 'F'],
+      [60, 'I'],
+      [40, 'J'],
+      [20, 'H']
+    ]);
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('50');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('30');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('10');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('20');
+    expect(this.$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('60');
+    expect(this.$container.find('tbody tr:eq(5) td:eq(0)').text()).toEqual('40');
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('E');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(1)').text()).toEqual('F');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(1)').text()).toEqual('G');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(1)').text()).toEqual('H');
+    expect(this.$container.find('tbody tr:eq(4) td:eq(1)').text()).toEqual('I');
+    expect(this.$container.find('tbody tr:eq(5) td:eq(1)').text()).toEqual('J');
+
+  });
 });

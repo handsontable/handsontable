@@ -41,6 +41,7 @@ function HandsontableColumnSorting() {
 
         instance.addHook('afterCreateRow', plugin.afterCreateRow);
         instance.addHook('afterRemoveRow', plugin.afterRemoveRow);
+        instance.addHook('afterLoadData', plugin.init);
       }
     } else {
       delete instance.sort;
