@@ -324,7 +324,18 @@ module.exports = function (grunt) {
 
     var configProperty = grunt.template.process('jasmine.<%=taskName%>.options.specs', {data: context});
     var task = grunt.template.process('jasmine:<%=taskName%>', {data: context});
-    var specPath =  grunt.template.process('test/jasmine/spec/<%=specFile%>', {data: context});
+    var specPath;
+
+    switch (taskName) {
+      case 'handsontable':
+        specPath =  grunt.template.process('test/jasmine/spec/<%=specFile%>', {data: context});
+        break;
+      case 'walkontable':
+        specPath =  grunt.template.process('src/3rdparty/walkontable/test/jasmine/spec/<%=specFile%>', {data: context});
+        break;
+      default:
+        grunt.fail.fatal('Unknown test task: "' + taskName + '". Available test tasks: [handsontable, walkontable]')
+    }
 
     grunt.config.set(configProperty, [specPath]);
 
