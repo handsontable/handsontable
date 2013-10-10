@@ -115,9 +115,7 @@
         return;
       }
 
-      var containerOffset = Handsontable.Dom.offset(this.instance.rootElement[0]);
-
-      this.show(event.pageY - containerOffset.top, event.pageX - containerOffset.left);
+      this.show(event.pageY, event.pageX);
 
       $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(contextMenuCloseListener, this));
     }
@@ -163,12 +161,6 @@
 
     this.menu.style.display = 'block';
 
-    top = typeof top == 'undefined' ? 0 : top;
-    left = typeof left == 'undefined' ? 0 : left;
-
-    this.menu.style.left = left + 'px';
-    this.menu.style.top = top + 'px';
-
     var parentInstance = this.instance;
 
     $(this.menu).handsontable({
@@ -198,6 +190,8 @@
         }
       ]
     });
+
+    this.setMenuPosition(top, left);
 
   };
 
@@ -241,6 +235,60 @@
     }
 
     Handsontable.helper.extend(this.options, newOptions);
+  };
+
+  ContextMenu.prototype.setMenuPosition = function (cursorY, cursorX) {
+
+    var cursor = {
+      top: cursorY,
+      left: cursorX
+    };
+
+    if(this.menuFitsBelowCursor(cursor)){
+      this.positionMenuBelowCursor(cursor);
+    } else {
+      this.positionMenuAboveCursor(cursor);
+    }
+
+    if(this.menuFitsOnRightOfCursor(cursor)){
+      this.positionMenuOnRightOfCursor(cursor);
+    } else {
+      this.positionMenuOnLeftOfCursor(cursor);
+    }
+
+  };
+
+  ContextMenu.prototype.menuFitsBelowCursor = function (cursor) {
+    return cursor.top + this.menu.offsetHeight <= window.scrollY + window.innerHeight;
+  };
+
+  ContextMenu.prototype.menuFitsOnRightOfCursor = function (cursor) {
+    return cursor.left + this.menu.offsetWidth <= window.scrollX + window.innerWidth;
+  };
+
+  ContextMenu.prototype.positionMenuBelowCursor = function (cursor) {
+    this.menu.style.top = this.getCursorRelativeToContainer(cursor).top + 'px';
+  };
+
+  ContextMenu.prototype.positionMenuAboveCursor = function (cursor) {
+    this.menu.style.top = (this.getCursorRelativeToContainer(cursor).top - this.menu.offsetHeight) + 'px';
+  };
+
+  ContextMenu.prototype.positionMenuOnRightOfCursor = function (cursor) {
+    this.menu.style.left = this.getCursorRelativeToContainer(cursor).left + 'px';
+  };
+
+  ContextMenu.prototype.positionMenuOnLeftOfCursor = function (cursor) {
+    this.menu.style.left = (this.getCursorRelativeToContainer(cursor).left - this.menu.offsetWidth) + 'px';
+  };
+
+  ContextMenu.prototype.getCursorRelativeToContainer = function (cursor) {
+    var containerOffset = Handsontable.Dom.offset(this.instance.rootElement[0]);
+
+    return {
+      left: cursor.left - containerOffset.left,
+      top: cursor.top - containerOffset.top
+    }
   };
 
   ContextMenu.utils = {};
