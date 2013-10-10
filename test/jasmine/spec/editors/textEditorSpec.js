@@ -437,5 +437,45 @@ describe('NewTextEditor', function () {
     expect(getCell(19, 19)).toBeNull();
   });
 
+  it("should open empty editor after clearing cell value width BACKSPACE", function () {
+     var hot = handsontable({
+       data: createSpreadsheetData(4, 4)
+     });
+
+     expect(getDataAtCell(0, 0)).toEqual('A0');
+
+     selectCell(0, 0);
+
+     keyDown(Handsontable.helper.keyCode.BACKSPACE);
+
+    expect(getDataAtCell(0, 0)).toEqual('');
+    expect(hot.getActiveEditor().isOpened()).toBe(false);
+
+    keyDown(Handsontable.helper.keyCode.ENTER);
+
+    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(hot.getActiveEditor().val()).toEqual('');
+  });
+
+  it("should open empty editor after clearing cell value width DELETE", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4)
+    });
+
+    expect(getDataAtCell(0, 0)).toEqual('A0');
+
+    selectCell(0, 0);
+
+    keyDown(Handsontable.helper.keyCode.DELETE);
+
+    expect(getDataAtCell(0, 0)).toEqual('');
+    expect(hot.getActiveEditor().isOpened()).toBe(false);
+
+    keyDown(Handsontable.helper.keyCode.ENTER);
+
+    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(hot.getActiveEditor().val()).toEqual('');
+  });
+
 
 });
