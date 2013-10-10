@@ -45,6 +45,10 @@ function HandsontableColumnSorting() {
       }
     } else {
       delete instance.sort;
+
+      instance.removeHook('afterCreateRow', plugin.afterCreateRow);
+      instance.removeHook('afterRemoveRow', plugin.afterRemoveRow);
+      instance.removeHook('afterLoadData', plugin.init);
     }
   };
 
