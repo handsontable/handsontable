@@ -176,6 +176,25 @@ module.exports = function (grunt) {
       dist: ['tmp']
     },
 
+    copy: {
+      nonMinifiedLibs: {
+        files: [
+          {
+            src: 'src/3rdparty/json-patch-duplex.ts',
+            dest: 'dist/json-patch-duplex.ts'
+          }
+        ]
+      },
+      sourceMaps: {
+        files: [
+          {
+            src: 'src/3rdparty/json-patch-duplex.js.map',
+            dest: 'dist/json-patch-duplex.js.map'
+          }
+        ]
+      }
+    },
+
     replace: {
       dist: {
         options: {
@@ -307,7 +326,7 @@ module.exports = function (grunt) {
   });
 
   // Default task.
-  grunt.registerTask('default', ['gitinfo', 'replace:dist', 'concat', 'replace:wc', 'clean']);
+  grunt.registerTask('default', ['gitinfo', 'replace:dist', 'concat', 'copy:sourceMaps', 'copy:nonMinifiedLibs', 'replace:wc', 'clean']);
   grunt.registerTask('test', ['default', 'jasmine']);
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
@@ -321,6 +340,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-jasmine');
   grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-saucelabs');
   grunt.loadNpmTasks('grunt-gitinfo');
 };
