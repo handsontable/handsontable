@@ -846,6 +846,58 @@ describe('AutocompleteEditor', function () {
       });
     });
 
+    it('strict mode mark value as invalid if it DOES NOT match the list (sync reponse is empty)', function () {
+
+      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      var onAfterChange = jasmine.createSpy('onAfterChange');
+      var syncSources = jasmine.createSpy('syncSources');
+
+      syncSources.plan = function (query, process) {
+        process([]) // hardcoded empty result
+      };
+
+      handsontable({
+        data: [
+          ['one', 'two'],
+          ['three', 'four']
+        ],
+        columns: [
+          {
+            type: 'autocomplete',
+            source: syncSources,
+            allowInvalid: true,
+            strict: true
+          },
+          {
+
+          }
+        ],
+        afterValidate: onAfterValidate,
+        afterChange: onAfterChange
+      });
+
+      expect(getCellMeta(0, 0).valid).not.toBe(false);
+      expect($(getCell(0, 0)).hasClass('htInvalid')).toBe(false);
+
+      setDataAtCell(0, 0, 'unexistent');
+
+      waitsFor(function () {
+        return onAfterValidate.calls.length > 0;
+      }, 'Cell validation', 1000);
+
+      runs(function () {
+
+        expect(getData()).toEqual([
+          ['unexistent', 'two'],
+          ['three', 'four']
+        ]);
+
+        expect(getCellMeta(0, 0).valid).toBe(false);
+        expect($(getCell(0, 0)).hasClass('htInvalid')).toBe(true);
+
+      });
+    });
+
   });
 
   it('should restore the old value when hovered over a autocomplete menu item and then clicked outside of the table', function () {

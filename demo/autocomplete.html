@@ -111,11 +111,6 @@
       </div>
 
       <script data-jsfiddle="common">
-        function myAutocompleteRenderer(instance, td, row, col, prop, value, cellProperties) {
-          Handsontable.AutocompleteCell.renderer.apply(this, arguments);
-          td.style.fontStyle = 'italic';
-          td.title = 'Type to show the list of options';
-        }
 
         function colorHighlighter(item) {
           var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
@@ -134,7 +129,7 @@
           colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
           columns: [
             {
-              type: {renderer: myAutocompleteRenderer, editor: 'autocomplete'},
+              type: 'autocomplete',
               source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
               strict: false,
               options: {
@@ -143,13 +138,13 @@
             },
             {type: 'numeric'},
             {
-              type: {renderer: myAutocompleteRenderer, editor: 'autocomplete'},
+              type: 'autocomplete',
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
               highlighter: colorHighlighter,
               strict: false
             },
             {
-              type: {renderer: myAutocompleteRenderer, editor: 'autocomplete'},
+              type: 'autocomplete',
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
               highlighter: colorHighlighter,
               strict: false
@@ -198,19 +193,19 @@
           colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
           columns: [
             {
-              type: {renderer: myAutocompleteRenderer, editor: 'autocomplete'},
+              type: 'autocomplete',
               source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo", ""], //empty string is a valid value
               strict: true
             },
             {},
             {
-              type: {renderer: myAutocompleteRenderer, editor: 'autocomplete'},
+              type: 'autocomplete',
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
               highlighter: colorHighlighter,
               strict: true
             },
             {
-              type: {renderer: myAutocompleteRenderer, editor: 'autocomplete'},
+              type: 'autocomplete',
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
               highlighter: colorHighlighter,
               strict: true
@@ -262,7 +257,7 @@
           colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
           columns: [
             {
-              type: {renderer: myAutocompleteRenderer, editor: 'autocomplete'},
+              type: 'autocomplete',
               options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
               source: function (query, process) {
                 $.ajax({
