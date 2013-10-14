@@ -69,6 +69,28 @@ describe('Core_alter', function () {
     expect(onBeforeRemoveRow).toHaveBeenCalledWith(countRows(), 1, undefined, undefined, undefined);
   });
 
+  it('should not remove row if removing has been canceled by beforeRemoveRow event handler', function () {
+    var onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
+    onBeforeRemoveRow.plan = function () {
+      return false;
+    };
+
+    var hot = handsontable({
+      data: arrayOfNestedObjects(),
+      columns: [
+        {data: "id"},
+        {data: "name.first"}
+      ],
+      beforeRemoveRow: onBeforeRemoveRow
+    });
+
+    expect(countRows()).toEqual(3);
+
+    alter('remove_row');
+
+    expect(countRows()).toEqual(3);
+  });
+
   it('should not remove rows below minRows', function () {
     handsontable({
       startRows: 5,
@@ -551,6 +573,23 @@ describe('Core_alter', function () {
     alter('remove_col');
 
     expect(onBeforeRemoveCol).toHaveBeenCalledWith(countCols(), 1, undefined, undefined, undefined);
+  });
+
+  it('should not remove column if removing has been canceled by beforeRemoveCol event handler', function () {
+    var onBeforeRemoveCol = jasmine.createSpy('onBeforeRemoveCol');
+    onBeforeRemoveCol.plan = function () {
+      return false;
+    };
+
+    var hot = handsontable({
+      beforeRemoveCol: onBeforeRemoveCol
+    });
+
+    expect(countCols()).toEqual(5);
+
+    alter('remove_col');
+
+    expect(countCols()).toEqual(5);
   });
 
   it('should fire callback on remove col', function () {

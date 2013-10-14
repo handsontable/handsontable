@@ -266,7 +266,11 @@ Handsontable.Core = function (rootElement, userSettings) {
       // We have to map the physical row ids to logical and than perform removing with (possibly) new row id
       var logicRows = this.physicalRowsToLogical(index, amount);
 
-      instance.PluginHooks.run('beforeRemoveRow', index, amount);
+      var actionWasNotCancelled = instance.PluginHooks.execute('beforeRemoveRow', index, amount);
+
+      if(actionWasNotCancelled === false){
+        return;
+      }
 
       var newData = GridSettings.prototype.data.filter(function (row, index) {
         return logicRows.indexOf(index) == -1;
@@ -298,7 +302,11 @@ Handsontable.Core = function (rootElement, userSettings) {
 
       index = (instance.countCols() + index) % instance.countCols();
 
-      instance.PluginHooks.run('beforeRemoveCol', index, amount);
+      var actionWasNotCancelled = instance.PluginHooks.execute('beforeRemoveCol', index, amount);
+
+      if(actionWasNotCancelled === false){
+        return;
+      }
 
       var data = GridSettings.prototype.data;
       for (var r = 0, rlen = instance.countRows(); r < rlen; r++) {
