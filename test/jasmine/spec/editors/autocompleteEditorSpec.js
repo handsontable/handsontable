@@ -624,4 +624,29 @@ describe('AutocompleteEditor', function () {
     expect(getDataAtCol(2)).toEqual(['yellow', 'red', 'blue']);
   });
 
+  it('should add class name `htInvalid` to a cell that does not validate - on validateCells', function () {
+    var hot = handsontable({
+      autoComplete: getAutocompleteConfig(false),
+      data: [
+        ['yellow'],
+        ['red'],
+        ['blue']
+      ],
+      validator: function (value, callb) {
+        if (value == "yellow") {
+          callb(false)
+        }
+        else {
+          callb(true)
+        }
+      }
+    });
+
+    hot.validateCells(function () {
+      hot.render();
+    });
+
+    expect(this.$container.find('td.htInvalid').length).toEqual(1);
+    expect(this.$container.find('td:not(.htInvalid)').length).toEqual(2);
+  });
 });
