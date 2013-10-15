@@ -1,4 +1,4 @@
-describe('TextEditor', function () {
+describe('DateEditor', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
@@ -130,5 +130,32 @@ describe('TextEditor', function () {
 
     expect($('.htDatepickerHolder').is(':visible')).toBe(false);
 
+  });
+
+  it('should add class name `htInvalid` to a cell that does not validate - on validateCells', function () {
+    var hot = handsontable({
+      data: getDates(),
+      columns: [
+        {
+          type: 'date',
+          dateFormat: 'mm/dd/yy'
+        }
+      ],
+      validator: function (value, callb) {
+        if (value == "12/01/2008") {
+          callb(false)
+        }
+        else {
+          callb(true)
+        }
+      }
+    });
+
+    hot.validateCells(function () {
+      hot.render();
+    });
+
+    expect(this.$container.find('td.htInvalid').length).toEqual(1);
+    expect(this.$container.find('td:not(.htInvalid)').length).toEqual(4);
   });
 });
