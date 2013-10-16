@@ -33,7 +33,6 @@ var isFillHandleVisible = function () {
  * Shows context menu
  */
 var contextMenu = function () {
-  var ev = $.Event('contextmenu');
   var hot = spec().$container.data('handsontable');
   var selected = hot.getSelected();
 
@@ -43,6 +42,12 @@ var contextMenu = function () {
   }
 
   var cell = getCell(selected[0], selected[1]);
+  var cellOffset = $(cell).offset();
+
+  var ev = $.Event('contextmenu', {
+    pageX: cellOffset.left,
+    pageY: cellOffset.top
+  });
 
   $(cell).trigger(ev);
 };

@@ -259,11 +259,11 @@
   };
 
   ContextMenu.prototype.menuFitsBelowCursor = function (cursor) {
-    return cursor.top + this.menu.offsetHeight <= window.scrollY + window.innerHeight;
+    return cursor.top + this.menu.offsetHeight <= document.documentElement.scrollTop + document.documentElement.clientHeight;
   };
 
   ContextMenu.prototype.menuFitsOnRightOfCursor = function (cursor) {
-    return cursor.left + this.menu.offsetWidth <= window.scrollX + window.innerWidth;
+    return cursor.left + this.menu.offsetWidth <= document.documentElement.scrollLeft + document.documentElement.clientWidth;
   };
 
   ContextMenu.prototype.positionMenuBelowCursor = function (cursor) {

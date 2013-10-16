@@ -26,7 +26,7 @@ describe('ContextMenu', function () {
     expect(hot.contextMenu).toBeDefined();
     expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
 
-    $(getCell(0,0)).trigger('contextmenu');
+    contextMenu();
 
     expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
 
@@ -42,8 +42,14 @@ describe('ContextMenu', function () {
     expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
 
     selectCell(0, 0);
+    var cellOffset = $(getCell(0, 0)).offset();
 
-    this.$container.find('.wtBorder.current:eq(0)').trigger('contextmenu');
+    var event = $.Event('contextmenu', {
+       pageX: cellOffset.left,
+       pageY: cellOffset.top
+    });
+
+    this.$container.find('.wtBorder.current:eq(0)').trigger(event);
 
     expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
 
@@ -55,7 +61,7 @@ describe('ContextMenu', function () {
       contextMenu: true
     });
 
-    $(getCell(0,0)).trigger('contextmenu');
+    contextMenu();
 
     expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
 
@@ -76,7 +82,7 @@ describe('ContextMenu', function () {
 
       expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
 
-      $(getCell(0,0)).trigger('contextmenu');
+      contextMenu();
 
       expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
 
@@ -100,13 +106,13 @@ describe('ContextMenu', function () {
 
       expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
 
-      $(getCell(0,0)).trigger('contextmenu');
+      contextMenu();
 
       expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
 
       hot.contextMenu.enable();
 
-      $(getCell(0,0)).trigger('contextmenu');
+      contextMenu();
 
       expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
     });
@@ -126,7 +132,7 @@ describe('ContextMenu', function () {
 
       expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
 
-      $(getCell(0,0)).trigger('contextmenu');
+      contextMenu();
 
       expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
     });
@@ -169,7 +175,7 @@ describe('ContextMenu', function () {
         contextMenu: true
       });
 
-      $(getCell(0,0)).trigger('contextmenu');
+      contextMenu();
 
       expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
 
@@ -188,7 +194,7 @@ describe('ContextMenu', function () {
         contextMenu: true
       });
 
-      $(getCell(0, 0)).trigger('contextmenu');
+      contextMenu();
 
       var items = $('.htContextMenu tbody td');
       var actions = items.not('.htSeparator');
