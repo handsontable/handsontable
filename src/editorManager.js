@@ -149,6 +149,7 @@
               case keyCodes.BACKSPACE:
               case keyCodes.DELETE:
                 selection.empty(event);
+                that.prepareEditor();
                 event.preventDefault();
                 break;
 
