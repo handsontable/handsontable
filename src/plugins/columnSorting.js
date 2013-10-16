@@ -41,9 +41,14 @@ function HandsontableColumnSorting() {
 
         instance.addHook('afterCreateRow', plugin.afterCreateRow);
         instance.addHook('afterRemoveRow', plugin.afterRemoveRow);
+        instance.addHook('afterLoadData', plugin.init);
       }
     } else {
       delete instance.sort;
+
+      instance.removeHook('afterCreateRow', plugin.afterCreateRow);
+      instance.removeHook('afterRemoveRow', plugin.afterRemoveRow);
+      instance.removeHook('afterLoadData', plugin.init);
     }
   };
 
@@ -213,9 +218,11 @@ function HandsontableColumnSorting() {
 
   this.translateRow = function (row) {
     var instance = this;
-    if (instance.sortingEnabled && instance.sortIndex && instance.sortIndex.length) {
+
+    if (instance.sortingEnabled && instance.sortIndex && instance.sortIndex.length && instance.sortIndex[row]) {
       return instance.sortIndex[row][0];
     }
+
     return row;
   };
 
@@ -225,9 +232,10 @@ function HandsontableColumnSorting() {
   };
 
   this.untranslateRow = function (row) {
-    if (sortingEnabled && this.sortIndex && this.sortIndex.length) {
-      for (var i = 0; i < this.sortIndex.length; i++) {
-        if (this.sortIndex[i][0] == row) {
+    var instance = this;
+    if (instance.sortingEnabled && instance.sortIndex && instance.sortIndex.length) {
+      for (var i = 0; i < instance.sortIndex.length; i++) {
+        if (instance.sortIndex[i][0] == row) {
           return i;
         }
       }
@@ -251,15 +259,18 @@ function HandsontableColumnSorting() {
       return;
     }
 
-    instance.sortIndex.splice(index, 0, [index, instance.getData()[index][this.sortColumn + instance.colOffset()]]);
 
     for(var i = 0; i < instance.sortIndex.length; i++){
-      if(i == index) continue;
-
       if (instance.sortIndex[i][0] >= index){
-        instance.sortIndex[i][0] += 1;
+        instance.sortIndex[i][0] += amount;
       }
     }
+
+    for(var i=0; i < amount; i++){
+      instance.sortIndex.splice(index+i, 0, [index+i, instance.getData()[index+i][instance.sortColumn + instance.colOffset()]]);
+    }
+
+
 
     saveSortingState.call(instance);
 
@@ -272,11 +283,13 @@ function HandsontableColumnSorting() {
       return;
     }
 
+    var physicalRemovedIndex = plugin.untranslateRow.call(instance, index);
+
     instance.sortIndex.splice(index, amount);
 
     for(var i = 0; i < instance.sortIndex.length; i++){
 
-      if (instance.sortIndex[i][0] > index){
+      if (instance.sortIndex[i][0] > physicalRemovedIndex){
         instance.sortIndex[i][0] -= amount;
       }
     }
