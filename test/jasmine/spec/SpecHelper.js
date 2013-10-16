@@ -34,10 +34,21 @@ var isFillHandleVisible = function () {
  */
 var contextMenu = function () {
   var ev = $.Event('contextmenu');
-  ev.button = 2;
-  var instance = spec().$container.data('handsontable');
-  var selector = "#" + instance.rootElement.attr('id') + ' table, #' + instance.rootElement.attr('id') + ' div';
-  $(selector).trigger(ev);
+  var hot = spec().$container.data('handsontable');
+  var selected = hot.getSelected();
+
+  if(!selected){
+    hot.selectCell(0, 0);
+    selected = hot.getSelected();
+  }
+
+  var cell = getCell(selected[0], selected[1]);
+
+  $(cell).trigger(ev);
+};
+
+var closeContextMenu = function () {
+  $(document).trigger('mousedown');
 };
 
 /**
@@ -45,13 +56,13 @@ var contextMenu = function () {
  * @param {String} type Event type
  * @return {Function}
  */
-var handsontableMouseTriggerFactory = function (type) {
+var handsontableMouseTriggerFactory = function (type, button) {
   return function (element) {
     if(!(element instanceof jQuery)){
       element = $(element);
     }
     var ev = $.Event(type);
-    ev.which = 1; //left mouse button
+    ev.which = button || 1; //left click by default
     element.trigger(ev);
   }
 };
@@ -64,6 +75,9 @@ var mouseDoubleClick = function(element){
     mouseDown(element);
     mouseUp(element);
 };
+
+var mouseRightDown = handsontableMouseTriggerFactory('mousedown', 3);
+var mouseRightUp = handsontableMouseTriggerFactory('mouseup', 3);
 
 /**
  * Returns a function that triggers a key event
