@@ -1105,15 +1105,15 @@ describe('AutocompleteEditor', function () {
       ]
     });
 
-    expect(getCell(0, 2).innerText).toMatch('yellow');
+    expect($(getCell(0, 2)).text()).toMatch('yellow');
 
     mouseDoubleClick(getCell(0, 2));
 
-    expect(getCell(1, 2).innerText).toMatch('red');
+    expect($(getCell(1, 2)).text()).toMatch('red');
 
     mouseDoubleClick(getCell(1, 2));
 
-    expect(getCell(2, 2).innerText).toMatch('blue');
+    expect($(getCell(2, 2)).text()).toMatch('blue');
 
     mouseDoubleClick(getCell(2, 2));
 
