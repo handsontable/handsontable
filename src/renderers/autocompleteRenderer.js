@@ -1,9 +1,18 @@
 (function (Handsontable) {
 
+  var clonableWRAPPER = document.createElement('DIV');
+  clonableWRAPPER.className = 'htAutocompleteWrapper';
+
   var clonableARROW = document.createElement('DIV');
   clonableARROW.className = 'htAutocompleteArrow';
   clonableARROW.appendChild(document.createTextNode('\u25BC'));
 //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+
+  var wrapTdContentWithWrapper = function(TD, WRAPPER){
+    WRAPPER.innerHTML = TD.innerHTML;
+    Handsontable.Dom.empty(TD);
+    TD.appendChild(WRAPPER);
+  };
 
   /**
    * Autocomplete renderer
@@ -16,10 +25,24 @@
    * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
    */
   Handsontable.AutocompleteRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
+
+    var WRAPPER = clonableWRAPPER.cloneNode(true); //this is faster than createElement
+    var ARROW = clonableARROW.cloneNode(true); //this is faster than createElement
+
     Handsontable.TextRenderer(instance, TD, row, col, prop, value, cellProperties);
 
+//    wrapTdContentWithWrapper(TD, WRAPPER);
+//    WRAPPER.appendChild(ARROW);
 
-    var ARROW = clonableARROW.cloneNode(true); //this is faster than createElement
+    TD.appendChild(ARROW);
+    Handsontable.Dom.addClass(TD, 'htAutocomplete');
+
+
+    if (!TD.firstChild) { //http://jsperf.com/empty-node-if-needed
+      //otherwise empty fields appear borderless in demo/renderers.html (IE)
+      TD.appendChild(document.createTextNode('\u00A0')); //\u00A0 equals &nbsp; for a text node
+      //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+    }
 
     if (!instance.acArrowListener) {
       //not very elegant but easy and fast
@@ -30,16 +53,5 @@
       instance.rootElement.on('mousedown', '.htAutocompleteArrow', instance.acArrowListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
 
     }
-
-    Handsontable.Dom.addClass(TD, 'htAutocomplete');
-
-
-    if (!TD.firstChild) { //http://jsperf.com/empty-node-if-needed
-      //otherwise empty fields appear borderless in demo/renderers.html (IE)
-      TD.appendChild(document.createTextNode('\u00A0')); //\u00A0 equals &nbsp; for a text node
-      //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
-    }
-
-    TD.appendChild(ARROW);
   };
 })(Handsontable);

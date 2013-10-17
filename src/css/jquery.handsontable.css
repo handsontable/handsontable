@@ -269,15 +269,8 @@ TextRenderer placeholder value
 AutocompleteRenderer down arrow
 */
 
-.handsontable .htAutocomplete {
-  position: relative;
-  padding-right: 20px;
-}
-
 .handsontable .htAutocompleteArrow {
-  position: absolute;
-  top: 0;
-  right: 0;
+  float: right;
   font-size: 10px;
   color: #EEE;
   cursor: default;
