@@ -106,10 +106,13 @@
 
     var value = this.val();
     var row;
-    for( var i = 0, len = choices.length; i < len; i++){
-      if(choices[i] == value){
-        row = i;
-        break;
+
+    if(value.length > 0){
+      for( var i = 0, len = choices.length; i < len; i++){
+        if(choices[i] == value){
+          row = i;
+          break;
+        }
       }
     }
 

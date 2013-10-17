@@ -88,8 +88,6 @@
 
       if (!innerHOT.getSelected()){
         innerHOT.selectCell(0, 0);
-      } else {
-        editor.$htContainer.trigger(event);
       }
 
       event.preventDefault();
