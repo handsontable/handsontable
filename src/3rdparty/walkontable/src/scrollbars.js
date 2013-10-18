@@ -1,6 +1,6 @@
 function WalkontableScrollbars(instance) {
   if(instance.getSetting('scrollbarModelV') === 'native') {
-    instance.update('scrollbarModelH', 'none');
+    instance.update('scrollbarModelH', 'native');
   }
 
   switch (instance.getSetting('scrollbarModelV')) {

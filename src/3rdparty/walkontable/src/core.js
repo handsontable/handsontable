@@ -5,12 +5,20 @@ function Walkontable(settings) {
   this.guid = 'wt_' + (window.Handsontable ? Handsontable.helper.randomString() : ''); //this is the namespace for global events
 
   //bootstrap from settings
-  this.wtSettings = new WalkontableSettings(this, settings);
+  if(settings.cloneFrom) {
+    this.cloneFrom = settings.cloneFrom;
+    this.cloneDirection = settings.cloneDirection;
+    this.wtSettings = settings.cloneFrom.wtSettings;
+  }
+  else {
+    this.wtSettings = new WalkontableSettings(this, settings);
+  }
+
   this.wtDom = new WalkontableDom();
-  this.wtTable = new WalkontableTable(this);
+  this.wtTable = new WalkontableTable(this, settings.table);
   this.wtScroll = new WalkontableScroll(this);
-  this.wtViewport = new WalkontableViewport(this);
   this.wtScrollbars = new WalkontableScrollbars(this);
+  this.wtViewport = new WalkontableViewport(this);
   this.wtWheel = new WalkontableWheel(this);
   this.wtEvent = new WalkontableEvent(this);
 

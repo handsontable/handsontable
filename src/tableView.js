@@ -415,7 +415,11 @@ Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
     this.wt.wtDom.fastInnerHTML(TH, this.instance.getRowHeader(row));
   }
   else {
+    var DIV = document.createElement('DIV');
+    DIV.className = 'relative';
+    this.wt.wtDom.fastInnerHTML(DIV, '&nbsp;');
     this.wt.wtDom.empty(TH);
+    TH.appendChild(DIV);
   }
 };
 
@@ -434,9 +438,7 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
   this.wt.wtDom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
   DIV.appendChild(SPAN);
 
-  while (TH.firstChild) {
-    TH.removeChild(TH.firstChild); //empty TH node
-  }
+  this.wt.wtDom.empty(TH);
   TH.appendChild(DIV);
   this.instance.PluginHooks.run('afterGetColHeader', col, TH);
 };

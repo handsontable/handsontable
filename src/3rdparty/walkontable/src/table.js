@@ -1,7 +1,7 @@
-function WalkontableTable(instance) {
+function WalkontableTable(instance, table) {
   //reference to instance
   this.instance = instance;
-  this.TABLE = this.instance.getSetting('table');
+  this.TABLE = table;
   this.wtDom = this.instance.wtDom;
   this.wtDom.removeTextNodes(this.TABLE);
 
@@ -195,6 +195,10 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   }
 
   this.refreshStretching();
+  if(this.instance.cloneFrom && this.instance.cloneDirection === 'left') {
+    this.columnStrategy.cellCount = 0;
+  }
+
   displayTds = this.columnStrategy.cellCount;
 
   //adjust COLGROUP
@@ -334,10 +338,15 @@ WalkontableTable.prototype._doDraw = function () {
     source_r = this.rowFilter.visibleToSource(r);
 
     var first = true;
+    var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
 
     while (source_r < totalRows && source_r >= 0) {
       if (r > 1000) {
         throw new Error('Security brake: Too much TRs. Please define height for your table, which will enforce scrollbars.');
+      }
+
+      if(this.instance.cloneFrom && this.instance.cloneDirection === 'top' && r === fixedRowsTop) {
+        break;
       }
 
       if (r >= this.tbodyChildrenLength || (this.verticalRenderReverse && r >= this.rowFilter.fixedCount)) {
