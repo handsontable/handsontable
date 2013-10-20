@@ -114,6 +114,9 @@ WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
 };
 
 WalkontableViewport.prototype.getRowHeaderHeight = function () {
+  if (this.instance.cloneFrom) {
+    return this.instance.cloneFrom.wtViewport.getRowHeaderHeight();
+  }
   if (isNaN(this.rowHeaderWidth)) {
     var TR = this.instance.wtTable.TBODY ? this.instance.wtTable.TBODY.firstChild : null;
     if (TR) {
