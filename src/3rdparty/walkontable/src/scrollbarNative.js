@@ -22,14 +22,13 @@ WalkontableScrollbarNative.prototype.init = function () {
   this.$scrollHandler = $(this.getScrollableElement(this.TABLE)); //in future remove jQuery from here
 
 
-
   this.readSettings();
 };
 
 ///////////
 
 WalkontableScrollbarNative.prototype.makeClone = function (direction) {
-  if(this.instance.cloneFrom) {
+  if (this.instance.cloneFrom) {
     return;
   }
 

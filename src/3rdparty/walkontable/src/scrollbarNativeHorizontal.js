@@ -1,10 +1,10 @@
-var WalkontableHorizontalScrollbarNative = function (instance) {
+function WalkontableHorizontalScrollbarNative(instance) {
   this.instance = instance;
   this.type = 'horizontal';
   this.cellSize = 50;
   this.init();
   this.clone = this.makeClone('left');
-};
+}
 
 WalkontableHorizontalScrollbarNative.prototype = new WalkontableScrollbarNative();
 
@@ -16,7 +16,7 @@ WalkontableHorizontalScrollbarNative.prototype.refresh = function () {
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
-  if(this.$scrollHandler[0] === window) {
+  if (this.$scrollHandler[0] === window) {
     return this.$scrollHandler[0].scrollX;
   }
   else {
@@ -45,7 +45,7 @@ WalkontableHorizontalScrollbarNative.prototype.readSettings = function () {
   var offset = this.instance.wtDom.offset(this.fixedContainer);
   this.windowSize = this.$scrollHandler.width();
   this.windowScrollPosition = this.$scrollHandler.scrollLeft();
-  if(this.$scrollHandler[0] === window) {
+  if (this.$scrollHandler[0] === window) {
     this.scrollableOffset = 0;
   }
   else {
