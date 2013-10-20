@@ -28,6 +28,83 @@ function WalkontableVerticalScrollbarNative(instance) {
 
 WalkontableVerticalScrollbarNative.prototype = new WalkontableScrollbarNative();
 
+WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
+  if (this.instance.cloneFrom) {
+    return;
+  }
+
+  var that = this;
+
+  var clone = $('<div id="cln_' + direction + '" class="handsontable"></div>');
+  this.instance.wtTable.holder.parentNode.appendChild(clone[0]);
+
+  clone.css({
+    position: 'fixed',
+    overflow: 'hidden'
+  });
+
+//  clone[0].style.height = '55px';
+//  clone[0].style.width = '384px';
+
+  var table2 = $('<table class="htCore"></table>');
+  table2.className = this.instance.wtTable.TABLE.className;
+  clone.append(table2);
+
+  var walkontableConfig = {};
+  walkontableConfig.cloneFrom = this.instance;
+  walkontableConfig.cloneDirection = direction;
+  walkontableConfig.table = table2[0];
+  var wt = new Walkontable(walkontableConfig);
+
+  var cloneTable = clone.find('table')[0];
+  var scrollable = wt.wtScrollbars.vertical.$scrollHandler[0];
+
+  //resetFixedPosition(clone[0]);
+
+  this.$scrollHandler.on('scroll', function () {
+    cloneTable.style.left = 0 - scrollable.scrollLeft + 'px';
+  });
+
+  $(window).on('load', function () {
+    resetFixedPosition(clone[0]);
+  });
+  $(window).on('scroll', function () {
+    resetFixedPosition(clone[0]);
+  });
+  $(window).on('resize', function () {
+    resetFixedPosition(clone[0]);
+  });
+  $(document).on('ready', function () {
+    resetFixedPosition(clone[0]);
+  });
+
+  function resetFixedPosition(elem) {
+    if (scrollable === window) {
+      var box = that.instance.wtTable.holder.getBoundingClientRect();
+      var top = Math.ceil(box.top, 10);
+      var bottom = Math.ceil(box.bottom, 10);
+
+      if (top < 0 && bottom > 0) {
+        elem.style.top = '0';
+      }
+      else {
+        elem.style.top = top + 'px';
+      }
+    }
+    else {
+      var box = that.$scrollHandler[0].getBoundingClientRect();
+      elem.style.top = Math.ceil(box.top, 10) + 'px';
+      elem.style.left = Math.ceil(box.left, 10) + 'px';
+    }
+
+
+    clone[0].style.width = WalkontableDom.prototype.outerWidth(that.instance.wtTable.holder.parentNode) + 'px';
+    clone[0].style.height = WalkontableDom.prototype.outerHeight(wt.wtTable.TABLE) + 4 + 'px';
+  }
+
+  return wt;
+};
+
 WalkontableVerticalScrollbarNative.prototype.getScrollPosition = function () {
   if (this.$scrollHandler[0] === window) {
     return this.$scrollHandler[0].scrollY;
@@ -42,6 +119,10 @@ WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) 
 };
 
 WalkontableVerticalScrollbarNative.prototype.onScroll = function (forcePosition) {
+  if(this.instance.cloneFrom) {
+    return;
+  }
+
   this.readSettings(); //read window scroll position
   if (forcePosition) {
 

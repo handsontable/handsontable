@@ -8,6 +8,79 @@ function WalkontableHorizontalScrollbarNative(instance) {
 
 WalkontableHorizontalScrollbarNative.prototype = new WalkontableScrollbarNative();
 
+WalkontableHorizontalScrollbarNative.prototype.makeClone = function (direction) {
+  if (this.instance.cloneFrom) {
+    return;
+  }
+
+  var that = this;
+
+  var clone = $('<div id="cln_' + direction + '" class="handsontable"></div>');
+  this.instance.wtTable.holder.parentNode.appendChild(clone[0]);
+
+  clone.css({
+    position: 'fixed',
+    overflow: 'hidden'
+  });
+
+  clone[0].style.height = '184px';
+  clone[0].style.width = '55px';
+
+  var table2 = $('<table class="htCore"></table>');
+  table2.className = this.instance.wtTable.TABLE.className;
+  clone.append(table2);
+
+  var walkontableConfig = {};
+  walkontableConfig.cloneFrom = this.instance;
+  walkontableConfig.cloneDirection = direction;
+  walkontableConfig.table = table2[0];
+  var wt = new Walkontable(walkontableConfig);
+
+  var cloneTable = clone.find('table')[0];
+  var scrollable = wt.wtScrollbars.vertical.$scrollHandler[0];
+
+  //resetFixedPosition(clone[0]);
+
+  this.$scrollHandler.on('scroll', function () {
+    cloneTable.style.top = 0 - scrollable.scrollTop + 'px';
+  });
+
+  $(window).on('load', function () {
+    resetFixedPosition(clone[0]);
+  });
+  $(window).on('scroll', function () {
+    resetFixedPosition(clone[0]);
+  });
+  $(window).on('resize', function () {
+    resetFixedPosition(clone[0]);
+  });
+  $(document).on('ready', function () {
+    resetFixedPosition(clone[0]);
+  });
+
+  function resetFixedPosition(elem) {
+    if (scrollable === window) {
+      var box = that.instance.wtTable.holder.getBoundingClientRect();
+      var left = Math.ceil(box.left, 10);
+      var right = Math.ceil(box.right, 10);
+
+      if (left < 0 && right > 0) {
+        elem.style.left = '0';
+      }
+      else {
+        elem.style.left = left + 'px';
+      }
+    }
+    else {
+      var box = that.$scrollHandler[0].getBoundingClientRect();
+      elem.style.top = Math.ceil(box.top, 10) + 'px';
+      elem.style.left = Math.ceil(box.left, 10) + 'px';
+    }
+  }
+
+  return wt;
+};
+
 WalkontableHorizontalScrollbarNative.prototype.prepare = function () {
 };
 
