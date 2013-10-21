@@ -417,7 +417,7 @@ Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
   else {
     var DIV = document.createElement('DIV');
     DIV.className = 'relative';
-    this.wt.wtDom.fastInnerHTML(DIV, '&nbsp;');
+    this.wt.wtDom.fastInnerText(DIV, '\u00A0');
     this.wt.wtDom.empty(TH);
     TH.appendChild(DIV);
   }
