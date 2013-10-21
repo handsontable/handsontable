@@ -217,17 +217,18 @@ WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {
   this.onScroll(newY);
 };
 
-WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
-  var offset = this.instance.wtDom.offset(this.fixedContainer);
+WalkontableVerticalScrollbarNative.prototype.readWindowSize = function () {
   this.windowSize = this.$scrollHandler.height();
-  this.windowScrollPosition = this.$scrollHandler.scrollTop();
   if (this.$scrollHandler[0] === window) {
-    this.scrollableOffset = 0;
+    this.tableParentOffset = this.instance.wtTable.holderOffset.left;
   }
   else {
-    this.scrollableOffset = this.instance.wtDom.offset(this.$scrollHandler[0]).top;
+    this.tableParentOffset = 0;
   }
-  this.tableParentOffset = offset.top - this.scrollableOffset;
+};
+
+WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
+  this.windowScrollPosition = this.$scrollHandler.scrollTop();
   this.offset = this.instance.getSetting('offsetRow');
   this.total = this.instance.getSetting('totalRows');
 };

@@ -285,6 +285,9 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
 
   if (!selectionsOnly) {
     this.tableOffset = this.wtDom.offset(this.TABLE);
+    this.holderOffset = this.wtDom.offset(this.holder);
+    this.instance.wtScrollbars && this.instance.wtScrollbars.vertical.readWindowSize();
+    this.instance.wtScrollbars && this.instance.wtScrollbars.horizontal.readWindowSize();
     this._doDraw();
   }
   else {

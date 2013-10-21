@@ -121,17 +121,18 @@ WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (cell) {
   this.$scrollHandler.scrollLeft(this.tableParentOffset + cell * this.cellSize);
 };
 
-WalkontableHorizontalScrollbarNative.prototype.readSettings = function () {
-  var offset = this.instance.wtDom.offset(this.fixedContainer);
+WalkontableHorizontalScrollbarNative.prototype.readWindowSize = function () {
   this.windowSize = this.$scrollHandler.width();
-  this.windowScrollPosition = this.$scrollHandler.scrollLeft();
   if (this.$scrollHandler[0] === window) {
-    this.scrollableOffset = 0;
+    this.tableParentOffset = this.instance.wtTable.holderOffset.left;
   }
   else {
-    this.scrollableOffset = this.instance.wtDom.offset(this.$scrollHandler[0]).left;
+    this.tableParentOffset = 0;
   }
-  this.tableParentOffset = offset.left - this.scrollableOffset;
+};
+
+WalkontableHorizontalScrollbarNative.prototype.readSettings = function () {
+  this.windowScrollPosition = this.$scrollHandler.scrollLeft();
   this.offset = this.instance.getSetting('offsetColumn');
   this.total = this.instance.getSetting('totalColumns');
 };
