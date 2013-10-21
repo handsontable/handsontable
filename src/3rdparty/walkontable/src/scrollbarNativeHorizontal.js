@@ -41,24 +41,28 @@ WalkontableHorizontalScrollbarNative.prototype.makeClone = function (direction) 
 
   //resetFixedPosition(clone[0]);
 
-  this.$scrollHandler.on('scroll', function () {
+  this.$scrollHandler.on('scroll.' + this.instance.guid, function () {
     cloneTable.style.top = that.instance.wtScrollbars.vertical.measureBefore - scrollable.scrollTop + 'px';
   });
 
-  $(window).on('load', function () {
+  $(window).on('load.' + this.instance.guid, function () {
     resetFixedPosition(clone[0]);
   });
-  $(window).on('scroll', function () {
+  $(window).on('scroll.' + this.instance.guid, function () {
     resetFixedPosition(clone[0]);
   });
-  $(window).on('resize', function () {
+  $(window).on('resize.' + this.instance.guid, function () {
     resetFixedPosition(clone[0]);
   });
-  $(document).on('ready', function () {
+  $(document).on('ready.' + this.instance.guid, function () {
     resetFixedPosition(clone[0]);
   });
 
   function resetFixedPosition(elem) {
+    if (!that.instance.wtTable.holder.parentNode) {
+      return; //removed from DOM
+    }
+
     var box;
     if (scrollable === window) {
       box = that.instance.wtTable.holder.getBoundingClientRect();

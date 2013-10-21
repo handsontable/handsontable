@@ -71,5 +71,7 @@ WalkontableScrollbarNative.prototype.refresh = function (selectionsOnly) {
 };
 
 WalkontableScrollbarNative.prototype.destroy = function () {
-  this.$scrollHandler.off('scroll.walkontable');
+  this.$scrollHandler.off('.' + this.instance.guid);
+  $(window).off('.' + this.instance.guid);
+  $(document).off('.' + this.instance.guid);
 };

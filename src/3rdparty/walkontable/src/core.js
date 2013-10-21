@@ -2,7 +2,7 @@ function Walkontable(settings) {
   var that = this,
     originalHeaders = [];
 
-  this.guid = 'wt_' + (window.Handsontable ? Handsontable.helper.randomString() : ''); //this is the namespace for global events
+  this.guid = 'wt_' + walkontableRandomString(); //this is the namespace for global events
 
   //bootstrap from settings
   this.wtDom = new WalkontableDom();
