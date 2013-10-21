@@ -218,7 +218,7 @@ else { //IE8
  * @param elem
  * @returns {boolean}
  */
-if (document.createTextNode('test').textContent) { //STANDARDS
+/*if (document.createTextNode('test').textContent) { //STANDARDS
   WalkontableDom.prototype.hasOffsetParent = function (elem) {
     return !!elem.offsetParent;
   }
@@ -235,7 +235,7 @@ else {
     }
     return true;
   }
-}
+}*/
 
 /**
  * Returns true if element is attached to the DOM and visible, false otherwise
@@ -244,6 +244,7 @@ else {
  */
 WalkontableDom.prototype.isVisible = function (elem) {
   //fast method according to benchmarks, but requires layout so slow in our case
+  /*
   if (!WalkontableDom.prototype.hasOffsetParent(elem)) {
     return false; //fixes problem with UI Bootstrap <tabs> directive
   }
@@ -252,6 +253,7 @@ WalkontableDom.prototype.isVisible = function (elem) {
   if (elem.offsetWidth > 0) {
     return true;
   }
+  */
 
   //slow method
   var next = elem;
