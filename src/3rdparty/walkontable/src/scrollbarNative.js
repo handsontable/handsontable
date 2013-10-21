@@ -19,7 +19,8 @@ WalkontableScrollbarNative.prototype.init = function () {
   this.fixedContainer = this.instance.wtTable.holder;
   this.fixed.style.position = 'absolute';
   this.fixed.style.left = '0';
-  this.$scrollHandler = $(this.getScrollableElement(this.TABLE)); //in future remove jQuery from here
+  this.scrollHandler = this.getScrollableElement(this.TABLE);
+  this.$scrollHandler = $(this.scrollHandler); //in future remove jQuery from here
 };
 
 WalkontableScrollbarNative.prototype.getScrollableElement = function (TABLE) {

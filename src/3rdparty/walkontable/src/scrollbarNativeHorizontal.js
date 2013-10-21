@@ -37,7 +37,7 @@ WalkontableHorizontalScrollbarNative.prototype.makeClone = function (direction) 
   var wt = new Walkontable(walkontableConfig);
 
   var cloneTable = clone.find('table')[0];
-  var scrollable = that.$scrollHandler[0];
+  var scrollable = that.scrollHandler;
 
   //resetFixedPosition(clone[0]);
 
@@ -77,7 +77,7 @@ WalkontableHorizontalScrollbarNative.prototype.makeClone = function (direction) 
       }
     }
     else {
-      box = that.$scrollHandler[0].getBoundingClientRect();
+      box = that.scrollHandler.getBoundingClientRect();
       elem.style.top = Math.ceil(box.top, 10) + 'px';
       elem.style.left = Math.ceil(box.left, 10) + 'px';
     }
@@ -96,11 +96,11 @@ WalkontableHorizontalScrollbarNative.prototype.refresh = function (selectionsOnl
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
-  if (this.$scrollHandler[0] === window) {
-    return this.$scrollHandler[0].scrollX;
+  if (this.scrollHandler === window) {
+    return this.scrollHandler.scrollX;
   }
   else {
-    return this.$scrollHandler[0].scrollLeft;
+    return this.scrollHandler.scrollLeft;
   }
 };
 
@@ -122,17 +122,18 @@ WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (cell) {
 };
 
 WalkontableHorizontalScrollbarNative.prototype.readWindowSize = function () {
-  this.windowSize = this.$scrollHandler.width();
-  if (this.$scrollHandler[0] === window) {
+  if (this.scrollHandler === window) {
+    this.windowSize = document.documentElement.clientWidth;
     this.tableParentOffset = this.instance.wtTable.holderOffset.left;
   }
   else {
+    this.windowSize = WalkontableDom.prototype.outerWidth(this.scrollHandler);
     this.tableParentOffset = 0;
   }
 };
 
 WalkontableHorizontalScrollbarNative.prototype.readSettings = function () {
-  this.windowScrollPosition = this.$scrollHandler.scrollLeft();
+  this.windowScrollPosition = this.getScrollPosition();
   this.offset = this.instance.getSetting('offsetColumn');
   this.total = this.instance.getSetting('totalColumns');
 };

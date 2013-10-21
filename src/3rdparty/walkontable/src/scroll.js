@@ -141,9 +141,9 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
       var offset = WalkontableDom.prototype.offset(TD);
       var outerHeight = WalkontableDom.prototype.outerHeight(TD);
       var scrollY = this.instance.wtScrollbars.vertical.getScrollPosition();
-      var clientHeight = WalkontableDom.prototype.outerHeight(this.instance.wtScrollbars.vertical.$scrollHandler[0]);
-      if(this.instance.wtScrollbars.vertical.$scrollHandler[0] !== window) {
-        offset.top = offset.top - WalkontableDom.prototype.offset(this.instance.wtScrollbars.vertical.$scrollHandler[0]).top;
+      var clientHeight = WalkontableDom.prototype.outerHeight(this.instance.wtScrollbars.vertical.scrollHandler);
+      if (this.instance.wtScrollbars.vertical.scrollHandler !== window) {
+        offset.top = offset.top - WalkontableDom.prototype.offset(this.instance.wtScrollbars.vertical.scrollHandler).top;
       }
 
       clientHeight -= 20;

@@ -5,7 +5,7 @@ function WalkontableVerticalScrollbarNative(instance) {
   this.init();
 
   var that = this;
-  this.$scrollHandler.on('scroll.walkontable', function () {
+  this.$scrollHandler.on('scroll.' + this.instance.guid, function () {
     if (!that.instance.wtTable.holder.parentNode) {
       //Walkontable was detached from DOM, but this handler was not removed
       that.destroy();
@@ -57,7 +57,7 @@ WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
   var wt = new Walkontable(walkontableConfig);
 
   var cloneTable = clone.find('table')[0];
-  var scrollable = that.$scrollHandler[0];
+  var scrollable = that.scrollHandler;
 
   //resetFixedPosition(clone[0]);
 
@@ -97,7 +97,7 @@ WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
       }
     }
     else {
-      box = that.$scrollHandler[0].getBoundingClientRect();
+      box = that.scrollHandler.getBoundingClientRect();
       elem.style.top = Math.ceil(box.top, 10) + 'px';
       elem.style.left = Math.ceil(box.left, 10) + 'px';
     }
@@ -111,16 +111,16 @@ WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
 };
 
 WalkontableVerticalScrollbarNative.prototype.getScrollPosition = function () {
-  if (this.$scrollHandler[0] === window) {
-    return this.$scrollHandler[0].scrollY;
+  if (this.scrollHandler === window) {
+    return this.scrollHandler.scrollY;
   }
   else {
-    return this.$scrollHandler[0].scrollTop;
+    return this.scrollHandler.scrollTop;
   }
 };
 
 WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) {
-  this.$scrollHandler[0].scrollTop = pos;
+  this.scrollHandler.scrollTop = pos;
 };
 
 WalkontableVerticalScrollbarNative.prototype.onScroll = function (forcePosition) {
@@ -218,17 +218,18 @@ WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {
 };
 
 WalkontableVerticalScrollbarNative.prototype.readWindowSize = function () {
-  this.windowSize = this.$scrollHandler.height();
-  if (this.$scrollHandler[0] === window) {
+  if (this.scrollHandler === window) {
+    this.windowSize = document.documentElement.clientHeight;
     this.tableParentOffset = this.instance.wtTable.holderOffset.left;
   }
   else {
+    this.windowSize = WalkontableDom.prototype.outerHeight(this.scrollHandler);
     this.tableParentOffset = 0;
   }
 };
 
 WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
-  this.windowScrollPosition = this.$scrollHandler.scrollTop();
+  this.windowScrollPosition = this.getScrollPosition();
   this.offset = this.instance.getSetting('offsetRow');
   this.total = this.instance.getSetting('totalRows');
 };
