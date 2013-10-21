@@ -29,11 +29,11 @@ WalkontableScrollbars.prototype.destroy = function () {
   this.horizontal && this.horizontal.destroy();
 };
 
-WalkontableScrollbars.prototype.refresh = function () {
+WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
   this.horizontal && this.horizontal.readSettings();
   this.vertical && this.vertical.readSettings();
   this.horizontal && this.horizontal.prepare();
   this.vertical && this.vertical.prepare();
-  this.horizontal && this.horizontal.refresh();
-  this.vertical && this.vertical.refresh();
+  this.horizontal && this.horizontal.refresh(selectionsOnly);
+  this.vertical && this.vertical.refresh(selectionsOnly);
 };

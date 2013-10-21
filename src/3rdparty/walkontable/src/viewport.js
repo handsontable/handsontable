@@ -4,7 +4,6 @@ function WalkontableViewport(instance) {
 
   if (this.instance.isNativeScroll) {
     var that = this;
-    that.clientHeight = that.getWorkspaceHeight(); //browser viewport height
     $(window).on('resize', function () {
       that.clientHeight = that.getWorkspaceHeight();
     });

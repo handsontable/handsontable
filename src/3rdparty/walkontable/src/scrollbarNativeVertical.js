@@ -57,12 +57,12 @@ WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
   var wt = new Walkontable(walkontableConfig);
 
   var cloneTable = clone.find('table')[0];
-  var scrollable = wt.wtScrollbars.vertical.$scrollHandler[0];
+  var scrollable = that.$scrollHandler[0];
 
   //resetFixedPosition(clone[0]);
 
   this.$scrollHandler.on('scroll', function () {
-    cloneTable.style.left = 0 - scrollable.scrollLeft + 'px';
+    cloneTable.style.left = that.instance.wtScrollbars.horizontal.measureBefore - scrollable.scrollLeft + 'px';
   });
 
   $(window).on('load', function () {
@@ -79,8 +79,9 @@ WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
   });
 
   function resetFixedPosition(elem) {
+    var box;
     if (scrollable === window) {
-      var box = that.instance.wtTable.holder.getBoundingClientRect();
+      box = that.instance.wtTable.holder.getBoundingClientRect();
       var top = Math.ceil(box.top, 10);
       var bottom = Math.ceil(box.bottom, 10);
 
@@ -92,7 +93,7 @@ WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
       }
     }
     else {
-      var box = that.$scrollHandler[0].getBoundingClientRect();
+      box = that.$scrollHandler[0].getBoundingClientRect();
       elem.style.top = Math.ceil(box.top, 10) + 'px';
       elem.style.left = Math.ceil(box.left, 10) + 'px';
     }

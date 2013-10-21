@@ -57,7 +57,7 @@ WalkontableScrollbarNative.prototype.availableSize = function () {
   return availableSize;
 };
 
-WalkontableScrollbarNative.prototype.refresh = function () {
+WalkontableScrollbarNative.prototype.refresh = function (selectionsOnly) {
   var last = this.getLastCell();
   this.measureBefore = this.sumCellSizes(0, this.offset);
   if (last === -1) { //last -1 means that viewport is scrolled behind the table
@@ -67,7 +67,7 @@ WalkontableScrollbarNative.prototype.refresh = function () {
     this.measureAfter = this.sumCellSizes(last, this.total - last);
   }
   this.applyToDOM();
-  this.clone && this.clone.draw(!this.instance.forceFullRender);
+  this.clone && this.clone.draw(selectionsOnly);
 };
 
 WalkontableScrollbarNative.prototype.destroy = function () {

@@ -37,12 +37,12 @@ WalkontableHorizontalScrollbarNative.prototype.makeClone = function (direction) 
   var wt = new Walkontable(walkontableConfig);
 
   var cloneTable = clone.find('table')[0];
-  var scrollable = wt.wtScrollbars.vertical.$scrollHandler[0];
+  var scrollable = that.$scrollHandler[0];
 
   //resetFixedPosition(clone[0]);
 
   this.$scrollHandler.on('scroll', function () {
-    cloneTable.style.top = 0 - scrollable.scrollTop + 'px';
+    cloneTable.style.top = that.instance.wtScrollbars.vertical.measureBefore - scrollable.scrollTop + 'px';
   });
 
   $(window).on('load', function () {
@@ -59,8 +59,9 @@ WalkontableHorizontalScrollbarNative.prototype.makeClone = function (direction) 
   });
 
   function resetFixedPosition(elem) {
+    var box;
     if (scrollable === window) {
-      var box = that.instance.wtTable.holder.getBoundingClientRect();
+      box = that.instance.wtTable.holder.getBoundingClientRect();
       var left = Math.ceil(box.left, 10);
       var right = Math.ceil(box.right, 10);
 
@@ -72,7 +73,7 @@ WalkontableHorizontalScrollbarNative.prototype.makeClone = function (direction) 
       }
     }
     else {
-      var box = that.$scrollHandler[0].getBoundingClientRect();
+      box = that.$scrollHandler[0].getBoundingClientRect();
       elem.style.top = Math.ceil(box.top, 10) + 'px';
       elem.style.left = Math.ceil(box.left, 10) + 'px';
     }
@@ -84,8 +85,10 @@ WalkontableHorizontalScrollbarNative.prototype.makeClone = function (direction) 
 WalkontableHorizontalScrollbarNative.prototype.prepare = function () {
 };
 
-WalkontableHorizontalScrollbarNative.prototype.refresh = function () {
-  this.clone && this.clone.draw(!this.instance.forceFullRender);
+WalkontableHorizontalScrollbarNative.prototype.refresh = function (selectionsOnly) {
+  this.measureBefore = 0;
+  this.measureAfter = 0;
+  this.clone && this.clone.draw(selectionsOnly);
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {

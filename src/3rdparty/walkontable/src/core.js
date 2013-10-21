@@ -5,22 +5,24 @@ function Walkontable(settings) {
   this.guid = 'wt_' + (window.Handsontable ? Handsontable.helper.randomString() : ''); //this is the namespace for global events
 
   //bootstrap from settings
-  if(settings.cloneFrom) {
+  this.wtDom = new WalkontableDom();
+  if (settings.cloneFrom) {
     this.cloneFrom = settings.cloneFrom;
     this.cloneDirection = settings.cloneDirection;
     this.wtSettings = settings.cloneFrom.wtSettings;
+    this.wtTable = new WalkontableTable(this, settings.table);
+    this.wtScroll = new WalkontableScroll(this);
+    this.wtViewport = settings.cloneFrom.wtViewport;
   }
   else {
     this.wtSettings = new WalkontableSettings(this, settings);
+    this.wtTable = new WalkontableTable(this, settings.table);
+    this.wtScroll = new WalkontableScroll(this);
+    this.wtViewport = new WalkontableViewport(this);
+    this.wtScrollbars = new WalkontableScrollbars(this);
+    this.wtWheel = new WalkontableWheel(this);
+    this.wtEvent = new WalkontableEvent(this);
   }
-
-  this.wtDom = new WalkontableDom();
-  this.wtTable = new WalkontableTable(this, settings.table);
-  this.wtScroll = new WalkontableScroll(this);
-  this.wtScrollbars = new WalkontableScrollbars(this);
-  this.wtViewport = new WalkontableViewport(this);
-  this.wtWheel = new WalkontableWheel(this);
-  this.wtEvent = new WalkontableEvent(this);
 
   //find original headers
   if (this.wtTable.THEAD.childNodes.length && this.wtTable.THEAD.childNodes[0].childNodes.length) {

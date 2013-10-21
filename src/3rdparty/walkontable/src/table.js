@@ -288,7 +288,7 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
     this._doDraw();
   }
   else {
-    this.instance.wtScrollbars.refresh();
+    this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
   }
 
   this.refreshPositions(selectionsOnly);
@@ -496,7 +496,7 @@ WalkontableTable.prototype._doDraw = function () {
     this.tbodyChildrenLength--;
   }
 
-  this.instance.wtScrollbars.refresh();
+  this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(false);
 
   if (workspaceWidth !== this.instance.wtViewport.getWorkspaceWidth()) {
     //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
