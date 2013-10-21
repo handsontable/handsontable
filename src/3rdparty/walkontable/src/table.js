@@ -164,6 +164,9 @@ WalkontableTable.prototype.refreshStretching = function () {
   };
 
   var rowHeightFn = function (i, TD) {
+    if (that.instance.isNativeScroll) {
+      return 20;
+    }
     var source_r = that.rowFilter.visibleToSource(i);
     if (source_r < totalRows) {
       if (that.verticalRenderReverse && i === 0) {
@@ -195,7 +198,7 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   }
 
   this.refreshStretching();
-  if(this.instance.cloneFrom && this.instance.cloneDirection === 'left') {
+  if (this.instance.cloneFrom && this.instance.cloneDirection === 'left') {
     this.columnStrategy.cellCount = 0;
   }
 
@@ -284,11 +287,21 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
   this.columnFilter.readSettings(this.instance);
 
   if (!selectionsOnly) {
-    this.tableOffset = this.wtDom.offset(this.TABLE);
-    this.holderOffset = this.wtDom.offset(this.holder);
-    if (this.instance.isNativeScroll && this.instance.wtScrollbars) {
-      this.instance.wtScrollbars.vertical.readWindowSize();
-      this.instance.wtScrollbars.horizontal.readWindowSize();
+    if (this.instance.isNativeScroll) {
+      if (this.instance.cloneFrom) {
+        this.tableOffset = this.instance.cloneFrom.wtTable.tableOffset;
+      }
+      else {
+        this.holderOffset = this.wtDom.offset(this.holder);
+        this.tableOffset = this.wtDom.offset(this.TABLE);
+        this.instance.wtScrollbars.vertical.readWindowSize();
+        this.instance.wtScrollbars.horizontal.readWindowSize();
+        this.instance.wtViewport.resetSettings();
+      }
+    }
+    else {
+      this.tableOffset = this.wtDom.offset(this.TABLE);
+      this.instance.wtViewport.resetSettings();
     }
     this._doDraw();
   }
@@ -325,8 +338,6 @@ WalkontableTable.prototype._doDraw = function () {
     mustBeInViewport = offsetRow;
   }
 
-  this.instance.wtViewport.resetSettings();
-
   var noPartial = false;
   if (this.verticalRenderReverse) {
     if (offsetRow === totalRows - this.rowFilter.fixedCount - 1) {
@@ -350,7 +361,7 @@ WalkontableTable.prototype._doDraw = function () {
         throw new Error('Security brake: Too much TRs. Please define height for your table, which will enforce scrollbars.');
       }
 
-      if(this.instance.cloneFrom && this.instance.cloneDirection === 'top' && r === fixedRowsTop) {
+      if (this.instance.cloneFrom && this.instance.cloneDirection === 'top' && r === fixedRowsTop) {
         break;
       }
 

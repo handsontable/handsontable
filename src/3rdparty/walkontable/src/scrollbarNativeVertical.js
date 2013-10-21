@@ -61,7 +61,7 @@ WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
 
     that.onScroll();
 
-    cloneTable.style.left = that.instance.wtScrollbars.horizontal.measureBefore - scrollable.scrollLeft + 'px';
+    cloneTable.style.left = that.instance.wtScrollbars.horizontal.measureBefore - that.instance.wtScrollbars.horizontal.windowScrollPosition + 'px';
   });
 
   $(window).on('load.' + this.instance.guid, function () {
@@ -127,9 +127,10 @@ WalkontableVerticalScrollbarNative.prototype.onScroll = function (forcePosition)
     return;
   }
 
+  this.windowScrollPosition = this.getScrollPosition();
   this.readSettings(); //read window scroll position
-  if (forcePosition) {
 
+  if (forcePosition) {
     this.windowScrollPosition = forcePosition;
   }
 
@@ -225,10 +226,10 @@ WalkontableVerticalScrollbarNative.prototype.readWindowSize = function () {
     this.windowSize = WalkontableDom.prototype.outerHeight(this.scrollHandler);
     this.tableParentOffset = 0;
   }
+  this.windowScrollPosition = this.getScrollPosition();
 };
 
 WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
-  this.windowScrollPosition = this.getScrollPosition();
   this.offset = this.instance.getSetting('offsetRow');
   this.total = this.instance.getSetting('totalRows');
 };
