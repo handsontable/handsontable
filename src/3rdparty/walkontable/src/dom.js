@@ -214,19 +214,38 @@ else { //IE8
 }
 
 /**
+ * Returns true/false depending if element has offset parent
+ * @param elem
+ * @returns {boolean}
+ */
+if (document.createTextNode('test').textContent) { //STANDARDS
+  WalkontableDom.prototype.hasOffsetParent = function (elem) {
+    return !!elem.offsetParent;
+  }
+}
+else {
+  WalkontableDom.prototype.hasOffsetParent = function (elem) {
+    try {
+      if (!elem.offsetParent) {
+        return false;
+      }
+    }
+    catch (e) {
+      return false; //IE8 throws "Unspecified error" when offsetParent is not found - we catch it here
+    }
+    return true;
+  }
+}
+
+/**
  * Returns true if element is attached to the DOM and visible, false otherwise
  * @param elem
  * @returns {boolean}
  */
 WalkontableDom.prototype.isVisible = function (elem) {
-  //fast method
-  try {//try/catch performance is not a problem here: http://jsperf.com/try-catch-performance-overhead/7
-    if (!elem.offsetParent) {
-      return false; //fixes problem with UI Bootstrap <tabs> directive
-    }
-  }
-  catch (e) {
-    return false; //IE8 throws "Unspecified error" when offsetParent is not found - we catch it here
+  //fast method according to benchmarks, but requires layout so slow in our case
+  if (!WalkontableDom.prototype.hasOffsetParent(elem)) {
+    return false; //fixes problem with UI Bootstrap <tabs> directive
   }
 
 //  if (elem.offsetWidth > 0 || (elem.parentNode && elem.parentNode.offsetWidth > 0)) { //IE10 was mistaken here
