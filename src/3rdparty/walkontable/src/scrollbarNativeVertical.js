@@ -5,15 +5,6 @@ function WalkontableVerticalScrollbarNative(instance) {
   this.init();
 
   var that = this;
-  this.$scrollHandler.on('scroll.' + this.instance.guid, function () {
-    if (!that.instance.wtTable.holder.parentNode) {
-      //Walkontable was detached from DOM, but this handler was not removed
-      that.destroy();
-      return;
-    }
-
-    that.onScroll();
-  });
 
   WalkontableCellStrategy.prototype.isLastIncomplete = function () { //monkey patch needed. In future get rid of it to improve performance
     /*
@@ -62,6 +53,14 @@ WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
   //resetFixedPosition(clone[0]);
 
   this.$scrollHandler.on('scroll.' + this.instance.guid, function () {
+    if (!that.instance.wtTable.holder.parentNode) {
+      //Walkontable was detached from DOM, but this handler was not removed
+      that.destroy();
+      return;
+    }
+
+    that.onScroll();
+
     cloneTable.style.left = that.instance.wtScrollbars.horizontal.measureBefore - scrollable.scrollLeft + 'px';
   });
 
