@@ -91,6 +91,7 @@ module.exports = function (grunt) {
         'src/plugins/observeChanges.js',
         'src/plugins/persistentState.js',
         'src/plugins/undoRedo.js',
+        'src/plugins/dragToScroll/dragToScroll.js',
 
         'src/3rdparty/jquery.autoresize.js',
         'src/3rdparty/sheetclip.js',

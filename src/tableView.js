@@ -40,8 +40,7 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  var isMouseDown
-    , dragInterval;
+  var isMouseDown;
 
   $documentElement.on('mouseup.' + instance.guid, function (event) {
     if (instance.selection.isInProgress() && event.which === 1) { //is left mouse button
@@ -49,8 +48,6 @@ Handsontable.TableView = function (instance) {
     }
 
     isMouseDown = false;
-    clearInterval(dragInterval);
-    dragInterval = null;
 
     if (instance.autofill.handle && instance.autofill.handle.isDragged) {
       if (instance.autofill.handle.isDragged > 1) {
@@ -100,58 +97,6 @@ Handsontable.TableView = function (instance) {
     //https://github.com/warpech/jquery-handsontable/issues/160
     //selectstart is IE only event. Prevent text from being selected when performing drag down in IE8
     event.preventDefault();
-  });
-
-  instance.$table.on('mouseenter', function () {
-    if (dragInterval) { //if dragInterval was set (that means mouse was really outside of table, not over an element that is outside of <table> in DOM
-      clearInterval(dragInterval);
-      dragInterval = null;
-    }
-  });
-
-  instance.$table.on('mouseleave', function (event) {
-    if (!(isMouseDown || (instance.autofill.handle && instance.autofill.handle.isDragged))) {
-      return;
-    }
-
-    var tolerance = 1 //this is needed because width() and height() contains stuff like cell borders
-      , offset = that.wt.wtDom.offset(table)
-      , offsetTop = offset.top + tolerance
-      , offsetLeft = offset.left + tolerance
-      , width = that.containerWidth - that.wt.getSetting('scrollbarWidth') - 2 * tolerance
-      , height = that.containerHeight - that.wt.getSetting('scrollbarHeight') - 2 * tolerance
-      , method
-      , row = 0
-      , col = 0
-      , dragFn;
-
-    if (event.pageY < offsetTop) { //top edge crossed
-      row = -1;
-      method = 'scrollVertical';
-    }
-    else if (event.pageY >= offsetTop + height) { //bottom edge crossed
-      row = 1;
-      method = 'scrollVertical';
-    }
-    else if (event.pageX < offsetLeft) { //left edge crossed
-      col = -1;
-      method = 'scrollHorizontal';
-    }
-    else if (event.pageX >= offsetLeft + width) { //right edge crossed
-      col = 1;
-      method = 'scrollHorizontal';
-    }
-
-    if (method) {
-      dragFn = function () {
-        if (isMouseDown || (instance.autofill.handle && instance.autofill.handle.isDragged)) {
-          //instance.selection.transformEnd(row, col);
-          that.wt[method](row + col).draw();
-        }
-      };
-      dragFn();
-      dragInterval = setInterval(dragFn, 100);
-    }
   });
 
   var clearTextSelection = function () {
@@ -253,10 +198,7 @@ Handsontable.TableView = function (instance) {
         instance.selection.setRangeStart(coordsObj);
       }
 
-
-      if (that.settings.afterOnCellMouseDown) {
-        that.settings.afterOnCellMouseDown.call(instance, event, coords, TD);
-      }
+      instance.PluginHooks.run('afterOnCellMouseDown', event, coords, TD);
     },
     /*onCellMouseOut: function (/*event, coords, TD* /) {
      if (isMouseDown && that.settings.fragmentSelection === 'single') {
@@ -279,6 +221,7 @@ Handsontable.TableView = function (instance) {
     onCellCornerMouseDown: function (event) {
       instance.autofill.handle.isDragged = 1;
       event.preventDefault();
+      instance.PluginHooks.run('afterOnCellCornerMouseDown', event);
     },
     onCellCornerDblClick: function () {
       instance.autofill.selectAdjacent();
