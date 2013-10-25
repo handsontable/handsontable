@@ -2,7 +2,7 @@ function WalkontableViewport(instance) {
   this.instance = instance;
   this.resetSettings();
 
-  if (this.instance.isNativeScroll) {
+  if (this.instance.getSetting('nativeScrollbars')) {
     var that = this;
     $(window).on('resize', function () {
       that.clientHeight = that.getWorkspaceHeight();
@@ -29,7 +29,7 @@ function WalkontableViewport(instance) {
 
 //used by scrollbar
 WalkontableViewport.prototype.getWorkspaceHeight = function (proposedHeight) {
-  if (this.instance.isNativeScroll) {
+  if (this.instance.getSetting('nativeScrollbars')) {
     return this.instance.wtScrollbars.vertical.windowSize;
   }
 

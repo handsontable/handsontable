@@ -135,7 +135,7 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     , fixedRowsTop = this.instance.getSetting('fixedRowsTop')
     , fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
 
-  if (this.instance.isNativeScroll) {
+  if (this.instance.getSetting('nativeScrollbars')) {
     var TD = this.instance.wtTable.getCell(coords);
     if (typeof TD === 'object') {
       var offset = WalkontableDom.prototype.offset(TD);

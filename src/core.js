@@ -2581,8 +2581,7 @@ DefaultSettings.prototype = {
   invalidCellClassName: 'htInvalid',
   fragmentSelection: false,
   readOnly: false,
-  scrollbarModelV: 'dragdealer',
-  scrollbarModelH: 'dragdealer'
+  nativeScrollbars: false
 };
 Handsontable.DefaultSettings = DefaultSettings;
 

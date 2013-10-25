@@ -79,10 +79,6 @@ function WalkontableTable(instance, table) {
   this.columnFilter = new WalkontableColumnFilter();
 
   this.verticalRenderReverse = false;
-
-  if (this.instance.getSetting('scrollbarModelV') === 'native' || this.instance.getSetting('scrollbarModelH') === 'native') {
-    this.instance.isNativeScroll = true;
-  }
 }
 
 WalkontableTable.prototype.refreshHiderDimensions = function () {
@@ -91,7 +87,7 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
 
   var spreaderStyle = this.spreader.style;
 
-  if ((height !== Infinity || width !== Infinity) && !this.instance.isNativeScroll) {
+  if ((height !== Infinity || width !== Infinity) && !this.instance.getSetting('nativeScrollbars')) {
     if (height === Infinity) {
       height = this.instance.wtViewport.getWorkspaceActualHeight();
     }
@@ -105,11 +101,8 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
     spreaderStyle.top = '0';
     spreaderStyle.left = '0';
 
-    if (this.instance.getSetting('scrollbarModelV') === 'dragdealer') {
+    if (!this.instance.getSetting('nativeScrollbars')) {
       spreaderStyle.height = '4000px';
-    }
-
-    if (this.instance.getSetting('scrollbarModelH') === 'dragdealer') {
       spreaderStyle.width = '4000px';
     }
 
@@ -157,14 +150,14 @@ WalkontableTable.prototype.refreshStretching = function () {
   }
 
   var containerHeightFn = function (cacheHeight) {
-    if (that.instance.isNativeScroll) {
+    if (that.instance.getSetting('nativeScrollbars')) {
       return 2 * that.instance.wtViewport.getViewportHeight(cacheHeight);
     }
     return that.instance.wtViewport.getViewportHeight(cacheHeight);
   };
 
   var rowHeightFn = function (i, TD) {
-    if (that.instance.isNativeScroll) {
+    if (that.instance.getSetting('nativeScrollbars')) {
       return 20;
     }
     var source_r = that.rowFilter.visibleToSource(i);
@@ -279,7 +272,7 @@ WalkontableTable.prototype.adjustColumns = function (TR, desiredCount) {
 };
 
 WalkontableTable.prototype.draw = function (selectionsOnly) {
-  if (this.instance.isNativeScroll) {
+  if (this.instance.getSetting('nativeScrollbars')) {
     this.verticalRenderReverse = false; //this is only supported in dragdealer mode, not in native
   }
 
@@ -287,7 +280,7 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
   this.columnFilter.readSettings(this.instance);
 
   if (!selectionsOnly) {
-    if (this.instance.isNativeScroll) {
+    if (this.instance.getSetting('nativeScrollbars')) {
       if (this.instance.cloneFrom) {
         this.tableOffset = this.instance.cloneFrom.wtTable.tableOffset;
       }
@@ -470,7 +463,7 @@ WalkontableTable.prototype._doDraw = function () {
         res = this.rowStrategy.add(r, TD, this.verticalRenderReverse);
 
         if (res === false) {
-          if (!this.instance.isNativeScroll) {
+          if (!this.instance.getSetting('nativeScrollbars')) {
             this.rowStrategy.removeOutstanding();
           }
         }
@@ -590,7 +583,7 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
  *
  */
 WalkontableTable.prototype.getCell = function (coords) {
-  if (this.instance.isNativeScroll) {
+  if (this.instance.getSetting('nativeScrollbars')) {
     return this.instance.wtTable.TBODY.querySelectorAll('[data-row="' + coords[0] + '"][data-column="' + coords[1] + '"]')[0];
   }
 
@@ -647,7 +640,7 @@ WalkontableTable.prototype.isColumnAfterViewport = function (c) {
 };
 
 WalkontableTable.prototype.isRowInViewport = function (r) {
-  if (this.instance.isNativeScroll) {
+  if (this.instance.getSetting('nativeScrollbars')) {
     return !!this.instance.wtTable.TBODY.querySelectorAll('[data-row="' + r + '"]')[0];
   }
   else {
@@ -656,7 +649,7 @@ WalkontableTable.prototype.isRowInViewport = function (r) {
 };
 
 WalkontableTable.prototype.isColumnInViewport = function (c) {
-  if (this.instance.isNativeScroll) {
+  if (this.instance.getSetting('nativeScrollbars')) {
     return !!this.instance.wtTable.TBODY.querySelectorAll('[data-column="' + c + '"]')[0];
   }
   else {

@@ -118,8 +118,7 @@ Handsontable.TableView = function (instance) {
     data: instance.getDataAtCell,
     totalRows: instance.countRows,
     totalColumns: instance.countCols,
-    scrollbarModelV: this.settings.scrollbarModelV,
-    scrollbarModelH: this.settings.scrollbarModelH,
+    nativeScrollbars: this.settings.nativeScrollbars,
     offsetRow: 0,
     offsetColumn: 0,
     width: this.getWidth(),
@@ -403,7 +402,7 @@ Handsontable.TableView.prototype.maximumVisibleElementWidth = function (left) {
  */
 Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
   var rootHeight = this.wt.wtViewport.getWorkspaceHeight();
-  if(this.wt.isNativeScroll) {
+  if(this.wt.getSetting('nativeScrollbars')) {
     return rootHeight;
   }
   return rootHeight - top;
