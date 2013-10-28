@@ -62,5 +62,25 @@ describe('WebComponents', function () {
     });
   });
 
+  it('settings attribute value should be parsed', function () {
+    var hot = document.createElement('handsontable-table');
+    window.mySettings = {
+      minSpareRows: 3
+    }
+    hot.setAttribute('settings', 'mySettings'); //same notation is used in
+    document.body.appendChild(hot);
+
+    waitsFor(function () {
+      return ready;
+    }, 1000);
+
+    waits(100);
+
+    runs(function () {
+      expect(hot.getSettings().minSpareRows).toBe(3);
+      hot.parentNode.removeChild(hot);
+    });
+  });
+
 });
 

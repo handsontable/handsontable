@@ -116,7 +116,7 @@
       <x-tile id="spanishTile" skin="gray" label="Spanish" value=""></x-tile>
       <div style="clear: left"></div>
 
-      <handsontable-table id="example1" datarows="people" settings="settings" width="400" minsparerows="1">
+      <handsontable-table id="example1" datarows="people" settings="mySettings" width="400" minsparerows="1">
         <handsontable-column id="col1" width="30" readOnly value="id" title="ID"></handsontable-column>
         <handsontable-column width="70" value="name.first" title="First Name"></handsontable-column>
         <handsontable-column width="100" value="name.last" title="Last Name"></handsontable-column>
@@ -169,7 +169,7 @@
           {id: 11, name: {first: 'Aaron', last: 'Kinley'}, gender: 'Female', age: 33, languages: {english: 'Yes', spanish: 'Yes', french: 'Yes'}, salary: 2799}
         ];
 
-        var settings = {
+        var mySettings = {
           isEmptyRow: function (r) {
             var val;
             //c === 1 to ignore id column
