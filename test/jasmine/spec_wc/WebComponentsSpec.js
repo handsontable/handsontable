@@ -6,7 +6,7 @@ describe('WebComponents', function () {
   });
 
   it('should create table', function () {
-    var hot = document.createElement('x-handsontable');
+    var hot = document.createElement('handsontable-table');
     document.body.appendChild(hot);
 
     waitsFor(function () {
@@ -22,7 +22,7 @@ describe('WebComponents', function () {
   });
 
   it('undefined attribute should return default value', function () {
-    var hot = document.createElement('x-handsontable');
+    var hot = document.createElement('handsontable-table');
     document.body.appendChild(hot);
 
     waitsFor(function () {
@@ -39,7 +39,7 @@ describe('WebComponents', function () {
   });
 
   it('attribute should update settings', function () {
-    var hot = document.createElement('x-handsontable');
+    var hot = document.createElement('handsontable-table');
     document.body.appendChild(hot);
 
     waitsFor(function () {

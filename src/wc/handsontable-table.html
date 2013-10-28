@@ -5,17 +5,17 @@ jQuery is currently needed by Handsontable.
 It is included inside the element for easier integration.
 GOOD NEWS: Future release will be independent from jQuery
 -->
-<script data-jsfiddle="common" src="x-handsontable/jquery-2.min.js"></script>
+<script data-jsfiddle="common" src="handsontable-table/jquery-2.min.js"></script>
 
 <!-- Handsontable itself -->
-<script src="x-handsontable/jquery.handsontable.full.js"></script>
+<script src="handsontable-table/jquery.handsontable.full.js"></script>
 
 <!-- Handsontable various cell type dependencies -->
-<script data-jsfiddle="common" src="x-handsontable/numeral.de-de.js"></script><!-- numeric cell type -->
+<script data-jsfiddle="common" src="handsontable-table/numeral.de-de.js"></script><!-- numeric cell type -->
 
-<polymer-element name="x-handsontable">
+<polymer-element name="handsontable-table">
   <template>
-    <link rel="stylesheet" href="x-handsontable/jquery.handsontable.full.css">
+    <link rel="stylesheet" href="handsontable-table/jquery.handsontable.full.css">
     <div id="htContainer" style="clear: both"></div>
     <content></content>
   </template>
@@ -24,12 +24,12 @@ GOOD NEWS: Future release will be independent from jQuery
   </script>
 </polymer-element>
 
-<polymer-element name="hot-column">
+<polymer-element name="handsontable-column">
   <template>
 
   </template>
   <script>
-    Polymer('hot-column', {
+    Polymer('handsontable-column', {
       enteredView: function () {
 
       },

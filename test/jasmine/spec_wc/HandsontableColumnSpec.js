@@ -1,4 +1,4 @@
-describe('<hot-column>', function () {
+describe('<handsontable-column>', function () {
   var ready = false;
 
   document.addEventListener('WebComponentsReady', function () {
@@ -6,8 +6,8 @@ describe('<hot-column>', function () {
   });
 
   it('property should return value set by attribute', function () {
-    var hot = document.createElement('x-handsontable');
-    var hotColumn = document.createElement('hot-column');
+    var hot = document.createElement('handsontable-table');
+    var hotColumn = document.createElement('handsontable-column');
     hotColumn.setAttribute('title', 'My title');
     hot.appendChild(hotColumn);
     document.body.appendChild(hot);
@@ -25,8 +25,8 @@ describe('<hot-column>', function () {
   });
 
   it('attribute value should be rendered', function () {
-    var hot = document.createElement('x-handsontable');
-    var hotColumn = document.createElement('hot-column');
+    var hot = document.createElement('handsontable-table');
+    var hotColumn = document.createElement('handsontable-column');
     hotColumn.setAttribute('title', 'My title');
     hot.appendChild(hotColumn);
     document.body.appendChild(hot);
@@ -44,8 +44,8 @@ describe('<hot-column>', function () {
   });
 
   it('changed attribute value should be rendered', function () {
-    var hot = document.createElement('x-handsontable');
-    var hotColumn = document.createElement('hot-column');
+    var hot = document.createElement('handsontable-table');
+    var hotColumn = document.createElement('handsontable-column');
     hotColumn.setAttribute('title', 'My title');
     hot.appendChild(hotColumn);
     document.body.appendChild(hot);

@@ -1,25 +1,3 @@
-<!-- Handsontable Web Component experimental release (requires Polymer polyfill) -->
-
-<!--
-jQuery is currently needed by Handsontable.
-It is included inside the element for easier integration.
-GOOD NEWS: Future release will be independent from jQuery
--->
-<script data-jsfiddle="common" src="x-handsontable/jquery-2.min.js"></script>
-
-<!-- Handsontable itself -->
-<script src="x-handsontable/jquery.handsontable.full.js"></script>
-
-<!-- Handsontable various cell type dependencies -->
-<script data-jsfiddle="common" src="x-handsontable/numeral.de-de.js"></script><!-- numeric cell type -->
-
-<polymer-element name="x-handsontable">
-  <template>
-    <link rel="stylesheet" href="x-handsontable/jquery.handsontable.full.css">
-    <div id="htContainer" style="clear: both"></div>
-    <content></content>
-  </template>
-  <script>
 function parseDatacolumn(HOTCOLUMN) {
   var obj = {};
 
@@ -45,7 +23,7 @@ function parseDatacolumn(HOTCOLUMN) {
     obj.source = window[obj.source];
   }
 
-  var HANDSONTABLE = HOTCOLUMN.getElementsByTagName('x-handsontable');
+  var HANDSONTABLE = HOTCOLUMN.getElementsByTagName('handsontable-table');
   if (HANDSONTABLE.length) {
     obj.handsontable = parseHandsontable(HANDSONTABLE[0]);
   }
@@ -80,7 +58,7 @@ function parseDatacolumns(HANDSONTABLE) {
     , ilen;
 
   for (i = 0, ilen = HANDSONTABLE.childNodes.length; i < ilen; i++) {
-    if (HANDSONTABLE.childNodes[i].nodeName === 'HOT-COLUMN') {
+    if (HANDSONTABLE.childNodes[i].nodeName === 'HANDSONTABLE-COLUMN') {
       columns.push(parseDatacolumn(HANDSONTABLE.childNodes[i]));
     }
   }
@@ -164,7 +142,7 @@ function readBool(val) {
   return val;
 }
 
-Polymer('x-handsontable', {
+Polymer('handsontable-table', {
   instance: null,
   enteredView: function () {
     this.shadowRoot.applyAuthorStyles = true; //only way I know to let override Shadow DOM styles (just define ".handsontable td" in page stylesheet)
@@ -179,25 +157,3 @@ Polymer('x-handsontable', {
   },
   publish: publish
 });
-  </script>
-</polymer-element>
-
-<polymer-element name="hot-column">
-  <template>
-
-  </template>
-  <script>
-    Polymer('hot-column', {
-      enteredView: function () {
-
-      },
-      attributeChanged: function () {
-        this.parentNode && this.parentNode.onMutation();
-      },
-      publish: {
-        width: '',
-        header: ''
-      }
-    });
-  </script>
-</polymer-element>
