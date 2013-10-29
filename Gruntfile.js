@@ -103,10 +103,7 @@ module.exports = function (grunt) {
         'src/3rdparty/walkontable/src/3rdparty/*.js'
       ],
       vendor: [
-        'lib/numeral.js',
-        'lib/jQuery-contextMenu/jquery.contextMenu.js'
-        // seems to have no effect when turned off on contextmenu.html
-        //'lib/jQuery-contextMenu/jquery.ui.position.js'
+        'lib/numeral.js'
       ],
       shims: [
         'lib/shims/array.filter.js'

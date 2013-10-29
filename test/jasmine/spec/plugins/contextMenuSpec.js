@@ -785,7 +785,7 @@ describe('ContextMenu', function () {
 
 
 
-
+  //TODO rewrite these tests for new context menu that uses Handsontable
   xit('should work properly (remove row) after destroy and new init', function () {
     var test = function () {
       handsontable({

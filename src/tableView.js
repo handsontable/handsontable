@@ -66,12 +66,11 @@ Handsontable.TableView = function (instance) {
 
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== document.documentElement) {
-        //HANDSONTABLE-TABLE is the tag name in Web Components version of HOT. Removal of this breaks cell selection
         if (next === null) {
           return; //click on something that was a row but now is detached (possibly because your click triggered a rerender)
         }
-        if (next === instance.rootElement[0] || next.nodeName === 'HANDSONTABLE-TABLE' || next.id === 'context-menu-layer' || $(next).is('.context-menu-list')) {
-          return; //click inside container
+        if (next === instance.rootElement[0] || next.nodeName === 'HANDSONTABLE-TABLE') {
+          return; //click inside container or Web Component (HANDSONTABLE-TABLE is the name of the custom element)
         }
         next = next.parentNode;
       }
