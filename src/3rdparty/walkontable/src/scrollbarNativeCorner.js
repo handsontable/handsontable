@@ -1,7 +1,5 @@
 function WalkontableCornerScrollbarNative(instance) {
   this.instance = instance;
-  this.type = 'horizontal';
-  this.cellSize = 50;
   this.init();
   this.clone = this.makeClone('corner');
 }
@@ -23,9 +21,6 @@ WalkontableCornerScrollbarNative.prototype.makeClone = function (direction) {
     overflow: 'hidden'
   });
 
-  clone[0].style.height = '184px';
-  clone[0].style.width = '55px';
-
   var table2 = $('<table class="htCore"></table>');
   table2.className = this.instance.wtTable.TABLE.className;
   clone.append(table2);
@@ -36,21 +31,7 @@ WalkontableCornerScrollbarNative.prototype.makeClone = function (direction) {
   walkontableConfig.table = table2[0];
   var wt = new Walkontable(walkontableConfig);
 
-  var cloneTable = clone.find('table')[0];
   var scrollable = that.scrollHandler;
-
-  $(window).on('load.' + this.instance.guid, function () {
-    resetFixedPosition(clone[0]);
-  });
-  $(window).on('scroll.' + this.instance.guid, function () {
-    resetFixedPosition(clone[0]);
-  });
-  $(window).on('resize.' + this.instance.guid, function () {
-    resetFixedPosition(clone[0]);
-  });
-  $(document).on('ready.' + this.instance.guid, function () {
-    resetFixedPosition(clone[0]);
-  });
 
   $(window).on('load.' + this.instance.guid, function () {
     resetFixedPosition(clone[0]);
@@ -78,9 +59,11 @@ WalkontableCornerScrollbarNative.prototype.makeClone = function (direction) {
 
       if (top < 0 && bottom > 0) {
         elem.style.top = '0';
+        elem.style.left = '0';
       }
       else {
         elem.style.top = top + 'px';
+        elem.style.left = left + 'px';
       }
     }
     else {
@@ -102,49 +85,26 @@ WalkontableCornerScrollbarNative.prototype.prepare = function () {
 WalkontableCornerScrollbarNative.prototype.refresh = function (selectionsOnly) {
   this.measureBefore = 0;
   this.measureAfter = 0;
-  console.log("refresh");
   this.clone && this.clone.draw(selectionsOnly);
 };
 
 WalkontableCornerScrollbarNative.prototype.getScrollPosition = function () {
-  if (this.scrollHandler === window) {
-    return this.scrollHandler.scrollX;
-  }
-  else {
-    return this.scrollHandler.scrollLeft;
-  }
 };
 
 WalkontableCornerScrollbarNative.prototype.getLastCell = function () {
-  return this.instance.wtTable.getLastVisibleColumn();
 };
 
 WalkontableCornerScrollbarNative.prototype.getTableSize = function () {
-  return this.instance.wtDom.outerWidth(this.TABLE);
 };
 
 WalkontableCornerScrollbarNative.prototype.applyToDOM = function () {
-  this.fixedContainer.style.paddingLeft = this.measureBefore + 'px';
-  this.fixedContainer.style.paddingRight = this.measureAfter + 'px';
 };
 
-WalkontableCornerScrollbarNative.prototype.scrollTo = function (cell) {
-  this.$scrollHandler.scrollLeft(this.tableParentOffset + cell * this.cellSize);
+WalkontableCornerScrollbarNative.prototype.scrollTo = function () {
 };
 
 WalkontableCornerScrollbarNative.prototype.readWindowSize = function () {
-  if (this.scrollHandler === window) {
-    this.windowSize = document.documentElement.clientWidth;
-    this.tableParentOffset = this.instance.wtTable.holderOffset.left;
-  }
-  else {
-    this.windowSize = WalkontableDom.prototype.outerWidth(this.scrollHandler);
-    this.tableParentOffset = 0;
-  }
-  this.windowScrollPosition = this.getScrollPosition();
 };
 
 WalkontableCornerScrollbarNative.prototype.readSettings = function () {
-  this.offset = this.instance.getSetting('offsetColumn');
-  this.total = this.instance.getSetting('totalColumns');
 };
