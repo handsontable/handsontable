@@ -128,7 +128,11 @@ WalkontableTable.prototype.refreshStretching = function () {
     , offsetColumn = instance.getSetting('offsetColumn');
 
   var containerWidthFn = function (cacheWidth) {
-    return that.instance.wtViewport.getViewportWidth(cacheWidth);
+    var viewportWidth = that.instance.wtViewport.getViewportWidth(cacheWidth);
+    if (viewportWidth < cacheWidth && that.instance.getSetting('nativeScrollbars')) {
+      return Infinity; //disable stretching when viewport is bigger than sum of the cell widths
+    }
+    return viewportWidth;
   };
 
   var that = this;

@@ -60,6 +60,7 @@ WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
     }
 
     that.onScroll();
+    that.instance.wtScrollbars.horizontal.onScroll(); //it's done here to make sure that all onScroll's are executed before changing styles
 
     cloneTable.style.left = that.instance.wtScrollbars.horizontal.measureBefore - that.instance.wtScrollbars.horizontal.windowScrollPosition + 'px';
   });
@@ -100,7 +101,6 @@ WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
       elem.style.top = Math.ceil(box.top, 10) + 'px';
       elem.style.left = Math.ceil(box.left, 10) + 'px';
     }
-
 
     clone[0].style.width = WalkontableDom.prototype.outerWidth(that.instance.wtTable.holder.parentNode) + 'px';
     clone[0].style.height = WalkontableDom.prototype.outerHeight(wt.wtTable.TABLE) + 4 + 'px';

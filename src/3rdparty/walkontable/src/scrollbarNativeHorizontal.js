@@ -23,8 +23,8 @@ WalkontableHorizontalScrollbarNative.prototype.makeClone = function (direction) 
     overflow: 'hidden'
   });
 
-  clone[0].style.height = '184px';
-  clone[0].style.width = '55px';
+//  clone[0].style.height = '184px';
+//  clone[0].style.width = '55px';
 
   var table2 = $('<table class="htCore"></table>');
   table2.className = this.instance.wtTable.TABLE.className;
@@ -81,6 +81,9 @@ WalkontableHorizontalScrollbarNative.prototype.makeClone = function (direction) 
       elem.style.top = Math.ceil(box.top, 10) + 'px';
       elem.style.left = Math.ceil(box.left, 10) + 'px';
     }
+
+    clone[0].style.width = WalkontableDom.prototype.outerWidth(wt.wtTable.TABLE) + 4 + 'px';
+    clone[0].style.height = that.instance.wtViewport.getWorkspaceHeight() - that.instance.getSetting('scrollbarHeight') + 'px';
   }
 
   return wt;
@@ -102,6 +105,14 @@ WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
   else {
     return this.scrollHandler.scrollLeft;
   }
+};
+
+WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
+  if (this.instance.cloneFrom) {
+    return;
+  }
+
+  this.windowScrollPosition = this.getScrollPosition();
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
