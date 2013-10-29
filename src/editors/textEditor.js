@@ -172,10 +172,6 @@
       editLeft += 1;
     }
 
-    if ($.browser.msie && parseInt($.browser.version, 10) <= 7) {
-      editTop -= 1;
-    }
-
     this.textareaParentStyle.top = editTop + 'px';
     this.textareaParentStyle.left = editLeft + 'px';
     ///end prepare textarea position
