@@ -227,7 +227,7 @@ describe('AutocompleteEditor', function () {
 
       runs(function () {
         expect(editor.find('.autocompleteEditor .htCore td').width()).toEqual(editor.find('.handsontableInput').width());
-        expect(editor.find('.autocompleteEditor .htCore td').width()).toBeGreaterThan(190);
+        expect(editor.find('.autocompleteEditor .htCore td').width()).toBeGreaterThan(188);
       });
     });
 
