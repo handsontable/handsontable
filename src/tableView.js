@@ -70,7 +70,7 @@ Handsontable.TableView = function (instance) {
         if (next === null) {
           return; //click on something that was a row but now is detached (possibly because your click triggered a rerender)
         }
-        if (next === instance.rootElement[0] || next.nodeName === 'HANDSONTABLE-TABLE' || next.id === 'context-menu-layer' || $(next).is('.context-menu-list') || $(next).is('.typeahead li')) {
+        if (next === instance.rootElement[0] || next.nodeName === 'HANDSONTABLE-TABLE' || next.id === 'context-menu-layer' || $(next).is('.context-menu-list')) {
           return; //click inside container
         }
         next = next.parentNode;
@@ -85,7 +85,7 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  instance.rootElement.on('mousedown.handsontable', '.dragdealer', function (event) {
+  instance.rootElement.on('mousedown.handsontable', '.dragdealer', function () {
     instance.destroyEditor();
   });
 
