@@ -1,22 +1,13 @@
 function WalkontableScrollbars(instance) {
-  switch (instance.getSetting('nativeScrollbars')) {
-    case false:
-      this.vertical = new WalkontableVerticalScrollbar(instance);
-      break;
-
-    case true:
-      this.vertical = new WalkontableVerticalScrollbarNative(instance);
-      break;
+  if (instance.getSetting('nativeScrollbars')) {
+    instance.update('scrollbarWidth', walkontableGetScrollbarWidth());
+    instance.update('scrollbarHeight', walkontableGetScrollbarWidth());
+    this.vertical = new WalkontableVerticalScrollbarNative(instance);
+    this.horizontal = new WalkontableHorizontalScrollbarNative(instance);
   }
-
-  switch (instance.getSetting('nativeScrollbars')) {
-    case false:
-      this.horizontal = new WalkontableHorizontalScrollbar(instance);
-      break;
-
-    case true:
-      this.horizontal = new WalkontableHorizontalScrollbarNative(instance);
-      break;
+  else {
+    this.vertical = new WalkontableVerticalScrollbar(instance);
+    this.horizontal = new WalkontableHorizontalScrollbar(instance);
   }
 }
 
