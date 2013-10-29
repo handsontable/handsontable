@@ -4,6 +4,7 @@ function WalkontableScrollbars(instance) {
     instance.update('scrollbarHeight', walkontableGetScrollbarWidth());
     this.vertical = new WalkontableVerticalScrollbarNative(instance);
     this.horizontal = new WalkontableHorizontalScrollbarNative(instance);
+    this.corner = new WalkontableCornerScrollbarNative(instance);
   }
   else {
     this.vertical = new WalkontableVerticalScrollbar(instance);
@@ -23,4 +24,5 @@ WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
   this.vertical && this.vertical.prepare();
   this.horizontal && this.horizontal.refresh(selectionsOnly);
   this.vertical && this.vertical.refresh(selectionsOnly);
+  this.corner && this.corner.refresh(selectionsOnly);
 };

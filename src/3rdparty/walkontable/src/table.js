@@ -195,7 +195,7 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   }
 
   this.refreshStretching();
-  if (this.instance.cloneFrom && this.instance.cloneDirection === 'left') {
+  if (this.instance.cloneFrom && (this.instance.cloneDirection === 'left' || this.instance.cloneDirection === 'corner')) {
     this.columnStrategy.cellCount = 0;
   }
 
@@ -358,7 +358,7 @@ WalkontableTable.prototype._doDraw = function () {
         throw new Error('Security brake: Too much TRs. Please define height for your table, which will enforce scrollbars.');
       }
 
-      if (this.instance.cloneFrom && this.instance.cloneDirection === 'top' && r === fixedRowsTop) {
+      if (this.instance.cloneFrom && (this.instance.cloneDirection === 'top' || this.instance.cloneDirection === 'corner') && r === fixedRowsTop) {
         break;
       }
 
