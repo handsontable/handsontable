@@ -436,8 +436,6 @@ WalkontableTable.prototype._doDraw = function () {
         TD.className = '';
         TD.removeAttribute('style');
         this.instance.getSetting('cellRenderer', source_r, source_c, TD);
-        TD.setAttribute('data-row', source_r);
-        TD.setAttribute('data-column', source_c);
       }
 
       offsetRow = this.instance.getSetting('offsetRow'); //refresh the value
@@ -583,10 +581,6 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
  *
  */
 WalkontableTable.prototype.getCell = function (coords) {
-  if (this.instance.getSetting('nativeScrollbars')) {
-    return this.instance.wtTable.TBODY.querySelectorAll('[data-row="' + coords[0] + '"][data-column="' + coords[1] + '"]')[0];
-  }
-
   if (this.isRowBeforeViewport(coords[0])) {
     return -1; //row before viewport
   }
@@ -640,21 +634,11 @@ WalkontableTable.prototype.isColumnAfterViewport = function (c) {
 };
 
 WalkontableTable.prototype.isRowInViewport = function (r) {
-  if (this.instance.getSetting('nativeScrollbars')) {
-    return !!this.instance.wtTable.TBODY.querySelectorAll('[data-row="' + r + '"]')[0];
-  }
-  else {
-    return (!this.isRowBeforeViewport(r) && !this.isRowAfterViewport(r));
-  }
+  return (!this.isRowBeforeViewport(r) && !this.isRowAfterViewport(r));
 };
 
 WalkontableTable.prototype.isColumnInViewport = function (c) {
-  if (this.instance.getSetting('nativeScrollbars')) {
-    return !!this.instance.wtTable.TBODY.querySelectorAll('[data-column="' + c + '"]')[0];
-  }
-  else {
-    return (!this.isColumnBeforeViewport(c) && !this.isColumnAfterViewport(c));
-  }
+  return (!this.isColumnBeforeViewport(c) && !this.isColumnAfterViewport(c));
 };
 
 WalkontableTable.prototype.isLastRowFullyVisible = function () {
