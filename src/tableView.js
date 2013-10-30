@@ -129,12 +129,12 @@ Handsontable.TableView = function (instance) {
       return that.settings.fixedRowsTop;
     },
     rowHeaders: function () {
-      return that.settings.rowHeaders ? [function (index, TH) {
+      return instance.hasRowHeaders() ? [function (index, TH) {
         that.appendRowHeader(index, TH);
       }] : []
     },
     columnHeaders: function () {
-      return that.settings.colHeaders ? [function (index, TH) {
+      return instance.hasColHeaders() ? [function (index, TH) {
         that.appendColHeader(index, TH);
       }] : []
     },

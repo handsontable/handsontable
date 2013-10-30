@@ -1766,7 +1766,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    */
   this.updateSettings = function (settings, init) {
-    var i, ilen, clen;
+    var i, clen;
 
     if (typeof settings.rows !== "undefined") {
       throw new Error("'rows' setting is no longer supported. do you mean startRows, minRows or maxRows?");
@@ -1806,15 +1806,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
     else if (settings.columns !== void 0) {
       datamap.createMap();
-    }
-
-    if (settings.columns !== void 0) {
-      for (i = 0, ilen = settings.columns.length; i < ilen; i++) {
-        if (GridSettings.prototype.colHeaders !== false) {
-          GridSettings.prototype.colHeaders = true;
-        }
-        break;
-      }
     }
 
     // Init columns constructors configuration
@@ -2148,6 +2139,30 @@ Handsontable.Core = function (rootElement, userSettings) {
     else {
       return priv.settings.rowHeaders;
     }
+  };
+
+  /**
+   * Returns information of this table is configured to display row headers
+   * @returns {boolean}
+   */
+  this.hasRowHeaders = function () {
+    return !!priv.settings.rowHeaders;
+  };
+
+  /**
+   * Returns information of this table is configured to display column headers
+   * @returns {boolean}
+   */
+  this.hasColHeaders = function () {
+    if (priv.settings.colHeaders !== void 0) {
+      return !!priv.settings.colHeaders;
+    }
+    for (var i = 0, ilen = instance.countCols(); i < ilen; i++) {
+      if (instance.getColHeader(i)) {
+        return true;
+      }
+    }
+    return false;
   };
 
   /**
