@@ -246,6 +246,9 @@ describe('manualColumnMove', function () {
   });
 
   it("should mark apropriate column as invalid, when column order is changed", function () {
+
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
     handsontable({
       data: [
         {id: 1, name: "Ted", lastName: "Right"},
@@ -272,23 +275,26 @@ describe('manualColumnMove', function () {
           data: 'lastName'
         }
       ],
-      allowInvalid: true
+      allowInvalid: true,
+      afterValidate: onAfterValidate
     });
 
-    selectCell(0, 0);
-    keyDown('enter');
-    keyDown('enter');
-
-    expect(this.$container.find('.htInvalid').length).toEqual(0);
-
     selectCell(0, 1);
-    keyDown('enter');
+    keyDownUp('enter');
     var editor = $('.handsontableInput');
     editor.val('foo');
-    keyDown('enter');
 
-    expect(this.$container.find('.htInvalid').length).toEqual(1);
-    expect(this.$container.find('.htInvalid').text()).toMatch('foo');
+    onAfterValidate.reset();
+    keyDownUp('enter');
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation 2', 1000);
+
+    runs(function () {
+      expect(this.$container.find('.htInvalid').length).toEqual(1);
+      expect(this.$container.find('.htInvalid').text()).toMatch('foo');
+    });
 
   });
 

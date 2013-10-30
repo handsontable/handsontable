@@ -40,31 +40,28 @@ describe('PluginHooks', function () {
   });
 
   it('should add a local hook at init', function () {
-    var test = 0;
+    var afterInitHandler = jasmine.createSpy('afterInitHandler');
 
     handsontable({
-      afterInit: function () {
-        test = 5;
-      }
+      afterInit: afterInitHandler
     });
 
-    expect(test).toEqual(5);
+    expect(afterInitHandler).toHaveBeenCalled();
+    expect(afterInitHandler.calls.length).toEqual(1);
   });
 
   it('should add a many local hooks at init', function () {
-    var test = 0;
+    var handler1 = jasmine.createSpy('handler1');
+    var handler2 = jasmine.createSpy('handler2');
+    var handler3 = jasmine.createSpy('handler3');
 
     handsontable({
-      afterInit: [function () {
-        test = 5;
-      }, function () {
-        test++;
-      }, function () {
-        test += 3;
-      }]
+      afterInit: [handler1, handler2, handler3]
     });
 
-    expect(test).toEqual(9);
+    expect(handler1).toHaveBeenCalled();
+    expect(handler2).toHaveBeenCalled();
+    expect(handler3).toHaveBeenCalled();
   });
 
   it('should remove a global hook', function () {
@@ -167,7 +164,7 @@ describe('PluginHooks', function () {
   });
 
   it('list of all avaliable plugin hooks should be exposed as a public object', function () {
-    var pluginHooks = Handsontable.PluginHooks.hooks.persistent; //this is used in demo/callbacks.html
+    var pluginHooks = Handsontable.PluginHooks.hooks; //this is used in demo/callbacks.html
 
     expect(pluginHooks.beforeInit).toBeDefined(); //duck check is fine
 
@@ -266,5 +263,118 @@ describe('PluginHooks', function () {
     });
 
     expect(hot.runHooksAndReturn('myHook', str)).toEqual('abc');
+  });
+
+  describe("controlling handler queue execution", function () {
+    it("should execute all handlers if none of them returned false", function () {
+
+      var handler1 = jasmine.createSpy('handler1');
+      var handler2 = jasmine.createSpy('handler2');
+      var handler3 = jasmine.createSpy('handler3');
+
+      var hot = handsontable();
+
+      hot.addHook('fakeEvent', handler1);
+      hot.addHook('fakeEvent', handler2);
+      hot.addHook('fakeEvent', handler3);
+
+      expect(handler1).not.toHaveBeenCalled();
+      expect(handler2).not.toHaveBeenCalled();
+      expect(handler3).not.toHaveBeenCalled();
+
+      var eventCancelled = hot.runHooksAndReturn('fakeEvent');
+
+      expect(handler1).toHaveBeenCalled();
+      expect(handler2).toHaveBeenCalled();
+      expect(handler3).toHaveBeenCalled();
+
+      expect(eventCancelled).not.toBe(true);
+
+    });
+
+    it("should stop executing handlers if one of them returned false", function () {
+
+      var handler1 = jasmine.createSpy('handler1');
+      var handler2 = jasmine.createSpy('handler2');
+
+      handler2.plan = function () {
+        return false;
+      };
+
+      var handler3 = jasmine.createSpy('handler3');
+
+      var hot = handsontable();
+
+      hot.addHook('fakeEvent', handler1);
+      hot.addHook('fakeEvent', handler2);
+      hot.addHook('fakeEvent', handler3);
+
+      expect(handler1).not.toHaveBeenCalled();
+      expect(handler2).not.toHaveBeenCalled();
+      expect(handler3).not.toHaveBeenCalled();
+
+      var result = hot.runHooksAndReturn('fakeEvent');
+
+      expect(handler1).toHaveBeenCalled();
+      expect(handler2).toHaveBeenCalled();
+      expect(handler3).not.toHaveBeenCalled();
+
+      expect(result).toBe(false);
+
+    });
+
+    it("should invoke 'once' handler in the next event run, if the previous run has been interrupted", function () {
+
+      var handler1 = jasmine.createSpy('handler1');
+      handler1.plan = function () {
+        return false;
+      };
+
+      var handler2 = jasmine.createSpy('handler2');
+      var handler3 = jasmine.createSpy('handler3');
+
+      var hot = handsontable();
+
+      hot.addHookOnce('fakeEvent', handler1);
+      hot.addHookOnce('fakeEvent', handler2);
+      hot.addHook('fakeEvent', handler3);
+
+      expect(handler1).not.toHaveBeenCalled();
+      expect(handler2).not.toHaveBeenCalled();
+      expect(handler3).not.toHaveBeenCalled();
+
+      var result = hot.runHooksAndReturn('fakeEvent');
+
+      expect(handler1).toHaveBeenCalled();
+      expect(handler2).not.toHaveBeenCalled();
+      expect(handler3).not.toHaveBeenCalled();
+
+      expect(result).toBe(false);
+
+      handler1.reset();
+      handler2.reset();
+      handler3.reset();
+
+      result = hot.runHooksAndReturn('fakeEvent');
+
+      expect(handler1).not.toHaveBeenCalled();
+      expect(handler2).toHaveBeenCalled();
+      expect(handler3).toHaveBeenCalled();
+
+      expect(result).not.toBe(false);
+
+      handler1.reset();
+      handler2.reset();
+      handler3.reset();
+
+      result = hot.runHooksAndReturn('fakeEvent');
+
+      expect(handler1).not.toHaveBeenCalled();
+      expect(handler2).not.toHaveBeenCalled();
+      expect(handler3).toHaveBeenCalled();
+
+      expect(result).not.toBe(false);
+
+    });
   });
 });

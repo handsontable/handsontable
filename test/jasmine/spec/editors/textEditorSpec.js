@@ -1,4 +1,4 @@
-describe('TextEditor', function () {
+describe('NewTextEditor', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
@@ -14,7 +14,8 @@ describe('TextEditor', function () {
 
   it('should begin editing when enterBeginsEditing equals true', function () {
     handsontable({
-      enterBeginsEditing: true
+      enterBeginsEditing: true,
+      editor: 'text'
     });
     selectCell(2, 2);
 
@@ -26,7 +27,9 @@ describe('TextEditor', function () {
   });
 
   it('should move down after editing', function () {
-    handsontable();
+    handsontable({
+      editor: 'text'
+    });
     selectCell(2, 2);
 
     keyDown('enter');
@@ -109,14 +112,38 @@ describe('TextEditor', function () {
     expect(keyProxy().val()).toEqual("");
   });
 
+  it('should open editor after hitting F2', function () {
+    handsontable();
+    selectCell(2, 2);
+
+    var editor = $('.handsontableInput');
+    expect(isEditorVisible()).toEqual(false);
+    keyDown('f2');
+    expect(isEditorVisible()).toEqual(true);
+  });
+
+  it('should close editor after hitting ESC', function () {
+    handsontable();
+    selectCell(2, 2);
+
+    var editor = $('.handsontableInput');
+    expect(isEditorVisible()).toEqual(false);
+    keyDown('f2');
+    expect(isEditorVisible()).toEqual(true);
+    keyDown('esc');
+    expect(isEditorVisible()).toEqual(false);
+  });
+
   it('should open editor after cancelling edit and beginning it again', function () {
     handsontable();
     selectCell(2, 2);
 
+    expect(isEditorVisible()).toEqual(false);
     keyDown('f2');
+    expect(isEditorVisible()).toEqual(true);
     keyDown('esc');
+    expect(isEditorVisible()).toEqual(false);
     keyDown('f2');
-
     expect(isEditorVisible()).toEqual(true);
   });
 
@@ -359,7 +386,6 @@ describe('TextEditor', function () {
     expect(editorHolder.is(':visible')).toBe(true);
   });
 
-
   it("should be able to open editor after clearing cell data with BACKSPACE", function () {
     var hot = handsontable({
       data: createSpreadsheetData(3, 3)
@@ -409,6 +435,46 @@ describe('TextEditor', function () {
 
     expect(getCell(0, 0)).not.toBeNull();
     expect(getCell(19, 19)).toBeNull();
+  });
+
+  it("should open empty editor after clearing cell value width BACKSPACE", function () {
+     var hot = handsontable({
+       data: createSpreadsheetData(4, 4)
+     });
+
+     expect(getDataAtCell(0, 0)).toEqual('A0');
+
+     selectCell(0, 0);
+
+     keyDown(Handsontable.helper.keyCode.BACKSPACE);
+
+    expect(getDataAtCell(0, 0)).toEqual('');
+    expect(hot.getActiveEditor().isOpened()).toBe(false);
+
+    keyDown(Handsontable.helper.keyCode.ENTER);
+
+    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(hot.getActiveEditor().val()).toEqual('');
+  });
+
+  it("should open empty editor after clearing cell value width DELETE", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4)
+    });
+
+    expect(getDataAtCell(0, 0)).toEqual('A0');
+
+    selectCell(0, 0);
+
+    keyDown(Handsontable.helper.keyCode.DELETE);
+
+    expect(getDataAtCell(0, 0)).toEqual('');
+    expect(hot.getActiveEditor().isOpened()).toBe(false);
+
+    keyDown(Handsontable.helper.keyCode.ENTER);
+
+    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(hot.getActiveEditor().val()).toEqual('');
   });
 
 

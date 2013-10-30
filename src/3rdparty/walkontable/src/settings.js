@@ -9,8 +9,7 @@ function WalkontableSettings(instance, settings) {
     //presentation mode
     scrollH: 'auto', //values: scroll (always show scrollbar), auto (show scrollbar if table does not fit in the container), none (never show scrollbar)
     scrollV: 'auto', //values: see above
-    scrollbarModelH: 'dragdealer', //values: dragdealer, native
-    scrollbarModelV: 'dragdealer', //values: dragdealer, native
+    nativeScrollbars: false, //values: false (dragdealer), true (native)
     stretchH: 'hybrid', //values: hybrid, all, last, none
     currentRowClassName: null,
     currentColumnClassName: null,

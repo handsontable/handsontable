@@ -29,19 +29,31 @@ var isFillHandleVisible = function () {
   return !!spec().$container.find('.wtBorder.corner:visible').length;
 };
 
-var isAutocompleteVisible = function () {
-  return !!(autocompleteEditor() && autocompleteEditor().data("typeahead") && autocompleteEditor().data("typeahead").$menu.is(":visible"));
-};
-
 /**
  * Shows context menu
  */
 var contextMenu = function () {
-  var ev = $.Event('contextmenu');
-  ev.button = 2;
-  var instance = spec().$container.data('handsontable');
-  var selector = "#" + instance.rootElement.attr('id') + ' table, #' + instance.rootElement.attr('id') + ' div';
-  $(selector).trigger(ev);
+  var hot = spec().$container.data('handsontable');
+  var selected = hot.getSelected();
+
+  if(!selected){
+    hot.selectCell(0, 0);
+    selected = hot.getSelected();
+  }
+
+  var cell = getCell(selected[0], selected[1]);
+  var cellOffset = $(cell).offset();
+
+  var ev = $.Event('contextmenu', {
+    pageX: cellOffset.left,
+    pageY: cellOffset.top
+  });
+
+  $(cell).trigger(ev);
+};
+
+var closeContextMenu = function () {
+  $(document).trigger('mousedown');
 };
 
 /**
@@ -49,13 +61,13 @@ var contextMenu = function () {
  * @param {String} type Event type
  * @return {Function}
  */
-var handsontableMouseTriggerFactory = function (type) {
+var handsontableMouseTriggerFactory = function (type, button) {
   return function (element) {
     if(!(element instanceof jQuery)){
       element = $(element);
     }
     var ev = $.Event(type);
-    ev.which = 1; //left mouse button
+    ev.which = button || 1; //left click by default
     element.trigger(ev);
   }
 };
@@ -68,6 +80,9 @@ var mouseDoubleClick = function(element){
     mouseDown(element);
     mouseUp(element);
 };
+
+var mouseRightDown = handsontableMouseTriggerFactory('mousedown', 3);
+var mouseRightUp = handsontableMouseTriggerFactory('mouseup', 3);
 
 /**
  * Returns a function that triggers a key event
@@ -172,7 +187,7 @@ var keyProxy = function () {
 };
 
 var autocompleteEditor = function () {
-  return spec().$container.data('handsontable').autocompleteEditor.$textarea;
+  return spec().$container.find('.handsontableInput');
 };
 
 /**
@@ -197,7 +212,7 @@ var setCaretPosition = function (pos) {
  * Returns autocomplete instance
  */
 var autocomplete = function () {
-  return spec().$container.find('.handsontableInput').data("typeahead");
+  return spec().$container.find('.autocompleteEditor');
 };
 
 /**
@@ -315,5 +330,15 @@ function colWidth($elem, col) {
  * @returns {String}
  */
 function getRenderedValue(trIndex, tdIndex){
-  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).text();
+  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).html();
+}
+
+/**
+ * Returns nodes that have been rendered in table cell
+ * @param {Number} trIndex
+ * @param {Number} tdIndex
+ * @returns {String}
+ */
+function getRenderedContent(trIndex, tdIndex){
+  return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).children()
 }

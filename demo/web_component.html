@@ -8,7 +8,7 @@
   <script data-jsfiddle="common" src="web_component/polymer/polymer.min.js"></script>
 
   <!-- load Handsontable as Web Component -->
-  <link data-jsfiddle="common" rel="import" href="../dist_wc/x-handsontable.html">
+  <link data-jsfiddle="common" rel="import" href="../dist_wc/handsontable-table.html">
 
   <!-- load X-Tiles Web Component -->
   <link data-jsfiddle="common" rel="import" href="web_component/x-tile.html">
@@ -61,9 +61,9 @@
       <p>This page shows our effort to make a <a href="">Web Component</a>-compatible version of Handsontable.</p>
 
       <p>Our Web Component implementation leverages <a
-        href="https://github.com/toolkitchen/toolkit">Toolkitchen Toolkit</a> library. Currently, it works correctly
+        href="http://www.polymer-project.org/">Polymer</a> library. Currently, it works correctly
         only in Google Chrome. According to the <a
-          href="http://toolkitchen.github.io/compatibility.html">browser compatibility matrix</a>, it should also
+          href="http://www.polymer-project.org/compatibility.html">browser compatibility matrix</a>, it should also
         be possible to run it in Firefox, IE10, Safari (though right now it produces <em>Assertion failed</em> error
         in every browser except Chrome).
       </p>
@@ -79,7 +79,7 @@
 <div class="rowLayout" id="unsupported" style="display: none">
   <div class="descLayout">
     <div class="pad">
-      <h2>&lt;x-handsontable&gt; simple dashboard demo</h2>
+      <h2>&lt;handsontable-table&gt; simple dashboard demo</h2>
 
       <p><strong>Unsupported browser</strong>. This demo only works properly in Chrome 26+. Last time we checked in
         Firefox 20, the scrollbars did not work as expected.</p>
@@ -98,7 +98,7 @@
     <div class="pad" data-jsfiddle="example1">
       <a name="works"></a>
 
-      <h2>&lt;x-handsontable&gt; simple dashboard demo</h2>
+      <h2>&lt;handsontable-table&gt; simple dashboard demo</h2>
 
       <p>This example shows an experimental build of Handsontable as Web Component.</p>
 
@@ -116,21 +116,21 @@
       <x-tile id="spanishTile" skin="gray" label="Spanish" value=""></x-tile>
       <div style="clear: left"></div>
 
-      <x-handsontable id="example1" datarows="people" settings="settings" width="400" minsparerows="1">
-        <datacolumn width="30" readOnly value="id" title="ID"></datacolumn>
-        <datacolumn width="70" value="name.first" title="First Name"></datacolumn>
-        <datacolumn width="100" value="name.last" title="Last Name"></datacolumn>
-        <datacolumn type="autocomplete" source="genderList" value="gender"
-                    title="Gender"></datacolumn>
-        <datacolumn type="numeric" value="age" title="Age"></datacolumn>
-        <datacolumn type="checkbox" value="languages.english" title="English" checkedTemplate="Yes"
-                    uncheckedTemplate="No"></datacolumn>
-        <datacolumn type="checkbox" value="languages.spanish" title="Spanish" checkedTemplate="Yes"
-                    uncheckedTemplate="No"></datacolumn>
-        <datacolumn type="checkbox" value="languages.french" title="French" checkedTemplate="Yes"
-                    uncheckedTemplate="No"></datacolumn>
-        <datacolumn type="numeric" value="salary" title="Salary" format="$ 0,0.00"></datacolumn>
-      </x-handsontable>
+      <handsontable-table id="example1" datarows="people" settings="mySettings" width="400" minsparerows="1">
+        <handsontable-column id="col1" width="30" readOnly value="id" title="ID"></handsontable-column>
+        <handsontable-column width="70" value="name.first" title="First Name"></handsontable-column>
+        <handsontable-column width="100" value="name.last" title="Last Name"></handsontable-column>
+        <handsontable-column type="autocomplete" source="genderList" value="gender"
+                    title="Gender"></handsontable-column>
+        <handsontable-column type="numeric" value="age" title="Age"></handsontable-column>
+        <handsontable-column type="checkbox" value="languages.english" title="English" checkedTemplate="Yes"
+                    uncheckedTemplate="No"></handsontable-column>
+        <handsontable-column type="checkbox" value="languages.spanish" title="Spanish" checkedTemplate="Yes"
+                    uncheckedTemplate="No"></handsontable-column>
+        <handsontable-column type="checkbox" value="languages.french" title="French" checkedTemplate="Yes"
+                    uncheckedTemplate="No"></handsontable-column>
+        <handsontable-column type="numeric" value="salary" title="Salary" format="$ 0,0.00"></handsontable-column>
+      </handsontable-table>
 
       <p>
         <button id="button1" title="Prints current data source to Firebug/Chrome Dev Tools">
@@ -169,7 +169,7 @@
           {id: 11, name: {first: 'Aaron', last: 'Kinley'}, gender: 'Female', age: 33, languages: {english: 'Yes', spanish: 'Yes', french: 'Yes'}, salary: 2799}
         ];
 
-        var settings = {
+        var mySettings = {
           isEmptyRow: function (r) {
             var val;
             //c === 1 to ignore id column
@@ -246,7 +246,7 @@
           //Bind button events
           document.getElementById('button1').addEventListener('click', function () {
             var data = HOT.getData();
-            console.log('Data of x-handsontable ', data);
+            console.log('Data of handsontable-table ', data);
           });
 
           document.getElementById('button2').addEventListener('click', function () {

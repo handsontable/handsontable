@@ -54,11 +54,21 @@ if (!window.getComputedStyle) {
         if (prop == 'float') prop = 'styleFloat';
         return elem.currentStyle[prop.toUpperCase()] || null;
       }
-    }
+    };
 
     window.getComputedStyle = function (el) {
       elem = el;
       return styleObj;
     }
   })();
+}
+
+/**
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim
+ */
+if (!String.prototype.trim) {
+  var trimRegex = /^\s+|\s+$/g;
+  String.prototype.trim = function () {
+    return this.replace(trimRegex, '');
+  };
 }

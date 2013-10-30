@@ -15,15 +15,20 @@ describe('settings', function () {
 
     describe('defined in constructor', function () {
       it('should use text editor by default', function () {
-        spyOn(Handsontable.TextCell, 'editor');
+        var textEditorPrototype = Handsontable.editors.TextEditor.prototype;
+        spyOn(textEditorPrototype, 'init').andCallThrough();
         handsontable();
         selectCell(0, 0);
-        expect(Handsontable.TextCell.editor).toHaveBeenCalled();
+        expect(textEditorPrototype.init).toHaveBeenCalled();
       });
 
       it('should use editor from predefined string', function () {
-        spyOn(Handsontable.TextCell, 'editor');
-        spyOn(Handsontable.cellLookup.editor, 'checkbox');
+
+        var textEditorPrototype = Handsontable.editors.TextEditor.prototype;
+        var checkboxEditorPrototype = Handsontable.editors.CheckboxEditor.prototype;
+
+        spyOn(textEditorPrototype, 'init');
+        spyOn(checkboxEditorPrototype, 'init');
         handsontable({
           columns: [
             {
@@ -32,36 +37,35 @@ describe('settings', function () {
           ]
         });
         selectCell(0, 0);
-        expect(Handsontable.TextCell.editor).not.toHaveBeenCalled();
-        expect(Handsontable.cellLookup.editor.checkbox).toHaveBeenCalled();
+        expect(textEditorPrototype.init).not.toHaveBeenCalled();
+        expect(checkboxEditorPrototype.init).toHaveBeenCalled();
       });
 
-      it('should use editor from custom function', function () {
-        var called = false;
-
-        function myEditor() {
-          called = true;
-        }
+      it('should use editor class passed directly', function () {
+        var customEditor = jasmine.createSpy('customEditor');
+        customEditor.plan = function(){
+          this.prepare = function(){};
+        };
 
         handsontable({
           columns: [
             {
-              editor: myEditor
+              editor: customEditor
             }
           ]
         });
         selectCell(0, 0);
 
-        expect(called).toBe(true);
+        expect(customEditor).toHaveBeenCalled();
       });
 
       it('should use editor from custom string', function () {
-        function myEditor() {
+        var customEditor = jasmine.createSpy('customEditor');
+        customEditor.plan = function(){
+          this.prepare = function(){};
+        };
 
-        }
-
-        Handsontable.cellLookup.editor.myEditor = myEditor;
-        spyOn(Handsontable.cellLookup.editor, 'myEditor');
+        Handsontable.editors.registerEditor('myEditor', customEditor);
 
         handsontable({
           columns: [
@@ -72,7 +76,7 @@ describe('settings', function () {
         });
         selectCell(0, 0);
 
-        expect(Handsontable.cellLookup.editor.myEditor).toHaveBeenCalled();
+        expect(customEditor).toHaveBeenCalled();
       });
     });
   });

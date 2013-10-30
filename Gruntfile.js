@@ -55,6 +55,8 @@ module.exports = function (grunt) {
         'tmp/core.js',
         'src/focusCatcher.js',
         'src/tableView.js',
+        'src/editors.js',
+        'src/editorManager.js',
         'src/helpers.js',
         'src/fillHandle.js',
         'src/selectionPoint.js',
@@ -65,12 +67,14 @@ module.exports = function (grunt) {
         'src/renderers/numericRenderer.js',
         'src/renderers/passwordRenderer.js',
 
+        'src/editors/baseEditor.js',
         'src/editors/textEditor.js',
-        'src/editors/autocompleteEditor.js',
         'src/editors/checkboxEditor.js',
         'src/editors/dateEditor.js',
         'src/editors/handsontableEditor.js',
+        'src/editors/autocompleteEditor.js',
         'src/editors/passwordEditor.js',
+        'src/editors/selectEditor.js',
 
         'src/validators/numericValidator.js',
         'src/validators/autocompleteValidator.js',
@@ -87,6 +91,7 @@ module.exports = function (grunt) {
         'src/plugins/observeChanges.js',
         'src/plugins/persistentState.js',
         'src/plugins/undoRedo.js',
+        'src/plugins/dragToScroll/dragToScroll.js',
 
         'src/3rdparty/jquery.autoresize.js',
         'src/3rdparty/sheetclip.js',
@@ -98,11 +103,7 @@ module.exports = function (grunt) {
         'src/3rdparty/walkontable/src/3rdparty/*.js'
       ],
       vendor: [
-        'lib/bootstrap-typeahead.js',
-        'lib/numeral.js',
-        'lib/jQuery-contextMenu/jquery.contextMenu.js'
-        // seems to have no effect when turned off on contextmenu.html
-        //'lib/jQuery-contextMenu/jquery.ui.position.js'
+        'lib/numeral.js'
       ],
       shims: [
         'lib/shims/array.filter.js'
@@ -132,23 +133,22 @@ module.exports = function (grunt) {
       full_css: {
         files: {
           'dist/jquery.handsontable.full.css': [
-            'dist/jquery.handsontable.css',
-            'lib/jQuery-contextMenu/jquery.contextMenu.css'
+            'dist/jquery.handsontable.css'
           ]
         }
       },
       wc: {
         files: {
-          'dist_wc/x-handsontable/jquery-2.min.js': [
+          'dist_wc/handsontable-table/jquery-2.min.js': [
             'lib/jquery-2.min.js'
           ],
-          'dist_wc/x-handsontable/numeral.de-de.js': [
+          'dist_wc/handsontable-table/numeral.de-de.js': [
             'lib/numeral.de-de.js'
           ],
-          'dist_wc/x-handsontable/jquery.handsontable.full.js': [
+          'dist_wc/handsontable-table/jquery.handsontable.full.js': [
             'dist/jquery.handsontable.full.js'
           ],
-          'dist_wc/x-handsontable/jquery.handsontable.full.css': [
+          'dist_wc/handsontable-table/jquery.handsontable.full.css': [
             'dist/jquery.handsontable.full.css'
           ]
         }
@@ -190,11 +190,11 @@ module.exports = function (grunt) {
       wc: {
         options: {
           variables: {
-            controller: '<%= grunt.file.read("src/wc/x-handsontable-controller.js") %>'
+            controller: '<%= grunt.file.read("src/wc/handsontable-table-controller.js") %>'
           }
         },
         files: {
-          'dist_wc/x-handsontable.html': 'src/wc/x-handsontable.html'
+          'dist_wc/handsontable-table.html': 'src/wc/handsontable-table.html'
         }
       }
     },
@@ -216,15 +216,11 @@ module.exports = function (grunt) {
           styles: [
             'test/jasmine/css/SpecRunner.css',
             'dist/jquery.handsontable.css',
-            'lib/jQuery-contextMenu/jquery.contextMenu.css',
-            'lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css',
             'extensions/jquery.handsontable.removeRow.css'
           ],
           vendor: [
             'lib/jquery.min.js',
-            'lib/bootstrap-typeahead.js',
             'lib/numeral.js',
-            'lib/jQuery-contextMenu/jquery.contextMenu.js',
             'test/jasmine/lib/jasmine-extensions.js'
           ],
           helpers: [
@@ -312,6 +308,34 @@ module.exports = function (grunt) {
   grunt.registerTask('sauce', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable', 'saucelabs-jasmine:handsontable']);
   grunt.registerTask('sauce:handsontable', ['default', 'connect:sauce', 'saucelabs-jasmine:handsontable']);
   grunt.registerTask('sauce:walkontable', ['default', 'connect:sauce', 'saucelabs-jasmine:walkontable']);
+
+
+  grunt.registerTask('singletest', 'Runs all tests from a single Spec file.\nSyntax: grunt singletest:[handsontable, walkontable]:<file>', function (taskName, specFile) {
+    var context = {
+      taskName: taskName,
+      specFile: specFile
+    };
+
+    var configProperty = grunt.template.process('jasmine.<%=taskName%>.options.specs', {data: context});
+    var task = grunt.template.process('jasmine:<%=taskName%>', {data: context});
+    var specPath;
+
+    switch (taskName) {
+      case 'handsontable':
+        specPath =  grunt.template.process('test/jasmine/spec/<%=specFile%>', {data: context});
+        break;
+      case 'walkontable':
+        specPath =  grunt.template.process('src/3rdparty/walkontable/test/jasmine/spec/<%=specFile%>', {data: context});
+        break;
+      default:
+        grunt.fail.fatal('Unknown test task: "' + taskName + '". Available test tasks: [handsontable, walkontable]')
+    }
+
+    grunt.config.set(configProperty, [specPath]);
+
+    grunt.task.run(task);
+  });
+
 
   grunt.loadNpmTasks('grunt-replace');
   grunt.loadNpmTasks('grunt-contrib-clean');

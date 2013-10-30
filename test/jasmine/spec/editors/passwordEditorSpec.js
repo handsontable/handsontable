@@ -22,7 +22,7 @@ describe('passwordEditor', function () {
       ],
       columns: [
         {
-          editor: Handsontable.PasswordEditor
+          editor: Handsontable.editors.PasswordEditor
         }
       ]
     });
@@ -98,7 +98,7 @@ describe('passwordEditor', function () {
       ],
       columns: [
         {
-          editor: Handsontable.PasswordEditor
+          editor: 'password'
         }
       ]
     });

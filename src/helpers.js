@@ -20,6 +20,44 @@ Handsontable.helper.isPrintableChar = function (keyCode) {
     (keyCode >= 65 && keyCode <= 90)); //a-z
 };
 
+Handsontable.helper.isMetaKey = function (keyCode) {
+  var keyCodes = Handsontable.helper.keyCode;
+  var metaKeys = [
+    keyCodes.ARROW_DOWN,
+    keyCodes.ARROW_UP,
+    keyCodes.ARROW_LEFT,
+    keyCodes.ARROW_RIGHT,
+    keyCodes.HOME,
+    keyCodes.END,
+    keyCodes.DELETE,
+    keyCodes.BACKSPACE,
+    keyCodes.F1,
+    keyCodes.F2,
+    keyCodes.F3,
+    keyCodes.F4,
+    keyCodes.F5,
+    keyCodes.F6,
+    keyCodes.F7,
+    keyCodes.F8,
+    keyCodes.F9,
+    keyCodes.F10,
+    keyCodes.F11,
+    keyCodes.F12,
+    keyCodes.TAB,
+    keyCodes.PAGE_DOWN,
+    keyCodes.PAGE_UP,
+    keyCodes.ENTER,
+    keyCodes.ESCAPE,
+    keyCodes.SHIFT
+  ];
+
+  return metaKeys.indexOf(keyCode) != -1;
+};
+
+Handsontable.helper.isCtrlKey = function (keyCode) {
+  return [17, 224, 91, 93].indexOf(keyCode) != -1;
+};
+
 /**
  * Converts a value to string
  * @param value
@@ -82,6 +120,10 @@ Handsontable.helper.isNumeric = function (n) {
            t == 'object' ? !!n && typeof n.valueOf() == "number" && !(n instanceof Date) : false;
 };
 
+Handsontable.helper.isArray = function (obj) {
+  return Object.prototype.toString.call(obj).match(/array/i) !== null;
+};
+
 /**
  * Checks if child is a descendant of given parent node
  * http://stackoverflow.com/questions/2234979/how-to-check-in-javascript-if-one-element-is-a-child-of-another
@@ -105,13 +147,7 @@ Handsontable.helper.isDescendant = function (parent, child) {
  * @return {String} - 16 character random string: "92b1bfc74ec4"
  */
 Handsontable.helper.randomString = function () {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-  }
-
-  return s4() + s4() + s4() + s4();
+  return walkontableRandomString();
 };
 
 /**
@@ -210,8 +246,23 @@ Handsontable.helper.extendArray = function (arr, extension) {
 Handsontable.helper.getCellMethod = function (methodName, methodFunction) {
   if (typeof methodFunction === 'string') {
     var result = Handsontable.cellLookup[methodName][methodFunction];
-    if (result === void 0) {
-      throw new Error('You declared cell ' + methodName + ' "' + methodFunction + '" as a string that is not mapped to a known function. Cell ' + methodName + ' must be a function or a string mapped to a function in Handsontable.cellLookup.' + methodName + ' lookup object');
+    if (result === void 0 && methodName === 'renderer') {
+      return function (instance, TD, row, col, prop, value, cellProperties) {
+        cellProperties.rendererTemplate = methodFunction;
+        var editor = cellProperties.editor;
+        /*
+        In future
+        1. remove AutocompleteRenderer
+        2. make the "arrow" be added by editor itself using a plugin hook inserted in tableView.js (at the end of cellRenderer: ...)
+        3. editor add the arrow if cellProperty.arrow === "true"
+         */
+        if (editor === Handsontable.HandsontableEditor || editor === Handsontable.DateEditor || editor === Handsontable.AutocompleteEditor) {
+          return Handsontable.AutocompleteRenderer.apply(instance, arguments);
+        }
+        else {
+          return Handsontable.TextRenderer.apply(instance, arguments);
+        }
+      }
     }
     return result;
   }
@@ -232,6 +283,55 @@ Handsontable.helper.isOutsideInput = function (element) {
   return inputs.indexOf(element.nodeName) > -1 && element.className.indexOf('handsontableInput') == -1;
 };
 
+Handsontable.helper.keyCode = {
+  MOUSE_LEFT: 1,
+  MOUSE_RIGHT: 3,
+  MOUSE_MIDDLE: 2,
+  BACKSPACE: 8,
+  COMMA: 188,
+  DELETE: 46,
+  END: 35,
+  ENTER: 13,
+  ESCAPE: 27,
+  HOME: 36,
+  PAGE_DOWN: 34,
+  PAGE_UP: 33,
+  PERIOD: 190,
+  SPACE: 32,
+  SHIFT: 16,
+  TAB: 9,
+  ARROW_RIGHT: 39,
+  ARROW_LEFT: 37,
+  ARROW_UP: 38,
+  ARROW_DOWN: 40,
+  F1: 112,
+  F2: 113,
+  F3: 114,
+  F4: 115,
+  F5: 116,
+  F6: 117,
+  F7: 118,
+  F8: 119,
+  F9: 120,
+  F10: 121,
+  F11: 122,
+  F12: 123,
+  A: 65,
+  X: 88,
+  C: 67,
+  V: 86
+};
+
+/**
+ * Determines whether given object is a plain Object.
+ * Note: String and Array are not plain Objects
+ * @param {*} obj
+ * @returns {boolean}
+ */
+Handsontable.helper.isObject = function (obj) {
+  return Object.prototype.toString.call(obj) == '[object Object]';
+};
+
 /**
  * Determines whether given object is an Array.
  * Note: String is not an Array
@@ -240,4 +340,34 @@ Handsontable.helper.isOutsideInput = function (element) {
  */
 Handsontable.helper.isArray = function(obj){
   return Array.isArray ? Array.isArray(obj) : Object.prototype.toString.call(obj) == '[object Array]';
+};
+
+Handsontable.helper.pivot = function (arr) {
+  var pivotedArr = [];
+
+  if(!arr || arr.length == 0 || !arr[0] || arr[0].length == 0){
+    return pivotedArr;
+  }
+
+  var rowCount = arr.length;
+  var colCount = arr[0].length;
+
+  for(var i = 0; i < rowCount; i++){
+    for(var j = 0; j < colCount; j++){
+      if(!pivotedArr[j]){
+        pivotedArr[j] = [];
+      }
+
+      pivotedArr[j][i] = arr[i][j];
+    }
+  }
+
+  return pivotedArr;
+
+};
+
+Handsontable.helper.proxy = function (fun, context) {
+  return function () {
+    return fun.apply(context, arguments);
+  };
 };

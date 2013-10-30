@@ -123,6 +123,12 @@ describe('Core_keepEmptyRows', function () {
           {id: 1, color: "orange" }
         ];
 
+    var syncSources = jasmine.createSpy('syncSources');
+
+    syncSources.plan = function (query, process) {
+      process(['red', 'dark-yellow', 'yellow', 'light-yellow', 'black']);
+    };
+
     handsontable({
       data: data,
       startRows: 5,
@@ -130,9 +136,10 @@ describe('Core_keepEmptyRows', function () {
       minSpareRows: 1,
       columns: [
         {data: "id", type: 'text'},
-        {data: "color",
-          type: 'autocomplete',
-          source: ["yellow", "red", "orange"]
+        {
+          data: "color",
+          editor: 'autocomplete',
+          source: syncSources
         }
       ]
     });
@@ -140,10 +147,19 @@ describe('Core_keepEmptyRows', function () {
     selectCell(1, 1);
 
     keyDownUp('enter');
-    keyDown('arrow_down');
-    keyDownUp('enter');
 
-    expect(data.length).toEqual(3);
+    waitsFor(function () {
+      return syncSources.calls.length > 0;
+    }, 'Source function call', 1000);
+
+    runs(function () {
+      keyDown('arrow_down');
+      keyDownUp('enter');
+
+      expect(data.length).toEqual(3);
+    });
+
+
   });
 
   it('should not create more rows that maxRows', function () {

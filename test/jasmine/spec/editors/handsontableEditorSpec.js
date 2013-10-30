@@ -75,6 +75,7 @@ describe('HandsontableEditor', function () {
     selectCell(2, 0);
 
     keyDownUp('enter');
+    keyDownUp('arrow_down');
     keyDownUp('enter');
     expect(this.$container.find('.handsontableEditor:visible').length).toEqual(0);
     expect(getDataAtCell(2, 0)).toEqual('BMW');
@@ -129,15 +130,106 @@ describe('HandsontableEditor', function () {
     expect(selections[1]).toEqual(['outer', 2]);
 
     keyDownUp('enter');
-    expect(selections[2]).toEqual(['inner', 0]);
 
     keyDownUp('arrow_down');
-    expect(selections[3]).toEqual(['inner', 1]);
+    expect(selections[2]).toEqual(['inner', 0]);
 
     keyDownUp('esc');
     keyDownUp('arrow_down');
-    expect(selections[4]).toEqual(['outer', 3]);
+    expect(selections[3]).toEqual(['outer', 3]);
 
-    expect(selections.length).toBe(5);
+    expect(selections.length).toBe(4);
   });
+
+  describe("strict mode", function () {
+    it("should open editor and select cell (0, 0) in inner HOT", function () {
+      var hot = handsontable({
+        columns: [
+          {
+            type: 'handsontable',
+            handsontable: {
+              colHeaders: ['Marque', 'Country', 'Parent company'],
+              data: getManufacturerData()
+            },
+            strict: true
+          }
+        ]
+      });
+      selectCell(2, 0);
+
+      keyDownUp('enter');
+
+      expect(hot.getActiveEditor().$htContainer.handsontable('getSelected')).toEqual([0, 0, 0, 0]);
+    });
+
+    it("should hide textarea", function () {
+      var hot = handsontable({
+        columns: [
+          {
+            type: 'handsontable',
+            handsontable: {
+              colHeaders: ['Marque', 'Country', 'Parent company'],
+              data: getManufacturerData()
+            },
+            strict: true
+          }
+        ]
+      });
+      selectCell(2, 0);
+
+      keyDownUp('enter');
+
+      expect(hot.getActiveEditor().$textarea.css('visibility')).toEqual('hidden');
+
+    });
+  });
+
+  describe("non strict mode", function () {
+
+    it("should open editor and DO NOT select any cell in inner HOT", function () {
+      var hot = handsontable({
+        columns: [
+          {
+            type: 'handsontable',
+            handsontable: {
+              colHeaders: ['Marque', 'Country', 'Parent company'],
+              data: getManufacturerData()
+            }
+          }
+        ]
+      });
+      selectCell(2, 0);
+
+      keyDownUp('enter');
+
+      expect(hot.getActiveEditor().$htContainer.handsontable('getSelected')).toBeUndefined();
+    });
+
+    it("should show textarea", function () {
+      var hot = handsontable({
+        columns: [
+          {
+            type: 'handsontable',
+            handsontable: {
+              colHeaders: ['Marque', 'Country', 'Parent company'],
+              data: getManufacturerData()
+            }
+          }
+        ]
+      });
+      selectCell(2, 0);
+
+      keyDownUp('enter');
+
+      expect(hot.getActiveEditor().$textarea.css('visibility')).toEqual('visible');
+
+    });
+
+  });
+
+
+
+
+
+
 });

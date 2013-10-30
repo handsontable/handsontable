@@ -1,0 +1,45 @@
+<!-- Handsontable Web Component experimental release (requires Polymer polyfill) -->
+
+<!--
+jQuery is currently needed by Handsontable.
+It is included inside the element for easier integration.
+GOOD NEWS: Future release will be independent from jQuery
+-->
+<script data-jsfiddle="common" src="handsontable-table/jquery-2.min.js"></script>
+
+<!-- Handsontable itself -->
+<script src="handsontable-table/jquery.handsontable.full.js"></script>
+
+<!-- Handsontable various cell type dependencies -->
+<script data-jsfiddle="common" src="handsontable-table/numeral.de-de.js"></script><!-- numeric cell type -->
+
+<polymer-element name="handsontable-table">
+  <template>
+    <link rel="stylesheet" href="handsontable-table/jquery.handsontable.full.css">
+    <div id="htContainer" style="clear: both"></div>
+    <content></content>
+  </template>
+  <script>
+@@controller
+  </script>
+</polymer-element>
+
+<polymer-element name="handsontable-column">
+  <template>
+
+  </template>
+  <script>
+    Polymer('handsontable-column', {
+      enteredView: function () {
+
+      },
+      attributeChanged: function () {
+        this.parentNode && this.parentNode.onMutation();
+      },
+      publish: {
+        width: '',
+        header: ''
+      }
+    });
+  </script>
+</polymer-element>
