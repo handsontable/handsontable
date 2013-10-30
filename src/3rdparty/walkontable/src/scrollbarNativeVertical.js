@@ -57,6 +57,7 @@ WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
     that.instance.wtScrollbars.horizontal.onScroll(); //it's done here to make sure that all onScroll's are executed before changing styles
 
     cloneTable.style.left = that.instance.wtScrollbars.horizontal.measureBefore - that.instance.wtScrollbars.horizontal.windowScrollPosition + 'px';
+    that.instance.wtScrollbars.horizontal.clone.wtTable.TABLE.style.top = that.instance.wtScrollbars.vertical.measureBefore - that.instance.wtScrollbars.vertical.windowScrollPosition + 'px';
   });
 
   $(window).on('load.' + this.instance.guid, function () {

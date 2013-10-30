@@ -36,12 +36,6 @@ WalkontableHorizontalScrollbarNative.prototype.makeClone = function (direction) 
   walkontableConfig.table = table2[0];
   var wt = new Walkontable(walkontableConfig);
 
-  var cloneTable = clone.find('table')[0];
-
-  this.$scrollHandler.on('scroll.' + this.instance.guid, function () {
-    cloneTable.style.top = that.instance.wtScrollbars.vertical.measureBefore - that.instance.wtScrollbars.vertical.windowScrollPosition + 'px';
-  });
-
   return wt;
 };
 
