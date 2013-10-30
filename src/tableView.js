@@ -391,6 +391,9 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
  */
 Handsontable.TableView.prototype.maximumVisibleElementWidth = function (left) {
   var rootWidth = this.wt.wtViewport.getWorkspaceWidth();
+  if(this.settings.nativeScrollbars) {
+    return rootWidth;
+  }
   return rootWidth - left;
 };
 
@@ -401,7 +404,7 @@ Handsontable.TableView.prototype.maximumVisibleElementWidth = function (left) {
  */
 Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
   var rootHeight = this.wt.wtViewport.getWorkspaceHeight();
-  if(this.wt.getSetting('nativeScrollbars')) {
+  if(this.settings.nativeScrollbars) {
     return rootHeight;
   }
   return rootHeight - top;
