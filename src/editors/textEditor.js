@@ -142,6 +142,10 @@
 
     ///start prepare textarea position
     this.TD = this.instance.getCell(this.row, this.col);
+    if (!this.TD) {
+      //TD is outside of the viewport. Otherwise throws exception when scrolling the table while a cell is edited
+      return;
+    }
     var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
     var currentOffset = this.wtDom.offset(this.TD);
     var containerOffset = this.wtDom.offset(this.instance.rootElement[0]);
@@ -166,10 +170,6 @@
     }
     if (colHeadersCount > 0 && parseInt($td.css('border-left-width'), 10) > 0) {
       editLeft += 1;
-    }
-
-    if ($.browser.msie && parseInt($.browser.version, 10) <= 7) {
-      editTop -= 1;
     }
 
     this.textareaParentStyle.top = editTop + 'px';

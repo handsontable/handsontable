@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Native Scrollbar - Handsontable</title>
+  <title>Native Scrollbar in a DIV - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -22,9 +22,9 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Native Scrollbar">
+  <meta property="og:title" content="Native Scrollbar in a DIV">
   <meta property="og:description"
-        content="This demo shows table of 100 000 rows. Only visible part is rendered. Native window scrollbar is used to
+        content="This demo shows table of 100 000 rows. Only visible part is rendered. Native DIV scrollbar is used to
             scroll through the table.">
   <meta property="og:url" content="http://handsontable.com/demo/scroll_native.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
@@ -44,9 +44,9 @@
         , i
         , j;
 
-      for (i = 0; i < 100000; i++) {
+      for (i = 0; i < 1000; i++) {
         var row = [];
-        for (j = 0; j < 6; j++) {
+        for (j = 0; j < 16; j++) {
           row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
         }
         rows.push(row);
@@ -78,9 +78,9 @@
     <div class="rowLayout">
       <div class="descLayout">
         <div class="pad" data-jsfiddle="example1">
-          <h2>Native Scrollbar (window)</h2>
+          <h2>Native Scrollbar (div)</h2>
 
-          <p>This demo shows table of 100 000 rows. Only visible part is rendered. Native window scrollbar is used to
+          <p>This demo shows table of 100 000 rows. Only visible part is rendered. Native div scrollbar is used to
             scroll through the table.</p>
 
           <p>This feature is considered <strong>experimental</strong> - not for production use. Normally you should use
@@ -90,7 +90,9 @@
 
           <p>This feature will continue to be developed. Comments are welcome.</p>
 
+          <div style="overflow: scroll; height: 200px; width: 400px">
           <div id="example1"></div>
+          </div>
 
           <p>
             <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
@@ -110,7 +112,7 @@
           <script data-jsfiddle="example1">
             $('#example1').handsontable({
               data: createBigData(),
-              colWidths: [55, 47, 47, 47, 47, 47, 47], //can also be a number or a function
+              colWidths: [55, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47], //can also be a number or a function
               rowHeaders: true,
               colHeaders: true,
               minSpareRows: 1,

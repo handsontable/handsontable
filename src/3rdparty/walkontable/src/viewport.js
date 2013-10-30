@@ -2,11 +2,10 @@ function WalkontableViewport(instance) {
   this.instance = instance;
   this.resetSettings();
 
-  if (this.instance.isNativeScroll) {
+  if (this.instance.getSetting('nativeScrollbars')) {
     var that = this;
-    that.clientHeight = document.documentElement.clientHeight; //browser viewport height
     $(window).on('resize', function () {
-      that.clientHeight = document.documentElement.clientHeight;
+      that.clientHeight = that.getWorkspaceHeight();
     });
   }
 }
@@ -30,8 +29,8 @@ function WalkontableViewport(instance) {
 
 //used by scrollbar
 WalkontableViewport.prototype.getWorkspaceHeight = function (proposedHeight) {
-  if (this.instance.isNativeScroll) {
-    return this.clientHeight;
+  if (this.instance.getSetting('nativeScrollbars')) {
+    return this.instance.wtScrollbars.vertical.windowSize;
   }
 
   var height = this.instance.getSetting('height');
@@ -114,6 +113,9 @@ WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
 };
 
 WalkontableViewport.prototype.getRowHeaderHeight = function () {
+  if (this.instance.cloneFrom) {
+    return this.instance.cloneFrom.wtViewport.getRowHeaderHeight();
+  }
   if (isNaN(this.rowHeaderWidth)) {
     var TR = this.instance.wtTable.TBODY ? this.instance.wtTable.TBODY.firstChild : null;
     if (TR) {

@@ -1,26 +1,14 @@
 function WalkontableScrollbars(instance) {
-  if(instance.getSetting('scrollbarModelV') === 'native') {
-    instance.update('scrollbarModelH', 'none');
+  if (instance.getSetting('nativeScrollbars')) {
+    instance.update('scrollbarWidth', walkontableGetScrollbarWidth());
+    instance.update('scrollbarHeight', walkontableGetScrollbarWidth());
+    this.vertical = new WalkontableVerticalScrollbarNative(instance);
+    this.horizontal = new WalkontableHorizontalScrollbarNative(instance);
+    this.corner = new WalkontableCornerScrollbarNative(instance);
   }
-
-  switch (instance.getSetting('scrollbarModelV')) {
-    case 'dragdealer':
-      this.vertical = new WalkontableVerticalScrollbar(instance);
-      break;
-
-    case 'native':
-      this.vertical = new WalkontableVerticalScrollbarNative(instance);
-      break;
-  }
-
-  switch (instance.getSetting('scrollbarModelH')) {
-    case 'dragdealer':
-      this.horizontal = new WalkontableHorizontalScrollbar(instance);
-      break;
-
-    case 'native':
-      this.horizontal = new WalkontableHorizontalScrollbarNative(instance);
-      break;
+  else {
+    this.vertical = new WalkontableVerticalScrollbar(instance);
+    this.horizontal = new WalkontableHorizontalScrollbar(instance);
   }
 }
 
@@ -29,11 +17,12 @@ WalkontableScrollbars.prototype.destroy = function () {
   this.horizontal && this.horizontal.destroy();
 };
 
-WalkontableScrollbars.prototype.refresh = function () {
+WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
   this.horizontal && this.horizontal.readSettings();
   this.vertical && this.vertical.readSettings();
   this.horizontal && this.horizontal.prepare();
   this.vertical && this.vertical.prepare();
-  this.horizontal && this.horizontal.refresh();
-  this.vertical && this.vertical.refresh();
+  this.horizontal && this.horizontal.refresh(selectionsOnly);
+  this.vertical && this.vertical.refresh(selectionsOnly);
+  this.corner && this.corner.refresh(selectionsOnly);
 };

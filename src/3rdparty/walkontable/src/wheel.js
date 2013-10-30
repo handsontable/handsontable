@@ -1,5 +1,5 @@
 function WalkontableWheel(instance) {
-  if (instance.isNativeScroll) {
+  if (instance.getSetting('nativeScrollbars')) {
     return;
   }
 

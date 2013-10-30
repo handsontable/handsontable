@@ -91,6 +91,7 @@ module.exports = function (grunt) {
         'src/plugins/observeChanges.js',
         'src/plugins/persistentState.js',
         'src/plugins/undoRedo.js',
+        'src/plugins/dragToScroll/dragToScroll.js',
 
         'src/3rdparty/jquery.autoresize.js',
         'src/3rdparty/sheetclip.js',
@@ -102,10 +103,7 @@ module.exports = function (grunt) {
         'src/3rdparty/walkontable/src/3rdparty/*.js'
       ],
       vendor: [
-        'lib/numeral.js',
-        'lib/jQuery-contextMenu/jquery.contextMenu.js'
-        // seems to have no effect when turned off on contextmenu.html
-        //'lib/jQuery-contextMenu/jquery.ui.position.js'
+        'lib/numeral.js'
       ],
       shims: [
         'lib/shims/array.filter.js'
@@ -142,16 +140,16 @@ module.exports = function (grunt) {
       },
       wc: {
         files: {
-          'dist_wc/x-handsontable/jquery-2.min.js': [
+          'dist_wc/handsontable-table/jquery-2.min.js': [
             'lib/jquery-2.min.js'
           ],
-          'dist_wc/x-handsontable/numeral.de-de.js': [
+          'dist_wc/handsontable-table/numeral.de-de.js': [
             'lib/numeral.de-de.js'
           ],
-          'dist_wc/x-handsontable/jquery.handsontable.full.js': [
+          'dist_wc/handsontable-table/jquery.handsontable.full.js': [
             'dist/jquery.handsontable.full.js'
           ],
-          'dist_wc/x-handsontable/jquery.handsontable.full.css': [
+          'dist_wc/handsontable-table/jquery.handsontable.full.css': [
             'dist/jquery.handsontable.full.css'
           ]
         }
@@ -193,11 +191,11 @@ module.exports = function (grunt) {
       wc: {
         options: {
           variables: {
-            controller: '<%= grunt.file.read("src/wc/x-handsontable-controller.js") %>'
+            controller: '<%= grunt.file.read("src/wc/handsontable-table-controller.js") %>'
           }
         },
         files: {
-          'dist_wc/x-handsontable.html': 'src/wc/x-handsontable.html'
+          'dist_wc/handsontable-table.html': 'src/wc/handsontable-table.html'
         }
       }
     },

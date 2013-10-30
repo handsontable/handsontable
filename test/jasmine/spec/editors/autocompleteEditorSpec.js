@@ -226,9 +226,8 @@ describe('AutocompleteEditor', function () {
       }, 'Source function call', 1000);
 
       runs(function () {
-        var td = $(getCell(0, 0));
-
-        expect(editor.find('.autocompleteEditor .htCore').outerWidth()).toEqual(editor.find('.handsontableInput').outerWidth());
+        expect(editor.find('.autocompleteEditor .htCore td').width()).toEqual(editor.find('.handsontableInput').width());
+        expect(editor.find('.autocompleteEditor .htCore td').width()).toBeGreaterThan(188);
       });
     });
 
@@ -649,7 +648,7 @@ describe('AutocompleteEditor', function () {
       var syncSources = jasmine.createSpy('syncSources');
 
       syncSources.plan = function (query, process) {
-        process([]) // hardcoded empty result
+        process([]); // hardcoded empty result
       };
 
       handsontable({
@@ -699,7 +698,7 @@ describe('AutocompleteEditor', function () {
       var syncSources = jasmine.createSpy('asyncSources');
 
       syncSources.plan = function (query, process) {
-        process(choices) // hardcoded empty result
+        process(choices); // hardcoded empty result
       };
 
       handsontable({
@@ -750,7 +749,7 @@ describe('AutocompleteEditor', function () {
 
       asyncSources.plan = function (query, process) {
         setTimeout(function () {
-          process([]) // hardcoded empty result
+          process([]); // hardcoded empty result
         });
       };
 
@@ -802,7 +801,7 @@ describe('AutocompleteEditor', function () {
 
       asyncSources.plan = function (query, process) {
         setTimeout(function () {
-          process(choices) // hardcoded empty result
+          process(choices); // hardcoded empty result
         });
       };
 
@@ -853,7 +852,7 @@ describe('AutocompleteEditor', function () {
       var syncSources = jasmine.createSpy('syncSources');
 
       syncSources.plan = function (query, process) {
-        process([]) // hardcoded empty result
+        process([]); // hardcoded empty result
       };
 
       handsontable({

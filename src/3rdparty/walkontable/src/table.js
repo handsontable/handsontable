@@ -1,7 +1,7 @@
-function WalkontableTable(instance) {
+function WalkontableTable(instance, table) {
   //reference to instance
   this.instance = instance;
-  this.TABLE = this.instance.getSetting('table');
+  this.TABLE = table;
   this.wtDom = this.instance.wtDom;
   this.wtDom.removeTextNodes(this.TABLE);
 
@@ -79,10 +79,6 @@ function WalkontableTable(instance) {
   this.columnFilter = new WalkontableColumnFilter();
 
   this.verticalRenderReverse = false;
-
-  if (this.instance.getSetting('scrollbarModelV') === 'native' || this.instance.getSetting('scrollbarModelH') === 'native') {
-    this.instance.isNativeScroll = true;
-  }
 }
 
 WalkontableTable.prototype.refreshHiderDimensions = function () {
@@ -91,7 +87,7 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
 
   var spreaderStyle = this.spreader.style;
 
-  if ((height !== Infinity || width !== Infinity) && !this.instance.isNativeScroll) {
+  if ((height !== Infinity || width !== Infinity) && !this.instance.getSetting('nativeScrollbars')) {
     if (height === Infinity) {
       height = this.instance.wtViewport.getWorkspaceActualHeight();
     }
@@ -105,11 +101,8 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
     spreaderStyle.top = '0';
     spreaderStyle.left = '0';
 
-    if (this.instance.getSetting('scrollbarModelV') === 'dragdealer') {
+    if (!this.instance.getSetting('nativeScrollbars')) {
       spreaderStyle.height = '4000px';
-    }
-
-    if (this.instance.getSetting('scrollbarModelH') === 'dragdealer') {
       spreaderStyle.width = '4000px';
     }
 
@@ -135,7 +128,11 @@ WalkontableTable.prototype.refreshStretching = function () {
     , offsetColumn = instance.getSetting('offsetColumn');
 
   var containerWidthFn = function (cacheWidth) {
-    return that.instance.wtViewport.getViewportWidth(cacheWidth);
+    var viewportWidth = that.instance.wtViewport.getViewportWidth(cacheWidth);
+    if (viewportWidth < cacheWidth && that.instance.getSetting('nativeScrollbars')) {
+      return Infinity; //disable stretching when viewport is bigger than sum of the cell widths
+    }
+    return viewportWidth;
   };
 
   var that = this;
@@ -157,13 +154,16 @@ WalkontableTable.prototype.refreshStretching = function () {
   }
 
   var containerHeightFn = function (cacheHeight) {
-    if (that.instance.isNativeScroll) {
+    if (that.instance.getSetting('nativeScrollbars')) {
       return 2 * that.instance.wtViewport.getViewportHeight(cacheHeight);
     }
     return that.instance.wtViewport.getViewportHeight(cacheHeight);
   };
 
   var rowHeightFn = function (i, TD) {
+    if (that.instance.getSetting('nativeScrollbars')) {
+      return 20;
+    }
     var source_r = that.rowFilter.visibleToSource(i);
     if (source_r < totalRows) {
       if (that.verticalRenderReverse && i === 0) {
@@ -195,6 +195,10 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   }
 
   this.refreshStretching();
+  if (this.instance.cloneFrom && (this.instance.cloneDirection === 'left' || this.instance.cloneDirection === 'corner')) {
+    this.columnStrategy.cellCount = 0;
+  }
+
   displayTds = this.columnStrategy.cellCount;
 
   //adjust COLGROUP
@@ -272,7 +276,7 @@ WalkontableTable.prototype.adjustColumns = function (TR, desiredCount) {
 };
 
 WalkontableTable.prototype.draw = function (selectionsOnly) {
-  if (this.instance.isNativeScroll) {
+  if (this.instance.getSetting('nativeScrollbars')) {
     this.verticalRenderReverse = false; //this is only supported in dragdealer mode, not in native
   }
 
@@ -280,11 +284,26 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
   this.columnFilter.readSettings(this.instance);
 
   if (!selectionsOnly) {
-    this.tableOffset = this.wtDom.offset(this.TABLE);
+    if (this.instance.getSetting('nativeScrollbars')) {
+      if (this.instance.cloneFrom) {
+        this.tableOffset = this.instance.cloneFrom.wtTable.tableOffset;
+      }
+      else {
+        this.holderOffset = this.wtDom.offset(this.holder);
+        this.tableOffset = this.wtDom.offset(this.TABLE);
+        this.instance.wtScrollbars.vertical.readWindowSize();
+        this.instance.wtScrollbars.horizontal.readWindowSize();
+        this.instance.wtViewport.resetSettings();
+      }
+    }
+    else {
+      this.tableOffset = this.wtDom.offset(this.TABLE);
+      this.instance.wtViewport.resetSettings();
+    }
     this._doDraw();
   }
   else {
-    this.instance.wtScrollbars.refresh();
+    this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
   }
 
   this.refreshPositions(selectionsOnly);
@@ -316,8 +335,6 @@ WalkontableTable.prototype._doDraw = function () {
     mustBeInViewport = offsetRow;
   }
 
-  this.instance.wtViewport.resetSettings();
-
   var noPartial = false;
   if (this.verticalRenderReverse) {
     if (offsetRow === totalRows - this.rowFilter.fixedCount - 1) {
@@ -334,10 +351,15 @@ WalkontableTable.prototype._doDraw = function () {
     source_r = this.rowFilter.visibleToSource(r);
 
     var first = true;
+    var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
 
     while (source_r < totalRows && source_r >= 0) {
       if (r > 1000) {
         throw new Error('Security brake: Too much TRs. Please define height for your table, which will enforce scrollbars.');
+      }
+
+      if (this.instance.cloneFrom && (this.instance.cloneDirection === 'top' || this.instance.cloneDirection === 'corner') && r === fixedRowsTop) {
+        break;
       }
 
       if (r >= this.tbodyChildrenLength || (this.verticalRenderReverse && r >= this.rowFilter.fixedCount)) {
@@ -418,8 +440,6 @@ WalkontableTable.prototype._doDraw = function () {
         TD.className = '';
         TD.removeAttribute('style');
         this.instance.getSetting('cellRenderer', source_r, source_c, TD);
-        TD.setAttribute('data-row', source_r);
-        TD.setAttribute('data-column', source_c);
       }
 
       offsetRow = this.instance.getSetting('offsetRow'); //refresh the value
@@ -445,7 +465,7 @@ WalkontableTable.prototype._doDraw = function () {
         res = this.rowStrategy.add(r, TD, this.verticalRenderReverse);
 
         if (res === false) {
-          if (!this.instance.isNativeScroll) {
+          if (!this.instance.getSetting('nativeScrollbars')) {
             this.rowStrategy.removeOutstanding();
           }
         }
@@ -487,7 +507,7 @@ WalkontableTable.prototype._doDraw = function () {
     this.tbodyChildrenLength--;
   }
 
-  this.instance.wtScrollbars.refresh();
+  this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(false);
 
   if (workspaceWidth !== this.instance.wtViewport.getWorkspaceWidth()) {
     //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
@@ -565,10 +585,6 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
  *
  */
 WalkontableTable.prototype.getCell = function (coords) {
-  if (this.instance.isNativeScroll) {
-    return this.instance.wtTable.TBODY.querySelectorAll('[data-row="' + coords[0] + '"][data-column="' + coords[1] + '"]')[0];
-  }
-
   if (this.isRowBeforeViewport(coords[0])) {
     return -1; //row before viewport
   }
@@ -622,21 +638,11 @@ WalkontableTable.prototype.isColumnAfterViewport = function (c) {
 };
 
 WalkontableTable.prototype.isRowInViewport = function (r) {
-  if (this.instance.isNativeScroll) {
-    return !!this.instance.wtTable.TBODY.querySelectorAll('[data-row="' + r + '"]')[0];
-  }
-  else {
-    return (!this.isRowBeforeViewport(r) && !this.isRowAfterViewport(r));
-  }
+  return (!this.isRowBeforeViewport(r) && !this.isRowAfterViewport(r));
 };
 
 WalkontableTable.prototype.isColumnInViewport = function (c) {
-  if (this.instance.isNativeScroll) {
-    return !!this.instance.wtTable.TBODY.querySelectorAll('[data-column="' + c + '"]')[0];
-  }
-  else {
-    return (!this.isColumnBeforeViewport(c) && !this.isColumnAfterViewport(c));
-  }
+  return (!this.isColumnBeforeViewport(c) && !this.isColumnAfterViewport(c));
 };
 
 WalkontableTable.prototype.isLastRowFullyVisible = function () {
