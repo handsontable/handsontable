@@ -59,10 +59,18 @@ WalkontableCornerScrollbarNative.prototype.makeClone = function (direction) {
 
       if (top < 0 && bottom > 0) {
         elem.style.top = '0';
-        elem.style.left = '0';
       }
       else {
         elem.style.top = top + 'px';
+      }
+
+      var left = Math.ceil(box.left, 10);
+      var right = Math.ceil(box.right, 10);
+
+      if (left < 0 && right > 0) {
+        elem.style.left = '0';
+      }
+      else {
         elem.style.left = left + 'px';
       }
     }
