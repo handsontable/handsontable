@@ -16,6 +16,8 @@
         setTimeout(function () {
           that.queryChoices(that.$textarea.val());
         });
+      } if (event.keyCode == Handsontable.helper.keyCode.ENTER && that.cellProperties.strict !== true){
+        that.$htContainer.handsontable('deselectCell');
       }
 
     });
@@ -85,7 +87,7 @@
 
       var choices;
 
-      if(!query){
+      if(!query || this.cellProperties.filter === false){
         choices = this.cellProperties.source;
       } else {
         choices = this.cellProperties.source.filter(function(choice){
@@ -101,25 +103,54 @@
 
   };
 
+  function findItemIndexToHighlight(items, value){
+    var bestMatch = {};
+    var valueLength = value.length;
+    var currentItem;
+    var indexOfValue;
+    var charsLeft;
+
+
+    for(var i = 0, len = items.length; i < len; i++){
+      currentItem = items[i];
+      indexOfValue = currentItem.indexOf(value);
+
+      if(indexOfValue == -1) continue;
+
+      charsLeft =  currentItem.length - indexOfValue - valueLength;
+
+      if( typeof bestMatch.indexOfValue == 'undefined'
+        || bestMatch.indexOfValue > indexOfValue
+        || ( bestMatch.indexOfValue == indexOfValue && bestMatch.charsLeft > charsLeft ) ){
+
+        bestMatch.indexOfValue = indexOfValue;
+        bestMatch.charsLeft = charsLeft;
+        bestMatch.index = i;
+
+      }
+
+    }
+
+
+    return bestMatch.index;
+  }
+
   AutocompleteEditor.prototype.updateChoicesList = function (choices) {
     this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
 
     var value = this.val();
-    var row;
+    var rowToHighlight;
 
-    if(value.length > 0){
-      for( var i = 0, len = choices.length; i < len; i++){
-        if(choices[i] == value){
-          row = i;
-          break;
-        }
-      }
+    if(this.cellProperties.strict === true && value.length > 0){
+
+      rowToHighlight = findItemIndexToHighlight(choices, value);
+
     }
 
-    if(typeof row == 'undefined'){
+    if(typeof rowToHighlight == 'undefined'){
       this.$htContainer.handsontable('deselectCell');
     } else {
-      this.$htContainer.handsontable('selectCell', row, 0);
+      this.$htContainer.handsontable('selectCell', rowToHighlight, 0);
     }
 
     this.focus();
