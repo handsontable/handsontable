@@ -59,7 +59,11 @@ if (typeof Handsontable !== 'undefined') {
   var setupListening = function (instance) {
     var scrollHandler = instance.view.wt.wtScrollbars.vertical.scrollHandler; //native scroll
     dragToScroll = new DragToScroll();
-    if (scrollHandler) {
+    if (scrollHandler === window) {
+      //not much we can do currently
+      return;
+    }
+    else if (scrollHandler) {
       dragToScroll.setBoundaries(scrollHandler.getBoundingClientRect());
     }
     else {
