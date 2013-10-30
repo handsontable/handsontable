@@ -1,6 +1,6 @@
 ## [0.10.0-beta3](https://github.com/warpech/jquery-handsontable/tree/v0.10.0-beta3) (Oct 30, 2013)
 
-Changes since beta1:
+Changes since beta2:
 - fixed issues with native scrolling. Now it is usable in windows Chrome and Firefox. By next major version (0.11.0) native scrolling will become default, so please submit your comments
 - cleaned up code from previous dependencies (Bootstrap Typeahead for autocomplete cell, jQuery-contextMenu for context menu). Now these features are rendered using Handsontable-in-Handsontable. This results in more consistent user experience and codebase reduced by more than 10%, compared to 0.9.x branch.
 - renamed Web Components custom elements to `<handsontable-table>`, `<handsontable-column>`
