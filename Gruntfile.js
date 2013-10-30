@@ -133,8 +133,7 @@ module.exports = function (grunt) {
       full_css: {
         files: {
           'dist/jquery.handsontable.full.css': [
-            'dist/jquery.handsontable.css',
-            'lib/jQuery-contextMenu/jquery.contextMenu.css'
+            'dist/jquery.handsontable.css'
           ]
         }
       },
@@ -217,14 +216,11 @@ module.exports = function (grunt) {
           styles: [
             'test/jasmine/css/SpecRunner.css',
             'dist/jquery.handsontable.css',
-            'lib/jQuery-contextMenu/jquery.contextMenu.css',
-            'lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css',
             'extensions/jquery.handsontable.removeRow.css'
           ],
           vendor: [
             'lib/jquery.min.js',
             'lib/numeral.js',
-            'lib/jQuery-contextMenu/jquery.contextMenu.js',
             'test/jasmine/lib/jasmine-extensions.js'
           ],
           helpers: [
