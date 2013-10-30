@@ -11,8 +11,6 @@ WalkontableCornerScrollbarNative.prototype.makeClone = function (direction) {
     return;
   }
 
-  var that = this;
-
   var clone = $('<div id="cln_' + direction + '" class="handsontable"></div>');
   this.instance.wtTable.holder.parentNode.appendChild(clone[0]);
 
@@ -31,60 +29,46 @@ WalkontableCornerScrollbarNative.prototype.makeClone = function (direction) {
   walkontableConfig.table = table2[0];
   var wt = new Walkontable(walkontableConfig);
 
-  var scrollable = that.scrollHandler;
+  return wt;
+};
 
-  $(window).on('load.' + this.instance.guid, function () {
-    resetFixedPosition(clone[0]);
-  });
-  $(window).on('scroll.' + this.instance.guid, function () {
-    resetFixedPosition(clone[0]);
-  });
-  $(window).on('resize.' + this.instance.guid, function () {
-    resetFixedPosition(clone[0]);
-  });
-  $(document).on('ready.' + this.instance.guid, function () {
-    resetFixedPosition(clone[0]);
-  });
+WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
+  if (!this.instance.wtTable.holder.parentNode) {
+    return; //removed from DOM
+  }
+  var elem = this.clone.wtTable.holder.parentNode;
 
-  function resetFixedPosition(elem) {
-    if (!that.instance.wtTable.holder.parentNode) {
-      return; //removed from DOM
-    }
+  var box;
+  if (this.scrollHandler === window) {
+    box = this.instance.wtTable.holder.getBoundingClientRect();
+    var top = Math.ceil(box.top, 10);
+    var bottom = Math.ceil(box.bottom, 10);
 
-    var box;
-    if (scrollable === window) {
-      box = that.instance.wtTable.holder.getBoundingClientRect();
-      var top = Math.ceil(box.top, 10);
-      var bottom = Math.ceil(box.bottom, 10);
-
-      if (top < 0 && bottom > 0) {
-        elem.style.top = '0';
-      }
-      else {
-        elem.style.top = top + 'px';
-      }
-
-      var left = Math.ceil(box.left, 10);
-      var right = Math.ceil(box.right, 10);
-
-      if (left < 0 && right > 0) {
-        elem.style.left = '0';
-      }
-      else {
-        elem.style.left = left + 'px';
-      }
+    if (top < 0 && bottom > 0) {
+      elem.style.top = '0';
     }
     else {
-      box = that.scrollHandler.getBoundingClientRect();
-      elem.style.top = Math.ceil(box.top, 10) + 'px';
-      elem.style.left = Math.ceil(box.left, 10) + 'px';
+      elem.style.top = top + 'px';
     }
 
-    clone[0].style.width = WalkontableDom.prototype.outerWidth(wt.wtTable.TABLE) + 4 + 'px';
-    clone[0].style.height = WalkontableDom.prototype.outerHeight(wt.wtTable.TABLE) + 4 + 'px';
+    var left = Math.ceil(box.left, 10);
+    var right = Math.ceil(box.right, 10);
+
+    if (left < 0 && right > 0) {
+      elem.style.left = '0';
+    }
+    else {
+      elem.style.left = left + 'px';
+    }
+  }
+  else {
+    box = this.scrollHandler.getBoundingClientRect();
+    elem.style.top = Math.ceil(box.top, 10) + 'px';
+    elem.style.left = Math.ceil(box.left, 10) + 'px';
   }
 
-  return wt;
+  elem.style.width = WalkontableDom.prototype.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
+  elem.style.height = WalkontableDom.prototype.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';
 };
 
 WalkontableCornerScrollbarNative.prototype.prepare = function () {
