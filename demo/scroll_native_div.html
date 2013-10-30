@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Native Scrollbar in a DIV - Handsontable</title>
+
+  <!--
+  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  -->
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css">
+  <script src="js/samples.js"></script>
+  <script src="js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+
+  <!--
+  Facebook open graph. Don't copy this to your project :)
+  -->
+  <meta property="og:title" content="Native Scrollbar in a DIV">
+  <meta property="og:description"
+        content="This demo shows table of 100 000 rows. Only visible part is rendered. Native DIV scrollbar is used to
+            scroll through the table.">
+  <meta property="og:url" content="http://handsontable.com/demo/scroll_native.html">
+  <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="409">
+  <meta property="og:image:height" content="164">
+  <link rel="canonical" href="http://handsontable.com/demo/scroll_native.html">
+
+  <!--
+  Google Analytics for GitHub Page. Don't copy this to your project :)
+  -->
+  <script src="js/ga.js"></script>
+
+  <script data-jsfiddle="common">
+    function createBigData() {
+      var rows = []
+        , i
+        , j;
+
+      for (i = 0; i < 1000; i++) {
+        var row = [];
+        for (j = 0; j < 16; j++) {
+          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
+        }
+        rows.push(row);
+      }
+
+      return rows;
+    }
+  </script>
+</head>
+
+<body>
+<a href="http://github.com/warpech/jquery-handsontable" class="forkMeOnGitHub">Fork me on GitHub</a>
+
+<div id="container">
+  <div class="columnLayout">
+
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <h1><a href="../index.html">Handsontable</a></h1>
+
+          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+            for HTML, JavaScript &amp; jQuery
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad" data-jsfiddle="example1">
+          <h2>Native Scrollbar (div)</h2>
+
+          <p>This demo shows table of 100 000 rows. Only visible part is rendered. Native div scrollbar is used to
+            scroll through the table.</p>
+
+          <p>This feature is considered <strong>experimental</strong> - not for production use. Normally you should use
+            the
+            <a href="http://handsontable.com/demo/scroll.html">built-in scrollbars</a> that come with Handsontable.
+          </p>
+
+          <p>This feature will continue to be developed. Comments are welcome.</p>
+
+          <div style="overflow: scroll; height: 200px; width: 400px">
+          <div id="example1"></div>
+          </div>
+
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump
+              data to console
+            </button>
+          </p>
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+          </div>
+
+          <script data-jsfiddle="example1">
+            $('#example1').handsontable({
+              data: createBigData(),
+              colWidths: [55, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47], //can also be a number or a function
+              rowHeaders: true,
+              colHeaders: true,
+              minSpareRows: 1,
+              stretchH: 'all',
+              contextMenu: true,
+              nativeScrollbars: true
+            });
+          </script>
+        </div>
+      </div>
+    </div>
+
+    <div class="rowLayout">
+      <div class="descLayout noMargin">
+        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+
+          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+            licensed under the The MIT License.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

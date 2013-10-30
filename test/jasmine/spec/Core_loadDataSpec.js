@@ -177,15 +177,14 @@ describe('Core_loadData', function () {
 
   //https://github.com/warpech/jquery-handsontable/pull/233
   it('Should not invoke the cells callback multiple times with the same row/col', function () {
-    var count = 0;
+    var cellsSpy = jasmine.createSpy('cellsSpy');
+
     handsontable({
       data: arrayOfNestedObjects(),
       colWidths: [90, 90, 90], //need to define colWidths, otherwise HandsontableAutoColumnSize will call cells() too
-      cells: function (row, col, prop) {
-        count++;
-      }
+      cells: cellsSpy
     });
-    expect(count).toEqual(countRows() * countCols() + countCols()); //+ countCols() is to get column width information
+    expect(cellsSpy.calls.length).toEqual(countRows() * countCols() + countCols()); //+ countCols() is to get column width information
   });
 
   //https://github.com/warpech/jquery-handsontable/issues/239

@@ -1,3 +1,33 @@
+## [0.10.0-beta3](https://github.com/warpech/jquery-handsontable/tree/v0.10.0-beta3) (Oct 30, 2013)
+
+Changes since beta1:
+- fixed issues with native scrolling. Now it is usable in windows Chrome and Firefox. By next major version (0.11.0) native scrolling will become default, so please submit your comments
+- cleaned up code from previous dependencies (Bootstrap Typeahead for autocomplete cell, jQuery-contextMenu for context menu). Now these features are rendered using Handsontable-in-Handsontable. This results in more consistent user experience and codebase reduced by more than 10%, compared to 0.9.x branch.
+- renamed Web Components custom elements to `<handsontable-table>`, `<handsontable-column>`
+
+## [0.10.0-beta2](https://github.com/warpech/jquery-handsontable/tree/v0.10.0-beta2) (Oct 17, 2013)
+
+Features since beta1:
+- `jquery.contextMenu` plugin replaced by a native solution, based on Handsontable
+- removing row or column can now be aborted, if any of the handlers of `beforeRemoveRow` or `beforeRemoveCol` events returns `false` ([#962](https://github.com/warpech/jquery-handsontable/issues/962))
+
+Bugfixes since beta1:
+- keyboard events are now properly delivered, when Handsontable is displayed in iframe ([#1003](https://github.com/warpech/jquery-handsontable/issues/1003))
+- added missing source maps for 3rd party libraries ([#1010](https://github.com/warpech/jquery-handsontable/issues/1010))
+- fixed editing cells which value has been removed usnig <kbd>DELETE</kbd> or <kbd>BACKSPACE</kbd> ([#1023](https://github.com/warpech/jquery-handsontable/issues/1023))
+- sorting is now reset after every `loadData()` ([#1050](https://github.com/warpech/jquery-handsontable/issues/1050))
+- fixed removing and inserting rows and columns into sorted table ([#1072](https://github.com/warpech/jquery-handsontable/issues/1072), [#1078](https://github.com/warpech/jquery-handsontable/issues/1078))
+- fixed marking autocomplete cells as invalid [#1092](https://github.com/warpech/jquery-handsontable/issues/1092)
+
+## [0.10.0-beta1](https://github.com/warpech/jquery-handsontable/tree/v0.10.0-beta1) (Sep 24, 2013)
+
+Features:
+- new, cleaner editors API
+- all native editors are now public
+- replaced Bootstrap Typeahead with native solution in Autocomplete editor
+- added Select editor
+- added native scroll
+
 ## [0.9.19](https://github.com/warpech/jquery-handsontable/tree/v0.9.19) (Oct 01, 2013)
 
 Two features that come in handy for plugin developers:

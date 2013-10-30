@@ -1,6 +1,5 @@
 function HandsontableManualColumnMove() {
-  var instance
-    , pressed
+  var pressed
     , startCol
     , endCol
     , startX
@@ -106,7 +105,7 @@ function HandsontableManualColumnMove() {
     instance.rootElement.off('mousemove.manualColumnMove');
     instance.rootElement.off('mousedown.manualColumnMove');
     instance.rootElement.off('mouseenter.manualColumnMove');
-  }
+  };
 
   this.beforeInit = function () {
     this.manualColumnPositions = [];

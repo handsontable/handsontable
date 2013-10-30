@@ -67,7 +67,7 @@ else {
   WalkontableDom.prototype.removeClass = function (ele, cls) {
     if (this.hasClass(ele, cls)) { //is this really needed?
       var reg = new RegExp('(\\s|^)' + cls + '(\\s|$)');
-      ele.className = ele.className.replace(reg, ' ').replace(/^\s\s*/, '').replace(/\s\s*$/, ''); //last 2 replaces do right trim (see http://blog.stevenlevithan.com/archives/faster-trim-javascript)
+      ele.className = ele.className.replace(reg, ' ').trim(); //String.prototype.trim is defined in polyfill.js
     }
   };
 }
@@ -214,25 +214,46 @@ else { //IE8
 }
 
 /**
+ * Returns true/false depending if element has offset parent
+ * @param elem
+ * @returns {boolean}
+ */
+/*if (document.createTextNode('test').textContent) { //STANDARDS
+  WalkontableDom.prototype.hasOffsetParent = function (elem) {
+    return !!elem.offsetParent;
+  }
+}
+else {
+  WalkontableDom.prototype.hasOffsetParent = function (elem) {
+    try {
+      if (!elem.offsetParent) {
+        return false;
+      }
+    }
+    catch (e) {
+      return false; //IE8 throws "Unspecified error" when offsetParent is not found - we catch it here
+    }
+    return true;
+  }
+}*/
+
+/**
  * Returns true if element is attached to the DOM and visible, false otherwise
  * @param elem
  * @returns {boolean}
  */
 WalkontableDom.prototype.isVisible = function (elem) {
-  //fast method
-  try {//try/catch performance is not a problem here: http://jsperf.com/try-catch-performance-overhead/7
-    if (!elem.offsetParent) {
-      return false; //fixes problem with UI Bootstrap <tabs> directive
-    }
-  }
-  catch (e) {
-    return false; //IE8 throws "Unspecified error" when offsetParent is not found - we catch it here
+  //fast method according to benchmarks, but requires layout so slow in our case
+  /*
+  if (!WalkontableDom.prototype.hasOffsetParent(elem)) {
+    return false; //fixes problem with UI Bootstrap <tabs> directive
   }
 
 //  if (elem.offsetWidth > 0 || (elem.parentNode && elem.parentNode.offsetWidth > 0)) { //IE10 was mistaken here
   if (elem.offsetWidth > 0) {
     return true;
   }
+  */
 
   //slow method
   var next = elem;
@@ -377,16 +398,20 @@ WalkontableDom.prototype.outerHeight = function (elem) {
    * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
    * @param {Element} el
    * @param {Number} pos
+   * @param {Number} endPos
    */
-  WalkontableDom.prototype.setCaretPosition = function (el, pos) {
+  WalkontableDom.prototype.setCaretPosition = function (el, pos, endPos) {
+    if (endPos === void 0) {
+      endPos = pos;
+    }
     if (el.setSelectionRange) {
       el.focus();
-      el.setSelectionRange(pos, pos);
+      el.setSelectionRange(pos, endPos);
     }
     else if (el.createTextRange) { //IE8
       var range = el.createTextRange();
       range.collapse(true);
-      range.moveEnd('character', pos);
+      range.moveEnd('character', endPos);
       range.moveStart('character', pos);
       range.select();
     }

@@ -123,6 +123,10 @@ WalkontableScroll.prototype.scrollLogicHorizontal = function (delta, offset, tot
  * Scrolls viewport to a cell by minimum number of cells
  */
 WalkontableScroll.prototype.scrollViewport = function (coords) {
+  if (!this.instance.drawn) {
+    return;
+  }
+
   var offsetRow = this.instance.getSetting('offsetRow')
     , offsetColumn = this.instance.getSetting('offsetColumn')
     , lastVisibleRow = this.instance.wtTable.getLastVisibleRow()
@@ -131,19 +135,25 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     , fixedRowsTop = this.instance.getSetting('fixedRowsTop')
     , fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
 
-  if (this.instance.isNativeScroll) {
+  if (this.instance.getSetting('nativeScrollbars')) {
     var TD = this.instance.wtTable.getCell(coords);
     if (typeof TD === 'object') {
       var offset = WalkontableDom.prototype.offset(TD);
       var outerHeight = WalkontableDom.prototype.outerHeight(TD);
-      var scrollY = window.scrollY;
-      var clientHeight = document.documentElement.clientHeight;
+      var scrollY = this.instance.wtScrollbars.vertical.getScrollPosition();
+      var clientHeight = WalkontableDom.prototype.outerHeight(this.instance.wtScrollbars.vertical.scrollHandler);
+      if (this.instance.wtScrollbars.vertical.scrollHandler !== window) {
+        offset.top = offset.top - WalkontableDom.prototype.offset(this.instance.wtScrollbars.vertical.scrollHandler).top;
+      }
+
+      clientHeight -= 20;
+
       if (outerHeight < clientHeight) {
         if (offset.top < scrollY) {
-          TD.scrollIntoView(true);
+          this.instance.wtScrollbars.vertical.setScrollPosition(offset.top);
         }
         else if (offset.top + outerHeight > scrollY + clientHeight) {
-          TD.scrollIntoView(false);
+          this.instance.wtScrollbars.vertical.setScrollPosition(offset.top - clientHeight + outerHeight);
         }
       }
       return;

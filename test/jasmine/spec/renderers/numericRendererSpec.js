@@ -13,45 +13,74 @@ describe('NumericRenderer', function () {
   });
 
   it('should render formatted number', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
     handsontable({
       cells: function () {
         return {
           type: 'numeric',
           format: '$0,0.00'
         }
-      }
+      },
+      afterValidate: onAfterValidate
     });
     setDataAtCell(2, 2, '1000.234');
 
-    expect(getCell(2, 2).innerHTML).toEqual('$1,000.23');
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation 2', 1000);
+
+    runs(function () {
+      expect(getCell(2, 2).innerHTML).toEqual('$1,000.23');
+    });
   });
 
   it('should render signed number', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
     handsontable({
       cells: function () {
         return {
           type: 'numeric',
           format: '$0,0.00'
         }
-      }
+      },
+      afterValidate: onAfterValidate
     });
 
     setDataAtCell(2, 2, '-1000.234');
-    expect(getCell(2, 2).innerHTML).toEqual('-$1,000.23');
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation 2', 1000);
+
+    runs(function () {
+      expect(getCell(2, 2).innerHTML).toEqual('-$1,000.23');
+    });
   });
 
   it('should render string as it is', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
     handsontable({
       cells: function () {
         return {
           type: 'numeric',
           format: '$0,0.00'
         }
-      }
+      },
+      afterValidate: onAfterValidate
     });
 
     setDataAtCell(2, 2, '123 simple test');
-    expect(getCell(2, 2).innerHTML).toEqual('123 simple test');
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation 2', 1000);
+
+    runs(function () {
+      expect(getCell(2, 2).innerHTML).toEqual('123 simple test');
+    });
   });
 
   it('should add class name `htNumeric` to the cell if it renders a number', function () {

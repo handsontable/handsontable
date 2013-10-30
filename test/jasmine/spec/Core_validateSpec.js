@@ -47,7 +47,7 @@ describe('Core_validate', function () {
   });
 
   it('should call afterValidate', function () {
-    var fired = null;
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -56,17 +56,26 @@ describe('Core_validate', function () {
         {data: 'name'},
         {data: 'lastName'}
       ],
-      afterValidate: function () {
-        fired = true;
-      }
+      afterValidate: onAfterValidate
     });
     setDataAtCell(2, 0, 'test');
 
-    expect(fired).toEqual(true);
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(onAfterValidate.calls.length).toEqual(1);
+    });
   });
 
   it('beforeValidate should can manipulate value', function () {
     var result = null;
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    onAfterValidate.plan = function (valid, value) {
+      result = value;
+    };
 
     handsontable({
       data: arrayOfObjects(),
@@ -79,17 +88,21 @@ describe('Core_validate', function () {
         value = 999;
         return value;
       },
-      afterValidate: function (valid, value) {
-        result = value;
-      }
+      afterValidate: onAfterValidate
     });
     setDataAtCell(2, 0, 123);
 
-    expect(result).toEqual(999);
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(result).toEqual(999);
+    });
   });
 
   it('should be able to define custom validator function', function () {
-    var result = null;
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -100,17 +113,21 @@ describe('Core_validate', function () {
         {data: 'name'},
         {data: 'lastName'}
       ],
-      afterValidate: function (valid) {
-        result = valid;
-      }
+      afterValidate: onAfterValidate
     });
     setDataAtCell(2, 0, 123);
 
-    expect(result).toEqual(true);
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id', undefined);
+    });
   });
 
   it('should be able to define custom validator RegExp', function () {
-    var lastInvalid = null;
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -119,20 +136,23 @@ describe('Core_validate', function () {
         {data: 'name'},
         {data: 'lastName'}
       ],
-      afterValidate: function (valid, value) {
-        if (valid === false) {
-          lastInvalid = value;
-        }
-      }
+      afterValidate: onAfterValidate
     });
+
     setDataAtCell(2, 0, 'test');
 
-    expect(lastInvalid).toEqual('test');
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id', undefined);
+    });
   });
 
   it('this in validator should point to cellProperties', function () {
-    var result = null
-      , fired = false;
+    var result = null;
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
@@ -144,16 +164,24 @@ describe('Core_validate', function () {
         {data: 'name'},
         {data: 'lastName'}
       ],
-      afterValidate: function () {
-        fired = true;
-      }
+      afterValidate: onAfterValidate
     });
     setDataAtCell(2, 0, 123);
 
-    expect(result.instance).toEqual(getInstance());
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(result.instance).toEqual(getInstance());
+    });
+
+
   });
 
   it('should add class name `htInvalid` to an cell that does not validate - on validateCells', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
     var hot = handsontable({
       data: createSpreadsheetData(2, 2),
       validator: function (value, callb) {
@@ -163,18 +191,30 @@ describe('Core_validate', function () {
         else {
           callb(true)
         }
-      }
+      },
+      afterValidate: onAfterValidate
     });
 
     hot.validateCells(function () {
       hot.render();
     });
 
-    expect(this.$container.find('td.htInvalid').length).toEqual(1);
-    expect(this.$container.find('td:not(.htInvalid)').length).toEqual(3);
+    waitsFor(function () {
+      return onAfterValidate.calls.length == 4;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(this.$container.find('td.htInvalid').length).toEqual(1);
+      expect(this.$container.find('td:not(.htInvalid)').length).toEqual(3);
+    });
+
+
   });
 
   it('should add class name `htInvalid` to an cell that does not validate - on edit', function () {
+
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
     handsontable({
       data: createSpreadsheetData(2, 2),
       validator: function (value, callb) {
@@ -184,16 +224,28 @@ describe('Core_validate', function () {
         else {
           callb(true)
         }
-      }
+      },
+      afterValidate: onAfterValidate
     });
 
     setDataAtCell(0, 0, 'test');
 
-    expect(this.$container.find('td.htInvalid').length).toEqual(1);
-    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(this.$container.find('td.htInvalid').length).toEqual(1);
+      expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+    });
+
+
   });
 
   it('should add class name `htInvalid` to a cell without removing other classes', function () {
+
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
     handsontable({
       data: createSpreadsheetData(2, 2),
       type: 'numeric',
@@ -204,41 +256,74 @@ describe('Core_validate', function () {
         else {
           callb(true)
         }
-      }
+      },
+      afterValidate: onAfterValidate
     });
 
     setDataAtCell(0, 0, 123);
 
-    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
-    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htNumeric')).toEqual(true);
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation 1', 1000);
 
-    setDataAtCell(0, 0, 124);
+    runs(function () {
+      expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+      expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htNumeric')).toEqual(true);
 
-    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
-    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htNumeric')).toEqual(true);
+    });
+    runs(function () {
+      onAfterValidate.reset();
+      setDataAtCell(0, 0, 124);
+    });
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
+      expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htNumeric')).toEqual(true);
+    });
+
+
   });
 
   it('should add class name `htInvalid` to an cell that does not validate - after validateCells & render', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
     var hot = handsontable({
-      data: createSpreadsheetData(2, 2)
+      data: createSpreadsheetData(2, 2),
+      afterValidate: onAfterValidate
     });
 
     setDataAtCell(0, 0, 'test');
 
-    expect(this.$container.find('td.htInvalid').length).toEqual(0);
+    waits(100);
 
-    updateSettings({validator: function (value, callb) {
-      if (value == 'test') {
-        callb(false)
-      }
-      else {
-        callb(true)
-      }
-    }});
-
-    hot.validateCells(function () {
-      hot.render();
+    runs(function () {
+      expect(this.$container.find('td.htInvalid').length).toEqual(0);
     });
+
+    runs(function () {
+      updateSettings({validator: function (value, callb) {
+        if (value == 'test') {
+          callb(false)
+        }
+        else {
+          callb(true)
+        }
+      }});
+
+      onAfterValidate.reset();
+
+      hot.validateCells(function () {
+        hot.render();
+      });
+    });
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
 
     runs(function () {
       expect(this.$container.find('td.htInvalid').length).toEqual(1);
@@ -247,6 +332,8 @@ describe('Core_validate', function () {
   });
 
   it('should remove class name `htInvalid` when cell is edited to validate', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
     var hot = handsontable({
       data: createSpreadsheetData(2, 2),
       validator: function (value, callb) {
@@ -256,18 +343,34 @@ describe('Core_validate', function () {
         else {
           callb(true)
         }
-      }
+      },
+      afterValidate: onAfterValidate
     });
 
     hot.validateCells(function () {
       hot.render();
     });
 
-    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
 
-    setDataAtCell(0, 0, 'test');
+    runs(function () {
+      expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+    });
 
-    expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
+    runs(function () {
+      onAfterValidate.reset();
+      setDataAtCell(0, 0, 'test');
+    });
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
+    });
   });
 
   it('should not allow for changes where data is invalid (multiple changes, async)', function () {
@@ -311,7 +414,8 @@ describe('Core_validate', function () {
   });
 
   it('should call beforeChange exactly once after cell value edit and validator is synchronous', function () {
-    var callCounter = 0;
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    var onBeforeChange = jasmine.createSpy('onBeforeChange');
 
     var hot = handsontable({
       data: createSpreadsheetData(5, 2),
@@ -319,23 +423,27 @@ describe('Core_validate', function () {
       validator: function (value, callback) {
         callback(true);
       },
-      beforeChange: function (changes, source) {
-        if (source !== 'loadData') {
-          callCounter++;
-        }
-      }
+      beforeChange: onBeforeChange,
+      afterValidate: onAfterValidate
     });
 
-    expect(callCounter).toEqual(0);
+    expect(onBeforeChange.calls.length).toEqual(0);
 
     hot.setDataAtCell(0, 0, 10);
 
-    expect(callCounter).toEqual(1);
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(onBeforeChange.calls.length).toEqual(1);
+    });
 
   });
 
   it('should call beforeChange exactly once after cell value edit and validator is asynchronous', function () {
-    var callCounter = 0;
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    var onBeforeChange = jasmine.createSpy('onBeforeChange');
 
     var hot = handsontable({
       data: createSpreadsheetData(5, 2),
@@ -345,27 +453,27 @@ describe('Core_validate', function () {
           callback(true);
         }, 10);
       },
-      beforeChange: function (changes, source) {
-        if (source !== 'loadData') {
-          callCounter++;
-        }
-      }
+      beforeChange: onBeforeChange,
+      afterValidate: onAfterValidate
     });
 
-    expect(callCounter).toEqual(0);
+    expect(onBeforeChange.calls.length).toEqual(0);
 
     hot.setDataAtCell(0, 0, 10);
 
-    waits(100);
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
 
     runs(function () {
-      expect(callCounter).toEqual(1);
+      expect(onBeforeChange.calls.length).toEqual(1);
     });
 
   });
 
   it('should call afterChange exactly once after cell value edit and validator is synchronous', function () {
-    var callCounter = 0;
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    var onAfterChange = jasmine.createSpy('onAfterChange');
 
     var hot = handsontable({
       data: createSpreadsheetData(5, 2),
@@ -373,23 +481,27 @@ describe('Core_validate', function () {
       validator: function (value, callback) {
         callback(true);
       },
-      afterChange: function (changes, source) {
-        if (source !== 'loadData') {
-          callCounter++;
-        }
-      }
+      afterChange: onAfterChange,
+      afterValidate: onAfterValidate
     });
 
-    expect(callCounter).toEqual(0);
+    expect(onAfterChange.calls.length).toEqual(1); //loadData
 
     hot.setDataAtCell(0, 0, 10);
 
-    expect(callCounter).toEqual(1);
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(onAfterChange.calls.length).toEqual(2);
+    });
 
   });
 
   it('should call afterChange exactly once after cell value edit and validator is asynchronous', function () {
-    var callCounter = 0;
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    var onAfterChange = jasmine.createSpy('onAfterChange');
 
     var hot = handsontable({
       data: createSpreadsheetData(5, 2),
@@ -399,38 +511,45 @@ describe('Core_validate', function () {
           callback(true);
         }, 10);
       },
-      afterChange: function (changes, source) {
-        if (source !== 'loadData') {
-          callCounter++;
-        }
-      }
+      afterChange: onAfterChange,
+      afterValidate: onAfterValidate
     });
 
-    expect(callCounter).toEqual(0);
+    expect(onAfterChange.calls.length).toEqual(1); //loadData
 
     hot.setDataAtCell(0, 0, 10);
 
-    waits(100);
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
 
     runs(function () {
-      expect(callCounter).toEqual(1);
+      expect(onAfterChange.calls.length).toEqual(2);
     });
 
   });
 
   it('edited cell should stay on screen until value is validated', function () {
-    var beforeElement;
-    var afterElement;
+    var isEditorVisibleBeforeChange;
+    var isEditorVisibleAfterChange;
+
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    onAfterValidate.plan = function () {
+      isEditorVisibleBeforeChange = isEditorVisible();
+    };
+
+    var onAfterChange = jasmine.createSpy('onAfterChange');
+    onAfterChange.plan = function () {
+      isEditorVisibleAfterChange = isEditorVisible();
+    };
+
 
     handsontable({
       data: createSpreadsheetData(5, 2),
       allowInvalid: false,
-      afterValidate: function () {
-        beforeElement = document.activeElement;
-      },
-      afterChange: function () {
-        afterElement = document.activeElement;
-      },
+      afterValidate: onAfterValidate,
+      afterChange: onAfterChange,
       validator: function (value, callback) {
         setTimeout(function () {
           callback(true);
@@ -440,17 +559,22 @@ describe('Core_validate', function () {
 
     selectCell(0, 0);
     keyDown('enter');
-    afterElement = "teraz";
     document.activeElement.value = 'Ted';
+
+    onAfterValidate.reset();
+    onAfterChange.reset();
+
     keyDown('enter');
 
     expect(document.activeElement.nodeName).toEqual('TEXTAREA');
 
-    waits(110);
+    waitsFor(function(){
+      return onAfterValidate.calls.length > 0 && onAfterChange.calls.length > 0;
+    }, 'Cell validation and value change', 1000);
 
     runs(function () {
-      expect(beforeElement.nodeName).toEqual('TEXTAREA');
-      expect(afterElement.nodeName).toEqual('BODY');
+      expect(isEditorVisibleBeforeChange).toBe(true);
+      expect(isEditorVisibleAfterChange).toBe(false);
       expect(document.activeElement.nodeName).toEqual('BODY');
     });
 
@@ -793,56 +917,10 @@ describe('Core_validate', function () {
 
   });
 
-  it("should close the editor and restore the original value after trying to save the original value with ENTER and then canceling with ESC", function () {
-    var validated = 0;
-    var validationResult;
-
-    handsontable({
-      data: createSpreadsheetData(5, 2),
-      allowInvalid: false,
-      validator: function (value, callback) {
-        validated++;
-        validationResult = value.length == 2;
-        callback(validationResult);
-      }
-    });
-
-    selectCell(0, 0);
-    keyDown('enter');
-
-    var editor = $('.handsontableInputHolder');
-
-    document.activeElement.value = 'Ted';
-
-    keyDown('enter');
-
-    waitsFor(function () {
-      return validated == 1;
-    }, 'Cell validation', 1000);
-
-    runs(function () {
-      expect(editor.is(':visible')).toBe(true);
-      expect(validationResult).toBe(false);
-      expect(document.activeElement.value).toEqual('Ted');
-    });
-
-    runs(function () {
-      keyDown('esc');
-    });
-
-    waitsFor(function () {
-      return validated == 2;
-    }, 'Cell validation', 1000);
-
-    runs(function () {
-      expect(editor.is(':visible')).toBe(false);
-      expect(validationResult).toBe(true);
-      expect(getDataAtCell(0, 0)).toEqual('A0');
-    });
-
-  });
-
   it('should listen to key changes after cell is corrected (allowInvalid: false)', function () {
+
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
     handsontable({
       data: arrayOfObjects(),
       allowInvalid: false,
@@ -852,27 +930,51 @@ describe('Core_validate', function () {
         }},
         {data: 'name'},
         {data: 'lastName'}
-      ]
+      ],
+      afterValidate: onAfterValidate
     });
     selectCell(2, 0);
 
     keyDownUp('enter');
     document.activeElement.value = '99';
 
+    onAfterValidate.reset();
+
     keyDownUp('enter'); //should be ignored
-    expect(isEditorVisible()).toBe(true);
 
-    document.activeElement.value = '999';
-    keyDownUp('enter'); //should be accepted
-    expect(isEditorVisible()).toBe(false);
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
 
-    expect(getSelected()).toEqual([3, 0, 3, 0]);
+    runs(function () {
+      expect(isEditorVisible()).toBe(true);
+    });
 
-    keyDownUp('arrow_up');
-    expect(getSelected()).toEqual([2, 0, 2, 0]);
+    runs(function () {
+      document.activeElement.value = '999';
+
+      onAfterValidate.reset();
+      keyDownUp('enter'); //should be accepted
+    });
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation 2', 1000);
+
+    runs(function () {
+      expect(isEditorVisible()).toBe(false);
+      expect(getSelected()).toEqual([3, 0, 3, 0]);
+
+      keyDownUp('arrow_up');
+      expect(getSelected()).toEqual([2, 0, 2, 0]);
+    });
+
   });
 
-  it('should not allow keyboard movement until cell is validated', function () {
+  it('should allow keyboard movement when cell is being validated (move DOWN)', function () {
+
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
     handsontable({
       data: arrayOfObjects(),
       allowInvalid: false,
@@ -884,20 +986,152 @@ describe('Core_validate', function () {
         }},
         {data: 'name'},
         {data: 'lastName'}
-      ]
+      ],
+      afterValidate: onAfterValidate
     });
     selectCell(2, 0);
 
     keyDownUp('enter');
     document.activeElement.value = '999';
+    keyDownUp('enter');
+
+    expect(getSelected()).toEqual([3, 0, 3, 0]);
+
+    keyDownUp('arrow_down');
+    keyDownUp('arrow_down');
+    expect(isEditorVisible()).toBe(true);
+    expect(getSelected()).toEqual([5, 0, 5, 0]);
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(isEditorVisible()).toBe(false);
+      expect(getSelected()).toEqual([5, 0, 5, 0]); // only enterMove and first arrow_down is performed
+    });
+  });
+
+  it('should not allow keyboard movement until cell is validated (move UP)', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      allowInvalid: false,
+      columns: [
+        {data: 'id', type: 'numeric', validator: function (val, cb) {
+          setTimeout(function () {
+            cb(parseInt(val, 10) > 100);
+          }, 100);
+        }},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    selectCell(2, 0);
+
+    keyDownUp('enter');
+    document.activeElement.value = '999';
+    keyDownUp('enter');
+
+    expect(getSelected()).toEqual([3, 0, 3, 0]);
+
+    keyDownUp('arrow_up');
+    keyDownUp('arrow_up');
+    expect(isEditorVisible()).toBe(true);
+    expect(getSelected()).toEqual([1, 0, 1, 0]);
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+
+    runs(function () {
+      expect(isEditorVisible()).toBe(false);
+      expect(getSelected()).toEqual([1, 0, 1, 0]);
+    });
+  });
+
+  it('should not allow keyboard movement until cell is validated (move RIGHT)', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      allowInvalid: false,
+      columns: [
+        {data: 'id', type: 'numeric', validator: function (val, cb) {
+          setTimeout(function () {
+            cb(parseInt(val, 10) > 100);
+          }, 100);
+        }},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    selectCell(2, 0);
+
+    keyDownUp('enter');
+    document.activeElement.value = '999';
     keyDownUp('enter'); //should be accepted but only after 100 ms
+    expect(getSelected()).toEqual([3, 0, 3, 0]);
 
     keyDownUp('arrow_right');
     keyDownUp('arrow_right');
     expect(isEditorVisible()).toBe(true);
-    expect(getSelected()).toEqual([2, 0, 2, 0]);
+    expect(getSelected()).toEqual([3, 2, 3, 2]);
 
-    waits(110);
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+
+    runs(function () {
+      expect(isEditorVisible()).toBe(false);
+      expect(getSelected()).toEqual([3, 2, 3, 2]);
+    });
+  });
+
+  it('should not allow keyboard movement until cell is validated (move LEFT)', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    hot = handsontable({
+      data: arrayOfObjects(),
+      allowInvalid: false,
+      columns: [
+        {data: 'name'},
+        {data: 'lastName'},
+        {data: 'id', type: 'numeric', validator: function (val, cb) {
+          setTimeout(function () {
+            cb(parseInt(val, 10) > 100);
+          }, 100);
+        }}
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    selectCell(2, 2);
+
+    keyDownUp('enter');
+    document.activeElement.value = '999';
+    keyDownUp('enter'); //should be accepted but only after 100 ms
+    expect(getSelected()).toEqual([3, 2, 3, 2]);
+
+
+    this.$container.trigger(new $.Event('keydown', {keyCode: Handsontable.helper.keyCode.ARROW_LEFT}));
+    this.$container.trigger(new $.Event('keyup', {keyCode: Handsontable.helper.keyCode.ARROW_LEFT}));
+    this.$container.trigger(new $.Event('keydown', {keyCode: Handsontable.helper.keyCode.ARROW_LEFT}));
+    this.$container.trigger(new $.Event('keyup', {keyCode: Handsontable.helper.keyCode.ARROW_LEFT}));
+
+    expect(isEditorVisible()).toBe(true);
+    expect(getSelected()).toEqual([3, 0, 3, 0]);
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
 
     runs(function () {
       expect(isEditorVisible()).toBe(false);

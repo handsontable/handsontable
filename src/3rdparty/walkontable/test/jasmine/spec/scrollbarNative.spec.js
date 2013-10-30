@@ -24,8 +24,7 @@ describe('WalkontableScrollbarNative', function () {
       totalColumns: getTotalColumns,
       offsetRow: 0,
       offsetColumn: 0,
-      scrollbarModelH: 'native',
-      scrollbarModelV: 'native'
+      nativeScrollbars: true
     });
     wt.draw();
 
@@ -45,8 +44,7 @@ describe('WalkontableScrollbarNative', function () {
       totalColumns: getTotalColumns,
       offsetRow: 0,
       offsetColumn: 0,
-      scrollbarModelH: 'native',
-      scrollbarModelV: 'native'
+      nativeScrollbars: true
     });
     wt.draw();
 
