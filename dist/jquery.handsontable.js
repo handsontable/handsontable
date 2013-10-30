@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.9.19
+ * Handsontable 0.10.0-beta3
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Oct 17 2013 12:32:22 GMT+0200 (CEST)
+ * Date: Wed Oct 30 2013 03:16:48 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2560,7 +2560,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.9.19'; //inserted by grunt from package.json
+  this.version = '0.10.0-beta3'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {
@@ -2600,8 +2600,7 @@ DefaultSettings.prototype = {
   invalidCellClassName: 'htInvalid',
   fragmentSelection: false,
   readOnly: false,
-  scrollbarModelV: 'dragdealer',
-  scrollbarModelH: 'dragdealer'
+  nativeScrollbars: false
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
@@ -2692,8 +2691,7 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  var isMouseDown
-    , dragInterval;
+  var isMouseDown;
 
   $documentElement.on('mouseup.' + instance.guid, function (event) {
     if (instance.selection.isInProgress() && event.which === 1) { //is left mouse button
@@ -2701,8 +2699,6 @@ Handsontable.TableView = function (instance) {
     }
 
     isMouseDown = false;
-    clearInterval(dragInterval);
-    dragInterval = null;
 
     if (instance.autofill.handle && instance.autofill.handle.isDragged) {
       if (instance.autofill.handle.isDragged > 1) {
@@ -2721,12 +2717,11 @@ Handsontable.TableView = function (instance) {
 
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== document.documentElement) {
-        //X-HANDSONTABLE is the tag name in Web Components version of HOT. Removal of this breaks cell selection
         if (next === null) {
           return; //click on something that was a row but now is detached (possibly because your click triggered a rerender)
         }
-        if (next === instance.rootElement[0] || next.nodeName === 'X-HANDSONTABLE' || next.id === 'context-menu-layer' || $(next).is('.context-menu-list') || $(next).is('.typeahead li')) {
-          return; //click inside container
+        if (next === instance.rootElement[0] || next.nodeName === 'HANDSONTABLE-TABLE') {
+          return; //click inside container or Web Component (HANDSONTABLE-TABLE is the name of the custom element)
         }
         next = next.parentNode;
       }
@@ -2740,7 +2735,7 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  instance.rootElement.on('mousedown.handsontable', '.dragdealer', function (event) {
+  instance.rootElement.on('mousedown.handsontable', '.dragdealer', function () {
     instance.destroyEditor();
   });
 
@@ -2752,58 +2747,6 @@ Handsontable.TableView = function (instance) {
     //https://github.com/warpech/jquery-handsontable/issues/160
     //selectstart is IE only event. Prevent text from being selected when performing drag down in IE8
     event.preventDefault();
-  });
-
-  instance.$table.on('mouseenter', function () {
-    if (dragInterval) { //if dragInterval was set (that means mouse was really outside of table, not over an element that is outside of <table> in DOM
-      clearInterval(dragInterval);
-      dragInterval = null;
-    }
-  });
-
-  instance.$table.on('mouseleave', function (event) {
-    if (!(isMouseDown || (instance.autofill.handle && instance.autofill.handle.isDragged))) {
-      return;
-    }
-
-    var tolerance = 1 //this is needed because width() and height() contains stuff like cell borders
-      , offset = that.wt.wtDom.offset(table)
-      , offsetTop = offset.top + tolerance
-      , offsetLeft = offset.left + tolerance
-      , width = that.containerWidth - that.wt.getSetting('scrollbarWidth') - 2 * tolerance
-      , height = that.containerHeight - that.wt.getSetting('scrollbarHeight') - 2 * tolerance
-      , method
-      , row = 0
-      , col = 0
-      , dragFn;
-
-    if (event.pageY < offsetTop) { //top edge crossed
-      row = -1;
-      method = 'scrollVertical';
-    }
-    else if (event.pageY >= offsetTop + height) { //bottom edge crossed
-      row = 1;
-      method = 'scrollVertical';
-    }
-    else if (event.pageX < offsetLeft) { //left edge crossed
-      col = -1;
-      method = 'scrollHorizontal';
-    }
-    else if (event.pageX >= offsetLeft + width) { //right edge crossed
-      col = 1;
-      method = 'scrollHorizontal';
-    }
-
-    if (method) {
-      dragFn = function () {
-        if (isMouseDown || (instance.autofill.handle && instance.autofill.handle.isDragged)) {
-          //instance.selection.transformEnd(row, col);
-          that.wt[method](row + col).draw();
-        }
-      };
-      dragFn();
-      dragInterval = setInterval(dragFn, 100);
-    }
   });
 
   var clearTextSelection = function () {
@@ -2825,8 +2768,7 @@ Handsontable.TableView = function (instance) {
     data: instance.getDataAtCell,
     totalRows: instance.countRows,
     totalColumns: instance.countCols,
-    scrollbarModelV: this.settings.scrollbarModelV,
-    scrollbarModelH: this.settings.scrollbarModelH,
+    nativeScrollbars: this.settings.nativeScrollbars,
     offsetRow: 0,
     offsetColumn: 0,
     width: this.getWidth(),
@@ -2905,10 +2847,7 @@ Handsontable.TableView = function (instance) {
         instance.selection.setRangeStart(coordsObj);
       }
 
-
-      if (that.settings.afterOnCellMouseDown) {
-        that.settings.afterOnCellMouseDown.call(instance, event, coords, TD);
-      }
+      instance.PluginHooks.run('afterOnCellMouseDown', event, coords, TD);
     },
     /*onCellMouseOut: function (/*event, coords, TD* /) {
      if (isMouseDown && that.settings.fragmentSelection === 'single') {
@@ -2931,6 +2870,7 @@ Handsontable.TableView = function (instance) {
     onCellCornerMouseDown: function (event) {
       instance.autofill.handle.isDragged = 1;
       event.preventDefault();
+      instance.PluginHooks.run('afterOnCellCornerMouseDown', event);
     },
     onCellCornerDblClick: function () {
       instance.autofill.selectAdjacent();
@@ -3067,7 +3007,11 @@ Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
     this.wt.wtDom.fastInnerHTML(TH, this.instance.getRowHeader(row));
   }
   else {
+    var DIV = document.createElement('DIV');
+    DIV.className = 'relative';
+    this.wt.wtDom.fastInnerText(DIV, '\u00A0');
     this.wt.wtDom.empty(TH);
+    TH.appendChild(DIV);
   }
 };
 
@@ -3086,9 +3030,7 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
   this.wt.wtDom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
   DIV.appendChild(SPAN);
 
-  while (TH.firstChild) {
-    TH.removeChild(TH.firstChild); //empty TH node
-  }
+  this.wt.wtDom.empty(TH);
   TH.appendChild(DIV);
   this.instance.PluginHooks.run('afterGetColHeader', col, TH);
 };
@@ -3100,6 +3042,9 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
  */
 Handsontable.TableView.prototype.maximumVisibleElementWidth = function (left) {
   var rootWidth = this.wt.wtViewport.getWorkspaceWidth();
+  if(this.settings.nativeScrollbars) {
+    return rootWidth;
+  }
   return rootWidth - left;
 };
 
@@ -3110,7 +3055,7 @@ Handsontable.TableView.prototype.maximumVisibleElementWidth = function (left) {
  */
 Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
   var rootHeight = this.wt.wtViewport.getWorkspaceHeight();
-  if(this.wt.isNativeScroll) {
+  if(this.settings.nativeScrollbars) {
     return rootHeight;
   }
   return rootHeight - top;
@@ -3231,10 +3176,12 @@ Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
           priv.settings.beforeOnKeyDown.call(instance, event);
         }
 
-        if (Array.prototype.filter.call(document.body.querySelectorAll('.context-menu-list'), instance.view.wt.wtDom.isVisible).length) { //faster than $body.children('.context-menu-list:visible').length
+        //commenting out because it is uneffective as of 0.10.0
+        //TODO change below line to new context menu that uses Handsontable, write test
+        //if (Array.prototype.filter.call(document.body.querySelectorAll('.context-menu-list'), instance.view.wt.wtDom.isVisible).length) { //faster than $body.children('.context-menu-list:visible').length
           //if right-click context menu is visible, do not execute this keydown handler (arrow keys will navigate the context menu)
-          return;
-        }
+          //return;
+        //}
 
         if (Handsontable.helper.isCtrlKey(event.keyCode)) {
           //when CTRL is pressed, prepare selectable text in textarea
@@ -3733,13 +3680,7 @@ Handsontable.helper.isDescendant = function (parent, child) {
  * @return {String} - 16 character random string: "92b1bfc74ec4"
  */
 Handsontable.helper.randomString = function () {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-  }
-
-  return s4() + s4() + s4() + s4();
+  return walkontableRandomString();
 };
 
 /**
@@ -4577,6 +4518,10 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
 
     ///start prepare textarea position
     this.TD = this.instance.getCell(this.row, this.col);
+    if (!this.TD) {
+      //TD is outside of the viewport. Otherwise throws exception when scrolling the table while a cell is edited
+      return;
+    }
     var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
     var currentOffset = this.wtDom.offset(this.TD);
     var containerOffset = this.wtDom.offset(this.instance.rootElement[0]);
@@ -4601,10 +4546,6 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
     }
     if (colHeadersCount > 0 && parseInt($td.css('border-left-width'), 10) > 0) {
       editLeft += 1;
-    }
-
-    if ($.browser.msie && parseInt($.browser.version, 10) <= 7) {
-      editTop -= 1;
     }
 
     this.textareaParentStyle.top = editTop + 'px';
@@ -5365,6 +5306,8 @@ Handsontable.PluginHookClass = (function () {
       afterSelectionEnd: [],
       afterSelectionEndByProp: [],
       afterCopyLimit: [],
+      afterOnCellMouseDown: [],
+      afterOnCellCornerMouseDown: [],
 
       // Modifiers
       modifyCol: []
@@ -7472,6 +7415,142 @@ function Storage(prefix) {
   Handsontable.PluginHooks.add('afterUpdateSettings', init);
 
 })(Handsontable);
+/**
+ * Plugin used to scroll Handsontable by selecting a cell and dragging outside of visible viewport
+ * @constructor
+ */
+function DragToScroll() {
+  this.boundaries = null;
+  this.callback = null;
+}
+
+/**
+ * @param boundaries {Object} compatible with getBoundingClientRect
+ */
+DragToScroll.prototype.setBoundaries = function (boundaries) {
+  this.boundaries = boundaries;
+};
+
+/**
+ * @param callback {Function}
+ */
+DragToScroll.prototype.setCallback = function (callback) {
+  this.callback = callback;
+};
+
+/**
+ * Check if mouse position (x, y) is outside of the viewport
+ * @param x
+ * @param y
+ */
+DragToScroll.prototype.check = function (x, y) {
+  var diffX = 0;
+  var diffY = 0;
+
+  if (y < this.boundaries.top) {
+    //y is less than top
+    diffY = y - this.boundaries.top;
+  }
+  else if (y > this.boundaries.bottom) {
+    //y is more than bottom
+    diffY = y - this.boundaries.bottom;
+  }
+
+  if (x < this.boundaries.left) {
+    //x is less than left
+    diffX = x - this.boundaries.left;
+  }
+  else if (x > this.boundaries.right) {
+    //x is more than right
+    diffX = x - this.boundaries.right;
+  }
+
+  this.callback(diffX, diffY);
+};
+
+var listening = false;
+var dragToScroll;
+var instance;
+
+if (typeof Handsontable !== 'undefined') {
+  var setupListening = function (instance) {
+    var scrollHandler = instance.view.wt.wtScrollbars.vertical.scrollHandler; //native scroll
+    dragToScroll = new DragToScroll();
+    if (scrollHandler === window) {
+      //not much we can do currently
+      return;
+    }
+    else if (scrollHandler) {
+      dragToScroll.setBoundaries(scrollHandler.getBoundingClientRect());
+    }
+    else {
+      dragToScroll.setBoundaries(instance.$table[0].getBoundingClientRect());
+    }
+
+    dragToScroll.setCallback(function (scrollX, scrollY) {
+      if (scrollX < 0) {
+        if (scrollHandler) {
+          scrollHandler.scrollLeft -= 50;
+        }
+        else {
+          instance.view.wt.scrollHorizontal(-1).draw();
+        }
+      }
+      else if (scrollX > 0) {
+        if (scrollHandler) {
+          scrollHandler.scrollLeft += 50;
+        }
+        else {
+          instance.view.wt.scrollHorizontal(1).draw();
+        }
+      }
+
+      if (scrollY < 0) {
+        if (scrollHandler) {
+          scrollHandler.scrollTop -= 20;
+        }
+        else {
+          instance.view.wt.scrollVertical(-1).draw();
+        }
+      }
+      else if (scrollY > 0) {
+        if (scrollHandler) {
+          scrollHandler.scrollTop += 20;
+        }
+        else {
+          instance.view.wt.scrollVertical(1).draw();
+        }
+      }
+    });
+  };
+
+  Handsontable.PluginHooks.add('afterInit', function () {
+    $(document).on('mouseup.' + this.guid, function () {
+      listening = false;
+    });
+
+    $(document).on('mousemove.' + this.guid, function (event) {
+      if (listening) {
+        dragToScroll.check(event.clientX, event.clientY);
+      }
+    });
+  });
+
+  Handsontable.PluginHooks.add('destroy', function () {
+    $(document).off('.' + this.guid);
+  });
+
+  Handsontable.PluginHooks.add('afterOnCellMouseDown', function () {
+    listening = true;
+    setupListening(this);
+  });
+
+  Handsontable.PluginHooks.add('afterOnCellCornerMouseDown', function () {
+    listening = true;
+    setupListening(this);
+  });
+}
+
 /*
  * jQuery.fn.autoResize 1.1+
  * --
@@ -8020,7 +8099,7 @@ CopyPasteClass.prototype._bindEvent = (function () {
     };
   }
 })();
-// json-patch-duplex.js 0.3.3
+// json-patch-duplex.js 0.3.5
 // (c) 2013 Joachim Wester
 // MIT license
 var jsonpatch;
@@ -8148,6 +8227,47 @@ var jsonpatch;
 
     jsonpatch.intervals;
 
+    var Mirror = (function () {
+        function Mirror(obj) {
+            this.observers = [];
+            this.obj = obj;
+        }
+        return Mirror;
+    })();
+
+    var ObserverInfo = (function () {
+        function ObserverInfo(callback, observer) {
+            this.callback = callback;
+            this.observer = observer;
+        }
+        return ObserverInfo;
+    })();
+
+    function getMirror(obj) {
+        for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
+            if (beforeDict[i].obj === obj) {
+                return beforeDict[i];
+            }
+        }
+    }
+
+    function getObserverFromMirror(mirror, callback) {
+        for (var j = 0, jlen = mirror.observers.length; j < jlen; j++) {
+            if (mirror.observers[j].callback === callback) {
+                return mirror.observers[j].observer;
+            }
+        }
+    }
+
+    function removeObserverFromMirror(mirror, observer) {
+        for (var j = 0, jlen = mirror.observers.length; j < jlen; j++) {
+            if (mirror.observers[j].observer === observer) {
+                mirror.observers.splice(j, 1);
+                return;
+            }
+        }
+    }
+
     function unobserve(root, observer) {
         generate(observer);
         if (Object.observe) {
@@ -8155,6 +8275,9 @@ var jsonpatch;
         } else {
             clearTimeout(observer.next);
         }
+
+        var mirror = getMirror(root);
+        removeObserverFromMirror(mirror, observer);
     }
     jsonpatch.unobserve = unobserve;
 
@@ -8162,9 +8285,24 @@ var jsonpatch;
         var patches = [];
         var root = obj;
         var observer;
+        var mirror = getMirror(obj);
+
+        if (!mirror) {
+            mirror = new Mirror(obj);
+            beforeDict.push(mirror);
+        } else {
+            observer = getObserverFromMirror(mirror, callback);
+        }
+
+        if (observer) {
+            return observer;
+        }
+
         if (Object.observe) {
             observer = function (arr) {
+                //This "refresh" is needed to begin observing new object properties
                 _unobserve(observer, obj);
+                _observe(observer, obj);
 
                 var a = 0, alen = arr.length;
                 while (a < alen) {
@@ -8181,24 +8319,9 @@ var jsonpatch;
                 }
                 observer.patches = patches;
                 patches = [];
-
-                _observe(observer, obj);
             };
         } else {
             observer = {};
-
-            var mirror;
-            for (var i = 0, ilen = beforeDict.length; i < ilen; i++) {
-                if (beforeDict[i].obj === obj) {
-                    mirror = beforeDict[i];
-                    break;
-                }
-            }
-
-            if (!mirror) {
-                mirror = { obj: obj };
-                beforeDict.push(mirror);
-            }
 
             mirror.value = JSON.parse(JSON.stringify(obj));
 
@@ -8242,6 +8365,9 @@ var jsonpatch;
         }
         observer.patches = patches;
         observer.object = obj;
+
+        mirror.observers.push(new ObserverInfo(callback, observer));
+
         return _observe(observer, obj);
     }
     jsonpatch.observe = observe;
@@ -8323,7 +8449,7 @@ var jsonpatch;
         var changed = false;
         var deleted = false;
 
-        for (var t = 0; t < oldKeys.length; t++) {
+        for (var t = oldKeys.length - 1; t >= 0; t--) {
             var key = oldKeys[t];
             var oldVal = mirror[key];
             if (obj.hasOwnProperty(key)) {
@@ -8916,17 +9042,27 @@ function Walkontable(settings) {
   var that = this,
     originalHeaders = [];
 
-  this.guid = 'wt_' + (window.Handsontable ? Handsontable.helper.randomString() : ''); //this is the namespace for global events
+  this.guid = 'wt_' + walkontableRandomString(); //this is the namespace for global events
 
   //bootstrap from settings
-  this.wtSettings = new WalkontableSettings(this, settings);
   this.wtDom = new WalkontableDom();
-  this.wtTable = new WalkontableTable(this);
-  this.wtScroll = new WalkontableScroll(this);
-  this.wtViewport = new WalkontableViewport(this);
-  this.wtScrollbars = new WalkontableScrollbars(this);
-  this.wtWheel = new WalkontableWheel(this);
-  this.wtEvent = new WalkontableEvent(this);
+  if (settings.cloneFrom) {
+    this.cloneFrom = settings.cloneFrom;
+    this.cloneDirection = settings.cloneDirection;
+    this.wtSettings = settings.cloneFrom.wtSettings;
+    this.wtTable = new WalkontableTable(this, settings.table);
+    this.wtScroll = new WalkontableScroll(this);
+    this.wtViewport = settings.cloneFrom.wtViewport;
+  }
+  else {
+    this.wtSettings = new WalkontableSettings(this, settings);
+    this.wtTable = new WalkontableTable(this, settings.table);
+    this.wtScroll = new WalkontableScroll(this);
+    this.wtViewport = new WalkontableViewport(this);
+    this.wtScrollbars = new WalkontableScrollbars(this);
+    this.wtWheel = new WalkontableWheel(this);
+    this.wtEvent = new WalkontableEvent(this);
+  }
 
   //find original headers
   if (this.wtTable.THEAD.childNodes.length && this.wtTable.THEAD.childNodes[0].childNodes.length) {
@@ -9240,25 +9376,46 @@ else { //IE8
 }
 
 /**
+ * Returns true/false depending if element has offset parent
+ * @param elem
+ * @returns {boolean}
+ */
+/*if (document.createTextNode('test').textContent) { //STANDARDS
+  WalkontableDom.prototype.hasOffsetParent = function (elem) {
+    return !!elem.offsetParent;
+  }
+}
+else {
+  WalkontableDom.prototype.hasOffsetParent = function (elem) {
+    try {
+      if (!elem.offsetParent) {
+        return false;
+      }
+    }
+    catch (e) {
+      return false; //IE8 throws "Unspecified error" when offsetParent is not found - we catch it here
+    }
+    return true;
+  }
+}*/
+
+/**
  * Returns true if element is attached to the DOM and visible, false otherwise
  * @param elem
  * @returns {boolean}
  */
 WalkontableDom.prototype.isVisible = function (elem) {
-  //fast method
-  try {//try/catch performance is not a problem here: http://jsperf.com/try-catch-performance-overhead/7
-    if (!elem.offsetParent) {
-      return false; //fixes problem with UI Bootstrap <tabs> directive
-    }
-  }
-  catch (e) {
-    return false; //IE8 throws "Unspecified error" when offsetParent is not found - we catch it here
+  //fast method according to benchmarks, but requires layout so slow in our case
+  /*
+  if (!WalkontableDom.prototype.hasOffsetParent(elem)) {
+    return false; //fixes problem with UI Bootstrap <tabs> directive
   }
 
 //  if (elem.offsetWidth > 0 || (elem.parentNode && elem.parentNode.offsetWidth > 0)) { //IE10 was mistaken here
   if (elem.offsetWidth > 0) {
     return true;
   }
+  */
 
   //slow method
   var next = elem;
@@ -9551,6 +9708,55 @@ function walkontableRangesIntersect() {
   }
   return false;
 }
+
+/**
+ * Generates a random hex string. Used as namespace for Walkontable instance events.
+ * @return {String} - 16 character random string: "92b1bfc74ec4"
+ */
+function walkontableRandomString() {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  }
+
+  return s4() + s4() + s4() + s4();
+}
+
+var cachedScrollbarWidth;
+//http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
+function walkontableCalculateScrollbarWidth() {
+  var inner = document.createElement('p');
+  inner.style.width = "100%";
+  inner.style.height = "200px";
+
+  var outer = document.createElement('div');
+  outer.style.position = "absolute";
+  outer.style.top = "0px";
+  outer.style.left = "0px";
+  outer.style.visibility = "hidden";
+  outer.style.width = "200px";
+  outer.style.height = "150px";
+  outer.style.overflow = "hidden";
+  outer.appendChild(inner);
+
+  document.body.appendChild(outer);
+  var w1 = inner.offsetWidth;
+  outer.style.overflow = 'scroll';
+  var w2 = inner.offsetWidth;
+  if (w1 == w2) w2 = outer.clientWidth;
+
+  document.body.removeChild(outer);
+
+  return (w1 - w2);
+}
+
+function walkontableGetScrollbarWidth() {
+  if (cachedScrollbarWidth === void 0) {
+    cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
+  }
+  return cachedScrollbarWidth;
+}
 //http://stackoverflow.com/questions/3629183/why-doesnt-indexof-work-on-an-array-ie8
 if (!Array.prototype.indexOf) {
   Array.prototype.indexOf = function (elt /*, from*/) {
@@ -9830,19 +10036,25 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     , fixedRowsTop = this.instance.getSetting('fixedRowsTop')
     , fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
 
-  if (this.instance.isNativeScroll) {
+  if (this.instance.getSetting('nativeScrollbars')) {
     var TD = this.instance.wtTable.getCell(coords);
     if (typeof TD === 'object') {
       var offset = WalkontableDom.prototype.offset(TD);
       var outerHeight = WalkontableDom.prototype.outerHeight(TD);
-      var scrollY = window.scrollY;
-      var clientHeight = document.documentElement.clientHeight;
+      var scrollY = this.instance.wtScrollbars.vertical.getScrollPosition();
+      var clientHeight = WalkontableDom.prototype.outerHeight(this.instance.wtScrollbars.vertical.scrollHandler);
+      if (this.instance.wtScrollbars.vertical.scrollHandler !== window) {
+        offset.top = offset.top - WalkontableDom.prototype.offset(this.instance.wtScrollbars.vertical.scrollHandler).top;
+      }
+
+      clientHeight -= 20;
+
       if (outerHeight < clientHeight) {
         if (offset.top < scrollY) {
-          TD.scrollIntoView(true);
+          this.instance.wtScrollbars.vertical.setScrollPosition(offset.top);
         }
         else if (offset.top + outerHeight > scrollY + clientHeight) {
-          TD.scrollIntoView(false);
+          this.instance.wtScrollbars.vertical.setScrollPosition(offset.top - clientHeight + outerHeight);
         }
       }
       return;
@@ -10173,10 +10385,340 @@ WalkontableScrollbarNative.prototype.init = function () {
   this.fixedContainer = this.instance.wtTable.holder;
   this.fixed.style.position = 'absolute';
   this.fixed.style.left = '0';
-  this.$scrollHandler = $(window); //in future remove jQuery from here
+  this.scrollHandler = this.getScrollableElement(this.TABLE);
+  this.$scrollHandler = $(this.scrollHandler); //in future remove jQuery from here
+};
+
+WalkontableScrollbarNative.prototype.getScrollableElement = function (TABLE) {
+  var el = TABLE.parentNode;
+  while (el && el.style) {
+    if (el.style.overflow === 'scroll') {
+      return el;
+    }
+    el = el.parentNode;
+  }
+  return window;
+};
+
+WalkontableScrollbarNative.prototype.prepare = function () {
+};
+
+WalkontableScrollbarNative.prototype.availableSize = function () {
+  var availableSize;
+
+  if (this.windowScrollPosition > this.tableParentOffset /*&& last > -1*/) { //last -1 means that viewport is scrolled behind the table
+    if (this.instance.wtTable.getLastVisibleRow() === this.total - 1) {
+      availableSize = this.instance.wtDom.outerHeight(this.TABLE);
+    }
+    else {
+      availableSize = this.windowSize;
+    }
+  }
+  else {
+    availableSize = this.windowSize - (this.tableParentOffset);
+  }
+
+  return availableSize;
+};
+
+WalkontableScrollbarNative.prototype.refresh = function (selectionsOnly) {
+  var last = this.getLastCell();
+  this.measureBefore = this.sumCellSizes(0, this.offset);
+  if (last === -1) { //last -1 means that viewport is scrolled behind the table
+    this.measureAfter = 0;
+  }
+  else {
+    this.measureAfter = this.sumCellSizes(last, this.total - last);
+  }
+  this.applyToDOM();
+  this.clone && this.clone.draw(selectionsOnly);
+};
+
+WalkontableScrollbarNative.prototype.destroy = function () {
+  this.$scrollHandler.off('.' + this.instance.guid);
+  $(window).off('.' + this.instance.guid);
+  $(document).off('.' + this.instance.guid);
+};
+function WalkontableCornerScrollbarNative(instance) {
+  this.instance = instance;
+  this.init();
+  this.clone = this.makeClone('corner');
+}
+
+WalkontableCornerScrollbarNative.prototype = new WalkontableScrollbarNative();
+
+WalkontableCornerScrollbarNative.prototype.makeClone = function (direction) {
+  if (this.instance.cloneFrom) {
+    return;
+  }
+
+  var clone = $('<div id="cln_' + direction + '" class="handsontable"></div>');
+  this.instance.wtTable.holder.parentNode.appendChild(clone[0]);
+
+  clone.css({
+    position: 'fixed',
+    overflow: 'hidden'
+  });
+
+  var table2 = $('<table class="htCore"></table>');
+  table2.className = this.instance.wtTable.TABLE.className;
+  clone.append(table2);
+
+  var walkontableConfig = {};
+  walkontableConfig.cloneFrom = this.instance;
+  walkontableConfig.cloneDirection = direction;
+  walkontableConfig.table = table2[0];
+  var wt = new Walkontable(walkontableConfig);
+
+  return wt;
+};
+
+WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
+  if (!this.instance.wtTable.holder.parentNode) {
+    return; //removed from DOM
+  }
+  var elem = this.clone.wtTable.holder.parentNode;
+
+  var box;
+  if (this.scrollHandler === window) {
+    box = this.instance.wtTable.holder.getBoundingClientRect();
+    var top = Math.ceil(box.top, 10);
+    var bottom = Math.ceil(box.bottom, 10);
+
+    if (top < 0 && bottom > 0) {
+      elem.style.top = '0';
+    }
+    else {
+      elem.style.top = top + 'px';
+    }
+
+    var left = Math.ceil(box.left, 10);
+    var right = Math.ceil(box.right, 10);
+
+    if (left < 0 && right > 0) {
+      elem.style.left = '0';
+    }
+    else {
+      elem.style.left = left + 'px';
+    }
+  }
+  else {
+    box = this.scrollHandler.getBoundingClientRect();
+    elem.style.top = Math.ceil(box.top, 10) + 'px';
+    elem.style.left = Math.ceil(box.left, 10) + 'px';
+  }
+
+  elem.style.width = WalkontableDom.prototype.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
+  elem.style.height = WalkontableDom.prototype.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';
+};
+
+WalkontableCornerScrollbarNative.prototype.prepare = function () {
+};
+
+WalkontableCornerScrollbarNative.prototype.refresh = function (selectionsOnly) {
+  this.measureBefore = 0;
+  this.measureAfter = 0;
+  this.clone && this.clone.draw(selectionsOnly);
+};
+
+WalkontableCornerScrollbarNative.prototype.getScrollPosition = function () {
+};
+
+WalkontableCornerScrollbarNative.prototype.getLastCell = function () {
+};
+
+WalkontableCornerScrollbarNative.prototype.getTableSize = function () {
+};
+
+WalkontableCornerScrollbarNative.prototype.applyToDOM = function () {
+};
+
+WalkontableCornerScrollbarNative.prototype.scrollTo = function () {
+};
+
+WalkontableCornerScrollbarNative.prototype.readWindowSize = function () {
+};
+
+WalkontableCornerScrollbarNative.prototype.readSettings = function () {
+};
+function WalkontableHorizontalScrollbarNative(instance) {
+  this.instance = instance;
+  this.type = 'horizontal';
+  this.cellSize = 50;
+  this.init();
+  this.clone = this.makeClone('left');
+}
+
+WalkontableHorizontalScrollbarNative.prototype = new WalkontableScrollbarNative();
+
+WalkontableHorizontalScrollbarNative.prototype.makeClone = function (direction) {
+  if (this.instance.cloneFrom) {
+    return;
+  }
 
   var that = this;
-  this.$scrollHandler.on('scroll.walkontable', function () {
+
+  var clone = $('<div id="cln_' + direction + '" class="handsontable"></div>');
+  this.instance.wtTable.holder.parentNode.appendChild(clone[0]);
+
+  clone.css({
+    position: 'fixed',
+    overflow: 'hidden'
+  });
+
+//  clone[0].style.height = '184px';
+//  clone[0].style.width = '55px';
+
+  var table2 = $('<table class="htCore"></table>');
+  table2.className = this.instance.wtTable.TABLE.className;
+  clone.append(table2);
+
+  var walkontableConfig = {};
+  walkontableConfig.cloneFrom = this.instance;
+  walkontableConfig.cloneDirection = direction;
+  walkontableConfig.table = table2[0];
+  var wt = new Walkontable(walkontableConfig);
+
+  return wt;
+};
+
+WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () {
+  if (!this.instance.wtTable.holder.parentNode) {
+    return; //removed from DOM
+  }
+  var elem = this.clone.wtTable.holder.parentNode;
+
+  var box;
+  if (this.scrollHandler === window) {
+    box = this.instance.wtTable.holder.getBoundingClientRect();
+    var left = Math.ceil(box.left, 10);
+    var right = Math.ceil(box.right, 10);
+
+    if (left < 0 && right > 0) {
+      elem.style.left = '0';
+    }
+    else {
+      elem.style.left = left + 'px';
+    }
+  }
+  else {
+    box = this.scrollHandler.getBoundingClientRect();
+    elem.style.top = Math.ceil(box.top, 10) + 'px';
+    elem.style.left = Math.ceil(box.left, 10) + 'px';
+  }
+
+  elem.style.width = WalkontableDom.prototype.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
+  elem.style.height = this.instance.wtViewport.getWorkspaceHeight() - this.instance.getSetting('scrollbarHeight') + 'px';
+};
+
+WalkontableHorizontalScrollbarNative.prototype.prepare = function () {
+};
+
+WalkontableHorizontalScrollbarNative.prototype.refresh = function (selectionsOnly) {
+  this.measureBefore = 0;
+  this.measureAfter = 0;
+  this.clone && this.clone.draw(selectionsOnly);
+};
+
+WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
+  if (this.scrollHandler === window) {
+    return this.scrollHandler.scrollX;
+  }
+  else {
+    return this.scrollHandler.scrollLeft;
+  }
+};
+
+WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
+  if (this.instance.cloneFrom) {
+    return;
+  }
+
+  this.windowScrollPosition = this.getScrollPosition();
+};
+
+WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
+  return this.instance.wtTable.getLastVisibleColumn();
+};
+
+WalkontableHorizontalScrollbarNative.prototype.getTableSize = function () {
+  return this.instance.wtDom.outerWidth(this.TABLE);
+};
+
+WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
+  this.fixedContainer.style.paddingLeft = this.measureBefore + 'px';
+  this.fixedContainer.style.paddingRight = this.measureAfter + 'px';
+};
+
+WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (cell) {
+  this.$scrollHandler.scrollLeft(this.tableParentOffset + cell * this.cellSize);
+};
+
+WalkontableHorizontalScrollbarNative.prototype.readWindowSize = function () {
+  if (this.scrollHandler === window) {
+    this.windowSize = document.documentElement.clientWidth;
+    this.tableParentOffset = this.instance.wtTable.holderOffset.left;
+  }
+  else {
+    this.windowSize = WalkontableDom.prototype.outerWidth(this.scrollHandler);
+    this.tableParentOffset = 0;
+  }
+  this.windowScrollPosition = this.getScrollPosition();
+};
+
+WalkontableHorizontalScrollbarNative.prototype.readSettings = function () {
+  this.offset = this.instance.getSetting('offsetColumn');
+  this.total = this.instance.getSetting('totalColumns');
+};
+function WalkontableVerticalScrollbarNative(instance) {
+  this.instance = instance;
+  this.type = 'vertical';
+  this.cellSize = 23;
+  this.init();
+
+  var that = this;
+
+  WalkontableCellStrategy.prototype.isLastIncomplete = function () { //monkey patch needed. In future get rid of it to improve performance
+    /*
+     * this.remainingSize = window viewport reduced by sum of all rendered cells (also those before the visible part)
+     * that.sumCellSizes(...) = sum of the sizes of cells that are before the visible part + 1 cell that is partially visible on top of the screen
+     */
+    return this.remainingSize > that.sumCellSizes(that.offset, that.offset + that.curOuts + 1);
+  };
+
+  this.clone = this.makeClone('top');
+}
+
+WalkontableVerticalScrollbarNative.prototype = new WalkontableScrollbarNative();
+
+WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
+  if (this.instance.cloneFrom) {
+    return;
+  }
+
+  var that = this;
+
+  var clone = $('<div id="cln_' + direction + '" class="handsontable"></div>');
+  this.instance.wtTable.holder.parentNode.appendChild(clone[0]);
+
+  clone.css({
+    position: 'fixed',
+    overflow: 'hidden'
+  });
+
+  var table2 = $('<table class="htCore"></table>');
+  table2.className = this.instance.wtTable.TABLE.className;
+  clone.append(table2);
+
+  var walkontableConfig = {};
+  walkontableConfig.cloneFrom = this.instance;
+  walkontableConfig.cloneDirection = direction;
+  walkontableConfig.table = table2[0];
+  var wt = new Walkontable(walkontableConfig);
+
+  var cloneTable = clone.find('table')[0];
+
+  this.$scrollHandler.on('scroll.' + this.instance.guid, function () {
     if (!that.instance.wtTable.holder.parentNode) {
       //Walkontable was detached from DOM, but this handler was not removed
       that.destroy();
@@ -10184,15 +10726,87 @@ WalkontableScrollbarNative.prototype.init = function () {
     }
 
     that.onScroll();
+    that.instance.wtScrollbars.horizontal.onScroll(); //it's done here to make sure that all onScroll's are executed before changing styles
+
+    cloneTable.style.left = that.instance.wtScrollbars.horizontal.measureBefore - that.instance.wtScrollbars.horizontal.windowScrollPosition + 'px';
+    that.instance.wtScrollbars.horizontal.clone.wtTable.TABLE.style.top = that.instance.wtScrollbars.vertical.measureBefore - that.instance.wtScrollbars.vertical.windowScrollPosition + 'px';
   });
 
-  this.readSettings();
+  $(window).on('load.' + this.instance.guid, function () {
+    that.resetFixedPosition();
+    that.instance.wtScrollbars.horizontal.resetFixedPosition();
+    that.instance.wtScrollbars.corner.resetFixedPosition();
+  });
+  $(window).on('scroll.' + this.instance.guid, function () {
+    that.resetFixedPosition();
+    that.instance.wtScrollbars.horizontal.resetFixedPosition();
+    that.instance.wtScrollbars.corner.resetFixedPosition();
+  });
+  $(window).on('resize.' + this.instance.guid, function () {
+    that.resetFixedPosition();
+    that.instance.wtScrollbars.horizontal.resetFixedPosition();
+    that.instance.wtScrollbars.corner.resetFixedPosition();
+  });
+  $(document).on('ready.' + this.instance.guid, function () {
+    that.resetFixedPosition();
+    that.instance.wtScrollbars.horizontal.resetFixedPosition();
+    that.instance.wtScrollbars.corner.resetFixedPosition();
+  });
+
+  return wt;
 };
 
-WalkontableScrollbarNative.prototype.onScroll = function (forcePosition) {
-  this.readSettings(); //read window scroll position
-  if (forcePosition) {
+WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
+  if (!this.instance.wtTable.holder.parentNode) {
+    return; //removed from DOM
+  }
+  var elem = this.clone.wtTable.holder.parentNode;
 
+  var box;
+  if (this.scrollHandler === window) {
+    box = this.instance.wtTable.holder.getBoundingClientRect();
+    var top = Math.ceil(box.top, 10);
+    var bottom = Math.ceil(box.bottom, 10);
+
+    if (top < 0 && bottom > 0) {
+      elem.style.top = '0';
+    }
+    else {
+      elem.style.top = top + 'px';
+    }
+  }
+  else {
+    box = this.scrollHandler.getBoundingClientRect();
+    elem.style.top = Math.ceil(box.top, 10) + 'px';
+    elem.style.left = Math.ceil(box.left, 10) + 'px';
+  }
+
+  elem.style.width = WalkontableDom.prototype.outerWidth(this.instance.wtTable.holder.parentNode) + 'px';
+  elem.style.height = WalkontableDom.prototype.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';
+};
+
+WalkontableVerticalScrollbarNative.prototype.getScrollPosition = function () {
+  if (this.scrollHandler === window) {
+    return this.scrollHandler.scrollY;
+  }
+  else {
+    return this.scrollHandler.scrollTop;
+  }
+};
+
+WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) {
+  this.scrollHandler.scrollTop = pos;
+};
+
+WalkontableVerticalScrollbarNative.prototype.onScroll = function (forcePosition) {
+  if (this.instance.cloneFrom) {
+    return;
+  }
+
+  this.windowScrollPosition = this.getScrollPosition();
+  this.readSettings(); //read window scroll position
+
+  if (forcePosition) {
     this.windowScrollPosition = forcePosition;
   }
 
@@ -10240,64 +10854,6 @@ WalkontableScrollbarNative.prototype.onScroll = function (forcePosition) {
   this.instance.draw();
 };
 
-WalkontableScrollbarNative.prototype.prepare = function () {
-};
-
-WalkontableScrollbarNative.prototype.availableSize = function () {
-  var availableSize;
-
-  if (this.windowScrollPosition > this.tableParentOffset /*&& last > -1*/) { //last -1 means that viewport is scrolled behind the table
-    if (this.instance.wtTable.getLastVisibleRow() === this.total - 1) {
-      availableSize = this.instance.wtDom.outerHeight(this.TABLE);
-    }
-    else {
-      availableSize = this.windowSize;
-    }
-  }
-  else {
-    availableSize = this.windowSize - (this.tableParentOffset - this.windowScrollPosition);
-  }
-
-  return availableSize;
-};
-
-WalkontableScrollbarNative.prototype.refresh = function () {
-  var last = this.getLastCell();
-  this.measureBefore = this.sumCellSizes(0, this.offset);
-  this.measureInside = this.getTableSize();
-  if (last === -1) { //last -1 means that viewport is scrolled behind the table
-    this.measureAfter = 0;
-  }
-  else {
-    this.measureAfter = this.sumCellSizes(last, this.total - last);
-  }
-  this.applyToDOM();
-};
-
-WalkontableScrollbarNative.prototype.destroy = function () {
-  this.$scrollHandler.off('scroll.walkontable');
-};
-
-///
-
-var WalkontableVerticalScrollbarNative = function (instance) {
-  this.instance = instance;
-  this.type = 'vertical';
-  this.cellSize = 23;
-  this.init();
-
-  var that = this;
-  WalkontableCellStrategy.prototype.isLastIncomplete = function () { //monkey patch needed. In future get rid of it to improve performance
-    /*
-     * this.remainingSize = window viewport reduced by sum of all rendered cells (also those before the visible part)
-     * that.sumCellSizes(...) = sum of the sizes of cells that are before the visible part + 1 cell that is partially visible on top of the screen
-     */
-    return this.remainingSize > that.sumCellSizes(that.offset, that.offset + that.curOuts + 1);
-  };
-};
-
-WalkontableVerticalScrollbarNative.prototype = new WalkontableScrollbarNative();
-
 WalkontableVerticalScrollbarNative.prototype.getLastCell = function () {
   return this.instance.getSetting('offsetRow') + this.instance.wtTable.tbodyChildrenLength - 1;
 };
@@ -10318,6 +10874,10 @@ WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, leng
 };
 
 WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
+  if (this.instance.cloneDirection === 'top') {
+    return;
+  }
+
   var headerSize = this.instance.wtViewport.getColumnHeaderHeight();
   this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, this.total) + 'px';
   this.fixed.style.top = this.measureBefore + 'px';
@@ -10333,76 +10893,33 @@ WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {
   this.onScroll(newY);
 };
 
+WalkontableVerticalScrollbarNative.prototype.readWindowSize = function () {
+  if (this.scrollHandler === window) {
+    this.windowSize = document.documentElement.clientHeight;
+    this.tableParentOffset = this.instance.wtTable.holderOffset.left;
+  }
+  else {
+    this.windowSize = WalkontableDom.prototype.outerHeight(this.scrollHandler);
+    this.tableParentOffset = 0;
+  }
+  this.windowScrollPosition = this.getScrollPosition();
+};
+
 WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
-  var offset = this.instance.wtDom.offset(this.fixedContainer);
-  this.tableParentOffset = offset.top;
-  this.tableParentOtherOffset = offset.left;
-  this.windowSize = this.$scrollHandler.height();
-  this.windowScrollPosition = this.$scrollHandler.scrollTop();
   this.offset = this.instance.getSetting('offsetRow');
   this.total = this.instance.getSetting('totalRows');
 };
-
-///
-
-var WalkontableHorizontalScrollbarNative = function (instance) {
-  this.instance = instance;
-  this.type = 'horizontal';
-  this.cellSize = 50;
-  this.init();
-};
-
-WalkontableHorizontalScrollbarNative.prototype = new WalkontableScrollbarNative();
-
-WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
-  return this.instance.wtTable.getLastVisibleColumn();
-};
-
-WalkontableHorizontalScrollbarNative.prototype.getTableSize = function () {
-  return this.instance.wtDom.outerWidth(this.TABLE);
-};
-
-WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
-  this.fixedContainer.style.paddingLeft = this.measureBefore + 'px';
-  this.fixedContainer.style.paddingRight = this.measureAfter + 'px';
-};
-
-WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (cell) {
-  this.$scrollHandler.scrollLeft(this.tableParentOffset + cell * this.cellSize);
-};
-
-WalkontableHorizontalScrollbarNative.prototype.readSettings = function () {
-  var offset = this.instance.wtDom.offset(this.fixedContainer);
-  this.tableParentOffset = offset.left;
-  this.tableParentOtherOffset = offset.top;
-  this.windowSize = this.$scrollHandler.width();
-  this.windowScrollPosition = this.$scrollHandler.scrollLeft();
-  this.offset = this.instance.getSetting('offsetColumn');
-  this.total = this.instance.getSetting('totalColumns');
-};
 function WalkontableScrollbars(instance) {
-  if(instance.getSetting('scrollbarModelV') === 'native') {
-    instance.update('scrollbarModelH', 'none');
+  if (instance.getSetting('nativeScrollbars')) {
+    instance.update('scrollbarWidth', walkontableGetScrollbarWidth());
+    instance.update('scrollbarHeight', walkontableGetScrollbarWidth());
+    this.vertical = new WalkontableVerticalScrollbarNative(instance);
+    this.horizontal = new WalkontableHorizontalScrollbarNative(instance);
+    this.corner = new WalkontableCornerScrollbarNative(instance);
   }
-
-  switch (instance.getSetting('scrollbarModelV')) {
-    case 'dragdealer':
-      this.vertical = new WalkontableVerticalScrollbar(instance);
-      break;
-
-    case 'native':
-      this.vertical = new WalkontableVerticalScrollbarNative(instance);
-      break;
-  }
-
-  switch (instance.getSetting('scrollbarModelH')) {
-    case 'dragdealer':
-      this.horizontal = new WalkontableHorizontalScrollbar(instance);
-      break;
-
-    case 'native':
-      this.horizontal = new WalkontableHorizontalScrollbarNative(instance);
-      break;
+  else {
+    this.vertical = new WalkontableVerticalScrollbar(instance);
+    this.horizontal = new WalkontableHorizontalScrollbar(instance);
   }
 }
 
@@ -10411,13 +10928,14 @@ WalkontableScrollbars.prototype.destroy = function () {
   this.horizontal && this.horizontal.destroy();
 };
 
-WalkontableScrollbars.prototype.refresh = function () {
+WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
   this.horizontal && this.horizontal.readSettings();
   this.vertical && this.vertical.readSettings();
   this.horizontal && this.horizontal.prepare();
   this.vertical && this.vertical.prepare();
-  this.horizontal && this.horizontal.refresh();
-  this.vertical && this.vertical.refresh();
+  this.horizontal && this.horizontal.refresh(selectionsOnly);
+  this.vertical && this.vertical.refresh(selectionsOnly);
+  this.corner && this.corner.refresh(selectionsOnly);
 };
 function WalkontableSelection(instance, settings) {
   this.instance = instance;
@@ -10521,8 +11039,7 @@ function WalkontableSettings(instance, settings) {
     //presentation mode
     scrollH: 'auto', //values: scroll (always show scrollbar), auto (show scrollbar if table does not fit in the container), none (never show scrollbar)
     scrollV: 'auto', //values: see above
-    scrollbarModelH: 'dragdealer', //values: dragdealer, native
-    scrollbarModelV: 'dragdealer', //values: dragdealer, native
+    nativeScrollbars: false, //values: false (dragdealer), true (native)
     stretchH: 'hybrid', //values: hybrid, all, last, none
     currentRowClassName: null,
     currentColumnClassName: null,
@@ -10645,10 +11162,10 @@ WalkontableSettings.prototype.rowHeight = function (row, TD) {
     return this.instance.rowHeightCache[row];
   }
 };
-function WalkontableTable(instance) {
+function WalkontableTable(instance, table) {
   //reference to instance
   this.instance = instance;
-  this.TABLE = this.instance.getSetting('table');
+  this.TABLE = table;
   this.wtDom = this.instance.wtDom;
   this.wtDom.removeTextNodes(this.TABLE);
 
@@ -10726,10 +11243,6 @@ function WalkontableTable(instance) {
   this.columnFilter = new WalkontableColumnFilter();
 
   this.verticalRenderReverse = false;
-
-  if (this.instance.getSetting('scrollbarModelV') === 'native' || this.instance.getSetting('scrollbarModelH') === 'native') {
-    this.instance.isNativeScroll = true;
-  }
 }
 
 WalkontableTable.prototype.refreshHiderDimensions = function () {
@@ -10738,7 +11251,7 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
 
   var spreaderStyle = this.spreader.style;
 
-  if ((height !== Infinity || width !== Infinity) && !this.instance.isNativeScroll) {
+  if ((height !== Infinity || width !== Infinity) && !this.instance.getSetting('nativeScrollbars')) {
     if (height === Infinity) {
       height = this.instance.wtViewport.getWorkspaceActualHeight();
     }
@@ -10752,11 +11265,8 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
     spreaderStyle.top = '0';
     spreaderStyle.left = '0';
 
-    if (this.instance.getSetting('scrollbarModelV') === 'dragdealer') {
+    if (!this.instance.getSetting('nativeScrollbars')) {
       spreaderStyle.height = '4000px';
-    }
-
-    if (this.instance.getSetting('scrollbarModelH') === 'dragdealer') {
       spreaderStyle.width = '4000px';
     }
 
@@ -10782,7 +11292,11 @@ WalkontableTable.prototype.refreshStretching = function () {
     , offsetColumn = instance.getSetting('offsetColumn');
 
   var containerWidthFn = function (cacheWidth) {
-    return that.instance.wtViewport.getViewportWidth(cacheWidth);
+    var viewportWidth = that.instance.wtViewport.getViewportWidth(cacheWidth);
+    if (viewportWidth < cacheWidth && that.instance.getSetting('nativeScrollbars')) {
+      return Infinity; //disable stretching when viewport is bigger than sum of the cell widths
+    }
+    return viewportWidth;
   };
 
   var that = this;
@@ -10804,13 +11318,16 @@ WalkontableTable.prototype.refreshStretching = function () {
   }
 
   var containerHeightFn = function (cacheHeight) {
-    if (that.instance.isNativeScroll) {
+    if (that.instance.getSetting('nativeScrollbars')) {
       return 2 * that.instance.wtViewport.getViewportHeight(cacheHeight);
     }
     return that.instance.wtViewport.getViewportHeight(cacheHeight);
   };
 
   var rowHeightFn = function (i, TD) {
+    if (that.instance.getSetting('nativeScrollbars')) {
+      return 20;
+    }
     var source_r = that.rowFilter.visibleToSource(i);
     if (source_r < totalRows) {
       if (that.verticalRenderReverse && i === 0) {
@@ -10842,6 +11359,10 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   }
 
   this.refreshStretching();
+  if (this.instance.cloneFrom && (this.instance.cloneDirection === 'left' || this.instance.cloneDirection === 'corner')) {
+    this.columnStrategy.cellCount = 0;
+  }
+
   displayTds = this.columnStrategy.cellCount;
 
   //adjust COLGROUP
@@ -10919,7 +11440,7 @@ WalkontableTable.prototype.adjustColumns = function (TR, desiredCount) {
 };
 
 WalkontableTable.prototype.draw = function (selectionsOnly) {
-  if (this.instance.isNativeScroll) {
+  if (this.instance.getSetting('nativeScrollbars')) {
     this.verticalRenderReverse = false; //this is only supported in dragdealer mode, not in native
   }
 
@@ -10927,11 +11448,26 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
   this.columnFilter.readSettings(this.instance);
 
   if (!selectionsOnly) {
-    this.tableOffset = this.wtDom.offset(this.TABLE);
+    if (this.instance.getSetting('nativeScrollbars')) {
+      if (this.instance.cloneFrom) {
+        this.tableOffset = this.instance.cloneFrom.wtTable.tableOffset;
+      }
+      else {
+        this.holderOffset = this.wtDom.offset(this.holder);
+        this.tableOffset = this.wtDom.offset(this.TABLE);
+        this.instance.wtScrollbars.vertical.readWindowSize();
+        this.instance.wtScrollbars.horizontal.readWindowSize();
+        this.instance.wtViewport.resetSettings();
+      }
+    }
+    else {
+      this.tableOffset = this.wtDom.offset(this.TABLE);
+      this.instance.wtViewport.resetSettings();
+    }
     this._doDraw();
   }
   else {
-    this.instance.wtScrollbars.refresh();
+    this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(true);
   }
 
   this.refreshPositions(selectionsOnly);
@@ -10963,8 +11499,6 @@ WalkontableTable.prototype._doDraw = function () {
     mustBeInViewport = offsetRow;
   }
 
-  this.instance.wtViewport.resetSettings();
-
   var noPartial = false;
   if (this.verticalRenderReverse) {
     if (offsetRow === totalRows - this.rowFilter.fixedCount - 1) {
@@ -10981,10 +11515,15 @@ WalkontableTable.prototype._doDraw = function () {
     source_r = this.rowFilter.visibleToSource(r);
 
     var first = true;
+    var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
 
     while (source_r < totalRows && source_r >= 0) {
       if (r > 1000) {
         throw new Error('Security brake: Too much TRs. Please define height for your table, which will enforce scrollbars.');
+      }
+
+      if (this.instance.cloneFrom && (this.instance.cloneDirection === 'top' || this.instance.cloneDirection === 'corner') && r === fixedRowsTop) {
+        break;
       }
 
       if (r >= this.tbodyChildrenLength || (this.verticalRenderReverse && r >= this.rowFilter.fixedCount)) {
@@ -11065,8 +11604,6 @@ WalkontableTable.prototype._doDraw = function () {
         TD.className = '';
         TD.removeAttribute('style');
         this.instance.getSetting('cellRenderer', source_r, source_c, TD);
-        TD.setAttribute('data-row', source_r);
-        TD.setAttribute('data-column', source_c);
       }
 
       offsetRow = this.instance.getSetting('offsetRow'); //refresh the value
@@ -11092,7 +11629,7 @@ WalkontableTable.prototype._doDraw = function () {
         res = this.rowStrategy.add(r, TD, this.verticalRenderReverse);
 
         if (res === false) {
-          if (!this.instance.isNativeScroll) {
+          if (!this.instance.getSetting('nativeScrollbars')) {
             this.rowStrategy.removeOutstanding();
           }
         }
@@ -11134,7 +11671,7 @@ WalkontableTable.prototype._doDraw = function () {
     this.tbodyChildrenLength--;
   }
 
-  this.instance.wtScrollbars.refresh();
+  this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(false);
 
   if (workspaceWidth !== this.instance.wtViewport.getWorkspaceWidth()) {
     //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
@@ -11212,10 +11749,6 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
  *
  */
 WalkontableTable.prototype.getCell = function (coords) {
-  if (this.instance.isNativeScroll) {
-    return this.instance.wtTable.TBODY.querySelectorAll('[data-row="' + coords[0] + '"][data-column="' + coords[1] + '"]')[0];
-  }
-
   if (this.isRowBeforeViewport(coords[0])) {
     return -1; //row before viewport
   }
@@ -11269,21 +11802,11 @@ WalkontableTable.prototype.isColumnAfterViewport = function (c) {
 };
 
 WalkontableTable.prototype.isRowInViewport = function (r) {
-  if (this.instance.isNativeScroll) {
-    return !!this.instance.wtTable.TBODY.querySelectorAll('[data-row="' + r + '"]')[0];
-  }
-  else {
-    return (!this.isRowBeforeViewport(r) && !this.isRowAfterViewport(r));
-  }
+  return (!this.isRowBeforeViewport(r) && !this.isRowAfterViewport(r));
 };
 
 WalkontableTable.prototype.isColumnInViewport = function (c) {
-  if (this.instance.isNativeScroll) {
-    return !!this.instance.wtTable.TBODY.querySelectorAll('[data-column="' + c + '"]')[0];
-  }
-  else {
-    return (!this.isColumnBeforeViewport(c) && !this.isColumnAfterViewport(c));
-  }
+  return (!this.isColumnBeforeViewport(c) && !this.isColumnAfterViewport(c));
 };
 
 WalkontableTable.prototype.isLastRowFullyVisible = function () {
@@ -11298,11 +11821,10 @@ function WalkontableViewport(instance) {
   this.instance = instance;
   this.resetSettings();
 
-  if (this.instance.isNativeScroll) {
+  if (this.instance.getSetting('nativeScrollbars')) {
     var that = this;
-    that.clientHeight = document.documentElement.clientHeight; //browser viewport height
     $(window).on('resize', function () {
-      that.clientHeight = document.documentElement.clientHeight;
+      that.clientHeight = that.getWorkspaceHeight();
     });
   }
 }
@@ -11326,8 +11848,8 @@ function WalkontableViewport(instance) {
 
 //used by scrollbar
 WalkontableViewport.prototype.getWorkspaceHeight = function (proposedHeight) {
-  if (this.instance.isNativeScroll) {
-    return this.clientHeight;
+  if (this.instance.getSetting('nativeScrollbars')) {
+    return this.instance.wtScrollbars.vertical.windowSize;
   }
 
   var height = this.instance.getSetting('height');
@@ -11410,6 +11932,9 @@ WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
 };
 
 WalkontableViewport.prototype.getRowHeaderHeight = function () {
+  if (this.instance.cloneFrom) {
+    return this.instance.cloneFrom.wtViewport.getRowHeaderHeight();
+  }
   if (isNaN(this.rowHeaderWidth)) {
     var TR = this.instance.wtTable.TBODY ? this.instance.wtTable.TBODY.firstChild : null;
     if (TR) {
@@ -11445,7 +11970,7 @@ WalkontableViewport.prototype.resetSettings = function () {
   this.columnHeaderHeight = NaN;
 };
 function WalkontableWheel(instance) {
-  if (instance.isNativeScroll) {
+  if (instance.getSetting('nativeScrollbars')) {
     return;
   }
 
@@ -12088,54 +12613,6 @@ Dragdealer.prototype =
 	}
 };
 
-/**
- * jQuery.browser shim that makes Walkontable working with jQuery 1.9+
- */
-if (!jQuery.browser) {
-  (function () {
-    var matched, browser;
-
-    /*
-     * Copyright 2011, John Resig
-     * Dual licensed under the MIT or GPL Version 2 licenses.
-     * http://jquery.org/license
-     */
-    jQuery.uaMatch = function (ua) {
-      ua = ua.toLowerCase();
-
-      var match = /(chrome)[ \/]([\w.]+)/.exec(ua) ||
-        /(webkit)[ \/]([\w.]+)/.exec(ua) ||
-        /(opera)(?:.*version|)[ \/]([\w.]+)/.exec(ua) ||
-        /(msie) ([\w.]+)/.exec(ua) ||
-        ua.indexOf("compatible") < 0 && /(mozilla)(?:.*? rv:([\w.]+)|)/.exec(ua) ||
-        [];
-
-      return {
-        browser: match[ 1 ] || "",
-        version: match[ 2 ] || "0"
-      };
-    };
-
-    matched = jQuery.uaMatch(navigator.userAgent);
-    browser = {};
-
-    if (matched.browser) {
-      browser[ matched.browser ] = true;
-      browser.version = matched.version;
-    }
-
-    // Chrome is Webkit, but Webkit is also Safari.
-    if (browser.chrome) {
-      browser.webkit = true;
-    }
-    else if (browser.webkit) {
-      browser.safari = true;
-    }
-
-    jQuery.browser = browser;
-
-  })();
-}
 /*! Copyright (c) 2013 Brandon Aaron (http://brandonaaron.net)
  * Licensed under the MIT License (LICENSE.txt).
  *

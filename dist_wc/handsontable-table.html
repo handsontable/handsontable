@@ -99,20 +99,12 @@ function parseHandsontable(HANDSONTABLE) {
     options.columns = columns;
   }
 
-  if (HANDSONTABLE.settings) {
-    var settings = getModelPath(HANDSONTABLE, HANDSONTABLE.settings);
-    for (i in settings) {
-      if (settings.hasOwnProperty(i)) {
-        options[i] = settings[i];
-      }
-    }
-  }
-
   return options;
 }
 
 var publicMethods = ['updateSettings', 'loadData', 'render', 'setDataAtCell', 'setDataAtRowProp', 'getDataAtCell', 'getDataAtRowProp', 'countRows', 'countCols', 'rowOffset', 'colOffset', 'countVisibleRows', 'countVisibleCols', 'clear', 'clearUndo', 'getData', 'alter', 'getCell', 'getCellMeta', 'selectCell', 'deselectCell', 'getSelected', 'destroyEditor', 'getRowHeader', 'getColHeader', 'destroy', 'isUndoAvailable', 'isRedoAvailable', 'undo', 'redo', 'countEmptyRows', 'countEmptyCols', 'isEmptyRow', 'isEmptyCol', 'parseSettingsFromDOM', 'addHook', 'addHookOnce', 'getValue', 'getInstance', 'getSettings'];
 var publicProperties = Object.keys(Handsontable.DefaultSettings.prototype);
+publicProperties.push('settings');
 
 var publish = {
 };
@@ -142,6 +134,12 @@ publicProperties.forEach(function (hot_prop) {
     }
 
     publish[wc_prop + 'Changed'] = function () {
+      if(wc_prop === 'settings') {
+        var settings = getModelPath(this, this[wc_prop]);
+        this.updateSettings(settings);
+        return;
+      }
+
       var update = {};
       if (wc_prop === 'datarows') {
         update[hot_prop] = getModelPath(this, this[wc_prop])
