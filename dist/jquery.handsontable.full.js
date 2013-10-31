@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Oct 30 2013 03:16:48 GMT+0100 (Central European Standard Time)
+ * Date: Thu Oct 31 2013 14:21:24 GMT+0800 (W. Australia Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -529,6 +529,56 @@ Handsontable.Core = function (rootElement, userSettings) {
     },
 
     /**
+     * Returns data range as array with row and column headings if present
+     * @param {Object} start Start selection position
+     * @param {Object} end End selection position
+     * @return {Array}
+     */
+    getRangeWithHeaders: function (start, end) {
+
+      var output = datamap.getRange(start, end);
+
+      var rh = instance.getRowHeader();
+      var ch = instance.getColHeader();
+
+      var hasRH = false;
+      if (rh && rh.length > 0) {
+        // check all header elements ensuring at least one contains a value
+        for (var i = 0; i < rh.length && !hasRH; i++) {
+          if (rh[i]) {
+            hasRH = true;
+          }
+        }
+      }
+
+      var hasCH = false;
+      if (ch && ch.length > 0) {
+        // check all header elements ensuring at least one contains a value
+        for (var i = 0; i < ch.length && !hasCH; i++) {
+          if (ch[i]) {
+            hasCH = true;
+          }
+        }
+      }
+
+      if (output) {
+        if (hasCH) {
+          ch = ch.slice(start.col, end.col + 1);
+          output.unshift(ch);
+        }
+
+        if (hasRH) {
+          rh = rh.slice(start.row, end.row + 1);
+          for (var i = 0; i < rh.length; i++) {
+            output[i+1].unshift(rh[i]); // ouput i+1 to account for the new top row added for column headers
+          }
+        }
+      }
+
+      return output
+    },
+
+    /**
      * Return data as text (tab separated columns)
      * @param {Object} start (Optional) Start selection position
      * @param {Object} end (Optional) End selection position
@@ -536,6 +586,16 @@ Handsontable.Core = function (rootElement, userSettings) {
      */
     getText: function (start, end) {
       return SheetClip.stringify(datamap.getRange(start, end));
+    },
+
+    /**
+     * Return data as text (tab separated columns) including headers
+     * @param {Object} start (Optional) Start selection position
+     * @param {Object} end (Optional) End selection position
+     * @return {String}
+     */
+    getTextWithHeaders: function (start, end) {
+      return SheetClip.stringify(datamap.getRangeWithHeaders(start, end));
     }
   };
 
@@ -2587,6 +2647,7 @@ DefaultSettings.prototype = {
   tabMoves: {row: 0, col: 1},
   autoWrapRow: false,
   autoWrapCol: false,
+  copyHeaders: false,
   copyRowsLimit: 1000,
   copyColsLimit: 1000,
   pasteMode: 'overwrite',
@@ -3455,7 +3516,11 @@ Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
       var finalEndRow = Math.min(endRow, startRow + copyRowsLimit - 1);
       var finalEndCol = Math.min(endCol, startCol + copyColsLimit - 1);
 
-      instance.copyPaste.copyable(datamap.getText({row: startRow, col: startCol}, {row: finalEndRow, col: finalEndCol}));
+      if (instance.getSettings().copyHeaders) {
+        instance.copyPaste.copyable(datamap.getTextWithHeaders({row: startRow, col: startCol}, {row: finalEndRow, col: finalEndCol}));
+      } else {
+        instance.copyPaste.copyable(datamap.getText({row: startRow, col: startCol}, {row: finalEndRow, col: finalEndCol}));
+      }
 
       if (endRow !== finalEndRow || endCol !== finalEndCol) {
         instance.PluginHooks.run("afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
