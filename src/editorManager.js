@@ -329,7 +329,11 @@
       var finalEndRow = Math.min(endRow, startRow + copyRowsLimit - 1);
       var finalEndCol = Math.min(endCol, startCol + copyColsLimit - 1);
 
-      instance.copyPaste.copyable(datamap.getText({row: startRow, col: startCol}, {row: finalEndRow, col: finalEndCol}));
+      if (instance.getSettings().copyHeaders) {
+        instance.copyPaste.copyable(datamap.getTextWithHeaders({row: startRow, col: startCol}, {row: finalEndRow, col: finalEndCol}));
+      } else {
+        instance.copyPaste.copyable(datamap.getText({row: startRow, col: startCol}, {row: finalEndRow, col: finalEndCol}));
+      }
 
       if (endRow !== finalEndRow || endCol !== finalEndCol) {
         instance.PluginHooks.run("afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
