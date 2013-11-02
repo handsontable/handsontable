@@ -58,7 +58,7 @@
 }
 
 .handsontable col.rowHeader {
-  width: 50px;
+  width: 30px;
 }
 
 .handsontable th,
@@ -452,8 +452,9 @@ ul.context-menu-list li {
   position: absolute;
 }
 
+/* The outline of the context menu is looking bad */
 .handsontable .htContextMenu table.htCore {
-  outline: 1px solid #bbb;
+  outline: 0px solid #bbb;
 }
 
 .handsontable .htContextMenu table tbody tr td {
