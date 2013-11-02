@@ -2798,7 +2798,7 @@ Handsontable.TableView = function (instance) {
         className: 'current',
         border: {
           width: 2,
-          color: '#5292F7',
+          color: '#000000',
           style: 'solid',
           cornerVisible: function () {
             return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
@@ -2808,8 +2808,8 @@ Handsontable.TableView = function (instance) {
       area: {
         className: 'area',
         border: {
-          width: 1,
-          color: '#89AFF9',
+          width: 2,
+          color: '#000000',
           style: 'solid',
           cornerVisible: function () {
             return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
@@ -8600,7 +8600,7 @@ function WalkontableBorder(instance, settings) {
   this.cornerStyle = this.corner.style;
   this.cornerStyle.width = '5px';
   this.cornerStyle.height = '5px';
-  this.cornerStyle.border = '2px solid #FFF';
+  this.cornerStyle.border = '1px solid #FFF';
 
   this.disappear();
   if (!instance.wtTable.bordersHolder) {
