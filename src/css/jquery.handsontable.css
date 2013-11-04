@@ -456,6 +456,10 @@ ul.context-menu-list li {
   outline: 1px solid #bbb;
 }
 
+.handsontable .htContextMenu .wtBorder {
+  visibility: hidden;
+}
+
 .handsontable .htContextMenu table tbody tr td {
   background: white;
   border-width: 0;
@@ -471,6 +475,7 @@ ul.context-menu-list li {
   color: #323232;
 }
 
+.handsontable .htContextMenu table tbody tr td.current,
 .handsontable .htContextMenu table tbody tr td:hover {
   background: rgb(233, 233, 233);
 }

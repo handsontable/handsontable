@@ -127,29 +127,28 @@
 
     this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
 
+    $(this.menu).on('mousedown', Handsontable.helper.proxy(this.performAction, this));
+  };
 
-    function contextMenuAction(){
+  ContextMenu.prototype.performAction = function (){
 
-      var hot = $(this.menu).handsontable('getInstance')
-      var selectedItemIndex = hot.getSelected()[0];
-      var selectedItem = hot.getData()[selectedItemIndex];
+    var hot = $(this.menu).handsontable('getInstance')
+    var selectedItemIndex = hot.getSelected()[0];
+    var selectedItem = hot.getData()[selectedItemIndex];
 
-      if (selectedItem.disabled === true || (typeof selectedItem.disabled == 'function' && selectedItem.disabled.call(this.instance) === true)){
-        return;
-      }
-
-      if(typeof selectedItem.callback != 'function'){
-        return;
-      }
-
-      var corners = this.instance.getSelected();
-      var normalizedSelection = ContextMenu.utils.normalizeSelection(corners);
-
-      selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection);
-
+    if (selectedItem.disabled === true || (typeof selectedItem.disabled == 'function' && selectedItem.disabled.call(this.instance) === true)){
+      return;
     }
 
-    $(this.menu).on('mousedown', Handsontable.helper.proxy(contextMenuAction, this));
+    if(typeof selectedItem.callback != 'function'){
+      return;
+    }
+
+    var corners = this.instance.getSelected();
+    var normalizedSelection = ContextMenu.utils.normalizeSelection(corners);
+
+    selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection);
+
   };
 
   ContextMenu.prototype.unbindMouseEvents = function () {
@@ -162,6 +161,7 @@
     this.menu.style.display = 'block';
 
     var parentInstance = this.instance;
+    var contextMenu = this;
 
     $(this.menu).handsontable({
       data: ContextMenu.utils.convertItemsToArray(this.getItems()),
@@ -175,7 +175,7 @@
 
             var item = instance.getData()[row];
 
-            if(/^-+$/i.test(value)){
+            if(RegExp(ContextMenu.SEPARATOR, 'i').test(value)){
               Handsontable.Dom.addClass(TD, 'htSeparator');
             } else {
               Handsontable.TextRenderer.apply(this, arguments);
@@ -188,10 +188,77 @@
             }
           }
         }
-      ]
+      ],
+      beforeKeyDown: function (event) {
+        var instance = this;
+        var selection = instance.getSelected();
+
+        switch(event.keyCode){
+          case Handsontable.helper.keyCode.ARROW_DOWN:
+            if(!selection){
+
+              instance.selectCell(0, 0);
+              event.preventDefault();
+              event.stopImmediatePropagation();
+
+            } else {
+
+              var nextCell = selection[0] + 1 < this.coutRows() ? this.getCell(selection[0] + 1, selection[1]) : null;
+
+              if(nextCell && ContextMenu.utils.isSeparator(nextCell)){
+                if(selection[0] + 2 < this.countRows()){
+                  this.selectCell(selection[0] + 2, selection[1]);
+                }
+
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+              }
+
+            }
+
+
+            break;
+
+          case Handsontable.helper.keyCode.ARROW_UP:
+            if(!selection){
+              instance.selectCell(0, 0);
+              event.preventDefault();
+              event.stopImmediatePropagation();
+            }  else {
+
+              var prevCell = selection[0] - 1 >= 0 ? this.getCell(selection[0] - 1, selection[1]) : null;
+
+              if (!prevCell) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+              } else if(ContextMenu.utils.isSeparator(prevCell)){
+                if(selection[0] - 2 >= 0){
+                  this.selectCell(selection[0] - 2, selection[1]);
+                }
+
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+              }
+
+            }
+            break;
+
+          case Handsontable.helper.keyCode.ENTER:
+            if(instance.getSelected()){
+              contextMenu.performAction();
+              contextMenu.hide();
+            }
+            break;
+        }
+
+      }
     });
 
     this.setMenuPosition(top, left);
+
+    $(this.menu).handsontable('listen');
 
   };
 
@@ -326,6 +393,10 @@
     selection.end.col(Math.max(corners[1], corners[3]));
 
     return selection;
+  };
+
+  ContextMenu.utils.isSeparator = function (cell) {
+    return Handsontable.Dom.hasClass(cell, 'htSeparator');
   };
 
   ContextMenu.prototype.hide = function(){
