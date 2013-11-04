@@ -1,6 +1,12 @@
 (function (Handsontable) {
   var AutocompleteEditor = Handsontable.editors.HandsontableEditor.prototype.extend();
 
+  AutocompleteEditor.prototype.init = function () {
+    Handsontable.editors.HandsontableEditor.prototype.init.apply(this, arguments);
+
+    this.query = null;
+  }
+
   AutocompleteEditor.prototype.createElements = function(){
     Handsontable.editors.HandsontableEditor.prototype.createElements.apply(this, arguments);
 
@@ -22,6 +28,14 @@
 
     });
 
+    this.$htContainer.on('mouseenter', function () {
+      that.$htContainer.handsontable('deselectCell');
+    });
+
+    this.$htContainer.on('mouseleave', function () {
+      that.queryChoices(that.query);
+    });
+
     Handsontable.editors.HandsontableEditor.prototype.bindEvents.apply(this, arguments);
 
   };
@@ -34,9 +48,20 @@
       that.queryChoices(that.TEXTAREA.value);
     });
 
-    this.$htContainer.handsontable('updateSettings', {
-      'colWidths': [this.wtDom.outerWidth(this.TEXTAREA) - 2]
+    var hot =  this.$htContainer.handsontable('getInstance');
+
+    hot.updateSettings({
+      'colWidths': [this.wtDom.outerWidth(this.TEXTAREA) - 2],
+      renderer: function (instance, TD, row, col, prop, value, cellProperties) {
+
+        Handsontable.TextRenderer.apply(this, arguments);
+
+        TD.innerHTML = value.replace(new RegExp(that.query, 'i'), '<strong>' + that.query + '</strong>');
+
+      }
     });
+
+
   };
 
   var onBeforeKeyDownInner;
@@ -76,6 +101,9 @@
   };
 
   AutocompleteEditor.prototype.queryChoices = function(query){
+
+    this.query = query;
+
     if (typeof this.cellProperties.source == 'function'){
       var that = this;
 
