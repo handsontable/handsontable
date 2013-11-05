@@ -66,7 +66,7 @@ describe('WebComponents', function () {
     var hot = document.createElement('handsontable-table');
     window.mySettings = {
       minSpareRows: 3
-    }
+    };
     hot.setAttribute('settings', 'mySettings'); //same notation is used in
     document.body.appendChild(hot);
 
@@ -78,6 +78,50 @@ describe('WebComponents', function () {
 
     runs(function () {
       expect(hot.getSettings().minSpareRows).toBe(3);
+      hot.parentNode.removeChild(hot);
+    });
+  });
+
+  it('Polymer should be able to pass the data object as attribute directly using template bindings', function () {
+    var model = {
+      data: [
+        {name: "Freddie"}
+      ],
+      html: '<handsontable-table id="hot" datarows="{{ data }}"><handsontable-column value="name"></handsontable-column></handsontable-table>'
+    };
+
+    var tpl = document.createElement('template');
+    tpl.setAttribute('bind', '');
+    tpl.innerHTML = '<x-html content="{{ html }}"></x-html>';
+    tpl.model = model;
+    document.body.appendChild(tpl);
+
+    waits(100);
+
+    runs(function () {
+      var hot = document.getElementById('hot');
+      expect(hot.getData()).toBe(model.data);
+      hot.parentNode.removeChild(hot);
+    });
+  });
+
+  it('Polymer should be able to pass the settings object as attribute directly using template bindings', function () {
+    var model = {
+      settings: {colHeaders: ["First Name"]},
+      html: '<handsontable-table id="hot" settings="{{ settings }}"><handsontable-column value="name"></handsontable-column></handsontable-table>'
+    };
+
+    var tpl = document.createElement('template');
+    tpl.setAttribute('bind', '');
+    tpl.innerHTML = '<x-html content="{{ html }}"></x-html>';
+    tpl.model = model;
+    document.body.appendChild(tpl);
+
+    waits(100);
+
+    runs(function () {
+      var hot = document.getElementById('hot');
+      expect(hot.getColHeader(0)).toBe('First Name');
       hot.parentNode.removeChild(hot);
     });
   });
