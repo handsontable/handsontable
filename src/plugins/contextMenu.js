@@ -307,8 +307,10 @@
   ContextMenu.prototype.setMenuPosition = function (cursorY, cursorX) {
 
     var cursor = {
-      top: cursorY,
-      left: cursorX
+      top:  cursorY,
+      topRelative: cursorY - window.pageYOffset,
+      left: cursorX,
+      leftRelative:cursorX - window.pageXOffset
     };
 
     if(this.menuFitsBelowCursor(cursor)){
@@ -326,11 +328,11 @@
   };
 
   ContextMenu.prototype.menuFitsBelowCursor = function (cursor) {
-    return cursor.top + this.menu.offsetHeight <= document.documentElement.scrollTop + document.documentElement.clientHeight;
+    return cursor.topRelative + this.menu.offsetHeight <= document.documentElement.scrollTop + document.documentElement.clientHeight;
   };
 
   ContextMenu.prototype.menuFitsOnRightOfCursor = function (cursor) {
-    return cursor.left + this.menu.offsetWidth <= document.documentElement.scrollLeft + document.documentElement.clientWidth;
+    return cursor.leftRelative + this.menu.offsetWidth <= document.documentElement.scrollLeft + document.documentElement.clientWidth;
   };
 
   ContextMenu.prototype.positionMenuBelowCursor = function (cursor) {
