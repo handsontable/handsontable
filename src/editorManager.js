@@ -50,13 +50,6 @@
           priv.settings.beforeOnKeyDown.call(instance, event);
         }
 
-        //commenting out because it is uneffective as of 0.10.0
-        //TODO change below line to new context menu that uses Handsontable, write test
-        //if (Array.prototype.filter.call(document.body.querySelectorAll('.context-menu-list'), instance.view.wt.wtDom.isVisible).length) { //faster than $body.children('.context-menu-list:visible').length
-          //if right-click context menu is visible, do not execute this keydown handler (arrow keys will navigate the context menu)
-          //return;
-        //}
-
         if (Handsontable.helper.isCtrlKey(event.keyCode)) {
           //when CTRL is pressed, prepare selectable text in textarea
           //http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
