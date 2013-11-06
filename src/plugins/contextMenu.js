@@ -237,7 +237,7 @@
       case Handsontable.helper.keyCode.ARROW_DOWN:
         if(!selection){
 
-          instance.selectCell(0, 0);
+          selectFirstCell(instance);
 
         } else {
 
@@ -253,7 +253,7 @@
       case Handsontable.helper.keyCode.ARROW_UP:
         if(!selection){
 
-          instance.selectCell(0, 0);
+          selectLastCell(instance);
 
         }  else {
 
@@ -268,6 +268,32 @@
 
     }
 
+    function selectFirstCell(instance) {
+
+      var firstCell = instance.getCell(0, 0);
+
+      if(ContextMenu.utils.isSeparator(firstCell) || ContextMenu.utils.isDisabled(firstCell)){
+        selectNextCell(0, 0, instance);
+      } else {
+        instance.selectCell(0, 0);
+      }
+
+    }
+
+
+    function selectLastCell(instance) {
+
+      var lastRow = instance.countRows() - 1;
+      var lastCell = instance.getCell(lastRow, 0);
+
+      if(ContextMenu.utils.isSeparator(lastCell) || ContextMenu.utils.isDisabled(lastCell)){
+        selectPrevCell(lastRow, 0, instance);
+      } else {
+        instance.selectCell(lastRow, 0);
+      }
+
+    }
+
     function selectNextCell(row, col, instance){
       var nextRow = row + 1;
       var nextCell =  nextRow < instance.countRows() ? instance.getCell(nextRow, col) : null;
@@ -276,7 +302,7 @@
         return;
       }
 
-      if(ContextMenu.utils.isSeparator(nextCell) || Handsontable.Dom.hasClass(nextCell, 'htDisabled')){
+      if(ContextMenu.utils.isSeparator(nextCell) || ContextMenu.utils.isDisabled(nextCell)){
         selectNextCell(nextRow, col, instance);
       } else {
         instance.selectCell(nextRow, col);
@@ -292,7 +318,7 @@
         return;
       }
 
-      if(ContextMenu.utils.isSeparator(prevCell) || Handsontable.Dom.hasClass(prevCell, 'htDisabled')){
+      if(ContextMenu.utils.isSeparator(prevCell) || ContextMenu.utils.isDisabled(prevCell)){
         selectPrevCell(prevRow, col, instance);
       } else {
         instance.selectCell(prevRow, col);
@@ -439,6 +465,10 @@
 
   ContextMenu.utils.isSeparator = function (cell) {
     return Handsontable.Dom.hasClass(cell, 'htSeparator');
+  };
+
+  ContextMenu.utils.isDisabled = function (cell) {
+    return Handsontable.Dom.hasClass(cell, 'htDisabled');
   };
 
   ContextMenu.prototype.close = function () {
