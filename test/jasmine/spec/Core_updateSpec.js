@@ -148,5 +148,54 @@ describe('Core_updateSettings', function () {
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
   });
 
+  it("should not alter the columns object during init", function () {
+
+    var columns = [
+      {
+        type: 'text'
+      }
+    ];
+
+    var columnsCopy = JSON.parse(JSON.stringify(columns));
+
+    handsontable({
+      columns: columns
+    });
+
+    expect(columns).toEqual(columnsCopy);
+
+
+  });
+
+  it("should update column type", function () {
+
+    var columns = [
+      {
+        type: 'text'
+      }
+    ];
+
+    handsontable({
+      columns: columns
+    });
+
+    expect(getCellMeta(0, 0).type).toEqual('text');
+    expect(getCellMeta(0, 0).renderer).toBe(Handsontable.TextCell.renderer);
+    expect(getCellMeta(0, 0).editor).toBe(Handsontable.TextCell.editor);
+
+    columns[0].type = 'date';
+
+    updateSettings({
+      columns: columns
+    });
+
+    expect(getCellMeta(0, 0).type).toEqual('date');
+    expect(getCellMeta(0, 0).renderer).toBe(Handsontable.DateCell.renderer);
+    expect(getCellMeta(0, 0).editor).toEqual(Handsontable.DateCell.editor);
+
+
+
+
+  });
 
 });

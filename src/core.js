@@ -19,8 +19,8 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   Handsontable.helper.inherit(GridSettings, DefaultSettings); //create grid settings as a copy of default settings
   Handsontable.helper.extend(GridSettings.prototype, Handsontable.TextCell); //overwrite defaults with default cell
-  expandType(userSettings);
   Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
+  Handsontable.helper.extend(GridSettings.prototype, expandType(userSettings));
 
   this.rootElement = rootElement;
   var $document = $(document.documentElement);
@@ -1826,8 +1826,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         // Use settings provided by user
         if (GridSettings.prototype.columns) {
           column = GridSettings.prototype.columns[i];
-          expandType(column);
           Handsontable.helper.extend(proto, column);
+          Handsontable.helper.extend(proto, expandType(column));
         }
       }
     }
@@ -1877,24 +1877,30 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   function expandType(obj) {
-    if (obj.hasOwnProperty('type')) { //ignore obj.prototype.type
-      var type
-        , i;
-      if (typeof obj.type === 'object') {
-        type = obj.type;
-      }
-      else if (typeof obj.type === 'string') {
-        type = Handsontable.cellTypes[obj.type];
-        if (type === void 0) {
-          throw new Error('You declared cell type "' + obj.type + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
-        }
-      }
-      for (i in type) {
-        if (type.hasOwnProperty(i) && !obj.hasOwnProperty(i)) {
-          obj[i] = type[i];
-        }
+    if (!obj.hasOwnProperty('type')) return; //ignore obj.prototype.type
+
+
+    var type, expandedType = {};
+
+    if (typeof obj.type === 'object') {
+      type = obj.type;
+    }
+    else if (typeof obj.type === 'string') {
+      type = Handsontable.cellTypes[obj.type];
+      if (type === void 0) {
+        throw new Error('You declared cell type "' + obj.type + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
       }
     }
+
+
+    for (var i in type) {
+      if (type.hasOwnProperty(i) && !obj.hasOwnProperty(i)) {
+        expandedType[i] = type[i];
+      }
+    }
+
+    return expandedType;
+
   }
 
   /**
@@ -2051,14 +2057,15 @@ Handsontable.Core = function (rootElement, userSettings) {
     cellProperties.instance = instance;
 
     instance.PluginHooks.run('beforeGetCellMeta', row, col, cellProperties);
-    expandType(cellProperties); //for `type` added in beforeGetCellMeta
+    Handsontable.helper.extend(cellProperties, expandType(cellProperties)); //for `type` added in beforeGetCellMeta
+
 
     if (cellProperties.cells) {
       var settings = cellProperties.cells.call(cellProperties, row, col, prop);
 
       if (settings) {
-        expandType(settings); //for `type` added in cells
         Handsontable.helper.extend(cellProperties, settings);
+        Handsontable.helper.extend(cellProperties, expandType(settings)); //for `type` added in cells
       }
     }
 
