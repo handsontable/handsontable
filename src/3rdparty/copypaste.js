@@ -51,13 +51,6 @@ function CopyPasteClass() {
     if (typeof style.opacity !== 'undefined') {
       style.opacity = 0;
     }
-    else {
-      /*@cc_on @if (@_jscript)
-       if(typeof style.filter === 'string') {
-       style.filter = 'alpha(opacity=0)';
-       }
-       @end @*/
-    }
   }
 
   this._bindEvent(listenerElement, 'keydown', function (event) {
