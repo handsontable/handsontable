@@ -106,6 +106,15 @@ Handsontable.Core = function (rootElement, userSettings) {
         return typeof prop !== 'function' ? prop : (prop() || prop); // is prop() is undefined, just use the fn text
     },
 
+    // return the actual property (especially functions) with the given property key (the field or given column name)
+    getPropertyByKey: function(propKey) {
+        var col = priv.propToCol[propKey];
+        if ( typeof col === 'undefined') {
+            throw "Could not lookup column by property key "+propKey;
+        }
+        return priv.colToProp[col];
+    },
+
 
     createMap: function () {
       if (typeof datamap.getSchema() === "undefined") {
@@ -1979,6 +1988,15 @@ Handsontable.Core = function (rootElement, userSettings) {
     return datamap.colToProp(col);
   };
 
+  /**
+   * Returns the actual property (especially functions) with a property key (column name or field)
+   * @param {String} propKey
+   * @public
+   * @return value (mixed data type -- this may be a fn or a string defining a field)
+   */
+  this.getPropertyByKey = function(propKey) {
+    return datamap.getPropertyByKey(propKey);
+  };
   /**
    * Returns column number associated with property name
    * @param {String} prop

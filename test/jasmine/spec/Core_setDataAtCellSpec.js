@@ -333,13 +333,15 @@ describe('Core_setDataAtCell', function () {
     setDataAtCell(1, 1, 'Something Else');
     expect(getDataAtCell(1, 1)).toEqual('Something Else');
 
-    // verify we can reference explicitly named column
-    expect(getDataAtRowProp(1,"MyAddress2","Frank's house"));
-    expect(getDataAtRowProp(1,"MyAddress1","Frank's house"));
-
     // verify we can reference implicitly named columns (via the property text)
-    expect(getDataAtRowProp(2,'name','Joan Well'));
-    expect(getDataAtRowProp(2,'id',3));
+    expect(getDataAtRowProp(2,getPropertyByKey('name'))).toEqual('Joan Well');
+    expect(getDataAtRowProp(2,getPropertyByKey('id'))).toEqual(3);
+
+
+    // verify we can reference explicitly named column
+    expect(getDataAtRowProp(1,getPropertyByKey("MyAddress2"))).toEqual("Frank's house");
+    expect(getDataAtRowProp(1,getPropertyByKey("MyAddress1"))).toEqual("Frank's house");
+
 
   });
 

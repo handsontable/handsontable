@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Nov 14 2013 11:43:32 GMT-0800 (PST)
+ * Date: Thu Nov 14 2013 12:27:22 GMT-0800 (PST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -123,6 +123,15 @@ Handsontable.Core = function (rootElement, userSettings) {
     // to identify the column when its row property is undefined 
     getPropLookupKey: function(prop) {
         return typeof prop !== 'function' ? prop : (prop() || prop); // is prop() is undefined, just use the fn text
+    },
+
+    // return the actual property (especially functions) with the given property key (the field or given column name)
+    getPropertyByKey: function(propKey) {
+        var col = priv.propToCol[propKey];
+        if ( typeof col === 'undefined') {
+            throw "Could not lookup column by property key "+propKey;
+        }
+        return priv.colToProp[col];
     },
 
 
@@ -1998,6 +2007,15 @@ Handsontable.Core = function (rootElement, userSettings) {
     return datamap.colToProp(col);
   };
 
+  /**
+   * Returns the actual property (especially functions) with a property key (column name or field)
+   * @param {String} propKey
+   * @public
+   * @return value (mixed data type -- this may be a fn or a string defining a field)
+   */
+  this.getPropertyByKey = function(propKey) {
+    return datamap.getPropertyByKey(propKey);
+  };
   /**
    * Returns column number associated with property name
    * @param {String} prop
