@@ -1143,11 +1143,23 @@ Handsontable.Core = function (rootElement, userSettings) {
       data = datamap.getAll();
       rows : for (r = select[2] + 1; r < instance.countRows(); r++) {
         for (c = select[1]; c <= select[3]; c++) {
+
+        	// data[r] could be an object literal
+        	if (Handsontable.helper.isObject(data[r])) {
+        	  c = Handsontable.helper.getNthKey(data[r], c);
+        	}
+
           if (data[r][c]) {
             break rows;
           }
         }
-        if (!!data[r][select[1] - 1] || !!data[r][select[3] + 1]) {
+        var cells = [select[1] - 1, select[3] + 1];
+        if (Handsontable.helper.isObject(data[r])) {
+          cells[0] = Handsontable.helper.getNthKey(data[r], cells[0]);
+          cells[1] = Handsontable.helper.getNthKey(data[r], cells[1]);
+        }
+
+        if (!!data[r][cells[0]] || !!data[r][cells[1]]) {
           maxR = r;
         }
       }
