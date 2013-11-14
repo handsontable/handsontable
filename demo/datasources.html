@@ -65,6 +65,7 @@
         <li><a href="#dataschema">object data source (custom data schema)</a></li>
         <li><a href="#propertyschema">function data source and schema (to reach where arrays and objects can't
           reach)</a></li>
+        <li><a href="#propertyschemaValidations">function data source and schema with validations enabled</a></li>
       </ul>
 
       <p>Please take note that Handsontable will change the original data source. More about this here: <a
@@ -367,11 +368,12 @@
           dataSchema: model,
           startRows: 5,
           startCols: 3,
-          colHeaders: ['ID', 'Name', 'Address'],
+          colHeaders: ['ID', 'Name', 'Address1','Address2'],
           columns: [
             {data: property("id")},
             {data: property("name")},
-            {data: property("address")}
+            {data: property("address",'MyAddressColumn1')},
+            {data: property("address",'MyAddressColumn2')}
           ],
           minSpareRows: 1
         });
@@ -398,8 +400,11 @@
           return _pub;
         }
 
-        function property(attr) {
+        function property(attr,columnName) {
+          columnName = typeof columnName === 'undefined' ? attr : columnName;
+
           return function (row, value) {
+            if (typeof row === 'undefined' ) return columnName; 
             return row.attr(attr, value);
           }
         }
@@ -407,6 +412,94 @@
     </div>
   </div>
 </div>
+
+
+"rowLayout">
+  <div class="descLayout">
+    <div class="pad" data-jsfiddle="example7">
+      <a name="propertyschema"></a>
+
+      <h2>Function data source and schema with validations eanbled</h2>
+
+
+
+      <div id="example7"></div>
+
+      <p>
+        <button name="dump" data-dump="#example7" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+          data to console
+        </button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <div class="jsFiddle">
+        <button class="jsFiddleLink" data-runfiddle="example7">Edit in jsFiddle</button>
+      </div>
+
+      <script data-jsfiddle="example7">
+
+        var $container = $("#example7");
+        $container.handsontable({
+          data: [
+            model({id: 1, name: "Ted Right", address: ""}),
+            model({id: 2, name: "Frank Honest", address: ""}),
+            model({id: 3, name: "Joan Well", address: ""})
+          ],
+          dataSchema: model,
+          startRows: 5,
+          startCols: 4,
+          //colHeaders: ['ID', 'Name', 'Address1','Address2'],
+          columns: [
+            {data: property("id"), type: 'numeric', allowInvalid: false, title: 'ID'},
+            {data: property("name"), title: 'Name' },
+            {data: property("address",'MyAddressColumn1'), title: 'Address 1' },
+            {data: property("address",'MyAddressColumn2'), title: 'Address 2' }
+          ],
+          minSpareRows: 1
+        });
+
+        function model(opts) {
+          var _pub = {},
+            _priv = $.extend({
+              id: undefined,
+              name: undefined,
+              address: undefined
+            }, opts);
+
+          _pub.attr = function (attr, val) {
+            if (typeof val === 'undefined') {
+              window.console && console.log("\t\tGET the", attr, "value of", _pub);
+              return _priv[attr];
+            }
+            window.console && console.log("SET the", attr, "value of", _pub);
+            _priv[attr] = val;
+
+            return _pub;
+          };
+
+          return _pub;
+        }
+
+        function property(attr,columnName) {
+          columnName = typeof columnName === 'undefined' ? attr : columnName;
+
+          return function (row, value) {
+            if (typeof row === 'undefined' ) return columnName; 
+            return row.attr(attr, value);
+          }
+        }
+      </script>
+    </div>
+  </div>
+</div>
+
+
+
+
+
 
 <div class="rowLayout">
   <div class="descLayout noMargin">
