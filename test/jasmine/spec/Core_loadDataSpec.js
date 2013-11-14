@@ -363,9 +363,9 @@ describe('Core_loadData', function () {
     handsontable({
       data: cars,
       columns: [
-        attr("make"),
-        attr("model"),
-        attr("year")
+        { data: createAttrFn("make") },
+        { data: createAttrFn("model") },
+        { data: createAttrFn("year") }
       ]
     });
 
@@ -377,16 +377,26 @@ describe('Core_loadData', function () {
       return removed;
     }
 
-    // normally, you'd get these from the server with .fetch()
-    function attr(attr) {
-      // this lets us remember `attr` for when when it is get/set
-      return {data: function (car, value) {
-        if (_.isUndefined(value)) {
-          return car.get(attr);
+    function createAttrFn(attr,columnName) {
+        columnName = typeof columnName === 'undefined' ? attr : columnName;
+        return function(car,value) {
+          if ( typeof car === 'undefined' ) return columnName;
+          if ( _.isUndefined(value) ) return car.get(attr);
+          car.set(attr, value);
         }
-        car.set(attr, value);
-      }};
+
     }
+
+    // // normally, you'd get these from the server with .fetch()
+    // function attr(attr) {
+    //   // this lets us remember `attr` for when when it is get/set
+    //   return {data: function (car, value) {
+    //     if (_.isUndefined(value)) {
+    //       return car.get(attr);
+    //     }
+    //     car.set(attr, value);
+    //   }};
+    // }
 
     expect(countRows()).toBe(3);
   });

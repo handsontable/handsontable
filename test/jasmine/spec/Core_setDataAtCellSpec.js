@@ -231,9 +231,9 @@ describe('Core_setDataAtCell', function () {
       startCols: 3,
       colHeaders: ['ID', 'Name', 'Address'],
       columns: [
-        {data: property("id")},
-        {data: property("name")},
-        {data: property("address")}
+        {data: createAttrFn("id")},
+        {data: createAttrFn("name")},
+        {data: createAttrFn("address")}
       ],
       minSpareRows: 1
     });
@@ -258,11 +258,20 @@ describe('Core_setDataAtCell', function () {
       return _pub;
     }
 
-    function property(attr) {
-      return function (row, value) {
-        return row.attr(attr, value);
-      }
+    function createAttrFn(attr,columnName) {
+        columnName = typeof columnName === 'undefined' ? attr : columnName;
+        return function(row,value) {
+          if ( typeof row === 'undefined' ) return columnName;
+          return row.attr(attr, value);
+        }
     }
+
+    // function property(attr) {
+
+    //   return function (row, value) {
+    //     return row.attr(attr, value);
+    //   }
+    // }
 
     expect(getDataAtCell(1, 1)).toEqual('Frank Honest');
     setDataAtCell(1, 1, 'Something Else');
