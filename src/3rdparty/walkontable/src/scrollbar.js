@@ -98,7 +98,7 @@ WalkontableScrollbar.prototype.getHandleSizeRatio = function (viewportCount, tot
   if (!totalCount || viewportCount > totalCount || viewportCount == totalCount) {
     return 1;
   }
-  return 1 / totalCount;
+  return viewportCount / totalCount;
 };
 
 WalkontableScrollbar.prototype.prepare = function () {
