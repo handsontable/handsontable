@@ -140,9 +140,9 @@
               dataSchema: makeCar,
               contextMenu: true,
               columns: [
-                attr("make"),
-                attr("model"),
-                attr("year")
+                  { data: createAttrFn("make") },
+                  { data: createAttrFn("model") },
+                  { data: createAttrFn("year"), type:'numeric', allowInvalid: false }
               ],
               colHeaders: ["Make", "Model", "Year"]
               //minSpareRows: 1 //see notes on the left for `minSpareRows`
@@ -160,15 +160,14 @@
             // you'll have to make something like these until there is a better
             // way to use the string notation, i.e. "bb:make"!
 
-            // normally, you'd get these from the server with .fetch()
-            function attr(attr) {
-              // this lets us remember `attr` for when when it is get/set
-              return {data: function (car, value) {
-                if (_.isUndefined(value)) {
-                  return car.get(attr);
+            function createAttrFn(attr,columnName) {
+                columnName = typeof columnName === 'undefined' ? attr : columnName;
+                return function(car,value) {
+                  if ( typeof car === 'undefined' ) return columnName;
+                  if ( _.isUndefined(value) ) return car.get(attr);
+                  car.set(attr, value);
                 }
-                car.set(attr, value);
-              }};
+
             }
 
             // just setting `dataSchema: CarModel` would be great, but it is non-

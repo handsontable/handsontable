@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Oct 30 2013 03:16:48 GMT+0100 (Central European Standard Time)
+ * Date: Thu Nov 14 2013 13:11:48 GMT-0800 (PST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -114,6 +114,27 @@ Handsontable.Core = function (rootElement, userSettings) {
       return lastCol;
     },
 
+
+
+    // generate a unique signature for column properties, especially those that are defined as functions
+    // currently, in the main branch, properties that are defined as function as keyed by the function text.
+    // This generates collisions since typically the same accessor function is used for multiple columns (albeit with different behaviors as defined by the closure variables)
+    // NOTE: this assumes that the accessor function is configured to return the field name or some other unique string
+    // to identify the column when its row property is undefined 
+    getPropLookupKey: function(prop) {
+        return typeof prop !== 'function' ? prop : (prop() || prop); // is prop() is undefined, just use the fn text
+    },
+
+    // return the actual property (especially functions) with the given property key (the field or given column name)
+    getPropertyByKey: function(propKey) {
+        var col = priv.propToCol[propKey];
+        if ( typeof col === 'undefined') {
+            throw "Could not lookup column by property key "+propKey;
+        }
+        return priv.colToProp[col];
+    },
+
+
     createMap: function () {
       if (typeof datamap.getSchema() === "undefined") {
         throw new Error("trying to create `columns` definition but you didnt' provide `schema` nor `data`");
@@ -124,13 +145,14 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (priv.settings.columns) {
         for (i = 0, ilen = priv.settings.columns.length; i < ilen; i++) {
           priv.colToProp[i] = priv.settings.columns[i].data;
-          priv.propToCol[priv.settings.columns[i].data] = i;
+          priv.propToCol[datamap.getPropLookupKey(priv.settings.columns[i].data)] = i;
         }
       }
       else {
         datamap.recursiveDuckColumns(schema);
       }
     },
+    
 
     colToProp: function (col) {
       col = Handsontable.PluginHooks.execute(instance, 'modifyCol', col);
@@ -143,9 +165,10 @@ Handsontable.Core = function (rootElement, userSettings) {
     },
 
     propToCol: function (prop) {
-      var col;
-      if (typeof priv.propToCol[prop] !== 'undefined') {
-        col = priv.propToCol[prop];
+      var col,
+          propKey = datamap.getPropLookupKey(prop);
+      if (typeof priv.propToCol[propKey] !== 'undefined') {
+        col = priv.propToCol[propKey];
       }
       else {
         col = prop;
@@ -1984,6 +2007,15 @@ Handsontable.Core = function (rootElement, userSettings) {
     return datamap.colToProp(col);
   };
 
+  /**
+   * Returns the actual property (especially functions) with a property key (column name or field)
+   * @param {String} propKey
+   * @public
+   * @return value (mixed data type -- this may be a fn or a string defining a field)
+   */
+  this.getPropertyByKey = function(propKey) {
+    return datamap.getPropertyByKey(propKey);
+  };
   /**
    * Returns column number associated with property name
    * @param {String} prop

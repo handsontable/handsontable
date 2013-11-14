@@ -231,9 +231,9 @@ describe('Core_setDataAtCell', function () {
       startCols: 3,
       colHeaders: ['ID', 'Name', 'Address'],
       columns: [
-        {data: property("id")},
-        {data: property("name")},
-        {data: property("address")}
+        {data: createAttrFn("id")},
+        {data: createAttrFn("name")},
+        {data: createAttrFn("address")}
       ],
       minSpareRows: 1
     });
@@ -258,16 +258,93 @@ describe('Core_setDataAtCell', function () {
       return _pub;
     }
 
-    function property(attr) {
-      return function (row, value) {
-        return row.attr(attr, value);
-      }
+    function createAttrFn(attr,columnName) {
+        columnName = typeof columnName === 'undefined' ? attr : columnName;
+        return function(row,value) {
+          if ( typeof row === 'undefined' ) return columnName;
+          return row.attr(attr, value);
+        }
     }
+
+    // function property(attr) {
+
+    //   return function (row, value) {
+    //     return row.attr(attr, value);
+    //   }
+    // }
 
     expect(getDataAtCell(1, 1)).toEqual('Frank Honest');
     setDataAtCell(1, 1, 'Something Else');
     expect(getDataAtCell(1, 1)).toEqual('Something Else');
   });
+
+
+
+  //https://handsontable.com/demo/datasources.html
+  it('should be able to properly reference function datasource columns by property or column name', function () {
+    handsontable({
+      data: [
+        model({id: 1, name: "Ted Right", address: ""}),
+        model({id: 2, name: "Frank Honest", address: "Frank's house"}),
+        model({id: 3, name: "Joan Well", address: "Joan's house"})
+      ],
+      dataSchema: model,
+      startRows: 5,
+      startCols: 3,
+      colHeaders: ['ID', 'Name', 'Address'],
+      columns: [
+        {data: createAttrFn("id")},
+        {data: createAttrFn("name")},
+        {data: createAttrFn("address","MyAddress2")},
+        {data: createAttrFn("address","MyAddress1")}
+      ],
+      minSpareRows: 1
+    });
+
+    function model(opts) {
+      var _pub = {},
+        _priv = $.extend({
+          id: undefined,
+          name: undefined,
+          address: undefined
+        }, opts);
+
+      _pub.attr = function (attr, val) {
+        if (typeof val === 'undefined') {
+          return _priv[attr];
+        }
+        _priv[attr] = val;
+
+        return _pub;
+      };
+
+      return _pub;
+    }
+
+    function createAttrFn(attr,columnName) {
+        columnName = typeof columnName === 'undefined' ? attr : columnName;
+        return function(row,value) {
+          if ( typeof row === 'undefined' ) return columnName;
+          return row.attr(attr, value);
+        }
+    }
+
+    expect(getDataAtCell(1, 1)).toEqual('Frank Honest');
+    setDataAtCell(1, 1, 'Something Else');
+    expect(getDataAtCell(1, 1)).toEqual('Something Else');
+
+    // verify we can reference implicitly named columns (via the property text)
+    expect(getDataAtRowProp(2,getPropertyByKey('name'))).toEqual('Joan Well');
+    expect(getDataAtRowProp(2,getPropertyByKey('id'))).toEqual(3);
+
+
+    // verify we can reference explicitly named column
+    expect(getDataAtRowProp(1,getPropertyByKey("MyAddress2"))).toEqual("Frank's house");
+    expect(getDataAtRowProp(1,getPropertyByKey("MyAddress1"))).toEqual("Frank's house");
+
+
+  });
+
 
   it('should accept changes array as 1st param and source as 2nd param', function () {
     var callCount = 0
