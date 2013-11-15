@@ -245,18 +245,20 @@ describe('Core_validate', function () {
   it('should add class name `htInvalid` to a cell without removing other classes', function () {
 
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    var validator = jasmine.createSpy('validator').andCallThrough();
+    validator.plan = function (value, callb) {
+      if (value == 123) {
+        callb(false)
+      }
+      else {
+        callb(true)
+      }
+    };
 
     handsontable({
       data: createSpreadsheetData(2, 2),
       type: 'numeric',
-      validator: function (value, callb) {
-        if (value == 123) {
-          callb(false)
-        }
-        else {
-          callb(true)
-        }
-      },
+      validator: validator,
       afterValidate: onAfterValidate
     });
 
@@ -267,6 +269,7 @@ describe('Core_validate', function () {
     }, 'Cell validation 1', 1000);
 
     runs(function () {
+      expect(validator.calls.length).toEqual(1);
       expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
       expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htNumeric')).toEqual(true);
 

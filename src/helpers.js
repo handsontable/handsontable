@@ -241,37 +241,6 @@ Handsontable.helper.extendArray = function (arr, extension) {
 };
 
 /**
- * Returns cell renderer or editor function directly or through lookup map
- */
-Handsontable.helper.getCellMethod = function (methodName, methodFunction) {
-  if (typeof methodFunction === 'string') {
-    var result = Handsontable.cellLookup[methodName][methodFunction];
-    if (result === void 0 && methodName === 'renderer') {
-      return function (instance, TD, row, col, prop, value, cellProperties) {
-        cellProperties.rendererTemplate = methodFunction;
-        var editor = cellProperties.editor;
-        /*
-        In future
-        1. remove AutocompleteRenderer
-        2. make the "arrow" be added by editor itself using a plugin hook inserted in tableView.js (at the end of cellRenderer: ...)
-        3. editor add the arrow if cellProperty.arrow === "true"
-         */
-        if (editor === Handsontable.HandsontableEditor || editor === Handsontable.DateEditor || editor === Handsontable.AutocompleteEditor) {
-          return Handsontable.AutocompleteRenderer.apply(instance, arguments);
-        }
-        else {
-          return Handsontable.TextRenderer.apply(instance, arguments);
-        }
-      }
-    }
-    return result;
-  }
-  else {
-    return methodFunction;
-  }
-};
-
-/**
  * Determines if the given DOM element is an input field placed outside of HOT.
  * Notice: By 'input' we mean input, textarea and select nodes
  * @param element - DOM element
@@ -371,3 +340,51 @@ Handsontable.helper.proxy = function (fun, context) {
     return fun.apply(context, arguments);
   };
 };
+
+Handsontable.helper.cellMethodLookupFactory = function (methodName) {
+
+  return function cellMethodLookup (row, col) {
+
+    return (function getMethodFromProperties(properties) {
+
+      if (properties == null || typeof properties == 'undefined'){
+
+        return;                       //method not found
+
+      }
+      else if(properties.hasOwnProperty(methodName)){
+
+        return properties[methodName];  //method defined directly
+
+      } else if(properties.hasOwnProperty('type')){
+
+        var type;
+
+        if(typeof properties.type != 'string' ){
+          throw new Error('Cell type must be a string ');
+        }
+
+        type = translateTypeNameToObject(properties.type);
+
+        if(type[methodName]){
+          return type[methodName];    //method defined in type
+        }
+
+      }
+
+      return getMethodFromProperties(properties.__proto__);
+
+    })(this.getCellMeta(row, col));
+
+  };
+
+  function translateTypeNameToObject(typeName) {
+    var type = Handsontable.cellTypes[typeName];
+
+    if(typeof type == 'undefined'){
+      throw new Error('You declared cell type "' + typeName + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
+    }
+
+    return type;
+  }
+}
