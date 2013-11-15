@@ -159,8 +159,8 @@
           colHeaders: ["Plain text title", "HTML Description", "Cover"],
           columns: [
             {data: "title"},
-            {data: "description", type: {renderer: descriptionRenderer}},
-            {data: "cover", type: {renderer: coverRenderer}}
+            {data: "description", renderer: descriptionRenderer},
+            {data: "cover", renderer: coverRenderer}
           ]
         });
       </script>
@@ -216,7 +216,7 @@
           startCols: 2,
           columns: [
             {},
-            {type: {renderer: customRenderer}}
+            {renderer: customRenderer}
           ],
           colHeaders: function (col) {
             switch (col) {

@@ -141,7 +141,8 @@
               columns: [
                 {data: "id", type: 'text'},
                 //'text' is default, you don't actually have to declare it
-                {data: "name", type: {renderer: yellowRenderer}},
+                {data: "name", renderer: yellowRenderer},
+                //use default 'text' cell type but overwrite its renderer with yellowRenderer
                 {data: "isActive", type: 'checkbox'},
                 {data: "date", type: 'date'},
                 {data: "color",
