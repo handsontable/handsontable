@@ -159,11 +159,8 @@ Handsontable.helper.randomString = function () {
  * @return {Object}        extended Child
  */
 Handsontable.helper.inherit = function (Child, Parent) {
-  function Bridge() {
-  }
-
-  Bridge.prototype = Parent.prototype;
-  Child.prototype = new Bridge();
+  Parent.prototype.constructor = Parent;
+  Child.prototype = new Parent();
   Child.prototype.constructor = Child;
   return Child;
 };
@@ -181,6 +178,33 @@ Handsontable.helper.extend = function (target, extension) {
   }
 };
 
+Handsontable.helper.getPrototypeOf = function (obj) {
+  var prototype;
+
+  if(typeof obj.__proto__ == "object"){
+    prototype = obj.__proto__;
+  } else {
+    var oldConstructor,
+        constructor = obj.constructor;
+
+    if (typeof obj.constructor == "function") {
+      oldConstructor = constructor;
+
+      if (delete obj.constructor){
+        constructor = obj.constructor; // get real constructor
+        obj.constructor = oldConstructor; // restore constructor
+      }
+
+
+    }
+
+    prototype = constructor ? constructor.prototype : null; // needed for IE
+
+  }
+
+  return prototype;
+};
+
 /**
  * Factory for columns constructors.
  * @param {Object} GridSettings
@@ -188,14 +212,12 @@ Handsontable.helper.extend = function (target, extension) {
  * @return {Object} ColumnSettings
  */
 Handsontable.helper.columnFactory = function (GridSettings, conflictList) {
-  var i = 0, len = conflictList.length, ColumnSettings = function () {
-  };
+  function ColumnSettings () {}
 
-  // Inherit prototype from grid settings
-  ColumnSettings.prototype = new GridSettings();
+  Handsontable.helper.inherit(ColumnSettings, GridSettings);
 
   // Clear conflict settings
-  for (; i < len; i++) {
+  for (var i = 0, len = conflictList.length; i < len; i++) {
     ColumnSettings.prototype[conflictList[i]] = void 0;
   }
 
@@ -347,7 +369,7 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName) {
 
     return (function getMethodFromProperties(properties) {
 
-      if (properties == null || typeof properties == 'undefined'){
+      if (!properties){
 
         return;                       //method not found
 
@@ -372,7 +394,7 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName) {
 
       }
 
-      return getMethodFromProperties(properties.__proto__);
+      return getMethodFromProperties(Handsontable.helper.getPrototypeOf(properties));
 
     })(this.getCellMeta(row, col));
 

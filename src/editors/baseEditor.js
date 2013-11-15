@@ -23,9 +23,7 @@
     this._closeCallback(result);
   }
 
-  BaseEditor.prototype.init = function(){
-    throw Error('Editor init() method unimplemented');
-  };
+  BaseEditor.prototype.init = function(){};
 
   BaseEditor.prototype.val = function(newValue){
     throw Error('Editor val() method unimplemented');
@@ -56,7 +54,17 @@
       baseClass.apply(this, arguments);
     }
 
-    return Handsontable.helper.inherit(Editor, baseClass);
+    function inherit(Child, Parent){
+      function Bridge() {
+      }
+
+      Bridge.prototype = Parent.prototype;
+      Child.prototype = new Bridge();
+      Child.prototype.constructor = Child;
+      return Child;
+    }
+
+    return inherit(Editor, baseClass);
   };
 
   BaseEditor.prototype.saveValue = function (val, ctrlDown) {
