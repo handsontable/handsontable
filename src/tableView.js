@@ -139,8 +139,18 @@ Handsontable.TableView = function (instance) {
       }] : []
     },
     columnWidth: instance.getColWidth,
-    cellRenderer: function (row, column, TD) {
-      that.applyCellTypeMethod('renderer', TD, row, column);
+    cellRenderer: function (row, col, TD) {
+
+      var prop = that.instance.colToProp(col)
+        , cellProperties = that.instance.getCellMeta(row, col)
+        , renderer = that.instance.getCellRenderer(row, col) //methodName is 'renderer' or 'editor'
+
+      var value = that.instance.getDataAtRowProp(row, prop);
+
+      renderer(that.instance, TD, row, col, prop, value, cellProperties);
+
+      that.instance.PluginHooks.run('afterRenderer', TD, row, col, prop, value, cellProperties);
+
     },
     selections: {
       current: {
@@ -308,21 +318,6 @@ Handsontable.TableView.prototype.render = function () {
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.forceFullRender = false;
   this.instance.rootElement.triggerHandler('render.handsontable');
-};
-
-Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {
-  var prop = this.instance.colToProp(col)
-    , cellProperties = this.instance.getCellMeta(row, col)
-    , method = Handsontable.helper.getCellMethod(methodName, cellProperties[methodName]); //methodName is 'renderer' or 'editor'
-
-  var value = this.instance.getDataAtRowProp(row, prop);
-  var res = method(this.instance, td, row, col, prop, value, cellProperties);
-
-  if (methodName === 'renderer') {
-    this.instance.PluginHooks.run('afterRenderer', td, row, col, prop, value, cellProperties);
-  }
-
-  return res;
 };
 
 /**
