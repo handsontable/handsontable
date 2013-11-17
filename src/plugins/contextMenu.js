@@ -180,13 +180,13 @@
     var item = instance.getData()[row];
     var wrapper = document.createElement('DIV');
 
-    TD.innerHTML = null;
+    Handsontable.Dom.empty(TD);
     TD.appendChild(wrapper);
 
     if(itemIsSeparator(item)){
       Handsontable.Dom.addClass(TD, 'htSeparator');
     } else {
-      wrapper.innerHTML = value;
+      Handsontable.Dom.fastInnerText(wrapper, value);
     }
 
     if (itemIsDisabled(item, contextMenu.instance)){
