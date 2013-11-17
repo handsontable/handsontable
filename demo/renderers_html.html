@@ -401,7 +401,7 @@
         function buildMenu(activeCellType){
           var menu = $('<ul></ul>').addClass('changeTypeMenu');
 
-          ['text', 'numeric', 'date'].forEach(function (type) {
+          $.each(['text', 'numeric', 'date'], function (i, type) {
             var item = $('<li></li>').data('colType', type).text(type);
 
             if(activeCellType == type){
@@ -424,7 +424,9 @@
         function setColumnType(i, type, instance) {
           columns[i].type = type;
           instance.updateSettings({columns: columns});
-          instance.render();
+          instance.validateCells(function(){
+            instance.render();
+          });
         }
 
 
