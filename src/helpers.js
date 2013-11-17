@@ -388,10 +388,7 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName) {
 
         type = translateTypeNameToObject(properties.type);
 
-        if(type[methodName]){
-          return type[methodName];    //method defined in type
-        }
-
+        return type[methodName]; //method defined in type. if does not exist (eg. validator), returns undefined
       }
 
       return getMethodFromProperties(Handsontable.helper.getPrototypeOf(properties));
@@ -409,4 +406,4 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName) {
 
     return type;
   }
-}
+};
