@@ -560,14 +560,14 @@ describe('ColumnSorting', function () {
     expect(this.afterColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0);
   });
 
-  it("should add beforeColumnSort event listener in constructor", function () {
+  it("should add afterColumnSort event listener in constructor", function () {
 
     var afterColumnSortCallback = jasmine.createSpy('afterColumnSortHandler');
 
     var hot = handsontable({
       data: [[2], [4], [1], [3]],
       columnSorting: true,
-      beforeColumnSort: afterColumnSortCallback
+      afterColumnSort: afterColumnSortCallback
     });
 
     var sortColumn = 0;

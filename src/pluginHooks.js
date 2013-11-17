@@ -32,6 +32,7 @@ Handsontable.PluginHookClass = (function () {
       afterCreateCol: [],
       afterColumnResize: [],
       afterColumnMove: [],
+      afterColumnSort: [],
       afterDeselect: [],
       afterSelection: [],
       afterSelectionByProp: [],
