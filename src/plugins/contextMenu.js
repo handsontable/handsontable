@@ -127,7 +127,7 @@
 
   ContextMenu.prototype.performAction = function (){
 
-    var hot = $(this.menu).handsontable('getInstance')
+    var hot = $(this.menu).handsontable('getInstance');
     var selectedItemIndex = hot.getSelected()[0];
     var selectedItem = hot.getData()[selectedItemIndex];
 
@@ -206,13 +206,13 @@
     }
 
     function itemIsSeparator(item){
-      return RegExp(ContextMenu.SEPARATOR, 'i').test(item.name);
+      return new RegExp(ContextMenu.SEPARATOR, 'i').test(item.name);
     }
 
     function itemIsDisabled(item, instance){
       return item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(contextMenu.instance) === true);
     }
-  }
+  };
 
   ContextMenu.prototype.onBeforeKeyDown = function (event) {
     var contextMenu = this;
@@ -326,7 +326,7 @@
 
     }
 
-  }
+  };
 
   ContextMenu.prototype.getItems = function () {
     var items = {};
@@ -356,12 +356,13 @@
       for(var itemName in newOptions.items){
         var item = {};
 
-        if(newOptions.items.hasOwnProperty(itemName)
-          && this.defaultOptions.items.hasOwnProperty(itemName)
-          && Handsontable.helper.isObject(newOptions.items[itemName])){
-          Handsontable.helper.extend(item, this.defaultOptions.items[itemName]);
-          Handsontable.helper.extend(item, newOptions.items[itemName]);
-          newOptions.items[itemName] = item;
+        if(newOptions.items.hasOwnProperty(itemName)) {
+          if(this.defaultOptions.items.hasOwnProperty(itemName)
+            && Handsontable.helper.isObject(newOptions.items[itemName])){
+            Handsontable.helper.extend(item, this.defaultOptions.items[itemName]);
+            Handsontable.helper.extend(item, newOptions.items[itemName]);
+            newOptions.items[itemName] = item;
+          }
         }
 
       }
@@ -433,7 +434,7 @@
     for(var itemName in items){
       if(items.hasOwnProperty(itemName)){
         if(typeof items[itemName] == 'string'){
-          item = {name: items[item]};
+          item = {name: items[itemName]};
         } else if (items[itemName].visible !== false) {
           item = items[itemName];
         } else {
