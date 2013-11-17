@@ -1,0 +1,136 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Dropdown cell type - Handsontable</title>
+
+  <!--
+  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  -->
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css">
+  <script src="js/samples.js"></script>
+  <script src="js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+
+  <!--
+  Facebook open graph. Don't copy this to your project :)
+  -->
+  <meta property="og:title" content="Autocomplete cell type">
+  <meta property="og:description"
+        content="This example shows the usage of the Autocomplete feature.">
+  <meta property="og:url" content="http://handsontable.com/demo/autocomplete.html">
+  <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="409">
+  <meta property="og:image:height" content="164">
+  <link rel="canonical" href="http://handsontable.com/demo/autocomplete.html">
+
+  <!--
+  Google Analytics for GitHub Page. Don't copy this to your project :)
+  -->
+  <script src="js/ga.js"></script>
+
+  <script data-jsfiddle="common">
+    function getCarData() {
+      return [
+        ["Nissan", 2009, "black", "black"],
+        ["Nissan", 2006, "blue", "blue"],
+        ["Chrysler", 2004, "yellow", "black"],
+        ["Volvo", 2012, "white", "gray"]
+      ];
+    }
+  </script>
+</head>
+
+<body>
+<a href="http://github.com/warpech/jquery-handsontable" class="forkMeOnGitHub">Fork me on GitHub</a>
+
+<div id="container">
+<div class="columnLayout">
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad">
+      <h1><a href="../index.html">Handsontable</a></h1>
+
+      <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
+        for HTML, JavaScript &amp; jQuery
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout">
+    <div class="pad" data-jsfiddle="example1">
+      <a name="lazy"></a>
+
+      <h2>Dropdown</h2>
+
+      <p>This example shows the usage of the Dropdown feature.</p>
+
+      <p>Dropdown is based on <a href="autocomplete.html">Autocomplete</a> cell type. All options used by <code>autocomplete</code>
+        cell type apply to <code>dropdown</code> as well. The only difference is that <code>filter</code> option is always set to <code>false</code> and
+      <code>strict</code> is always set to <code>true</code>. Therefore you can think of <code>dropdown</code> as a searchable <code>&lt;select&gt;</code>. </p>
+
+      <div id="example1"></div>
+
+      <p>
+        <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
+          data to console
+        </button>
+      </p>
+    </div>
+  </div>
+
+  <div class="codeLayout">
+    <div class="pad">
+      <div class="jsFiddle">
+        <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+      </div>
+
+      <script data-jsfiddle="example1">
+        $("#example1").handsontable({
+          data: getCarData(),
+          startRows: 7,
+          startCols: 4,
+          colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+          columns: [
+            {},
+            {type: 'numeric'},
+            {
+              type: 'dropdown',
+              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
+            },
+            {
+              type: 'dropdown',
+              source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
+            }
+          ]
+        });
+      </script>
+    </div>
+  </div>
+</div>
+
+<div class="rowLayout">
+  <div class="descLayout noMargin">
+    <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+
+      <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+        licensed under the The MIT License.</p>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+</body>
+</html>

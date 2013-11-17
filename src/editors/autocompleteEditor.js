@@ -22,7 +22,7 @@
         setTimeout(function () {
           that.queryChoices(that.$textarea.val());
         });
-      } if (event.keyCode == Handsontable.helper.keyCode.ENTER && that.cellProperties.strict !== true){
+      } else if (event.keyCode == Handsontable.helper.keyCode.ENTER && that.cellProperties.strict !== true){
         that.$htContainer.handsontable('deselectCell');
       }
 
@@ -75,7 +75,11 @@
 
       if (event.keyCode == Handsontable.helper.keyCode.ARROW_UP){
         if (instance.getSelected() && instance.getSelected()[0] == 0){
-          instance.deselectCell();
+
+          if(!parent.cellProperties.strict){
+            instance.deselectCell();
+          }
+
           parent.instance.listen();
           parent.focus();
           event.preventDefault();
@@ -141,7 +145,12 @@
 
     for(var i = 0, len = items.length; i < len; i++){
       currentItem = items[i];
-      indexOfValue = currentItem.indexOf(value);
+
+      if(valueLength > 0){
+        indexOfValue = currentItem.indexOf(value)
+      } else {
+        indexOfValue = currentItem === value ? 0 : -1;
+      }
 
       if(indexOfValue == -1) continue;
 
@@ -169,9 +178,13 @@
     var value = this.val();
     var rowToHighlight;
 
-    if(this.cellProperties.strict === true && value.length > 0){
+    if(this.cellProperties.strict === true){
 
       rowToHighlight = findItemIndexToHighlight(choices, value);
+
+      if ( typeof rowToHighlight == 'undefined'){
+        rowToHighlight = 0;
+      }
 
     }
 
