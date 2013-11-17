@@ -117,39 +117,33 @@
 
       this.show(event.pageY, event.pageX);
 
-      $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(contextMenuCloseListener, this));
-    }
-
-    function contextMenuCloseListener(event){
-      this.hide();
-      $(document).off('mousedown.htContextMenu');
+      $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.close, this));
     }
 
     this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
 
+    $(this.menu).on('mousedown', Handsontable.helper.proxy(this.performAction, this));
+  };
 
-    function contextMenuAction(){
+  ContextMenu.prototype.performAction = function (){
 
-      var hot = $(this.menu).handsontable('getInstance')
-      var selectedItemIndex = hot.getSelected()[0];
-      var selectedItem = hot.getData()[selectedItemIndex];
+    var hot = $(this.menu).handsontable('getInstance')
+    var selectedItemIndex = hot.getSelected()[0];
+    var selectedItem = hot.getData()[selectedItemIndex];
 
-      if (selectedItem.disabled === true || (typeof selectedItem.disabled == 'function' && selectedItem.disabled.call(this.instance) === true)){
-        return;
-      }
-
-      if(typeof selectedItem.callback != 'function'){
-        return;
-      }
-
-      var corners = this.instance.getSelected();
-      var normalizedSelection = ContextMenu.utils.normalizeSelection(corners);
-
-      selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection);
-
+    if (selectedItem.disabled === true || (typeof selectedItem.disabled == 'function' && selectedItem.disabled.call(this.instance) === true)){
+      return;
     }
 
-    $(this.menu).on('mousedown', Handsontable.helper.proxy(contextMenuAction, this));
+    if(typeof selectedItem.callback != 'function'){
+      return;
+    }
+
+    var corners = this.instance.getSelected();
+    var normalizedSelection = ContextMenu.utils.normalizeSelection(corners);
+
+    selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection);
+
   };
 
   ContextMenu.prototype.unbindMouseEvents = function () {
@@ -161,8 +155,6 @@
 
     this.menu.style.display = 'block';
 
-    var parentInstance = this.instance;
-
     $(this.menu).handsontable({
       data: ContextMenu.utils.convertItemsToArray(this.getItems()),
       colHeaders: false,
@@ -171,29 +163,170 @@
       columns: [
         {
           data: 'name',
-          renderer: function(instance, TD, row, col, prop, value, cellProperties){
-
-            var item = instance.getData()[row];
-
-            if(/^-+$/i.test(value)){
-              Handsontable.Dom.addClass(TD, 'htSeparator');
-            } else {
-              Handsontable.TextRenderer.apply(this, arguments);
-            }
-
-            if (item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(parentInstance) === true)){
-              Handsontable.Dom.addClass(TD, 'htDisabled');
-            } else {
-              Handsontable.Dom.removeClass(TD, 'htDisabled');
-            }
-          }
+          renderer: Handsontable.helper.proxy(this.renderer, this)
         }
-      ]
+      ],
+      beforeKeyDown: Handsontable.helper.proxy(this.onBeforeKeyDown, this)
     });
 
     this.setMenuPosition(top, left);
 
+    $(this.menu).handsontable('listen');
+
   };
+
+  ContextMenu.prototype.renderer = function(instance, TD, row, col, prop, value, cellProperties){
+    var contextMenu = this;
+    var item = instance.getData()[row];
+    var wrapper = document.createElement('DIV');
+
+    TD.innerHTML = null;
+    TD.appendChild(wrapper);
+
+    if(itemIsSeparator(item)){
+      Handsontable.Dom.addClass(TD, 'htSeparator');
+    } else {
+      wrapper.innerHTML = value;
+    }
+
+    if (itemIsDisabled(item, contextMenu.instance)){
+      Handsontable.Dom.addClass(TD, 'htDisabled');
+
+      $(wrapper).on('mouseenter', function () {
+        instance.deselectCell();
+      });
+
+    } else {
+      Handsontable.Dom.removeClass(TD, 'htDisabled');
+
+      $(wrapper).on('mouseenter', function () {
+        instance.selectCell(row, col);
+      });
+
+    }
+
+    function itemIsSeparator(item){
+      return RegExp(ContextMenu.SEPARATOR, 'i').test(item.name);
+    }
+
+    function itemIsDisabled(item, instance){
+      return item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(contextMenu.instance) === true);
+    }
+  }
+
+  ContextMenu.prototype.onBeforeKeyDown = function (event) {
+    var contextMenu = this;
+    var instance = $(contextMenu.menu).handsontable('getInstance');
+    var selection = instance.getSelected();
+
+    switch(event.keyCode){
+
+      case Handsontable.helper.keyCode.ESCAPE:
+        contextMenu.close();
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        break;
+
+      case Handsontable.helper.keyCode.ENTER:
+        if(instance.getSelected()){
+          contextMenu.performAction();
+          contextMenu.close();
+        }
+        break;
+
+      case Handsontable.helper.keyCode.ARROW_DOWN:
+        if(!selection){
+
+          selectFirstCell(instance);
+
+        } else {
+
+          selectNextCell(selection[0], selection[1], instance);
+
+        }
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        break;
+
+      case Handsontable.helper.keyCode.ARROW_UP:
+        if(!selection){
+
+          selectLastCell(instance);
+
+        }  else {
+
+          selectPrevCell(selection[0], selection[1], instance);
+
+        }
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        break;
+
+    }
+
+    function selectFirstCell(instance) {
+
+      var firstCell = instance.getCell(0, 0);
+
+      if(ContextMenu.utils.isSeparator(firstCell) || ContextMenu.utils.isDisabled(firstCell)){
+        selectNextCell(0, 0, instance);
+      } else {
+        instance.selectCell(0, 0);
+      }
+
+    }
+
+
+    function selectLastCell(instance) {
+
+      var lastRow = instance.countRows() - 1;
+      var lastCell = instance.getCell(lastRow, 0);
+
+      if(ContextMenu.utils.isSeparator(lastCell) || ContextMenu.utils.isDisabled(lastCell)){
+        selectPrevCell(lastRow, 0, instance);
+      } else {
+        instance.selectCell(lastRow, 0);
+      }
+
+    }
+
+    function selectNextCell(row, col, instance){
+      var nextRow = row + 1;
+      var nextCell =  nextRow < instance.countRows() ? instance.getCell(nextRow, col) : null;
+
+      if(!nextCell){
+        return;
+      }
+
+      if(ContextMenu.utils.isSeparator(nextCell) || ContextMenu.utils.isDisabled(nextCell)){
+        selectNextCell(nextRow, col, instance);
+      } else {
+        instance.selectCell(nextRow, col);
+      }
+    }
+
+    function selectPrevCell(row, col, instance) {
+
+      var prevRow = row - 1;
+      var prevCell = prevRow >= 0 ? instance.getCell(prevRow, col) : null;
+
+      if (!prevCell) {
+        return;
+      }
+
+      if(ContextMenu.utils.isSeparator(prevCell) || ContextMenu.utils.isDisabled(prevCell)){
+        selectPrevCell(prevRow, col, instance);
+      } else {
+        instance.selectCell(prevRow, col);
+      }
+
+    }
+
+  }
 
   ContextMenu.prototype.getItems = function () {
     var items = {};
@@ -240,8 +373,10 @@
   ContextMenu.prototype.setMenuPosition = function (cursorY, cursorX) {
 
     var cursor = {
-      top: cursorY,
-      left: cursorX
+      top:  cursorY,
+      topRelative: cursorY - window.pageYOffset,
+      left: cursorX,
+      leftRelative:cursorX - window.pageXOffset
     };
 
     if(this.menuFitsBelowCursor(cursor)){
@@ -259,11 +394,11 @@
   };
 
   ContextMenu.prototype.menuFitsBelowCursor = function (cursor) {
-    return cursor.top + this.menu.offsetHeight <= document.documentElement.scrollTop + document.documentElement.clientHeight;
+    return cursor.topRelative + this.menu.offsetHeight <= document.documentElement.scrollTop + document.documentElement.clientHeight;
   };
 
   ContextMenu.prototype.menuFitsOnRightOfCursor = function (cursor) {
-    return cursor.left + this.menu.offsetWidth <= document.documentElement.scrollLeft + document.documentElement.clientWidth;
+    return cursor.leftRelative + this.menu.offsetWidth <= document.documentElement.scrollLeft + document.documentElement.clientWidth;
   };
 
   ContextMenu.prototype.positionMenuBelowCursor = function (cursor) {
@@ -328,6 +463,20 @@
     return selection;
   };
 
+  ContextMenu.utils.isSeparator = function (cell) {
+    return Handsontable.Dom.hasClass(cell, 'htSeparator');
+  };
+
+  ContextMenu.utils.isDisabled = function (cell) {
+    return Handsontable.Dom.hasClass(cell, 'htDisabled');
+  };
+
+  ContextMenu.prototype.close = function () {
+    this.hide();
+    $(document).off('mousedown.htContextMenu');
+    this.instance.listen();
+  };
+
   ContextMenu.prototype.hide = function(){
     this.menu.style.display = 'none';
     $(this.menu).handsontable('destroy');
@@ -343,13 +492,13 @@
   ContextMenu.prototype.disable = function () {
     if(this.enabled){
       this.enabled = false;
-      this.hide();
+      this.close();
       this.unbindMouseEvents();
     }
   };
 
   ContextMenu.prototype.destroy = function () {
-    this.hide();
+    this.close();
     this.unbindMouseEvents();
 
     if(this.menu.parentNode){
