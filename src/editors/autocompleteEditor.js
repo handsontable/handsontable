@@ -1,6 +1,12 @@
 (function (Handsontable) {
   var AutocompleteEditor = Handsontable.editors.HandsontableEditor.prototype.extend();
 
+  AutocompleteEditor.prototype.init = function () {
+    Handsontable.editors.HandsontableEditor.prototype.init.apply(this, arguments);
+
+    this.query = null;
+  }
+
   AutocompleteEditor.prototype.createElements = function(){
     Handsontable.editors.HandsontableEditor.prototype.createElements.apply(this, arguments);
 
@@ -16,8 +22,18 @@
         setTimeout(function () {
           that.queryChoices(that.$textarea.val());
         });
+      } if (event.keyCode == Handsontable.helper.keyCode.ENTER && that.cellProperties.strict !== true){
+        that.$htContainer.handsontable('deselectCell');
       }
 
+    });
+
+    this.$htContainer.on('mouseenter', function () {
+      that.$htContainer.handsontable('deselectCell');
+    });
+
+    this.$htContainer.on('mouseleave', function () {
+      that.queryChoices(that.query);
     });
 
     Handsontable.editors.HandsontableEditor.prototype.bindEvents.apply(this, arguments);
@@ -32,9 +48,20 @@
       that.queryChoices(that.TEXTAREA.value);
     });
 
-    this.$htContainer.handsontable('updateSettings', {
-      'colWidths': [this.wtDom.outerWidth(this.TEXTAREA) - 2]
+    var hot =  this.$htContainer.handsontable('getInstance');
+
+    hot.updateSettings({
+      'colWidths': [this.wtDom.outerWidth(this.TEXTAREA) - 2],
+      renderer: function (instance, TD, row, col, prop, value, cellProperties) {
+
+        Handsontable.TextRenderer.apply(this, arguments);
+
+        TD.innerHTML = value.replace(new RegExp(that.query, 'i'), '<strong>' + that.query + '</strong>');
+
+      }
     });
+
+
   };
 
   var onBeforeKeyDownInner;
@@ -74,6 +101,9 @@
   };
 
   AutocompleteEditor.prototype.queryChoices = function(query){
+
+    this.query = query;
+
     if (typeof this.cellProperties.source == 'function'){
       var that = this;
 
@@ -85,7 +115,7 @@
 
       var choices;
 
-      if(!query){
+      if(!query || this.cellProperties.filter === false){
         choices = this.cellProperties.source;
       } else {
         choices = this.cellProperties.source.filter(function(choice){
@@ -101,25 +131,54 @@
 
   };
 
+  function findItemIndexToHighlight(items, value){
+    var bestMatch = {};
+    var valueLength = value.length;
+    var currentItem;
+    var indexOfValue;
+    var charsLeft;
+
+
+    for(var i = 0, len = items.length; i < len; i++){
+      currentItem = items[i];
+      indexOfValue = currentItem.indexOf(value);
+
+      if(indexOfValue == -1) continue;
+
+      charsLeft =  currentItem.length - indexOfValue - valueLength;
+
+      if( typeof bestMatch.indexOfValue == 'undefined'
+        || bestMatch.indexOfValue > indexOfValue
+        || ( bestMatch.indexOfValue == indexOfValue && bestMatch.charsLeft > charsLeft ) ){
+
+        bestMatch.indexOfValue = indexOfValue;
+        bestMatch.charsLeft = charsLeft;
+        bestMatch.index = i;
+
+      }
+
+    }
+
+
+    return bestMatch.index;
+  }
+
   AutocompleteEditor.prototype.updateChoicesList = function (choices) {
     this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
 
     var value = this.val();
-    var row;
+    var rowToHighlight;
 
-    if(value.length > 0){
-      for( var i = 0, len = choices.length; i < len; i++){
-        if(choices[i] == value){
-          row = i;
-          break;
-        }
-      }
+    if(this.cellProperties.strict === true && value.length > 0){
+
+      rowToHighlight = findItemIndexToHighlight(choices, value);
+
     }
 
-    if(typeof row == 'undefined'){
+    if(typeof rowToHighlight == 'undefined'){
       this.$htContainer.handsontable('deselectCell');
     } else {
-      this.$htContainer.handsontable('selectCell', row, 0);
+      this.$htContainer.handsontable('selectCell', rowToHighlight, 0);
     }
 
     this.focus();

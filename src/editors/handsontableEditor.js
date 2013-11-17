@@ -88,6 +88,11 @@
 
       if (!innerHOT.getSelected()){
         innerHOT.selectCell(0, 0);
+      } else {
+        var selectedRow = innerHOT.getSelected()[0];
+        var rowToSelect = selectedRow < innerHOT.countRows() - 1 ? selectedRow + 1 : selectedRow;
+
+        innerHOT.selectCell(rowToSelect, 0);
       }
 
       event.preventDefault();
