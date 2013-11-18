@@ -1314,7 +1314,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         changes.splice(i, 1);
       }
       else {
-        var row = datamap.propToCol(changes[i][0]);
+        var row = changes[i][0];
         var col = datamap.propToCol(changes[i][1]);
         var logicalCol = instance.runHooksAndReturn('modifyCol', col); //column order may have changes, so we need to translate physical col index (stored in datasource) to logical (displayed to user)
         var cellProperties = instance.getCellMeta(row, logicalCol);
