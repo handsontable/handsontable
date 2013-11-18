@@ -267,7 +267,8 @@ describe('manualColumnMove', function () {
       columns: [
         {
           type: 'numeric',
-          data: 'id'},
+          data: 'id'
+        },
         {
           data: 'name'
         },

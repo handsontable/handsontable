@@ -358,7 +358,7 @@
       var originalValue = instance.getDataAtCell(row, col);
       var cellProperties = instance.getCellMeta(row, col);
 
-      var editorClass = cellProperties.editor;
+      var editorClass = instance.getCellEditor(cellProperties);
       activeEditor = Handsontable.editors.getEditor(editorClass, instance);
 
       activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);

@@ -14,12 +14,9 @@ Handsontable.Core = function (rootElement, userSettings) {
     , editorManager
     , autofill
     , instance = this
-    , GridSettings = function () {
-    };
+    , GridSettings = function () {};
 
   Handsontable.helper.inherit(GridSettings, DefaultSettings); //create grid settings as a copy of default settings
-  Handsontable.helper.extend(GridSettings.prototype, Handsontable.TextCell); //overwrite defaults with default cell
-  expandType(userSettings);
   Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
 
   this.rootElement = rootElement;
@@ -1317,17 +1314,18 @@ Handsontable.Core = function (rootElement, userSettings) {
         changes.splice(i, 1);
       }
       else {
+        var row = changes[i][0];
         var col = datamap.propToCol(changes[i][1]);
         var logicalCol = instance.runHooksAndReturn('modifyCol', col); //column order may have changes, so we need to translate physical col index (stored in datasource) to logical (displayed to user)
-        var cellProperties = instance.getCellMeta(changes[i][0], logicalCol);
+        var cellProperties = instance.getCellMeta(row, logicalCol);
 
-        if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
+        if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && /^-?[\d\s]*\.?\d*$/.test(changes[i][3])) {
             changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
           }
         }
 
-        if (cellProperties.validator) {
+        if (instance.getCellValidator(cellProperties)) {
           waitingForValidator.addValidatorToQueue();
           instance.validateCell(changes[i][3], cellProperties, (function (i, cellProperties) {
             return function (result) {
@@ -1407,7 +1405,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   }
 
   this.validateCell = function (value, cellProperties, callback, source) {
-    var validator = cellProperties.validator;
+    var validator = instance.getCellValidator(cellProperties);
 
     if (Object.prototype.toString.call(validator) === '[object RegExp]') {
       validator = (function (validator) {
@@ -1826,7 +1824,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         // Use settings provided by user
         if (GridSettings.prototype.columns) {
           column = GridSettings.prototype.columns[i];
-          expandType(column);
+//          expandType(column);
           Handsontable.helper.extend(proto, column);
         }
       }
@@ -2051,13 +2049,13 @@ Handsontable.Core = function (rootElement, userSettings) {
     cellProperties.instance = instance;
 
     instance.PluginHooks.run('beforeGetCellMeta', row, col, cellProperties);
-    expandType(cellProperties); //for `type` added in beforeGetCellMeta
+//    expandType(cellProperties); //for `type` added in beforeGetCellMeta
 
     if (cellProperties.cells) {
       var settings = cellProperties.cells.call(cellProperties, row, col, prop);
 
       if (settings) {
-        expandType(settings); //for `type` added in cells
+//        expandType(settings); //for `type` added in cells
         Handsontable.helper.extend(cellProperties, settings);
       }
     }
@@ -2090,6 +2088,22 @@ Handsontable.Core = function (rootElement, userSettings) {
       return Handsontable.PluginHooks.execute(instance, 'modifyCol', col); // warning: this must be done after datamap.colToProp
     }
   };
+
+  this.getCellRenderer = function (row, col) {
+    var renderer = Handsontable.helper.cellMethodLookupFactory('renderer').call(this, row, col);
+
+    if(typeof renderer == 'string'){
+      renderer = Handsontable.cellLookup.renderer[renderer];
+    }
+
+    return renderer
+
+  };
+
+  this.getCellEditor = Handsontable.helper.cellMethodLookupFactory('editor');
+
+  this.getCellValidator = Handsontable.helper.cellMethodLookupFactory('validator');
+
 
   /**
    * Validates all cells using their validator functions and calls callback when finished. Does not render the view
@@ -2559,8 +2573,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.version = '@@version'; //inserted by grunt from package.json
 };
 
-var DefaultSettings = function () {
-};
+var DefaultSettings = function () {};
+
 DefaultSettings.prototype = {
   data: void 0,
   width: void 0,
@@ -2596,7 +2610,8 @@ DefaultSettings.prototype = {
   invalidCellClassName: 'htInvalid',
   fragmentSelection: false,
   readOnly: false,
-  nativeScrollbars: false
+  nativeScrollbars: false,
+  type: 'text'
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
