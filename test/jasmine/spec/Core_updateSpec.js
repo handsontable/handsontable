@@ -180,8 +180,8 @@ describe('Core_updateSettings', function () {
     });
 
     expect(getCellMeta(0, 0).type).toEqual('text');
-    expect(getCellMeta(0, 0).renderer).toBe(Handsontable.TextCell.renderer);
-    expect(getCellMeta(0, 0).editor).toBe(Handsontable.TextCell.editor);
+    expect(getCellRenderer(0, 0)).toBe(Handsontable.TextCell.renderer);
+    expect(getCellEditor(0, 0)).toBe(Handsontable.TextCell.editor);
 
     columns[0].type = 'date';
 
@@ -190,11 +190,39 @@ describe('Core_updateSettings', function () {
     });
 
     expect(getCellMeta(0, 0).type).toEqual('date');
-    expect(getCellMeta(0, 0).renderer).toBe(Handsontable.DateCell.renderer);
-    expect(getCellMeta(0, 0).editor).toEqual(Handsontable.DateCell.editor);
+    expect(getCellRenderer(0, 0)).toBe(Handsontable.DateCell.renderer);
+    expect(getCellEditor(0, 0)).toEqual(Handsontable.DateCell.editor);
 
+  });
 
+  it("should update cell type functions, even if new type does not implement all of those functions", function () {
 
+    var columns = [
+      {
+        type: 'numeric'
+      }
+    ];
+
+    handsontable({
+      columns: columns
+    });
+
+    expect(getCellMeta(0, 0).type).toEqual('numeric');
+    expect(getCellRenderer(0, 0)).toBe(Handsontable.NumericCell.renderer);
+    expect(getCellEditor(0, 0)).toBe(Handsontable.NumericCell.editor);
+    expect(getCellValidator(0, 0)).toBe(Handsontable.NumericCell.validator);
+
+    columns[0].type = 'text';
+
+    updateSettings({
+      columns: columns
+    });
+
+    expect(getCellMeta(0, 0).type).toEqual('text');
+    expect(getCellRenderer(0, 0)).toBe(Handsontable.TextCell.renderer);
+    expect(getCellEditor(0, 0)).toEqual(Handsontable.TextCell.editor);
+    expect(Handsontable.TextCell.validator).toBeUndefined();
+    expect(getCellValidator(0, 0)).toBeUndefined();
 
   });
 
