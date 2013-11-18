@@ -96,6 +96,10 @@ describe('WebComponents', function () {
     tpl.model = model;
     document.body.appendChild(tpl);
 
+    waitsFor(function () {
+      return ready;
+    }, 1000);
+
     waits(100);
 
     runs(function () {
@@ -116,6 +120,10 @@ describe('WebComponents', function () {
     tpl.innerHTML = '<x-html content="{{ html }}"></x-html>';
     tpl.model = model;
     document.body.appendChild(tpl);
+
+    waitsFor(function () {
+      return ready;
+    }, 1000);
 
     waits(100);
 
