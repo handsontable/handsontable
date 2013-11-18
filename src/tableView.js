@@ -143,7 +143,7 @@ Handsontable.TableView = function (instance) {
 
       var prop = that.instance.colToProp(col)
         , cellProperties = that.instance.getCellMeta(row, col)
-        , renderer = that.instance.getCellRenderer(row, col) //methodName is 'renderer' or 'editor'
+        , renderer = that.instance.getCellRenderer(cellProperties)
 
       var value = that.instance.getDataAtRowProp(row, prop);
 

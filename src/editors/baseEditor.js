@@ -143,7 +143,7 @@
 
       this.saveValue(val, ctrlDown);
 
-      if(this.instance.getCellValidator(this.row, this.col)){
+      if(this.instance.getCellValidator(this.cellProperties)){
         var that = this;
         this.instance.addHookOnce('afterValidate', function (result) {
           that.state = Handsontable.EditorState.FINISHED;

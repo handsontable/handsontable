@@ -1325,7 +1325,7 @@ Handsontable.Core = function (rootElement, userSettings) {
           }
         }
 
-        if (instance.getCellValidator(row, logicalCol)) {
+        if (instance.getCellValidator(cellProperties)) {
           waitingForValidator.addValidatorToQueue();
           instance.validateCell(changes[i][3], cellProperties, (function (i, cellProperties) {
             return function (result) {
@@ -1405,7 +1405,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   }
 
   this.validateCell = function (value, cellProperties, callback, source) {
-    var validator = instance.getCellValidator(cellProperties.row, cellProperties.col);
+    var validator = instance.getCellValidator(cellProperties);
 
     if (Object.prototype.toString.call(validator) === '[object RegExp]') {
       validator = (function (validator) {

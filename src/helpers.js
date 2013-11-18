@@ -393,7 +393,7 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName) {
 
       return getMethodFromProperties(Handsontable.helper.getPrototypeOf(properties));
 
-    })(this.getCellMeta(row, col));
+    })(typeof row == 'number' ? this.getCellMeta(row, col) : row);
 
   };
 

@@ -86,7 +86,7 @@
       instance.view.wt.wtDom.empty(tmp.tbody);
 
       var cellProperties = instance.getCellMeta(0, col);
-      var renderer = instance.getCellRenderer(0, col);
+      var renderer = instance.getCellRenderer(cellProperties);
 
       for (var i in samples) {
         if (samples.hasOwnProperty(i)) {
