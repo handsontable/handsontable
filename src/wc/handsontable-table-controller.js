@@ -1,8 +1,18 @@
 function parseDatacolumn(HOTCOLUMN) {
-  var obj = {};
+  var obj = {}
+    , attrName;
 
   for (var i = 0, ilen = HOTCOLUMN.attributes.length; i < ilen; i++) {
-    obj[HOTCOLUMN.attributes[i].name] = HOTCOLUMN.attributes[i].value || true;
+    attrName = HOTCOLUMN.attributes[i].name;
+    if (HOTCOLUMN[attrName] !== void 0) {
+      obj[attrName] = HOTCOLUMN[attrName];
+    }
+    else if (HOTCOLUMN.attributes[i].value !== void 0) {
+      obj[attrName] = HOTCOLUMN.attributes[i].value;
+    }
+    else {
+      obj[attrName] = true;
+    }
   }
 
   obj.data = obj.value;
@@ -19,7 +29,7 @@ function parseDatacolumn(HOTCOLUMN) {
   obj.uncheckedTemplate = obj.uncheckedtemplate;
   delete obj.uncheckedtemplate;
 
-  if (obj.type === 'autocomplete' && typeof obj.source === 'string') {
+  if ((obj.type === 'autocomplete' || obj.type === 'dropdown') && typeof obj.source === 'string') {
     obj.source = window[obj.source];
   }
 
