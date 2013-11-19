@@ -241,6 +241,22 @@ Handsontable.helper.extendArray = function (arr, extension) {
 };
 
 /**
+ * Get nth object key
+ * @param {Object} obj
+ * @param {Number} n
+ * @return {String} key
+ */
+Handsontable.helper.getNthKey = function(obj, n) {
+  var i = 0;
+  for (var key in obj) {
+    if (!obj.hasOwnProperty(key)) continue;
+    if (n == i) return key;
+    i++;
+  }
+  return null;
+};
+
+/**
  * Returns cell renderer or editor function directly or through lookup map
  */
 Handsontable.helper.getCellMethod = function (methodName, methodFunction) {

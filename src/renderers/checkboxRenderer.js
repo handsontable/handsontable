@@ -73,8 +73,6 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
 
     instance.addHook('beforeKeyDown', function(event){
        if(event.keyCode == 32){
-         event.stopImmediatePropagation();
-         event.preventDefault();
 
          var selection = instance.getSelected();
          var cell, checkbox, cellProperties;
@@ -95,6 +93,9 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
              checkbox = cell.querySelectorAll('input[type=checkbox]');
 
              if(checkbox.length > 0 && !cellProperties.readOnly){
+               event.stopImmediatePropagation();
+               event.preventDefault();
+
                for(var i = 0, len = checkbox.length; i < len; i++){
                  checkbox[i].checked = !checkbox[i].checked;
                  $(checkbox[i]).trigger('change');
