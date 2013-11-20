@@ -3,7 +3,11 @@
   //Blank editor, because all the work is done by renderer
   var CheckboxEditor = Handsontable.editors.BaseEditor.prototype.extend();
 
-  CheckboxEditor.prototype.beginEditing = function () {};
+  CheckboxEditor.prototype.beginEditing = function () {
+    this.saveValue([
+      [!this.originalValue]
+    ]);
+  };
   CheckboxEditor.prototype.finishEditing = function () {};
 
   CheckboxEditor.prototype.init = function () {};

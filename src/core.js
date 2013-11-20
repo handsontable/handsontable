@@ -1574,8 +1574,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
    */
   this.populateFromArray = function (row, col, input, endRow, endCol, source, method) {
-    if (typeof input !== 'object') {
-      throw new Error("populateFromArray parameter `input` must be an array"); //API changed in 0.9-beta2, let's check if you use it correctly
+    if (!(typeof input === 'object' && typeof input[0] === 'object')) {
+      throw new Error("populateFromArray parameter `input` must be an array of arrays"); //API changed in 0.9-beta2, let's check if you use it correctly
     }
     return grid.populateFromArray({row: row, col: col}, input, typeof endRow === 'number' ? {row: endRow, col: endCol} : null, source, method);
   };
