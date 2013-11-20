@@ -135,7 +135,7 @@
         ];
       } else {
         val = [
-          [this.val().trim()] //String.prototype.trim is defined in Walkontable polyfill.js
+          [String.prototype.trim.call(this.val())] //String.prototype.trim is defined in Walkontable polyfill.js
         ];
       }
 
