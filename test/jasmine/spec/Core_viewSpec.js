@@ -82,6 +82,40 @@ describe('Core_view', function () {
 
   });
 
+  it('should scroll viewport using page-down and page-up, respecting fixed rows', function(){
+
+    spec().$container.css({
+      width: '200px',
+      height: '100px'
+    });
+
+    var fixedRowsTop = 1;
+    var instance = handsontable({
+      data: createSpreadsheetData(10, 9),
+      fixedRowsTop: fixedRowsTop
+    });
+    var visibleRows = 4; // instance.countVisibleRows(); FOR SOME REASON THE INSTANCE IS REPORTING 5
+
+    expect(this.$container.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
+    expect(this.$container.find('tr:eq(1) td:eq(1)').html()).toEqual("B1");
+    expect(this.$container.find('tr:eq(1) td:eq(2)').html()).toEqual("C1");
+
+    selectCell(0, 0);
+
+    keyDown('page_down');
+
+    expect(this.$container.find('tr:eq(1) td:eq(0)').html()).toEqual("A"+(visibleRows-fixedRowsTop+1));
+    expect(this.$container.find('tr:eq(1) td:eq(1)').html()).toEqual("B"+(visibleRows-fixedRowsTop+1));
+    expect(this.$container.find('tr:eq(1) td:eq(2)').html()).toEqual("C"+(visibleRows-fixedRowsTop+1));
+
+    keyDown('page_up');
+
+    expect(this.$container.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
+    expect(this.$container.find('tr:eq(1) td:eq(1)').html()).toEqual("B1");
+    expect(this.$container.find('tr:eq(1) td:eq(2)').html()).toEqual("C1");
+
+  });
+
   it('should enable to change fixedRowsTop with updateSettings', function () {
 
     var HOT = handsontable({
