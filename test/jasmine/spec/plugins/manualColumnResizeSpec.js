@@ -144,6 +144,23 @@ describe('manualColumnResize', function () {
 
   });
 
+  it("should trigger an afterColumnResize before rendering", function() {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      afterColumnResize: function(col, width) {
+        this.manualColumnWidths[col] = width*2;
+      }
+    });
+
+    expect(colWidth(this.$container, 0)).toEqual(50);
+
+    resizeColumn(0, 100);
+
+    expect(colWidth(this.$container, 0)).toEqual(200);
+  });
+
   it("should not trigger an afterColumnResize event if column size does not change (mouseMove event width delta = 0)", function () {
 
     var afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
