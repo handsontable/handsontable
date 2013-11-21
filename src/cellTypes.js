@@ -42,7 +42,8 @@ Handsontable.PasswordCell = {
 
 Handsontable.DropdownCell = {
   editor: 'dropdown',
-  renderer: Handsontable.AutocompleteRenderer
+  renderer: Handsontable.AutocompleteRenderer,
+  validator: Handsontable.AutocompleteValidator
 };
 
 //here setup the friendly aliases that are used by cellProperties.type
