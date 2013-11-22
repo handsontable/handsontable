@@ -62,7 +62,7 @@ describe('TextRenderer', function () {
 
     var TD = document.createElement('TD');
     TD.className = "someClass";
-    Handsontable.TextRenderer(instance, TD, 0, 0, 0, '', {readOnly: true});
+    Handsontable.renderers.TextRenderer(instance, TD, 0, 0, 0, '', {readOnly: true});
     expect(TD.className).toEqual('someClass htDimmed');
   });
 
