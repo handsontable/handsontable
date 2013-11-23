@@ -40,6 +40,20 @@ describe('Core.getColHeader', function () {
     expect(getColHeader(1)).toEqual('col1');
   });
 
+  it('when configured as function, should not be overriden by columns', function () {
+    var columns = [];
+    for(var i=0; i<10; i++) {
+      columns.push({});
+    }
+    handsontable({
+      columns: columns,
+      colHeaders: function (index) {
+        return 'col' + index;
+      }
+    });
+    expect(getColHeader(1)).toEqual('col1');
+  });
+
   it('when configured as static value, should return the value', function () {
     handsontable({
       colHeaders: 'static'
