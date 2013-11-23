@@ -1808,15 +1808,6 @@ Handsontable.Core = function (rootElement, userSettings) {
       datamap.createMap();
     }
 
-    if (settings.columns !== void 0) {
-      for (i = 0, ilen = settings.columns.length; i < ilen; i++) {
-        if (GridSettings.prototype.colHeaders !== false) {
-          GridSettings.prototype.colHeaders = true;
-        }
-        break;
-      }
-    }
-
     // Init columns constructors configuration
     clen = instance.countCols();
 
