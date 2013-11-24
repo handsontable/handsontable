@@ -18,7 +18,7 @@ function WalkontableEvent(instance) {
           that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD);
         }
       } else if (cell.TD.nodeName === 'TH') {
-        if (cell.TD.parentNode.parentNode.nodeName === 'THEAD') {
+        if (cell.TD.parentNode.parentNode.nodeName === 'THEAD' && cell.coords[1] >= 0) {
           that.instance.getSetting('onColumnHeaderMouseDown', event, cell.coords[1], cell.TD);
         } else if (cell.TD.parentNode.parentNode.nodeName === 'TBODY') {
           that.instance.getSetting('onRowHeaderMouseDown', event, cell.coords[0], cell.TD);
