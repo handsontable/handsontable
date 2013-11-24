@@ -40,7 +40,9 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  var isMouseDown;
+  var isMouseDown
+    , isColHeaderMouseDown
+    , isRowHeaderMouseDown;
 
   $documentElement.on('mouseup.' + instance.guid, function (event) {
     if (instance.selection.isInProgress() && event.which === 1) { //is left mouse button
@@ -48,6 +50,8 @@ Handsontable.TableView = function (instance) {
     }
 
     isMouseDown = false;
+    isColHeaderMouseDown = false;
+    isRowHeaderMouseDown = false;
 
     if (instance.autofill.handle && instance.autofill.handle.isDragged) {
       if (instance.autofill.handle.isDragged > 1) {
@@ -211,6 +215,12 @@ Handsontable.TableView = function (instance) {
          }*/
         instance.selection.setRangeEnd(coordsObj);
       }
+      else if (isRowHeaderMouseDown) {
+        instance.selection.setRangeEnd({ row: coords[0], col: instance.countCols()-1}, false);
+      }
+      else if (isColHeaderMouseDown) {
+        instance.selection.setRangeEnd({ row: instance.countRows()-1, col: coords[1]}, false);
+      }
       else if (instance.autofill.handle && instance.autofill.handle.isDragged) {
         instance.autofill.handle.isDragged++;
         instance.autofill.showBorder(coords);
@@ -223,6 +233,68 @@ Handsontable.TableView = function (instance) {
     },
     onCellCornerDblClick: function () {
       instance.autofill.selectAdjacent();
+    },
+    onRowHeaderMouseDown: function (event, row, TH) {
+      instance.runHooks('beforeOnRowHeaderMouseDown', event, row, TH);
+      if(event.isImmediatePropagationStopped()) {
+        return;
+      }
+
+      instance.listen();
+
+      isRowHeaderMouseDown = true;
+      if (event.button === 2 && instance.selection.inInSelection(coordsObj)) { //right mouse button
+        //do nothing
+      }
+      else if (event.shiftKey && instance.getSelected() !== undefined) {
+        var from = instance.getSelected()[0]; // [row,col,row,col]
+        instance.selection.setRangeStart({ row: from, col: 0});
+        instance.selection.setRangeEnd({ row: row, col: instance.countCols()-1}, false);
+      }
+      else {
+        instance.selection.setRangeStart({ row: row, col: 0});
+        instance.selection.setRangeEnd({ row: row, col: instance.countCols()-1}, false);
+      }
+
+      instance.PluginHooks.run('afterOnRowHeaderMouseDown', event, row, TH);
+    },
+    onRowHeaderMouseOver: function(event, row, TH) {
+      if (isMouseDown) {
+        instance.selection.setRangeEnd({ row: row, col: 0});
+      } else if (isRowHeaderMouseDown) {
+        instance.selection.setRangeEnd({ row: row, col: instance.countCols()-1}, false);
+      }
+    },
+    onColumnHeaderMouseDown: function (event, col, TH) {
+      instance.runHooks('beforeOnColHeaderMouseDown', event, col, TH);
+      if(event.isImmediatePropagationStopped()) {
+        return;
+      }
+
+      instance.listen();
+
+      isColHeaderMouseDown = true;
+      if (event.button === 2 && instance.selection.inInSelection(coordsObj)) { //right mouse button
+        //do nothing
+      }
+      else if (event.shiftKey && instance.getSelected() !== undefined) {
+        var from = instance.getSelected()[1]; // [row,col,row,col]
+        instance.selection.setRangeStart({ row: 0, col: from});
+        instance.selection.setRangeEnd({ row: instance.countRows()-1, col: col}, false);
+      }
+      else {
+        instance.selection.setRangeStart({ row: 0, col: col});
+        instance.selection.setRangeEnd({ row: instance.countRows()-1, col: col}, false);
+      }
+
+      instance.PluginHooks.run('afterOnColHeaderMouseDown', event, col, TH);
+    },
+    onColumnHeaderMouseOver: function(event, col, TH) {
+      if (isMouseDown) {
+        instance.selection.setRangeEnd({ row: 0, col: col});
+      } else if (isColHeaderMouseDown) {
+        instance.selection.setRangeEnd({ row: instance.countRows()-1, col: col}, false);
+      }
     },
     beforeDraw: function (force) {
       that.beforeRender(force);

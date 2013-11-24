@@ -16,6 +16,10 @@ Handsontable.PluginHookClass = (function () {
       beforeGetCellMeta: [],
       beforeAutofill: [],
       beforeKeyDown: [],
+      beforeOnCellMouseDown: [],
+      beforeOnCellMouseOver: [],
+      beforeOnRowHeaderMouseDown: [],
+      beforeOnColumnHeaderMouseDown: [],
 
       afterInit : [],
       afterLoadData : [],
@@ -25,6 +29,7 @@ Handsontable.PluginHookClass = (function () {
       afterChange : [],
       afterValidate: [],
       afterGetCellMeta: [],
+      afterGetRowHeader: [],
       afterGetColHeader: [],
       afterGetColWidth: [],
       afterDestroy: [],
@@ -42,6 +47,8 @@ Handsontable.PluginHookClass = (function () {
       afterCopyLimit: [],
       afterOnCellMouseDown: [],
       afterOnCellCornerMouseDown: [],
+      afterOnRowHeaderMouseDown: [],
+      afterOnColumnHeaderMouseDown: [],
 
       // Modifiers
       modifyCol: []
