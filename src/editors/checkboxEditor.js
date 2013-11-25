@@ -13,7 +13,8 @@
   CheckboxEditor.prototype.init = function () {};
   CheckboxEditor.prototype.open = function () {};
   CheckboxEditor.prototype.close = function () {};
-  CheckboxEditor.prototype.val = function () {};
+  CheckboxEditor.prototype.getValue = function () {};
+  CheckboxEditor.prototype.setValue = function () {};
   CheckboxEditor.prototype.focus = function () {};
 
   Handsontable.editors.CheckboxEditor = CheckboxEditor;
