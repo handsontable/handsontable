@@ -287,7 +287,8 @@ Handsontable.TableView.prototype.isTextSelectionAllowed = function (el) {
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {
-  return document.activeElement !== document.body;
+  var activeEditor = this.instance.getActiveEditor();
+  return activeEditor && activeEditor.isOpened();
 };
 
 Handsontable.TableView.prototype.getWidth = function () {
