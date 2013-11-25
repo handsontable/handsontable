@@ -175,7 +175,7 @@
   AutocompleteEditor.prototype.updateChoicesList = function (choices) {
     this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
 
-    var value = this.val();
+    var value = this.getValue();
     var rowToHighlight;
 
     if(this.cellProperties.strict === true){

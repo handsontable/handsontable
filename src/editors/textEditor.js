@@ -6,12 +6,12 @@
     this.bindEvents();
   };
 
-  TextEditor.prototype.val = function(newValue){
-    if(typeof newValue == 'undefined'){
-      return this.TEXTAREA.value
-    } else {
-      this.TEXTAREA.value = newValue;
-    }
+  TextEditor.prototype.getValue = function(){
+    return this.TEXTAREA.value
+  };
+
+  TextEditor.prototype.setValue = function(newValue){
+    this.TEXTAREA.value = newValue;
   };
 
   var onBeforeKeyDown =  function onBeforeKeyDown(event){
@@ -52,7 +52,7 @@
         var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
         if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
           if(that.isOpened()){
-            that.val(that.val() + '\n');
+            that.setValue(that.getValue() + '\n');
             that.focus();
           } else {
             that.beginEditing(that.originalValue + '\n')

@@ -25,8 +25,12 @@
 
   BaseEditor.prototype.init = function(){};
 
-  BaseEditor.prototype.val = function(newValue){
-    throw Error('Editor val() method unimplemented');
+  BaseEditor.prototype.getValue = function(){
+    throw Error('Editor getValue() method unimplemented');
+  };
+
+  BaseEditor.prototype.setValue = function(newValue){
+    throw Error('Editor setValue() method unimplemented');
   };
 
   BaseEditor.prototype.open = function(){
@@ -93,7 +97,7 @@
 
     initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
 
-    this.val(Handsontable.helper.stringify(initialValue));
+    this.setValue(Handsontable.helper.stringify(initialValue));
 
     this.open();
     this._opened = true;
@@ -135,7 +139,7 @@
         ];
       } else {
         val = [
-          [String.prototype.trim.call(this.val())] //String.prototype.trim is defined in Walkontable polyfill.js
+          [String.prototype.trim.call(this.getValue())] //String.prototype.trim is defined in Walkontable polyfill.js
         ];
       }
 
