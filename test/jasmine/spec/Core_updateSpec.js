@@ -190,10 +190,11 @@ describe('Core_updateSettings', function () {
     });
 
     expect(getCellMeta(0, 0).type).toEqual('date');
-    expect(getCellRenderer(0, 0)).toBe(Handsontable.DateCell.renderer);
-    expect(getCellEditor(0, 0)).toEqual(Handsontable.DateCell.editor);
+    expect(getCellMeta(0, 0).renderer).toBe(Handsontable.DateCell.renderer);
+    expect(getCellMeta(0, 0).editor).toEqual(Handsontable.DateCell.editor);
 
-  });
+
+});
 
   it("should update cell type functions, even if new type does not implement all of those functions", function () {
 
@@ -223,7 +224,6 @@ describe('Core_updateSettings', function () {
     expect(getCellEditor(0, 0)).toEqual(Handsontable.TextCell.editor);
     expect(Handsontable.TextCell.validator).toBeUndefined();
     expect(getCellValidator(0, 0)).toBeUndefined();
-
   });
 
 });
