@@ -413,6 +413,12 @@ describe('Core_validate', function () {
       expect(validatedChanges.length).toEqual(2);
       expect(validatedChanges[0]).toEqual([0, 0, 'A0', 'A0-new']);
       expect(validatedChanges[1]).toEqual([2, 0, 'A2', 'A2-new']);
+      expect(getDataAtCell(0, 0)).toEqual('A0-new');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(2, 0)).toEqual('A2-new');
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCellMeta(1, 0).valid).toBe(true);
+      expect(getCellMeta(2, 0).valid).toBe(true);
     });
   });
 
@@ -1141,4 +1147,5 @@ describe('Core_validate', function () {
       expect(getSelected()).toEqual([3, 0, 3, 0]);
     });
   });
+
 });

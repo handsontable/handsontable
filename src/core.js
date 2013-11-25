@@ -1333,7 +1333,8 @@ Handsontable.Core = function (rootElement, userSettings) {
                 throw new Error("Validation error: result is not boolean");
               }
               if (result === false && cellProperties.allowInvalid === false) {
-                changes.splice(i, 1);
+                changes.splice(i, 1);         // cancel the change
+                cellProperties.valid = true;  // we cancelled the change, so cell value is still valid
                 --i;
               }
               waitingForValidator.removeValidatorFormQueue();
