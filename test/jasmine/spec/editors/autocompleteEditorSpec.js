@@ -1291,8 +1291,8 @@ describe('AutocompleteEditor', function () {
 
       runs(function () {
         var autocompleteList = autocomplete().handsontable('getInstance').rootElement;
-        expect(autocompleteList.find('td:eq(0)').html()).toEqual('<strong>Male</strong>');
-        expect(autocompleteList.find('td:eq(1)').html()).toEqual('Fe<strong>male</strong>');
+        expect(autocompleteList.find('td:eq(0)').html()).toMatch(/<(strong|STRONG)>Male<\/(strong|STRONG)>/); //IE8 makes the tag names UPPERCASE
+        expect(autocompleteList.find('td:eq(1)').html()).toMatch(/Fe<(strong|STRONG)>male<\/(strong|STRONG)>/);
 
         syncSources.reset();
       });
