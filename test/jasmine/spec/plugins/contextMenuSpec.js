@@ -1361,33 +1361,25 @@ describe('ContextMenu', function () {
   });
 
 
-
-
-
-
-  //TODO rewrite these tests for new context menu that uses Handsontable
-  xit('should work properly (remove row) after destroy and new init', function () {
+  it('should work properly (remove row) after destroy and new init', function () {
     var test = function () {
-      handsontable({
+      var hot = handsontable({
         startRows: 5,
         contextMenu: ['remove_row']
       });
       selectCell(0, 0);
       contextMenu();
-      $('ul.context-menu-list li').first().trigger('mouseup.contextMenu');
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(0).trigger('mousedown');
       expect(getData().length).toEqual(4);
     };
     test();
+
     destroy();
 
-    waits(50); //jquery.contextMenu.js waits that long to hide background so we must wait too
-
-    runs(function () {
-      test();
-    });
+    test();
   });
 
-  xit("should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT ", function () {
+  it("should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT ", function () {
     this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
 
     var hot1 = handsontable({
@@ -1401,47 +1393,53 @@ describe('ContextMenu', function () {
     var hot2 = this.$container2.handsontable('getInstance');
 
     contextMenu();
-    expect($('ul.context-menu-list').is(':visible')).toBe(false);
+    expect(hot1.rootElement.find('.htContextMenu').length).toEqual(0);
+    expect(hot1.contextMenu).toBeUndefined();
 
     contextMenu2();
-    expect($('ul.context-menu-list').is(':visible')).toBe(true);
+    expect(hot2.rootElement.find('.htContextMenu').length).toEqual(1);
+    expect($(hot2.contextMenu.menu).is(':visible')).toBe(true);
 
-    hideContextMenu.call(hot2);
+    mouseDown(hot2.rootElement);
 
-    waitsFor(function () {
-      return $('ul.context-menu-list:visible').length == 0
-    }, 'Hiding context menu', 1000);
 
-    runs(function () {
-
-      hot1.updateSettings({
-        contextMenu: true
-      });
-
-      hot2.updateSettings({
-        contextMenu: false
-      });
-
-      contextMenu2();
-      expect($('ul.context-menu-list').is(':visible')).toBe(false);
-
-      contextMenu();
-      expect($('ul.context-menu-list').is(':visible')).toBe(true);
-
-      hot2.destroy();
-      this.$container2.remove();
+    hot1.updateSettings({
+      contextMenu: true
     });
 
-    function contextMenu2() {
-      var ev = $.Event('contextmenu');
-      ev.button = 2;
-      var selector = "#" + hot2.rootElement.attr('id') + ' table, #' + hot2.rootElement.attr('id') + ' div';
-      $(selector).trigger(ev);
-    }
+    hot2.updateSettings({
+      contextMenu: false
+    });
 
-    function hideContextMenu() {
-      var selector = "#" + this.rootElement.attr('id') + ' table, #' + this.rootElement.attr('id') + ' div';
-      $(selector).contextMenu('hide')
+    contextMenu2();
+    expect(hot2.rootElement.find('.htContextMenu').length).toEqual(0);
+    expect(hot2.contextMenu).toBeUndefined();
+
+    contextMenu();
+    expect(hot1.rootElement.find('.htContextMenu').length).toEqual(1);
+    expect($(hot1.contextMenu.menu).is(':visible')).toBe(true);
+
+    hot2.destroy();
+    this.$container2.remove();
+
+    function contextMenu2() {
+      var hot = spec().$container2.data('handsontable');
+      var selected = hot.getSelected();
+
+      if(!selected){
+        hot.selectCell(0, 0);
+        selected = hot.getSelected();
+      }
+
+      var cell = hot.getCell(selected[0], selected[1]);
+      var cellOffset = $(cell).offset();
+
+      var ev = $.Event('contextmenu', {
+        pageX: cellOffset.left,
+        pageY: cellOffset.top
+      });
+
+      $(cell).trigger(ev);
     }
 
   });
