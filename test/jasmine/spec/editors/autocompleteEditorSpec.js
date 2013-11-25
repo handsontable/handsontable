@@ -1194,10 +1194,6 @@ describe('AutocompleteEditor', function () {
       runs(function () {
         expect(autocomplete().handsontable('getData')).toEqual([ [ 'red' ] ]);
       });
-
-
-
-
     });
     it('typing in textarea should NOT filter the lookup list when filtering is disabled', function () {
 
@@ -1245,6 +1241,61 @@ describe('AutocompleteEditor', function () {
 
 
 
+    });
+
+    it('typing in textarea should highlight the matching phrase', function () {
+      var choices = ['Male', 'Female'];
+
+      var syncSources = jasmine.createSpy('syncSources');
+
+      syncSources.plan = function (query, process) {
+        process(choices.filter(function(choice){
+          return choice.search(new RegExp(query, 'i')) != -1;
+        }));
+      };
+
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: syncSources,
+            filter: false
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      var editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+      waitsFor(function () {
+        return syncSources.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function () {
+
+        syncSources.reset();
+
+        editorInput.val("Male");
+        keyDownUp(69); //e
+
+
+      });
+
+      waitsFor(function () {
+        return syncSources.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function () {
+        var autocompleteList = autocomplete().handsontable('getInstance').rootElement;
+        expect(autocompleteList.find('td:eq(0)').html()).toEqual('<strong>Male</strong>');
+        expect(autocompleteList.find('td:eq(1)').html()).toEqual('Fe<strong>male</strong>');
+
+        syncSources.reset();
+      });
     });
 
   });

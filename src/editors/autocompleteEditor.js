@@ -56,7 +56,11 @@
 
         Handsontable.TextRenderer.apply(this, arguments);
 
-        TD.innerHTML = value.replace(new RegExp(that.query, 'i'), '<strong>' + that.query + '</strong>');
+        var match = TD.innerHTML.match(new RegExp(that.query, 'i'));
+
+        if(match){
+          TD.innerHTML = value.replace(match[0], '<strong>' + match[0] + '</strong>');
+        }
 
       }
     });
