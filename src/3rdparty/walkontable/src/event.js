@@ -12,9 +12,17 @@ function WalkontableEvent(instance) {
   var onMouseDown = function (event) {
     var cell = that.parentCell(event.target);
 
-    if (cell.TD && cell.TD.nodeName === 'TD') {
-      if (that.instance.hasSetting('onCellMouseDown')) {
-        that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD);
+    if (cell.TD) {
+      if (cell.TD.nodeName === 'TD') {
+        if (that.instance.hasSetting('onCellMouseDown')) {
+          that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD);
+        }
+      } else if (cell.TD.nodeName === 'TH') {
+        if (cell.TD.parentNode.parentNode.nodeName === 'THEAD' && cell.coords[1] >= 0) {
+          that.instance.getSetting('onColumnHeaderMouseDown', event, cell.coords[1], cell.TD);
+        } else if (cell.TD.parentNode.parentNode.nodeName === 'TBODY') {
+          that.instance.getSetting('onRowHeaderMouseDown', event, cell.coords[0], cell.TD);
+        }
       }
     }
     else if (that.wtDom.hasClass(event.target, 'corner')) {
@@ -42,6 +50,10 @@ function WalkontableEvent(instance) {
         lastMouseOver = TD;
         if (TD.nodeName === 'TD') {
           that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(TD), TD);
+        } else if (TD.parentNode.parentNode.nodeName === 'THEAD') {
+          that.instance.getSetting('onColumnHeaderMouseOver', event, that.instance.wtTable.getCoords(TD)[1], TD);
+        } else if (TD.parentNode.parentNode.nodeName === 'TBODY') {
+          that.instance.getSetting('onRowHeaderMouseOver', event, that.instance.wtTable.getCoords(TD)[0], TD);
         }
       }
     }
