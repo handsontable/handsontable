@@ -446,7 +446,59 @@ describe('Core_selection', function () {
     expect(tickEnd).toEqual(1);
   });
 
-  it('should select rows', function() {
+  it('click row header should select row', function() {
+    var tick = 0, tickEnd = 0;
+    handsontable({
+      rowHeaders: true,
+      colHeaders: true,
+      startRows: 5,
+      startCols: 5,
+      onSelection: function () {
+        tick++;
+      },
+      onSelectionEnd: function () {
+        tickEnd++;
+      }
+    });
+
+    this.$container.find('tr:eq(1) th:eq(0)').trigger('mousedown');
+    var mouseup = $.Event('mouseup');
+    mouseup.which = 1; //LMB
+    this.$container.find('tr:eq(1) th:eq(0)').trigger(mouseup);
+
+    expect(getSelected()).toEqual([0, 0, 0, 4]);
+    expect(tick).toEqual(2);
+    expect(tickEnd).toEqual(1);
+  });
+
+  it('right-click row header should select row', function() {
+    var tick = 0, tickEnd = 0;
+    handsontable({
+      rowHeaders: true,
+      colHeaders: true,
+      startRows: 5,
+      startCols: 5,
+      onSelection: function () {
+        tick++;
+      },
+      onSelectionEnd: function () {
+        tickEnd++;
+      }
+    });
+
+    var mousedown = $.Event('mousedown');
+    mousedown.which = 3; //RMB
+    this.$container.find('tr:eq(1) th:eq(0)').trigger(mousedown); // calls onSelection twice, [0 0 0 0] and [0 0 0 4]
+    var mouseup = $.Event('mouseup');
+    mouseup.which = 3; //LMB
+    this.$container.find('tr:eq(1) th:eq(0)').trigger(mouseup);
+
+    expect(getSelected()).toEqual([0, 0, 0, 4]);
+    expect(tick).toEqual(2);
+    expect(tickEnd).toEqual(0); // TODO is it a bug the right-click doesn't cause onSelectionEnd?
+  });
+
+  it('drag across row headers should select rows', function() {
     var tick = 0, tickEnd = 0;
     handsontable({
       rowHeaders: true,
@@ -498,7 +550,60 @@ describe('Core_selection', function () {
     expect(tickEnd).toEqual(1);
   });
 
-  it('should select cols', function() {
+  it('click col header should select col', function() {
+    var tick = 0, tickEnd = 0;
+    handsontable({
+      rowHeaders: true,
+      colHeaders: true,
+      startRows: 5,
+      startCols: 5,
+      onSelection: function () {
+        tick++;
+      },
+      onSelectionEnd: function () {
+        tickEnd++;
+      }
+    });
+
+    this.$container.find('tr:eq(0) th:eq(1)').trigger('mousedown');
+    var mouseup = $.Event('mouseup');
+    mouseup.which = 1; //LMB
+    this.$container.find('tr:eq(0) th:eq(1)').trigger(mouseup);
+
+    expect(getSelected()).toEqual([0, 0, 4, 0]);
+    expect(tick).toEqual(2);
+    expect(tickEnd).toEqual(1);
+  });
+
+
+  it('right-click col header should select col', function() {
+    var tick = 0, tickEnd = 0;
+    handsontable({
+      rowHeaders: true,
+      colHeaders: true,
+      startRows: 5,
+      startCols: 5,
+      onSelection: function () {
+        tick++;
+      },
+      onSelectionEnd: function () {
+        tickEnd++;
+      }
+    });
+
+    var mousedown = $.Event('mousedown');
+    mousedown.which = 3; //RMB
+    this.$container.find('tr:eq(0) th:eq(1)').trigger(mousedown);
+    var mouseup = $.Event('mouseup');
+    mouseup.which = 3; //LMB
+    this.$container.find('tr:eq(0) th:eq(1)').trigger(mouseup);
+
+    expect(getSelected()).toEqual([0, 0, 4, 0]);
+    expect(tick).toEqual(2);
+    expect(tickEnd).toEqual(0); // TODO is it a bug the right-click doesn't cause onSelectionEnd?
+  });
+
+  it('drag across col headers should select cols', function() {
     var tick = 0, tickEnd = 0;
     handsontable({
       rowHeaders: true,

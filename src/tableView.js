@@ -243,7 +243,9 @@ Handsontable.TableView = function (instance) {
       instance.listen();
 
       isRowHeaderMouseDown = true;
-      if (event.button === 2 && instance.selection.inInSelection(coordsObj)) { //right mouse button
+      if (event.button === 2
+          && instance.selection.inInSelection({row: row, col: 0})
+          && instance.selection.inInSelection({row: row, col: instance.countCols()-1})) { //right mouse button
         //do nothing
       }
       else if (event.shiftKey && instance.getSelected() !== undefined) {
@@ -274,7 +276,9 @@ Handsontable.TableView = function (instance) {
       instance.listen();
 
       isColHeaderMouseDown = true;
-      if (event.button === 2 && instance.selection.inInSelection(coordsObj)) { //right mouse button
+      if (event.button === 2
+          && instance.selection.inInSelection({row: 0, col: col})
+          && instance.selection.inInSelection({row: instance.countRows()-1, col: col})) { //right mouse button
         //do nothing
       }
       else if (event.shiftKey && instance.getSelected() !== undefined) {
