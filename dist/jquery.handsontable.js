@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.10.0-beta3
+ * Handsontable 0.10.0-beta4
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Oct 30 2013 03:16:48 GMT+0100 (Central European Standard Time)
+ * Date: Wed Nov 27 2013 14:18:10 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -33,13 +33,11 @@ Handsontable.Core = function (rootElement, userSettings) {
     , editorManager
     , autofill
     , instance = this
-    , GridSettings = function () {
-    };
+    , GridSettings = function () {};
 
-  Handsontable.helper.inherit(GridSettings, DefaultSettings); //create grid settings as a copy of default settings
-  Handsontable.helper.extend(GridSettings.prototype, Handsontable.TextCell); //overwrite defaults with default cell
-  expandType(userSettings);
+  Handsontable.helper.extend(GridSettings.prototype, DefaultSettings.prototype); //create grid settings as a copy of default settings
   Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
+  Handsontable.helper.extend(GridSettings.prototype, expandType(userSettings));
 
   this.rootElement = rootElement;
   var $document = $(document.documentElement);
@@ -1336,17 +1334,18 @@ Handsontable.Core = function (rootElement, userSettings) {
         changes.splice(i, 1);
       }
       else {
+        var row = changes[i][0];
         var col = datamap.propToCol(changes[i][1]);
         var logicalCol = instance.runHooksAndReturn('modifyCol', col); //column order may have changes, so we need to translate physical col index (stored in datasource) to logical (displayed to user)
-        var cellProperties = instance.getCellMeta(changes[i][0], logicalCol);
+        var cellProperties = instance.getCellMeta(row, logicalCol);
 
-        if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
+        if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && /^-?[\d\s]*\.?\d*$/.test(changes[i][3])) {
             changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
           }
         }
 
-        if (cellProperties.validator) {
+        if (instance.getCellValidator(cellProperties)) {
           waitingForValidator.addValidatorToQueue();
           instance.validateCell(changes[i][3], cellProperties, (function (i, cellProperties) {
             return function (result) {
@@ -1354,7 +1353,8 @@ Handsontable.Core = function (rootElement, userSettings) {
                 throw new Error("Validation error: result is not boolean");
               }
               if (result === false && cellProperties.allowInvalid === false) {
-                changes.splice(i, 1);
+                changes.splice(i, 1);         // cancel the change
+                cellProperties.valid = true;  // we cancelled the change, so cell value is still valid
                 --i;
               }
               waitingForValidator.removeValidatorFormQueue();
@@ -1426,7 +1426,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   }
 
   this.validateCell = function (value, cellProperties, callback, source) {
-    var validator = cellProperties.validator;
+    var validator = instance.getCellValidator(cellProperties);
 
     if (Object.prototype.toString.call(validator) === '[object RegExp]') {
       validator = (function (validator) {
@@ -1595,8 +1595,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
    */
   this.populateFromArray = function (row, col, input, endRow, endCol, source, method) {
-    if (typeof input !== 'object') {
-      throw new Error("populateFromArray parameter `input` must be an array"); //API changed in 0.9-beta2, let's check if you use it correctly
+    if (!(typeof input === 'object' && typeof input[0] === 'object')) {
+      throw new Error("populateFromArray parameter `input` must be an array of arrays"); //API changed in 0.9-beta2, let's check if you use it correctly
     }
     return grid.populateFromArray({row: row, col: col}, input, typeof endRow === 'number' ? {row: endRow, col: endCol} : null, source, method);
   };
@@ -1785,7 +1785,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    */
   this.updateSettings = function (settings, init) {
-    var i, ilen, clen;
+    var i, clen;
 
     if (typeof settings.rows !== "undefined") {
       throw new Error("'rows' setting is no longer supported. do you mean startRows, minRows or maxRows?");
@@ -1827,15 +1827,6 @@ Handsontable.Core = function (rootElement, userSettings) {
       datamap.createMap();
     }
 
-    if (settings.columns !== void 0) {
-      for (i = 0, ilen = settings.columns.length; i < ilen; i++) {
-        if (GridSettings.prototype.colHeaders !== false) {
-          GridSettings.prototype.colHeaders = true;
-        }
-        break;
-      }
-    }
-
     // Init columns constructors configuration
     clen = instance.countCols();
 
@@ -1854,8 +1845,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         // Use settings provided by user
         if (GridSettings.prototype.columns) {
           column = GridSettings.prototype.columns[i];
-          expandType(column);
           Handsontable.helper.extend(proto, column);
+          Handsontable.helper.extend(proto, expandType(column));
         }
       }
     }
@@ -1905,24 +1896,30 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   function expandType(obj) {
-    if (obj.hasOwnProperty('type')) { //ignore obj.prototype.type
-      var type
-        , i;
-      if (typeof obj.type === 'object') {
-        type = obj.type;
-      }
-      else if (typeof obj.type === 'string') {
-        type = Handsontable.cellTypes[obj.type];
-        if (type === void 0) {
-          throw new Error('You declared cell type "' + obj.type + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
-        }
-      }
-      for (i in type) {
-        if (type.hasOwnProperty(i) && !obj.hasOwnProperty(i)) {
-          obj[i] = type[i];
-        }
+    if (!obj.hasOwnProperty('type')) return; //ignore obj.prototype.type
+
+
+    var type, expandedType = {};
+
+    if (typeof obj.type === 'object') {
+      type = obj.type;
+    }
+    else if (typeof obj.type === 'string') {
+      type = Handsontable.cellTypes[obj.type];
+      if (type === void 0) {
+        throw new Error('You declared cell type "' + obj.type + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
       }
     }
+
+
+    for (var i in type) {
+      if (type.hasOwnProperty(i) && !obj.hasOwnProperty(i)) {
+        expandedType[i] = type[i];
+      }
+    }
+
+    return expandedType;
+
   }
 
   /**
@@ -2079,14 +2076,14 @@ Handsontable.Core = function (rootElement, userSettings) {
     cellProperties.instance = instance;
 
     instance.PluginHooks.run('beforeGetCellMeta', row, col, cellProperties);
-    expandType(cellProperties); //for `type` added in beforeGetCellMeta
+    Handsontable.helper.extend(cellProperties, expandType(cellProperties)); //for `type` added in beforeGetCellMeta
 
     if (cellProperties.cells) {
       var settings = cellProperties.cells.call(cellProperties, row, col, prop);
 
       if (settings) {
-        expandType(settings); //for `type` added in cells
         Handsontable.helper.extend(cellProperties, settings);
+        Handsontable.helper.extend(cellProperties, expandType(settings)); //for `type` added in cells
       }
     }
 
@@ -2118,6 +2115,22 @@ Handsontable.Core = function (rootElement, userSettings) {
       return Handsontable.PluginHooks.execute(instance, 'modifyCol', col); // warning: this must be done after datamap.colToProp
     }
   };
+
+  this.getCellRenderer = function (row, col) {
+    var renderer = Handsontable.helper.cellMethodLookupFactory('renderer').call(this, row, col);
+
+    if(typeof renderer == 'string'){
+      renderer = Handsontable.cellLookup.renderer[renderer];
+    }
+
+    return renderer
+
+  };
+
+  this.getCellEditor = Handsontable.helper.cellMethodLookupFactory('editor');
+
+  this.getCellValidator = Handsontable.helper.cellMethodLookupFactory('validator');
+
 
   /**
    * Validates all cells using their validator functions and calls callback when finished. Does not render the view
@@ -2167,6 +2180,30 @@ Handsontable.Core = function (rootElement, userSettings) {
     else {
       return priv.settings.rowHeaders;
     }
+  };
+
+  /**
+   * Returns information of this table is configured to display row headers
+   * @returns {boolean}
+   */
+  this.hasRowHeaders = function () {
+    return !!priv.settings.rowHeaders;
+  };
+
+  /**
+   * Returns information of this table is configured to display column headers
+   * @returns {boolean}
+   */
+  this.hasColHeaders = function () {
+    if (priv.settings.colHeaders !== void 0) {
+      return !!priv.settings.colHeaders;
+    }
+    for (var i = 0, ilen = instance.countCols(); i < ilen; i++) {
+      if (instance.getColHeader(i)) {
+        return true;
+      }
+    }
+    return false;
   };
 
   /**
@@ -2560,11 +2597,11 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.10.0-beta3'; //inserted by grunt from package.json
+  this.version = '0.10.0-beta4'; //inserted by grunt from package.json
 };
 
-var DefaultSettings = function () {
-};
+var DefaultSettings = function () {};
+
 DefaultSettings.prototype = {
   data: void 0,
   width: void 0,
@@ -2600,7 +2637,8 @@ DefaultSettings.prototype = {
   invalidCellClassName: 'htInvalid',
   fragmentSelection: false,
   readOnly: false,
-  nativeScrollbars: false
+  nativeScrollbars: false,
+  type: 'text'
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
@@ -2780,18 +2818,28 @@ Handsontable.TableView = function (instance) {
       return that.settings.fixedRowsTop;
     },
     rowHeaders: function () {
-      return that.settings.rowHeaders ? [function (index, TH) {
+      return instance.hasRowHeaders() ? [function (index, TH) {
         that.appendRowHeader(index, TH);
       }] : []
     },
     columnHeaders: function () {
-      return that.settings.colHeaders ? [function (index, TH) {
+      return instance.hasColHeaders() ? [function (index, TH) {
         that.appendColHeader(index, TH);
       }] : []
     },
     columnWidth: instance.getColWidth,
-    cellRenderer: function (row, column, TD) {
-      that.applyCellTypeMethod('renderer', TD, row, column);
+    cellRenderer: function (row, col, TD) {
+
+      var prop = that.instance.colToProp(col)
+        , cellProperties = that.instance.getCellMeta(row, col)
+        , renderer = that.instance.getCellRenderer(cellProperties)
+
+      var value = that.instance.getDataAtRowProp(row, prop);
+
+      renderer(that.instance, TD, row, col, prop, value, cellProperties);
+
+      that.instance.PluginHooks.run('afterRenderer', TD, row, col, prop, value, cellProperties);
+
     },
     selections: {
       current: {
@@ -2928,7 +2976,8 @@ Handsontable.TableView.prototype.isTextSelectionAllowed = function (el) {
 };
 
 Handsontable.TableView.prototype.isCellEdited = function () {
-  return document.activeElement !== document.body;
+  var activeEditor = this.instance.getActiveEditor();
+  return activeEditor && activeEditor.isOpened();
 };
 
 Handsontable.TableView.prototype.getWidth = function () {
@@ -2959,21 +3008,6 @@ Handsontable.TableView.prototype.render = function () {
   this.wt.draw(!this.instance.forceFullRender);
   this.instance.forceFullRender = false;
   this.instance.rootElement.triggerHandler('render.handsontable');
-};
-
-Handsontable.TableView.prototype.applyCellTypeMethod = function (methodName, td, row, col) {
-  var prop = this.instance.colToProp(col)
-    , cellProperties = this.instance.getCellMeta(row, col)
-    , method = Handsontable.helper.getCellMethod(methodName, cellProperties[methodName]); //methodName is 'renderer' or 'editor'
-
-  var value = this.instance.getDataAtRowProp(row, prop);
-  var res = method(this.instance, td, row, col, prop, value, cellProperties);
-
-  if (methodName === 'renderer') {
-    this.instance.PluginHooks.run('afterRenderer', td, row, col, prop, value, cellProperties);
-  }
-
-  return res;
 };
 
 /**
@@ -3175,13 +3209,6 @@ Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
         if (priv.settings.beforeOnKeyDown) { // HOT in HOT Plugin
           priv.settings.beforeOnKeyDown.call(instance, event);
         }
-
-        //commenting out because it is uneffective as of 0.10.0
-        //TODO change below line to new context menu that uses Handsontable, write test
-        //if (Array.prototype.filter.call(document.body.querySelectorAll('.context-menu-list'), instance.view.wt.wtDom.isVisible).length) { //faster than $body.children('.context-menu-list:visible').length
-          //if right-click context menu is visible, do not execute this keydown handler (arrow keys will navigate the context menu)
-          //return;
-        //}
 
         if (Handsontable.helper.isCtrlKey(event.keyCode)) {
           //when CTRL is pressed, prepare selectable text in textarea
@@ -3491,7 +3518,7 @@ Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
       var originalValue = instance.getDataAtCell(row, col);
       var cellProperties = instance.getCellMeta(row, col);
 
-      var editorClass = cellProperties.editor;
+      var editorClass = instance.getCellEditor(cellProperties);
       activeEditor = Handsontable.editors.getEditor(editorClass, instance);
 
       activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
@@ -3692,11 +3719,8 @@ Handsontable.helper.randomString = function () {
  * @return {Object}        extended Child
  */
 Handsontable.helper.inherit = function (Child, Parent) {
-  function Bridge() {
-  }
-
-  Bridge.prototype = Parent.prototype;
-  Child.prototype = new Bridge();
+  Parent.prototype.constructor = Parent;
+  Child.prototype = new Parent();
   Child.prototype.constructor = Child;
   return Child;
 };
@@ -3714,6 +3738,33 @@ Handsontable.helper.extend = function (target, extension) {
   }
 };
 
+Handsontable.helper.getPrototypeOf = function (obj) {
+  var prototype;
+
+  if(typeof obj.__proto__ == "object"){
+    prototype = obj.__proto__;
+  } else {
+    var oldConstructor,
+        constructor = obj.constructor;
+
+    if (typeof obj.constructor == "function") {
+      oldConstructor = constructor;
+
+      if (delete obj.constructor){
+        constructor = obj.constructor; // get real constructor
+        obj.constructor = oldConstructor; // restore constructor
+      }
+
+
+    }
+
+    prototype = constructor ? constructor.prototype : null; // needed for IE
+
+  }
+
+  return prototype;
+};
+
 /**
  * Factory for columns constructors.
  * @param {Object} GridSettings
@@ -3721,14 +3772,12 @@ Handsontable.helper.extend = function (target, extension) {
  * @return {Object} ColumnSettings
  */
 Handsontable.helper.columnFactory = function (GridSettings, conflictList) {
-  var i = 0, len = conflictList.length, ColumnSettings = function () {
-  };
+  function ColumnSettings () {}
 
-  // Inherit prototype from grid settings
-  ColumnSettings.prototype = new GridSettings();
+  Handsontable.helper.inherit(ColumnSettings, GridSettings);
 
   // Clear conflict settings
-  for (; i < len; i++) {
+  for (var i = 0, len = conflictList.length; i < len; i++) {
     ColumnSettings.prototype[conflictList[i]] = void 0;
   }
 
@@ -3770,37 +3819,6 @@ Handsontable.helper.extendArray = function (arr, extension) {
   while (i < ilen) {
     arr.push(extension[i]);
     i++;
-  }
-};
-
-/**
- * Returns cell renderer or editor function directly or through lookup map
- */
-Handsontable.helper.getCellMethod = function (methodName, methodFunction) {
-  if (typeof methodFunction === 'string') {
-    var result = Handsontable.cellLookup[methodName][methodFunction];
-    if (result === void 0 && methodName === 'renderer') {
-      return function (instance, TD, row, col, prop, value, cellProperties) {
-        cellProperties.rendererTemplate = methodFunction;
-        var editor = cellProperties.editor;
-        /*
-        In future
-        1. remove AutocompleteRenderer
-        2. make the "arrow" be added by editor itself using a plugin hook inserted in tableView.js (at the end of cellRenderer: ...)
-        3. editor add the arrow if cellProperty.arrow === "true"
-         */
-        if (editor === Handsontable.HandsontableEditor || editor === Handsontable.DateEditor || editor === Handsontable.AutocompleteEditor) {
-          return Handsontable.AutocompleteRenderer.apply(instance, arguments);
-        }
-        else {
-          return Handsontable.TextRenderer.apply(instance, arguments);
-        }
-      }
-    }
-    return result;
-  }
-  else {
-    return methodFunction;
   }
 };
 
@@ -3903,6 +3921,51 @@ Handsontable.helper.proxy = function (fun, context) {
   return function () {
     return fun.apply(context, arguments);
   };
+};
+
+Handsontable.helper.cellMethodLookupFactory = function (methodName) {
+
+  return function cellMethodLookup (row, col) {
+
+    return (function getMethodFromProperties(properties) {
+
+      if (!properties){
+
+        return;                       //method not found
+
+      }
+      else if(properties.hasOwnProperty(methodName)){
+
+        return properties[methodName];  //method defined directly
+
+      } else if(properties.hasOwnProperty('type')){
+
+        var type;
+
+        if(typeof properties.type != 'string' ){
+          throw new Error('Cell type must be a string ');
+        }
+
+        type = translateTypeNameToObject(properties.type);
+
+        return type[methodName]; //method defined in type. if does not exist (eg. validator), returns undefined
+      }
+
+      return getMethodFromProperties(Handsontable.helper.getPrototypeOf(properties));
+
+    })(typeof row == 'number' ? this.getCellMeta(row, col) : row);
+
+  };
+
+  function translateTypeNameToObject(typeName) {
+    var type = Handsontable.cellTypes[typeName];
+
+    if(typeof type == 'undefined'){
+      throw new Error('You declared cell type "' + typeName + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
+    }
+
+    return type;
+  }
 };
 Handsontable.SelectionPoint = function () {
   this._row = null; //private use intended
@@ -4211,12 +4274,14 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
     this._closeCallback(result);
   }
 
-  BaseEditor.prototype.init = function(){
-    throw Error('Editor init() method unimplemented');
+  BaseEditor.prototype.init = function(){};
+
+  BaseEditor.prototype.getValue = function(){
+    throw Error('Editor getValue() method unimplemented');
   };
 
-  BaseEditor.prototype.val = function(newValue){
-    throw Error('Editor val() method unimplemented');
+  BaseEditor.prototype.setValue = function(newValue){
+    throw Error('Editor setValue() method unimplemented');
   };
 
   BaseEditor.prototype.open = function(){
@@ -4244,7 +4309,17 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
       baseClass.apply(this, arguments);
     }
 
-    return Handsontable.helper.inherit(Editor, baseClass);
+    function inherit(Child, Parent){
+      function Bridge() {
+      }
+
+      Bridge.prototype = Parent.prototype;
+      Child.prototype = new Bridge();
+      Child.prototype.constructor = Child;
+      return Child;
+    }
+
+    return inherit(Editor, baseClass);
   };
 
   BaseEditor.prototype.saveValue = function (val, ctrlDown) {
@@ -4273,7 +4348,7 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
 
     initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
 
-    this.val(Handsontable.helper.stringify(initialValue));
+    this.setValue(Handsontable.helper.stringify(initialValue));
 
     this.open();
     this._opened = true;
@@ -4315,7 +4390,7 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
         ];
       } else {
         val = [
-          [this.val().trim()] //String.prototype.trim is defined in Walkontable polyfill.js
+          [String.prototype.trim.call(this.getValue())] //String.prototype.trim is defined in Walkontable polyfill.js
         ];
       }
 
@@ -4323,7 +4398,7 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
 
       this.saveValue(val, ctrlDown);
 
-      if(this.cellProperties.validator){
+      if(this.instance.getCellValidator(this.cellProperties)){
         var that = this;
         this.instance.addHookOnce('afterValidate', function (result) {
           that.state = Handsontable.EditorState.FINISHED;
@@ -4382,12 +4457,12 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
     this.bindEvents();
   };
 
-  TextEditor.prototype.val = function(newValue){
-    if(typeof newValue == 'undefined'){
-      return this.TEXTAREA.value
-    } else {
-      this.TEXTAREA.value = newValue;
-    }
+  TextEditor.prototype.getValue = function(){
+    return this.TEXTAREA.value
+  };
+
+  TextEditor.prototype.setValue = function(newValue){
+    this.TEXTAREA.value = newValue;
   };
 
   var onBeforeKeyDown =  function onBeforeKeyDown(event){
@@ -4428,7 +4503,7 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
         var isMultipleSelection = !(selected[0] === selected[2] && selected[1] === selected[3]);
         if ((ctrlDown && !isMultipleSelection) || event.altKey) { //if ctrl+enter or alt+enter, add new line
           if(that.isOpened()){
-            that.val(that.val() + '\n');
+            that.setValue(that.getValue() + '\n');
             that.focus();
           } else {
             that.beginEditing(that.originalValue + '\n')
@@ -4599,10 +4674,18 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
   //Blank editor, because all the work is done by renderer
   var CheckboxEditor = Handsontable.editors.BaseEditor.prototype.extend();
 
+  CheckboxEditor.prototype.beginEditing = function () {
+    this.saveValue([
+      [!this.originalValue]
+    ]);
+  };
+  CheckboxEditor.prototype.finishEditing = function () {};
+
   CheckboxEditor.prototype.init = function () {};
   CheckboxEditor.prototype.open = function () {};
   CheckboxEditor.prototype.close = function () {};
-  CheckboxEditor.prototype.val = function () {};
+  CheckboxEditor.prototype.getValue = function () {};
+  CheckboxEditor.prototype.setValue = function () {};
   CheckboxEditor.prototype.focus = function () {};
 
   Handsontable.editors.CheckboxEditor = CheckboxEditor;
@@ -4744,7 +4827,7 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
       },
       fillHandle: false,
       afterOnCellMouseDown: function () {
-        parent.val(this.getValue());
+        parent.setValue(this.getValue());
         parent.instance.destroyEditor();
       },
       beforeOnKeyDown: function (event) {
@@ -4759,7 +4842,7 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
 
           case Handsontable.helper.keyCode.ENTER: //enter
             var sel = instance.getSelected();
-            parent.val(this.getDataAtCell(sel[0], sel[1]));
+            parent.setValue(this.getDataAtCell(sel[0], sel[1]));
             parent.instance.destroyEditor();
             break;
 
@@ -4796,6 +4879,11 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
 
       if (!innerHOT.getSelected()){
         innerHOT.selectCell(0, 0);
+      } else {
+        var selectedRow = innerHOT.getSelected()[0];
+        var rowToSelect = selectedRow < innerHOT.countRows() - 1 ? selectedRow + 1 : selectedRow;
+
+        innerHOT.selectCell(rowToSelect, 0);
       }
 
       event.preventDefault();
@@ -4855,7 +4943,7 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
     }
 
     if (this.$htContainer.handsontable('getSelected')) {
-      this.val(this.$htContainer.handsontable('getInstance').getValue());
+      this.setValue(this.$htContainer.handsontable('getInstance').getValue());
     }
 
     return Handsontable.editors.TextEditor.prototype.finishEditing.apply(this, arguments);
@@ -4874,6 +4962,12 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
 (function (Handsontable) {
   var AutocompleteEditor = Handsontable.editors.HandsontableEditor.prototype.extend();
 
+  AutocompleteEditor.prototype.init = function () {
+    Handsontable.editors.HandsontableEditor.prototype.init.apply(this, arguments);
+
+    this.query = null;
+  }
+
   AutocompleteEditor.prototype.createElements = function(){
     Handsontable.editors.HandsontableEditor.prototype.createElements.apply(this, arguments);
 
@@ -4889,8 +4983,18 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
         setTimeout(function () {
           that.queryChoices(that.$textarea.val());
         });
+      } else if (event.keyCode == Handsontable.helper.keyCode.ENTER && that.cellProperties.strict !== true){
+        that.$htContainer.handsontable('deselectCell');
       }
 
+    });
+
+    this.$htContainer.on('mouseenter', function () {
+      that.$htContainer.handsontable('deselectCell');
+    });
+
+    this.$htContainer.on('mouseleave', function () {
+      that.queryChoices(that.query);
     });
 
     Handsontable.editors.HandsontableEditor.prototype.bindEvents.apply(this, arguments);
@@ -4905,9 +5009,24 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
       that.queryChoices(that.TEXTAREA.value);
     });
 
-    this.$htContainer.handsontable('updateSettings', {
-      'colWidths': [this.wtDom.outerWidth(this.TEXTAREA) - 2]
+    var hot =  this.$htContainer.handsontable('getInstance');
+
+    hot.updateSettings({
+      'colWidths': [this.wtDom.outerWidth(this.TEXTAREA) - 2],
+      renderer: function (instance, TD, row, col, prop, value, cellProperties) {
+
+        Handsontable.TextRenderer.apply(this, arguments);
+
+        var match = TD.innerHTML.match(new RegExp(that.query, 'i'));
+
+        if(match){
+          TD.innerHTML = value.replace(match[0], '<strong>' + match[0] + '</strong>');
+        }
+
+      }
     });
+
+
   };
 
   var onBeforeKeyDownInner;
@@ -4921,7 +5040,11 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
 
       if (event.keyCode == Handsontable.helper.keyCode.ARROW_UP){
         if (instance.getSelected() && instance.getSelected()[0] == 0){
-          instance.deselectCell();
+
+          if(!parent.cellProperties.strict){
+            instance.deselectCell();
+          }
+
           parent.instance.listen();
           parent.focus();
           event.preventDefault();
@@ -4947,6 +5070,9 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
   };
 
   AutocompleteEditor.prototype.queryChoices = function(query){
+
+    this.query = query;
+
     if (typeof this.cellProperties.source == 'function'){
       var that = this;
 
@@ -4958,7 +5084,7 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
 
       var choices;
 
-      if(!query){
+      if(!query || this.cellProperties.filter === false){
         choices = this.cellProperties.source;
       } else {
         choices = this.cellProperties.source.filter(function(choice){
@@ -4974,25 +5100,63 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
 
   };
 
+  function findItemIndexToHighlight(items, value){
+    var bestMatch = {};
+    var valueLength = value.length;
+    var currentItem;
+    var indexOfValue;
+    var charsLeft;
+
+
+    for(var i = 0, len = items.length; i < len; i++){
+      currentItem = items[i];
+
+      if(valueLength > 0){
+        indexOfValue = currentItem.indexOf(value)
+      } else {
+        indexOfValue = currentItem === value ? 0 : -1;
+      }
+
+      if(indexOfValue == -1) continue;
+
+      charsLeft =  currentItem.length - indexOfValue - valueLength;
+
+      if( typeof bestMatch.indexOfValue == 'undefined'
+        || bestMatch.indexOfValue > indexOfValue
+        || ( bestMatch.indexOfValue == indexOfValue && bestMatch.charsLeft > charsLeft ) ){
+
+        bestMatch.indexOfValue = indexOfValue;
+        bestMatch.charsLeft = charsLeft;
+        bestMatch.index = i;
+
+      }
+
+    }
+
+
+    return bestMatch.index;
+  }
+
   AutocompleteEditor.prototype.updateChoicesList = function (choices) {
     this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
 
-    var value = this.val();
-    var row;
+    var value = this.getValue();
+    var rowToHighlight;
 
-    if(value.length > 0){
-      for( var i = 0, len = choices.length; i < len; i++){
-        if(choices[i] == value){
-          row = i;
-          break;
-        }
+    if(this.cellProperties.strict === true){
+
+      rowToHighlight = findItemIndexToHighlight(choices, value);
+
+      if ( typeof rowToHighlight == 'undefined'){
+        rowToHighlight = 0;
       }
+
     }
 
-    if(typeof row == 'undefined'){
+    if(typeof rowToHighlight == 'undefined'){
       this.$htContainer.handsontable('deselectCell');
     } else {
-      this.$htContainer.handsontable('selectCell', row, 0);
+      this.$htContainer.handsontable('selectCell', rowToHighlight, 0);
     }
 
     this.focus();
@@ -5087,12 +5251,12 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
 
   };
 
-  SelectEditor.prototype.val = function (value) {
-    if ( typeof value == 'undefined' ) {
-      return this.select.val();
-    } else {
-      this.select.val(value);
-    }
+  SelectEditor.prototype.getValue = function () {
+    return this.select.val();
+  };
+
+  SelectEditor.prototype.setValue = function (value) {
+    this.select.val(value);
   };
 
   var onBeforeKeyDown = function (event) {
@@ -5148,12 +5312,33 @@ Handsontable.NumericRenderer = function (instance, TD, row, col, prop, value, ce
 
 })(Handsontable);
 
+(function (Handsontable) {
+
+  var DropdownEditor = Handsontable.editors.AutocompleteEditor.prototype.extend();
+
+  DropdownEditor.prototype.prepare = function () {
+    Handsontable.editors.AutocompleteEditor.prototype.prepare.apply(this, arguments);
+
+    this.cellProperties.filter = false;
+    this.cellProperties.strict = true;
+
+  };
+
+
+  Handsontable.editors.DropdownEditod = DropdownEditor;
+  Handsontable.editors.registerEditor('dropdown', DropdownEditor);
+
+
+})(Handsontable);
 /**
  * Numeric cell validator
  * @param {*} value - Value of edited cell
- * @param {*} calback - Callback called with validation result
+ * @param {*} callback - Callback called with validation result
  */
 Handsontable.NumericValidator = function (value, callback) {
+  if (value === null) {
+    value = '';
+  }
   callback(/^-?\d*\.?\d*$/.test(value));
 };
 /**
@@ -5239,6 +5424,12 @@ Handsontable.PasswordCell = {
   renderer: Handsontable.PasswordRenderer
 };
 
+Handsontable.DropdownCell = {
+  editor: 'dropdown',
+  renderer: Handsontable.AutocompleteRenderer,
+  validator: Handsontable.AutocompleteValidator
+};
+
 //here setup the friendly aliases that are used by cellProperties.type
 Handsontable.cellTypes = {
   text: Handsontable.TextCell,
@@ -5247,7 +5438,8 @@ Handsontable.cellTypes = {
   checkbox: Handsontable.CheckboxCell,
   autocomplete: Handsontable.AutocompleteCell,
   handsontable: Handsontable.HandsontableCell,
-  password: Handsontable.PasswordCell
+  password: Handsontable.PasswordCell,
+  dropdown: Handsontable.DropdownCell
 };
 
 //here setup the friendly aliases that are used by cellProperties.renderer and cellProperties.editor
@@ -5282,6 +5474,7 @@ Handsontable.PluginHookClass = (function () {
       beforeGetCellMeta: [],
       beforeAutofill: [],
       beforeKeyDown: [],
+      beforeColumnSort: [],
 
       afterInit : [],
       afterLoadData : [],
@@ -5300,6 +5493,7 @@ Handsontable.PluginHookClass = (function () {
       afterCreateCol: [],
       afterColumnResize: [],
       afterColumnMove: [],
+      afterColumnSort: [],
       afterDeselect: [],
       afterSelection: [],
       afterSelectionByProp: [],
@@ -5552,7 +5746,7 @@ Handsontable.PluginHooks = new Handsontable.PluginHookClass();
       instance.view.wt.wtDom.empty(tmp.tbody);
 
       var cellProperties = instance.getCellMeta(0, col);
-      var renderer = Handsontable.helper.getCellMethod('renderer', cellProperties.renderer);
+      var renderer = instance.getCellRenderer(cellProperties);
 
       for (var i in samples) {
         if (samples.hasOwnProperty(i)) {
@@ -5712,6 +5906,10 @@ function HandsontableColumnSorting() {
     var instance = this;
 
     plugin.setSortingColumn.call(instance, col, order);
+
+    if(typeof instance.sortColumn == 'undefined'){
+      return;
+    }
 
     instance.PluginHooks.run('beforeColumnSort', instance.sortColumn, instance.sortOrder);
 
@@ -6094,39 +6292,33 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
 
       this.show(event.pageY, event.pageX);
 
-      $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(contextMenuCloseListener, this));
-    }
-
-    function contextMenuCloseListener(event){
-      this.hide();
-      $(document).off('mousedown.htContextMenu');
+      $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.close, this));
     }
 
     this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
 
+    $(this.menu).on('mousedown', Handsontable.helper.proxy(this.performAction, this));
+  };
 
-    function contextMenuAction(){
+  ContextMenu.prototype.performAction = function (){
 
-      var hot = $(this.menu).handsontable('getInstance')
-      var selectedItemIndex = hot.getSelected()[0];
-      var selectedItem = hot.getData()[selectedItemIndex];
+    var hot = $(this.menu).handsontable('getInstance');
+    var selectedItemIndex = hot.getSelected()[0];
+    var selectedItem = hot.getData()[selectedItemIndex];
 
-      if (selectedItem.disabled === true || (typeof selectedItem.disabled == 'function' && selectedItem.disabled.call(this.instance) === true)){
-        return;
-      }
-
-      if(typeof selectedItem.callback != 'function'){
-        return;
-      }
-
-      var corners = this.instance.getSelected();
-      var normalizedSelection = ContextMenu.utils.normalizeSelection(corners);
-
-      selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection);
-
+    if (selectedItem.disabled === true || (typeof selectedItem.disabled == 'function' && selectedItem.disabled.call(this.instance) === true)){
+      return;
     }
 
-    $(this.menu).on('mousedown', Handsontable.helper.proxy(contextMenuAction, this));
+    if(typeof selectedItem.callback != 'function'){
+      return;
+    }
+
+    var corners = this.instance.getSelected();
+    var normalizedSelection = ContextMenu.utils.normalizeSelection(corners);
+
+    selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection);
+
   };
 
   ContextMenu.prototype.unbindMouseEvents = function () {
@@ -6138,8 +6330,6 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
 
     this.menu.style.display = 'block';
 
-    var parentInstance = this.instance;
-
     $(this.menu).handsontable({
       data: ContextMenu.utils.convertItemsToArray(this.getItems()),
       colHeaders: false,
@@ -6148,27 +6338,168 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
       columns: [
         {
           data: 'name',
-          renderer: function(instance, TD, row, col, prop, value, cellProperties){
-
-            var item = instance.getData()[row];
-
-            if(/^-+$/i.test(value)){
-              Handsontable.Dom.addClass(TD, 'htSeparator');
-            } else {
-              Handsontable.TextRenderer.apply(this, arguments);
-            }
-
-            if (item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(parentInstance) === true)){
-              Handsontable.Dom.addClass(TD, 'htDisabled');
-            } else {
-              Handsontable.Dom.removeClass(TD, 'htDisabled');
-            }
-          }
+          renderer: Handsontable.helper.proxy(this.renderer, this)
         }
-      ]
+      ],
+      beforeKeyDown: Handsontable.helper.proxy(this.onBeforeKeyDown, this)
     });
 
     this.setMenuPosition(top, left);
+
+    $(this.menu).handsontable('listen');
+
+  };
+
+  ContextMenu.prototype.renderer = function(instance, TD, row, col, prop, value, cellProperties){
+    var contextMenu = this;
+    var item = instance.getData()[row];
+    var wrapper = document.createElement('DIV');
+
+    Handsontable.Dom.empty(TD);
+    TD.appendChild(wrapper);
+
+    if(itemIsSeparator(item)){
+      Handsontable.Dom.addClass(TD, 'htSeparator');
+    } else {
+      Handsontable.Dom.fastInnerText(wrapper, value);
+    }
+
+    if (itemIsDisabled(item, contextMenu.instance)){
+      Handsontable.Dom.addClass(TD, 'htDisabled');
+
+      $(wrapper).on('mouseenter', function () {
+        instance.deselectCell();
+      });
+
+    } else {
+      Handsontable.Dom.removeClass(TD, 'htDisabled');
+
+      $(wrapper).on('mouseenter', function () {
+        instance.selectCell(row, col);
+      });
+
+    }
+
+    function itemIsSeparator(item){
+      return new RegExp(ContextMenu.SEPARATOR, 'i').test(item.name);
+    }
+
+    function itemIsDisabled(item, instance){
+      return item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(contextMenu.instance) === true);
+    }
+  };
+
+  ContextMenu.prototype.onBeforeKeyDown = function (event) {
+    var contextMenu = this;
+    var instance = $(contextMenu.menu).handsontable('getInstance');
+    var selection = instance.getSelected();
+
+    switch(event.keyCode){
+
+      case Handsontable.helper.keyCode.ESCAPE:
+        contextMenu.close();
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        break;
+
+      case Handsontable.helper.keyCode.ENTER:
+        if(instance.getSelected()){
+          contextMenu.performAction();
+          contextMenu.close();
+        }
+        break;
+
+      case Handsontable.helper.keyCode.ARROW_DOWN:
+        if(!selection){
+
+          selectFirstCell(instance);
+
+        } else {
+
+          selectNextCell(selection[0], selection[1], instance);
+
+        }
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        break;
+
+      case Handsontable.helper.keyCode.ARROW_UP:
+        if(!selection){
+
+          selectLastCell(instance);
+
+        }  else {
+
+          selectPrevCell(selection[0], selection[1], instance);
+
+        }
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        break;
+
+    }
+
+    function selectFirstCell(instance) {
+
+      var firstCell = instance.getCell(0, 0);
+
+      if(ContextMenu.utils.isSeparator(firstCell) || ContextMenu.utils.isDisabled(firstCell)){
+        selectNextCell(0, 0, instance);
+      } else {
+        instance.selectCell(0, 0);
+      }
+
+    }
+
+
+    function selectLastCell(instance) {
+
+      var lastRow = instance.countRows() - 1;
+      var lastCell = instance.getCell(lastRow, 0);
+
+      if(ContextMenu.utils.isSeparator(lastCell) || ContextMenu.utils.isDisabled(lastCell)){
+        selectPrevCell(lastRow, 0, instance);
+      } else {
+        instance.selectCell(lastRow, 0);
+      }
+
+    }
+
+    function selectNextCell(row, col, instance){
+      var nextRow = row + 1;
+      var nextCell =  nextRow < instance.countRows() ? instance.getCell(nextRow, col) : null;
+
+      if(!nextCell){
+        return;
+      }
+
+      if(ContextMenu.utils.isSeparator(nextCell) || ContextMenu.utils.isDisabled(nextCell)){
+        selectNextCell(nextRow, col, instance);
+      } else {
+        instance.selectCell(nextRow, col);
+      }
+    }
+
+    function selectPrevCell(row, col, instance) {
+
+      var prevRow = row - 1;
+      var prevCell = prevRow >= 0 ? instance.getCell(prevRow, col) : null;
+
+      if (!prevCell) {
+        return;
+      }
+
+      if(ContextMenu.utils.isSeparator(prevCell) || ContextMenu.utils.isDisabled(prevCell)){
+        selectPrevCell(prevRow, col, instance);
+      } else {
+        instance.selectCell(prevRow, col);
+      }
+
+    }
 
   };
 
@@ -6200,12 +6531,13 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
       for(var itemName in newOptions.items){
         var item = {};
 
-        if(newOptions.items.hasOwnProperty(itemName)
-          && this.defaultOptions.items.hasOwnProperty(itemName)
-          && Handsontable.helper.isObject(newOptions.items[itemName])){
-          Handsontable.helper.extend(item, this.defaultOptions.items[itemName]);
-          Handsontable.helper.extend(item, newOptions.items[itemName]);
-          newOptions.items[itemName] = item;
+        if(newOptions.items.hasOwnProperty(itemName)) {
+          if(this.defaultOptions.items.hasOwnProperty(itemName)
+            && Handsontable.helper.isObject(newOptions.items[itemName])){
+            Handsontable.helper.extend(item, this.defaultOptions.items[itemName]);
+            Handsontable.helper.extend(item, newOptions.items[itemName]);
+            newOptions.items[itemName] = item;
+          }
         }
 
       }
@@ -6217,8 +6549,10 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
   ContextMenu.prototype.setMenuPosition = function (cursorY, cursorX) {
 
     var cursor = {
-      top: cursorY,
-      left: cursorX
+      top:  cursorY,
+      topRelative: cursorY - window.pageYOffset,
+      left: cursorX,
+      leftRelative:cursorX - window.pageXOffset
     };
 
     if(this.menuFitsBelowCursor(cursor)){
@@ -6236,11 +6570,11 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
   };
 
   ContextMenu.prototype.menuFitsBelowCursor = function (cursor) {
-    return cursor.top + this.menu.offsetHeight <= document.documentElement.scrollTop + document.documentElement.clientHeight;
+    return cursor.topRelative + this.menu.offsetHeight <= document.documentElement.scrollTop + document.documentElement.clientHeight;
   };
 
   ContextMenu.prototype.menuFitsOnRightOfCursor = function (cursor) {
-    return cursor.left + this.menu.offsetWidth <= document.documentElement.scrollLeft + document.documentElement.clientWidth;
+    return cursor.leftRelative + this.menu.offsetWidth <= document.documentElement.scrollLeft + document.documentElement.clientWidth;
   };
 
   ContextMenu.prototype.positionMenuBelowCursor = function (cursor) {
@@ -6275,7 +6609,7 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
     for(var itemName in items){
       if(items.hasOwnProperty(itemName)){
         if(typeof items[itemName] == 'string'){
-          item = {name: items[item]};
+          item = {name: items[itemName]};
         } else if (items[itemName].visible !== false) {
           item = items[itemName];
         } else {
@@ -6305,6 +6639,20 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
     return selection;
   };
 
+  ContextMenu.utils.isSeparator = function (cell) {
+    return Handsontable.Dom.hasClass(cell, 'htSeparator');
+  };
+
+  ContextMenu.utils.isDisabled = function (cell) {
+    return Handsontable.Dom.hasClass(cell, 'htDisabled');
+  };
+
+  ContextMenu.prototype.close = function () {
+    this.hide();
+    $(document).off('mousedown.htContextMenu');
+    this.instance.listen();
+  };
+
   ContextMenu.prototype.hide = function(){
     this.menu.style.display = 'none';
     $(this.menu).handsontable('destroy');
@@ -6320,13 +6668,13 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
   ContextMenu.prototype.disable = function () {
     if(this.enabled){
       this.enabled = false;
-      this.hide();
+      this.close();
       this.unbindMouseEvents();
     }
   };
 
   ContextMenu.prototype.destroy = function () {
-    this.hide();
+    this.close();
     this.unbindMouseEvents();
 
     if(this.menu.parentNode){
@@ -8758,11 +9106,11 @@ WalkontableBorder.prototype.appear = function (corners) {
     var style = this.wtDom.getComputedStyle(fromTD);
     if (parseInt(style['borderTopWidth'], 10) > 0) {
       top += 1;
-      height -= 1;
+      height = height > 0 ? height - 1 : 0;
     }
     if (parseInt(style['borderLeftWidth'], 10) > 0) {
       left += 1;
-      width -= 1;
+      width = width > 0 ? width - 1 : 0;
     }
   }
   else {
@@ -9158,7 +9506,7 @@ Walkontable.prototype.destroy = function () {
   $(document.body).off('.' + this.guid);
   this.wtScrollbars.destroy();
   clearTimeout(this.wheelTimeout);
-  clearTimeout(this.dblClickTimeout);
+  this.wtEvent && this.wtEvent.destroy();
 };
 function WalkontableDom() {
 }
@@ -9423,8 +9771,8 @@ WalkontableDom.prototype.isVisible = function (elem) {
     if (next === null) { //parent detached from DOM
       return false;
     }
-    else if (next.nodeType === 11) {
-      return true;
+    else if (next.nodeType === 11) {  //nodeType == 1 -> DOCUMENT_FRAGMENT_NODE
+      return false;
     }
     else if (next.style.display === 'none') {
       return false;
@@ -9588,29 +9936,28 @@ function WalkontableEvent(instance) {
 
   this.wtDom = this.instance.wtDom;
 
-  var dblClickOrigin = [null, null, null, null];
-  this.instance.dblClickTimeout = null;
+  var dblClickOrigin = [null, null];
+  var dblClickTimeout = [null, null];
 
   var onMouseDown = function (event) {
     var cell = that.parentCell(event.target);
 
-    if (cell.TD && cell.TD.nodeName === 'TD') {
+    if (that.wtDom.hasClass(event.target, 'corner')) {
+      that.instance.getSetting('onCellCornerMouseDown', event, event.target);
+    }
+    else if (cell.TD && cell.TD.nodeName === 'TD') {
       if (that.instance.hasSetting('onCellMouseDown')) {
         that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD);
       }
     }
-    else if (that.wtDom.hasClass(event.target, 'corner')) {
-      that.instance.getSetting('onCellCornerMouseDown', event, event.target);
-    }
 
     if (event.button !== 2) { //if not right mouse button
       if (cell.TD && cell.TD.nodeName === 'TD') {
-        dblClickOrigin.shift();
-        dblClickOrigin.push(cell.TD);
-      }
-      else if (that.wtDom.hasClass(event.target, 'corner')) {
-        dblClickOrigin.shift();
-        dblClickOrigin.push(event.target);
+        dblClickOrigin[0] = cell.TD;
+        clearTimeout(dblClickTimeout[0]);
+        dblClickTimeout[0] = setTimeout(function () {
+          dblClickOrigin[0] = null;
+        }, 1000);
       }
     }
   };
@@ -9647,33 +9994,23 @@ function WalkontableEvent(instance) {
     if (event.button !== 2) { //if not right mouse button
       var cell = that.parentCell(event.target);
 
-      if (cell.TD && cell.TD.nodeName === 'TD') {
-        dblClickOrigin.shift();
-        dblClickOrigin.push(cell.TD);
-      }
-      else {
-        dblClickOrigin.shift();
-        dblClickOrigin.push(event.target);
-      }
-
-      if (dblClickOrigin[3] !== null && dblClickOrigin[3] === dblClickOrigin[2]) {
-        if (that.instance.dblClickTimeout && dblClickOrigin[2] === dblClickOrigin[1] && dblClickOrigin[1] === dblClickOrigin[0]) {
-          if (cell.TD) {
-            that.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD);
-          }
-          else if (that.wtDom.hasClass(event.target, 'corner')) {
-            that.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD);
-          }
-
-          clearTimeout(that.instance.dblClickTimeout);
-          that.instance.dblClickTimeout = null;
+      if (cell.TD === dblClickOrigin[0] && cell.TD === dblClickOrigin[1]) {
+        if (that.wtDom.hasClass(event.target, 'corner')) {
+          that.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD);
         }
-        else {
-          clearTimeout(that.instance.dblClickTimeout);
-          that.instance.dblClickTimeout = setTimeout(function () {
-            that.instance.dblClickTimeout = null;
-          }, 500);
+        else if (cell.TD) {
+          that.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD);
         }
+
+        dblClickOrigin[0] = null;
+        dblClickOrigin[1] = null;
+      }
+      else if (cell.TD === dblClickOrigin[0]) {
+        dblClickOrigin[1] = cell.TD;
+        clearTimeout(dblClickTimeout[1]);
+        dblClickTimeout[1] = setTimeout(function () {
+          dblClickOrigin[1] = null;
+        }, 1000);
       }
     }
   };
@@ -9692,11 +10029,16 @@ WalkontableEvent.prototype.parentCell = function (elem) {
     cell.coords = this.instance.wtTable.getCoords(TD);
     cell.TD = TD;
   }
-  else if (this.wtDom.hasClass(elem, 'wtBorder') && this.wtDom.hasClass(elem, 'current') && !this.wtDom.hasClass(elem, 'corner')) {
+  else if (this.wtDom.hasClass(elem, 'wtBorder') && this.wtDom.hasClass(elem, 'current')) {
     cell.coords = this.instance.selections.current.selected[0];
     cell.TD = this.instance.wtTable.getCell(cell.coords);
   }
   return cell;
+};
+
+WalkontableEvent.prototype.destroy = function () {
+  clearTimeout(this.dblClickTimeout0);
+  clearTimeout(this.dblClickTimeout1);
 };
 function walkontableRangesIntersect() {
   var from = arguments[0];
