@@ -40,6 +40,12 @@ Handsontable.PasswordCell = {
   renderer: Handsontable.PasswordRenderer
 };
 
+Handsontable.DropdownCell = {
+  editor: 'dropdown',
+  renderer: Handsontable.AutocompleteRenderer,
+  validator: Handsontable.AutocompleteValidator
+};
+
 //here setup the friendly aliases that are used by cellProperties.type
 Handsontable.cellTypes = {
   text: Handsontable.TextCell,
@@ -48,7 +54,8 @@ Handsontable.cellTypes = {
   checkbox: Handsontable.CheckboxCell,
   autocomplete: Handsontable.AutocompleteCell,
   handsontable: Handsontable.HandsontableCell,
-  password: Handsontable.PasswordCell
+  password: Handsontable.PasswordCell,
+  dropdown: Handsontable.DropdownCell
 };
 
 //here setup the friendly aliases that are used by cellProperties.renderer and cellProperties.editor

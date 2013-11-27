@@ -48,15 +48,13 @@ describe('Core_getCellMeta', function () {
     handsontable({
       cells: function () {
         return {
-          type: {
-            renderer: function (instance, td, row, col, prop, value, cellProperties) {
+          renderer: function (instance, td, row, col, prop, value, cellProperties) {
               //taken from demo/renderers.html
               Handsontable.TextCell.renderer.apply(this, arguments);
               $(td).css({
                 background: 'yellow'
               });
             }
-          }
         }
       }
     });
@@ -111,7 +109,6 @@ describe('Core_getCellMeta', function () {
 
     expect(called).toBeGreaterThan(0);
     expect(_this.row).toEqual(_row);
-    expect(_this.renderer).toBe(Handsontable.TextRenderer);
     expect(_this.instance).toBe(HOT);
   });
 
@@ -161,20 +158,6 @@ describe('Core_getCellMeta', function () {
 
 
 
-  });
-
-  it('should inherit readOnly from cell type (legacy)', function () {
-    handsontable({
-      data : [[1,2]],
-      cells : function (row, col, prop) {
-        return {
-          type : {
-            readOnly: true
-          }
-        }
-      }
-    });
-    expect(getCellMeta(0, 0).readOnly).toEqual(true);
   });
 
 });

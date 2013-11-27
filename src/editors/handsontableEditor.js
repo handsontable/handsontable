@@ -36,7 +36,7 @@
       },
       fillHandle: false,
       afterOnCellMouseDown: function () {
-        parent.val(this.getValue());
+        parent.setValue(this.getValue());
         parent.instance.destroyEditor();
       },
       beforeOnKeyDown: function (event) {
@@ -51,7 +51,7 @@
 
           case Handsontable.helper.keyCode.ENTER: //enter
             var sel = instance.getSelected();
-            parent.val(this.getDataAtCell(sel[0], sel[1]));
+            parent.setValue(this.getDataAtCell(sel[0], sel[1]));
             parent.instance.destroyEditor();
             break;
 
@@ -88,6 +88,11 @@
 
       if (!innerHOT.getSelected()){
         innerHOT.selectCell(0, 0);
+      } else {
+        var selectedRow = innerHOT.getSelected()[0];
+        var rowToSelect = selectedRow < innerHOT.countRows() - 1 ? selectedRow + 1 : selectedRow;
+
+        innerHOT.selectCell(rowToSelect, 0);
       }
 
       event.preventDefault();
@@ -147,7 +152,7 @@
     }
 
     if (this.$htContainer.handsontable('getSelected')) {
-      this.val(this.$htContainer.handsontable('getInstance').getValue());
+      this.setValue(this.$htContainer.handsontable('getInstance').getValue());
     }
 
     return Handsontable.editors.TextEditor.prototype.finishEditing.apply(this, arguments);

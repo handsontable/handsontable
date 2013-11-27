@@ -147,4 +147,60 @@ describe('ColHeader', function () {
     expect(this.$container.find('thead th:eq(2)').text()).toEqual('Z');
 
   });
+
+  it('should be possible to define colHeaders with a function', function () {
+    var hot = handsontable({
+      startCols: 2,
+      colHeaders: function (col) {
+        switch (col) {
+          case 0:
+            return 'One';
+
+          case 1:
+            return 'Two';
+        }
+      }
+    });
+
+    expect(this.$container.find('thead th:eq(0)').text()).toEqual('One');
+    expect(this.$container.find('thead th:eq(1)').text()).toEqual('Two');
+  });
+
+  it('should be possible to set HTML in colHeaders', function () {
+    var hot = handsontable({
+      startCols: 2,
+      colHeaders: ['One <input type="checkbox">', 'Two <input type="checkbox">']
+    });
+
+    expect(this.$container.find('thead th:eq(0) input[type=checkbox]').length).toEqual(1);
+    expect(this.$container.find('thead th:eq(1) input[type=checkbox]').length).toEqual(1);
+  });
+
+  it('should be possible to set colHeaders when columns array is present', function () {
+    var hot = handsontable({
+      startCols: 2,
+      colHeaders: ['One', 'Two'],
+      columns: [
+        {type: 'text'},
+        {type: 'text'}
+      ]
+    });
+
+    expect(this.$container.find('thead th:eq(0)').text()).toEqual('One');
+    expect(this.$container.find('thead th:eq(1)').text()).toEqual('Two');
+  });
+
+  it('should be possible to set colHeaders using columns title property', function () {
+    var hot = handsontable({
+      startCols: 2,
+      colHeaders: ['One', 'Two'],
+      columns: [
+        {type: 'text', title: 'Special title'},
+        {type: 'text'}
+      ]
+    });
+
+    expect(this.$container.find('thead th:eq(0)').text()).toEqual('Special title');
+    expect(this.$container.find('thead th:eq(1)').text()).toEqual('Two');
+  });
 });

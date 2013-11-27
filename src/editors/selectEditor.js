@@ -56,12 +56,12 @@
 
   };
 
-  SelectEditor.prototype.val = function (value) {
-    if ( typeof value == 'undefined' ) {
-      return this.select.val();
-    } else {
-      this.select.val(value);
-    }
+  SelectEditor.prototype.getValue = function () {
+    return this.select.val();
+  };
+
+  SelectEditor.prototype.setValue = function (value) {
+    this.select.val(value);
   };
 
   var onBeforeKeyDown = function (event) {

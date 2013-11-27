@@ -23,12 +23,14 @@
     this._closeCallback(result);
   }
 
-  BaseEditor.prototype.init = function(){
-    throw Error('Editor init() method unimplemented');
+  BaseEditor.prototype.init = function(){};
+
+  BaseEditor.prototype.getValue = function(){
+    throw Error('Editor getValue() method unimplemented');
   };
 
-  BaseEditor.prototype.val = function(newValue){
-    throw Error('Editor val() method unimplemented');
+  BaseEditor.prototype.setValue = function(newValue){
+    throw Error('Editor setValue() method unimplemented');
   };
 
   BaseEditor.prototype.open = function(){
@@ -56,7 +58,17 @@
       baseClass.apply(this, arguments);
     }
 
-    return Handsontable.helper.inherit(Editor, baseClass);
+    function inherit(Child, Parent){
+      function Bridge() {
+      }
+
+      Bridge.prototype = Parent.prototype;
+      Child.prototype = new Bridge();
+      Child.prototype.constructor = Child;
+      return Child;
+    }
+
+    return inherit(Editor, baseClass);
   };
 
   BaseEditor.prototype.saveValue = function (val, ctrlDown) {
@@ -85,7 +97,7 @@
 
     initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
 
-    this.val(Handsontable.helper.stringify(initialValue));
+    this.setValue(Handsontable.helper.stringify(initialValue));
 
     this.open();
     this._opened = true;
@@ -127,7 +139,7 @@
         ];
       } else {
         val = [
-          [this.val().trim()] //String.prototype.trim is defined in Walkontable polyfill.js
+          [String.prototype.trim.call(this.getValue())] //String.prototype.trim is defined in Walkontable polyfill.js
         ];
       }
 
@@ -135,7 +147,7 @@
 
       this.saveValue(val, ctrlDown);
 
-      if(this.cellProperties.validator){
+      if(this.instance.getCellValidator(this.cellProperties)){
         var that = this;
         this.instance.addHookOnce('afterValidate', function (result) {
           that.state = Handsontable.EditorState.FINISHED;

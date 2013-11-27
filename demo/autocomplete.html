@@ -110,17 +110,6 @@
         <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
       </div>
 
-      <script data-jsfiddle="common">
-
-        function colorHighlighter(item) {
-          var query = this.query.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
-          var label = item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
-            return '<strong>' + match + '</strong>';
-          });
-          return '<span style="margin-right: 10px; background-color: ' + item + '">&nbsp;&nbsp;&nbsp;</span>' + label;
-        }
-      </script>
-
       <script data-jsfiddle="example1">
         $("#example1").handsontable({
           data: getCarData(),
@@ -131,22 +120,17 @@
             {
               type: 'autocomplete',
               source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
-              strict: false,
-              options: {
-                items: 4 //`options` overrides `defaults` defined in bootstrap typeahead
-              }
+              strict: false
             },
             {type: 'numeric'},
             {
               type: 'autocomplete',
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
-              highlighter: colorHighlighter,
               strict: false
             },
             {
               type: 'autocomplete',
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
-              highlighter: colorHighlighter,
               strict: false
             }
           ]
@@ -195,19 +179,19 @@
             {
               type: 'autocomplete',
               source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo", ""], //empty string is a valid value
-              strict: true
+              strict: true,
+              allowInvalid: false
+
             },
             {},
             {
               type: 'autocomplete',
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
-              highlighter: colorHighlighter,
               strict: true
             },
             {
               type: 'autocomplete',
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"],
-              highlighter: colorHighlighter,
               strict: true
             }
           ]
@@ -258,7 +242,6 @@
           columns: [
             {
               type: 'autocomplete',
-              options: {items: 10}, //`options` overrides `defaults` defined in bootstrap typeahead
               source: function (query, process) {
                 $.ajax({
                   url: 'php/cars.php',

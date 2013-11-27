@@ -102,4 +102,28 @@ describe('NumericValidator', function () {
     });
   });
 
+  it('should validate empty string', function () {
+    var out;
+
+    Handsontable.NumericValidator('', function (result) {
+      out = result;
+    });
+
+    expect(out).toBe(true);
+  });
+
+  //is this correct behavior is disputable, but at least it's consistent
+  it('should validate null with the same empty string', function () {
+    var out1, out2;
+
+    Handsontable.NumericValidator('', function (result) {
+      out1 = result;
+    });
+
+    Handsontable.NumericValidator(null, function (result) {
+      out2 = result;
+    });
+
+    expect(out1).toBe(out2);
+  });
 });

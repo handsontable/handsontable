@@ -14,13 +14,11 @@ Handsontable.Core = function (rootElement, userSettings) {
     , editorManager
     , autofill
     , instance = this
-    , GridSettings = function () {
-    };
+    , GridSettings = function () {};
 
-  Handsontable.helper.inherit(GridSettings, DefaultSettings); //create grid settings as a copy of default settings
-  Handsontable.helper.extend(GridSettings.prototype, Handsontable.TextCell); //overwrite defaults with default cell
-  expandType(userSettings);
+  Handsontable.helper.extend(GridSettings.prototype, DefaultSettings.prototype); //create grid settings as a copy of default settings
   Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
+  Handsontable.helper.extend(GridSettings.prototype, expandType(userSettings));
 
   this.rootElement = rootElement;
   var $document = $(document.documentElement);
@@ -1317,17 +1315,18 @@ Handsontable.Core = function (rootElement, userSettings) {
         changes.splice(i, 1);
       }
       else {
+        var row = changes[i][0];
         var col = datamap.propToCol(changes[i][1]);
         var logicalCol = instance.runHooksAndReturn('modifyCol', col); //column order may have changes, so we need to translate physical col index (stored in datasource) to logical (displayed to user)
-        var cellProperties = instance.getCellMeta(changes[i][0], logicalCol);
+        var cellProperties = instance.getCellMeta(row, logicalCol);
 
-        if (cellProperties.dataType === 'number' && typeof changes[i][3] === 'string') {
+        if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && /^-?[\d\s]*\.?\d*$/.test(changes[i][3])) {
             changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
           }
         }
 
-        if (cellProperties.validator) {
+        if (instance.getCellValidator(cellProperties)) {
           waitingForValidator.addValidatorToQueue();
           instance.validateCell(changes[i][3], cellProperties, (function (i, cellProperties) {
             return function (result) {
@@ -1335,7 +1334,8 @@ Handsontable.Core = function (rootElement, userSettings) {
                 throw new Error("Validation error: result is not boolean");
               }
               if (result === false && cellProperties.allowInvalid === false) {
-                changes.splice(i, 1);
+                changes.splice(i, 1);         // cancel the change
+                cellProperties.valid = true;  // we cancelled the change, so cell value is still valid
                 --i;
               }
               waitingForValidator.removeValidatorFormQueue();
@@ -1407,7 +1407,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   }
 
   this.validateCell = function (value, cellProperties, callback, source) {
-    var validator = cellProperties.validator;
+    var validator = instance.getCellValidator(cellProperties);
 
     if (Object.prototype.toString.call(validator) === '[object RegExp]') {
       validator = (function (validator) {
@@ -1576,8 +1576,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Object|undefined} ending td in pasted area (only if any cell was changed)
    */
   this.populateFromArray = function (row, col, input, endRow, endCol, source, method) {
-    if (typeof input !== 'object') {
-      throw new Error("populateFromArray parameter `input` must be an array"); //API changed in 0.9-beta2, let's check if you use it correctly
+    if (!(typeof input === 'object' && typeof input[0] === 'object')) {
+      throw new Error("populateFromArray parameter `input` must be an array of arrays"); //API changed in 0.9-beta2, let's check if you use it correctly
     }
     return grid.populateFromArray({row: row, col: col}, input, typeof endRow === 'number' ? {row: endRow, col: endCol} : null, source, method);
   };
@@ -1766,7 +1766,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    */
   this.updateSettings = function (settings, init) {
-    var i, ilen, clen;
+    var i, clen;
 
     if (typeof settings.rows !== "undefined") {
       throw new Error("'rows' setting is no longer supported. do you mean startRows, minRows or maxRows?");
@@ -1808,15 +1808,6 @@ Handsontable.Core = function (rootElement, userSettings) {
       datamap.createMap();
     }
 
-    if (settings.columns !== void 0) {
-      for (i = 0, ilen = settings.columns.length; i < ilen; i++) {
-        if (GridSettings.prototype.colHeaders !== false) {
-          GridSettings.prototype.colHeaders = true;
-        }
-        break;
-      }
-    }
-
     // Init columns constructors configuration
     clen = instance.countCols();
 
@@ -1835,8 +1826,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         // Use settings provided by user
         if (GridSettings.prototype.columns) {
           column = GridSettings.prototype.columns[i];
-          expandType(column);
           Handsontable.helper.extend(proto, column);
+          Handsontable.helper.extend(proto, expandType(column));
         }
       }
     }
@@ -1886,24 +1877,30 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   function expandType(obj) {
-    if (obj.hasOwnProperty('type')) { //ignore obj.prototype.type
-      var type
-        , i;
-      if (typeof obj.type === 'object') {
-        type = obj.type;
-      }
-      else if (typeof obj.type === 'string') {
-        type = Handsontable.cellTypes[obj.type];
-        if (type === void 0) {
-          throw new Error('You declared cell type "' + obj.type + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
-        }
-      }
-      for (i in type) {
-        if (type.hasOwnProperty(i) && !obj.hasOwnProperty(i)) {
-          obj[i] = type[i];
-        }
+    if (!obj.hasOwnProperty('type')) return; //ignore obj.prototype.type
+
+
+    var type, expandedType = {};
+
+    if (typeof obj.type === 'object') {
+      type = obj.type;
+    }
+    else if (typeof obj.type === 'string') {
+      type = Handsontable.cellTypes[obj.type];
+      if (type === void 0) {
+        throw new Error('You declared cell type "' + obj.type + '" as a string that is not mapped to a known object. Cell type must be an object or a string mapped to an object in Handsontable.cellTypes');
       }
     }
+
+
+    for (var i in type) {
+      if (type.hasOwnProperty(i) && !obj.hasOwnProperty(i)) {
+        expandedType[i] = type[i];
+      }
+    }
+
+    return expandedType;
+
   }
 
   /**
@@ -2060,14 +2057,14 @@ Handsontable.Core = function (rootElement, userSettings) {
     cellProperties.instance = instance;
 
     instance.PluginHooks.run('beforeGetCellMeta', row, col, cellProperties);
-    expandType(cellProperties); //for `type` added in beforeGetCellMeta
+    Handsontable.helper.extend(cellProperties, expandType(cellProperties)); //for `type` added in beforeGetCellMeta
 
     if (cellProperties.cells) {
       var settings = cellProperties.cells.call(cellProperties, row, col, prop);
 
       if (settings) {
-        expandType(settings); //for `type` added in cells
         Handsontable.helper.extend(cellProperties, settings);
+        Handsontable.helper.extend(cellProperties, expandType(settings)); //for `type` added in cells
       }
     }
 
@@ -2099,6 +2096,22 @@ Handsontable.Core = function (rootElement, userSettings) {
       return Handsontable.PluginHooks.execute(instance, 'modifyCol', col); // warning: this must be done after datamap.colToProp
     }
   };
+
+  this.getCellRenderer = function (row, col) {
+    var renderer = Handsontable.helper.cellMethodLookupFactory('renderer').call(this, row, col);
+
+    if(typeof renderer == 'string'){
+      renderer = Handsontable.cellLookup.renderer[renderer];
+    }
+
+    return renderer
+
+  };
+
+  this.getCellEditor = Handsontable.helper.cellMethodLookupFactory('editor');
+
+  this.getCellValidator = Handsontable.helper.cellMethodLookupFactory('validator');
+
 
   /**
    * Validates all cells using their validator functions and calls callback when finished. Does not render the view
@@ -2148,6 +2161,30 @@ Handsontable.Core = function (rootElement, userSettings) {
     else {
       return priv.settings.rowHeaders;
     }
+  };
+
+  /**
+   * Returns information of this table is configured to display row headers
+   * @returns {boolean}
+   */
+  this.hasRowHeaders = function () {
+    return !!priv.settings.rowHeaders;
+  };
+
+  /**
+   * Returns information of this table is configured to display column headers
+   * @returns {boolean}
+   */
+  this.hasColHeaders = function () {
+    if (priv.settings.colHeaders !== void 0) {
+      return !!priv.settings.colHeaders;
+    }
+    for (var i = 0, ilen = instance.countCols(); i < ilen; i++) {
+      if (instance.getColHeader(i)) {
+        return true;
+      }
+    }
+    return false;
   };
 
   /**
@@ -2544,8 +2581,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.version = '@@version'; //inserted by grunt from package.json
 };
 
-var DefaultSettings = function () {
-};
+var DefaultSettings = function () {};
+
 DefaultSettings.prototype = {
   data: void 0,
   width: void 0,
@@ -2581,7 +2618,8 @@ DefaultSettings.prototype = {
   invalidCellClassName: 'htInvalid',
   fragmentSelection: false,
   readOnly: false,
-  nativeScrollbars: false
+  nativeScrollbars: false,
+  type: 'text'
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
