@@ -234,6 +234,8 @@
   display: inline-block;
   color: #000;
   border-radius: 0;
+  background-color: #FFF;
+  /*overwrite styles potentionally made by a framework*/
 }
 
 .handsontableInputHolder {
