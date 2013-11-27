@@ -16,7 +16,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     , instance = this
     , GridSettings = function () {};
 
-  Handsontable.helper.inherit(GridSettings, DefaultSettings); //create grid settings as a copy of default settings
+  Handsontable.helper.extend(GridSettings.prototype, DefaultSettings.prototype); //create grid settings as a copy of default settings
   Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
   Handsontable.helper.extend(GridSettings.prototype, expandType(userSettings));
 
