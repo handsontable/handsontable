@@ -12,6 +12,7 @@
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
   <!-- the below is only needed for DateCell (uses jQuery UI Datepicker) -->
   <script data-jsfiddle="common" src="../lib/jquery-ui/js/jquery-ui.custom.min.js"></script>
+  <script data-jsfiddle="common" src="js/jquery.ui.position.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen"
         href="../lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css">
 
@@ -159,8 +160,8 @@
           colHeaders: ["Plain text title", "HTML Description", "Cover"],
           columns: [
             {data: "title"},
-            {data: "description", type: {renderer: descriptionRenderer}},
-            {data: "cover", type: {renderer: coverRenderer}}
+            {data: "description", renderer: descriptionRenderer},
+            {data: "cover", renderer: coverRenderer}
           ]
         });
       </script>
@@ -216,7 +217,7 @@
           startCols: 2,
           columns: [
             {},
-            {type: {renderer: customRenderer}}
+            {renderer: customRenderer}
           ],
           colHeaders: function (col) {
             switch (col) {
@@ -274,12 +275,13 @@
         .changeType {
           border: 1px solid #bbb;
           color: #bbb;
+          background: #eee;
           border-radius: 2px;
           padding: 2px;
           font-size: 9px;
 
           float: right;
-          line-height: 12px;
+          line-height: 9px;
           margin: 3px 3px 0 0;
         }
 
@@ -292,12 +294,48 @@
         .changeType.pressed {
           background-color: #999;
         }
+
+        .changeTypeMenu {
+          position: absolute;
+          border: 1px solid #ccc;
+          margin-top: 18px;
+          box-shadow: 0 1px 3px -1px #323232;
+          background: white;
+          padding: 0;
+          display: none;
+          z-index: 10;
+        }
+
+        .changeTypeMenu li{
+          text-align: left;
+          list-style: none;
+          padding: 2px 20px;
+          cursor: pointer;
+        }
+
+        .changeTypeMenu li.active:before {
+          content: "\2714";
+          margin-left: -15px;
+          margin-right: 3px;
+        }
+
+        .changeTypeMenu li:hover {
+          background: #eee;
+        }
+
+
       </style>
 
       <script data-jsfiddle="example3">
-        var HOT
-          , changeCol
-          , columns = [
+        var data = [
+          ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
+          ["2009", 0, 2941, 4303, 354, 5814],
+          ["2010", 3, 2905, 2867, 412, 5284],
+          ["2011", 4, 2517, 4822, 552, 6127],
+          ["2012", 2, 2422, 5399, 776, 4151]
+        ];
+
+        var columns = [
             {type: 'numeric'},
             {type: 'numeric'},
             {type: 'numeric'},
@@ -306,79 +344,49 @@
             {type: 'numeric'}
           ];
 
-        function contextMenuItem(name, value) {
-          return {name: name, type: "radio", radio: "typeRadio", value: value, events: {
-            change: function () {
-              $(this).trigger('contextmenu:hide');
-            }
-          }};
-        }
-
-        $.contextMenu({
-          selector: '.changeType',
-          items: {
-            "text": contextMenuItem("Text", "text"),
-            "numeric": contextMenuItem("Numeric", "numeric"),
-            "date": contextMenuItem("Date", "date")
-          },
-          events: {
-            show: function (opt) {
-              $.contextMenu.setInputValues(opt, {typeRadio: getColumnType(changeCol)});
-            },
-            hide: function (opt) {
-              var values = $.contextMenu.getInputValues(opt);
-              setColumnType(changeCol, values.typeRadio);
-            }
-          }
-        });
-
-        function getColumnType(i) {
-          return columns[i].type;
-        }
-
-        function setColumnType(i, type) {
-          columns[i].type = type;
-          HOT.updateSettings({columns: columns});
-          HOT.render();
-        }
-
-        var data = [
-          ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
-          ["2009", 0, 2941, 4303, 354, 5814],
-          ["2010", "fff", 2905, 2867, 412, 5284],
-          ["2011", 4, 2517, 4822, 552, 6127],
-          ["2012", 2, 2422, 5399, 776, 4151]
-        ];
 
         $('#example3').handsontable({
           data: data,
-          minRows: 5,
-          minCols: 6,
-          minSpareRows: 1,
-          autoWrapRow: true,
           colHeaders: true,
+          minSpareRows: 1,
+          type: 'numeric',
           columns: columns,
-          contextMenu: true,
-          allowInvalid: true,
           afterGetColHeader: function (col, TH) {
-            var BUTTON = document.createElement('DIV');
-            BUTTON.className = "changeType";
-            BUTTON.appendChild(document.createTextNode('\u25BC')); //adds BLACK DOWN-POINTING TRIANGLE icon
+            var instance = this;
+            var menu = buildMenu(columns[col].type);
 
-            var $button = $(BUTTON);
-            $button.click(function () {
-              changeCol = col;
+            var $button = buildButton();
+            $button.click(function (e) {
 
-              var pos = $button.offset();
-              $button.contextMenu({x: pos.left, y: pos.top + $button.outerHeight() });
-              BUTTON.className = "changeType pressed";
+              e.preventDefault();
+              e.stopImmediatePropagation();
 
-              $(document.body).one("contextmenu:hide", function () {
-                BUTTON.className = "changeType";
+              $('.changeTypeMenu').hide();
+
+              menu.show();
+
+              menu.position({
+                 my: 'left top',
+                 at: 'left bottom',
+                 of: $button,
+                 within: instance.rootElement
               });
+
+              $(document).off('click.changeTypeMenu.hide');
+
+              $(document).one('click.changeTypeMenu.hide', function () {
+                 menu.hide();
+              });
+
+
             });
 
-            TH.firstChild.appendChild(BUTTON);
+            menu.on('click', 'li', function () {
+               setColumnType(col, $(this).data('colType'), instance);
+            });
+
+            TH.firstChild.appendChild($button[0]);
+            TH.appendChild(menu[0]);
           },
           cells: function (row, col, prop) {
             if (row === 0) {
@@ -390,7 +398,38 @@
           }
         });
 
-        HOT = $('#example3').handsontable('getInstance');
+        function buildMenu(activeCellType){
+          var menu = $('<ul></ul>').addClass('changeTypeMenu');
+
+          $.each(['text', 'numeric', 'date'], function (i, type) {
+            var item = $('<li></li>').data('colType', type).text(type);
+
+            if(activeCellType == type){
+              item.addClass('active');
+            }
+
+            menu.append(item);
+
+          });
+
+
+          return menu;
+
+        }
+
+        function buildButton() {
+          return $('<button></button>').addClass('changeType').html('\u25BC');
+        }
+
+        function setColumnType(i, type, instance) {
+          columns[i].type = type;
+          instance.updateSettings({columns: columns});
+          instance.validateCells(function(){
+            instance.render();
+          });
+        }
+
+
       </script>
     </div>
   </div>

@@ -218,4 +218,26 @@ describe('CheckboxRenderer', function () {
 
   });
 
+  it("double click on checkbox cell should invert the value", function () {
+    handsontable({
+      data: [
+        [true],
+        [false],
+        [true]
+      ],
+      columns: [
+        { type: 'checkbox'}
+      ]
+    });
+
+    mouseDoubleClick($(getCell(0, 0)));
+    expect(getDataAtCell(0, 0)).toBe(false);
+
+    mouseDoubleClick($(getCell(0, 0)));
+    expect(getDataAtCell(0, 0)).toBe(true);
+
+    mouseDoubleClick($(getCell(0, 0)));
+    expect(getDataAtCell(0, 0)).toBe(false);
+  });
+
 });

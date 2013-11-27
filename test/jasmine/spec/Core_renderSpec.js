@@ -30,7 +30,7 @@ describe('Core_render', function () {
       minSpareCols: 4,
       cells: function () {
         return {
-          type: {renderer: greenCell}
+          renderer: greenCell
         };
       }
     });

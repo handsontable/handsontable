@@ -148,5 +148,82 @@ describe('Core_updateSettings', function () {
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
   });
 
+  it("should not alter the columns object during init", function () {
+
+    var columns = [
+      {
+        type: 'text'
+      }
+    ];
+
+    var columnsCopy = JSON.parse(JSON.stringify(columns));
+
+    handsontable({
+      columns: columns
+    });
+
+    expect(columns).toEqual(columnsCopy);
+
+
+  });
+
+  it("should update column type", function () {
+
+    var columns = [
+      {
+        type: 'text'
+      }
+    ];
+
+    handsontable({
+      columns: columns
+    });
+
+    expect(getCellMeta(0, 0).type).toEqual('text');
+    expect(getCellRenderer(0, 0)).toBe(Handsontable.TextCell.renderer);
+    expect(getCellEditor(0, 0)).toBe(Handsontable.TextCell.editor);
+
+    columns[0].type = 'date';
+
+    updateSettings({
+      columns: columns
+    });
+
+    expect(getCellMeta(0, 0).type).toEqual('date');
+    expect(getCellMeta(0, 0).renderer).toBe(Handsontable.DateCell.renderer);
+    expect(getCellMeta(0, 0).editor).toEqual(Handsontable.DateCell.editor);
+
+
+});
+
+  it("should update cell type functions, even if new type does not implement all of those functions", function () {
+
+    var columns = [
+      {
+        type: 'numeric'
+      }
+    ];
+
+    handsontable({
+      columns: columns
+    });
+
+    expect(getCellMeta(0, 0).type).toEqual('numeric');
+    expect(getCellRenderer(0, 0)).toBe(Handsontable.NumericCell.renderer);
+    expect(getCellEditor(0, 0)).toBe(Handsontable.NumericCell.editor);
+    expect(getCellValidator(0, 0)).toBe(Handsontable.NumericCell.validator);
+
+    columns[0].type = 'text';
+
+    updateSettings({
+      columns: columns
+    });
+
+    expect(getCellMeta(0, 0).type).toEqual('text');
+    expect(getCellRenderer(0, 0)).toBe(Handsontable.TextCell.renderer);
+    expect(getCellEditor(0, 0)).toEqual(Handsontable.TextCell.editor);
+    expect(Handsontable.TextCell.validator).toBeUndefined();
+    expect(getCellValidator(0, 0)).toBeUndefined();
+  });
 
 });

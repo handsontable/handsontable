@@ -118,5 +118,5 @@ Walkontable.prototype.destroy = function () {
   $(document.body).off('.' + this.guid);
   this.wtScrollbars.destroy();
   clearTimeout(this.wheelTimeout);
-  clearTimeout(this.dblClickTimeout);
+  this.wtEvent && this.wtEvent.destroy();
 };

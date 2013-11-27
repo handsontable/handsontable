@@ -1,8 +1,18 @@
 function parseDatacolumn(HOTCOLUMN) {
-  var obj = {};
+  var obj = {}
+    , attrName;
 
   for (var i = 0, ilen = HOTCOLUMN.attributes.length; i < ilen; i++) {
-    obj[HOTCOLUMN.attributes[i].name] = HOTCOLUMN.attributes[i].value || true;
+    attrName = HOTCOLUMN.attributes[i].name;
+    if (HOTCOLUMN[attrName] !== void 0) {
+      obj[attrName] = HOTCOLUMN[attrName];
+    }
+    else if (HOTCOLUMN.attributes[i].value !== void 0) {
+      obj[attrName] = HOTCOLUMN.attributes[i].value;
+    }
+    else {
+      obj[attrName] = true;
+    }
   }
 
   obj.data = obj.value;
@@ -19,7 +29,7 @@ function parseDatacolumn(HOTCOLUMN) {
   obj.uncheckedTemplate = obj.uncheckedtemplate;
   delete obj.uncheckedtemplate;
 
-  if (obj.type === 'autocomplete' && typeof obj.source === 'string') {
+  if ((obj.type === 'autocomplete' || obj.type === 'dropdown') && typeof obj.source === 'string') {
     obj.source = window[obj.source];
   }
 
@@ -41,6 +51,10 @@ function getModel(HANDSONTABLE) {
 }
 
 function getModelPath(HANDSONTABLE, path) {
+  if (typeof path === 'object') { //happens in Polymer when assigning as datarows="{{ model.subpage.people }}" or settings="{{ model.subpage.settings }}
+    return path;
+  }
+
   var obj = getModel(HANDSONTABLE);
   var keys = path.split('.');
   var len = keys.length;
@@ -67,7 +81,6 @@ function parseDatacolumns(HANDSONTABLE) {
 }
 
 function parseHandsontable(HANDSONTABLE) {
-  var i;
   var columns = parseDatacolumns(HANDSONTABLE);
 
   var options = {
@@ -112,7 +125,7 @@ publicProperties.forEach(function (hot_prop) {
     }
 
     publish[wc_prop + 'Changed'] = function () {
-      if(wc_prop === 'settings') {
+      if (wc_prop === 'settings') {
         var settings = getModelPath(this, this[wc_prop]);
         this.updateSettings(settings);
         return;
@@ -147,7 +160,7 @@ Polymer('handsontable-table', {
     jQuery(this.$.htContainer).handsontable(parseHandsontable(this));
     this.instance = jQuery(this.$.htContainer).data('handsontable');
   },
-  onMutation: function() {
+  onMutation: function () {
     var columns = parseDatacolumns(this);
     if (columns.length) {
       this.updateSettings({columns: columns});

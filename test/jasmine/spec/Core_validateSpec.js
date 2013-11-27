@@ -245,18 +245,20 @@ describe('Core_validate', function () {
   it('should add class name `htInvalid` to a cell without removing other classes', function () {
 
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    var validator = jasmine.createSpy('validator').andCallThrough();
+    validator.plan = function (value, callb) {
+      if (value == 123) {
+        callb(false)
+      }
+      else {
+        callb(true)
+      }
+    };
 
     handsontable({
       data: createSpreadsheetData(2, 2),
       type: 'numeric',
-      validator: function (value, callb) {
-        if (value == 123) {
-          callb(false)
-        }
-        else {
-          callb(true)
-        }
-      },
+      validator: validator,
       afterValidate: onAfterValidate
     });
 
@@ -267,6 +269,7 @@ describe('Core_validate', function () {
     }, 'Cell validation 1', 1000);
 
     runs(function () {
+      expect(validator.calls.length).toEqual(1);
       expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
       expect(this.$container.find('tr:eq(0) td:eq(0)').hasClass('htNumeric')).toEqual(true);
 
@@ -410,6 +413,12 @@ describe('Core_validate', function () {
       expect(validatedChanges.length).toEqual(2);
       expect(validatedChanges[0]).toEqual([0, 0, 'A0', 'A0-new']);
       expect(validatedChanges[1]).toEqual([2, 0, 'A2', 'A2-new']);
+      expect(getDataAtCell(0, 0)).toEqual('A0-new');
+      expect(getDataAtCell(1, 0)).toEqual('A1');
+      expect(getDataAtCell(2, 0)).toEqual('A2-new');
+      expect(getCellMeta(0, 0).valid).toBe(true);
+      expect(getCellMeta(1, 0).valid).toBe(true);
+      expect(getCellMeta(2, 0).valid).toBe(true);
     });
   });
 
@@ -1138,4 +1147,5 @@ describe('Core_validate', function () {
       expect(getSelected()).toEqual([3, 0, 3, 0]);
     });
   });
+
 });

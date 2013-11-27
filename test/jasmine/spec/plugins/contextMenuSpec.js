@@ -780,34 +780,606 @@ describe('ContextMenu', function () {
 
   });
 
+  describe("keyboard navigation", function () {
+
+    describe("no item selected", function () {
+
+      it("should select the first item in menu, when user hits ARROW_DOWN", function () {
+
+        var hot = handsontable({
+          contextMenu: true
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        expect(menuHot.getSelected()).toBeUndefined();
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+
+      });
+
+      it("should select the first NOT DISABLED item in menu, when user hits ARROW_DOWN", function () {
+
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1',
+                disabled: true
+              },
+              item2: {
+                name: 'Item2',
+                disabled: true
+              },
+              item3: {
+                name: 'Item3'
+              }
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        expect(menuHot.getSelected()).toBeUndefined();
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+
+      });
+
+      it("should NOT select any items in menu, when user hits ARROW_DOWN and there is no items enabled", function () {
+
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1',
+                disabled: true
+              },
+              item2: {
+                name: 'Item2',
+                disabled: true
+              },
+              item3: {
+                name: 'Item3',
+                disabled: true
+              }
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        expect(menuHot.getSelected()).toBeUndefined();
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toBeUndefined();
+
+      });
+
+      it("should select the last item in menu, when user hits ARROW_UP", function () {
+
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: 'Item1',
+              item2: 'Item2',
+              item3: 'Item3'
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        expect(menuHot.getSelected()).toBeUndefined();
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+
+      });
+
+      it("should select the last NOT DISABLED item in menu, when user hits ARROW_UP", function () {
+
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1'
+              },
+              item2: {
+                name: 'Item2',
+                disabled: true
+              },
+              item3: {
+                name: 'Item3',
+                disabled: true
+              }
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        expect(menuHot.getSelected()).toBeUndefined();
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+
+      });
+
+      it("should NOT select any items in menu, when user hits ARROW_UP and there is no items enabled", function () {
+
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1',
+                disabled: true
+              },
+              item2: {
+                name: 'Item2',
+                disabled: true
+              },
+              item3: {
+                name: 'Item3',
+                disabled: true
+              }
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        expect(menuHot.getSelected()).toBeUndefined();
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toBeUndefined();
+
+      });
+
+    });
+
+    describe("item selected", function () {
+
+      it("should select next item when user hits ARROW_DOWN", function () {
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1'
+              },
+              item2: {
+                name: 'Item2'
+              },
+              item3: {
+                name: 'Item3'
+              }
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+      });
+
+      it("should select next item (skipping disabled items) when user hits ARROW_DOWN", function () {
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1'
+              },
+              item2: {
+                name: 'Item2',
+                disabled: true
+              },
+              item3: {
+                name: 'Item3'
+              }
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+      });
+
+      it("should select next item (skipping separators) when user hits ARROW_DOWN", function () {
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1'
+              },
+              sep1: Handsontable.ContextMenu.SEPARATOR,
+              item2: {
+                name: 'Item2'
+              },
+              item3: {
+                name: 'Item3'
+              }
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([3, 0, 3, 0]);
+      });
+
+      it("should not change selection when last item is selected and user hits ARROW_DOWN", function () {
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1'
+              },
+              item2: {
+                name: 'Item2'
+              },
+              item3: {
+                name: 'Item3'
+              }
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+      });
+
+      it("should not change selection when last enabled item is selected and user hits ARROW_DOWN", function () {
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1'
+              },
+              item2: {
+                name: 'Item2'
+              },
+              item3: {
+                name: 'Item3',
+                disabled: true
+              }
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+      });
+
+      it("should select next item when user hits ARROW_UP", function () {
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1'
+              },
+              item2: {
+                name: 'Item2'
+              },
+              item3: {
+                name: 'Item3'
+              }
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+      });
+
+      it("should select next item (skipping disabled items) when user hits ARROW_UP", function () {
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1'
+              },
+              item2: {
+                name: 'Item2',
+                disabled: true
+              },
+              item3: {
+                name: 'Item3'
+              }
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+      });
+
+      it("should select next item (skipping separators) when user hits ARROW_UP", function () {
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1'
+              },
+              sep1: Handsontable.ContextMenu.SEPARATOR,
+              item2: {
+                name: 'Item2'
+              },
+              item3: {
+                name: 'Item3'
+              }
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([3, 0, 3, 0]);
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+      });
+
+      it("should not change selection when first item is selected and user hits ARROW_UP", function () {
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1'
+              },
+              item2: {
+                name: 'Item2'
+              },
+              item3: {
+                name: 'Item3'
+              }
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+      });
+
+      it("should not change selection when first enabled item is selected and user hits ARROW_UP", function () {
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1',
+                disabled: true
+              },
+              item2: {
+                name: 'Item2'
+              },
+              item3: {
+                name: 'Item3'
+              }
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([2, 0, 2, 0]);
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+
+        keyDownUp('arrow_up');
+
+        expect(menuHot.getSelected()).toEqual([1, 0, 1, 0]);
+      });
+
+      it("should perform a selected item action, when user hits ENTER", function () {
+
+        var itemAction = jasmine.createSpy('itemAction');
+
+        var hot = handsontable({
+          contextMenu: {
+            items: {
+              item1: {
+                name: 'Item1',
+                callback: itemAction
+              },
+              item2: 'Item2'
+            }
+          }
+        });
+
+        contextMenu();
+
+        var menuHot = $(hot.contextMenu.menu).handsontable('getInstance');
 
 
+        keyDownUp('arrow_down');
+
+        expect(menuHot.getSelected()).toEqual([0, 0, 0, 0]);
+
+        expect(itemAction).not.toHaveBeenCalled();
+
+        keyDownUp('enter');
+
+        expect(itemAction).toHaveBeenCalled();
+        expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
+
+      });
+
+    });
+
+    it("should close menu when user hits ESC", function () {
+
+      var hot = handsontable({
+        contextMenu: true
+      });
+
+      contextMenu();
+
+      expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
+
+      keyDownUp('esc');
+
+      expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
+
+    });
+
+  });
 
 
-
-  //TODO rewrite these tests for new context menu that uses Handsontable
-  xit('should work properly (remove row) after destroy and new init', function () {
+  it('should work properly (remove row) after destroy and new init', function () {
     var test = function () {
-      handsontable({
+      var hot = handsontable({
         startRows: 5,
         contextMenu: ['remove_row']
       });
       selectCell(0, 0);
       contextMenu();
-      $('ul.context-menu-list li').first().trigger('mouseup.contextMenu');
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(0).trigger('mousedown');
       expect(getData().length).toEqual(4);
     };
     test();
+
     destroy();
 
-    waits(50); //jquery.contextMenu.js waits that long to hide background so we must wait too
-
-    runs(function () {
-      test();
-    });
+    test();
   });
 
-  xit("should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT ", function () {
+  it("should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT ", function () {
     this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
 
     var hot1 = handsontable({
@@ -821,47 +1393,53 @@ describe('ContextMenu', function () {
     var hot2 = this.$container2.handsontable('getInstance');
 
     contextMenu();
-    expect($('ul.context-menu-list').is(':visible')).toBe(false);
+    expect(hot1.rootElement.find('.htContextMenu').length).toEqual(0);
+    expect(hot1.contextMenu).toBeUndefined();
 
     contextMenu2();
-    expect($('ul.context-menu-list').is(':visible')).toBe(true);
+    expect(hot2.rootElement.find('.htContextMenu').length).toEqual(1);
+    expect($(hot2.contextMenu.menu).is(':visible')).toBe(true);
 
-    hideContextMenu.call(hot2);
+    mouseDown(hot2.rootElement);
 
-    waitsFor(function () {
-      return $('ul.context-menu-list:visible').length == 0
-    }, 'Hiding context menu', 1000);
 
-    runs(function () {
-
-      hot1.updateSettings({
-        contextMenu: true
-      });
-
-      hot2.updateSettings({
-        contextMenu: false
-      });
-
-      contextMenu2();
-      expect($('ul.context-menu-list').is(':visible')).toBe(false);
-
-      contextMenu();
-      expect($('ul.context-menu-list').is(':visible')).toBe(true);
-
-      hot2.destroy();
-      this.$container2.remove();
+    hot1.updateSettings({
+      contextMenu: true
     });
 
-    function contextMenu2() {
-      var ev = $.Event('contextmenu');
-      ev.button = 2;
-      var selector = "#" + hot2.rootElement.attr('id') + ' table, #' + hot2.rootElement.attr('id') + ' div';
-      $(selector).trigger(ev);
-    }
+    hot2.updateSettings({
+      contextMenu: false
+    });
 
-    function hideContextMenu() {
-      var selector = "#" + this.rootElement.attr('id') + ' table, #' + this.rootElement.attr('id') + ' div';
-      $(selector).contextMenu('hide')
+    contextMenu2();
+    expect(hot2.rootElement.find('.htContextMenu').length).toEqual(0);
+    expect(hot2.contextMenu).toBeUndefined();
+
+    contextMenu();
+    expect(hot1.rootElement.find('.htContextMenu').length).toEqual(1);
+    expect($(hot1.contextMenu.menu).is(':visible')).toBe(true);
+
+    hot2.destroy();
+    this.$container2.remove();
+
+    function contextMenu2() {
+      var hot = spec().$container2.data('handsontable');
+      var selected = hot.getSelected();
+
+      if(!selected){
+        hot.selectCell(0, 0);
+        selected = hot.getSelected();
+      }
+
+      var cell = hot.getCell(selected[0], selected[1]);
+      var cellOffset = $(cell).offset();
+
+      var ev = $.Event('contextmenu', {
+        pageX: cellOffset.left,
+        pageY: cellOffset.top
+      });
+
+      $(cell).trigger(ev);
     }
 
   });

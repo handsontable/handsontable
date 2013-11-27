@@ -1,0 +1,99 @@
+<script>
+  (function () {
+    function getModel(node) {
+      return node.model;
+    }
+
+    function loadTemplate(customElement) {
+      var template = customElement.getAttribute('content');
+      if (template && template.indexOf('/') === 0) {
+        //load partial from HTTP server/cache
+         var href = template; //.substr(1);
+        var oReq = new XMLHttpRequest();
+        oReq.onload = function (event) {
+          reattachTemplate(customElement, event.target.responseText);
+        };
+        oReq.open("GET", href, true);
+        oReq.send();
+      }
+      else {
+        //load partial from string
+        reattachTemplate(customElement, template);
+      }
+    }
+
+    function reattachTemplate(customElement, template) {
+      customElement.innerHTML = '<template bind>' + template + '</template>';
+      var model = getModel(customElement);
+      customElement.firstChild.model = model;
+
+      setTimeout(function () {
+        var inScripts = customElement.firstChild.content.querySelectorAll('script');
+        inScripts = Array.prototype.slice.call(inScripts, 0); //convert to array
+        inScripts.forEach(function (inScript) {
+          executeComponentScript(inScript.textContent, customElement, 'script')
+        });
+      }, 0);
+    }
+
+    /**
+     * Function that executes script (that is ignored by browser's .innerHTML)
+     * @source Polymer's HTMLElementElement.js
+     */
+    function executeComponentScript(inScript, inContext, inName) {
+      // set (highlander) context
+      context = inContext;
+      // source location
+      var owner = context.ownerDocument;
+      var url = (owner._URL || owner.URL || owner.impl
+        && (owner.impl._URL || owner.impl.URL));
+      // ensure the component has a unique source map so it can be debugged
+      // if the name matches the filename part of the owning document's url,
+      // use this, otherwise, add ":<name>" to the document url.
+      var match = url.match(/.*\/([^.]*)[.]?.*$/);
+      if (match) {
+        var name = match[1];
+        url += name != inName ? ':' + inName : '';
+      }
+      // compose script
+      var code = "__componentScript('"
+          + inName
+          + "', function(){"
+          + inScript
+          + "});"
+          + "\n//# sourceURL=" + url + "\n"
+        ;
+      // inject script
+      eval(code);
+    }
+
+    var context;
+
+    // global necessary for script injection
+    window.__componentScript = function (inName, inFunc) {
+      inFunc.call(context);
+    };
+
+    var XHTMLPrototype = Object.create(HTMLElement.prototype);
+    XHTMLPrototype.createdCallback = function () {
+      var customElement = this;
+      loadTemplate(customElement);
+
+      var observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+          if (mutation.type === "attributes" && mutation.attributeName === "content") {
+            loadTemplate(customElement);
+          }
+        });
+      });
+      observer.observe(this, {
+        attributes: true
+      });
+    };
+    XHTMLPrototype.readyCallback = XHTMLPrototype.createdCallback; //required for compatibility with polymer.js < 20130816
+
+    document.register('x-html', {
+      prototype: XHTMLPrototype
+    });
+  })();
+</script>

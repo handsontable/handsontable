@@ -16,6 +16,7 @@ Handsontable.PluginHookClass = (function () {
       beforeGetCellMeta: [],
       beforeAutofill: [],
       beforeKeyDown: [],
+      beforeColumnSort: [],
 
       afterInit : [],
       afterLoadData : [],
@@ -34,6 +35,7 @@ Handsontable.PluginHookClass = (function () {
       afterCreateCol: [],
       afterColumnResize: [],
       afterColumnMove: [],
+      afterColumnSort: [],
       afterDeselect: [],
       afterSelection: [],
       afterSelectionByProp: [],

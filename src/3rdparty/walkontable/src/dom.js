@@ -261,8 +261,8 @@ WalkontableDom.prototype.isVisible = function (elem) {
     if (next === null) { //parent detached from DOM
       return false;
     }
-    else if (next.nodeType === 11) {
-      return true;
+    else if (next.nodeType === 11) {  //nodeType == 1 -> DOCUMENT_FRAGMENT_NODE
+      return false;
     }
     else if (next.style.display === 'none') {
       return false;

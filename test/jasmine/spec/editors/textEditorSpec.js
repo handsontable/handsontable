@@ -1,4 +1,4 @@
-describe('NewTextEditor', function () {
+describe('TextEditor', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
@@ -454,7 +454,7 @@ describe('NewTextEditor', function () {
     keyDown(Handsontable.helper.keyCode.ENTER);
 
     expect(hot.getActiveEditor().isOpened()).toBe(true);
-    expect(hot.getActiveEditor().val()).toEqual('');
+    expect(hot.getActiveEditor().getValue()).toEqual('');
   });
 
   it("should open empty editor after clearing cell value width DELETE", function () {
@@ -474,7 +474,7 @@ describe('NewTextEditor', function () {
     keyDown(Handsontable.helper.keyCode.ENTER);
 
     expect(hot.getActiveEditor().isOpened()).toBe(true);
-    expect(hot.getActiveEditor().val()).toEqual('');
+    expect(hot.getActiveEditor().getValue()).toEqual('');
   });
 
 
