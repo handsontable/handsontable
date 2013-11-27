@@ -1,3 +1,18 @@
+## [0.10.0-beta4](https://github.com/warpech/jquery-handsontable/tree/v0.10.0-beta4) (Nov 27, 2013)
+
+Changes since beta3:
+- fixed displaying context menu in IE8
+- autocompleteEditor has new option `filter` which control whether options which don't match the phrase typed in the input should be hidden
+- new editor called `dropdown`
+- from now on value of `type` option can only be a string
+- enhanced integration with Polymer and Web Components
+- fixed opening cell editor with doubleclick in IE8
+- fixed doubleclicking on cell of type `checkbox`
+- enhanced phrase highlighting in autocompleteEditor
+- fixed validation for cell type `autocomplete`
+- fixed displaying fill handle in IE8
+
+
 ## [0.10.0-beta3](https://github.com/warpech/jquery-handsontable/tree/v0.10.0-beta3) (Oct 30, 2013)
 
 Changes since beta2:
