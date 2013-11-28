@@ -253,7 +253,6 @@
             people.filter(function (person) {
               person.gender = person.gender === 'Male' ? 'Female' : 'Male';
             });
-            HOT.render();
           });
 
           document.getElementById('button3').addEventListener('click', function () {
@@ -262,7 +261,6 @@
                 person.age = parseInt(person.age, 10) + 1; //convert string
               }
             });
-            HOT.render();
           });
         });
 
