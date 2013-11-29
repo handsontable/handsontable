@@ -803,6 +803,8 @@ describe('ColumnSorting', function () {
     keyDown('enter');
     expect($('.handsontableInput').val()).toEqual('A');
 
+    this.$container2.handsontable('destroy');
+    this.$container2.remove();
   });
 
   it("should reset sorting after loading new data", function () {
