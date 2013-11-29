@@ -262,7 +262,19 @@ WalkontableDom.prototype.isVisible = function (elem) {
       return false;
     }
     else if (next.nodeType === 11) {  //nodeType == 1 -> DOCUMENT_FRAGMENT_NODE
-      return false;
+      if (next.host) { //this is Web Components Shadow DOM
+        //see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
+        //according to spec, should be if (next.ownerDocument !== window.document), but that doesn't work yet
+        if (next.host.impl) {
+          return WalkontableDom.prototype.isVisible(next.host.impl);
+        }
+        else {
+          throw new Error("Lost in Web Components world");
+        }
+      }
+      else {
+        return false; //this is a node detached from document in IE8
+      }
     }
     else if (next.style.display === 'none') {
       return false;

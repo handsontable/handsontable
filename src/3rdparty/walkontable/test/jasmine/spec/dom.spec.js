@@ -130,6 +130,19 @@ describe('WalkontableDom', function () {
 
       $table.remove();
     });
+
+    it("should return false for something detached from DOM", function () {
+      var $table = $('<table><tr><td></td></tr></table>').appendTo('body');
+
+      var wtDom = new WalkontableDom();
+      var TD = $table.find('td')[0];
+      var TR = TD.parentNode;
+      expect(wtDom.isVisible(TD)).toBe(true);
+      TR.parentNode.removeChild(TR);
+      expect(wtDom.isVisible(TD)).toBe(false);
+
+      $table.remove();
+    });
   });
 
   describe('outerHeight', function () {
