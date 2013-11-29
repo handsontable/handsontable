@@ -265,8 +265,11 @@ WalkontableDom.prototype.isVisible = function (elem) {
       if (next.host) { //this is Web Components Shadow DOM
         //see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
         //according to spec, should be if (next.ownerDocument !== window.document), but that doesn't work yet
-        if (next.host.impl) {
+        if (next.host.impl) { //Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features disabled
           return WalkontableDom.prototype.isVisible(next.host.impl);
+        }
+        else if (next.host) { //Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
+          return WalkontableDom.prototype.isVisible(next.host);
         }
         else {
           throw new Error("Lost in Web Components world");
