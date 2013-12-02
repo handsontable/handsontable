@@ -5,9 +5,11 @@
  * @param strategy - all, last, none
  * @constructor
  */
-function WalkontableColumnStrategy(containerSizeFn, sizeAtIndex, strategy) {
+function WalkontableColumnStrategy(instance, containerSizeFn, sizeAtIndex, strategy) {
   var size
     , i = 0;
+
+  WalkontableCellStrategy.apply(this, arguments);
 
   this.containerSizeFn = containerSizeFn;
   this.cellSizesSum = 0;

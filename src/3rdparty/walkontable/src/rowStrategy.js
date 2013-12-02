@@ -4,7 +4,10 @@
  * @param sizeAtIndex
  * @constructor
  */
-function WalkontableRowStrategy(containerSizeFn, sizeAtIndex) {
+function WalkontableRowStrategy(instance, containerSizeFn, sizeAtIndex) {
+
+  WalkontableCellStrategy.apply(this, arguments);
+
   this.containerSizeFn = containerSizeFn;
   this.sizeAtIndex = sizeAtIndex;
   this.cellSizesSum = 0;
