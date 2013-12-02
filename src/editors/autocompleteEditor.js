@@ -126,8 +126,11 @@
       if(!query || this.cellProperties.filter === false){
         choices = this.cellProperties.source;
       } else {
+
+        var queryRegex = new RegExp(query, 'i');
+
         choices = this.cellProperties.source.filter(function(choice){
-          return choice.indexOf(query) != -1
+          return queryRegex.test(choice);
         });
       }
 

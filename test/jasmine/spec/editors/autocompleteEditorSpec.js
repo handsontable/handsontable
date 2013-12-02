@@ -1195,6 +1195,87 @@ describe('AutocompleteEditor', function () {
         expect(autocomplete().handsontable('getData')).toEqual([ [ 'red' ] ]);
       });
     });
+    it('default filtering should be case insensitive', function () {
+
+
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      var editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+
+      editorInput.val("e");
+      keyDownUp(69); //e
+
+
+
+      waits(50); //filtering is always async
+
+      runs(function () {
+        expect(autocomplete().handsontable('getData')).toEqual([ [ 'yellow' ], [ 'red' ], [ 'orange' ], [ 'green' ], [ 'blue' ], [ 'white' ] ]);
+
+        editorInput.val("E");
+        keyDownUp(69); //E (same as "e")
+      });
+
+      waits(50); //filtering is always async
+
+      runs(function () {
+        expect(autocomplete().handsontable('getData')).toEqual([ [ 'yellow' ], [ 'red' ], [ 'orange' ], [ 'green' ], [ 'blue' ], [ 'white' ] ]);
+      });
+    });
+    it('default filtering should be case sensitive when filteringCaseSensitive is false', function () {
+
+
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices,
+            filteringCaseSensitive: true
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      var editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+
+      editorInput.val("e");
+      keyDownUp(69); //e
+
+
+
+      waits(50); //filtering is always async
+
+      runs(function () {
+        expect(autocomplete().handsontable('getData')).toEqual([ [ 'yellow' ], [ 'red' ], [ 'orange' ], [ 'green' ], [ 'blue' ], [ 'white' ] ]);
+
+        editorInput.val("E");
+        keyDownUp(69); //E (same as "e")
+      });
+
+      waits(50); //filtering is always async
+
+      runs(function () {
+        expect(autocomplete().handsontable('getData')).toEqual([ ]);
+      });
+    });
     it('typing in textarea should NOT filter the lookup list when filtering is disabled', function () {
 
       handsontable({
