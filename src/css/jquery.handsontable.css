@@ -393,15 +393,15 @@ ul.context-menu-list li {
   position: absolute;
 }
 
-.handsontable .htContextMenu table.htCore {
+.htContextMenu table.htCore {
   outline: 1px solid #bbb;
 }
 
-.handsontable .htContextMenu .wtBorder {
+.htContextMenu .wtBorder {
   visibility: hidden;
 }
 
-.handsontable .htContextMenu table tbody tr td {
+.htContextMenu table tbody tr td {
   background: white;
   border-width: 0;
   padding: 4px 6px 0px 6px;
@@ -411,26 +411,30 @@ ul.context-menu-list li {
   text-overflow: ellipsis;
 }
 
-.handsontable .htContextMenu table tbody tr td.htDimmed{
+.htContextMenu table tbody tr td:first-child {
+  border: 0;
+}
+
+.htContextMenu table tbody tr td.htDimmed{
   font-style: normal;
   color: #323232;
 }
 
-.handsontable .htContextMenu table tbody tr td.current{
+.htContextMenu table tbody tr td.current{
   background: rgb(233, 233, 233);
 }
 
-.handsontable .htContextMenu table tbody tr td.htSeparator {
+.htContextMenu table tbody tr td.htSeparator {
   border-top: 1px solid #bbb;
   height: 0;
   padding: 0;
 }
 
-.handsontable .htContextMenu table tbody tr td.htDisabled {
+.htContextMenu table tbody tr td.htDisabled {
   color: #999;
 }
 
-.handsontable .htContextMenu table tbody tr td.htDisabled:hover {
+.htContextMenu table tbody tr td.htDisabled:hover {
   background: white;
   color: #999;
   cursor: default;
