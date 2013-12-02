@@ -91,6 +91,8 @@ WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
     return;
   }
 
+  this.instance.getSetting('onScrollHorizontally');
+
   this.windowScrollPosition = this.getScrollPosition();
 };
 

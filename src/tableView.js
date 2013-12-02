@@ -239,6 +239,12 @@ Handsontable.TableView = function (instance) {
     },
     onDraw: function(force){
       that.onDraw(force);
+    },
+    onScrollVertically: function () {
+      instance.runHooks('afterScrollVertically');
+    },
+    onScrollHorizontally: function () {
+      instance.runHooks('afterScrollHorizontally');
     }
   };
 
