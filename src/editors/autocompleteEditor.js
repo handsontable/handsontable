@@ -127,7 +127,7 @@
         choices = this.cellProperties.source;
       } else {
 
-        var queryRegex = new RegExp(query, 'i');
+        var queryRegex = new RegExp(query, this.cellProperties.filteringCaseSensitive === true ? '' : 'i');
 
         choices = this.cellProperties.source.filter(function(choice){
           return queryRegex.test(choice);
