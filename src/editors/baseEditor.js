@@ -131,17 +131,18 @@
     }
 
     if (this.state == Handsontable.EditorState.EDITING) {
-      var val;
 
       if (restoreOriginalValue) {
-        val = [
-          [this.originalValue]
-        ];
-      } else {
-        val = [
-          [String.prototype.trim.call(this.getValue())] //String.prototype.trim is defined in Walkontable polyfill.js
-        ];
+
+        this.cancelChanges();
+        return;
+
       }
+
+
+      var val = [
+        [String.prototype.trim.call(this.getValue())] //String.prototype.trim is defined in Walkontable polyfill.js
+      ];
 
       this.state = Handsontable.EditorState.WAITING;
 
@@ -159,6 +160,11 @@
       }
 
     }
+  };
+
+  BaseEditor.prototype.cancelChanges = function () {
+    this.state = Handsontable.EditorState.FINISHED;
+    this.discardEditor();
   };
 
   BaseEditor.prototype.discardEditor = function (result) {
