@@ -130,6 +130,14 @@ var handsontableKeyTriggerFactory = function (type) {
           ev.keyCode = 40;
           break;
 
+        case 'page_up':
+          ev.keyCode = 33;
+          break;
+
+        case 'page_down':
+          ev.keyCode = 34;
+          break;
+
         case 'ctrl':
           ev.keyCode = 17;
           break;
