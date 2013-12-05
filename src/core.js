@@ -1761,6 +1761,10 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
   };
 
+  this.getCopyableData = function (startRow, startCol, endRow, endCol) {
+    return datamap.getText({row: startRow, col: startCol}, {row: endRow, col: endCol});
+  }
+
   /**
    * Update settings
    * @public
@@ -2488,8 +2492,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     $(window).off('.' + instance.guid);
     $document.off('.' + instance.guid);
     $body.off('.' + instance.guid);
-    instance.copyPaste.removeCallback(priv.onCut);
-    instance.copyPaste.removeCallback(priv.onPaste);
     instance.PluginHooks.run('afterDestroy');
   };
 

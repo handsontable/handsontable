@@ -160,6 +160,7 @@
       colHeaders: false,
       colWidths: [160],
       readOnly: true,
+      copyPaste: false,
       columns: [
         {
           data: 'name',

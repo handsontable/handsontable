@@ -10,13 +10,23 @@ var CopyPaste = (function () {
     getInstance: function () {
       if (!instance) {
         instance = new CopyPasteClass();
+      } else if (instance.hasBeenDestroyed()){
+        instance.init();
       }
+
+      instance.refCounter++;
+
       return instance;
     }
   };
 })();
 
 function CopyPasteClass() {
+  this.refCounter = 0;
+  this.init();
+}
+
+CopyPasteClass.prototype.init = function () {
   var that = this
     , style
     , parent;
@@ -25,7 +35,7 @@ function CopyPasteClass() {
   this.cutCallbacks = [];
   this.pasteCallbacks = [];
 
-  var listenerElement = document.documentElement;
+  this.listenerElement = document.documentElement;
   parent = document.body;
 
   if (document.getElementById('CopyPasteDiv')) {
@@ -60,7 +70,7 @@ function CopyPasteClass() {
     }
   }
 
-  this._bindEvent(listenerElement, 'keydown', function (event) {
+  this.keydownListener = function (event) {
     var isCtrlDown = false;
     if (event.metaKey) { //mac
       isCtrlDown = true;
@@ -98,8 +108,10 @@ function CopyPasteClass() {
         }, 0);
       }
     }
-  });
-}
+  }
+
+  this._bindEvent(this.listenerElement, 'keydown', this.keydownListener);
+};
 
 //http://jsperf.com/textara-selection
 //http://stackoverflow.com/questions/1502385/how-can-i-make-this-code-work-in-ie
@@ -183,6 +195,23 @@ CopyPasteClass.prototype.triggerPaste = function (event, str) {
   }
 };
 
+CopyPasteClass.prototype.destroy = function () {
+
+  if(!this.hasBeenDestroyed() && --this.refCounter == 0){
+    if (this.elDiv && this.elDiv.parentNode) {
+      this.elDiv.parentNode.removeChild(this.elDiv);
+    }
+
+    this._unbindEvent(this.listenerElement, 'keydown', this.keydownListener);
+
+  }
+
+};
+
+CopyPasteClass.prototype.hasBeenDestroyed = function () {
+  return !this.refCounter;
+};
+
 //old version used this:
 // - http://net.tutsplus.com/tutorials/javascript-ajax/javascript-from-null-cross-browser-event-binding/
 // - http://stackoverflow.com/questions/4643249/cross-browser-event-object-normalization
@@ -196,6 +225,19 @@ CopyPasteClass.prototype._bindEvent = (function () {
   else {
     return function (elem, type, cb) {
       elem.addEventListener(type, cb, false); //sorry, IE8 will only work with jQuery
+    };
+  }
+})();
+
+CopyPasteClass.prototype._unbindEvent = (function () {
+  if (window.jQuery) { //if jQuery exists, use jQuery event (for compatibility with $.trigger and $.triggerHandler, which can only trigger jQuery events - and we use that in tests)
+    return function (elem, type, cb) {
+      $(elem).off(type + '.copypaste', cb);
+    };
+  }
+  else {
+    return function (elem, type, cb) {
+      elem.removeEventListener(type, cb, false); //sorry, IE8 will only work with jQuery
     };
   }
 })();

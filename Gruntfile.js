@@ -82,6 +82,11 @@ module.exports = function (grunt) {
 
         'src/cellTypes.js',
 
+        'src/3rdparty/jquery.autoresize.js',
+        'src/3rdparty/sheetclip.js',
+        'src/3rdparty/copypaste.js',
+        'src/3rdparty/json-patch-duplex.js',
+
         'src/pluginHooks.js',
         'src/plugins/autoColumnSize.js',
         'src/plugins/columnSorting.js',
@@ -93,11 +98,8 @@ module.exports = function (grunt) {
         'src/plugins/persistentState.js',
         'src/plugins/undoRedo.js',
         'src/plugins/dragToScroll/dragToScroll.js',
+        'src/plugins/copyPaste.js'
 
-        'src/3rdparty/jquery.autoresize.js',
-        'src/3rdparty/sheetclip.js',
-        'src/3rdparty/copypaste.js',
-        'src/3rdparty/json-patch-duplex.js'
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',
