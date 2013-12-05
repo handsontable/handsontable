@@ -268,7 +268,7 @@ Handsontable.TableView = function (instance) {
       }
     },
     onColumnHeaderMouseDown: function (event, col, TH) {
-      instance.runHooks('beforeOnColHeaderMouseDown', event, col, TH);
+      instance.runHooks('beforeOnColumnHeaderMouseDown', event, col, TH);
       if(event.isImmediatePropagationStopped()) {
         return;
       }
