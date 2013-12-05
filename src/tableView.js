@@ -291,7 +291,7 @@ Handsontable.TableView = function (instance) {
         instance.selection.setRangeEnd({ row: instance.countRows()-1, col: col}, false);
       }
 
-      instance.PluginHooks.run('afterOnColHeaderMouseDown', event, col, TH);
+      instance.PluginHooks.run('afterOnColumnHeaderMouseDown', event, col, TH);
     },
     onColumnHeaderMouseOver: function(event, col, TH) {
       if (isMouseDown) {
