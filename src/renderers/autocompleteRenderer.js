@@ -24,15 +24,12 @@
    * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
    * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
    */
-  Handsontable.AutocompleteRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
+  var AutocompleteRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
 
     var WRAPPER = clonableWRAPPER.cloneNode(true); //this is faster than createElement
     var ARROW = clonableARROW.cloneNode(true); //this is faster than createElement
 
-    Handsontable.TextRenderer(instance, TD, row, col, prop, value, cellProperties);
-
-//    wrapTdContentWithWrapper(TD, WRAPPER);
-//    WRAPPER.appendChild(ARROW);
+    Handsontable.renderers.TextRenderer(instance, TD, row, col, prop, value, cellProperties);
 
     TD.appendChild(ARROW);
     Handsontable.Dom.addClass(TD, 'htAutocomplete');
@@ -54,4 +51,8 @@
 
     }
   };
+
+  Handsontable.AutocompleteRenderer = AutocompleteRenderer;
+  Handsontable.renderers.AutocompleteRenderer = AutocompleteRenderer;
+  Handsontable.renderers.registerRenderer('autocomplete', AutocompleteRenderer);
 })(Handsontable);

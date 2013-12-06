@@ -2099,12 +2099,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   this.getCellRenderer = function (row, col) {
     var renderer = Handsontable.helper.cellMethodLookupFactory('renderer').call(this, row, col);
-
-    if(typeof renderer == 'string'){
-      renderer = Handsontable.cellLookup.renderer[renderer];
-    }
-
-    return renderer
+    return Handsontable.renderers.getRenderer(renderer);
 
   };
 

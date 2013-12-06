@@ -54,7 +54,7 @@
       'colWidths': [this.wtDom.outerWidth(this.TEXTAREA) - 2],
       renderer: function (instance, TD, row, col, prop, value, cellProperties) {
 
-        Handsontable.TextRenderer.apply(this, arguments);
+        Handsontable.renderers.TextRenderer.apply(this, arguments);
 
         var match = TD.innerHTML.match(new RegExp(that.query, 'i'));
 

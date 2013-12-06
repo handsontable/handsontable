@@ -126,7 +126,7 @@
               ["2010", '', 15, -12, "readOnly"]
             ];
 
-            Handsontable.cellLookup.renderer.negativeValueRenderer = negativeValueRenderer; //maps function to lookup string
+            Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer); //maps function to lookup string
 
             var container = $("#example1");
             container.handsontable({
