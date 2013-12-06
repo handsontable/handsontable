@@ -12,10 +12,13 @@
   'use strict';
 
   var TextRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
+
+    Handsontable.renderers.cellDecorator.apply(this, arguments);
+
     if (!value && cellProperties.placeholder) {
       value = cellProperties.placeholder;
-      instance.view.wt.wtDom.addClass(TD, 'htPlaceholder');
     }
+
     var escaped = Handsontable.helper.stringify(value);
 
     if (cellProperties.rendererTemplate) {
@@ -31,12 +34,6 @@
       instance.view.wt.wtDom.fastInnerText(TD, escaped); //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
     }
 
-    if (cellProperties.readOnly) {
-      instance.view.wt.wtDom.addClass(TD, 'htDimmed');
-    }
-    if (cellProperties.valid === false && cellProperties.invalidCellClassName) {
-      instance.view.wt.wtDom.addClass(TD, cellProperties.invalidCellClassName);
-    }
   };
 
   //Handsontable.TextRenderer = TextRenderer; //Left for backward compatibility
