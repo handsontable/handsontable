@@ -277,7 +277,7 @@ Handsontable.TableView = function (instance) {
 };
 
 Handsontable.TableView.prototype.isTextSelectionAllowed = function (el) {
-  if (el.nodeName === 'TEXTAREA') {
+  if ( Handsontable.helper.isInput(el) ) {
     return (true);
   }
   if (this.settings.fragmentSelection && this.wt.wtDom.isChildOf(el, this.TBODY)) {
