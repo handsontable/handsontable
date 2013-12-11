@@ -96,14 +96,14 @@
 
           <script data-jsfiddle="example1">
             function firstRowRenderer(instance, td, row, col, prop, value, cellProperties) {
-              Handsontable.TextCell.renderer.apply(this, arguments);
+              Handsontable.renderers.TextRenderer.apply(this, arguments);
               td.style.fontWeight = 'bold';
               td.style.color = 'green';
               td.style.background = '#CEC';
             }
 
             function negativeValueRenderer(instance, td, row, col, prop, value, cellProperties) {
-              Handsontable.TextCell.renderer.apply(this, arguments);
+              Handsontable.renderers.TextRenderer.apply(this, arguments);
               if (parseInt(value, 10) < 0) { //if row contains negative number
                 td.className = 'negative'; //add class "negative"
               }
