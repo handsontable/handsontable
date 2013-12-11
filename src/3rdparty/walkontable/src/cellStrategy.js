@@ -18,5 +18,5 @@ WalkontableCellStrategy.prototype.countVisible = function () {
 };
 
 WalkontableCellStrategy.prototype.isLastIncomplete = function () {
-  return this.remainingSize >= 0;
+  return this.remainingSize > 0;
 };
