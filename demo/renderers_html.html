@@ -148,7 +148,7 @@
             $(td).empty().append($img); //empty is needed because you are rendering to an existing cell
           }
           else {
-            Handsontable.TextCell.renderer.apply(this, arguments); //render as text
+            Handsontable.renderers.TextRenderer.apply(this, arguments); //render as text
           }
           return td;
         };
@@ -202,7 +202,7 @@
         var isChecked;
 
         var customRenderer = function (instance, td) {
-          Handsontable.TextCell.renderer.apply(this, arguments);
+          Handsontable.renderers.TextRenderer.apply(this, arguments);
           if (isChecked) {
             td.style.backgroundColor = 'yellow';
           }

@@ -119,14 +119,14 @@
             ];
 
             var yellowRenderer = function (instance, td, row, col, prop, value, cellProperties) {
-              Handsontable.TextCell.renderer.apply(this, arguments);
+              Handsontable.renderers.TextRenderer.apply(this, arguments);
               $(td).css({
                 background: 'yellow'
               });
             };
 
             var greenRenderer = function (instance, td, row, col, prop, value, cellProperties) {
-              Handsontable.TextCell.renderer.apply(this, arguments);
+              Handsontable.renderers.TextRenderer.apply(this, arguments);
               $(td).css({
                 background: 'green'
               });
