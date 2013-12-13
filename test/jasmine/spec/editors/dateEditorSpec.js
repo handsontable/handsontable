@@ -1,4 +1,4 @@
-describe('TextEditor', function () {
+describe('DateEditor', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
