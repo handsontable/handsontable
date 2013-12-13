@@ -15,12 +15,12 @@ describe('settings', function () {
 
     describe('defined in constructor', function () {
       it('should use text renderer by default', function () {
-        var originalTextRenderer = Handsontable.renderers.TextRenderer;
-        spyOn(Handsontable.renderers, 'TextRenderer');
-        Handsontable.renderers.registerRenderer('text', Handsontable.renderers.TextRenderer);
+        var originalTextRenderer = Handsontable.TextCell.renderer;
+        spyOn(Handsontable.TextCell, 'renderer');
+        Handsontable.renderers.registerRenderer('text', Handsontable.TextCell.renderer);
 
         handsontable();
-        expect(Handsontable.renderers.TextRenderer).toHaveBeenCalled();
+        expect(Handsontable.TextCell.renderer).toHaveBeenCalled();
 
         Handsontable.renderers.registerRenderer('text', originalTextRenderer);
 
@@ -83,6 +83,17 @@ describe('settings', function () {
         });
 
         expect(myRenderer).toHaveBeenCalled();
+      });
+
+      it('should support legacy namespace (pre-0.10.0) of cell renderers', function () {
+        var count = 0;
+        handsontable({
+          renderer: function () {
+            count++;
+            Handsontable.TextCell.renderer.apply(this, arguments);
+          }
+        });
+        expect(count).toBeGreaterThan(0);
       });
     });
   });

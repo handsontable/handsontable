@@ -108,7 +108,8 @@ module.exports = function (grunt) {
         'lib/numeral.js'
       ],
       shims: [
-        'lib/shims/array.filter.js'
+        'lib/shims/array.filter.js',
+        'lib/shims/weakmap.js'
       ]
     },
 
@@ -117,9 +118,9 @@ module.exports = function (grunt) {
         files: {
           'dist/jquery.handsontable.js': [
             'tmp/intro.js',
+            '<%= meta.shims %>',
             '<%= meta.src %>',
             '<%= meta.walkontable %>',
-            '<%= meta.shims %>',
             'src/outro.js'
           ]
         }

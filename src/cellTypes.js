@@ -3,46 +3,46 @@
  */
 
 Handsontable.AutocompleteCell = {
-  editor: 'autocomplete',
-  renderer: 'autocomplete',
+  editor: Handsontable.editors.AutocompleteEditor,
+  renderer: Handsontable.renderers.AutocompleteRenderer,
   validator: Handsontable.AutocompleteValidator
 };
 
 Handsontable.CheckboxCell = {
-  editor: 'checkbox',
-  renderer: 'checkbox'
+  editor: Handsontable.editors.CheckboxEditor,
+  renderer: Handsontable.renderers.CheckboxRenderer
 };
 
 Handsontable.TextCell = {
-  editor: 'text',
-  renderer: 'text'
+  editor: Handsontable.editors.TextEditor,
+  renderer: Handsontable.renderers.TextRenderer
 };
 
 Handsontable.NumericCell = {
-  editor: 'text',
-  renderer: 'numeric',
+  editor: Handsontable.editors.TextEditor,
+  renderer: Handsontable.renderers.NumericRenderer,
   validator: Handsontable.NumericValidator,
   dataType: 'number'
 };
 
 Handsontable.DateCell = {
-  editor: 'date',
-  renderer: 'autocomplete' //displays small gray arrow on right side of the cell
+  editor: Handsontable.editors.DateEditor,
+  renderer: Handsontable.renderers.AutocompleteRenderer //displays small gray arrow on right side of the cell
 };
 
 Handsontable.HandsontableCell = {
-  editor: 'handsontable',
-  renderer: 'autocomplete' //displays small gray arrow on right side of the cell
+  editor: Handsontable.editors.HandsontableEditor,
+  renderer: Handsontable.renderers.AutocompleteRenderer //displays small gray arrow on right side of the cell
 };
 
 Handsontable.PasswordCell = {
-  editor: 'password',
-  renderer: 'password'
+  editor: Handsontable.editors.PasswordEditor,
+  renderer: Handsontable.renderers.PasswordRenderer
 };
 
 Handsontable.DropdownCell = {
-  editor: 'dropdown',
-  renderer: 'autocomplete',
+  editor: Handsontable.editors.DropdownEditor,
+  renderer: Handsontable.renderers.AutocompleteRenderer, //displays small gray arrow on right side of the cell
   validator: Handsontable.AutocompleteValidator
 };
 
