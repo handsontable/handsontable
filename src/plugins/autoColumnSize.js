@@ -9,7 +9,6 @@
       instance.autoColumnWidths = [];
 
       if (instance.getSettings().autoColumnSize !== false) {
-
         if (!instance.autoColumnSizeTmp) {
           instance.autoColumnSizeTmp = {
             table: null,
@@ -20,24 +19,24 @@
             containerStyle: null,
             determineBeforeNextRender: true
           };
+
+          instance.addHook('beforeRender', htAutoColumnSize.determineIfChanged);
+          instance.addHook('afterGetColWidth', htAutoColumnSize.getColWidth);
+          instance.addHook('afterDestroy', htAutoColumnSize.afterDestroy);
+
+          instance.determineColumnWidth = plugin.determineColumnWidth;
         }
-
-        instance.addHook('beforeRender', htAutoColumnSize.determineIfChanged);
-        instance.addHook('afterGetColWidth', htAutoColumnSize.getColWidth);
-        instance.addHook('afterDestroy', htAutoColumnSize.afterDestroy);
-
-        instance.determineColumnWidth = plugin.determineColumnWidth;
       } else {
-        instance.removeHook('beforeRender', htAutoColumnSize.determineIfChanged);
-        instance.removeHook('afterGetColWidth', htAutoColumnSize.getColWidth);
-        instance.removeHook('afterDestroy', htAutoColumnSize.afterDestroy);
+        if (instance.autoColumnSizeTmp) {
+          instance.removeHook('beforeRender', htAutoColumnSize.determineIfChanged);
+          instance.removeHook('afterGetColWidth', htAutoColumnSize.getColWidth);
+          instance.removeHook('afterDestroy', htAutoColumnSize.afterDestroy);
 
-        delete instance.determineColumnWidth;
+          delete instance.determineColumnWidth;
 
-        plugin.afterDestroy.call(instance);
-
+          plugin.afterDestroy.call(instance);
+        }
       }
-
     };
 
     this.determineIfChanged = function (force) {
@@ -138,6 +137,7 @@
       if (instance.autoColumnSizeTmp && instance.autoColumnSizeTmp.container && instance.autoColumnSizeTmp.container.parentNode) {
         instance.autoColumnSizeTmp.container.parentNode.removeChild(instance.autoColumnSizeTmp.container);
       }
+      instance.autoColumnSizeTmp = null;
     };
 
     function createTmpContainer(instance) {

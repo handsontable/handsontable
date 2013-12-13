@@ -85,6 +85,9 @@ Handsontable.PluginHookClass = (function () {
         this.hooks[key].push(fn[i]);
       }
     } else {
+      if (this.hooks[key].indexOf(fn) > -1) {
+        throw new Error("Seems that you are trying to set the same plugin hook twice (" + key + ", " + fn + ")"); //error here should help writing bug-free plugins
+      }
       this.hooks[key].push(fn);
     }
 

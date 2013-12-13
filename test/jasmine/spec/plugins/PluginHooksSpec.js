@@ -265,6 +265,30 @@ describe('PluginHooks', function () {
     expect(hot.runHooksAndReturn('myHook', str)).toEqual('abc');
   });
 
+  it('adding same hook twice should raise an error', function () { //error should help writing bug-free plugins
+    var errors = 0;
+    handsontable();
+
+    var fn = function () {
+    };
+
+    try {
+      getInstance().PluginHooks.add('myHook', fn);
+    } catch (e) {
+      errors++;
+    }
+
+    expect(errors).toEqual(0);
+
+    try {
+      getInstance().PluginHooks.add('myHook', fn);
+    } catch (e) {
+      errors++;
+    }
+
+    expect(errors).toEqual(1);
+  });
+
   describe("controlling handler queue execution", function () {
     it("should execute all handlers if none of them returned false", function () {
 
