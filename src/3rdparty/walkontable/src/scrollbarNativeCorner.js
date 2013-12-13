@@ -11,7 +11,7 @@ WalkontableCornerScrollbarNative.prototype.makeClone = function (direction) {
     return;
   }
 
-  var clone = $('<div id="cln_' + direction + '" class="handsontable"></div>');
+  var clone = $('<div class="ht_clone_' + direction + ' handsontable"></div>');
   this.instance.wtTable.holder.parentNode.appendChild(clone[0]);
 
   clone.css({
