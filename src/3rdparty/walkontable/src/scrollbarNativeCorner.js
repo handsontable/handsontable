@@ -11,23 +11,22 @@ WalkontableCornerScrollbarNative.prototype.makeClone = function (direction) {
     return;
   }
 
-  var clone = $('<div class="ht_clone_' + direction + ' handsontable"></div>');
-  this.instance.wtTable.holder.parentNode.appendChild(clone[0]);
+  var clone = document.createElement('DIV');
+  clone.className = 'ht_clone_' + direction + ' handsontable';
+  clone.style.position = 'fixed';
+  clone.style.overflow = 'hidden';
 
-  clone.css({
-    position: 'fixed',
-    overflow: 'hidden'
-  });
-
-  var table2 = $('<table class="htCore"></table>');
+  var table2 = document.createElement('TABLE');
   table2.className = this.instance.wtTable.TABLE.className;
-  clone.append(table2);
+  clone.appendChild(table2);
 
-  var walkontableConfig = {};
-  walkontableConfig.cloneFrom = this.instance;
-  walkontableConfig.cloneDirection = direction;
-  walkontableConfig.table = table2[0];
-  var wt = new Walkontable(walkontableConfig);
+  this.instance.wtTable.holder.parentNode.appendChild(clone);
+
+  var wt = new Walkontable({
+    cloneFrom: this.instance,
+    cloneDirection: direction,
+    table: table2
+  });
 
   return wt;
 };

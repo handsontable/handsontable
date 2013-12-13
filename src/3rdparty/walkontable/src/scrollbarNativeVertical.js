@@ -24,27 +24,26 @@ WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
     return;
   }
 
-  var that = this;
+  var clone = document.createElement('DIV');
+  clone.className = 'ht_clone_' + direction + ' handsontable';
+  clone.style.position = 'fixed';
+  clone.style.overflow = 'hidden';
 
-  var clone = $('<div class="ht_clone_' + direction + ' handsontable"></div>');
-  this.instance.wtTable.holder.parentNode.appendChild(clone[0]);
+  var table2 = document.createElement('TABLE');
+  table2.className = this.instance.wtTable.TABLE.className;
+  clone.appendChild(table2);
 
-  clone.css({
-    position: 'fixed',
-    overflow: 'hidden'
+  this.instance.wtTable.holder.parentNode.appendChild(clone);
+
+  var wt = new Walkontable({
+    cloneFrom: this.instance,
+    cloneDirection: direction,
+    table: table2
   });
 
-  var table2 = $('<table class="htCore"></table>');
-  table2.className = this.instance.wtTable.TABLE.className;
-  clone.append(table2);
+  var that = this;
 
-  var walkontableConfig = {};
-  walkontableConfig.cloneFrom = this.instance;
-  walkontableConfig.cloneDirection = direction;
-  walkontableConfig.table = table2[0];
-  var wt = new Walkontable(walkontableConfig);
-
-  var cloneTable = clone.find('table')[0];
+  var cloneTable = table2;
 
   this.$scrollHandler.on('scroll.' + this.instance.guid, function () {
     if (!that.instance.wtTable.holder.parentNode) {
