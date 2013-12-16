@@ -12,6 +12,6 @@ Handsontable.PluginHooks.add('beforeGetCellMeta', function (row, col, cellProper
 
   //autocomplete - deprecated since 0.7.1 (see CHANGELOG.md)
   if (cellProperties.autoComplete) {
-    throw new Error("Support for legacy autocomplete syntax was removed in Handsontable 0.10.0. See Dropdown and Autocomplete examples at handsontable.com");
+    throw new Error("Support for legacy autocomplete syntax was removed in Handsontable 0.10.0. Please remove the property named 'autoComplete' from your config. For replacement instructions, see wiki page https://github.com/warpech/jquery-handsontable/wiki/Migration-guide-to-0.10.x");
   }
 });
