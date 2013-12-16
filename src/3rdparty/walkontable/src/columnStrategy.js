@@ -69,7 +69,7 @@ WalkontableColumnStrategy.prototype.stretch = function () {
     }
   }
   else if (this.strategy === 'last') {
-    if (this.remainingSize < 0) {
+    if (this.remainingSize < 0 && containerSize !== Infinity) { //Infinity is with native scroll when the table is wider than the viewport (TODO: test)
       this.cellStretch[this.cellCount - 1] = -this.remainingSize;
       this.remainingSize = 0;
     }
