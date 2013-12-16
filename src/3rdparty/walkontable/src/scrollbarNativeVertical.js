@@ -15,35 +15,14 @@ function WalkontableVerticalScrollbarNative(instance) {
   };
 
   this.clone = this.makeClone('top');
+  this.registerListeners();
 }
 
 WalkontableVerticalScrollbarNative.prototype = new WalkontableScrollbarNative();
 
-WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
-  if (this.instance.cloneFrom) {
-    return;
-  }
-
-  var clone = document.createElement('DIV');
-  clone.className = 'ht_clone_' + direction + ' handsontable';
-  clone.style.position = 'fixed';
-  clone.style.overflow = 'hidden';
-
-  var table2 = document.createElement('TABLE');
-  table2.className = this.instance.wtTable.TABLE.className;
-  clone.appendChild(table2);
-
-  this.instance.wtTable.holder.parentNode.appendChild(clone);
-
-  var wt = new Walkontable({
-    cloneFrom: this.instance,
-    cloneDirection: direction,
-    table: table2
-  });
-
+WalkontableVerticalScrollbarNative.prototype.registerListeners = function () {
+  var cloneTable = this.clone.wtTable.TABLE;
   var that = this;
-
-  var cloneTable = table2;
 
   this.$scrollHandler.on('scroll.' + this.instance.guid, function () {
     if (!that.instance.wtTable.holder.parentNode) {
@@ -79,8 +58,6 @@ WalkontableVerticalScrollbarNative.prototype.makeClone = function (direction) {
     that.instance.wtScrollbars.horizontal.resetFixedPosition();
     that.instance.wtScrollbars.corner.resetFixedPosition();
   });
-
-  return wt;
 };
 
 WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
@@ -126,10 +103,6 @@ WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) 
 };
 
 WalkontableVerticalScrollbarNative.prototype.onScroll = function (forcePosition) {
-  if (this.instance.cloneFrom) {
-    return;
-  }
-
   this.windowScrollPosition = this.getScrollPosition();
   this.readSettings(); //read window scroll position
 

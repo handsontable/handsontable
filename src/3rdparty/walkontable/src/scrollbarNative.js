@@ -23,6 +23,27 @@ WalkontableScrollbarNative.prototype.init = function () {
   this.$scrollHandler = $(this.scrollHandler); //in future remove jQuery from here
 };
 
+WalkontableScrollbarNative.prototype.makeClone = function (direction) {
+  var clone = document.createElement('DIV');
+  clone.className = 'ht_clone_' + direction + ' handsontable';
+  clone.style.position = 'fixed';
+  clone.style.overflow = 'hidden';
+
+  var table2 = document.createElement('TABLE');
+  table2.className = this.instance.wtTable.TABLE.className;
+  clone.appendChild(table2);
+
+  this.instance.wtTable.holder.parentNode.appendChild(clone);
+
+  var wt = new Walkontable({
+    cloneFrom: this.instance,
+    cloneDirection: direction,
+    table: table2
+  });
+
+  return wt;
+};
+
 WalkontableScrollbarNative.prototype.getScrollableElement = function (TABLE) {
   var el = TABLE.parentNode;
   while (el && el.style) {

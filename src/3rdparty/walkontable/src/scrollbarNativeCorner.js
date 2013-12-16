@@ -6,31 +6,6 @@ function WalkontableCornerScrollbarNative(instance) {
 
 WalkontableCornerScrollbarNative.prototype = new WalkontableScrollbarNative();
 
-WalkontableCornerScrollbarNative.prototype.makeClone = function (direction) {
-  if (this.instance.cloneFrom) {
-    return;
-  }
-
-  var clone = document.createElement('DIV');
-  clone.className = 'ht_clone_' + direction + ' handsontable';
-  clone.style.position = 'fixed';
-  clone.style.overflow = 'hidden';
-
-  var table2 = document.createElement('TABLE');
-  table2.className = this.instance.wtTable.TABLE.className;
-  clone.appendChild(table2);
-
-  this.instance.wtTable.holder.parentNode.appendChild(clone);
-
-  var wt = new Walkontable({
-    cloneFrom: this.instance,
-    cloneDirection: direction,
-    table: table2
-  });
-
-  return wt;
-};
-
 WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
   if (!this.instance.wtTable.holder.parentNode) {
     return; //removed from DOM
