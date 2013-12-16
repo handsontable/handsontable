@@ -5,7 +5,7 @@
     Handsontable.editors.HandsontableEditor.prototype.init.apply(this, arguments);
 
     this.query = null;
-  }
+  };
 
   AutocompleteEditor.prototype.createElements = function(){
     Handsontable.editors.HandsontableEditor.prototype.createElements.apply(this, arguments);
@@ -52,16 +52,11 @@
 
     hot.updateSettings({
       'colWidths': [this.wtDom.outerWidth(this.TEXTAREA) - 2],
-      renderer: function (instance, TD, row, col, prop, value, cellProperties) {
-
-        Handsontable.renderers.TextRenderer.apply(this, arguments);
-
+      afterRenderer: function (TD, row, col, prop, value, cellProperties) {
         var match = TD.innerHTML.match(new RegExp(that.query, 'i'));
-
         if(match){
           TD.innerHTML = value.replace(match[0], '<strong>' + match[0] + '</strong>');
         }
-
       }
     });
 
