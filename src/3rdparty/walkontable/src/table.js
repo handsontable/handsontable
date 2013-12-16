@@ -308,6 +308,16 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
 
   this.refreshPositions(selectionsOnly);
 
+  if (!selectionsOnly) {
+    if (this.instance.getSetting('nativeScrollbars')) {
+      if (!this.instance.cloneFrom) {
+        this.instance.wtScrollbars.vertical.resetFixedPosition();
+        this.instance.wtScrollbars.horizontal.resetFixedPosition();
+        this.instance.wtScrollbars.corner.resetFixedPosition();
+      }
+    }
+  }
+
   this.instance.drawn = true;
   return this;
 };

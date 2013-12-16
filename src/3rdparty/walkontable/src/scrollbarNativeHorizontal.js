@@ -8,6 +8,7 @@ function WalkontableHorizontalScrollbarNative(instance) {
 
 WalkontableHorizontalScrollbarNative.prototype = new WalkontableScrollbarNative();
 
+//resetFixedPosition (in future merge it with this.refresh?)
 WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () {
   if (!this.instance.wtTable.holder.parentNode) {
     return; //removed from DOM
@@ -34,7 +35,12 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
   }
 
   elem.style.width = WalkontableDom.prototype.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
-  elem.style.height = this.instance.wtViewport.getWorkspaceHeight() - this.instance.getSetting('scrollbarHeight') + 'px';
+  elem.style.height = this.instance.wtViewport.getWorkspaceHeight() + 'px';
+};
+
+//react on movement of the other dimension scrollbar (in future merge it with this.refresh?)
+WalkontableHorizontalScrollbarNative.prototype.react = function () {
+
 };
 
 WalkontableHorizontalScrollbarNative.prototype.prepare = function () {
@@ -63,10 +69,7 @@ WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
   return this.instance.wtTable.getLastVisibleColumn();
 };
 
-WalkontableHorizontalScrollbarNative.prototype.getTableSize = function () {
-  return this.instance.wtDom.outerWidth(this.TABLE);
-};
-
+//applyToDOM (in future merge it with this.refresh?)
 WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
   this.fixedContainer.style.paddingLeft = this.measureBefore + 'px';
   this.fixedContainer.style.paddingRight = this.measureAfter + 'px';
@@ -76,6 +79,7 @@ WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (cell) {
   this.$scrollHandler.scrollLeft(this.tableParentOffset + cell * this.cellSize);
 };
 
+//readWindowSize (in future merge it with this.prepare?)
 WalkontableHorizontalScrollbarNative.prototype.readWindowSize = function () {
   if (this.scrollHandler === window) {
     this.windowSize = document.documentElement.clientWidth;
@@ -88,6 +92,7 @@ WalkontableHorizontalScrollbarNative.prototype.readWindowSize = function () {
   this.windowScrollPosition = this.getScrollPosition();
 };
 
+//readSettings (in future merge it with this.prepare?)
 WalkontableHorizontalScrollbarNative.prototype.readSettings = function () {
   this.offset = this.instance.getSetting('offsetColumn');
   this.total = this.instance.getSetting('totalColumns');

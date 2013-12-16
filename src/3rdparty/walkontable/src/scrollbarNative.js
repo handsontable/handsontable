@@ -47,7 +47,10 @@ WalkontableScrollbarNative.prototype.makeClone = function (direction) {
 WalkontableScrollbarNative.prototype.getScrollableElement = function (TABLE) {
   var el = TABLE.parentNode;
   while (el && el.style) {
-    if (el.style.overflow === 'scroll') {
+    if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
+      return el;
+    }
+    if (this instanceof WalkontableHorizontalScrollbarNative && el.style.overflowX !== 'visible' && el.style.overflowX !== '') {
       return el;
     }
     el = el.parentNode;
