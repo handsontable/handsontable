@@ -80,24 +80,7 @@ WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) 
 };
 
 WalkontableVerticalScrollbarNative.prototype.onScroll = function (forcePosition) {
-  this.windowScrollPosition = this.getScrollPosition();
-  this.readSettings(); //read window scroll position
-
-  if (forcePosition) {
-    this.windowScrollPosition = forcePosition;
-  }
-
-  if (this.windowScrollPosition === this.lastWindowScrollPosition) {
-    this.resetFixedPosition(); //may be redundant
-    return;
-  }
-
-  if (this.windowScrollPosition > this.lastBegin && this.windowScrollPosition + this.windowSize < this.lastEnd) {
-    this.resetFixedPosition(); //may be redundant
-    return;
-  }
-
-  this.lastWindowScrollPosition = this.windowScrollPosition;
+  WalkontableScrollbarNative.prototype.onScroll.apply(this, arguments);
 
   var scrollDelta;
   var newOffset = 0;

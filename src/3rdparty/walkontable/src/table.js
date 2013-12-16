@@ -195,8 +195,8 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   }
 
   this.refreshStretching();
-  if (this.instance.cloneFrom && (this.instance.cloneDirection === 'left' || this.instance.cloneDirection === 'corner')) {
-    this.columnStrategy.cellCount = 0;
+  if (this.instance.cloneFrom && (this.instance.cloneDirection === 'left' || this.instance.cloneDirection === 'corner') ) {
+    this.columnStrategy.cellCount = this.instance.getSetting('fixedColumnsLeft');
   }
 
   displayTds = this.columnStrategy.cellCount;

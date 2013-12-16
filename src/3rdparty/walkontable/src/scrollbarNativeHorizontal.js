@@ -17,7 +17,18 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
 
   var box;
   if (this.scrollHandler === window) {
-    box = this.instance.wtTable.holder.getBoundingClientRect();
+    box = this.instance.wtTable.hider.getBoundingClientRect();
+
+    var top = Math.ceil(box.top, 10);
+    var bottom = Math.ceil(box.bottom, 10);
+
+    if (top < 0 && bottom > 0) {
+      elem.style.top = '0';
+    }
+    else {
+      elem.style.top = top + 'px';
+    }
+
     var left = Math.ceil(box.left, 10);
     var right = Math.ceil(box.right, 10);
 
@@ -27,6 +38,7 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
     else {
       elem.style.left = left + 'px';
     }
+
   }
   else {
     box = this.scrollHandler.getBoundingClientRect();
@@ -59,10 +71,6 @@ WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
   else {
     return this.scrollHandler.scrollLeft;
   }
-};
-
-WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
-  this.windowScrollPosition = this.getScrollPosition();
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {

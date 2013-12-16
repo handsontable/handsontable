@@ -44,7 +44,7 @@
         , i
         , j;
 
-      for (i = 0; i < 100000; i++) {
+      for (i = 0; i < 1000; i++) {
         var row = [];
         for (j = 0; j < 6; j++) {
           row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
@@ -92,6 +92,8 @@
 
           <div id="example1"></div>
 
+          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ad at, commodi dicta distinctio doloremque dolores facilis in iure nam nesciunt obcaecati, omnis placeat quae quas quo repellat reprehenderit, sequi tenetur.</p>
+
           <p>
             <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
               Dump
@@ -116,6 +118,8 @@
               minSpareRows: 1,
               stretchH: 'all',
               contextMenu: true,
+              fixedRowsTop: 2,
+              fixedColumnsLeft: 2,
               nativeScrollbars: true
             });
           </script>

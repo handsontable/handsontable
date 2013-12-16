@@ -14,7 +14,7 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
 
   var box;
   if (this.scrollHandler === window) {
-    box = this.instance.wtTable.holder.getBoundingClientRect();
+    box = this.instance.wtTable.hider.getBoundingClientRect();
     var top = Math.ceil(box.top, 10);
     var bottom = Math.ceil(box.bottom, 10);
 

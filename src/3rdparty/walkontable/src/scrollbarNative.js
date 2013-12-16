@@ -61,6 +61,21 @@ WalkontableScrollbarNative.prototype.getScrollableElement = function (TABLE) {
 WalkontableScrollbarNative.prototype.prepare = function () {
 };
 
+WalkontableScrollbarNative.prototype.onScroll = function (forcePosition) {
+
+  this.windowScrollPosition = this.getScrollPosition();
+  this.readSettings(); //read window scroll position
+
+  if (forcePosition) {
+    this.windowScrollPosition = forcePosition;
+  }
+
+  this.resetFixedPosition(); //may be redundant
+
+  this.lastWindowScrollPosition = this.windowScrollPosition;
+
+};
+
 WalkontableScrollbarNative.prototype.availableSize = function () {
   var availableSize;
 
