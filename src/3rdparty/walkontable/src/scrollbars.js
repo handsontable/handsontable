@@ -1,7 +1,7 @@
 function WalkontableScrollbars(instance) {
   if (instance.getSetting('nativeScrollbars')) {
-    instance.update('scrollbarWidth', walkontableGetScrollbarWidth());
-    instance.update('scrollbarHeight', walkontableGetScrollbarWidth());
+    instance.update('scrollbarWidth', instance.wtDom.getScrollbarWidth());
+    instance.update('scrollbarHeight', instance.wtDom.getScrollbarWidth());
     this.vertical = new WalkontableVerticalScrollbarNative(instance);
     this.horizontal = new WalkontableHorizontalScrollbarNative(instance);
     this.corner = new WalkontableCornerScrollbarNative(instance);
