@@ -437,3 +437,51 @@ ul.context-menu-list li {
   color: #999;
   cursor: default;
 }
+
+/*WalkontableDebugOverlay*/
+
+.wtDebugHidden {
+  display: none;
+}
+
+.wtDebugVisible {
+  display: block;
+  -webkit-animation-duration: 0.5s;
+  -webkit-animation-name: wtFadeInFromNone;
+  animation-duration: 0.5s;
+  animation-name: wtFadeInFromNone;
+}
+
+@keyframes wtFadeInFromNone {
+  0% {
+    display: none;
+    opacity: 0;
+  }
+
+  1% {
+    display: block;
+    opacity: 0;
+  }
+
+  100% {
+    display: block;
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes wtFadeInFromNone {
+  0% {
+    display: none;
+    opacity: 0;
+  }
+
+  1% {
+    display: block;
+    opacity: 0;
+  }
+
+  100% {
+    display: block;
+    opacity: 1;
+  }
+}

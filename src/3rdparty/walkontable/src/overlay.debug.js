@@ -10,6 +10,30 @@ function WalkontableDebugOverlay(instance) {
   this.clone = this.makeClone('debug');
   this.clone.wtTable.holder.style.opacity = 0.4;
   this.clone.wtTable.holder.style.textShadow = '0 0 2px #ff0000';
+
+  var that = this;
+  var lastTimeout;
+  var lastX = 0;
+  var lastY = 0;
+  var overlayContainer = that.clone.wtTable.holder.parentNode;
+
+  $(document.body).on('mousemove.' + this.instance.guid, function (event) {
+    if (!that.instance.wtTable.holder.parentNode) {
+      return; //removed from DOM
+    }
+    if ((event.clientX - lastX > -5 && event.clientX - lastX < 5) && (event.clientY - lastY > -5 && event.clientY - lastY < 5)) {
+      return; //ignore minor mouse movement
+    }
+    lastX = event.clientX;
+    lastY = event.clientY;
+    WalkontableDom.prototype.addClass(overlayContainer, 'wtDebugHidden');
+    WalkontableDom.prototype.removeClass(overlayContainer, 'wtDebugVisible');
+    clearTimeout(lastTimeout);
+    lastTimeout = setTimeout(function () {
+      WalkontableDom.prototype.removeClass(overlayContainer, 'wtDebugHidden');
+      WalkontableDom.prototype.addClass(overlayContainer, 'wtDebugVisible');
+    }, 1000);
+  });
 }
 
 WalkontableDebugOverlay.prototype = new WalkontableScrollbarNative();
@@ -19,7 +43,7 @@ WalkontableDebugOverlay.prototype.resetFixedPosition = function () {
     return; //removed from DOM
   }
   var elem = this.clone.wtTable.holder.parentNode;
-  var box = this.instance.wtTable.hider.getBoundingClientRect();
+  var box = this.instance.wtTable.holder.getBoundingClientRect();
   elem.style.top = Math.ceil(box.top, 10) + 'px';
   elem.style.left = Math.ceil(box.left, 10) + 'px';
 };
