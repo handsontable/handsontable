@@ -314,6 +314,7 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
         this.instance.wtScrollbars.vertical.resetFixedPosition();
         this.instance.wtScrollbars.horizontal.resetFixedPosition();
         this.instance.wtScrollbars.corner.resetFixedPosition();
+        this.instance.wtScrollbars.debug && this.instance.wtScrollbars.debug.resetFixedPosition();
       }
     }
   }

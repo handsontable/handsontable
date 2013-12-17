@@ -6,6 +6,9 @@ function WalkontableScrollbars(instance) {
     this.vertical = new WalkontableVerticalScrollbarNative(instance);
     this.horizontal = new WalkontableHorizontalScrollbarNative(instance);
     this.corner = new WalkontableCornerScrollbarNative(instance);
+    if (instance.getSetting('debug')) {
+      this.debug = new WalkontableDebugOverlay(instance);
+    }
     this.registerListeners();
   }
   else {
@@ -61,4 +64,5 @@ WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
   this.horizontal && this.horizontal.refresh(selectionsOnly);
   this.vertical && this.vertical.refresh(selectionsOnly);
   this.corner && this.corner.refresh(selectionsOnly);
+  this.debug && this.debug.refresh(selectionsOnly);
 };
