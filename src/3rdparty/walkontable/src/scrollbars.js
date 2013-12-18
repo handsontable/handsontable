@@ -20,6 +20,11 @@ function WalkontableScrollbars(instance) {
 WalkontableScrollbars.prototype.registerListeners = function () {
   var that = this;
 
+  var oldVerticalScrollPosition
+    , oldHorizontalScrollPosition
+    , oldBoxTop
+    , oldBoxLeft;
+
   function refreshAll() {
     if (!that.instance.wtTable.holder.parentNode) {
       //Walkontable was detached from DOM, but this handler was not removed
@@ -29,12 +34,20 @@ WalkontableScrollbars.prototype.registerListeners = function () {
 
     that.vertical.windowScrollPosition = that.vertical.getScrollPosition();
     that.horizontal.windowScrollPosition = that.horizontal.getScrollPosition();
+    that.box = that.instance.wtTable.hider.getBoundingClientRect();
 
-    that.vertical.onScroll();
-    that.horizontal.onScroll(); //it's done here to make sure that all onScroll's are executed before changing styles
+    if (that.vertical.windowScrollPosition !== oldVerticalScrollPosition || that.horizontal.windowScrollPosition !== oldHorizontalScrollPosition || that.box.top !== oldBoxTop || that.box.left !== oldBoxLeft) {
+      that.vertical.onScroll();
+      that.horizontal.onScroll(); //it's done here to make sure that all onScroll's are executed before changing styles
 
-    that.vertical.react();
-    //that.horizontal.react(); //it's done here to make sure that all onScroll's are executed before changing styles
+      that.vertical.react();
+      that.horizontal.react(); //it's done here to make sure that all onScroll's are executed before changing styles
+
+      oldVerticalScrollPosition = that.vertical.windowScrollPosition;
+      oldHorizontalScrollPosition = that.horizontal.windowScrollPosition;
+      oldBoxTop = that.box.top;
+      oldBoxLeft = that.box.left;
+    }
   }
 
   var $window = $(window);

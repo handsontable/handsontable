@@ -18,17 +18,6 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
   var box;
   if (this.scrollHandler === window) {
     box = this.instance.wtTable.hider.getBoundingClientRect();
-
-    var top = Math.ceil(box.top, 10);
-    var bottom = Math.ceil(box.bottom, 10);
-
-    if (top < 0 && bottom > 0) {
-      elem.style.top = '0';
-    }
-    else {
-      elem.style.top = top + 'px';
-    }
-
     var left = Math.ceil(box.left, 10);
     var right = Math.ceil(box.right, 10);
 
@@ -38,21 +27,30 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
     else {
       elem.style.left = left + 'px';
     }
-
   }
   else {
     box = this.scrollHandler.getBoundingClientRect();
     elem.style.top = Math.ceil(box.top, 10) + 'px';
     elem.style.left = Math.ceil(box.left, 10) + 'px';
   }
-
-  elem.style.width = WalkontableDom.prototype.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
-  elem.style.height = this.instance.wtViewport.getWorkspaceHeight() + 'px';
 };
 
 //react on movement of the other dimension scrollbar (in future merge it with this.refresh?)
 WalkontableHorizontalScrollbarNative.prototype.react = function () {
-
+  if (!this.instance.wtTable.holder.parentNode) {
+    return; //removed from DOM
+  }
+  var overlayContainer = this.clone.wtTable.holder.parentNode;
+  if (this.instance.wtScrollbars.vertical.scrollHandler === window) {
+    var box = this.instance.wtTable.hider.getBoundingClientRect();
+    overlayContainer.style.top = Math.ceil(box.top, 10) + 'px';
+    overlayContainer.style.height = WalkontableDom.prototype.outerHeight(this.clone.wtTable.TABLE) + 'px';
+  }
+  else {
+    this.clone.wtTable.holder.style.top = -(this.instance.wtScrollbars.vertical.windowScrollPosition - this.instance.wtScrollbars.vertical.measureBefore) + 'px';
+    overlayContainer.style.height = this.instance.wtViewport.getWorkspaceHeight() + 'px'
+  }
+  overlayContainer.style.width = WalkontableDom.prototype.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px'; //4 is for the box shadow
 };
 
 WalkontableHorizontalScrollbarNative.prototype.prepare = function () {
