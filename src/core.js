@@ -1729,6 +1729,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       priv.duckDataSchema = {};
     }
     datamap.createMap();
+    clearCellSettingCache();
 
     grid.adjustRowsAndCols();
     instance.PluginHooks.run('afterLoadData');
@@ -1740,7 +1741,14 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.PluginHooks.run('afterChange', null, 'loadData');
       instance.render();
     }
+
     priv.isPopulated = true;
+
+
+
+    function clearCellSettingCache() {
+      priv.cellSettings.length = 0;
+    }
   };
 
   /**
