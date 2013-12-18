@@ -36,13 +36,11 @@ WalkontableOverlay.prototype.makeClone = function (direction) {
 
   this.instance.wtTable.holder.parentNode.appendChild(clone);
 
-  var wt = new Walkontable({
+  return new Walkontable({
     cloneFrom: this.instance,
     cloneDirection: direction,
     table: table2
   });
-
-  return wt;
 };
 
 WalkontableOverlay.prototype.getScrollableElement = function (TABLE) {
