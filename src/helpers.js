@@ -263,15 +263,25 @@ Handsontable.helper.extendArray = function (arr, extension) {
 };
 
 /**
- * Determines if the given DOM element is an input field placed outside of HOT.
+ * Determines if the given DOM element is an input field.
+ * Notice: By 'input' we mean input, textarea and select nodes
+ * @param element - DOM element
+ * @returns {boolean}
+ */
+Handsontable.helper.isInput = function (element) {
+  var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
+
+  return inputs.indexOf(element.nodeName) > -1;
+}
+
+/**
+ * Determines if the given DOM element is an input field placed OUTSIDE of HOT.
  * Notice: By 'input' we mean input, textarea and select nodes
  * @param element - DOM element
  * @returns {boolean}
  */
 Handsontable.helper.isOutsideInput = function (element) {
-  var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
-
-  return inputs.indexOf(element.nodeName) > -1 && element.className.indexOf('handsontableInput') == -1;
+  return Handsontable.helper.isInput(element) && element.className.indexOf('handsontableInput') == -1;
 };
 
 Handsontable.helper.keyCode = {
