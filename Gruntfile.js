@@ -62,11 +62,13 @@ module.exports = function (grunt) {
         'src/fillHandle.js',
         'src/selectionPoint.js',
 
+        'src/renderers/cellDecorator.js',
         'src/renderers/textRenderer.js',
         'src/renderers/autocompleteRenderer.js',
         'src/renderers/checkboxRenderer.js',
         'src/renderers/numericRenderer.js',
         'src/renderers/passwordRenderer.js',
+        'src/renderers/htmlRenderer.js',
 
         'src/editors/baseEditor.js',
         'src/editors/textEditor.js',
