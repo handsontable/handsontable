@@ -18,6 +18,7 @@
   clonableINPUT.setAttribute('autocomplete', 'off');
 
   var CheckboxRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
+
     if (typeof cellProperties.checkedTemplate === "undefined") {
       cellProperties.checkedTemplate = true;
     }
@@ -76,12 +77,11 @@
       };
 
       instance.addHook('beforeKeyDown', function(event){
-        if(event.keyCode == 32){
-          event.stopImmediatePropagation();
-          event.preventDefault();
+        if(event.keyCode == Handsontable.helper.keyCode.SPACE){
 
           var selection = instance.getSelected();
           var cell, checkbox, cellProperties;
+
           var selStart = {
             row: Math.min(selection[0], selection[2]),
             col: Math.min(selection[1], selection[3])
@@ -96,13 +96,21 @@
             for(var col = selEnd.col; col <= selEnd.col; col++){
               cell = instance.getCell(row, col);
               cellProperties = instance.getCellMeta(row, col);
+
               checkbox = cell.querySelectorAll('input[type=checkbox]');
 
               if(checkbox.length > 0 && !cellProperties.readOnly){
+
+                if(!event.isImmediatePropagationStopped()){
+                  event.stopImmediatePropagation();
+                  event.preventDefault();
+                }
+
                 for(var i = 0, len = checkbox.length; i < len; i++){
                   checkbox[i].checked = !checkbox[i].checked;
                   $(checkbox[i]).trigger('change');
                 }
+
               }
 
             }

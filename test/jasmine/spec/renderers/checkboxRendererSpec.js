@@ -218,6 +218,27 @@ describe('CheckboxRenderer', function () {
 
   });
 
+  it("should open cell editors of cell that does not have checkboxRenderer (#1199)", function () {
+    var hot = handsontable({
+      data  :  [[true, 'B0'],[true, 'B1'],[true, 'B2']],
+      columns : [
+        { type: 'checkbox'},
+        { type: 'text'}
+      ]
+    });
+
+    selectCell(0, 1);
+
+    expect(hot.getActiveEditor().isOpened()).toBe(false);
+
+    keyDown('space');
+
+    expect(hot.getActiveEditor().isOpened()).toBe(true);
+
+
+
+  });
+
   it("double click on checkbox cell should invert the value", function () {
     handsontable({
       data: [
