@@ -48,7 +48,7 @@ var Cursor =
 			this.x = e.pageX;
 			this.y = e.pageY;
 		}
-		else if(e.clientX || e.clientY)
+		else if(document.body && (e.clientX || e.clientY)) //need to check whether body exists, because of IE8 issue (#1084)
 		{
 			this.x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
 			this.y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
