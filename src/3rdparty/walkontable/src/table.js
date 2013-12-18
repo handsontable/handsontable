@@ -146,7 +146,6 @@ WalkontableTable.prototype.refreshStretching = function () {
     if (source_c < totalColumns) {
       return instance.getSetting('columnWidth', source_c);
     }
-    throw new Error("Source index higher than the total number of columns");
   };
 
   if (stretchH === 'hybrid') {
@@ -183,7 +182,6 @@ WalkontableTable.prototype.refreshStretching = function () {
         return that.instance.getSetting('rowHeight', source_r, TD);
       }
     }
-    throw new Error("Source index higher than the total number of rows");
   };
 
   this.columnStrategy = new WalkontableColumnStrategy(containerWidthFn, columnWidthFn, stretchH);
