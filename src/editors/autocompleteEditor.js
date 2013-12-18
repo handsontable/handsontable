@@ -121,8 +121,11 @@
       if(!query || this.cellProperties.filter === false){
         choices = this.cellProperties.source;
       } else {
+
+        var queryRegex = new RegExp(query, this.cellProperties.filteringCaseSensitive === true ? '' : 'i');
+
         choices = this.cellProperties.source.filter(function(choice){
-          return choice.indexOf(query) != -1
+          return queryRegex.test(choice);
         });
       }
 
