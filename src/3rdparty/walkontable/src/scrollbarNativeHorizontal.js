@@ -72,7 +72,13 @@ WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
 };
 
 WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos) {
-  this.scrollHandler.scrollLeft = pos;
+    this.scrollHandler.scrollLeft = pos;
+};
+
+WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
+  WalkontableOverlay.prototype.onScroll.apply(this, arguments);
+
+  this.instance.getSetting('onScrollHorizontally');
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {

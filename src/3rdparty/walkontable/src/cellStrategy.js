@@ -2,7 +2,8 @@
  * WalkontableCellStrategy
  * @constructor
  */
-function WalkontableCellStrategy() {
+function WalkontableCellStrategy(instance) {
+  this.instance = instance;
 }
 
 WalkontableCellStrategy.prototype.getSize = function (index) {
@@ -18,5 +19,14 @@ WalkontableCellStrategy.prototype.countVisible = function () {
 };
 
 WalkontableCellStrategy.prototype.isLastIncomplete = function () {
-  return this.remainingSize >= 0;
+
+  if(this.instance.getSetting('nativeScrollbars')){
+
+    var nativeScrollbar = this.instance.cloneFrom ? this.instance.cloneFrom.wtScrollbars.vertical : this.instance.wtScrollbars.vertical;
+    return this.remainingSize > nativeScrollbar.sumCellSizes(nativeScrollbar.offset, nativeScrollbar.offset + nativeScrollbar.curOuts + 1);
+
+  } else {
+    return this.remainingSize > 0;
+  }
+
 };

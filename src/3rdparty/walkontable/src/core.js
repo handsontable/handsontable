@@ -85,11 +85,19 @@ Walkontable.prototype.update = function (settings, value) {
 };
 
 Walkontable.prototype.scrollVertical = function (delta) {
-  return this.wtScroll.scrollVertical(delta);
+  var result = this.wtScroll.scrollVertical(delta);
+
+  this.getSetting('onScrollVertically');
+
+  return result;
 };
 
 Walkontable.prototype.scrollHorizontal = function (delta) {
-  return this.wtScroll.scrollHorizontal(delta);
+  var result = this.wtScroll.scrollHorizontal(delta);
+
+  this.getSetting('onScrollHorizontally');
+
+  return result;
 };
 
 Walkontable.prototype.scrollViewport = function (coords) {

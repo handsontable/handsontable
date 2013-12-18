@@ -9,66 +9,64 @@ describe('ContextMenu', function () {
     if (this.$container) {
       destroy();
       this.$container.remove();
-
-      if ($('ul.context-menu-list').length > 0) {
-        $.contextMenu('destroy');
-      }
     }
   });
 
+  describe("menu opening", function () {
+    it("should open menu after right click on table cell", function () {
+      var hot = handsontable({
+        contextMenu: true
+      });
+
+      expect(hot.contextMenu).toBeDefined();
+      expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
+
+      contextMenu();
+
+      expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
 
 
-  it("should open menu after right click on table cell", function () {
-    var hot = handsontable({
-      contextMenu: true
     });
 
-    expect(hot.contextMenu).toBeDefined();
-    expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
+    it("should open menu after right click active cell border", function () {
+      var hot = handsontable({
+        contextMenu: true
+      });
 
-    contextMenu();
+      expect(hot.contextMenu).toBeDefined();
+      expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
 
-    expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
+      selectCell(0, 0);
+      var cellOffset = $(getCell(0, 0)).offset();
+
+      var event = $.Event('contextmenu', {
+        pageX: cellOffset.left,
+        pageY: cellOffset.top
+      });
+
+      this.$container.find('.wtBorder.current:eq(0)').trigger(event);
+
+      expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
 
 
+    });
   });
 
-  it("should open menu after right click active cell border", function () {
-    var hot = handsontable({
-      contextMenu: true
+  describe('menu closing', function () {
+    it("should close menu after click", function () {
+      var hot = handsontable({
+        contextMenu: true
+      });
+
+      contextMenu();
+
+      expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
+
+      mouseDown(this.$container);
+
+      expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
+
     });
-
-    expect(hot.contextMenu).toBeDefined();
-    expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
-
-    selectCell(0, 0);
-    var cellOffset = $(getCell(0, 0)).offset();
-
-    var event = $.Event('contextmenu', {
-       pageX: cellOffset.left,
-       pageY: cellOffset.top
-    });
-
-    this.$container.find('.wtBorder.current:eq(0)').trigger(event);
-
-    expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
-
-
-  });
-
-  it("should close menu after click", function () {
-    var hot = handsontable({
-      contextMenu: true
-    });
-
-    contextMenu();
-
-    expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
-
-    mouseDown(this.$container);
-
-    expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
-
   });
 
   describe("menu disabled", function () {
@@ -151,6 +149,24 @@ describe('ContextMenu', function () {
 
       expect(hot.contextMenu).toBeUndefined();
       expect($('.htContextMenu').length).toEqual(0);
+    });
+
+    it('should work properly (remove row) after destroy and new init', function () {
+      var test = function () {
+        var hot = handsontable({
+          startRows: 5,
+          contextMenu: ['remove_row']
+        });
+        selectCell(0, 0);
+        contextMenu();
+        $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(0).trigger('mousedown');
+        expect(getData().length).toEqual(4);
+      };
+      test();
+
+      destroy();
+
+      test();
     });
 
   });
@@ -1360,89 +1376,258 @@ describe('ContextMenu', function () {
 
   });
 
+  describe("working with multiple tables", function () {
 
-  it('should work properly (remove row) after destroy and new init', function () {
-    var test = function () {
-      var hot = handsontable({
-        startRows: 5,
-        contextMenu: ['remove_row']
+    beforeEach(function () {
+      this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
+    });
+
+    afterEach(function () {
+      if(this.$container2){
+        this.$container2.handsontable('destroy');
+        this.$container2.remove();
+      }
+    });
+
+    it("should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT ", function () {
+      var hot1 = handsontable({
+        contextMenu: false
       });
-      selectCell(0, 0);
+
+      this.$container2.handsontable({
+        contextMenu: true
+      });
+
+      var hot2 = this.$container2.handsontable('getInstance');
+      var contextMenuContainer = $('.htContextMenu');
+
+      expect(contextMenuContainer.length).toEqual(1);
+
       contextMenu();
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(0).trigger('mousedown');
-      expect(getData().length).toEqual(4);
-    };
-    test();
+      expect(hot1.contextMenu).toBeUndefined();
+      expect(contextMenuContainer.is(':visible')).toBe(false);
 
-    destroy();
+      contextMenu2();
+      expect(hot2.contextMenu).toBeDefined();
+      expect($(hot2.contextMenu.menu).is(':visible')).toBe(true);
 
-    test();
-  });
-
-  it("should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT ", function () {
-    this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
-
-    var hot1 = handsontable({
-      contextMenu: false
-    });
-
-    this.$container2.handsontable({
-      contextMenu: true
-    });
-
-    var hot2 = this.$container2.handsontable('getInstance');
-
-    contextMenu();
-    expect(hot1.rootElement.find('.htContextMenu').length).toEqual(0);
-    expect(hot1.contextMenu).toBeUndefined();
-
-    contextMenu2();
-    expect(hot2.rootElement.find('.htContextMenu').length).toEqual(1);
-    expect($(hot2.contextMenu.menu).is(':visible')).toBe(true);
-
-    mouseDown(hot2.rootElement);
+      mouseDown(hot2.rootElement); //close menu
 
 
-    hot1.updateSettings({
-      contextMenu: true
-    });
+      hot1.updateSettings({
+        contextMenu: true
+      });
 
-    hot2.updateSettings({
-      contextMenu: false
-    });
+      hot2.updateSettings({
+        contextMenu: false
+      });
 
-    contextMenu2();
-    expect(hot2.rootElement.find('.htContextMenu').length).toEqual(0);
-    expect(hot2.contextMenu).toBeUndefined();
+      contextMenuContainer = $('.htContextMenu');
 
-    contextMenu();
-    expect(hot1.rootElement.find('.htContextMenu').length).toEqual(1);
-    expect($(hot1.contextMenu.menu).is(':visible')).toBe(true);
+      expect(contextMenuContainer.length).toEqual(1);
 
-    hot2.destroy();
-    this.$container2.remove();
+      contextMenu2();
+      expect(hot2.contextMenu).toBeUndefined();
 
-    function contextMenu2() {
-      var hot = spec().$container2.data('handsontable');
-      var selected = hot.getSelected();
+      contextMenu();
+      expect($(hot1.contextMenu.menu).is(':visible')).toBe(true);
 
-      if(!selected){
-        hot.selectCell(0, 0);
-        selected = hot.getSelected();
+      function contextMenu2() {
+        var hot = spec().$container2.data('handsontable');
+        var selected = hot.getSelected();
+
+        if(!selected){
+          hot.selectCell(0, 0);
+          selected = hot.getSelected();
+        }
+
+        var cell = hot.getCell(selected[0], selected[1]);
+        var cellOffset = $(cell).offset();
+
+        var ev = $.Event('contextmenu', {
+          pageX: cellOffset.left,
+          pageY: cellOffset.top
+        });
+
+        $(cell).trigger(ev);
       }
 
-      var cell = hot.getCell(selected[0], selected[1]);
-      var cellOffset = $(cell).offset();
+    });
 
-      var ev = $.Event('contextmenu', {
-        pageX: cellOffset.left,
-        pageY: cellOffset.top
+    it("should create only one DOM node for contextMenu per page ", function () {
+
+
+      var hot1 = handsontable({
+        contextMenu: false
       });
 
-      $(cell).trigger(ev);
-    }
+      this.$container2.handsontable({
+        contextMenu: false
+      });
 
+      var hot2 = this.$container2.handsontable('getInstance');
+      var contextMenuContainer = $('.htContextMenu');
+
+      expect(contextMenuContainer.length).toEqual(0);
+
+      hot1.updateSettings({
+        contextMenu: true
+      });
+
+      contextMenuContainer = $('.htContextMenu');
+
+      expect(contextMenuContainer.length).toEqual(1);
+
+      hot2.updateSettings({
+        contextMenu: true
+      });
+
+      contextMenuContainer = $('.htContextMenu');
+
+      expect(contextMenuContainer.length).toEqual(1);
+
+
+
+
+    });
+
+    it("should remove contextMenu DOM nodes when there is no HOT instance on the page, which has contextMenu enabled ", function () {
+      var hot1 = handsontable({
+        contextMenu: true
+      });
+
+      this.$container2.handsontable({
+        contextMenu: true
+      });
+
+      var hot2 = this.$container2.handsontable('getInstance');
+      var contextMenuContainer = $('.htContextMenu');
+
+      expect(contextMenuContainer.length).toEqual(1);
+
+      hot1.updateSettings({
+        contextMenu: true
+      });
+
+      hot2.updateSettings({
+        contextMenu: false
+      });
+
+      contextMenuContainer = $('.htContextMenu');
+
+      expect(contextMenuContainer.length).toEqual(1);
+
+      hot1.updateSettings({
+        contextMenu: false
+      });
+
+      hot2.updateSettings({
+        contextMenu: false
+      });
+
+      contextMenuContainer = $('.htContextMenu');
+
+      expect(contextMenuContainer.length).toEqual(0);
+
+
+    });
   });
 
+  describe("context menu with native scroll", function () {
+
+    beforeEach(function () {
+      var wrapper = $('<div></div>').css({
+        width: 400,
+        height: 200,
+        overflow: 'scroll'
+      });
+
+      this.$wrapper = this.$container.wrap(wrapper).parent();
+    });
+
+    afterEach(function () {
+      if (this.$container) {
+        destroy();
+        this.$container.remove();
+      }
+      this.$wrapper.remove();
+    });
+
+    it("should display menu table is not scrolled", function () {
+
+
+      var hot = handsontable({
+        data: createSpreadsheetData(40, 30),
+        colWidths: 50, //can also be a number or a function
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        nativeScrollbars: true
+      });
+
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+
+      expect($menu.is(':visible')).toBe(true);
+
+    });
+
+    it("should display menu table is scrolled", function () {
+
+
+      var hot = handsontable({
+        data: createSpreadsheetData(40, 30),
+        colWidths: 50, //can also be a number or a function
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        nativeScrollbars: true
+      });
+
+      this.$wrapper.scrollTop(300);
+      this.$wrapper.scroll();
+
+      selectCell(15, 3);
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+
+      expect($menu.is(':visible')).toBe(true);
+
+    });
+
+    it("should close menu when table is scrolled", function () {
+
+
+      var hot = handsontable({
+        data: createSpreadsheetData(40, 30),
+        colWidths: 50, //can also be a number or a function
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        nativeScrollbars: true
+      });
+
+      selectCell(15, 3);
+      var scrollTop = this.$wrapper.scrollTop();
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+
+      expect($menu.is(':visible')).toBe(true);
+
+      this.$wrapper.scrollTop(scrollTop + 60).scroll();
+
+      expect($menu.is(':visible')).toBe(false);
+
+      contextMenu();
+
+      expect($menu.is(':visible')).toBe(true);
+
+      this.$wrapper.scrollTop(scrollTop + 100).scroll();
+
+      expect($menu.is(':visible')).toBe(false)
+
+    });
+
+  });
 
 });
