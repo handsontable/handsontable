@@ -122,8 +122,6 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
 
 WalkontableTable.prototype.refreshStretching = function () {
   if (this.instance.cloneFrom) {
-    this.columnStrategy = this.instance.cloneFrom.wtTable.columnStrategy;
-    this.rowStrategy = this.instance.cloneFrom.wtTable.rowStrategy;
     return;
   }
 
@@ -148,6 +146,7 @@ WalkontableTable.prototype.refreshStretching = function () {
     if (source_c < totalColumns) {
       return instance.getSetting('columnWidth', source_c);
     }
+    throw new Error("Source index higher than the total number of columns");
   };
 
   if (stretchH === 'hybrid') {
@@ -184,6 +183,7 @@ WalkontableTable.prototype.refreshStretching = function () {
         return that.instance.getSetting('rowHeight', source_r, TD);
       }
     }
+    throw new Error("Source index higher than the total number of rows");
   };
 
   this.columnStrategy = new WalkontableColumnStrategy(containerWidthFn, columnWidthFn, stretchH);
@@ -369,20 +369,57 @@ WalkontableTable.prototype._doDraw = function () {
     }
   }
 
+  if (this.instance.cloneFrom) {
+    this.columnStrategy = this.instance.cloneFrom.wtTable.columnStrategy;
+    this.rowStrategy = this.instance.cloneFrom.wtTable.rowStrategy;
+  }
+
   //draw TBODY
   if (totalColumns > 0) {
     source_r = this.rowFilter.visibleToSource(r);
 
-    var first = true;
     var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
-    var cloneLimit = null;
+    var cloneLimit;
+    if (this.instance.cloneFrom) { //must be run after adjustAvailableNodes because otherwise this.rowStrategy is not yet defined
+      switch (this.instance.cloneDirection) {
+        case 'top':
+        case 'corner':
+          cloneLimit = fixedRowsTop;
+          break;
+
+        case 'left':
+          cloneLimit = this.rowStrategy.countVisible();
+          break;
+
+        //case 'debug' do nothing. No cloneLimit means render ALL rows
+      }
+    }
+
+    this.adjustAvailableNodes();
+    adjusted = true;
+
+    if (this.instance.cloneFrom && (this.instance.cloneDirection === 'left' || this.instance.cloneDirection === 'corner')) {
+      displayTds = this.instance.getSetting('fixedColumnsLeft');
+    }
+    else {
+      displayTds = this.columnStrategy.cellCount;
+    }
+
+    if (!this.instance.cloneFrom) {
+      workspaceWidth = this.instance.wtViewport.getWorkspaceWidth();
+      this.columnStrategy.stretch();
+    }
+
+    for (c = 0; c < displayTds; c++) {
+      this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(c) + 'px';
+    }
 
     while (source_r < totalRows && source_r >= 0) {
       if (r > 1000) {
         throw new Error('Security brake: Too much TRs. Please define height for your table, which will enforce scrollbars.');
       }
 
-      if (cloneLimit !== null && r === cloneLimit) {
+      if (cloneLimit !== void 0 && r === cloneLimit) {
         break; //we have as much rows as needed for this clone
       }
 
@@ -422,50 +459,7 @@ WalkontableTable.prototype._doDraw = function () {
         TH = TH.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
       }
 
-      if (first) {
-        first = false;
-
-        this.adjustAvailableNodes();
-        adjusted = true;
-
-        var cloneLimit = null;
-        if (this.instance.cloneFrom) { //must be run after adjustAvailableNodes because otherwise this.rowStrategy is not yet defined
-          switch (this.instance.cloneDirection) {
-            case 'top':
-            case 'corner':
-              cloneLimit = fixedRowsTop;
-              break;
-
-            case 'left':
-              cloneLimit = this.rowStrategy.countVisible();
-              break;
-
-            //case 'debug' do nothing. No cloneLimit means render ALL rows
-          }
-        }
-
-        if (this.instance.cloneFrom && (this.instance.cloneDirection === 'left' || this.instance.cloneDirection === 'corner')) {
-          displayTds = this.instance.getSetting('fixedColumnsLeft');
-        }
-        else {
-          displayTds = this.columnStrategy.cellCount;
-        }
-
-        //TD
-        this.adjustColumns(TR, displayTds + displayThs);
-
-        workspaceWidth = this.instance.wtViewport.getWorkspaceWidth();
-        if (!this.instance.cloneFrom) {
-          this.columnStrategy.stretch();
-        }
-        for (c = 0; c < displayTds; c++) {
-          this.COLGROUP.childNodes[c + displayThs].style.width = this.columnStrategy.getSize(c) + 'px';
-        }
-      }
-      else {
-        //TD
-        this.adjustColumns(TR, displayTds + displayThs);
-      }
+      this.adjustColumns(TR, displayTds + displayThs);
 
       for (c = 0; c < displayTds; c++) {
         source_c = this.columnFilter.visibleToSource(c);

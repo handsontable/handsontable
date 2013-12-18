@@ -117,14 +117,22 @@ WalkontableViewport.prototype.getRowHeaderWidth = function () {
     return this.instance.cloneFrom.wtViewport.getRowHeaderWidth();
   }
   if (isNaN(this.rowHeaderWidth)) {
-    var TR = this.instance.wtTable.TBODY ? this.instance.wtTable.TBODY.firstChild : null;
-    if (TR) {
-      var TD = TR.firstChild;
+    var rowHeaders = this.instance.getSetting('rowHeaders');
+    if (rowHeaders.length) {
+      var TH = this.instance.wtTable.TABLE.querySelector('TH');
       this.rowHeaderWidth = 0;
-      while (TD && TD.nodeName === 'TH') {
-        this.rowHeaderWidth += this.instance.wtDom.outerWidth(TD);
-        TD = TD.nextSibling;
+      for (var i = 0, ilen = rowHeaders.length; i < ilen; i++) {
+        if (TH) {
+          this.rowHeaderWidth += this.instance.wtDom.outerWidth(TH);
+          TH = TH.nextSibling;
+        }
+        else {
+          this.rowHeaderWidth += 50; //yes this is a cheat but it worked like that before, just taking assumption from CSS instead of measuring. TODO: proper fix
+        }
       }
+    }
+    else {
+      this.rowHeaderWidth = 0;
     }
   }
   return this.rowHeaderWidth;
