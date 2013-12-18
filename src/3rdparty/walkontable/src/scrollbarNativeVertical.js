@@ -156,7 +156,7 @@ WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {
 WalkontableVerticalScrollbarNative.prototype.readWindowSize = function () {
   if (this.scrollHandler === window) {
     this.windowSize = document.documentElement.clientHeight;
-    this.tableParentOffset = this.instance.wtTable.holderOffset.left;
+    this.tableParentOffset = this.instance.wtTable.holderOffset.top;
   }
   else {
     //this.windowSize = WalkontableDom.prototype.outerHeight(this.scrollHandler);
