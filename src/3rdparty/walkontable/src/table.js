@@ -106,7 +106,7 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
       spreaderStyle.width = '4000px';
     }
 
-    if (height < 0) { //this happens with WalkontableScrollbarNative and causes "Invalid argument" error in IE8
+    if (height < 0) { //this happens with WalkontableOverlay and causes "Invalid argument" error in IE8
       height = 0;
     }
 

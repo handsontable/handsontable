@@ -80,7 +80,7 @@ WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) 
 };
 
 WalkontableVerticalScrollbarNative.prototype.onScroll = function (forcePosition) {
-  WalkontableScrollbarNative.prototype.onScroll.apply(this, arguments);
+  WalkontableOverlay.prototype.onScroll.apply(this, arguments);
 
   var scrollDelta;
   var newOffset = 0;
