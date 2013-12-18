@@ -112,9 +112,9 @@ WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
   }
 };
 
-WalkontableViewport.prototype.getRowHeaderHeight = function () {
+WalkontableViewport.prototype.getRowHeaderWidth = function () {
   if (this.instance.cloneFrom) {
-    return this.instance.cloneFrom.wtViewport.getRowHeaderHeight();
+    return this.instance.cloneFrom.wtViewport.getRowHeaderWidth();
   }
   if (isNaN(this.rowHeaderWidth)) {
     var TR = this.instance.wtTable.TBODY ? this.instance.wtTable.TBODY.firstChild : null;
@@ -137,7 +137,7 @@ WalkontableViewport.prototype.getViewportWidth = function (proposedWidth) {
     return containerWidth;
   }
 
-  var rowHeaderWidth = this.getRowHeaderHeight();
+  var rowHeaderWidth = this.getRowHeaderWidth();
   if (rowHeaderWidth > 0) {
     return containerWidth - rowHeaderWidth;
   }
