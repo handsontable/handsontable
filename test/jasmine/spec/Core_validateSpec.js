@@ -1148,4 +1148,64 @@ describe('Core_validate', function () {
     });
   });
 
+  it('should not validate cell if editing has been canceled', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    selectCell(0, 0);
+    keyDownUp(Handsontable.helper.keyCode.ENTER);  //open editor
+    keyDownUp(Handsontable.helper.keyCode.ESCAPE); //cancel editing
+
+    waits(100);
+
+    runs(function () {
+      expect(onAfterValidate).not.toHaveBeenCalled();
+    });
+
+
+  });
+
+  it('should leave cell invalid if editing has been canceled', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', validator: function (value, cb) {
+          cb(false);
+        }},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    setDataAtCell(0, 0, 'foo');
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0
+    }, 'cell validation', 1000);
+
+    runs(function () {
+      expect(getCellMeta(0, 0).valid).toBe(false);
+
+      selectCell(0, 0);
+      keyDownUp(Handsontable.helper.keyCode.ENTER);  //open editor
+      keyDownUp(Handsontable.helper.keyCode.ESCAPE); //cancel editing
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+
+    });
+
+  });
+
 });
