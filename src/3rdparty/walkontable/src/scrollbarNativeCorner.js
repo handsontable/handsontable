@@ -60,9 +60,6 @@ WalkontableCornerScrollbarNative.prototype.getScrollPosition = function () {
 WalkontableCornerScrollbarNative.prototype.getLastCell = function () {
 };
 
-WalkontableCornerScrollbarNative.prototype.getTableSize = function () {
-};
-
 WalkontableCornerScrollbarNative.prototype.applyToDOM = function () {
 };
 

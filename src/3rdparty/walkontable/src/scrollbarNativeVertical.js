@@ -141,9 +141,6 @@ WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
   this.fixedContainer.style.height = headerSize + this.sumCellSizes(0, this.total) + 1 + 'px'; //+1 is needed, otherwise sometimes vertical scroll appears in Chrome (window scroll mode)
   this.fixed.style.top = this.measureBefore + 'px';
   this.fixed.style.bottom = '';
-
-  this.lastBegin = this.tableParentOffset + this.measureBefore;
-  this.lastEnd = this.lastBegin + headerSize + this.instance.wtTable.rowStrategy.cellSizesSum;
 };
 
 WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {

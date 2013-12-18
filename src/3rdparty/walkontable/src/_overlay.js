@@ -3,10 +3,7 @@
  * and (optionally) implements behavior needed for native horizontal and vertical scrolling
  */
 function WalkontableOverlay() {
-  this.lastWindowScrollPosition = NaN;
   this.maxOuts = 10; //max outs in one direction (before and after table)
-  this.lastBegin = 0;
-  this.lastEnd = 0;
 }
 
 /*
@@ -75,9 +72,6 @@ WalkontableOverlay.prototype.onScroll = function (forcePosition) {
   }
 
   this.resetFixedPosition(); //may be redundant
-
-  this.lastWindowScrollPosition = this.windowScrollPosition;
-
 };
 
 WalkontableOverlay.prototype.availableSize = function () {
