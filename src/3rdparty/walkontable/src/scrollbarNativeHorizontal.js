@@ -71,6 +71,10 @@ WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
   }
 };
 
+WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos) {
+  this.scrollHandler.scrollLeft = pos;
+};
+
 WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
   return this.instance.wtTable.getLastVisibleColumn();
 };
