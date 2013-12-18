@@ -8,7 +8,7 @@ function WalkontableRowFilter() {
 WalkontableRowFilter.prototype = new WalkontableCellFilter();
 
 WalkontableRowFilter.prototype.readSettings = function (instance) {
-  if (instance.cloneDirection === 'debug') {
+  if (instance.cloneOverlay instanceof WalkontableDebugOverlay) {
     this.offset = 0;
   }
   else {

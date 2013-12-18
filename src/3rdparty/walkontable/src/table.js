@@ -159,7 +159,7 @@ WalkontableTable.prototype.refreshStretching = function () {
 
   var containerHeightFn = function (cacheHeight) {
     if (that.instance.getSetting('nativeScrollbars')) {
-      if (that.instance.cloneDirection === 'debug') {
+      if (that.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
         return Infinity;
       }
       else {
@@ -204,7 +204,7 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   }
 
   this.refreshStretching(); //actually it is wrong position because it assumes rowHeader would be always 50px wide (because we measure before it is filled with text). TODO: debug
-  if (this.instance.cloneFrom && (this.instance.cloneDirection === 'left' || this.instance.cloneDirection === 'corner')) {
+  if (this.instance.cloneFrom && (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative)) {
     displayTds = this.instance.getSetting('fixedColumnsLeft');
   }
   else {
@@ -379,24 +379,19 @@ WalkontableTable.prototype._doDraw = function () {
     var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
     var cloneLimit;
     if (this.instance.cloneFrom) { //must be run after adjustAvailableNodes because otherwise this.rowStrategy is not yet defined
-      switch (this.instance.cloneDirection) {
-        case 'top':
-        case 'corner':
-          cloneLimit = fixedRowsTop;
-          break;
-
-        case 'left':
-          cloneLimit = this.rowStrategy.countVisible();
-          break;
-
-        //case 'debug' do nothing. No cloneLimit means render ALL rows
+      if (this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+        cloneLimit = fixedRowsTop;
       }
+      else if (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative) {
+        cloneLimit = this.rowStrategy.countVisible();
+      }
+      //else if WalkontableDebugOverlay do nothing. No cloneLimit means render ALL rows
     }
 
     this.adjustAvailableNodes();
     adjusted = true;
 
-    if (this.instance.cloneFrom && (this.instance.cloneDirection === 'left' || this.instance.cloneDirection === 'corner')) {
+    if (this.instance.cloneFrom && (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative)) {
       displayTds = this.instance.getSetting('fixedColumnsLeft');
     }
     else {
@@ -540,7 +535,7 @@ WalkontableTable.prototype._doDraw = function () {
     this.adjustAvailableNodes();
   }
 
-  if (this.instance.cloneDirection !== 'debug') {
+  if (!(this.instance.cloneOverlay instanceof WalkontableDebugOverlay)) {
     r = this.rowStrategy.countVisible();
     while (this.tbodyChildrenLength > r) {
       this.TBODY.removeChild(this.TBODY.lastChild);

@@ -38,7 +38,7 @@ WalkontableOverlay.prototype.makeClone = function (direction) {
 
   return new Walkontable({
     cloneFrom: this.instance,
-    cloneDirection: direction,
+    cloneOverlay: this,
     table: table2
   });
 };

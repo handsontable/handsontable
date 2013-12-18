@@ -8,7 +8,7 @@ function Walkontable(settings) {
   this.wtDom = new WalkontableDom();
   if (settings.cloneFrom) {
     this.cloneFrom = settings.cloneFrom;
-    this.cloneDirection = settings.cloneDirection;
+    this.cloneOverlay = settings.cloneOverlay;
     this.wtSettings = settings.cloneFrom.wtSettings;
     this.wtTable = new WalkontableTable(this, settings.table);
     this.wtScroll = new WalkontableScroll(this);
