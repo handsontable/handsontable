@@ -4,7 +4,7 @@ function WalkontableCornerScrollbarNative(instance) {
   this.clone = this.makeClone('corner');
 }
 
-WalkontableCornerScrollbarNative.prototype = new WalkontableScrollbarNative();
+WalkontableCornerScrollbarNative.prototype = new WalkontableOverlay();
 
 WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
   if (!this.instance.wtTable.holder.parentNode) {

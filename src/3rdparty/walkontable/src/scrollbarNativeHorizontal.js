@@ -6,7 +6,7 @@ function WalkontableHorizontalScrollbarNative(instance) {
   this.clone = this.makeClone('left');
 }
 
-WalkontableHorizontalScrollbarNative.prototype = new WalkontableScrollbarNative();
+WalkontableHorizontalScrollbarNative.prototype = new WalkontableOverlay();
 
 //resetFixedPosition (in future merge it with this.refresh?)
 WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () {

@@ -36,7 +36,7 @@ function WalkontableDebugOverlay(instance) {
   });
 }
 
-WalkontableDebugOverlay.prototype = new WalkontableScrollbarNative();
+WalkontableDebugOverlay.prototype = new WalkontableOverlay();
 
 WalkontableDebugOverlay.prototype.resetFixedPosition = function () {
   if (!this.instance.wtTable.holder.parentNode) {

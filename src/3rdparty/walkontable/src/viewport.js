@@ -36,7 +36,7 @@ WalkontableViewport.prototype.getWorkspaceHeight = function (proposedHeight) {
   var height = this.instance.getSetting('height');
 
   if (height === Infinity || height === void 0 || height === null || height < 1) {
-    if (this.instance.wtScrollbars.vertical instanceof WalkontableScrollbarNative) {
+    if (this.instance.wtScrollbars.vertical instanceof WalkontableOverlay) {
       height = this.instance.wtScrollbars.vertical.availableSize();
     }
     else {
@@ -60,7 +60,7 @@ WalkontableViewport.prototype.getWorkspaceWidth = function (proposedWidth) {
   var width = this.instance.getSetting('width');
 
   if (width === Infinity || width === void 0 || width === null || width < 1) {
-    if (this.instance.wtScrollbars.horizontal instanceof WalkontableScrollbarNative) {
+    if (this.instance.wtScrollbars.horizontal instanceof WalkontableOverlay) {
       width = this.instance.wtScrollbars.horizontal.availableSize();
     }
     else {
