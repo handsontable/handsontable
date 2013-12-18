@@ -19,7 +19,7 @@ function WalkontableRowStrategy(instance, containerSizeFn, sizeAtIndex) {
 WalkontableRowStrategy.prototype = new WalkontableCellStrategy();
 
 WalkontableRowStrategy.prototype.add = function (i, TD, reverse) {
-  if (!this.isLastIncomplete()) {
+  if (!this.isLastIncomplete() && this.remainingSize != 0) {
     var size = this.sizeAtIndex(i, TD);
     if (size === void 0) {
       return false; //total rows exceeded

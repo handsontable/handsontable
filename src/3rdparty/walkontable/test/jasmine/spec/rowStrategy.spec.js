@@ -16,9 +16,10 @@ describe('WalkontableRowStrategy', function () {
     }
   }
 
-  it("cell strategy should be 25", function () {
+  it("cell strategy should add only as many rows as it fits in the viewport", function () {
     source = [0, 1, 2, 5, 6, 7, 8, 9, 10];
-    var strategy = new WalkontableRowStrategy(fakeWalkontableInstance, 100, allCells25);
+    var viewportSize = 100;
+    var strategy = new WalkontableRowStrategy(fakeWalkontableInstance, viewportSize, allCells25);
     for (var i = 0; i < source.length; i++) {
       strategy.add(i);
     }
