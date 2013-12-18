@@ -121,7 +121,7 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
 };
 
 WalkontableTable.prototype.refreshStretching = function () {
-  if (this.instance.cloneFrom) {
+  if (this.instance.cloneSource) {
     return;
   }
 
@@ -204,7 +204,7 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
   }
 
   this.refreshStretching(); //actually it is wrong position because it assumes rowHeader would be always 50px wide (because we measure before it is filled with text). TODO: debug
-  if (this.instance.cloneFrom && (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative)) {
+  if (this.instance.cloneSource && (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative)) {
     displayTds = this.instance.getSetting('fixedColumnsLeft');
   }
   else {
@@ -295,8 +295,8 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
 
   if (!selectionsOnly) {
     if (this.instance.getSetting('nativeScrollbars')) {
-      if (this.instance.cloneFrom) {
-        this.tableOffset = this.instance.cloneFrom.wtTable.tableOffset;
+      if (this.instance.cloneSource) {
+        this.tableOffset = this.instance.cloneSource.wtTable.tableOffset;
       }
       else {
         this.holderOffset = this.wtDom.offset(this.holder);
@@ -320,7 +320,7 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
 
   if (!selectionsOnly) {
     if (this.instance.getSetting('nativeScrollbars')) {
-      if (!this.instance.cloneFrom) {
+      if (!this.instance.cloneSource) {
         this.instance.wtScrollbars.vertical.resetFixedPosition();
         this.instance.wtScrollbars.horizontal.resetFixedPosition();
         this.instance.wtScrollbars.corner.resetFixedPosition();
@@ -367,9 +367,9 @@ WalkontableTable.prototype._doDraw = function () {
     }
   }
 
-  if (this.instance.cloneFrom) {
-    this.columnStrategy = this.instance.cloneFrom.wtTable.columnStrategy;
-    this.rowStrategy = this.instance.cloneFrom.wtTable.rowStrategy;
+  if (this.instance.cloneSource) {
+    this.columnStrategy = this.instance.cloneSource.wtTable.columnStrategy;
+    this.rowStrategy = this.instance.cloneSource.wtTable.rowStrategy;
   }
 
   //draw TBODY
@@ -378,7 +378,7 @@ WalkontableTable.prototype._doDraw = function () {
 
     var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
     var cloneLimit;
-    if (this.instance.cloneFrom) { //must be run after adjustAvailableNodes because otherwise this.rowStrategy is not yet defined
+    if (this.instance.cloneSource) { //must be run after adjustAvailableNodes because otherwise this.rowStrategy is not yet defined
       if (this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
         cloneLimit = fixedRowsTop;
       }
@@ -391,14 +391,14 @@ WalkontableTable.prototype._doDraw = function () {
     this.adjustAvailableNodes();
     adjusted = true;
 
-    if (this.instance.cloneFrom && (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative)) {
+    if (this.instance.cloneSource && (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative)) {
       displayTds = this.instance.getSetting('fixedColumnsLeft');
     }
     else {
       displayTds = this.columnStrategy.cellCount;
     }
 
-    if (!this.instance.cloneFrom) {
+    if (!this.instance.cloneSource) {
       workspaceWidth = this.instance.wtViewport.getWorkspaceWidth();
       this.columnStrategy.stretch();
     }
@@ -488,14 +488,14 @@ WalkontableTable.prototype._doDraw = function () {
           break;
 
         }
-        else if (!this.instance.cloneFrom) {
+        else if (!this.instance.cloneSource) {
           res = this.rowStrategy.add(r, TD, this.verticalRenderReverse);
           if (res === false) {
             this.rowStrategy.removeOutstanding();
           }
         }
       }
-      else if (!this.instance.cloneFrom) {
+      else if (!this.instance.cloneSource) {
         res = this.rowStrategy.add(r, TD, this.verticalRenderReverse);
 
         if (res === false) {
@@ -545,7 +545,7 @@ WalkontableTable.prototype._doDraw = function () {
 
   this.instance.wtScrollbars && this.instance.wtScrollbars.refresh(false);
 
-  if (!this.instance.cloneFrom) {
+  if (!this.instance.cloneSource) {
     if (workspaceWidth !== this.instance.wtViewport.getWorkspaceWidth()) {
       //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
       this.columnStrategy.stretch();

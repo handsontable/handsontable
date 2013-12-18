@@ -6,13 +6,13 @@ function Walkontable(settings) {
 
   //bootstrap from settings
   this.wtDom = new WalkontableDom();
-  if (settings.cloneFrom) {
-    this.cloneFrom = settings.cloneFrom;
+  if (settings.cloneSource) {
+    this.cloneSource = settings.cloneSource;
     this.cloneOverlay = settings.cloneOverlay;
-    this.wtSettings = settings.cloneFrom.wtSettings;
+    this.wtSettings = settings.cloneSource.wtSettings;
     this.wtTable = new WalkontableTable(this, settings.table);
     this.wtScroll = new WalkontableScroll(this);
-    this.wtViewport = settings.cloneFrom.wtViewport;
+    this.wtViewport = settings.cloneSource.wtViewport;
   }
   else {
     this.wtSettings = new WalkontableSettings(this, settings);

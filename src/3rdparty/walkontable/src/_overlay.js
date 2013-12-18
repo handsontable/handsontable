@@ -37,7 +37,7 @@ WalkontableOverlay.prototype.makeClone = function (direction) {
   this.instance.wtTable.holder.parentNode.appendChild(clone);
 
   return new Walkontable({
-    cloneFrom: this.instance,
+    cloneSource: this.instance,
     cloneOverlay: this,
     table: table2
   });
