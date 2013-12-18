@@ -205,7 +205,7 @@ WalkontableTable.prototype.adjustAvailableNodes = function () {
     this.colgroupChildrenLength++;
   }
 
-  this.refreshStretching();
+  this.refreshStretching(); //actually it is wrong position because it assumes rowHeader would be always 50px wide (because we measure before it is filled with text). TODO: debug
   if (this.instance.cloneFrom && (this.instance.cloneDirection === 'left' || this.instance.cloneDirection === 'corner')) {
     displayTds = this.instance.getSetting('fixedColumnsLeft');
   }
@@ -375,31 +375,11 @@ WalkontableTable.prototype._doDraw = function () {
 
     var first = true;
     var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
+    var cloneLimit = null;
 
     while (source_r < totalRows && source_r >= 0) {
       if (r > 1000) {
         throw new Error('Security brake: Too much TRs. Please define height for your table, which will enforce scrollbars.');
-      }
-
-      if (first) {
-        this.adjustAvailableNodes();
-        adjusted = true;
-
-        var cloneLimit = null;
-        if (this.instance.cloneFrom) {
-          switch (this.instance.cloneDirection) {
-            case 'top':
-            case 'corner':
-              cloneLimit = fixedRowsTop;
-              break;
-
-            case 'left':
-              cloneLimit = this.rowStrategy.countVisible();
-              break;
-
-            //case 'debug' do nothing. No cloneLimit means render ALL rows
-          }
-        }
       }
 
       if (cloneLimit !== null && r === cloneLimit) {
@@ -444,6 +424,25 @@ WalkontableTable.prototype._doDraw = function () {
 
       if (first) {
         first = false;
+
+        this.adjustAvailableNodes();
+        adjusted = true;
+
+        var cloneLimit = null;
+        if (this.instance.cloneFrom) { //must be run after adjustAvailableNodes because otherwise this.rowStrategy is not yet defined
+          switch (this.instance.cloneDirection) {
+            case 'top':
+            case 'corner':
+              cloneLimit = fixedRowsTop;
+              break;
+
+            case 'left':
+              cloneLimit = this.rowStrategy.countVisible();
+              break;
+
+            //case 'debug' do nothing. No cloneLimit means render ALL rows
+          }
+        }
 
         if (this.instance.cloneFrom && (this.instance.cloneDirection === 'left' || this.instance.cloneDirection === 'corner')) {
           displayTds = this.instance.getSetting('fixedColumnsLeft');
