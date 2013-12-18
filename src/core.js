@@ -2614,7 +2614,8 @@ DefaultSettings.prototype = {
   fragmentSelection: false,
   readOnly: false,
   nativeScrollbars: false,
-  type: 'text'
+  type: 'text',
+  debug: false //shows debug overlays in Walkontable
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
