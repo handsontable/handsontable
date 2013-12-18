@@ -29,6 +29,7 @@
       minRows: 0,
       minCols: 0,
       className: 'listbox',
+      copyPaste: false,
       cells: function () {
         return {
           readOnly: true

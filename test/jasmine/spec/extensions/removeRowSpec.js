@@ -38,6 +38,7 @@ describe('RemoveRowSpec', function () {
 
     expect($('.htRemoveRow .btn:visible').length).toBe(1);
 
+    destroy();
     $table.remove();
   });
 
@@ -89,6 +90,9 @@ describe('RemoveRowSpec', function () {
 
     expect(this.$container.find('tbody th.htRemoveRow').length).toBe(5);
     expect(this.$container2.find('tbody th.htRemoveRow').length).toBe(0);
+
+    this.$container2.handsontable('destroy');
+    this.$container2.remove();
 
   });
 });

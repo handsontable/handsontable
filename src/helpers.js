@@ -55,7 +55,10 @@ Handsontable.helper.isMetaKey = function (keyCode) {
 };
 
 Handsontable.helper.isCtrlKey = function (keyCode) {
-  return [17, 224, 91, 93].indexOf(keyCode) != -1;
+
+  var keys = Handsontable.helper.keyCode;
+
+  return [keys.CONTROL_LEFT, 224, keys.COMMAND_LEFT, keys.COMMAND_RIGHT].indexOf(keyCode) != -1;
 };
 
 /**
@@ -294,6 +297,9 @@ Handsontable.helper.keyCode = {
   END: 35,
   ENTER: 13,
   ESCAPE: 27,
+  CONTROL_LEFT: 91,
+  COMMAND_LEFT: 17,
+  COMMAND_RIGHT: 93,
   HOME: 36,
   PAGE_DOWN: 34,
   PAGE_UP: 33,

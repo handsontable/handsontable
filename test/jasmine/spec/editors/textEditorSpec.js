@@ -294,6 +294,7 @@ describe('TextEditor', function () {
     editor = $('.handsontableInputHolder');
     expect(editor.is(':visible')).toBe(true);
 
+    this.$container2.handsontable('destroy');
     this.$container2.remove();
 
     function handsontable2(options) {
