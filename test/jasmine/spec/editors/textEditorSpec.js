@@ -134,6 +134,16 @@ describe('TextEditor', function () {
     expect(isEditorVisible()).toEqual(false);
   });
 
+  it('should NOT open editor after hitting CapsLock', function () {
+    handsontable();
+    selectCell(2, 2);
+
+    var editor = $('.handsontableInput');
+    expect(isEditorVisible()).toEqual(false);
+    keyDown(Handsontable.helper.keyCode.CAPS_LOCK);
+    expect(isEditorVisible()).toEqual(false);
+  });
+
   it('should open editor after cancelling edit and beginning it again', function () {
     handsontable();
     selectCell(2, 2);
