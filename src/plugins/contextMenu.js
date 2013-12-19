@@ -405,9 +405,9 @@
 
     var cursor = {
       top:  cursorY,
-      topRelative: cursorY - window.pageYOffset,
+      topRelative: cursorY - document.documentElement.scrollTop,
       left: cursorX,
-      leftRelative:cursorX - window.pageXOffset
+      leftRelative:cursorX - document.documentElement.scrollLeft
     };
 
     if(this.menuFitsBelowCursor(cursor)){
