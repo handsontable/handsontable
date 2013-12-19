@@ -112,6 +112,7 @@ module.exports = function (grunt) {
         'lib/numeral.js'
       ],
       shims: [
+        'lib/shims/array.indexOf.js',
         'lib/shims/array.filter.js',
         'lib/shims/weakmap.js'
       ]
