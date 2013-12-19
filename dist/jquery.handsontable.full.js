@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Nov 27 2013 14:18:10 GMT+0100 (CET)
+ * Date: Thu Dec 19 2013 11:44:27 GMT-0600 (Central Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -10443,8 +10443,9 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     if (sum < available) {
       var next = this.instance.getSetting('columnWidth', scrollTo - 1);
       while (sum + next < available && scrollTo >= fixedColumnsLeft) {
-        scrollTo--;
-        sum += next;
+          sum += next;
+          scrollTo--;
+          next = this.instance.getSetting('columnWidth', scrollTo - 1);
       }
     }
 

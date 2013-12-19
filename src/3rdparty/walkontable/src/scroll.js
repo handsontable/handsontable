@@ -200,8 +200,9 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     if (sum < available) {
       var next = this.instance.getSetting('columnWidth', scrollTo - 1);
       while (sum + next < available && scrollTo >= fixedColumnsLeft) {
-        scrollTo--;
-        sum += next;
+          sum += next;
+          scrollTo--;
+          next = this.instance.getSetting('columnWidth', scrollTo - 1);
       }
     }
 
