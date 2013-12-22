@@ -516,6 +516,10 @@ WalkontableTable.prototype._doDraw = function () {
         }
       }
 
+      if (this.instance.getSetting('nativeScrollbars') && !this.instance.cloneSource) {
+        this.instance.getSetting('rowHeight', source_r, TD); //this trick saves rowHeight in rowHeightCache. It is then read in WalkontableVerticalScrollbarNative.prototype.sumCellSizes and reset in Walkontable constructor
+      }
+
       if (this.verticalRenderReverse && r >= this.rowFilter.fixedCount) {
         if (offsetRow === 0) {
           break;
