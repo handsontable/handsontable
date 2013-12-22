@@ -3,9 +3,6 @@ function WalkontableVerticalScrollbarNative(instance) {
   this.type = 'vertical';
   this.cellSize = 23;
   this.init();
-
-  var that = this;
-
   this.clone = this.makeClone('top');
 }
 
