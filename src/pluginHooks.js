@@ -43,6 +43,7 @@ Handsontable.PluginHookClass = (function () {
       afterSelectionEndByProp: [],
       afterCopyLimit: [],
       afterOnCellMouseDown: [],
+      afterOnCellMouseOver: [],
       afterOnCellCornerMouseDown: [],
       afterScrollVertically: [],
       afterScrollHorizontally: [],
