@@ -23,7 +23,9 @@ WalkontableScrollbars.prototype.registerListeners = function () {
   var oldVerticalScrollPosition
     , oldHorizontalScrollPosition
     , oldBoxTop
-    , oldBoxLeft;
+    , oldBoxLeft
+    , oldBoxWidth
+    , oldBoxHeight;
 
   function refreshAll() {
     if (!that.instance.wtTable.holder.parentNode) {
@@ -35,6 +37,13 @@ WalkontableScrollbars.prototype.registerListeners = function () {
     that.vertical.windowScrollPosition = that.vertical.getScrollPosition();
     that.horizontal.windowScrollPosition = that.horizontal.getScrollPosition();
     that.box = that.instance.wtTable.hider.getBoundingClientRect();
+
+    if((that.box.width !== oldBoxWidth || that.box.height !== oldBoxHeight) && that.instance.rowHeightCache) {
+      that.instance.rowHeightCache.length = 0;
+      oldBoxWidth = that.box.width;
+      oldBoxHeight = that.box.height;
+      that.instance.draw();
+    }
 
     if (that.vertical.windowScrollPosition !== oldVerticalScrollPosition || that.horizontal.windowScrollPosition !== oldHorizontalScrollPosition || that.box.top !== oldBoxTop || that.box.left !== oldBoxLeft) {
       that.vertical.onScroll();
@@ -62,6 +71,7 @@ WalkontableScrollbars.prototype.registerListeners = function () {
   $window.on('load.' + this.instance.guid, refreshAll);
   $window.on('resize.' + this.instance.guid, refreshAll);
   $(document).on('ready.' + this.instance.guid, refreshAll);
+  setInterval(refreshAll, 100); //Marcin - only idea I have to reposition scrollbars on CSS change of the container (container was moved using some styles after page was loaded)
 };
 
 WalkontableScrollbars.prototype.destroy = function () {
