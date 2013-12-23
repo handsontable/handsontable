@@ -105,9 +105,11 @@
       var width = instance.view.wt.wtDom.outerWidth(tmp.table);
       parent.removeChild(tmp.container);
 
-      var maxWidth = instance.view.wt.wtViewport.getViewportWidth() - 2; //2 is some overhead for cell border
-      if (width > maxWidth) {
-        width = maxWidth;
+      if (!settings.nativeScrollbars) { //with native scrollbars a cell size can safely exceed the width of the viewport
+        var maxWidth = instance.view.wt.wtViewport.getViewportWidth() - 2; //2 is some overhead for cell border
+        if (width > maxWidth) {
+          width = maxWidth;
+        }
       }
 
       return width;
