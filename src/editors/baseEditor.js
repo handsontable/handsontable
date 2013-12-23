@@ -13,14 +13,17 @@
     this.state = Handsontable.EditorState.VIRGIN;
 
     this._opened = false;
-    this._closeCallback = function () {
-    };
+    this._closeCallback = null;
 
     this.init();
   }
 
   BaseEditor.prototype._fireCallbacks = function(result) {
-    this._closeCallback(result);
+    if(this._closeCallback){
+      this._closeCallback(result);
+      this._closeCallback = null;
+    }
+
   }
 
   BaseEditor.prototype.init = function(){};
@@ -108,9 +111,12 @@
   BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown, callback) {
 
     if (callback) {
-      var old = this._closeCallback;
+      var previousCloseCallback = this._closeCallback;
       this._closeCallback = function (result) {
-        old(result);
+        if(previousCloseCallback){
+          previousCloseCallback(result);
+        }
+
         callback(result);
       };
     }
@@ -118,9 +124,6 @@
     if (this.isWaiting()) {
       return;
     }
-
-    this._closeCallback = function () {
-    };
 
     if (this.state == Handsontable.EditorState.VIRGIN) {
       var that = this;
