@@ -82,8 +82,6 @@
 
   TextEditor.prototype.open = function(){
     this.refreshDimensions(); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
-    this.TEXTAREA.focus();
-    this.wtDom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
 
     this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   };
@@ -100,6 +98,7 @@
 
   TextEditor.prototype.focus = function(){
     this.TEXTAREA.focus();
+    this.wtDom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
   };
 
   TextEditor.prototype.createElements = function () {

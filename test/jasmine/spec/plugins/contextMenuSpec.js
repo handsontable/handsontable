@@ -1595,7 +1595,7 @@ describe('ContextMenu', function () {
 
     });
 
-    it("should close menu when table is scrolled", function () {
+    it("should close menu, when table is scrolled", function () {
 
 
       var hot = handsontable({
@@ -1625,6 +1625,37 @@ describe('ContextMenu', function () {
       this.$wrapper.scrollTop(scrollTop + 100).scroll();
 
       expect($menu.is(':visible')).toBe(false)
+
+    });
+
+    it("should not attempt to close menu, when table is scrolled and the menu is already closed", function () {
+
+
+      var hot = handsontable({
+        data: createSpreadsheetData(40, 30),
+        colWidths: 50, //can also be a number or a function
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        nativeScrollbars: true
+      });
+
+      selectCell(15, 3);
+      var scrollTop = this.$wrapper.scrollTop();
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+
+      expect($menu.is(':visible')).toBe(true);
+
+      this.$wrapper.scrollTop(scrollTop + 60).scroll();
+
+      expect($menu.is(':visible')).toBe(false);
+
+      spyOn(hot.contextMenu, 'close');
+
+      this.$wrapper.scrollTop(scrollTop + 100).scroll();
+
+      expect(hot.contextMenu.close).not.toHaveBeenCalled();
 
     });
 

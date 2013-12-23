@@ -251,6 +251,21 @@ describe('TextEditor', function () {
 
   });
 
+  it('should call editor focus() method after opening an editor', function () {
+    var hot = handsontable();
+    selectCell(2, 2);
+
+    var editor = hot.getActiveEditor();
+
+    spyOn(editor, 'focus');
+
+    expect(editor.isOpened()).toEqual(false);
+    expect(editor.focus).not.toHaveBeenCalled();
+    keyDown('f2');
+    expect(editor.isOpened()).toEqual(true);
+    expect(editor.focus).toHaveBeenCalled();
+  });
+
   it('editor size should not exceed the viewport after text edit', function () {
 
     handsontable({
