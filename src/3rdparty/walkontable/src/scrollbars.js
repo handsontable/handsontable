@@ -39,7 +39,7 @@ WalkontableScrollbars.prototype.registerListeners = function () {
     that.box = that.instance.wtTable.hider.getBoundingClientRect();
 
     if((that.box.width !== oldBoxWidth || that.box.height !== oldBoxHeight) && that.instance.rowHeightCache) {
-      that.instance.rowHeightCache.length = 0;
+      //that.instance.rowHeightCache.length = 0; //at this point the cached row heights may be invalid, but it is better not to reset the cache, which could cause scrollbar jumping when there are multiline cells outside of the rendered part of the table
       oldBoxWidth = that.box.width;
       oldBoxHeight = that.box.height;
       that.instance.draw();

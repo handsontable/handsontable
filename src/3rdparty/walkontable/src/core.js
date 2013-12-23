@@ -50,14 +50,15 @@ function Walkontable(settings) {
   this.drawn = false;
   this.drawInterrupted = false;
 
-  if (window.Handsontable) {
+  //at this point the cached row heights may be invalid, but it is better not to reset the cache, which could cause scrollbar jumping when there are multiline cells outside of the rendered part of the table
+  /*if (window.Handsontable) {
     Handsontable.PluginHooks.add('beforeChange', function () {
       if (that.rowHeightCache) {
         that.rowHeightCache.length = 0;
       }
     });
 
-  }
+  }*/
 }
 
 Walkontable.prototype.draw = function (selectionsOnly) {
