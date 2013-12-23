@@ -266,24 +266,18 @@
       return activeEditor;
     };
 
-    var pendingPrepare = false;
-
     /**
      * Prepare text input to be displayed at given grid cell
      */
     this.prepareEditor = function () {
 
-      if (activeEditor && activeEditor.state === Handsontable.EditorState.WAITING){
+      if (activeEditor && activeEditor.isWaiting()){
 
-        if(!pendingPrepare){
-          pendingPrepare = true;
-
-          this.closeEditor(false, false, function(){
-            pendingPrepare = false;
+        this.closeEditor(false, false, function(dataSaved){
+          if(dataSaved){
             that.prepareEditor();
-          });
-
-        }
+          }
+        });
 
         return;
       }
