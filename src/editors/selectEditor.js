@@ -112,6 +112,10 @@
     this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
   };
 
+  SelectEditor.prototype.focus = function () {
+    this.select.focus();
+  };
+
   Handsontable.editors.SelectEditor = SelectEditor;
   Handsontable.editors.registerEditor('select', SelectEditor);
 

@@ -101,6 +101,7 @@
 
     this.open();
     this._opened = true;
+    this.focus();
 
     this.instance.view.render(); //only rerender the selections (FillHandle should disappear when beginediting is triggered)
   };

@@ -198,11 +198,24 @@
       ],
       beforeKeyDown: Handsontable.helper.proxy(this.onBeforeKeyDown, this)
     });
+    this.bindTableEvents();
 
     this.setMenuPosition(top, left);
 
     $(this.menu).handsontable('listen');
 
+  };
+
+  ContextMenu.prototype.close = function () {
+    this.hide();
+    $(document).off('mousedown.htContextMenu');
+    this.unbindTableEvents();
+    this.instance.listen();
+  };
+
+  ContextMenu.prototype.hide = function(){
+    this.menu.style.display = 'none';
+    $(this.menu).handsontable('destroy');
   };
 
   ContextMenu.prototype.renderer = function(instance, TD, row, col, prop, value, cellProperties){
@@ -491,17 +504,6 @@
 
   ContextMenu.utils.isDisabled = function (cell) {
     return Handsontable.Dom.hasClass(cell, 'htDisabled');
-  };
-
-  ContextMenu.prototype.close = function () {
-    this.hide();
-    $(document).off('mousedown.htContextMenu');
-    this.instance.listen();
-  };
-
-  ContextMenu.prototype.hide = function(){
-    this.menu.style.display = 'none';
-    $(this.menu).handsontable('destroy');
   };
 
   ContextMenu.prototype.enable = function () {
