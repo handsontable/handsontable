@@ -111,8 +111,12 @@
                 if(that.isEditorOpened()  && !activeEditor.isWaiting()){
                   that.closeEditorAndSaveChanges(ctrlDown);
                 }
-
-                moveSelectionRight(event.shiftKey);
+                
+                if (priv.settings.direction === 'rtl') {
+                    moveSelectionLeft(event.shiftKey); 
+                } else {
+                    moveSelectionRight(event.shiftKey);
+                }
 
                 event.preventDefault();
                 event.stopPropagation(); //required by HandsontableEditor
@@ -123,7 +127,12 @@
                   that.closeEditorAndSaveChanges(ctrlDown);
                 }
 
-                moveSelectionLeft(event.shiftKey);
+                
+                if (priv.settings.direction === 'rtl') {
+                    moveSelectionRight(event.shiftKey);
+                } else {
+                    moveSelectionLeft(event.shiftKey);
+                }
 
                 event.preventDefault();
                 event.stopPropagation(); //required by HandsontableEditor

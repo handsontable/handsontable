@@ -277,7 +277,12 @@ WalkontableBorder.prototype.appear = function (corners) {
   }
   else {
     this.cornerStyle.top = top + height - 4 + 'px';
-    this.cornerStyle.left = left + width - 4 + 'px';
+    if (this.settings.border.direction === 'rtl') {
+        this.cornerStyle.left = left - 4 + 'px';
+    }
+    else {
+        this.cornerStyle.left = left + width - 4 + 'px';
+    }
     this.cornerStyle.display = 'block';
   }
 };

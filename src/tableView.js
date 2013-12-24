@@ -161,7 +161,8 @@ Handsontable.TableView = function (instance) {
           style: 'solid',
           cornerVisible: function () {
             return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
-          }
+          },
+          direction: this.settings.direction
         }
       },
       area: {
@@ -172,7 +173,8 @@ Handsontable.TableView = function (instance) {
           style: 'solid',
           cornerVisible: function () {
             return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
-          }
+          },
+          direction: this.settings.direction
         }
       },
       highlight: {
