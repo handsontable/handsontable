@@ -97,7 +97,7 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
 
     this.hiderStyle.overflow = 'hidden';
 
-    spreaderStyle.position = 'absolute';
+    spreaderStyle.position = 'relative';
     spreaderStyle.top = '0';
     spreaderStyle.left = '0';
 
