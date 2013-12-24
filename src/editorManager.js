@@ -113,9 +113,9 @@
                 }
                 
                 if (priv.settings.direction === 'rtl') {
-                    moveSelectionRight(event.shiftKey);
+                    moveSelectionLeft(event.shiftKey); 
                 } else {
-                    moveSelectionLeft(event.shiftKey);
+                    moveSelectionRight(event.shiftKey);
                 }
 
                 event.preventDefault();
@@ -129,9 +129,9 @@
 
                 
                 if (priv.settings.direction === 'rtl') {
-                    moveSelectionLeft(event.shiftKey);
-                } else {
                     moveSelectionRight(event.shiftKey);
+                } else {
+                    moveSelectionLeft(event.shiftKey);
                 }
 
                 event.preventDefault();
