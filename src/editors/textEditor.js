@@ -173,7 +173,11 @@
     }
 
     this.textareaParentStyle.top = editTop + 'px';
-    this.textareaParentStyle.left = editLeft + 'px';
+    if (settings.direction === 'rtl') {
+        this.textareaParentStyle.left = editLeft + width + 10 + 'px';
+    } else {
+        this.textareaParentStyle.left = editLeft + 'px';
+    }
     ///end prepare textarea position
 
     var width = $td.width()
