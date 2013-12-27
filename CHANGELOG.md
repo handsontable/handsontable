@@ -1,4 +1,4 @@
-## [0.10.0](https://github.com/warpech/jquery-handsontable/tree/v0.10.0) (Dec 23, 2013)
+## [0.10.0](https://github.com/warpech/jquery-handsontable/tree/v0.10.0) (Dec 27, 2013)
 
 Changes since beta4:
 
@@ -14,6 +14,7 @@ Changes since beta4:
 - fixed error occasionally thrown in IE8 ([#1084](https://github.com/warpech/jquery-handsontable/issues/1084))
 - fixed selecting last column in scrollable table ([#1124](https://github.com/warpech/jquery-handsontable/issues/1124))
 - simplified contextMenu plugin and fixed displaying menu for tables with native scroll enabled
+- set double click time to 500 ms
 
 
 ## [0.10.0-beta4](https://github.com/warpech/jquery-handsontable/tree/v0.10.0-beta4) (Nov 27, 2013)
@@ -22,7 +23,7 @@ Changes since beta3:
 - fixed displaying context menu in IE8
 - autocompleteEditor has new option `filter` which control whether options which don't match the phrase typed in the input should be hidden
 - new editor called `dropdown`
-- from now on value of `type` option can only be a string
+- from now on value of `type` option can only be a string (use `{renderer: someFunction}` instead of `{type: {renderer: someFunction}}`)
 - enhanced integration with Polymer and Web Components
 - fixed opening cell editor with doubleclick in IE8
 - fixed doubleclicking on cell of type `checkbox`

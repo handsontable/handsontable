@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Dec 23 2013 15:31:32 GMT+0100 (CET)
+ * Date: Fri Dec 27 2013 17:46:22 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -10757,7 +10757,7 @@ function WalkontableEvent(instance) {
         clearTimeout(dblClickTimeout[1]);
         dblClickTimeout[1] = setTimeout(function () {
           dblClickOrigin[1] = null;
-        }, 1000);
+        }, 500);
       }
     }
   };
