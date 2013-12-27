@@ -80,7 +80,7 @@ function WalkontableEvent(instance) {
         clearTimeout(dblClickTimeout[1]);
         dblClickTimeout[1] = setTimeout(function () {
           dblClickOrigin[1] = null;
-        }, 1000);
+        }, 500);
       }
     }
   };
