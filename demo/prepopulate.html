@@ -61,7 +61,7 @@
         <div class="pad" data-jsfiddle="example1">
           <h2>Pre-populate new rows from template</h2>
 
-          <p>Below example shows how cell type renderers can be used to present the template values for empty rows.</p>
+          <p>Below example shows how cell renderers can be used to present the template values for empty rows.</p>
 
           <p>When any cell in the empty row is edited, the
             <b>onChange</b> callback fills the row with the template values.</p>
@@ -123,7 +123,7 @@
               contextMenu: true,
               cells: function (row, col, prop) {
                 var cellProperties = {};
-                cellProperties.type = {renderer: defaultValueRenderer}
+                cellProperties.renderer = defaultValueRenderer;
                 return cellProperties;
               },
               beforeChange: function (changes) {
