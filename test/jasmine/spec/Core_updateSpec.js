@@ -180,7 +180,7 @@ describe('Core_updateSettings', function () {
     });
 
     expect(getCellMeta(0, 0).type).toEqual('text');
-    expect(getCellRenderer(0, 0)).toBe(Handsontable.TextCell.renderer);
+    expect(getCellRenderer(0, 0)).toBe(Handsontable.renderers.TextRenderer);
     expect(getCellEditor(0, 0)).toBe(Handsontable.TextCell.editor);
 
     columns[0].type = 'date';
@@ -190,9 +190,8 @@ describe('Core_updateSettings', function () {
     });
 
     expect(getCellMeta(0, 0).type).toEqual('date');
-    expect(getCellMeta(0, 0).renderer).toBe(Handsontable.DateCell.renderer);
-    expect(getCellMeta(0, 0).editor).toEqual(Handsontable.DateCell.editor);
-
+    expect(getCellRenderer(0, 0)).toBe(Handsontable.renderers.AutocompleteRenderer);
+    expect(getCellEditor(0, 0)).toEqual(Handsontable.DateCell.editor);
 
 });
 
@@ -209,7 +208,7 @@ describe('Core_updateSettings', function () {
     });
 
     expect(getCellMeta(0, 0).type).toEqual('numeric');
-    expect(getCellRenderer(0, 0)).toBe(Handsontable.NumericCell.renderer);
+    expect(getCellRenderer(0, 0)).toBe(Handsontable.renderers.NumericRenderer);
     expect(getCellEditor(0, 0)).toBe(Handsontable.NumericCell.editor);
     expect(getCellValidator(0, 0)).toBe(Handsontable.NumericCell.validator);
 
@@ -220,7 +219,7 @@ describe('Core_updateSettings', function () {
     });
 
     expect(getCellMeta(0, 0).type).toEqual('text');
-    expect(getCellRenderer(0, 0)).toBe(Handsontable.TextCell.renderer);
+    expect(getCellRenderer(0, 0)).toBe(Handsontable.renderers.TextRenderer);
     expect(getCellEditor(0, 0)).toEqual(Handsontable.TextCell.editor);
     expect(Handsontable.TextCell.validator).toBeUndefined();
     expect(getCellValidator(0, 0)).toBeUndefined();

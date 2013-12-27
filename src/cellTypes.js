@@ -3,46 +3,46 @@
  */
 
 Handsontable.AutocompleteCell = {
-  editor: 'autocomplete',
-  renderer: Handsontable.AutocompleteRenderer,
+  editor: Handsontable.editors.AutocompleteEditor,
+  renderer: Handsontable.renderers.AutocompleteRenderer,
   validator: Handsontable.AutocompleteValidator
 };
 
 Handsontable.CheckboxCell = {
-  editor: 'checkbox',
-  renderer: Handsontable.CheckboxRenderer
+  editor: Handsontable.editors.CheckboxEditor,
+  renderer: Handsontable.renderers.CheckboxRenderer
 };
 
 Handsontable.TextCell = {
-  editor: 'text',
-  renderer: Handsontable.TextRenderer
+  editor: Handsontable.editors.TextEditor,
+  renderer: Handsontable.renderers.TextRenderer
 };
 
 Handsontable.NumericCell = {
-  editor: 'text',
-  renderer: Handsontable.NumericRenderer,
+  editor: Handsontable.editors.TextEditor,
+  renderer: Handsontable.renderers.NumericRenderer,
   validator: Handsontable.NumericValidator,
   dataType: 'number'
 };
 
 Handsontable.DateCell = {
-  editor: 'date',
-  renderer: Handsontable.AutocompleteRenderer //displays small gray arrow on right side of the cell
+  editor: Handsontable.editors.DateEditor,
+  renderer: Handsontable.renderers.AutocompleteRenderer //displays small gray arrow on right side of the cell
 };
 
 Handsontable.HandsontableCell = {
-  editor: 'handsontable',
-  renderer: Handsontable.AutocompleteRenderer //displays small gray arrow on right side of the cell
+  editor: Handsontable.editors.HandsontableEditor,
+  renderer: Handsontable.renderers.AutocompleteRenderer //displays small gray arrow on right side of the cell
 };
 
 Handsontable.PasswordCell = {
-  editor: 'password',
-  renderer: Handsontable.PasswordRenderer
+  editor: Handsontable.editors.PasswordEditor,
+  renderer: Handsontable.renderers.PasswordRenderer
 };
 
 Handsontable.DropdownCell = {
-  editor: 'dropdown',
-  renderer: Handsontable.AutocompleteRenderer,
+  editor: Handsontable.editors.DropdownEditor,
+  renderer: Handsontable.renderers.AutocompleteRenderer, //displays small gray arrow on right side of the cell
   validator: Handsontable.AutocompleteValidator
 };
 
@@ -60,13 +60,6 @@ Handsontable.cellTypes = {
 
 //here setup the friendly aliases that are used by cellProperties.renderer and cellProperties.editor
 Handsontable.cellLookup = {
-  renderer: {
-    text: Handsontable.TextRenderer,
-    numeric: Handsontable.NumericRenderer,
-    checkbox: Handsontable.CheckboxRenderer,
-    autocomplete: Handsontable.AutocompleteRenderer,
-    password: Handsontable.PasswordRenderer
-  },
   validator: {
     numeric: Handsontable.NumericValidator,
     autocomplete: Handsontable.AutocompleteValidator

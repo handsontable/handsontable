@@ -105,6 +105,8 @@ if (typeof Handsontable !== 'undefined') {
         }
       }
     });
+
+    listening = true;
   };
 
   Handsontable.PluginHooks.add('afterInit', function () {
@@ -124,12 +126,10 @@ if (typeof Handsontable !== 'undefined') {
   });
 
   Handsontable.PluginHooks.add('afterOnCellMouseDown', function () {
-    listening = true;
     setupListening(this);
   });
 
   Handsontable.PluginHooks.add('afterOnCellCornerMouseDown', function () {
-    listening = true;
     setupListening(this);
   });
 }

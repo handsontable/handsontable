@@ -6,13 +6,13 @@ function Walkontable(settings) {
 
   //bootstrap from settings
   this.wtDom = new WalkontableDom();
-  if (settings.cloneFrom) {
-    this.cloneFrom = settings.cloneFrom;
-    this.cloneDirection = settings.cloneDirection;
-    this.wtSettings = settings.cloneFrom.wtSettings;
+  if (settings.cloneSource) {
+    this.cloneSource = settings.cloneSource;
+    this.cloneOverlay = settings.cloneOverlay;
+    this.wtSettings = settings.cloneSource.wtSettings;
     this.wtTable = new WalkontableTable(this, settings.table);
     this.wtScroll = new WalkontableScroll(this);
-    this.wtViewport = settings.cloneFrom.wtViewport;
+    this.wtViewport = settings.cloneSource.wtViewport;
   }
   else {
     this.wtSettings = new WalkontableSettings(this, settings);
@@ -50,14 +50,15 @@ function Walkontable(settings) {
   this.drawn = false;
   this.drawInterrupted = false;
 
-  if (window.Handsontable) {
+  //at this point the cached row heights may be invalid, but it is better not to reset the cache, which could cause scrollbar jumping when there are multiline cells outside of the rendered part of the table
+  /*if (window.Handsontable) {
     Handsontable.PluginHooks.add('beforeChange', function () {
       if (that.rowHeightCache) {
         that.rowHeightCache.length = 0;
       }
     });
 
-  }
+  }*/
 }
 
 Walkontable.prototype.draw = function (selectionsOnly) {
@@ -76,7 +77,9 @@ Walkontable.prototype.draw = function (selectionsOnly) {
   this.lastOffsetRow = this.getSetting('offsetRow');
   this.lastOffsetColumn = this.getSetting('offsetColumn');
   this.wtTable.draw(selectionsOnly);
-  this.getSetting('onDraw',  !selectionsOnly);
+  if (!this.cloneSource) {
+    this.getSetting('onDraw',  !selectionsOnly);
+  }
   return this;
 };
 
@@ -85,11 +88,19 @@ Walkontable.prototype.update = function (settings, value) {
 };
 
 Walkontable.prototype.scrollVertical = function (delta) {
-  return this.wtScroll.scrollVertical(delta);
+  var result = this.wtScroll.scrollVertical(delta);
+
+  this.getSetting('onScrollVertically');
+
+  return result;
 };
 
 Walkontable.prototype.scrollHorizontal = function (delta) {
-  return this.wtScroll.scrollHorizontal(delta);
+  var result = this.wtScroll.scrollHorizontal(delta);
+
+  this.getSetting('onScrollHorizontally');
+
+  return result;
 };
 
 Walkontable.prototype.scrollViewport = function (coords) {

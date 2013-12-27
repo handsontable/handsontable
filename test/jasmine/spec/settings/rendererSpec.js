@@ -15,14 +15,28 @@ describe('settings', function () {
 
     describe('defined in constructor', function () {
       it('should use text renderer by default', function () {
+        var originalTextRenderer = Handsontable.TextCell.renderer;
         spyOn(Handsontable.TextCell, 'renderer');
+        Handsontable.renderers.registerRenderer('text', Handsontable.TextCell.renderer);
+
         handsontable();
         expect(Handsontable.TextCell.renderer).toHaveBeenCalled();
+
+        Handsontable.renderers.registerRenderer('text', originalTextRenderer);
+
       });
 
       it('should use renderer from predefined string', function () {
-        spyOn(Handsontable.TextCell, 'renderer');
-        spyOn(Handsontable.cellLookup.renderer, 'checkbox');
+
+        var originalTextRenderer = Handsontable.renderers.TextRenderer;
+        spyOn(Handsontable.renderers, 'TextRenderer');
+        Handsontable.renderers.registerRenderer('text', Handsontable.renderers.TextRenderer);
+
+        var originalCheckboxRenderer = Handsontable.renderers.CheckboxRenderer;
+        spyOn(Handsontable.renderers, 'CheckboxRenderer');
+        Handsontable.renderers.registerRenderer('checkbox', Handsontable.renderers.CheckboxRenderer);
+
+
         handsontable({
           columns: [
             {
@@ -30,8 +44,11 @@ describe('settings', function () {
             }
           ]
         });
-        expect(Handsontable.TextCell.renderer).not.toHaveBeenCalled();
-        expect(Handsontable.cellLookup.renderer.checkbox).toHaveBeenCalled();
+        expect(Handsontable.renderers.TextRenderer).not.toHaveBeenCalled();
+        expect(Handsontable.renderers.CheckboxRenderer).toHaveBeenCalled();
+
+        Handsontable.renderers.registerRenderer('text', originalTextRenderer);
+        Handsontable.renderers.registerRenderer('checkbox', originalCheckboxRenderer);
       });
 
       it('should use renderer from custom function', function () {
@@ -53,12 +70,9 @@ describe('settings', function () {
       });
 
       it('should use renderer from custom string', function () {
-        function myRenderer() {
+        var myRenderer = jasmine.createSpy('myRenderer');
 
-        }
-
-        Handsontable.cellLookup.renderer.myRenderer = myRenderer;
-        spyOn(Handsontable.cellLookup.renderer, 'myRenderer');
+        Handsontable.renderers.registerRenderer('myRenderer', myRenderer);
 
         handsontable({
           columns: [
@@ -68,7 +82,18 @@ describe('settings', function () {
           ]
         });
 
-        expect(Handsontable.cellLookup.renderer.myRenderer).toHaveBeenCalled();
+        expect(myRenderer).toHaveBeenCalled();
+      });
+
+      it('should support legacy namespace (pre-0.10.0) of cell renderers', function () {
+        var count = 0;
+        handsontable({
+          renderer: function () {
+            count++;
+            Handsontable.TextCell.renderer.apply(this, arguments);
+          }
+        });
+        expect(count).toBeGreaterThan(0);
       });
     });
   });

@@ -11,7 +11,7 @@
   };
 
 
-  Handsontable.editors.DropdownEditod = DropdownEditor;
+  Handsontable.editors.DropdownEditor = DropdownEditor;
   Handsontable.editors.registerEditor('dropdown', DropdownEditor);
 
 

@@ -390,4 +390,33 @@ describe('Core_loadData', function () {
 
     expect(countRows()).toBe(3);
   });
+
+  it('should clear cell properties after loadData', function () {
+    handsontable();
+    loadData(arrayOfArrays());
+
+    getCellMeta(0, 0).foo = 'bar';
+
+    expect(getCellMeta(0, 0).foo).toEqual("bar");
+
+    loadData(arrayOfArrays());
+
+    expect(getCellMeta(0, 0).foo).toBeUndefined();
+  });
+
+  it('should clear cell properties after loadData, but before rendering new data', function () {
+    handsontable();
+    loadData(arrayOfArrays());
+
+    getCellMeta(0, 0).valid = false;
+    render();
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+
+    loadData(arrayOfArrays());
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
+
+  });
+
 });

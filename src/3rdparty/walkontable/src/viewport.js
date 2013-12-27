@@ -36,7 +36,7 @@ WalkontableViewport.prototype.getWorkspaceHeight = function (proposedHeight) {
   var height = this.instance.getSetting('height');
 
   if (height === Infinity || height === void 0 || height === null || height < 1) {
-    if (this.instance.wtScrollbars.vertical instanceof WalkontableScrollbarNative) {
+    if (this.instance.wtScrollbars.vertical instanceof WalkontableOverlay) {
       height = this.instance.wtScrollbars.vertical.availableSize();
     }
     else {
@@ -60,7 +60,7 @@ WalkontableViewport.prototype.getWorkspaceWidth = function (proposedWidth) {
   var width = this.instance.getSetting('width');
 
   if (width === Infinity || width === void 0 || width === null || width < 1) {
-    if (this.instance.wtScrollbars.horizontal instanceof WalkontableScrollbarNative) {
+    if (this.instance.wtScrollbars.horizontal instanceof WalkontableOverlay) {
       width = this.instance.wtScrollbars.horizontal.availableSize();
     }
     else {
@@ -112,19 +112,27 @@ WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
   }
 };
 
-WalkontableViewport.prototype.getRowHeaderHeight = function () {
-  if (this.instance.cloneFrom) {
-    return this.instance.cloneFrom.wtViewport.getRowHeaderHeight();
+WalkontableViewport.prototype.getRowHeaderWidth = function () {
+  if (this.instance.cloneSource) {
+    return this.instance.cloneSource.wtViewport.getRowHeaderWidth();
   }
   if (isNaN(this.rowHeaderWidth)) {
-    var TR = this.instance.wtTable.TBODY ? this.instance.wtTable.TBODY.firstChild : null;
-    if (TR) {
-      var TD = TR.firstChild;
+    var rowHeaders = this.instance.getSetting('rowHeaders');
+    if (rowHeaders.length) {
+      var TH = this.instance.wtTable.TABLE.querySelector('TH');
       this.rowHeaderWidth = 0;
-      while (TD && TD.nodeName === 'TH') {
-        this.rowHeaderWidth += this.instance.wtDom.outerWidth(TD);
-        TD = TD.nextSibling;
+      for (var i = 0, ilen = rowHeaders.length; i < ilen; i++) {
+        if (TH) {
+          this.rowHeaderWidth += this.instance.wtDom.outerWidth(TH);
+          TH = TH.nextSibling;
+        }
+        else {
+          this.rowHeaderWidth += 50; //yes this is a cheat but it worked like that before, just taking assumption from CSS instead of measuring. TODO: proper fix
+        }
       }
+    }
+    else {
+      this.rowHeaderWidth = 0;
     }
   }
   return this.rowHeaderWidth;
@@ -137,7 +145,7 @@ WalkontableViewport.prototype.getViewportWidth = function (proposedWidth) {
     return containerWidth;
   }
 
-  var rowHeaderWidth = this.getRowHeaderHeight();
+  var rowHeaderWidth = this.getRowHeaderWidth();
   if (rowHeaderWidth > 0) {
     return containerWidth - rowHeaderWidth;
   }
