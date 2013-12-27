@@ -13,14 +13,17 @@
     this.state = Handsontable.EditorState.VIRGIN;
 
     this._opened = false;
-    this._closeCallback = function () {
-    };
+    this._closeCallback = null;
 
     this.init();
   }
 
   BaseEditor.prototype._fireCallbacks = function(result) {
-    this._closeCallback(result);
+    if(this._closeCallback){
+      this._closeCallback(result);
+      this._closeCallback = null;
+    }
+
   }
 
   BaseEditor.prototype.init = function(){};
@@ -101,6 +104,7 @@
 
     this.open();
     this._opened = true;
+    this.focus();
 
     this.instance.view.render(); //only rerender the selections (FillHandle should disappear when beginediting is triggered)
   };
@@ -108,9 +112,12 @@
   BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown, callback) {
 
     if (callback) {
-      var old = this._closeCallback;
+      var previousCloseCallback = this._closeCallback;
       this._closeCallback = function (result) {
-        old(result);
+        if(previousCloseCallback){
+          previousCloseCallback(result);
+        }
+
         callback(result);
       };
     }
@@ -118,9 +125,6 @@
     if (this.isWaiting()) {
       return;
     }
-
-    this._closeCallback = function () {
-    };
 
     if (this.state == Handsontable.EditorState.VIRGIN) {
       var that = this;
@@ -131,17 +135,18 @@
     }
 
     if (this.state == Handsontable.EditorState.EDITING) {
-      var val;
 
       if (restoreOriginalValue) {
-        val = [
-          [this.originalValue]
-        ];
-      } else {
-        val = [
-          [String.prototype.trim.call(this.getValue())] //String.prototype.trim is defined in Walkontable polyfill.js
-        ];
+
+        this.cancelChanges();
+        return;
+
       }
+
+
+      var val = [
+        [String.prototype.trim.call(this.getValue())] //String.prototype.trim is defined in Walkontable polyfill.js
+      ];
 
       this.state = Handsontable.EditorState.WAITING;
 
@@ -159,6 +164,11 @@
       }
 
     }
+  };
+
+  BaseEditor.prototype.cancelChanges = function () {
+    this.state = Handsontable.EditorState.FINISHED;
+    this.discardEditor();
   };
 
   BaseEditor.prototype.discardEditor = function (result) {

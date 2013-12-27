@@ -134,6 +134,16 @@ describe('TextEditor', function () {
     expect(isEditorVisible()).toEqual(false);
   });
 
+  it('should NOT open editor after hitting CapsLock', function () {
+    handsontable();
+    selectCell(2, 2);
+
+    var editor = $('.handsontableInput');
+    expect(isEditorVisible()).toEqual(false);
+    keyDown(Handsontable.helper.keyCode.CAPS_LOCK);
+    expect(isEditorVisible()).toEqual(false);
+  });
+
   it('should open editor after cancelling edit and beginning it again', function () {
     handsontable();
     selectCell(2, 2);
@@ -241,6 +251,21 @@ describe('TextEditor', function () {
 
   });
 
+  it('should call editor focus() method after opening an editor', function () {
+    var hot = handsontable();
+    selectCell(2, 2);
+
+    var editor = hot.getActiveEditor();
+
+    spyOn(editor, 'focus');
+
+    expect(editor.isOpened()).toEqual(false);
+    expect(editor.focus).not.toHaveBeenCalled();
+    keyDown('f2');
+    expect(editor.isOpened()).toEqual(true);
+    expect(editor.focus).toHaveBeenCalled();
+  });
+
   it('editor size should not exceed the viewport after text edit', function () {
 
     handsontable({
@@ -294,6 +319,7 @@ describe('TextEditor', function () {
     editor = $('.handsontableInputHolder');
     expect(editor.is(':visible')).toBe(true);
 
+    this.$container2.handsontable('destroy');
     this.$container2.remove();
 
     function handsontable2(options) {

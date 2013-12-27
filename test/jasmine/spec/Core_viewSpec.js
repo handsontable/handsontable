@@ -337,6 +337,42 @@ describe('Core_view', function () {
 
   });
 
+  it("should fire afterScroll event after table has been scrolled vertically", function () {
+
+    var hot = handsontable({
+      data: createSpreadsheetData(20, 3)
+    });
+
+    var afterScrollVerticallyCallback = jasmine.createSpy('afterScrollVerticallyCallback');
+
+    hot.addHook('afterScrollVertically', afterScrollVerticallyCallback);
+
+    $(hot.view.wt.wtTable.TABLE).trigger('mousewheel', [0, 0, -1]);
+
+    waitsFor(function(){
+      return afterScrollVerticallyCallback.calls.length > 0;
+    }, 'afterScrollVertically event to fire', 1000);
+
+  });
+
+  it("should fire afterScroll event after table has been scrolled horizontally", function () {
+
+    var hot = handsontable({
+      data: createSpreadsheetData(10, 20)
+    });
+
+    var afterScrollHorizontallyCallback = jasmine.createSpy('afterScrollHorizontallyCallback');
+
+    hot.addHook('afterScrollHorizontally', afterScrollHorizontallyCallback);
+
+    $(hot.view.wt.wtTable.TABLE).trigger('mousewheel', [0, 1, 0]);
+
+    waitsFor(function(){
+      return afterScrollHorizontallyCallback.calls.length > 0;
+    }, 'afterScrollHorizontally event to fire', 1000);
+
+  });
+
   describe('maximumVisibleElementWidth', function () {
     it('should return maximum width until right edge of the viewport', function () {
       var hot = handsontable({

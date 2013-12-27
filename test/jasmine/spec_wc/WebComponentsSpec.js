@@ -134,5 +134,42 @@ describe('WebComponents', function () {
     });
   });
 
+  it('Web Component should observe changes in data', function () {
+    var afterRender = jasmine.createSpy('afterRender');
+    var lastCount;
+    var model = {
+      settings: {
+        afterRender: afterRender
+      },
+      data: [
+        {name: "Freddie"}
+      ],
+      html: '<handsontable-table id="hot" datarows="{{ data }}" settings="{{ settings }}"><handsontable-column value="name"></handsontable-column></handsontable-table>'
+    };
+
+    var tpl = document.createElement('template');
+    tpl.setAttribute('bind', '');
+    tpl.innerHTML = '<x-html content="{{ html }}"></x-html>';
+    tpl.model = model;
+    document.body.appendChild(tpl);
+
+    waitsFor(function () {
+      return ready;
+    }, 1000);
+
+    runs(function () {
+      lastCount = afterRender.callCount;
+      model.data[0].Name = "Frederik";
+    });
+
+    waits(100);
+
+    runs(function () {
+      expect(afterRender.callCount).toBeGreaterThan(lastCount);
+      var hot = document.getElementById('hot');
+      hot.parentNode.removeChild(hot);
+    });
+  });
+
 });
 

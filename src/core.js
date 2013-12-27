@@ -1729,6 +1729,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       priv.duckDataSchema = {};
     }
     datamap.createMap();
+    clearCellSettingCache();
 
     grid.adjustRowsAndCols();
     instance.PluginHooks.run('afterLoadData');
@@ -1740,7 +1741,14 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.PluginHooks.run('afterChange', null, 'loadData');
       instance.render();
     }
+
     priv.isPopulated = true;
+
+
+
+    function clearCellSettingCache() {
+      priv.cellSettings.length = 0;
+    }
   };
 
   /**
@@ -1760,6 +1768,10 @@ Handsontable.Core = function (rootElement, userSettings) {
       return datamap.getRange({row: r, col: c}, {row: r2, col: c2});
     }
   };
+
+  this.getCopyableData = function (startRow, startCol, endRow, endCol) {
+    return datamap.getText({row: startRow, col: startCol}, {row: endRow, col: endCol});
+  }
 
   /**
    * Update settings
@@ -2099,12 +2111,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   this.getCellRenderer = function (row, col) {
     var renderer = Handsontable.helper.cellMethodLookupFactory('renderer').call(this, row, col);
-
-    if(typeof renderer == 'string'){
-      renderer = Handsontable.cellLookup.renderer[renderer];
-    }
-
-    return renderer
+    return Handsontable.renderers.getRenderer(renderer);
 
   };
 
@@ -2488,8 +2495,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     $(window).off('.' + instance.guid);
     $document.off('.' + instance.guid);
     $body.off('.' + instance.guid);
-    instance.copyPaste.removeCallback(priv.onCut);
-    instance.copyPaste.removeCallback(priv.onPaste);
     instance.PluginHooks.run('afterDestroy');
   };
 
@@ -2616,10 +2621,13 @@ DefaultSettings.prototype = {
   observeDOMVisibility: true,
   allowInvalid: true,
   invalidCellClassName: 'htInvalid',
+  placeholderCellClassName: 'htPlaceholder',
+  readOnlyCellClassName: 'htDimmed',
   fragmentSelection: false,
   readOnly: false,
   nativeScrollbars: false,
-  type: 'text'
+  type: 'text',
+  debug: false //shows debug overlays in Walkontable
 };
 Handsontable.DefaultSettings = DefaultSettings;
 

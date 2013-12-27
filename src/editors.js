@@ -20,7 +20,8 @@
 
   }
 
-  var registeredEditors = {};
+  var registeredEditorNames = {};
+  var registeredEditorClasses = new WeakMap();
 
   Handsontable.editors = {
 
@@ -30,7 +31,11 @@
      * @param {Function} editorClass
      */
     registerEditor: function (editorName, editorClass) {
-      registeredEditors[editorName] = new RegisteredEditor(editorClass);
+      var editor = new RegisteredEditor(editorClass);
+      if (typeof editorName === "string") {
+        registeredEditorNames[editorName] = editor;
+      }
+      registeredEditorClasses.set(editorClass, editor);
     },
 
     /**
@@ -39,21 +44,25 @@
      * @returns {Function} editorClass
      */
     getEditor: function (editorName, hotInstance) {
-      if (typeof editorName == 'function'){
-        var editorClass = editorName;
-        editorName = editorClass.toString();
-        this.registerEditor(editorName, editorClass);
+      var editor;
+      if (typeof editorName == 'function') {
+        if (!(registeredEditorClasses.get(editorName))) {
+          this.registerEditor(null, editorName);
+        }
+        editor = registeredEditorClasses.get(editorName);
       }
-
-      if (typeof editorName != 'string'){
+      else if (typeof editorName == 'string') {
+        editor = registeredEditorNames[editorName];
+      }
+      else {
         throw Error('Only strings and functions can be passed as "editor" parameter ');
       }
 
-      if (!(editorName in registeredEditors)) {
+      if (!editor) {
         throw Error('No editor registered under name "' + editorName + '"');
       }
 
-      return registeredEditors[editorName].getInstance(hotInstance);
+      return editor.getInstance(hotInstance);
     }
 
   };

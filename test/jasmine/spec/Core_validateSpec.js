@@ -1148,4 +1148,127 @@ describe('Core_validate', function () {
     });
   });
 
+  it('should not validate cell if editing has been canceled', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    selectCell(0, 0);
+    keyDownUp(Handsontable.helper.keyCode.ENTER);  //open editor
+    keyDownUp(Handsontable.helper.keyCode.ESCAPE); //cancel editing
+
+    waits(100);
+
+    runs(function () {
+      expect(onAfterValidate).not.toHaveBeenCalled();
+    });
+
+
+  });
+
+  it('should leave cell invalid if editing has been canceled', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', validator: function (value, cb) {
+          cb(false);
+        }},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    setDataAtCell(0, 0, 'foo');
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0
+    }, 'cell validation', 1000);
+
+    runs(function () {
+      expect(getCellMeta(0, 0).valid).toBe(false);
+
+      selectCell(0, 0);
+      keyDownUp(Handsontable.helper.keyCode.ENTER);  //open editor
+      keyDownUp(Handsontable.helper.keyCode.ESCAPE); //cancel editing
+
+      expect(getCellMeta(0, 0).valid).toBe(false);
+
+    });
+
+  });
+
+  it('should open an appropriate editor after cell value is valid again', function () {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    var hot = handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {
+          data: 'id',
+          validator: function (value, cb) {
+            cb(value == parseInt(value, 10));
+          },
+          allowInvalid: false
+        },
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    selectCell(0, 0);
+
+    var activeEditor = hot.getActiveEditor();
+
+    expect(activeEditor.row).toEqual(0);
+    expect(activeEditor.col).toEqual(0);
+
+    keyDownUp(Handsontable.helper.keyCode.ENTER); //open editor
+    activeEditor.setValue('foo');
+    keyDownUp(Handsontable.helper.keyCode.ENTER); //save changes, close editor
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0
+    }, 'cell validation', 1000);
+
+    runs(function () {
+      onAfterValidate.reset();
+      activeEditor = hot.getActiveEditor();
+
+      expect(activeEditor.isOpened()).toBe(true); //value is invalid, so editor stays opened
+      expect(activeEditor.row).toEqual(0);
+      expect(activeEditor.col).toEqual(0);
+
+      activeEditor.setValue(2);
+
+      keyDownUp(Handsontable.helper.keyCode.ENTER);  //save changes and move to cell below (row: 1, col: ś0)
+
+    });
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0
+    }, 'cell validation 2', 1000);
+
+    runs(function () {
+      keyDownUp(Handsontable.helper.keyCode.ENTER);  //open editor
+
+      activeEditor = hot.getActiveEditor();
+      expect(activeEditor.row).toEqual(1);
+      expect(activeEditor.col).toEqual(0);
+
+    });
+
+  });
+
 });

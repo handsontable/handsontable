@@ -168,7 +168,7 @@ describe('HandsontableObserveChanges', function () {
         var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
         hot.addHook('afterRender', afterRenderSpy);
 
-        data.push({prop0 : "A3", prop1: "B3"});
+        data.push({prop0: "A3", prop1: "B3"});
 
         waitsFor(function () {
           return afterRenderSpy.callCount > 0;
@@ -224,7 +224,7 @@ describe('HandsontableObserveChanges', function () {
         var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
         hot.addHook('afterRender', afterRenderSpy);
 
-        data.push({prop0 : "A3", prop1: "B3"});
+        data.push({prop0: "A3", prop1: "B3"});
 
         waitsFor(function () {
           return afterRenderSpy.callCount > 0;
@@ -887,6 +887,50 @@ describe('HandsontableObserveChanges', function () {
           expect(afterChangesObservedCallback.calls.length).toEqual(1);
           expect(afterRenderSpy.calls.length).toEqual(1);
         });
+      });
+    });
+  });
+
+  describe("refreshing table after changes have been detected", function () {
+    it("should observe changes to new data bound using loadData", function () {
+      var data = createSpreadsheetData(2, 2);
+      var newData = createSpreadsheetData(2, 2);
+      var hot = createHOT(data, true);
+      hot.loadData(newData);
+
+      var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+      hot.addHook('afterRender', afterRenderSpy);
+
+      newData.push(["A3", "B3"]);
+
+      waitsFor(function () {
+        return afterRenderSpy.callCount > 0;
+      }, 'Table render', 1000);
+
+      runs(function () {
+        expect(afterRenderSpy.callCount).toBe(1);
+        expect(this.$container.find('tr').length).toEqual(3);
+        expect(this.$container.find('col').length).toEqual(2);
+      });
+    });
+
+    it("should not observe changes to old data after it was replaced using loadData", function () {
+      var data = createSpreadsheetData(2, 2);
+      var newData = createSpreadsheetData(2, 2);
+      var hot = createHOT(data, true);
+      hot.loadData(newData);
+
+      var afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+      hot.addHook('afterRender', afterRenderSpy);
+
+      data.push(["A3", "B3"]);
+
+      waits(1000);
+
+      runs(function () {
+        expect(afterRenderSpy.callCount).toBe(0);
+        expect(this.$container.find('tr').length).toEqual(2);
+        expect(this.$container.find('col').length).toEqual(2);
       });
     });
   });

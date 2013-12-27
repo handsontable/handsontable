@@ -215,6 +215,44 @@ describe('selectEditor', function () {
     keyDown('enter');
   });
 
+  it("should not prevent the default event action when select is clicked", function () {
 
+    var options = function () {
+      return [
+        'Misubishi', 'Chevrolet', 'Lamborgini'
+      ];
+    };
+
+    handsontable({
+      columns: [
+        {
+          editor: 'select',
+          selectOptions: options
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+
+    var editor = $('.htSelectEditor');
+
+    keyDown('enter');
+    var select = editor.find('select');
+
+    var selectMouseDownListener = jasmine.createSpy('selectMouseDownListener');
+    $('body').on('mousedown', selectMouseDownListener);
+
+    editor.mousedown();
+
+    expect(selectMouseDownListener.calls.length).toEqual(1);
+
+    var event = selectMouseDownListener.calls[0].args[0];
+
+    expect(event).toBeDefined();
+    expect(event.isDefaultPrevented()).toBe(false);
+
+
+
+  });
 
 });

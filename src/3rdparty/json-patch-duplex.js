@@ -1,4 +1,4 @@
-// json-patch-duplex.js 0.3.5
+// json-patch-duplex.js 0.3.6
 // (c) 2013 Joachim Wester
 // MIT license
 var jsonpatch;
@@ -63,7 +63,7 @@ var jsonpatch;
     };
 
     var observeOps = {
-        'new': function (patches, path) {
+        add: function (patches, path) {
             var patch = {
                 op: "add",
                 path: path + escapePathComponent(this.name),
@@ -71,14 +71,14 @@ var jsonpatch;
             };
             patches.push(patch);
         },
-        deleted: function (patches, path) {
+        'delete': function (patches, path) {
             var patch = {
                 op: "remove",
                 path: path + escapePathComponent(this.name)
             };
             patches.push(patch);
         },
-        updated: function (patches, path) {
+        update: function (patches, path) {
             var patch = {
                 op: "replace",
                 path: path + escapePathComponent(this.name),
@@ -206,7 +206,23 @@ var jsonpatch;
                 var a = 0, alen = arr.length;
                 while (a < alen) {
                     if (!(arr[a].name === 'length' && _isArray(arr[a].object)) && !(arr[a].name === '__Jasmine_been_here_before__')) {
-                        observeOps[arr[a].type].call(arr[a], patches, getPath(root, arr[a].object));
+                        var type = arr[a].type;
+
+                        switch (type) {
+                            case 'new':
+                                type = 'add';
+                                break;
+
+                            case 'deleted':
+                                type = 'delete';
+                                break;
+
+                            case 'updated':
+                                type = 'update';
+                                break;
+                        }
+
+                        observeOps[type].call(arr[a], patches, getPath(root, arr[a].object));
                     }
                     a++;
                 }

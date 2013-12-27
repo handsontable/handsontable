@@ -29,6 +29,7 @@
       minRows: 0,
       minCols: 0,
       className: 'listbox',
+      copyPaste: false,
       cells: function () {
         return {
           readOnly: true
@@ -36,7 +37,10 @@
       },
       fillHandle: false,
       afterOnCellMouseDown: function () {
-        parent.setValue(this.getValue());
+        var value = this.getValue();
+        if (value !== void 0) { //if the value is undefined then it means we don't want to set the value
+          parent.setValue(value);
+        }
         parent.instance.destroyEditor();
       },
       beforeOnKeyDown: function (event) {
@@ -51,7 +55,10 @@
 
           case Handsontable.helper.keyCode.ENTER: //enter
             var sel = instance.getSelected();
-            parent.setValue(this.getDataAtCell(sel[0], sel[1]));
+            var value = this.getDataAtCell(sel[0], sel[1]);
+            if (value !== void 0) { //if the value is undefined then it means we don't want to set the value
+              parent.setValue(value);
+            }
             parent.instance.destroyEditor();
             break;
 
@@ -152,7 +159,10 @@
     }
 
     if (this.$htContainer.handsontable('getSelected')) {
-      this.setValue(this.$htContainer.handsontable('getInstance').getValue());
+      var value = this.$htContainer.handsontable('getInstance').getValue();
+      if (value !== void 0) { //if the value is undefined then it means we don't want to set the value
+        this.setValue(value);
+      }
     }
 
     return Handsontable.editors.TextEditor.prototype.finishEditing.apply(this, arguments);

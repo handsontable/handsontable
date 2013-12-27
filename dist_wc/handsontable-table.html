@@ -105,8 +105,20 @@ function parseDatacolumns(HANDSONTABLE) {
 function parseHandsontable(HANDSONTABLE) {
   var columns = parseDatacolumns(HANDSONTABLE);
 
-  var options = {
-  };
+  var options = webComponentDefaults();
+
+  if (HANDSONTABLE.settings) {
+    var settingsAttr = getModelPath(HANDSONTABLE, HANDSONTABLE.settings);
+    for (var i in settingsAttr) {
+      if (settingsAttr.hasOwnProperty(i)) {
+        options[i] = settingsAttr[i];
+      }
+    }
+  }
+
+  if (HANDSONTABLE.datarows) {
+    options.data = getModelPath(HANDSONTABLE, HANDSONTABLE.datarows);
+  }
 
   if (columns.length) {
     options.columns = columns;
@@ -118,6 +130,14 @@ function parseHandsontable(HANDSONTABLE) {
 var publicMethods = ['updateSettings', 'loadData', 'render', 'setDataAtCell', 'setDataAtRowProp', 'getDataAtCell', 'getDataAtRowProp', 'countRows', 'countCols', 'rowOffset', 'colOffset', 'countVisibleRows', 'countVisibleCols', 'clear', 'clearUndo', 'getData', 'alter', 'getCell', 'getCellMeta', 'selectCell', 'deselectCell', 'getSelected', 'destroyEditor', 'getRowHeader', 'getColHeader', 'destroy', 'isUndoAvailable', 'isRedoAvailable', 'undo', 'redo', 'countEmptyRows', 'countEmptyCols', 'isEmptyRow', 'isEmptyCol', 'parseSettingsFromDOM', 'addHook', 'addHookOnce', 'getValue', 'getInstance', 'getSettings'];
 var publicProperties = Object.keys(Handsontable.DefaultSettings.prototype);
 publicProperties.push('settings');
+
+function webComponentDefaults() {
+  return {
+    observeChanges: true
+  }
+}
+
+var wcDefaults = webComponentDefaults();
 
 var publish = {
 };
@@ -136,17 +156,23 @@ publicProperties.forEach(function (hot_prop) {
       wc_prop = 'datarows';
     }
 
-    if (Handsontable.DefaultSettings.prototype[hot_prop] === void 0) {
+    var val = wcDefaults[hot_prop] === void 0 ? Handsontable.DefaultSettings.prototype[hot_prop] : wcDefaults[hot_prop];
+
+    if (val === void 0) {
       publish[wc_prop] = null; //Polymer does not like undefined
     }
     else if (hot_prop === 'observeChanges') {
       publish[wc_prop] = true; //on by default
     }
     else {
-      publish[wc_prop] = Handsontable.DefaultSettings.prototype[hot_prop];
+      publish[wc_prop] = val;
     }
 
     publish[wc_prop + 'Changed'] = function () {
+      if (!this.instance) {
+        return; //attribute changed callback called before enteredView
+      }
+
       if (wc_prop === 'settings') {
         var settings = getModelPath(this, this[wc_prop]);
         this.updateSettings(settings);
@@ -157,7 +183,7 @@ publicProperties.forEach(function (hot_prop) {
       if (wc_prop === 'datarows') {
         update[hot_prop] = getModelPath(this, this[wc_prop])
       }
-      else if (typeof Handsontable.DefaultSettings.prototype[hot_prop] === 'boolean') {
+      else if (val === 'boolean') {
         update[hot_prop] = readBool(this[wc_prop]);
       }
       else {
@@ -183,6 +209,10 @@ Polymer('handsontable-table', {
     this.instance = jQuery(this.$.htContainer).data('handsontable');
   },
   onMutation: function () {
+    if (this === window) {
+      //it is a bug in Polymer or Chrome as of Nov 29, 2013
+      return;
+    }
     var columns = parseDatacolumns(this);
     if (columns.length) {
       this.updateSettings({columns: columns});

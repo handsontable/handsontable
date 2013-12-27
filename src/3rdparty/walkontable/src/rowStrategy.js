@@ -4,7 +4,10 @@
  * @param sizeAtIndex
  * @constructor
  */
-function WalkontableRowStrategy(containerSizeFn, sizeAtIndex) {
+function WalkontableRowStrategy(instance, containerSizeFn, sizeAtIndex) {
+
+  WalkontableCellStrategy.apply(this, arguments);
+
   this.containerSizeFn = containerSizeFn;
   this.sizeAtIndex = sizeAtIndex;
   this.cellSizesSum = 0;
@@ -16,7 +19,7 @@ function WalkontableRowStrategy(containerSizeFn, sizeAtIndex) {
 WalkontableRowStrategy.prototype = new WalkontableCellStrategy();
 
 WalkontableRowStrategy.prototype.add = function (i, TD, reverse) {
-  if (!this.isLastIncomplete()) {
+  if (!this.isLastIncomplete() && this.remainingSize != 0) {
     var size = this.sizeAtIndex(i, TD);
     if (size === void 0) {
       return false; //total rows exceeded

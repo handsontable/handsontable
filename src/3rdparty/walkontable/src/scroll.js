@@ -139,15 +139,30 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     var TD = this.instance.wtTable.getCell(coords);
     if (typeof TD === 'object') {
       var offset = WalkontableDom.prototype.offset(TD);
+      var outerWidth = WalkontableDom.prototype.outerWidth(TD);
       var outerHeight = WalkontableDom.prototype.outerHeight(TD);
+      var scrollX = this.instance.wtScrollbars.horizontal.getScrollPosition();
       var scrollY = this.instance.wtScrollbars.vertical.getScrollPosition();
+      var clientWidth = WalkontableDom.prototype.outerWidth(this.instance.wtScrollbars.horizontal.scrollHandler);
       var clientHeight = WalkontableDom.prototype.outerHeight(this.instance.wtScrollbars.vertical.scrollHandler);
+      if (this.instance.wtScrollbars.horizontal.scrollHandler !== window) {
+        offset.left = offset.left - WalkontableDom.prototype.offset(this.instance.wtScrollbars.horizontal.scrollHandler).left;
+      }
       if (this.instance.wtScrollbars.vertical.scrollHandler !== window) {
         offset.top = offset.top - WalkontableDom.prototype.offset(this.instance.wtScrollbars.vertical.scrollHandler).top;
       }
 
+      clientWidth -= 20;
       clientHeight -= 20;
 
+      if (outerWidth < clientWidth) {
+        if (offset.left < scrollX) {
+          this.instance.wtScrollbars.horizontal.setScrollPosition(offset.left);
+        }
+        else if (offset.left + outerWidth > scrollX + clientWidth) {
+          this.instance.wtScrollbars.horizontal.setScrollPosition(offset.left - clientWidth + outerWidth);
+        }
+      }
       if (outerHeight < clientHeight) {
         if (offset.top < scrollY) {
           this.instance.wtScrollbars.vertical.setScrollPosition(offset.top);
@@ -199,9 +214,10 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     var available = this.instance.wtViewport.getViewportWidth();
     if (sum < available) {
       var next = this.instance.getSetting('columnWidth', scrollTo - 1);
-      while (sum + next < available && scrollTo >= fixedColumnsLeft) {
+      while (sum + next <= available && scrollTo >= fixedColumnsLeft) {
         scrollTo--;
         sum += next;
+        next = this.instance.getSetting('columnWidth', scrollTo - 1);
       }
     }
 

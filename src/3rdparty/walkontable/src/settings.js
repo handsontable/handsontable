@@ -5,6 +5,7 @@ function WalkontableSettings(instance, settings) {
   //default settings. void 0 means it is required, null means it can be empty
   this.defaults = {
     table: void 0,
+    debug: false, //shows WalkontableDebugOverlay
 
     //presentation mode
     scrollH: 'auto', //values: scroll (always show scrollbar), auto (show scrollbar if table does not fit in the container), none (never show scrollbar)
@@ -47,6 +48,8 @@ function WalkontableSettings(instance, settings) {
     onCellCornerDblClick: null,
     beforeDraw: null,
     onDraw: null,
+    onScrollVertically: null,
+    onScrollHorizontally: null,
 
     //constants
     scrollbarWidth: 10,

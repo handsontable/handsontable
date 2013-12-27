@@ -48,14 +48,18 @@ Handsontable.helper.isMetaKey = function (keyCode) {
     keyCodes.PAGE_UP,
     keyCodes.ENTER,
     keyCodes.ESCAPE,
-    keyCodes.SHIFT
+    keyCodes.SHIFT,
+    keyCodes.CAPS_LOCK
   ];
 
   return metaKeys.indexOf(keyCode) != -1;
 };
 
 Handsontable.helper.isCtrlKey = function (keyCode) {
-  return [17, 224, 91, 93].indexOf(keyCode) != -1;
+
+  var keys = Handsontable.helper.keyCode;
+
+  return [keys.CONTROL_LEFT, 224, keys.COMMAND_LEFT, keys.COMMAND_RIGHT].indexOf(keyCode) != -1;
 };
 
 /**
@@ -263,15 +267,25 @@ Handsontable.helper.extendArray = function (arr, extension) {
 };
 
 /**
- * Determines if the given DOM element is an input field placed outside of HOT.
+ * Determines if the given DOM element is an input field.
+ * Notice: By 'input' we mean input, textarea and select nodes
+ * @param element - DOM element
+ * @returns {boolean}
+ */
+Handsontable.helper.isInput = function (element) {
+  var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
+
+  return inputs.indexOf(element.nodeName) > -1;
+}
+
+/**
+ * Determines if the given DOM element is an input field placed OUTSIDE of HOT.
  * Notice: By 'input' we mean input, textarea and select nodes
  * @param element - DOM element
  * @returns {boolean}
  */
 Handsontable.helper.isOutsideInput = function (element) {
-  var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
-
-  return inputs.indexOf(element.nodeName) > -1 && element.className.indexOf('handsontableInput') == -1;
+  return Handsontable.helper.isInput(element) && element.className.indexOf('handsontableInput') == -1;
 };
 
 Handsontable.helper.keyCode = {
@@ -284,12 +298,16 @@ Handsontable.helper.keyCode = {
   END: 35,
   ENTER: 13,
   ESCAPE: 27,
+  CONTROL_LEFT: 91,
+  COMMAND_LEFT: 17,
+  COMMAND_RIGHT: 93,
   HOME: 36,
   PAGE_DOWN: 34,
   PAGE_UP: 33,
   PERIOD: 190,
   SPACE: 32,
   SHIFT: 16,
+  CAPS_LOCK: 20,
   TAB: 9,
   ARROW_RIGHT: 39,
   ARROW_LEFT: 37,
@@ -374,11 +392,11 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName) {
         return;                       //method not found
 
       }
-      else if(properties.hasOwnProperty(methodName)){
+      else if (properties.hasOwnProperty(methodName) && properties[methodName]) { //check if it is own and is not empty
 
         return properties[methodName];  //method defined directly
 
-      } else if(properties.hasOwnProperty('type')){
+      } else if (properties.hasOwnProperty('type') && properties.type) { //check if it is own and is not empty
 
         var type;
 

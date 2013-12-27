@@ -57,15 +57,18 @@ module.exports = function (grunt) {
         'src/tableView.js',
         'src/editors.js',
         'src/editorManager.js',
+        'src/renderers.js',
         'src/helpers.js',
         'src/fillHandle.js',
         'src/selectionPoint.js',
 
+        'src/renderers/cellDecorator.js',
         'src/renderers/textRenderer.js',
         'src/renderers/autocompleteRenderer.js',
         'src/renderers/checkboxRenderer.js',
         'src/renderers/numericRenderer.js',
         'src/renderers/passwordRenderer.js',
+        'src/renderers/htmlRenderer.js',
 
         'src/editors/baseEditor.js',
         'src/editors/textEditor.js',
@@ -82,6 +85,11 @@ module.exports = function (grunt) {
 
         'src/cellTypes.js',
 
+        'src/3rdparty/jquery.autoresize.js',
+        'src/3rdparty/sheetclip.js',
+        'src/3rdparty/copypaste.js',
+        'src/3rdparty/json-patch-duplex.js',
+
         'src/pluginHooks.js',
         'src/plugins/autoColumnSize.js',
         'src/plugins/columnSorting.js',
@@ -93,11 +101,8 @@ module.exports = function (grunt) {
         'src/plugins/persistentState.js',
         'src/plugins/undoRedo.js',
         'src/plugins/dragToScroll/dragToScroll.js',
+        'src/plugins/copyPaste.js'
 
-        'src/3rdparty/jquery.autoresize.js',
-        'src/3rdparty/sheetclip.js',
-        'src/3rdparty/copypaste.js',
-        'src/3rdparty/json-patch-duplex.js'
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',
@@ -107,7 +112,9 @@ module.exports = function (grunt) {
         'lib/numeral.js'
       ],
       shims: [
-        'lib/shims/array.filter.js'
+        'lib/shims/array.indexOf.js',
+        'lib/shims/array.filter.js',
+        'lib/shims/weakmap.js'
       ]
     },
 
@@ -116,9 +123,9 @@ module.exports = function (grunt) {
         files: {
           'dist/jquery.handsontable.js': [
             'tmp/intro.js',
+            '<%= meta.shims %>',
             '<%= meta.src %>',
             '<%= meta.walkontable %>',
-            '<%= meta.shims %>',
             'src/outro.js'
           ]
         }

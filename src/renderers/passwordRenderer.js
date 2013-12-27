@@ -1,6 +1,9 @@
 (function(Handosntable){
-  Handsontable.PasswordRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
-    Handsontable.TextRenderer.apply(this, arguments);
+
+  'use strict';
+
+  var PasswordRenderer = function (instance, TD, row, col, prop, value, cellProperties) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
 
     value = TD.innerHTML;
 
@@ -13,4 +16,9 @@
     instance.view.wt.wtDom.fastInnerHTML(TD, hash);
 
   };
+
+  Handosntable.PasswordRenderer = PasswordRenderer;
+  Handosntable.renderers.PasswordRenderer = PasswordRenderer;
+  Handosntable.renderers.registerRenderer('password', PasswordRenderer);
+
 })(Handsontable);

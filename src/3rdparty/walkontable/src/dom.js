@@ -262,7 +262,22 @@ WalkontableDom.prototype.isVisible = function (elem) {
       return false;
     }
     else if (next.nodeType === 11) {  //nodeType == 1 -> DOCUMENT_FRAGMENT_NODE
-      return false;
+      if (next.host) { //this is Web Components Shadow DOM
+        //see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
+        //according to spec, should be if (next.ownerDocument !== window.document), but that doesn't work yet
+        if (next.host.impl) { //Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features disabled
+          return WalkontableDom.prototype.isVisible(next.host.impl);
+        }
+        else if (next.host) { //Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
+          return WalkontableDom.prototype.isVisible(next.host);
+        }
+        else {
+          throw new Error("Lost in Web Components world");
+        }
+      }
+      else {
+        return false; //this is a node detached from document in IE8
+      }
     }
     else if (next.style.display === 'none') {
       return false;
@@ -416,4 +431,43 @@ WalkontableDom.prototype.outerHeight = function (elem) {
       range.select();
     }
   };
+
+  var cachedScrollbarWidth;
+  //http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
+  function walkontableCalculateScrollbarWidth() {
+    var inner = document.createElement('p');
+    inner.style.width = "100%";
+    inner.style.height = "200px";
+
+    var outer = document.createElement('div');
+    outer.style.position = "absolute";
+    outer.style.top = "0px";
+    outer.style.left = "0px";
+    outer.style.visibility = "hidden";
+    outer.style.width = "200px";
+    outer.style.height = "150px";
+    outer.style.overflow = "hidden";
+    outer.appendChild(inner);
+
+    (document.body || document.documentElement).appendChild(outer);
+    var w1 = inner.offsetWidth;
+    outer.style.overflow = 'scroll';
+    var w2 = inner.offsetWidth;
+    if (w1 == w2) w2 = outer.clientWidth;
+
+    (document.body || document.documentElement).removeChild(outer);
+
+    return (w1 - w2);
+  }
+
+  /**
+   * Returns the computed width of the native browser scroll bar
+   * @return {Number} width
+   */
+  WalkontableDom.prototype.getScrollbarWidth = function () {
+    if (cachedScrollbarWidth === void 0) {
+      cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
+    }
+    return cachedScrollbarWidth;
+  }
 })();

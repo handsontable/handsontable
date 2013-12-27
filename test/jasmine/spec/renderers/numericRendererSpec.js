@@ -90,7 +90,7 @@ describe('NumericRenderer', function () {
 
     var TD = document.createElement('TD');
     TD.className = 'someClass';
-    Handsontable.NumericRenderer(instance, TD, 0, 0, 0, 123, {});
+    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 123, {});
     expect(TD.className).toEqual('someClass htNumeric');
   });
 
@@ -101,7 +101,7 @@ describe('NumericRenderer', function () {
 
     var TD = document.createElement('TD');
     TD.className = 'someClass';
-    Handsontable.NumericRenderer(instance, TD, 0, 0, 0, '123', {});
+    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, '123', {});
     expect(TD.className).toEqual('someClass htNumeric');
   });
 
@@ -112,7 +112,7 @@ describe('NumericRenderer', function () {
 
     var TD = document.createElement('TD');
     TD.className = 'someClass';
-    Handsontable.NumericRenderer(instance, TD, 0, 0, 0, 'abc', {});
+    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 'abc', {});
     expect(TD.className).toEqual('someClass');
   });
 
@@ -122,7 +122,7 @@ describe('NumericRenderer', function () {
     instance.init(); //unfortunately these 3 lines are currently needed to satisfy renderer arguments (as of v0.8.21)
 
     var TD = document.createElement('TD');
-    Handsontable.NumericRenderer(instance, TD, 0, 0, 0, 123, {readOnly: true});
+    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 123, {readOnly: true, readOnlyCellClassName: 'htDimmed'});
     expect(TD.className).toContain('htDimmed');
   });
 });

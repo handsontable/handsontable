@@ -112,6 +112,9 @@ Handsontable.TableView = function (instance) {
   };
 
   var walkontableConfig = {
+    debug: function () {
+      return that.settings.debug;
+    },
     table: table,
     stretchH: this.settings.stretchH,
     data: instance.getDataAtCell,
@@ -143,7 +146,7 @@ Handsontable.TableView = function (instance) {
 
       var prop = that.instance.colToProp(col)
         , cellProperties = that.instance.getCellMeta(row, col)
-        , renderer = that.instance.getCellRenderer(cellProperties)
+        , renderer = that.instance.getCellRenderer(cellProperties);
 
       var value = that.instance.getDataAtRowProp(row, prop);
 
@@ -213,7 +216,7 @@ Handsontable.TableView = function (instance) {
      clearTextSelection(); //otherwise text selection blinks during multiple cells selection
      }
      },*/
-    onCellMouseOver: function (event, coords/*, TD*/) {
+    onCellMouseOver: function (event, coords, TD) {
       var coordsObj = {row: coords[0], col: coords[1]};
       if (isMouseDown) {
         /*if (that.settings.fragmentSelection === 'single') {
@@ -225,6 +228,7 @@ Handsontable.TableView = function (instance) {
         instance.autofill.handle.isDragged++;
         instance.autofill.showBorder(coords);
       }
+      instance.PluginHooks.run('afterOnCellMouseOver', event, coords, TD);
     },
     onCellCornerMouseDown: function (event) {
       instance.autofill.handle.isDragged = 1;
@@ -239,6 +243,12 @@ Handsontable.TableView = function (instance) {
     },
     onDraw: function(force){
       that.onDraw(force);
+    },
+    onScrollVertically: function () {
+      instance.runHooks('afterScrollVertically');
+    },
+    onScrollHorizontally: function () {
+      instance.runHooks('afterScrollHorizontally');
     }
   };
 
@@ -277,7 +287,7 @@ Handsontable.TableView = function (instance) {
 };
 
 Handsontable.TableView.prototype.isTextSelectionAllowed = function (el) {
-  if (el.nodeName === 'TEXTAREA') {
+  if ( Handsontable.helper.isInput(el) ) {
     return (true);
   }
   if (this.settings.fragmentSelection && this.wt.wtDom.isChildOf(el, this.TBODY)) {

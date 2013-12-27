@@ -9,7 +9,6 @@
       instance.autoColumnWidths = [];
 
       if (instance.getSettings().autoColumnSize !== false) {
-
         if (!instance.autoColumnSizeTmp) {
           instance.autoColumnSizeTmp = {
             table: null,
@@ -20,24 +19,24 @@
             containerStyle: null,
             determineBeforeNextRender: true
           };
+
+          instance.addHook('beforeRender', htAutoColumnSize.determineIfChanged);
+          instance.addHook('afterGetColWidth', htAutoColumnSize.getColWidth);
+          instance.addHook('afterDestroy', htAutoColumnSize.afterDestroy);
+
+          instance.determineColumnWidth = plugin.determineColumnWidth;
         }
-
-        instance.addHook('beforeRender', htAutoColumnSize.determineIfChanged);
-        instance.addHook('afterGetColWidth', htAutoColumnSize.getColWidth);
-        instance.addHook('afterDestroy', htAutoColumnSize.afterDestroy);
-
-        instance.determineColumnWidth = plugin.determineColumnWidth;
       } else {
-        instance.removeHook('beforeRender', htAutoColumnSize.determineIfChanged);
-        instance.removeHook('afterGetColWidth', htAutoColumnSize.getColWidth);
-        instance.removeHook('afterDestroy', htAutoColumnSize.afterDestroy);
+        if (instance.autoColumnSizeTmp) {
+          instance.removeHook('beforeRender', htAutoColumnSize.determineIfChanged);
+          instance.removeHook('afterGetColWidth', htAutoColumnSize.getColWidth);
+          instance.removeHook('afterDestroy', htAutoColumnSize.afterDestroy);
 
-        delete instance.determineColumnWidth;
+          delete instance.determineColumnWidth;
 
-        plugin.afterDestroy.call(instance);
-
+          plugin.afterDestroy.call(instance);
+        }
       }
-
     };
 
     this.determineIfChanged = function (force) {
@@ -106,9 +105,11 @@
       var width = instance.view.wt.wtDom.outerWidth(tmp.table);
       parent.removeChild(tmp.container);
 
-      var maxWidth = instance.view.wt.wtViewport.getViewportWidth() - 2; //2 is some overhead for cell border
-      if (width > maxWidth) {
-        width = maxWidth;
+      if (!settings.nativeScrollbars) { //with native scrollbars a cell size can safely exceed the width of the viewport
+        var maxWidth = instance.view.wt.wtViewport.getViewportWidth() - 2; //2 is some overhead for cell border
+        if (width > maxWidth) {
+          width = maxWidth;
+        }
       }
 
       return width;
@@ -138,6 +139,7 @@
       if (instance.autoColumnSizeTmp && instance.autoColumnSizeTmp.container && instance.autoColumnSizeTmp.container.parentNode) {
         instance.autoColumnSizeTmp.container.parentNode.removeChild(instance.autoColumnSizeTmp.container);
       }
+      instance.autoColumnSizeTmp = null;
     };
 
     function createTmpContainer(instance) {
