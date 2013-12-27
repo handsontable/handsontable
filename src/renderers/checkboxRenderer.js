@@ -73,11 +73,9 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
 
     instance.addHook('beforeKeyDown', function(event){
        if(event.keyCode == 32){
-         event.stopImmediatePropagation();
-         event.preventDefault();
-
          var selection = instance.getSelected();
          var cell, checkbox, cellProperties;
+         var selectionHasCheckbox = false;
          var selStart = {
            row: Math.min(selection[0], selection[2]),
            col: Math.min(selection[1], selection[3])
@@ -95,6 +93,7 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
              checkbox = cell.querySelectorAll('input[type=checkbox]');
 
              if(checkbox.length > 0 && !cellProperties.readOnly){
+               selectionHasCheckbox = true;
                for(var i = 0, len = checkbox.length; i < len; i++){
                  checkbox[i].checked = !checkbox[i].checked;
                  $(checkbox[i]).trigger('change');
@@ -103,6 +102,11 @@ Handsontable.CheckboxRenderer = function (instance, TD, row, col, prop, value, c
 
            }
          }
+         if(selectionHasCheckbox){
+           event.stopImmediatePropagation();
+           event.preventDefault();
+         }
+
        }
     });
   }
