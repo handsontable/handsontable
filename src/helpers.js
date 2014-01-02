@@ -49,7 +49,8 @@ Handsontable.helper.isMetaKey = function (keyCode) {
     keyCodes.ENTER,
     keyCodes.ESCAPE,
     keyCodes.SHIFT,
-    keyCodes.CAPS_LOCK
+    keyCodes.CAPS_LOCK,
+    keyCodes.ALT
   ];
 
   return metaKeys.indexOf(keyCode) != -1;
@@ -301,6 +302,7 @@ Handsontable.helper.keyCode = {
   CONTROL_LEFT: 91,
   COMMAND_LEFT: 17,
   COMMAND_RIGHT: 93,
+  ALT: 18,
   HOME: 36,
   PAGE_DOWN: 34,
   PAGE_UP: 33,
