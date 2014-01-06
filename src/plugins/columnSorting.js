@@ -202,12 +202,16 @@ function HandsontableColumnSorting() {
 
     var colMeta = instance.getCellMeta(0, instance.sortColumn);
     var sortFunction;
-    switch (colMeta.type) {
-      case 'date':
-        sortFunction = dateSort;
-        break;
-      default:
-        sortFunction = defaultSort;
+    if (typeof colMeta.sorter != 'undefined') {
+      sortFunction = colMeta.sorter;
+    } else {
+      switch (colMeta.type) {
+        case 'date':
+          sortFunction = dateSort;
+          break;
+        default:
+          sortFunction = defaultSort;
+      }
     }
 
     this.sortIndex.sort(sortFunction(instance.sortOrder));
