@@ -287,7 +287,7 @@ function HandsontableColumnSorting() {
       return;
     }
 
-    var physicalRemovedIndex = plugin.untranslateRow.call(instance, index);
+    var physicalRemovedIndex = plugin.translateRow.call(instance, index);
 
     instance.sortIndex.splice(index, amount);
 
