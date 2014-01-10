@@ -2393,18 +2393,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Boolean}
    */
   this.isEmptyRow = function (r) {
-    if (priv.settings.isEmptyRow) {
-      return priv.settings.isEmptyRow.call(instance, r);
-    }
-
-    var val;
-    for (var c = 0, clen = instance.countCols(); c < clen; c++) {
-      val = instance.getDataAtCell(r, c);
-      if (val !== '' && val !== null && typeof val !== 'undefined') {
-        return false;
-      }
-    }
-    return true;
+    return priv.settings.isEmptyRow.call(instance, r);
   };
 
   /**
@@ -2413,18 +2402,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Boolean}
    */
   this.isEmptyCol = function (c) {
-    if (priv.settings.isEmptyCol) {
-      return priv.settings.isEmptyCol.call(instance, c);
-    }
-
-    var val;
-    for (var r = 0, rlen = instance.countRows(); r < rlen; r++) {
-      val = instance.getDataAtCell(r, c);
-      if (val !== '' && val !== null && typeof val !== 'undefined') {
-        return false;
-      }
-    }
-    return true;
+    return priv.settings.isEmptyCol.call(instance, c);
   };
 
   /**
@@ -2622,8 +2600,26 @@ DefaultSettings.prototype = {
   currentRowClassName: void 0,
   currentColClassName: void 0,
   stretchH: 'hybrid',
-  isEmptyRow: void 0,
-  isEmptyCol: void 0,
+  isEmptyRow: function (r) {
+    var val;
+    for (var c = 0, clen = this.countCols(); c < clen; c++) {
+      val = this.getDataAtCell(r, c);
+      if (val !== '' && val !== null && typeof val !== 'undefined') {
+        return false;
+      }
+    }
+    return true;
+  },
+  isEmptyCol: function (c) {
+    var val;
+    for (var r = 0, rlen = this.countRows(); r < rlen; r++) {
+      val = this.getDataAtCell(r, c);
+      if (val !== '' && val !== null && typeof val !== 'undefined') {
+        return false;
+      }
+    }
+    return true;
+  },
   observeDOMVisibility: true,
   allowInvalid: true,
   invalidCellClassName: 'htInvalid',
