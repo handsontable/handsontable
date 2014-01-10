@@ -1,3 +1,15 @@
+## [0.10.1]
+
+Changes since 0.10.0:
+
+- fixed handling copyPaste plugin, when no cell is selected ([#1221](https://github.com/warpech/jquery-handsontable/issues/1221))
+- fixed invoking cell renderers by autoColumnSize plugin ([#1253](https://github.com/warpech/jquery-handsontable/issues/1253))
+- fixed WeakMap shim for IE8 ([#1251](https://github.com/warpech/jquery-handsontable/issues/1251))
+- fixed removing rows from a sorted table ([#1072](https://github.com/warpech/jquery-handsontable/issues/1072))
+- fixed handling contextMenu plugin with multiple Handsontable instances ([#1238](https://github.com/warpech/jquery-handsontable/issues/1238))
+- cell editor won't open after pressing <kbd>ALT</kbd> ([#1239](https://github.com/warpech/jquery-handsontable/issues/1239))
+
+
 ## [0.10.0](https://github.com/warpech/jquery-handsontable/tree/v0.10.0) (Dec 27, 2013)
 
 Changes since beta4:
