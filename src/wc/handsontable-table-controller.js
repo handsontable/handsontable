@@ -3,8 +3,8 @@ function parseDatacolumn(HOTCOLUMN) {
     , attrName;
 
   for (var i = 0, ilen = HOTCOLUMN.attributes.length; i < ilen; i++) {
-    attrName = HOTCOLUMN.attributes[i].name;
-    if (HOTCOLUMN[attrName] !== void 0) {
+    attrName = HOTCOLUMN.attributes[i].nodeName;
+    if (HOTCOLUMN[attrName] !== void 0 && HOTCOLUMN[attrName] !== "") { //Dec 3, 2013 - Polymer returns empty string for node properties such as HOTCOLUMN.width
       obj[attrName] = HOTCOLUMN[attrName];
     }
     else if (HOTCOLUMN.attributes[i].value !== void 0) {
@@ -33,6 +33,10 @@ function parseDatacolumn(HOTCOLUMN) {
     obj.source = window[obj.source];
   }
 
+  if (typeof obj.renderer === 'string') {
+    obj.renderer = getModelPath(HOTCOLUMN.parentNode, obj.renderer)
+  }
+
   var HANDSONTABLE = HOTCOLUMN.getElementsByTagName('handsontable-table');
   if (HANDSONTABLE.length) {
     obj.handsontable = parseHandsontable(HANDSONTABLE[0]);
@@ -51,19 +55,13 @@ function getModel(HANDSONTABLE) {
 }
 
 function getModelPath(HANDSONTABLE, path) {
-  if (typeof path === 'object') { //happens in Polymer when assigning as datarows="{{ model.subpage.people }}" or settings="{{ model.subpage.settings }}
+  if (typeof path === 'object' || typeof path === 'function') { //happens in Polymer when assigning as datarows="{{ model.subpage.people }}" or settings="{{ model.subpage.settings }}
     return path;
   }
-
-  var obj = getModel(HANDSONTABLE);
-  var keys = path.split('.');
-  var len = keys.length;
-  for (var i = 0; i < len; i++) {
-    if (obj[keys[i]]) {
-      obj = obj[keys[i]];
-    }
-  }
-  return obj;
+  var model = getModel(HANDSONTABLE);
+  var expression = 'with(model) { ' + path + ';}';
+  var obj = eval(expression);
+  return (obj);
 }
 
 function parseDatacolumns(HANDSONTABLE) {
@@ -80,22 +78,41 @@ function parseDatacolumns(HANDSONTABLE) {
   return columns;
 }
 
+function readOption(HANDSONTABLE, key, value) {
+  if (key === 'data') {
+    return getModelPath(HANDSONTABLE, value);
+  }
+  else if (key === 'renderer') {
+    return getModelPath(HANDSONTABLE, value);
+  }
+  else if (publicHooks.indexOf(key) > -1) {
+    return getModelPath(HANDSONTABLE, value);
+  }
+  else {
+    return readBool(value);
+  }
+}
+
 function parseHandsontable(HANDSONTABLE) {
   var columns = parseDatacolumns(HANDSONTABLE);
-
   var options = webComponentDefaults();
+  var attrName, i, ilen;
+
+  for (i = 0, ilen = publicProperties.length; i < ilen; i++) {
+    attrName = publicProperties[i];
+    if (attrName === 'data') {
+      attrName = 'datarows';
+    }
+    options[publicProperties[i]] = readOption(HANDSONTABLE, publicProperties[i], HANDSONTABLE[attrName]);
+  }
 
   if (HANDSONTABLE.settings) {
     var settingsAttr = getModelPath(HANDSONTABLE, HANDSONTABLE.settings);
-    for (var i in settingsAttr) {
+    for (i in settingsAttr) {
       if (settingsAttr.hasOwnProperty(i)) {
         options[i] = settingsAttr[i];
       }
     }
-  }
-
-  if (HANDSONTABLE.datarows) {
-    options.data = getModelPath(HANDSONTABLE, HANDSONTABLE.datarows);
   }
 
   if (columns.length) {
@@ -105,9 +122,12 @@ function parseHandsontable(HANDSONTABLE) {
   return options;
 }
 
-var publicMethods = ['updateSettings', 'loadData', 'render', 'setDataAtCell', 'setDataAtRowProp', 'getDataAtCell', 'getDataAtRowProp', 'countRows', 'countCols', 'rowOffset', 'colOffset', 'countVisibleRows', 'countVisibleCols', 'clear', 'clearUndo', 'getData', 'alter', 'getCell', 'getCellMeta', 'selectCell', 'deselectCell', 'getSelected', 'destroyEditor', 'getRowHeader', 'getColHeader', 'destroy', 'isUndoAvailable', 'isRedoAvailable', 'undo', 'redo', 'countEmptyRows', 'countEmptyCols', 'isEmptyRow', 'isEmptyCol', 'parseSettingsFromDOM', 'addHook', 'addHookOnce', 'getValue', 'getInstance', 'getSettings'];
+var publicMethods = ['updateSettings', 'loadData', 'render', 'setDataAtCell', 'setDataAtRowProp', 'getDataAtCell', 'getDataAtRowProp', 'countRows', 'countCols', 'rowOffset', 'colOffset', 'countVisibleRows', 'countVisibleCols', 'clear', 'clearUndo', 'getData', 'alter', 'getCell', 'getCellMeta', 'selectCell', 'deselectCell', 'getSelected', 'destroyEditor', 'getRowHeader', 'getColHeader', 'destroy', 'isUndoAvailable', 'isRedoAvailable', 'undo', 'redo', 'countEmptyRows', 'countEmptyCols', /*'isEmptyRow', 'isEmptyCol', -- those are also publicProperties*/ 'parseSettingsFromDOM', 'addHook', 'addHookOnce', 'getValue', 'getInstance', 'getSettings'];
+var publicHooks = Object.keys(Handsontable.PluginHooks.hooks);
 var publicProperties = Object.keys(Handsontable.DefaultSettings.prototype);
 publicProperties.push('settings');
+
+publicProperties = publicProperties.concat(publicHooks);
 
 function webComponentDefaults() {
   return {
@@ -158,15 +178,7 @@ publicProperties.forEach(function (hot_prop) {
       }
 
       var update = {};
-      if (wc_prop === 'datarows') {
-        update[hot_prop] = getModelPath(this, this[wc_prop])
-      }
-      else if (val === 'boolean') {
-        update[hot_prop] = readBool(this[wc_prop]);
-      }
-      else {
-        update[hot_prop] = this[wc_prop];
-      }
+      update[hot_prop] = readOption(this, hot_prop, this[wc_prop]);
       this.updateSettings(update);
     }
   }
@@ -175,6 +187,9 @@ publicProperties.forEach(function (hot_prop) {
 function readBool(val) {
   if (val === void 0 || val === "false") {
     return false;
+  }
+  else if (val === "" || val === "true") {
+    return true;
   }
   return val;
 }
