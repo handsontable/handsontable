@@ -1795,7 +1795,9 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
       else {
         if (instance.PluginHooks.hooks[i] !== void 0 || instance.PluginHooks.legacy[i] !== void 0) {
-          instance.PluginHooks.add(i, settings[i]);
+          if (typeof settings[i] === 'function' || Handsontable.helper.isArray(settings[i])) {
+            instance.PluginHooks.add(i, settings[i]);
+          }
         }
         else {
           // Update settings
