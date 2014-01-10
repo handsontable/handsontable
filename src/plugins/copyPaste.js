@@ -42,7 +42,7 @@
     };
 
     function onBeforeKeyDown (event) {
-      if (Handsontable.helper.isCtrlKey(event.keyCode)) {
+      if (Handsontable.helper.isCtrlKey(event.keyCode) && instance.getSelected()) {
         //when CTRL is pressed, prepare selectable text in textarea
         //http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
         plugin.setCopyableText();
