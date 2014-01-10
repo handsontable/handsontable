@@ -29,17 +29,39 @@ GOOD NEWS: Future release will be independent from jQuery
 
   </template>
   <script>
-    Polymer('handsontable-column', {
-      enteredView: function () {
+    (function () {
+      var publish = {};
+      var publicProperties = Object.keys(Handsontable.DefaultSettings.prototype);
+      publicProperties.push('settings', 'title', 'checkedTemplate', 'uncheckedTemplate'); //properties not mentioned in DefaultSettings
 
-      },
-      attributeChanged: function () {
-        this.parentNode && this.parentNode.onMutation();
-      },
-      publish: {
-        width: '',
-        header: ''
-      }
-    });
+      publicProperties.forEach(function (hot_prop) {
+        if (!publish[hot_prop]) {
+          var wc_prop = hot_prop;
+
+          if (hot_prop === 'data') {
+            wc_prop = 'value';
+          }
+
+          var val = Handsontable.DefaultSettings.prototype[hot_prop];
+
+          if (val === void 0) {
+            publish[wc_prop] = null; //Polymer does not like undefined
+          }
+          else {
+            publish[wc_prop] = val;
+          }
+        }
+      });
+
+      Polymer('handsontable-column', {
+        enteredView: function () {
+
+        },
+        attributeChanged: function () {
+          this.parentNode && this.parentNode.onMutation();
+        },
+        publish: publish
+      });
+    })();
   </script>
 </polymer-element>
