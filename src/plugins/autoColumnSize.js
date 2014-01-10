@@ -84,15 +84,21 @@
 
       instance.view.wt.wtDom.empty(tmp.tbody);
 
-      var cellProperties = instance.getCellMeta(0, col);
-      var renderer = instance.getCellRenderer(cellProperties);
-
       for (var i in samples) {
         if (samples.hasOwnProperty(i)) {
           for (var j = 0, jlen = samples[i].strings.length; j < jlen; j++) {
+            var row = samples[i].strings[j].row;
+
+            var cellProperties = instance.getCellMeta(row, col);
+            cellProperties.col = col;
+            cellProperties.row = row;
+
+            var renderer = instance.getCellRenderer(cellProperties);
+
             var tr = document.createElement('tr');
             var td = document.createElement('td');
-            renderer(instance, td, samples[i].strings[j].row, col, instance.colToProp(col), samples[i].strings[j].value, cellProperties);
+
+            renderer(instance, td, row, col, instance.colToProp(col), samples[i].strings[j].value, cellProperties);
             r++;
             tr.appendChild(td);
             tmp.tbody.appendChild(tr);
