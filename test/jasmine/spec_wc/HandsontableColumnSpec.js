@@ -8,7 +8,7 @@ describe('<handsontable-column>', function () {
   it('property should return value set by attribute', function () {
     var hot = document.createElement('handsontable-table');
     var hotColumn = document.createElement('handsontable-column');
-    hotColumn.setAttribute('title', 'My title');
+    hotColumn.setAttribute('header', 'My header');
     hot.appendChild(hotColumn);
     document.body.appendChild(hot);
 
@@ -19,7 +19,7 @@ describe('<handsontable-column>', function () {
     waits(0);
 
     runs(function () {
-      expect(hotColumn.title).toBe('My title');
+      expect(hotColumn.header).toBe('My header');
       hot.parentNode.removeChild(hot);
     });
   });
@@ -27,7 +27,7 @@ describe('<handsontable-column>', function () {
   it('attribute value should be rendered', function () {
     var hot = document.createElement('handsontable-table');
     var hotColumn = document.createElement('handsontable-column');
-    hotColumn.setAttribute('title', 'My title');
+    hotColumn.setAttribute('header', 'My header');
     hot.appendChild(hotColumn);
     document.body.appendChild(hot);
 
@@ -38,7 +38,7 @@ describe('<handsontable-column>', function () {
     waits(0);
 
     runs(function () {
-      expect(hot.shadowRoot.querySelector('th').textContent).toBe('My title');
+      expect(hot.shadowRoot.querySelector('th').textContent).toBe('My header');
       hot.parentNode.removeChild(hot);
     });
   });
@@ -46,7 +46,7 @@ describe('<handsontable-column>', function () {
   it('changed attribute value should be rendered', function () {
     var hot = document.createElement('handsontable-table');
     var hotColumn = document.createElement('handsontable-column');
-    hotColumn.setAttribute('title', 'My title');
+    hotColumn.setAttribute('header', 'My header');
     hot.appendChild(hotColumn);
     document.body.appendChild(hot);
 
@@ -57,13 +57,13 @@ describe('<handsontable-column>', function () {
     waits(0);
 
     runs(function () {
-      hotColumn.setAttribute('title', 'My another title');
+      hotColumn.setAttribute('header', 'My another header');
     });
 
     waits(0);
 
     runs(function () {
-      expect(hot.shadowRoot.querySelector('th').textContent).toBe('My another title');
+      expect(hot.shadowRoot.querySelector('th').textContent).toBe('My another header');
       hot.parentNode.removeChild(hot);
     });
   });

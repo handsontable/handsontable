@@ -118,19 +118,19 @@
       <div style="clear: left"></div>
 
       <handsontable-table id="example1" datarows="people" settings="mySettings" width="400" minsparerows="1">
-        <handsontable-column id="col1" width="30" readOnly value="id" title="ID"></handsontable-column>
-        <handsontable-column width="70" value="name.first" title="First Name"></handsontable-column>
-        <handsontable-column width="100" value="name.last" title="Last Name"></handsontable-column>
+        <handsontable-column id="col1" width="30" readOnly value="id" header="ID"></handsontable-column>
+        <handsontable-column width="70" value="name.first" header="First Name"></handsontable-column>
+        <handsontable-column width="100" value="name.last" header="Last Name"></handsontable-column>
         <handsontable-column type="dropdown" source="genderList" value="gender"
-                    title="Gender"></handsontable-column>
-        <handsontable-column type="numeric" value="age" title="Age"></handsontable-column>
-        <handsontable-column type="checkbox" value="languages.english" title="English" checkedTemplate="Yes"
+                             header="Gender"></handsontable-column>
+        <handsontable-column type="numeric" value="age" header="Age"></handsontable-column>
+        <handsontable-column type="checkbox" value="languages.english" header="English" checkedTemplate="Yes"
                     uncheckedTemplate="No"></handsontable-column>
-        <handsontable-column type="checkbox" value="languages.spanish" title="Spanish" checkedTemplate="Yes"
+        <handsontable-column type="checkbox" value="languages.spanish" header="Spanish" checkedTemplate="Yes"
                     uncheckedTemplate="No"></handsontable-column>
-        <handsontable-column type="checkbox" value="languages.french" title="French" checkedTemplate="Yes"
+        <handsontable-column type="checkbox" value="languages.french" header="French" checkedTemplate="Yes"
                     uncheckedTemplate="No"></handsontable-column>
-        <handsontable-column type="numeric" value="salary" title="Salary" format="$ 0,0.00"></handsontable-column>
+        <handsontable-column type="numeric" value="salary" header="Salary" format="$ 0,0.00"></handsontable-column>
       </handsontable-table>
 
       <p>

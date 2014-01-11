@@ -10,6 +10,9 @@ function parseDatacolumn(HANDSONTABLE, HOTCOLUMN) {
     if (attrName === 'data') {
       attrName = 'value';
     }
+    else if (attrName === 'title') {
+      attrName = 'header';
+    }
 
     if (HOTCOLUMN[attrName] === null) {
       continue; //default value
@@ -148,6 +151,10 @@ publicProperties.forEach(function (hot_prop) {
     if (hot_prop === 'data') {
       wc_prop = 'datarows';
     }
+    else if (hot_prop === 'title') {
+      //rename 'title' attribute to 'header' because 'title' was causing problems (https://groups.google.com/forum/#!topic/polymer-dev/RMMsV-D4HVw)
+      wc_prop = 'header';
+    }
 
     var val = wcDefaults[hot_prop] === void 0 ? Handsontable.DefaultSettings.prototype[hot_prop] : wcDefaults[hot_prop];
 
@@ -199,6 +206,10 @@ Polymer('handsontable-table', {
   onMutation: function () {
     if (this === window) {
       //it is a bug in Polymer or Chrome as of Nov 29, 2013
+      return;
+    }
+    if (!this.instance) {
+      //happens in Handsontable WC demo page in Chrome 33-dev
       return;
     }
     var columns = parseDatacolumns(this);

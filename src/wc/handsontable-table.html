@@ -41,6 +41,10 @@ GOOD NEWS: Future release will be independent from jQuery
           if (hot_prop === 'data') {
             wc_prop = 'value';
           }
+          else if (hot_prop === 'title') {
+            //rename 'title' attribute to 'header' because 'title' was causing problems (https://groups.google.com/forum/#!topic/polymer-dev/RMMsV-D4HVw)
+            wc_prop = 'header';
+          }
 
           publish[wc_prop] = null; //Polymer does not like undefined
         }
