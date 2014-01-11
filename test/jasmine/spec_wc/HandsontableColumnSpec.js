@@ -164,6 +164,7 @@ describe('<handsontable-column>', function () {
     runs(function () {
       var hot = document.getElementById('hot');
       expect(hot.getCellMeta(0, 0).source).toBe(names);
+      expect(hot.getDataAtCell(0, 0)).toBe('Freddie');
       hot.parentNode.removeChild(hot);
     });
   });

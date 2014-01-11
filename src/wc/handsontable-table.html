@@ -32,7 +32,7 @@ GOOD NEWS: Future release will be independent from jQuery
     (function () {
       var publish = {};
       var publicProperties = Object.keys(Handsontable.DefaultSettings.prototype);
-      publicProperties.push('settings', 'title', 'checkedTemplate', 'uncheckedTemplate'); //properties not mentioned in DefaultSettings
+      publicProperties.push('settings', 'source', 'title', 'checkedTemplate', 'uncheckedTemplate', 'renderer'); //properties not mentioned in DefaultSettings
 
       publicProperties.forEach(function (hot_prop) {
         if (!publish[hot_prop]) {
@@ -42,20 +42,13 @@ GOOD NEWS: Future release will be independent from jQuery
             wc_prop = 'value';
           }
 
-          var val = Handsontable.DefaultSettings.prototype[hot_prop];
-
-          if (val === void 0) {
-            publish[wc_prop] = null; //Polymer does not like undefined
-          }
-          else {
-            publish[wc_prop] = val;
-          }
+          publish[wc_prop] = null; //Polymer does not like undefined
         }
       });
 
       Polymer('handsontable-column', {
         enteredView: function () {
-
+          this.parentNode && this.parentNode.onMutation && this.parentNode.onMutation();
         },
         attributeChanged: function () {
           this.parentNode && this.parentNode.onMutation();
