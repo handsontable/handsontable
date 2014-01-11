@@ -1,0 +1,29 @@
+{
+  "name": "polymer",
+  "description": "Polymer is a new type of library for the web, built on top of Web Components, and designed to leverage the evolving web platform on modern browsers.",
+  "homepage": "http://www.polymer-project.org/",
+  "keywords": [
+    "util",
+    "client",
+    "browser",
+    "web components",
+    "web-components"
+  ],
+  "author": "Polymer Authors <polymer-dev@googlegroups.com>",
+  "main": [
+    "polymer.js"
+  ],
+  "dependencies": {
+    "platform": "Polymer/platform#0.1.1"
+  },
+  "version": "0.1.1",
+  "_release": "0.1.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.1.1",
+    "commit": "a9e5f23ca0acc39e00eff7eb21b90b5e564ef1f4"
+  },
+  "_source": "git://github.com/Polymer/polymer.git",
+  "_target": "0.1.1",
+  "_originalSource": "Polymer/polymer"
+}
