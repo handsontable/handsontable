@@ -134,6 +134,111 @@ describe('WebComponents', function () {
     });
   });
 
+  describe("Polymer", function () {
+
+    it('should parse empty property as boolean true', function () {
+      var model = {
+        html: '<handsontable-table id="hot" colHeaders></handsontable-table>'
+      };
+
+      var tpl = document.createElement('template');
+      tpl.setAttribute('bind', '');
+      tpl.innerHTML = '<x-html content="{{ html }}"></x-html>';
+      tpl.model = model;
+      document.body.appendChild(tpl);
+
+      waitsFor(function () {
+        return ready;
+      }, 1000);
+
+      waits(100);
+
+      runs(function () {
+        var hot = document.getElementById('hot');
+        expect(hot.getSettings().colHeaders).toBe(true);
+        hot.parentNode.removeChild(hot);
+      });
+    });
+
+    it('should parse string "true" as boolean true', function () {
+      var model = {
+        html: '<handsontable-table id="hot" colHeaders="true"></handsontable-table>'
+      };
+
+      var tpl = document.createElement('template');
+      tpl.setAttribute('bind', '');
+      tpl.innerHTML = '<x-html content="{{ html }}"></x-html>';
+      tpl.model = model;
+      document.body.appendChild(tpl);
+
+      waitsFor(function () {
+        return ready;
+      }, 1000);
+
+      waits(100);
+
+      runs(function () {
+        var hot = document.getElementById('hot');
+        expect(hot.getSettings().colHeaders).toBe(true);
+        hot.parentNode.removeChild(hot);
+      });
+    });
+
+    it('should parse string "false" as boolean false', function () {
+      var model = {
+        html: '<handsontable-table id="hot" colHeaders="false"></handsontable-table>'
+      };
+
+      var tpl = document.createElement('template');
+      tpl.setAttribute('bind', '');
+      tpl.innerHTML = '<x-html content="{{ html }}"></x-html>';
+      tpl.model = model;
+      document.body.appendChild(tpl);
+
+      waitsFor(function () {
+        return ready;
+      }, 1000);
+
+      waits(100);
+
+      runs(function () {
+        var hot = document.getElementById('hot');
+        expect(hot.getSettings().colHeaders).toBe(false);
+        hot.parentNode.removeChild(hot);
+      });
+    });
+
+    it('should parse function', function () {
+      var myFunction = function (col) {
+        return col;
+      };
+
+      var model = {
+        fn: myFunction,
+        html: '<handsontable-table id="hot" colHeaders="{{fn}}"></handsontable-table>'
+      };
+
+      var tpl = document.createElement('template');
+      tpl.setAttribute('bind', '');
+      tpl.innerHTML = '<x-html content="{{ html }}"></x-html>';
+      tpl.model = model;
+      document.body.appendChild(tpl);
+
+      waitsFor(function () {
+        return ready;
+      }, 1000);
+
+      waits(100);
+
+      runs(function () {
+        var hot = document.getElementById('hot');
+        expect(hot.getSettings().colHeaders).toBe(myFunction);
+        hot.parentNode.removeChild(hot);
+      });
+    });
+
+  });
+
   it('Web Component should observe changes in data', function () {
     var afterRender = jasmine.createSpy('afterRender');
     var lastCount;

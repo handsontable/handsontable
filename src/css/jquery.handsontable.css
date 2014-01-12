@@ -255,7 +255,6 @@ TextRenderer readOnly cell
 */
 
 .handsontable .htDimmed {
-  font-style: italic;
   color: #777;
 }
 
