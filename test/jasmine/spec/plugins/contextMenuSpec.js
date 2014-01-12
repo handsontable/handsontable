@@ -1531,6 +1531,63 @@ describe('ContextMenu', function () {
 
 
     });
+
+    it("should perform a contextMenu action only for particular instance of HOT ", function () {
+      var hot1 = handsontable({
+        contextMenu: true
+      });
+
+      this.$container2.handsontable({
+        contextMenu: true
+      });
+
+      var hot2 = this.$container2.handsontable('getInstance');
+      var contextMenuContainer = $('.htContextMenu');
+
+      hot1.selectCell(0, 0);
+      contextMenu();
+
+      expect(hot1.countRows()).toEqual(5);
+      expect(hot2.countRows()).toEqual(5);
+
+      $(hot1.contextMenu.menu).find('tr td:eq("0")').mousedown(); //insert row above
+
+      expect(hot1.countRows()).toEqual(6);
+      expect(hot2.countRows()).toEqual(5);
+
+      hot2.selectCell(0, 0);
+      contextMenu2();
+
+      expect(hot1.countRows()).toEqual(6);
+      expect(hot2.countRows()).toEqual(5);
+
+      $(hot2.contextMenu.menu).find('tr td:eq("0")').mousedown(); //insert row above
+
+      expect(hot1.countRows()).toEqual(6);
+      expect(hot2.countRows()).toEqual(6);
+
+      function contextMenu2() {
+        var hot = spec().$container2.data('handsontable');
+        var selected = hot.getSelected();
+
+        if(!selected){
+          hot.selectCell(0, 0);
+          selected = hot.getSelected();
+        }
+
+        var cell = hot.getCell(selected[0], selected[1]);
+        var cellOffset = $(cell).offset();
+
+        var ev = $.Event('contextmenu', {
+          pageX: cellOffset.left,
+          pageY: cellOffset.top
+        });
+
+        $(cell).trigger(ev);
+      }
+
+    });
+
   });
 
   describe("context menu with native scroll", function () {
@@ -1660,5 +1717,6 @@ describe('ContextMenu', function () {
     });
 
   });
+
 
 });

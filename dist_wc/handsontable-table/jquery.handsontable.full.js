@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.10.0
+ * Handsontable 0.10.1
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Dec 27 2013 17:46:22 GMT+0100 (Central European Standard Time)
+ * Date: Sun Jan 12 2014 13:55:41 GMT+0100 (Central European Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -107,7 +107,11 @@ if (typeof WeakMap === 'undefined') {
       properDefineProperty = false;
     }
 
-    var counter = Date.now() % 1e9;
+    /*
+      IE8 does not support Date.now() but IE8 compatibility mode in IE9 and IE10 does.
+      M$ deserves a high five for this one :)
+     */
+    var counter = +(new Date) % 1e9;
 
     var WeakMap = function() {
       this.name = '__st' + (Math.random() * 1e9 >>> 0) + (counter++ + '__');
@@ -385,7 +389,9 @@ Handsontable.Core = function (rootElement, userSettings) {
      */
     createCol: function (index, amount) {
       if (priv.dataType === 'object' || priv.settings.columns) {
-        throw new Error("Cannot create new column. When data source in an object, you can only have as much columns as defined in first data row, data schema or in the 'columns' setting");
+        throw new Error("Cannot create new column. When data source in an object, " +
+          "you can only have as much columns as defined in first data row, data schema or in the 'columns' setting." +
+          "If you want to be able to add new columns, you have to use array datasource.");
       }
       var rlen = instance.countRows()
         , data = GridSettings.prototype.data
@@ -1976,7 +1982,9 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
       else {
         if (instance.PluginHooks.hooks[i] !== void 0 || instance.PluginHooks.legacy[i] !== void 0) {
-          instance.PluginHooks.add(i, settings[i]);
+          if (typeof settings[i] === 'function' || Handsontable.helper.isArray(settings[i])) {
+            instance.PluginHooks.add(i, settings[i]);
+          }
         }
         else {
           // Update settings
@@ -2366,7 +2374,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @returns {boolean}
    */
   this.hasColHeaders = function () {
-    if (priv.settings.colHeaders !== void 0) {
+    if (priv.settings.colHeaders !== void 0 && priv.settings.colHeaders !== null) { //Polymer has empty value = null
       return !!priv.settings.colHeaders;
     }
     for (var i = 0, ilen = instance.countCols(); i < ilen; i++) {
@@ -2422,7 +2430,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     if (width === void 0 || width === priv.settings.width) {
       width = cellProperties.colWidths;
     }
-    if (width !== void 0) {
+    if (width !== void 0 && width !== null) {
       switch (typeof width) {
         case 'object': //array
           width = width[col];
@@ -2572,18 +2580,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Boolean}
    */
   this.isEmptyRow = function (r) {
-    if (priv.settings.isEmptyRow) {
-      return priv.settings.isEmptyRow.call(instance, r);
-    }
-
-    var val;
-    for (var c = 0, clen = instance.countCols(); c < clen; c++) {
-      val = instance.getDataAtCell(r, c);
-      if (val !== '' && val !== null && typeof val !== 'undefined') {
-        return false;
-      }
-    }
-    return true;
+    return priv.settings.isEmptyRow.call(instance, r);
   };
 
   /**
@@ -2592,18 +2589,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Boolean}
    */
   this.isEmptyCol = function (c) {
-    if (priv.settings.isEmptyCol) {
-      return priv.settings.isEmptyCol.call(instance, c);
-    }
-
-    var val;
-    for (var r = 0, rlen = instance.countRows(); r < rlen; r++) {
-      val = instance.getDataAtCell(r, c);
-      if (val !== '' && val !== null && typeof val !== 'undefined') {
-        return false;
-      }
-    }
-    return true;
+    return priv.settings.isEmptyCol.call(instance, c);
   };
 
   /**
@@ -2766,7 +2752,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.10.0'; //inserted by grunt from package.json
+  this.version = '0.10.1'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {};
@@ -2777,6 +2763,8 @@ DefaultSettings.prototype = {
   height: void 0,
   startRows: 5,
   startCols: 5,
+  rowHeaders: null,
+  colHeaders: null,
   minRows: 0,
   minCols: 0,
   maxRows: Infinity,
@@ -2799,8 +2787,26 @@ DefaultSettings.prototype = {
   currentRowClassName: void 0,
   currentColClassName: void 0,
   stretchH: 'hybrid',
-  isEmptyRow: void 0,
-  isEmptyCol: void 0,
+  isEmptyRow: function (r) {
+    var val;
+    for (var c = 0, clen = this.countCols(); c < clen; c++) {
+      val = this.getDataAtCell(r, c);
+      if (val !== '' && val !== null && typeof val !== 'undefined') {
+        return false;
+      }
+    }
+    return true;
+  },
+  isEmptyCol: function (c) {
+    var val;
+    for (var r = 0, rlen = this.countRows(); r < rlen; r++) {
+      val = this.getDataAtCell(r, c);
+      if (val !== '' && val !== null && typeof val !== 'undefined') {
+        return false;
+      }
+    }
+    return true;
+  },
   observeDOMVisibility: true,
   allowInvalid: true,
   invalidCellClassName: 'htInvalid',
@@ -3775,7 +3781,8 @@ Handsontable.helper.isMetaKey = function (keyCode) {
     keyCodes.ENTER,
     keyCodes.ESCAPE,
     keyCodes.SHIFT,
-    keyCodes.CAPS_LOCK
+    keyCodes.CAPS_LOCK,
+    keyCodes.ALT
   ];
 
   return metaKeys.indexOf(keyCode) != -1;
@@ -4027,6 +4034,7 @@ Handsontable.helper.keyCode = {
   CONTROL_LEFT: 91,
   COMMAND_LEFT: 17,
   COMMAND_RIGHT: 93,
+  ALT: 18,
   HOME: 36,
   PAGE_DOWN: 34,
   PAGE_UP: 33,
@@ -7070,15 +7078,21 @@ Handsontable.PluginHooks = new Handsontable.PluginHookClass();
 
       instance.view.wt.wtDom.empty(tmp.tbody);
 
-      var cellProperties = instance.getCellMeta(0, col);
-      var renderer = instance.getCellRenderer(cellProperties);
-
       for (var i in samples) {
         if (samples.hasOwnProperty(i)) {
           for (var j = 0, jlen = samples[i].strings.length; j < jlen; j++) {
+            var row = samples[i].strings[j].row;
+
+            var cellProperties = instance.getCellMeta(row, col);
+            cellProperties.col = col;
+            cellProperties.row = row;
+
+            var renderer = instance.getCellRenderer(cellProperties);
+
             var tr = document.createElement('tr');
             var td = document.createElement('td');
-            renderer(instance, td, samples[i].strings[j].row, col, instance.colToProp(col), samples[i].strings[j].value, cellProperties);
+
+            renderer(instance, td, row, col, instance.colToProp(col), samples[i].strings[j].value, cellProperties);
             r++;
             tr.appendChild(td);
             tmp.tbody.appendChild(tr);
@@ -7447,7 +7461,7 @@ function HandsontableColumnSorting() {
       return;
     }
 
-    var physicalRemovedIndex = plugin.untranslateRow.call(instance, index);
+    var physicalRemovedIndex = plugin.translateRow.call(instance, index);
 
     instance.sortIndex.splice(index, amount);
 
@@ -7631,7 +7645,6 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
 
     this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
 
-    $(this.menu).on('mousedown', Handsontable.helper.proxy(this.performAction, this));
   };
 
   ContextMenu.prototype.bindTableEvents = function () {
@@ -7686,6 +7699,10 @@ Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
   ContextMenu.prototype.show = function(top, left){
 
     this.menu.style.display = 'block';
+
+    $(this.menu)
+      .off('mousedown.htContextMenu')
+      .on('mousedown.htContextMenu', Handsontable.helper.proxy(this.performAction, this));
 
     $(this.menu).handsontable({
       data: ContextMenu.utils.convertItemsToArray(this.getItems()),
@@ -9295,7 +9312,7 @@ if (typeof Handsontable !== 'undefined') {
     };
 
     function onBeforeKeyDown (event) {
-      if (Handsontable.helper.isCtrlKey(event.keyCode)) {
+      if (Handsontable.helper.isCtrlKey(event.keyCode) && instance.getSelected()) {
         //when CTRL is pressed, prepare selectable text in textarea
         //http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
         plugin.setCopyableText();

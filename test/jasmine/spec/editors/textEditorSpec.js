@@ -503,5 +503,20 @@ describe('TextEditor', function () {
     expect(hot.getActiveEditor().getValue()).toEqual('');
   });
 
+  it("should not open editor after hitting ALT (#1239)", function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4)
+    });
+
+    expect(getDataAtCell(0, 0)).toEqual('A0');
+
+    selectCell(0, 0);
+
+    keyDown(Handsontable.helper.keyCode.ALT);
+
+    expect(hot.getActiveEditor().isOpened()).toBe(false);
+
+  });
+
 
 });
