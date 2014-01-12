@@ -1,4 +1,4 @@
-## [0.10.1]
+## [0.10.1](https://github.com/warpech/jquery-handsontable/tree/v0.10.1) (Jan 12, 2013)
 
 Changes since 0.10.0:
 
@@ -8,6 +8,7 @@ Changes since 0.10.0:
 - fixed removing rows from a sorted table ([#1072](https://github.com/warpech/jquery-handsontable/issues/1072))
 - fixed handling contextMenu plugin with multiple Handsontable instances ([#1238](https://github.com/warpech/jquery-handsontable/issues/1238))
 - cell editor won't open after pressing <kbd>ALT</kbd> ([#1239](https://github.com/warpech/jquery-handsontable/issues/1239))
+- improved Web Components binding of Handsontable configuration to DOM properties
 
 
 ## [0.10.0](https://github.com/warpech/jquery-handsontable/tree/v0.10.0) (Dec 27, 2013)
