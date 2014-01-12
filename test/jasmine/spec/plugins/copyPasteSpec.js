@@ -191,6 +191,26 @@ describe('CopyPaste plugin', function () {
 
     });
 
+    it("should not throw error when no cell is selected (#1221)", function () {
+
+      handsontable({
+        data: createSpreadsheetData(2, 2)
+      });
+
+      selectCell(0, 0);
+      deselectCell();
+
+      function keydownCtrl(){
+        $(document).trigger($.Event('keydown', {
+          keyCode: Handsontable.helper.keyCode.COMMAND_LEFT
+        }));
+      }
+
+      expect(keydownCtrl).not.toThrow();  //expect no to throw any exception
+
+    });
+
+
     describe("working with multiple tables", function () {
 
       beforeEach(function () {

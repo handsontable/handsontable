@@ -78,8 +78,8 @@ describe('ColumnSorting', function () {
       data: [
         [1, 'B'],
         [3, 'D'],
-        [0, 'A'],
-        [2, 'C']
+        [2, 'A'],
+        [0, 'C']
       ],
       colHeaders: true,
       columnSorting: true

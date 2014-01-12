@@ -96,5 +96,66 @@ describe('settings', function () {
         expect(count).toBeGreaterThan(0);
       });
     });
+
+    it("should call renderer with cellProperties.row, cellProperties.col matching row and col arguments", function () {
+
+      var rendererSpy = jasmine.createSpy('rendererSpy').andCallThrough();
+      var cellPropertiesCache = [];
+      rendererSpy.plan = function (instance, TD, row, col, prop, value, cellProperties) {
+        cellPropertiesCache.push({
+          row: cellProperties.row,
+          col: cellProperties.col
+        });
+      };
+
+      handsontable({
+        renderer: rendererSpy
+      });
+
+      for (var i = 0, len = rendererSpy.calls.length; i < len; i++){
+        var args = rendererSpy.calls[i].args;
+        var row = args[2];
+        var col = args[3];
+        var cellProperties = cellPropertiesCache[i];
+
+        expect(row).toEqual(cellProperties.row);
+        expect(col).toEqual(cellProperties.col);
+      }
+
+    });
+
+    it("should call cells function before passing cellProperties to renderer", function () {
+
+      var rendererSpy = jasmine.createSpy('rendererSpy').andCallThrough();
+      var cellPropertiesCache = [];
+      rendererSpy.plan = function (instance, TD, row, col, prop, value, cellProperties) {
+        cellPropertiesCache.push({
+          cellsRow: cellProperties.cellsRow,
+          cellsCol: cellProperties.cellsCol
+        });
+      };
+
+      handsontable({
+        renderer: rendererSpy,
+        cells: function (row, col) {
+          return {
+            cellsRow: row,
+            cellsCol: col
+          }
+        }
+      });
+
+      for (var i = 0, len = rendererSpy.calls.length; i < len; i++){
+        var args = rendererSpy.calls[i].args;
+        var row = args[2];
+        var col = args[3];
+        var cellProperties = cellPropertiesCache[i];
+
+        expect(row).toEqual(cellProperties.cellsRow);
+        expect(col).toEqual(cellProperties.cellsCol);
+      }
+
+    });
+
   });
 });

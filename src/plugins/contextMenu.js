@@ -128,7 +128,6 @@
 
     this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
 
-    $(this.menu).on('mousedown', Handsontable.helper.proxy(this.performAction, this));
   };
 
   ContextMenu.prototype.bindTableEvents = function () {
@@ -183,6 +182,10 @@
   ContextMenu.prototype.show = function(top, left){
 
     this.menu.style.display = 'block';
+
+    $(this.menu)
+      .off('mousedown.htContextMenu')
+      .on('mousedown.htContextMenu', Handsontable.helper.proxy(this.performAction, this));
 
     $(this.menu).handsontable({
       data: ContextMenu.utils.convertItemsToArray(this.getItems()),
