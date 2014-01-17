@@ -1631,8 +1631,9 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
   };
 
+  var rendererLookup = Handsontable.helper.cellMethodLookupFactory('renderer');
   this.getCellRenderer = function (row, col) {
-    var renderer = Handsontable.helper.cellMethodLookupFactory('renderer').call(this, row, col);
+    var renderer = rendererLookup.call(this, row, col);
     return Handsontable.renderers.getRenderer(renderer);
 
   };
