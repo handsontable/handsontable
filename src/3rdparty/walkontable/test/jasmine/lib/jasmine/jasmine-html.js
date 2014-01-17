@@ -205,7 +205,7 @@ jasmine.HtmlReporter.parameters = function(doc) {
     params = paramStr.split('&');
   }
   return params;
-}
+};
 jasmine.HtmlReporter.sectionLink = function(sectionName) {
   var link = '?';
   var params = [];

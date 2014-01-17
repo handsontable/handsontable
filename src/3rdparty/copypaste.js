@@ -108,7 +108,7 @@ CopyPasteClass.prototype.init = function () {
         }, 0);
       }
     }
-  }
+  };
 
   this._bindEvent(this.listenerElement, 'keydown', this.keydownListener);
 };

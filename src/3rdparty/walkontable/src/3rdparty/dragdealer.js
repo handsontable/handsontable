@@ -204,7 +204,7 @@ Dragdealer.prototype =
 		this.wrapper.onselectstart = function()
 		{
 			return false;
-		}
+		};
 		this.handle.onmousedown = this.handle.ontouchstart = function(e)
 		{
 			self.handleDownHandler(e);
@@ -234,11 +234,11 @@ Dragdealer.prototype =
 		this.wrapper.onmousemove = function(e)
 		{
 			self.activity = true;
-		}
+		};
 		this.wrapper.onclick = function(e)
 		{
 			return !self.activity;
-		}
+		};
 		
 		this.interval = setInterval(function(){ self.animate() }, 25);
 		self.animate(false, true);
