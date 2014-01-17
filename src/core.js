@@ -43,8 +43,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     firstRun: true
   };
 
-  datamap = new Handsontable.DataMap(instance, priv, GridSettings);
-
   grid = {
     /**
      * Inserts or removes rows and columns
@@ -1117,7 +1115,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
    */
   this.spliceCol = function (col, index, amount/*, elements... */) {
-    return datamap.spliceCol.apply(null, arguments);
+    return datamap.spliceCol.apply(datamap, arguments);
   };
 
   /**
@@ -1128,7 +1126,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * param {...*} elements Optional. The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array
    */
   this.spliceRow = function (row, index, amount/*, elements... */) {
-    return datamap.spliceRow.apply(null, arguments);
+    return datamap.spliceRow.apply(datamap, arguments);
   };
 
   /**
@@ -1249,13 +1247,8 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.dataType = 'object';
     }
 
-    if (data[0]) {
-      datamap.duckSchema = datamap.recursiveDuckSchema(data[0]);
-    }
-    else {
-      datamap.duckSchema = {};
-    }
-    datamap.createMap();
+    datamap = new Handsontable.DataMap(instance, priv, GridSettings);
+
     clearCellSettingCache();
 
     grid.adjustRowsAndCols();
