@@ -37,7 +37,8 @@ Handsontable.HandsontableCell = {
 
 Handsontable.PasswordCell = {
   editor: Handsontable.editors.PasswordEditor,
-  renderer: Handsontable.renderers.PasswordRenderer
+  renderer: Handsontable.renderers.PasswordRenderer,
+  copyable: false
 };
 
 Handsontable.DropdownCell = {
