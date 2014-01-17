@@ -1285,12 +1285,12 @@ Handsontable.Core = function (rootElement, userSettings) {
       return datamap.getAll();
     }
     else {
-      return datamap.getRange({row: r, col: c}, {row: r2, col: c2});
+      return datamap.getRange({row: r, col: c}, {row: r2, col: c2}, datamap.DESTINATION_RENDERER);
     }
   };
 
   this.getCopyableData = function (startRow, startCol, endRow, endCol) {
-    return datamap.getText({row: startRow, col: startCol}, {row: endRow, col: endCol});
+    return datamap.getCopyableText({row: startRow, col: startCol}, {row: endRow, col: endCol});
   }
 
   /**
@@ -1535,7 +1535,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return value (mixed data type)
    */
   this.getDataAtCol = function (col) {
-    return [].concat.apply([], datamap.getRange({row: 0, col: col}, {row: priv.settings.data.length - 1, col: col}));
+    return [].concat.apply([], datamap.getRange({row: 0, col: col}, {row: priv.settings.data.length - 1, col: col}, datamap.DESTINATION_RENDERER));
   };
 
   /**
@@ -1545,7 +1545,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return value (mixed data type)
    */
   this.getDataAtProp = function (prop) {
-    return [].concat.apply([], datamap.getRange({row: 0, col: datamap.propToCol(prop)}, {row: priv.settings.data.length - 1, col: datamap.propToCol(prop)}));
+    return [].concat.apply([], datamap.getRange({row: 0, col: datamap.propToCol(prop)}, {row: priv.settings.data.length - 1, col: datamap.propToCol(prop)}, datamap.DESTINATION_RENDERER));
   };
 
   /**
@@ -2147,6 +2147,7 @@ DefaultSettings.prototype = {
   readOnly: false,
   nativeScrollbars: false,
   type: 'text',
+  copyable: true,
   debug: false //shows debug overlays in Walkontable
 };
 Handsontable.DefaultSettings = DefaultSettings;

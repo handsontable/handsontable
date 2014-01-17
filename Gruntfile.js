@@ -53,7 +53,6 @@ module.exports = function (grunt) {
     meta: {
       src: [
         'tmp/core.js',
-        'src/dataMap.js',
         'src/focusCatcher.js',
         'src/tableView.js',
         'src/editors.js',
@@ -62,6 +61,7 @@ module.exports = function (grunt) {
         'src/helpers.js',
         'src/fillHandle.js',
         'src/selectionPoint.js',
+        'src/dataMap.js',
 
         'src/renderers/cellDecorator.js',
         'src/renderers/textRenderer.js',

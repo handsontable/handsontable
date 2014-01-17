@@ -29,6 +29,9 @@
     this.setVars = {}; //used by modifier
   };
 
+  Handsontable.DataMap.prototype.DESTINATION_RENDERER = 1;
+  Handsontable.DataMap.prototype.DESTINATION_CLIPBOARD_GENERATOR = 2;
+
   Handsontable.DataMap.prototype.recursiveDuckSchema = function (obj) {
     var schema;
     if ($.isPlainObject(obj)) {
@@ -402,6 +405,21 @@
     }
   };
 
+  var copyableLookup = Handsontable.helper.cellMethodLookupFactory('copyable');
+
+  /**
+   * Returns single value from the data array (intended for clipboard copy to an external application)
+   * @param {Number} row
+   * @param {Number} prop
+   * @return {String}
+   */
+  Handsontable.DataMap.prototype.getCopyable = function (row, prop) {
+    if (copyableLookup.call(this.instance, row, this.propToCol(prop))) {
+      return this.get(row, prop);
+    }
+    return '';
+  };
+
   /**
    * Saves single value to the data array
    * @param {Number} row
@@ -479,16 +497,18 @@
    * Returns data range as array
    * @param {Object} start Start selection position
    * @param {Object} end End selection position
+   * @param {Number} destination Destination of datamap.get
    * @return {Array}
    */
-  Handsontable.DataMap.prototype.getRange = function (start, end) {
+  Handsontable.DataMap.prototype.getRange = function (start, end, destination) {
     var r, rlen, c, clen, output = [], row;
+    var getFn = destination === this.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;
     rlen = Math.max(start.row, end.row);
     clen = Math.max(start.col, end.col);
     for (r = Math.min(start.row, end.row); r <= rlen; r++) {
       row = [];
       for (c = Math.min(start.col, end.col); c <= clen; c++) {
-        row.push(this.get(r, this.colToProp(c)));
+        row.push(getFn.call(this, r, this.colToProp(c)));
       }
       output.push(row);
     }
@@ -502,7 +522,17 @@
    * @return {String}
    */
   Handsontable.DataMap.prototype.getText = function (start, end) {
-    return SheetClip.stringify(this.getRange(start, end));
+    return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_RENDERER));
+  };
+
+  /**
+   * Return data as copyable text (tab separated columns intended for clipboard copy to an external application)
+   * @param {Object} start (Optional) Start selection position
+   * @param {Object} end (Optional) End selection position
+   * @return {String}
+   */
+  Handsontable.DataMap.prototype.getCopyableText = function (start, end) {
+    return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
   };
 
 })(Handsontable);
