@@ -1773,7 +1773,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   this.getCopyableData = function (startRow, startCol, endRow, endCol) {
     return datamap.getText({row: startRow, col: startCol}, {row: endRow, col: endCol});
-  }
+  };
 
   /**
    * Update settings

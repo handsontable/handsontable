@@ -555,7 +555,7 @@
     if(this.menu.parentNode){
       this.menu.parentNode.removeChild(this.menu);
     }
-  }
+  };
 
   ContextMenu.prototype.filterItems = function(itemsToLeave){
     this.itemsFilter = itemsToLeave;
