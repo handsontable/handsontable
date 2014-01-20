@@ -426,4 +426,9 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName) {
 
     return type;
   }
+
+};
+
+Handsontable.helper.toString = function (obj) {
+  return '' + obj;
 };
