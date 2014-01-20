@@ -368,6 +368,7 @@ Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
     this.wt.wtDom.empty(TH);
     TH.appendChild(DIV);
   }
+  this.instance.PluginHooks.run('afterGetRowHeader', row, TH);
 };
 
 /**
