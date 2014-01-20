@@ -102,7 +102,8 @@ module.exports = function (grunt) {
         'src/plugins/persistentState.js',
         'src/plugins/undoRedo.js',
         'src/plugins/dragToScroll/dragToScroll.js',
-        'src/plugins/copyPaste.js'
+        'src/plugins/copyPaste.js',
+        'src/plugins/search.js'
 
       ],
       walkontable: [
