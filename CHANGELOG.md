@@ -1,3 +1,15 @@
+## [0.10.2](https://github.com/warpech/jquery-handsontable/tree/v0.10.2) (Jan 23, 2013)
+
+Features:
+
+- new configuration option `copyable` lets you define which cells can be copied to the clipboard using the keyboard shortcut (using CTRL+C, CTRL+V). The default value is `true` for all cells with one exception - see the next point)
+- `password` cell type value can no longer be copied to the clipboard (unless you explicitly set option `copyable: true`)
+
+Developer changes:
+
+- added `.editorconfig` file. See [http://editorconfig.org/](http://editorconfig.org/) for details
+- moved Handsontable.DataMap class to a separate file
+
 ## [0.10.1](https://github.com/warpech/jquery-handsontable/tree/v0.10.1) (Jan 12, 2013)
 
 Changes since 0.10.0:

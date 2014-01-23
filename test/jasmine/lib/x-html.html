@@ -1,39 +1,75 @@
+<!--
+x-html.html v0.0.20131220
+(c) 2013 Joachim Wester
+MIT license
+https://github.com/PuppetJs/x-html
+-->
 <script>
   (function () {
-    function getModel(node) {
-      return node.model;
-    }
+    Object.defineProperty(Node.prototype, 'model', {
+      get: function () {
+        if (this.bindings) {
+          return (this.bindings.content || this.bindings.value).model; //`content` is in DOM and `value` is in Shadow DOM
+        }
+      }
+    });
 
     function loadTemplate(customElement) {
-      var template = customElement.getAttribute('content');
-      if (template && template.indexOf('/') === 0) {
-        //load partial from HTTP server/cache
-         var href = template; //.substr(1);
+      var val = customElement.getAttribute('content');
+      if (val && (val.indexOf('/') === 0 || val.indexOf('./') === 0)) {
+        //val is a URL, load the partial from the HTTP server/cache
         var oReq = new XMLHttpRequest();
         oReq.onload = function (event) {
           reattachTemplate(customElement, event.target.responseText);
         };
-        oReq.open("GET", href, true);
+        oReq.open("GET", val, true);
         oReq.send();
       }
       else {
-        //load partial from string
-        reattachTemplate(customElement, template);
+        //val is HTML code, insert the partial from the string
+        reattachTemplate(customElement, val);
       }
     }
 
-    function reattachTemplate(customElement, template) {
-      customElement.innerHTML = '<template bind>' + template + '</template>';
-      var model = getModel(customElement);
-      customElement.firstChild.model = model;
+    function reattachTemplate(customElement, html) {
+      customElement.innerHTML = '<template bind>' + html + '</template>';
 
-      setTimeout(function () {
-        var inScripts = customElement.firstChild.content.querySelectorAll('script');
-        inScripts = Array.prototype.slice.call(inScripts, 0); //convert to array
-        inScripts.forEach(function (inScript) {
-          executeComponentScript(inScript.textContent, customElement, 'script')
+      var template = customElement.firstChild;
+      var content = template.content;
+
+      var specialElems = content.querySelectorAll(['style', 'link[rel=stylesheet]', 'script']);
+      specialElems = Array.prototype.slice.call(specialElems, 0); //convert to array
+      specialElems.forEach(function (elem) {
+        elem.parentNode.removeChild(elem); //avoid being processed by HTMLImports
+      });
+
+      HTMLImports.importer.load(content, function () {
+        if (content.scripts === void 0) {
+          content.scripts = [];
+          //workaround HTMLImport error "TypeError: Cannot read property 'length' of undefined "
+          //this can be removed when https://github.com/Polymer/HTMLImports/issues/40 is fixed
+        }
+        HTMLImports.parser.parse(content);
+        template.model = customElement.model;
+
+        specialElems.forEach(function (elem) {
+          if (elem.nodeName === 'STYLE') {
+            customElement.appendChild(elem);
+          }
+          else if (elem.nodeName === 'LINK') { //appending <link rel="stylesheet"> to Shadow DOM does not have any effect (9 Nov, 2013)
+            var style = document.createElement('style');
+            style.innerHTML = '@import url(' + elem.getAttribute('href') + ');';
+            setTimeout(function () { //must be async, otherwise custom elements in demo puppetjs/lab/wc/page_2 display improperly
+              customElement.appendChild(style);
+            }, 0);
+          }
+          else if (elem.nodeName === 'SCRIPT') {
+            setTimeout(function () { //must be async
+              executeComponentScript(elem.textContent, customElement, 'script')
+            }, 0);
+          }
         });
-      }, 0);
+      });
     }
 
     /**

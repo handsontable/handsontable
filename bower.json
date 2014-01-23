@@ -1,6 +1,6 @@
 {
   "name": "handsontable",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "main": ["./dist/jquery.handsontable.full.js", "./dist/jquery.handsontable.full.css"],
   "ignore": [
     "**/.*",

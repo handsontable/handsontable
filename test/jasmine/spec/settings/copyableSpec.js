@@ -1,0 +1,78 @@
+describe('settings', function () {
+  describe('copyable', function () {
+    var id = 'testContainer';
+
+    beforeEach(function () {
+      this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    });
+
+    afterEach(function () {
+      if (this.$container) {
+        destroy();
+        this.$container.remove();
+      }
+    });
+
+    it("by default, CTRL+C should NOT copy the password value", function () {
+      handsontable({
+        data: [
+          ['Joe', 'Secret', 'Jack']
+        ],
+        columns: [
+          {
+          },
+          {
+            type: 'password'
+          },
+          {
+          }
+        ]
+      });
+
+      expect(getCopyableData(0, 0, 0, 2)).toMatch('Joe\t\tJack\n');
+    });
+
+    it("with copyable=true, CTRL+C should copy the password value", function () {
+      handsontable({
+
+        data: [
+          ['Joe', 'Secret', 'Jack']
+        ],
+        columns: [
+          {
+          },
+          {
+            type: 'password',
+            copyable: true
+          },
+          {
+          }
+        ]
+      });
+
+      expect(getCopyableData(0, 0, 0, 2)).toMatch('Joe\tSecret\tJack\n');
+    });
+
+    it("with copyable=false, CTRL+C should NOT copy the password value", function () {
+      handsontable({
+
+        data: [
+          ['Joe', 'Secret', 'Jack']
+        ],
+        columns: [
+          {
+          },
+          {
+            type: 'password',
+            copyable: false
+          },
+          {
+          }
+        ]
+      });
+
+      expect(getCopyableData(0, 0, 0, 2)).toMatch('Joe\t\tJack\n');
+    });
+
+  });
+});
