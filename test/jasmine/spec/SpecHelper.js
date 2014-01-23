@@ -253,6 +253,7 @@ var getCellRenderer = handsontableMethodFactory('getCellRenderer');
 var getCellEditor = handsontableMethodFactory('getCellEditor');
 var getCellValidator = handsontableMethodFactory('getCellValidator');
 var getData = handsontableMethodFactory('getData');
+var getCopyableData = handsontableMethodFactory('getCopyableData');
 var getDataAtCell = handsontableMethodFactory('getDataAtCell');
 var getDataAtRowProp = handsontableMethodFactory('getDataAtRowProp');
 var getDataAtRow = handsontableMethodFactory('getDataAtRow');
