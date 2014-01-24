@@ -1,4 +1,4 @@
-## [0.10.2](https://github.com/warpech/jquery-handsontable/tree/v0.10.2) (Jan 23, 2013)
+## [0.10.2](https://github.com/warpech/jquery-handsontable/tree/v0.10.2) (Jan 23, 2014)
 
 Features:
 
@@ -10,7 +10,7 @@ Developer changes:
 - added `.editorconfig` file. See [http://editorconfig.org/](http://editorconfig.org/) for details
 - moved Handsontable.DataMap class to a separate file
 
-## [0.10.1](https://github.com/warpech/jquery-handsontable/tree/v0.10.1) (Jan 12, 2013)
+## [0.10.1](https://github.com/warpech/jquery-handsontable/tree/v0.10.1) (Jan 12, 2014)
 
 Changes since 0.10.0:
 
