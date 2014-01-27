@@ -15,26 +15,27 @@
       for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) {
         for (var colIndex = 0; colIndex < colCount; colIndex++) {
           var cellData = instance.getDataAtCell(rowIndex, colIndex);
+          var testResult = regex.test(Handsontable.helper.toString(cellData));
 
-          if (regex.test(Handsontable.helper.toString(cellData))) {
+          if (testResult) {
             var singleResult = {
               row: rowIndex,
               col: colIndex,
               data: cellData
             };
 
-            if (callback) {
-              callback(instance, singleResult.row, singleResult.col, singleResult.data);
-            }
-
             queryResult.push(singleResult);
+          }
+
+          if (callback) {
+            callback(instance, rowIndex, colIndex, cellData, testResult);
           }
         }
       }
 
       return queryResult;
 
-    }
+    };
 
     var defaultCallback = Handsontable.Search.DEFAULT_CALLBACK;
 
@@ -47,8 +48,8 @@
     };
   };
 
-  Handsontable.Search.DEFAULT_CALLBACK = function () {
-
+  Handsontable.Search.DEFAULT_CALLBACK = function (instance, row, col, data, testResult) {
+    instance.getCellMeta(row, col).isSearchResult = testResult;
   };
 
   function init() {

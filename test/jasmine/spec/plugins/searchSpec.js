@@ -75,7 +75,7 @@ describe('Search plugin', function () {
     });
   });
 
-  describe("suite name", function () {
+  describe("searching", function () {
     it("should use search method to find phrase", function () {
       var hot = handsontable({
         data: createSpreadsheetData(5, 5),
@@ -94,7 +94,7 @@ describe('Search plugin', function () {
 
     });
 
-    it("should use invoke callback for each search result", function () {
+    it("should invoke callback for each cell which has been tested", function () {
       var hot = handsontable({
         data: createSpreadsheetData(5, 5),
         search: true
@@ -104,19 +104,29 @@ describe('Search plugin', function () {
 
       var searchResult = hot.search.query(/A/i, searchCallback);
 
-      expect(searchCallback.calls.length).toEqual(5)
+      expect(searchCallback.calls.length).toEqual(25)
 
-      for(var i = 0; i < searchResult.length; i++){
-        var callArgs = searchCallback.calls[i].args;
-        expect(callArgs[0]).toEqual(hot);
-        expect(callArgs[1]).toEqual(i);
-        expect(callArgs[2]).toEqual(0);
-        expect(callArgs[3]).toEqual(hot.getDataAtCell(i, 0));
+      for(var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++){
+        for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++){
+          var callArgs = searchCallback.calls[rowIndex * 5 + colIndex].args;
+          expect(callArgs[0]).toEqual(hot);
+          expect(callArgs[1]).toEqual(rowIndex);
+          expect(callArgs[2]).toEqual(colIndex);
+          expect(callArgs[3]).toEqual(hot.getDataAtCell(rowIndex, colIndex));
+
+          if (colIndex == 0){
+            expect(callArgs[4]).toBe(true);
+          } else {
+            expect(callArgs[4]).toBe(false);
+          }
+
+        }
+
       }
 
     });
 
-    it("should use invoke default callback for each search result", function () {
+    it("should invoke default callback for each cell", function () {
 
       spyOn(Handsontable.Search, 'DEFAULT_CALLBACK');
 
@@ -127,7 +137,7 @@ describe('Search plugin', function () {
 
       var searchResult = hot.search.query(/A/i);
 
-      expect(Handsontable.Search.DEFAULT_CALLBACK.calls.length).toEqual(5)
+      expect(Handsontable.Search.DEFAULT_CALLBACK.calls.length).toEqual(25)
 
     });
 
@@ -146,9 +156,35 @@ describe('Search plugin', function () {
       var searchResult = hot.search.query(/A/i);
 
       expect(Handsontable.Search.DEFAULT_CALLBACK).not.toHaveBeenCalled();
-      expect(defaultCallback.calls.length).toEqual(5);
+      expect(defaultCallback.calls.length).toEqual(25);
 
     });
 
+  });
+
+  describe("default callback", function () {
+    it("should add highlighted = true, to cell properties of all matched cells", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: true,
+        renderer: 'search-result'
+      });
+
+      var searchResult = hot.search.query(/A1|B3/i);
+
+      for (var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++){
+        for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++){
+
+          var cellProperties = getCellMeta(rowIndex, colIndex);
+
+          if (searchResult[rowIndex].col == colIndex){
+            expect(cellProperties.isSearchResult).toBeTruthy();
+          } else {
+            expect(cellProperties.isSearchResult).toBeFalsy();
+          }
+        }
+      }
+
+    });
   });
 });
