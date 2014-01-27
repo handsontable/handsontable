@@ -70,6 +70,7 @@ module.exports = function (grunt) {
         'src/renderers/numericRenderer.js',
         'src/renderers/passwordRenderer.js',
         'src/renderers/htmlRenderer.js',
+        'src/renderers/searchResultRenderer.js',
 
         'src/editors/baseEditor.js',
         'src/editors/textEditor.js',
