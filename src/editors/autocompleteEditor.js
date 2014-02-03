@@ -194,7 +194,7 @@
 
       rowToHighlight = findItemIndexToHighlight(choices, value);
 
-      if ( typeof rowToHighlight == 'undefined'){
+      if ( typeof rowToHighlight == 'undefined' && this.cellProperties.allowInvalid === false){
         rowToHighlight = 0;
       }
 
