@@ -15,24 +15,28 @@ Handsontable.CheckboxCell = {
 
 Handsontable.TextCell = {
   editor: Handsontable.editors.TextEditor,
-  renderer: Handsontable.renderers.TextRenderer
+  renderer: Handsontable.renderers.TextRenderer,
+  copyable: true
 };
 
 Handsontable.NumericCell = {
   editor: Handsontable.editors.TextEditor,
   renderer: Handsontable.renderers.NumericRenderer,
   validator: Handsontable.NumericValidator,
-  dataType: 'number'
+  dataType: 'number',
+  copyable: true
 };
 
 Handsontable.DateCell = {
   editor: Handsontable.editors.DateEditor,
-  renderer: Handsontable.renderers.AutocompleteRenderer //displays small gray arrow on right side of the cell
+  renderer: Handsontable.renderers.AutocompleteRenderer, //displays small gray arrow on right side of the cell
+  copyable: true
 };
 
 Handsontable.HandsontableCell = {
   editor: Handsontable.editors.HandsontableEditor,
-  renderer: Handsontable.renderers.AutocompleteRenderer //displays small gray arrow on right side of the cell
+  renderer: Handsontable.renderers.AutocompleteRenderer, //displays small gray arrow on right side of the cell
+  copyable: true
 };
 
 Handsontable.PasswordCell = {
@@ -44,7 +48,8 @@ Handsontable.PasswordCell = {
 Handsontable.DropdownCell = {
   editor: Handsontable.editors.DropdownEditor,
   renderer: Handsontable.renderers.AutocompleteRenderer, //displays small gray arrow on right side of the cell
-  validator: Handsontable.AutocompleteValidator
+  validator: Handsontable.AutocompleteValidator,
+  copyable: true
 };
 
 //here setup the friendly aliases that are used by cellProperties.type
