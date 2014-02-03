@@ -52,10 +52,13 @@
 
     hot.updateSettings({
       'colWidths': [this.wtDom.outerWidth(this.TEXTAREA) - 2],
-      afterRenderer: function (TD, row, col, prop, value, cellProperties) {
-        var match = TD.innerHTML.match(new RegExp(that.query, 'i'));
-        if(match){
-          TD.innerHTML = value.replace(match[0], '<strong>' + match[0] + '</strong>');
+      afterRenderer: function (TD, row, col, prop, value) {
+        var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true;
+        var indexOfMatch =  caseSensitive ? value.indexOf(that.query) : value.toLowerCase().indexOf(that.query.toLowerCase());
+
+        if(indexOfMatch != -1){
+          var match = value.substr(indexOfMatch, that.query.length);
+          TD.innerHTML = value.replace(match, '<strong>' + match + '</strong>');
         }
       }
     });
@@ -122,10 +125,17 @@
         choices = this.cellProperties.source;
       } else {
 
-        var queryRegex = new RegExp(query, this.cellProperties.filteringCaseSensitive === true ? '' : 'i');
+        var filteringCaseSensitive = this.cellProperties.filteringCaseSensitive === true;
+        var lowerCaseQuery = query.toLowerCase();
 
         choices = this.cellProperties.source.filter(function(choice){
-          return queryRegex.test(choice);
+
+          if (filteringCaseSensitive) {
+            return choice.indexOf(query) != -1;
+          } else {
+            return choice.toLowerCase().indexOf(lowerCaseQuery) != -1;
+          }
+
         });
       }
 
