@@ -15,7 +15,12 @@
       }
     });
 
-    instance.addHook("afterCreateRow", function (index, amount) {
+    instance.addHook("afterCreateRow", function (index, amount, createdAutomatically) {
+
+      if (createdAutomatically) {
+        return;
+      }
+
       var action = new Handsontable.UndoRedo.CreateRowAction(index, amount);
       plugin.done(action);
     });
@@ -28,7 +33,12 @@
       plugin.done(action);
     });
 
-    instance.addHook("afterCreateCol", function (index, amount) {
+    instance.addHook("afterCreateCol", function (index, amount, createdAutomatically) {
+
+      if (createdAutomatically) {
+        return;
+      }
+
       var action = new Handsontable.UndoRedo.CreateColumnAction(index, amount);
       plugin.done(action);
     });
