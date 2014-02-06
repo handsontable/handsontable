@@ -225,7 +225,8 @@ module.exports = function (grunt) {
           styles: [
             'test/jasmine/css/SpecRunner.css',
             'dist/jquery.handsontable.css',
-            'extensions/jquery.handsontable.removeRow.css'
+            'extensions/jquery.handsontable.removeRow.css',
+            'lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css'
           ],
           vendor: [
             'lib/jquery.min.js',
