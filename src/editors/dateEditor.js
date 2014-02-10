@@ -36,8 +36,8 @@
       showButtonPanel: true,
       changeMonth: true,
       changeYear: true,
-      altField: this.$textarea,
-      onSelect: function () {
+      onSelect: function (dateStr) {
+        that.setValue(dateStr);
         that.finishEditing(false);
       }
     };

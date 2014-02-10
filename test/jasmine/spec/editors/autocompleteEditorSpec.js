@@ -1379,6 +1379,154 @@ describe('AutocompleteEditor', function () {
       });
     });
 
+    it('text in textarea should not be interpreted as regexp', function () {
+      spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'queryChoices').andCallThrough();
+      var queryChoices = Handsontable.editors.AutocompleteEditor.prototype.queryChoices;
+
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      var editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+      waitsFor(function () {
+        return queryChoices.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function () {
+
+        queryChoices.reset();
+
+        editorInput.val("yellow|red");
+        keyDownUp("d".charCodeAt(0));
+
+
+      });
+
+      waitsFor(function () {
+        return queryChoices.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function () {
+        expect(autocomplete().handsontable('getData').length).toEqual(0);
+      });
+    });
+
+    it('text in textarea should not be interpreted as regexp when highlighting the matching phrase', function () {
+      var choices = ['Male', 'Female'];
+
+      var syncSources = jasmine.createSpy('syncSources');
+
+      syncSources.plan = function (query, process) {
+        process(choices.filter(function(choice){
+          return choice.search(new RegExp(query, 'i')) != -1;
+        }));
+      };
+
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: syncSources,
+            filter: false
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      var editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+      waitsFor(function () {
+        return syncSources.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function () {
+
+        syncSources.reset();
+
+        editorInput.val("M|F");
+        keyDownUp('F'.charCodeAt(0));
+
+
+      });
+
+      waitsFor(function () {
+        return syncSources.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function () {
+        var autocompleteList = autocomplete().handsontable('getInstance').rootElement;
+        expect(autocompleteList.find('td:eq(0)').html()).toEqual('Male');
+        expect(autocompleteList.find('td:eq(1)').html()).toEqual('Female');
+
+        syncSources.reset();
+      });
+    });
+
+    it("should allow any value if filter === false and allowInvalid === true", function () {
+      spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'queryChoices').andCallThrough();
+      var queryChoices = Handsontable.editors.AutocompleteEditor.prototype.queryChoices;
+
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices,
+            filter: false,
+            strict: true,
+            allowInvalid: true
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      var editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+      waitsFor(function () {
+        return queryChoices.calls.length > 0;
+      }, 'queryChoices function call', 1000);
+
+      runs(function () {
+
+        queryChoices.reset();
+
+        editorInput.val("foobar");
+        keyDownUp(82); //r
+
+
+      });
+
+      waitsFor(function () {
+        return queryChoices.calls.length > 0;
+      }, 'queryChoices function call', 1000);
+
+      runs(function () {
+
+        keyDownUp(Handsontable.helper.keyCode.ENTER);
+
+        expect(getDataAtCell(0, 0)).toEqual('foobar');
+      });
+
+    });
+
   });
 
   it('should restore the old value when hovered over a autocomplete menu item and then clicked outside of the table', function () {

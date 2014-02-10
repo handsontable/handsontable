@@ -74,26 +74,26 @@ Handsontable.PluginHookClass = (function () {
   }
 
   PluginHookClass.prototype.add = function (key, fn) {
-    // provide support for old versions of HOT
-    if (key in legacy) {
-      key = legacy[key];
-    }
-
-    if (typeof this.hooks[key] === "undefined") {
-      this.hooks[key] = [];
-    }
-
+    //if fn is array, run this for all the array items
     if (Handsontable.helper.isArray(fn)) {
       for (var i = 0, len = fn.length; i < len; i++) {
-        this.hooks[key].push(fn[i]);
+        this.add(key, fn[i]);
       }
-    } else {
-      if (this.hooks[key].indexOf(fn) > -1) {
-        throw new Error("Seems that you are trying to set the same plugin hook twice (" + key + ", " + fn + ")"); //error here should help writing bug-free plugins
-      }
-      this.hooks[key].push(fn);
     }
+    else {
+      // provide support for old versions of HOT
+      if (key in legacy) {
+        key = legacy[key];
+      }
 
+      if (typeof this.hooks[key] === "undefined") {
+        this.hooks[key] = [];
+      }
+
+      if (this.hooks[key].indexOf(fn) == -1) {
+        this.hooks[key].push(fn); //only add a hook if it has not already be added (adding the same hook twice is now silently ignored)
+      }
+    }
     return this;
   };
 
