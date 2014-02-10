@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.10.2
+ * Handsontable 0.10.3
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jan 23 2014 23:06:23 GMT+0100 (CET)
+ * Date: Mon Feb 10 2014 14:15:11 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -329,14 +329,14 @@ Handsontable.Core = function (rootElement, userSettings) {
       rlen = instance.countRows();
       if (rlen < priv.settings.minRows) {
         for (r = 0; r < priv.settings.minRows - rlen; r++) {
-          datamap.createRow();
+          datamap.createRow(instance.countRows(), 1, true);
         }
       }
 
       //should I add empty rows to meet minSpareRows?
       if (emptyRows < priv.settings.minSpareRows) {
         for (; emptyRows < priv.settings.minSpareRows && instance.countRows() < priv.settings.maxRows; emptyRows++) {
-          datamap.createRow();
+          datamap.createRow(instance.countRows(), 1, true);
         }
       }
 
@@ -346,14 +346,14 @@ Handsontable.Core = function (rootElement, userSettings) {
       //should I add empty cols to meet minCols?
       if (!priv.settings.columns && instance.countCols() < priv.settings.minCols) {
         for (; instance.countCols() < priv.settings.minCols; emptyCols++) {
-          datamap.createCol();
+          datamap.createCol(instance.countCols(), 1, true);
         }
       }
 
       //should I add empty cols to meet minSpareCols?
       if (!priv.settings.columns && instance.dataType === 'array' && emptyCols < priv.settings.minSpareCols) {
         for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
-          datamap.createCol();
+          datamap.createCol(instance.countCols(), 1, true);
         }
       }
 
@@ -2271,7 +2271,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.10.2'; //inserted by grunt from package.json
+  this.version = '0.10.3'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {};
@@ -3635,7 +3635,26 @@ Handsontable.helper.proxy = function (fun, context) {
   };
 };
 
-Handsontable.helper.cellMethodLookupFactory = function (methodName) {
+/**
+ * Factory that produces a function for searching methods (or any properties) which could be defined directly in
+ * table configuration or implicitly, within cell type definition.
+ *
+ * For example: renderer can be defined explicitly using "renderer" property in column configuration or it can be
+ * defined implicitly using "type" property.
+ *
+ * Methods/properties defined explicitly always takes precedence over those defined through "type".
+ *
+ * If the method/property is not found in an object, searching is continued recursively through prototype chain, until
+ * it reaches the Object.prototype.
+ *
+ *
+ * @param methodName {String} name of the method/property to search (i.e. 'renderer', 'validator', 'copyable')
+ * @param allowUndefined {Boolean} [optional] if false, the search is continued if methodName has not been found in cell "type"
+ * @returns {Function}
+ */
+Handsontable.helper.cellMethodLookupFactory = function (methodName, allowUndefined) {
+
+  allowUndefined = typeof allowUndefined == 'undefined' ? true : allowUndefined;
 
   return function cellMethodLookup (row, col) {
 
@@ -3660,7 +3679,12 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName) {
 
         type = translateTypeNameToObject(properties.type);
 
-        return type[methodName]; //method defined in type. if does not exist (eg. validator), returns undefined
+        if (type.hasOwnProperty(methodName)) {
+          return type[methodName]; //method defined in type.
+        } else if (allowUndefined) {
+          return; //method does not defined in type (eg. validator), returns undefined
+        }
+
       }
 
       return getMethodFromProperties(Handsontable.helper.getPrototypeOf(properties));
@@ -3855,7 +3879,7 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
    * Creates row at the bottom of the data array
    * @param {Number} [index] Optional. Index of the row before which the new row will be inserted
    */
-  Handsontable.DataMap.prototype.createRow = function (index, amount) {
+  Handsontable.DataMap.prototype.createRow = function (index, amount, createdAutomatically) {
     var row
       , colCount = this.instance.countCols()
       , numberOfCreatedRows = 0
@@ -3898,7 +3922,7 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
     }
 
 
-    this.instance.PluginHooks.run('afterCreateRow', index, numberOfCreatedRows);
+    this.instance.PluginHooks.run('afterCreateRow', index, numberOfCreatedRows, createdAutomatically);
     this.instance.forceFullRender = true; //used when data was changed
 
     return numberOfCreatedRows;
@@ -3909,7 +3933,7 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
    * @param {Number} [index] Optional. Index of the column before which the new column will be inserted
    *   * @param {Number} [amount] Optional.
    */
-  Handsontable.DataMap.prototype.createCol = function (index, amount) {
+  Handsontable.DataMap.prototype.createCol = function (index, amount, createdAutomatically) {
     if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
       throw new Error("Cannot create new column. When data source in an object, " +
         "you can only have as much columns as defined in first data row, data schema or in the 'columns' setting." +
@@ -3952,7 +3976,7 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
       currentIndex++;
     }
 
-    this.instance.PluginHooks.run('afterCreateCol', index, numberOfCreatedCols);
+    this.instance.PluginHooks.run('afterCreateCol', index, numberOfCreatedCols, createdAutomatically);
     this.instance.forceFullRender = true; //used when data was changed
 
     return numberOfCreatedCols;
@@ -4127,7 +4151,7 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
     }
   };
 
-  var copyableLookup = Handsontable.helper.cellMethodLookupFactory('copyable');
+  var copyableLookup = Handsontable.helper.cellMethodLookupFactory('copyable', false);
 
   /**
    * Returns single value from the data array (intended for clipboard copy to an external application)
@@ -5069,8 +5093,8 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
       showButtonPanel: true,
       changeMonth: true,
       changeYear: true,
-      altField: this.$textarea,
-      onSelect: function () {
+      onSelect: function (dateStr) {
+        that.setValue(dateStr);
         that.finishEditing(false);
       }
     };
@@ -5360,10 +5384,13 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
 
     hot.updateSettings({
       'colWidths': [this.wtDom.outerWidth(this.TEXTAREA) - 2],
-      afterRenderer: function (TD, row, col, prop, value, cellProperties) {
-        var match = TD.innerHTML.match(new RegExp(that.query, 'i'));
-        if(match){
-          TD.innerHTML = value.replace(match[0], '<strong>' + match[0] + '</strong>');
+      afterRenderer: function (TD, row, col, prop, value) {
+        var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true;
+        var indexOfMatch =  caseSensitive ? value.indexOf(that.query) : value.toLowerCase().indexOf(that.query.toLowerCase());
+
+        if(indexOfMatch != -1){
+          var match = value.substr(indexOfMatch, that.query.length);
+          TD.innerHTML = value.replace(match, '<strong>' + match + '</strong>');
         }
       }
     });
@@ -5430,10 +5457,17 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
         choices = this.cellProperties.source;
       } else {
 
-        var queryRegex = new RegExp(query, this.cellProperties.filteringCaseSensitive === true ? '' : 'i');
+        var filteringCaseSensitive = this.cellProperties.filteringCaseSensitive === true;
+        var lowerCaseQuery = query.toLowerCase();
 
         choices = this.cellProperties.source.filter(function(choice){
-          return queryRegex.test(choice);
+
+          if (filteringCaseSensitive) {
+            return choice.indexOf(query) != -1;
+          } else {
+            return choice.toLowerCase().indexOf(lowerCaseQuery) != -1;
+          }
+
         });
       }
 
@@ -5492,7 +5526,7 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
 
       rowToHighlight = findItemIndexToHighlight(choices, value);
 
-      if ( typeof rowToHighlight == 'undefined'){
+      if ( typeof rowToHighlight == 'undefined' && this.cellProperties.allowInvalid === false){
         rowToHighlight = 0;
       }
 
@@ -6920,26 +6954,26 @@ Handsontable.PluginHookClass = (function () {
   }
 
   PluginHookClass.prototype.add = function (key, fn) {
-    // provide support for old versions of HOT
-    if (key in legacy) {
-      key = legacy[key];
-    }
-
-    if (typeof this.hooks[key] === "undefined") {
-      this.hooks[key] = [];
-    }
-
+    //if fn is array, run this for all the array items
     if (Handsontable.helper.isArray(fn)) {
       for (var i = 0, len = fn.length; i < len; i++) {
-        this.hooks[key].push(fn[i]);
+        this.add(key, fn[i]);
       }
-    } else {
-      if (this.hooks[key].indexOf(fn) > -1) {
-        throw new Error("Seems that you are trying to set the same plugin hook twice (" + key + ", " + fn + ")"); //error here should help writing bug-free plugins
-      }
-      this.hooks[key].push(fn);
     }
+    else {
+      // provide support for old versions of HOT
+      if (key in legacy) {
+        key = legacy[key];
+      }
 
+      if (typeof this.hooks[key] === "undefined") {
+        this.hooks[key] = [];
+      }
+
+      if (this.hooks[key].indexOf(fn) == -1) {
+        this.hooks[key].push(fn); //only add a hook if it has not already be added (adding the same hook twice is now silently ignored)
+      }
+    }
     return this;
   };
 
@@ -8908,7 +8942,12 @@ function Storage(prefix) {
       }
     });
 
-    instance.addHook("afterCreateRow", function (index, amount) {
+    instance.addHook("afterCreateRow", function (index, amount, createdAutomatically) {
+
+      if (createdAutomatically) {
+        return;
+      }
+
       var action = new Handsontable.UndoRedo.CreateRowAction(index, amount);
       plugin.done(action);
     });
@@ -8921,7 +8960,12 @@ function Storage(prefix) {
       plugin.done(action);
     });
 
-    instance.addHook("afterCreateCol", function (index, amount) {
+    instance.addHook("afterCreateCol", function (index, amount, createdAutomatically) {
+
+      if (createdAutomatically) {
+        return;
+      }
+
       var action = new Handsontable.UndoRedo.CreateColumnAction(index, amount);
       plugin.done(action);
     });
