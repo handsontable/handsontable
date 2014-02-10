@@ -1477,6 +1477,56 @@ describe('AutocompleteEditor', function () {
       });
     });
 
+    it("should allow any value if filter === false and allowInvalid === true", function () {
+      spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'queryChoices').andCallThrough();
+      var queryChoices = Handsontable.editors.AutocompleteEditor.prototype.queryChoices;
+
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices,
+            filter: false,
+            strict: true,
+            allowInvalid: true
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      var editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+      waitsFor(function () {
+        return queryChoices.calls.length > 0;
+      }, 'queryChoices function call', 1000);
+
+      runs(function () {
+
+        queryChoices.reset();
+
+        editorInput.val("foobar");
+        keyDownUp(82); //r
+
+
+      });
+
+      waitsFor(function () {
+        return queryChoices.calls.length > 0;
+      }, 'queryChoices function call', 1000);
+
+      runs(function () {
+
+        keyDownUp(Handsontable.helper.keyCode.ENTER);
+
+        expect(getDataAtCell(0, 0)).toEqual('foobar');
+      });
+
+    });
+
   });
 
   it('should restore the old value when hovered over a autocomplete menu item and then clicked outside of the table', function () {
