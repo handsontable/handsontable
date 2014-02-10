@@ -50,7 +50,7 @@ describe('PluginHooks', function () {
     expect(afterInitHandler.calls.length).toEqual(1);
   });
 
-  it('should add a many local hooks at init', function () {
+  it('should add a many local hooks at init (as array)', function () {
     var handler1 = jasmine.createSpy('handler1');
     var handler2 = jasmine.createSpy('handler2');
     var handler3 = jasmine.createSpy('handler3');
@@ -265,28 +265,21 @@ describe('PluginHooks', function () {
     expect(hot.runHooksAndReturn('myHook', str)).toEqual('abc');
   });
 
-  it('adding same hook twice should raise an error', function () { //error should help writing bug-free plugins
-    var errors = 0;
-    handsontable();
-
-    var fn = function () {
+  it('adding same hook twice should register it only once (without an error)', function () {
+    var i = 0;
+    var fn = function(){
+      i++;
     };
 
-    try {
-      getInstance().PluginHooks.add('myHook', fn);
-    } catch (e) {
-      errors++;
-    }
+    var hot = handsontable({
+      afterOnCellMouseOver: fn
+    });
 
-    expect(errors).toEqual(0);
+    hot.getInstance().updateSettings({afterOnCellMouseOver: fn});
 
-    try {
-      getInstance().PluginHooks.add('myHook', fn);
-    } catch (e) {
-      errors++;
-    }
+    hot.runHooks('afterOnCellMouseOver');
 
-    expect(errors).toEqual(1);
+    expect(i).toEqual(1);
   });
 
   describe("controlling handler queue execution", function () {

@@ -1,3 +1,14 @@
+## [0.10.3](https://github.com/warpech/jquery-handsontable/tree/v0.10.3) (Feb 10, 2014)
+
+Changes since 0.10.2:
+
+- fixed undoing/redoing remove rows/columns form tables with `minSpareRows`/`minSpareCols` ([#1262](https://github.com/warpech/jquery-handsontable/issues/1262))
+- `dateEditor` now allows to type date manually ([#1266](https://github.com/warpech/jquery-handsontable/issues/1266))
+- fixed typing any value in `autocompleteEditor`, when `filter` property is set to `true` ([#1275](https://github.com/warpech/jquery-handsontable/issues/1275))
+- values typed in `autocompleteEditor` and `dropdownEditor` won't be recognized as regex anymore ([#1295](https://github.com/warpech/jquery-handsontable/issues/1295))
+- fixed copying values from cells with explicitly set `type` property ([#1300](https://github.com/warpech/jquery-handsontable/issues/1300))
+
+
 ## [0.10.2](https://github.com/warpech/jquery-handsontable/tree/v0.10.2) (Jan 23, 2014)
 
 Features:
