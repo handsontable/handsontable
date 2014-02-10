@@ -405,7 +405,7 @@
     }
   };
 
-  var copyableLookup = Handsontable.helper.cellMethodLookupFactory('copyable');
+  var copyableLookup = Handsontable.helper.cellMethodLookupFactory('copyable', false);
 
   /**
    * Returns single value from the data array (intended for clipboard copy to an external application)
