@@ -133,7 +133,7 @@
    * Creates row at the bottom of the data array
    * @param {Number} [index] Optional. Index of the row before which the new row will be inserted
    */
-  Handsontable.DataMap.prototype.createRow = function (index, amount) {
+  Handsontable.DataMap.prototype.createRow = function (index, amount, createdAutomatically) {
     var row
       , colCount = this.instance.countCols()
       , numberOfCreatedRows = 0
@@ -176,7 +176,7 @@
     }
 
 
-    this.instance.PluginHooks.run('afterCreateRow', index, numberOfCreatedRows);
+    this.instance.PluginHooks.run('afterCreateRow', index, numberOfCreatedRows, createdAutomatically);
     this.instance.forceFullRender = true; //used when data was changed
 
     return numberOfCreatedRows;
@@ -187,7 +187,7 @@
    * @param {Number} [index] Optional. Index of the column before which the new column will be inserted
    *   * @param {Number} [amount] Optional.
    */
-  Handsontable.DataMap.prototype.createCol = function (index, amount) {
+  Handsontable.DataMap.prototype.createCol = function (index, amount, createdAutomatically) {
     if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
       throw new Error("Cannot create new column. When data source in an object, " +
         "you can only have as much columns as defined in first data row, data schema or in the 'columns' setting." +
@@ -230,7 +230,7 @@
       currentIndex++;
     }
 
-    this.instance.PluginHooks.run('afterCreateCol', index, numberOfCreatedCols);
+    this.instance.PluginHooks.run('afterCreateCol', index, numberOfCreatedCols, createdAutomatically);
     this.instance.forceFullRender = true; //used when data was changed
 
     return numberOfCreatedCols;
