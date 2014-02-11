@@ -71,6 +71,8 @@
   DateEditor.prototype.showDatepicker = function () {
     var $td = $(this.TD);
     var offset = $td.offset();
+    // This tries to come with very small screens..
+    var threshold = 25;
     this.datePickerStyle.top = (offset.top + $td.height()) + 'px';
     this.datePickerStyle.left = offset.left + 'px';
 
@@ -83,6 +85,11 @@
       this.$datePicker.datepicker("setDate", this.originalValue);
     }
     this.datePickerStyle.display = 'block';
+    // After it'd displayed make sure it's on right spot!
+    // Because now we know correct place
+    if( ((offset.top + $td.height()) + this.$datePicker.height()) > ($('.wtHolder').height() + threshold)) {
+      this.datePickerStyle.top = (offset.top - this.$datePicker.height()) + 'px';
+    }
   };
 
   DateEditor.prototype.hideDatepicker = function () {
