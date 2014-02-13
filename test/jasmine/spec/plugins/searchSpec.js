@@ -163,11 +163,10 @@ describe('Search plugin', function () {
   });
 
   describe("default callback", function () {
-    it("should add highlighted = true, to cell properties of all matched cells", function () {
+    it("should add isSearchResult = true, to cell properties of all matched cells", function () {
       var hot = handsontable({
         data: createSpreadsheetData(5, 5),
-        search: true,
-        renderer: 'search-result'
+        search: true
       });
 
       var searchResult = hot.search.query(/A1|B3/i);
@@ -177,7 +176,7 @@ describe('Search plugin', function () {
 
           var cellProperties = getCellMeta(rowIndex, colIndex);
 
-          if (searchResult[rowIndex].col == colIndex){
+          if ((rowIndex == 1 && colIndex == 0) || (rowIndex == 3 && colIndex == 1)){
             expect(cellProperties.isSearchResult).toBeTruthy();
           } else {
             expect(cellProperties.isSearchResult).toBeFalsy();
