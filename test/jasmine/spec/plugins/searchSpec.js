@@ -186,4 +186,60 @@ describe('Search plugin', function () {
 
     });
   });
+
+  describe("search result decorator", function () {
+    it("should add default search result class to cells which mach the query", function () {
+
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: true
+      });
+
+      var searchResult = hot.search.query(/A1|B3/i);
+
+      render();
+
+      for (var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++){
+        for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++){
+
+          var cell = getCell(rowIndex, colIndex);
+
+          if ((rowIndex == 1 && colIndex == 0) || (rowIndex == 3 && colIndex == 1) ){
+            expect($(cell).hasClass(Handsontable.SearchCellDecorator.DEFAULT_SEARCH_RESULT_CLASS)).toBe(true);
+          } else {
+            expect($(cell).hasClass(Handsontable.SearchCellDecorator.DEFAULT_SEARCH_RESULT_CLASS)).toBe(false);
+          }
+        }
+      }
+
+    });
+
+    it("should add custom search result class to cells which mach the query", function () {
+
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: true,
+        searchResultClass: 'customSearchResultClass'
+      });
+
+      var searchResult = hot.search.query(/A1|B3/i);
+
+      render();
+
+      for (var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++){
+        for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++){
+
+          var cell = getCell(rowIndex, colIndex);
+
+          if ((rowIndex == 1 && colIndex == 0) || (rowIndex == 3 && colIndex == 1) ){
+            expect($(cell).hasClass('customSearchResultClass')).toBe(true);
+          } else {
+            expect($(cell).hasClass('customSearchResultClass')).toBe(false);
+          }
+        }
+      }
+
+    });
+  });
+
 });

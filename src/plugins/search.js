@@ -52,6 +52,25 @@
     instance.getCellMeta(row, col).isSearchResult = testResult;
   };
 
+
+  Handsontable.SearchCellDecorator = function (instance, TD, row, col, prop, value, cellProperties) {
+    if(cellProperties.isSearchResult){
+      Handsontable.Dom.addClass(TD, cellProperties.searchResultClass || Handsontable.SearchCellDecorator.DEFAULT_SEARCH_RESULT_CLASS);
+    } else {
+      Handsontable.Dom.removeClass(TD, cellProperties.searchResultClass || Handsontable.SearchCellDecorator.DEFAULT_SEARCH_RESULT_CLASS);
+    }
+  };
+
+  Handsontable.SearchCellDecorator.DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
+
+  var originalDecorator = Handsontable.renderers.cellDecorator;
+
+  Handsontable.renderers.cellDecorator = function (instance, TD, row, col, prop, value, cellProperties) {
+    originalDecorator.apply(this, arguments);
+    Handsontable.SearchCellDecorator.apply(this, arguments);
+  };
+
+
   function init() {
     var instance = this;
 
