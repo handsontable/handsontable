@@ -163,18 +163,10 @@ describe('Search plugin', function () {
   });
 
   describe("default callback", function () {
-<<<<<<< HEAD
     it("should add isSearchResult = true, to cell properties of all matched cells", function () {
       var hot = handsontable({
         data: createSpreadsheetData(5, 5),
         search: true
-=======
-    it("should add highlighted = true, to cell properties of all matched cells", function () {
-      var hot = handsontable({
-        data: createSpreadsheetData(5, 5),
-        search: true,
-        renderer: 'search-result'
->>>>>>> a7c087df1946d4a45241f0d19bd36aa3479e6b3d
       });
 
       var searchResult = hot.search.query(/A1|B3/i);
@@ -184,11 +176,7 @@ describe('Search plugin', function () {
 
           var cellProperties = getCellMeta(rowIndex, colIndex);
 
-<<<<<<< HEAD
           if ((rowIndex == 1 && colIndex == 0) || (rowIndex == 3 && colIndex == 1)){
-=======
-          if (searchResult[rowIndex].col == colIndex){
->>>>>>> a7c087df1946d4a45241f0d19bd36aa3479e6b3d
             expect(cellProperties.isSearchResult).toBeTruthy();
           } else {
             expect(cellProperties.isSearchResult).toBeFalsy();
@@ -198,7 +186,6 @@ describe('Search plugin', function () {
 
     });
   });
-<<<<<<< HEAD
 
   describe("search result decorator", function () {
     it("should add default search result class to cells which mach the query", function () {
@@ -254,7 +241,4 @@ describe('Search plugin', function () {
 
     });
   });
-
-=======
->>>>>>> a7c087df1946d4a45241f0d19bd36aa3479e6b3d
 });

@@ -52,8 +52,6 @@
     instance.getCellMeta(row, col).isSearchResult = testResult;
   };
 
-<<<<<<< HEAD
-
   Handsontable.SearchCellDecorator = function (instance, TD, row, col, prop, value, cellProperties) {
     if(cellProperties.isSearchResult){
       Handsontable.Dom.addClass(TD, cellProperties.searchResultClass || Handsontable.SearchCellDecorator.DEFAULT_SEARCH_RESULT_CLASS);
@@ -71,9 +69,6 @@
     Handsontable.SearchCellDecorator.apply(this, arguments);
   };
 
-
-=======
->>>>>>> a7c087df1946d4a45241f0d19bd36aa3479e6b3d
   function init() {
     var instance = this;
 
