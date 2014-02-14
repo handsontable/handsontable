@@ -175,6 +175,70 @@ describe('Search plugin', function () {
 
     });
 
+    it("default query method should always return false if query string is empty", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: true
+      });
+
+      var searchResult = hot.search.query('A');
+
+      expect(searchResult.length).toEqual(5);
+
+      var searchResult = hot.search.query('');
+
+      expect(searchResult.length).toEqual(0);
+
+    });
+
+    it("default query method should always return false if no query string has been specified", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: true
+      });
+
+      var searchResult = hot.search.query('A');
+
+      expect(searchResult.length).toEqual(5);
+
+      var searchResult = hot.search.query();
+
+      expect(searchResult.length).toEqual(0);
+
+    });
+
+    it("default query method should always return false if no query string is null", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: true
+      });
+
+      var searchResult = hot.search.query('A');
+
+      expect(searchResult.length).toEqual(5);
+
+      var searchResult = hot.search.query();
+
+      expect(searchResult.length).toEqual(0);
+
+    });
+
+    it("default query method should always return false if no query string is not a string", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: true
+      });
+
+      var searchResult = hot.search.query('A');
+
+      expect(searchResult.length).toEqual(5);
+
+      var searchResult = hot.search.query([1, 2, 3]);
+
+      expect(searchResult.length).toEqual(0);
+
+    });
+
   });
 
 

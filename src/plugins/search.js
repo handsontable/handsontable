@@ -67,6 +67,11 @@
   };
 
   Handsontable.Search.DEFAULT_QUERY_METHOD = function (query, value) {
+
+    if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length == 0){
+      return false;
+    }
+
     return value.toLowerCase().indexOf(query.toLowerCase()) != -1;
   };
 
