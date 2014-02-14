@@ -75,14 +75,67 @@ describe('Search plugin', function () {
     });
   });
 
-  describe("searching", function () {
-    it("should use search method to find phrase", function () {
+  describe("query method", function () {
+    it("should use the default query method if no queryMethod is passed to query function", function () {
+
+      spyOn(Handsontable.Search, 'DEFAULT_QUERY_METHOD');
+
+      var defaultQueryMethod = Handsontable.Search.DEFAULT_QUERY_METHOD;
+
       var hot = handsontable({
         data: createSpreadsheetData(5, 5),
         search: true
       });
 
-      var searchResult = hot.search.query(/A/i);
+      var searchResult = hot.search.query('A');
+
+      expect(defaultQueryMethod.calls.length).toEqual(25);
+
+    });
+
+    it("should use the custom default query method if no queryMethod is passed to query function", function () {
+
+      var customDefaultQueryMethod = jasmine.createSpy('customDefaultQueryMethod');
+
+
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: true
+      });
+      hot.search.setDefaultQueryMethod(customDefaultQueryMethod);
+
+      var searchResult = hot.search.query('A');
+
+      expect(customDefaultQueryMethod.calls.length).toEqual(25);
+
+    });
+
+
+    it("should use method passed to query function", function () {
+
+      var customQueryMethod = jasmine.createSpy('customQueryMethod');
+
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: true
+      });
+
+      var searchResult = hot.search.query('A', null, customQueryMethod);
+
+      expect(customQueryMethod.calls.length).toEqual(25);
+
+    });
+  });
+
+  describe("default query method", function () {
+
+    it("should use query method to find phrase", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: true
+      });
+
+      var searchResult = hot.search.query('A');
 
       expect(searchResult.length).toEqual(5);
 
@@ -94,7 +147,74 @@ describe('Search plugin', function () {
 
     });
 
-    it("should invoke callback for each cell which has been tested", function () {
+    it("default query method should be case insensitive", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: true
+      });
+
+      var searchResult = hot.search.query('a');
+
+      expect(searchResult.length).toEqual(5);
+
+      searchResult = hot.search.query('A');
+
+      expect(searchResult.length).toEqual(5);
+
+    });
+
+    it("default query method should interpret query as string, not regex", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: true
+      });
+
+      var searchResult = hot.search.query('A*');
+
+      expect(searchResult.length).toEqual(0);
+
+    });
+
+  });
+
+
+  describe("search callback", function () {
+
+    it("should invoke default callback for each cell", function () {
+
+      spyOn(Handsontable.Search, 'DEFAULT_CALLBACK');
+
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: true
+      });
+
+      var searchResult = hot.search.query('A');
+
+      expect(Handsontable.Search.DEFAULT_CALLBACK.calls.length).toEqual(25)
+
+    });
+
+    it("should change the default callback", function () {
+
+      spyOn(Handsontable.Search, 'DEFAULT_CALLBACK');
+
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: true
+      });
+
+      var defaultCallback = jasmine.createSpy('defaultCallback');
+      hot.search.setDefaultCallback(defaultCallback);
+
+      var searchResult = hot.search.query('A');
+
+      expect(Handsontable.Search.DEFAULT_CALLBACK).not.toHaveBeenCalled();
+      expect(defaultCallback.calls.length).toEqual(25);
+
+    });
+
+    it("should invoke custom callback for each cell which has been tested", function () {
       var hot = handsontable({
         data: createSpreadsheetData(5, 5),
         search: true
@@ -102,7 +222,7 @@ describe('Search plugin', function () {
 
       var searchCallback = jasmine.createSpy('searchCallback');
 
-      var searchResult = hot.search.query(/A/i, searchCallback);
+      var searchResult = hot.search.query('A', searchCallback);
 
       expect(searchCallback.calls.length).toEqual(25)
 
@@ -126,57 +246,23 @@ describe('Search plugin', function () {
 
     });
 
-    it("should invoke default callback for each cell", function () {
-
-      spyOn(Handsontable.Search, 'DEFAULT_CALLBACK');
-
-      var hot = handsontable({
-        data: createSpreadsheetData(5, 5),
-        search: true
-      });
-
-      var searchResult = hot.search.query(/A/i);
-
-      expect(Handsontable.Search.DEFAULT_CALLBACK.calls.length).toEqual(25)
-
-    });
-
-    it("should change the default callback", function () {
-
-      spyOn(Handsontable.Search, 'DEFAULT_CALLBACK');
-
-      var hot = handsontable({
-        data: createSpreadsheetData(5, 5),
-        search: true
-      });
-
-      var defaultCallback = jasmine.createSpy('defaultCallback');
-      hot.search.setDefaultCallback(defaultCallback);
-
-      var searchResult = hot.search.query(/A/i);
-
-      expect(Handsontable.Search.DEFAULT_CALLBACK).not.toHaveBeenCalled();
-      expect(defaultCallback.calls.length).toEqual(25);
-
-    });
-
   });
 
-  describe("default callback", function () {
+  describe("default search callback", function () {
     it("should add isSearchResult = true, to cell properties of all matched cells", function () {
       var hot = handsontable({
         data: createSpreadsheetData(5, 5),
         search: true
       });
 
-      var searchResult = hot.search.query(/A1|B3/i);
+      var searchResult = hot.search.query('1');
 
       for (var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++){
         for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++){
 
           var cellProperties = getCellMeta(rowIndex, colIndex);
 
-          if ((rowIndex == 1 && colIndex == 0) || (rowIndex == 3 && colIndex == 1)){
+          if (rowIndex == 1){
             expect(cellProperties.isSearchResult).toBeTruthy();
           } else {
             expect(cellProperties.isSearchResult).toBeFalsy();
@@ -195,7 +281,7 @@ describe('Search plugin', function () {
         search: true
       });
 
-      var searchResult = hot.search.query(/A1|B3/i);
+      var searchResult = hot.search.query('1');
 
       render();
 
@@ -204,7 +290,7 @@ describe('Search plugin', function () {
 
           var cell = getCell(rowIndex, colIndex);
 
-          if ((rowIndex == 1 && colIndex == 0) || (rowIndex == 3 && colIndex == 1) ){
+          if (rowIndex == 1 ){
             expect($(cell).hasClass(Handsontable.SearchCellDecorator.DEFAULT_SEARCH_RESULT_CLASS)).toBe(true);
           } else {
             expect($(cell).hasClass(Handsontable.SearchCellDecorator.DEFAULT_SEARCH_RESULT_CLASS)).toBe(false);
@@ -222,7 +308,7 @@ describe('Search plugin', function () {
         searchResultClass: 'customSearchResultClass'
       });
 
-      var searchResult = hot.search.query(/A1|B3/i);
+      var searchResult = hot.search.query('1');
 
       render();
 
@@ -231,7 +317,7 @@ describe('Search plugin', function () {
 
           var cell = getCell(rowIndex, colIndex);
 
-          if ((rowIndex == 1 && colIndex == 0) || (rowIndex == 3 && colIndex == 1) ){
+          if ( rowIndex == 1 ){
             expect($(cell).hasClass('customSearchResultClass')).toBe(true);
           } else {
             expect($(cell).hasClass('customSearchResultClass')).toBe(false);
