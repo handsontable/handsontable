@@ -488,8 +488,8 @@
 
   ContextMenu.utils.normalizeSelection = function(corners){
     var selection = {
-      start: new Handsontable.SelectionPoint(),
-      end: new Handsontable.SelectionPoint()
+      start: new WalkontableCellCoords(),
+      end: new WalkontableCellCoords()
     };
 
     selection.start.row(Math.min(corners[0], corners[2]));

@@ -35,8 +35,8 @@ Handsontable.Core = function (rootElement, userSettings) {
     columnsSettingConflicts: ['data', 'width'],
     settings: new GridSettings(), // current settings instance
     settingsFromDOM: {},
-    selStart: new Handsontable.SelectionPoint(),
-    selEnd: new Handsontable.SelectionPoint(),
+    selStart: new WalkontableCellCoords(),
+    selEnd: new WalkontableCellCoords(),
     isPopulated: null,
     scrollable: null,
     firstRun: true
@@ -582,7 +582,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         return;
       }
       instance.selection.inProgress = false; //needed by HT inception
-      priv.selEnd = new Handsontable.SelectionPoint(); //create new empty point to remove the existing one
+      priv.selEnd = new WalkontableCellCoords(); //create new empty point to remove the existing one
       instance.view.wt.selections.current.clear();
       instance.view.wt.selections.area.clear();
       editorManager.destroyEditor();
