@@ -6,7 +6,7 @@
  */
 function WalkontableRowStrategy(instance, containerSizeFn, sizeAtIndex) {
 
-  WalkontableCellStrategy.apply(this, arguments);
+  WalkontableAbstractStrategy.apply(this, arguments);
 
   this.containerSizeFn = containerSizeFn;
   this.sizeAtIndex = sizeAtIndex;
@@ -16,7 +16,7 @@ function WalkontableRowStrategy(instance, containerSizeFn, sizeAtIndex) {
   this.remainingSize = -Infinity;
 }
 
-WalkontableRowStrategy.prototype = new WalkontableCellStrategy();
+WalkontableRowStrategy.prototype = new WalkontableAbstractStrategy();
 
 WalkontableRowStrategy.prototype.add = function (i, TD, reverse) {
   if (!this.isLastIncomplete() && this.remainingSize != 0) {

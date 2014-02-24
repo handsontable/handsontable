@@ -1,24 +1,24 @@
 /**
- * WalkontableCellStrategy
+ * WalkontableAbstractStrategy (WalkontableColumnStrategy and WalkontableRowStrategy inherit from this)
  * @constructor
  */
-function WalkontableCellStrategy(instance) {
+function WalkontableAbstractStrategy(instance) {
   this.instance = instance;
 }
 
-WalkontableCellStrategy.prototype.getSize = function (index) {
+WalkontableAbstractStrategy.prototype.getSize = function (index) {
   return this.cellSizes[index];
 };
 
-WalkontableCellStrategy.prototype.getContainerSize = function (proposedSize) {
+WalkontableAbstractStrategy.prototype.getContainerSize = function (proposedSize) {
   return typeof this.containerSizeFn === 'function' ? this.containerSizeFn(proposedSize) : this.containerSizeFn;
 };
 
-WalkontableCellStrategy.prototype.countVisible = function () {
+WalkontableAbstractStrategy.prototype.countVisible = function () {
   return this.cellCount;
 };
 
-WalkontableCellStrategy.prototype.isLastIncomplete = function () {
+WalkontableAbstractStrategy.prototype.isLastIncomplete = function () {
 
   if(this.instance.getSetting('nativeScrollbars')){
 

@@ -5,7 +5,7 @@
 function WalkontableRowFilter() {
 }
 
-WalkontableRowFilter.prototype = new WalkontableCellFilter();
+WalkontableRowFilter.prototype = new WalkontableAbstractFilter();
 
 WalkontableRowFilter.prototype.readSettings = function (instance) {
   if (instance.cloneOverlay instanceof WalkontableDebugOverlay) {
