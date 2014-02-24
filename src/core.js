@@ -39,7 +39,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     selEnd: new Handsontable.SelectionPoint(),
     isPopulated: null,
     scrollable: null,
-    extensions: {},
     firstRun: true
   };
 
@@ -1321,11 +1320,6 @@ Handsontable.Core = function (rootElement, userSettings) {
           // Update settings
           if (!init && settings.hasOwnProperty(i)) {
             GridSettings.prototype[i] = settings[i];
-          }
-
-          //launch extensions
-          if (Handsontable.extension[i]) {
-            priv.extensions[i] = new Handsontable.extension[i](instance, settings[i]);
           }
         }
       }
