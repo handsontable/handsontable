@@ -173,7 +173,7 @@
 
   var htAutoColumnSize = new HandsontableAutoColumnSize();
 
-  Handsontable.PluginHooks.add('beforeInit', htAutoColumnSize.beforeInit);
-  Handsontable.PluginHooks.add('afterUpdateSettings', htAutoColumnSize.beforeInit);
+  Handsontable.hooks.add('beforeInit', htAutoColumnSize.beforeInit);
+  Handsontable.hooks.add('afterUpdateSettings', htAutoColumnSize.beforeInit);
 
 })(Handsontable);

@@ -127,7 +127,7 @@
     this.instance.rootElement[0].appendChild(this.TEXTAREA_PARENT);
 
     var that = this;
-    Handsontable.PluginHooks.add('afterRender', function () {
+    Handsontable.hooks.add('afterRender', function () {
       that.instance.registerTimeout('refresh_editor_dimensions', function () {
         that.refreshDimensions();
       }, 0);

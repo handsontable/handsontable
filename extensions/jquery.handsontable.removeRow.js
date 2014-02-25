@@ -39,7 +39,7 @@
   }
 
 
-  Handsontable.PluginHooks.add('beforeInitWalkontable', function (walkontableConfig) {
+  Handsontable.hooks.add('beforeInitWalkontable', function (walkontableConfig) {
     var instance = this;
 
     /**
@@ -72,11 +72,11 @@
     };
   });
 
-  Handsontable.PluginHooks.add('beforeInit', function () {
+  Handsontable.hooks.add('beforeInit', function () {
     init.call(this)
   });
 
-  Handsontable.PluginHooks.add('afterUpdateSettings', function () {
+  Handsontable.hooks.add('afterUpdateSettings', function () {
     init.call(this)
   });
 })(jQuery);

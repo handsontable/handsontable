@@ -1,4 +1,4 @@
-describe('PluginHooks', function () {
+describe('hooks', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
@@ -16,7 +16,7 @@ describe('PluginHooks', function () {
     var errors = 0;
 
     try {
-      Handsontable.PluginHooks.add('afterInit', function () {
+      Handsontable.hooks.add('afterInit', function () {
       });
     } catch (e) {
       errors++;
@@ -30,7 +30,7 @@ describe('PluginHooks', function () {
     handsontable();
 
     try {
-      getInstance().PluginHooks.add('afterInit', function () {
+      getInstance().hooks.add('afterInit', function () {
       });
     } catch (e) {
       errors++;
@@ -70,8 +70,8 @@ describe('PluginHooks', function () {
         test = 5;
       };
 
-    Handsontable.PluginHooks.add('afterInit', hook);
-    Handsontable.PluginHooks.remove('afterInit', hook);
+    Handsontable.hooks.add('afterInit', hook);
+    Handsontable.hooks.remove('afterInit', hook);
 
     handsontable();
 
@@ -86,15 +86,15 @@ describe('PluginHooks', function () {
 
     handsontable();
 
-    getInstance().PluginHooks.add('afterInit', hook);
-    getInstance().PluginHooks.remove('afterInit', hook);
+    getInstance().hooks.add('afterInit', hook);
+    getInstance().hooks.remove('afterInit', hook);
 
     expect(test).toEqual(0);
   });
 
   it('should run global hook', function () {
     var test = 0;
-    Handsontable.PluginHooks.add('afterInit', function () {
+    Handsontable.hooks.add('afterInit', function () {
       test = 5;
     });
     handsontable();
@@ -106,11 +106,11 @@ describe('PluginHooks', function () {
 
     handsontable();
 
-    getInstance().PluginHooks.add('myHook', function () {
+    getInstance().hooks.add('myHook', function () {
       test += 5;
     });
-    getInstance().PluginHooks.run('myHook');
-    getInstance().PluginHooks.run('myHook');
+    getInstance().hooks.run('myHook');
+    getInstance().hooks.run('myHook');
 
     expect(test).toEqual(10);
   });
@@ -120,11 +120,11 @@ describe('PluginHooks', function () {
 
     handsontable();
 
-    getInstance().PluginHooks.once('myHook', function () {
+    getInstance().hooks.once('myHook', function () {
       test += 5;
     });
-    getInstance().PluginHooks.run('myHook');
-    getInstance().PluginHooks.run('myHook');
+    getInstance().hooks.run('myHook');
+    getInstance().hooks.run('myHook');
 
     expect(test).toEqual(5);
   });
@@ -132,7 +132,7 @@ describe('PluginHooks', function () {
   it('should run all hooks', function () {
     var test = 0;
 
-    Handsontable.PluginHooks.add('afterInit', function () {
+    Handsontable.hooks.add('afterInit', function () {
       test += 5;
     });
 
@@ -149,7 +149,7 @@ describe('PluginHooks', function () {
   it('should run all hooks', function () {
     var test = 0;
 
-    Handsontable.PluginHooks.add('afterInit', function () {
+    Handsontable.hooks.add('afterInit', function () {
       test += 5;
     });
 
@@ -164,9 +164,9 @@ describe('PluginHooks', function () {
   });
 
   it('list of all avaliable plugin hooks should be exposed as a public object', function () {
-    var pluginHooks = Handsontable.PluginHooks.hooks; //this is used in demo/callbacks.html
+    var hooks = Handsontable.hooks.hooks; //this is used in demo/callbacks.html
 
-    expect(pluginHooks.beforeInit).toBeDefined(); //duck check is fine
+    expect(hooks.beforeInit).toBeDefined(); //duck check is fine
 
   });
 

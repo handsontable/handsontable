@@ -126,7 +126,7 @@ function Storage(prefix) {
 
       for (var hookName in hooks) {
         if (hooks.hasOwnProperty(hookName)) {
-          instance.PluginHooks.add(hookName, hooks[hookName]);
+          instance.hooks.add(hookName, hooks[hookName]);
         }
       }
     }
@@ -136,13 +136,13 @@ function Storage(prefix) {
 
       for (var hookName in hooks) {
         if (hooks.hasOwnProperty(hookName)) {
-          instance.PluginHooks.remove(hookName, hooks[hookName]);
+          instance.hooks.remove(hookName, hooks[hookName]);
         }
       }
     }
   }
 
   var htPersistentState = new HandsontablePersistentState();
-  Handsontable.PluginHooks.add('beforeInit', htPersistentState.init);
-  Handsontable.PluginHooks.add('afterUpdateSettings', htPersistentState.init);
+  Handsontable.hooks.add('beforeInit', htPersistentState.init);
+  Handsontable.hooks.add('afterUpdateSettings', htPersistentState.init);
 })(Storage);

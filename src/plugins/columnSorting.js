@@ -79,14 +79,14 @@ function HandsontableColumnSorting() {
       return;
     }
 
-    instance.PluginHooks.run('beforeColumnSort', instance.sortColumn, instance.sortOrder);
+    instance.hooks.run('beforeColumnSort', instance.sortColumn, instance.sortOrder);
 
     plugin.sort.call(instance);
     instance.render();
 
     saveSortingState.call(instance);
 
-    instance.PluginHooks.run('afterColumnSort', instance.sortColumn, instance.sortOrder);
+    instance.hooks.run('afterColumnSort', instance.sortColumn, instance.sortOrder);
   };
 
   var saveSortingState = function () {
@@ -103,7 +103,7 @@ function HandsontableColumnSorting() {
     }
 
     if (sortingState.hasOwnProperty('sortColumn') || sortingState.hasOwnProperty('sortOrder')) {
-      instance.PluginHooks.run('persistentStateSave', 'columnSorting', sortingState);
+      instance.hooks.run('persistentStateSave', 'columnSorting', sortingState);
     }
 
   };
@@ -111,7 +111,7 @@ function HandsontableColumnSorting() {
   var loadSortingState = function () {
     var instance = this;
     var storedState = {};
-    instance.PluginHooks.run('persistentStateLoad', 'columnSorting', storedState);
+    instance.hooks.run('persistentStateLoad', 'columnSorting', storedState);
 
     return storedState.value;
   };
@@ -330,15 +330,15 @@ function HandsontableColumnSorting() {
 }
 var htSortColumn = new HandsontableColumnSorting();
 
-Handsontable.PluginHooks.add('afterInit', function () {
+Handsontable.hooks.add('afterInit', function () {
   htSortColumn.init.call(this, 'afterInit')
 });
-Handsontable.PluginHooks.add('afterUpdateSettings', function () {
+Handsontable.hooks.add('afterUpdateSettings', function () {
   htSortColumn.init.call(this, 'afterUpdateSettings')
 });
-Handsontable.PluginHooks.add('beforeGet', htSortColumn.onBeforeGetSet);
-Handsontable.PluginHooks.add('beforeSet', htSortColumn.onBeforeGetSet);
-Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
+Handsontable.hooks.add('beforeGet', htSortColumn.onBeforeGetSet);
+Handsontable.hooks.add('beforeSet', htSortColumn.onBeforeGetSet);
+Handsontable.hooks.add('afterGetColHeader', htSortColumn.getColHeader);
 
 Handsontable.hooks.register('beforeColumnSort');
 Handsontable.hooks.register('afterColumnSort');

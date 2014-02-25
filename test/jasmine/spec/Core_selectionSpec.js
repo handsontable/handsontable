@@ -30,7 +30,7 @@ describe('Core_selection', function () {
     var output = null;
 
     handsontable();
-    Handsontable.PluginHooks.add('onSelection', function (r, c) {
+    Handsontable.hooks.add('onSelection', function (r, c) {
       output = [r, c];
     });
     selectCell(1, 2);
