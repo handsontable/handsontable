@@ -16,7 +16,6 @@ Handsontable.PluginHookClass = (function () {
       beforeGetCellMeta: [],
       beforeAutofill: [],
       beforeKeyDown: [],
-      beforeColumnSort: [],
 
       afterInit : [],
       afterLoadData : [],
@@ -33,15 +32,11 @@ Handsontable.PluginHookClass = (function () {
       afterCreateRow: [],
       afterRemoveCol: [],
       afterCreateCol: [],
-      afterColumnResize: [],
-      afterColumnMove: [],
-      afterColumnSort: [],
       afterDeselect: [],
       afterSelection: [],
       afterSelectionByProp: [],
       afterSelectionEnd: [],
       afterSelectionEndByProp: [],
-      afterCopyLimit: [],
       afterOnCellMouseDown: [],
       afterOnCellMouseOver: [],
       afterOnCellCornerMouseDown: [],
@@ -200,8 +195,45 @@ Handsontable.PluginHookClass = (function () {
     return p1;
   };
 
+  /**
+   * Registers a hook name (adds it to the list of the known hook names). Used by plugins. It is not neccessary to call,
+   * register, but if you use it, your plugin hook will be used returned by getRegistered
+   * (which itself is used in the demo http://handsontable.com/demo/callbacks.html)
+   * @param key {String}
+   */
+  PluginHookClass.prototype.register = function (key) {
+    if (!this.isRegistered(key)) {
+      this.hooks[key] = [];
+    }
+  };
+
+  /**
+   * Deregisters a hook name (removes it from the list of known hook names)
+   * @param key {String}
+   */
+  PluginHookClass.prototype.deregister = function (key) {
+    delete this.hooks[key];
+  };
+
+  /**
+   * Returns boolean information if a hook by such name has been registered
+   * @param key {String}
+   */
+  PluginHookClass.prototype.isRegistered = function (key) {
+    return (typeof this.hooks[key] !== "undefined");
+  };
+
+  /**
+   * Returns an array of registered hooks
+   * @returns {Array}
+   */
+  PluginHookClass.prototype.getRegistered = function () {
+    return Object.keys(this.hooks);
+  };
+
   return PluginHookClass;
 
 })();
 
-Handsontable.PluginHooks = new Handsontable.PluginHookClass();
+Handsontable.hooks = new Handsontable.PluginHookClass();
+Handsontable.PluginHooks = Handsontable.hooks; //in future move this line to legacy.js

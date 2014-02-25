@@ -115,11 +115,17 @@ function Storage(prefix) {
       'persistentStateReset': plugin.resetValue
     };
 
+    for (var hookName in hooks) {
+      if (hooks.hasOwnProperty(hookName)) {
+        Handsontable.hooks.register(hookName);
+      }
+    }
+
     function addHooks() {
       var instance = this;
 
       for (var hookName in hooks) {
-        if (hooks.hasOwnProperty(hookName) && !hookExists.call(instance, hookName)) {
+        if (hooks.hasOwnProperty(hookName)) {
           instance.PluginHooks.add(hookName, hooks[hookName]);
         }
       }
@@ -129,15 +135,10 @@ function Storage(prefix) {
       var instance = this;
 
       for (var hookName in hooks) {
-        if (hooks.hasOwnProperty(hookName) && hookExists.call(instance, hookName)) {
+        if (hooks.hasOwnProperty(hookName)) {
           instance.PluginHooks.remove(hookName, hooks[hookName]);
         }
       }
-    }
-
-    function hookExists(hookName) {
-      var instance = this;
-      return instance.PluginHooks.hooks.hasOwnProperty(hookName);
     }
   }
 

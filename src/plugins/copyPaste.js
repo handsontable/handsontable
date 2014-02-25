@@ -118,4 +118,5 @@
   Handsontable.PluginHooks.add('afterInit', init);
   Handsontable.PluginHooks.add('afterUpdateSettings', init);
 
+  Handsontable.hooks.register('afterCopyLimit');
 })(Handsontable, CopyPaste, SheetClip);

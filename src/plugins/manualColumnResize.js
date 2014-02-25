@@ -181,3 +181,5 @@ Handsontable.PluginHooks.add('afterUpdateSettings', function () {
   htManualColumnResize.init.call(this, 'afterUpdateSettings')
 });
 Handsontable.PluginHooks.add('afterGetColWidth', htManualColumnResize.getColWidth);
+
+Handsontable.hooks.register('afterColumnResize');

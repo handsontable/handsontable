@@ -394,4 +394,47 @@ describe('PluginHooks', function () {
 
     });
   });
+
+  describe("registering hooks", function() {
+    describe("getRegistered", function() {
+      it("should be an array that contains build-in hooks", function() {
+        var hooks = Handsontable.hooks.getRegistered();
+        expect(Array.isArray(hooks)).toBe(true);
+        expect('afterInit').toBeInArray(hooks);
+      });
+    });
+
+    describe("isRegistered", function() {
+      it("should return information if a hook has been registered", function() {
+        expect(Handsontable.hooks.isRegistered('afterInit')).toBe(true);
+      });
+    });
+
+    describe("register", function() {
+      it("should register a new hook name", function() {
+        expect(Handsontable.hooks.isRegistered('afterMyOwnHook')).toBe(false);
+        var hooks = Handsontable.hooks.getRegistered();
+        expect('afterMyOwnHook').not.toBeInArray(hooks);
+
+        Handsontable.hooks.register('afterMyOwnHook')
+        expect(Handsontable.hooks.isRegistered('afterMyOwnHook')).toBe(true);
+        var hooks = Handsontable.hooks.getRegistered();
+        expect('afterMyOwnHook').toBeInArray(hooks);
+      });
+    });
+
+    describe("deregister", function() {
+      it("should deregister a known hook name", function() {
+        Handsontable.hooks.register('afterMyOwnHook')
+        expect(Handsontable.hooks.isRegistered('afterMyOwnHook')).toBe(true);
+        var hooks = Handsontable.hooks.getRegistered();
+        expect('afterMyOwnHook').toBeInArray(hooks);
+
+        Handsontable.hooks.deregister('afterMyOwnHook')
+        expect(Handsontable.hooks.isRegistered('afterMyOwnHook')).toBe(false);
+        var hooks = Handsontable.hooks.getRegistered();
+        expect('afterMyOwnHook').not.toBeInArray(hooks);
+      });
+    });
+  });
 });

@@ -340,3 +340,6 @@ Handsontable.PluginHooks.add('beforeGet', htSortColumn.onBeforeGetSet);
 Handsontable.PluginHooks.add('beforeSet', htSortColumn.onBeforeGetSet);
 Handsontable.PluginHooks.add('afterGetColHeader', htSortColumn.getColHeader);
 
+Handsontable.hooks.register('beforeColumnSort');
+Handsontable.hooks.register('afterColumnSort');
+

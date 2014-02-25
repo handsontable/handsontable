@@ -178,3 +178,5 @@ Handsontable.PluginHooks.add('afterUpdateSettings', function () {
 });
 Handsontable.PluginHooks.add('afterGetColHeader', htManualColumnMove.getColHeader);
 Handsontable.PluginHooks.add('modifyCol', htManualColumnMove.modifyCol);
+
+Handsontable.hooks.register('afterColumnMove');

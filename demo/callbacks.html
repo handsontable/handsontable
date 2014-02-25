@@ -122,22 +122,18 @@
             };
 
             var $hooksList = $('#hooksList');
-            var hooks = Handsontable.PluginHooks.hooks;
-            for (var hook in hooks) {
-              if (hooks.hasOwnProperty(hook)) {
-                config[hook] = (function (hook) {
-                  var checked = '';
-                  if (hook === 'afterLoadData' || hook === 'afterChange' || hook === 'beforeChange' || hook === 'afterSelection' || hook === 'afterSelectionEnd') {
-                    checked = 'checked';
+            var hooks = Handsontable.hooks.getRegistered();
+            hooks.forEach(function(hook) {
+              var checked = '';
+              if (hook === 'afterLoadData' || hook === 'afterChange' || hook === 'beforeChange' || hook === 'afterSelection' || hook === 'afterSelectionEnd') {
+                checked = 'checked';
 
-                  }
-                  $hooksList.append('<li><label><input type="checkbox" ' + checked + ' id="check_' + hook + '"> ' + hook + '</label></li>');
-                  return function () {
-                    log_events(hook, arguments);
-                  }
-                })(hook);
               }
-            }
+              $hooksList.append('<li><label><input type="checkbox" ' + checked + ' id="check_' + hook + '"> ' + hook + '</label></li>');
+              config[hook] = function() {
+                log_events(hook, arguments);
+              }
+            });
 
             var start = (new Date()).getTime();
             var i = 0;
