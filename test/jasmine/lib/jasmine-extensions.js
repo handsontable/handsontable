@@ -5,8 +5,8 @@
 
 beforeEach(function() {
   this.addMatchers({
-    toBeInArray: function() {
-      return ~[].slice.call(arguments).indexOf(this.actual);
+    toBeInArray: function(arr) {
+      return ~arr.indexOf(this.actual);
     },
     toBeInDateRange: function(min, max) {
       var actual = this.actual.getTime();

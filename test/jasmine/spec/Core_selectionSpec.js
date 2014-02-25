@@ -391,7 +391,7 @@ describe('Core_selection', function () {
 
     selectCell(0, 0);
 
-    expect(document.activeElement.nodeName).toBeInArray('BODY', 'HTML');
+    expect(document.activeElement.nodeName).toBeInArray(['BODY', 'HTML']);
 
     $input.focus();
 
