@@ -1,3 +1,9 @@
+## [0.10.4](https://github.com/Yesware/jquery-handsontable/tree/v0.10.3y) (Feb 25, 2014)
+
+Changes since 0.10.3:
+
+- Commented out a 'keydown' event capture line in copypaste.js which interferred with copy-paste shortcuts in Gmail.
+
 ## [0.10.3](https://github.com/warpech/jquery-handsontable/tree/v0.10.3) (Feb 10, 2014)
 
 Changes since 0.10.2:

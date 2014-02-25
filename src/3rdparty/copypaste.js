@@ -110,7 +110,9 @@ CopyPasteClass.prototype.init = function () {
     }
   }
 
-  this._bindEvent(this.listenerElement, 'keydown', this.keydownListener);
+    // Yesware: Removing this as it interferes with CMD/Ctrl shortcuts in Gmail
+    // It is used for some nice but not essential copy-paste functionality for table cells
+//  this._bindEvent(this.listenerElement, 'keydown', this.keydownListener);
 };
 
 //http://jsperf.com/textara-selection
