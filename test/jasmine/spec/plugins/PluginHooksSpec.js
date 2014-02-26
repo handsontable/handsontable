@@ -30,7 +30,7 @@ describe('hooks', function () {
     handsontable();
 
     try {
-      getInstance().hooks.add('afterInit', function () {
+      getInstance().addHook('afterInit', function () {
       });
     } catch (e) {
       errors++;
@@ -86,8 +86,8 @@ describe('hooks', function () {
 
     handsontable();
 
-    getInstance().hooks.add('afterInit', hook);
-    getInstance().hooks.remove('afterInit', hook);
+    getInstance().addHook('afterInit', hook);
+    getInstance().removeHook('afterInit', hook);
 
     expect(test).toEqual(0);
   });
@@ -106,11 +106,11 @@ describe('hooks', function () {
 
     handsontable();
 
-    getInstance().hooks.add('myHook', function () {
+    getInstance().addHook('myHook', function () {
       test += 5;
     });
-    getInstance().hooks.run('myHook');
-    getInstance().hooks.run('myHook');
+    getInstance().runHooks('myHook');
+    getInstance().runHooks('myHook');
 
     expect(test).toEqual(10);
   });
@@ -120,11 +120,11 @@ describe('hooks', function () {
 
     handsontable();
 
-    getInstance().hooks.once('myHook', function () {
+    getInstance().addHookOnce('myHook', function () {
       test += 5;
     });
-    getInstance().hooks.run('myHook');
-    getInstance().hooks.run('myHook');
+    getInstance().runHooks('myHook');
+    getInstance().runHooks('myHook');
 
     expect(test).toEqual(5);
   });

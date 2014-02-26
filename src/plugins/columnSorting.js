@@ -79,14 +79,14 @@ function HandsontableColumnSorting() {
       return;
     }
 
-    instance.hooks.run('beforeColumnSort', instance.sortColumn, instance.sortOrder);
+    Handsontable.hooks.run(instance, 'beforeColumnSort', instance.sortColumn, instance.sortOrder);
 
     plugin.sort.call(instance);
     instance.render();
 
     saveSortingState.call(instance);
 
-    instance.hooks.run('afterColumnSort', instance.sortColumn, instance.sortOrder);
+    Handsontable.hooks.run(instance, 'afterColumnSort', instance.sortColumn, instance.sortOrder);
   };
 
   var saveSortingState = function () {
@@ -103,7 +103,7 @@ function HandsontableColumnSorting() {
     }
 
     if (sortingState.hasOwnProperty('sortColumn') || sortingState.hasOwnProperty('sortOrder')) {
-      instance.hooks.run('persistentStateSave', 'columnSorting', sortingState);
+      Handsontable.hooks.run(instance, 'persistentStateSave', 'columnSorting', sortingState);
     }
 
   };
@@ -111,7 +111,7 @@ function HandsontableColumnSorting() {
   var loadSortingState = function () {
     var instance = this;
     var storedState = {};
-    instance.hooks.run('persistentStateLoad', 'columnSorting', storedState);
+    Handsontable.hooks.run(instance, 'persistentStateLoad', 'columnSorting', storedState);
 
     return storedState.value;
   };

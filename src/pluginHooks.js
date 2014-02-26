@@ -63,12 +63,22 @@ Handsontable.PluginHookClass = (function () {
   function PluginHookClass() {
 
     this.hooks = Hooks();
-
+    this.globalBucket = {};
     this.legacy = legacy;
 
   }
 
-  PluginHookClass.prototype.add = function (key, fn) {
+  PluginHookClass.prototype.getBucket = function (instance) {
+    if(instance) {
+      if(!instance.pluginHookBucket) {
+        instance.pluginHookBucket = {};
+      }
+      return instance.pluginHookBucket;
+    }
+    return this.globalBucket;
+  };
+
+  PluginHookClass.prototype.add = function (key, fn, instance) {
     //if fn is array, run this for all the array items
     if (Handsontable.helper.isArray(fn)) {
       for (var i = 0, len = fn.length; i < len; i++) {
@@ -81,35 +91,37 @@ Handsontable.PluginHookClass = (function () {
         key = legacy[key];
       }
 
-      if (typeof this.hooks[key] === "undefined") {
-        this.hooks[key] = [];
+      var bucket = this.getBucket(instance);
+
+      if (typeof bucket[key] === "undefined") {
+        bucket[key] = [];
       }
 
-      if (this.hooks[key].indexOf(fn) == -1) {
-        this.hooks[key].push(fn); //only add a hook if it has not already be added (adding the same hook twice is now silently ignored)
+      if (bucket[key].indexOf(fn) == -1) {
+        bucket[key].push(fn); //only add a hook if it has not already be added (adding the same hook twice is now silently ignored)
       }
     }
     return this;
   };
 
-  PluginHookClass.prototype.once = function(key, fn){
+  PluginHookClass.prototype.once = function(key, fn, instance){
 
     if(Handsontable.helper.isArray(fn)){
 
       for(var i = 0, len = fn.length; i < len; i++){
         fn[i].runOnce = true;
-        this.add(key, fn[i]);
+        this.add(key, fn[i], instance);
       }
 
     } else {
       fn.runOnce = true;
-      this.add(key, fn);
+      this.add(key, fn, instance);
 
     }
 
   };
 
-  PluginHookClass.prototype.remove = function (key, fn) {
+  PluginHookClass.prototype.remove = function (key, fn, instance) {
     var status = false;
 
     // provide support for old versions of HOT
@@ -117,13 +129,15 @@ Handsontable.PluginHookClass = (function () {
       key = legacy[key];
     }
 
-    if (typeof this.hooks[key] !== 'undefined') {
+    var bucket = this.getBucket(instance);
 
-      for (var i = 0, leni = this.hooks[key].length; i < leni; i++) {
+    if (typeof bucket[key] !== 'undefined') {
 
-        if (this.hooks[key][i] == fn) {
-          delete this.hooks[key][i].runOnce;
-          this.hooks[key].splice(i, 1);
+      for (var i = 0, leni = bucket[key].length; i < leni; i++) {
+
+        if (bucket[key][i] == fn) {
+          delete bucket[key][i].runOnce;
+          bucket[key].splice(i, 1);
           status = true;
           break;
         }
@@ -136,61 +150,62 @@ Handsontable.PluginHookClass = (function () {
   };
 
   PluginHookClass.prototype.run = function (instance, key, p1, p2, p3, p4, p5) {
-
     // provide support for old versions of HOT
     if (key in legacy) {
       key = legacy[key];
     }
 
-    //performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-    if (typeof this.hooks[key] !== 'undefined') {
+    this._runBucket(this.globalBucket, instance, key, p1, p2, p3, p4, p5);
+    this._runBucket(this.getBucket(instance), instance, key, p1, p2, p3, p4, p5);
+  };
 
+  PluginHookClass.prototype._runBucket = function (bucket, instance, key, p1, p2, p3, p4, p5) {
+    if (typeof bucket[key] !== 'undefined') {
       //Make a copy of handler array
-      var handlers = Array.prototype.slice.call(this.hooks[key]);
+      var handlers = Array.prototype.slice.call(bucket[key]);
 
       for (var i = 0, leni = handlers.length; i < leni; i++) {
         handlers[i].call(instance, p1, p2, p3, p4, p5);
 
         if(handlers[i].runOnce){
-          this.remove(key, handlers[i]);
+          this.remove(key, handlers[i], bucket === this.globalBucket ? null : instance);
         }
       }
-
     }
-
   };
 
   PluginHookClass.prototype.execute = function (instance, key, p1, p2, p3, p4, p5) {
-    var res, handlers;
-
     // provide support for old versions of HOT
     if (key in legacy) {
       key = legacy[key];
     }
 
+    p1 = this._executeBucket(this.globalBucket, instance, key, p1, p2, p3, p4, p5);
+    p1 = this._executeBucket(this.getBucket(instance), instance, key, p1, p2, p3, p4, p5);
+    return p1;
+  };
+
+  PluginHookClass.prototype._executeBucket = function (bucket, instance, key, p1, p2, p3, p4, p5) {
+    var res, handlers;
+
     //performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-      if (typeof this.hooks[key] !== 'undefined') {
-
-        handlers = Array.prototype.slice.call(this.hooks[key]);
-
-        for (var i = 0, leni = handlers.length; i < leni; i++) {
-
-          res = handlers[i].call(instance, p1, p2, p3, p4, p5);
-          if (res !== void 0) {
-            p1 = res;
-          }
-
-          if(handlers[i].runOnce){
-            this.remove(key, handlers[i]);
-          }
-
-          if(res === false){ //if any handler returned false
-            return false; //event has been cancelled and further execution of handler queue is being aborted
-          }
-
+    if (typeof bucket[key] !== 'undefined') {
+      handlers = Array.prototype.slice.call(bucket[key]);
+      for (var i = 0, leni = handlers.length; i < leni; i++) {
+        res = handlers[i].call(instance, p1, p2, p3, p4, p5);
+        if (res !== void 0) {
+          p1 = res;
         }
 
+        if(handlers[i].runOnce){
+          this.remove(key, handlers[i], bucket === this.globalBucket ? null : instance);
+        }
+
+        if(res === false){ //if any handler returned false
+          return false; //event has been cancelled and further execution of handler queue is being aborted
+        }
       }
+    }
 
     return p1;
   };

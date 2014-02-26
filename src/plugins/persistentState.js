@@ -126,7 +126,7 @@ function Storage(prefix) {
 
       for (var hookName in hooks) {
         if (hooks.hasOwnProperty(hookName)) {
-          instance.hooks.add(hookName, hooks[hookName]);
+          instance.addHook(hookName, hooks[hookName]);
         }
       }
     }
@@ -136,7 +136,7 @@ function Storage(prefix) {
 
       for (var hookName in hooks) {
         if (hooks.hasOwnProperty(hookName)) {
-          instance.hooks.remove(hookName, hooks[hookName]);
+          instance.removeHook(hookName, hooks[hookName]);
         }
       }
     }

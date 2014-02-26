@@ -20,7 +20,7 @@
           priv.settings.beforeOnKeyDown.call(instance, event);
         }
 
-        instance.hooks.run('beforeKeyDown', event);
+        Handsontable.hooks.run(instance, 'beforeKeyDown', event);
 
         if (!event.isImmediatePropagationStopped()) {
 

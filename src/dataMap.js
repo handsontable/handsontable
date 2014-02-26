@@ -176,7 +176,7 @@
     }
 
 
-    this.instance.hooks.run('afterCreateRow', index, numberOfCreatedRows, createdAutomatically);
+    Handsontable.hooks.run(this.instance, 'afterCreateRow', index, numberOfCreatedRows, createdAutomatically);
     this.instance.forceFullRender = true; //used when data was changed
 
     return numberOfCreatedRows;
@@ -230,7 +230,7 @@
       currentIndex++;
     }
 
-    this.instance.hooks.run('afterCreateCol', index, numberOfCreatedCols, createdAutomatically);
+    Handsontable.hooks.run(this.instance, 'afterCreateCol', index, numberOfCreatedCols, createdAutomatically);
     this.instance.forceFullRender = true; //used when data was changed
 
     return numberOfCreatedCols;
@@ -254,7 +254,7 @@
     // We have to map the physical row ids to logical and than perform removing with (possibly) new row id
     var logicRows = this.physicalRowsToLogical(index, amount);
 
-    var actionWasNotCancelled = this.instance.hooks.execute('beforeRemoveRow', index, amount);
+    var actionWasNotCancelled = Handsontable.hooks.execute(this.instance, 'beforeRemoveRow', index, amount);
 
     if (actionWasNotCancelled === false) {
       return;
@@ -268,7 +268,7 @@
     data.length = 0;
     Array.prototype.push.apply(data, newData);
 
-    this.instance.hooks.run('afterRemoveRow', index, amount);
+    Handsontable.hooks.run(this.instance, 'afterRemoveRow', index, amount);
 
     this.instance.forceFullRender = true; //used when data was changed
   };
@@ -291,7 +291,7 @@
 
     index = (this.instance.countCols() + index) % this.instance.countCols();
 
-    var actionWasNotCancelled = this.instance.hooks.execute('beforeRemoveCol', index, amount);
+    var actionWasNotCancelled = Handsontable.hooks.execute(this.instance, 'beforeRemoveCol', index, amount);
 
     if (actionWasNotCancelled === false) {
       return;
@@ -303,7 +303,7 @@
     }
     this.priv.columnSettings.splice(index, amount);
 
-    this.instance.hooks.run('afterRemoveCol', index, amount);
+    Handsontable.hooks.run(this.instance, 'afterRemoveCol', index, amount);
     this.instance.forceFullRender = true; //used when data was changed
   };
 
@@ -366,7 +366,7 @@
   Handsontable.DataMap.prototype.get = function (row, prop) {
     this.getVars.row = row;
     this.getVars.prop = prop;
-    this.instance.hooks.run('beforeGet', this.getVars);
+    Handsontable.hooks.run(this.instance, 'beforeGet', this.getVars);
     if (typeof this.getVars.prop === 'string' && this.getVars.prop.indexOf('.') > -1) {
       var sliced = this.getVars.prop.split(".");
       var out = this.dataSource[this.getVars.row];
@@ -431,7 +431,7 @@
     this.setVars.row = row;
     this.setVars.prop = prop;
     this.setVars.value = value;
-    this.instance.hooks.run('beforeSet', this.setVars, source || "datamapGet");
+    Handsontable.hooks.run(this.instance, 'beforeSet', this.setVars, source || "datamapGet");
     if (typeof this.setVars.prop === 'string' && this.setVars.prop.indexOf('.') > -1) {
       var sliced = this.setVars.prop.split(".");
       var out = this.dataSource[this.setVars.row];

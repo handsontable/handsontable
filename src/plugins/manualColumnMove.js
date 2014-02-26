@@ -20,13 +20,13 @@ function HandsontableManualColumnMove() {
   var saveManualColumnPositions = function () {
     var instance = this;
 
-    instance.hooks.run('persistentStateSave', 'manualColumnPositions', instance.manualColumnPositions);
+    Handsontable.hooks.run(instance, 'persistentStateSave', 'manualColumnPositions', instance.manualColumnPositions);
   };
 
   var loadManualColumnPositions = function () {
     var instance = this;
     var storedState = {};
-    instance.hooks.run('persistentStateLoad', 'manualColumnPositions', storedState);
+    Handsontable.hooks.run(instance, 'persistentStateLoad', 'manualColumnPositions', storedState);
 
     return storedState.value;
   };
@@ -62,7 +62,7 @@ function HandsontableManualColumnMove() {
 
         saveManualColumnPositions.call(instance);
 
-        instance.hooks.run('afterColumnMove', startCol, endCol);
+        Handsontable.hooks.run(instance, 'afterColumnMove', startCol, endCol);
       }
     });
 

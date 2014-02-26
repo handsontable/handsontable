@@ -42,7 +42,7 @@ function HandsontableManualColumnResize() {
 
         saveManualColumnWidths.call(instance);
 
-        instance.hooks.run('afterColumnResize', currentCol, newSize);
+        Handsontable.hooks.run(instance, 'afterColumnResize', currentCol, newSize);
       }
 
       refreshResizerPosition.call(instance, currentTH);
@@ -52,13 +52,13 @@ function HandsontableManualColumnResize() {
   var saveManualColumnWidths = function () {
     var instance = this;
 
-    instance.hooks.run('persistentStateSave', 'manualColumnWidths', instance.manualColumnWidths);
+    Handsontable.hooks.run(instance, 'persistentStateSave', 'manualColumnWidths', instance.manualColumnWidths);
   };
 
   var loadManualColumnWidths = function () {
     var instance = this;
     var storedState = {};
-    instance.hooks.run('persistentStateLoad', 'manualColumnWidths', storedState);
+    Handsontable.hooks.run(instance, 'persistentStateLoad', 'manualColumnWidths', storedState);
 
     return storedState.value;
   };
@@ -106,7 +106,7 @@ function HandsontableManualColumnResize() {
             setManualSize(currentCol, newSize);
             instance.forceFullRender = true;
             instance.view.render(); //updates all
-            instance.hooks.run('afterColumnResize', currentCol, newSize);
+            Handsontable.hooks.run(instance, 'afterColumnResize', currentCol, newSize);
           }
           dblclick = 0;
           autoresizeTimeout = null;
@@ -159,7 +159,7 @@ function HandsontableManualColumnResize() {
      *  We need to run col through modifyCol hook, in case the order of displayed columns is different than the order
      *  in data source. For instance, this order can be modified by manualColumnMove plugin.
      */
-    col = instance.hooks.execute('modifyCol', col);
+    col = Handsontable.hooks.execute(instance, 'modifyCol', col);
 
     instance.manualColumnWidths[col] = width;
     return width;
