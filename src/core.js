@@ -798,7 +798,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
 
     this.forceFullRender = true; //used when data was changed
-    this.view.render();
+    this.view.render(true);
 
     if (typeof priv.firstRun === 'object') {
       instance.PluginHooks.run('afterChange', priv.firstRun[0], priv.firstRun[1]);

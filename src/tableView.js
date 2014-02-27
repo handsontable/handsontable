@@ -325,10 +325,9 @@ Handsontable.TableView.prototype.onDraw = function(force){
   }
 };
 
-
 Handsontable.TableView.prototype.render = function (force) {
   if (typeof force == 'undefined') {
-    force = !this.instance.forceFullRende
+    force = !this.instance.forceFullRender;
   }
 
   this.wt.draw(force);
