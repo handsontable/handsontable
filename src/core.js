@@ -798,7 +798,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
 
     this.forceFullRender = true; //used when data was changed
-    this.view.render(true);
+    this.view.render();
 
     if (typeof priv.firstRun === 'object') {
       instance.PluginHooks.run('afterChange', priv.firstRun[0], priv.firstRun[1]);
@@ -1206,6 +1206,16 @@ Handsontable.Core = function (rootElement, userSettings) {
       selection.refreshBorders(null, true);
     }
   };
+
+  /**
+  * Force drawing the view
+  * @public
+  */
+  this.forceDraw = function() {
+    if (instance.view) {
+      instance.view.render(true);
+    }
+  }
 
   /**
    * Load data from array
