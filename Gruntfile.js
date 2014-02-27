@@ -101,6 +101,7 @@ module.exports = function (grunt) {
         'src/plugins/persistentState.js',
         'src/plugins/undoRedo.js',
         'src/plugins/dragToScroll/dragToScroll.js',
+        'src/plugins/mergeCells/mergeCells.js',
         'src/plugins/copyPaste.js'
 
       ],

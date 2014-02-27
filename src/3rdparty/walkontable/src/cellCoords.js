@@ -12,7 +12,7 @@ function WalkontableCellCoords(row, col) {
     this._row = null;
     this._col = null;
   }
-};
+}
 
 /**
  * Returns boolean information if given set of coordinates is valid in context of a given Walkontable instance
@@ -69,3 +69,5 @@ WalkontableCellCoords.prototype.arr = function (arr) {
   }
   return [this._row, this._col]
 };
+
+window.WalkontableCellCoords = WalkontableCellCoords; //export
