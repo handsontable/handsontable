@@ -1208,6 +1208,16 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
+  * Force drawing the view
+  * @public
+  */
+  this.forceDraw = function() {
+    if (instance.view) {
+      instance.view.render(true);
+    }
+  }
+
+  /**
    * Load data from array
    * @public
    * @param {Array} data
