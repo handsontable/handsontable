@@ -325,8 +325,13 @@ Handsontable.TableView.prototype.onDraw = function(force){
   }
 };
 
-Handsontable.TableView.prototype.render = function () {
-  this.wt.draw(!this.instance.forceFullRender);
+
+Handsontable.TableView.prototype.render = function (force) {
+  if (typeof force == 'undefined') {
+    force = !this.instance.forceFullRende
+  }
+
+  this.wt.draw(force);
   this.instance.forceFullRender = false;
   this.instance.rootElement.triggerHandler('render.handsontable');
 };
