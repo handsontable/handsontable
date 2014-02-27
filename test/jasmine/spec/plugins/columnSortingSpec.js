@@ -72,6 +72,46 @@ describe('ColumnSorting', function () {
     expect(this.$container.find('tr td').first().html()).toEqual('10');
   });
 
+
+  it('sort operation should be cancelled if beforeColumnSort returns false', function () {
+    handsontable({
+      data: arrayOfObjects(),
+      colHeaders: true,
+      columnSorting: true,
+	  beforeColumnSort:function(){
+		return false;
+	  }
+    });
+
+    // confirm default condition
+	expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('4');	
+	expect(this.$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('5');
+    expect(this.$container.find('tbody tr:eq(5) td:eq(0)').text()).toEqual('6');
+    expect(this.$container.find('tbody tr:eq(6) td:eq(0)').text()).toEqual('7');
+    expect(this.$container.find('tbody tr:eq(7) td:eq(0)').text()).toEqual('8');
+    expect(this.$container.find('tbody tr:eq(8) td:eq(0)').text()).toEqual('9');
+    expect(this.$container.find('tbody tr:eq(9) td:eq(0)').text()).toEqual('10');
+    	
+	// sort by column which should normally re-order the data
+	this.sortByColumn(1);
+
+    // confirm default condition remains
+	expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('4');	
+	expect(this.$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('5');
+    expect(this.$container.find('tbody tr:eq(5) td:eq(0)').text()).toEqual('6');
+    expect(this.$container.find('tbody tr:eq(6) td:eq(0)').text()).toEqual('7');
+    expect(this.$container.find('tbody tr:eq(7) td:eq(0)').text()).toEqual('8');
+    expect(this.$container.find('tbody tr:eq(8) td:eq(0)').text()).toEqual('9');
+    expect(this.$container.find('tbody tr:eq(9) td:eq(0)').text()).toEqual('10');
+  });  
+  
+
   it('should remove specified row from sorted table and NOT sort the table again', function () {
 
     var hot = handsontable({
