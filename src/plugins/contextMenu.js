@@ -92,6 +92,8 @@
       }
     };
 
+    instance.PluginHooks.run('afterContextMenuDefaultOptions', this.defaultOptions);
+
     this.options = {};
     Handsontable.helper.extend(this.options, this.defaultOptions);
 
@@ -142,8 +144,6 @@
   };
 
   ContextMenu.prototype.unbindTableEvents = function () {
-    var that = this;
-
     if(this._afterScrollCallback){
       this.instance.removeHook('afterScrollVertically', this._afterScrollCallback);
       this.instance.removeHook('afterScrollHorizontally', this._afterScrollCallback);
@@ -225,6 +225,10 @@
     var contextMenu = this;
     var item = instance.getData()[row];
     var wrapper = document.createElement('DIV');
+
+    if(typeof value === 'function') {
+      value = value.call(this.instance);
+    }
 
     Handsontable.Dom.empty(TD);
     TD.appendChild(wrapper);
@@ -555,7 +559,7 @@
     if(this.menu.parentNode){
       this.menu.parentNode.removeChild(this.menu);
     }
-  }
+  };
 
   ContextMenu.prototype.filterItems = function(itemsToLeave){
     this.itemsFilter = itemsToLeave;
@@ -590,6 +594,10 @@
 
   Handsontable.PluginHooks.add('afterInit', init);
   Handsontable.PluginHooks.add('afterUpdateSettings', init);
+
+  if(Handsontable.PluginHooks.register) { //HOT 0.11+
+    Handsontable.PluginHooks.register('afterContextMenuDefaultOptions');
+  }
 
   Handsontable.ContextMenu = ContextMenu;
 

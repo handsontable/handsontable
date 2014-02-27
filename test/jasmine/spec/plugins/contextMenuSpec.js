@@ -700,6 +700,43 @@ describe('ContextMenu', function () {
 
     });
 
+    it("should have custom items list (defined as a function)", function () {
+      var enabled = false;
+      var hot = handsontable({
+        contextMenu: {
+          items: {
+            cust1: {
+              name: function() {
+                if(!enabled) {
+                  return 'Enable my custom option'
+                }
+                else {
+                  return 'Disable my custom option';
+                }
+              },
+              callback: function() {
+
+              }
+            }
+          }
+        }
+      });
+
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+      expect($menu.find('tbody td').text()).toEqual('Enable my custom option');
+
+      $menu.find('tbody td:eq(0)').trigger('mousedown');
+
+      enabled = true;
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+      expect($menu.find('tbody td').text()).toEqual('Disable my custom option');
+
+      $menu.find('tbody td:eq(0)').trigger('mousedown');
+
+    });
+
     it("should enable to define item options globally", function () {
 
       var callback = jasmine.createSpy('callback');
@@ -1718,5 +1755,36 @@ describe('ContextMenu', function () {
 
   });
 
+  describe("afterContextMenuDefaultOptions hook", function() {
+    it("should call afterContextMenuDefaultOptions hook with context menu options as the first param", function () {
+      var options;
+
+      var afterContextMenuDefaultOptions = function(options_) {
+        options = options_;
+        options.items.cust1 = {
+          name: 'My custom item',
+          callback: function () {
+          }
+        };
+      }
+
+      Handsontable.PluginHooks.add('afterContextMenuDefaultOptions', afterContextMenuDefaultOptions);
+
+      var hot = handsontable({
+        contextMenu: true
+      });
+
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+
+      expect(options).toBeDefined();
+      expect(options.items).toBeDefined();
+      expect($menu.find('tbody td').text()).toContain('My custom item');
+
+      $menu.find('tbody td:eq(0)').trigger('mousedown');
+
+      Handsontable.PluginHooks.remove('afterContextMenuDefaultOptions', afterContextMenuDefaultOptions);
+    });
+  });
 
 });
