@@ -7,6 +7,10 @@ function WalkontableSelection(instance, settings) {
   }
 }
 
+/**
+ * Adds a cell coords to the selection
+ * @param {WalkontableCellCoords} coords
+ */
 WalkontableSelection.prototype.add = function (coords) {
   this.selected.push(coords);
 };
@@ -28,23 +32,23 @@ WalkontableSelection.prototype.getCorners = function () {
     , ilen = this.selected.length;
 
   if (ilen > 0) {
-    minRow = maxRow = this.selected[0][0];
-    minColumn = maxColumn = this.selected[0][1];
+    minRow = maxRow = this.selected[0].row;
+    minColumn = maxColumn = this.selected[0].col;
 
     if (ilen > 1) {
       for (i = 1; i < ilen; i++) {
-        if (this.selected[i][0] < minRow) {
-          minRow = this.selected[i][0];
+        if (this.selected[i].row < minRow) {
+          minRow = this.selected[i].row;
         }
-        else if (this.selected[i][0] > maxRow) {
-          maxRow = this.selected[i][0];
+        else if (this.selected[i].row > maxRow) {
+          maxRow = this.selected[i].row;
         }
 
-        if (this.selected[i][1] < minColumn) {
-          minColumn = this.selected[i][1];
+        if (this.selected[i].col < minColumn) {
+          minColumn = this.selected[i].col;
         }
-        else if (this.selected[i][1] > maxColumn) {
-          maxColumn = this.selected[i][1];
+        else if (this.selected[i].col > maxColumn) {
+          maxColumn = this.selected[i].col;
         }
       }
     }

@@ -58,9 +58,9 @@ MergeCells.prototype.mergeRange = function (cellRange) {
   var topLeft = cellRange.getTopLeftCorner();
   var bottomRight = cellRange.getBottomRightCorner();
 
-  var info = this.mergedCellInfo.getInfo(topLeft._row, topLeft._col);
-  info.rowspan = bottomRight._row - topLeft._row + 1; //TD has rowspan == 1 by default. rowspan == 2 means spread over 2 cells
-  info.colspan = bottomRight._col - topLeft._col + 1;
+  var info = this.mergedCellInfo.getInfo(topLeft.row, topLeft.col);
+  info.rowspan = bottomRight.row - topLeft.row + 1; //TD has rowspan == 1 by default. rowspan == 2 means spread over 2 cells
+  info.colspan = bottomRight.col - topLeft.col + 1;
   info.mergedCellInfo = new MergedCellInfo(topLeft, cellRange, topLeft, true);
 
   var that = this;
@@ -68,7 +68,7 @@ MergeCells.prototype.mergeRange = function (cellRange) {
   all.push(bottomRight);
   all.map(function (cellCoords) {
     var mergedCellInfo = new MergedCellInfo(cellCoords, cellRange, topLeft, false);
-    var info = that.mergedCellInfo.getInfo(cellCoords._row, cellCoords._col);
+    var info = that.mergedCellInfo.getInfo(cellCoords.row, cellCoords.col);
     info.mergedCellInfo = mergedCellInfo;
   });
 };
@@ -83,7 +83,7 @@ MergeCells.prototype.unmergeRange = function (cellRange) {
   all.push(topLeft);
   all.push(bottomRight);
   all.map(function (cellCoords) {
-    var info = that.mergedCellInfo.getInfo(cellCoords._row, cellCoords._col);
+    var info = that.mergedCellInfo.getInfo(cellCoords.row, cellCoords.col);
     info.rowspan = null;
     info.colspan = null;
     info.mergedCellInfo = null;

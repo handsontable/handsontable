@@ -68,7 +68,7 @@ describe('WalkontableScroll', function () {
       width: 100
     });
     wt.draw().scrollVertical(999).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0])).toEqual([0, 0]);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0]).isEqual(new WalkontableCellCoords(0, 0))).toBe(true);
   });
 
   it("scroll horizontal should take totalColumns if it is smaller than width", function () {
@@ -83,7 +83,7 @@ describe('WalkontableScroll', function () {
       width: 500
     });
     wt.draw().scrollHorizontal(999).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0])).toEqual([0, 0]);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0]).isEqual(new WalkontableCellCoords(0, 0))).toBe(true);
   });
 
   it("scroll vertical should scroll to first row if given number smaller than 0", function () {
@@ -98,7 +98,7 @@ describe('WalkontableScroll', function () {
       width: 100
     });
     wt.draw().scrollVertical(-1).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual([0, 0]);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0]).isEqual(new WalkontableCellCoords(0, 0))).toBe(true);
   });
 
   it("scroll vertical should scroll to last row if given number bigger than totalRows", function () {
@@ -115,7 +115,7 @@ describe('WalkontableScroll', function () {
       width: 100
     });
     wt.draw().scrollVertical(999).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:last td:first')[0])).toEqual([19, 0]);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:last td:first')[0]).isEqual(new WalkontableCellCoords(19, 0))).toBe(true);
   });
 
   it("scroll horizontal should scroll to first row if given number smaller than 0", function () {
@@ -130,7 +130,7 @@ describe('WalkontableScroll', function () {
       width: 100
     });
     wt.draw().scrollHorizontal(-1).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual([0, 0]);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0]).isEqual(new WalkontableCellCoords(0, 0))).toBe(true);
   });
 
   it("scroll horizontal should scroll to last row if given number bigger than totalRows", function () {
@@ -145,7 +145,7 @@ describe('WalkontableScroll', function () {
       width: 100
     });
     wt.draw().scrollHorizontal(999).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:last')[0])).toEqual([0, 3]);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:last')[0]).isEqual(new WalkontableCellCoords(0, 3))).toBe(true);
   });
 
   it("scroll viewport to a cell that is visible should do nothing", function () {
@@ -161,7 +161,7 @@ describe('WalkontableScroll', function () {
     });
     wt.draw();
     var tmp = wt.getViewport();
-    wt.scrollViewport([0, 1]).draw();
+    wt.scrollViewport(new WalkontableCellCoords(0, 1)).draw();
     expect(wt.getViewport()).toEqual(tmp);
   });
 
@@ -176,8 +176,8 @@ describe('WalkontableScroll', function () {
       height: 200,
       width: 100
     });
-    wt.draw().scrollViewport([0, 1]).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual([0, 1]);
+    wt.draw().scrollViewport(new WalkontableCellCoords(0, 1)).draw();
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0]).isEqual(new WalkontableCellCoords(0, 1))).toBe(true);
   });
 
   it("scroll viewport to a cell on far right should make it visible on right edge", function () {
@@ -191,7 +191,7 @@ describe('WalkontableScroll', function () {
       height: 200,
       width: 125
     });
-    wt.draw().scrollViewport([0, 2]).draw();
+    wt.draw().scrollViewport(new WalkontableCellCoords(0, 2)).draw();
     expect(wt.getViewport()).toEqual([0, 1, 8, 3]);
   });
 
@@ -209,8 +209,8 @@ describe('WalkontableScroll', function () {
         TH.innerHTML = row + 1;
       }]
     });
-    wt.draw().scrollViewport([0, 1]).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual([0, 1]);
+    wt.draw().scrollViewport(new WalkontableCellCoords(0, 1)).draw();
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0]).isEqual(new WalkontableCellCoords(0, 1))).toBe(true);
   });
 
   it("scroll viewport to a cell on far right should make it visible on right edge (with row header)", function () {
@@ -227,8 +227,8 @@ describe('WalkontableScroll', function () {
         TH.innerHTML = row + 1;
       }]
     });
-    wt.draw().scrollViewport([0, 2]).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:last')[0])).toEqual([0, 3]);
+    wt.draw().scrollViewport(new WalkontableCellCoords(0, 2)).draw();
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:last')[0]).isEqual(new WalkontableCellCoords(0, 3))).toBe(true);
   });
 
   it("scroll viewport to a cell on far bottom should make it visible on bottom edge", function () {
@@ -242,7 +242,7 @@ describe('WalkontableScroll', function () {
       height: 200,
       width: 125
     });
-    wt.draw().scrollViewport([12, 0]).draw();
+    wt.draw().scrollViewport(new WalkontableCellCoords(12, 0)).draw();
     expect(wt.getViewport()).toEqual([5, 0, 13, 2]);
   });
 
@@ -257,8 +257,8 @@ describe('WalkontableScroll', function () {
       height: 200,
       width: 100
     });
-    wt.draw().scrollViewport([12, 0]).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual([12, 0]);
+    wt.draw().scrollViewport(new WalkontableCellCoords(12, 0)).draw();
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0]).isEqual(new WalkontableCellCoords(12, 0))).toBe(true);
   });
 
   it("scroll viewport to a cell that does not exist (vertically) should throw an error", function () {
@@ -276,7 +276,7 @@ describe('WalkontableScroll', function () {
         height: 200,
         width: 100
       });
-      wt.draw().scrollViewport([40, 0]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(40, 0)).draw();
     }
     catch (e) {
       err++;
@@ -298,7 +298,7 @@ describe('WalkontableScroll', function () {
         height: 200,
         width: 100
       });
-      wt.draw().scrollViewport([0, 40]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 40)).draw();
     }
     catch (e) {
       err++;
@@ -318,7 +318,7 @@ describe('WalkontableScroll', function () {
       height: 200,
       width: 100
     });
-    wt.draw().scrollViewport([getTotalRows() - 1, 0]).draw();
+    wt.draw().scrollViewport(new WalkontableCellCoords(getTotalRows() - 1, 0)).draw();
     var originalOffsetRow = wt.getSetting('offsetRow');
     this.data.splice(getTotalRows() - 4, 1); //remove row at index 96
     wt.draw();
@@ -378,7 +378,7 @@ describe('WalkontableScroll', function () {
       height: 200
     });
     wt.draw().scrollVertical(Infinity).draw();
-    expect($table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell([this.data.length - 1, 0])); //last rendered row should be last data row
+    expect($table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell(new WalkontableCellCoords(this.data.length - 1, 0))); //last rendered row should be last data row
   });
 
   it("should scroll to last row with very high rows (respecting fixedRows)", function () {
@@ -400,10 +400,10 @@ describe('WalkontableScroll', function () {
       height: 601
     });
     wt.draw().scrollVertical(Infinity).draw();
-    expect($table.find('tbody tr:eq(0) td:first')[0]).toBe(wt.wtTable.getCell([0, 0])); //first rendered row should fixed row 0
-    expect($table.find('tbody tr:eq(1) td:first')[0]).toBe(wt.wtTable.getCell([1, 0])); //second rendered row should fixed row 1
-    expect($table.find('tbody tr:eq(2) td:first')[0]).toBe(wt.wtTable.getCell([16, 0])); //third rendered row should fixed row 1
-    expect($table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell([this.data.length - 1, 0])); //last rendered row should be last data row
+    expect($table.find('tbody tr:eq(0) td:first')[0]).toBe(wt.wtTable.getCell(new WalkontableCellCoords(0, 0))); //first rendered row should fixed row 0
+    expect($table.find('tbody tr:eq(1) td:first')[0]).toBe(wt.wtTable.getCell(new WalkontableCellCoords(1, 0))); //second rendered row should fixed row 1
+    expect($table.find('tbody tr:eq(2) td:first')[0]).toBe(wt.wtTable.getCell(new WalkontableCellCoords(16, 0))); //third rendered row should fixed row 1
+    expect($table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell(new WalkontableCellCoords(this.data.length - 1, 0))); //last rendered row should be last data row
   });
 
   it("should scroll to last column with very wide cells", function () {
@@ -439,7 +439,7 @@ describe('WalkontableScroll', function () {
         width: 200,
         height: 200
       });
-      wt.draw().scrollViewport([0, 9]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 9)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(3);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('H0');
       expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('I0');
@@ -460,21 +460,21 @@ describe('WalkontableScroll', function () {
         width: 200,
         height: 200
       });
-      wt.draw().scrollViewport([0, 9]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 9)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(3);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('H0');
       expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('I0');
       expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('J0');
 
-      wt.draw().scrollViewport([0, 9]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 9)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(3);
       expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('J0'); //nothing changed
 
-      wt.draw().scrollViewport([0, 8]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 8)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(3);
       expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('J0'); //nothing changed
 
-      wt.draw().scrollViewport([0, 7]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 7)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(3);
       expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('J0'); //nothing changed
     });
@@ -493,24 +493,24 @@ describe('WalkontableScroll', function () {
         width: 200,
         height: 200
       });
-      wt.draw().scrollViewport([0, 9]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 9)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(3);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('H0');
       expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('I0');
       expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('J0');
 
-      wt.draw().scrollViewport([0, 6]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 6)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(4);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('G0');
       expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('H0');
       expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('I0');
       expect($table.find('tbody tr:eq(0) td:eq(3)').html()).toBe('J0');
 
-      wt.draw().scrollViewport([0, 8]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 8)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(4);
       expect($table.find('tbody tr:eq(0) td:eq(3)').html()).toBe('J0'); //nothing changed
 
-      wt.draw().scrollViewport([0, 9]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 9)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(3);
       expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('J0'); //scrolled right
     });
@@ -529,14 +529,14 @@ describe('WalkontableScroll', function () {
         width: 200,
         height: 200
       });
-      wt.draw().scrollViewport([0, 2]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 2)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(4);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A0');
       expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('B0');
       expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('C0');
       expect($table.find('tbody tr:eq(0) td:eq(3)').html()).toBe('D0'); //nothing changed
 
-      wt.draw().scrollViewport([0, 3]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 3)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(4);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('B0');
       expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('C0');
@@ -566,7 +566,7 @@ describe('WalkontableScroll', function () {
         height: 200
       });
 
-      wt.draw().scrollViewport([0, 3]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 3)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(3);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('C0');
       expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('D0');
@@ -595,20 +595,20 @@ describe('WalkontableScroll', function () {
         height: 200
       });
 
-      wt.draw().scrollViewport([0, 3]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 3)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(1);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('D0'); //scrolled right
 
-      wt.draw().scrollViewport([0, 2]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 2)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(2);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('C0'); //scrolled left
       expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('D0');
 
-      wt.draw().scrollViewport([0, 3]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 3)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(1);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('D0'); //scrolled right
 
-      wt.draw().scrollViewport([0, 4]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 4)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(4);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('E0');
       expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('F0');
@@ -639,26 +639,26 @@ describe('WalkontableScroll', function () {
         fixedColumnsLeft: 2
       });
 
-      wt.draw().scrollViewport([0, 3]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 3)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(3);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A0');
       expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('B0');
       expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('D0'); //scrolled right
 
-      wt.draw().scrollViewport([0, 2]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 2)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(4);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A0');
       expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('B0');
       expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('C0'); //scrolled left
       expect($table.find('tbody tr:eq(0) td:eq(3)').html()).toBe('D0');
 
-      wt.draw().scrollViewport([0, 3]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 3)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(3);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A0');
       expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('B0');
       expect($table.find('tbody tr:eq(0) td:eq(2)').html()).toBe('D0'); //scrolled right
 
-      wt.draw().scrollViewport([0, 4]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(0, 4)).draw();
       expect($table.find('tbody tr:eq(0) td').length).toBe(4);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A0');
       expect($table.find('tbody tr:eq(0) td:eq(1)').html()).toBe('B0');
@@ -686,19 +686,19 @@ describe('WalkontableScroll', function () {
         height: 200
       });
 
-      wt.draw().scrollViewport([4, 0]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(4, 0)).draw();
       expect($table.find('tbody tr').length).toBe(1);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe(txt); //scrolled down
 
-      wt.draw().scrollViewport([5, 0]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(5, 0)).draw();
       expect($table.find('tbody tr').length).toBe(9);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A5'); //scrolled down
 
-      wt.draw().scrollViewport([4, 0]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(4, 0)).draw();
       expect($table.find('tbody tr').length).toBe(1);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe(txt); //scrolled up
 
-      wt.draw().scrollViewport([3, 0]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(3, 0)).draw();
       expect($table.find('tbody tr').length).toBe(2);
       expect($table.find('tbody tr:eq(1) td:eq(0)').html()).toBe(txt); //scrolled up
     });
@@ -720,21 +720,21 @@ describe('WalkontableScroll', function () {
         height: 200
       });
 
-      wt.draw().scrollViewport([18, 0]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(18, 0)).draw();
       expect($table.find('tbody tr').length).toBe(2);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A18');
       expect($table.find('tbody tr:eq(1) td:eq(0)').html()).toBe(txt);
 
-      wt.draw().scrollViewport([19, 0]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(19, 0)).draw();
       expect($table.find('tbody tr').length).toBe(1);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe(txt); //scrolled down
 
-      wt.draw().scrollViewport([18, 0]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(18, 0)).draw();
       expect($table.find('tbody tr').length).toBe(2);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A18'); //scrolled up
       expect($table.find('tbody tr:eq(1) td:eq(0)').html()).toBe(txt);
 
-      wt.draw().scrollViewport([17, 0]).draw();
+      wt.draw().scrollViewport(new WalkontableCellCoords(17, 0)).draw();
       expect($table.find('tbody tr').length).toBe(3);
       expect($table.find('tbody tr:eq(0) td:eq(0)').html()).toBe('A17'); //scrolled up
       expect($table.find('tbody tr:eq(1) td:eq(0)').html()).toBe('A18');

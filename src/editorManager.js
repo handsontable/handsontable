@@ -150,10 +150,10 @@
 
                 case keyCodes.HOME:
                   if (event.ctrlKey || event.metaKey) {
-                    rangeModifier({row: 0, col: priv.selStart.col()});
+                    rangeModifier(new WalkontableCellCoords(0, priv.selStart.col));
                   }
                   else {
-                    rangeModifier({row: priv.selStart.row(), col: 0});
+                    rangeModifier(new WalkontableCellCoords(priv.selStart.row, 0));
                   }
                   event.preventDefault(); //don't scroll the window
                   event.stopPropagation(); //required by HandsontableEditor
@@ -161,10 +161,10 @@
 
                 case keyCodes.END:
                   if (event.ctrlKey || event.metaKey) {
-                    rangeModifier({row: instance.countRows() - 1, col: priv.selStart.col()});
+                    rangeModifier(new WalkontableCellCoords(instance.countRows() - 1, priv.selStart.col));
                   }
                   else {
-                    rangeModifier({row: priv.selStart.row(), col: instance.countCols() - 1});
+                    rangeModifier(new WalkontableCellCoords(priv.selStart.row, instance.countCols() - 1));
                   }
                   event.preventDefault(); //don't scroll the window
                   event.stopPropagation(); //required by HandsontableEditor
@@ -282,8 +282,8 @@
         return;
       }
 
-      var row = priv.selStart.row();
-      var col = priv.selStart.col();
+      var row = priv.selStart.row;
+      var col = priv.selStart.col;
       var prop = instance.colToProp(col);
       var td = instance.getCell(row, col);
       var originalValue = instance.getDataAtCell(row, col);

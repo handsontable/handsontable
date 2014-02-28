@@ -26,14 +26,14 @@ describe('WalkontableWheel', function () {
       width: 100
     });
     wt.draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0])).toEqual([0, 0]);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0]).isEqual(new WalkontableCellCoords(0, 0))).toBe(true);
 
     $table.trigger('mousewheel', [null, null, -1]); //deltaY -1 means mouse wheel scrolled down
 
     waits(0); //mousewheel runs in async
 
     runs(function(){
-      expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0])).toEqual([1, 0]);
+      expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0]).isEqual(new WalkontableCellCoords(1, 0))).toBe(true);
     });
   });
 
@@ -49,14 +49,14 @@ describe('WalkontableWheel', function () {
       width: 100
     });
     wt.draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0])).toEqual([0, 0]);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0]).isEqual(new WalkontableCellCoords(0, 0))).toBe(true);
 
     $table.parent().trigger('mousewheel', [null, null, -1]); //deltaY -1 means mouse wheel scrolled down
 
     waits(0); //mousewheel runs in async
 
     runs(function(){
-      expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0])).toEqual([1, 0]);
+      expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0]).isEqual(new WalkontableCellCoords(1, 0))).toBe(true);
     });
   });
 });

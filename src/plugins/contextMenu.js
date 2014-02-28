@@ -20,7 +20,7 @@
         'row_above': {
           name: 'Insert row above',
           callback: function(key, selection){
-            this.alter("insert_row", selection.start.row());
+            this.alter("insert_row", selection.start.row);
           },
           disabled: function () {
             return this.countRows() >= this.getSettings().maxRows;
@@ -29,7 +29,7 @@
         'row_below': {
           name: 'Insert row below',
           callback: function(key, selection){
-            this.alter("insert_row", selection.end.row() + 1);
+            this.alter("insert_row", selection.end.row + 1);
           },
           disabled: function () {
             return this.countRows() >= this.getSettings().maxRows;
@@ -39,7 +39,7 @@
         'col_left': {
           name: 'Insert column on the left',
           callback: function(key, selection){
-            this.alter("insert_col", selection.start.col());
+            this.alter("insert_col", selection.start.col);
           },
           disabled: function () {
             return this.countCols() >= this.getSettings().maxCols;
@@ -48,7 +48,7 @@
         'col_right': {
           name: 'Insert column on the right',
           callback: function(key, selection){
-            this.alter("insert_col", selection.end.col() + 1);
+            this.alter("insert_col", selection.end.col + 1);
           },
           disabled: function () {
             return this.countCols() >= this.getSettings().maxCols;
@@ -58,15 +58,15 @@
         'remove_row': {
           name: 'Remove row',
           callback: function(key, selection){
-            var amount = selection.end.row() - selection.start.row() + 1;
-            this.alter("remove_row", selection.start.row(), amount);
+            var amount = selection.end.row - selection.start.row + 1;
+            this.alter("remove_row", selection.start.row, amount);
           }
         },
         'remove_col': {
           name: 'Remove column',
           callback: function(key, selection){
-            var amount = selection.end.col() - selection.start.col() + 1;
-            this.alter("remove_col", selection.start.col(), amount);
+            var amount = selection.end.col - selection.start.col + 1;
+            this.alter("remove_col", selection.start.col, amount);
           }
         },
         "hsep3": ContextMenu.SEPARATOR,
@@ -496,11 +496,11 @@
       end: new WalkontableCellCoords()
     };
 
-    selection.start.row(Math.min(corners[0], corners[2]));
-    selection.start.col(Math.min(corners[1], corners[3]));
+    selection.start.row = Math.min(corners[0], corners[2]);
+    selection.start.col = Math.min(corners[1], corners[3]);
 
-    selection.end.row(Math.max(corners[0], corners[2]));
-    selection.end.col(Math.max(corners[1], corners[3]));
+    selection.end.row = Math.max(corners[0], corners[2]);
+    selection.end.col = Math.max(corners[1], corners[3]);
 
     return selection;
   };

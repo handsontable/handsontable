@@ -5,12 +5,12 @@
 
 function WalkontableCellCoords(row, col) {
   if (typeof row !== 'undefined' && typeof col !== 'undefined') {
-    this._row = row;
-    this._col = col;
+    this.row = row;
+    this.col = col;
   }
   else {
-    this._row = null;
-    this._col = null;
+    this.row = null;
+    this.col = null;
   }
 }
 
@@ -21,53 +21,28 @@ function WalkontableCellCoords(row, col) {
  */
 WalkontableCellCoords.prototype.isValid = function (instance) {
   //is it a valid cell index (0 or higher)
-  if (this._row < 0 || this._col < 0) {
+  if (this.row < 0 || this.col < 0) {
     return false;
   }
 
   //is selection within total rows and columns
-  if (this._row >= instance.getSetting('totalRows') || this._col >= instance.getSetting('totalColumns')) {
+  if (this.row >= instance.getSetting('totalRows') || this.col >= instance.getSetting('totalColumns')) {
     return false;
   }
 
   return true;
 };
 
-WalkontableCellCoords.prototype.exists = function () {
-  return (this._row !== null);
-};
-
-WalkontableCellCoords.prototype.row = function (val) {
-  if (val !== void 0) {
-    this._row = val;
+/**
+ * Returns boolean information if this cell coords are the same as cell coords given as a parameter
+ * @param instance
+ * @returns {boolean}
+ */
+WalkontableCellCoords.prototype.isEqual = function (cellCoords) {
+  if (cellCoords === this) {
+    return this;
   }
-  return this._row;
-};
-
-WalkontableCellCoords.prototype.col = function (val) {
-  if (val !== void 0) {
-    this._col = val;
-  }
-  return this._col;
-};
-
-WalkontableCellCoords.prototype.coords = function (coords) {
-  if (coords !== void 0) {
-    this._row = coords.row;
-    this._col = coords.col;
-  }
-  return {
-    row: this._row,
-    col: this._col
-  }
-};
-
-WalkontableCellCoords.prototype.arr = function (arr) {
-  if (arr !== void 0) {
-    this._row = arr[0];
-    this._col = arr[1];
-  }
-  return [this._row, this._col]
+  return (this.row === cellCoords.row && this.col === cellCoords.col);
 };
 
 window.WalkontableCellCoords = WalkontableCellCoords; //export

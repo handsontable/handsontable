@@ -6,12 +6,12 @@ describe("WalkontableCellRange", function () {
       var range = new WalkontableCellRange(from, to);
       var all = range.getAll();
       expect(all.length).toBe(9);
-      expect(all[0]._row).toBe(from._row);
-      expect(all[0]._col).toBe(from._col);
-      expect(all[1]._row).toBe(1);
-      expect(all[1]._col).toBe(2);
-      expect(all[8]._row).toBe(to._row);
-      expect(all[8]._col).toBe(to._col);
+      expect(all[0].row).toBe(from.row);
+      expect(all[0].col).toBe(from.col);
+      expect(all[1].row).toBe(1);
+      expect(all[1].col).toBe(2);
+      expect(all[8].row).toBe(to.row);
+      expect(all[8].col).toBe(to.col);
     });
 
     it("should get all cells in range (reverse order)", function () {
@@ -20,12 +20,12 @@ describe("WalkontableCellRange", function () {
       var range = new WalkontableCellRange(from, to);
       var all = range.getAll();
       expect(all.length).toBe(9);
-      expect(all[0]._row).toBe(to._row);
-      expect(all[0]._col).toBe(to._col);
-      expect(all[1]._row).toBe(1);
-      expect(all[1]._col).toBe(2);
-      expect(all[8]._row).toBe(from._row);
-      expect(all[8]._col).toBe(from._col);
+      expect(all[0].row).toBe(to.row);
+      expect(all[0].col).toBe(to.col);
+      expect(all[1].row).toBe(1);
+      expect(all[1].col).toBe(2);
+      expect(all[8].row).toBe(from.row);
+      expect(all[8].col).toBe(from.col);
     });
   });
 
@@ -36,8 +36,8 @@ describe("WalkontableCellRange", function () {
       var range = new WalkontableCellRange(from, to);
       var inner = range.getInner();
       expect(inner.length).toBe(7);
-      expect(inner[1]._row).toBe(1);
-      expect(inner[1]._col).toBe(3);
+      expect(inner[1].row).toBe(1);
+      expect(inner[1].col).toBe(3);
     });
 
     it("should get cells in range excluding from and to (reverse order)", function () {
@@ -46,8 +46,8 @@ describe("WalkontableCellRange", function () {
       var range = new WalkontableCellRange(from, to);
       var inner = range.getInner();
       expect(inner.length).toBe(7);
-      expect(inner[1]._row).toBe(1);
-      expect(inner[1]._col).toBe(3);
+      expect(inner[1].row).toBe(1);
+      expect(inner[1].col).toBe(3);
     });
   });
 });
