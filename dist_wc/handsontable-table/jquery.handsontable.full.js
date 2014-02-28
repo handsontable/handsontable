@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Feb 27 2014 14:48:25 GMT+0000 (GMT Standard Time)
+ * Date: Fri Feb 28 2014 10:17:36 GMT+0000 (GMT Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -7349,7 +7349,7 @@ function HandsontableColumnSorting() {
 
     var continueSort = instance.PluginHooks.execute('beforeColumnSort', instance.sortColumn, instance.sortOrder);
 
-    if(!continueSort){
+    if(continueSort === false){
 		return;
 	}
 	
