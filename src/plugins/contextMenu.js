@@ -167,8 +167,8 @@
       return;
     }
 
-    var corners = this.instance.getSelected();
-    var normalizedSelection = ContextMenu.utils.normalizeSelection(corners);
+    var selRange = this.instance.getSelectedRange();
+    var normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
 
     selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection);
 
@@ -490,18 +490,11 @@
     return itemArray;
   };
 
-  ContextMenu.utils.normalizeSelection = function(corners){
+  ContextMenu.utils.normalizeSelection = function(selRange){
     var selection = {
-      start: new WalkontableCellCoords(),
-      end: new WalkontableCellCoords()
+      start: selRange.getTopLeftCorner(),
+      end: selRange.getBottomRightCorner()
     };
-
-    selection.start.row = Math.min(corners[0], corners[2]);
-    selection.start.col = Math.min(corners[1], corners[3]);
-
-    selection.end.row = Math.max(corners[0], corners[2]);
-    selection.end.col = Math.max(corners[1], corners[3]);
-
     return selection;
   };
 

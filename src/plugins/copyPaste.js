@@ -77,15 +77,17 @@
      */
     this.setCopyableText = function () {
 
-      var selection = instance.getSelected();
       var settings = instance.getSettings();
       var copyRowsLimit = settings.copyRowsLimit;
       var copyColsLimit = settings.copyColsLimit;
 
-      var startRow = Math.min(selection[0], selection[2]);
-      var startCol = Math.min(selection[1], selection[3]);
-      var endRow = Math.max(selection[0], selection[2]);
-      var endCol = Math.max(selection[1], selection[3]);
+      var selRange = instance.getSelectedRange();
+      var topLeft = selRange.getTopLeftCorner();
+      var bottomRight = selRange.getBottomRightCorner();
+      var startRow = topLeft.row;
+      var startCol = topLeft.col;
+      var endRow = bottomRight.row;
+      var endCol = bottomRight.col;
       var finalEndRow = Math.min(endRow, startRow + copyRowsLimit - 1);
       var finalEndCol = Math.min(endCol, startCol + copyColsLimit - 1);
 

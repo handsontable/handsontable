@@ -41,4 +41,26 @@ describe("WalkontableCellCoords", function () {
       expect(result).toBe(false);
     });
   });
+
+  describe("isEqual", function () {
+    it("should be equal to itself", function () {
+      var cellCoords = new WalkontableCellCoords(1, 1);
+      var result = cellCoords.isEqual(cellCoords);
+      expect(result).toBe(true);
+    });
+
+    it("should be equal to another instance with the same row and column", function () {
+      var cellCoords = new WalkontableCellCoords(1, 1);
+      var cellCoords2 = new WalkontableCellCoords(1, 1);
+      var result = cellCoords.isEqual(cellCoords2);
+      expect(result).toBe(true);
+    });
+
+    it("should not be equal to an instance with different row or column", function () {
+      var cellCoords = new WalkontableCellCoords(1, 1);
+      var cellCoords2 = new WalkontableCellCoords(2, 1);
+      var result = cellCoords.isEqual(cellCoords2);
+      expect(result).toBe(false);
+    });
+  });
 });

@@ -68,7 +68,7 @@ describe('WalkontableScroll', function () {
       width: 100
     });
     wt.draw().scrollVertical(999).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0]).isEqual(new WalkontableCellCoords(0, 0))).toBe(true);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0])).toEqual(new WalkontableCellCoords(0, 0));
   });
 
   it("scroll horizontal should take totalColumns if it is smaller than width", function () {
@@ -83,7 +83,7 @@ describe('WalkontableScroll', function () {
       width: 500
     });
     wt.draw().scrollHorizontal(999).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0]).isEqual(new WalkontableCellCoords(0, 0))).toBe(true);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:eq(0) td:eq(0)')[0])).toEqual(new WalkontableCellCoords(0, 0));
   });
 
   it("scroll vertical should scroll to first row if given number smaller than 0", function () {
@@ -98,7 +98,7 @@ describe('WalkontableScroll', function () {
       width: 100
     });
     wt.draw().scrollVertical(-1).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0]).isEqual(new WalkontableCellCoords(0, 0))).toBe(true);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new WalkontableCellCoords(0, 0));
   });
 
   it("scroll vertical should scroll to last row if given number bigger than totalRows", function () {
@@ -115,7 +115,7 @@ describe('WalkontableScroll', function () {
       width: 100
     });
     wt.draw().scrollVertical(999).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:last td:first')[0]).isEqual(new WalkontableCellCoords(19, 0))).toBe(true);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:last td:first')[0])).toEqual(new WalkontableCellCoords(19, 0));
   });
 
   it("scroll horizontal should scroll to first row if given number smaller than 0", function () {
@@ -130,7 +130,7 @@ describe('WalkontableScroll', function () {
       width: 100
     });
     wt.draw().scrollHorizontal(-1).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0]).isEqual(new WalkontableCellCoords(0, 0))).toBe(true);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new WalkontableCellCoords(0, 0));
   });
 
   it("scroll horizontal should scroll to last row if given number bigger than totalRows", function () {
@@ -145,7 +145,7 @@ describe('WalkontableScroll', function () {
       width: 100
     });
     wt.draw().scrollHorizontal(999).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:last')[0]).isEqual(new WalkontableCellCoords(0, 3))).toBe(true);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:last')[0])).toEqual(new WalkontableCellCoords(0, 3));
   });
 
   it("scroll viewport to a cell that is visible should do nothing", function () {
@@ -177,7 +177,7 @@ describe('WalkontableScroll', function () {
       width: 100
     });
     wt.draw().scrollViewport(new WalkontableCellCoords(0, 1)).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0]).isEqual(new WalkontableCellCoords(0, 1))).toBe(true);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new WalkontableCellCoords(0, 1));
   });
 
   it("scroll viewport to a cell on far right should make it visible on right edge", function () {
@@ -210,7 +210,7 @@ describe('WalkontableScroll', function () {
       }]
     });
     wt.draw().scrollViewport(new WalkontableCellCoords(0, 1)).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0]).isEqual(new WalkontableCellCoords(0, 1))).toBe(true);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new WalkontableCellCoords(0, 1));
   });
 
   it("scroll viewport to a cell on far right should make it visible on right edge (with row header)", function () {
@@ -228,7 +228,7 @@ describe('WalkontableScroll', function () {
       }]
     });
     wt.draw().scrollViewport(new WalkontableCellCoords(0, 2)).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:last')[0]).isEqual(new WalkontableCellCoords(0, 3))).toBe(true);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:last')[0])).toEqual(new WalkontableCellCoords(0, 3));
   });
 
   it("scroll viewport to a cell on far bottom should make it visible on bottom edge", function () {
@@ -258,7 +258,7 @@ describe('WalkontableScroll', function () {
       width: 100
     });
     wt.draw().scrollViewport(new WalkontableCellCoords(12, 0)).draw();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0]).isEqual(new WalkontableCellCoords(12, 0))).toBe(true);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new WalkontableCellCoords(12, 0));
   });
 
   it("scroll viewport to a cell that does not exist (vertically) should throw an error", function () {

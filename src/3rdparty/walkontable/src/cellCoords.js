@@ -35,12 +35,12 @@ WalkontableCellCoords.prototype.isValid = function (instance) {
 
 /**
  * Returns boolean information if this cell coords are the same as cell coords given as a parameter
- * @param instance
+ * @param {WalkontableCellCoords} cellCoords
  * @returns {boolean}
  */
 WalkontableCellCoords.prototype.isEqual = function (cellCoords) {
   if (cellCoords === this) {
-    return this;
+    return true;
   }
   return (this.row === cellCoords.row && this.col === cellCoords.col);
 };

@@ -79,21 +79,14 @@
       instance.addHook('beforeKeyDown', function(event){
         if(event.keyCode == Handsontable.helper.keyCode.SPACE){
 
-          var selection = instance.getSelected();
           var cell, checkbox, cellProperties;
 
-          var selStart = {
-            row: Math.min(selection[0], selection[2]),
-            col: Math.min(selection[1], selection[3])
-          };
+          var selRange = instance.getSelectedRange();
+          var topLeft = selRange.getTopLeftCorner();
+          var bottomRight = selRange.getBottomRightCorner();
 
-          var selEnd = {
-            row: Math.max(selection[0], selection[2]),
-            col: Math.max(selection[1], selection[3])
-          };
-
-          for(var row = selStart.row; row <= selEnd.row; row++ ){
-            for(var col = selEnd.col; col <= selEnd.col; col++){
+          for(var row = topLeft.row; row <= bottomRight.row; row++ ){
+            for(var col = topLeft.col; col <= bottomRight.col; col++){
               cell = instance.getCell(row, col);
               cellProperties = instance.getCellMeta(row, col);
 

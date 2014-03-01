@@ -252,7 +252,7 @@ describe('WalkontableTable', function () {
     }).draw();
 
     var $td2 = $table.find('tbody tr:eq(1) td:eq(1)');
-    expect(wt.wtTable.getCoords($td2[0]).isEqual(new WalkontableCellCoords(2, 2))).toBe(true);
+    expect(wt.wtTable.getCoords($td2[0])).toEqual(new WalkontableCellCoords(2, 2));
   });
 
   it("getCoords should return coords of TD (with row header)", function () {
@@ -281,7 +281,7 @@ describe('WalkontableTable', function () {
     }).draw();
 
     var $td2 = $table.find('tbody tr:eq(1) td:eq(0)');
-    expect(wt.wtTable.getCoords($td2[0]).isEqual(new WalkontableCellCoords(2, 1))).toBe(true);
+    expect(wt.wtTable.getCoords($td2[0])).toEqual(new WalkontableCellCoords(2, 1));
   });
 
   it("should use custom cell renderer if provided", function () {

@@ -215,7 +215,7 @@ describe('WalkontableSelection', function () {
     wt.draw();
 
     wt.selections.current.add([20, 0]);
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0]).isEqual(new WalkontableCellCoords(0, 0))).toBe(true);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new WalkontableCellCoords(0, 0));
   });
 
   it("should clear a selection that is outside of the viewport", function () {
@@ -243,7 +243,7 @@ describe('WalkontableSelection', function () {
     wt.selections.current.add(new WalkontableCellCoords(0, 0));
     wt.scrollVertical(10).draw();
     wt.selections.current.clear();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0]).isEqual(new WalkontableCellCoords(10, 0))).toBe(true);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new WalkontableCellCoords(10, 0));
   });
 
   it("should clear a selection that has more than one cell", function () {
@@ -272,7 +272,7 @@ describe('WalkontableSelection', function () {
     wt.selections.current.add(new WalkontableCellCoords(0, 1));
     wt.selections.current.clear();
 
-    expect(wt.selections.current.selected.length).toEqual(0);
+    expect(wt.selections.current.cellRange).toEqual(null);
   });
 
   it("should highlight cells in selected row & column", function () {

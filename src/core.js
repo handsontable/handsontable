@@ -35,8 +35,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     columnsSettingConflicts: ['data', 'width'],
     settings: new GridSettings(), // current settings instance
     settingsFromDOM: {},
-    selStart: null,
-    selEnd: null,
+    selRange: null,
     isPopulated: null,
     scrollable: null,
     firstRun: true
@@ -61,8 +60,8 @@ Handsontable.Core = function (rootElement, userSettings) {
           delta = datamap.createRow(index, amount);
 
           if (delta) {
-            if (priv.selStart && priv.selStart.row >= index) {
-              priv.selStart.row = priv.selStart.row + delta;
+            if (selection.isSelected() && priv.selRange.from.row >= index) {
+              priv.selRange.from.row = priv.selRange.from.row + delta;
               selection.transformEnd(delta, 0); //will call render() internally
             }
             else {
@@ -82,8 +81,8 @@ Handsontable.Core = function (rootElement, userSettings) {
               Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); //inserts empty (undefined) elements into the colHeader array
             }
 
-            if (priv.selStart && priv.selStart.col >= index) {
-              priv.selStart.col = priv.selStart.col + delta;
+            if (selection.isSelected() && priv.selRange.from.col >= index) {
+              priv.selRange.from.col = priv.selRange.from.col + delta;
               selection.transformEnd(0, delta); //will call render() internally
             }
             else {
@@ -190,10 +189,10 @@ Handsontable.Core = function (rootElement, userSettings) {
 
       if (selection.isSelected()) {
         var selectionChanged;
-        var fromRow = priv.selStart.row;
-        var fromCol = priv.selStart.col;
-        var toRow = priv.selEnd.row;
-        var toCol = priv.selEnd.col;
+        var fromRow = priv.selRange.from.row;
+        var fromCol = priv.selRange.from.col;
+        var toRow = priv.selRange.to.row;
+        var toCol = priv.selRange.to.col;
 
         //if selection is outside, move selection to last row
         if (fromRow > rowCount - 1) {
@@ -325,28 +324,14 @@ Handsontable.Core = function (rootElement, userSettings) {
     },
 
     /**
-     * Returns the top left (TL) and bottom right (BR) selection coordinates
-     * @param {WalkontableCellCoords} cellCoords1
-     * @param {WalkontableCellCoords} cellCoords2
-     * @returns {WalkontableCellCoords[]}
-     */
-    getCornerCoords: function (cellCoords1, cellCoords2) {
-      var cellRange = new WalkontableCellRange(cellCoords1, cellCoords2);
-
-      return {
-        TL: cellRange.getTopLeftCorner(),
-        BR: cellRange.getBottomRightCorner()
-      };
-    },
-
-    /**
      * Returns array of td objects given start and end coordinates
      */
     getCellsAtCoords: function (start, end) {
-      var corners = grid.getCornerCoords(start, end);
+      var topLeft = priv.selRange.getTopLeftCorner();
+      var bottomRight = priv.selRange.getBottomRightCorner();
       var r, c, output = [];
-      for (r = corners.TL.row; r <= corners.BR.row; r++) {
-        for (c = corners.TL.col; c <= corners.BR.col; c++) {
+      for (r = topLeft.row; r <= bottomRight.row; r++) {
+        for (c = topLeft.col; c <= bottomRight.col; c++) {
           output.push(instance.view.getCellAtCoords(new WalkontableCellCoords(r, c)));
         }
       }
@@ -383,7 +368,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @param {WalkontableCellCoords} coords
      */
     setRangeStart: function (coords) {
-      priv.selStart = coords;
+      priv.selRange = new WalkontableCellRange(coords, coords);
       selection.setRangeEnd(coords);
     },
 
@@ -395,32 +380,32 @@ Handsontable.Core = function (rootElement, userSettings) {
     setRangeEnd: function (coords, scrollToCell) {
       instance.selection.begin();
 
-      priv.selEnd = coords;
+      priv.selRange.to = coords;
       if (!priv.settings.multiSelect) {
-        priv.selStart = coords;
+        priv.selRange.from = coords;
       }
 
       //set up current selection
       instance.view.wt.selections.current.clear();
-      instance.view.wt.selections.current.add(priv.selStart);
+      instance.view.wt.selections.current.add(priv.selRange.from);
 
       //set up area selection
       instance.view.wt.selections.area.clear();
       if (selection.isMultiple()) {
-        instance.view.wt.selections.area.add(priv.selStart);
-        instance.view.wt.selections.area.add(priv.selEnd);
+        instance.view.wt.selections.area.add(priv.selRange.from);
+        instance.view.wt.selections.area.add(priv.selRange.to);
       }
 
       //set up highlight
       if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
-        instance.view.wt.selections.highlight.add(priv.selStart);
-        instance.view.wt.selections.highlight.add(priv.selEnd);
+        instance.view.wt.selections.highlight.add(priv.selRange.from);
+        instance.view.wt.selections.highlight.add(priv.selRange.to);
       }
 
       //trigger handlers
-      instance.PluginHooks.run("afterSelection", priv.selStart.row, priv.selStart.col, priv.selEnd.row, priv.selEnd.col);
-      instance.PluginHooks.run("afterSelectionByProp", priv.selStart.row, datamap.colToProp(priv.selStart.col), priv.selEnd.row, datamap.colToProp(priv.selEnd.col));
+      instance.PluginHooks.run("afterSelection", priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col);
+      instance.PluginHooks.run("afterSelectionByProp", priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
 
       if (scrollToCell !== false) {
         instance.view.scrollViewport(coords);
@@ -448,44 +433,44 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @return {Boolean}
      */
     isMultiple: function () {
-      return !(priv.selEnd.col === priv.selStart.col && priv.selEnd.row === priv.selStart.row);
+      return !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row);
     },
 
     /**
      * Selects cell relative to current cell (if possible)
      */
     transformStart: function (rowDelta, colDelta, force) {
-      if (priv.selStart.row + rowDelta > instance.countRows() - 1) {
+      if (priv.selRange.from.row + rowDelta > instance.countRows() - 1) {
         if (force && priv.settings.minSpareRows > 0) {
           instance.alter("insert_row", instance.countRows());
         }
         else if (priv.settings.autoWrapCol) {
           rowDelta = 1 - instance.countRows();
-          colDelta = priv.selStart.col + colDelta == instance.countCols() - 1 ? 1 - instance.countCols() : 1;
+          colDelta = priv.selRange.from.col + colDelta == instance.countCols() - 1 ? 1 - instance.countCols() : 1;
         }
       }
-      else if (priv.settings.autoWrapCol && priv.selStart.row + rowDelta < 0 && priv.selStart.col + colDelta >= 0) {
+      else if (priv.settings.autoWrapCol && priv.selRange.from.row + rowDelta < 0 && priv.selRange.from.col + colDelta >= 0) {
         rowDelta = instance.countRows() - 1;
-        colDelta = priv.selStart.col + colDelta == 0 ? instance.countCols() - 1 : -1;
+        colDelta = priv.selRange.from.col + colDelta == 0 ? instance.countCols() - 1 : -1;
       }
 
-      if (priv.selStart.col + colDelta > instance.countCols() - 1) {
+      if (priv.selRange.from.col + colDelta > instance.countCols() - 1) {
         if (force && priv.settings.minSpareCols > 0) {
           instance.alter("insert_col", instance.countCols());
         }
         else if (priv.settings.autoWrapRow) {
-          rowDelta = priv.selStart.row + rowDelta == instance.countRows() - 1 ? 1 - instance.countRows() : 1;
+          rowDelta = priv.selRange.from.row + rowDelta == instance.countRows() - 1 ? 1 - instance.countRows() : 1;
           colDelta = 1 - instance.countCols();
         }
       }
-      else if (priv.settings.autoWrapRow && priv.selStart.col + colDelta < 0 && priv.selStart.row + rowDelta >= 0) {
-        rowDelta = priv.selStart.row + rowDelta == 0 ? instance.countRows() - 1 : -1;
+      else if (priv.settings.autoWrapRow && priv.selRange.from.col + colDelta < 0 && priv.selRange.from.row + rowDelta >= 0) {
+        rowDelta = priv.selRange.from.row + rowDelta == 0 ? instance.countRows() - 1 : -1;
         colDelta = instance.countCols() - 1;
       }
 
       var totalRows = instance.countRows();
       var totalCols = instance.countCols();
-      var coords = new WalkontableCellCoords(priv.selStart.row + rowDelta, priv.selStart.col + colDelta);
+      var coords = new WalkontableCellCoords(priv.selRange.from.row + rowDelta, priv.selRange.from.col + colDelta);
 
       if (coords.row < 0) {
         coords.row = 0;
@@ -508,10 +493,9 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Sets selection end cell relative to current selection end cell (if possible)
      */
     transformEnd: function (rowDelta, colDelta) {
-      if (priv.selEnd) {
         var totalRows = instance.countRows();
         var totalCols = instance.countCols();
-        var coords = new WalkontableCellCoords(priv.selEnd.row + rowDelta, priv.selEnd.col + colDelta);
+        var coords = new WalkontableCellCoords(priv.selRange.to.row + rowDelta, priv.selRange.to.col + colDelta);
 
         if (coords.row < 0) {
           coords.row = 0;
@@ -528,7 +512,6 @@ Handsontable.Core = function (rootElement, userSettings) {
         }
 
         selection.setRangeEnd(coords);
-      }
     },
 
     /**
@@ -536,7 +519,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @return {Boolean}
      */
     isSelected: function () {
-      return !!priv.selEnd;
+      return (priv.selRange !== null);
     },
 
     /**
@@ -548,8 +531,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (!selection.isSelected()) {
         return false;
       }
-      var sel = grid.getCornerCoords(priv.selStart, priv.selEnd);
-      return (sel.TL.row <= coords.row && sel.BR.row >= coords.row && sel.TL.col <= coords.col && sel.BR.col >= coords.col);
+      return priv.selRange.includes(coords);
     },
 
     /**
@@ -560,7 +542,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         return;
       }
       instance.selection.inProgress = false; //needed by HT inception
-      priv.selEnd = null;
+      priv.selRange = null;
       instance.view.wt.selections.current.clear();
       instance.view.wt.selections.area.clear();
       editorManager.destroyEditor();
@@ -586,10 +568,11 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (!selection.isSelected()) {
         return;
       }
-      var corners = grid.getCornerCoords(priv.selStart, priv.selEnd);
+      var topLeft = priv.selRange.getTopLeftCorner();
+      var bottomRight = priv.selRange.getBottomRightCorner();
       var r, c, changes = [];
-      for (r = corners.TL.row; r <= corners.BR.row; r++) {
-        for (c = corners.TL.col; c <= corners.BR.col; c++) {
+      for (r = topLeft.row; r <= bottomRight.row; r++) {
+        for (c = topLeft.col; c <= bottomRight.col; c++) {
           if (!instance.getCellMeta(r, c).readOnly) {
             changes.push([r, c, '']);
           }
@@ -718,7 +701,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
       if (start) {
 
-        _data = SheetClip.parse(datamap.getText(priv.selStart, priv.selEnd));
+        _data = SheetClip.parse(datamap.getText(priv.selRange.from, priv.selRange.to));
         instance.PluginHooks.run('beforeAutofill', start, end, _data);
 
         grid.populateFromArray(start, _data, end, 'autofill');
@@ -736,20 +719,21 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @param {WalkontableCellCoords} coords
      */
     showBorder: function (coords) {
-      var corners = grid.getCornerCoords(priv.selStart, priv.selEnd);
-      if (priv.settings.fillHandle !== 'horizontal' && (corners.BR.row < coords.row || corners.TL.row > coords.row)) {
-        coords = new WalkontableCellCoords(coords.row, corners.BR.col);
+      var topLeft = priv.selRange.getTopLeftCorner();
+      var bottomRight = priv.selRange.getBottomRightCorner();
+      if (priv.settings.fillHandle !== 'horizontal' && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
+        coords = new WalkontableCellCoords(coords.row, bottomRight.col);
       }
       else if (priv.settings.fillHandle !== 'vertical') {
-        coords = new WalkontableCellCoords(corners.BR.row, coords.col);
+        coords = new WalkontableCellCoords(bottomRight.row, coords.col);
       }
       else {
         return; //wrong direction
       }
 
       instance.view.wt.selections.fill.clear();
-      instance.view.wt.selections.fill.add(priv.selStart);
-      instance.view.wt.selections.fill.add(priv.selEnd);
+      instance.view.wt.selections.fill.add(priv.selRange.from);
+      instance.view.wt.selections.fill.add(priv.selRange.to);
       instance.view.wt.selections.fill.add(coords);
       instance.view.render();
     }
@@ -1104,7 +1088,18 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.getSelected = function () { //https://github.com/warpech/jquery-handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      return [priv.selStart.row, priv.selStart.col, priv.selEnd.row, priv.selEnd.col];
+      return [priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col];
+    }
+  };
+
+  /**
+   * Returns current selection as a WalkontableCellRange object. Returns undefined if there is no selection.
+   * @public
+   * @return {WalkontableCellRange} [`startRow`, `startCol`, `endRow`, `endCol`]
+   */
+  this.getSelectedRange = function () { //https://github.com/warpech/jquery-handsontable/issues/44  //cjl
+    if (selection.isSelected()) {
+      return priv.selRange;
     }
   };
 
@@ -1903,13 +1898,13 @@ Handsontable.Core = function (rootElement, userSettings) {
         return false;
       }
     }
-    priv.selStart = new WalkontableCellCoords(row, col);
+    priv.selRange = new WalkontableCellRange(new WalkontableCellCoords(row, col));
     if (document.activeElement && document.activeElement !== document.documentElement && document.activeElement !== document.body) {
       document.activeElement.blur(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
     }
     instance.listen();
     if (typeof endRow === "undefined") {
-      selection.setRangeEnd(priv.selStart, scrollToCell);
+      selection.setRangeEnd(priv.selRange.from, scrollToCell);
     }
     else {
       selection.setRangeEnd(new WalkontableCellCoords(endRow, endCol), scrollToCell);

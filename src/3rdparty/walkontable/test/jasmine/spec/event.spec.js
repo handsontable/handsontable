@@ -36,7 +36,7 @@ describe('WalkontableEvent', function () {
     var $td = $table.find('tbody tr:first td:first');
     $td.trigger('mousedown');
 
-    expect(myCoords.isEqual(new WalkontableCellCoords(10, 2))).toBe(true);
+    expect(myCoords).toEqual(new WalkontableCellCoords(10, 2));
     expect(myTD).toEqual($td[0]);
   });
 
@@ -62,7 +62,7 @@ describe('WalkontableEvent', function () {
     var $td = $table.find('tbody tr:first td:first');
     $td.trigger('mouseover');
 
-    expect(myCoords.isEqual(new WalkontableCellCoords(10, 2))).toBe(true);
+    expect(myCoords).toEqual(new WalkontableCellCoords(10, 2));
     expect(myTD).toEqual($td[0]);
   });
 
@@ -90,7 +90,7 @@ describe('WalkontableEvent', function () {
     $td.trigger('mouseup');
     $td.trigger('mousedown');
     $td.trigger('mouseup');
-    expect(myCoords.isEqual(new WalkontableCellCoords(10, 2))).toBe(true);
+    expect(myCoords).toEqual(new WalkontableCellCoords(10, 2));
     expect(myTD).toEqual($td[0]);
   });
 
@@ -118,7 +118,7 @@ describe('WalkontableEvent', function () {
       myTD = TD;
     });
     $td.trigger('mouseup');
-    expect(myCoords.isEqual(new WalkontableCellCoords(10, 2))).toBe(true);
+    expect(myCoords).toEqual(new WalkontableCellCoords(10, 2));
     expect(myTD).toEqual($td[0]);
   });
 
@@ -288,7 +288,7 @@ describe('WalkontableEvent', function () {
     var $border = $table.parents('.wtHolder').find('.wtBorder:first');
     $border.trigger('mousedown');
 
-    expect(myCoords.isEqual(new WalkontableCellCoords(10, 2))).toBe(true);
+    expect(myCoords).toEqual(new WalkontableCellCoords(10, 2));
     expect(myTD).toEqual($td[0]);
   });
 
@@ -328,7 +328,7 @@ describe('WalkontableEvent', function () {
     $border.trigger('mouseup');
     $border.trigger('mousedown');
     $border.trigger('mouseup');
-    expect(myCoords.isEqual(new WalkontableCellCoords(10, 2))).toBe(true);
+    expect(myCoords).toEqual(new WalkontableCellCoords(10, 2));
     expect(myTD).toEqual($td[0]);
   });
 
