@@ -28,6 +28,26 @@ WalkontableSelection.prototype.add = function (coords) {
   }
 };
 
+/**
+ * If selection range from or to property equals oldCoords, replace it with newCoords. Return boolean information about success
+ * @param {WalkontableCellCoords} oldCoords
+ * @param {WalkontableCellCoords} newCoords
+ * @return {boolean}
+ */
+WalkontableSelection.prototype.replace = function (oldCoords, newCoords) {
+  if (!this.isEmpty()) {
+    if(this.cellRange.from.isEqual(oldCoords)) {
+      this.cellRange.from = newCoords;
+      return true;
+    }
+    if(this.cellRange.to.isEqual(oldCoords)) {
+      this.cellRange.to = newCoords;
+      return true;
+    }
+  }
+  return false;
+};
+
 WalkontableSelection.prototype.clear = function () {
   this.cellRange = null;
 };

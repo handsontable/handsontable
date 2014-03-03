@@ -1,27 +1,32 @@
 function CellInfoCollection() {
-  this.data = {};
 }
 
-CellInfoCollection.prototype.getInfo = function (row, col) {
-  var rowData = this.data[row];
-  if (!rowData) {
-    this.data[row] = {};
-    rowData = this.data[row];
+CellInfoCollection.prototype.getInfo = function (cellInfoArr, row, col) {
+  for (var i = 0, ilen = cellInfoArr.length; i < ilen; i++) {
+    if (cellInfoArr[i].row <= row && cellInfoArr[i].row + cellInfoArr[i].rowspan - 1 >= row && cellInfoArr[i].col <= col && cellInfoArr[i].col + cellInfoArr[i].colspan - 1 >= col) {
+      return cellInfoArr[i];
+    }
   }
-  var cellData = rowData[col];
-  if (!cellData) {
-    rowData[col] = {};
-    cellData = rowData[col];
-  }
-  return cellData;
 };
 
-function MergedCellInfo(cellCoords, cellRange, mergedCellCoords, isMergedStart) {
-  this.cellCoords = cellCoords;
-  this.cellRange = cellRange;
-  this.mergedCellCoords = mergedCellCoords;
-  this.isMergedStart = isMergedStart;
-}
+CellInfoCollection.prototype.setInfo = function (cellInfoArr, info) {
+  for (var i = 0, ilen = cellInfoArr.length; i < ilen; i++) {
+    if (cellInfoArr[i].row === info.row && cellInfoArr[i].col === info.col) {
+      cellInfoArr[i] = info;
+      return;
+    }
+  }
+  cellInfoArr.push(info);
+};
+
+CellInfoCollection.prototype.removeInfo = function (cellInfoArr, row, col) {
+  for (var i = 0, ilen = cellInfoArr.length; i < ilen; i++) {
+    if (cellInfoArr[i].row === row && cellInfoArr[i].col === col) {
+      cellInfoArr.splice(i, 1);
+      break;
+    }
+  }
+};
 
 /**
  * Plugin used to merge cells in Handsontable
@@ -29,7 +34,7 @@ function MergedCellInfo(cellCoords, cellRange, mergedCellCoords, isMergedStart) 
  */
 function MergeCells(instance) {
   this.instance = instance;
-  this.mergedCellInfo = new CellInfoCollection();
+  this.mergedCellInfoCollection = new CellInfoCollection();
 }
 
 /**
@@ -58,36 +63,25 @@ MergeCells.prototype.mergeRange = function (cellRange) {
   var topLeft = cellRange.getTopLeftCorner();
   var bottomRight = cellRange.getBottomRightCorner();
 
-  var info = this.mergedCellInfo.getInfo(topLeft.row, topLeft.col);
-  info.rowspan = bottomRight.row - topLeft.row + 1; //TD has rowspan == 1 by default. rowspan == 2 means spread over 2 cells
-  info.colspan = bottomRight.col - topLeft.col + 1;
-  info.mergedCellInfo = new MergedCellInfo(topLeft, cellRange, topLeft, true);
-
-  var that = this;
-  var all = cellRange.getInner();
-  all.push(bottomRight);
-  all.map(function (cellCoords) {
-    var mergedCellInfo = new MergedCellInfo(cellCoords, cellRange, topLeft, false);
-    var info = that.mergedCellInfo.getInfo(cellCoords.row, cellCoords.col);
-    info.mergedCellInfo = mergedCellInfo;
-  });
+  var mergeParent = {};
+  mergeParent.row = topLeft.row;
+  mergeParent.col = topLeft.col;
+  mergeParent.rowspan = bottomRight.row - topLeft.row + 1; //TD has rowspan == 1 by default. rowspan == 2 means spread over 2 cells
+  mergeParent.colspan = bottomRight.col - topLeft.col + 1;
+  this.mergedCellInfoCollection.setInfo(this.instance.getSettings().mergeCells, mergeParent);
 };
 
-MergeCells.prototype.unmergeRange = function (cellRange) {
-  //normalize top left corner
-  var topLeft = cellRange.getTopLeftCorner();
-  var bottomRight = cellRange.getBottomRightCorner();
-
-  var that = this;
-  var all = cellRange.getInner();
-  all.push(topLeft);
-  all.push(bottomRight);
-  all.map(function (cellCoords) {
-    var info = that.mergedCellInfo.getInfo(cellCoords.row, cellCoords.col);
-    info.rowspan = null;
-    info.colspan = null;
-    info.mergedCellInfo = null;
-  });
+MergeCells.prototype.mergeOrUnmergeSelection = function () {
+  var sel = this.instance.getSelected();
+  var info = this.mergedCellInfoCollection.getInfo(this.instance.getSettings().mergeCells, sel[0], sel[1]);
+  if (info) {
+    //unmerge
+    this.unmergeSelection();
+  }
+  else {
+    //merge
+    this.mergeSelection();
+  }
 };
 
 MergeCells.prototype.mergeSelection = function () {
@@ -99,15 +93,15 @@ MergeCells.prototype.mergeSelection = function () {
 
 MergeCells.prototype.unmergeSelection = function () {
   var sel = this.instance.getSelected();
-  var mergedCellInfo = this.mergedCellInfo.getInfo(sel[0], sel[1]);
-  this.unmergeRange(mergedCellInfo.mergedCellInfo.cellRange);
+  var info = this.mergedCellInfoCollection.getInfo(this.instance.getSettings().mergeCells, sel[0], sel[1]);
+  this.mergedCellInfoCollection.removeInfo(this.instance.getSettings().mergeCells, info.row, info.col);
   this.instance.render();
 };
 
 MergeCells.prototype.applySpanProperties = function (TD, row, col) {
-  var info = this.mergedCellInfo.getInfo(row, col);
-  if (info.mergedCellInfo) {
-    if (info.mergedCellInfo.isMergedStart) {
+  var info = this.mergedCellInfoCollection.getInfo(this.instance.getSettings().mergeCells, row, col);
+  if (info) {
+    if (info.row === row && info.col === col) {
       TD.setAttribute('rowspan', info.rowspan);
       TD.setAttribute('colspan', info.colspan);
     }
@@ -133,13 +127,9 @@ if (typeof Handsontable !== 'undefined') {
         instance.mergeCells = new MergeCells(instance);
       }
     }
-    else if (instance.mergeCells) {
-      instance.mergeCells.destroy();
-      delete instance.mergeCells;
-    }
   };
 
-  Handsontable.PluginHooks.add('afterInit', init);
+  Handsontable.PluginHooks.add('beforeInit', init);
 
   var onBeforeKeyDown = function (event) {
     if (!this.mergeCells) {
@@ -150,7 +140,7 @@ if (typeof Handsontable !== 'undefined') {
 
     if (ctrlDown) {
       if (event.keyCode === 77) { //CTRL + M
-        this.mergeCells.mergeSelection();
+        this.mergeCells.mergeOrUnmergeSelection();
         event.stopImmediatePropagation();
       }
     }
@@ -169,8 +159,8 @@ if (typeof Handsontable !== 'undefined') {
     defaultOptions.items.mergeCells = {
       name: function () {
         var sel = this.getSelected();
-        var mergedCellInfo = this.mergeCells.mergedCellInfo.getInfo(sel[0], sel[1]);
-        if (mergedCellInfo.mergedCellInfo) {
+        var info = this.mergeCells.mergedCellInfoCollection.getInfo(this.getSettings().mergeCells, sel[0], sel[1]);
+        if (info) {
           return 'Unmerge cells';
         }
         else {
@@ -178,16 +168,7 @@ if (typeof Handsontable !== 'undefined') {
         }
       },
       callback: function () {
-        var sel = this.getSelected();
-        var mergedCellInfo = this.mergeCells.mergedCellInfo.getInfo(sel[0], sel[1]);
-        if (mergedCellInfo.mergedCellInfo) {
-          //unmerge
-          this.mergeCells.unmergeSelection();
-        }
-        else {
-          //merge
-          this.mergeCells.mergeSelection();
-        }
+        this.mergeCells.mergeOrUnmergeSelection();
       },
       disabled: function () {
         return false;
@@ -200,6 +181,89 @@ if (typeof Handsontable !== 'undefined') {
       this.mergeCells.applySpanProperties(TD, row, col);
     }
   });
+
+  var beforeInit = function () {
+    var mergeCells = this.getSettings().mergeCells;
+    if (mergeCells) {
+      if (mergeCells === true) {
+        this.getSettings().mergeCells = [];
+      }
+    }
+  };
+
+  var modifyTransformFactory = function (hook) {
+    return function (delta) {
+      var mergeCellsSetting = this.getSettings().mergeCells;
+      if (mergeCellsSetting) {
+        var selRange = this.getSelectedRange();
+        var current;
+        switch (hook) {
+          case 'modifyTransformStartRow':
+          case 'modifyTransformStartCol':
+            current = selRange.from;
+            break;
+
+          case 'modifyTransformEndRow':
+          case 'modifyTransformEndCol':
+            current = selRange.to;
+            break;
+        }
+        var mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(mergeCellsSetting, current.row, current.col);
+        if (mergeParent) {
+          switch (hook) {
+            case 'modifyTransformStartRow':
+            case 'modifyTransformEndRow':
+              if (delta > 0) {
+                return mergeParent.row - current.row + mergeParent.rowspan - 1 + delta;
+              }
+              else if (delta < 0) {
+                return mergeParent.row - current.row + delta;
+              }
+              break;
+
+            case 'modifyTransformStartCol':
+            case 'modifyTransformEndCol':
+              if (delta > 0) {
+                return mergeParent.col - current.col + mergeParent.colspan - 1 + delta;
+              }
+              else if (delta < 0) {
+                return mergeParent.col - current.col + delta;
+              }
+              break;
+          }
+        }
+      }
+      return delta;
+    }
+  };
+
+  var afterSelection = function (fromRow, fromCol, toRow, toCol) {
+    var mergeCellsSetting = this.getSettings().mergeCells;
+    if (mergeCellsSetting) {
+      var selRange = this.getSelectedRange();
+      var fromInfo = this.mergeCells.mergedCellInfoCollection.getInfo(mergeCellsSetting, selRange.from.row, selRange.from.col);
+      if (fromInfo) {
+        var newFromCellCoords = new WalkontableCellCoords(fromInfo.row, fromInfo.col);
+        this.view.wt.selections.current.replace(selRange.from, newFromCellCoords);
+        this.view.wt.selections.area.replace(selRange.from, newFromCellCoords);
+        this.view.wt.selections.highlight.replace(selRange.from, newFromCellCoords);
+      }
+      var toInfo = this.mergeCells.mergedCellInfoCollection.getInfo(mergeCellsSetting, selRange.to.row, selRange.to.col);
+      if (toInfo) {
+        var newToCellCoords = new WalkontableCellCoords(toInfo.row, toInfo.col);
+        this.view.wt.selections.current.replace(selRange.to, newToCellCoords);
+        this.view.wt.selections.area.replace(selRange.to, newToCellCoords);
+        this.view.wt.selections.highlight.replace(selRange.to, newToCellCoords);
+      }
+    }
+  };
+
+  Handsontable.PluginHooks.add('beforeInit', beforeInit);
+  Handsontable.PluginHooks.add('modifyTransformStartRow', modifyTransformFactory('modifyTransformStartRow'));
+  Handsontable.PluginHooks.add('modifyTransformStartCol', modifyTransformFactory('modifyTransformStartCol'));
+  Handsontable.PluginHooks.add('modifyTransformEndRow', modifyTransformFactory('modifyTransformEndRow'));
+  Handsontable.PluginHooks.add('modifyTransformEndCol', modifyTransformFactory('modifyTransformEndCol'));
+  Handsontable.PluginHooks.add('afterSelection', afterSelection);
 
   Handsontable.MergeCells = MergeCells;
 }

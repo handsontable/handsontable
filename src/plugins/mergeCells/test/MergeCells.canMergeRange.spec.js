@@ -53,5 +53,19 @@ describe("handsontable.MergeCells", function () {
       expect(result).toBe(true);
     });
   });
+
+  describe("mergeCells option", function () {
+    it("should merge cell in startup", function () {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(10, 5),
+        mergeCells: [
+          {row: 0, col: 0, rowspan: 2, colspan: 2}
+        ]
+      });
+      var TD = hot.rootElement[0].querySelector('td');
+      expect(TD.getAttribute('rowspan')).toBe('2');
+      expect(TD.getAttribute('colspan')).toBe('2');
+    })
+  });
 })
 ;

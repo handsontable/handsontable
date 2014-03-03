@@ -369,4 +369,34 @@ describe('WalkontableSelection', function () {
     expect($table.find('.highlightRow').length).toEqual(0);
     expect($table.find('.highlightColumn').length).toEqual(0);
   });
+
+  describe("replace", function() {
+    it("should replace range from property and return true", function() {
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        offsetRow: 0,
+        offsetColumn: 0,
+        height: 200,
+        selections: {
+          current: {
+            className: 'current',
+            border: {
+              width: 1,
+              color: 'red',
+              style: 'solid'
+            }
+          }
+        }
+      });
+
+      wt.selections.current.add(new WalkontableCellCoords(1, 1));
+      wt.selections.current.add(new WalkontableCellCoords(3, 3));
+      var result = wt.selections.current.replace(new WalkontableCellCoords(3, 3), new WalkontableCellCoords(4, 4));
+      expect(result).toBe(true);
+      expect(wt.selections.current.getCorners()).toEqual([1, 1, 4, 4]);
+    });
+  });
 });

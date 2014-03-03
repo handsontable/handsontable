@@ -440,6 +440,9 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Selects cell relative to current cell (if possible)
      */
     transformStart: function (rowDelta, colDelta, force) {
+      rowDelta = instance.runHooksAndReturn('modifyTransformStartRow', rowDelta);
+      colDelta = instance.runHooksAndReturn('modifyTransformStartCol', colDelta);
+
       if (priv.selRange.from.row + rowDelta > instance.countRows() - 1) {
         if (force && priv.settings.minSpareRows > 0) {
           instance.alter("insert_row", instance.countRows());
@@ -493,6 +496,9 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Sets selection end cell relative to current selection end cell (if possible)
      */
     transformEnd: function (rowDelta, colDelta) {
+        rowDelta = instance.runHooksAndReturn('modifyTransformEndRow', rowDelta);
+        colDelta = instance.runHooksAndReturn('modifyTransformEndCol', colDelta);
+
         var totalRows = instance.countRows();
         var totalCols = instance.countCols();
         var coords = new WalkontableCellCoords(priv.selRange.to.row + rowDelta, priv.selRange.to.col + colDelta);
