@@ -321,21 +321,6 @@ Handsontable.Core = function (rootElement, userSettings) {
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
           break;
       }
-    },
-
-    /**
-     * Returns array of td objects given start and end coordinates
-     */
-    getCellsAtCoords: function (start, end) {
-      var topLeft = priv.selRange.getTopLeftCorner();
-      var bottomRight = priv.selRange.getBottomRightCorner();
-      var r, c, output = [];
-      for (r = topLeft.row; r <= bottomRight.row; r++) {
-        for (c = topLeft.col; c <= bottomRight.col; c++) {
-          output.push(instance.view.getCellAtCoords(new WalkontableCellCoords(r, c)));
-        }
-      }
-      return output;
     }
   };
 
