@@ -165,10 +165,11 @@ function HandsontableManualColumnResize() {
     return width;
   };
 
-  this.getColWidth = function (col, response) {
+  this.modifyColWidth = function (width, col) {
     if (this.getSettings().manualColumnResize && this.manualColumnWidths[col]) {
-      response.width = this.manualColumnWidths[col];
+      return this.manualColumnWidths[col];
     }
+    return width;
   };
 }
 var htManualColumnResize = new HandsontableManualColumnResize();
@@ -180,6 +181,6 @@ Handsontable.hooks.add('afterInit', function () {
 Handsontable.hooks.add('afterUpdateSettings', function () {
   htManualColumnResize.init.call(this, 'afterUpdateSettings')
 });
-Handsontable.hooks.add('afterGetColWidth', htManualColumnResize.getColWidth);
+Handsontable.hooks.add('modifyColWidth', htManualColumnResize.modifyColWidth);
 
 Handsontable.hooks.register('afterColumnResize');

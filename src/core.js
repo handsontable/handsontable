@@ -1786,14 +1786,12 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.getColWidth = function (col) {
     col = Handsontable.hooks.execute(instance, 'modifyCol', col);
-    var response = {
-      width: instance._getColWidthFromSettings(col)
-    };
-    if (!response.width) {
-      response.width = 50;
+    var width = instance._getColWidthFromSettings(col);
+    if (!width) {
+      width = 50;
     }
-    Handsontable.hooks.run(instance, 'afterGetColWidth', col, response);
-    return response.width;
+    width = Handsontable.hooks.execute(instance, 'modifyColWidth', width, col);
+    return width;
   };
 
   /**
