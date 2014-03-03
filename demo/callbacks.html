@@ -192,7 +192,7 @@
               var state = this.checked;
               $('input[type=checkbox]').each(function () {
                 if (state === true) {
-                  if (this.id === 'check_beforeSet' || this.id === 'check_beforeGet') {
+                  if (this.id === 'check_modifyRow') {
                     return; //too much noise in the log
                   }
                 }
