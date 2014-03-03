@@ -24,9 +24,6 @@
       this.duckSchema = {};
     }
     this.createMap();
-
-    this.getVars = {}; //used by modifier
-    this.setVars = {}; //used by modifier
   };
 
   Handsontable.DataMap.prototype.DESTINATION_RENDERER = 1;
@@ -364,12 +361,10 @@
    * @param {Number} prop
    */
   Handsontable.DataMap.prototype.get = function (row, prop) {
-    this.getVars.row = row;
-    this.getVars.prop = prop;
-    this.getVars.row = Handsontable.hooks.execute(this.instance, 'modifyRow', this.getVars.row);
-    if (typeof this.getVars.prop === 'string' && this.getVars.prop.indexOf('.') > -1) {
-      var sliced = this.getVars.prop.split(".");
-      var out = this.dataSource[this.getVars.row];
+    row = Handsontable.hooks.execute(this.instance, 'modifyRow', row);
+    if (typeof prop === 'string' && prop.indexOf('.') > -1) {
+      var sliced = prop.split(".");
+      var out = this.dataSource[row];
       if (!out) {
         return null;
       }
@@ -381,7 +376,7 @@
       }
       return out;
     }
-    else if (typeof this.getVars.prop === 'function') {
+    else if (typeof prop === 'function') {
       /**
        *  allows for interacting with complex structures, for example
        *  d3/jQuery getter/setter properties:
@@ -395,13 +390,13 @@
          *      }
          *    }]}
        */
-      return this.getVars.prop(this.dataSource.slice(
-        this.getVars.row,
-        this.getVars.row + 1
+      return prop(this.dataSource.slice(
+        row,
+        row + 1
       )[0]);
     }
     else {
-      return this.dataSource[this.getVars.row] ? this.dataSource[this.getVars.row][this.getVars.prop] : null;
+      return this.dataSource[row] ? this.dataSource[row][prop] : null;
     }
   };
 
@@ -428,27 +423,24 @@
    * @param {String} [source] Optional. Source of hook runner.
    */
   Handsontable.DataMap.prototype.set = function (row, prop, value, source) {
-    this.setVars.row = row;
-    this.setVars.prop = prop;
-    this.setVars.value = value;
-    this.setVars.row = Handsontable.hooks.execute(this.instance, 'modifyRow', this.setVars.row, source || "datamapGet");
-    if (typeof this.setVars.prop === 'string' && this.setVars.prop.indexOf('.') > -1) {
-      var sliced = this.setVars.prop.split(".");
-      var out = this.dataSource[this.setVars.row];
+    row = Handsontable.hooks.execute(this.instance, 'modifyRow', row, source || "datamapGet");
+    if (typeof prop === 'string' && prop.indexOf('.') > -1) {
+      var sliced = prop.split(".");
+      var out = this.dataSource[row];
       for (var i = 0, ilen = sliced.length - 1; i < ilen; i++) {
         out = out[sliced[i]];
       }
-      out[sliced[i]] = this.setVars.value;
+      out[sliced[i]] = value;
     }
-    else if (typeof this.setVars.prop === 'function') {
+    else if (typeof prop === 'function') {
       /* see the `function` handler in `get` */
-      this.setVars.prop(this.dataSource.slice(
-        this.setVars.row,
-        this.setVars.row + 1
-      )[0], this.setVars.value);
+      prop(this.dataSource.slice(
+        row,
+        row + 1
+      )[0], value);
     }
     else {
-      this.dataSource[this.setVars.row][this.setVars.prop] = this.setVars.value;
+      this.dataSource[row][prop] = value;
     }
   };
 
@@ -462,10 +454,11 @@
     var physicRow = (totalRows + index) % totalRows;
     var logicRows = [];
     var rowsToRemove = amount;
+    var row;
 
     while (physicRow < totalRows && rowsToRemove) {
-      this.get(physicRow, 0); //this performs an actual mapping and saves the result to getVars
-      logicRows.push(this.getVars.row);
+      row = Handsontable.hooks.execute(this.instance, 'modifyRow', physicRow);
+      logicRows.push(row);
 
       rowsToRemove--;
       physicRow++;
