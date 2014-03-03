@@ -366,7 +366,7 @@
   Handsontable.DataMap.prototype.get = function (row, prop) {
     this.getVars.row = row;
     this.getVars.prop = prop;
-    Handsontable.hooks.run(this.instance, 'beforeGet', this.getVars);
+    this.getVars.row = Handsontable.hooks.execute(this.instance, 'modifyRow', this.getVars.row);
     if (typeof this.getVars.prop === 'string' && this.getVars.prop.indexOf('.') > -1) {
       var sliced = this.getVars.prop.split(".");
       var out = this.dataSource[this.getVars.row];
@@ -431,7 +431,7 @@
     this.setVars.row = row;
     this.setVars.prop = prop;
     this.setVars.value = value;
-    Handsontable.hooks.run(this.instance, 'beforeSet', this.setVars, source || "datamapGet");
+    this.setVars.row = Handsontable.hooks.execute(this.instance, 'modifyRow', this.setVars.row, source || "datamapGet");
     if (typeof this.setVars.prop === 'string' && this.setVars.prop.indexOf('.') > -1) {
       var sliced = this.setVars.prop.split(".");
       var out = this.dataSource[this.setVars.row];

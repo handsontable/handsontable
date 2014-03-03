@@ -11,8 +11,6 @@ Handsontable.PluginHookClass = (function () {
       beforeRemoveCol: [],
       beforeRemoveRow: [],
       beforeValidate: [],
-      beforeGet: [],
-      beforeSet: [],
       beforeGetCellMeta: [],
       beforeAutofill: [],
       beforeKeyDown: [],
@@ -44,6 +42,7 @@ Handsontable.PluginHookClass = (function () {
 
       // Modifiers
       modifyColWidth: [],
+      modifyRow: [],
       modifyCol: []
     }
   };

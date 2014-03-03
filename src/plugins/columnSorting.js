@@ -230,11 +230,6 @@ function HandsontableColumnSorting() {
     return row;
   };
 
-  this.onBeforeGetSet = function (getVars) {
-    var instance = this;
-    getVars.row = plugin.translateRow.call(instance, getVars.row);
-  };
-
   this.untranslateRow = function (row) {
     var instance = this;
     if (instance.sortingEnabled && instance.sortIndex && instance.sortIndex.length) {
@@ -336,8 +331,7 @@ Handsontable.hooks.add('afterInit', function () {
 Handsontable.hooks.add('afterUpdateSettings', function () {
   htSortColumn.init.call(this, 'afterUpdateSettings')
 });
-Handsontable.hooks.add('beforeGet', htSortColumn.onBeforeGetSet);
-Handsontable.hooks.add('beforeSet', htSortColumn.onBeforeGetSet);
+Handsontable.hooks.add('modifyRow', htSortColumn.translateRow);
 Handsontable.hooks.add('afterGetColHeader', htSortColumn.getColHeader);
 
 Handsontable.hooks.register('beforeColumnSort');
