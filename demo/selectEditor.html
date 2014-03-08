@@ -22,15 +22,15 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Custom buttons">
+  <meta property="og:title" content="Select editor">
   <meta property="og:description"
-        content="The alter method can be used if you want to insert or remove rows and columns using external buttons">
-  <meta property="og:url" content="http://handsontable.com/demo/buttons.html">
+        content="">
+  <meta property="og:url" content="http://handsontable.com/demo/selectEditor.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
-  <link rel="canonical" href="http://handsontable.com/demo/buttons.html">
+  <link rel="canonical" href="http://handsontable.com/demo/selectEditor.html">
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
@@ -52,8 +52,6 @@
           <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
             for HTML, JavaScript &amp; jQuery
           </div>
-
-          <h2>Select editor</h2>
         </div>
       </div>
     </div>
@@ -61,8 +59,13 @@
     <div class="rowLayout">
       <div class="descLayout">
         <div class="pad" data-jsfiddle="example1">
+          <h2>Select editor</h2>
 
-          <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
+          <p>Select editor should be considered an example how to write editors rather than used as a fully featured
+            editor. It  is a much simpler form of the <a href="dropdown.html">Dropdown editor</a>. It is suggested to use the latter
+            in your projects.</p>
+
+          <div id="example1"></div>
 
           <p>
             <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
