@@ -34,8 +34,11 @@
       }
     }
 
+    // Support for jQuery versions < 1.8 @see http://bugs.jquery.com/ticket/11231
+    var $optionElements = $(optionElements).map(function() {return this.toArray();});
+
     this.select.empty();
-    this.select.append(optionElements);
+    this.select.append($optionElements);
 
   };
 
