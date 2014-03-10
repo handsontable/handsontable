@@ -53,11 +53,9 @@ function HandsontableManualColumnMove() {
           startCol--;
           endCol--;
         }
-        instance.manualColumnPositions.splice(endCol, 0, instance.manualColumnPositions.splice(startCol, 1)[0]);
+        instance.move(startCol, endCol);
         $('.manualColumnMover.active').removeClass('active');
         pressed = false;
-        instance.forceFullRender = true;
-        instance.view.render(); //updates all
         ghostStyle.display = 'none';
 
         saveManualColumnPositions.call(instance);
