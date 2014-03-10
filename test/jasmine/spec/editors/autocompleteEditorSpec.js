@@ -1691,4 +1691,127 @@ describe('AutocompleteEditor', function () {
 
   });
 
+  it("should not call the `source` has been selected", function () {
+
+    var syncSources = jasmine.createSpy('syncSources');
+
+    syncSources.plan = function (query, process) {
+      process([]); // hardcoded empty result
+    };
+
+    handsontable({
+      data: [
+        ['one', 'two'],
+        ['three', 'four']
+      ],
+      columns: [
+        {
+          type: 'autocomplete',
+          source: syncSources,
+          allowInvalid: false,
+          strict: true
+        },
+        {
+
+        }
+      ],
+      cells: function (row, col) {
+
+        var cellProperties = {};
+
+        if (row === 0 && col == 0){
+          cellProperties.readOnly = true;
+        }
+
+        return cellProperties;
+      }
+    });
+
+
+
+    expect(getCellMeta(0, 0).readOnly).toBe(true);
+    expect(syncSources).not.toHaveBeenCalled();
+
+    selectCell(0, 0);
+
+    expect(syncSources).not.toHaveBeenCalled();
+
+    expect(getCellMeta(1, 0).readOnly).toBeFalsy();
+
+    selectCell(1, 0);
+
+    expect(syncSources).not.toHaveBeenCalled();
+
+  });
+
+  it("should not call the `source` method if cell is read only and the arrow has been clicked", function () {
+
+    var syncSources = jasmine.createSpy('syncSources');
+
+    syncSources.plan = function (query, process) {
+      process([]); // hardcoded empty result
+    };
+
+    handsontable({
+      data: [
+        ['one', 'two'],
+        ['three', 'four']
+      ],
+      columns: [
+        {
+          type: 'autocomplete',
+          source: syncSources,
+          allowInvalid: false,
+          strict: true
+        },
+        {
+
+        }
+      ],
+      cells: function (row, col) {
+
+        var cellProperties = {};
+
+        if (row === 0 && col == 0){
+          cellProperties.readOnly = true;
+        }
+
+        return cellProperties;
+      }
+    });
+
+
+
+    expect(getCellMeta(0, 0).readOnly).toBe(true);
+    expect(syncSources).not.toHaveBeenCalled();
+
+    selectCell(0, 0);
+    $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
+
+
+    waits(100);
+
+    runs(function () {
+      expect(syncSources).not.toHaveBeenCalled();
+
+      syncSources.reset();
+      expect(getCellMeta(1, 0).readOnly).toBeFalsy();
+
+      selectCell(1, 0);
+      $(getCell(1, 0)).find('.htAutocompleteArrow').mousedown();
+    });
+
+    waitsFor(function () {
+      return syncSources.calls.length > 0;
+    }, 'SyncSources call', 1000);
+
+    runs(function () {
+      expect(syncSources).toHaveBeenCalled();
+      expect(syncSources.calls.length).toEqual(1);
+    });
+
+
+
+  });
+
 });

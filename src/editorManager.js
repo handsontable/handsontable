@@ -301,7 +301,9 @@
     };
 
     this.openEditor = function (initialValue) {
-      activeEditor.beginEditing(initialValue);
+      if (!activeEditor.cellProperties.readOnly){
+        activeEditor.beginEditing(initialValue);
+      }
     };
 
     this.closeEditor = function (restoreOriginalValue, ctrlDown, callback) {
