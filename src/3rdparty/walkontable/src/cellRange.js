@@ -26,6 +26,28 @@ WalkontableCellRange.prototype.includes = function (cellCoords) {
   return (topLeft.row <= cellCoords.row && bottomRight.row >= cellCoords.row && topLeft.col <= cellCoords.col && bottomRight.col >= cellCoords.col);
 };
 
+WalkontableCellRange.prototype.includesRange = function (testedRange) {
+  return this.includes(testedRange.getTopLeftCorner()) && this.includes(testedRange.getBottomRightCorner());
+};
+
+/**
+ * Returns true if tested range overlaps with the range.
+ * Range A is considered to to be overlapping with range B if intersection of A and B or B and A is not empty.
+ * @param testedRange
+ * @returns {boolean}
+ */
+WalkontableCellRange.prototype.overlaps = function (testedRange) {
+  return testedRange.isSouthEastOf(this.getTopLeftCorner()) && testedRange.isNorthWestOf(this.getBottomRightCorner());
+};
+
+WalkontableCellRange.prototype.isSouthEastOf = function (testedCoords) {
+  return this.getTopLeftCorner().isSouthEastOf(testedCoords) || this.getBottomRightCorner().isSouthEastOf(testedCoords);
+};
+
+WalkontableCellRange.prototype.isNorthWestOf = function (testedCoords) {
+  return this.getTopLeftCorner().isNorthWestOf(testedCoords) || this.getBottomRightCorner().isNorthWestOf(testedCoords);
+};
+
 /**
  * Adds a cell to a range (only if exceeds corners of the range). Returns information if range was expanded
  * @param {WalkontableCellCoords} cellCoords
@@ -40,6 +62,30 @@ WalkontableCellRange.prototype.expand = function (cellCoords) {
     return true;
   }
   return false;
+};
+
+WalkontableCellRange.prototype.expandByRange = function (expandingRange) {
+  if (this.includesRange(expandingRange) || !this.overlaps(expandingRange)){
+    return false;
+  }
+
+  var topLeft = this.getTopLeftCorner();
+  var bottomRight = this.getBottomRightCorner();
+
+  var expandingTopLeft = expandingRange.getTopLeftCorner();
+  var expandingBottomRight = expandingRange.getBottomRightCorner();
+
+  var resultTopRow = Math.min(topLeft.row, expandingTopLeft.row);
+  var resultTopCol = Math.min(topLeft.col, expandingTopLeft.col);
+  var resultBottomRow = Math.max(bottomRight.row, expandingBottomRight.row);
+  var resultBottomCol = Math.max(bottomRight.col, expandingBottomRight.col);
+
+  this.from = new WalkontableCellCoords(resultTopRow, resultTopCol);
+  this.to = new WalkontableCellCoords(resultBottomRow, resultBottomCol);
+
+  return true;
+
+
 };
 
 WalkontableCellRange.prototype.getTopLeftCorner = function () {

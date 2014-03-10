@@ -67,5 +67,83 @@ describe("handsontable.MergeCells", function () {
       expect(TD.getAttribute('colspan')).toBe('2');
     })
   });
+
+  describe("merged cells selection", function () {
+
+    it("should select the whole range of cells which form a merged cell", function () {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(4, 4),
+        mergeCells: [
+          {
+            row: 0,
+            col: 0,
+            colspan: 4,
+            rowspan: 1
+          }
+        ]
+      });
+
+      var $table = this.$container.find('table.htCore');
+      var $td = $table.find('tr:eq(0) td:eq(0)');
+
+      expect($td.attr('rowspan')).toEqual('1');
+      expect($td.attr('colspan')).toEqual('4');
+
+      expect(hot.getSelected()).toBeUndefined();
+
+      hot.selectCell(0, 0);
+
+      expect(hot.getSelected()).toEqual([0, 0, 0, 3]);
+
+      deselectCell();
+
+      hot.selectCell(0, 1);
+
+      expect(hot.getSelected()).toEqual([0, 0, 0, 3]);
+    });
+
+    it("should always make a rectangular selection, when selecting merged and not merged cells", function () {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(4, 4),
+        mergeCells: [
+          {
+            row: 1,
+            col: 1,
+            colspan: 3,
+            rowspan: 2
+          }
+        ]
+      });
+
+      var $table = this.$container.find('table.htCore');
+      var $td = $table.find('tr:eq(1) td:eq(1)');
+
+      expect($td.attr('rowspan')).toEqual('2');
+      expect($td.attr('colspan')).toEqual('3');
+
+      expect(hot.getSelected()).toBeUndefined();
+
+
+      hot.selectCell(0, 0);
+
+      expect(hot.getSelected()).toEqual([0, 0, 0, 0]);
+
+      deselectCell();
+
+      hot.selectCell(0, 0, 1, 1);
+
+      expect(hot.getSelected()).not.toEqual([0, 0, 1, 1]);
+      expect(hot.getSelected()).toEqual([0, 0, 2, 3]);
+
+      deselectCell();
+
+      hot.selectCell(0, 1, 1, 1);
+
+      expect(hot.getSelected()).toEqual([0, 1, 2, 3]);
+
+
+    });
+
+  });
 })
 ;

@@ -241,7 +241,28 @@ var afterSelection = function (fromRow, fromCol, toRow, toCol) {
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (mergeCellsSetting) {
     var selRange = this.getSelectedRange();
-    var fromInfo = this.mergeCells.mergedCellInfoCollection.getInfo(mergeCellsSetting, selRange.from.row, selRange.from.col);
+    var selRangeChanged = false;
+
+    this.mergeCells.mergedCellInfoCollection.forEach(function (cellInfo) {
+      var mergedCellTopLeft = new WalkontableCellCoords(cellInfo.row, cellInfo.col);
+      var mergedCellBottomRight = new WalkontableCellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
+
+      var mergedCellRange = new WalkontableCellRange(mergedCellTopLeft, mergedCellBottomRight);
+
+      if(selRange.expandByRange(mergedCellRange)){
+        selRangeChanged = true;
+      }
+    });
+
+    if (selRangeChanged){
+      var selRangeTopLeft = selRange.getTopLeftCorner();
+      var selRangeBottomRight = selRange.getBottomRightCorner();
+
+      this.selectCell(selRangeTopLeft.row, selRangeTopLeft.col, selRangeBottomRight.row, selRangeBottomRight.col);
+      return;
+    }
+
+    var fromInfo = this.mergeCells.mergedCellInfoCollection.getInfo(selRange.from.row, selRange.from.col);
     if (fromInfo) {
       var newFromCellCoords = new WalkontableCellCoords(fromInfo.row, fromInfo.col);
       this.view.wt.selections.current.replace(selRange.from, newFromCellCoords);
