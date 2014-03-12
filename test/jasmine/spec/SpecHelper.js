@@ -346,3 +346,54 @@ function getRenderedValue(trIndex, tdIndex){
 function getRenderedContent(trIndex, tdIndex){
   return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).children()
 }
+
+/**
+ * Model factory, which creates object with private properties, accessible by setters and getters.
+ * Created for the purpose of testing HOT with Backbone-like Models
+ * @param opts
+ * @returns {{}}
+ * @constructor
+ */
+function Model(opts) {
+
+  var obj = {};
+
+  var _data = $.extend({
+    id: undefined,
+    name: undefined,
+    address: undefined
+  }, opts);
+
+  obj.attr = function (name, value) {
+    if (typeof value == 'undefined'){
+      return this.get(name);
+    } else {
+      return this.set(name, value);
+    }
+  };
+
+  obj.get = function (name) {
+    return _data[name];
+  };
+
+  obj.set = function (name, value) {
+    _data[name] = value;
+    return this;
+  }
+
+  return obj;
+
+}
+/**
+ * Factory which produces an accessor for objects of type "Model" (see above).
+ * This function should be used to create accessor for a given property name and pass it as `data` option in column
+ * configuration.
+ *
+ * @param name - name of the property for which an accessor function will be created
+ * @returns {Function}
+ */
+function createAccessorForProperty(name){
+  return function (obj, value) {
+    return obj.attr(name, value);
+  }
+}
