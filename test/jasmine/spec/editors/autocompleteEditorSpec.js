@@ -235,6 +235,50 @@ describe('AutocompleteEditor', function () {
 
     });
 
+    it("should update choices list exactly once after a key is pressed (#1330)", function () {
+
+      spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').andCallThrough();
+      var updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
+
+      var hot = handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+
+      var editor = hot.getActiveEditor();
+
+      updateChoicesList.reset();
+
+      keyDownUp('enter');
+
+      waitsFor(function () {
+        return updateChoicesList.calls.length > 0;
+      }, 'Initial choices load', 1000);
+
+      runs(function () {
+        updateChoicesList.reset();
+        editor.$textarea.val('red');
+        editor.$textarea.trigger($.Event('keydown', {
+          keyCode: 'd'.charCodeAt(0)
+        }));
+      });
+
+      waitsFor(function () {
+        return updateChoicesList.calls.length > 0;
+      }, 'Initial choices load', 100);
+
+      runs(function () {
+        expect(updateChoicesList.calls.length).toEqual(1);
+      });
+
+    });
+
     it('autocomplete list should have textarea dimensions', function () {
       var syncSources = jasmine.createSpy('syncSources');
 

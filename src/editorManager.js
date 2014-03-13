@@ -29,7 +29,7 @@
             var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
             if (!activeEditor.isWaiting()) {
-              if (!Handsontable.helper.isMetaKey(event.keyCode) && !ctrlDown) {
+              if (!Handsontable.helper.isMetaKey(event.keyCode) && !ctrlDown && !that.isEditorOpened()) {
                 that.openEditor('');
                 event.stopPropagation(); //required by HandsontableEditor
                 return;
@@ -301,7 +301,9 @@
     };
 
     this.openEditor = function (initialValue) {
-      activeEditor.beginEditing(initialValue);
+      if (!activeEditor.cellProperties.readOnly){
+        activeEditor.beginEditing(initialValue);
+      }
     };
 
     this.closeEditor = function (restoreOriginalValue, ctrlDown, callback) {

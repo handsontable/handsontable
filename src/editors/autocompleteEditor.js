@@ -5,6 +5,7 @@
     Handsontable.editors.HandsontableEditor.prototype.init.apply(this, arguments);
 
     this.query = null;
+    this.choices = [];
   };
 
   AutocompleteEditor.prototype.createElements = function(){
@@ -28,41 +29,17 @@
 
     });
 
+    this.$htContainer.on('mouseleave', function () {
+      if(that.cellProperties.strict === true){
+        that.highlightBestMatchingChoice();
+      }
+    });
+
     this.$htContainer.on('mouseenter', function () {
       that.$htContainer.handsontable('deselectCell');
     });
 
-    this.$htContainer.on('mouseleave', function () {
-      that.queryChoices(that.query);
-    });
-
     Handsontable.editors.HandsontableEditor.prototype.bindEvents.apply(this, arguments);
-
-  };
-
-  AutocompleteEditor.prototype.beginEditing = function () {
-    Handsontable.editors.HandsontableEditor.prototype.beginEditing.apply(this, arguments);
-
-    var that = this;
-    setTimeout(function () {
-      that.queryChoices(that.TEXTAREA.value);
-    });
-
-    var hot =  this.$htContainer.handsontable('getInstance');
-
-    hot.updateSettings({
-      'colWidths': [this.wtDom.outerWidth(this.TEXTAREA) - 2],
-      afterRenderer: function (TD, row, col, prop, value) {
-        var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true;
-        var indexOfMatch =  caseSensitive ? value.indexOf(that.query) : value.toLowerCase().indexOf(that.query.toLowerCase());
-
-        if(indexOfMatch != -1){
-          var match = value.substr(indexOfMatch, that.query.length);
-          TD.innerHTML = value.replace(match, '<strong>' + match + '</strong>');
-        }
-      }
-    });
-
 
   };
 
@@ -70,7 +47,25 @@
 
   AutocompleteEditor.prototype.open = function () {
 
-    var parent = this;
+    Handsontable.editors.HandsontableEditor.prototype.open.apply(this, arguments);
+
+    this.$textarea[0].style.visibility = 'visible';
+    this.focus();
+
+    var choicesListHot =  this.$htContainer.handsontable('getInstance');
+    var that = this;
+    choicesListHot.updateSettings({
+      'colWidths': [this.wtDom.outerWidth(this.TEXTAREA) - 2],
+      afterRenderer: function (TD, row, col, prop, value) {
+        var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true;
+        var indexOfMatch =  caseSensitive ? value.indexOf(this.query) : value.toLowerCase().indexOf(that.query.toLowerCase());
+
+        if(indexOfMatch != -1){
+          var match = value.substr(indexOfMatch, that.query.length);
+          TD.innerHTML = value.replace(match, '<strong>' + match + '</strong>');
+        }
+      }
+    });
 
     onBeforeKeyDownInner = function (event) {
       var instance = this;
@@ -91,12 +86,11 @@
 
     };
 
-    this.$htContainer.handsontable('getInstance').addHook('beforeKeyDown', onBeforeKeyDownInner);
+    choicesListHot.addHook('beforeKeyDown', onBeforeKeyDownInner);
 
-    Handsontable.editors.HandsontableEditor.prototype.open.apply(this, arguments);
+    this.queryChoices(this.TEXTAREA.value);
 
-    this.$textarea[0].style.visibility = 'visible';
-    parent.focus();
+
   };
 
   AutocompleteEditor.prototype.close = function () {
