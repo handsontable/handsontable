@@ -147,21 +147,49 @@
 
   };
 
-  function findItemIndexToHighlight(items, value){
+  AutocompleteEditor.prototype.updateChoicesList = function (choices) {
+
+     this.choices = choices;
+
+    this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
+
+    if(this.cellProperties.strict === true){
+      this.highlightBestMatchingChoice();
+    }
+
+    this.focus();
+  };
+
+  AutocompleteEditor.prototype.highlightBestMatchingChoice = function () {
+    var bestMatchingChoice = this.findBestMatchingChoice();
+
+    if ( typeof bestMatchingChoice == 'undefined' && this.cellProperties.allowInvalid === false){
+      bestMatchingChoice = 0;
+    }
+
+    if(typeof bestMatchingChoice == 'undefined'){
+      this.$htContainer.handsontable('deselectCell');
+    } else {
+      this.$htContainer.handsontable('selectCell', bestMatchingChoice, 0);
+    }
+
+  };
+
+  AutocompleteEditor.prototype.findBestMatchingChoice = function(){
     var bestMatch = {};
-    var valueLength = value.length;
+    var valueLength = this.getValue().length;
     var currentItem;
     var indexOfValue;
     var charsLeft;
 
 
-    for(var i = 0, len = items.length; i < len; i++){
-      currentItem = items[i];
+    for(var i = 0, len = this.choices.length; i < len; i++){
+      currentItem = this.choices[i];
 
       if(valueLength > 0){
-        indexOfValue = currentItem.indexOf(value)
+        indexOfValue = currentItem.indexOf(this.getValue())
       } else {
-        indexOfValue = currentItem === value ? 0 : -1;
+        indexOfValue = currentItem === this.getValue() ? 0 : -1;
       }
 
       if(indexOfValue == -1) continue;
@@ -182,32 +210,8 @@
 
 
     return bestMatch.index;
-  }
-
-  AutocompleteEditor.prototype.updateChoicesList = function (choices) {
-    this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
-
-    var value = this.getValue();
-    var rowToHighlight;
-
-    if(this.cellProperties.strict === true){
-
-      rowToHighlight = findItemIndexToHighlight(choices, value);
-
-      if ( typeof rowToHighlight == 'undefined' && this.cellProperties.allowInvalid === false){
-        rowToHighlight = 0;
-      }
-
-    }
-
-    if(typeof rowToHighlight == 'undefined'){
-      this.$htContainer.handsontable('deselectCell');
-    } else {
-      this.$htContainer.handsontable('selectCell', rowToHighlight, 0);
-    }
-
-    this.focus();
   };
+
 
   Handsontable.editors.AutocompleteEditor = AutocompleteEditor;
   Handsontable.editors.registerEditor('autocomplete', AutocompleteEditor);
