@@ -2016,6 +2016,15 @@ Handsontable.Core = function (rootElement, userSettings) {
     return instance.rootElement.data("handsontable");
   };
 
+  /**
+   * Change data when the column moves.
+   * @param {Number} startCol
+   * @param {Number} endCol
+   */
+  this.move = function ( startCol, endCol ) {
+    return datamap.move( startCol, endCol );
+  };
+
   (function () {
     // Create new instance of plugin hooks
     instance.PluginHooks = new Handsontable.PluginHookClass();

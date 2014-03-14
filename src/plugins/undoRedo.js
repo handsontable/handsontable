@@ -1,18 +1,24 @@
 /**
  * Handsontable UndoRedo class
  */
-(function(Handsontable){
+(function (Handsontable) {
   Handsontable.UndoRedo = function (instance) {
     var plugin = this;
     this.instance = instance;
     this.doneActions = [];
     this.undoneActions = [];
     this.ignoreNewActions = false;
+
     instance.addHook("afterChange", function (changes, origin) {
-      if(changes){
+      if (changes && changes[2] !== null) {
         var action = new Handsontable.UndoRedo.ChangeAction(changes);
         plugin.done(action);
       }
+    });
+
+    instance.addHook("afterColumnMove", function (startCol, endCol) {
+      var action = new Handsontable.UndoRedo.ChangeAction([startCol, endCol]);
+      plugin.done(action);
     });
 
     instance.addHook("afterCreateRow", function (index, amount, createdAutomatically) {
@@ -27,7 +33,7 @@
 
     instance.addHook("beforeRemoveRow", function (index, amount) {
       var originalData = plugin.instance.getData();
-      index = ( originalData.length + index ) % originalData.length;
+      index = (originalData.length + index) % originalData.length;
       var removedData = originalData.slice(index, index + amount);
       var action = new Handsontable.UndoRedo.RemoveRowAction(index, removedData);
       plugin.done(action);
@@ -45,7 +51,7 @@
 
     instance.addHook("beforeRemoveCol", function (index, amount) {
       var originalData = plugin.instance.getData();
-      index = ( plugin.instance.countCols() + index ) % plugin.instance.countCols();
+      index = (plugin.instance.countCols() + index) % plugin.instance.countCols();
       var removedData = [];
 
       for (var i = 0, len = originalData.length; i < len; i++) {
@@ -53,7 +59,7 @@
       }
 
       var headers;
-      if(Handsontable.helper.isArray(instance.getSettings().colHeaders)){
+      if (Handsontable.helper.isArray(instance.getSettings().colHeaders)) {
         headers = instance.getSettings().colHeaders.slice(index, index + removedData.length);
       }
 
@@ -123,12 +129,9 @@
     this.undoneActions.length = 0;
   };
 
-  Handsontable.UndoRedo.Action = function () {
-  };
-  Handsontable.UndoRedo.Action.prototype.undo = function () {
-  };
-  Handsontable.UndoRedo.Action.prototype.redo = function () {
-  };
+  Handsontable.UndoRedo.Action = function () {};
+  Handsontable.UndoRedo.Action.prototype.undo = function () {};
+  Handsontable.UndoRedo.Action.prototype.redo = function () {};
 
   Handsontable.UndoRedo.ChangeAction = function (changes) {
     this.changes = changes;
@@ -136,18 +139,28 @@
   Handsontable.helper.inherit(Handsontable.UndoRedo.ChangeAction, Handsontable.UndoRedo.Action);
   Handsontable.UndoRedo.ChangeAction.prototype.undo = function (instance) {
     var data = $.extend(true, [], this.changes);
-    for (var i = 0, len = data.length; i < len; i++) {
-      data[i].splice(3, 1);
+
+    if (data[0][0] === undefined) {
+      instance.move(data[1], data[0]);
+    } else {
+      for (var i = 0, len = data.length; i < len; i++) {
+        data[i].splice(3, 1);
+      }
+      instance.setDataAtRowProp(data, null, null, 'undo');
     }
-    instance.setDataAtRowProp(data, null, null, 'undo');
 
   };
   Handsontable.UndoRedo.ChangeAction.prototype.redo = function (instance) {
     var data = $.extend(true, [], this.changes);
-    for (var i = 0, len = data.length; i < len; i++) {
-      data[i].splice(2, 1);
+
+    if (data[0][0] === undefined) {
+      instance.move(data[0], data[1]);
+    } else {
+      for (var i = 0, len = data.length; i < len; i++) {
+        data[i].splice(2, 1);
+      }
+      instance.setDataAtRowProp(data, null, null, 'redo');
     }
-    instance.setDataAtRowProp(data, null, null, 'redo');
 
   };
 
@@ -211,7 +224,7 @@
 
     }
 
-    if(typeof this.headers != 'undefined'){
+    if (typeof this.headers != 'undefined') {
       spliceArgs = [this.index, 0];
       Array.prototype.push.apply(spliceArgs, this.headers);
       Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArgs);
@@ -224,14 +237,14 @@
   };
 })(Handsontable);
 
-(function(Handsontable){
+(function (Handsontable) {
 
-  function init(){
+  function init() {
     var instance = this;
     var pluginEnabled = typeof instance.getSettings().undo == 'undefined' || instance.getSettings().undo;
 
-    if(pluginEnabled){
-      if(!instance.undoRedo){
+    if (pluginEnabled) {
+      if (!instance.undoRedo) {
         instance.undoRedo = new Handsontable.UndoRedo(instance);
 
         exposeUndoRedoMethods(instance);
@@ -240,7 +253,7 @@
         instance.addHook('afterChange', onAfterChange);
       }
     } else {
-      if(instance.undoRedo){
+      if (instance.undoRedo) {
         delete instance.undoRedo;
 
         removeExposedUndoRedoMethods(instance);
@@ -251,53 +264,52 @@
     }
   }
 
-  function onBeforeKeyDown(event){
+  function onBeforeKeyDown(event) {
     var instance = this;
 
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
-    if(ctrlDown){
+    if (ctrlDown) {
       if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
         instance.undoRedo.redo();
         event.stopImmediatePropagation();
-      }
-      else if (event.keyCode === 90) { //CTRL + Z
+      } else if (event.keyCode === 90) { //CTRL + Z
         instance.undoRedo.undo();
         event.stopImmediatePropagation();
       }
     }
   }
 
-  function onAfterChange(changes, source){
+  function onAfterChange(changes, source) {
     var instance = this;
-    if (source == 'loadData'){
+    if (source == 'loadData') {
       return instance.undoRedo.clear();
     }
   }
 
-  function exposeUndoRedoMethods(instance){
-    instance.undo = function(){
+  function exposeUndoRedoMethods(instance) {
+    instance.undo = function () {
       return instance.undoRedo.undo();
     };
 
-    instance.redo = function(){
+    instance.redo = function () {
       return instance.undoRedo.redo();
     };
 
-    instance.isUndoAvailable = function(){
+    instance.isUndoAvailable = function () {
       return instance.undoRedo.isUndoAvailable();
     };
 
-    instance.isRedoAvailable = function(){
+    instance.isRedoAvailable = function () {
       return instance.undoRedo.isRedoAvailable();
     };
 
-    instance.clearUndo = function(){
+    instance.clearUndo = function () {
       return instance.undoRedo.clear();
     };
   }
 
-  function removeExposedUndoRedoMethods(instance){
+  function removeExposedUndoRedoMethods(instance) {
     delete instance.undo;
     delete instance.redo;
     delete instance.isUndoAvailable;

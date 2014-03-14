@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Feb 10 2014 14:15:11 GMT+0100 (CET)
+ * Date: Mon Mar 10 2014 20:27:18 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2203,6 +2203,15 @@ Handsontable.Core = function (rootElement, userSettings) {
     return instance.rootElement.data("handsontable");
   };
 
+  /**
+   * Change data when the column moves.
+   * @param {Number} startCol
+   * @param {Number} endCol
+   */
+  this.move = function ( startCol, endCol ) {
+    return datamap.move( startCol, endCol );
+  };
+
   (function () {
     // Create new instance of plugin hooks
     instance.PluginHooks = new Handsontable.PluginHookClass();
@@ -4280,6 +4289,62 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
   Handsontable.DataMap.prototype.getCopyableText = function (start, end) {
     return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
   };
+
+  /**
+  * Move col from the data.
+  * @param {Number} startCol
+  * @param {Number} endCol
+  */
+  Handsontable.DataMap.prototype.move = function (startCol, endCol) {
+    var _this = this,
+      data,
+      _move = function ( data ) {
+        for ( var e = 0, te = data.length; e < te; e++ ) {
+          data[e].splice(endCol, 0, data[e].splice(startCol, 1)[0]);
+        }
+        return data;
+      };
+
+    if ( typeof _this.instance.getSettings().colHeaders !== 'boolean' ) {
+      _move([_this.instance.getSettings().colHeaders]);
+    }
+
+    if ( _this.instance.dataType === 'object' ) {
+      data = [];
+      for ( var i = 0, out = _this.dataSource, t = out.length; i < t; i++ ) {
+        var tmp = [];
+        for ( var key in out[i] ) {
+          if ( out[i].hasOwnProperty(key) ) {
+            tmp.push(out[i][key]);
+          }
+        }
+        data.push(tmp);
+      }
+      data = _move(data);
+
+      _this.colToPropCache = _move([_this.colToPropCache])[0];
+
+      // Reset.
+      _this.propToColCache = {};
+      _this.dataSource = [];
+
+      for ( var y = 0, ty = _this.colToPropCache.length; y < ty; y++ ) {
+        _this.propToColCache[_this.colToPropCache[y]] = y;
+      }
+
+      for ( var r = 0, tr = data.length; r < tr; r++ ) {
+        var tmp = {};
+        for ( var u = 0, tu = data[r].length; u < tu; u++ ) {
+          tmp[_this.colToPropCache[u]] = data[r][u];
+        }
+        _this.dataSource.push(tmp);
+      }
+    } else {
+      _this.dataSource = _move(_this.dataSource);
+    }
+    _this.instance.forceFullRender = true;
+    _this.instance.view.render();
+};
 
 })(Handsontable);
 
@@ -8278,11 +8343,9 @@ function HandsontableManualColumnMove() {
           startCol--;
           endCol--;
         }
-        instance.manualColumnPositions.splice(endCol, 0, instance.manualColumnPositions.splice(startCol, 1)[0]);
+        instance.move(startCol, endCol);
         $('.manualColumnMover.active').removeClass('active');
         pressed = false;
-        instance.forceFullRender = true;
-        instance.view.render(); //updates all
         ghostStyle.display = 'none';
 
         saveManualColumnPositions.call(instance);
@@ -8928,18 +8991,24 @@ function Storage(prefix) {
 /**
  * Handsontable UndoRedo class
  */
-(function(Handsontable){
+(function (Handsontable) {
   Handsontable.UndoRedo = function (instance) {
     var plugin = this;
     this.instance = instance;
     this.doneActions = [];
     this.undoneActions = [];
     this.ignoreNewActions = false;
+
     instance.addHook("afterChange", function (changes, origin) {
-      if(changes){
+      if (changes && changes[2] !== null) {
         var action = new Handsontable.UndoRedo.ChangeAction(changes);
         plugin.done(action);
       }
+    });
+
+    instance.addHook("afterColumnMove", function (startCol, endCol) {
+      var action = new Handsontable.UndoRedo.ChangeAction([startCol, endCol]);
+      plugin.done(action);
     });
 
     instance.addHook("afterCreateRow", function (index, amount, createdAutomatically) {
@@ -8954,7 +9023,7 @@ function Storage(prefix) {
 
     instance.addHook("beforeRemoveRow", function (index, amount) {
       var originalData = plugin.instance.getData();
-      index = ( originalData.length + index ) % originalData.length;
+      index = (originalData.length + index) % originalData.length;
       var removedData = originalData.slice(index, index + amount);
       var action = new Handsontable.UndoRedo.RemoveRowAction(index, removedData);
       plugin.done(action);
@@ -8972,7 +9041,7 @@ function Storage(prefix) {
 
     instance.addHook("beforeRemoveCol", function (index, amount) {
       var originalData = plugin.instance.getData();
-      index = ( plugin.instance.countCols() + index ) % plugin.instance.countCols();
+      index = (plugin.instance.countCols() + index) % plugin.instance.countCols();
       var removedData = [];
 
       for (var i = 0, len = originalData.length; i < len; i++) {
@@ -8980,7 +9049,7 @@ function Storage(prefix) {
       }
 
       var headers;
-      if(Handsontable.helper.isArray(instance.getSettings().colHeaders)){
+      if (Handsontable.helper.isArray(instance.getSettings().colHeaders)) {
         headers = instance.getSettings().colHeaders.slice(index, index + removedData.length);
       }
 
@@ -9050,12 +9119,9 @@ function Storage(prefix) {
     this.undoneActions.length = 0;
   };
 
-  Handsontable.UndoRedo.Action = function () {
-  };
-  Handsontable.UndoRedo.Action.prototype.undo = function () {
-  };
-  Handsontable.UndoRedo.Action.prototype.redo = function () {
-  };
+  Handsontable.UndoRedo.Action = function () {};
+  Handsontable.UndoRedo.Action.prototype.undo = function () {};
+  Handsontable.UndoRedo.Action.prototype.redo = function () {};
 
   Handsontable.UndoRedo.ChangeAction = function (changes) {
     this.changes = changes;
@@ -9063,18 +9129,28 @@ function Storage(prefix) {
   Handsontable.helper.inherit(Handsontable.UndoRedo.ChangeAction, Handsontable.UndoRedo.Action);
   Handsontable.UndoRedo.ChangeAction.prototype.undo = function (instance) {
     var data = $.extend(true, [], this.changes);
-    for (var i = 0, len = data.length; i < len; i++) {
-      data[i].splice(3, 1);
+
+    if (data[0][0] === undefined) {
+      instance.move(data[1], data[0]);
+    } else {
+      for (var i = 0, len = data.length; i < len; i++) {
+        data[i].splice(3, 1);
+      }
+      instance.setDataAtRowProp(data, null, null, 'undo');
     }
-    instance.setDataAtRowProp(data, null, null, 'undo');
 
   };
   Handsontable.UndoRedo.ChangeAction.prototype.redo = function (instance) {
     var data = $.extend(true, [], this.changes);
-    for (var i = 0, len = data.length; i < len; i++) {
-      data[i].splice(2, 1);
+
+    if (data[0][0] === undefined) {
+      instance.move(data[0], data[1]);
+    } else {
+      for (var i = 0, len = data.length; i < len; i++) {
+        data[i].splice(2, 1);
+      }
+      instance.setDataAtRowProp(data, null, null, 'redo');
     }
-    instance.setDataAtRowProp(data, null, null, 'redo');
 
   };
 
@@ -9138,7 +9214,7 @@ function Storage(prefix) {
 
     }
 
-    if(typeof this.headers != 'undefined'){
+    if (typeof this.headers != 'undefined') {
       spliceArgs = [this.index, 0];
       Array.prototype.push.apply(spliceArgs, this.headers);
       Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArgs);
@@ -9151,14 +9227,14 @@ function Storage(prefix) {
   };
 })(Handsontable);
 
-(function(Handsontable){
+(function (Handsontable) {
 
-  function init(){
+  function init() {
     var instance = this;
     var pluginEnabled = typeof instance.getSettings().undo == 'undefined' || instance.getSettings().undo;
 
-    if(pluginEnabled){
-      if(!instance.undoRedo){
+    if (pluginEnabled) {
+      if (!instance.undoRedo) {
         instance.undoRedo = new Handsontable.UndoRedo(instance);
 
         exposeUndoRedoMethods(instance);
@@ -9167,7 +9243,7 @@ function Storage(prefix) {
         instance.addHook('afterChange', onAfterChange);
       }
     } else {
-      if(instance.undoRedo){
+      if (instance.undoRedo) {
         delete instance.undoRedo;
 
         removeExposedUndoRedoMethods(instance);
@@ -9178,53 +9254,52 @@ function Storage(prefix) {
     }
   }
 
-  function onBeforeKeyDown(event){
+  function onBeforeKeyDown(event) {
     var instance = this;
 
     var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
-    if(ctrlDown){
+    if (ctrlDown) {
       if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { //CTRL + Y or CTRL + SHIFT + Z
         instance.undoRedo.redo();
         event.stopImmediatePropagation();
-      }
-      else if (event.keyCode === 90) { //CTRL + Z
+      } else if (event.keyCode === 90) { //CTRL + Z
         instance.undoRedo.undo();
         event.stopImmediatePropagation();
       }
     }
   }
 
-  function onAfterChange(changes, source){
+  function onAfterChange(changes, source) {
     var instance = this;
-    if (source == 'loadData'){
+    if (source == 'loadData') {
       return instance.undoRedo.clear();
     }
   }
 
-  function exposeUndoRedoMethods(instance){
-    instance.undo = function(){
+  function exposeUndoRedoMethods(instance) {
+    instance.undo = function () {
       return instance.undoRedo.undo();
     };
 
-    instance.redo = function(){
+    instance.redo = function () {
       return instance.undoRedo.redo();
     };
 
-    instance.isUndoAvailable = function(){
+    instance.isUndoAvailable = function () {
       return instance.undoRedo.isUndoAvailable();
     };
 
-    instance.isRedoAvailable = function(){
+    instance.isRedoAvailable = function () {
       return instance.undoRedo.isRedoAvailable();
     };
 
-    instance.clearUndo = function(){
+    instance.clearUndo = function () {
       return instance.undoRedo.clear();
     };
   }
 
-  function removeExposedUndoRedoMethods(instance){
+  function removeExposedUndoRedoMethods(instance) {
     delete instance.undo;
     delete instance.redo;
     delete instance.isUndoAvailable;

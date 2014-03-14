@@ -535,4 +535,60 @@
     return SheetClip.stringify(this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR));
   };
 
+  /**
+  * Move col from the data.
+  * @param {Number} startCol
+  * @param {Number} endCol
+  */
+  Handsontable.DataMap.prototype.move = function (startCol, endCol) {
+    var _this = this,
+      data,
+      _move = function ( data ) {
+        for ( var e = 0, te = data.length; e < te; e++ ) {
+          data[e].splice(endCol, 0, data[e].splice(startCol, 1)[0]);
+        }
+        return data;
+      };
+
+    if ( typeof _this.instance.getSettings().colHeaders !== 'boolean' ) {
+      _move([_this.instance.getSettings().colHeaders]);
+    }
+
+    if ( _this.instance.dataType === 'object' ) {
+      data = [];
+      for ( var i = 0, out = _this.dataSource, t = out.length; i < t; i++ ) {
+        var tmp = [];
+        for ( var key in out[i] ) {
+          if ( out[i].hasOwnProperty(key) ) {
+            tmp.push(out[i][key]);
+          }
+        }
+        data.push(tmp);
+      }
+      data = _move(data);
+
+      _this.colToPropCache = _move([_this.colToPropCache])[0];
+
+      // Reset.
+      _this.propToColCache = {};
+      _this.dataSource = [];
+
+      for ( var y = 0, ty = _this.colToPropCache.length; y < ty; y++ ) {
+        _this.propToColCache[_this.colToPropCache[y]] = y;
+      }
+
+      for ( var r = 0, tr = data.length; r < tr; r++ ) {
+        var tmp = {};
+        for ( var u = 0, tu = data[r].length; u < tu; u++ ) {
+          tmp[_this.colToPropCache[u]] = data[r][u];
+        }
+        _this.dataSource.push(tmp);
+      }
+    } else {
+      _this.dataSource = _move(_this.dataSource);
+    }
+    _this.instance.forceFullRender = true;
+    _this.instance.view.render();
+};
+
 })(Handsontable);

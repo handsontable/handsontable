@@ -302,7 +302,7 @@ describe('manualColumnMove', function () {
   it("should not move the column if you click the handle without dragging", function () {
     handsontable({
       data: [
-        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 1, name: "Ted", lastName: "Right"}
       ],
       colHeaders: true,
       manualColumnMove: true
@@ -328,5 +328,31 @@ describe('manualColumnMove', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
     expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
-  })
+  });
+
+  it("the data aren't different", function () {
+    handsontable({
+      data: [
+          {id: 1, name: "Ted", lastName: "Right"},
+          {id: 2, name: "Frank", lastName: "Honest"},
+          {id: 3, name: "Joan", lastName: "Well"},
+          {id: 4, name: "Sid", lastName: "Strong"},
+          {id: 5, name: "Jane", lastName: "Neat"},
+          {id: 6, name: "Chuck", lastName: "Jackson"},
+          {id: 7, name: "Meg", lastName: "Jansen"},
+          {id: 8, name: "Rob", lastName: "Norris"},
+          {id: 9, name: "Sean", lastName: "O'Hara"},
+          {id: 10, name: "Eve", lastName: "Branson"}
+      ],
+      colHeaders: true,
+      manualColumnMove: [1, 2, 0]
+    });
+
+    var old = expect(this.$container.handsontable('getData'));
+    updateSettings({
+      manualColumnMove: [2, 1, 0]
+    });
+    expect(_.isEqual(old, this.$container.handsontable('getData'))).toEqual(false);
+  });
+
 });
