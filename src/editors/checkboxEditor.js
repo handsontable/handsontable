@@ -4,10 +4,14 @@
   var CheckboxEditor = Handsontable.editors.BaseEditor.prototype.extend();
 
   CheckboxEditor.prototype.beginEditing = function () {
-    this.saveValue([
-      [!this.originalValue]
-    ]);
+    var checkbox = this.TD.querySelector('input[type="checkbox"]');
+
+    if (checkbox) {
+      $(checkbox).trigger('click');
+    }
+
   };
+
   CheckboxEditor.prototype.finishEditing = function () {};
 
   CheckboxEditor.prototype.init = function () {};
