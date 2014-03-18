@@ -53,6 +53,7 @@ module.exports = function (grunt) {
     meta: {
       src: [
         'tmp/core.js',
+        'src/multiMap.js',
         'src/focusCatcher.js',
         'src/tableView.js',
         'src/editors.js',
