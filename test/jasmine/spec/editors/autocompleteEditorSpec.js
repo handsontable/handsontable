@@ -196,6 +196,88 @@ describe('AutocompleteEditor', function () {
 
     });
 
+    it("should NOT update choices list, after cursor leaves and enters the list (#1330)", function () {
+
+      spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').andCallThrough();
+      var updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
+
+      var hot = handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+
+      var editor = hot.getActiveEditor();
+
+      keyDownUp('enter');
+
+      waitsFor(function () {
+        return updateChoicesList.calls.length > 0;
+      }, 'Initial choices load', 100);
+
+      runs(function () {
+        updateChoicesList.reset();
+         editor.$htContainer.find('.htCore tr:eq(0) td:eq(0)').mouseenter();
+         editor.$htContainer.find('.htCore tr:eq(0) td:eq(0)').mouseleave();
+         editor.$htContainer.find('.htCore tr:eq(0) td:eq(0)').mouseenter();
+      });
+
+      waits(100);
+
+      runs(function () {
+        expect(updateChoicesList).not.toHaveBeenCalled();
+      });
+
+    });
+
+    it("should update choices list exactly once after a key is pressed (#1330)", function () {
+
+      spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').andCallThrough();
+      var updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
+
+      var hot = handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+
+      var editor = hot.getActiveEditor();
+
+      updateChoicesList.reset();
+
+      keyDownUp('enter');
+
+      waitsFor(function () {
+        return updateChoicesList.calls.length > 0;
+      }, 'Initial choices load', 1000);
+
+      runs(function () {
+        updateChoicesList.reset();
+        editor.$textarea.val('red');
+        editor.$textarea.trigger($.Event('keydown', {
+          keyCode: 'd'.charCodeAt(0)
+        }));
+      });
+
+      waitsFor(function () {
+        return updateChoicesList.calls.length > 0;
+      }, 'Initial choices load', 100);
+
+      runs(function () {
+        expect(updateChoicesList.calls.length).toEqual(1);
+      });
+
+    });
 
     it('autocomplete list should have textarea dimensions', function () {
       var syncSources = jasmine.createSpy('syncSources');
@@ -1525,6 +1607,170 @@ describe('AutocompleteEditor', function () {
         expect(getDataAtCell(0, 0)).toEqual('foobar');
       });
 
+    });
+
+    it('typing in textarea should highlight best choice, if strict === true', function () {
+      var choices = ['Male', 'Female'];
+
+      var syncSources = jasmine.createSpy('syncSources');
+
+      syncSources.plan = function (query, process) {
+        process(choices.filter(function(choice){
+          return choice.search(new RegExp(query, 'i')) != -1;
+        }));
+      };
+
+      var hot = handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: syncSources,
+            filter: false,
+            strict: true
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      var editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+      waitsFor(function () {
+        return syncSources.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function () {
+
+        syncSources.reset();
+
+        editorInput.val("e");
+        keyDownUp(69); //e
+
+
+      });
+
+      waitsFor(function () {
+        return syncSources.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function () {
+        expect(hot.getActiveEditor().$htContainer.handsontable('getSelected')).toEqual([1, 0, 1, 0]);
+      });
+    });
+
+    it('should remove the highlight of best choice, when cursors enter the list', function () {
+      var choices = ['Male', 'Female'];
+
+      var syncSources = jasmine.createSpy('syncSources');
+
+      syncSources.plan = function (query, process) {
+        process(choices.filter(function(choice){
+          return choice.search(new RegExp(query, 'i')) != -1;
+        }));
+      };
+
+      var hot = handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: syncSources,
+            filter: false,
+            strict: true
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      var editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+      waitsFor(function () {
+        return syncSources.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function () {
+
+        syncSources.reset();
+
+        editorInput.val("e");
+        keyDownUp(69); //e
+
+
+      });
+
+      waitsFor(function () {
+        return syncSources.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function () {
+        expect(hot.getActiveEditor().$htContainer.handsontable('getSelected')).toEqual([1, 0, 1, 0]);
+        hot.getActiveEditor().$htContainer.find('.htCore tr:eq(0) td:eq(0)').mouseenter();
+        expect(hot.getActiveEditor().$htContainer.handsontable('getSelected')).toBeUndefined();
+      });
+    });
+
+    it('should restore the highlight of best choice, when cursors leaves the list', function () {
+      var choices = ['Male', 'Female'];
+
+      var syncSources = jasmine.createSpy('syncSources');
+
+      syncSources.plan = function (query, process) {
+        process(choices.filter(function(choice){
+          return choice.search(new RegExp(query, 'i')) != -1;
+        }));
+      };
+
+      var hot = handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: syncSources,
+            filter: false,
+            strict: true
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      var editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+      waitsFor(function () {
+        return syncSources.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function () {
+
+        syncSources.reset();
+
+        editorInput.val("e");
+        keyDownUp(69); //e
+
+
+      });
+
+      waitsFor(function () {
+        return syncSources.calls.length > 0;
+      }, 'Source function call', 1000);
+
+      runs(function () {
+        expect(hot.getActiveEditor().$htContainer.handsontable('getSelected')).toEqual([1, 0, 1, 0]);
+
+        hot.getActiveEditor().$htContainer.find('.htCore tr:eq(0) td:eq(0)').mouseenter();
+        expect(hot.getActiveEditor().$htContainer.handsontable('getSelected')).toBeUndefined();
+
+        hot.getActiveEditor().$htContainer.find('.htCore tr:eq(0) td:eq(0)').mouseleave();
+        expect(hot.getActiveEditor().$htContainer.handsontable('getSelected')).toEqual([1, 0, 1, 0]);
+      });
     });
 
   });
