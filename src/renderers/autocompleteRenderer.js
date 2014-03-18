@@ -47,7 +47,12 @@
         instance.view.wt.getSetting('onCellDblClick');
       };
 
-      instance.rootElement.on('mousedown', '.htAutocompleteArrow', instance.acArrowListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
+      instance.rootElement.on('mousedown.htAutocompleteArrow', '.htAutocompleteArrow', instance.acArrowListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
+
+      //We need to unbind the listener after the table has been destroyed
+      instance.addHookOnce('afterDestroy', function () {
+        this.rootElement.off('mousedown.htAutocompleteArrow');
+      });
 
     }
   };
