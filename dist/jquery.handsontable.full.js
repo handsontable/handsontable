@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Feb 10 2014 14:15:11 GMT+0100 (CET)
+ * Date: Tue Mar 18 2014 15:13:39 GMT+0900 (JST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3002,14 +3002,14 @@ Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
                       that.closeEditorAndSaveChanges(ctrlDown);
                     }
 
-                    moveSelectionAfterEnter(event.shiftKey);
+                    moveSelectionAfterEnter(event);
 
                   } else {
 
                     if (instance.getSettings().enterBeginsEditing){
                       that.openEditor();
                     } else {
-                      moveSelectionAfterEnter(event.shiftKey);
+                      moveSelectionAfterEnter(event);
                     }
 
                   }
@@ -3083,8 +3083,9 @@ Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
         $document.off('keydown.handsontable.' + instance.guid);
       });
 
-      function moveSelectionAfterEnter(shiftKey){
-        var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
+      function moveSelectionAfterEnter(evt){
+        var shiftKey = evt.shiftKey;
+        var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(evt) : priv.settings.enterMoves;
 
         if (shiftKey) {
           selection.transformStart(-enterMoves.row, -enterMoves.col); //move selection up
