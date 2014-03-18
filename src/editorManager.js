@@ -125,14 +125,14 @@
                       that.closeEditorAndSaveChanges(ctrlDown);
                     }
 
-                    moveSelectionAfterEnter(event.shiftKey);
+                    moveSelectionAfterEnter(event);
 
                   } else {
 
                     if (instance.getSettings().enterBeginsEditing){
                       that.openEditor();
                     } else {
-                      moveSelectionAfterEnter(event.shiftKey);
+                      moveSelectionAfterEnter(event);
                     }
 
                   }
@@ -206,8 +206,9 @@
         $document.off('keydown.handsontable.' + instance.guid);
       });
 
-      function moveSelectionAfterEnter(shiftKey){
-        var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
+      function moveSelectionAfterEnter(evt){
+        var shiftKey = evt.shiftKey;
+        var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(evt) : priv.settings.enterMoves;
 
         if (shiftKey) {
           selection.transformStart(-enterMoves.row, -enterMoves.col); //move selection up
