@@ -75,4 +75,39 @@ describe('Core_dataSchema', function () {
     expect(getData()[4].id).toEqual(1004);
     expect(countRows()).toEqual(6); //row should be added by keepEmptyRows
   });
+
+  it("should translate prop to col, when prop is a function", function () {
+
+    var idAccessor = createAccessorForProperty('id');
+    var nameAccessor = createAccessorForProperty('name');
+
+    hot = handsontable({
+      data: [
+        Model({
+          id: 1,
+          name: 'Tom'
+        }),
+        Model({
+          id: 2,
+          name: 'Hanna'
+        }),
+        Model({
+          id: 3,
+          name: 'Jerry'
+        })
+      ],
+      dataSchema: Model,
+      columns: [
+        {
+          data: idAccessor
+        },
+        {
+          data: nameAccessor
+        }
+      ]
+    });
+
+    expect(hot.propToCol(idAccessor)).toEqual(0);
+    expect(hot.propToCol(nameAccessor)).toEqual(1);
+  });
 });
