@@ -58,8 +58,8 @@
     this.$datePicker.remove();
   };
 
-  DateEditor.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
-    Handsontable.editors.TextEditor.prototype.beginEditing.apply(this, arguments);
+  DateEditor.prototype.open = function () {
+    Handsontable.editors.TextEditor.prototype.open.call(this);
     this.showDatepicker();
   };
 

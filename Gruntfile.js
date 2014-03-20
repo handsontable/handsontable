@@ -53,6 +53,7 @@ module.exports = function (grunt) {
     meta: {
       src: [
         'tmp/core.js',
+        'src/multiMap.js',
         'src/focusCatcher.js',
         'src/tableView.js',
         'src/editors.js',
@@ -220,7 +221,9 @@ module.exports = function (grunt) {
         options: {
           specs: [
             'test/jasmine/spec/*Spec.js',
-            'test/jasmine/spec/*/*Spec.js'
+            'test/jasmine/spec/*/*Spec.js',
+            'src/plugins/*/test/*.spec.js',
+            'src/plugins/*/test/*.Spec.js'
           ],
           styles: [
             'test/jasmine/css/SpecRunner.css',

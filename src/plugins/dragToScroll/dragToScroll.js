@@ -132,4 +132,6 @@ if (typeof Handsontable !== 'undefined') {
   Handsontable.PluginHooks.add('afterOnCellCornerMouseDown', function () {
     setupListening(this);
   });
+
+  Handsontable.plugins.DragToScroll = DragToScroll;
 }

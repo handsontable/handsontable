@@ -31,5 +31,46 @@ describe('AutocompleteRenderer', function () {
       expect(html).toContain('string');
       expect(html).toContain('\u25BC');
     });
+
   });
+
+  it("should open cell editor after clicking on arrow glyph", function () {
+
+    var hot = handsontable({
+      type: 'autocomplete'
+    });
+
+    selectCell(0, 0);
+
+
+    expect(hot.getActiveEditor().isOpened()).toBe(false);
+
+    $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
+
+    expect(hot.getActiveEditor().isOpened()).toBe(true);
+
+  });
+
+  it("should open cell editor after clicking on arrow glyph, after the table has been destroyed and reinitialized (#1367)", function () {
+    var hot = handsontable({
+      type: 'autocomplete'
+    });
+
+    hot.destroy();
+
+    hot = handsontable({
+      type: 'autocomplete'
+    });
+
+    selectCell(0, 0);
+
+
+    expect(hot.getActiveEditor().isOpened()).toBe(false);
+
+    $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
+
+    expect(hot.getActiveEditor().isOpened()).toBe(true);
+  });
+
+
 });

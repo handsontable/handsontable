@@ -12,6 +12,7 @@
 
 var Handsontable = { //class namespace
   extension: {}, //extenstion namespace
+  plugins: {}, //plugin namespace
   helper: {} //helper namespace
 };
 

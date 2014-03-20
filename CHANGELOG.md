@@ -1,3 +1,13 @@
+## [0.10.4](https://github.com/warpech/jquery-handsontable/tree/v0.10.4) (Mar 20, 2014)
+
+Changes since 0.10.3:
+
+- fixed computing row height in IE8 ([#1362](https://github.com/warpech/jquery-handsontable/issues/1362))
+- `AutocompleteRenderer` will now work on tables, which were destroyed and reinitialized ([#1367](https://github.com/warpech/jquery-handsontable/issues/1367))
+- `propToCol()` will now properly translate data property to column index, when column `data` parameter is a function
+- multiple fixes for `AutocompleteEditor` ([#1320](https://github.com/warpech/jquery-handsontable/issues/1320), [#1330](https://github.com/warpech/jquery-handsontable/issues/1330), [#1332](https://github.com/warpech/jquery-handsontable/issues/1332))
+- pressing <kbd>ENTER</kbd> on cell of type `checkbox` will now toggle the checkbox state ([#1329](https://github.com/warpech/jquery-handsontable/issues/1329))
+
 ## [0.10.3](https://github.com/warpech/jquery-handsontable/tree/v0.10.3) (Feb 10, 2014)
 
 Changes since 0.10.2:
