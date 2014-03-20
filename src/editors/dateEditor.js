@@ -59,6 +59,7 @@
   };
 
   DateEditor.prototype.open = function () {
+    Handsontable.editors.TextEditor.prototype.open.call(this);
     this.showDatepicker();
   };
 
