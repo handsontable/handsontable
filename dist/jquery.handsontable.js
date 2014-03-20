@@ -1,17 +1,18 @@
 /**
- * Handsontable 0.10.3
+ * Handsontable 0.10.4
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Feb 10 2014 14:15:11 GMT+0100 (CET)
+ * Date: Thu Mar 20 2014 12:50:26 GMT+0100 (CET)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
 var Handsontable = { //class namespace
   extension: {}, //extenstion namespace
+  plugins: {}, //plugin namespace
   helper: {} //helper namespace
 };
 
@@ -1367,7 +1368,11 @@ Handsontable.Core = function (rootElement, userSettings) {
         if (parent) {
           clone.removeAttribute('id');
           parent.appendChild(clone);
-          var computedHeight = parseInt(window.getComputedStyle(clone, null).getPropertyValue('height'), 10);
+          var computedClientHeight = parseInt(clone.clientHeight, 10);
+          var computedPaddingTop = parseInt(window.getComputedStyle(clone, null).getPropertyValue('paddingTop'), 10) || 0;
+          var computedPaddingBottom = parseInt(window.getComputedStyle(clone, null).getPropertyValue('paddingBottom'), 10) || 0;
+
+          var computedHeight = computedClientHeight - computedPaddingTop - computedPaddingBottom;
 
           if(isNaN(computedHeight) && clone.currentStyle){
             computedHeight = parseInt(clone.currentStyle.height, 10)
@@ -2271,7 +2276,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.10.3'; //inserted by grunt from package.json
+  this.version = '0.10.4'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {};
@@ -2385,6 +2390,66 @@ $.fn.handsontable = function (action) {
   }
 };
 
+(function (window) {
+  'use strict';
+
+  function MultiMap() {
+    var map = {
+      arrayMap: [],
+      weakMap: new WeakMap()
+    };
+
+    return {
+      'get': function (key) {
+        if (canBeAnArrayMapKey(key)) {
+          return map.arrayMap[key];
+        } else if (canBeAWeakMapKey(key)) {
+          return map.weakMap.get(key);
+        }
+      },
+
+      'set': function (key, value) {
+        if (canBeAnArrayMapKey(key)) {
+          map.arrayMap[key] = value;
+        } else if (canBeAWeakMapKey(key)) {
+          map.weakMap.set(key, value);
+        } else {
+          throw new Error('Invalid key type');
+        }
+
+
+      },
+
+      'delete': function (key) {
+        if (canBeAnArrayMapKey(key)) {
+          delete map.arrayMap[key];
+        } else if (canBeAWeakMapKey(key)) {
+          map.weakMap['delete'](key);  //Delete must be called using square bracket notation, because IE8 does not handle using `delete` with dot notation
+        }
+      }
+    };
+
+
+
+    function canBeAnArrayMapKey(obj){
+      return obj !== null && !isNaNSymbol(obj) && (typeof obj == 'string' || typeof obj == 'number');
+    }
+
+    function canBeAWeakMapKey(obj){
+      return obj !== null && (typeof obj == 'object' || typeof obj == 'function');
+    }
+
+    function isNaNSymbol(obj){
+      return obj !== obj; // NaN === NaN is always false
+    }
+
+  }
+
+  if (!window.MultiMap){
+    window.MultiMap = MultiMap;
+  }
+
+})(window);
 /**
  * Handsontable TableView constructor
  * @param {Object} instance
@@ -2906,7 +2971,7 @@ Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
             var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
             if (!activeEditor.isWaiting()) {
-              if (!Handsontable.helper.isMetaKey(event.keyCode) && !ctrlDown) {
+              if (!Handsontable.helper.isMetaKey(event.keyCode) && !ctrlDown && !that.isEditorOpened()) {
                 that.openEditor('');
                 event.stopPropagation(); //required by HandsontableEditor
                 return;
@@ -3178,7 +3243,9 @@ Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
     };
 
     this.openEditor = function (initialValue) {
-      activeEditor.beginEditing(initialValue);
+      if (!activeEditor.cellProperties.readOnly){
+        activeEditor.beginEditing(initialValue);
+      }
     };
 
     this.closeEditor = function (restoreOriginalValue, ctrlDown, callback) {
@@ -3811,7 +3878,8 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
           if (schema[i] === null) {
             prop = parent + i;
             this.colToPropCache.push(prop);
-            this.propToColCache[prop] = lastCol;
+            this.propToColCache.set(prop, lastCol);
+
             lastCol++;
           }
           else {
@@ -3829,12 +3897,16 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
     }
     var i, ilen, schema = this.getSchema();
     this.colToPropCache = [];
-    this.propToColCache = {};
+    this.propToColCache = new MultiMap();
     var columns = this.instance.getSettings().columns;
     if (columns) {
       for (i = 0, ilen = columns.length; i < ilen; i++) {
-        this.colToPropCache[i] = columns[i].data;
-        this.propToColCache[columns[i].data] = i;
+
+        if (typeof columns[i].data != 'undefined'){
+          this.colToPropCache[i] = columns[i].data;
+          this.propToColCache.set(columns[i].data, i);
+        }
+
       }
     }
     else {
@@ -3854,10 +3926,9 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
 
   Handsontable.DataMap.prototype.propToCol = function (prop) {
     var col;
-    if (typeof this.propToColCache[prop] !== 'undefined') {
-      col = this.propToColCache[prop];
-    }
-    else {
+    if (typeof this.propToColCache.get(prop) !== 'undefined') {
+      col = this.propToColCache.get(prop);
+    } else {
       col = prop;
     }
     col = Handsontable.PluginHooks.execute(this.instance, 'modifyCol', col);
@@ -4396,7 +4467,12 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
         instance.view.wt.getSetting('onCellDblClick');
       };
 
-      instance.rootElement.on('mousedown', '.htAutocompleteArrow', instance.acArrowListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
+      instance.rootElement.on('mousedown.htAutocompleteArrow', '.htAutocompleteArrow', instance.acArrowListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
+
+      //We need to unbind the listener after the table has been destroyed
+      instance.addHookOnce('afterDestroy', function () {
+        this.rootElement.off('mousedown.htAutocompleteArrow');
+      });
 
     }
   };
@@ -4689,10 +4765,6 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
 
   BaseEditor.prototype.beginEditing = function(initialValue){
     if (this.state != Handsontable.EditorState.VIRGIN) {
-      return;
-    }
-
-    if (this.cellProperties.readOnly) {
       return;
     }
 
@@ -5036,10 +5108,14 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
   var CheckboxEditor = Handsontable.editors.BaseEditor.prototype.extend();
 
   CheckboxEditor.prototype.beginEditing = function () {
-    this.saveValue([
-      [!this.originalValue]
-    ]);
+    var checkbox = this.TD.querySelector('input[type="checkbox"]');
+
+    if (checkbox) {
+      $(checkbox).trigger('click');
+    }
+
   };
+
   CheckboxEditor.prototype.finishEditing = function () {};
 
   CheckboxEditor.prototype.init = function () {};
@@ -5115,8 +5191,8 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
     this.$datePicker.remove();
   };
 
-  DateEditor.prototype.beginEditing = function (row, col, prop, useOriginalValue, suffix) {
-    Handsontable.editors.TextEditor.prototype.beginEditing.apply(this, arguments);
+  DateEditor.prototype.open = function () {
+    Handsontable.editors.TextEditor.prototype.open.call(this);
     this.showDatepicker();
   };
 
@@ -5337,6 +5413,7 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
     Handsontable.editors.HandsontableEditor.prototype.init.apply(this, arguments);
 
     this.query = null;
+    this.choices = [];
   };
 
   AutocompleteEditor.prototype.createElements = function(){
@@ -5360,41 +5437,17 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
 
     });
 
+    this.$htContainer.on('mouseleave', function () {
+      if(that.cellProperties.strict === true){
+        that.highlightBestMatchingChoice();
+      }
+    });
+
     this.$htContainer.on('mouseenter', function () {
       that.$htContainer.handsontable('deselectCell');
     });
 
-    this.$htContainer.on('mouseleave', function () {
-      that.queryChoices(that.query);
-    });
-
     Handsontable.editors.HandsontableEditor.prototype.bindEvents.apply(this, arguments);
-
-  };
-
-  AutocompleteEditor.prototype.beginEditing = function () {
-    Handsontable.editors.HandsontableEditor.prototype.beginEditing.apply(this, arguments);
-
-    var that = this;
-    setTimeout(function () {
-      that.queryChoices(that.TEXTAREA.value);
-    });
-
-    var hot =  this.$htContainer.handsontable('getInstance');
-
-    hot.updateSettings({
-      'colWidths': [this.wtDom.outerWidth(this.TEXTAREA) - 2],
-      afterRenderer: function (TD, row, col, prop, value) {
-        var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true;
-        var indexOfMatch =  caseSensitive ? value.indexOf(that.query) : value.toLowerCase().indexOf(that.query.toLowerCase());
-
-        if(indexOfMatch != -1){
-          var match = value.substr(indexOfMatch, that.query.length);
-          TD.innerHTML = value.replace(match, '<strong>' + match + '</strong>');
-        }
-      }
-    });
-
 
   };
 
@@ -5402,7 +5455,25 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
 
   AutocompleteEditor.prototype.open = function () {
 
-    var parent = this;
+    Handsontable.editors.HandsontableEditor.prototype.open.apply(this, arguments);
+
+    this.$textarea[0].style.visibility = 'visible';
+    this.focus();
+
+    var choicesListHot =  this.$htContainer.handsontable('getInstance');
+    var that = this;
+    choicesListHot.updateSettings({
+      'colWidths': [this.wtDom.outerWidth(this.TEXTAREA) - 2],
+      afterRenderer: function (TD, row, col, prop, value) {
+        var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true;
+        var indexOfMatch =  caseSensitive ? value.indexOf(this.query) : value.toLowerCase().indexOf(that.query.toLowerCase());
+
+        if(indexOfMatch != -1){
+          var match = value.substr(indexOfMatch, that.query.length);
+          TD.innerHTML = value.replace(match, '<strong>' + match + '</strong>');
+        }
+      }
+    });
 
     onBeforeKeyDownInner = function (event) {
       var instance = this;
@@ -5423,12 +5494,11 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
 
     };
 
-    this.$htContainer.handsontable('getInstance').addHook('beforeKeyDown', onBeforeKeyDownInner);
+    choicesListHot.addHook('beforeKeyDown', onBeforeKeyDownInner);
 
-    Handsontable.editors.HandsontableEditor.prototype.open.apply(this, arguments);
+    this.queryChoices(this.TEXTAREA.value);
 
-    this.$textarea[0].style.visibility = 'visible';
-    parent.focus();
+
   };
 
   AutocompleteEditor.prototype.close = function () {
@@ -5479,21 +5549,49 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
 
   };
 
-  function findItemIndexToHighlight(items, value){
+  AutocompleteEditor.prototype.updateChoicesList = function (choices) {
+
+     this.choices = choices;
+
+    this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
+
+    if(this.cellProperties.strict === true){
+      this.highlightBestMatchingChoice();
+    }
+
+    this.focus();
+  };
+
+  AutocompleteEditor.prototype.highlightBestMatchingChoice = function () {
+    var bestMatchingChoice = this.findBestMatchingChoice();
+
+    if ( typeof bestMatchingChoice == 'undefined' && this.cellProperties.allowInvalid === false){
+      bestMatchingChoice = 0;
+    }
+
+    if(typeof bestMatchingChoice == 'undefined'){
+      this.$htContainer.handsontable('deselectCell');
+    } else {
+      this.$htContainer.handsontable('selectCell', bestMatchingChoice, 0);
+    }
+
+  };
+
+  AutocompleteEditor.prototype.findBestMatchingChoice = function(){
     var bestMatch = {};
-    var valueLength = value.length;
+    var valueLength = this.getValue().length;
     var currentItem;
     var indexOfValue;
     var charsLeft;
 
 
-    for(var i = 0, len = items.length; i < len; i++){
-      currentItem = items[i];
+    for(var i = 0, len = this.choices.length; i < len; i++){
+      currentItem = this.choices[i];
 
       if(valueLength > 0){
-        indexOfValue = currentItem.indexOf(value)
+        indexOfValue = currentItem.indexOf(this.getValue())
       } else {
-        indexOfValue = currentItem === value ? 0 : -1;
+        indexOfValue = currentItem === this.getValue() ? 0 : -1;
       }
 
       if(indexOfValue == -1) continue;
@@ -5514,32 +5612,8 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
 
 
     return bestMatch.index;
-  }
-
-  AutocompleteEditor.prototype.updateChoicesList = function (choices) {
-    this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
-
-    var value = this.getValue();
-    var rowToHighlight;
-
-    if(this.cellProperties.strict === true){
-
-      rowToHighlight = findItemIndexToHighlight(choices, value);
-
-      if ( typeof rowToHighlight == 'undefined' && this.cellProperties.allowInvalid === false){
-        rowToHighlight = 0;
-      }
-
-    }
-
-    if(typeof rowToHighlight == 'undefined'){
-      this.$htContainer.handsontable('deselectCell');
-    } else {
-      this.$htContainer.handsontable('selectCell', rowToHighlight, 0);
-    }
-
-    this.focus();
   };
+
 
   Handsontable.editors.AutocompleteEditor = AutocompleteEditor;
   Handsontable.editors.registerEditor('autocomplete', AutocompleteEditor);
@@ -5577,10 +5651,10 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
   var SelectEditor = Handsontable.editors.BaseEditor.prototype.extend();
 
   SelectEditor.prototype.init = function(){
-    this.select = $('<select />')
-      .addClass('htSelectEditor')
-      .hide();
-    this.instance.rootElement.append(this.select);
+    this.select = document.createElement('SELECT');
+    Handsontable.Dom.addClass(this.select, 'htSelectEditor');
+    this.select.style.display = 'none';
+    this.instance.rootElement[0].appendChild(this.select);
   };
 
   SelectEditor.prototype.prepare = function(){
@@ -5596,21 +5670,16 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
       options =  this.prepareOptions(selectOptions);
     }
 
-    var optionElements = [];
+    Handsontable.Dom.empty(this.select);
 
     for (var option in options){
       if (options.hasOwnProperty(option)){
-        var optionElement = $('<option />');
-        optionElement.val(option);
-        optionElement.html(options[option]);
-
-        optionElements.push(optionElement);
+        var optionElement = document.createElement('OPTION');
+        optionElement.value = option;
+        Handsontable.Dom.fastInnerHTML(optionElement, options[option]);
+        this.select.appendChild(optionElement);
       }
     }
-
-    this.select.empty();
-    this.select.append(optionElements);
-
   };
 
   SelectEditor.prototype.prepareOptions = function(optionsToPrepare){
@@ -5631,11 +5700,11 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
   };
 
   SelectEditor.prototype.getValue = function () {
-    return this.select.val();
+    return this.select.value;
   };
 
   SelectEditor.prototype.setValue = function (value) {
-    this.select.val(value);
+    this.select.value = value;
   };
 
   var onBeforeKeyDown = function (event) {
@@ -5670,19 +5739,22 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
   };
 
   SelectEditor.prototype.open = function () {
-    this.select.css({
-      height: $(this.TD).height(),
-      'min-width' : $(this.TD).outerWidth()
-    });
+    var width = Handsontable.Dom.outerWidth(this.TD); //important - group layout reads together for better performance
+    var height = Handsontable.Dom.outerHeight(this.TD);
+    var rootOffset = Handsontable.Dom.offset(this.instance.rootElement[0]);
+    var tdOffset = Handsontable.Dom.offset(this.TD);
 
-    this.select.show();
-    this.select.offset($(this.TD).offset());
+    this.select.style.height = height + 'px';
+    this.select.style.minWidth = width + 'px';
+    this.select.style.top = tdOffset.top - rootOffset.top + 'px';
+    this.select.style.left = tdOffset.left - rootOffset.left - 2 + 'px'; //2 is cell border
+    this.select.style.display = '';
 
     this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   };
 
   SelectEditor.prototype.close = function () {
-    this.select.hide();
+    this.select.style.display = 'none';
     this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
   };
 
@@ -9370,6 +9442,8 @@ if (typeof Handsontable !== 'undefined') {
   Handsontable.PluginHooks.add('afterOnCellCornerMouseDown', function () {
     setupListening(this);
   });
+
+  Handsontable.plugins.DragToScroll = DragToScroll;
 }
 
 (function (Handsontable, CopyPaste, SheetClip) {
