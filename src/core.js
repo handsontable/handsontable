@@ -1180,7 +1180,11 @@ Handsontable.Core = function (rootElement, userSettings) {
         if (parent) {
           clone.removeAttribute('id');
           parent.appendChild(clone);
-          var computedHeight = parseInt(window.getComputedStyle(clone, null).getPropertyValue('height'), 10);
+          var computedClientHeight = parseInt(clone.clientHeight, 10);
+          var computedPaddingTop = parseInt(window.getComputedStyle(clone, null).getPropertyValue('paddingTop'), 10) || 0;
+          var computedPaddingBottom = parseInt(window.getComputedStyle(clone, null).getPropertyValue('paddingBottom'), 10) || 0;
+
+          var computedHeight = computedClientHeight - computedPaddingTop - computedPaddingBottom;
 
           if(isNaN(computedHeight) && clone.currentStyle){
             computedHeight = parseInt(clone.currentStyle.height, 10)

@@ -89,10 +89,6 @@
       return;
     }
 
-    if (this.cellProperties.readOnly) {
-      return;
-    }
-
     this.instance.view.scrollViewport({row: this.row, col: this.col});
     this.instance.view.render();
 

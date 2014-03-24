@@ -65,7 +65,8 @@
           if (schema[i] === null) {
             prop = parent + i;
             this.colToPropCache.push(prop);
-            this.propToColCache[prop] = lastCol;
+            this.propToColCache.set(prop, lastCol);
+
             lastCol++;
           }
           else {
@@ -83,12 +84,16 @@
     }
     var i, ilen, schema = this.getSchema();
     this.colToPropCache = [];
-    this.propToColCache = {};
+    this.propToColCache = new MultiMap();
     var columns = this.instance.getSettings().columns;
     if (columns) {
       for (i = 0, ilen = columns.length; i < ilen; i++) {
-        this.colToPropCache[i] = columns[i].data;
-        this.propToColCache[columns[i].data] = i;
+
+        if (typeof columns[i].data != 'undefined'){
+          this.colToPropCache[i] = columns[i].data;
+          this.propToColCache.set(columns[i].data, i);
+        }
+
       }
     }
     else {
@@ -108,10 +113,9 @@
 
   Handsontable.DataMap.prototype.propToCol = function (prop) {
     var col;
-    if (typeof this.propToColCache[prop] !== 'undefined') {
-      col = this.propToColCache[prop];
-    }
-    else {
+    if (typeof this.propToColCache.get(prop) !== 'undefined') {
+      col = this.propToColCache.get(prop);
+    } else {
       col = prop;
     }
     col = Handsontable.PluginHooks.execute(this.instance, 'modifyCol', col);

@@ -1,4 +1,4 @@
-if (typeof DragToScroll === 'undefined') {
+if (typeof DragToScroll === 'undefined' && typeof require !== 'undefined') {
   // having this allows you to run this test using:
   // jasmine-node src/plugins/dragToScroll/test/dragToScroll.spec.js
   eval(require('fs').readFileSync(__dirname + '/../dragToScroll.js', 'utf8'));
@@ -16,7 +16,12 @@ describe("DragToScroll", function () {
     };
   }
 
-  var dragToScroll = new DragToScroll();
+  if (typeof DragToScroll !== 'undefined') {
+    var dragToScroll = new DragToScroll();
+  }
+  else {
+    var dragToScroll = new Handsontable.plugins.DragToScroll();
+  }
   dragToScroll.setBoundaries(createBoundaries());
 
   it('exact top, exact left should be in boundaries', function () {
