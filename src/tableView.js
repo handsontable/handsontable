@@ -195,6 +195,11 @@ Handsontable.TableView = function (instance) {
       return that.settings.fragmentSelection;
     },
     onCellMouseDown: function (event, coords, TD) {
+      instance.PluginHooks.run('beforeOnCellMouseDown', event, coords, TD);
+      if (event.isImmediatePropagationStopped()) {
+          return;
+      }
+
       instance.listen();
 
       isMouseDown = true;
@@ -217,6 +222,11 @@ Handsontable.TableView = function (instance) {
      }
      },*/
     onCellMouseOver: function (event, coords, TD) {
+      instance.PluginHooks.run('beforeOnCellMouseOver', event, coords, TD);
+      if (event.isImmediatePropagationStopped()) {
+          return;
+      }
+
       var coordsObj = {row: coords[0], col: coords[1]};
       if (isMouseDown) {
         /*if (that.settings.fragmentSelection === 'single') {
@@ -228,6 +238,7 @@ Handsontable.TableView = function (instance) {
         instance.autofill.handle.isDragged++;
         instance.autofill.showBorder(coords);
       }
+
       instance.PluginHooks.run('afterOnCellMouseOver', event, coords, TD);
     },
     onCellCornerMouseDown: function (event) {
