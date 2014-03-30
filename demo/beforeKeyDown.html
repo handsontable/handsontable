@@ -18,6 +18,7 @@
   <script src="js/samples.js"></script>
   <script src="js/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+  <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
 
   <!--
   Facebook open graph. Don't copy this to your project :)
@@ -40,27 +41,19 @@
 </head>
 
 <body>
-<a href="http://github.com/warpech/jquery-handsontable">
-  <img style="position: absolute; top: 0; right: 0; border: 0;"
-       src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"/>
-</a>
 
-<div id="container">
-  <div class="columnLayout">
 
-    <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad">
-          <h1><a href="../index.html">Handsontable</a></h1>
+<div class="wrapper">
+  <div class="wrapper-row">
+    <div id="global-menu-clone">
+      <h1><a href="../index.html">Handsontable</a></h1>
 
-          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-            for HTML, JavaScript &amp; jQuery
-          </div>
-        </div>
-      </div>
     </div>
 
-    <div class="rowLayout">
+    <div id="container">
+      <div class="columnLayout">
+
+        <div class="rowLayout">
       <div class="descLayout">
         <div class="pad" data-jsfiddle="example1">
           <a name="lazy"></a>
@@ -141,16 +134,17 @@
       </div>
     </div>
 
-    <div class="rowLayout">
-      <div class="descLayout noMargin">
-        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
-
-          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-            licensed under the The MIT License.</p>
+        <div class="footer-text">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+          licensed under the The MIT License.
         </div>
       </div>
+
     </div>
+
   </div>
 </div>
+
+<div id="outside-links-wrapper"></div>
+
 </body>
 </html>
