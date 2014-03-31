@@ -611,10 +611,10 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
       c = this.columnFilter.visibleToSource(vc);
       for (s = 0; s < slen; s++) {
         if (this.currentCellCache.test(vr, vc, classNames[s])) {
-          this.wtDom.addClass(this.getCell([r, c]), classNames[s]);
+          this.wtDom.addClass(this.getCell(new WalkontableCellCoords(r, c)), classNames[s]);
         }
         else if (selectionsOnly && this.oldCellCache.test(vr, vc, classNames[s])) {
-          this.wtDom.removeClass(this.getCell([r, c]), classNames[s]);
+          this.wtDom.removeClass(this.getCell(new WalkontableCellCoords(r, c)), classNames[s]);
         }
       }
     }
@@ -623,7 +623,7 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
 
 /**
  * getCell
- * @param {Array} coords
+ * @param {WalkontableCellCoords} coords
  * @return {Object} HTMLElement on success or {Number} one of the exit codes on error:
  *  -1 row before viewport
  *  -2 row after viewport
@@ -632,30 +632,35 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
  *
  */
 WalkontableTable.prototype.getCell = function (coords) {
-  if (this.isRowBeforeViewport(coords[0])) {
+  if (this.isRowBeforeViewport(coords.row)) {
     return -1; //row before viewport
   }
-  else if (this.isRowAfterViewport(coords[0])) {
+  else if (this.isRowAfterViewport(coords.row)) {
     return -2; //row after viewport
   }
   else {
-    if (this.isColumnBeforeViewport(coords[1])) {
+    if (this.isColumnBeforeViewport(coords.col)) {
       return -3; //column before viewport
     }
-    else if (this.isColumnAfterViewport(coords[1])) {
+    else if (this.isColumnAfterViewport(coords.col)) {
       return -4; //column after viewport
     }
     else {
-      return this.TBODY.childNodes[this.rowFilter.sourceToVisible(coords[0])].childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords[1])];
+      return this.TBODY.childNodes[this.rowFilter.sourceToVisible(coords.row)].childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];
     }
   }
 };
 
+/**
+ * Returns cell coords object for a given TD
+ * @param TD
+ * @returns {WalkontableCellCoords}
+ */
 WalkontableTable.prototype.getCoords = function (TD) {
-  return [
+  return new WalkontableCellCoords(
     this.rowFilter.visibleToSource(this.wtDom.index(TD.parentNode)),
     this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex)
-  ];
+  );
 };
 
 //returns -1 if no row is visible

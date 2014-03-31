@@ -67,7 +67,7 @@ function HandsontableManualColumnResize() {
     instance = this;
     currentTH = TH;
 
-    var col = this.view.wt.wtTable.getCoords(TH)[1]; //getCoords returns array [row, col]
+    var col = this.view.wt.wtTable.getCoords(TH).col; //getCoords returns WalkontableCellCoords
     if (col >= 0) { //if not row header
       currentCol = col;
       var rootOffset = this.view.wt.wtDom.offset(this.rootElement[0]).left;

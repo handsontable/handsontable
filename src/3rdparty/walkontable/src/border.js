@@ -201,8 +201,8 @@ WalkontableBorder.prototype.appear = function (corners) {
 
   if (fromRow !== void 0 && fromColumn !== void 0) {
     isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
-    fromTD = instance.wtTable.getCell([fromRow, fromColumn]);
-    toTD = isMultiple ? instance.wtTable.getCell([toRow, toColumn]) : fromTD;
+    fromTD = instance.wtTable.getCell(new WalkontableCellCoords(fromRow, fromColumn));
+    toTD = isMultiple ? instance.wtTable.getCell(new WalkontableCellCoords(toRow, toColumn)) : fromTD;
     fromOffset = this.wtDom.offset(fromTD);
     toOffset = isMultiple ? this.wtDom.offset(toTD) : fromOffset;
     containerOffset = this.wtDom.offset(instance.wtTable.TABLE);

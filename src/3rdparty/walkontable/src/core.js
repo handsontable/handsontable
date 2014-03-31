@@ -103,6 +103,12 @@ Walkontable.prototype.scrollHorizontal = function (delta) {
   return result;
 };
 
+/**
+ * Scrolls the viewport to a cell (rerenders if needed)
+ * @param {WalkontableCellCoords} coords
+ * @returns {Walkontable}
+ */
+
 Walkontable.prototype.scrollViewport = function (coords) {
   this.wtScroll.scrollViewport(coords);
   return this;

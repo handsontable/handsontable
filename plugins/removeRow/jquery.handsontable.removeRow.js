@@ -2,8 +2,9 @@
   "use strict";
 
   /**
-   * Handsontable RemoveRow extension. See `demo/buttons.html` for example usage
-   * See `.../test/jasmine/spec/extensions/removeRowSpec.js` for tests
+   * Handsontable RemoveRow plugin. See `demo/buttons.html` for example usage
+   * This plugin is not a part of the Handsontable build (to use it, you must load it after loading Handsontable)
+   * See `test/removeRowSpec.js` for tests
    */
 
   function init() {

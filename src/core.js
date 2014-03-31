@@ -35,11 +35,9 @@ Handsontable.Core = function (rootElement, userSettings) {
     columnsSettingConflicts: ['data', 'width'],
     settings: new GridSettings(), // current settings instance
     settingsFromDOM: {},
-    selStart: new Handsontable.SelectionPoint(),
-    selEnd: new Handsontable.SelectionPoint(),
+    selRange: null,
     isPopulated: null,
     scrollable: null,
-    extensions: {},
     firstRun: true
   };
 
@@ -62,8 +60,8 @@ Handsontable.Core = function (rootElement, userSettings) {
           delta = datamap.createRow(index, amount);
 
           if (delta) {
-            if (priv.selStart.exists() && priv.selStart.row() >= index) {
-              priv.selStart.row(priv.selStart.row() + delta);
+            if (selection.isSelected() && priv.selRange.from.row >= index) {
+              priv.selRange.from.row = priv.selRange.from.row + delta;
               selection.transformEnd(delta, 0); //will call render() internally
             }
             else {
@@ -83,8 +81,8 @@ Handsontable.Core = function (rootElement, userSettings) {
               Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); //inserts empty (undefined) elements into the colHeader array
             }
 
-            if (priv.selStart.exists() && priv.selStart.col() >= index) {
-              priv.selStart.col(priv.selStart.col() + delta);
+            if (selection.isSelected() && priv.selRange.from.col >= index) {
+              priv.selRange.from.col = priv.selRange.from.col + delta;
               selection.transformEnd(0, delta); //will call render() internally
             }
             else {
@@ -189,12 +187,12 @@ Handsontable.Core = function (rootElement, userSettings) {
         selection.deselect();
       }
 
-      if (priv.selStart.exists()) {
+      if (selection.isSelected()) {
         var selectionChanged;
-        var fromRow = priv.selStart.row();
-        var fromCol = priv.selStart.col();
-        var toRow = priv.selEnd.row();
-        var toCol = priv.selEnd.col();
+        var fromRow = priv.selRange.from.row;
+        var fromCol = priv.selRange.from.col;
+        var toRow = priv.selRange.to.row;
+        var toCol = priv.selRange.to.col;
 
         //if selection is outside, move selection to last row
         if (fromRow > rowCount - 1) {
@@ -323,52 +321,6 @@ Handsontable.Core = function (rootElement, userSettings) {
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
           break;
       }
-    },
-
-    /**
-     * Returns the top left (TL) and bottom right (BR) selection coordinates
-     * @param {Object[]} coordsArr
-     * @returns {Object}
-     */
-    getCornerCoords: function (coordsArr) {
-      function mapProp(func, array, prop) {
-        function getProp(el) {
-          return el[prop];
-        }
-
-        if (Array.prototype.map) {
-          return func.apply(Math, array.map(getProp));
-        }
-        return func.apply(Math, $.map(array, getProp));
-      }
-
-      return {
-        TL: {
-          row: mapProp(Math.min, coordsArr, "row"),
-          col: mapProp(Math.min, coordsArr, "col")
-        },
-        BR: {
-          row: mapProp(Math.max, coordsArr, "row"),
-          col: mapProp(Math.max, coordsArr, "col")
-        }
-      };
-    },
-
-    /**
-     * Returns array of td objects given start and end coordinates
-     */
-    getCellsAtCoords: function (start, end) {
-      var corners = grid.getCornerCoords([start, end]);
-      var r, c, output = [];
-      for (r = corners.TL.row; r <= corners.BR.row; r++) {
-        for (c = corners.TL.col; c <= corners.BR.col; c++) {
-          output.push(instance.view.getCellAtCoords({
-            row: r,
-            col: c
-          }));
-        }
-      }
-      return output;
     }
   };
 
@@ -398,47 +350,47 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     /**
      * Starts selection range on given td object
-     * @param {Object} coords
+     * @param {WalkontableCellCoords} coords
      */
     setRangeStart: function (coords) {
-      priv.selStart.coords(coords);
+      priv.selRange = new WalkontableCellRange(coords, coords);
       selection.setRangeEnd(coords);
     },
 
     /**
      * Ends selection range on given td object
-     * @param {Object} coords
+     * @param {WalkontableCellCoords} coords
      * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to range end
      */
     setRangeEnd: function (coords, scrollToCell) {
       instance.selection.begin();
 
-      priv.selEnd.coords(coords);
+      priv.selRange.to = coords;
       if (!priv.settings.multiSelect) {
-        priv.selStart.coords(coords);
+        priv.selRange.from = coords;
       }
 
       //set up current selection
       instance.view.wt.selections.current.clear();
-      instance.view.wt.selections.current.add(priv.selStart.arr());
+      instance.view.wt.selections.current.add(priv.selRange.from);
 
       //set up area selection
       instance.view.wt.selections.area.clear();
       if (selection.isMultiple()) {
-        instance.view.wt.selections.area.add(priv.selStart.arr());
-        instance.view.wt.selections.area.add(priv.selEnd.arr());
+        instance.view.wt.selections.area.add(priv.selRange.from);
+        instance.view.wt.selections.area.add(priv.selRange.to);
       }
 
       //set up highlight
       if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
         instance.view.wt.selections.highlight.clear();
-        instance.view.wt.selections.highlight.add(priv.selStart.arr());
-        instance.view.wt.selections.highlight.add(priv.selEnd.arr());
+        instance.view.wt.selections.highlight.add(priv.selRange.from);
+        instance.view.wt.selections.highlight.add(priv.selRange.to);
       }
 
       //trigger handlers
-      Handsontable.hooks.run(instance, "afterSelection", priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col());
-      Handsontable.hooks.run(instance, "afterSelectionByProp", priv.selStart.row(), datamap.colToProp(priv.selStart.col()), priv.selEnd.row(), datamap.colToProp(priv.selEnd.col()));
+      Handsontable.hooks.run(instance, "afterSelection", priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col);
+      Handsontable.hooks.run(instance, "afterSelectionByProp", priv.selRange.from.row, datamap.colToProp(priv.selRange.from.col), priv.selRange.to.row, datamap.colToProp(priv.selRange.to.col));
 
       if (scrollToCell !== false) {
         instance.view.scrollViewport(coords);
@@ -466,47 +418,47 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @return {Boolean}
      */
     isMultiple: function () {
-      return !(priv.selEnd.col() === priv.selStart.col() && priv.selEnd.row() === priv.selStart.row());
+      return !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row);
     },
 
     /**
      * Selects cell relative to current cell (if possible)
      */
     transformStart: function (rowDelta, colDelta, force) {
-      if (priv.selStart.row() + rowDelta > instance.countRows() - 1) {
+      rowDelta = instance.runHooksAndReturn('modifyTransformStartRow', rowDelta);
+      colDelta = instance.runHooksAndReturn('modifyTransformStartCol', colDelta);
+
+      if (priv.selRange.from.row + rowDelta > instance.countRows() - 1) {
         if (force && priv.settings.minSpareRows > 0) {
           instance.alter("insert_row", instance.countRows());
         }
         else if (priv.settings.autoWrapCol) {
           rowDelta = 1 - instance.countRows();
-          colDelta = priv.selStart.col() + colDelta == instance.countCols() - 1 ? 1 - instance.countCols() : 1;
+          colDelta = priv.selRange.from.col + colDelta == instance.countCols() - 1 ? 1 - instance.countCols() : 1;
         }
       }
-      else if (priv.settings.autoWrapCol && priv.selStart.row() + rowDelta < 0 && priv.selStart.col() + colDelta >= 0) {
+      else if (priv.settings.autoWrapCol && priv.selRange.from.row + rowDelta < 0 && priv.selRange.from.col + colDelta >= 0) {
         rowDelta = instance.countRows() - 1;
-        colDelta = priv.selStart.col() + colDelta == 0 ? instance.countCols() - 1 : -1;
+        colDelta = priv.selRange.from.col + colDelta == 0 ? instance.countCols() - 1 : -1;
       }
 
-      if (priv.selStart.col() + colDelta > instance.countCols() - 1) {
+      if (priv.selRange.from.col + colDelta > instance.countCols() - 1) {
         if (force && priv.settings.minSpareCols > 0) {
           instance.alter("insert_col", instance.countCols());
         }
         else if (priv.settings.autoWrapRow) {
-          rowDelta = priv.selStart.row() + rowDelta == instance.countRows() - 1 ? 1 - instance.countRows() : 1;
+          rowDelta = priv.selRange.from.row + rowDelta == instance.countRows() - 1 ? 1 - instance.countRows() : 1;
           colDelta = 1 - instance.countCols();
         }
       }
-      else if (priv.settings.autoWrapRow && priv.selStart.col() + colDelta < 0 && priv.selStart.row() + rowDelta >= 0) {
-        rowDelta = priv.selStart.row() + rowDelta == 0 ? instance.countRows() - 1 : -1;
+      else if (priv.settings.autoWrapRow && priv.selRange.from.col + colDelta < 0 && priv.selRange.from.row + rowDelta >= 0) {
+        rowDelta = priv.selRange.from.row + rowDelta == 0 ? instance.countRows() - 1 : -1;
         colDelta = instance.countCols() - 1;
       }
 
       var totalRows = instance.countRows();
       var totalCols = instance.countCols();
-      var coords = {
-        row: priv.selStart.row() + rowDelta,
-        col: priv.selStart.col() + colDelta
-      };
+      var coords = new WalkontableCellCoords(priv.selRange.from.row + rowDelta, priv.selRange.from.col + colDelta);
 
       if (coords.row < 0) {
         coords.row = 0;
@@ -529,13 +481,12 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Sets selection end cell relative to current selection end cell (if possible)
      */
     transformEnd: function (rowDelta, colDelta) {
-      if (priv.selEnd.exists()) {
+        rowDelta = instance.runHooksAndReturn('modifyTransformEndRow', rowDelta);
+        colDelta = instance.runHooksAndReturn('modifyTransformEndCol', colDelta);
+
         var totalRows = instance.countRows();
         var totalCols = instance.countCols();
-        var coords = {
-          row: priv.selEnd.row() + rowDelta,
-          col: priv.selEnd.col() + colDelta
-        };
+        var coords = new WalkontableCellCoords(priv.selRange.to.row + rowDelta, priv.selRange.to.col + colDelta);
 
         if (coords.row < 0) {
           coords.row = 0;
@@ -552,7 +503,6 @@ Handsontable.Core = function (rootElement, userSettings) {
         }
 
         selection.setRangeEnd(coords);
-      }
     },
 
     /**
@@ -560,19 +510,19 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @return {Boolean}
      */
     isSelected: function () {
-      return priv.selEnd.exists();
+      return (priv.selRange !== null);
     },
 
     /**
      * Returns true if coords is within current selection coords
+     * @param {WalkontableCellCoords} coords
      * @return {Boolean}
      */
     inInSelection: function (coords) {
       if (!selection.isSelected()) {
         return false;
       }
-      var sel = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
-      return (sel.TL.row <= coords.row && sel.BR.row >= coords.row && sel.TL.col <= coords.col && sel.BR.col >= coords.col);
+      return priv.selRange.includes(coords);
     },
 
     /**
@@ -583,7 +533,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         return;
       }
       instance.selection.inProgress = false; //needed by HT inception
-      priv.selEnd = new Handsontable.SelectionPoint(); //create new empty point to remove the existing one
+      priv.selRange = null;
       instance.view.wt.selections.current.clear();
       instance.view.wt.selections.area.clear();
       editorManager.destroyEditor();
@@ -598,14 +548,8 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (!priv.settings.multiSelect) {
         return;
       }
-      selection.setRangeStart({
-        row: 0,
-        col: 0
-      });
-      selection.setRangeEnd({
-        row: instance.countRows() - 1,
-        col: instance.countCols() - 1
-      }, false);
+      selection.setRangeStart(new WalkontableCellCoords(0, 0));
+      selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, instance.countCols() - 1), false);
     },
 
     /**
@@ -615,10 +559,11 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (!selection.isSelected()) {
         return;
       }
-      var corners = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
+      var topLeft = priv.selRange.getTopLeftCorner();
+      var bottomRight = priv.selRange.getBottomRightCorner();
       var r, c, changes = [];
-      for (r = corners.TL.row; r <= corners.BR.row; r++) {
-        for (c = corners.TL.col; c <= corners.BR.col; c++) {
+      for (r = topLeft.row; r <= bottomRight.row; r++) {
+        for (c = topLeft.col; c <= bottomRight.col; c++) {
           if (!instance.getCellMeta(r, c).readOnly) {
             changes.push([r, c, '']);
           }
@@ -705,55 +650,54 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
 
       if (drag[0] === select[0] && drag[1] < select[1]) {
-        start = {
-          row: drag[0],
-          col: drag[1]
-        };
-        end = {
-          row: drag[2],
-          col: select[1] - 1
-        };
+        start = new WalkontableCellCoords(
+          drag[0],
+          drag[1]
+        );
+        end = new WalkontableCellCoords(
+          drag[2],
+          select[1] - 1
+        );
       }
       else if (drag[0] === select[0] && drag[3] > select[3]) {
-        start = {
-          row: drag[0],
-          col: select[3] + 1
-        };
-        end = {
-          row: drag[2],
-          col: drag[3]
-        };
+        start = new WalkontableCellCoords(
+          drag[0],
+          select[3] + 1
+        );
+        end = new WalkontableCellCoords(
+          drag[2],
+          drag[3]
+        );
       }
       else if (drag[0] < select[0] && drag[1] === select[1]) {
-        start = {
-          row: drag[0],
-          col: drag[1]
-        };
-        end = {
-          row: select[0] - 1,
-          col: drag[3]
-        };
+        start = new WalkontableCellCoords(
+          drag[0],
+          drag[1]
+        );
+        end = new WalkontableCellCoords(
+          select[0] - 1,
+          drag[3]
+        );
       }
       else if (drag[2] > select[2] && drag[1] === select[1]) {
-        start = {
-          row: select[2] + 1,
-          col: drag[1]
-        };
-        end = {
-          row: drag[2],
-          col: drag[3]
-        };
+        start = new WalkontableCellCoords(
+          select[2] + 1,
+          drag[1]
+        );
+        end = new WalkontableCellCoords(
+          drag[2],
+          drag[3]
+        );
       }
 
       if (start) {
 
-        _data = SheetClip.parse(datamap.getText(priv.selStart.coords(), priv.selEnd.coords()));
+        _data = SheetClip.parse(datamap.getText(priv.selRange.from, priv.selRange.to));
         Handsontable.hooks.run(instance, 'beforeAutofill', start, end, _data);
 
         grid.populateFromArray(start, _data, end, 'autofill');
-
-        selection.setRangeStart({row: drag[0], col: drag[1]});
-        selection.setRangeEnd({row: drag[2], col: drag[3]});
+        selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
+        selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));
       }
       /*else {
        //reset to avoid some range bug
@@ -763,25 +707,24 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     /**
      * Show fill border
+     * @param {WalkontableCellCoords} coords
      */
     showBorder: function (coords) {
-      coords.row = coords[0];
-      coords.col = coords[1];
-
-      var corners = grid.getCornerCoords([priv.selStart.coords(), priv.selEnd.coords()]);
-      if (priv.settings.fillHandle !== 'horizontal' && (corners.BR.row < coords.row || corners.TL.row > coords.row)) {
-        coords = [coords.row, corners.BR.col];
+      var topLeft = priv.selRange.getTopLeftCorner();
+      var bottomRight = priv.selRange.getBottomRightCorner();
+      if (priv.settings.fillHandle !== 'horizontal' && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
+        coords = new WalkontableCellCoords(coords.row, bottomRight.col);
       }
       else if (priv.settings.fillHandle !== 'vertical') {
-        coords = [corners.BR.row, coords.col];
+        coords = new WalkontableCellCoords(bottomRight.row, coords.col);
       }
       else {
         return; //wrong direction
       }
 
       instance.view.wt.selections.fill.clear();
-      instance.view.wt.selections.fill.add([priv.selStart.coords().row, priv.selStart.coords().col]);
-      instance.view.wt.selections.fill.add([priv.selEnd.coords().row, priv.selEnd.coords().col]);
+      instance.view.wt.selections.fill.add(priv.selRange.from);
+      instance.view.wt.selections.fill.add(priv.selRange.to);
       instance.view.wt.selections.fill.add(coords);
       instance.view.render();
     }
@@ -1104,7 +1047,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
       throw new Error("populateFromArray parameter `input` must be an array of arrays"); //API changed in 0.9-beta2, let's check if you use it correctly
     }
-    return grid.populateFromArray({row: row, col: col}, input, typeof endRow === 'number' ? {row: endRow, col: endCol} : null, source, method);
+    return grid.populateFromArray(new WalkontableCellCoords(row, col), input, typeof endRow === 'number' ? new WalkontableCellCoords(endRow, endCol) : null, source, method);
   };
 
   /**
@@ -1130,22 +1073,24 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Returns the top left (TL) and bottom right (BR) selection coordinates
-   * @param {Object[]} coordsArr
-   * @returns {Object}
-   */
-  this.getCornerCoords = function (coordsArr) {
-    return grid.getCornerCoords(coordsArr);
-  };
-
-  /**
    * Returns current selection. Returns undefined if there is no selection.
    * @public
    * @return {Array} [`startRow`, `startCol`, `endRow`, `endCol`]
    */
   this.getSelected = function () { //https://github.com/warpech/jquery-handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      return [priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col()];
+      return [priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col];
+    }
+  };
+
+  /**
+   * Returns current selection as a WalkontableCellRange object. Returns undefined if there is no selection.
+   * @public
+   * @return {WalkontableCellRange} [`startRow`, `startCol`, `endRow`, `endCol`]
+   */
+  this.getSelectedRange = function () { //https://github.com/warpech/jquery-handsontable/issues/44  //cjl
+    if (selection.isSelected()) {
+      return priv.selRange;
     }
   };
 
@@ -1289,12 +1234,12 @@ Handsontable.Core = function (rootElement, userSettings) {
       return datamap.getAll();
     }
     else {
-      return datamap.getRange({row: r, col: c}, {row: r2, col: c2}, datamap.DESTINATION_RENDERER);
+      return datamap.getRange(new WalkontableCellCoords(r, c), new WalkontableCellCoords(r2, c2), datamap.DESTINATION_RENDERER);
     }
   };
 
   this.getCopyableData = function (startRow, startCol, endRow, endCol) {
-    return datamap.getCopyableText({row: startRow, col: startCol}, {row: endRow, col: endCol});
+    return datamap.getCopyableText(new WalkontableCellCoords(startRow, startCol), new WalkontableCellCoords(endRow, endCol));
   }
 
   /**
@@ -1325,11 +1270,6 @@ Handsontable.Core = function (rootElement, userSettings) {
           // Update settings
           if (!init && settings.hasOwnProperty(i)) {
             GridSettings.prototype[i] = settings[i];
-          }
-
-          //launch extensions
-          if (Handsontable.extension[i]) {
-            priv.extensions[i] = new Handsontable.extension[i](instance, settings[i]);
           }
         }
       }
@@ -1487,7 +1427,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Element}
    */
   this.getCell = function (row, col) {
-    return instance.view.getCellAtCoords({row: row, col: col});
+    return instance.view.getCellAtCoords(new WalkontableCellCoords(row, col));
   };
 
   /**
@@ -1539,7 +1479,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return value (mixed data type)
    */
   this.getDataAtCol = function (col) {
-    return [].concat.apply([], datamap.getRange({row: 0, col: col}, {row: priv.settings.data.length - 1, col: col}, datamap.DESTINATION_RENDERER));
+    return [].concat.apply([], datamap.getRange(new WalkontableCellCoords(0, col), new WalkontableCellCoords(priv.settings.data.length - 1, col), datamap.DESTINATION_RENDERER));
   };
 
   /**
@@ -1549,7 +1489,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return value (mixed data type)
    */
   this.getDataAtProp = function (prop) {
-    return [].concat.apply([], datamap.getRange({row: 0, col: datamap.propToCol(prop)}, {row: priv.settings.data.length - 1, col: datamap.propToCol(prop)}, datamap.DESTINATION_RENDERER));
+    return [].concat.apply([], datamap.getRange(new WalkontableCellCoords(0, datamap.propToCol(prop)), new WalkontableCellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)), datamap.DESTINATION_RENDERER));
   };
 
   /**
@@ -1947,16 +1887,16 @@ Handsontable.Core = function (rootElement, userSettings) {
         return false;
       }
     }
-    priv.selStart.coords({row: row, col: col});
+    priv.selRange = new WalkontableCellRange(new WalkontableCellCoords(row, col));
     if (document.activeElement && document.activeElement !== document.documentElement && document.activeElement !== document.body) {
       document.activeElement.blur(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
     }
     instance.listen();
     if (typeof endRow === "undefined") {
-      selection.setRangeEnd({row: row, col: col}, scrollToCell);
+      selection.setRangeEnd(priv.selRange.from, scrollToCell);
     }
     else {
-      selection.setRangeEnd({row: endRow, col: endCol}, scrollToCell);
+      selection.setRangeEnd(new WalkontableCellCoords(endRow, endCol), scrollToCell);
     }
 
     instance.selection.finish();

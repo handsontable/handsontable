@@ -20,7 +20,7 @@
         'row_above': {
           name: 'Insert row above',
           callback: function(key, selection){
-            this.alter("insert_row", selection.start.row());
+            this.alter("insert_row", selection.start.row);
           },
           disabled: function () {
             return this.countRows() >= this.getSettings().maxRows;
@@ -29,7 +29,7 @@
         'row_below': {
           name: 'Insert row below',
           callback: function(key, selection){
-            this.alter("insert_row", selection.end.row() + 1);
+            this.alter("insert_row", selection.end.row + 1);
           },
           disabled: function () {
             return this.countRows() >= this.getSettings().maxRows;
@@ -39,7 +39,7 @@
         'col_left': {
           name: 'Insert column on the left',
           callback: function(key, selection){
-            this.alter("insert_col", selection.start.col());
+            this.alter("insert_col", selection.start.col);
           },
           disabled: function () {
             return this.countCols() >= this.getSettings().maxCols;
@@ -48,7 +48,7 @@
         'col_right': {
           name: 'Insert column on the right',
           callback: function(key, selection){
-            this.alter("insert_col", selection.end.col() + 1);
+            this.alter("insert_col", selection.end.col + 1);
           },
           disabled: function () {
             return this.countCols() >= this.getSettings().maxCols;
@@ -58,15 +58,15 @@
         'remove_row': {
           name: 'Remove row',
           callback: function(key, selection){
-            var amount = selection.end.row() - selection.start.row() + 1;
-            this.alter("remove_row", selection.start.row(), amount);
+            var amount = selection.end.row - selection.start.row + 1;
+            this.alter("remove_row", selection.start.row, amount);
           }
         },
         'remove_col': {
           name: 'Remove column',
           callback: function(key, selection){
-            var amount = selection.end.col() - selection.start.col() + 1;
-            this.alter("remove_col", selection.start.col(), amount);
+            var amount = selection.end.col - selection.start.col + 1;
+            this.alter("remove_col", selection.start.col, amount);
           }
         },
         "hsep3": ContextMenu.SEPARATOR,
@@ -91,6 +91,8 @@
 
       }
     };
+
+    Handsontable.hooks.run(instance, 'afterContextMenuDefaultOptions', this.defaultOptions);
 
     this.options = {};
     Handsontable.helper.extend(this.options, this.defaultOptions);
@@ -142,8 +144,6 @@
   };
 
   ContextMenu.prototype.unbindTableEvents = function () {
-    var that = this;
-
     if(this._afterScrollCallback){
       this.instance.removeHook('afterScrollVertically', this._afterScrollCallback);
       this.instance.removeHook('afterScrollHorizontally', this._afterScrollCallback);
@@ -167,8 +167,8 @@
       return;
     }
 
-    var corners = this.instance.getSelected();
-    var normalizedSelection = ContextMenu.utils.normalizeSelection(corners);
+    var selRange = this.instance.getSelectedRange();
+    var normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
 
     selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection);
 
@@ -225,6 +225,10 @@
     var contextMenu = this;
     var item = instance.getData()[row];
     var wrapper = document.createElement('DIV');
+
+    if(typeof value === 'function') {
+      value = value.call(this.instance);
+    }
 
     Handsontable.Dom.empty(TD);
     TD.appendChild(wrapper);
@@ -486,18 +490,11 @@
     return itemArray;
   };
 
-  ContextMenu.utils.normalizeSelection = function(corners){
+  ContextMenu.utils.normalizeSelection = function(selRange){
     var selection = {
-      start: new Handsontable.SelectionPoint(),
-      end: new Handsontable.SelectionPoint()
+      start: selRange.getTopLeftCorner(),
+      end: selRange.getBottomRightCorner()
     };
-
-    selection.start.row(Math.min(corners[0], corners[2]));
-    selection.start.col(Math.min(corners[1], corners[3]));
-
-    selection.end.row(Math.max(corners[0], corners[2]));
-    selection.end.col(Math.max(corners[1], corners[3]));
-
     return selection;
   };
 
@@ -555,7 +552,7 @@
     if(this.menu.parentNode){
       this.menu.parentNode.removeChild(this.menu);
     }
-  }
+  };
 
   ContextMenu.prototype.filterItems = function(itemsToLeave){
     this.itemsFilter = itemsToLeave;
@@ -590,6 +587,10 @@
 
   Handsontable.hooks.add('afterInit', init);
   Handsontable.hooks.add('afterUpdateSettings', init);
+
+  if(Handsontable.PluginHooks.register) { //HOT 0.11+
+    Handsontable.PluginHooks.register('afterContextMenuDefaultOptions');
+  }
 
   Handsontable.ContextMenu = ContextMenu;
 

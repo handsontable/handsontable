@@ -25,12 +25,14 @@
       var input = str.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, '') //remove newline from the start and the end of the input
         , inputArray = SheetClip.parse(input)
         , selected = instance.getSelected()
-        , coords = instance.getCornerCoords([{row: selected[0], col: selected[1]}, {row: selected[2], col: selected[3]}])
-        , areaStart = coords.TL
-        , areaEnd = {
-          row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
-          col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
-        };
+        , cellRange = new WalkontableCellRange(new WalkontableCellCoords(selected[0], selected[1]), new WalkontableCellCoords(selected[2], selected[3]))
+        , topLeftCorner = cellRange.getTopLeftCorner()
+        , bottomRightCorner = cellRange.getBottomRightCorner()
+        , areaStart = topLeftCorner
+        , areaEnd = new WalkontableCellCoords(
+          Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
+          Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col)
+        );
 
       instance.addHookOnce('afterChange', function (changes, source) {
         if (changes && changes.length) {
@@ -75,15 +77,17 @@
      */
     this.setCopyableText = function () {
 
-      var selection = instance.getSelected();
       var settings = instance.getSettings();
       var copyRowsLimit = settings.copyRowsLimit;
       var copyColsLimit = settings.copyColsLimit;
 
-      var startRow = Math.min(selection[0], selection[2]);
-      var startCol = Math.min(selection[1], selection[3]);
-      var endRow = Math.max(selection[0], selection[2]);
-      var endCol = Math.max(selection[1], selection[3]);
+      var selRange = instance.getSelectedRange();
+      var topLeft = selRange.getTopLeftCorner();
+      var bottomRight = selRange.getBottomRightCorner();
+      var startRow = topLeft.row;
+      var startCol = topLeft.col;
+      var endRow = bottomRight.row;
+      var endCol = bottomRight.col;
       var finalEndRow = Math.min(endRow, startRow + copyRowsLimit - 1);
       var finalEndCol = Math.min(endCol, startCol + copyColsLimit - 1);
 
