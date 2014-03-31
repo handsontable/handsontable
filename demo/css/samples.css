@@ -6,10 +6,11 @@ html {
 
 body {
   margin: 0;
-  background-color: #F5F5FF;
-  font-family: Helvetica, Arial, FreeSans, sans-serif;
+  background-color: #FFF;
+  font-family: Verdana, Helvetica, Arial, FreeSans, sans-serif;
   color: #454545;
   font-size: 14px;
+  min-width: 700px;
   height: 100%;
 }
 
@@ -17,29 +18,40 @@ body {
   clear: left;
 }
 
-#container {
-  min-width: 1000px;
+.wrapper {
+  display: table;
+  width: 100%;
   height: 100%;
 }
 
-/*variation of http://matthewjamestaylor.com/blog/equal-height-columns-cross-browser-css-no-hacks*/
-.columnLayout {
+.wrapper-row {
+  display: table-row;
+  height: 100%;
+}
+
+#container {
+  display: table-cell;
+  height: 100%;
+  padding-top: 70px;
+  padding-left: 40px;
+  padding-bottom: 60px;
   position: relative;
-  width: 100%;
-  right: 50%;
+}
+
+.rowLayout {
+  clear: left;
+}
+
+.columnLayout {
   float: left;
   background-color: #FFF;
-  border-right: 1px solid #E5E5EE;
   min-height: 100%;
+  position: relative;
 }
 
 .descLayout {
-  position: relative;
-  width: 50%;
-  left: 50%;
-  float: left;
-  clear: both;
-  margin-bottom: 100px;
+  width: 600px;
+  margin-bottom: 60px;
 }
 
 .descLayout.noMargin {
@@ -47,54 +59,122 @@ body {
 }
 
 .codeLayout {
-  position: relative;
-  /*width: 50%; /*causes problems in IE7*/
-  left: 50%;
   float: left;
-  margin-bottom: 100px;
+  background-color: #F5F5FF;
+  margin-bottom: 60px;
+  border: 2px solid #4285c8;
 }
 
-/**
- * pad
- */
-
-.pad {
-  width: 400px;
-  margin: 0 40px 0 40px;
+.codeLayout pre {
+  padding: 0 10px 0 10px;
 }
 
-.pad:after {
-  content: ".";
-  display: block;
-  clear: both;
-  visibility: hidden;
-  line-height: 0;
-  height: 0;
+body.home .descLayout {
+  margin-bottom: 30px;
 }
 
-.descLayout .pad {
-  float: right;
+body.home .codeLayout {
+  border: 2px solid #F5F5FF;
+}
+
+body.home .codeLayoutExpanded {
+  border: 2px solid #4285c8;
+}
+
+body.home .codeLayout .jsFiddle {
+  margin-bottom: 0;
+}
+
+body.home .codeLayoutExpanded .jsFiddle {
+  margin-bottom: 18px;
+}
+
+/*
+global menu
+*/
+
+#global-menu-clone {
+  background: #efefef;
+  box-shadow: inset -4px 0px 4px -4px rgba(0, 0, 0, 0.20);
+  width: 240px;
+  min-width: 240px;
+  display: table-cell;
+  vertical-align: top;
+  padding: 20px;
+}
+
+#global-menu-clone ul {
+  list-style: none;
+  margin: 20px 0 0 0;
+  padding-left: 10px;
+}
+
+#global-menu-clone h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: normal;
+  font-style: normal;
+  line-height: normal; /*reset Twitter Bootstrap rule*/
+}
+
+#global-menu-clone li h3 {
+  color: #999;
+  cursor: pointer;
+}
+
+#global-menu-clone li h3::after {
+  content: "\25be";
+  margin: 0 0 0 6px;
+}
+
+#global-menu-clone li.current h3 {
+  color: #454545;
+}
+
+#global-menu-clone li {
+  padding: 0 0 10px 0;
+  margin: 0;
+}
+
+#global-menu > ul > li {
+  padding: 0 0 20px 0;
+}
+
+#global-menu-clone li a {
+  color: #999;
+  text-decoration: none;
+}
+
+#global-menu-clone li.current h3,
+#global-menu-clone li h3:hover,
+#global-menu-clone li a:hover,
+#global-menu-clone li a.current {
+  color: #454545;
+}
+
+#global-menu-clone li a.current {
+  font-weight: bold;
 }
 
 /**
  * headers
  */
 
-h1, h2, h3, .tagline {
+h1, h2, .tagline {
   font-family: Verdana, Helvetica, Arial, FreeSans, sans-serif;
 }
 
 h1 {
-  margin: 0;
-  padding-top: 20px;
-  font-size: 45px;
+  margin: 0 0 40px 0;
+  font-size: 24px;
   font-weight: 700;
   font-style: normal;
+  padding-left: 10px;
 }
 
 h2 {
   margin-top: 12px;
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 700;
   font-style: normal;
 }
@@ -122,9 +202,10 @@ a:hover {
 
 .tagline {
   font-size: 15px;
-  margin-bottom: 50px;
   width: 300px;
   color: #646464;
+
+  margin-top: -40px;
 }
 
 h1 .small {
@@ -132,9 +213,11 @@ h1 .small {
   font-weight: normal;
 }
 
-p .small {
+.footer-text {
   font-size: 13px;
-  margin-top: 60px;
+  position: absolute;
+  bottom: -25px;
+  left: 0;
 }
 
 .nobreak {
@@ -169,10 +252,6 @@ ul ul {
   margin-top: 1.5em;
 }
 
-.descLayout pre {
-  margin-left: 0.5em;
-}
-
 .descLayout code {
   white-space: nowrap;
   margin: 0 2px;
@@ -195,6 +274,8 @@ ul ul {
 
 .jsFiddle {
   margin-bottom: 18px;
+  /*margin-top: -2px;*/
+  /*margin-left: -2px;*/
   clear: both;
   float: left;
 }
@@ -246,8 +327,7 @@ ul ul {
  * Highlight.js
  */
 
-.codeLayout pre {
-  width: 400px;
+.codeLayout {
   font-size: 14px;
 }
 
@@ -283,85 +363,24 @@ dl dd {
 /**
  * home page
  */
-body.home {
-  background: #FFF;
-}
-
-body.home h1 {
-  position: relative;
-  width: 800px;
-}
-
-body.home h2 {
-  margin-top: 40px;
-}
-
-body.home #githubWatch {
+#githubWatch {
   position: absolute;
   top: 31px;
-  right: 100px;
+  left: 320px;
 }
 
-body.home #githubFork {
+#githubFork {
   position: absolute;
   top: 31px;
-  right: 0;
+  left: 430px;
 }
 
-body.home #domainNotice {
+#domainNotice {
   display: none;
 }
 
-body.home .centerLayout {
-  width: 880px;
-  margin: 0 auto;
-  padding-bottom: 10px;
-}
-
-body.home .linkColumn {
-  float: left;
-  margin-left: 89px;
-}
-
-body.home .linkColumn.first {
-  margin-left: 0;
-}
-
-body.home #container ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-body.home #container ul ul {
-  padding: 10px 0 0 15px;
-}
-
-body.home #container ul li {
-  margin: 0 0 10px 0;
-}
-
-body.home pre.javascript {
+body.home pre {
   display: none;
-}
-
-body.home .columnLayout h2 {
-  margin-top: 12px;
-}
-
-/**
- * fork me on GitHub (image)
- */
-.forkMeOnGitHub {
-  display: block;
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 149px;
-  height: 149px;
-  text-indent: -10000px;
-  background-repeat: no-repeat;
-  background-image: url(../image/fork-github.png);
 }
 
 .state-loaded {
@@ -383,6 +402,13 @@ body.home .columnLayout h2 {
 /**
 * buttons
 **/
+
+#outside-links-wrapper {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
 button,
 .button {
   font-family: Helvetica, Arial, FreeSans, sans-serif; /*Firefox tries to use system font on button*/
@@ -397,14 +423,31 @@ button,
   cursor: pointer;
   border: none;
   -moz-user-select: none;
-  background-color: #bbb;
+  background-color: #9a9a9a;
   color: white;
+}
+
+button:last-child,
+.button:last-child {
+  margin-right: 0;
+}
+
+.button.button-light {
+  margin-right: 0;
 }
 
 button:hover,
 .button:hover {
-  background-color: #999999;
+  background-color: #7a7a7a;
   text-decoration: none;
+}
+
+.button.button-secondary {
+  background-color: #bbb;
+}
+
+.button.button-secondary:hover {
+  background-color: #aaa;
 }
 
 button.mini {
@@ -436,11 +479,11 @@ button.mini {
 }
 
 .button-github {
-  background-color: #9a9a9a;
+  background-color: #4285c8;
 }
 
 .button-github:hover {
-  background-color: #7a7a7a;
+  background-color: #3D63AA;
 }
 
 .button-twitter {

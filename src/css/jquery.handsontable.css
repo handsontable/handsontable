@@ -441,6 +441,11 @@ ul.context-menu-list li {
   cursor: default;
 }
 
+.handsontable td.htSearchResult {
+  background: #fcedd9;
+  color: #583707;
+}
+
 /*WalkontableDebugOverlay*/
 
 .wtDebugHidden {

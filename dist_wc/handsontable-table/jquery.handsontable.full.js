@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.10.4
+ * Handsontable 0.10.5
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Mar 20 2014 13:06:05 GMT+0100 (CET)
+ * Date: Mon Mar 31 2014 14:19:47 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2276,7 +2276,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.10.4'; //inserted by grunt from package.json
+  this.version = '0.10.5'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {};
@@ -3769,6 +3769,11 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName, allowUndefin
 
     return type;
   }
+
+};
+
+Handsontable.helper.toString = function (obj) {
+  return '' + obj;
 };
 Handsontable.SelectionPoint = function () {
   this._row = null; //private use intended
@@ -6301,15 +6306,16 @@ CopyPasteClass.prototype.init = function () {
     this.elDiv.id = 'CopyPasteDiv';
     style = this.elDiv.style;
     style.position = 'fixed';
-    style.top = 0;
-    style.left = 0;
+    style.top = '-10000px';
+    style.left = '-10000px';
     parent.appendChild(this.elDiv);
 
     this.elTextarea = document.createElement('TEXTAREA');
     this.elTextarea.className = 'copyPaste';
     style = this.elTextarea.style;
-    style.width = '1px';
-    style.height = '1px';
+    style.width = '10000px';
+    style.height = '10000px';
+    style.overflow = 'hidden';
     this.elDiv.appendChild(this.elTextarea);
 
     if (typeof style.opacity !== 'undefined') {
@@ -9076,10 +9082,14 @@ function Storage(prefix) {
       var action = this.doneActions.pop();
 
       this.ignoreNewActions = true;
-      action.undo(this.instance);
-      this.ignoreNewActions = false;
+      var that = this;
+      action.undo(this.instance, function () {
+        that.ignoreNewActions = false;
+        that.undoneActions.push(action);
+      });
 
-      this.undoneActions.push(action);
+
+
     }
   };
 
@@ -9091,10 +9101,14 @@ function Storage(prefix) {
       var action = this.undoneActions.pop();
 
       this.ignoreNewActions = true;
-      action.redo(this.instance);
-      this.ignoreNewActions = true;
+      var that = this;
+      action.redo(this.instance, function () {
+        that.ignoreNewActions = false;
+        that.doneActions.push(action);
+      });
 
-      this.doneActions.push(action);
+
+
     }
   };
 
@@ -9133,19 +9147,25 @@ function Storage(prefix) {
     this.changes = changes;
   };
   Handsontable.helper.inherit(Handsontable.UndoRedo.ChangeAction, Handsontable.UndoRedo.Action);
-  Handsontable.UndoRedo.ChangeAction.prototype.undo = function (instance) {
+  Handsontable.UndoRedo.ChangeAction.prototype.undo = function (instance, undoneCallback) {
     var data = $.extend(true, [], this.changes);
     for (var i = 0, len = data.length; i < len; i++) {
       data[i].splice(3, 1);
     }
+
+    instance.addHookOnce('afterChange', undoneCallback);
+
     instance.setDataAtRowProp(data, null, null, 'undo');
 
   };
-  Handsontable.UndoRedo.ChangeAction.prototype.redo = function (instance) {
+  Handsontable.UndoRedo.ChangeAction.prototype.redo = function (instance, onFinishCallback) {
     var data = $.extend(true, [], this.changes);
     for (var i = 0, len = data.length; i < len; i++) {
       data[i].splice(2, 1);
     }
+
+    instance.addHookOnce('afterChange', onFinishCallback);
+
     instance.setDataAtRowProp(data, null, null, 'redo');
 
   };
@@ -9155,10 +9175,12 @@ function Storage(prefix) {
     this.amount = amount;
   };
   Handsontable.helper.inherit(Handsontable.UndoRedo.CreateRowAction, Handsontable.UndoRedo.Action);
-  Handsontable.UndoRedo.CreateRowAction.prototype.undo = function (instance) {
+  Handsontable.UndoRedo.CreateRowAction.prototype.undo = function (instance, undoneCallback) {
+    instance.addHookOnce('afterRemoveRow', undoneCallback);
     instance.alter('remove_row', this.index, this.amount);
   };
-  Handsontable.UndoRedo.CreateRowAction.prototype.redo = function (instance) {
+  Handsontable.UndoRedo.CreateRowAction.prototype.redo = function (instance, redoneCallback) {
+    instance.addHookOnce('afterCreateRow', redoneCallback);
     instance.alter('insert_row', this.index + 1, this.amount);
   };
 
@@ -9167,15 +9189,17 @@ function Storage(prefix) {
     this.data = data;
   };
   Handsontable.helper.inherit(Handsontable.UndoRedo.RemoveRowAction, Handsontable.UndoRedo.Action);
-  Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function (instance) {
+  Handsontable.UndoRedo.RemoveRowAction.prototype.undo = function (instance, undoneCallback) {
     var spliceArgs = [this.index, 0];
     Array.prototype.push.apply(spliceArgs, this.data);
 
     Array.prototype.splice.apply(instance.getData(), spliceArgs);
 
+    instance.addHookOnce('afterRender', undoneCallback);
     instance.render();
   };
-  Handsontable.UndoRedo.RemoveRowAction.prototype.redo = function (instance) {
+  Handsontable.UndoRedo.RemoveRowAction.prototype.redo = function (instance, redoneCallback) {
+    instance.addHookOnce('afterRemoveRow', redoneCallback);
     instance.alter('remove_row', this.index, this.data.length);
   };
 
@@ -9184,10 +9208,12 @@ function Storage(prefix) {
     this.amount = amount;
   };
   Handsontable.helper.inherit(Handsontable.UndoRedo.CreateColumnAction, Handsontable.UndoRedo.Action);
-  Handsontable.UndoRedo.CreateColumnAction.prototype.undo = function (instance) {
+  Handsontable.UndoRedo.CreateColumnAction.prototype.undo = function (instance, undoneCallback) {
+    instance.addHookOnce('afterRemoveCol', undoneCallback);
     instance.alter('remove_col', this.index, this.amount);
   };
-  Handsontable.UndoRedo.CreateColumnAction.prototype.redo = function (instance) {
+  Handsontable.UndoRedo.CreateColumnAction.prototype.redo = function (instance, redoneCallback) {
+    instance.addHookOnce('afterCreateCol', redoneCallback);
     instance.alter('insert_col', this.index + 1, this.amount);
   };
 
@@ -9198,7 +9224,7 @@ function Storage(prefix) {
     this.headers = headers;
   };
   Handsontable.helper.inherit(Handsontable.UndoRedo.RemoveColumnAction, Handsontable.UndoRedo.Action);
-  Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function (instance) {
+  Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function (instance, undoneCallback) {
     var row, spliceArgs;
     for (var i = 0, len = instance.getData().length; i < len; i++) {
       row = instance.getDataAtRow(i);
@@ -9216,9 +9242,11 @@ function Storage(prefix) {
       Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArgs);
     }
 
+    instance.addHookOnce('afterRender', undoneCallback);
     instance.render();
   };
-  Handsontable.UndoRedo.RemoveColumnAction.prototype.redo = function (instance) {
+  Handsontable.UndoRedo.RemoveColumnAction.prototype.redo = function (instance, redoneCallback) {
+    instance.addHookOnce('afterRemoveCol', redoneCallback);
     instance.alter('remove_col', this.index, this.amount);
   };
 })(Handsontable);
@@ -9567,6 +9595,143 @@ if (typeof Handsontable !== 'undefined') {
   Handsontable.PluginHooks.add('afterUpdateSettings', init);
 
 })(Handsontable, CopyPaste, SheetClip);
+(function (Handsontable) {
+
+  'use strict';
+
+  Handsontable.Search = function Search(instance) {
+    this.query = function (queryStr, callback, queryMethod) {
+      var rowCount = instance.countRows();
+      var colCount = instance.countCols();
+      var queryResult = [];
+
+      if (!callback) {
+        callback = Handsontable.Search.global.getDefaultCallback();
+      }
+
+      if (!queryMethod) {
+        queryMethod = Handsontable.Search.global.getDefaultQueryMethod();
+      }
+
+      for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+        for (var colIndex = 0; colIndex < colCount; colIndex++) {
+          var cellData = instance.getDataAtCell(rowIndex, colIndex);
+          var cellProperties = instance.getCellMeta(rowIndex, colIndex);
+          var cellCallback = cellProperties.search.callback || callback;
+          var cellQueryMethod = cellProperties.search.queryMethod || queryMethod;
+          var testResult = cellQueryMethod(queryStr, cellData);
+
+          if (testResult) {
+            var singleResult = {
+              row: rowIndex,
+              col: colIndex,
+              data: cellData
+            };
+
+            queryResult.push(singleResult);
+          }
+
+          if (cellCallback) {
+            cellCallback(instance, rowIndex, colIndex, cellData, testResult);
+          }
+        }
+      }
+
+      return queryResult;
+
+    };
+
+  };
+
+  Handsontable.Search.DEFAULT_CALLBACK = function (instance, row, col, data, testResult) {
+    instance.getCellMeta(row, col).isSearchResult = testResult;
+  };
+
+  Handsontable.Search.DEFAULT_QUERY_METHOD = function (query, value) {
+
+    if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length == 0){
+      return false;
+    }
+
+    return value.toString().toLowerCase().indexOf(query.toLowerCase()) != -1;
+  };
+
+  Handsontable.Search.DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
+
+  Handsontable.Search.global = (function () {
+
+    var defaultCallback = Handsontable.Search.DEFAULT_CALLBACK;
+    var defaultQueryMethod = Handsontable.Search.DEFAULT_QUERY_METHOD;
+    var defaultSearchResultClass = Handsontable.Search.DEFAULT_SEARCH_RESULT_CLASS;
+
+    return {
+      getDefaultCallback: function () {
+        return defaultCallback;
+      },
+
+      setDefaultCallback: function (newDefaultCallback) {
+        defaultCallback = newDefaultCallback;
+      },
+
+      getDefaultQueryMethod: function () {
+        return defaultQueryMethod;
+      },
+
+      setDefaultQueryMethod: function (newDefaultQueryMethod) {
+        defaultQueryMethod = newDefaultQueryMethod;
+      },
+
+      getDefaultSearchResultClass: function () {
+        return defaultSearchResultClass;
+      },
+
+      setDefaultSearchResultClass: function (newSearchResultClass) {
+        defaultSearchResultClass = newSearchResultClass;
+      }
+    }
+
+  })();
+
+
+
+  Handsontable.SearchCellDecorator = function (instance, TD, row, col, prop, value, cellProperties) {
+
+    var searchResultClass = (typeof cellProperties.search == 'object' && cellProperties.search.searchResultClass) || Handsontable.Search.global.getDefaultSearchResultClass();
+
+    if(cellProperties.isSearchResult){
+      Handsontable.Dom.addClass(TD, searchResultClass);
+    } else {
+      Handsontable.Dom.removeClass(TD, searchResultClass);
+    }
+  };
+
+
+
+  var originalDecorator = Handsontable.renderers.cellDecorator;
+
+  Handsontable.renderers.cellDecorator = function (instance, TD, row, col, prop, value, cellProperties) {
+    originalDecorator.apply(this, arguments);
+    Handsontable.SearchCellDecorator.apply(this, arguments);
+  };
+
+  function init() {
+    var instance = this;
+
+    var pluginEnabled = !!instance.getSettings().search;
+
+    if (pluginEnabled) {
+      instance.search = new Handsontable.Search(instance);
+    } else {
+      delete instance.search;
+    }
+
+  }
+
+  Handsontable.PluginHooks.add('afterInit', init);
+  Handsontable.PluginHooks.add('afterUpdateSettings', init);
+
+
+})(Handsontable);
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
  * and (optionally) implements behavior needed for native horizontal and vertical scrolling

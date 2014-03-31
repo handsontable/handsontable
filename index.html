@@ -14,7 +14,7 @@
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="demo/css/samples.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="demo/css/samples.css?20140331">
   <script src="demo/js/samples.js"></script>
   <script src="demo/js/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="demo/js/highlight/styles/github.css">
@@ -39,58 +39,192 @@
 </head>
 
 <body class="home">
-<a href="http://github.com/warpech/jquery-handsontable" class="forkMeOnGitHub">Fork me on GitHub</a>
 
-<div id="container">
+<div class="wrapper">
+<div class="wrapper-row">
+<div id="global-menu-clone">
+  <h1><a href="index.html">Handsontable</a></h1>
 
-<div class="centerLayout">
-  <h1>
-    <a href="index.html">Handsontable <span class="ver small"></span></a>
+  <!-- menu start -->
+  <div id="global-menu">
+    <ul>
+      <li>
+        <h3>Getting Started</h3>
 
-    <iframe id="githubWatch"
-            src="demo/github-buttons/github-btn.html?user=warpech&repo=jquery-handsontable&type=watch&count=true"
-            frameborder="0" scrolling="0" width="104" height="20"></iframe>
+        <ul>
+          <li>
+            <a href="demo/understanding_reference.html">Understand binding as reference</a>
+          </li>
+          <li>
+            <a href="demo/datasources.html">Array, object, function data source</a>
+          </li>
+          <li>
+            <a href="demo/ajax.html">Load &amp; Save (Ajax)</a>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <h3>Appearance</h3>
+        <ul>
+          <li>
+            <a href="demo/renderers.html">Cell renderers</a>
+          </li>
+          <li>
+            <a href="demo/renderers_html.html">Custom HTML</a>
+          </li>
+          <li>
+            <a href="demo/scroll.html">Scroll bars / Column stretch</a>
 
-    <iframe id="githubFork"
-            src="demo/github-buttons/github-btn.html?user=warpech&repo=jquery-handsontable&type=fork&count=true"
-            frameborder="0" scrolling="0" width="87" height="20"></iframe>
-  </h1>
+            <ul>
+              <li><a href="demo/scroll_native.html">Native scroll window <sup>BETA</sup></a></li>
+              <li><a href="demo/scroll_native_div.html">Native scroll div <sup>BETA</sup></a></li>
+            </ul>
+          </li>
+          <li>
+            <a href="demo/conditional.html">Conditional formatting</a>
+          </li>
+          <li>
+            <a href="demo/prepopulate.html">Pre-populate new rows</a>
+          </li>
+          <li>
+            <a href="demo/current.html">Highlight current row/col</a>
+          </li>
+          <li>
+            <a href="demo/sorting.html">Column sorting</a>
+          </li>
+          <li>
+            <a href="demo/column_resize.html">Column resize &amp; move</a>
+          </li>
+          <li>
+            <a href="demo/fixed.html">Fixed rows/columns</a>
+          </li>
+          <li>
+            <a href="demo/pagination.html">Pagination</a>
+          </li>
+          <li>
+            <a href="demo/merge_cells.html">Merge cells <sup>NEW</sup></a>
+          </li>
+        </ul>
+      </li>
 
-  <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-    for HTML, JavaScript &amp; jQuery
+      <li>
+        <h3>Cell types</h3>
+        <ul>
+          <li>
+            <a href="demo/numeric.html">Numeric</a>
+          </li>
+          <li>
+            <a href="demo/date.html">Date</a>
+          </li>
+          <li>
+            <a href="demo/checkbox.html">Checkbox</a>
+          </li>
+          <li>
+            <a href="demo/selectEditor.html">Select <sup>NEW</sup></a>
+          </li>
+          <li>
+            <a href="demo/dropdown.html">Dropdown <sup>NEW</sup></a>
+          </li>
+          <li>
+            <a href="demo/autocomplete.html">Autocomplete</a>
+          </li>
+          <li>
+            <a href="demo/password.html">Password</a>
+          </li>
+          <li>
+            <a href="demo/handsontable.html">Handsontable</a>
+          </li>
+        </ul>
+      </li>
+
+      <li>
+        <h3>Editing</h3>
+        <ul>
+          <li>
+            <a href="demo/validation.html">Validation</a>
+          </li>
+          <li>
+            <a href="demo/dragdown.html">Drag-down</a>
+          </li>
+          <li>
+            <a href="demo/buttons.html">Custom buttons</a>
+          </li>
+          <li>
+            <a href="demo/contextmenu.html">Context menu</a>
+          </li>
+          <li>
+            <a href="demo/readonly.html">Read-only cells</a>
+          </li>
+          <li>
+            <a href="demo/search.html">Search of values</a>
+          </li>
+        </ul>
+      </li>
+
+      <li>
+        <h3>Integration</h3>
+        <ul>
+          <li>
+            <a href="demo/options.html">Options</a>
+          </li>
+          <li>
+            <a href="demo/callbacks.html">Callbacks</a>
+          </li>
+          <li>
+            <a href="demo/beforeKeyDown.html"> &#x2514; beforeKeyDown</a>
+          </li>
+          <li>
+            <a href="demo/backbone.html">Backbone.js</a>
+          </li>
+          <li>
+            <a href="demo/bootstrap.html">Twitter Bootstrap</a>
+          </li>
+          <li>
+            <a href="demo/web_component.html">W3C Web Components (beta)</a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <ul>
+      <li><a href="https://twitter.com/handsontable"><i class="icon-twitter"></i> Follow
+        @handsontable</a></li>
+      <li><a href="https://groups.google.com/forum/?fromgroups=#!forum/handsontable"><i
+        class="icon-comment"></i> Discuss on Google Groups</a></li>
+    </ul>
   </div>
-
-  <div class="warning" id="domainNotice">
-    This page has been moved to
-    <a href="http://handsontable.com/">http://handsontable.com/</a>. Please update your bookmarks.
-  </div>
-
-  <div class="warning">
-    This is a new version <span class="ver"></span>. It introduces more plugin hooks (for <a
-    href="https://github.com/warpech/jquery-handsontable/wiki/Events">Events and Callbacks</a>) and more flexible <a
-    href="https://github.com/warpech/jquery-handsontable/wiki/Options">Options</a>. <br>It should fully compatible
-    with 0.8 API. If not, please take a look at the migration guide in <a
-    href="https://github.com/warpech/jquery-handsontable/wiki">Wiki</a> or write us a note on <a
-    href="https://github.com/warpech/jquery-handsontable/issues">GitHub Issues</a>. <br>For details on what's changed,
-    see
-    <a
-      href="https://github.com/warpech/jquery-handsontable/blob/master/CHANGELOG.md">Changelog</a>.
-  </div>
+  <!-- menu end -->
 </div>
 
-<div class="columnLayout" style="min-height: 0;">
-  <div class="rowLayout">
-    <div class="descLayout">
+<iframe id="githubWatch"
+        src="demo/github-buttons/github-btn.html?user=warpech&repo=jquery-handsontable&type=watch&count=true"
+        frameborder="0" scrolling="0" width="104" height="20"></iframe>
+
+<iframe id="githubFork"
+        src="demo/github-buttons/github-btn.html?user=warpech&repo=jquery-handsontable&type=fork&count=true"
+        frameborder="0" scrolling="0" width="87" height="20"></iframe>
+
+<div id="container">
+  <div class="columnLayout">
+
+    <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
+          <div class="warning" id="domainNotice">
+            This page has been moved to
+            <a href="http://handsontable.com/">http://handsontable.com/</a>. Please update your bookmarks.
+          </div>
+        </div>
+
         <div class="pad" data-jsfiddle="example">
-          <h2>Basic usage</h2>
+
+          <p style="font-size: 20px"><strong>Handsontable</strong> is a minimalistic Excel-like <span class="nobreak">data grid</span>
+            editor
+            for HTML, JavaScript &amp; jQuery</p>
+
           <div id="example"></div>
         </div>
-    </div>
-    <div class="codeLayout">
-      <div class="pad">
-
-
-
+      </div>
+      <div class="codeLayout">
         <div class="jsFiddle inline-buttons">
           <button class="show-source"></button>
           <button class="jsFiddleLink" data-runfiddle="example">Edit in jsFiddle</button>
@@ -100,216 +234,81 @@
         </div>
 
 
-
         <script data-jsfiddle="example">
-            var data = [
-              ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
-              ["2009", 0, 2941, 4303, 354, 5814],
-              ["2010", 5, 2905, 2867, 412, 5284],
-              ["2011", 4, 2517, 4822, 552, 6127],
-              ["2012", 2, 2422, 5399, 776, 4151]
-            ];
+          var data = [
+            ["", "Maserati", "Mazda", "Mercedes", "Mini", "Mitsubishi"],
+            ["2009", 0, 2941, 4303, 354, 5814],
+            ["2010", 5, 2905, 2867, 412, 5284],
+            ["2011", 4, 2517, 4822, 552, 6127],
+            ["2012", 2, 2422, 5399, 776, 4151]
+          ];
 
-            $('#example').handsontable({
-              data: data,
-              minSpareRows: 1,
-              colHeaders: true,
-              contextMenu: true
-            });
+          $('#example').handsontable({
+            data: data,
+            minSpareRows: 1,
+            colHeaders: true,
+            contextMenu: true
+          });
 
         </script>
       </div>
     </div>
+
+    <script type="text/javascript">
+      $('.show-source').click(function (event) {
+        event.preventDefault();
+
+        $(this).toggleClass('shown');
+        $('pre.javascript').toggle();
+        $('.codeLayout').toggleClass('codeLayoutExpanded');
+
+      });
+      $('.ver').text($('#example').data('handsontable').version);
+    </script>
+
+    <script type="text/javascript">
+      $(function () {
+        if (window.location.hostname === 'warpech.github.com') {
+          $('#domainNotice').show();
+        }
+      });
+    </script>
+
+    <div class="footer-text">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+      licensed under the The MIT License.
+    </div>
   </div>
-
-  <script type="text/javascript">
-    $('.show-source').click(function(event){
-      event.preventDefault();
-
-      $(this).toggleClass('shown');
-      $('pre.javascript').toggle();
-
-    });
-    $('.ver').text($('#example').data('handsontable').version);
-  </script>
-
-</div>
-
-
-<div class="centerLayout">
-<h2>Examples and how-to's</h2>
-
-<div class="linkColumn first">
-  <h3>Appearance</h3>
-  <ul>
-    <li>
-      <a href="demo/renderers.html">Cell renderers</a>
-    </li>
-    <li>
-      <a href="demo/renderers_html.html">Custom HTML</a>
-    </li>
-    <li>
-      <a href="demo/scroll.html">Scroll bars / Column stretch</a>
-
-      <ul>
-        <li><a href="demo/scroll_native.html">Native scroll window <sup>BETA</sup></a></li>
-        <li><a href="demo/scroll_native_div.html">Native scroll div <sup>BETA</sup></a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="demo/conditional.html">Conditional formatting</a>
-    </li>
-    <li>
-      <a href="demo/prepopulate.html">Pre-populate new rows</a>
-    </li>
-    <li>
-      <a href="demo/current.html">Highlight current row/col</a>
-    </li>
-    <li>
-      <a href="demo/sorting.html">Column sorting</a>
-    </li>
-    <li>
-      <a href="demo/column_resize.html">Column resize &amp; move</a>
-    </li>
-    <li>
-      <a href="demo/fixed.html">Fixed rows/columns</a>
-    </li>
-    <li>
-      <a href="demo/pagination.html">Pagination</a>
-    </li>
-  </ul>
-</div>
-
-<div class="linkColumn">
-  <h3>Cell types</h3>
-  <ul>
-    <li>
-      <a href="demo/numeric.html">Numeric</a>
-    </li>
-    <li>
-      <a href="demo/date.html">Date</a>
-    </li>
-    <li>
-      <a href="demo/checkbox.html">Checkbox</a>
-    </li>
-    <li>
-      <a href="demo/selectEditor.html">Select <sup>NEW</sup></a>
-    </li>
-    <li>
-      <a href="demo/dropdown.html">Dropdown <sup>NEW</sup></a>
-    </li>
-    <li>
-      <a href="demo/autocomplete.html">Autocomplete</a>
-    </li>
-    <li>
-      <a href="demo/password.html">Password</a>
-    </li>
-    <li>
-      <a href="demo/handsontable.html">Handsontable</a>
-    </li>
-  </ul>
-</div>
-
-<div class="linkColumn">
-  <h3>Editing</h3>
-  <ul>
-    <li>
-      <a href="demo/validation.html">Validation</a>
-    </li>
-    <li>
-      <a href="demo/dragdown.html">Drag-down</a>
-    </li>
-    <li>
-      <a href="demo/buttons.html">Custom buttons</a>
-    </li>
-    <li>
-      <a href="demo/contextmenu.html">Context menu</a>
-    </li>
-    <li>
-      <a href="demo/readonly.html">Read-only cells</a>
-    </li>
-    <li>
-      <a href="demo/search.html">Search of values</a>
-    </li>
-  </ul>
-</div>
-
-<div class="linkColumn">
-  <h3>Integration</h3>
-  <ul>
-    <li>
-      <a href="demo/understanding_reference.html">Understand binding as reference</a>
-    </li>
-    <li>
-      <a href="demo/datasources.html">Array, object, function data source</a>
-    </li>
-    <li>
-      <a href="demo/ajax.html">Load &amp; Save (Ajax)</a>
-    </li>
-    <li>
-      <a href="demo/options.html">Options</a>
-    </li>
-    <li>
-      <a href="demo/callbacks.html">Callbacks</a>
-
-      <ul>
-        <a href="demo/beforeKeyDown.html">beforeKeyDown</a>
-      </ul>
-    </li>
-    <li>
-      <a href="demo/backbone.html">Backbone.js</a>
-    </li>
-    <li>
-      <a href="demo/bootstrap.html">Twitter Bootstrap</a>
-    </li>
-    <li>
-      <a href="demo/web_component.html">W3C Web Components (beta)</a>
-    </li>
-  </ul>
-</div>
-
-<div class="clear"></div>
-
-<h2>Source &amp; Docs</h2>
-
-<div class="inline-buttons">
-  <a class="button button-github" href="https://github.com/warpech/jquery-handsontable/blob/master/CHANGELOG.md">Changelog</a>
-  <a class="button button-github" href="https://github.com/warpech/jquery-handsontable"><i class="icon-github-alt"></i> Source</a>
-  <a class="button button-github" href="https://github.com/warpech/jquery-handsontable/wiki"><i class="icon-book"></i> Wiki</a>
-  <a class="button" href="https://github.com/warpech/jquery-handsontable/wiki/Options">Options</a>
-  <a class="button" href="https://github.com/warpech/jquery-handsontable/wiki/Methods">Methods</a>
-  <a class="button" href="https://github.com/warpech/jquery-handsontable/wiki/Events">Events</a>
-</div>
-
-<div class="clear"></div>
-
-<h2>Discuss</h2>
-
-<div class="inline-buttons">
-  <a class="button button-github" href="https://github.com/warpech/jquery-handsontable/wiki/FAQ">F.A.Q.</a>
-  <a class="button button-twitter" href="https://twitter.com/handsontable"><i class="icon-twitter"></i> Follow @handsontable</a>
-  <a class="button button-google-groups" href="https://groups.google.com/forum/?fromgroups=#!forum/handsontable"><i class="icon-comment"></i> Discuss on Google Groups</a>
-  <a class="button button-github" href="https://github.com/warpech/jquery-handsontable/issues"><i class="icon-bug"></i> Report a bug on GitHub</a>
-</div>
-
-<div class="clear"></div>
-
-<h2>Authors</h2>
-
-<p>
-  &copy; 2013 Marcin Warpechowski / <a href="http://www.nextgen.pl/">Nextgen.pl</a>. Code and documentation licensed under <a href="https://github.com/warpech/jquery-handsontable/blob/master/LICENSE">The MIT License</a>
-</p>
 </div>
 
 </div>
+</div>
 
-<script type="text/javascript">
-  $(function () {
-    if (window.location.hostname === 'warpech.github.com') {
-      $('#domainNotice').show();
-    }
-  });
-</script>
+<div id="outside-links-wrapper">
+  <!-- outside-links start -->
+  <div id="outside-links">
+    <div class="inline-buttons">
+      <a class="button"
+         href="https://github.com/warpech/jquery-handsontable/blob/master/CHANGELOG.md">Changelog</a>
+      <a class="button button-light" href="https://github.com/warpech/jquery-handsontable/wiki"><i
+        class="icon-book"></i> Wiki</a>
+      <a class="button button-secondary button-light"
+         href="https://github.com/warpech/jquery-handsontable/wiki/Options">Options</a>
+      <a class="button button-secondary button-light"
+         href="https://github.com/warpech/jquery-handsontable/wiki/Methods">Methods</a>
+      <a class="button button-secondary" href="https://github.com/warpech/jquery-handsontable/wiki/Events">Events</a>
+
+      <a class="button" href="https://github.com/warpech/jquery-handsontable/wiki/FAQ">F.A.Q.</a>
+
+      <a class="button button-github" href="https://github.com/warpech/jquery-handsontable"><i
+        class="icon-github"></i> Source</a>
+      <a class="button button-github" href="https://github.com/warpech/jquery-handsontable/issues"><i
+        class="icon-bug"></i> Issues</a>
+    </div>
+
+    <div class="clear"></div>
+  </div>
+  <!-- outside-links end -->
+</div>
 
 </body>
 </html>
