@@ -1,3 +1,14 @@
+## [0.10.5](https://github.com/warpech/jquery-handsontable/tree/v0.10.5) (Mar 31, 2014)
+
+Changes since 0.10.4:
+
+- fixed undoing/redoing changes in cells with validators ([#1130](https://github.com/warpech/jquery-handsontable/issues/1130))
+- optimized pasting data into the table
+
+Features:
+
+- added <code>searchPlugin</code> (<a href="https://github.com/warpech/jquery-handsontable/wiki/Search-plugin">documentation</a>)
+
 ## [0.10.4](https://github.com/warpech/jquery-handsontable/tree/v0.10.4) (Mar 20, 2014)
 
 Changes since 0.10.3:
