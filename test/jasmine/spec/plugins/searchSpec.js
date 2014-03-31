@@ -76,11 +76,18 @@ describe('Search plugin', function () {
   });
 
   describe("query method", function () {
+
+    afterEach(function () {
+      Handsontable.Search.global.setDefaultQueryMethod(Handsontable.Search.DEFAULT_QUERY_METHOD);
+    });
+
     it("should use the default query method if no queryMethod is passed to query function", function () {
 
       spyOn(Handsontable.Search, 'DEFAULT_QUERY_METHOD');
 
       var defaultQueryMethod = Handsontable.Search.DEFAULT_QUERY_METHOD;
+
+      Handsontable.Search.global.setDefaultQueryMethod(defaultQueryMethod);
 
       var hot = handsontable({
         data: createSpreadsheetData(5, 5),
@@ -97,12 +104,12 @@ describe('Search plugin', function () {
 
       var customDefaultQueryMethod = jasmine.createSpy('customDefaultQueryMethod');
 
-
       var hot = handsontable({
         data: createSpreadsheetData(5, 5),
         search: true
       });
-      hot.search.setDefaultQueryMethod(customDefaultQueryMethod);
+
+      Handsontable.Search.global.setDefaultQueryMethod(customDefaultQueryMethod);
 
       var searchResult = hot.search.query('A');
 
@@ -110,6 +117,22 @@ describe('Search plugin', function () {
 
     });
 
+    it("should use the query method from the constructor if no queryMethod is passed to query function", function () {
+
+      var customQueryMethod = jasmine.createSpy('customDefaultQueryMethod');
+
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: {
+          queryMethod: customQueryMethod
+        }
+      });
+
+      var searchResult = hot.search.query('A');
+
+      expect(customQueryMethod.calls.length).toEqual(25);
+
+    });
 
     it("should use method passed to query function", function () {
 
@@ -163,6 +186,21 @@ describe('Search plugin', function () {
 
     });
 
+    it("default query method should work with numeric values", function () {
+      var hot = handsontable({
+        data: [
+          [1, 2],
+          [22, 4]
+        ],
+        search: true
+      });
+
+      var searchResult = hot.search.query('2');
+
+      expect(searchResult.length).toEqual(2);
+
+    });
+
     it("default query method should interpret query as string, not regex", function () {
       var hot = handsontable({
         data: createSpreadsheetData(5, 5),
@@ -207,22 +245,6 @@ describe('Search plugin', function () {
 
     });
 
-    it("default query method should always return false if no query string is null", function () {
-      var hot = handsontable({
-        data: createSpreadsheetData(5, 5),
-        search: true
-      });
-
-      var searchResult = hot.search.query('A');
-
-      expect(searchResult.length).toEqual(5);
-
-      var searchResult = hot.search.query();
-
-      expect(searchResult.length).toEqual(0);
-
-    });
-
     it("default query method should always return false if no query string is not a string", function () {
       var hot = handsontable({
         data: createSpreadsheetData(5, 5),
@@ -244,9 +266,17 @@ describe('Search plugin', function () {
 
   describe("search callback", function () {
 
+    afterEach(function () {
+      Handsontable.Search.global.setDefaultCallback(Handsontable.Search.DEFAULT_CALLBACK);
+    });
+
     it("should invoke default callback for each cell", function () {
 
       spyOn(Handsontable.Search, 'DEFAULT_CALLBACK');
+
+      var defaultCallback = Handsontable.Search.DEFAULT_CALLBACK;
+
+      Handsontable.Search.global.setDefaultCallback(defaultCallback);
 
       var hot = handsontable({
         data: createSpreadsheetData(5, 5),
@@ -255,7 +285,7 @@ describe('Search plugin', function () {
 
       var searchResult = hot.search.query('A');
 
-      expect(Handsontable.Search.DEFAULT_CALLBACK.calls.length).toEqual(25)
+      expect(defaultCallback.calls.length).toEqual(25)
 
     });
 
@@ -269,12 +299,31 @@ describe('Search plugin', function () {
       });
 
       var defaultCallback = jasmine.createSpy('defaultCallback');
-      hot.search.setDefaultCallback(defaultCallback);
+      Handsontable.Search.global.setDefaultCallback(defaultCallback);
 
       var searchResult = hot.search.query('A');
 
       expect(Handsontable.Search.DEFAULT_CALLBACK).not.toHaveBeenCalled();
       expect(defaultCallback.calls.length).toEqual(25);
+
+    });
+
+    it("should invoke callback passed in constructor", function () {
+
+      var searchCallback = jasmine.createSpy('searchCallback');
+
+      var hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        search: {
+          callback: searchCallback
+        }
+      });
+
+
+
+      var searchResult = hot.search.query('A');
+
+      expect(searchCallback.calls.length).toEqual(25);
 
     });
 
@@ -355,9 +404,9 @@ describe('Search plugin', function () {
           var cell = getCell(rowIndex, colIndex);
 
           if (rowIndex == 1 ){
-            expect($(cell).hasClass(Handsontable.SearchCellDecorator.DEFAULT_SEARCH_RESULT_CLASS)).toBe(true);
+            expect($(cell).hasClass(Handsontable.Search.DEFAULT_SEARCH_RESULT_CLASS)).toBe(true);
           } else {
-            expect($(cell).hasClass(Handsontable.SearchCellDecorator.DEFAULT_SEARCH_RESULT_CLASS)).toBe(false);
+            expect($(cell).hasClass(Handsontable.Search.DEFAULT_SEARCH_RESULT_CLASS)).toBe(false);
           }
         }
       }
@@ -368,8 +417,9 @@ describe('Search plugin', function () {
 
       var hot = handsontable({
         data: createSpreadsheetData(5, 5),
-        search: true,
-        searchResultClass: 'customSearchResultClass'
+        search: {
+          searchResultClass: 'customSearchResultClass'
+        }
       });
 
       var searchResult = hot.search.query('1');

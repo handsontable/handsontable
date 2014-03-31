@@ -9,17 +9,20 @@
       var queryResult = [];
 
       if (!callback) {
-        callback = this.getDefaultCallback();
+        callback = Handsontable.Search.global.getDefaultCallback();
       }
 
       if (!queryMethod) {
-        queryMethod = this.getDefaultQueryMethod();
+        queryMethod = Handsontable.Search.global.getDefaultQueryMethod();
       }
 
       for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) {
         for (var colIndex = 0; colIndex < colCount; colIndex++) {
           var cellData = instance.getDataAtCell(rowIndex, colIndex);
-          var testResult = queryMethod(queryStr, cellData);
+          var cellProperties = instance.getCellMeta(rowIndex, colIndex);
+          var cellCallback = cellProperties.search.callback || callback;
+          var cellQueryMethod = cellProperties.search.queryMethod || queryMethod;
+          var testResult = cellQueryMethod(queryStr, cellData);
 
           if (testResult) {
             var singleResult = {
@@ -31,33 +34,14 @@
             queryResult.push(singleResult);
           }
 
-          if (callback) {
-            callback(instance, rowIndex, colIndex, cellData, testResult);
+          if (cellCallback) {
+            cellCallback(instance, rowIndex, colIndex, cellData, testResult);
           }
         }
       }
 
       return queryResult;
 
-    };
-
-    var defaultCallback = Handsontable.Search.DEFAULT_CALLBACK;
-    var defaultQueryMethod = Handsontable.Search.DEFAULT_QUERY_METHOD;
-
-    this.getDefaultCallback = function () {
-      return defaultCallback;
-    };
-
-    this.setDefaultCallback = function (newDefaultCallback) {
-      defaultCallback = newDefaultCallback;
-    };
-
-    this.getDefaultQueryMethod = function () {
-      return defaultQueryMethod;
-    };
-
-    this.setDefaultQueryMethod = function (newDefaultQueryMethod) {
-      defaultQueryMethod = newDefaultQueryMethod;
     };
 
   };
@@ -72,18 +56,59 @@
       return false;
     }
 
-    return value.toLowerCase().indexOf(query.toLowerCase()) != -1;
+    return value.toString().toLowerCase().indexOf(query.toLowerCase()) != -1;
   };
 
+  Handsontable.Search.DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
+
+  Handsontable.Search.global = (function () {
+
+    var defaultCallback = Handsontable.Search.DEFAULT_CALLBACK;
+    var defaultQueryMethod = Handsontable.Search.DEFAULT_QUERY_METHOD;
+    var defaultSearchResultClass = Handsontable.Search.DEFAULT_SEARCH_RESULT_CLASS;
+
+    return {
+      getDefaultCallback: function () {
+        return defaultCallback;
+      },
+
+      setDefaultCallback: function (newDefaultCallback) {
+        defaultCallback = newDefaultCallback;
+      },
+
+      getDefaultQueryMethod: function () {
+        return defaultQueryMethod;
+      },
+
+      setDefaultQueryMethod: function (newDefaultQueryMethod) {
+        defaultQueryMethod = newDefaultQueryMethod;
+      },
+
+      getDefaultSearchResultClass: function () {
+        return defaultSearchResultClass;
+      },
+
+      setDefaultSearchResultClass: function (newSearchResultClass) {
+        defaultSearchResultClass = newSearchResultClass;
+      }
+    }
+
+  })();
+
+
+
   Handsontable.SearchCellDecorator = function (instance, TD, row, col, prop, value, cellProperties) {
+
+    var searchResultClass = (typeof cellProperties.search == 'object' && cellProperties.search.searchResultClass) || Handsontable.Search.global.getDefaultSearchResultClass();
+
     if(cellProperties.isSearchResult){
-      Handsontable.Dom.addClass(TD, cellProperties.searchResultClass || Handsontable.SearchCellDecorator.DEFAULT_SEARCH_RESULT_CLASS);
+      Handsontable.Dom.addClass(TD, searchResultClass);
     } else {
-      Handsontable.Dom.removeClass(TD, cellProperties.searchResultClass || Handsontable.SearchCellDecorator.DEFAULT_SEARCH_RESULT_CLASS);
+      Handsontable.Dom.removeClass(TD, searchResultClass);
     }
   };
 
-  Handsontable.SearchCellDecorator.DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
+
 
   var originalDecorator = Handsontable.renderers.cellDecorator;
 
