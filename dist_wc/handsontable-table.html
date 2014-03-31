@@ -222,6 +222,8 @@ Polymer('handsontable-table', {
   instance: null,
   enteredView: function () {
     this.shadowRoot.applyAuthorStyles = true; //only way I know to let override Shadow DOM styles (just define ".handsontable td" in page stylesheet)
+    //TODO applyAuthorStyles was removed from Shadow DOM spec and Canary. Investigate if/when the above line can be removed. See: https://groups.google.com/d/topic/polymer-dev/Kig_r-7xuX4/discussion
+
     jQuery(this.$.htContainer).handsontable(parseHandsontable(this));
     this.instance = jQuery(this.$.htContainer).data('handsontable');
   },
