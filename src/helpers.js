@@ -450,4 +450,9 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName, allowUndefin
 
     return type;
   }
+
+};
+
+Handsontable.helper.toString = function (obj) {
+  return '' + obj;
 };
