@@ -1059,10 +1059,10 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.listen = function () {
     Handsontable.activeGuid = instance.guid;
 
-    if (document.activeElement && document.activeElement !== document.body) {
+    if ( document.activeElement && document.activeElement.blur && document.activeElement !== document.body ) {
       document.activeElement.blur();
     }
-    else if (!document.activeElement) { //IE
+    else if (!document.activeElement || !document.activeElement.blur) { //IE
       document.body.focus();
     }
   };
@@ -1954,7 +1954,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
     priv.selStart.coords({row: row, col: col});
-    if (document.activeElement && document.activeElement !== document.documentElement && document.activeElement !== document.body) {
+    if (document.activeElement && document.activeElement.blur && document.activeElement !== document.documentElement && document.activeElement !== document.body) {
       document.activeElement.blur(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
     }
     instance.listen();
