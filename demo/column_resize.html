@@ -14,10 +14,11 @@
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css?20140331">
   <script src="js/samples.js"></script>
   <script src="js/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+  <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
 
   <!--
   Facebook open graph. Don't copy this to your project :)
@@ -57,20 +58,21 @@
 </head>
 
 <body>
-<a href="http://github.com/warpech/jquery-handsontable" class="forkMeOnGitHub">Fork me on GitHub</a>
 
-<div id="container">
-  <div class="columnLayout">
 
-    <div class="rowLayout">
+<div class="wrapper">
+  <div class="wrapper-row">
+    <div id="global-menu-clone">
+      <h1><a href="../index.html">Handsontable</a></h1>
+
+    </div>
+
+    <div id="container">
+      <div class="columnLayout">
+
+        <div class="rowLayout">
       <div class="descLayout">
         <div class="pad">
-          <h1><a href="../index.html">Handsontable</a></h1>
-
-          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-            for HTML, JavaScript &amp; jQuery
-          </div>
-
           <h2>Manual column resize &amp; move</h2>
 
           <p>This page shows how to use Handsontable with column related built-in plugins:</p>
@@ -179,18 +181,6 @@
       </div>
     </div>
 
-    <div class="rowLayout">
-      <div class="descLayout noMargin">
-        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
-
-          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-            licensed under the The MIT License.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</div>
 <script type="text/javascript">
   (function(){
     var HOT = $('#example1').handsontable('getInstance');
@@ -201,7 +191,7 @@
 
       HOT.updateSettings({
         manualColumnResize: true
-      })
+      });
 
       $(".state-loaded.example1").fadeOut(300);
     });
@@ -228,7 +218,7 @@
       HOT.updateSettings({
         manualColumnMove:true,
         manualColumnResize: true
-      })
+      });
 
       $(".state-loaded.example2").fadeOut(300);
     });
@@ -245,6 +235,18 @@
     }
   })();
 </script>
+
+        <div class="footer-text">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+          licensed under the The MIT License.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div id="outside-links-wrapper"></div>
 
 </body>
 </html>
