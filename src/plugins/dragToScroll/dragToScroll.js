@@ -109,7 +109,7 @@ if (typeof Handsontable !== 'undefined') {
     listening = true;
   };
 
-  Handsontable.PluginHooks.add('afterInit', function () {
+  Handsontable.hooks.add('afterInit', function () {
     $(document).on('mouseup.' + this.guid, function () {
       listening = false;
     });
@@ -121,15 +121,15 @@ if (typeof Handsontable !== 'undefined') {
     });
   });
 
-  Handsontable.PluginHooks.add('destroy', function () {
+  Handsontable.hooks.add('destroy', function () {
     $(document).off('.' + this.guid);
   });
 
-  Handsontable.PluginHooks.add('afterOnCellMouseDown', function () {
+  Handsontable.hooks.add('afterOnCellMouseDown', function () {
     setupListening(this);
   });
 
-  Handsontable.PluginHooks.add('afterOnCellCornerMouseDown', function () {
+  Handsontable.hooks.add('afterOnCellCornerMouseDown', function () {
     setupListening(this);
   });
 

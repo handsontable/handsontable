@@ -131,7 +131,7 @@
 
             $('.reset-state').on('click', function(){
 
-              HOT.PluginHooks.run('persistentStateReset');
+              HOT.runHooks('persistentStateReset');
 
               HOT.updateSettings({
                 columnSorting: true,
@@ -145,7 +145,7 @@
 
             var storedData = {};
 
-            HOT.PluginHooks.run('persistentStateLoad', '_persistentStateKeys', storedData);
+            HOT.runHooks('persistentStateLoad', '_persistentStateKeys', storedData);
 
             var savedKeys = storedData.value;
 

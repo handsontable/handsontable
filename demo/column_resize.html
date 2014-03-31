@@ -187,7 +187,7 @@
 
     $('.reset-state1').on('click', function(){
 
-      HOT.PluginHooks.run('persistentStateReset');
+      HOT.runHooks('persistentStateReset');
 
       HOT.updateSettings({
         manualColumnResize: true
@@ -199,7 +199,7 @@
 
     var storedData = {};
 
-    HOT.PluginHooks.run('persistentStateLoad', '_persistentStateKeys', storedData);
+    HOT.runHooks('persistentStateLoad', '_persistentStateKeys', storedData);
 
     var savedKeys = storedData.value;
 
@@ -213,7 +213,7 @@
 
     $('.reset-state2').on('click', function(){
 
-      HOT.PluginHooks.run('persistentStateReset');
+      HOT.runHooks('persistentStateReset');
 
       HOT.updateSettings({
         manualColumnMove:true,
@@ -226,7 +226,7 @@
 
     var storedData = {};
 
-    HOT.PluginHooks.run('persistentStateLoad', '_persistentStateKeys', storedData);
+    HOT.runHooks('persistentStateLoad', '_persistentStateKeys', storedData);
 
     var savedKeys = storedData.value;
 

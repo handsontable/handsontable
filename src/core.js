@@ -387,8 +387,8 @@ Handsontable.Core = function (rootElement, userSettings) {
      */
     finish: function () {
       var sel = instance.getSelected();
-      instance.PluginHooks.run("afterSelectionEnd", sel[0], sel[1], sel[2], sel[3]);
-      instance.PluginHooks.run("afterSelectionEndByProp", sel[0], instance.colToProp(sel[1]), sel[2], instance.colToProp(sel[3]));
+      Handsontable.hooks.run(instance, "afterSelectionEnd", sel[0], sel[1], sel[2], sel[3]);
+      Handsontable.hooks.run(instance, "afterSelectionEndByProp", sel[0], instance.colToProp(sel[1]), sel[2], instance.colToProp(sel[3]));
       instance.selection.inProgress = false;
     },
 
@@ -437,8 +437,8 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
 
       //trigger handlers
-      instance.PluginHooks.run("afterSelection", priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col());
-      instance.PluginHooks.run("afterSelectionByProp", priv.selStart.row(), datamap.colToProp(priv.selStart.col()), priv.selEnd.row(), datamap.colToProp(priv.selEnd.col()));
+      Handsontable.hooks.run(instance, "afterSelection", priv.selStart.row(), priv.selStart.col(), priv.selEnd.row(), priv.selEnd.col());
+      Handsontable.hooks.run(instance, "afterSelectionByProp", priv.selStart.row(), datamap.colToProp(priv.selStart.col()), priv.selEnd.row(), datamap.colToProp(priv.selEnd.col()));
 
       if (scrollToCell !== false) {
         instance.view.scrollViewport(coords);
@@ -588,7 +588,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       instance.view.wt.selections.area.clear();
       editorManager.destroyEditor();
       selection.refreshBorders();
-      instance.PluginHooks.run('afterDeselect');
+      Handsontable.hooks.run(instance, 'afterDeselect');
     },
 
     /**
@@ -748,7 +748,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       if (start) {
 
         _data = SheetClip.parse(datamap.getText(priv.selStart.coords(), priv.selEnd.coords()));
-        instance.PluginHooks.run('beforeAutofill', start, end, _data);
+        Handsontable.hooks.run(instance, 'beforeAutofill', start, end, _data);
 
         grid.populateFromArray(start, _data, end, 'autofill');
 
@@ -788,7 +788,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   this.init = function () {
-    instance.PluginHooks.run('beforeInit');
+    Handsontable.hooks.run(instance, 'beforeInit');
 
     this.view = new Handsontable.TableView(this);
     editorManager = new Handsontable.EditorManager(instance, priv, selection, datamap);
@@ -801,10 +801,10 @@ Handsontable.Core = function (rootElement, userSettings) {
     this.view.render();
 
     if (typeof priv.firstRun === 'object') {
-      instance.PluginHooks.run('afterChange', priv.firstRun[0], priv.firstRun[1]);
+      Handsontable.hooks.run(instance, 'afterChange', priv.firstRun[0], priv.firstRun[1]);
       priv.firstRun = false;
     }
-    instance.PluginHooks.run('afterInit');
+    Handsontable.hooks.run(instance, 'afterInit');
   };
 
   function ValidatorsQueue() { //moved this one level up so it can be used in any function here. Probably this should be moved to a separate file
@@ -876,7 +876,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       var beforeChangeResult;
 
       if (changes.length) {
-        beforeChangeResult = instance.PluginHooks.execute("beforeChange", changes, source);
+        beforeChangeResult = Handsontable.hooks.execute(instance, "beforeChange", changes, source);
         if (typeof beforeChangeResult === 'function') {
           $.when(result).then(function () {
             callback(); //called when async validators and async beforeChange are resolved
@@ -928,7 +928,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     instance.forceFullRender = true; //used when data was changed
     grid.adjustRowsAndCols();
     selection.refreshBorders(null, true);
-    instance.PluginHooks.run('afterChange', changes, source || 'edit');
+    Handsontable.hooks.run(instance, 'afterChange', changes, source || 'edit');
   }
 
   this.validateCell = function (value, cellProperties, callback, source) {
@@ -944,14 +944,14 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     if (typeof validator == 'function') {
 
-      value = instance.PluginHooks.execute("beforeValidate", value, cellProperties.row, cellProperties.prop, source);
+      value = Handsontable.hooks.execute(instance, "beforeValidate", value, cellProperties.row, cellProperties.prop, source);
 
       // To provide consistent behaviour, validation should be always asynchronous
       setTimeout(function () {
         validator.call(cellProperties, value, function (valid) {
           cellProperties.valid = valid;
 
-          valid = instance.PluginHooks.execute("afterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
+          valid = Handsontable.hooks.execute(instance, "afterValidate", valid, value, cellProperties.row, cellProperties.prop, source);
 
           callback(valid);
         });
@@ -1256,13 +1256,13 @@ Handsontable.Core = function (rootElement, userSettings) {
     clearCellSettingCache();
 
     grid.adjustRowsAndCols();
-    instance.PluginHooks.run('afterLoadData');
+    Handsontable.hooks.run(instance, 'afterLoadData');
 
     if (priv.firstRun) {
       priv.firstRun = [null, 'loadData'];
     }
     else {
-      instance.PluginHooks.run('afterChange', null, 'loadData');
+      Handsontable.hooks.run(instance, 'afterChange', null, 'loadData');
       instance.render();
     }
 
@@ -1316,9 +1316,9 @@ Handsontable.Core = function (rootElement, userSettings) {
         continue; //loadData will be triggered later
       }
       else {
-        if (instance.PluginHooks.hooks[i] !== void 0 || instance.PluginHooks.legacy[i] !== void 0) {
+        if (Handsontable.hooks.hooks[i] !== void 0 || Handsontable.hooks.legacy[i] !== void 0) {
           if (typeof settings[i] === 'function' || Handsontable.helper.isArray(settings[i])) {
-            instance.PluginHooks.add(i, settings[i]);
+            instance.addHook(i, settings[i]);
           }
         }
         else {
@@ -1389,7 +1389,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
 
     if (!init) {
-      instance.PluginHooks.run('afterUpdateSettings');
+      Handsontable.hooks.run(instance, 'afterUpdateSettings');
     }
 
     grid.adjustRowsAndCols();
@@ -1594,7 +1594,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     cellProperties.prop = prop;
     cellProperties.instance = instance;
 
-    instance.PluginHooks.run('beforeGetCellMeta', row, col, cellProperties);
+    Handsontable.hooks.run(instance, 'beforeGetCellMeta', row, col, cellProperties);
     Handsontable.helper.extend(cellProperties, expandType(cellProperties)); //for `type` added in beforeGetCellMeta
 
     if (cellProperties.cells) {
@@ -1606,34 +1606,30 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
 
-    instance.PluginHooks.run('afterGetCellMeta', row, col, cellProperties);
+    Handsontable.hooks.run(instance, 'afterGetCellMeta', row, col, cellProperties);
 
     return cellProperties;
-
-    /**
-     * If displayed rows order is different than the order of rows stored in memory (i.e. sorting is applied)
-     * we need to translate logical (stored) row index to physical (displayed) index.
-     * @param row - original row index
-     * @returns {int} translated row index
-     */
-    function translateRowIndex(row){
-      var getVars  = {row: row};
-
-      instance.PluginHooks.execute('beforeGet', getVars);
-
-      return getVars.row;
-    }
-
-    /**
-     * If displayed columns order is different than the order of columns stored in memory (i.e. column were moved using manualColumnMove plugin)
-     * we need to translate logical (stored) column index to physical (displayed) index.
-     * @param col - original column index
-     * @returns {int} - translated column index
-     */
-    function translateColIndex(col){
-      return Handsontable.PluginHooks.execute(instance, 'modifyCol', col); // warning: this must be done after datamap.colToProp
-    }
   };
+
+  /**
+   * If displayed rows order is different than the order of rows stored in memory (i.e. sorting is applied)
+   * we need to translate logical (stored) row index to physical (displayed) index.
+   * @param row - original row index
+   * @returns {int} translated row index
+   */
+  function translateRowIndex(row){
+    return Handsontable.hooks.execute(instance, 'modifyRow', row);
+  }
+
+  /**
+   * If displayed columns order is different than the order of columns stored in memory (i.e. column were moved using manualColumnMove plugin)
+   * we need to translate logical (stored) column index to physical (displayed) index.
+   * @param col - original column index
+   * @returns {int} - translated column index
+   */
+  function translateColIndex(col){
+    return Handsontable.hooks.execute(instance, 'modifyCol', col); // warning: this must be done after datamap.colToProp
+  }
 
   var rendererLookup = Handsontable.helper.cellMethodLookupFactory('renderer');
   this.getCellRenderer = function (row, col) {
@@ -1735,7 +1731,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       return out;
     }
     else {
-      col = Handsontable.PluginHooks.execute(instance, 'modifyCol', col);
+      col = Handsontable.hooks.execute(instance, 'modifyCol', col);
 
       if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
         return priv.settings.columns[col].title;
@@ -1789,15 +1785,13 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this.getColWidth = function (col) {
-    col = Handsontable.PluginHooks.execute(instance, 'modifyCol', col);
-    var response = {
-      width: instance._getColWidthFromSettings(col)
-    };
-    if (!response.width) {
-      response.width = 50;
+    col = Handsontable.hooks.execute(instance, 'modifyCol', col);
+    var width = instance._getColWidthFromSettings(col);
+    if (!width) {
+      width = 50;
     }
-    instance.PluginHooks.run('afterGetColWidth', col, response);
-    return response.width;
+    width = Handsontable.hooks.execute(instance, 'modifyColWidth', width, col);
+    return width;
   };
 
   /**
@@ -1872,11 +1866,11 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.countEmptyRows = function (ending) {
     var i = instance.countRows() - 1
-      , empty = 0;
+      , empty = 0
+      , row;
     while (i >= 0) {
-      datamap.get(i, 0);
-
-      if (instance.isEmptyRow(datamap.getVars.row)) {
+      row = Handsontable.hooks.execute(this, 'modifyRow', i);
+      if (instance.isEmptyRow(row)) {
         empty++;
       }
       else if (ending) {
@@ -2000,7 +1994,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     $(window).off('.' + instance.guid);
     $document.off('.' + instance.guid);
     $body.off('.' + instance.guid);
-    instance.PluginHooks.run('afterDestroy');
+    Handsontable.hooks.run(instance, 'afterDestroy');
   };
 
   /**
@@ -2017,50 +2011,28 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Object}
    */
   this.getInstance = function () {
-    return instance.rootElement.data("handsontable");
+    return instance;
   };
 
-  (function () {
-    // Create new instance of plugin hooks
-    instance.PluginHooks = new Handsontable.PluginHookClass();
+  this.addHook = function (key, fn) {
+    Handsontable.hooks.add(key, fn, instance);
+  };
 
-    // Upgrade methods to call of global PluginHooks instance
-    var _run = instance.PluginHooks.run
-      , _exe = instance.PluginHooks.execute;
+  this.addHookOnce = function (key, fn) {
+    Handsontable.hooks.once(key, fn, instance);
+  };
 
-    instance.PluginHooks.run = function (key, p1, p2, p3, p4, p5) {
-      _run.call(this, instance, key, p1, p2, p3, p4, p5);
-      Handsontable.PluginHooks.run(instance, key, p1, p2, p3, p4, p5);
-    };
+  this.removeHook = function (key, fn) {
+    Handsontable.hooks.remove(key, fn, instance);
+  };
 
-    instance.PluginHooks.execute = function (key, p1, p2, p3, p4, p5) {
-      var globalHandlerResult = Handsontable.PluginHooks.execute(instance, key, p1, p2, p3, p4, p5);
-      var localHandlerResult = _exe.call(this, instance, key, globalHandlerResult, p2, p3, p4, p5);
+  this.runHooks = function (key, p1, p2, p3, p4, p5) {
+    Handsontable.hooks.run(instance, key, p1, p2, p3, p4, p5);
+  };
 
-      return typeof localHandlerResult == 'undefined' ? globalHandlerResult : localHandlerResult;
-
-    };
-
-    // Map old API with new methods
-    instance.addHook = function () {
-      instance.PluginHooks.add.apply(instance.PluginHooks, arguments);
-    };
-    instance.addHookOnce = function () {
-      instance.PluginHooks.once.apply(instance.PluginHooks, arguments);
-    };
-
-    instance.removeHook = function () {
-      instance.PluginHooks.remove.apply(instance.PluginHooks, arguments);
-    };
-
-    instance.runHooks = function () {
-      instance.PluginHooks.run.apply(instance.PluginHooks, arguments);
-    };
-    instance.runHooksAndReturn = function () {
-      return instance.PluginHooks.execute.apply(instance.PluginHooks, arguments);
-    };
-
-  })();
+  this.runHooksAndReturn = function (key, p1, p2, p3, p4, p5) {
+    return Handsontable.hooks.execute(instance, key, p1, p2, p3, p4, p5);
+  };
 
   this.timeouts = {};
 

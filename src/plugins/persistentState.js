@@ -115,12 +115,18 @@ function Storage(prefix) {
       'persistentStateReset': plugin.resetValue
     };
 
+    for (var hookName in hooks) {
+      if (hooks.hasOwnProperty(hookName)) {
+        Handsontable.hooks.register(hookName);
+      }
+    }
+
     function addHooks() {
       var instance = this;
 
       for (var hookName in hooks) {
-        if (hooks.hasOwnProperty(hookName) && !hookExists.call(instance, hookName)) {
-          instance.PluginHooks.add(hookName, hooks[hookName]);
+        if (hooks.hasOwnProperty(hookName)) {
+          instance.addHook(hookName, hooks[hookName]);
         }
       }
     }
@@ -129,19 +135,14 @@ function Storage(prefix) {
       var instance = this;
 
       for (var hookName in hooks) {
-        if (hooks.hasOwnProperty(hookName) && hookExists.call(instance, hookName)) {
-          instance.PluginHooks.remove(hookName, hooks[hookName]);
+        if (hooks.hasOwnProperty(hookName)) {
+          instance.removeHook(hookName, hooks[hookName]);
         }
       }
-    }
-
-    function hookExists(hookName) {
-      var instance = this;
-      return instance.PluginHooks.hooks.hasOwnProperty(hookName);
     }
   }
 
   var htPersistentState = new HandsontablePersistentState();
-  Handsontable.PluginHooks.add('beforeInit', htPersistentState.init);
-  Handsontable.PluginHooks.add('afterUpdateSettings', htPersistentState.init);
+  Handsontable.hooks.add('beforeInit', htPersistentState.init);
+  Handsontable.hooks.add('afterUpdateSettings', htPersistentState.init);
 })(Storage);
