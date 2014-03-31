@@ -35,7 +35,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     columnsSettingConflicts: ['data', 'width'],
     settings: new GridSettings(), // current settings instance
     settingsFromDOM: {},
-    selRange: null,
+    selRange: null, //exposed by public method `getSelectedRange`
     isPopulated: null,
     scrollable: null,
     firstRun: true
@@ -363,6 +363,9 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @param {Boolean} [scrollToCell=true] If true, viewport will be scrolled to range end
      */
     setRangeEnd: function (coords, scrollToCell) {
+      //trigger handlers
+      Handsontable.hooks.run(instance, "beforeSetRangeEnd", coords);
+
       instance.selection.begin();
 
       priv.selRange.to = coords;

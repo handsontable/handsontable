@@ -29,10 +29,10 @@ function CellInfoCollection(initialCollection) {
     }
   };
 
-  if (Handsontable.helper.isArray(initialCollection)){
-    initialCollection.forEach(function (mergeCellInfo){
-      collection.setInfo(mergeCellInfo);
-    });
+  if (Handsontable.helper.isArray(initialCollection)) {
+    for (var i = 0, ilen = initialCollection.length; i < ilen; i++) {
+      collection.setInfo(initialCollection[i]);
+    }
   }
 
   return collection;
@@ -237,44 +237,28 @@ var modifyTransformFactory = function (hook) {
   }
 };
 
-var afterSelection = function (fromRow, fromCol, toRow, toCol) {
+/**
+ * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell
+ * @param coords
+ */
+var beforeSetRangeEnd = function (coords) {
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (mergeCellsSetting) {
     var selRange = this.getSelectedRange();
-    var selRangeChanged = false;
+    selRange.to = coords;
 
-    this.mergeCells.mergedCellInfoCollection.forEach(function (cellInfo) {
+    for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
+      var cellInfo = this.mergeCells.mergedCellInfoCollection[i];
       var mergedCellTopLeft = new WalkontableCellCoords(cellInfo.row, cellInfo.col);
       var mergedCellBottomRight = new WalkontableCellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
 
       var mergedCellRange = new WalkontableCellRange(mergedCellTopLeft, mergedCellBottomRight);
 
-      if(selRange.expandByRange(mergedCellRange)){
-        selRangeChanged = true;
+      if (selRange.expandByRange(mergedCellRange)) {
+        var selRangeBottomRight = selRange.getBottomRightCorner();
+        coords.row = selRangeBottomRight.row;
+        coords.col = selRangeBottomRight.col;
       }
-    });
-
-    if (selRangeChanged){
-      var selRangeTopLeft = selRange.getTopLeftCorner();
-      var selRangeBottomRight = selRange.getBottomRightCorner();
-
-      this.selectCell(selRangeTopLeft.row, selRangeTopLeft.col, selRangeBottomRight.row, selRangeBottomRight.col);
-      return;
-    }
-
-    var fromInfo = this.mergeCells.mergedCellInfoCollection.getInfo(selRange.from.row, selRange.from.col);
-    if (fromInfo) {
-      var newFromCellCoords = new WalkontableCellCoords(fromInfo.row, fromInfo.col);
-      this.view.wt.selections.current.replace(selRange.from, newFromCellCoords);
-      this.view.wt.selections.area.replace(selRange.from, newFromCellCoords);
-      this.view.wt.selections.highlight.replace(selRange.from, newFromCellCoords);
-    }
-    var toInfo = this.mergeCells.mergedCellInfoCollection.getInfo(mergeCellsSetting, selRange.to.row, selRange.to.col);
-    if (toInfo) {
-      var newToCellCoords = new WalkontableCellCoords(toInfo.row, toInfo.col);
-      this.view.wt.selections.current.replace(selRange.to, newToCellCoords);
-      this.view.wt.selections.area.replace(selRange.to, newToCellCoords);
-      this.view.wt.selections.highlight.replace(selRange.to, newToCellCoords);
     }
   }
 };
@@ -285,7 +269,7 @@ Handsontable.hooks.add('modifyTransformStartRow', modifyTransformFactory('modify
 Handsontable.hooks.add('modifyTransformStartCol', modifyTransformFactory('modifyTransformStartCol'));
 Handsontable.hooks.add('modifyTransformEndRow', modifyTransformFactory('modifyTransformEndRow'));
 Handsontable.hooks.add('modifyTransformEndCol', modifyTransformFactory('modifyTransformEndCol'));
-Handsontable.hooks.add('afterSelection', afterSelection);
+Handsontable.hooks.add('beforeSetRangeEnd', beforeSetRangeEnd);
 Handsontable.hooks.add('afterRenderer', afterRenderer);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addMergeActionsToContextMenu);
 
