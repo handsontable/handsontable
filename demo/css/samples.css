@@ -96,11 +96,11 @@ global menu
 #global-menu-clone {
   background: #efefef;
   box-shadow: inset -4px 0px 4px -4px rgba(0, 0, 0, 0.20);
-  width: 240px;
-  min-width: 240px;
+  width: 250px;
+  min-width: 250px;
   display: table-cell;
   vertical-align: top;
-  padding: 20px;
+  padding: 20px 10px 20px 20px;
 }
 
 #global-menu-clone ul {
@@ -170,6 +170,10 @@ h1 {
   font-weight: 700;
   font-style: normal;
   padding-left: 10px;
+}
+
+h1 .ver {
+  font-size: 10px;
 }
 
 h2 {
