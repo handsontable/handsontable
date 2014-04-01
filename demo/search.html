@@ -14,10 +14,11 @@
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css?20140331">
   <script src="js/samples.js"></script>
   <script src="js/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+  <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
 
   <!--
   Facebook open graph. Don't copy this to your project :)
@@ -40,111 +41,288 @@
 </head>
 
 <body>
-<a href="http://github.com/warpech/jquery-handsontable">
-  <img style="position: absolute; top: 0; right: 0; border: 0;"
-       src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"/>
-</a>
 
-<div id="container">
-  <div class="columnLayout">
 
-    <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad">
-          <h1><a href="../index.html">Handsontable</a></h1>
+<div class="wrapper">
+  <div class="wrapper-row">
+    <div id="global-menu-clone">
+      <h1><a href="../index.html">Handsontable</a></h1>
 
-          <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-            for HTML, JavaScript &amp; jQuery
-          </div>
-        </div>
-      </div>
     </div>
 
-    <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad" data-jsfiddle="example1">
-          <a name="lazy"></a>
+    <div id="container">
+      <div class="columnLayout">
 
+        <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad">
           <h2>Search</h2>
 
-          <input id='search_field' type="text" placeholder="Search" />
-
-          <div id="example1"></div>
+          <p>
+              You can easily add the ability to search through Handsontable content, using <code>searchPlugin</code>.
+          </p>
 
           <p>
-            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump
-              data to console
-            </button>
+              See <a href="https://github.com/warpech/jquery-handsontable/wiki/Search-plugin">wiki</a> for an in-depth documentation.
           </p>
+
+          <ul>
+              <li><a href="#simplest-use-case">Simplest use case</a></li>
+              <li><a href="#custom-search-result-class">Custom search result class</a></li>
+              <li><a href="#custom-query-method">Custom query method</a></li>
+              <li><a href="#custom-callback">Custom callback</a></li>
+          </ul>
+
         </div>
       </div>
 
-      <div class="codeLayout">
-        <div class="pad">
-          <div class="jsFiddle">
-            <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+    </div>
+
+      <div class="rowLayout">
+          <div class="descLayout">
+              <div class="pad" data-jsfiddle="example1">
+
+                  <h2 id="simplest-use-case">Simplest use case</h2>
+
+                  <input id='search_field' type="search" placeholder="Search" />
+
+                  <div id="example1"></div>
+
+              </div>
           </div>
 
-          <style data-jsfiddle="example1">
-            #search_field {
-              margin: 0 0 10px;
-            }
-            .handsontable .pass {
-              background: #ffc0ab;
-            }
-          </style>
+          <div class="codeLayout">
+              <div class="pad">
+                  <div class="jsFiddle">
+                      <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+                  </div>
 
-          <script data-jsfiddle="example1">
-            var data = [
-                  ["Nissan", 2009, "black", "black"],
-                  ["Nissan", 2006, "blue", "blue"],
-                  ["Chrysler", 2004, "yellow", "black"],
-                  ["Volvo", 2012, "white", "gray"]
-                ]
-              , example = $("#example1");
+                  <style data-jsfiddle="example1">
+                      [type="search"] {
+                          margin: 0 0 10px;
+                      }
+                  </style>
 
-            example.handsontable({
-              data: data,
-              colHeaders: true
-            });
+                  <script data-jsfiddle="example1">
+                      var data = [
+                                  ["Nissan", 2009, "black", "black"],
+                                  ["Nissan", 2006, "blue", "blue"],
+                                  ["Chrysler", 2004, "yellow", "black"],
+                                  ["Volvo", 2012, "white", "gray"]
+                              ]
+                              , example = $("#example1");
 
-            $('#search_field').on('keyup', function (event) {
-              var value = ('' + this.value).toLowerCase(), row, col, r_len, c_len, td;
+                      example.handsontable({
+                          data: data,
+                          colHeaders: true,
+                          search: true
+                      });
 
-              if (value) {
-                for (row = 0, r_len = data.length; row < r_len; row++) {
-                  for (col = 0, c_len = data[row].length; col < c_len; col++) {
+                      var onlyExactMatch = function (queryStr, value) {
+                        return queryStr.toString() === value.toString();
+                      };
 
-                    td = example.handsontable('getCell', row, col);
+                      $('#search_field').on('keyup', function (event) {
+                          var hot = example.handsontable('getInstance');
 
-                    if (('' + data[row][col]).toLowerCase().indexOf(value) > -1) {
-                      td.className = 'pass'
-                    }
-                    else {
-                      td.className = '';
-                    }
+                          var queryResult = hot.search.query(this.value);
 
-                  }
-                }
-              }
-            });
+                          console.log(queryResult);
 
-          </script>
+                          hot.render();
+                      });
+
+                  </script>
+              </div>
+          </div>
+      </div>
+      <div class="rowLayout">
+          <div class="descLayout">
+              <div class="pad" data-jsfiddle="example1">
+
+                  <h2 id="custom-search-result-class">Custom search result class</h2>
+
+                  <input id='search_field2' type="search" placeholder="Search" />
+
+                  <div id="example2"></div>
+
+              </div>
+          </div>
+
+          <div class="codeLayout">
+              <div class="pad">
+                  <div class="jsFiddle">
+                      <button class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</button>
+                  </div>
+
+                  <style data-jsfiddle="example2">
+                      .htCore td.customClass {
+                          background: #1E90FF;
+                          color: #f8f8ff;
+                      }
+                  </style>
+
+                  <script data-jsfiddle="example2">
+                      var data = [
+                                  ["Nissan", 2009, "black", "black"],
+                                  ["Nissan", 2006, "blue", "blue"],
+                                  ["Chrysler", 2004, "yellow", "black"],
+                                  ["Volvo", 2012, "white", "gray"]
+                              ]
+                              , example2 = $("#example2");
+
+                      example2.handsontable({
+                          data: data,
+                          colHeaders: true,
+                          search: {
+                              searchResultClass: 'customClass'
+                          }
+                      });
+
+                      $('#search_field2').on('keyup', function (event) {
+                          var hot = example2.handsontable('getInstance');
+
+                          var queryResult = hot.search.query(this.value);
+
+                          console.log(queryResult);
+
+                          hot.render();
+                      });
+
+                  </script>
+              </div>
+          </div>
+      </div>
+      <div class="rowLayout">
+          <div class="descLayout">
+              <div class="pad" data-jsfiddle="example1">
+
+                  <h2 id="custom-query-method">Custom query method</h2>
+
+                  <input id='search_field3' type="search" placeholder="Search" />
+
+                  <div id="example3"></div>
+
+              </div>
+          </div>
+
+          <div class="codeLayout">
+              <div class="pad">
+                  <div class="jsFiddle">
+                      <button class="jsFiddleLink" data-runfiddle="example3">Edit in jsFiddle</button>
+                  </div>
+
+                  <script data-jsfiddle="example3">
+                      var data = [
+                                  ["Nissan", 2009, "black", "black"],
+                                  ["Nissan", 2006, "blue", "blue"],
+                                  ["Chrysler", 2004, "yellow", "black"],
+                                  ["Volvo", 2012, "white", "gray"]
+                              ]
+                              , example3 = $("#example3");
+
+                      var onlyExactMatch = function (queryStr, value) {
+                          return queryStr.toString() === value.toString();
+                      };
+
+                      example3.handsontable({
+                          data: data,
+                          colHeaders: true,
+                          search: {
+                              queryMethod: onlyExactMatch
+                          }
+                      });
+
+                      $('#search_field3').on('keyup', function (event) {
+                          var hot = example3.handsontable('getInstance');
+
+                          var queryResult = hot.search.query(this.value);
+
+                          console.log(queryResult);
+
+                          hot.render();
+                      });
+
+                  </script>
+              </div>
+          </div>
+      </div>
+      <div class="rowLayout">
+          <div class="descLayout">
+              <div class="pad" data-jsfiddle="example1">
+
+                  <h2 id="custom-callback">Custom callback</h2>
+
+                  <input id='search_field4' type="search" placeholder="Search" /> <span id="resultCount">0</span> results
+
+                  <div id="example4"></div>
+
+
+
+              </div>
+          </div>
+
+          <div class="codeLayout">
+              <div class="pad">
+                  <div class="jsFiddle">
+                      <button class="jsFiddleLink" data-runfiddle="example4">Edit in jsFiddle</button>
+                  </div>
+
+                  <script data-jsfiddle="example4">
+                      var data = [
+                                  ["Nissan", 2009, "black", "black"],
+                                  ["Nissan", 2006, "blue", "blue"],
+                                  ["Chrysler", 2004, "yellow", "black"],
+                                  ["Volvo", 2012, "white", "gray"]
+                              ]
+                              , example4 = $("#example4");
+
+                      var searchResultCount = 0;
+
+                      var searchResultCounter = function (instance, row, col, value, result) {
+
+                          Handsontable.Search.DEFAULT_CALLBACK.apply(this, arguments);
+
+                          if (result) {
+                              searchResultCount++;
+                          }
+                      };
+
+                      example4.handsontable({
+                          data: data,
+                          colHeaders: true,
+                          search: {
+                              callback: searchResultCounter
+                          }
+                      });
+
+                      $('#search_field4').on('keyup', function (event) {
+                          var hot = example4.handsontable('getInstance');
+                          searchResultCount = 0;
+
+                          var queryResult = hot.search.query(this.value);
+
+                          $('#resultCount').text(searchResultCount);
+
+                          hot.render();
+                      });
+
+                  </script>
+              </div>
+          </div>
+      </div>
+
+        <div class="footer-text">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+          licensed under the The MIT License.
         </div>
       </div>
+
     </div>
 
-    <div class="rowLayout">
-      <div class="descLayout noMargin">
-        <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
-
-          <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-            licensed under the The MIT License.</p>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
+
+<div id="outside-links-wrapper"></div>
+
 </body>
 </html>
