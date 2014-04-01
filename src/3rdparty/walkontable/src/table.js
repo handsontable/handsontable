@@ -77,47 +77,13 @@ function WalkontableTable(instance, table) {
 
   this.rowFilter = new WalkontableRowFilter();
   this.columnFilter = new WalkontableColumnFilter();
-
-  this.verticalRenderReverse = false;
 }
 
 WalkontableTable.prototype.refreshHiderDimensions = function () {
-  var height = this.instance.wtViewport.getWorkspaceHeight();
-  var width = this.instance.wtViewport.getWorkspaceWidth();
-
   var spreaderStyle = this.spreader.style;
-
-  if ((height !== Infinity || width !== Infinity) && !this.instance.getSetting('nativeScrollbars')) {
-    if (height === Infinity) {
-      height = this.instance.wtViewport.getWorkspaceActualHeight();
-    }
-    if (width === Infinity) {
-      width = this.instance.wtViewport.getWorkspaceActualWidth();
-    }
-
-    this.hiderStyle.overflow = 'hidden';
-
-    spreaderStyle.position = 'absolute';
-    spreaderStyle.top = '0';
-    spreaderStyle.left = '0';
-
-    if (!this.instance.getSetting('nativeScrollbars')) {
-      spreaderStyle.height = '4000px';
-      spreaderStyle.width = '4000px';
-    }
-
-    if (height < 0) { //this happens with WalkontableOverlay and causes "Invalid argument" error in IE8
-      height = 0;
-    }
-
-    this.hiderStyle.height = height + 'px';
-    this.hiderStyle.width = width + 'px';
-  }
-  else {
-    spreaderStyle.position = 'relative';
-    spreaderStyle.width = 'auto';
-    spreaderStyle.height = 'auto';
-  }
+  spreaderStyle.position = 'relative';
+  spreaderStyle.width = 'auto';
+  spreaderStyle.height = 'auto';
 };
 
 WalkontableTable.prototype.refreshStretching = function () {
@@ -133,7 +99,7 @@ WalkontableTable.prototype.refreshStretching = function () {
 
   var containerWidthFn = function (cacheWidth) {
     var viewportWidth = that.instance.wtViewport.getViewportWidth(cacheWidth);
-    if (viewportWidth < cacheWidth && that.instance.getSetting('nativeScrollbars')) {
+    if (viewportWidth < cacheWidth) {
       return Infinity; //disable stretching when viewport is bigger than sum of the cell widths
     }
     return viewportWidth;
@@ -158,30 +124,16 @@ WalkontableTable.prototype.refreshStretching = function () {
   }
 
   var containerHeightFn = function (cacheHeight) {
-    if (that.instance.getSetting('nativeScrollbars')) {
-      if (that.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
-        return Infinity;
-      }
-      else {
-        return 2 * that.instance.wtViewport.getViewportHeight(cacheHeight);
-      }
+    if (that.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
+      return Infinity;
     }
-    return that.instance.wtViewport.getViewportHeight(cacheHeight);
+    else {
+      return 2 * that.instance.wtViewport.getViewportHeight(cacheHeight);
+    }
   };
 
   var rowHeightFn = function (i, TD) {
-    if (that.instance.getSetting('nativeScrollbars')) {
-      return 20;
-    }
-    var source_r = that.rowFilter.visibleToSource(i);
-    if (source_r < totalRows) {
-      if (that.verticalRenderReverse && i === 0) {
-        return that.instance.getSetting('rowHeight', source_r, TD) - 1;
-      }
-      else {
-        return that.instance.getSetting('rowHeight', source_r, TD);
-      }
-    }
+    return 20;
   };
 
   this.columnStrategy = new WalkontableColumnStrategy(instance, containerWidthFn, columnWidthFn, stretchH);
@@ -286,28 +238,18 @@ WalkontableTable.prototype.adjustColumns = function (TR, desiredCount) {
 };
 
 WalkontableTable.prototype.draw = function (selectionsOnly) {
-  if (this.instance.getSetting('nativeScrollbars')) {
-    this.verticalRenderReverse = false; //this is only supported in dragdealer mode, not in native
-  }
-
   this.rowFilter.readSettings(this.instance);
   this.columnFilter.readSettings(this.instance);
 
   if (!selectionsOnly) {
-    if (this.instance.getSetting('nativeScrollbars')) {
-      if (this.instance.cloneSource) {
-        this.tableOffset = this.instance.cloneSource.wtTable.tableOffset;
-      }
-      else {
-        this.holderOffset = this.wtDom.offset(this.holder);
-        this.tableOffset = this.wtDom.offset(this.TABLE);
-        this.instance.wtScrollbars.vertical.readWindowSize();
-        this.instance.wtScrollbars.horizontal.readWindowSize();
-        this.instance.wtViewport.resetSettings();
-      }
+    if (this.instance.cloneSource) {
+      this.tableOffset = this.instance.cloneSource.wtTable.tableOffset;
     }
     else {
+      this.holderOffset = this.wtDom.offset(this.holder);
       this.tableOffset = this.wtDom.offset(this.TABLE);
+      this.instance.wtScrollbars.vertical.readWindowSize();
+      this.instance.wtScrollbars.horizontal.readWindowSize();
       this.instance.wtViewport.resetSettings();
     }
     this._doDraw();
@@ -319,13 +261,11 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
   this.refreshPositions(selectionsOnly);
 
   if (!selectionsOnly) {
-    if (this.instance.getSetting('nativeScrollbars')) {
-      if (!this.instance.cloneSource) {
-        this.instance.wtScrollbars.vertical.resetFixedPosition();
-        this.instance.wtScrollbars.horizontal.resetFixedPosition();
-        this.instance.wtScrollbars.corner.resetFixedPosition();
-        this.instance.wtScrollbars.debug && this.instance.wtScrollbars.debug.resetFixedPosition();
-      }
+    if (!this.instance.cloneSource) {
+      this.instance.wtScrollbars.vertical.resetFixedPosition();
+      this.instance.wtScrollbars.horizontal.resetFixedPosition();
+      this.instance.wtScrollbars.corner.resetFixedPosition();
+      this.instance.wtScrollbars.debug && this.instance.wtScrollbars.debug.resetFixedPosition();
     }
   }
 
@@ -349,23 +289,7 @@ WalkontableTable.prototype._doDraw = function () {
     , TH
     , adjusted = false
     , workspaceWidth
-    , mustBeInViewport
     , res;
-
-  if (this.verticalRenderReverse) {
-    mustBeInViewport = offsetRow;
-  }
-
-  var noPartial = false;
-  if (this.verticalRenderReverse) {
-    if (offsetRow === totalRows - this.rowFilter.fixedCount - 1) {
-      noPartial = true;
-    }
-    else {
-      this.instance.update('offsetRow', offsetRow + 1); //if we are scrolling reverse
-      this.rowFilter.readSettings(this.instance);
-    }
-  }
 
   if (this.instance.cloneSource) {
     this.columnStrategy = this.instance.cloneSource.wtTable.columnStrategy;
@@ -416,17 +340,12 @@ WalkontableTable.prototype._doDraw = function () {
         break; //we have as much rows as needed for this clone
       }
 
-      if (r >= this.tbodyChildrenLength || (this.verticalRenderReverse && r >= this.rowFilter.fixedCount)) {
+      if (r >= this.tbodyChildrenLength) {
         TR = document.createElement('TR');
         for (c = 0; c < displayThs; c++) {
           TR.appendChild(document.createElement('TH'));
         }
-        if (this.verticalRenderReverse && r >= this.rowFilter.fixedCount) {
-          this.TBODY.insertBefore(TR, this.TBODY.childNodes[this.rowFilter.fixedCount] || this.TBODY.firstChild);
-        }
-        else {
-          this.TBODY.appendChild(TR);
-        }
+        this.TBODY.appendChild(TR);
         this.tbodyChildrenLength++;
       }
       else if (r === 0) {
@@ -479,62 +398,26 @@ WalkontableTable.prototype._doDraw = function () {
       offsetRow = this.instance.getSetting('offsetRow'); //refresh the value
 
       //after last column is rendered, check if last cell is fully displayed
-      if (this.verticalRenderReverse && noPartial) {
-        if (-this.wtDom.outerHeight(TR.firstChild) < this.rowStrategy.remainingSize) {
-          this.TBODY.removeChild(TR);
-          this.instance.update('offsetRow', offsetRow + 1);
-          this.tbodyChildrenLength--;
-          this.rowFilter.readSettings(this.instance);
-          break;
-
-        }
-        else if (!this.instance.cloneSource) {
-          res = this.rowStrategy.add(r, TD, this.verticalRenderReverse);
-          if (res === false) {
-            this.rowStrategy.removeOutstanding();
-          }
-        }
-      }
-      else if (!this.instance.cloneSource) {
-        res = this.rowStrategy.add(r, TD, this.verticalRenderReverse);
+      if (!this.instance.cloneSource) {
+        res = this.rowStrategy.add(r, TD);
 
         if (res === false) {
-          if (!this.instance.getSetting('nativeScrollbars')) {
-            this.rowStrategy.removeOutstanding();
-          }
+          this.rowStrategy.removeOutstanding();
         }
 
         if (this.rowStrategy.isLastIncomplete()) {
-          if (this.verticalRenderReverse && !this.isRowInViewport(mustBeInViewport)) {
-            //we failed because one of the cells was by far too large. Recover by rendering from top
-            this.verticalRenderReverse = false;
-            this.instance.update('offsetRow', mustBeInViewport);
-            this.draw();
-            return;
-          }
           break;
         }
       }
 
-      if (this.instance.getSetting('nativeScrollbars')) {
-        if (this.instance.cloneSource) {
-          TR.style.height = this.instance.getSetting('rowHeight', source_r) + 'px'; //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
-        }
-        else {
-          this.instance.getSetting('rowHeight', source_r, TD); //this trick saves rowHeight in rowHeightCache. It is then read in WalkontableVerticalScrollbarNative.prototype.sumCellSizes and reset in Walkontable constructor
-        }
-      }
-
-      if (this.verticalRenderReverse && r >= this.rowFilter.fixedCount) {
-        if (offsetRow === 0) {
-          break;
-        }
-        this.instance.update('offsetRow', offsetRow - 1);
-        this.rowFilter.readSettings(this.instance);
+      if (this.instance.cloneSource) {
+        TR.style.height = this.instance.getSetting('rowHeight', source_r) + 'px'; //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
       }
       else {
-        r++;
+        this.instance.getSetting('rowHeight', source_r, TD); //this trick saves rowHeight in rowHeightCache. It is then read in WalkontableVerticalScrollbarNative.prototype.sumCellSizes and reset in Walkontable constructor
       }
+
+      r++;
 
       source_r = this.rowFilter.visibleToSource(r);
     }
@@ -563,8 +446,6 @@ WalkontableTable.prototype._doDraw = function () {
       }
     }
   }
-
-  this.verticalRenderReverse = false;
 };
 
 WalkontableTable.prototype.refreshPositions = function (selectionsOnly) {

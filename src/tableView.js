@@ -84,10 +84,6 @@ Handsontable.TableView = function (instance) {
     }
   });
 
-  instance.rootElement.on('mousedown.handsontable', '.dragdealer', function () {
-    instance.destroyEditor();
-  });
-
   instance.$table.on('selectstart', function (event) {
     if (that.settings.fragmentSelection) {
       return;
@@ -120,7 +116,6 @@ Handsontable.TableView = function (instance) {
     data: instance.getDataAtCell,
     totalRows: instance.countRows,
     totalColumns: instance.countCols,
-    nativeScrollbars: this.settings.nativeScrollbars,
     offsetRow: 0,
     offsetColumn: 0,
     width: this.getWidth(),
@@ -396,10 +391,7 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
  */
 Handsontable.TableView.prototype.maximumVisibleElementWidth = function (left) {
   var rootWidth = this.wt.wtViewport.getWorkspaceWidth();
-  if(this.settings.nativeScrollbars) {
-    return rootWidth;
-  }
-  return rootWidth - left;
+  return rootWidth;
 };
 
 /**
@@ -409,8 +401,5 @@ Handsontable.TableView.prototype.maximumVisibleElementWidth = function (left) {
  */
 Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
   var rootHeight = this.wt.wtViewport.getWorkspaceHeight();
-  if(this.settings.nativeScrollbars) {
-    return rootHeight;
-  }
-  return rootHeight - top;
+  return rootHeight;
 };

@@ -18,26 +18,17 @@ function WalkontableRowStrategy(instance, containerSizeFn, sizeAtIndex) {
 
 WalkontableRowStrategy.prototype = new WalkontableAbstractStrategy();
 
-WalkontableRowStrategy.prototype.add = function (i, TD, reverse) {
+WalkontableRowStrategy.prototype.add = function (i, TD) {
   if (!this.isLastIncomplete() && this.remainingSize != 0) {
     var size = this.sizeAtIndex(i, TD);
     if (size === void 0) {
       return false; //total rows exceeded
     }
     var containerSize = this.getContainerSize(this.cellSizesSum + size);
-    if (reverse) {
-      this.cellSizes.unshift(size);
-    }
-    else {
-      this.cellSizes.push(size);
-    }
+    this.cellSizes.push(size);
     this.cellSizesSum += size;
     this.cellCount++;
     this.remainingSize = this.cellSizesSum - containerSize;
-
-    if (reverse && this.isLastIncomplete()) { //something is outside of the screen, maybe even some full rows?
-      return false;
-    }
     return true;
   }
   return false;

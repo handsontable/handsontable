@@ -1,20 +1,14 @@
 function WalkontableScrollbars(instance) {
   this.instance = instance;
-  if (instance.getSetting('nativeScrollbars')) {
-    instance.update('scrollbarWidth', instance.wtDom.getScrollbarWidth());
-    instance.update('scrollbarHeight', instance.wtDom.getScrollbarWidth());
-    this.vertical = new WalkontableVerticalScrollbarNative(instance);
-    this.horizontal = new WalkontableHorizontalScrollbarNative(instance);
-    this.corner = new WalkontableCornerScrollbarNative(instance);
-    if (instance.getSetting('debug')) {
-      this.debug = new WalkontableDebugOverlay(instance);
-    }
-    this.registerListeners();
+  instance.update('scrollbarWidth', instance.wtDom.getScrollbarWidth());
+  instance.update('scrollbarHeight', instance.wtDom.getScrollbarWidth());
+  this.vertical = new WalkontableVerticalScrollbarNative(instance);
+  this.horizontal = new WalkontableHorizontalScrollbarNative(instance);
+  this.corner = new WalkontableCornerScrollbarNative(instance);
+  if (instance.getSetting('debug')) {
+    this.debug = new WalkontableDebugOverlay(instance);
   }
-  else {
-    this.vertical = new WalkontableVerticalScrollbar(instance);
-    this.horizontal = new WalkontableHorizontalScrollbar(instance);
-  }
+  this.registerListeners();
 }
 
 WalkontableScrollbars.prototype.registerListeners = function () {

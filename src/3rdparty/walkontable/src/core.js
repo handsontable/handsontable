@@ -20,7 +20,6 @@ function Walkontable(settings) {
     this.wtScroll = new WalkontableScroll(this);
     this.wtViewport = new WalkontableViewport(this);
     this.wtScrollbars = new WalkontableScrollbars(this);
-    this.wtWheel = new WalkontableWheel(this);
     this.wtEvent = new WalkontableEvent(this);
   }
 

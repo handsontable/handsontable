@@ -2,58 +2,15 @@ function WalkontableViewport(instance) {
   this.instance = instance;
   this.resetSettings();
 
-  if (this.instance.getSetting('nativeScrollbars')) {
-    var that = this;
-    $(window).on('resize', function () {
-      that.clientHeight = that.getWorkspaceHeight();
-    });
-  }
+  var that = this;
+  $(window).on('resize', function () {
+    that.clientHeight = that.getWorkspaceHeight();
+  });
 }
-
-/*WalkontableViewport.prototype.isInSightVertical = function () {
-  //is table outside viewport bottom edge
-  if (tableTop > windowHeight + scrollTop) {
-    return -1;
-  }
-
-  //is table outside viewport top edge
-  else if (scrollTop > tableTop + tableFakeHeight) {
-    return -2;
-  }
-
-  //table is in viewport but how much exactly?
-  else {
-
-  }
-};*/
 
 //used by scrollbar
 WalkontableViewport.prototype.getWorkspaceHeight = function (proposedHeight) {
-  if (this.instance.getSetting('nativeScrollbars')) {
-    return this.instance.wtScrollbars.vertical.windowSize;
-  }
-
-  var height = this.instance.getSetting('height');
-
-  if (height === Infinity || height === void 0 || height === null || height < 1) {
-    if (this.instance.wtScrollbars.vertical instanceof WalkontableOverlay) {
-      height = this.instance.wtScrollbars.vertical.availableSize();
-    }
-    else {
-      height = Infinity;
-    }
-  }
-
-  if (height !== Infinity) {
-    if (proposedHeight >= height) {
-      height -= this.instance.getSetting('scrollbarHeight');
-    }
-    else if (this.instance.wtScrollbars.horizontal.visible) {
-      height -= this.instance.getSetting('scrollbarHeight');
-    }
-  }
-
-  return height;
+  return this.instance.wtScrollbars.vertical.windowSize;
 };
 
 WalkontableViewport.prototype.getWorkspaceWidth = function (proposedWidth) {
