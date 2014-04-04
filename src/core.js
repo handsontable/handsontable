@@ -1059,7 +1059,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.listen = function () {
     Handsontable.activeGuid = instance.guid;
 
-    if ( document.activeElement && document.activeElement.blur && document.activeElement !== document.body ) {
+    if (document.activeElement && document.activeElement.blur && document.activeElement !== document.body) {
       document.activeElement.blur();
     }
     else if (!document.activeElement || !document.activeElement.blur) { //IE
