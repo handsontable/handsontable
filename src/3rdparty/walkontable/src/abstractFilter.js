@@ -8,10 +8,6 @@ function WalkontableAbstractFilter() {
   this.fixedCount = 0;
 }
 
-WalkontableAbstractFilter.prototype.source = function (n) {
-  return n;
-};
-
 WalkontableAbstractFilter.prototype.offsetted = function (n) {
   return n + this.offset;
 };
@@ -39,9 +35,9 @@ WalkontableAbstractFilter.prototype.unFixed = function (n) {
 };
 
 WalkontableAbstractFilter.prototype.visibleToSource = function (n) {
-  return this.source(this.offsetted(this.fixed(n)));
+  return this.offsetted(this.fixed(n));
 };
 
 WalkontableAbstractFilter.prototype.sourceToVisible = function (n) {
-  return this.source(this.unOffsetted(this.unFixed(n)));
+  return this.unOffsetted(this.unFixed(n));
 };
