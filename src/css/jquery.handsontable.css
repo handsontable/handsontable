@@ -235,7 +235,8 @@
   color: #000;
   border-radius: 0;
   background-color: #FFF;
-  /*overwrite styles potentionally made by a framework*/
+  /*overwrite styles potentially made by a framework*/
+  max-height: none;
 }
 
 .handsontableInputHolder {
