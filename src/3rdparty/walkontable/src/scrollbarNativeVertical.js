@@ -2,11 +2,17 @@ function WalkontableVerticalScrollbarNative(instance) {
   this.instance = instance;
   this.type = 'vertical';
   this.cellSize = 23;
+  this.curOuts = this.maxOuts;
   this.init();
   this.clone = this.makeClone('top');
 }
 
 WalkontableVerticalScrollbarNative.prototype = new WalkontableOverlay();
+
+WalkontableVerticalScrollbarNative.prototype.init = function () {
+  WalkontableOverlay.prototype.init.call(this);
+  this.readSettings();
+};
 
 //resetFixedPosition (in future merge it with this.refresh?)
 WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
