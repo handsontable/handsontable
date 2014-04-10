@@ -81,7 +81,7 @@ function HandsontableColumnSorting() {
 
 	var continueSort = instance.PluginHooks.execute('beforeColumnSort', instance.sortColumn, instance.sortOrder);
 	
-	if(!continueSort === false){
+	if(continueSort === false){
 		return;
 	}
 
