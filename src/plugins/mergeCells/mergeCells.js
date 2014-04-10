@@ -1,4 +1,4 @@
-function CellInfoCollection(initialCollection) {
+function CellInfoCollection() {
 
   var collection = [];
 
@@ -29,25 +29,23 @@ function CellInfoCollection(initialCollection) {
     }
   };
 
-  if (Handsontable.helper.isArray(initialCollection)) {
-    for (var i = 0, ilen = initialCollection.length; i < ilen; i++) {
-      collection.setInfo(initialCollection[i]);
-    }
-  }
-
   return collection;
 
 }
-
 
 
 /**
  * Plugin used to merge cells in Handsontable
  * @constructor
  */
-function MergeCells(instance) {
-  this.instance = instance;
-  this.mergedCellInfoCollection = new CellInfoCollection(instance.getSettings().mergeCells);
+function MergeCells(mergeCellsSetting) {
+  this.mergedCellInfoCollection = new CellInfoCollection();
+
+  if (Handsontable.helper.isArray(mergeCellsSetting)) {
+    for (var i = 0, ilen = mergeCellsSetting.length; i < ilen; i++) {
+      this.mergedCellInfoCollection.setInfo(mergeCellsSetting[i]);
+    }
+  }
 }
 
 /**
@@ -55,16 +53,7 @@ function MergeCells(instance) {
  */
 MergeCells.prototype.canMergeRange = function (cellRange) {
   //is more than one cell selected
-  if (cellRange.isSingle()) {
-    return false;
-  }
-
-  //is it a valid cell range
-  if (!cellRange.isValid(this.instance.view.wt)) {
-    return false;
-  }
-
-  return true;
+  return !cellRange.isSingle();
 };
 
 MergeCells.prototype.mergeRange = function (cellRange) {
@@ -84,29 +73,25 @@ MergeCells.prototype.mergeRange = function (cellRange) {
   this.mergedCellInfoCollection.setInfo(mergeParent);
 };
 
-MergeCells.prototype.mergeOrUnmergeSelection = function () {
-  var sel = this.instance.getSelected();
-  var info = this.mergedCellInfoCollection.getInfo(sel[0], sel[1]);
+MergeCells.prototype.mergeOrUnmergeSelection = function (cellRange) {
+  var info = this.mergedCellInfoCollection.getInfo(cellRange.row, cellRange.col);
   if (info) {
     //unmerge
-    this.unmergeSelection();
+    this.unmergeSelection(cellRange);
   }
   else {
     //merge
-    this.mergeSelection();
+    this.mergeSelection(cellRange);
   }
 };
 
-MergeCells.prototype.mergeSelection = function () {
-  var sel = this.instance.getSelected();
-  var cellRange = new WalkontableCellRange(new WalkontableCellCoords(sel[0], sel[1]), new WalkontableCellCoords(sel[2], sel[3]));
+MergeCells.prototype.mergeSelection = function (cellRange) {
   this.mergeRange(cellRange);
   this.instance.render();
 };
 
-MergeCells.prototype.unmergeSelection = function () {
-  var sel = this.instance.getSelected();
-  var info = this.mergedCellInfoCollection.getInfo(sel[0], sel[1]);
+MergeCells.prototype.unmergeSelection = function (cellRange) {
+  var info = this.mergedCellInfoCollection.getInfo(cellRange.row, cellRange.col);
   this.mergedCellInfoCollection.removeInfo(info.row, info.col);
   this.instance.render();
 };
@@ -128,6 +113,47 @@ MergeCells.prototype.applySpanProperties = function (TD, row, col) {
   }
 };
 
+MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, delta) {
+  var current;
+  switch (hook) {
+    case 'modifyTransformStartRow':
+    case 'modifyTransformStartCol':
+      current = currentSelectedRange.from;
+      break;
+
+    case 'modifyTransformEndRow':
+    case 'modifyTransformEndCol':
+      current = currentSelectedRange.to;
+      break;
+  }
+  //debugger;
+  var mergeParent = this.mergedCellInfoCollection.getInfo(current.row, current.col);
+  if (mergeParent) {
+    switch (hook) {
+      case 'modifyTransformStartRow':
+      case 'modifyTransformEndRow':
+        if (delta > 0) {
+          return mergeParent.row - current.row + mergeParent.rowspan - 1 + delta;
+        }
+        else if (delta < 0) {
+          return mergeParent.row - current.row + delta;
+        }
+        break;
+
+      case 'modifyTransformStartCol':
+      case 'modifyTransformEndCol':
+        if (delta > 0) {
+          return mergeParent.col - current.col + mergeParent.colspan - 1 + delta;
+        }
+        else if (delta < 0) {
+          return mergeParent.col - current.col + delta;
+        }
+        break;
+    }
+  }
+  return delta;
+};
+
 if (typeof Handsontable == 'undefined') {
   throw new Error('Handsontable is not defined');
 }
@@ -138,7 +164,7 @@ var init = function () {
 
   if (mergeCellsSetting) {
     if (!instance.mergeCells) {
-      instance.mergeCells = new MergeCells(instance);
+      instance.mergeCells = new MergeCells(mergeCellsSetting);
     }
   }
 };
@@ -152,7 +178,7 @@ var onBeforeKeyDown = function (event) {
 
   if (ctrlDown) {
     if (event.keyCode === 77) { //CTRL + M
-      this.mergeCells.mergeOrUnmergeSelection();
+      this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
       event.stopImmediatePropagation();
     }
   }
@@ -168,7 +194,7 @@ var addMergeActionsToContextMenu = function (defaultOptions) {
   defaultOptions.items.mergeCells = {
     name: function () {
       var sel = this.getSelected();
-      var info = this.mergeCells.mergedCellInfoCollection.getInfo(this.getSettings().mergeCells, sel[0], sel[1]);
+      var info = this.mergeCells.mergedCellInfoCollection.getInfo(sel[0], sel[1]);
       if (info) {
         return 'Unmerge cells';
       }
@@ -177,7 +203,7 @@ var addMergeActionsToContextMenu = function (defaultOptions) {
       }
     },
     callback: function () {
-      this.mergeCells.mergeOrUnmergeSelection();
+      this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
     },
     disabled: function () {
       return false;
@@ -195,45 +221,11 @@ var modifyTransformFactory = function (hook) {
   return function (delta) {
     var mergeCellsSetting = this.getSettings().mergeCells;
     if (mergeCellsSetting) {
-      var selRange = this.getSelectedRange();
-      var current;
-      switch (hook) {
-        case 'modifyTransformStartRow':
-        case 'modifyTransformStartCol':
-          current = selRange.from;
-          break;
-
-        case 'modifyTransformEndRow':
-        case 'modifyTransformEndCol':
-          current = selRange.to;
-          break;
-      }
-      var mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(mergeCellsSetting, current.row, current.col);
-      if (mergeParent) {
-        switch (hook) {
-          case 'modifyTransformStartRow':
-          case 'modifyTransformEndRow':
-            if (delta > 0) {
-              return mergeParent.row - current.row + mergeParent.rowspan - 1 + delta;
-            }
-            else if (delta < 0) {
-              return mergeParent.row - current.row + delta;
-            }
-            break;
-
-          case 'modifyTransformStartCol':
-          case 'modifyTransformEndCol':
-            if (delta > 0) {
-              return mergeParent.col - current.col + mergeParent.colspan - 1 + delta;
-            }
-            else if (delta < 0) {
-              return mergeParent.col - current.col + delta;
-            }
-            break;
-        }
-      }
+      return this.mergeCells.modifyTransform(hook, this.getSelectedRange(), delta)
     }
-    return delta;
+    else {
+      return delta;
+    }
   }
 };
 
