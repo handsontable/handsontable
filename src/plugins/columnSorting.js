@@ -79,7 +79,11 @@ function HandsontableColumnSorting() {
       return;
     }
 
-    instance.PluginHooks.run('beforeColumnSort', instance.sortColumn, instance.sortOrder);
+	var continueSort = instance.PluginHooks.execute('beforeColumnSort', instance.sortColumn, instance.sortOrder);
+	
+	if(!continueSort === false){
+		return;
+	}
 
     plugin.sort.call(instance);
     instance.render();

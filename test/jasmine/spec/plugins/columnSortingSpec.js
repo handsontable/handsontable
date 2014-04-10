@@ -16,7 +16,7 @@ describe('ColumnSorting', function () {
     }
   });
 
-  var arrayOfObjects = function () {
+  var arrayOfObjects = function () {
     return [
       {id: 1, name: "Ted", lastName: "Right"},
       {id: 2, name: "Frank", lastName: "Honest"},
@@ -30,7 +30,6 @@ describe('ColumnSorting', function () {
       {id: 10, name: "Eve", lastName: "Branson"}
     ];
   };
-
 
   it('should sort table by first visible column', function () {
     this.$container.width(350);
@@ -58,7 +57,6 @@ describe('ColumnSorting', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('5');
   });
 
-
   it('should sort numbers descending after 2 clicks on table header', function () {
     handsontable({
       data: arrayOfObjects(),
@@ -71,6 +69,50 @@ describe('ColumnSorting', function () {
 
     expect(this.$container.find('tr td').first().html()).toEqual('10');
   });
+  
+  it('sort should not be performed if function returns false', function () {
+      handsontable({
+      data: arrayOfObjects(),
+      colHeaders: true,
+      columnSorting: true
+    });
+  
+	// default sort
+	this.sortByColumn(1);
+	
+	// confirm default sort
+	expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Chuck');
+	expect(this.$container.find('tbody tr:eq(1) td:eq(1)').text()).toEqual('Eve');
+	expect(this.$container.find('tbody tr:eq(2) td:eq(1)').text()).toEqual('Frank');
+	expect(this.$container.find('tbody tr:eq(3) td:eq(1)').text()).toEqual('Jane');
+	expect(this.$container.find('tbody tr:eq(4) td:eq(1)').text()).toEqual('Joan');
+	expect(this.$container.find('tbody tr:eq(5) td:eq(1)').text()).toEqual('Meg');
+	expect(this.$container.find('tbody tr:eq(6) td:eq(1)').text()).toEqual('Rob');
+	expect(this.$container.find('tbody tr:eq(7) td:eq(1)').text()).toEqual('Sean');
+	expect(this.$container.find('tbody tr:eq(8) td:eq(1)').text()).toEqual('Sid');
+	expect(this.$container.find('tbody tr:eq(9) td:eq(1)').text()).toEqual('Ted');
+	
+	// set beforeColumnSort function
+	//global hook
+	Handsontable.PluginHooks.add('beforeColumnSort', function() {
+		return false;
+	});
+	
+	// perform sort
+	this.sortByColumn(0);
+	
+	// confirm sort was not performed
+	expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Chuck');
+	expect(this.$container.find('tbody tr:eq(1) td:eq(1)').text()).toEqual('Eve');
+	expect(this.$container.find('tbody tr:eq(2) td:eq(1)').text()).toEqual('Frank');
+	expect(this.$container.find('tbody tr:eq(3) td:eq(1)').text()).toEqual('Jane');
+	expect(this.$container.find('tbody tr:eq(4) td:eq(1)').text()).toEqual('Joan');
+	expect(this.$container.find('tbody tr:eq(5) td:eq(1)').text()).toEqual('Meg');
+	expect(this.$container.find('tbody tr:eq(6) td:eq(1)').text()).toEqual('Rob');
+	expect(this.$container.find('tbody tr:eq(7) td:eq(1)').text()).toEqual('Sean');
+	expect(this.$container.find('tbody tr:eq(8) td:eq(1)').text()).toEqual('Sid');
+	expect(this.$container.find('tbody tr:eq(9) td:eq(1)').text()).toEqual('Ted');
+  }
 
   it('should remove specified row from sorted table and NOT sort the table again', function () {
 
