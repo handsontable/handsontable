@@ -71,7 +71,7 @@ describe('ColumnSorting', function () {
   });
   
   it('sort should not be performed if function returns false', function () {
-      handsontable({
+      var hot = handsontable({
       data: arrayOfObjects(),
       colHeaders: true,
       columnSorting: true
@@ -93,8 +93,8 @@ describe('ColumnSorting', function () {
 	expect(this.$container.find('tbody tr:eq(9) td:eq(1)').text()).toEqual('Ted');
 	
 	// set beforeColumnSort function
-	//global hook
-	Handsontable.PluginHooks.add('beforeColumnSort', function() {
+	// instance hook
+	hot.addHook('beforeColumnSort', function() {
 		return false;
 	});
 	
@@ -112,7 +112,7 @@ describe('ColumnSorting', function () {
 	expect(this.$container.find('tbody tr:eq(7) td:eq(1)').text()).toEqual('Sean');
 	expect(this.$container.find('tbody tr:eq(8) td:eq(1)').text()).toEqual('Sid');
 	expect(this.$container.find('tbody tr:eq(9) td:eq(1)').text()).toEqual('Ted');
-  }
+  });
 
   it('should remove specified row from sorted table and NOT sort the table again', function () {
 
