@@ -116,42 +116,57 @@ MergeCells.prototype.applySpanProperties = function (TD, row, col) {
 MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, delta) {
   var current;
   switch (hook) {
-    case 'modifyTransformStartRow':
-    case 'modifyTransformStartCol':
+    case 'modifyTransformStart':
       current = currentSelectedRange.from;
       break;
 
-    case 'modifyTransformEndRow':
-    case 'modifyTransformEndCol':
+    case 'modifyTransformEnd':
       current = currentSelectedRange.to;
       break;
   }
-  //debugger;
-  var mergeParent = this.mergedCellInfoCollection.getInfo(current.row, current.col);
+  var mergeParent = this.mergedCellInfoCollection.getInfo(current.row + delta.row, current.col + delta.col);
   if (mergeParent) {
-    switch (hook) {
-      case 'modifyTransformStartRow':
-      case 'modifyTransformEndRow':
-        if (delta > 0) {
-          return mergeParent.row - current.row + mergeParent.rowspan - 1 + delta;
-        }
-        else if (delta < 0) {
-          return mergeParent.row - current.row + delta;
-        }
-        break;
+    if (current.row > mergeParent.row) { //entering merge by going up or left
+      this.lastDesiredCoords = new WalkontableCellCoords(current.row + delta.row, current.col + delta.col); //copy
+      delta.row += (mergeParent.row - current.row) - delta.row;
+    }
+    else if (current.row == mergeParent.row && delta.row > 0) { //leaving merge by going down
+      delta.row += mergeParent.row - current.row + mergeParent.rowspan - 1;
+    }
+    else { //leaving merge by going right
+      if (this.lastDesiredCoords && delta.row === 0) {
+        delta.row += this.lastDesiredCoords.row - current.row;
+        this.lastDesiredCoords = null;
+      }
+    }
 
-      case 'modifyTransformStartCol':
-      case 'modifyTransformEndCol':
-        if (delta > 0) {
-          return mergeParent.col - current.col + mergeParent.colspan - 1 + delta;
-        }
-        else if (delta < 0) {
-          return mergeParent.col - current.col + delta;
-        }
-        break;
+    if (current.col > mergeParent.col) { //entering merge by going up or left
+      if (!this.lastDesiredCoords) {
+        this.lastDesiredCoords = new WalkontableCellCoords(current.row + delta.row, current.col + delta.col); //copy
+      }
+      delta.col += (mergeParent.col - current.col) - delta.col;
+    }
+    else if (current.col == mergeParent.col && delta.col > 0) { //leaving merge by going right
+      delta.col += mergeParent.col - current.col + mergeParent.colspan - 1;
+    }
+    else { //leaving merge by going down
+      if (this.lastDesiredCoords && delta.col === 0) {
+        delta.col += this.lastDesiredCoords.col - current.col;
+        this.lastDesiredCoords = null;
+      }
     }
   }
-  return delta;
+  else {
+    if (this.lastDesiredCoords) {
+      if (delta.col == 0) { //leaving merge by going up
+        delta.col += this.lastDesiredCoords.col - current.col;
+      }
+      else if (delta.row == 0) { //leaving merge by going left
+        delta.row += this.lastDesiredCoords.row - current.row;
+      }
+      this.lastDesiredCoords = null;
+    }
+  }
 };
 
 if (typeof Handsontable == 'undefined') {
@@ -221,10 +236,7 @@ var modifyTransformFactory = function (hook) {
   return function (delta) {
     var mergeCellsSetting = this.getSettings().mergeCells;
     if (mergeCellsSetting) {
-      return this.mergeCells.modifyTransform(hook, this.getSelectedRange(), delta)
-    }
-    else {
-      return delta;
+      this.mergeCells.modifyTransform(hook, this.getSelectedRange(), delta)
     }
   }
 };
@@ -234,33 +246,13 @@ var modifyTransformFactory = function (hook) {
  * @param coords
  */
 var beforeSetRangeEnd = function (coords) {
-  var mergeCellsSetting = this.getSettings().mergeCells;
-  if (mergeCellsSetting) {
-    var selRange = this.getSelectedRange();
-    selRange.to = coords;
-
-    for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
-      var cellInfo = this.mergeCells.mergedCellInfoCollection[i];
-      var mergedCellTopLeft = new WalkontableCellCoords(cellInfo.row, cellInfo.col);
-      var mergedCellBottomRight = new WalkontableCellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
-
-      var mergedCellRange = new WalkontableCellRange(mergedCellTopLeft, mergedCellBottomRight);
-
-      if (selRange.expandByRange(mergedCellRange)) {
-        var selRangeBottomRight = selRange.getBottomRightCorner();
-        coords.row = selRangeBottomRight.row;
-        coords.col = selRangeBottomRight.col;
-      }
-    }
-  }
+  this.lastDesiredCoords = null; //unset lastDesiredCoords when selection is changed with mouse
 };
 
 Handsontable.hooks.add('beforeInit', init);
 Handsontable.hooks.add('beforeKeyDown', onBeforeKeyDown);
-Handsontable.hooks.add('modifyTransformStartRow', modifyTransformFactory('modifyTransformStartRow'));
-Handsontable.hooks.add('modifyTransformStartCol', modifyTransformFactory('modifyTransformStartCol'));
-Handsontable.hooks.add('modifyTransformEndRow', modifyTransformFactory('modifyTransformEndRow'));
-Handsontable.hooks.add('modifyTransformEndCol', modifyTransformFactory('modifyTransformEndCol'));
+Handsontable.hooks.add('modifyTransformStart', modifyTransformFactory('modifyTransformStart'));
+Handsontable.hooks.add('modifyTransformEnd', modifyTransformFactory('modifyTransformEnd'));
 Handsontable.hooks.add('beforeSetRangeEnd', beforeSetRangeEnd);
 Handsontable.hooks.add('afterRenderer', afterRenderer);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addMergeActionsToContextMenu);
