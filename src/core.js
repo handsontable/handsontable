@@ -353,7 +353,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @param {WalkontableCellCoords} coords
      */
     setRangeStart: function (coords) {
-      priv.selRange = new WalkontableCellRange(coords, coords);
+      priv.selRange = new WalkontableCellRange(coords, coords, coords);
       selection.setRangeEnd(coords);
     },
 
@@ -375,7 +375,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
       //set up current selection
       instance.view.wt.selections.current.clear();
-      instance.view.wt.selections.current.add(priv.selRange.from);
+      instance.view.wt.selections.current.add(priv.selRange.highlight);
 
       //set up area selection
       instance.view.wt.selections.area.clear();
@@ -1089,7 +1089,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Returns current selection as a WalkontableCellRange object. Returns undefined if there is no selection.
    * @public
-   * @return {WalkontableCellRange} [`startRow`, `startCol`, `endRow`, `endCol`]
+   * @return {WalkontableCellRange}
    */
   this.getSelectedRange = function () { //https://github.com/warpech/jquery-handsontable/issues/44  //cjl
     if (selection.isSelected()) {
@@ -1890,7 +1890,8 @@ Handsontable.Core = function (rootElement, userSettings) {
         return false;
       }
     }
-    priv.selRange = new WalkontableCellRange(new WalkontableCellCoords(row, col));
+    var coords = new WalkontableCellCoords(row, col);
+    priv.selRange = new WalkontableCellRange(coords, coords, coords);
     if (document.activeElement && document.activeElement !== document.documentElement && document.activeElement !== document.body) {
       document.activeElement.blur(); //needed or otherwise prepare won't focus the cell. selectionSpec tests this (should move focus to selected cell)
     }

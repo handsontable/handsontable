@@ -18,7 +18,8 @@ describe("handsontable.MergeCells", function () {
         data: createSpreadsheetObjectData(10, 5)
       });
       var mergeCells = new Handsontable.MergeCells(hot);
-      var cellRange = new WalkontableCellRange(new WalkontableCellCoords(0, 1), new WalkontableCellCoords(0, 1));
+      var coordsFrom = new WalkontableCellCoords(0, 1);
+      var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(0, 1));
       var result = mergeCells.canMergeRange(cellRange);
       expect(result).toBe(false);
     });
@@ -28,7 +29,8 @@ describe("handsontable.MergeCells", function () {
         data: createSpreadsheetObjectData(10, 5)
       });
       var mergeCells = new Handsontable.MergeCells(hot);
-      var cellRange = new WalkontableCellRange(new WalkontableCellCoords(0, 1), new WalkontableCellCoords(1, 1));
+      var coordsFrom = new WalkontableCellCoords(0, 1);
+      var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(1, 1));
       var result = mergeCells.canMergeRange(cellRange);
       expect(result).toBe(true);
     });
@@ -38,7 +40,8 @@ describe("handsontable.MergeCells", function () {
         data: createSpreadsheetObjectData(10, 5)
       });
       var mergeCells = new Handsontable.MergeCells(hot);
-      var cellRange = new WalkontableCellRange(new WalkontableCellCoords(0, 1), new WalkontableCellCoords(0, 2));
+      var coordsFrom = new WalkontableCellCoords(0, 1);
+      var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(0, 2));
       var result = mergeCells.canMergeRange(cellRange);
       expect(result).toBe(true);
     });
@@ -48,7 +51,8 @@ describe("handsontable.MergeCells", function () {
         data: createSpreadsheetObjectData(10, 5)
       });
       var mergeCells = new Handsontable.MergeCells(hot);
-      var cellRange = new WalkontableCellRange(new WalkontableCellCoords(0, 1), new WalkontableCellCoords(1, 2));
+      var coordsFrom = new WalkontableCellCoords(0, 1);
+      var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(1, 2));
       var result = mergeCells.canMergeRange(cellRange);
       expect(result).toBe(true);
     });
@@ -153,7 +157,7 @@ describe("handsontable.MergeCells", function () {
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
       var coords = new WalkontableCellCoords(1, 0);
-      var currentSelection = new WalkontableCellRange(coords, coords);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(0, 1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
@@ -165,7 +169,7 @@ describe("handsontable.MergeCells", function () {
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
       var coords = new WalkontableCellCoords(1, 1);
-      var currentSelection = new WalkontableCellRange(coords, coords);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(0, 1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
@@ -179,13 +183,13 @@ describe("handsontable.MergeCells", function () {
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
 
       var coords = new WalkontableCellCoords(2, 0);
-      var currentSelection = new WalkontableCellRange(coords, coords);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var inDelta = new WalkontableCellCoords(0, 1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
       expect(inDelta).toEqual(new WalkontableCellCoords(-1, 1));
 
       var coords = new WalkontableCellCoords(1, 1);
-      var currentSelection = new WalkontableCellRange(coords, coords);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var inDelta = new WalkontableCellCoords(0, 1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
       expect(inDelta).toEqual(new WalkontableCellCoords(1, 3));
@@ -196,7 +200,7 @@ describe("handsontable.MergeCells", function () {
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
       var coords = new WalkontableCellCoords(1, 4);
-      var currentSelection = new WalkontableCellRange(coords, coords);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(0, -1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
@@ -208,7 +212,7 @@ describe("handsontable.MergeCells", function () {
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
       var coords = new WalkontableCellCoords(1, 1);
-      var currentSelection = new WalkontableCellRange(coords, coords);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(0, -1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
@@ -222,13 +226,13 @@ describe("handsontable.MergeCells", function () {
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
 
       var coords = new WalkontableCellCoords(2, 4);
-      var currentSelection = new WalkontableCellRange(coords, coords);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var inDelta = new WalkontableCellCoords(0, -1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
       expect(inDelta).toEqual(new WalkontableCellCoords(-1, -3));
 
       var coords = new WalkontableCellCoords(1, 1);
-      var currentSelection = new WalkontableCellRange(coords, coords);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var inDelta = new WalkontableCellCoords(0, -1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
       expect(inDelta).toEqual(new WalkontableCellCoords(1, -1));
@@ -239,7 +243,7 @@ describe("handsontable.MergeCells", function () {
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
       var coords = new WalkontableCellCoords(0, 1);
-      var currentSelection = new WalkontableCellRange(coords, coords);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(0, -1);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
@@ -251,7 +255,7 @@ describe("handsontable.MergeCells", function () {
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
       var coords = new WalkontableCellCoords(1, 1);
-      var currentSelection = new WalkontableCellRange(coords, coords);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(1, 0);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
@@ -263,7 +267,7 @@ describe("handsontable.MergeCells", function () {
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
       var coords = new WalkontableCellCoords(4, 1);
-      var currentSelection = new WalkontableCellRange(coords, coords);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(-1, 0);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
@@ -275,7 +279,7 @@ describe("handsontable.MergeCells", function () {
         {row: 1, col: 1, rowspan: 3, colspan: 3}
       ];
       var coords = new WalkontableCellCoords(1, 1);
-      var currentSelection = new WalkontableCellRange(coords, coords);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
       var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       var inDelta = new WalkontableCellCoords(-1, 0);
       mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);

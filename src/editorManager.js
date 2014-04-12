@@ -282,8 +282,8 @@
         return;
       }
 
-      var row = priv.selRange.from.row;
-      var col = priv.selRange.from.col;
+      var row = priv.selRange.highlight.row;
+      var col = priv.selRange.highlight.col;
       var prop = instance.colToProp(col);
       var td = instance.getCell(row, col);
       var originalValue = instance.getDataAtCell(row, col);

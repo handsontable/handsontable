@@ -117,7 +117,7 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
   var current;
   switch (hook) {
     case 'modifyTransformStart':
-      current = currentSelectedRange.from;
+      current = currentSelectedRange.highlight;
       break;
 
     case 'modifyTransformEnd':

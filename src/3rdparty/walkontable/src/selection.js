@@ -21,7 +21,7 @@ WalkontableSelection.prototype.isEmpty = function () {
  */
 WalkontableSelection.prototype.add = function (coords) {
   if (this.isEmpty()) {
-    this.cellRange = new WalkontableCellRange(coords, coords);
+    this.cellRange = new WalkontableCellRange(coords, coords, coords);
   }
   else {
     this.cellRange.expand(coords);
