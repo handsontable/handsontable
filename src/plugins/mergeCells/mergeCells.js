@@ -324,7 +324,8 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
           var oneLastCheck = function (row, col) {
             var mergeParent = this.mergedCellInfoCollection.getInfo(row, col);
             if (mergeParent) {
-              currentSelectedRange.expand(mergeParent);
+              currentSelectedRange.expand(new WalkontableCellCoords(mergeParent.row, mergeParent.col));
+              currentSelectedRange.expand(new WalkontableCellCoords(mergeParent.row + mergeParent.rowspan - 1, mergeParent.col + mergeParent.colspan - 1));
               updateCornerInfo();
             }
           }
