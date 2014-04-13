@@ -476,7 +476,27 @@ var modifyTransformFactory = function (hook) {
   return function (delta) {
     var mergeCellsSetting = this.getSettings().mergeCells;
     if (mergeCellsSetting) {
-      this.mergeCells.modifyTransform(hook, this.getSelectedRange(), delta)
+      var currentSelectedRange = this.getSelectedRange();
+      this.mergeCells.modifyTransform(hook, currentSelectedRange, delta)
+
+      if (hook === "modifyTransformEnd") {
+        //sanitize "from" (core.js will sanitize to)
+        var totalRows = this.countRows();
+        var totalCols = this.countCols();
+        if (currentSelectedRange.from.row < 0) {
+          currentSelectedRange.from.row = 0;
+        }
+        else if (currentSelectedRange.from.row > 0 && currentSelectedRange.from.row >= totalRows) {
+          currentSelectedRange.from.row = currentSelectedRange.from - 1;
+        }
+
+        if (currentSelectedRange.from.col < 0) {
+          currentSelectedRange.from.col = 0;
+        }
+        else if (currentSelectedRange.from.col > 0 && currentSelectedRange.from.col >= totalCols) {
+          currentSelectedRange.from.col = totalCols - 1;
+        }
+      }
     }
   }
 };
