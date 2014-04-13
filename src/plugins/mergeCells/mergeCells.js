@@ -178,8 +178,8 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
     if (hightlightMergeParent) {
 
       if (currentSelectedRange.isSingle()) {
-          currentSelectedRange.from = new WalkontableCellCoords(hightlightMergeParent.row, hightlightMergeParent.col);
-          currentSelectedRange.to = new WalkontableCellCoords(hightlightMergeParent.row + hightlightMergeParent.rowspan - 1, hightlightMergeParent.col + hightlightMergeParent.colspan - 1);
+        currentSelectedRange.from = new WalkontableCellCoords(hightlightMergeParent.row, hightlightMergeParent.col);
+        currentSelectedRange.to = new WalkontableCellCoords(hightlightMergeParent.row + hightlightMergeParent.rowspan - 1, hightlightMergeParent.col + hightlightMergeParent.colspan - 1);
       }
 
     }
@@ -193,8 +193,8 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
     }
 
 
-    var solveDimension = function(dim) {
-      if(dim == "col") {
+    var solveDimension = function (dim) {
+      if (dim == "col") {
         var altDim = "row";
       }
       else {
@@ -223,7 +223,18 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
           colMergedSpan = hightlightMergeParent[dim + "span"] - 1;
 
         }
-        if (bottomRight[dim] > currentSelectedRange.highlight[dim] + colMergedSpan) {
+
+
+        console.log("current col", currentSelectedRange.highlight[dim], "eximaned", examinedCol);
+
+        if (delta[dim] < 0 && this.totalDelta[dim] <= 0) {
+          expanding = true;
+        }
+        else if (delta[dim] > 0 && this.totalDelta[dim] >= 0) {
+          expanding = true;
+        }
+
+        if (this.totalDelta[dim] > 0) {
           examinedCol = bottomRight[dim] + delta[dim];
           console.log("examinedCol1", examinedCol, colMergedSpan);
         }
@@ -233,18 +244,9 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
 
         }
 
+        this.totalDelta[dim] += delta[dim];
 
-        console.log("current col", currentSelectedRange.highlight[dim], "eximaned", examinedCol);
-
-        if (delta[dim] < 0 && examinedCol < currentSelectedRange.highlight[dim]) {
-          expanding = true;
-        }
-        else if (delta[dim] > 0 && examinedCol > currentSelectedRange.highlight[dim]) {
-          expanding = true;
-        }
-
-
-        console.log(".expanding", expanding, examinedCol, "DELTA", delta, topLeft, currentSelectedRange.highlight);
+        console.log(".expanding", dim, expanding, examinedCol, "DELTA", delta, topLeft, currentSelectedRange.highlight);
         console.log(".loop", topLeft[altDim], bottomRight[altDim]);
 
 
@@ -357,7 +359,7 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
                 else {
 
                   changeCoords(currentSelectedRange.from, topLeft[altDim], Math.min(topLeft[dim], mergeParent[dim]));
-                  changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.min(bottomRight[dim], mergeParent[dim]));
+                  changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.min(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"]));
                   console.log("XXX4b", JSON.stringify(currentSelectedRange));
 
                 }
@@ -377,9 +379,6 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
     solveDimension.call(this, "row");
 
 
-    // }
-    this.lastCell = new WalkontableCellCoords(current.row + delta.row, current.col + delta.col);
-    console.log("last cell", this.lastCell);
     delta.row = 0;
     delta.col = 0;
 
@@ -467,7 +466,7 @@ var beforeSetRangeStart = function (coords) {
   console.log("selection new");
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (mergeCellsSetting) {
-    this.mergeCells.lastCell = null;
+    this.mergeCells.totalDelta = new WalkontableCellCoords(0, 0);
   }
 };
 /**
