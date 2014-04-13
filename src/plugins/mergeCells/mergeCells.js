@@ -270,9 +270,8 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
           }
         }
 
-
         for (var i = topLeft[altDim]; i <= bottomRight[altDim]; i++) {
-          var mergeParent = this.mergedCellInfoCollection.getInfo(i, examinedCol);
+          var mergeParent = dim == "col" ? this.mergedCellInfoCollection.getInfo(i, examinedCol) : this.mergedCellInfoCollection.getInfo(examinedCol, i);
           if (mergeParent) {
             if (expanding) {
               if (delta[dim] > 0) { //moving East wall further East
