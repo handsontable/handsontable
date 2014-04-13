@@ -227,24 +227,48 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
 
         console.log("current col", currentSelectedRange.highlight[dim], "eximaned", examinedCol);
 
-        if (delta[dim] < 0 && this.totalDelta[dim] <= 0) {
-          expanding = true;
-        }
-        else if (delta[dim] > 0 && this.totalDelta[dim] >= 0) {
-          expanding = true;
-        }
 
-        if (this.totalDelta[dim] > 0) {
+        var expanding = false;
+        //now check if maybe we are expanding?
+        if (delta[dim] < 0) {
           examinedCol = bottomRight[dim] + delta[dim];
-          console.log("examinedCol1", examinedCol, colMergedSpan);
+          if (bottomRight[dim] == currentSelectedRange.highlight[dim]) {
+            examinedCol = topLeft[dim] + delta[dim];
+            expanding = true;
+          }
+          else {
+            for (var i = topLeft[altDim]; i <= bottomRight[altDim]; i++) {
+              var mergeParent = this.mergedCellInfoCollection.getInfo(i, bottomRight[dim]);
+              if (mergeParent) {
+                if (mergeParent[dim] <= currentSelectedRange.highlight[dim]) {
+                  examinedCol = topLeft[dim] + delta[dim];
+                  expanding = true;
+                  break;
+                }
+              }
+            }
+          }
         }
-        else {
+        else if (delta[dim] > 0) {
           examinedCol = topLeft[dim] + delta[dim];
-          console.log("examinedCol2", examinedCol);
-
+          if (topLeft[dim] == currentSelectedRange.highlight[dim]) {
+            examinedCol = bottomRight[dim] + delta[dim];
+            expanding = true;
+          }
+          else {
+            for (var i = topLeft[altDim]; i <= bottomRight[altDim]; i++) {
+              var mergeParent = this.mergedCellInfoCollection.getInfo(i, topLeft[dim]);
+              if (mergeParent) {
+                if (mergeParent[dim] + mergeParent[dim + "span"] > currentSelectedRange.highlight[dim]) {
+                  examinedCol = bottomRight[dim] + delta[dim];
+                  expanding = true;
+                  break;
+                }
+              }
+            }
+          }
         }
 
-        this.totalDelta[dim] += delta[dim];
 
         console.log(".expanding", dim, expanding, examinedCol, "DELTA", delta, topLeft, currentSelectedRange.highlight);
         console.log(".loop", topLeft[altDim], bottomRight[altDim]);
@@ -339,7 +363,6 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
                   changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.max(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"] - 1));
 
                 }
-
 
 
                 console.log("XXX3", JSON.stringify(currentSelectedRange), bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"]);
@@ -464,10 +487,6 @@ var modifyTransformFactory = function (hook) {
  */
 var beforeSetRangeStart = function (coords) {
   console.log("selection new");
-  var mergeCellsSetting = this.getSettings().mergeCells;
-  if (mergeCellsSetting) {
-    this.mergeCells.totalDelta = new WalkontableCellCoords(0, 0);
-  }
 };
 /**
  * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell
