@@ -174,190 +174,208 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
   }
   else {
     //modify transform end
+    var hightlightMergeParent = this.mergedCellInfoCollection.getInfo(currentSelectedRange.highlight.row, currentSelectedRange.highlight.col);
+    if (hightlightMergeParent) {
 
-    if (delta.col != 0) {
-      var hightlightMergeParent = this.mergedCellInfoCollection.getInfo(currentSelectedRange.highlight.row, currentSelectedRange.highlight.col);
-      if (hightlightMergeParent) {
-
-        if (currentSelectedRange.isSingle()) {
+      if (currentSelectedRange.isSingle()) {
           currentSelectedRange.from = new WalkontableCellCoords(hightlightMergeParent.row, hightlightMergeParent.col);
           currentSelectedRange.to = new WalkontableCellCoords(hightlightMergeParent.row + hightlightMergeParent.rowspan - 1, hightlightMergeParent.col + hightlightMergeParent.colspan - 1);
-        }
-
       }
 
-      var topLeft = currentSelectedRange.getTopLeftCorner();
-      var bottomRight = currentSelectedRange.getBottomRightCorner();
+    }
+
+    if (currentSelectedRange.isSingle()) {
+
+      //make sure objects are clones but not reference to the same instance
+      //because we will mutate them
+      currentSelectedRange.from = new WalkontableCellCoords(currentSelectedRange.highlight.row, currentSelectedRange.highlight.col);
+      currentSelectedRange.to = new WalkontableCellCoords(currentSelectedRange.highlight.row, currentSelectedRange.highlight.col);
+    }
 
 
-      var expanding = false; //expanding false means shrinking
-      var examinedCol;
-      /*if(delta.col < 0 && bottomRight.col <= currentSelectedRange.highlight.col) {
-       expanding = true;
-       }
-       else if(delta.col > 0 && topLeft.col >= currentSelectedRange.highlight.col) {
-       expanding = true;
-       }*/
-
-      var colMergedSpan = 0;
-      if (hightlightMergeParent) {
-        colMergedSpan = hightlightMergeParent.colspan - 1;
-
-      }
-      if (bottomRight.col > currentSelectedRange.highlight.col + colMergedSpan) {
-        examinedCol = bottomRight.col + delta.col;
-        console.log("examinedCol1", examinedCol, colMergedSpan);
+    var solveDimension = function(dim) {
+      if(dim == "col") {
+        var altDim = "row";
       }
       else {
-        examinedCol = topLeft.col + delta.col;
-        console.log("examinedCol2", examinedCol);
+        var altDim = "col";
 
       }
-//      if(topLeft.col < currentSelectedRange.highlight.col) {
-//        examinedCol = topLeft.col + delta.col;
-//      }
-//      else {
-//        examinedCol = bottomRight.col + delta.col;
-//      }
 
-      //if(examinedCol >= 0) {
+      function changeCoords(obj, altDimValue, dimValue) {
+        obj[altDim] = altDimValue;
+        obj[dim] = dimValue;
 
-      console.log("current col", currentSelectedRange.highlight.col, "eximaned", examinedCol);
-
-      if (delta.col < 0 && examinedCol < currentSelectedRange.highlight.col) {
-        expanding = true;
-      }
-      else if (delta.col > 0 && examinedCol > currentSelectedRange.highlight.col) {
-        expanding = true;
       }
 
 
-      console.log(".expanding", expanding, examinedCol, "DELTA", delta, topLeft, currentSelectedRange.highlight);
-      console.log(".loop", topLeft.row, bottomRight.row);
+      if (delta[dim] != 0) {
 
 
-      if (expanding) {
-        if (delta.col > 0) { //moving East wall further East
-          currentSelectedRange.from = new WalkontableCellCoords(topLeft.row, topLeft.col);
-          currentSelectedRange.to = new WalkontableCellCoords(bottomRight.row, Math.max(bottomRight.col, examinedCol));
-          topLeft = currentSelectedRange.getTopLeftCorner();
-          bottomRight = currentSelectedRange.getBottomRightCorner();
-          console.log("yyyyyyyy1", JSON.stringify(currentSelectedRange));
-          //delta.row = 0;
-          //delta.col = 0;
+        var topLeft = currentSelectedRange.getTopLeftCorner();
+        var bottomRight = currentSelectedRange.getBottomRightCorner();
+
+
+        var expanding = false; //expanding false means shrinking
+        var examinedCol;
+        var colMergedSpan = 0;
+        if (hightlightMergeParent) {
+          colMergedSpan = hightlightMergeParent[dim + "span"] - 1;
+
         }
-        else { //moving West wall further West
-          currentSelectedRange.from = new WalkontableCellCoords(topLeft.row, Math.min(topLeft.col, examinedCol));
-          currentSelectedRange.to = new WalkontableCellCoords(bottomRight.row, bottomRight.col);
-          topLeft = currentSelectedRange.getTopLeftCorner();
-          bottomRight = currentSelectedRange.getBottomRightCorner();
-          console.log("yyyyyyyy2", JSON.stringify(currentSelectedRange));
-          //delta.row = 0;
-          //delta.col = 0;
+        if (bottomRight[dim] > currentSelectedRange.highlight[dim] + colMergedSpan) {
+          examinedCol = bottomRight[dim] + delta[dim];
+          console.log("examinedCol1", examinedCol, colMergedSpan);
+        }
+        else {
+          examinedCol = topLeft[dim] + delta[dim];
+          console.log("examinedCol2", examinedCol);
+
         }
 
-      }
-      else {
-        if (delta.col > 0) { //shrinking West wall towards East
-          currentSelectedRange.from = new WalkontableCellCoords(topLeft.row, Math.max(topLeft.col, examinedCol));
-          currentSelectedRange.to = new WalkontableCellCoords(bottomRight.row, bottomRight.col);
-          topLeft = currentSelectedRange.getTopLeftCorner();
-          bottomRight = currentSelectedRange.getBottomRightCorner();
-          console.log("yyyyyyyy3", JSON.stringify(currentSelectedRange));
-          //delta.row = 0;
-          //delta.col = 0;
+
+        console.log("current col", currentSelectedRange.highlight[dim], "eximaned", examinedCol);
+
+        if (delta[dim] < 0 && examinedCol < currentSelectedRange.highlight[dim]) {
+          expanding = true;
         }
-        else { //shrinking East wall towards West
-          currentSelectedRange.from = new WalkontableCellCoords(topLeft.row, topLeft.col);
-          currentSelectedRange.to = new WalkontableCellCoords(bottomRight.row, Math.min(bottomRight.col, examinedCol));
-          topLeft = currentSelectedRange.getTopLeftCorner();
-          bottomRight = currentSelectedRange.getBottomRightCorner();
-          console.log("yyyyyyyy4", JSON.stringify(currentSelectedRange));
-          //delta.row = 0;
-          //delta.col = 0;
+        else if (delta[dim] > 0 && examinedCol > currentSelectedRange.highlight[dim]) {
+          expanding = true;
         }
-      }
 
 
-      for (var i = topLeft.row; i <= bottomRight.row; i++) {
-        var mergeParent = this.mergedCellInfoCollection.getInfo(i, examinedCol);
-        console.log("checking", i, examinedCol, mergeParent);
-        if (mergeParent) {
-          if (expanding) {
-            if (delta.col > 0) { //moving East wall further East
-              currentSelectedRange.from = new WalkontableCellCoords(Math.min(topLeft.row, mergeParent.row), Math.min(topLeft.col, mergeParent.col));
-              if (examinedCol > mergeParent.col) {
-                currentSelectedRange.to = new WalkontableCellCoords(Math.max(bottomRight.row, mergeParent.row + mergeParent.rowspan - 1), Math.max(bottomRight.col, mergeParent.col + mergeParent.colspan));
-                console.log("XXX1a", JSON.stringify(currentSelectedRange));
+        console.log(".expanding", expanding, examinedCol, "DELTA", delta, topLeft, currentSelectedRange.highlight);
+        console.log(".loop", topLeft[altDim], bottomRight[altDim]);
 
-              }
-              else {
-                currentSelectedRange.to = new WalkontableCellCoords(Math.max(bottomRight.row, mergeParent.row + mergeParent.rowspan - 1), Math.max(bottomRight.col, mergeParent.col + mergeParent.colspan - 1));
-                console.log("XXX1b", JSON.stringify(currentSelectedRange));
 
-              }
-              topLeft = currentSelectedRange.getTopLeftCorner();
-              bottomRight = currentSelectedRange.getBottomRightCorner();
-              //delta.row = 0;
-              //delta.col = 0;
-            }
-            else { //moving West wall further West
-              currentSelectedRange.from = new WalkontableCellCoords(Math.min(topLeft.row, mergeParent.row), Math.min(topLeft.col, mergeParent.col));
-              currentSelectedRange.to = new WalkontableCellCoords(Math.max(bottomRight.row, mergeParent.row + mergeParent.rowspan - 1), Math.max(bottomRight.col, mergeParent.col + mergeParent.colspan - 1));
-              topLeft = currentSelectedRange.getTopLeftCorner();
-              bottomRight = currentSelectedRange.getBottomRightCorner();
-              console.log("XXX2", JSON.stringify(currentSelectedRange));
-              //delta.row = 0;
-              //delta.col = 0;
-            }
-
+        if (expanding) {
+          if (delta[dim] > 0) { //moving East wall further East
+            changeCoords(currentSelectedRange.from, topLeft[altDim], topLeft[dim]);
+            changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.max(bottomRight[dim], examinedCol));
+            topLeft = currentSelectedRange.getTopLeftCorner();
+            bottomRight = currentSelectedRange.getBottomRightCorner();
+            console.log("yyyyyyyy1", JSON.stringify(currentSelectedRange));
+            //delta[altDim] = 0;
+            //delta[dim] = 0;
           }
-          else {
-            if (delta.col > 0) { //shrinking West wall towards East
-              if (examinedCol > mergeParent.col) {
-                currentSelectedRange.from = new WalkontableCellCoords(topLeft.row, Math.max(topLeft.col, mergeParent.col + mergeParent.colspan));
-                currentSelectedRange.to = new WalkontableCellCoords(bottomRight.row, Math.max(bottomRight.col, mergeParent.col + mergeParent.colspan));
+          else { //moving West wall further West
 
+            changeCoords(currentSelectedRange.from, topLeft[altDim], Math.min(topLeft[dim], examinedCol));
+            changeCoords(currentSelectedRange.to, bottomRight[altDim], bottomRight[dim]);
+            topLeft = currentSelectedRange.getTopLeftCorner();
+            bottomRight = currentSelectedRange.getBottomRightCorner();
+            console.log("yyyyyyyy2", JSON.stringify(currentSelectedRange));
+            //delta[altDim] = 0;
+            //delta[dim] = 0;
+          }
+
+        }
+        else {
+          if (delta[dim] > 0) { //shrinking West wall towards East
+            changeCoords(currentSelectedRange.from, topLeft[altDim], Math.max(topLeft[dim], examinedCol));
+            changeCoords(currentSelectedRange.to, bottomRight[altDim], bottomRight[dim]);
+            topLeft = currentSelectedRange.getTopLeftCorner();
+            bottomRight = currentSelectedRange.getBottomRightCorner();
+            console.log("yyyyyyyy3", JSON.stringify(currentSelectedRange));
+            //delta[altDim] = 0;
+            //delta[dim] = 0;
+          }
+          else { //shrinking East wall towards West
+            changeCoords(currentSelectedRange.from, topLeft[altDim], topLeft[dim]);
+            changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.min(bottomRight[dim], examinedCol));
+            topLeft = currentSelectedRange.getTopLeftCorner();
+            bottomRight = currentSelectedRange.getBottomRightCorner();
+            console.log("yyyyyyyy4", JSON.stringify(currentSelectedRange));
+            //delta[altDim] = 0;
+            //delta[dim] = 0;
+          }
+        }
+
+
+        for (var i = topLeft[altDim]; i <= bottomRight[altDim]; i++) {
+          var mergeParent = this.mergedCellInfoCollection.getInfo(i, examinedCol);
+          console.log("checking", i, examinedCol, mergeParent);
+          if (mergeParent) {
+            if (expanding) {
+              if (delta[dim] > 0) { //moving East wall further East
+                changeCoords(currentSelectedRange.from, Math.min(topLeft[altDim], mergeParent[altDim]), Math.min(topLeft[dim], mergeParent[dim]));
+                if (examinedCol > mergeParent[dim]) {
+                  changeCoords(currentSelectedRange.to, Math.max(bottomRight[altDim], mergeParent[altDim] + mergeParent[altDim + "span"] - 1), Math.max(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"]));
+                  console.log("XXX1a", JSON.stringify(currentSelectedRange));
+
+                }
+                else {
+                  changeCoords(currentSelectedRange.to, Math.max(bottomRight[altDim], mergeParent[altDim] + mergeParent[altDim + "span"] - 1), Math.max(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"] - 1));
+                  console.log("XXX1b", JSON.stringify(currentSelectedRange));
+
+                }
+                topLeft = currentSelectedRange.getTopLeftCorner();
+                bottomRight = currentSelectedRange.getBottomRightCorner();
+                //delta[altDim] = 0;
+                //delta[dim] = 0;
               }
-              else {
-                currentSelectedRange.from = new WalkontableCellCoords(topLeft.row, Math.max(topLeft.col, mergeParent.col));
-                currentSelectedRange.to = new WalkontableCellCoords(bottomRight.row, Math.max(bottomRight.col, mergeParent.col + mergeParent.colspan - 1));
-
+              else { //moving West wall further West
+                changeCoords(currentSelectedRange.from, Math.min(topLeft[altDim], mergeParent[altDim]), Math.min(topLeft[dim], mergeParent[dim]));
+                changeCoords(currentSelectedRange.to, Math.max(bottomRight[altDim], mergeParent[altDim] + mergeParent[altDim + "span"] - 1), Math.max(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"] - 1));
+                topLeft = currentSelectedRange.getTopLeftCorner();
+                bottomRight = currentSelectedRange.getBottomRightCorner();
+                console.log("XXX2", JSON.stringify(currentSelectedRange));
+                //delta[altDim] = 0;
+                //delta[dim] = 0;
               }
 
-
-
-              console.log("XXX3", JSON.stringify(currentSelectedRange), bottomRight.col, mergeParent.col + mergeParent.colspan);
-              topLeft = currentSelectedRange.getTopLeftCorner();
-              bottomRight = currentSelectedRange.getBottomRightCorner();
-              //delta.row = 0;
-              //delta.col = 0;
             }
-            else { //shrinking East wall towards West
-              if (examinedCol < mergeParent.col + mergeParent.colspan - 1) {
+            else {
+              if (delta[dim] > 0) { //shrinking West wall towards East
+                if (examinedCol > mergeParent[dim]) {
+                  changeCoords(currentSelectedRange.from, topLeft[altDim], Math.max(topLeft[dim], mergeParent[dim] + mergeParent[dim + "span"]));
+                  changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.max(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"]));
 
-                currentSelectedRange.from = new WalkontableCellCoords(topLeft.row, Math.min(topLeft.col, mergeParent.col - 1));
-                currentSelectedRange.to = new WalkontableCellCoords(bottomRight.row, Math.min(bottomRight.col, mergeParent.col - 1));
-                console.log("XXX4a", JSON.stringify(currentSelectedRange));
+                }
+                else {
+                  changeCoords(currentSelectedRange.from, topLeft[altDim], Math.max(topLeft[dim], mergeParent[dim]));
+                  changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.max(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"] - 1));
 
+                }
+
+
+
+                console.log("XXX3", JSON.stringify(currentSelectedRange), bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"]);
+                topLeft = currentSelectedRange.getTopLeftCorner();
+                bottomRight = currentSelectedRange.getBottomRightCorner();
+                //delta[altDim] = 0;
+                //delta[dim] = 0;
               }
-              else {
+              else { //shrinking East wall towards West
+                if (examinedCol < mergeParent[dim] + mergeParent[dim + "span"] - 1) {
 
-                currentSelectedRange.from = new WalkontableCellCoords(topLeft.row, Math.min(topLeft.col, mergeParent.col));
-                currentSelectedRange.to = new WalkontableCellCoords(bottomRight.row, Math.min(bottomRight.col, mergeParent.col));
-                console.log("XXX4b", JSON.stringify(currentSelectedRange));
+                  changeCoords(currentSelectedRange.from, topLeft[altDim], Math.min(topLeft[dim], mergeParent[dim] - 1));
+                  changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.min(bottomRight[dim], mergeParent[dim] - 1));
+                  console.log("XXX4a", JSON.stringify(currentSelectedRange));
 
+                }
+                else {
+
+                  changeCoords(currentSelectedRange.from, topLeft[altDim], Math.min(topLeft[dim], mergeParent[dim]));
+                  changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.min(bottomRight[dim], mergeParent[dim]));
+                  console.log("XXX4b", JSON.stringify(currentSelectedRange));
+
+                }
+
+                topLeft = currentSelectedRange.getTopLeftCorner();
+                bottomRight = currentSelectedRange.getBottomRightCorner();
+                //delta[altDim] = 0;
+                //delta[dim] = 0;
               }
-
-              topLeft = currentSelectedRange.getTopLeftCorner();
-              bottomRight = currentSelectedRange.getBottomRightCorner();
-              //delta.row = 0;
-              //delta.col = 0;
             }
           }
         }
       }
     }
+
+    solveDimension.call(this, "col");
+    solveDimension.call(this, "row");
+
 
     // }
     this.lastCell = new WalkontableCellCoords(current.row + delta.row, current.col + delta.col);
