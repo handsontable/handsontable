@@ -320,6 +320,25 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
             }
           }
         }
+
+        if (expanding) {
+          //check if corners are not part of merged cells as well
+          var oneLastCheck = function (row, col) {
+            var mergeParent = this.mergedCellInfoCollection.getInfo(row, col);
+            if (mergeParent) {
+              currentSelectedRange.expand(mergeParent);
+              topLeft = currentSelectedRange.getTopLeftCorner();
+              bottomRight = currentSelectedRange.getBottomRightCorner();
+            }
+          }
+          oneLastCheck.call(this, topLeft.row, topLeft.col);
+          oneLastCheck.call(this, topLeft.row, bottomRight.col);
+          oneLastCheck.call(this, bottomRight.row, bottomRight.col);
+          oneLastCheck.call(this, bottomRight.row, topLeft.col);
+        }
+        else {
+          //TODO there is still a glitch if you go to merge_cells.html, go to D5 and press up, right, down
+        }
       }
     };
 
