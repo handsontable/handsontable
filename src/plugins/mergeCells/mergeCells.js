@@ -114,8 +114,6 @@ MergeCells.prototype.applySpanProperties = function (TD, row, col) {
 };
 
 MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, delta) {
-  console.log("modify transform");
-
   var current;
   switch (hook) {
     case 'modifyTransformStart':
@@ -128,6 +126,7 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
   }
 
   if (hook == "modifyTransformStart") {
+    //in future - can this take the logic from modifyTransformEnd?
     var mergeParent = this.mergedCellInfoCollection.getInfo(current.row + delta.row, current.col + delta.col);
     if (mergeParent) {
       if (current.row > mergeParent.row) { //entering merge by going up or left
@@ -176,59 +175,33 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
     //modify transform end
     var hightlightMergeParent = this.mergedCellInfoCollection.getInfo(currentSelectedRange.highlight.row, currentSelectedRange.highlight.col);
     if (hightlightMergeParent) {
-
       if (currentSelectedRange.isSingle()) {
         currentSelectedRange.from = new WalkontableCellCoords(hightlightMergeParent.row, hightlightMergeParent.col);
         currentSelectedRange.to = new WalkontableCellCoords(hightlightMergeParent.row + hightlightMergeParent.rowspan - 1, hightlightMergeParent.col + hightlightMergeParent.colspan - 1);
       }
-
     }
 
     if (currentSelectedRange.isSingle()) {
-
       //make sure objects are clones but not reference to the same instance
       //because we will mutate them
       currentSelectedRange.from = new WalkontableCellCoords(currentSelectedRange.highlight.row, currentSelectedRange.highlight.col);
       currentSelectedRange.to = new WalkontableCellCoords(currentSelectedRange.highlight.row, currentSelectedRange.highlight.col);
     }
 
-
     var solveDimension = function (dim) {
-      if (dim == "col") {
-        var altDim = "row";
-      }
-      else {
-        var altDim = "col";
-
-      }
+      var altDim = dim == "col" ? "row" : "col";
 
       function changeCoords(obj, altDimValue, dimValue) {
         obj[altDim] = altDimValue;
         obj[dim] = dimValue;
-
       }
 
-
       if (delta[dim] != 0) {
-
-
         var topLeft = currentSelectedRange.getTopLeftCorner();
         var bottomRight = currentSelectedRange.getBottomRightCorner();
 
-
         var expanding = false; //expanding false means shrinking
         var examinedCol;
-        var colMergedSpan = 0;
-        if (hightlightMergeParent) {
-          colMergedSpan = hightlightMergeParent[dim + "span"] - 1;
-
-        }
-
-
-        console.log("current col", currentSelectedRange.highlight[dim], "eximaned", examinedCol);
-
-
-        var expanding = false;
         //now check if maybe we are expanding?
         if (delta[dim] < 0) {
           examinedCol = bottomRight[dim] + delta[dim];
@@ -269,30 +242,18 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
           }
         }
 
-
-        console.log(".expanding", dim, expanding, examinedCol, "DELTA", delta, topLeft, currentSelectedRange.highlight);
-        console.log(".loop", topLeft[altDim], bottomRight[altDim]);
-
-
         if (expanding) {
           if (delta[dim] > 0) { //moving East wall further East
             changeCoords(currentSelectedRange.from, topLeft[altDim], topLeft[dim]);
             changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.max(bottomRight[dim], examinedCol));
             topLeft = currentSelectedRange.getTopLeftCorner();
             bottomRight = currentSelectedRange.getBottomRightCorner();
-            console.log("yyyyyyyy1", JSON.stringify(currentSelectedRange));
-            //delta[altDim] = 0;
-            //delta[dim] = 0;
           }
           else { //moving West wall further West
-
             changeCoords(currentSelectedRange.from, topLeft[altDim], Math.min(topLeft[dim], examinedCol));
             changeCoords(currentSelectedRange.to, bottomRight[altDim], bottomRight[dim]);
             topLeft = currentSelectedRange.getTopLeftCorner();
             bottomRight = currentSelectedRange.getBottomRightCorner();
-            console.log("yyyyyyyy2", JSON.stringify(currentSelectedRange));
-            //delta[altDim] = 0;
-            //delta[dim] = 0;
           }
 
         }
@@ -302,110 +263,74 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
             changeCoords(currentSelectedRange.to, bottomRight[altDim], bottomRight[dim]);
             topLeft = currentSelectedRange.getTopLeftCorner();
             bottomRight = currentSelectedRange.getBottomRightCorner();
-            console.log("yyyyyyyy3", JSON.stringify(currentSelectedRange));
-            //delta[altDim] = 0;
-            //delta[dim] = 0;
           }
           else { //shrinking East wall towards West
             changeCoords(currentSelectedRange.from, topLeft[altDim], topLeft[dim]);
             changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.min(bottomRight[dim], examinedCol));
             topLeft = currentSelectedRange.getTopLeftCorner();
             bottomRight = currentSelectedRange.getBottomRightCorner();
-            console.log("yyyyyyyy4", JSON.stringify(currentSelectedRange));
-            //delta[altDim] = 0;
-            //delta[dim] = 0;
           }
         }
 
 
         for (var i = topLeft[altDim]; i <= bottomRight[altDim]; i++) {
           var mergeParent = this.mergedCellInfoCollection.getInfo(i, examinedCol);
-          console.log("checking", i, examinedCol, mergeParent);
           if (mergeParent) {
             if (expanding) {
               if (delta[dim] > 0) { //moving East wall further East
                 changeCoords(currentSelectedRange.from, Math.min(topLeft[altDim], mergeParent[altDim]), Math.min(topLeft[dim], mergeParent[dim]));
                 if (examinedCol > mergeParent[dim]) {
                   changeCoords(currentSelectedRange.to, Math.max(bottomRight[altDim], mergeParent[altDim] + mergeParent[altDim + "span"] - 1), Math.max(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"]));
-                  console.log("XXX1a", JSON.stringify(currentSelectedRange));
-
                 }
                 else {
                   changeCoords(currentSelectedRange.to, Math.max(bottomRight[altDim], mergeParent[altDim] + mergeParent[altDim + "span"] - 1), Math.max(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"] - 1));
-                  console.log("XXX1b", JSON.stringify(currentSelectedRange));
-
                 }
                 topLeft = currentSelectedRange.getTopLeftCorner();
                 bottomRight = currentSelectedRange.getBottomRightCorner();
-                //delta[altDim] = 0;
-                //delta[dim] = 0;
               }
               else { //moving West wall further West
                 changeCoords(currentSelectedRange.from, Math.min(topLeft[altDim], mergeParent[altDim]), Math.min(topLeft[dim], mergeParent[dim]));
                 changeCoords(currentSelectedRange.to, Math.max(bottomRight[altDim], mergeParent[altDim] + mergeParent[altDim + "span"] - 1), Math.max(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"] - 1));
                 topLeft = currentSelectedRange.getTopLeftCorner();
                 bottomRight = currentSelectedRange.getBottomRightCorner();
-                console.log("XXX2", JSON.stringify(currentSelectedRange));
-                //delta[altDim] = 0;
-                //delta[dim] = 0;
               }
-
             }
             else {
               if (delta[dim] > 0) { //shrinking West wall towards East
                 if (examinedCol > mergeParent[dim]) {
                   changeCoords(currentSelectedRange.from, topLeft[altDim], Math.max(topLeft[dim], mergeParent[dim] + mergeParent[dim + "span"]));
                   changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.max(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"]));
-
                 }
                 else {
                   changeCoords(currentSelectedRange.from, topLeft[altDim], Math.max(topLeft[dim], mergeParent[dim]));
                   changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.max(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"] - 1));
-
                 }
-
-
-                console.log("XXX3", JSON.stringify(currentSelectedRange), bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"]);
                 topLeft = currentSelectedRange.getTopLeftCorner();
                 bottomRight = currentSelectedRange.getBottomRightCorner();
-                //delta[altDim] = 0;
-                //delta[dim] = 0;
               }
               else { //shrinking East wall towards West
                 if (examinedCol < mergeParent[dim] + mergeParent[dim + "span"] - 1) {
-
                   changeCoords(currentSelectedRange.from, topLeft[altDim], Math.min(topLeft[dim], mergeParent[dim] - 1));
                   changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.min(bottomRight[dim], mergeParent[dim] - 1));
-                  console.log("XXX4a", JSON.stringify(currentSelectedRange));
-
                 }
                 else {
-
                   changeCoords(currentSelectedRange.from, topLeft[altDim], Math.min(topLeft[dim], mergeParent[dim]));
                   changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.min(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"]));
-                  console.log("XXX4b", JSON.stringify(currentSelectedRange));
-
                 }
-
                 topLeft = currentSelectedRange.getTopLeftCorner();
                 bottomRight = currentSelectedRange.getBottomRightCorner();
-                //delta[altDim] = 0;
-                //delta[dim] = 0;
               }
             }
           }
         }
       }
-    }
+    };
 
     solveDimension.call(this, "col");
     solveDimension.call(this, "row");
 
-
     delta.row = 0;
     delta.col = 0;
-
-
   }
 };
 
@@ -477,7 +402,7 @@ var modifyTransformFactory = function (hook) {
     var mergeCellsSetting = this.getSettings().mergeCells;
     if (mergeCellsSetting) {
       var currentSelectedRange = this.getSelectedRange();
-      this.mergeCells.modifyTransform(hook, currentSelectedRange, delta)
+      this.mergeCells.modifyTransform(hook, currentSelectedRange, delta);
 
       if (hook === "modifyTransformEnd") {
         //sanitize "from" (core.js will sanitize to)
@@ -505,24 +430,14 @@ var modifyTransformFactory = function (hook) {
  * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell
  * @param coords
  */
-var beforeSetRangeStart = function (coords) {
-  console.log("selection new");
-};
-/**
- * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell
- * @param coords
- */
 var beforeSetRangeEnd = function (coords) {
   this.lastDesiredCoords = null; //unset lastDesiredCoords when selection is changed with mouse
-  console.log("selection new finished");
-
 };
 
 Handsontable.hooks.add('beforeInit', init);
 Handsontable.hooks.add('beforeKeyDown', onBeforeKeyDown);
 Handsontable.hooks.add('modifyTransformStart', modifyTransformFactory('modifyTransformStart'));
 Handsontable.hooks.add('modifyTransformEnd', modifyTransformFactory('modifyTransformEnd'));
-Handsontable.hooks.add('beforeSetRangeStart', beforeSetRangeStart);
 Handsontable.hooks.add('beforeSetRangeEnd', beforeSetRangeEnd);
 Handsontable.hooks.add('afterRenderer', afterRenderer);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addMergeActionsToContextMenu);
