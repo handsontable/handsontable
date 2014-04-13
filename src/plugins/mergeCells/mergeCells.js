@@ -87,13 +87,11 @@ MergeCells.prototype.mergeOrUnmergeSelection = function (cellRange) {
 
 MergeCells.prototype.mergeSelection = function (cellRange) {
   this.mergeRange(cellRange);
-  this.instance.render();
 };
 
 MergeCells.prototype.unmergeSelection = function (cellRange) {
   var info = this.mergedCellInfoCollection.getInfo(cellRange.row, cellRange.col);
   this.mergedCellInfoCollection.removeInfo(info.row, info.col);
-  this.instance.render();
 };
 
 MergeCells.prototype.applySpanProperties = function (TD, row, col) {
@@ -359,6 +357,7 @@ var onBeforeKeyDown = function (event) {
   if (ctrlDown) {
     if (event.keyCode === 77) { //CTRL + M
       this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
+      this.render();
       event.stopImmediatePropagation();
     }
   }
@@ -384,6 +383,7 @@ var addMergeActionsToContextMenu = function (defaultOptions) {
     },
     callback: function () {
       this.mergeCells.mergeOrUnmergeSelection(this.getSelectedRange());
+      this.render();
     },
     disabled: function () {
       return false;
