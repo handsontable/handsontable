@@ -195,8 +195,14 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
       }
 
       if (delta[dim] != 0) {
-        var topLeft = currentSelectedRange.getTopLeftCorner();
-        var bottomRight = currentSelectedRange.getBottomRightCorner();
+        var topLeft;
+        var bottomRight;
+
+        var updateCornerInfo = function () {
+          topLeft = currentSelectedRange.getTopLeftCorner();
+          bottomRight = currentSelectedRange.getBottomRightCorner();
+        }
+        updateCornerInfo();
 
         var expanding = false; //expanding false means shrinking
         var examinedCol;
@@ -244,14 +250,12 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
           if (delta[dim] > 0) { //moving East wall further East
             changeCoords(currentSelectedRange.from, topLeft[altDim], topLeft[dim]);
             changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.max(bottomRight[dim], examinedCol));
-            topLeft = currentSelectedRange.getTopLeftCorner();
-            bottomRight = currentSelectedRange.getBottomRightCorner();
+            updateCornerInfo();
           }
           else { //moving West wall further West
             changeCoords(currentSelectedRange.from, topLeft[altDim], Math.min(topLeft[dim], examinedCol));
             changeCoords(currentSelectedRange.to, bottomRight[altDim], bottomRight[dim]);
-            topLeft = currentSelectedRange.getTopLeftCorner();
-            bottomRight = currentSelectedRange.getBottomRightCorner();
+            updateCornerInfo();
           }
 
         }
@@ -259,14 +263,12 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
           if (delta[dim] > 0) { //shrinking West wall towards East
             changeCoords(currentSelectedRange.from, topLeft[altDim], Math.max(topLeft[dim], examinedCol));
             changeCoords(currentSelectedRange.to, bottomRight[altDim], bottomRight[dim]);
-            topLeft = currentSelectedRange.getTopLeftCorner();
-            bottomRight = currentSelectedRange.getBottomRightCorner();
+            updateCornerInfo();
           }
           else { //shrinking East wall towards West
             changeCoords(currentSelectedRange.from, topLeft[altDim], topLeft[dim]);
             changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.min(bottomRight[dim], examinedCol));
-            topLeft = currentSelectedRange.getTopLeftCorner();
-            bottomRight = currentSelectedRange.getBottomRightCorner();
+            updateCornerInfo();
           }
         }
 
@@ -282,14 +284,12 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
                 else {
                   changeCoords(currentSelectedRange.to, Math.max(bottomRight[altDim], mergeParent[altDim] + mergeParent[altDim + "span"] - 1), Math.max(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"] - 1));
                 }
-                topLeft = currentSelectedRange.getTopLeftCorner();
-                bottomRight = currentSelectedRange.getBottomRightCorner();
+                updateCornerInfo();
               }
               else { //moving West wall further West
                 changeCoords(currentSelectedRange.from, Math.min(topLeft[altDim], mergeParent[altDim]), Math.min(topLeft[dim], mergeParent[dim]));
                 changeCoords(currentSelectedRange.to, Math.max(bottomRight[altDim], mergeParent[altDim] + mergeParent[altDim + "span"] - 1), Math.max(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"] - 1));
-                topLeft = currentSelectedRange.getTopLeftCorner();
-                bottomRight = currentSelectedRange.getBottomRightCorner();
+                updateCornerInfo();
               }
             }
             else {
@@ -302,8 +302,7 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
                   changeCoords(currentSelectedRange.from, topLeft[altDim], Math.max(topLeft[dim], mergeParent[dim]));
                   changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.max(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"] - 1));
                 }
-                topLeft = currentSelectedRange.getTopLeftCorner();
-                bottomRight = currentSelectedRange.getBottomRightCorner();
+                updateCornerInfo();
               }
               else { //shrinking East wall towards West
                 if (examinedCol < mergeParent[dim] + mergeParent[dim + "span"] - 1) {
@@ -314,8 +313,7 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
                   changeCoords(currentSelectedRange.from, topLeft[altDim], Math.min(topLeft[dim], mergeParent[dim]));
                   changeCoords(currentSelectedRange.to, bottomRight[altDim], Math.min(bottomRight[dim], mergeParent[dim] + mergeParent[dim + "span"]));
                 }
-                topLeft = currentSelectedRange.getTopLeftCorner();
-                bottomRight = currentSelectedRange.getBottomRightCorner();
+                updateCornerInfo();
               }
             }
           }
@@ -327,8 +325,7 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
             var mergeParent = this.mergedCellInfoCollection.getInfo(row, col);
             if (mergeParent) {
               currentSelectedRange.expand(mergeParent);
-              topLeft = currentSelectedRange.getTopLeftCorner();
-              bottomRight = currentSelectedRange.getBottomRightCorner();
+              updateCornerInfo();
             }
           }
           oneLastCheck.call(this, topLeft.row, topLeft.col);
