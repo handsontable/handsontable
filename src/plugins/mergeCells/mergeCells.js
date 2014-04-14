@@ -320,23 +320,23 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
         }
 
         /*if (expanding) {
-          //check if corners are not part of merged cells as well
-          var oneLastCheck = function (row, col) {
-            var mergeParent = this.mergedCellInfoCollection.getInfo(row, col);
-            if (mergeParent) {
-              currentSelectedRange.expand(new WalkontableCellCoords(mergeParent.row, mergeParent.col));
-              currentSelectedRange.expand(new WalkontableCellCoords(mergeParent.row + mergeParent.rowspan - 1, mergeParent.col + mergeParent.colspan - 1));
-              updateCornerInfo();
-            }
-          }
-          oneLastCheck.call(this, topLeft.row, topLeft.col);
-          oneLastCheck.call(this, topLeft.row, bottomRight.col);
-          oneLastCheck.call(this, bottomRight.row, bottomRight.col);
-          oneLastCheck.call(this, bottomRight.row, topLeft.col);
-        }
-        else {
-          //TODO there is still a glitch if you go to merge_cells.html, go to D5 and press up, right, down
-        }*/
+         //check if corners are not part of merged cells as well
+         var oneLastCheck = function (row, col) {
+         var mergeParent = this.mergedCellInfoCollection.getInfo(row, col);
+         if (mergeParent) {
+         currentSelectedRange.expand(new WalkontableCellCoords(mergeParent.row, mergeParent.col));
+         currentSelectedRange.expand(new WalkontableCellCoords(mergeParent.row + mergeParent.rowspan - 1, mergeParent.col + mergeParent.colspan - 1));
+         updateCornerInfo();
+         }
+         }
+         oneLastCheck.call(this, topLeft.row, topLeft.col);
+         oneLastCheck.call(this, topLeft.row, bottomRight.col);
+         oneLastCheck.call(this, bottomRight.row, bottomRight.col);
+         oneLastCheck.call(this, bottomRight.row, topLeft.col);
+         }
+         else {
+         //TODO there is still a glitch if you go to merge_cells.html, go to D5 and press up, right, down
+         }*/
       }
     };
 
@@ -451,6 +451,7 @@ var beforeSetRangeEnd = function (coords) {
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (mergeCellsSetting) {
     var selRange = this.getSelectedRange();
+    selRange.highlight = new WalkontableCellCoords(selRange.highlight.row, selRange.highlight.col); //clone in case we will modify its reference
     selRange.to = coords;
 
     for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
@@ -459,7 +460,6 @@ var beforeSetRangeEnd = function (coords) {
       var mergedCellBottomRight = new WalkontableCellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
 
       var mergedCellRange = new WalkontableCellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
-
       if (selRange.expandByRange(mergedCellRange)) {
         var selRangeBottomRight = selRange.getBottomRightCorner();
         coords.row = selRangeBottomRight.row;
