@@ -413,7 +413,7 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName, allowUndefin
         return;                       //method not found
 
       }
-      else if (properties.hasOwnProperty(methodName) && properties[methodName]) { //check if it is own and is not empty
+      else if (properties.hasOwnProperty(methodName) && properties[methodName] !== void 0) { //check if it is own and is not empty
 
         return properties[methodName];  //method defined directly
 

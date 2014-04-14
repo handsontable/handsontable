@@ -25,7 +25,9 @@
       var input = str.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, '') //remove newline from the start and the end of the input
         , inputArray = SheetClip.parse(input)
         , selected = instance.getSelected()
-        , cellRange = new WalkontableCellRange(new WalkontableCellCoords(selected[0], selected[1]), new WalkontableCellCoords(selected[2], selected[3]))
+        , coordsFrom = new WalkontableCellCoords(selected[0], selected[1])
+        , coordsTo = new WalkontableCellCoords(selected[2], selected[3])
+        , cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, coordsTo)
         , topLeftCorner = cellRange.getTopLeftCorner()
         , bottomRightCorner = cellRange.getBottomRightCorner()
         , areaStart = topLeftCorner
