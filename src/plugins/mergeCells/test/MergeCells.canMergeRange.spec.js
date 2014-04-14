@@ -72,6 +72,18 @@ describe("handsontable.MergeCells", function () {
     })
   });
 
+  describe("mergeCells copy", function () {
+    it("should not copy text of cells that are merged into another cell", function () {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(10, 5),
+        mergeCells: [
+          {row: 0, col: 0, rowspan: 2, colspan: 2}
+        ]
+      });
+      expect(hot.getCopyableData(0, 0, 2, 2)).toBe("A0\t\tC0\n\t\tC1\nA2\tB2\tC2\n");
+    })
+  });
+
   describe("merged cells selection", function () {
 
     it("should select the whole range of cells which form a merged cell", function () {

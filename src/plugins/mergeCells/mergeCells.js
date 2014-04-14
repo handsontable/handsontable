@@ -469,6 +469,16 @@ var beforeSetRangeEnd = function (coords) {
   }
 };
 
+var afterGetCellMeta = function(row, col, cellProperties) {
+  var mergeCellsSetting = this.getSettings().mergeCells;
+  if (mergeCellsSetting) {
+    var mergeParent = this.mergeCells.mergedCellInfoCollection.getInfo(row, col);
+    if(mergeParent && (mergeParent.row != row || mergeParent.col != col)) {
+      cellProperties.copyable = false;
+    }
+  }
+};
+
 Handsontable.hooks.add('beforeInit', init);
 Handsontable.hooks.add('beforeKeyDown', onBeforeKeyDown);
 Handsontable.hooks.add('modifyTransformStart', modifyTransformFactory('modifyTransformStart'));
@@ -476,6 +486,7 @@ Handsontable.hooks.add('modifyTransformEnd', modifyTransformFactory('modifyTrans
 Handsontable.hooks.add('beforeSetRangeEnd', beforeSetRangeEnd);
 Handsontable.hooks.add('afterRenderer', afterRenderer);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addMergeActionsToContextMenu);
+Handsontable.hooks.add('afterGetCellMeta', afterGetCellMeta);
 
 Handsontable.MergeCells = MergeCells;
 
