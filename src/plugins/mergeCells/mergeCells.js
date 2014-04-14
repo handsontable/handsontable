@@ -319,7 +319,7 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
           }
         }
 
-        if (expanding) {
+        /*if (expanding) {
           //check if corners are not part of merged cells as well
           var oneLastCheck = function (row, col) {
             var mergeParent = this.mergedCellInfoCollection.getInfo(row, col);
@@ -336,7 +336,7 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
         }
         else {
           //TODO there is still a glitch if you go to merge_cells.html, go to D5 and press up, right, down
-        }
+        }*/
       }
     };
 
@@ -448,6 +448,25 @@ var modifyTransformFactory = function (hook) {
  */
 var beforeSetRangeEnd = function (coords) {
   this.lastDesiredCoords = null; //unset lastDesiredCoords when selection is changed with mouse
+  var mergeCellsSetting = this.getSettings().mergeCells;
+  if (mergeCellsSetting) {
+    var selRange = this.getSelectedRange();
+    selRange.to = coords;
+
+    for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
+      var cellInfo = this.mergeCells.mergedCellInfoCollection[i];
+      var mergedCellTopLeft = new WalkontableCellCoords(cellInfo.row, cellInfo.col);
+      var mergedCellBottomRight = new WalkontableCellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
+
+      var mergedCellRange = new WalkontableCellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
+
+      if (selRange.expandByRange(mergedCellRange)) {
+        var selRangeBottomRight = selRange.getBottomRightCorner();
+        coords.row = selRangeBottomRight.row;
+        coords.col = selRangeBottomRight.col;
+      }
+    }
+  }
 };
 
 Handsontable.hooks.add('beforeInit', init);
