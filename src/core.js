@@ -432,37 +432,37 @@ Handsontable.Core = function (rootElement, userSettings) {
       var delta = new WalkontableCellCoords(rowDelta, colDelta);
       instance.runHooks('modifyTransformStart', delta);
 
-      if (priv.selRange.from.row + rowDelta > instance.countRows() - 1) {
+      if (priv.selRange.highlight.row + rowDelta > instance.countRows() - 1) {
         if (force && priv.settings.minSpareRows > 0) {
           instance.alter("insert_row", instance.countRows());
         }
         else if (priv.settings.autoWrapCol) {
           delta.row = 1 - instance.countRows();
-          delta.col = priv.selRange.from.col + delta.col == instance.countCols() - 1 ? 1 - instance.countCols() : 1;
+          delta.col = priv.selRange.highlight.col + delta.col == instance.countCols() - 1 ? 1 - instance.countCols() : 1;
         }
       }
-      else if (priv.settings.autoWrapCol && priv.selRange.from.row + delta.row < 0 && priv.selRange.from.col + delta.col >= 0) {
+      else if (priv.settings.autoWrapCol && priv.selRange.highlight.row + delta.row < 0 && priv.selRange.highlight.col + delta.col >= 0) {
         delta.row = instance.countRows() - 1;
-        delta.col = priv.selRange.from.col + delta.col == 0 ? instance.countCols() - 1 : -1;
+        delta.col = priv.selRange.highlight.col + delta.col == 0 ? instance.countCols() - 1 : -1;
       }
 
-      if (priv.selRange.from.col + delta.col > instance.countCols() - 1) {
+      if (priv.selRange.highlight.col + delta.col > instance.countCols() - 1) {
         if (force && priv.settings.minSpareCols > 0) {
           instance.alter("insert_col", instance.countCols());
         }
         else if (priv.settings.autoWrapRow) {
-          delta.row = priv.selRange.from.row + delta.row == instance.countRows() - 1 ? 1 - instance.countRows() : 1;
+          delta.row = priv.selRange.highlight.row + delta.row == instance.countRows() - 1 ? 1 - instance.countRows() : 1;
           delta.col = 1 - instance.countCols();
         }
       }
-      else if (priv.settings.autoWrapRow && priv.selRange.from.col + delta.col < 0 && priv.selRange.from.row + delta.row >= 0) {
-        delta.row = priv.selRange.from.row + delta.row == 0 ? instance.countRows() - 1 : -1;
+      else if (priv.settings.autoWrapRow && priv.selRange.highlight.col + delta.col < 0 && priv.selRange.highlight.row + delta.row >= 0) {
+        delta.row = priv.selRange.highlight.row + delta.row == 0 ? instance.countRows() - 1 : -1;
         delta.col = instance.countCols() - 1;
       }
 
       var totalRows = instance.countRows();
       var totalCols = instance.countCols();
-      var coords = new WalkontableCellCoords(priv.selRange.from.row + delta.row, priv.selRange.from.col + delta.col);
+      var coords = new WalkontableCellCoords(priv.selRange.highlight.row + delta.row, priv.selRange.highlight.col + delta.col);
 
       if (coords.row < 0) {
         coords.row = 0;
