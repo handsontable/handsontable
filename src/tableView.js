@@ -16,6 +16,24 @@ Handsontable.TableView = function (instance) {
 
   instance.rootElement.addClass('handsontable');
 
+
+  if (instance.getSettings()['width']){
+    instance.rootElement[0].style.width =  instance.getSettings()['width'] + 'px';
+  }
+
+  if (instance.getSettings()['height']){
+    instance.rootElement[0].style.height = instance.getSettings()['height'] + 'px';
+  }
+
+
+
+  if (instance.rootElement[0].style.width || instance.rootElement[0].style.height){
+    instance.rootElement.css({
+      overflow: 'auto'
+    });
+  }
+
+
   var table = document.createElement('TABLE');
   table.className = 'htCore';
   this.THEAD = document.createElement('THEAD');
@@ -24,7 +42,7 @@ Handsontable.TableView = function (instance) {
   table.appendChild(this.TBODY);
 
   instance.$table = $(table);
-  instance.rootElement.prepend(instance.$table);
+  instance.container.prepend(instance.$table);
 
   instance.rootElement.on('mousedown.handsontable', function (event) {
     if (!that.isTextSelectionAllowed(event.target)) {

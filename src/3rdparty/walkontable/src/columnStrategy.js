@@ -16,6 +16,7 @@ function WalkontableColumnStrategy(instance, containerSizeFn, sizeAtIndex, strat
   this.cellSizes = [];
   this.cellStretch = [];
   this.cellCount = 0;
+  this.visibleCellCount = 0;
   this.remainingSize = 0;
   this.strategy = strategy;
 
@@ -25,8 +26,8 @@ function WalkontableColumnStrategy(instance, containerSizeFn, sizeAtIndex, strat
     if (size === void 0) {
       break; //total columns exceeded
     }
-    if (this.cellSizesSum >= this.getContainerSize(this.cellSizesSum + size)) {
-      break; //total width exceeded
+    if (this.cellSizesSum <= this.getContainerSize(this.cellSizesSum + size)) {
+      this.visibleCellCount++;
     }
     this.cellSizes.push(size);
     this.cellSizesSum += size;
@@ -76,4 +77,8 @@ WalkontableColumnStrategy.prototype.stretch = function () {
       this.remainingSize = 0;
     }
   }
+};
+
+WalkontableColumnStrategy.prototype.countVisible = function () {
+  return this.visibleCellCount;
 };

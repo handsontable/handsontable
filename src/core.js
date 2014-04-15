@@ -21,6 +21,12 @@ Handsontable.Core = function (rootElement, userSettings) {
   Handsontable.helper.extend(GridSettings.prototype, expandType(userSettings));
 
   this.rootElement = rootElement;
+
+  this.container = document.createElement('DIV');
+  this.container.className = 'htContainer';
+  rootElement.prepend(this.container);
+  this.container = $(this.container);
+
   var $document = $(document.documentElement);
   var $body = $(document.body);
   this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
@@ -1103,14 +1109,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    */
   this.parseSettingsFromDOM = function () {
-    var overflow = this.rootElement.css('overflow');
-    if (overflow === 'scroll' || overflow === 'auto') {
-      this.rootElement[0].style.overflow = 'visible';
-      priv.settingsFromDOM.overflow = overflow;
-    }
-    else if (priv.settings.width === void 0 || priv.settings.height === void 0) {
-      priv.settingsFromDOM.overflow = 'auto';
-    }
+    priv.settingsFromDOM.overflow = this.rootElement.css('overflow');
 
     if (priv.settings.width === void 0) {
       priv.settingsFromDOM.width = this.rootElement.width();

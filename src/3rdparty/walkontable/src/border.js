@@ -149,7 +149,7 @@ WalkontableBorder.prototype.appear = function (corners) {
     hideBottom = true;
   }
 
-  ilen = instance.wtTable.rowStrategy.countVisible();
+  ilen = instance.wtTable.getRowStrategy().countVisible();
 
   for (i = 0; i < ilen; i++) {
     s = instance.wtTable.rowFilter.visibleToSource(i);
@@ -180,7 +180,7 @@ WalkontableBorder.prototype.appear = function (corners) {
       hideRight = true;
     }
 
-    ilen = instance.wtTable.columnStrategy.countVisible();
+    ilen = instance.wtTable.getColumnStrategy().countVisible();
 
     for (i = 0; i < ilen; i++) {
       s = instance.wtTable.columnFilter.visibleToSource(i);

@@ -62,10 +62,6 @@ WalkontableScrollbars.prototype.registerListeners = function () {
   if (this.vertical.scrollHandler !== window && this.horizontal.scrollHandler !== window) {
     $window.on('scroll.' + this.instance.guid, refreshAll);
   }
-  $window.on('load.' + this.instance.guid, refreshAll);
-  $window.on('resize.' + this.instance.guid, refreshAll);
-  $(document).on('ready.' + this.instance.guid, refreshAll);
-  setInterval(refreshAll, 100); //Marcin - only idea I have to reposition scrollbars on CSS change of the container (container was moved using some styles after page was loaded)
 };
 
 WalkontableScrollbars.prototype.destroy = function () {
