@@ -33,6 +33,8 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
     elem.style.top = Math.ceil(box.top, 10) + 'px';
     elem.style.left = Math.ceil(box.left, 10) + 'px';
   }
+
+  this.react();
 };
 
 //react on movement of the other dimension scrollbar (in future merge it with this.refresh?)
