@@ -30,7 +30,7 @@ describe('Core_selection', function () {
     var output = null;
 
     handsontable();
-    Handsontable.PluginHooks.add('onSelection', function (r, c) {
+    Handsontable.hooks.add('onSelection', function (r, c) {
       output = [r, c];
     });
     selectCell(1, 2);
@@ -391,7 +391,7 @@ describe('Core_selection', function () {
 
     selectCell(0, 0);
 
-    expect(document.activeElement.nodeName).toBeInArray('BODY', 'HTML');
+    expect(document.activeElement.nodeName).toBeInArray(['BODY', 'HTML']);
 
     $input.focus();
 

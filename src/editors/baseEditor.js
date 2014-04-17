@@ -89,10 +89,6 @@
       return;
     }
 
-    if (this.cellProperties.readOnly) {
-      return;
-    }
-
     this.instance.view.scrollViewport(new WalkontableCellCoords(this.row, this.col));
     this.instance.view.render();
 

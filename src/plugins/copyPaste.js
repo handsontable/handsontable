@@ -25,7 +25,9 @@
       var input = str.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, '') //remove newline from the start and the end of the input
         , inputArray = SheetClip.parse(input)
         , selected = instance.getSelected()
-        , cellRange = new WalkontableCellRange(new WalkontableCellCoords(selected[0], selected[1]), new WalkontableCellCoords(selected[2], selected[3]))
+        , coordsFrom = new WalkontableCellCoords(selected[0], selected[1])
+        , coordsTo = new WalkontableCellCoords(selected[2], selected[3])
+        , cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, coordsTo)
         , topLeftCorner = cellRange.getTopLeftCorner()
         , bottomRightCorner = cellRange.getBottomRightCorner()
         , areaStart = topLeftCorner
@@ -34,7 +36,7 @@
           Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col)
         );
 
-      instance.PluginHooks.once('afterChange', function (changes, source) {
+      instance.addHookOnce('afterChange', function (changes, source) {
         if (changes && changes.length) {
           this.selectCell(areaStart.row, areaStart.col, areaEnd.row, areaEnd.col);
         }
@@ -94,7 +96,7 @@
       instance.copyPaste.copyPasteInstance.copyable(instance.getCopyableData(startRow, startCol, finalEndRow, finalEndCol));
 
       if (endRow !== finalEndRow || endCol !== finalEndCol) {
-        instance.PluginHooks.run("afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
+        Handsontable.hooks.run(instance, "afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
       }
     };
 
@@ -119,7 +121,8 @@
 
   }
 
-  Handsontable.PluginHooks.add('afterInit', init);
-  Handsontable.PluginHooks.add('afterUpdateSettings', init);
+  Handsontable.hooks.add('afterInit', init);
+  Handsontable.hooks.add('afterUpdateSettings', init);
 
+  Handsontable.hooks.register('afterCopyLimit');
 })(Handsontable, CopyPaste, SheetClip);

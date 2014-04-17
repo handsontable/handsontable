@@ -45,4 +45,12 @@ WalkontableCellCoords.prototype.isEqual = function (cellCoords) {
   return (this.row === cellCoords.row && this.col === cellCoords.col);
 };
 
+WalkontableCellCoords.prototype.isSouthEastOf = function (testedCoords) {
+  return this.row >= testedCoords.row && this.col >= testedCoords.col;
+};
+
+WalkontableCellCoords.prototype.isNorthWestOf = function (testedCoords) {
+  return this.row <= testedCoords.row && this.col <= testedCoords.col;
+};
+
 window.WalkontableCellCoords = WalkontableCellCoords; //export

@@ -1,7 +1,9 @@
 (function HandsontableObserveChanges() {
 
-  Handsontable.PluginHooks.add('afterLoadData', init);
-  Handsontable.PluginHooks.add('afterUpdateSettings', init);
+  Handsontable.hooks.add('afterLoadData', init);
+  Handsontable.hooks.add('afterUpdateSettings', init);
+
+  Handsontable.hooks.register('afterChangesObserved');
 
   function init() {
     var instance = this;

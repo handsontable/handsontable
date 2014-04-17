@@ -18,7 +18,8 @@ describe("handsontable.MergeCells", function () {
         data: createSpreadsheetObjectData(10, 5)
       });
       var mergeCells = new Handsontable.MergeCells(hot);
-      var cellRange = new WalkontableCellRange(new WalkontableCellCoords(0, 1), new WalkontableCellCoords(0, 1));
+      var coordsFrom = new WalkontableCellCoords(0, 1);
+      var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(0, 1));
       var result = mergeCells.canMergeRange(cellRange);
       expect(result).toBe(false);
     });
@@ -28,7 +29,8 @@ describe("handsontable.MergeCells", function () {
         data: createSpreadsheetObjectData(10, 5)
       });
       var mergeCells = new Handsontable.MergeCells(hot);
-      var cellRange = new WalkontableCellRange(new WalkontableCellCoords(0, 1), new WalkontableCellCoords(1, 1));
+      var coordsFrom = new WalkontableCellCoords(0, 1);
+      var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(1, 1));
       var result = mergeCells.canMergeRange(cellRange);
       expect(result).toBe(true);
     });
@@ -38,7 +40,8 @@ describe("handsontable.MergeCells", function () {
         data: createSpreadsheetObjectData(10, 5)
       });
       var mergeCells = new Handsontable.MergeCells(hot);
-      var cellRange = new WalkontableCellRange(new WalkontableCellCoords(0, 1), new WalkontableCellCoords(0, 2));
+      var coordsFrom = new WalkontableCellCoords(0, 1);
+      var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(0, 2));
       var result = mergeCells.canMergeRange(cellRange);
       expect(result).toBe(true);
     });
@@ -48,7 +51,8 @@ describe("handsontable.MergeCells", function () {
         data: createSpreadsheetObjectData(10, 5)
       });
       var mergeCells = new Handsontable.MergeCells(hot);
-      var cellRange = new WalkontableCellRange(new WalkontableCellCoords(0, 1), new WalkontableCellCoords(1, 2));
+      var coordsFrom = new WalkontableCellCoords(0, 1);
+      var cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, new WalkontableCellCoords(1, 2));
       var result = mergeCells.canMergeRange(cellRange);
       expect(result).toBe(true);
     });
@@ -66,6 +70,234 @@ describe("handsontable.MergeCells", function () {
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
     })
+  });
+
+  describe("mergeCells copy", function () {
+    it("should not copy text of cells that are merged into another cell", function () {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(10, 5),
+        mergeCells: [
+          {row: 0, col: 0, rowspan: 2, colspan: 2}
+        ]
+      });
+      expect(hot.getCopyableData(0, 0, 2, 2)).toBe("A0\t\tC0\n\t\tC1\nA2\tB2\tC2\n");
+    })
+  });
+
+  describe("merged cells selection", function () {
+
+    it("should select the whole range of cells which form a merged cell", function () {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(4, 4),
+        mergeCells: [
+          {
+            row: 0,
+            col: 0,
+            colspan: 4,
+            rowspan: 1
+          }
+        ]
+      });
+
+      var $table = this.$container.find('table.htCore');
+      var $td = $table.find('tr:eq(0) td:eq(0)');
+
+      expect($td.attr('rowspan')).toEqual('1');
+      expect($td.attr('colspan')).toEqual('4');
+
+      expect(hot.getSelected()).toBeUndefined();
+
+      hot.selectCell(0, 0);
+
+      expect(hot.getSelected()).toEqual([0, 0, 0, 3]);
+
+      deselectCell();
+
+      hot.selectCell(0, 1);
+
+      expect(hot.getSelected()).toEqual([0, 0, 0, 3]);
+    });
+
+    it("should always make a rectangular selection, when selecting merged and not merged cells", function () {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(4, 4),
+        mergeCells: [
+          {
+            row: 1,
+            col: 1,
+            colspan: 3,
+            rowspan: 2
+          }
+        ]
+      });
+
+      var $table = this.$container.find('table.htCore');
+      var $td = $table.find('tr:eq(1) td:eq(1)');
+
+      expect($td.attr('rowspan')).toEqual('2');
+      expect($td.attr('colspan')).toEqual('3');
+
+      expect(hot.getSelected()).toBeUndefined();
+
+
+      hot.selectCell(0, 0);
+
+      expect(hot.getSelected()).toEqual([0, 0, 0, 0]);
+
+      deselectCell();
+
+      hot.selectCell(0, 0, 1, 1);
+
+      expect(hot.getSelected()).not.toEqual([0, 0, 1, 1]);
+      expect(hot.getSelected()).toEqual([0, 0, 2, 3]);
+
+      deselectCell();
+
+      hot.selectCell(0, 1, 1, 1);
+
+      expect(hot.getSelected()).toEqual([0, 1, 2, 3]);
+
+
+    });
+
+  });
+
+  describe("modifyTransform", function () {
+
+    it("should not transform arrow right when entering a merged cell", function () {
+      var mergeCellsSettings = [
+        {row: 1, col: 1, rowspan: 3, colspan: 3}
+      ];
+      var coords = new WalkontableCellCoords(1, 0);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
+      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      var inDelta = new WalkontableCellCoords(0, 1);
+      mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+      expect(inDelta).toEqual(new WalkontableCellCoords(0, 1));
+    });
+
+    it("should transform arrow right when leaving a merged cell", function () {
+      var mergeCellsSettings = [
+        {row: 1, col: 1, rowspan: 3, colspan: 3}
+      ];
+      var coords = new WalkontableCellCoords(1, 1);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
+      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      var inDelta = new WalkontableCellCoords(0, 1);
+      mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+      expect(inDelta).toEqual(new WalkontableCellCoords(0, 3));
+    });
+
+    it("should transform arrow right when leaving a merged cell (return to desired row)", function () {
+      var mergeCellsSettings = [
+        {row: 1, col: 1, rowspan: 3, colspan: 3}
+      ];
+      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+
+      var coords = new WalkontableCellCoords(2, 0);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
+      var inDelta = new WalkontableCellCoords(0, 1);
+      mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+      expect(inDelta).toEqual(new WalkontableCellCoords(-1, 1));
+
+      var coords = new WalkontableCellCoords(1, 1);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
+      var inDelta = new WalkontableCellCoords(0, 1);
+      mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+      expect(inDelta).toEqual(new WalkontableCellCoords(1, 3));
+    });
+
+    it("should transform arrow left when entering a merged cell", function () {
+      var mergeCellsSettings = [
+        {row: 1, col: 1, rowspan: 3, colspan: 3}
+      ];
+      var coords = new WalkontableCellCoords(1, 4);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
+      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      var inDelta = new WalkontableCellCoords(0, -1);
+      mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+      expect(inDelta).toEqual(new WalkontableCellCoords(0, -3));
+    });
+
+    it("should not transform arrow left when leaving a merged cell", function () {
+      var mergeCellsSettings = [
+        {row: 1, col: 1, rowspan: 3, colspan: 3}
+      ];
+      var coords = new WalkontableCellCoords(1, 1);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
+      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      var inDelta = new WalkontableCellCoords(0, -1);
+      mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+      expect(inDelta).toEqual(new WalkontableCellCoords(0, -1));
+    });
+
+    it("should transform arrow left when leaving a merged cell (return to desired row)", function () {
+      var mergeCellsSettings = [
+        {row: 1, col: 1, rowspan: 3, colspan: 3}
+      ];
+      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+
+      var coords = new WalkontableCellCoords(2, 4);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
+      var inDelta = new WalkontableCellCoords(0, -1);
+      mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+      expect(inDelta).toEqual(new WalkontableCellCoords(-1, -3));
+
+      var coords = new WalkontableCellCoords(1, 1);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
+      var inDelta = new WalkontableCellCoords(0, -1);
+      mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+      expect(inDelta).toEqual(new WalkontableCellCoords(1, -1));
+    });
+
+    it("should not transform arrow down when entering a merged cell", function () {
+      var mergeCellsSettings = [
+        {row: 1, col: 1, rowspan: 3, colspan: 3}
+      ];
+      var coords = new WalkontableCellCoords(0, 1);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
+      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      var inDelta = new WalkontableCellCoords(0, -1);
+      mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+      expect(inDelta).toEqual(new WalkontableCellCoords(0, -1));
+    });
+
+    it("should transform arrow down when leaving a merged cell", function () {
+      var mergeCellsSettings = [
+        {row: 1, col: 1, rowspan: 3, colspan: 3}
+      ];
+      var coords = new WalkontableCellCoords(1, 1);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
+      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      var inDelta = new WalkontableCellCoords(1, 0);
+      mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+      expect(inDelta).toEqual(new WalkontableCellCoords(3, 0));
+    });
+
+    it("should transform arrow up when entering a merged cell", function () {
+      var mergeCellsSettings = [
+        {row: 1, col: 1, rowspan: 3, colspan: 3}
+      ];
+      var coords = new WalkontableCellCoords(4, 1);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
+      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      var inDelta = new WalkontableCellCoords(-1, 0);
+      mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+      expect(inDelta).toEqual(new WalkontableCellCoords(-3, 0));
+    });
+
+    it("should not transform arrow up when leaving a merged cell", function () {
+      var mergeCellsSettings = [
+        {row: 1, col: 1, rowspan: 3, colspan: 3}
+      ];
+      var coords = new WalkontableCellCoords(1, 1);
+      var currentSelection = new WalkontableCellRange(coords, coords, coords);
+      var mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
+      var inDelta = new WalkontableCellCoords(-1, 0);
+      mergeCells.modifyTransform("modifyTransformStart", currentSelection, inDelta);
+      expect(inDelta).toEqual(new WalkontableCellCoords(-1, 0));
+    });
+
   });
 })
 ;

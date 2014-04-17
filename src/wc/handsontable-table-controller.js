@@ -121,7 +121,7 @@ function parseHandsontable(HANDSONTABLE) {
 }
 
 var publicMethods = ['updateSettings', 'loadData', 'render', 'setDataAtCell', 'setDataAtRowProp', 'getDataAtCell', 'getDataAtRowProp', 'countRows', 'countCols', 'rowOffset', 'colOffset', 'countVisibleRows', 'countVisibleCols', 'clear', 'clearUndo', 'getData', 'alter', 'getCell', 'getCellMeta', 'selectCell', 'deselectCell', 'getSelected', 'destroyEditor', 'getRowHeader', 'getColHeader', 'destroy', 'isUndoAvailable', 'isRedoAvailable', 'undo', 'redo', 'countEmptyRows', 'countEmptyCols', /*'isEmptyRow', 'isEmptyCol', -- those are also publicProperties*/ 'parseSettingsFromDOM', 'addHook', 'addHookOnce', 'getValue', 'getInstance', 'getSettings'];
-var publicHooks = Object.keys(Handsontable.PluginHooks.hooks);
+var publicHooks = Object.keys(Handsontable.hooks.hooks);
 var publicProperties = Object.keys(Handsontable.DefaultSettings.prototype);
 publicProperties.push('settings', 'source', 'title', 'checkedTemplate', 'uncheckedTemplate', 'renderer'); //properties not mentioned in DefaultSettings
 

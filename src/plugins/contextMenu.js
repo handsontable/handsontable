@@ -92,7 +92,7 @@
       }
     };
 
-    instance.PluginHooks.run('afterContextMenuDefaultOptions', this.defaultOptions);
+    Handsontable.hooks.run(instance, 'afterContextMenuDefaultOptions', this.defaultOptions);
 
     this.options = {};
     Handsontable.helper.extend(this.options, this.defaultOptions);
@@ -585,8 +585,8 @@
 
   }
 
-  Handsontable.PluginHooks.add('afterInit', init);
-  Handsontable.PluginHooks.add('afterUpdateSettings', init);
+  Handsontable.hooks.add('afterInit', init);
+  Handsontable.hooks.add('afterUpdateSettings', init);
 
   if(Handsontable.PluginHooks.register) { //HOT 0.11+
     Handsontable.PluginHooks.register('afterContextMenuDefaultOptions');

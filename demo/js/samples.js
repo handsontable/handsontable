@@ -111,7 +111,7 @@
               tag = tag.replace('src="', 'src="' + baseUrl);
               tag = tag.replace('demo/../', '');
 
-              if(this.nodeName === 'LINK' && this.rel === "import") {
+              if (this.nodeName === 'LINK' && this.rel === "import") {
                 //web component imports must be loaded throught a CORS-enabling proxy, because our local server does not support it yet
                 tag = tag.replace('href="http://', 'href="http://www.corsproxy.com/');
                 onDomReady = false;
@@ -132,7 +132,7 @@
       js += trimCodeBlock(bindDumpButton.toString(), 2).join('\n') + '\n';
       js += '  bindDumpButton();\n\n';
 
-      if(onDomReady) {
+      if (onDomReady) {
         js = '$(document).ready(function () {\n\n' + js + '});';
       }
 
@@ -160,4 +160,85 @@
       console.log('data of ' + dump, $container.handsontable('getData'));
     });
   }
+
+  function initSidebar() {
+    function collapseAll(menu, isImmediate) {
+      var ul = $(menu).find("ul ul");
+      var animation = ul.slideUp();
+      if (isImmediate) {
+        animation.stop(true, true);
+      }
+      $(menu).find(".current").removeClass("current");
+    }
+
+    function expandOne(menu, expand, isImmediate) {
+      collapseAll(menu, isImmediate);
+      var elem = expand;
+      while (elem != menu) {
+        $(elem).addClass("current");
+        if (elem.nodeName == "UL") {
+          var animation = $(elem).slideDown();
+          if (isImmediate) {
+            animation.stop(true, true);
+          }
+        }
+        elem = elem.parentNode;
+      }
+    }
+
+    function importFromHtml(element, html, startWord, endWord) {
+      if (element) {
+        var fragment = html.substring(html.indexOf(startWord), html.indexOf(endWord));
+        var DIV = document.createElement("DIV");
+        $(DIV).hide();
+        DIV.innerHTML = fragment;
+        element.appendChild(DIV);
+        $(DIV).fadeIn(200);
+      }
+    }
+
+    function onMenuLoad(html) {
+      //top menu
+      importFromHtml(document.getElementById('outside-links-wrapper'), html, "<!-- outside-links start -->", "<!-- outside-links end -->");
+
+      //left menu
+      var menu = document.getElementById('global-menu-clone');
+      importFromHtml(menu, html, "<!-- menu start -->", "<!-- menu end -->");
+      bindMenuEvents(menu);
+      $(menu).find("a").each(function () {
+        this.setAttribute("href", this.getAttribute("href").replace(/demo\//, ""));
+        if (this.href === window.location.href) {
+          $(this).addClass("current");
+          expandOne(menu, this, true);
+        }
+      });
+    }
+
+    function bindMenuEvents(menu) {
+      collapseAll(menu, true);
+
+      $(menu).on("click", function (ev) {
+        if (ev.target.nodeName == "H3") {
+          if ($(ev.target.parentNode).hasClass("current")) {
+            collapseAll(menu);
+          }
+          else {
+            expandOne(menu, ev.target.parentNode.querySelector("ul"));
+          }
+        }
+      });
+    }
+
+    var menu = document.querySelector("#global-menu");
+    if (menu) {
+      bindMenuEvents(menu)
+    }
+    else {
+      $.get("../index.html", onMenuLoad);
+    }
+  }
+
+  $(function () {
+    initSidebar();
+  });
 })(jQuery);

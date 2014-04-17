@@ -53,6 +53,7 @@ module.exports = function (grunt) {
     meta: {
       src: [
         'tmp/core.js',
+        'src/multiMap.js',
         'src/focusCatcher.js',
         'src/tableView.js',
         'src/editors.js',
@@ -101,9 +102,9 @@ module.exports = function (grunt) {
         'src/plugins/persistentState.js',
         'src/plugins/undoRedo.js',
         'src/plugins/dragToScroll/dragToScroll.js',
-        'src/plugins/mergeCells/mergeCells.js',
-        'src/plugins/copyPaste.js'
-
+        'src/plugins/copyPaste.js',
+        'src/plugins/search.js',
+        'src/plugins/mergeCells/mergeCells.js'
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',

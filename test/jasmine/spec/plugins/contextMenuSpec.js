@@ -1768,7 +1768,7 @@ describe('ContextMenu', function () {
         };
       }
 
-      Handsontable.PluginHooks.add('afterContextMenuDefaultOptions', afterContextMenuDefaultOptions);
+      Handsontable.hooks.add('afterContextMenuDefaultOptions', afterContextMenuDefaultOptions);
 
       var hot = handsontable({
         contextMenu: true
@@ -1783,7 +1783,7 @@ describe('ContextMenu', function () {
 
       $menu.find('tbody td:eq(0)').trigger('mousedown');
 
-      Handsontable.PluginHooks.remove('afterContextMenuDefaultOptions', afterContextMenuDefaultOptions);
+      Handsontable.hooks.remove('afterContextMenuDefaultOptions', afterContextMenuDefaultOptions);
     });
   });
 

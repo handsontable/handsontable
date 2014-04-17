@@ -28,6 +28,42 @@ describe('UndoRedo', function () {
           expect(getDataAtCell(0, 0)).toBe('A0');
         });
 
+        it('should undo single change on cell with validator', function () {
+
+          var validatorSpy = jasmine.createSpy('validatorSpy').andCallFake(function (value, result) {
+             result(true);
+          });
+
+          handsontable({
+            data: createSpreadsheetData(2, 2),
+            validator: validatorSpy
+          });
+          var HOT = getInstance();
+
+          setDataAtCell(0, 0, 'X0');
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('X0');
+
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('A0');
+          });
+
+
+        });
+
         it('should undo creation of a single row', function () {
           var HOT = handsontable({
             data: createSpreadsheetData(2, 2)
@@ -558,6 +594,106 @@ describe('UndoRedo', function () {
 
         });
 
+        it("should undo multiple changes in cells with validators", function () {
+
+          var validatorSpy = jasmine.createSpy('validatorSpy').andCallFake(function (value, result) {
+            result(true);
+          });
+
+          handsontable({
+            data: createSpreadsheetData(2, 2),
+            validator: validatorSpy
+          });
+          var HOT = getInstance();
+
+          setDataAtCell(0, 0, 'X0');
+          setDataAtCell(1, 0, 'X1');
+          setDataAtCell(0, 1, 'Y0');
+          setDataAtCell(1, 1, 'Y1');
+
+          waitsFor(function () {
+            return validatorSpy.calls.length == 4;
+          }, 'validatorSpy call after modification', 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('X0');
+            expect(getDataAtCell(1, 0)).toBe('X1');
+            expect(getDataAtCell(0, 1)).toBe('Y0');
+            expect(getDataAtCell(1, 1)).toBe('Y1');
+
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          },'validatorSpy call after first undo', 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('X0');
+            expect(getDataAtCell(1, 0)).toBe('X1');
+            expect(getDataAtCell(0, 1)).toBe('Y0');
+            expect(getDataAtCell(1, 1)).toBe('B1');
+
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          },'validatorSpy call after second undo', 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('X0');
+            expect(getDataAtCell(1, 0)).toBe('X1');
+            expect(getDataAtCell(0, 1)).toBe('B0');
+            expect(getDataAtCell(1, 1)).toBe('B1');
+
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          },'validatorSpy call after third undo', 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('X0');
+            expect(getDataAtCell(1, 0)).toBe('A1');
+            expect(getDataAtCell(0, 1)).toBe('B0');
+            expect(getDataAtCell(1, 1)).toBe('B1');
+
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          },'validatorSpy call after fourth undo', 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('A0');
+            expect(getDataAtCell(1, 0)).toBe('A1');
+            expect(getDataAtCell(0, 1)).toBe('B0');
+            expect(getDataAtCell(1, 1)).toBe('B1');
+
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waits(100);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('A0');
+            expect(getDataAtCell(1, 0)).toBe('A1');
+            expect(getDataAtCell(0, 1)).toBe('B0');
+            expect(getDataAtCell(1, 1)).toBe('B1');
+          });
+
+
+        });
+
         it('should undo multiple row creations', function () {
           var HOT = handsontable({
             data: createSpreadsheetData(2, 2)
@@ -704,6 +840,52 @@ describe('UndoRedo', function () {
 
           HOT.redo();
           expect(getDataAtCell(0, 0)).toBe('new value');
+        });
+
+        it('should redo single change in cell with validator', function () {
+
+          var validatorSpy = jasmine.createSpy('validatorSpy').andCallFake(function (value, result) {
+            result(true);
+          });
+
+          handsontable({
+            data: createSpreadsheetData(2, 2),
+            validator: validatorSpy
+          });
+          var HOT = getInstance();
+
+          setDataAtCell(0, 0, 'new value');
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after change', 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('new value');
+
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after undo', 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('A0');
+
+            validatorSpy.reset();
+            HOT.redo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after redo', 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('new value');
+          });
+
         });
 
         it('should redo creation of a single row', function () {
@@ -1018,6 +1200,148 @@ describe('UndoRedo', function () {
 
         });
 
+        it("should redo multiple changes in cell with validator", function () {
+
+          var validatorSpy = jasmine.createSpy('validatorSpy').andCallFake(function (value, result) {
+            result(true);
+          });
+
+          handsontable({
+            data: createSpreadsheetData(2, 2),
+            validator: validatorSpy
+          });
+          var HOT = getInstance();
+
+          setDataAtCell(0, 0, 'X0');
+          setDataAtCell(1, 0, 'X1');
+          setDataAtCell(0, 1, 'Y0');
+          setDataAtCell(1, 1, 'Y1');
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after change', 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('X0');
+            expect(getDataAtCell(1, 0)).toBe('X1');
+            expect(getDataAtCell(0, 1)).toBe('Y0');
+            expect(getDataAtCell(1, 1)).toBe('Y1');
+
+            validatorSpy.reset();
+            HOT.undo();
+
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 1st undo', 1000);
+
+          runs(function () {
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 2nd undo', 1000);
+
+          runs(function () {
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 3rd undo', 1000);
+
+          runs(function () {
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 4th undo', 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('A0');
+            expect(getDataAtCell(1, 0)).toBe('A1');
+            expect(getDataAtCell(0, 1)).toBe('B0');
+            expect(getDataAtCell(1, 1)).toBe('B1');
+
+            validatorSpy.reset();
+            HOT.redo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 1st redo', 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('X0');
+            expect(getDataAtCell(1, 0)).toBe('A1');
+            expect(getDataAtCell(0, 1)).toBe('B0');
+            expect(getDataAtCell(1, 1)).toBe('B1');
+
+            validatorSpy.reset();
+            HOT.redo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 2nd redo', 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('X0');
+            expect(getDataAtCell(1, 0)).toBe('X1');
+            expect(getDataAtCell(0, 1)).toBe('B0');
+            expect(getDataAtCell(1, 1)).toBe('B1');
+
+            validatorSpy.reset();
+            HOT.redo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 3rd redo', 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('X0');
+            expect(getDataAtCell(1, 0)).toBe('X1');
+            expect(getDataAtCell(0, 1)).toBe('Y0');
+            expect(getDataAtCell(1, 1)).toBe('B1');
+
+            validatorSpy.reset();
+            HOT.redo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 4th redo', 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('X0');
+            expect(getDataAtCell(1, 0)).toBe('X1');
+            expect(getDataAtCell(0, 1)).toBe('Y0');
+            expect(getDataAtCell(1, 1)).toBe('Y1');
+            validatorSpy.reset();
+            HOT.redo();
+          });
+
+          waits(100);
+
+          runs(function () {
+
+            expect(validatorSpy).not.toHaveBeenCalled();
+
+            expect(getDataAtCell(0, 0)).toBe('X0');
+            expect(getDataAtCell(1, 0)).toBe('X1');
+            expect(getDataAtCell(0, 1)).toBe('Y0');
+            expect(getDataAtCell(1, 1)).toBe('Y1');
+          });
+
+        });
+
         it('should redo multiple row creations', function () {
           var HOT = handsontable({
             data: createSpreadsheetData(2, 2)
@@ -1166,7 +1490,7 @@ describe('UndoRedo', function () {
       });
     });
 
-    xdescribe("Object data", function () {
+    describe("Object data", function () {
 
       function createObjectData(){
         return [
@@ -1188,6 +1512,41 @@ describe('UndoRedo', function () {
 
           HOT.undo();
           expect(getDataAtCell(0, 0)).toBe('Timothy');
+        });
+
+        it('should undo single change in cell with validator', function () {
+
+          var validatorSpy = jasmine.createSpy('validatorSpy').andCallFake(function (value, result) {
+            result(true);
+          });
+
+          handsontable({
+            data: createObjectData(),
+            validator: validatorSpy
+          });
+          var HOT = getInstance();
+
+          setDataAtRowProp(0, 0, 'Pearce');
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after changes', 1000);
+
+          runs(function () {
+            expect(getDataAtRowProp(0, 0)).toBe('Pearce');
+
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after undo', 1000);
+
+          runs(function () {
+            return expect(getDataAtCell(0, 0)).toBe('Timothy');
+          });
+
         });
 
         it('should undo creation of a single row', function () {
@@ -1333,6 +1692,109 @@ describe('UndoRedo', function () {
           expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
         });
 
+        it("should undo multiple changes in cells with validators", function () {
+
+          var validatorSpy = jasmine.createSpy('validatorSpy').andCallFake(function (value, result) {
+            result(true);
+          });
+
+          handsontable({
+            data: createObjectData().slice(0, 2),
+            validator: validatorSpy
+          });
+          var HOT = getInstance();
+
+          setDataAtRowProp(0, 'name', 'Pierce');
+          setDataAtRowProp(0, 'surname', 'Brosnan');
+          setDataAtRowProp(1, 'name', 'Daniel');
+          setDataAtRowProp(1, 'surname', 'Craig');
+
+          waitsFor(function () {
+            return validatorSpy.calls.length == 4;
+          }, 'validator spy call after undo', 1000);
+
+          runs(function () {
+            expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
+            expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');
+            expect(getDataAtRowProp(1, 'name')).toBe('Daniel');
+            expect(getDataAtRowProp(1, 'surname')).toBe('Craig');
+
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after undo', 1000);
+
+          runs(function () {
+            expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
+            expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');
+            expect(getDataAtRowProp(1, 'name')).toBe('Daniel');
+            expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
+
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after undo', 1000);
+
+          runs(function () {
+            expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
+            expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');
+            expect(getDataAtRowProp(1, 'name')).toBe('Sean');
+            expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
+
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after undo', 1000);
+
+          runs(function () {
+            expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
+            expect(getDataAtRowProp(0, 'surname')).toBe('Dalton');
+            expect(getDataAtRowProp(1, 'name')).toBe('Sean');
+            expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
+
+
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after undo', 1000);
+
+
+          runs(function () {
+            expect(getDataAtRowProp(0, 'name')).toBe('Timothy');
+            expect(getDataAtRowProp(0, 'surname')).toBe('Dalton');
+            expect(getDataAtRowProp(1, 'name')).toBe('Sean');
+            expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
+
+
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waits(100);
+
+          runs(function () {
+            expect(validatorSpy).not.toHaveBeenCalled();
+
+            expect(getDataAtRowProp(0, 'name')).toBe('Timothy');
+            expect(getDataAtRowProp(0, 'surname')).toBe('Dalton');
+            expect(getDataAtRowProp(1, 'name')).toBe('Sean');
+            expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
+          });
+
+        });
+
         it('should undo multiple row creations', function () {
           var HOT = handsontable({
             data: createObjectData().slice(0, 2)
@@ -1427,6 +1889,54 @@ describe('UndoRedo', function () {
 
           HOT.redo();
           expect(getDataAtRowProp(0, 0)).toBe('Pearce');
+        });
+
+        it('should redo single change in cell with validator', function () {
+
+          var validatorSpy = jasmine.createSpy('validatorSpy').andCallFake(function (value, result) {
+            result(true);
+          });
+
+          handsontable({
+            data: createObjectData(),
+            validator: validatorSpy
+          });
+          var HOT = getInstance();
+
+          setDataAtRowProp(0, 0, 'Pearce');
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after change', 1000);
+
+          runs(function () {
+            expect(getDataAtRowProp(0, 0)).toBe('Pearce');
+
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after undo', 1000);
+
+          runs(function () {
+            expect(getDataAtCell(0, 0)).toBe('Timothy');
+
+            validatorSpy.reset();
+            HOT.redo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after undo', 1000);
+
+          runs(function () {
+            expect(getDataAtRowProp(0, 0)).toBe('Pearce');
+          });
+
+
+
         });
 
         it('should redo creation of a single row', function () {
@@ -1607,6 +2117,150 @@ describe('UndoRedo', function () {
 
         });
 
+        it("should redo multiple changes in cells with validators", function () {
+
+          var validatorSpy = jasmine.createSpy('validatorSpy').andCallFake(function (value, result) {
+            result(true);
+          });
+
+          handsontable({
+            data: createObjectData().slice(0, 2),
+            validator: validatorSpy
+          });
+          var HOT = getInstance();
+
+          setDataAtRowProp(0, 'name', 'Pierce');
+          setDataAtRowProp(0, 'surname', 'Brosnan');
+          setDataAtRowProp(1, 'name', 'Daniel');
+          setDataAtRowProp(1, 'surname', 'Craig');
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after change', 1000);
+
+          runs(function () {
+            expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
+            expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');
+            expect(getDataAtRowProp(1, 'name')).toBe('Daniel');
+            expect(getDataAtRowProp(1, 'surname')).toBe('Craig');
+
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 1st undo', 1000);
+
+          runs(function () {
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 2nd undo', 1000);
+
+          runs(function () {
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 3rd undo', 1000);
+
+          runs(function () {
+            validatorSpy.reset();
+            HOT.undo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 4th undo', 1000);
+
+          runs(function () {
+            expect(getDataAtRowProp(0, 'name')).toBe('Timothy');
+            expect(getDataAtRowProp(0, 'surname')).toBe('Dalton');
+            expect(getDataAtRowProp(1, 'name')).toBe('Sean');
+            expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
+
+            validatorSpy.reset();
+            HOT.redo();
+          });
+
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 1st redo', 1000);
+
+          runs(function () {
+            expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
+            expect(getDataAtRowProp(0, 'surname')).toBe('Dalton');
+            expect(getDataAtRowProp(1, 'name')).toBe('Sean');
+            expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
+
+            validatorSpy.reset();
+            HOT.redo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 2nd redo', 1000);
+
+          runs(function () {
+            expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
+            expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');
+            expect(getDataAtRowProp(1, 'name')).toBe('Sean');
+            expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
+
+
+            validatorSpy.reset();
+            HOT.redo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 3rd redo', 1000);
+
+          runs(function () {
+            expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
+            expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');
+            expect(getDataAtRowProp(1, 'name')).toBe('Daniel');
+            expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
+
+            validatorSpy.reset();
+            HOT.redo();
+          });
+
+          waitsFor(function () {
+            return validatorSpy.calls.length;
+          }, 'validator spy call after 4th redo', 1000);
+
+          runs(function () {
+            expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
+            expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');
+            expect(getDataAtRowProp(1, 'name')).toBe('Daniel');
+            expect(getDataAtRowProp(1, 'surname')).toBe('Craig');
+
+            validatorSpy.reset();
+            HOT.redo();
+          });
+
+          waits(100);
+
+          runs(function () {
+
+            expect(validatorSpy).not.toHaveBeenCalled();
+
+            expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
+            expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');
+            expect(getDataAtRowProp(1, 'name')).toBe('Daniel');
+            expect(getDataAtRowProp(1, 'surname')).toBe('Craig');
+          });
+
+        });
+
         it('should redo multiple row creations', function () {
           var HOT = handsontable({
             data: createObjectData().slice(0, 2)
@@ -1702,7 +2356,7 @@ describe('UndoRedo', function () {
     });
   });
 
-  xdescribe("plugin features", function () {
+  describe("plugin features", function () {
     it("should exposed new methods when plugin is enabled", function () {
       var hot = handsontable({
         undo: false

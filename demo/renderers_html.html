@@ -19,10 +19,11 @@
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css?20140331">
   <script src="js/samples.js"></script>
   <script src="js/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+  <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
 
   <!--
   Facebook open graph. Don't copy this to your project :)
@@ -56,7 +57,14 @@
 </head>
 
 <body>
-<a href="http://github.com/warpech/jquery-handsontable" class="forkMeOnGitHub">Fork me on GitHub</a>
+
+
+<div class="wrapper">
+<div class="wrapper-row">
+<div id="global-menu-clone">
+  <h1><a href="../index.html">Handsontable</a></h1>
+
+</div>
 
 <div id="container">
 <div class="columnLayout">
@@ -64,12 +72,6 @@
 <div class="rowLayout">
   <div class="descLayout">
     <div class="pad">
-      <h1><a href="../index.html">Handsontable</a></h1>
-
-      <div class="tagline">a minimalistic Excel-like <span class="nobreak">data grid</span> editor
-        for HTML, JavaScript &amp; jQuery
-      </div>
-
       <h2>Custom HTML in cells and headers</h2>
 
       <p>On this page:</p>
@@ -392,7 +394,7 @@
             if (row === 0) {
               var cellProperties = {
                 type: 'text' //force text type for first row
-              }
+              };
               return cellProperties;
             }
           }
@@ -435,16 +437,17 @@
   </div>
 </div>
 
-<div class="rowLayout">
-  <div class="descLayout noMargin">
-    <div class="pad"><p>For more examples, head back to the <a href="../index.html">main page</a>.</p>
+<div class="footer-text">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+  licensed under the The MIT License.
+</div>
+</div>
 
-      <p class="small">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
-        licensed under the The MIT License.</p>
-    </div>
-  </div>
+</div>
+
 </div>
 </div>
-</div>
+
+<div id="outside-links-wrapper"></div>
+
 </body>
 </html>

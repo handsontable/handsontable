@@ -100,7 +100,7 @@ WalkontableEvent.prototype.parentCell = function (elem) {
     cell.TD = TD;
   }
   else if (this.wtDom.hasClass(elem, 'wtBorder') && this.wtDom.hasClass(elem, 'current')) {
-    cell.coords = this.instance.selections.current.cellRange.from;
+    cell.coords = this.instance.selections.current.cellRange.highlight;
     cell.TD = this.instance.wtTable.getCell(cell.coords);
   }
   return cell;
