@@ -15,12 +15,14 @@ function WalkontableRowStrategy(instance, containerSizeFn, sizeAtIndex) {
   this.cellCount = 0;
   this.visiblCellCount = 0;
   this.remainingSize = -Infinity;
+  this.maxOuts = 10; //max outs in one direction (before and after table)
+  this.curOuts = this.maxOuts;
 }
 
 WalkontableRowStrategy.prototype = new WalkontableAbstractStrategy();
 
 WalkontableRowStrategy.prototype.add = function (i, TD) {
-  if(!this.canRenderMoreRows() || this.remainingSize == 0){
+  if(!this.canRenderMoreRows()){
     return false;
   }
 
@@ -50,8 +52,7 @@ WalkontableRowStrategy.prototype.add = function (i, TD) {
  * @returns {boolean}
  */
 WalkontableRowStrategy.prototype.canRenderMoreRows = function () {
-  var nativeScrollbar = this.instance.cloneFrom ? this.instance.cloneFrom.wtScrollbars.vertical : this.instance.wtScrollbars.vertical;
-  return this.remainingSize <= 0 || this.cellCount - this.visiblCellCount <= nativeScrollbar.curOuts;
+  return this.remainingSize <= 0 || this.cellCount - this.visiblCellCount < this.curOuts;
 };
 
 WalkontableRowStrategy.prototype.remove = function () {
@@ -62,8 +63,7 @@ WalkontableRowStrategy.prototype.remove = function () {
 };
 
 WalkontableRowStrategy.prototype.removeOutstanding = function () {
-  var nativeScrollbar = this.instance.cloneFrom ? this.instance.cloneFrom.wtScrollbars.vertical : this.instance.wtScrollbars.vertical;
-  while (this.cellCount - this.visiblCellCount > nativeScrollbar.curOuts) { //this row is completely off screen!
+  while (this.cellCount - this.visiblCellCount > this.curOuts) { //this row is completely off screen!
     this.remove();
   }
 };

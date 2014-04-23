@@ -1,17 +1,21 @@
 describe('WalkontableCore', function () {
-  var $table
+  var $table,
+    $container
     , debug = false;
 
   beforeEach(function () {
+    $container = $('<div></div>').css({'overflow': 'auto'});
     $table = $('<table></table>'); //create a table that is not attached to document
-    $table.appendTo('body');
-    createDataArray();
+    $container.append($table).appendTo('body');
+    createDataArray(100, 4);
   });
 
   afterEach(function () {
     if (!debug) {
       $('.wtHolder').remove();
     }
+
+    $container.remove();
   });
 
   it("first row should have the same text as in data source", function () {
@@ -67,11 +71,8 @@ describe('WalkontableCore', function () {
     var rowHeight = 23; //measured in real life with walkontable.css
     var colCount = 4;
     var height = 200;
-    var potentialCellCount = colCount * Math.ceil(height / rowHeight);
 
-    $table.remove();
-    $table = $('<table>    </table>'); //should also clean the empty text nodes inside
-    $table.appendTo('body');
+    $container.width(200).height(height);
 
     var wt = new Walkontable({
       table: $table[0],
@@ -84,6 +85,9 @@ describe('WalkontableCore', function () {
       width: 200
     });
     wt.draw();
+
+    var potentialCellCount = colCount * (Math.floor(height / rowHeight) + wt.wtTable.getRowStrategy().maxOuts);
+
     expect($table.find('td').length).toBe(potentialCellCount);
   });
 
@@ -112,6 +116,9 @@ describe('WalkontableCore', function () {
 
   it("should figure out the amount of rows to display if height param given", function () {
     var rowHeight = 23; //measured in real life with walkontable.css
+
+    $container.height(400);
+
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -122,10 +129,16 @@ describe('WalkontableCore', function () {
       height: 400
     });
     wt.draw();
-    expect($table.find('tbody tr').length).toBe(Math.ceil(400 / rowHeight));
+
+    var expectedRowCount = Math.floor(400 / rowHeight) + wt.wtTable.getRowStrategy().maxOuts;
+
+    expect($table.find('tbody tr').length).toBe(expectedRowCount);
   });
 
   it("should figure out how many columns to display if width param given", function () {
+
+    $container.width(100);
+
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -136,11 +149,11 @@ describe('WalkontableCore', function () {
       width: 100
     });
     wt.draw();
-    expect($table.find('tbody tr:first td').length).toBe(2);
+    expect($table.find('tbody tr:first td').length).toBe(4);
   });
 
   it("should not render table that is removed from DOM", function () {
-    $table.remove();
+    $container.remove();
     var wt = new Walkontable({
       table: $table[0],
       data: getData,

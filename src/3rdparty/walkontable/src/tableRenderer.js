@@ -21,8 +21,7 @@ function WalkontableTableRenderer(wtTable){
     this.fixedRowsTop = this.instance.getSetting('fixedRowsTop');
     this.columnHeaders = this.instance.getSetting('columnHeaders');
 
-  var visibleRowIndex
-    , visibleColIndex
+  var visibleColIndex
     , totalRows = this.instance.getSetting('totalRows')
     , totalColumns = this.instance.getSetting('totalColumns')
     , displayTds
@@ -33,7 +32,6 @@ function WalkontableTableRenderer(wtTable){
     , workspaceWidth
     , res;
 
-  //draw TBODY
   if (totalColumns > 0) {
     var cloneLimit;
     if (this.wtTable.isWorkingOnClone()) { //must be run after adjustAvailableNodes because otherwise this.rowStrategy is not yet defined
@@ -120,7 +118,7 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
 
     this.adjustColumns(TR, displayTds + this.rowHeaderCount);
 
-    var lastTD = this.renderCells(sourceRowIndex, TR, displayTds);
+    lastTD = this.renderCells(sourceRowIndex, TR, displayTds);
 
     offsetRow = this.instance.getSetting('offsetRow'); //refresh the value
 
@@ -379,7 +377,7 @@ WalkontableTableRenderer.prototype.refreshStretching = function () {
   };
 
   var rowHeightFn = function (i, TD) {
-    return 20;
+    return 23;
   };
 
   this.wtTable.columnStrategy = new WalkontableColumnStrategy(instance, containerWidthFn, columnWidthFn, stretchH);

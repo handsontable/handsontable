@@ -16,14 +16,18 @@ describe('WalkontableRowStrategy', function () {
     }
   }
 
-  it("cell strategy should add only as many rows as it fits in the viewport", function () {
-    source = [0, 1, 2, 5, 6, 7, 8, 9, 10];
+  it("cell strategy should add only as many rows as it fits in the viewport + maxOuts", function () {
+    source = range(20);
     var viewportSize = 100;
     var strategy = new WalkontableRowStrategy(fakeWalkontableInstance, viewportSize, allCells25);
     for (var i = 0; i < source.length; i++) {
       strategy.add(i);
     }
-    expect(strategy.cellSizes).toEqual([25, 25, 25, 25]);
+
+    var expectedRowCount = viewportSize / 25 + strategy.maxOuts;
+
+
+    expect(strategy.cellSizes.length).toEqual(expectedRowCount);
   });
 
   it("should show all cells if containerSize is Infinity", function () {

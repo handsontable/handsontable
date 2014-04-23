@@ -1,10 +1,4 @@
 describe('WalkontableAbstractFilter', function () {
-  describe('source', function () {
-    it("should return n", function () {
-      var filter = new WalkontableAbstractFilter();
-      expect(filter.source(0)).toEqual(0);
-    });
-  });
 
   describe('offsetted', function () {
     it("should return n, when offset == 0 && n == 0", function () {

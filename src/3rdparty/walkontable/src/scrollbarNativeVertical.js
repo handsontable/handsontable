@@ -2,7 +2,6 @@ function WalkontableVerticalScrollbarNative(instance) {
   this.instance = instance;
   this.type = 'vertical';
   this.cellSize = 23;
-  this.curOuts = this.maxOuts;
   this.offset = 0;
   this.totalRows = 0;
   this.init();
@@ -99,9 +98,6 @@ WalkontableVerticalScrollbarNative.prototype.onScroll = function (forcePosition)
       newOffset = Math.min(newOffset, this.total);
     }
   }
-
-  this.curOuts = newOffset > this.maxOuts ? this.maxOuts : newOffset;
-  newOffset -= this.curOuts;
 
   this.instance.update('offsetRow', newOffset);
   this.readSettings(); //read new offset

@@ -199,8 +199,6 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
  * @return {Object} HTMLElement on success or {Number} one of the exit codes on error:
  *  -1 row before viewport
  *  -2 row after viewport
- *  -3 column before viewport
- *  -4 column after viewport
  *
  */
 WalkontableTable.prototype.getCell = function (coords) {
@@ -210,17 +208,8 @@ WalkontableTable.prototype.getCell = function (coords) {
   else if (this.isRowAfterViewport(coords.row)) {
     return -2; //row after viewport
   }
-  else {
-    if (this.isColumnBeforeViewport(coords.col)) {
-      return -3; //column before viewport
-    }
-    else if (this.isColumnAfterViewport(coords.col)) {
-      return -4; //column after viewport
-    }
-    else {
-      return this.TBODY.childNodes[this.rowFilter.sourceToVisible(coords.row)].childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];
-    }
-  }
+
+  return this.TBODY.childNodes[this.rowFilter.sourceToVisible(coords.row)].childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];
 };
 
 /**
@@ -236,13 +225,50 @@ WalkontableTable.prototype.getCoords = function (TD) {
 };
 
 //returns -1 if no row is visible
+WalkontableTable.prototype.getFirstVisibleRow = function () {
+  return this.rowFilter.visibleToSource(0);
+};
+
+//returns -1 if no column is visible
+WalkontableTable.prototype.getFirstVisibleColumn = function () {
+  var leftOffset = this.instance.wtScrollbars.vertical.scrollHandler.scrollLeft;
+  var columnCount = this.getColumnStrategy().cellCount;
+  var firstTR = this.TBODY.firstChild;
+
+  for (var colIndex = 0; colIndex < columnCount; colIndex++){
+    leftOffset -= firstTR.childNodes[colIndex].offsetWidth;
+
+    if (leftOffset < 0){
+      return colIndex;
+    }
+
+  }
+
+  return -1;
+};
+
+//returns -1 if no row is visible
 WalkontableTable.prototype.getLastVisibleRow = function () {
-  return this.rowFilter.visibleToSource(this.getRowStrategy().cellCount - 1);
+  return this.rowFilter.visibleToSource(this.getRowStrategy().countVisible() - 1);
 };
 
 //returns -1 if no column is visible
 WalkontableTable.prototype.getLastVisibleColumn = function () {
-  return this.columnFilter.visibleToSource(this.getColumnStrategy().cellCount - 1);
+  var leftOffset = this.instance.wtScrollbars.vertical.scrollHandler.scrollLeft;
+  var leftPartOfTable = leftOffset + this.instance.wtScrollbars.vertical.scrollHandler.clientWidth;
+  var columnCount = this.getColumnStrategy().cellCount;
+  var firstTR = this.TBODY.firstChild;
+
+  for (var colIndex = 0; colIndex < columnCount; colIndex++){
+    leftPartOfTable -= firstTR.childNodes[colIndex].offsetWidth;
+
+    if (leftPartOfTable <= 0){
+      return colIndex;
+    }
+
+  }
+
+  return -1;
 };
 
 WalkontableTable.prototype.isRowBeforeViewport = function (r) {
@@ -276,3 +302,7 @@ WalkontableTable.prototype.isLastRowFullyVisible = function () {
 WalkontableTable.prototype.isLastColumnFullyVisible = function () {
   return (this.getLastVisibleColumn() === this.instance.getSetting('totalColumns') - 1 && !this.getColumnStrategy().isLastIncomplete());
 };
+
+WalkontableTable.prototype.getVisibleRowsCount = function () {
+  return this.getRowStrategy().countVisible();
+}

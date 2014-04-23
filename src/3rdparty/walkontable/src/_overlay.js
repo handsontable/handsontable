@@ -2,9 +2,7 @@
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
  * and (optionally) implements behavior needed for native horizontal and vertical scrolling
  */
-function WalkontableOverlay() {
-  this.maxOuts = 10; //max outs in one direction (before and after table)
-}
+function WalkontableOverlay() {}
 
 /*
  Possible optimizations:

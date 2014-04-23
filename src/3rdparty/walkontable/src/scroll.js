@@ -14,7 +14,7 @@ WalkontableScroll.prototype.scrollVertical = function (delta) {
     , total = instance.getSetting('totalRows')
     , maxSize = instance.wtViewport.getViewportHeight();
 
-  if (total > 0) {
+  if (total > 0 && total > this.instance.wtTable.getVisibleRowsCount()) {
     newOffset = this.scrollLogicVertical(delta, offset, total, fixedCount, maxSize, function (row) {
       if (row - offset < fixedCount && row - offset >= 0) {
         return instance.getSetting('rowHeight', row - offset);
@@ -23,10 +23,11 @@ WalkontableScroll.prototype.scrollVertical = function (delta) {
         return instance.getSetting('rowHeight', row);
       }
     });
-  }
-  else {
+
+  } else {
     newOffset = 0;
   }
+
 
   if (newOffset !== offset) {
     this.instance.wtScrollbars.vertical.scrollTo(newOffset);
@@ -140,17 +141,14 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     var outerHeight = WalkontableDom.prototype.outerHeight(TD);
     var scrollX = this.instance.wtScrollbars.horizontal.getScrollPosition();
     var scrollY = this.instance.wtScrollbars.vertical.getScrollPosition();
-    var clientWidth = WalkontableDom.prototype.outerWidth(this.instance.wtScrollbars.horizontal.scrollHandler);
-    var clientHeight = WalkontableDom.prototype.outerHeight(this.instance.wtScrollbars.vertical.scrollHandler);
+    var clientWidth = this.instance.wtScrollbars.horizontal.scrollHandler.clientWidth;
+    var clientHeight = this.instance.wtScrollbars.vertical.scrollHandler.clientHeight;
     if (this.instance.wtScrollbars.horizontal.scrollHandler !== window) {
       offset.left = offset.left - WalkontableDom.prototype.offset(this.instance.wtScrollbars.horizontal.scrollHandler).left;
     }
     if (this.instance.wtScrollbars.vertical.scrollHandler !== window) {
       offset.top = offset.top - WalkontableDom.prototype.offset(this.instance.wtScrollbars.vertical.scrollHandler).top;
     }
-
-    clientWidth -= 20;
-    clientHeight -= 20;
 
     if (outerWidth < clientWidth) {
       if (offset.left < scrollX) {

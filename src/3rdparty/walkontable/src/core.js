@@ -111,8 +111,8 @@ Walkontable.prototype.scrollViewport = function (coords) {
 
 Walkontable.prototype.getViewport = function () {
   return [
-    this.wtTable.rowFilter.visibleToSource(0),
-    this.wtTable.columnFilter.visibleToSource(0),
+    this.wtTable.getFirstVisibleRow(),
+    this.wtTable.getFirstVisibleColumn(),
     this.wtTable.getLastVisibleRow(),
     this.wtTable.getLastVisibleColumn()
   ];
