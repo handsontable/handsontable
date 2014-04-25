@@ -166,6 +166,7 @@ function HandsontableManualColumnResize() {
   };
 
   this.modifyColWidth = function (width, col) {
+    col = this.runHooksAndReturn('modifyCol', col);
     if (this.getSettings().manualColumnResize && this.manualColumnWidths[col]) {
       return this.manualColumnWidths[col];
     }

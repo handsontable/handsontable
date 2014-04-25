@@ -1729,7 +1729,6 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this.getColWidth = function (col) {
-    col = Handsontable.hooks.execute(instance, 'modifyCol', col);
     var width = instance._getColWidthFromSettings(col);
     if (!width) {
       width = 50;

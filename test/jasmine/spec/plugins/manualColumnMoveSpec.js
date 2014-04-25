@@ -328,5 +328,35 @@ describe('manualColumnMove', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
     expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
+  });
+
+  it("should return an appropriate column width, when colum oreder has changed", function () {
+    var hot = handsontable({
+      columns: [
+        {
+          width: 50
+        },
+        {
+          width: 60
+        },
+        {
+          width: 70
+        }
+      ]
+    });
+
+    expect(hot.getColWidth(0)).toEqual(50);
+    expect(hot.getColWidth(1)).toEqual(60);
+    expect(hot.getColWidth(2)).toEqual(70);
+
+    hot.updateSettings({
+      manualColumnMove: [2, 0, 1]
+    });
+
+    expect(hot.getColWidth(0)).toEqual(70);
+    expect(hot.getColWidth(1)).toEqual(50);
+    expect(hot.getColWidth(2)).toEqual(60);
+
+
   })
 });
