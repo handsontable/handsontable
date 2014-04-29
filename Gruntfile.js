@@ -173,6 +173,7 @@ module.exports = function (grunt) {
         'src/**/*.js',
         'src/**/*.css',
         'src/**/*.html',
+        '!src/3rdparty/walkontable/test/**/*',
         'lib/**/*.js',
         'lib/**/*.css'
       ],
