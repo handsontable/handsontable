@@ -50,8 +50,11 @@ WalkontableColumnStrategy.prototype.getSize = function (index) {
 
 WalkontableColumnStrategy.prototype.stretch = function () {
   //step 2 - apply stretching strategy
-  var containerSize = this.getContainerSize(this.cellSizesSum)
+  var containerSize
     , i = 0;
+
+  containerSize = this.instance.wtTable.allRowsInViewport() ? this.getContainerSize() : this.getContainerSize(Infinity);
+
   this.remainingSize = this.cellSizesSum - containerSize;
 
   this.cellStretch.length = 0; //clear previous stretch
@@ -81,4 +84,21 @@ WalkontableColumnStrategy.prototype.stretch = function () {
 
 WalkontableColumnStrategy.prototype.countVisible = function () {
   return this.visibleCellCount;
+};
+
+WalkontableColumnStrategy.prototype.isLastIncomplete = function () {
+
+  var firstRow = this.instance.wtTable.getFirstVisibleRow();
+  var lastCol = this.instance.wtTable.getLastVisibleColumn();
+  var cell = this.instance.wtTable.getCell(new WalkontableCellCoords(firstRow, lastCol));
+  var cellOffset = WalkontableDom.prototype.offset(cell);
+  var cellWidth = WalkontableDom.prototype.outerWidth(cell);
+  var cellEnd = cellOffset.left + cellWidth;
+
+  var viewportOffsetLeft = this.instance.wtScrollbars.vertical.getScrollPosition();
+  var viewportWitdh = this.instance.wtViewport.getViewportWidth();
+  var viewportEnd = viewportOffsetLeft + viewportWitdh;
+
+
+  return viewportEnd >= cellEnd;
 };

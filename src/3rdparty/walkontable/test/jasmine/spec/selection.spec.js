@@ -3,8 +3,10 @@ describe('WalkontableSelection', function () {
     , debug = false;
 
   beforeEach(function () {
+    $container = $('<div></div>').css({'overflow': 'auto'});
+    $container.width(100).height(200);
     $table = $('<table></table>'); //create a table that is not attached to document
-    $table.appendTo('body');
+    $container.append($table).appendTo('body');
     createDataArray();
   });
 
@@ -12,6 +14,7 @@ describe('WalkontableSelection', function () {
     if (!debug) {
       $('.wtHolder').remove();
     }
+    $container.remove();
   });
 
   it("should add/remove class to selection when cell is clicked", function () {
@@ -218,7 +221,7 @@ describe('WalkontableSelection', function () {
     expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new WalkontableCellCoords(0, 0));
   });
 
-  it("should clear a selection that is outside of the viewport", function () {
+  it("should not scroll the viewport after selection is cleared", function () {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -241,9 +244,12 @@ describe('WalkontableSelection', function () {
     wt.draw();
 
     wt.selections.current.add(new WalkontableCellCoords(0, 0));
+    wt.draw();
+    expect(wt.wtTable.getFirstVisibleRow()).toEqual(0);
     wt.scrollVertical(10).draw();
+    expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
     wt.selections.current.clear();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new WalkontableCellCoords(10, 0));
+    expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
   });
 
   it("should clear a selection that has more than one cell", function () {
@@ -276,9 +282,8 @@ describe('WalkontableSelection', function () {
   });
 
   it("should highlight cells in selected row & column", function () {
-    var rowHeight = 23; //measured in real life with walkontable.css
-    var height = 200;
-    var potentialRowCount = Math.ceil(height / rowHeight);
+
+    $container.width(300);
 
     var wt = new Walkontable({
       table: $table[0],
@@ -303,13 +308,12 @@ describe('WalkontableSelection', function () {
     wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(2);
-    expect($table.find('.highlightColumn').length).toEqual((potentialRowCount - 1) * 2);
+    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.rowStrategy.countVisible() * 2 - 2);
   });
 
   it("should highlight cells in selected row & column, when same class is shared between 2 selection definitions", function () {
     var rowHeight = 23; //measured in real life with walkontable.css
     var height = 200;
-    var potentialRowCount = Math.ceil(height / rowHeight);
 
     var wt = new Walkontable({
       table: $table[0],
@@ -337,7 +341,7 @@ describe('WalkontableSelection', function () {
     wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(3);
-    expect($table.find('.highlightColumn').length).toEqual(potentialRowCount - 1);
+    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.rowStrategy.countVisible() - 1);
   });
 
   it("should remove highlight when selection is deselected", function () {

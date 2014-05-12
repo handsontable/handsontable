@@ -10,7 +10,7 @@ function WalkontableSettings(instance, settings) {
     //presentation mode
     scrollH: 'auto', //values: scroll (always show scrollbar), auto (show scrollbar if table does not fit in the container), none (never show scrollbar)
     scrollV: 'auto', //values: see above
-    stretchH: 'hybrid', //values: hybrid, all, last, none
+    stretchH: 'none', //values: all, last, none
     currentRowClassName: null,
     currentColumnClassName: null,
 

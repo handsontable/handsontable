@@ -62,11 +62,16 @@ WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
 
   var columnHeaderHeight = this.getColumnHeaderHeight();
   if (columnHeaderHeight > 0) {
-    return containerHeight - columnHeaderHeight;
+    containerHeight -= columnHeaderHeight;
   }
-  else {
-    return containerHeight;
-  }
+
+//  var scrollbarHeight = this.instance.getSetting('scrollbarHeight');
+//  if (proposedHeight > containerHeight - scrollbarHeight) {
+//    containerHeight -= scrollbarHeight;
+//  }
+
+  return containerHeight;
+
 };
 
 WalkontableViewport.prototype.getRowHeaderWidth = function () {

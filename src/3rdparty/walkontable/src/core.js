@@ -71,6 +71,15 @@ Walkontable.prototype.draw = function (selectionsOnly) {
   selectionsOnly = selectionsOnly && this.getSetting('offsetRow') === this.lastOffsetRow && this.getSetting('offsetColumn') === this.lastOffsetColumn;
   this.lastOffsetRow = this.getSetting('offsetRow');
   this.lastOffsetColumn = this.getSetting('offsetColumn');
+
+  var totalRows = this.getSetting('totalRows');
+
+  if (this.lastOffsetRow > totalRows - 1 && totalRows > 0) {
+    this.scrollVertical(-Infinity); //TODO: probably very inefficient!
+    this.scrollViewport(new WalkontableCellCoords(totalRows - 1, 0));
+  }
+
+
   this.wtTable.draw(selectionsOnly);
   if (!this.cloneSource) {
     this.getSetting('onDraw',  !selectionsOnly);
@@ -129,6 +138,5 @@ Walkontable.prototype.hasSetting = function (key) {
 Walkontable.prototype.destroy = function () {
   $(document.body).off('.' + this.guid);
   this.wtScrollbars.destroy();
-  clearTimeout(this.wheelTimeout);
   this.wtEvent && this.wtEvent.destroy();
 };

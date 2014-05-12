@@ -86,7 +86,7 @@ WalkontableVerticalScrollbarNative.prototype.onScroll = function (forcePosition)
       for (var i = 0; i < this.total; i++) {
         last = this.instance.getSetting('rowHeight', i);
         sum += last;
-        if (sum > scrollDelta) {
+        if (sum - 1 > scrollDelta) {
           break;
         }
       }
@@ -137,13 +137,14 @@ WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {
 
 //readWindowSize (in future merge it with this.prepare?)
 WalkontableVerticalScrollbarNative.prototype.readWindowSize = function () {
+  var settingsHeight = this.instance.getSetting('height');
   if (this.scrollHandler === window) {
     this.windowSize = document.documentElement.clientHeight;
     this.tableParentOffset = this.instance.wtTable.holderOffset.top;
   }
   else {
     //this.windowSize = WalkontableDom.prototype.outerHeight(this.scrollHandler);
-    this.windowSize = this.scrollHandler.clientHeight; //returns height without DIV scrollbar
+    this.windowSize = settingsHeight > 0 && this.scrollHandler.clientHeight > 0 ? this.scrollHandler.clientHeight : Infinity; //returns height without DIV scrollbar
     this.tableParentOffset = 0;
   }
   this.windowScrollPosition = this.getScrollPosition();

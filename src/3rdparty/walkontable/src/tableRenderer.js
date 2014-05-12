@@ -53,15 +53,15 @@ function WalkontableTableRenderer(wtTable){
 
     displayTds = this.getColumnCount();
 
+    //Render table rows
+    this.renderRows(totalRows, cloneLimit, displayTds);
+
     if (!this.wtTable.isWorkingOnClone()) {
       workspaceWidth = this.instance.wtViewport.getWorkspaceWidth();
       this.wtTable.getColumnStrategy().stretch();
     }
 
     this.adjustColumnWidths(displayTds);
-
-    //Render table rows
-    this.renderRows(totalRows, cloneLimit, displayTds);
   }
 
   if (!adjusted) {
@@ -122,12 +122,18 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
 
     offsetRow = this.instance.getSetting('offsetRow'); //refresh the value
 
+
+
     //after last column is rendered, check if last cell is fully displayed
     if (!this.wtTable.isWorkingOnClone()) {
       res = this.wtTable.getRowStrategy().add(visibleRowIndex, lastTD);
 
       if (res === false) {
         break;
+      }
+
+      if (visibleRowIndex == 0) { //rendering the first row may caused bottom scrollbar to appear, so we need to refresh the window size
+        this.instance.wtScrollbars.vertical.readWindowSize();
       }
     }
 
@@ -357,15 +363,6 @@ WalkontableTableRenderer.prototype.refreshStretching = function () {
       return instance.getSetting('columnWidth', source_c);
     }
   };
-
-  if (stretchH === 'hybrid') {
-    if (offsetColumn > 0) {
-      stretchH = 'last';
-    }
-    else {
-      stretchH = 'none';
-    }
-  }
 
   var containerHeightFn = function (cacheHeight) {
     if (that.instance.cloneOverlay instanceof WalkontableDebugOverlay) {

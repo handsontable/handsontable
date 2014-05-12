@@ -2,7 +2,10 @@ describe('WalkontableColumnStrategy', function () {
   var source;
 
   var fakeWalkontableInstance = {
-    getSetting : function(){}
+    getSetting : function(){},
+    wtTable: {
+      allRowsInViewport: function () {}
+    }
   };
 
   function allCells25(i) {

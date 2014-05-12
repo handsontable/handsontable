@@ -99,6 +99,7 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
 };
 
 WalkontableTable.prototype.draw = function (selectionsOnly) {
+
   this.rowFilter.readSettings(this.instance);
   this.columnFilter.readSettings(this.instance);
 
@@ -257,13 +258,14 @@ WalkontableTable.prototype.getLastVisibleColumn = function () {
   var leftOffset = this.instance.wtScrollbars.vertical.scrollHandler.scrollLeft;
   var leftPartOfTable = leftOffset + this.instance.wtScrollbars.vertical.scrollHandler.clientWidth;
   var columnCount = this.getColumnStrategy().cellCount;
+  var rowHeaderCount = this.instance.getSetting('rowHeaders').length || 0
   var firstTR = this.TBODY.firstChild;
 
-  for (var colIndex = 0; colIndex < columnCount; colIndex++){
+  for (var colIndex = 0; colIndex < columnCount + rowHeaderCount; colIndex++){
     leftPartOfTable -= firstTR.childNodes[colIndex].offsetWidth;
 
     if (leftPartOfTable <= 0){
-      return colIndex;
+      return colIndex - rowHeaderCount;
     }
 
   }
@@ -305,4 +307,8 @@ WalkontableTable.prototype.isLastColumnFullyVisible = function () {
 
 WalkontableTable.prototype.getVisibleRowsCount = function () {
   return this.getRowStrategy().countVisible();
-}
+};
+
+WalkontableTable.prototype.allRowsInViewport = function () {
+  return this.getRowStrategy().cellCount == this.getVisibleRowsCount();
+};
