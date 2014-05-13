@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Mar 31 2014 14:19:47 GMT+0200 (CEST)
+ * Date: Tue May 13 2014 10:46:48 GMT+0000 (GMT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -5432,7 +5432,9 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
 
     var that = this;
     this.$textarea.on('keydown.autocompleteEditor', function(event){
-      if(!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) != -1){
+      if(event.keyCode === 229) {
+        // Handle dead keys by doing nothing
+      } else if(!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) != -1){
         setTimeout(function () {
           that.queryChoices(that.$textarea.val());
         });

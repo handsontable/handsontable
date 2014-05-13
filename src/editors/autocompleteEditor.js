@@ -19,7 +19,9 @@
 
     var that = this;
     this.$textarea.on('keydown.autocompleteEditor', function(event){
-      if(!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) != -1){
+      if(event.keyCode === 229) {
+        // Handle dead keys by doing nothing
+      } else if(!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) != -1){
         setTimeout(function () {
           that.queryChoices(that.$textarea.val());
         });
