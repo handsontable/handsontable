@@ -230,7 +230,7 @@ describe('WalkontableScroll', function () {
         offsetRow: 0,
         offsetColumn: 0,
         height: 200,
-        width: 100,
+        width: 140,
         rowHeaders: [function (row, TH) {
           TH.innerHTML = row + 1;
         }]

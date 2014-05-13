@@ -255,11 +255,15 @@ WalkontableTable.prototype.getLastVisibleRow = function () {
 
 //returns -1 if no column is visible
 WalkontableTable.prototype.getLastVisibleColumn = function () {
-  var leftOffset = this.instance.wtScrollbars.vertical.scrollHandler.scrollLeft;
-  var leftPartOfTable = leftOffset + this.instance.wtScrollbars.vertical.scrollHandler.clientWidth;
+  var leftOffset = this.instance.wtScrollbars.horizontal.getScrollPosition();
+  var leftPartOfTable = leftOffset + this.instance.wtViewport.getWorkspaceWidth(Infinity);
   var columnCount = this.getColumnStrategy().cellCount;
   var rowHeaderCount = this.instance.getSetting('rowHeaders').length || 0
   var firstTR = this.TBODY.firstChild;
+
+  if (!columnCount) {
+    return -1;
+  }
 
   for (var colIndex = 0; colIndex < columnCount + rowHeaderCount; colIndex++){
     leftPartOfTable -= firstTR.childNodes[colIndex].offsetWidth;
@@ -270,7 +274,7 @@ WalkontableTable.prototype.getLastVisibleColumn = function () {
 
   }
 
-  return -1;
+  return colIndex - rowHeaderCount - 1;
 };
 
 WalkontableTable.prototype.isRowBeforeViewport = function (r) {
