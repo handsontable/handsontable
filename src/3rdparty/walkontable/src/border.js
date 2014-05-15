@@ -180,7 +180,7 @@ WalkontableBorder.prototype.appear = function (corners) {
       hideRight = true;
     }
 
-    ilen = instance.wtTable.getColumnStrategy().countVisible();
+    ilen = instance.wtTable.getColumnStrategy().cellCount;
 
     for (i = 0; i < ilen; i++) {
       s = instance.wtTable.columnFilter.visibleToSource(i);
