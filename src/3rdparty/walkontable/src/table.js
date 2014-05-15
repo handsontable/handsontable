@@ -232,7 +232,7 @@ WalkontableTable.prototype.getFirstVisibleRow = function () {
 
 //returns -1 if no column is visible
 WalkontableTable.prototype.getFirstVisibleColumn = function () {
-  var leftOffset = this.instance.wtScrollbars.vertical.scrollHandler.scrollLeft;
+  var leftOffset = this.instance.wtScrollbars.horizontal.getScrollPosition();
   var columnCount = this.getColumnStrategy().cellCount;
   var firstTR = this.TBODY.firstChild;
 

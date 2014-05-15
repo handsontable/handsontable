@@ -154,8 +154,8 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     var outerHeight = WalkontableDom.prototype.outerHeight(TD);
     var scrollX = this.instance.wtScrollbars.horizontal.getScrollPosition();
     var scrollY = this.instance.wtScrollbars.vertical.getScrollPosition();
-    var clientWidth = this.instance.wtScrollbars.horizontal.scrollHandler.clientWidth;
-    var clientHeight = this.instance.wtScrollbars.vertical.scrollHandler.clientHeight;
+    var clientWidth = this.instance.wtViewport.getViewportWidth();
+    var clientHeight = this.instance.wtViewport.getViewportHeight();
     if (this.instance.wtScrollbars.horizontal.scrollHandler !== window) {
       offset.left = offset.left - WalkontableDom.prototype.offset(this.instance.wtScrollbars.horizontal.scrollHandler).left;
     }
@@ -170,8 +170,6 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
       else if (offset.left + outerWidth > scrollX + clientWidth) {
         this.instance.wtScrollbars.horizontal.setScrollPosition(offset.left - clientWidth + outerWidth);
       }
-    } else {
-      this.instance.wtScrollbars.horizontal.setScrollPosition(offset.left  - verticalCloneWidth);
     }
 
     if (outerHeight < clientHeight) {
@@ -181,8 +179,6 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
       else if (offset.top + outerHeight > scrollY + clientHeight) {
         this.instance.wtScrollbars.vertical.setScrollPosition(offset.top - clientHeight + outerHeight);
       }
-    } else {
-      this.instance.wtScrollbars.vertical.setScrollPosition(offset.top);
     }
 
   }  else if (coords.row >= this.instance.wtTable.getLastVisibleRow()) {
