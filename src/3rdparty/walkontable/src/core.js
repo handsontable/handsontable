@@ -136,6 +136,7 @@ Walkontable.prototype.hasSetting = function (key) {
 };
 
 Walkontable.prototype.destroy = function () {
+  $(window).off('.' + this.guid);
   $(document.body).off('.' + this.guid);
   this.wtScrollbars.destroy();
   this.wtEvent && this.wtEvent.destroy();

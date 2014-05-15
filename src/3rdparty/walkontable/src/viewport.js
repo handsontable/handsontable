@@ -3,7 +3,7 @@ function WalkontableViewport(instance) {
   this.resetSettings();
 
   var that = this;
-  $(window).on('resize', function () {
+  $(window).on('resize.walkontable.' + this.instance.guid, function () {
     that.clientHeight = that.getWorkspaceHeight();
   });
 }

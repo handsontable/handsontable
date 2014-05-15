@@ -102,7 +102,8 @@ WalkontableOverlay.prototype.refresh = function (selectionsOnly) {
 };
 
 WalkontableOverlay.prototype.destroy = function () {
-  this.$scrollHandler.off('.' + this.instance.guid);
-  $(window).off('.' + this.instance.guid);
-  $(document).off('.' + this.instance.guid);
+  this.$scrollHandler.off('.' + this.clone.guid);
+  $(window).off('.' + this.clone.guid);
+  $(document).off('.' + this.clone.guid);
+  $(document.body).off('.' + this.clone.guid);
 };

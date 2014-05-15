@@ -67,6 +67,7 @@ WalkontableScrollbars.prototype.registerListeners = function () {
 WalkontableScrollbars.prototype.destroy = function () {
   this.vertical && this.vertical.destroy();
   this.horizontal && this.horizontal.destroy();
+  this.corner && this.corner.destroy();
 };
 
 WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
