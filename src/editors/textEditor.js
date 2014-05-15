@@ -148,10 +148,8 @@
     var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
     var currentOffset = this.wtDom.offset(this.TD);
     var containerOffset = this.wtDom.offset(this.instance.rootElement[0]);
-    var scrollTop = this.instance.rootElement.scrollTop();
-    var scrollLeft = this.instance.rootElement.scrollLeft();
-    var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
-    var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
+    var editTop = currentOffset.top - containerOffset.top - 1;
+    var editLeft = currentOffset.left - containerOffset.left - 1;
 
     var settings = this.instance.getSettings();
     var rowHeadersCount = settings.rowHeaders === false ? 0 : 1;
