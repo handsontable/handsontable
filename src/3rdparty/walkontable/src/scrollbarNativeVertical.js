@@ -86,7 +86,7 @@ WalkontableVerticalScrollbarNative.prototype.onScroll = function (forcePosition)
       for (var i = 0; i < this.total; i++) {
         last = this.instance.getSetting('rowHeight', i);
         sum += last;
-        if (sum - 1 > scrollDelta) {
+        if (sum - 1> scrollDelta) {
           break;
         }
       }

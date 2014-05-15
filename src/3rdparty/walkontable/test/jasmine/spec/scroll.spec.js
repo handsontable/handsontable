@@ -194,8 +194,10 @@ describe('WalkontableScroll', function () {
         width: 125
       });
       wt.draw();
+      var height = $container[0].clientHeight;
+      var visibleRowCount = Math.ceil(height/23);
       wt.scrollViewport(new WalkontableCellCoords(0, 2)).draw();
-      expect(wt.getViewport()).toEqual([0, 0, 7, 2]);
+      expect(wt.getViewport()).toEqual([0, 0, visibleRowCount - 1, 2]);
     });
 
     it("scroll viewport to a cell on far left should make it visible on left edge", function () {
@@ -213,10 +215,14 @@ describe('WalkontableScroll', function () {
         width: 100
       });
       wt.draw();
+      var height = $container[0].clientHeight;
+      var visibleRowCount = Math.ceil(height/23);
       wt.scrollViewport(new WalkontableCellCoords(0, 3)).draw();
-      expect(wt.getViewport()).toEqual([0, 2, 7, 3]);
+      expect(wt.getViewport()).toEqual([0, 2, visibleRowCount - 1, 3]);
+
+
       wt.scrollViewport(new WalkontableCellCoords(0, 1)).draw();
-      expect(wt.getViewport()).toEqual([0, 1, 7, 2]);
+      expect(wt.getViewport()).toEqual([0, 1, visibleRowCount - 1, 2]);
     });
 
     it("scroll viewport to a cell on far left should make it visible on left edge (with row header)", function () {
@@ -236,8 +242,12 @@ describe('WalkontableScroll', function () {
         }]
       });
       wt.draw();
+
+      var height = $container[0].clientHeight;
+      var visibleRowCount = Math.ceil(height/23);
+
       wt.scrollViewport(new WalkontableCellCoords(0, 3)).draw();
-      expect(wt.getViewport()).toEqual([0, 2, 7, 3]);
+      expect(wt.getViewport()).toEqual([0, 2, visibleRowCount - 1, 3]);
       wt.scrollViewport(new WalkontableCellCoords(0, 1)).draw();
       expect(wt.wtTable.getFirstVisibleColumn()).toEqual(1);
     });
@@ -274,8 +284,9 @@ describe('WalkontableScroll', function () {
         width: 125
       });
       wt.draw();
+
       wt.scrollViewport(new WalkontableCellCoords(12, 0)).draw();
-      expect(wt.getViewport()).toEqual([5, 0, 12, 2]);
+      expect(wt.getViewport()).toEqual([4, 0, 12, 2]);
     });
 
     it("scroll viewport to a cell on far top should make it visible on top edge", function () {

@@ -39,7 +39,7 @@ WalkontableRowStrategy.prototype.add = function (i, TD) {
   this.cellCount++;
   this.remainingSize = this.cellSizesSum - containerSize;
 
-  if (this.remainingSize <= 0 ){
+  if (this.remainingSize <= size ){
     this.visiblCellCount++;
   }
 
@@ -74,4 +74,20 @@ WalkontableRowStrategy.prototype.countRendered = function () {
 
 WalkontableRowStrategy.prototype.countVisible = function () {
   return this.visiblCellCount;
+};
+
+WalkontableRowStrategy.prototype.isLastIncomplete = function () {
+  var lastRow = this.instance.wtTable.getLastVisibleRow();
+  var firstCol = this.instance.wtTable.getFirstVisibleColumn();
+  var cell = this.instance.wtTable.getCell(new WalkontableCellCoords(lastRow, firstCol));
+  var cellOffsetTop = WalkontableDom.prototype.offset(cell).top;
+  var cellHeight = WalkontableDom.prototype.outerHeight(cell);
+  var cellEnd = cellOffsetTop + cellHeight;
+
+  var viewportOffsetTop = this.instance.wtScrollbars.horizontal.scrollHandler.offsetTop + this.instance.wtScrollbars.vertical.getScrollPosition();
+  var viewportHeight = this.instance.wtViewport.getViewportHeight();
+  var viewportEnd = viewportOffsetTop + viewportHeight;
+
+
+  return viewportEnd < cellEnd;
 };

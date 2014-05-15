@@ -86,7 +86,7 @@ describe('WalkontableCore', function () {
     });
     wt.draw();
 
-    var potentialCellCount = colCount * (Math.floor(height / rowHeight) + wt.wtTable.getRowStrategy().maxOuts);
+    var potentialCellCount = colCount * (Math.ceil(height / rowHeight) + wt.wtTable.getRowStrategy().maxOuts);
 
     expect($table.find('td').length).toBe(potentialCellCount);
   });
@@ -130,7 +130,7 @@ describe('WalkontableCore', function () {
     });
     wt.draw();
 
-    var expectedRowCount = Math.floor(400 / rowHeight) + wt.wtTable.getRowStrategy().maxOuts;
+    var expectedRowCount = Math.ceil(400 / rowHeight) + wt.wtTable.getRowStrategy().maxOuts;
 
     expect($table.find('tbody tr').length).toBe(expectedRowCount);
   });

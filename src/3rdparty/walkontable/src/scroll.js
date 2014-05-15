@@ -134,6 +134,7 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     , fixedRowsTop = this.instance.getSetting('fixedRowsTop')
     , rowHeadersWidth = this.instance.wtViewport.getRowHeaderWidth()
     , verticalCloneWidth = this.instance.wtDom.outerWidth(this.instance.wtScrollbars.horizontal.clone.wtTable.TABLE)
+    , horizontalCloneHeight = this.instance.wtDom.outerHeight(this.instance.wtScrollbars.vertical.clone.wtTable.TABLE)
     , fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
 
 
@@ -174,8 +175,8 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     }
 
     if (outerHeight < clientHeight) {
-      if (offset.top < scrollY) {
-        this.instance.wtScrollbars.vertical.setScrollPosition(offset.top);
+      if (offset.top < scrollY + horizontalCloneHeight) {
+        this.instance.wtScrollbars.vertical.setScrollPosition(offset.top - horizontalCloneHeight);
       }
       else if (offset.top + outerHeight > scrollY + clientHeight) {
         this.instance.wtScrollbars.vertical.setScrollPosition(offset.top - clientHeight + outerHeight);
@@ -184,10 +185,15 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
       this.instance.wtScrollbars.vertical.setScrollPosition(offset.top);
     }
 
-  }  else if (coords.row > this.instance.wtTable.getLastVisibleRow()) {
-    this.scrollVertical(coords.row - fixedRowsTop - offsetRow - this.instance.wtTable.getLastVisibleRow());
+  }  else if (coords.row >= this.instance.wtTable.getLastVisibleRow()) {
+    this.scrollVertical(coords.row - fixedRowsTop - this.instance.wtTable.getLastVisibleRow());
+
+    if (coords.row == this.instance.wtTable.getLastVisibleRow() && this.instance.wtTable.getRowStrategy().isLastIncomplete()){
+      this.scrollViewport(coords)
+    }
+
     this.instance.wtTable.verticalRenderReverse = true;
-  } else if (coords.row > 0) {
+  } else if (coords.row >= 0) {
     this.scrollVertical(coords.row - this.instance.wtTable.getFirstVisibleRow());
   }
 };

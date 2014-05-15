@@ -24,7 +24,7 @@ describe('WalkontableRowStrategy', function () {
       strategy.add(i);
     }
 
-    var expectedRowCount = viewportSize / 25 + strategy.maxOuts;
+    var expectedRowCount = Math.ceil(viewportSize / 23) + strategy.maxOuts;
 
 
     expect(strategy.cellSizes.length).toEqual(expectedRowCount);
