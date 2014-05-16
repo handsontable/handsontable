@@ -227,7 +227,7 @@ WalkontableTable.prototype.getCoords = function (TD) {
 
 //returns -1 if no row is visible
 WalkontableTable.prototype.getFirstVisibleRow = function () {
-  return this.rowFilter.visibleToSource(0);
+  return this.rowFilter.visibleToSource(0 + this.rowFilter.fixedCount);
 };
 
 //returns -1 if no column is visible
