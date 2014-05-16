@@ -14,26 +14,16 @@ WalkontableViewport.prototype.getWorkspaceHeight = function (proposedHeight) {
 };
 
 WalkontableViewport.prototype.getWorkspaceWidth = function (proposedWidth) {
-  var width = this.instance.getSetting('width');
-
-  if (width === Infinity || width === void 0 || width === null || width < 1) {
-    if (this.instance.wtScrollbars.horizontal instanceof WalkontableOverlay) {
-      width = this.instance.wtScrollbars.horizontal.availableSize();
-    }
-    else {
-      width = Infinity;
-    }
+  if (this.instance.wtScrollbars.horizontal.scrollHandler === window){
+    return Math.min(document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
   }
 
-  if (width !== Infinity) {
-    if (proposedWidth >= width) {
-      width -= this.instance.getSetting('scrollbarWidth');
-    }
-    else if (this.instance.wtScrollbars.vertical.visible) {
-      width -= this.instance.getSetting('scrollbarWidth');
-    }
-  }
-  return width;
+  return this.instance.wtScrollbars.horizontal.windowSize;
+
+};
+
+WalkontableViewport.prototype.getWorkspaceOffset = function () {
+  return WalkontableDom.prototype.offset(this.instance.wtTable.TABLE);
 };
 
 WalkontableViewport.prototype.getWorkspaceActualHeight = function () {
@@ -64,11 +54,6 @@ WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
   if (columnHeaderHeight > 0) {
     containerHeight -= columnHeaderHeight;
   }
-
-//  var scrollbarHeight = this.instance.getSetting('scrollbarHeight');
-//  if (proposedHeight > containerHeight - scrollbarHeight) {
-//    containerHeight -= scrollbarHeight;
-//  }
 
   return containerHeight;
 

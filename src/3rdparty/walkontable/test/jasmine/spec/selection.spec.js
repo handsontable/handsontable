@@ -340,7 +340,7 @@ describe('WalkontableSelection', function () {
     wt.selections.current.add(new WalkontableCellCoords(0, 0));
     wt.draw(true);
 
-    expect($table.find('.highlightRow').length).toEqual(3);
+    expect($table.find('.highlightRow').length).toEqual(1);
     expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.rowStrategy.countVisible() - 1);
   });
 

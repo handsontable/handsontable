@@ -126,17 +126,12 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     return;
   }
 
-
   var offsetRow = this.instance.getSetting('offsetRow')
     , offsetColumn = this.instance.getSetting('offsetColumn')
     , totalRows = this.instance.getSetting('totalRows')
     , totalColumns = this.instance.getSetting('totalColumns')
     , fixedRowsTop = this.instance.getSetting('fixedRowsTop')
-    , rowHeadersWidth = this.instance.wtViewport.getRowHeaderWidth()
-    , verticalCloneWidth = this.instance.wtDom.outerWidth(this.instance.wtScrollbars.horizontal.clone.wtTable.TABLE)
-    , horizontalCloneHeight = this.instance.wtDom.outerHeight(this.instance.wtScrollbars.vertical.clone.wtTable.TABLE)
     , fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
-
 
 
   if (coords.row < 0 || coords.row > totalRows - 1) {
@@ -149,40 +144,10 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
 
   var TD = this.instance.wtTable.getCell(coords);
   if (typeof TD === 'object') {
-    var offset = WalkontableDom.prototype.offset(TD);
-    var outerWidth = WalkontableDom.prototype.outerWidth(TD);
-    var outerHeight = WalkontableDom.prototype.outerHeight(TD);
-    var scrollX = this.instance.wtScrollbars.horizontal.getScrollPosition();
-    var scrollY = this.instance.wtScrollbars.vertical.getScrollPosition();
-    var clientWidth = this.instance.wtViewport.getViewportWidth();
-    var clientHeight = this.instance.wtViewport.getViewportHeight();
-    if (this.instance.wtScrollbars.horizontal.scrollHandler !== window) {
-      offset.left = offset.left - WalkontableDom.prototype.offset(this.instance.wtScrollbars.horizontal.scrollHandler).left;
-    }
-    if (this.instance.wtScrollbars.vertical.scrollHandler !== window) {
-      offset.top = offset.top - WalkontableDom.prototype.offset(this.instance.wtScrollbars.vertical.scrollHandler).top;
-    }
-
-    if (outerWidth < clientWidth) {
-      if (offset.left < scrollX + verticalCloneWidth) {
-        this.instance.wtScrollbars.horizontal.setScrollPosition(offset.left - verticalCloneWidth);
-      }
-      else if (offset.left + outerWidth > scrollX + clientWidth) {
-        this.instance.wtScrollbars.horizontal.setScrollPosition(offset.left - clientWidth + outerWidth);
-      }
-    }
-
-    if (outerHeight < clientHeight) {
-      if (offset.top < scrollY + horizontalCloneHeight) {
-        this.instance.wtScrollbars.vertical.setScrollPosition(offset.top - horizontalCloneHeight);
-      }
-      else if (offset.top + outerHeight > scrollY + clientHeight) {
-        this.instance.wtScrollbars.vertical.setScrollPosition(offset.top - clientHeight + outerHeight);
-      }
-    }
+    this.scrollToRenderedCell(TD);
 
   }  else if (coords.row >= this.instance.wtTable.getLastVisibleRow()) {
-    this.scrollVertical(coords.row - fixedRowsTop - this.instance.wtTable.getLastVisibleRow());
+    this.scrollVertical(coords.row - this.instance.wtTable.getLastVisibleRow());
 
     if (coords.row == this.instance.wtTable.getLastVisibleRow() && this.instance.wtTable.getRowStrategy().isLastIncomplete()){
       this.scrollViewport(coords)
@@ -191,5 +156,50 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     this.instance.wtTable.verticalRenderReverse = true;
   } else if (coords.row >= 0) {
     this.scrollVertical(coords.row - this.instance.wtTable.getFirstVisibleRow());
+  }
+};
+
+WalkontableScroll.prototype.scrollToRenderedCell = function (TD) {
+  var cellOffset = WalkontableDom.prototype.offset(TD);
+  var cellWidth = WalkontableDom.prototype.outerWidth(TD);
+  var cellHeight = WalkontableDom.prototype.outerHeight(TD);
+  var workspaceOffset = WalkontableDom.prototype.offset(this.instance.wtTable.TABLE);
+  var viewportScrollPosition = {
+    left: this.instance.wtScrollbars.horizontal.getScrollPosition(),
+    top: this.instance.wtScrollbars.vertical.getScrollPosition()
+  };
+
+  var workspaceWidth = this.instance.wtViewport.getWorkspaceWidth();
+  var workspaceHeight = this.instance.wtViewport.getWorkspaceHeight();
+  var verticalCloneWidth = this.instance.wtDom.outerWidth(this.instance.wtScrollbars.horizontal.clone.wtTable.TABLE);
+  var horizontalCloneHeight = this.instance.wtDom.outerHeight(this.instance.wtScrollbars.vertical.clone.wtTable.TABLE);
+
+  if (this.instance.wtScrollbars.horizontal.scrollHandler !== window) {
+    workspaceOffset.left = 0;
+    cellOffset.left -= WalkontableDom.prototype.offset(this.instance.wtScrollbars.horizontal.scrollHandler).left;
+  }
+
+  if (this.instance.wtScrollbars.vertical.scrollHandler !== window) {
+    workspaceOffset.top = 0;
+    cellOffset.top = cellOffset.top - WalkontableDom.prototype.offset(this.instance.wtScrollbars.vertical.scrollHandler).top;
+  }
+
+  if (cellWidth < workspaceWidth) {
+    if (cellOffset.left < viewportScrollPosition.left + verticalCloneWidth) {
+      this.instance.wtScrollbars.horizontal.setScrollPosition(cellOffset.left - verticalCloneWidth);
+    }
+    else if (cellOffset.left + cellWidth > workspaceOffset.left + viewportScrollPosition.left + workspaceWidth) {
+      var delta = (cellOffset.left + cellWidth) - (workspaceOffset.left + viewportScrollPosition.left + workspaceWidth);
+      this.instance.wtScrollbars.horizontal.setScrollPosition(viewportScrollPosition.left + delta);
+    }
+  }
+
+  if (cellHeight < workspaceHeight) {
+    if (cellOffset.top < viewportScrollPosition.top + horizontalCloneHeight) {
+      this.instance.wtScrollbars.vertical.setScrollPosition(cellOffset.top - horizontalCloneHeight);
+    }
+    else if (cellOffset.top + cellHeight > viewportScrollPosition.top + workspaceHeight) {
+      this.instance.wtScrollbars.vertical.setScrollPosition(cellOffset.top - workspaceHeight + cellHeight);
+    }
   }
 };

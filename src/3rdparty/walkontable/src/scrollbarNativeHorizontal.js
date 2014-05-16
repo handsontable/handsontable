@@ -74,7 +74,11 @@ WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
 };
 
 WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos) {
+  if (this.scrollHandler === window){
+    window.scrollTo(pos, window.scrollY);
+  } else {
     this.scrollHandler.scrollLeft = pos;
+  }
 };
 
 WalkontableHorizontalScrollbarNative.prototype.onScroll = function () {
@@ -104,7 +108,7 @@ WalkontableHorizontalScrollbarNative.prototype.readWindowSize = function () {
     this.tableParentOffset = this.instance.wtTable.holderOffset.left;
   }
   else {
-    this.windowSize = WalkontableDom.prototype.outerWidth(this.scrollHandler);
+    this.windowSize = this.scrollHandler.clientWidth;
     this.tableParentOffset = 0;
   }
   this.windowScrollPosition = this.getScrollPosition();
