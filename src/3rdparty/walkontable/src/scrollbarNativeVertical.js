@@ -51,9 +51,15 @@ WalkontableVerticalScrollbarNative.prototype.react = function () {
   if (!this.instance.wtTable.holder.parentNode) {
     return; //removed from DOM
   }
+
+  var overlayContainer = this.clone.wtTable.holder.parentNode;
   if (this.instance.wtScrollbars.horizontal.scrollHandler !== window) {
-    var elem = this.clone.wtTable.holder.parentNode;
-    elem.firstChild.style.left = -this.instance.wtScrollbars.horizontal.windowScrollPosition + 'px';
+
+    overlayContainer.firstChild.style.left = -this.instance.wtScrollbars.horizontal.windowScrollPosition + 'px';
+  } else {
+      var box = this.instance.wtTable.hider.getBoundingClientRect();
+      overlayContainer.style.left = Math.ceil(box.left, 10) + 'px';
+      overlayContainer.style.width = WalkontableDom.prototype.outerWidth(this.clone.wtTable.TABLE) + 'px';
   }
 };
 
