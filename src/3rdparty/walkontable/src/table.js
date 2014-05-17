@@ -75,6 +75,12 @@ function WalkontableTable(instance, table) {
   this.oldCellCache = new WalkontableClassNameCache();
   this.currentCellCache = new WalkontableClassNameCache();
 
+  this.oldRowHeaderCache = new WalkontableClassNameCache();
+  this.currentRowHeaderCache = new WalkontableClassNameCache();
+
+  this.oldColHeaderCache = new WalkontableClassNameCache();
+  this.currentColHeaderCache = new WalkontableClassNameCache();
+
   this.rowFilter = new WalkontableRowFilter();
   this.columnFilter = new WalkontableColumnFilter();
 
@@ -449,6 +455,7 @@ WalkontableTable.prototype._doDraw = function () {
         }
 
         rowHeaders[c](source_r, TH); //actually TH
+
         TH = TH.nextSibling; //http://jsperf.com/nextsibling-vs-indexed-childnodes
       }
 
@@ -585,6 +592,10 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
 
   this.oldCellCache = this.currentCellCache;
   this.currentCellCache = new WalkontableClassNameCache();
+  this.oldRowHeaderCache = this.currentRowHeaderCache;
+  this.currentRowHeaderCache = new WalkontableClassNameCache();
+  this.oldColHeaderCache = this.currentColHeaderCache;
+  this.currentColHeaderCache = new WalkontableClassNameCache();
 
   if (this.instance.selections) {
     for (r in this.instance.selections) {
@@ -619,6 +630,50 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
       }
     }
   }
+
+  classNames = [];
+
+  if (this.instance.selections) {
+    for (r in this.instance.selections) {
+      if (this.instance.selections.hasOwnProperty(r)) {
+        if (this.instance.selections[r].settings.highlightRowHeaderClassName) {
+          classNames.push(this.instance.selections[r].settings.highlightRowHeaderClassName);
+        }
+        if (this.instance.selections[r].settings.highlightColumnHeaderClassName) {
+          classNames.push(this.instance.selections[r].settings.highlightColumnHeaderClassName);
+        }
+      }
+    }
+  }
+
+  slen = classNames.length;
+
+  // Highlight row headers
+  for (vr = 0; vr < visibleRows; vr++) {
+    r = this.rowFilter.visibleToSource(vr);
+    for (s = 0; s < slen; s++) {
+      if (this.currentRowHeaderCache.test(vr, 0, classNames[s])) {
+        this.wtDom.addClass(this.getRowHeader(r), classNames[s]);
+      }
+      else if (this.oldRowHeaderCache.test(vr, 0, classNames[s])) {
+        this.wtDom.removeClass(this.getRowHeader(r), classNames[s]);
+      }
+    }
+  }
+
+  // Highlight col headers
+  for (vc = 0; vc < visibleColumns; vc++) {
+    c = this.columnFilter.visibleToSource(vc);
+    for (s = 0; s < slen; s++) {
+      if (this.currentColHeaderCache.test(0, vc, classNames[s])) {
+        this.wtDom.addClass(this.getColHeader(c), classNames[s]);
+      }
+      else if (this.oldColHeaderCache.test(0, vc, classNames[s])) {
+        this.wtDom.removeClass(this.getColHeader(c), classNames[s]);
+      }
+    }
+  }
+
 };
 
 /**
@@ -648,6 +703,33 @@ WalkontableTable.prototype.getCell = function (coords) {
     else {
       return this.TBODY.childNodes[this.rowFilter.sourceToVisible(coords[0])].childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords[1])];
     }
+  }
+};
+
+WalkontableTable.prototype.getRowHeader = function (row) {
+  if (this.isRowBeforeViewport(row)) {
+    return -1; //row before viewport
+  }
+  else if (this.isRowAfterViewport(row)) {
+    return -2; //row after viewport
+  }
+  else if (this.columnFilter.countTH > 0) {
+    return this.TBODY.childNodes[this.rowFilter.sourceToVisible(row)].childNodes[0];
+  }
+  else {
+    return null;
+  }
+};
+
+WalkontableTable.prototype.getColHeader = function (col) {
+  if (this.isColumnBeforeViewport(col)) {
+    return -3; //column before viewport
+  }
+  else if (this.isColumnAfterViewport(col)) {
+    return -4; //column after viewport
+  }
+  else {
+    return this.THEAD.childNodes[0].childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
   }
 };
 

@@ -74,10 +74,12 @@ WalkontableSelection.prototype.draw = function () {
         else if (source_r >= corners[0] && source_r <= corners[2]) {
           //selection is in this row
           this.instance.wtTable.currentCellCache.add(r, c, this.settings.highlightRowClassName);
+          this.instance.wtTable.currentRowHeaderCache.add(r, 0, this.settings.highlightRowHeaderClassName);
         }
         else if (source_c >= corners[1] && source_c <= corners[3]) {
           //selection is in this column
           this.instance.wtTable.currentCellCache.add(r, c, this.settings.highlightColumnClassName);
+          this.instance.wtTable.currentColHeaderCache.add(0, c, this.settings.highlightColumnHeaderClassName);
         }
       }
     }

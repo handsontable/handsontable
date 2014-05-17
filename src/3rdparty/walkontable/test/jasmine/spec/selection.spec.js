@@ -369,4 +369,122 @@ describe('WalkontableSelection', function () {
     expect($table.find('.highlightRow').length).toEqual(0);
     expect($table.find('.highlightColumn').length).toEqual(0);
   });
+
+  it("should highlight headers in selected row & column", function () {
+    function plusOne(i) {
+      return i+1;
+    }
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      offsetRow: 0,
+      offsetColumn: 0,
+      height: 200,
+      width: 300,
+      columnHeaders: [function (col, TH) {
+        TH.innerHTML = plusOne(col);
+      }],
+      rowHeaders: [function (row, TH) {
+        TH.innerHTML = plusOne(row);
+      }],
+      selections: {
+        area: {
+          highlightRowHeaderClassName: 'highlightRow',
+          highlightColumnHeaderClassName: 'highlightColumn'
+        }
+      }
+    });
+    wt.draw();
+
+    wt.selections.area.add([0, 0]);
+    wt.selections.area.add([1, 1]);
+    wt.draw(true);
+
+    expect($table.find('.highlightRow').length).toEqual(2);
+    expect($table.find('.highlightColumn').length).toEqual(2);
+  });
+
+  it("should highlight headers in selected row & column, when same class is shared between 2 selection definitions", function () {
+    function plusOne(i) {
+      return i+1;
+    }
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      offsetRow: 0,
+      offsetColumn: 0,
+      height: 200,
+      width: 300,
+      columnHeaders: [function (col, TH) {
+        TH.innerHTML = plusOne(col);
+      }],
+      rowHeaders: [function (row, TH) {
+        TH.innerHTML = plusOne(row);
+      }],
+      selections: {
+        current: {
+          highlightRowHeaderClassName: 'highlightRow',
+          highlightColumnHeaderClassName: 'highlightColumn'
+        },
+        area: {
+          highlightRowHeaderClassName: 'highlightRow',
+          highlightColumnHeaderClassName: 'highlightColumn'
+        }
+      }
+    });
+    wt.draw();
+
+    wt.selections.current.add([0, 0]);
+    wt.selections.current.add([1, 1]);
+    wt.draw(true);
+
+    expect($table.find('.highlightRow').length).toEqual(2);
+    expect($table.find('.highlightColumn').length).toEqual(2);
+  });
+
+  it("should remove header highlight when selection is deselected", function () {
+    function plusOne(i) {
+      return i+1;
+    }
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      offsetRow: 0,
+      offsetColumn: 0,
+      height: 200,
+      width: 300,
+      columnHeaders: [function (col, TH) {
+        TH.innerHTML = plusOne(col);
+      }],
+      rowHeaders: [function (row, TH) {
+        TH.innerHTML = plusOne(row);
+      }],
+      selections: {
+        area: {
+          highlightRowHeaderClassName: 'highlightRow',
+          highlightColumnHeaderClassName: 'highlightColumn'
+        }
+      }
+    });
+    wt.draw();
+
+    wt.selections.area.add([0, 0]);
+    wt.selections.area.add([1, 1]);
+    wt.draw();
+
+    wt.selections.area.clear();
+    wt.draw();
+
+    expect($table.find('.highlightRow').length).toEqual(0);
+    expect($table.find('.highlightColumn').length).toEqual(0);
+  });
 });
