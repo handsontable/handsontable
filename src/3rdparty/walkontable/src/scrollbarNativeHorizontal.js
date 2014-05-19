@@ -98,7 +98,7 @@ WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
 };
 
 WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (cell) {
-  this.$scrollHandler.scrollLeft(this.tableParentOffset + cell * this.cellSize);
+  this.setScrollPosition(this.tableParentOffset + cell * this.cellSize);
 };
 
 //readWindowSize (in future merge it with this.prepare?)

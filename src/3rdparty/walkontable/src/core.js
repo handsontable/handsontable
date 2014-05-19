@@ -74,7 +74,7 @@ Walkontable.prototype.draw = function (selectionsOnly) {
 
   var totalRows = this.getSetting('totalRows');
 
-  if (this.lastOffsetRow > totalRows - 1 && totalRows > 0) {
+  if (this.lastOffsetRow > totalRows && totalRows > 0) {
     this.scrollVertical(-Infinity); //TODO: probably very inefficient!
     this.scrollViewport(new WalkontableCellCoords(totalRows - 1, 0));
   }

@@ -141,7 +141,7 @@ WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
 
 WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {
   var newY = this.tableParentOffset + cell * this.cellSize;
-  this.$scrollHandler.scrollTop(newY);
+  this.setScrollPosition(newY);
   this.onScroll(newY);
 };
 

@@ -134,3 +134,9 @@ WalkontableSettings.prototype.rowHeight = function (row, TD) {
     return this.instance.rowHeightCache[row];
   }
 };
+
+WalkontableSettings.prototype.clearRowHeightCache = function () {
+  if (this.instance.rowHeightCache) {
+    this.instance.rowHeightCache.length = 0;
+  }
+};

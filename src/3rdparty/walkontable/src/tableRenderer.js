@@ -179,6 +179,9 @@ WalkontableTableRenderer.prototype.adjustColumnWidths = function (displayTds) {
   for (var visibleColIndex = 0; visibleColIndex < displayTds; visibleColIndex++) {
     this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = this.wtTable.getColumnStrategy().getSize(visibleColIndex) + 'px';
   }
+
+  //Changing column widths may have caused changes in row heights, so row height cache may not be valid anymore
+  this.instance.wtSettings.clearRowHeightCache();
 };
 
 WalkontableTableRenderer.prototype.appendToTbody = function (TR) {
