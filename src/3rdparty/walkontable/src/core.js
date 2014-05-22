@@ -13,14 +13,18 @@ function Walkontable(settings) {
     this.wtTable = new WalkontableTable(this, settings.table);
     this.wtScroll = new WalkontableScroll(this);
     this.wtViewport = settings.cloneSource.wtViewport;
+    this.wtEvent = new WalkontableEvent(this);
+    this.selections = this.cloneSource.selections.makeClone(this);
   }
   else {
     this.wtSettings = new WalkontableSettings(this, settings);
     this.wtTable = new WalkontableTable(this, settings.table);
     this.wtScroll = new WalkontableScroll(this);
     this.wtViewport = new WalkontableViewport(this);
-    this.wtScrollbars = new WalkontableScrollbars(this);
     this.wtEvent = new WalkontableEvent(this);
+    this.selections = new WalkontableSelections(this, this.getSetting('selections'));
+
+    this.wtScrollbars = new WalkontableScrollbars(this);
   }
 
   //find original headers
@@ -35,16 +39,7 @@ function Walkontable(settings) {
     }
   }
 
-  //initialize selections
-  this.selections = {};
-  var selectionsSettings = this.getSetting('selections');
-  if (selectionsSettings) {
-    for (var i in selectionsSettings) {
-      if (selectionsSettings.hasOwnProperty(i)) {
-        this.selections[i] = new WalkontableSelection(this, selectionsSettings[i]);
-      }
-    }
-  }
+
 
   this.drawn = false;
   this.drawInterrupted = false;

@@ -63,30 +63,30 @@ WalkontableSelection.prototype.getCorners = function () {
 };
 
 WalkontableSelection.prototype.draw = function () {
-  var corners, r, c, source_r, source_c;
-
-  var visibleRows = this.instance.wtTable.getRowStrategy().countVisible()
-    , visibleColumns = this.instance.wtTable.getColumnStrategy().countVisible();
+  var corners, r, c, source_r, source_c,
+    instance = this.instance,
+    visibleRows = instance.wtTable.getRowStrategy().countVisible(),
+    visibleColumns = instance.wtTable.getColumnStrategy().countVisible();
 
   if (!this.isEmpty()) {
     corners = this.getCorners();
 
     for (r = 0; r < visibleRows; r++) {
       for (c = 0; c < visibleColumns; c++) {
-        source_r = this.instance.wtTable.rowFilter.visibleToSource(r);
-        source_c = this.instance.wtTable.columnFilter.visibleToSource(c);
+        source_r = instance.wtTable.rowFilter.visibleToSource(r);
+        source_c = instance.wtTable.columnFilter.visibleToSource(c);
 
         if (source_r >= corners[0] && source_r <= corners[2] && source_c >= corners[1] && source_c <= corners[3]) {
           //selected cell
-          this.instance.wtTable.currentCellCache.add(r, c, this.settings.className);
+          instance.wtTable.currentCellCache.add(r, c, this.settings.className);
         }
         else if (source_r >= corners[0] && source_r <= corners[2]) {
           //selection is in this row
-          this.instance.wtTable.currentCellCache.add(r, c, this.settings.highlightRowClassName);
+          instance.wtTable.currentCellCache.add(r, c, this.settings.highlightRowClassName);
         }
         else if (source_c >= corners[1] && source_c <= corners[3]) {
           //selection is in this column
-          this.instance.wtTable.currentCellCache.add(r, c, this.settings.highlightColumnClassName);
+          instance.wtTable.currentCellCache.add(r, c, this.settings.highlightColumnClassName);
         }
       }
     }
@@ -96,4 +96,24 @@ WalkontableSelection.prototype.draw = function () {
   else {
     this.border && this.border.disappear();
   }
+};
+
+/*
+  Make a clone of a selection by overriding the WOT instance and creating new WalkontableBorder for the new instance
+  Method is used for creating selections in overlays
+ */
+WalkontableSelection.prototype.makeClone = function (instance) {
+  function WalkontableSelectionClone(){}
+  WalkontableSelectionClone.prototype = this;
+
+  var clone = new WalkontableSelectionClone();
+
+  clone.instance = instance;
+
+  if (clone.border){
+    clone.border = new WalkontableBorder(instance, clone.settings);
+  }
+
+  return clone;
+
 };

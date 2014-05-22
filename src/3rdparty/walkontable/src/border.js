@@ -128,8 +128,9 @@ WalkontableBorder.prototype.appear = function (corners) {
     return;
   }
 
-  var instance = this.instance
-    , fromRow
+  var instance = this.instance;
+
+  var fromRow
     , fromColumn
     , toRow
     , toColumn
@@ -149,7 +150,16 @@ WalkontableBorder.prototype.appear = function (corners) {
     hideBottom = true;
   }
 
-  ilen = instance.wtTable.getRowStrategy().countVisible();
+  if (instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+    ilen = instance.getSetting('fixedRowsTop');
+  }
+  else if (instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative) {
+    ilen = instance.wtTable.getRowStrategy().cellCount;
+  } else {
+    ilen = instance.wtTable.getRowStrategy().countVisible();
+  }
+
+
 
   for (i = 0; i < ilen; i++) {
     s = instance.wtTable.rowFilter.visibleToSource(i);
@@ -180,7 +190,14 @@ WalkontableBorder.prototype.appear = function (corners) {
       hideRight = true;
     }
 
-    ilen = instance.wtTable.getColumnStrategy().cellCount;
+    if (instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+      ilen = instance.getSetting('fixedColumnsLeft');
+    }
+    else {
+      ilen = instance.wtTable.getColumnStrategy().cellCount;
+    }
+
+
 
     for (i = 0; i < ilen; i++) {
       s = instance.wtTable.columnFilter.visibleToSource(i);

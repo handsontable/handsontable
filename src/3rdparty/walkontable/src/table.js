@@ -162,7 +162,9 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
   if (this.instance.selections) {
     for (r in this.instance.selections) {
       if (this.instance.selections.hasOwnProperty(r)) {
+
         this.instance.selections[r].draw();
+
         if (this.instance.selections[r].settings.className) {
           classNames.push(this.instance.selections[r].settings.className);
         }
@@ -183,11 +185,15 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
       r = this.rowFilter.visibleToSource(vr);
       c = this.columnFilter.visibleToSource(vc);
       for (s = 0; s < slen; s++) {
+        var cell;
         if (this.currentCellCache.test(vr, vc, classNames[s])) {
-          this.wtDom.addClass(this.getCell(new WalkontableCellCoords(r, c)), classNames[s]);
+          cell = this.getCell(new WalkontableCellCoords(r, c));
+          if (cell) this.wtDom.addClass(cell, classNames[s]);
         }
         else if (selectionsOnly && this.oldCellCache.test(vr, vc, classNames[s])) {
-          this.wtDom.removeClass(this.getCell(new WalkontableCellCoords(r, c)), classNames[s]);
+          cell = this.getCell(new WalkontableCellCoords(r, c));
+          if (cell) this.wtDom.removeClass(cell, classNames[s]);
+
         }
       }
     }
@@ -210,7 +216,11 @@ WalkontableTable.prototype.getCell = function (coords) {
     return -2; //row after viewport
   }
 
-  return this.TBODY.childNodes[this.rowFilter.sourceToVisible(coords.row)].childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];
+  var TR = this.TBODY.childNodes[this.rowFilter.sourceToVisible(coords.row)];
+
+  if (TR) {
+    return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];
+  }
 };
 
 /**
@@ -255,6 +265,11 @@ WalkontableTable.prototype.getLastVisibleRow = function () {
 
 //returns -1 if no column is visible
 WalkontableTable.prototype.getLastVisibleColumn = function () {
+
+  if (this.isWorkingOnClone()){
+    return this.getColumnStrategy().countVisible() - 1;
+  }
+
   var leftOffset = this.instance.wtScrollbars.horizontal.getScrollPosition();
   var leftPartOfTable = leftOffset + this.instance.wtViewport.getWorkspaceWidth(Infinity);
   var columnCount = this.getColumnStrategy().cellCount;
