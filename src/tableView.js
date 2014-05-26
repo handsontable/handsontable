@@ -207,8 +207,9 @@ Handsontable.TableView = function (instance) {
     hideBorderOnMouseDownOver: function () {
       return that.settings.fragmentSelection;
     },
-    onCellMouseDown: function (event, coords, TD) {
+    onCellMouseDown: function (event, coords, TD, wt) {
       instance.listen();
+      that.activeWt = wt;
 
       isMouseDown = true;
       if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
@@ -222,6 +223,8 @@ Handsontable.TableView = function (instance) {
       }
 
       Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
+
+      that.activeWt = that.wt;
     },
     /*onCellMouseOut: function (/*event, coords, TD* /) {
      if (isMouseDown && that.settings.fragmentSelection === 'single') {
@@ -266,6 +269,7 @@ Handsontable.TableView = function (instance) {
   Handsontable.hooks.run(instance, 'beforeInitWalkontable', walkontableConfig);
 
   this.wt = new Walkontable(walkontableConfig);
+  this.activeWt = this.wt;
 
   $window.on('resize.' + instance.guid, function () {
     instance.registerTimeout('resizeTimeout', function () {
@@ -420,4 +424,8 @@ Handsontable.TableView.prototype.maximumVisibleElementWidth = function (left) {
 Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
   var rootHeight = this.wt.wtViewport.getWorkspaceHeight();
   return rootHeight;
+};
+
+Handsontable.TableView.prototype.mainViewIsActive = function () {
+  return this.wt === this.activeWt;
 };

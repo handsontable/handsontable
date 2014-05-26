@@ -17,7 +17,7 @@ function WalkontableEvent(instance) {
     }
     else if (cell.TD && cell.TD.nodeName === 'TD') {
       if (that.instance.hasSetting('onCellMouseDown')) {
-        that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD);
+        that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, that.instance);
       }
     }
 
