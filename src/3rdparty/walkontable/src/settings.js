@@ -91,17 +91,22 @@ WalkontableSettings.prototype.update = function (settings, value) {
 };
 
 WalkontableSettings.prototype.getSetting = function (key, param1, param2, param3) {
+  var args = Array.prototype.slice.call(arguments);
+  var params = args.slice(1);
   if (this[key]) {
-    return this[key](param1, param2, param3);
+    return this[key].apply(this, params);
   }
   else {
-    return this._getSetting(key, param1, param2, param3);
+    return this._getSetting.apply(this, args);
   }
 };
 
 WalkontableSettings.prototype._getSetting = function (key, param1, param2, param3) {
+  var args = Array.prototype.slice.call(arguments);
+  var params = args.slice(1);
+
   if (typeof this.settings[key] === 'function') {
-    return this.settings[key](param1, param2, param3);
+    return this.settings[key].apply(this, params);
   }
   else if (param1 !== void 0 && Object.prototype.toString.call(this.settings[key]) === '[object Array]') {
     return this.settings[key][param1];

@@ -123,7 +123,8 @@ Walkontable.prototype.getViewport = function () {
 };
 
 Walkontable.prototype.getSetting = function (key, param1, param2, param3) {
-  return this.wtSettings.getSetting(key, param1, param2, param3);
+  var args = Array.prototype.slice.call(arguments);
+  return WalkontableSettings.prototype.getSetting.apply(this.wtSettings, args);
 };
 
 Walkontable.prototype.hasSetting = function (key) {
