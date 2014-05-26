@@ -188,11 +188,11 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
         var cell;
         if (this.currentCellCache.test(vr, vc, classNames[s])) {
           cell = this.getCell(new WalkontableCellCoords(r, c));
-          if (cell) this.wtDom.addClass(cell, classNames[s]);
+          if (typeof cell == 'object' ) this.wtDom.addClass(cell, classNames[s]);
         }
         else if (selectionsOnly && this.oldCellCache.test(vr, vc, classNames[s])) {
           cell = this.getCell(new WalkontableCellCoords(r, c));
-          if (cell) this.wtDom.removeClass(cell, classNames[s]);
+          if (typeof cell == 'object' ) this.wtDom.removeClass(cell, classNames[s]);
 
         }
       }
@@ -260,15 +260,35 @@ WalkontableTable.prototype.getFirstVisibleColumn = function () {
 
 //returns -1 if no row is visible
 WalkontableTable.prototype.getLastVisibleRow = function () {
-  return this.rowFilter.visibleToSource(this.getRowStrategy().countVisible() - 1);
+  var lastVisibleRow =  this.rowFilter.visibleToSource(this.getRowStrategy().countVisible() - 1);
+  var instance = this.instance;
+
+  if (instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+    var fixedRowsTop = this.instance.getSetting('fixedRowsTop');
+
+    return Math.min(fixedRowsTop - 1, lastVisibleRow);
+  } else {
+    return lastVisibleRow;
+  }
+
 };
 
 //returns -1 if no column is visible
 WalkontableTable.prototype.getLastVisibleColumn = function () {
+  var instance = this.instance;
 
   if (this.isWorkingOnClone()){
-    return this.getColumnStrategy().countVisible() - 1;
+
+    if (instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative){
+      var lastVisibleColumn = this.getColumnStrategy().countVisible() - 1;
+      var fixedColumnsLeft =  instance.getSetting('fixedColumnsLeft');
+      return Math.min(fixedColumnsLeft - 1, lastVisibleColumn);
+    } else {
+      return this.instance.cloneSource.wtTable.getLastVisibleColumn();
+    }
+
   }
+
 
   var leftOffset = this.instance.wtScrollbars.horizontal.getScrollPosition();
   var leftPartOfTable = leftOffset + this.instance.wtViewport.getWorkspaceWidth(Infinity);
