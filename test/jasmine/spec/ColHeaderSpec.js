@@ -36,7 +36,7 @@ describe('ColHeader', function () {
       colHeaders: true
     });
 
-    var ths = that.$container.find('thead th');
+    var ths = getHtCore().find('thead th');
     expect(ths.length).toEqual(startCols);
     expect($.trim(ths.eq(0).text())).toEqual('A');
     expect($.trim(ths.eq(1).text())).toEqual('B');
@@ -53,7 +53,7 @@ describe('ColHeader', function () {
       colHeaders: ['First', 'Second', 'Third']
     });
 
-    var ths = that.$container.find('thead th');
+    var ths = getHtCore().find('thead th');
     expect(ths.length).toEqual(startCols);
     expect($.trim(ths.eq(0).text())).toEqual('First');
     expect($.trim(ths.eq(1).text())).toEqual('Second');
@@ -77,7 +77,7 @@ describe('ColHeader', function () {
        colHeaders: true
      });
 
-    expect(this.$container.find('thead th').length).toEqual(5);
+    expect(getHtCore().find('thead th').length).toEqual(5);
 
     hot.updateSettings({
       colHeaders: false
@@ -92,25 +92,27 @@ describe('ColHeader', function () {
       colHeaders: true
     });
 
-    expect(this.$container.find('thead th').length).toEqual(5);
+    var htCore = getHtCore();
+
+    expect(htCore.find('thead th').length).toEqual(5);
 
     hot.updateSettings({
       colHeaders: false
     });
 
-    expect(this.$container.find('thead th').length).toEqual(0);
+    expect(htCore.find('thead th').length).toEqual(0);
 
     hot.updateSettings({
       colHeaders: true
     });
 
-    expect(this.$container.find('thead th').length).toEqual(5);
+    expect(htCore.find('thead th').length).toEqual(5);
 
     hot.updateSettings({
       colHeaders: false
     });
 
-    expect(this.$container.find('thead th').length).toEqual(0);
+    expect(htCore.find('thead th').length).toEqual(0);
   });
 
   it('should show columns headers after updateSettings', function(){
@@ -119,13 +121,15 @@ describe('ColHeader', function () {
       colHeaders: false
     });
 
-    expect(this.$container.find('thead th').length).toEqual(0);
+    var htCore = getHtCore();
+
+    expect(htCore.find('thead th').length).toEqual(0);
 
     hot.updateSettings({
       colHeaders: true
     });
 
-    expect(this.$container.find('thead th').length).toEqual(5);
+    expect(htCore.find('thead th').length).toEqual(5);
   });
 
   it('should show new columns headers after updateSettings', function(){
@@ -134,17 +138,18 @@ describe('ColHeader', function () {
       colHeaders: ['A', 'B', 'C']
     });
 
-    expect(this.$container.find('thead th:eq(0)').text()).toEqual('A');
-    expect(this.$container.find('thead th:eq(1)').text()).toEqual('B');
-    expect(this.$container.find('thead th:eq(2)').text()).toEqual('C');
+    var htCore = getHtCore();
+    expect(htCore.find('thead th:eq(0)').text()).toEqual('A');
+    expect(htCore.find('thead th:eq(1)').text()).toEqual('B');
+    expect(htCore.find('thead th:eq(2)').text()).toEqual('C');
 
     hot.updateSettings({
       colHeaders: ['X', 'Y', 'Z']
     });
 
-    expect(this.$container.find('thead th:eq(0)').text()).toEqual('X');
-    expect(this.$container.find('thead th:eq(1)').text()).toEqual('Y');
-    expect(this.$container.find('thead th:eq(2)').text()).toEqual('Z');
+    expect(htCore.find('thead th:eq(0)').text()).toEqual('X');
+    expect(htCore.find('thead th:eq(1)').text()).toEqual('Y');
+    expect(htCore.find('thead th:eq(2)').text()).toEqual('Z');
 
   });
 
@@ -162,8 +167,10 @@ describe('ColHeader', function () {
       }
     });
 
-    expect(this.$container.find('thead th:eq(0)').text()).toEqual('One');
-    expect(this.$container.find('thead th:eq(1)').text()).toEqual('Two');
+    var htCore = getHtCore();
+
+    expect(htCore.find('thead th:eq(0)').text()).toEqual('One');
+    expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
   });
 
   it('should be possible to set HTML in colHeaders', function () {
@@ -172,8 +179,10 @@ describe('ColHeader', function () {
       colHeaders: ['One <input type="checkbox">', 'Two <input type="checkbox">']
     });
 
-    expect(this.$container.find('thead th:eq(0) input[type=checkbox]').length).toEqual(1);
-    expect(this.$container.find('thead th:eq(1) input[type=checkbox]').length).toEqual(1);
+    var htCore = getHtCore();
+
+    expect(htCore.find('thead th:eq(0) input[type=checkbox]').length).toEqual(1);
+    expect(htCore.find('thead th:eq(1) input[type=checkbox]').length).toEqual(1);
   });
 
   it('should be possible to set colHeaders when columns array is present', function () {
@@ -186,8 +195,10 @@ describe('ColHeader', function () {
       ]
     });
 
-    expect(this.$container.find('thead th:eq(0)').text()).toEqual('One');
-    expect(this.$container.find('thead th:eq(1)').text()).toEqual('Two');
+    var htCore = getHtCore();
+
+    expect(htCore.find('thead th:eq(0)').text()).toEqual('One');
+    expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
   });
 
   it('should be possible to set colHeaders using columns title property', function () {
@@ -200,7 +211,9 @@ describe('ColHeader', function () {
       ]
     });
 
-    expect(this.$container.find('thead th:eq(0)').text()).toEqual('Special title');
-    expect(this.$container.find('thead th:eq(1)').text()).toEqual('Two');
+    var htCore = getHtCore();
+
+    expect(htCore.find('thead th:eq(0)').text()).toEqual('Special title');
+    expect(htCore.find('thead th:eq(1)').text()).toEqual('Two');
   });
 });
