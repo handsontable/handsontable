@@ -26,7 +26,7 @@ function WalkontableColumnStrategy(instance, containerSizeFn, sizeAtIndex, strat
     if (size === void 0) {
       break; //total columns exceeded
     }
-    if (this.cellSizesSum <= this.getContainerSize(this.cellSizesSum + size)) {
+    if (this.cellSizesSum < this.getContainerSize(this.cellSizesSum + size)) {
       this.visibleCellCount++;
     }
     this.cellSizes.push(size);
