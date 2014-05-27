@@ -40,7 +40,7 @@ function WalkontableEvent(instance) {
       if (TD && TD !== lastMouseOver && that.wtDom.isChildOf(TD, TABLE)) {
         lastMouseOver = TD;
         if (TD.nodeName === 'TD') {
-          that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(TD), TD);
+          that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(TD), TD, that.instance);
         }
       }
     }
@@ -66,10 +66,10 @@ function WalkontableEvent(instance) {
 
       if (cell.TD === dblClickOrigin[0] && cell.TD === dblClickOrigin[1]) {
         if (that.wtDom.hasClass(event.target, 'corner')) {
-          that.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD);
+          that.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD, that.instance);
         }
         else if (cell.TD) {
-          that.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD);
+          that.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, that.instance);
         }
 
         dblClickOrigin[0] = null;

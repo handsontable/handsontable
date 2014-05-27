@@ -231,7 +231,8 @@ Handsontable.TableView = function (instance) {
      clearTextSelection(); //otherwise text selection blinks during multiple cells selection
      }
      },*/
-    onCellMouseOver: function (event, coords, TD) {
+    onCellMouseOver: function (event, coords, TD, wt) {
+      that.activeWt = wt;
       if (isMouseDown) {
         /*if (that.settings.fragmentSelection === 'single') {
          clearTextSelection(); //otherwise text selection blinks during multiple cells selection
@@ -243,6 +244,7 @@ Handsontable.TableView = function (instance) {
         instance.autofill.showBorder(coords);
       }
       Handsontable.hooks.run(instance, 'afterOnCellMouseOver', event, coords, TD);
+      that.activeWt = that.wt;
     },
     onCellCornerMouseDown: function (event) {
       instance.autofill.handle.isDragged = 1;
