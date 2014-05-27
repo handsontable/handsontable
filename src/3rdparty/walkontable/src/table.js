@@ -154,7 +154,7 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
     , slen
     , classNames = []
     , visibleRows = this.getRowStrategy().countVisible()
-    , visibleColumns = this.getColumnStrategy().countVisible();
+    , renderedCells = this.getColumnStrategy().cellCount;
 
   this.oldCellCache = this.currentCellCache;
   this.currentCellCache = new WalkontableClassNameCache();
@@ -181,7 +181,7 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
   slen = classNames.length;
 
   for (vr = 0; vr < visibleRows; vr++) {
-    for (vc = 0; vc < visibleColumns; vc++) {
+    for (vc = 0; vc < renderedCells; vc++) {
       r = this.rowFilter.visibleToSource(vr);
       c = this.columnFilter.visibleToSource(vc);
       for (s = 0; s < slen; s++) {
@@ -242,9 +242,22 @@ WalkontableTable.prototype.getFirstVisibleRow = function () {
 
 //returns -1 if no column is visible
 WalkontableTable.prototype.getFirstVisibleColumn = function () {
+
+  if (this.isWorkingOnClone()){
+    if (this.instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative){
+      return 0;
+    } else {
+      return this.instance.cloneSource.wtTable.getFirstVisibleColumn();
+    }
+  }
+
   var leftOffset = this.instance.wtScrollbars.horizontal.getScrollPosition();
   var columnCount = this.getColumnStrategy().cellCount;
   var firstTR = this.TBODY.firstChild;
+
+  if (!firstTR){
+    return 0;
+  }
 
   for (var colIndex = 0; colIndex < columnCount; colIndex++){
     leftOffset -= firstTR.childNodes[colIndex].offsetWidth;

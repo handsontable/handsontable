@@ -11,7 +11,6 @@ function WalkontableBorder(instance, settings) {
   style.position = 'absolute';
   style.top = 0;
   style.left = 0;
-//  style.visibility = 'hidden';
 
   for (var i = 0; i < 5; i++) {
     var DIV = document.createElement('DIV');
@@ -27,28 +26,6 @@ function WalkontableBorder(instance, settings) {
   this.left = this.main.childNodes[1];
   this.bottom = this.main.childNodes[2];
   this.right = this.main.childNodes[3];
-
-
-  /*$(this.top).on(sss, function(event) {
-   event.preventDefault();
-   event.stopImmediatePropagation();
-   $(this).hide();
-   });
-   $(this.left).on(sss, function(event) {
-   event.preventDefault();
-   event.stopImmediatePropagation();
-   $(this).hide();
-   });
-   $(this.bottom).on(sss, function(event) {
-   event.preventDefault();
-   event.stopImmediatePropagation();
-   $(this).hide();
-   });
-   $(this.right).on(sss, function(event) {
-   event.preventDefault();
-   event.stopImmediatePropagation();
-   $(this).hide();
-   });*/
 
   this.topStyle = this.top.style;
   this.leftStyle = this.left.style;

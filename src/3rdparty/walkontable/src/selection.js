@@ -66,25 +66,25 @@ WalkontableSelection.prototype.draw = function () {
   var corners, r, c, source_r, source_c,
     instance = this.instance,
     visibleRows = instance.wtTable.getRowStrategy().countVisible(),
-    visibleColumns = instance.wtTable.getColumnStrategy().countVisible();
+    renderedColumns = instance.wtTable.getColumnStrategy().cellCount;
 
   if (!this.isEmpty()) {
     corners = this.getCorners();
 
     for (r = 0; r < visibleRows; r++) {
-      for (c = 0; c < visibleColumns; c++) {
+      for (c = 0; c < renderedColumns; c++) {
         source_r = instance.wtTable.rowFilter.visibleToSource(r);
         source_c = instance.wtTable.columnFilter.visibleToSource(c);
 
-        if (source_r >= corners[0] && source_r <= corners[2] && source_c >= corners[1] && source_c <= corners[3]) {
+        if (this.settings.className && source_r >= corners[0] && source_r <= corners[2] && source_c >= corners[1] && source_c <= corners[3]) {
           //selected cell
           instance.wtTable.currentCellCache.add(r, c, this.settings.className);
         }
-        else if (source_r >= corners[0] && source_r <= corners[2]) {
+        else if (this.settings.highlightRowClassName && source_r >= corners[0] && source_r <= corners[2]) {
           //selection is in this row
           instance.wtTable.currentCellCache.add(r, c, this.settings.highlightRowClassName);
         }
-        else if (source_c >= corners[1] && source_c <= corners[3]) {
+        else if (this.settings.highlightRowClassName && source_c >= corners[1] && source_c <= corners[3]) {
           //selection is in this column
           instance.wtTable.currentCellCache.add(r, c, this.settings.highlightColumnClassName);
         }
