@@ -197,9 +197,12 @@ WalkontableScroll.prototype.scrollToRenderedCell = function (TD) {
   if (cellHeight < workspaceHeight) {
     if (cellOffset.top < viewportScrollPosition.top + topCloneHeight) {
       this.instance.wtScrollbars.vertical.setScrollPosition(cellOffset.top - topCloneHeight);
+      this.instance.wtScrollbars.vertical.onScroll();
     }
     else if (cellOffset.top + cellHeight > viewportScrollPosition.top + workspaceHeight) {
       this.instance.wtScrollbars.vertical.setScrollPosition(cellOffset.top - workspaceHeight + cellHeight);
+      this.instance.wtScrollbars.vertical.onScroll();
     }
   }
+
 };

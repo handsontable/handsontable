@@ -28,9 +28,7 @@ Handsontable.TableView = function (instance) {
 
 
   if (instance.rootElement[0].style.width || instance.rootElement[0].style.height){
-    instance.rootElement.css({
-      overflow: 'auto'
-    });
+    instance.rootElement[0].style.overflow = 'auto';
   }
 
 
@@ -413,9 +411,9 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
  * @param {Number} left
  * @return {Number}
  */
-Handsontable.TableView.prototype.maximumVisibleElementWidth = function (left) {
-  var rootWidth = this.wt.wtViewport.getWorkspaceWidth();
-  return rootWidth;
+Handsontable.TableView.prototype.maximumVisibleElementWidth = function () {
+  this.wt.wtScrollbars.horizontal.readWindowSize();
+  return this.wt.wtViewport.getWorkspaceWidth();
 };
 
 /**
@@ -423,9 +421,9 @@ Handsontable.TableView.prototype.maximumVisibleElementWidth = function (left) {
  * @param {Number} top
  * @return {Number}
  */
-Handsontable.TableView.prototype.maximumVisibleElementHeight = function (top) {
-  var rootHeight = this.wt.wtViewport.getWorkspaceHeight();
-  return rootHeight;
+Handsontable.TableView.prototype.maximumVisibleElementHeight = function () {
+  this.wt.wtScrollbars.vertical.readWindowSize();
+  return this.wt.wtViewport.getWorkspaceHeight();
 };
 
 Handsontable.TableView.prototype.mainViewIsActive = function () {
