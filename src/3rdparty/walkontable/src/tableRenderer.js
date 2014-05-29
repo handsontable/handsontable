@@ -98,10 +98,11 @@ WalkontableTableRenderer.prototype.removeRedundantRows = function () {
 };
 
 WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit, displayTds) {
-  var lastTD, TR, visibleColIndex, res;
+  var lastTD, TR, res;
   var offsetRow = this.instance.getSetting('offsetRow');
   var visibleRowIndex = 0;
   var sourceRowIndex = this.rowFilter.visibleToSource(visibleRowIndex);
+
   while (sourceRowIndex < totalRows && sourceRowIndex >= 0) {
     if (visibleRowIndex > 1000) {
       throw new Error('Security brake: Too much TRs. Please define height for your table, which will enforce scrollbars.');
@@ -220,8 +221,11 @@ WalkontableTableRenderer.prototype.renderRowHeader = function(row, col, TH){
 WalkontableTableRenderer.prototype.renderRowHeaders = function(row, TR){
   for (var TH = TR.firstChild, visibleColIndex = 0; visibleColIndex < this.rowHeaderCount; visibleColIndex++) {
 
-    //If the number of row headers increased we need to replace TD with TH
-    if (TH.nodeName == 'TD') {
+    //If the number of row headers increased we need to create TH or replace an existing TD node with TH
+    if (!TH){
+      TH = document.createElement('TH');
+      TR.appendChild(TH);
+    } else if (TH.nodeName == 'TD') {
       TH = this.utils.replaceTdWithTh(TH, TR);
     }
 

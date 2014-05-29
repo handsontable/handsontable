@@ -21,7 +21,15 @@ var handsontable = function (options) {
 
 var getHtCore = function () {
   return spec().$container.find('.htCore').first();
-}
+};
+
+var getTopClone = function () {
+  return spec().$container.find('.ht_clone_top');
+};
+
+var getLeftClone = function () {
+  return spec().$container.find('.ht_clone_left');
+};
 
 var countRows = function () {
   return getHtCore().find('tbody tr').length;
