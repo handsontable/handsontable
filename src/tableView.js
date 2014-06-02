@@ -408,22 +408,26 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
 
 /**
  * Given a element's left position relative to the viewport, returns maximum element width until the right edge of the viewport (before scrollbar)
- * @param {Number} left
+ * @param {Number} leftOffset
  * @return {Number}
  */
-Handsontable.TableView.prototype.maximumVisibleElementWidth = function () {
+Handsontable.TableView.prototype.maximumVisibleElementWidth = function (leftOffset) {
   this.wt.wtScrollbars.horizontal.readWindowSize();
-  return this.wt.wtViewport.getWorkspaceWidth();
+  var workspaceWidth = this.wt.wtViewport.getWorkspaceWidth();
+  var maxWidth = workspaceWidth - leftOffset;
+  return maxWidth > 0 ? maxWidth : 0;
 };
 
 /**
  * Given a element's top position relative to the viewport, returns maximum element height until the bottom edge of the viewport (before scrollbar)
- * @param {Number} top
+ * @param {Number} topOffset
  * @return {Number}
  */
-Handsontable.TableView.prototype.maximumVisibleElementHeight = function () {
+Handsontable.TableView.prototype.maximumVisibleElementHeight = function (topOffset) {
   this.wt.wtScrollbars.vertical.readWindowSize();
-  return this.wt.wtViewport.getWorkspaceHeight();
+  var workspaceHeight = this.wt.wtViewport.getWorkspaceHeight();
+  var maxHeight = workspaceHeight - topOffset;
+  return maxHeight > 0 ? maxHeight : 0;
 };
 
 Handsontable.TableView.prototype.mainViewIsActive = function () {
