@@ -12,10 +12,10 @@ describe('manualColumnMove', function () {
     }
   });
 
-  function moveSecondDisplayedColumnBeforeFirstColumn(container){
+  function moveSecondDisplayedColumnBeforeFirstColumn(container, secondDisplayedColIndex){
     var $colHeaders = container.find('thead tr:eq(0) th');
-    var $firstColHeader = $colHeaders.eq(0);
-    var $secondColHeader = $colHeaders.eq(1);
+    var $firstColHeader = $colHeaders.eq(secondDisplayedColIndex - 1);
+    var $secondColHeader = $colHeaders.eq(secondDisplayedColIndex);
     var $manualColumnMover = $secondColHeader.find('.manualColumnMover');
 
     //Grab the second column
@@ -150,7 +150,7 @@ describe('manualColumnMove', function () {
 
     this.$container.width(120);
 
-    handsontable({
+    var hot = handsontable({
       data: [
         {id: 1, name: "Ted", lastName: "Right"},
         {id: 2, name: "Frank", lastName: "Honest"},
@@ -167,21 +167,31 @@ describe('manualColumnMove', function () {
       manualColumnMove: true
     });
 
+    var htCore = getHtCore();
+
     selectCell(0, 2);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('Ted');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Right');
 
-    moveSecondDisplayedColumnBeforeFirstColumn(this.$container);
+    var lastVisibleColumnIndex = hot.view.wt.wtTable.getLastVisibleColumn();
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('Right');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
+    expect(htCore.find('tbody tr:eq(0) td:eq(' + (lastVisibleColumnIndex - 1) +')').text()).toEqual('Ted');
+    expect(htCore.find('tbody tr:eq(0) td:eq(' + lastVisibleColumnIndex +')').text()).toEqual('Right');
 
+    //wait for clones to reposition after table scroll
+    waits(100);
+
+    runs(function () {
+      moveSecondDisplayedColumnBeforeFirstColumn(htCore, lastVisibleColumnIndex);
+
+      expect(htCore.find('tbody tr:eq(0) td:eq(' + (lastVisibleColumnIndex - 1) +')').text()).toEqual('Right');
+      expect(htCore.find('tbody tr:eq(0) td:eq(' + lastVisibleColumnIndex +')').text()).toEqual('Ted');
+
+    });
 
   });
 
   it("should move columns only in specific HOT instance", function () {
 
-    this.$container2 = $('<div id="' + id + '-2"></div>').appendTo('body');
+    this.$container2 = $('<div id="' + id + '-2" style="width: 300px; height: 200px;"></div>').appendTo('body');
 
     this.$container2.width(120);
     this.$container.width(120);
@@ -203,6 +213,8 @@ describe('manualColumnMove', function () {
       manualColumnMove: true
     });
 
+    var htCore1 = getHtCore();
+
     this.$container2.handsontable({
       data: [
         {id: 1, name: "Ted", lastName: "Right"},
@@ -221,25 +233,26 @@ describe('manualColumnMove', function () {
     });
 
     var hot2 = this.$container2.handsontable('getInstance');
+    var htCore2 = this.$container2.find('.htCore');
 
     hot2.selectCell(0, 0);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
+    expect(htCore1.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(htCore1.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
+    expect(htCore1.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
 
-    expect(this.$container2.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(this.$container2.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
-    expect(this.$container2.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
+    expect(htCore2.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(htCore2.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
+    expect(htCore2.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
 
-    moveSecondDisplayedColumnBeforeFirstColumn(this.$container2);
+    moveSecondDisplayedColumnBeforeFirstColumn(htCore2, 1);
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
+    expect(htCore1.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(htCore1.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
+    expect(htCore1.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
 
-    expect(this.$container2.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('Ted');
-    expect(this.$container2.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('1');
-    expect(this.$container2.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
+    expect(htCore2.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('Ted');
+    expect(htCore2.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('1');
+    expect(htCore2.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
 
     hot2.destroy();
     this.$container2.remove();
