@@ -20,7 +20,8 @@ describe('settings', function () {
         expect(instance.view.getHeight()).toEqual(200);
       });
 
-      it('should read height from CSS class', function () {
+      //TODO: Decide whether to remove this spec
+      xit('should read height from CSS class', function () {
         var $style = $('<style>.htCustom{ height: 200px }</style>').appendTo('head');
         this.$container[0].className = 'htCustom';
         var instance = handsontable();
@@ -65,7 +66,8 @@ describe('settings', function () {
         expect(instance.view.getHeight()).toEqual(300);
       });
 
-      it('should read height from CSS class', function () {
+      //TODO: Decide whether to remove this spec
+      xit('should read height from CSS class', function () {
         var $style = $('<style>.htCustom{ height: 200px } .htBig{ height: 300px }</style>').appendTo('head');
         this.$container[0].className = 'htCustom';
         var instance = handsontable();
