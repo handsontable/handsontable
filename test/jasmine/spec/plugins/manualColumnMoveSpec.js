@@ -360,7 +360,7 @@ describe('manualColumnMove', function () {
 
   });
 
-  it("should not change the default column headers when column order has changed ", function(){
+  it("should not change the default spreadsheet-like column headers when column order has changed ", function(){
     var hot = handsontable({
       data: [
         {id: 1, name: "Ted", lastName: "Right"},
