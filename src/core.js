@@ -1675,6 +1675,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       return out;
     }
     else {
+      var baseCol = col;
       col = Handsontable.hooks.execute(instance, 'modifyCol', col);
 
       if (priv.settings.columns && priv.settings.columns[col] && priv.settings.columns[col].title) {
@@ -1687,7 +1688,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         return priv.settings.colHeaders(col);
       }
       else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
-        return Handsontable.helper.spreadsheetColumnLabel(col);
+        return Handsontable.helper.spreadsheetColumnLabel(baseCol);
       }
       else {
         return priv.settings.colHeaders;

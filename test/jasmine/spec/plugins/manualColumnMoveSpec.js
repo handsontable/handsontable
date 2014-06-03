@@ -330,7 +330,7 @@ describe('manualColumnMove', function () {
     expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
   });
 
-  it("should return an appropriate column width, when colum oreder has changed", function () {
+  it("should return an appropriate column width, when column order has changed", function () {
     var hot = handsontable({
       columns: [
         {
@@ -358,5 +358,83 @@ describe('manualColumnMove', function () {
     expect(hot.getColWidth(2)).toEqual(60);
 
 
-  })
+  });
+
+  it("should not change the default column headers when column order has changed ", function(){
+    var hot = handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"}
+      ],
+      colHeaders: true,
+      columns: [
+        {
+          type: 'numeric',
+          data: 'id'
+        },
+        {
+          data: 'name'
+        },
+        {
+          data: 'lastName'
+        }
+      ]
+    });
+
+    if(hot.getSettings().colHeaders === true) {
+      expect(hot.getColHeader(0)).toEqual('A');
+      expect(hot.getColHeader(1)).toEqual('B');
+      expect(hot.getColHeader(2)).toEqual('C');
+
+      hot.updateSettings({
+        manualColumnMove: [2, 0, 1]
+      });
+
+      expect(hot.getColHeader(0)).toEqual('A');
+      expect(hot.getColHeader(1)).toEqual('B');
+      expect(hot.getColHeader(2)).toEqual('C');
+    }
+
+  });
+
+  it("should change the custom column headers order when column order has changed", function(){
+    var hot = handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"}
+      ],
+      colHeaders: ["Id","Name","Last Name"],
+      columns: [
+        {
+          type: 'numeric',
+          data: 'id'
+        },
+        {
+          data: 'name'
+        },
+        {
+          data: 'lastName'
+        }
+      ]
+    });
+
+    if(!hot.getSettings().colHeaders === true) {
+      expect(hot.getColHeader(0)).toEqual('Id');
+      expect(hot.getColHeader(1)).toEqual('Name');
+      expect(hot.getColHeader(2)).toEqual('Last Name');
+
+      hot.updateSettings({
+        manualColumnMove: [2, 0, 1]
+      });
+
+      expect(hot.getColHeader(0)).toEqual('Last Name');
+      expect(hot.getColHeader(1)).toEqual('Id');
+      expect(hot.getColHeader(2)).toEqual('Name');
+    }
+  });
+
 });
