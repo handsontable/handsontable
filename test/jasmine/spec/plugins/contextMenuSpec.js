@@ -216,8 +216,8 @@ describe('ContextMenu', function () {
       var actions = items.not('.htSeparator');
       var separators = items.filter('.htSeparator');
 
-      expect(actions.length).toEqual(10);
-      expect(separators.length).toEqual(5);
+      expect(actions.length).toEqual(11);
+      expect(separators.length).toEqual(6);
 
       expect(actions.text()).toEqual([
         'Insert row above',
@@ -228,6 +228,7 @@ describe('ContextMenu', function () {
         'Remove column',
         'Undo',
         'Redo',
+        'Make read-only',
         'left',
         'center',
         'right',
@@ -548,6 +549,68 @@ describe('ContextMenu', function () {
       expect($(hot.contextMenu.menu).find('tbody td').length).toEqual(2);
     });
 
+    it("should make a single selected cell read-only", function(){
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      selectCell(0, 0);
+
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(hot.getCellMeta(0,0).readOnly).toBe(false);
+
+      selectCell(0,0);
+      contextMenu();
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make read-only
+
+      expect(hot.getCellMeta(0,0).readOnly).toBe(true);
+      
+    });
+
+    it("should make a single selected cell writable, when it's set to read-only", function() {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      selectCell(0, 0);
+
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+
+      hot.getCellMeta(0,0).readOnly = true;
+
+      selectCell(0,0);
+      contextMenu();
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make writable
+
+      expect(hot.getCellMeta(0,0).readOnly).toBe(false);
+    });
+
+    it("should make a group of selected cells read-only, if all of them are writable", function(){
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(false);
+        }
+      }
+
+      selectCell(0, 0, 2, 2);
+
+      contextMenu();
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make read-only
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(true);
+        }
+      }
+    });
+
     it("should align text left", function () {
       var hot = handsontable({
         data: createSpreadsheetData(4, 4),
@@ -556,7 +619,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8);
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
       var button = buttonRow.find('button.Left');
 
       button.trigger('mousedown'); //Text left
@@ -572,7 +635,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8);
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
       var button = buttonRow.find('button.Center');
 
       button.trigger('mousedown'); //Text center
@@ -588,7 +651,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8);
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
       var button = buttonRow.find('button.Right');
 
 
@@ -605,7 +668,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8);
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
       var button = buttonRow.find('button.Justify');
 
       button.trigger('mousedown'); //Text justify
@@ -621,7 +684,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(10);
       var button = buttonRow.find('button.Top');
 
       button.trigger('mousedown'); //Text top
@@ -637,7 +700,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(10);
       var button = buttonRow.find('button.Middle');
 
       button.trigger('mousedown'); //Text middle
@@ -652,13 +715,88 @@ describe('ContextMenu', function () {
       });
 
       contextMenu();
-
-      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(10);
       var button = buttonRow.find('button.Bottom');
 
       button.trigger('mousedown'); //Text bottom
       expect(getCellMeta(0,0).className).toEqual('htBottom');
       expect(getCell(0,0).className).toContain('htBottom');
+    });
+
+    it("should make a group of selected cells read-only, if all of them are writable (reverse selection)", function(){
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(false);
+        }
+      }
+
+      selectCell(2, 2, 0, 0);
+
+      contextMenu();
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make read-only
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(true);
+        }
+      }
+    });
+
+    it("should make a group of selected cells writable if at least one of them is read-only", function() {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(false);
+        }
+      }
+
+      hot.getCellMeta(1,1).readOnly = true;
+
+      selectCell(0, 0, 2, 2);
+
+      contextMenu();
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make writable
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(false);
+        }
+      }
+    });
+
+    it("should make a group of selected cells writable if at least one of them is read-only (reverse selection)", function() {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(false);
+        }
+      }
+
+      hot.getCellMeta(1,1).readOnly = true;
+
+      selectCell(2, 2, 0, 0);
+
+      contextMenu();
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make writable
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(false);
+        }
+      }
     });
 
 
