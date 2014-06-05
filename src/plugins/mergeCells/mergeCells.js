@@ -74,10 +74,10 @@ MergeCells.prototype.mergeRange = function (cellRange) {
 };
 
 MergeCells.prototype.mergeOrUnmergeSelection = function (cellRange) {
-  var info = this.mergedCellInfoCollection.getInfo(cellRange.row, cellRange.col);
+  var info = this.mergedCellInfoCollection.getInfo(cellRange.from.row, cellRange.from.col);
   if (info) {
     //unmerge
-    this.unmergeSelection(cellRange);
+    this.unmergeSelection(cellRange.from);
   }
   else {
     //merge
