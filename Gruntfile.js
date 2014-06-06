@@ -235,6 +235,7 @@ module.exports = function (grunt) {
           vendor: [
             'lib/jquery.min.js',
             'lib/numeral.js',
+            'lib/numeral.de-de.js',
             'test/jasmine/lib/jasmine-extensions.js'
           ],
           helpers: [
