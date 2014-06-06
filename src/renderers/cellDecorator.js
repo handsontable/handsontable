@@ -17,6 +17,10 @@
       instance.view.wt.wtDom.addClass(TD, cellProperties.invalidCellClassName);
     }
 
+    if (cellProperties.wordWrap === false && cellProperties.noWordWrapClassName) {
+      instance.view.wt.wtDom.addClass(TD, cellProperties.noWordWrapClassName);
+    }
+
     if (!value && cellProperties.placeholder) {
       instance.view.wt.wtDom.addClass(TD, cellProperties.placeholderCellClassName);
     }

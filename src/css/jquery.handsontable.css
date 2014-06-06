@@ -84,6 +84,10 @@
   background-color: #ff4c42;
 }
 
+.handsontable td.htNoWrap {
+  white-space: nowrap;
+}
+
 .handsontable th:last-child {
   /*Foundation framework fix*/
   border-right: 1px solid #CCC;

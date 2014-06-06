@@ -2122,7 +2122,9 @@ DefaultSettings.prototype = {
   readOnly: false,
   type: 'text',
   copyable: true,
-  debug: false //shows debug overlays in Walkontable
+  debug: false, //shows debug overlays in Walkontable
+  wordWrap: true,
+  noWordWrapClassName: 'htNoWrap'
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
