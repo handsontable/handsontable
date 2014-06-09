@@ -175,7 +175,9 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
     , slen
     , classNames = []
     , visibleRows = this.getRowStrategy().countVisible()
-    , renderedCells = this.getColumnStrategy().cellCount;
+    , renderedCells = this.getColumnStrategy().cellCount
+    , cacheLength;
+
 
   this.oldCellCache = this.currentCellCache;
   this.currentCellCache = new WalkontableClassNameCache();
@@ -216,9 +218,31 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
           if (typeof cell == 'object' ) Handsontable.Dom.removeClass(cell, classNames[s]);
 
         }
+
+        // for headers:
+        // column headers
+        cacheLength = this.currentCellCache.cache ? visibleRows : 0;
+        cell = this.getColumnHeader(vc);
+        if (this.currentCellCache.test(cacheLength, vc, classNames[s])) {
+          if (typeof cell == 'object' ) this.wtDom.addClass(cell,classNames[s]);
+        } else {
+          if (typeof cell == 'object' ) this.wtDom.removeClass(cell,classNames[s]);
+        }
+
+        // row headers
+        cacheLength = this.currentCellCache.cache[vr] ? renderedCells : 0;
+        cell = this.getRowHeader(vr) != -1 ? this.getRowHeader(vr) : undefined;
+
+        if (this.currentCellCache.test(vr, cacheLength, classNames[s])) {
+          if (typeof cell == 'object' ) this.wtDom.addClass(cell,classNames[s]);
+        } else {
+          if (typeof cell == 'object' ) this.wtDom.removeClass(cell,classNames[s]);
+       }
+
       }
     }
   }
+
 };
 
 /**
@@ -243,6 +267,38 @@ WalkontableTable.prototype.getCell = function (coords) {
     return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(coords.col)];
   }
 };
+
+/**
+ * getColumnHeader
+ * @param col
+ * @return {Object} HTMLElement on success or undefined on error
+ *
+ */
+WalkontableTable.prototype.getColumnHeader = function(col) {
+  var THEAD = this.THEAD.childNodes[0];
+  if (THEAD) {
+    return THEAD.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
+  }
+}
+
+/**
+ * getRowHeader
+ * @param col
+ * @return {Object} HTMLElement on success or {Number} one of the exit codes on error:
+ *  -1 table doesn't have row headers
+ *
+ */
+WalkontableTable.prototype.getRowHeader = function(row) {
+  if(this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) == 0) {
+    return -1;
+  }
+
+  var TR = this.TBODY.childNodes[this.rowFilter.sourceToVisible(row)];
+
+  if (TR) {
+    return TR.childNodes[0];
+  }
+}
 
 /**
  * Returns cell coords object for a given TD
