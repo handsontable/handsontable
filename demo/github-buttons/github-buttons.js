@@ -20,12 +20,14 @@ function jsonp(path) {
 }
 
 function callback(obj) {
-  var watchCount = document.getElementById("githubWatch").querySelector(".gh-count");
-  var forkCount = document.getElementById("githubFork").querySelector(".gh-count");
-  watchCount.innerHTML = addCommas(obj.data.watchers);
-  forkCount.innerHTML = addCommas(obj.data.forks);
-  watchCount.style.display = 'block';
-  forkCount.style.display = 'block';
+  if(obj.data.watchers) {
+    var watchCount = document.getElementById("githubWatch").querySelector(".gh-count");
+    var forkCount = document.getElementById("githubFork").querySelector(".gh-count");
+    watchCount.innerHTML = addCommas(obj.data.watchers);
+    forkCount.innerHTML = addCommas(obj.data.forks);
+    watchCount.style.display = 'block';
+    forkCount.style.display = 'block';
+  }
 }
 
 $(function () {
