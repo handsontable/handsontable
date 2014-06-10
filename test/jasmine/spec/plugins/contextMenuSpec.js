@@ -216,8 +216,8 @@ describe('ContextMenu', function () {
       var actions = items.not('.htSeparator');
       var separators = items.filter('.htSeparator');
 
-      expect(actions.length).toEqual(8);
-      expect(separators.length).toEqual(3);
+      expect(actions.length).toEqual(10);
+      expect(separators.length).toEqual(5);
 
       expect(actions.text()).toEqual([
         'Insert row above',
@@ -227,7 +227,14 @@ describe('ContextMenu', function () {
         'Remove row',
         'Remove column',
         'Undo',
-        'Redo'
+        'Redo',
+        'left',
+        'center',
+        'right',
+        'justify',
+        'top',
+        'middle',
+        'bottom'
       ].join(''));
 
     });
@@ -396,7 +403,8 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(3).trigger('mousedown'); //Insert col right
 
-      expect(afterCreateColCallback).t
+      expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined);
+      expect(countCols()).toEqual(5);
     });
 
     it("should remove selected rows", function () {
@@ -540,6 +548,118 @@ describe('ContextMenu', function () {
       expect($(hot.contextMenu.menu).find('tbody td').length).toEqual(2);
     });
 
+    it("should align text left", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      contextMenu();
+
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8);
+      var button = buttonRow.find('button.Left');
+
+      button.trigger('mousedown'); //Text left
+      expect(getCellMeta(0,0).className).toEqual('htLeft');
+      expect(getCell(0,0).className).toContain('htLeft');
+    });
+
+    it("should align text center", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      contextMenu();
+
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8);
+      var button = buttonRow.find('button.Center');
+
+      button.trigger('mousedown'); //Text center
+      expect(getCellMeta(0,0).className).toEqual('htCenter');
+      expect(getCell(0,0).className).toContain('htCenter');
+    });
+
+    it("should align text right", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      contextMenu();
+
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8);
+      var button = buttonRow.find('button.Right');
+
+
+      button.trigger('mousedown'); //Text right
+      expect(getCellMeta(0,0).className).toEqual('htRight');
+      expect(getCell(0,0).className).toContain('htRight');
+    });
+
+    it("should justify text", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      contextMenu();
+
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8);
+      var button = buttonRow.find('button.Justify');
+
+      button.trigger('mousedown'); //Text justify
+      expect(getCellMeta(0,0).className).toEqual('htJustify');
+      expect(getCell(0,0).className).toContain('htJustify');
+    });
+
+    it("should vertical align text top", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      contextMenu();
+
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
+      var button = buttonRow.find('button.Top');
+
+      button.trigger('mousedown'); //Text top
+      expect(getCellMeta(0,0).className).toEqual('htTop');
+      expect(getCell(0,0).className).toContain('htTop');
+    });
+
+    it("should vertical align text middle", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      contextMenu();
+
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
+      var button = buttonRow.find('button.Middle');
+
+      button.trigger('mousedown'); //Text middle
+      expect(getCellMeta(0,0).className).toEqual('htMiddle');
+      expect(getCell(0,0).className).toContain('htMiddle');
+    });
+
+    it("should vertical align text bottom", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      contextMenu();
+
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
+      var button = buttonRow.find('button.Bottom');
+
+      button.trigger('mousedown'); //Text bottom
+      expect(getCellMeta(0,0).className).toEqual('htBottom');
+      expect(getCell(0,0).className).toContain('htBottom');
+    });
 
 
   });

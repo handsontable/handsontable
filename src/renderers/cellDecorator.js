@@ -5,6 +5,10 @@
     Adds appropriate CSS class to table cell, based on cellProperties
    */
   Handsontable.renderers.cellDecorator = function (instance, TD, row, col, prop, value, cellProperties) {
+    if (cellProperties.className) {
+      TD.className = cellProperties.className;
+    }
+
     if (cellProperties.readOnly) {
       instance.view.wt.wtDom.addClass(TD, cellProperties.readOnlyCellClassName);
     }

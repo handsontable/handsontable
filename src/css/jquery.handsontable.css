@@ -259,6 +259,34 @@ TextRenderer readOnly cell
 }
 
 /*
+TextRenderer horizontal alignment
+*/
+.handsontable .htLeft{
+  text-align: left;
+}
+.handsontable .htCenter{
+  text-align: center;
+}
+.handsontable .htRight{
+  text-align: right;
+}
+.handsontable .htJustify{
+  text-align: justify;
+}
+/*
+TextRenderer vertical alignment
+*/
+.handsontable .htTop{
+  vertical-align: top;
+}
+.handsontable .htMiddle{
+  vertical-align: middle;
+}
+.handsontable .htBottom{
+  vertical-align: bottom;
+}
+
+/*
 TextRenderer placeholder value
 */
 
@@ -439,6 +467,30 @@ ul.context-menu-list li {
   background: white;
   color: #999;
   cursor: default;
+}
+
+.htContextMenu button{
+  color: #fff;
+  font-size: 12px;
+  line-height: 12px;
+  height: 20px;
+  padding: 0 5px;
+  margin: 0 1px 0 0;
+  margin-bottom: 5px;
+}
+.htContextMenu button:first-child{
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+.htContextMenu button:last-child{
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+/*
+Context menu alignment buttons
+*/
+.htContextMenu button.Left{
+
 }
 
 .handsontable td.htSearchResult {

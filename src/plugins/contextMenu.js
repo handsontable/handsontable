@@ -1,6 +1,65 @@
 (function (Handsontable) {
   'use strict';
 
+  function prepareVerticalAlignClass (className, alignment) {
+    if (className.indexOf(alignment)!= -1){
+      return className;
+    }
+
+    className =  className
+      .replace('htTop','')
+      .replace('htMiddle','')
+      .replace('htBottom','')
+      .replace('  ','');
+
+    className += " " + alignment;
+    return className;
+  }
+
+  function prepareHorizontalAlignClass (className, alignment) {
+    if (className.indexOf(alignment)!= -1){
+      return className;
+    }
+
+    className =  className
+      .replace('htLeft','')
+      .replace('htCenter','')
+      .replace('htRight','')
+      .replace('htJustify','')
+      .replace('  ','');
+
+    className += " " + alignment;
+    return className;
+  }
+
+  function doAlign (row, col, type, alignment) {
+      var cellMeta = this.getCellMeta(row, col),
+        className = alignment;
+
+      if (cellMeta.className) {
+        if(type === 'vertical') {
+          className = prepareVerticalAlignClass(cellMeta.className, alignment);
+        } else {
+          className = prepareHorizontalAlignClass(cellMeta.className, alignment);
+        }
+      }
+
+      this.setCellMeta(row, col, 'className',className);
+      this.render();
+  }
+
+  function align (range, type, alignment) {
+    if (range.from.row == range.to.row && range.from.col == range.to.col){
+      doAlign.call(this,range.from.row, range.from.col, type, alignment);
+    } else {
+      for(var row = range.from.row; row<= range.to.row; row++) {
+        for (var col = range.from.col; col <= range.to.col; col++) {
+          doAlign.call(this,row, col, type, alignment);
+        }
+      }
+    }
+  }
+
   function ContextMenu(instance, customOptions){
     this.instance = instance;
     var contextMenu = this;
@@ -87,8 +146,92 @@
           disabled: function () {
             return this.undoRedo && !this.undoRedo.isRedoAvailable();
           }
-        }
+        },
+        "hsep4": ContextMenu.SEPARATOR,
+        'horizontal_alignment': {
+          name: function () {
+            var div = document.createElement('div'),
+              button = document.createElement('button'),
+              lButton = button.cloneNode(true),
+              rButton = button.cloneNode(true),
+              cButton = button.cloneNode(true),
+              jButton = button.cloneNode(true),
+              lText = document.createTextNode('left'),
+              cText = document.createTextNode('center'),
+              rText = document.createTextNode('right'),
+              jText = document.createTextNode('justify');
 
+            lButton.appendChild(lText);
+            cButton.appendChild(cText);
+            rButton.appendChild(rText);
+            jButton.appendChild(jText);
+
+            Handsontable.Dom.addClass(lButton,'Left');
+            Handsontable.Dom.addClass(cButton,'Center');
+            Handsontable.Dom.addClass(rButton,'Right');
+            Handsontable.Dom.addClass(jButton,'Justify');
+
+            div.appendChild(lButton);
+            div.appendChild(cButton);
+            div.appendChild(rButton);
+            div.appendChild(jButton);
+
+            return div.outerHTML;
+          },
+          callback: function (key, selection ,event) {
+            var className = event.target.className,
+              type = event.target.tagName;
+
+            if (type === "BUTTON") {
+              if(className) {
+                align.call(this, this.getSelectedRange(),'horizontal','ht' + className );
+              }
+            }
+
+          },
+          disabled: function () {
+            return false;
+          }
+        },
+        "hsep5": ContextMenu.SEPARATOR,
+        'vertical_alignment': {
+          name: function () {
+            var div = document.createElement('div'),
+              button = document.createElement('button'),
+              tButton = button.cloneNode(true),
+              mButton = button.cloneNode(true),
+              bButton = button.cloneNode(true),
+              tText = document.createTextNode('top'),
+              mText = document.createTextNode('middle'),
+              bText = document.createTextNode('bottom');
+
+            tButton.appendChild(tText);
+            mButton.appendChild(mText);
+            bButton.appendChild(bText);
+
+            Handsontable.Dom.addClass(tButton,'Top');
+            Handsontable.Dom.addClass(mButton,'Middle');
+            Handsontable.Dom.addClass(bButton,'Bottom');
+
+            div.appendChild(tButton);
+            div.appendChild(mButton);
+            div.appendChild(bButton);
+
+            return div.outerHTML;
+          },
+          callback: function (key, selection ,event) {
+            var className = event.target.className,
+              type = event.target.tagName;
+            if (type === "BUTTON") {
+              if(className) {
+                align.call(this, this.getSelectedRange(),'vertical','ht' + className );
+              }
+            }
+          },
+          disabled: function () {
+            return false;
+          }
+        }
       }
     };
 
@@ -153,8 +296,7 @@
 
   };
 
-  ContextMenu.prototype.performAction = function (){
-
+  ContextMenu.prototype.performAction = function (event){
     var hot = $(this.menu).handsontable('getInstance');
     var selectedItemIndex = hot.getSelected()[0];
     var selectedItem = hot.getData()[selectedItemIndex];
@@ -166,12 +308,10 @@
     if(typeof selectedItem.callback != 'function'){
       return;
     }
-
     var selRange = this.instance.getSelectedRange();
     var normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
 
-    selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection);
-
+    selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
   };
 
   ContextMenu.prototype.unbindMouseEvents = function () {
@@ -236,7 +376,7 @@
     if(itemIsSeparator(item)){
       Handsontable.Dom.addClass(TD, 'htSeparator');
     } else {
-      Handsontable.Dom.fastInnerText(wrapper, value);
+      Handsontable.Dom.fastInnerHTML(wrapper, value);
     }
 
     if (itemIsDisabled(item, contextMenu.instance)){

@@ -1244,7 +1244,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
   this.getCopyableData = function (startRow, startCol, endRow, endCol) {
     return datamap.getCopyableText(new WalkontableCellCoords(startRow, startCol), new WalkontableCellCoords(endRow, endCol));
-  }
+  };
 
   /**
    * Update settings
@@ -1313,6 +1313,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         }
       }
     }
+    Handsontable.hooks.run(instance, 'afterCellMetaReset');
 
     if (typeof settings.fillHandle !== "undefined") {
       if (autofill.handle && settings.fillHandle === false) {
@@ -1383,7 +1384,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     return expandedType;
 
-  }
+  };
 
   /**
    * Returns current settings object
@@ -1504,6 +1505,24 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.getDataAtRow = function (row) {
     return priv.settings.data[row];
+  };
+
+  /**
+   * Sets cell meta data object "key" corresponding to params row, col
+   * @param {Number} row
+   * @param {Number} col
+   * @param {String} key
+   * @param {String} val
+   *
+   */
+  this.setCellMeta = function (row, col, key, val) {
+    if (!priv.cellSettings[row]) {
+      priv.cellSettings[row] = [];
+    }
+    if (!priv.cellSettings[row][col]) {
+      priv.cellSettings[row][col] = new priv.columnSettings[col]();
+    }
+    priv.cellSettings[row][col][key] = val;
   };
 
   /**
