@@ -36,6 +36,12 @@
   Google Analytics for GitHub Page. Don't copy this to your project :)
   -->
   <script src="demo/js/ga.js"></script>
+
+  <!--
+  GitHub buttons. Don't copy this to your project :)
+  -->
+  <link rel="stylesheet" media="screen" href="demo/github-buttons/github-buttons.css">
+  <script src="demo/github-buttons/github-buttons.js" async></script>
 </head>
 
 <body class="home">
@@ -196,13 +202,23 @@
   <!-- menu end -->
 </div>
 
-<iframe id="githubWatch"
-        src="demo/github-buttons/github-btn.html?user=warpech&repo=jquery-handsontable&type=watch&count=true"
-        frameborder="0" scrolling="0" width="104" height="20"></iframe>
+<div id="github-buttons">
+  <span class="github-btn" id="githubWatch">
+    <a class="gh-btn github-watchers" href="https://github.com/warpech/jquery-handsontable">
+      <span class="gh-ico"></span>
+      <span class="gh-text">Star</span>
+    </a>
+    <a class="gh-count" href="https://github.com/warpech/jquery-handsontable/stargazers"></a>
+  </span>
 
-<iframe id="githubFork"
-        src="demo/github-buttons/github-btn.html?user=warpech&repo=jquery-handsontable&type=fork&count=true"
-        frameborder="0" scrolling="0" width="87" height="20"></iframe>
+  <span class="github-btn" id="githubFork">
+    <a class="gh-btn github-forks" href="https://github.com/warpech/jquery-handsontable">
+      <span class="gh-ico"></span>
+      <span class="gh-text">Fork</span>
+    </a>
+    <a class="gh-count" href="https://github.com/warpech/jquery-handsontable/network"></a>
+  </span>
+</div>
 
 <div id="container">
   <div class="columnLayout">

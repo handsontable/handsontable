@@ -101,6 +101,8 @@ global menu
   display: table-cell;
   vertical-align: top;
   padding: 20px 10px 20px 20px;
+  z-index: 12;
+  position: relative;
 }
 
 #global-menu-clone ul {
@@ -371,12 +373,14 @@ dl dd {
   position: absolute;
   top: 31px;
   left: 320px;
+  z-index: 10;
 }
 
 #githubFork {
   position: absolute;
   top: 31px;
   left: 430px;
+  z-index: 10;
 }
 
 #domainNotice {
@@ -411,6 +415,7 @@ body.home pre {
   position: absolute;
   top: 20px;
   right: 20px;
+  z-index: 11;
 }
 
 button,
