@@ -397,60 +397,61 @@
           disabled: function () {
             return false;
           }
-        },
-        'hsep6': ContextMenu.SEPARATOR,
-        'borders': {
-          name: function () {
-            var div = document.createElement('div'),
-              button = document.createElement('button'),
-              xButton = button.cloneNode(true),
-              tButton = button.cloneNode(true),
-              lButton = button.cloneNode(true),
-              bButton = button.cloneNode(true),
-              rButton = button.cloneNode(true),
-
-              xText = document.createTextNode('X'),
-              tText = document.createTextNode('top'),
-              rText = document.createTextNode('right'),
-              bText = document.createTextNode('bottom'),
-              lText = document.createTextNode('left');
-
-            xButton.appendChild(xText);
-            tButton.appendChild(tText);
-            rButton.appendChild(rText);
-            bButton.appendChild(bText);
-            lButton.appendChild(lText);
-
-            Handsontable.Dom.addClass(xButton,'noBorders');
-            Handsontable.Dom.addClass(tButton,'Top');
-            Handsontable.Dom.addClass(rButton,'Right');
-            Handsontable.Dom.addClass(bButton,'Bottom');
-            Handsontable.Dom.addClass(lButton,'Left');
-
-            div.appendChild(xButton);
-            div.appendChild(tButton);
-            div.appendChild(rButton);
-            div.appendChild(bButton);
-            div.appendChild(lButton);
-
-            return div.outerHTML;
-          },
-          callback:function(key, selection ,event){
-            var className = event.target.className,
-              type = event.target.tagName;
-            if (type === "BUTTON") {
-              console.log('button');
-              if(className) {
-                prepareBorder.call(this, this.getSelectedRange(), className);
-              }
-            }
-
-
-          },
-          disabled:function () {
-            return false;
-          }
         }
+//        ,
+//        'hsep6': ContextMenu.SEPARATOR,
+//        'borders': {
+//          name: function () {
+//            var div = document.createElement('div'),
+//              button = document.createElement('button'),
+//              xButton = button.cloneNode(true),
+//              tButton = button.cloneNode(true),
+//              lButton = button.cloneNode(true),
+//              bButton = button.cloneNode(true),
+//              rButton = button.cloneNode(true),
+//
+//              xText = document.createTextNode('X'),
+//              tText = document.createTextNode('top'),
+//              rText = document.createTextNode('right'),
+//              bText = document.createTextNode('bottom'),
+//              lText = document.createTextNode('left');
+//
+//            xButton.appendChild(xText);
+//            tButton.appendChild(tText);
+//            rButton.appendChild(rText);
+//            bButton.appendChild(bText);
+//            lButton.appendChild(lText);
+//
+//            Handsontable.Dom.addClass(xButton,'noBorders');
+//            Handsontable.Dom.addClass(tButton,'Top');
+//            Handsontable.Dom.addClass(rButton,'Right');
+//            Handsontable.Dom.addClass(bButton,'Bottom');
+//            Handsontable.Dom.addClass(lButton,'Left');
+//
+//            div.appendChild(xButton);
+//            div.appendChild(tButton);
+//            div.appendChild(rButton);
+//            div.appendChild(bButton);
+//            div.appendChild(lButton);
+//
+//            return div.outerHTML;
+//          },
+//          callback:function(key, selection ,event){
+//            var className = event.target.className,
+//              type = event.target.tagName;
+//            if (type === "BUTTON") {
+//              console.log('button');
+//              if(className) {
+//                prepareBorder.call(this, this.getSelectedRange(), className);
+//              }
+//            }
+//
+//
+//          },
+//          disabled:function () {
+//            return false;
+//          }
+//        }
       }
     };
 

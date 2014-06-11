@@ -1,0 +1,152 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Merge cells - Handsontable</title>
+
+  <!--
+  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  -->
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css">
+  <script src="js/samples.js"></script>
+  <script src="js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+  <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+
+  <!--
+  Facebook open graph. Don't copy this to your project :)
+  -->
+  <meta property="og:title" content="Merge cells">
+  <meta property="og:description"
+        content="This example shows the usage of the Merge cells feature.">
+  <meta property="og:url" content="http://handsontable.com/demo/merge_cells.html">
+  <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="409">
+  <meta property="og:image:height" content="164">
+  <link rel="canonical" href="http://handsontable.com/demo/merge_cells.html">
+
+  <!--
+  Google Analytics for GitHub Page. Don't copy this to your project :)
+  -->
+  <script src="js/ga.js"></script>
+
+  <script data-jsfiddle="common">
+    function createBigData() {
+      var rows = []
+        , i
+        , j;
+
+      for (i = 0; i < 8; i++) {
+        var row = [];
+        for (j = 0; j < 16; j++) {
+          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
+        }
+        rows.push(row);
+      }
+
+      return rows;
+    }
+  </script>
+</head>
+
+<body>
+
+
+<div class="wrapper">
+  <div class="wrapper-row">
+    <div id="global-menu-clone">
+      <h1><a href="../index.html">Handsontable</a></h1>
+
+    </div>
+
+    <div id="container">
+      <div class="columnLayout">
+
+        <div class="rowLayout">
+          <div class="descLayout">
+            <div class="pad" data-jsfiddle="example1">
+              <h2>Merge cells</h2>
+
+          <p>To enable the merge cells feature, set the <code>mergeCells</code> option to be <code>true</code> or an
+            array.
+          </p>
+
+          <p>To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array:
+            <code>mergeCells: [{row: 1, col: 1, rowspan: 2, colspan: 2}]</code></p>
+
+          <div style="overflow: scroll; height: 200px; width: 400px">
+            <div id="example1"></div>
+          </div>
+
+          <p>
+            <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
+              Dump
+              data to console
+            </button>
+          </p>
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+          </div>
+
+          <script data-jsfiddle="example">
+            $('#example1').handsontable({
+              data: createBigData(),
+              colWidths: [55, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47], //can also be a number or a function
+              rowHeaders: true,
+              colHeaders: true,
+              contextMenu: true,
+              customBorders: true,
+              mergeCells: [
+                {row: 1, col: 1, rowspan: 3, colspan: 3},
+                {row: 3, col: 4, rowspan: 2, colspan: 2}
+              ],
+              afterCellMetaReset: function() {
+                this.setCellMeta(0, 0, "borders", {
+                  top:{
+                    width: 2,
+                    color: '#5292F7',
+                    style: 'solid',
+                    cornerVisible: false
+                  },
+                  bottom:{
+                    width: 1,
+                    color: '#000',
+                    style: 'solid',
+                    cornerVisible: false
+                  }
+                });
+
+              }
+            });
+          </script>
+        </div>
+      </div>
+    </div>
+
+        <div class="footer-text">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+          licensed under the The MIT License.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div id="outside-links-wrapper"></div>
+
+</body>
+</html>
