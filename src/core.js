@@ -1203,6 +1203,8 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.getData = function (r, c, r2, c2) {
     if (typeof r === 'undefined') {
       return datamap.getAll();
+    } else if(r === 'map') {
+      return datamap;
     }
     else {
       return datamap.getRange(new WalkontableCellCoords(r, c), new WalkontableCellCoords(r2, c2), datamap.DESTINATION_RENDERER);
