@@ -80,8 +80,8 @@ WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) 
   }
 };
 
-WalkontableVerticalScrollbarNative.prototype.onScroll = function (forcePosition) {
-  WalkontableOverlay.prototype.onScroll.apply(this, arguments);
+WalkontableVerticalScrollbarNative.prototype.onScroll = function () {
+  WalkontableOverlay.prototype.onScroll.call(this);
 
   var scrollDelta;
   var newOffset = 0;
@@ -142,7 +142,8 @@ WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
 WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {
   var newY = this.tableParentOffset + cell * this.cellSize;
   this.setScrollPosition(newY);
-  this.onScroll(newY);
+  this.readWindowSize();
+  this.onScroll();
 };
 
 //readWindowSize (in future merge it with this.prepare?)
