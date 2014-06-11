@@ -93,8 +93,14 @@
     this.instance.view.render();
 
     this.state = Handsontable.EditorState.EDITING;
-
-    initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
+    
+    if(typeof initialValue != 'string') {
+        if(this.cellProperties.type === 'numeric') {
+            initialValue = numeral(this.originalValue).format('0.[0000000000000000]')
+        } else {
+            initialValue = this.originalValue;
+        }
+    }
 
     this.setValue(Handsontable.helper.stringify(initialValue));
 

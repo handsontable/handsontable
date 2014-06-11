@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu May 22 2014 15:55:36 GMT-0300 (E. South America Standard Time)
+ * Date: Wed Jun 11 2014 15:11:49 GMT-0300 (E. South America Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1033,9 +1033,10 @@ Handsontable.Core = function (rootElement, userSettings) {
         var logicalCol = instance.runHooksAndReturn('modifyCol', col); //column order may have changes, so we need to translate physical col index (stored in datasource) to logical (displayed to user)
         var cellProperties = instance.getCellMeta(row, logicalCol);
 
-        if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
-          if (changes[i][3].length > 0 && /^-?[\d\s]*\.?\d*$/.test(changes[i][3])) {
-            changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+
+        if (cellProperties.type === 'numeric') {
+          if (changes[i][3].length > 0) { //numeral cannot unformat empty string
+            changes[i][3] = numeral().unformat(changes[i][3]);
           }
         }
 
@@ -4223,7 +4224,14 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
       )[0]);
     }
     else {
-      return this.dataSource[this.getVars.row] ? this.dataSource[this.getVars.row][this.getVars.prop] : null;
+      var dataInput = null;
+      if(this.dataSource[this.getVars.row]) {
+        dataInput = this.dataSource[this.getVars.row][this.getVars.prop];
+        if(this.instance.getCellMeta(this.getVars.row, this.getVars.prop).dataType === 'number') {
+          dataInput = numeral(dataInput).format("0.[000000000000000]");
+        }
+      }
+      return dataInput;
     }
   };
 
@@ -4777,8 +4785,14 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
     this.instance.view.render();
 
     this.state = Handsontable.EditorState.EDITING;
-
-    initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
+    
+    if(typeof initialValue != 'string') {
+        if(this.cellProperties.type === 'numeric') {
+            initialValue = numeral(this.originalValue).format('0.[0000000000000000]')
+        } else {
+            initialValue = this.originalValue;
+        }
+    }
 
     this.setValue(Handsontable.helper.stringify(initialValue));
 

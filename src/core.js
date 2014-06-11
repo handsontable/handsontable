@@ -845,9 +845,10 @@ Handsontable.Core = function (rootElement, userSettings) {
         var logicalCol = instance.runHooksAndReturn('modifyCol', col); //column order may have changes, so we need to translate physical col index (stored in datasource) to logical (displayed to user)
         var cellProperties = instance.getCellMeta(row, logicalCol);
 
-        if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
-          if (changes[i][3].length > 0 && /^-?[\d\s]*\.?\d*$/.test(changes[i][3])) {
-            changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+
+        if (cellProperties.type === 'numeric') {
+          if (changes[i][3].length > 0) { //numeral cannot unformat empty string
+            changes[i][3] = numeral().unformat(changes[i][3]);
           }
         }
 

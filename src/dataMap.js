@@ -405,7 +405,14 @@
       )[0]);
     }
     else {
-      return this.dataSource[this.getVars.row] ? this.dataSource[this.getVars.row][this.getVars.prop] : null;
+      var dataInput = null;
+      if(this.dataSource[this.getVars.row]) {
+        dataInput = this.dataSource[this.getVars.row][this.getVars.prop];
+        if(this.instance.getCellMeta(this.getVars.row, this.getVars.prop).dataType === 'number') {
+          dataInput = numeral(dataInput).format("0.[000000000000000]");
+        }
+      }
+      return dataInput;
     }
   };
 
