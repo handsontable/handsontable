@@ -4,10 +4,7 @@
 
 (function () {
 
-  function CustomBorders (instance, settings) {
-    this.instance = instance;
-
-//    console.log(instance);
+  function CustomBorders () {
   }
 
   CustomBorders.prototype.setBorders =  function(row,col){
@@ -27,10 +24,10 @@
 
 
       var border = new WalkontableBorder(this.view.wt,tmp);
+      // return [topLeft.row, topLeft.col, bottomRight.row, bottomRight.col];
+      //border.appear(0,0,0,4);
       //border.appear();
     }
-
-    //console.log(cellProperties);
   };
 
 
@@ -43,7 +40,6 @@
       }
     }
   };
-
 
   var removeBorder = function(row,col) {
     this.setCellMeta(row, col, 'borders', {});
@@ -58,7 +54,6 @@
     };
 
     var borders = this.getCellMeta(row, col).borders;
-    //console.log(borders);
 
     if (!borders){
       borders = {};
