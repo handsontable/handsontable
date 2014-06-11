@@ -518,7 +518,7 @@ ul.context-menu-list li {
 Cell borders
 */
 .htBordered{
-  box-sizing: border-box !important;
+  /*box-sizing: border-box !important;*/
   border-width: 1px;
 }
 .htBordered.htTopBorderSolid{
