@@ -76,17 +76,23 @@ WalkontableSelection.prototype.draw = function () {
         source_r = instance.wtTable.rowFilter.visibleToSource(r);
         source_c = instance.wtTable.columnFilter.visibleToSource(c);
 
-        if (this.settings.className && source_r >= corners[0] && source_r <= corners[2] && source_c >= corners[1] && source_c <= corners[3]) {
+        if (source_r >= corners[0] && source_r <= corners[2] && source_c >= corners[1] && source_c <= corners[3]) {
           //selected cell
-          instance.wtTable.currentCellCache.add(r, c, this.settings.className);
+          if (this.settings.className) {
+            instance.wtTable.currentCellCache.add(r, c, this.settings.className);
+          }
         }
-        else if (this.settings.highlightRowClassName && source_r >= corners[0] && source_r <= corners[2]) {
+        else if (source_r >= corners[0] && source_r <= corners[2]) {
           //selection is in this row
-          instance.wtTable.currentCellCache.add(r, c, this.settings.highlightRowClassName);
+          if (this.settings.highlightRowClassName) {
+            instance.wtTable.currentCellCache.add(r, c, this.settings.highlightRowClassName);
+          }
         }
-        else if (this.settings.highlightRowClassName && source_c >= corners[1] && source_c <= corners[3]) {
+        else if (source_c >= corners[1] && source_c <= corners[3]) {
           //selection is in this column
-          instance.wtTable.currentCellCache.add(r, c, this.settings.highlightColumnClassName);
+          if (this.settings.highlightColumnClassName) {
+            instance.wtTable.currentCellCache.add(r, c, this.settings.highlightColumnClassName);
+          }
         }
       }
     }
