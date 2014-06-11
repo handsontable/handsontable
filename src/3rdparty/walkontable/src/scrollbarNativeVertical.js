@@ -110,8 +110,7 @@ WalkontableVerticalScrollbarNative.prototype.onScroll = function () {
   }
 
   this.instance.update('offsetRow', newOffset);
-  this.readSettings(); //read new offset
-  this.instance.draw();
+  this.instance.draw();//
 
   this.instance.getSetting('onScrollVertically');
 };
