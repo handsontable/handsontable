@@ -69,6 +69,80 @@
     }
   }
 
+  /***
+   *
+   * @param className
+   * @param {String} placement [noFrames, Top, Right, Bottom, Left]
+   * @param {String} type [Solid,Dotted,Dashed]
+   * @returns {*}
+
+   */
+  function prepareBorderClass (className, placement, type){
+    var borderedClass = 'htBordered';
+
+    if (className.indexOf(placement)!= -1){
+      return className;
+    }
+
+    if (placement == "noFrames") {
+      className = className
+        .replace(borderedClass,'')
+        .replace('htTopBorderSolid','')
+        .replace('htRightBorderSolid','')
+        .replace('htBottomBorderSolid','')
+        .replace('htLeftBorderSolid','');
+    } else {
+      if (className.indexOf(borderedClass)== -1){
+        className += " " + borderedClass;
+      }
+      className += " ht" + placement + "Border" + type;
+    }
+
+    return className;
+  }
+
+  function setBorderStyle(row, col, place, type){
+    var cellMeta = this.getCellMeta(row, col),
+      currentClassName = cellMeta.className ? cellMeta.className : "",
+      borderClassName = prepareBorderClass(currentClassName, place,type);
+
+    this.setCellMeta(row, col, 'className', borderClassName);
+    this.render();
+  }
+
+  function prepareBorder (range,place, type) {
+    type = "Solid";
+
+    if (range.from.row == range.to.row && range.from.col == range.to.col){
+      setBorderStyle.call(this,range.from.row, range.from.col, place, type);
+    } else {
+//      console.log('Row Start: %d, Col Start: %d, Row End; %d, Col End: %d', range.from.row, range.from.col, range.to.row, range.to.col);
+      switch (place) {
+        case "Top":
+          for(var topCol = range.from.col; topCol <= range.to.col; topCol++){
+            setBorderStyle.call(this, range.from.row, topCol, place, type);
+          }
+          break;
+        case "Right":
+          for(var rowRight = range.from.row; rowRight <=range.to.row; rowRight++){
+            setBorderStyle.call(this,rowRight, range.to.col, place, type);
+          }
+          break;
+        case "Bottom":
+          for(var bottomCol = range.from.col; bottomCol <= range.to.col; bottomCol++){
+            setBorderStyle.call(this, range.to.row, bottomCol, place, type);
+          }
+          break;
+        case "Left":
+          for(var rowLeft = range.from.row; rowLeft <=range.to.Row; rowLeft++){
+            setBorderStyle.call(this,rowLeft, range.from.col, place, type);
+          }
+          break;
+      }
+    }
+
+  }
+
   function ContextMenu(instance, customOptions){
     this.instance = instance;
     var contextMenu = this;
@@ -287,6 +361,54 @@
             }
           },
           disabled: function () {
+            return false;
+          }
+        },
+        'hsep6': ContextMenu.SEPARATOR,
+        'borders': {
+          name: function () {
+            var div = document.createElement('div'),
+              button = document.createElement('button'),
+              tButton = button.cloneNode(true),
+              lButton = button.cloneNode(true),
+              bButton = button.cloneNode(true),
+              rButton = button.cloneNode(true),
+
+              tText = document.createTextNode('top'),
+              rText = document.createTextNode('right'),
+              bText = document.createTextNode('bottom'),
+              lText = document.createTextNode('left');
+
+            tButton.appendChild(tText);
+            rButton.appendChild(rText);
+            bButton.appendChild(bText);
+            lButton.appendChild(lText);
+
+
+            Handsontable.Dom.addClass(tButton,'Top');
+            Handsontable.Dom.addClass(rButton,'Right');
+            Handsontable.Dom.addClass(bButton,'Bottom');
+            Handsontable.Dom.addClass(lButton,'Left');
+
+            div.appendChild(tButton);
+            div.appendChild(rButton);
+            div.appendChild(bButton);
+            div.appendChild(lButton);
+
+            return div.outerHTML;
+          },
+          callback:function(key, selection ,event){
+            var className = event.target.className,
+              type = event.target.tagName;
+            if (type === "BUTTON") {
+              if(className) {
+                prepareBorder.call(this, this.getSelectedRange(), className);
+              }
+            }
+
+
+          },
+          disabled:function () {
             return false;
           }
         }
@@ -721,10 +843,10 @@
   };
 
   ContextMenu.utils.normalizeSelection = function(selRange){
-   return {
+    return {
       start: selRange.getTopLeftCorner(),
       end: selRange.getBottomRightCorner()
-    };
+    }
   };
 
   ContextMenu.utils.isSeparator = function (cell) {
