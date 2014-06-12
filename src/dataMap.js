@@ -405,8 +405,26 @@
       )[0]);
     }
     else {
-      return this.dataSource[this.getVars.row] ? this.dataSource[this.getVars.row][this.getVars.prop] : null;
-    }
+        var dataInput = null;
+        if(this.dataSource[this.getVars.row]) {
+          dataInput = this.dataSource[this.getVars.row][this.getVars.prop];
+          
+          // https://github.com/warpech/jquery-handsontable/issues/464
+          // format data with the current language if cell is numeric
+          if(this.isNumericCell()) {
+            dataInput = numeral(dataInput).format("0.[000000000000000]");
+          }
+        }
+        return dataInput;
+      }
+  };
+
+  /**
+   * Returns if the current cell is numeric.
+   * @return {Boolean}
+   */
+  Handsontable.DataMap.prototype.isNumericCell = function () {
+      return this.instance.getCellMeta(this.getVars.row, this.getVars.prop).dataType === 'number';
   };
 
   var copyableLookup = Handsontable.helper.cellMethodLookupFactory('copyable', false);

@@ -93,8 +93,10 @@
     this.instance.view.render();
 
     this.state = Handsontable.EditorState.EDITING;
-
-    initialValue = typeof initialValue == 'string' ? initialValue : this.originalValue;
+    
+    if(typeof initialValue != 'string') {
+        initialValue = this.getOriginalValue();
+    }
 
     this.setValue(Handsontable.helper.stringify(initialValue));
 
@@ -103,6 +105,15 @@
     this.focus();
 
     this.instance.view.render(); //only rerender the selections (FillHandle should disappear when beginediting is triggered)
+  };
+  
+  BaseEditor.prototype.getOriginalValue = function() {
+      // https://github.com/warpech/jquery-handsontable/issues/464
+      // if cell type is numeric, format the number with the language decimal separator
+      if(this.cellProperties.type === 'numeric') {
+          return numeral(this.originalValue).format('0.[0000000000000000]')
+      } 
+      return this.originalValue;
   };
 
   BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown, callback) {
