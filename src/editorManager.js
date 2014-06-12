@@ -207,7 +207,7 @@
       });
 
       instance.addHook('afterScrollVertically', function (delta) {
-         that.closeEditorAndRestoreOriginalValue();
+         that.closeEditor();
       });
 
       function moveSelectionAfterEnter(shiftKey){

@@ -286,7 +286,7 @@ describe('WalkontableScroll', function () {
       wt.draw();
 
       wt.scrollViewport(new WalkontableCellCoords(12, 0)).draw();
-      expect(wt.getViewport()).toEqual([4, 0, 12, 2]);
+      expect(wt.getViewport()).toEqual([5, 0, 13, 2]);
     });
 
     it("scroll viewport to a cell on far top should make it visible on top edge", function () {

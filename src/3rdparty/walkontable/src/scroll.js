@@ -153,7 +153,6 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
       this.scrollViewport(coords)
     }
 
-    this.instance.wtTable.verticalRenderReverse = true;
   } else if (coords.row >= this.instance.getSetting('fixedColumnsLeft')){
     this.scrollVertical(coords.row - this.instance.wtTable.getFirstVisibleRow());
   }

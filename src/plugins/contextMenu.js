@@ -68,7 +68,6 @@
     this.enabled = true;
 
     this.bindMouseEvents();
-    this.bindTableEvents();
 
     this.instance.addHook('afterDestroy', function () {
        contextMenu.destroy();

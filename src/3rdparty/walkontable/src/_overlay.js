@@ -58,14 +58,10 @@ WalkontableOverlay.prototype.getScrollableElement = function (TABLE) {
 WalkontableOverlay.prototype.prepare = function () {
 };
 
-WalkontableOverlay.prototype.onScroll = function (forcePosition) {
+WalkontableOverlay.prototype.onScroll = function () {
 
   this.windowScrollPosition = this.getScrollPosition();
   this.readSettings(); //read window scroll position
-
-  if (forcePosition) {
-    this.windowScrollPosition = forcePosition;
-  }
 
   this.resetFixedPosition(); //may be redundant
 };

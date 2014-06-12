@@ -391,7 +391,7 @@ describe('Core_view', function () {
         height: 100
       });
 
-      expect(hot.view.maximumVisibleElementWidth()).toEqual(100);
+      expect(hot.view.maximumVisibleElementWidth(0)).toEqual(100);
     });
 
     it('should return maximum width until right edge of the viewport (excluding the scrollbar)', function () {
@@ -415,7 +415,7 @@ describe('Core_view', function () {
         height: 100
       });
 
-      expect(hot.view.maximumVisibleElementHeight()).toEqual(100);
+      expect(hot.view.maximumVisibleElementHeight(0)).toEqual(100);
     });
 
     it('should return maximum height until bottom edge of the viewport (excluding the scrollbar)', function () {
