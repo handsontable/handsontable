@@ -1216,4 +1216,43 @@ describe("WalkontableCellRange", function () {
       expect(a.getBottomRightCorner().col).toEqual(7);
     });
   });
+
+  describe("forAll", function () {
+    it("callback should be called for all cells in the range", function () {
+      var from = new WalkontableCellCoords(1, 1);
+      var to = new WalkontableCellCoords(3, 3);
+      var range = new WalkontableCellRange(from, from, to);
+      var forAllCallback = jasmine.createSpy('beforeColumnSortHandler');
+      range.forAll(forAllCallback);
+      expect(forAllCallback.callCount).toBe(9);
+    });
+
+    it("callback should be called with row, column parameters", function () {
+      var from = new WalkontableCellCoords(1, 1);
+      var to = new WalkontableCellCoords(2, 2);
+      var range = new WalkontableCellRange(from, from, to);
+      var rows = [];
+      var cols = [];
+      range.forAll(function (row, col) {
+        rows.push(row);
+        cols.push(col);
+      });
+      expect(rows).toEqual([1, 1, 2, 2]);
+      expect(cols).toEqual([1, 2, 1, 2]);
+    });
+
+    it("iteration should be interrupted when callback returns false", function () {
+      var from = new WalkontableCellCoords(1, 1);
+      var to = new WalkontableCellCoords(2, 2);
+      var range = new WalkontableCellRange(from, from, to);
+      var callCount = 0;
+      range.forAll(function (row, col) {
+        callCount++;
+        if (callCount == 2) {
+          return false;
+        }
+      });
+      expect(callCount).toBe(2);
+    });
+  });
 });

@@ -147,6 +147,28 @@
           }
         },
         "hsep4": ContextMenu.SEPARATOR,
+        'make_read_only': {
+          name: function() {
+            var atLeastOneReadOnly = contextMenu.checkSelectionReadOnlyConsistency(this);
+
+            if(!atLeastOneReadOnly) {
+              return "Make read-only";
+            } else {
+              return "Make writable";
+            }
+          },
+          callback: function() {
+            var atLeastOneReadOnly = contextMenu.checkSelectionReadOnlyConsistency(this);
+
+            var that = this;
+            this.getSelectedRange().forAll(function(r, c) {
+              that.getCellMeta(r, c).readOnly = atLeastOneReadOnly ? false : true;
+            });
+
+            this.render();
+          }
+        },
+        "hsep5": ContextMenu.SEPARATOR,
         'horizontal_alignment': {
           name: function () {
             var div = document.createElement('div'),
@@ -192,7 +214,7 @@
             return false;
           }
         },
-        "hsep5": ContextMenu.SEPARATOR,
+        "hsep6": ContextMenu.SEPARATOR,
         'vertical_alignment': {
           name: function () {
             var div = document.createElement('div'),
@@ -232,6 +254,19 @@
           }
         }
       }
+    };
+
+    this.checkSelectionReadOnlyConsistency = function(hot) {
+      var atLeastOneReadOnly = false;
+
+      hot.getSelectedRange().forAll(function(r, c) {
+        if(hot.getCellMeta(r, c).readOnly) {
+          atLeastOneReadOnly = true;
+          return false; //breaks forAll
+        }
+      });
+
+      return atLeastOneReadOnly;
     };
 
     Handsontable.hooks.run(instance, 'afterContextMenuDefaultOptions', this.defaultOptions);
