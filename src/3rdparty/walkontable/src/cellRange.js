@@ -131,4 +131,21 @@ WalkontableCellRange.prototype.getAll = function () {
   return out;
 };
 
+/**
+ * Runs a callback function against all cells in the range. You can break the iteration by returning false in the callback function
+ * @param callback {Function}
+ */
+WalkontableCellRange.prototype.forAll = function (callback) {
+  var topLeft = this.getTopLeftCorner();
+  var bottomRight = this.getBottomRightCorner();
+  for (var r = topLeft.row; r <= bottomRight.row; r++) {
+    for (var c = topLeft.col; c <= bottomRight.col; c++) {
+      var breakIteration = callback(r, c);
+      if (breakIteration === false) {
+        return;
+      }
+    }
+  }
+};
+
 window.WalkontableCellRange = WalkontableCellRange; //export
