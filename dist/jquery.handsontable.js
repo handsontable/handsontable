@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Jun 11 2014 15:11:49 GMT-0300 (E. South America Standard Time)
+ * Date: Thu Jun 12 2014 10:53:37 GMT-0300 (E. South America Standard Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1033,12 +1033,9 @@ Handsontable.Core = function (rootElement, userSettings) {
         var logicalCol = instance.runHooksAndReturn('modifyCol', col); //column order may have changes, so we need to translate physical col index (stored in datasource) to logical (displayed to user)
         var cellProperties = instance.getCellMeta(row, logicalCol);
 
-
-        if (cellProperties.type === 'numeric') {
-          if (changes[i][3].length > 0) { //numeral cannot unformat empty string
-            changes[i][3] = numeral().unformat(changes[i][3]);
-          }
-        }
+        // https://github.com/warpech/jquery-handsontable/issues/464
+        // if numeric, we need unformat before validate and set in dataSource.
+        unformatIfNumeric(cellProperties, changes[i]);
 
         if (instance.getCellValidator(cellProperties)) {
           waitingForValidator.addValidatorToQueue();
@@ -1077,6 +1074,15 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
       if (typeof beforeChangeResult !== 'function') {
         callback(); //called when async validators are resolved and beforeChange was not async
+      }
+    }
+    
+    function unformatIfNumeric(cellProperties, currentChange) {
+      if (cellProperties.type === 'numeric') {
+        if (changes[i][3].length > 0) { //numeral cannot unformat empty string
+          // TODO only 'unformat' if the value is a number or a formatted number.
+          changes[i][3] = numeral().unformat(changes[i][3]);
+        }
       }
     }
   }
@@ -4224,15 +4230,26 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
       )[0]);
     }
     else {
-      var dataInput = null;
-      if(this.dataSource[this.getVars.row]) {
-        dataInput = this.dataSource[this.getVars.row][this.getVars.prop];
-        if(this.instance.getCellMeta(this.getVars.row, this.getVars.prop).dataType === 'number') {
-          dataInput = numeral(dataInput).format("0.[000000000000000]");
+        var dataInput = null;
+        if(this.dataSource[this.getVars.row]) {
+          dataInput = this.dataSource[this.getVars.row][this.getVars.prop];
+          
+          // https://github.com/warpech/jquery-handsontable/issues/464
+          // format data with the current language if cell is numeric
+          if(this.isNumericCell()) {
+            dataInput = numeral(dataInput).format("0.[000000000000000]");
+          }
         }
+        return dataInput;
       }
-      return dataInput;
-    }
+  };
+
+  /**
+   * Returns if the current cell is numeric.
+   * @return {Boolean}
+   */
+  Handsontable.DataMap.prototype.isNumericCell = function () {
+      return this.instance.getCellMeta(this.getVars.row, this.getVars.prop).dataType === 'number';
   };
 
   var copyableLookup = Handsontable.helper.cellMethodLookupFactory('copyable', false);
@@ -4787,11 +4804,7 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
     this.state = Handsontable.EditorState.EDITING;
     
     if(typeof initialValue != 'string') {
-        if(this.cellProperties.type === 'numeric') {
-            initialValue = numeral(this.originalValue).format('0.[0000000000000000]')
-        } else {
-            initialValue = this.originalValue;
-        }
+        initialValue = this.getOriginalValue();
     }
 
     this.setValue(Handsontable.helper.stringify(initialValue));
@@ -4801,6 +4814,15 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
     this.focus();
 
     this.instance.view.render(); //only rerender the selections (FillHandle should disappear when beginediting is triggered)
+  };
+  
+  BaseEditor.prototype.getOriginalValue = function() {
+      // https://github.com/warpech/jquery-handsontable/issues/464
+      // if cell type is numeric, format the number with the language decimal separator
+      if(this.cellProperties.type === 'numeric') {
+          return numeral(this.originalValue).format('0.[0000000000000000]')
+      } 
+      return this.originalValue;
   };
 
   BaseEditor.prototype.finishEditing = function (restoreOriginalValue, ctrlDown, callback) {
