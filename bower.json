@@ -9,5 +9,8 @@
   ],
   "dependencies": {
     "jquery": ">=1.9.0"
+  },
+  "devDependencies": {
+    "chroma-js": "~0.5.6"
   }
 }

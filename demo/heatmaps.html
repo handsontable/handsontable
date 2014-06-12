@@ -19,6 +19,7 @@
   <script src="js/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
   <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+  <script src="bower_components/chroma-js/chroma.min.js"></script>
 
   <!--
   Facebook open graph. Don't copy this to your project :)
@@ -93,94 +94,68 @@
 
             var lastChange = null;
 
-            container.handsontable({
-              data: data,
-              colHeaders: ["Year", "Domestic Flights", "International Flights", "Total Flights"],
-              columns: [
-                  {
-                     type: 'numeric',
-                  },
-                  {
-                     type: 'numeric',
-                     format: '0,0'
-                  },
-                  {
-                     type: 'numeric',
-                     format: '0,0'
-                  },
-                  {
-                     type: 'numeric',
-                     format: '0,0'
-                  },
-              ],
-              beforeChangeRender: updateHeatmap
-              });
-
-            var ht = container.handsontable('getInstance');
-
-            var heatmap = [];
-            updateHeatmap();
-              
-            ht.updateSettings({
-              cells: function (row, col, prop) {
-                var cellProperties = {};
-                if (col !== 0) {
-                  cellProperties.renderer = heatmapRenderer; 
-                }
-                return cellProperties;
-              }
-            });
+            var heatmap;
+            var heatmapScale  = chroma.scale(['#17F556', '#ED6D47']);
 
             function updateHeatmap(change,source) {              
               if(change) {
-                heatmap[change[0][1]] = generateHeatmapData(change[0][1]);
+                heatmap[change[0][1]] = generateHeatmapData.call(this, change[0][1]);
               } else {
                 heatmap = [];
-                for(var i = 1, colCount = ht.countCols(); i < colCount ; i++) {
-                  heatmap[i] = generateHeatmapData(i);
+                for(var i = 1, colCount = this.countCols(); i < colCount ; i++) {
+                  heatmap[i] = generateHeatmapData.call(this, i);
                 }
               }
             }
 
+            function point(min, max, value) {
+              return (value - min) / (max - min);
+            }
+
             function generateHeatmapData(colId) {
-              var heatmapData,
-                  rowCount = ht.countRows(),
-                  step = parseInt(255 / (rowCount - 1),10);
-
-                  heatmapData = {
-                    values: ht.getDataAtCol(colId),
-                    colors: []
-                  };
-
-                  heatmapData.values = heatmapData.values.sort(function(a, b) {
-                      return a - b;
-                  });
-
-                  for(var i = 0; i < rowCount ; i++) {
-                    var r = parseInt(i*step,10),
-                    g = parseInt(255 - i*step,10);
-
-                    if(g < 0) { g = 0; } 
-                    if(r > 255) { r = 255; }
-
-                    heatmapData.colors[i] = "rgb(" + r + ", " + g  + ", 0)";
-                  }
-
-              return heatmapData;
+              var values = this.getDataAtCol(colId);
+              return {
+                min: Math.min.apply(null, values),
+                max: Math.max.apply(null, values)
+              };
             }
 
             function heatmapRenderer(instance, td, row, col, prop, value, cellProperties) {
               Handsontable.renderers.TextRenderer.apply(this, arguments);
 
-              var heatmapIndex = $.inArray(value,heatmap[col].values);
-
-              if(heatmapIndex != -1) {
-                td.style.color = heatmap[col].colors[heatmapIndex];
+              if(heatmap[col]) {
+                td.style.backgroundColor = heatmapScale(point(heatmap[col].min, heatmap[col].max, parseInt(value, 10))).hex();
                 td.style.textAlign = 'right';
                 td.style.fontWeight = 'bold';
-
               }
             }
+
+            container.handsontable({
+              data: data,
+              colHeaders: ["Year", "Domestic Flights", "International Flights", "Total Flights"],
+              columns: [
+                {
+                  type: 'numeric'
+                },
+                {
+                  type: 'numeric',
+                  format: '0,0',
+                  renderer: heatmapRenderer
+                },
+                {
+                  type: 'numeric',
+                  format: '0,0',
+                  renderer: heatmapRenderer
+                },
+                {
+                  type: 'numeric',
+                  format: '0,0',
+                  renderer: heatmapRenderer
+                },
+              ],
+              afterLoadData: updateHeatmap,
+              beforeChangeRender: updateHeatmap
+            });
 
           </script>
         </div>

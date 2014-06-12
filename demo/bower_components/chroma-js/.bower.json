@@ -1,0 +1,43 @@
+{
+  "name": "chroma-js",
+  "description": "JavaScript library for color conversions",
+  "version": "0.5.6",
+  "main": [
+    "./chroma.js"
+  ],
+  "ignore": [
+    "doc",
+    "src",
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "homepage": "https://github.com/gka/chroma.js",
+  "authors": [
+    "Gregor Aisch <contact@vis4.net>"
+  ],
+  "keywords": [
+    "color",
+    "scale",
+    "gradient",
+    "scheme",
+    "rgb",
+    "hsv",
+    "hsl",
+    "css",
+    "lch",
+    "lab"
+  ],
+  "license": "MIT",
+  "_release": "0.5.6",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.5.6",
+    "commit": "f32c4b552f28664fe48514fcb49f59459ec50d4d"
+  },
+  "_source": "git://github.com/gka/chroma.js.git",
+  "_target": "~0.5.6",
+  "_originalSource": "chroma-js"
+}
