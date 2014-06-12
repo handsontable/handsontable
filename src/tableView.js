@@ -149,7 +149,6 @@ Handsontable.TableView = function (instance) {
       var value = that.instance.getDataAtRowProp(row, prop);
 
       renderer(that.instance, TD, row, col, prop, value, cellProperties);
-//      console.log(cellProperties);
       Handsontable.hooks.run(that.instance, 'afterRenderer', TD, row, col, prop, value, cellProperties);
 
     },

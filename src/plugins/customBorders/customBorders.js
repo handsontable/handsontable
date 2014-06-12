@@ -7,62 +7,80 @@
   function CustomBorders () {
   }
 
-  CustomBorders.prototype.setBorders =  function(row,col){
-    var borders = this.getCellMeta(row,col).borders;
-    if(borders){
-
-      var tmp = {
-          className: 'dupa123',
-          border:
-          {
-            width: 2,
-            color: '#5292F7',
-            style: 'solid',
-            cornerVisible: false
-          }
-      };
-
-
-      var border = new WalkontableBorder(this.view.wt,tmp);
-      // return [topLeft.row, topLeft.col, bottomRight.row, bottomRight.col];
-      //border.appear(0,0,0,4);
-      //border.appear();
-    }
-  };
-
-
-
   var init = function () {
     var settings = this.getSettings().customBorders;
     if(settings){
       if(!this.customBorders){
-        this.customBorders = new CustomBorders(settings);
+        this.customBorders = new CustomBorders();
       }
     }
   };
 
+  var createClassName = function (row, col) {
+    return "border_row" + row + "col" + col;
+  };
+  var createDefaultBorder = function () {
+    return {
+      width: 1,
+      color: '#000',
+      cornerVisible: false
+    }
+  };
+  var createEmptyBorders = function (row, col){
+    return {
+      className: createClassName(row, col),
+      border: createDefaultBorder(),
+      top:{
+        hide:true
+      },
+      right:{
+        hide:true
+      },
+      bottom:{
+        hide:true
+      },
+      left:{
+        hide:true
+      }
+    }
+  };
+
+  var drawBorders = function (row, col, borders) {
+    var border = new WalkontableBorder(this.view.wt,borders);
+    border.appear([row,col,row,col]);
+  };
+
   var removeBorder = function(row,col) {
-    this.setCellMeta(row, col, 'borders', {});
-    this.render();
+    var borders = document.getElementsByClassName(createClassName(row,col))[0],
+      parent = borders.parentNode;
+
+    parent.parentNode.removeChild(parent);
+    this.setCellMeta(row, col, 'borders',{});
+
   };
 
   var setBorder = function (row, col,place){
+
     var border = {
       width: 1,
-      color: '#000',
-      style: 'solid'
+      color: 'red'
     };
 
     var borders = this.getCellMeta(row, col).borders;
 
     if (!borders){
-      borders = {};
+      borders = createEmptyBorders(row, col);
     }
 
     borders[place] = border;
 
-    this.setCellMeta(row, col, 'customBorders', borders);
+    this.setCellMeta(row, col, 'borders', borders);
+
+    this.addHook('afterRender', function () {
+      drawBorders.call(this,row,col, borders);
+    });
     this.render();
+
   };
 
   var prepareBorder = function (range, place, border) {
@@ -73,7 +91,6 @@
       } else {
         setBorder.call(this, range.from.row, range.from.col, place);
       }
-
     } else {
       switch (place) {
         case "noBorders":
@@ -154,7 +171,6 @@
           type = event.target.tagName;
         if (type === "BUTTON") {
           if(className) {
-            //console.log(className);
             prepareBorder.call(this, this.getSelectedRange(), className);
           }
         }
@@ -165,26 +181,9 @@
     };
   };
 
-  var afterRenderer = function (TD, row, col, prop, value, cellProperties) {
-
-//    console.log('--------------');
-//    console.log(TD);
-//    console.log(row);
-//    console.log(col);
-//    console.log(prop);
-//    console.log(value);
-//    console.log(cellProperties);
-//    console.log('--------------');
-
-    if(this.customBorders){
-      this.customBorders.setBorders.call(this,row, col);
-    }
-  };
 
   Handsontable.hooks.add('beforeInit', init);
   Handsontable.hooks.add('afterContextMenuDefaultOptions', addBordersOptionsToContextMenu);
-  Handsontable.hooks.add('afterRenderer', afterRenderer);
-
   Handsontable.CustomBorders = CustomBorders;
 
 }(Handsontable));

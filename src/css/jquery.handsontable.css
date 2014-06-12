@@ -232,6 +232,9 @@
   position: absolute;
   font-size: 0;
 }
+.handsontable .wtBorder.hidden{
+  display:none !important;;
+}
 
 .handsontable td.area {
   background-color: #EEF4FF;

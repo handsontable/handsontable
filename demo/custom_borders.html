@@ -44,9 +44,9 @@
         , i
         , j;
 
-      for (i = 0; i < 8; i++) {
+      for (i = 0; i < 3; i++) {
         var row = [];
-        for (j = 0; j < 16; j++) {
+        for (j = 0; j < 3; j++) {
           row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
         }
         rows.push(row);
@@ -109,10 +109,6 @@
               colHeaders: true,
               contextMenu: true,
               customBorders: true,
-              mergeCells: [
-                {row: 1, col: 1, rowspan: 3, colspan: 3},
-                {row: 3, col: 4, rowspan: 2, colspan: 2}
-              ],
               afterCellMetaReset: function() {
                 this.setCellMeta(0, 0, "borders", {
                   top:{
@@ -128,7 +124,6 @@
                     cornerVisible: false
                   }
                 });
-
               }
             });
           </script>
