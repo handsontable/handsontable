@@ -799,8 +799,15 @@ Handsontable.Core = function (rootElement, userSettings) {
         var cellProperties = instance.getCellMeta(row, logicalCol);
 
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
-          if (changes[i][3].length > 0 && /^-?[\d\s]*\.?\d*$/.test(changes[i][3])) {
-            changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+          if (changes[i][3].length > 0 && /^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3])) {
+
+            if(typeof cellProperties.language == 'undefined') {
+              numeral.language('en');
+            } else {
+              numeral.language(cellProperties.language);
+            }
+
+            changes[i][3] = parseFloat(changes[i][3].replace(',','.'));
           }
         }
 
