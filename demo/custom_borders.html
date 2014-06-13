@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Merge cells - Handsontable</title>
+  <title>Custom borders - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -23,15 +23,15 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Merge cells">
+  <meta property="og:title" content="Custom borders">
   <meta property="og:description"
-        content="This example shows the usage of the Merge cells feature.">
-  <meta property="og:url" content="http://handsontable.com/demo/merge_cells.html">
+        content="This example shows the usage of the Custom borders feature.">
+  <meta property="og:url" content="http://handsontable.com/demo/custom_borders.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
-  <link rel="canonical" href="http://handsontable.com/demo/merge_cells.html">
+  <link rel="canonical" href="http://handsontable.com/demo/custom_borders.html">
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
@@ -44,9 +44,9 @@
         , i
         , j;
 
-      for (i = 0; i < 3; i++) {
+      for (i = 0; i < 7; i++) {
         var row = [];
-        for (j = 0; j < 3; j++) {
+        for (j = 0; j < 7; j++) {
           row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
         }
         rows.push(row);
@@ -73,14 +73,54 @@
         <div class="rowLayout">
           <div class="descLayout">
             <div class="pad" data-jsfiddle="example1">
-              <h2>Merge cells</h2>
+              <h2>Custom borders</h2>
 
-          <p>To enable the merge cells feature, set the <code>mergeCells</code> option to be <code>true</code> or an
-            array.
+          <p>To enable the custom borders feature, set the <code>customBorders</code> option.
+            It could be set as <code>true</code> or an array of cells with borders arrays like:
+
+               or
           </p>
 
-          <p>To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array:
-            <code>mergeCells: [{row: 1, col: 1, rowspan: 2, colspan: 2}]</code></p>
+          <p>To initialize Handsontable with predefined custom borders, provide cells details in form of an array:
+            <code>
+{
+  row: 2,
+  col: 2,
+  left:{
+    width:2,
+    color: 'red'
+  },
+  right:{
+    width:1,
+    color: 'green'
+  }
+}
+
+            </code> or range details in form of an array
+            <code>
+              {
+              range:{
+              from:{
+              row: 1,
+              col: 1
+              },
+              to:{
+              row: 3,
+              col: 4
+              }
+              },
+
+              top:{
+              width: 2,
+              color: '#5292F7'
+              },
+              left: {
+              width:2,
+              color: 'orange'
+              }
+              }
+            </code>
+            </p>
 
           <div style="overflow: scroll; height: 200px; width: 400px">
             <div id="example1"></div>
@@ -108,30 +148,55 @@
               rowHeaders: true,
               colHeaders: true,
               contextMenu: true,
-              customBorders: true,
-              afterCellMetaReset: function() {
-                this.setCellMeta(0, 0, "borders", {
+              customBorders: [
+                {
+                  range:{
+                    from:{
+                      row: 1,
+                      col: 1
+                    },
+                    to:{
+                      row: 3,
+                      col: 4
+                    }
+                  },
+
                   top:{
                     width: 2,
-                    color: '#5292F7',
-                    style: 'solid',
-                    cornerVisible: false
+                    color: '#5292F7'
+                  },
+                  left: {
+                    width:2,
+                    color: 'orange'
                   },
                   bottom:{
-                    width: 1,
-                    color: '#000',
-                    style: 'solid',
-                    cornerVisible: false
+                    width: 2,
+                    color: 'red'
+                  },
+                  right: {
+                    width:2,
+                    color:'magenta'
                   }
-                });
-              }
+                },
+                {
+                  row: 2,
+                  col: 2,
+                  left:{
+                    width:2,
+                    color: 'red'
+                  },
+                  right:{
+                    width:1,
+                    color: 'green'
+                  }
+                }]
             });
           </script>
         </div>
       </div>
     </div>
 
-        <div class="footer-text">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+        <div class="footer-text">Handsontable &copy; 2014 Marcin Warpechowski and contributors.<br> Code and documentation
           licensed under the The MIT License.
         </div>
       </div>
