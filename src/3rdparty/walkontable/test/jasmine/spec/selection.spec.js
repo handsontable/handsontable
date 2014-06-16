@@ -296,6 +296,61 @@ describe('WalkontableSelection', function () {
     expect($table.find('.highlightColumn').length).toEqual(0);
   });
 
+  it("should add/remove appropriate class to the row/column headers of selected cells", function() {
+    $container.width(300);
+
+    var wt = new Walkontable({
+      table: $table[0],
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      rowHeaders: [function (row, TH) {
+        TH.innerHTML = row + 1;
+      }],
+      columnHeaders: [function (row, TH) {
+        TH.innerHTML = row + 1;
+      }],
+      offsetRow: 0,
+      offsetColumn: 0,
+      height: 200,
+      width: 300,
+      selections: {
+        area: {
+          highlightRowClassName: 'highlightRow',
+          highlightColumnClassName: 'highlightColumn'
+        }
+      }
+    });
+    wt.draw();
+
+    wt.selections.area.add(new WalkontableCellCoords(1, 1));
+    wt.selections.area.add(new WalkontableCellCoords(2, 2));
+    wt.draw();
+
+    expect($table.find('.highlightRow').length).toEqual(wt.wtTable.columnStrategy.countVisible() * 2 + 2);
+
+    // *2 -> because there are 2 columns selected
+    // +2 -> because there are the headers
+    // -4 -> because 4 cells are selected = there are overlapping highlightRow class
+    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.rowStrategy.countVisible() * 2 + 2 - 4);
+
+    var $colHeaders = $table.find("thead tr:first-child th"),
+        $rowHeaders = $table.find("tbody tr th:first-child");
+    
+    expect($colHeaders.eq(2).hasClass('highlightColumn')).toBe(true);
+    expect($colHeaders.eq(3).hasClass('highlightColumn')).toBe(true);
+
+    expect($rowHeaders.eq(1).hasClass('highlightRow')).toBe(true);
+    expect($rowHeaders.eq(2).hasClass('highlightRow')).toBe(true);
+
+    wt.selections.area.clear();
+    wt.draw();
+
+    expect($table.find('.highlightRow').length).toEqual(0);
+    expect($table.find('.highlightColumn').length).toEqual(0);
+
+  });
+
   describe("replace", function() {
     it("should replace range from property and return true", function() {
       var wt = new Walkontable({
