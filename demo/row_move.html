@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Manual row move - Handsontable</title>
+
+  <!--
+  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  -->
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css?20140331">
+  <script src="js/samples.js"></script>
+  <script src="js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+  <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+
+  <!--
+  Facebook open graph. Don't copy this to your project :)
+  -->
+  <meta property="og:title" content="Row move">
+  <meta property="og:description"
+        content=".">
+  <meta property="og:url" content="http://handsontable.com/demo/row_move.html">
+  <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="409">
+  <meta property="og:image:height" content="164">
+  <link rel="canonical" href="http://handsontable.com/demo/row_move.html">
+
+  <!--
+  Google Analytics for GitHub Page. Don't copy this to your project :)
+  -->
+  <script src="js/ga.js"></script>
+
+  <script data-jsfiddle="common">
+    function createBigData() {
+      var rows = []
+        , i
+        , j;
+
+      for (i = 0; i < 100; i++) {
+        var row = [];
+        for (j = 0; j < 10; j++) {
+          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
+        }
+        rows.push(row);
+      }
+
+      return rows;
+    }
+  </script>
+</head>
+
+<body>
+
+
+<div class="wrapper">
+  <div class="wrapper-row">
+    <div id="global-menu-clone">
+      <h1><a href="../index.html">Handsontable</a></h1>
+
+    </div>
+
+    <div id="container">
+      <div class="columnLayout">
+
+        <div class="rowLayout">
+          <div class="descLayout">
+            <div class="pad">
+              <h2>Manual row move</h2>
+
+              <p>This page shows how to use Handsontable with row related built-in plugins:</p>
+
+              <ul>
+                <li><a href="#move">Row move</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="rowLayout">
+          <div class="descLayout">
+            <div class="pad" data-jsfiddle="example2">
+              <a name="move"></a>
+
+              <h2>Row move</h2>
+
+              <p>To enable this experimental feature, use setting <code>manualRowMove: true</code></p>
+
+              <p>In the top part of row header a draggable row move handle will appear.</p>
+
+              <div class="state-loaded example2 alert">State of the table has been restored. <button class="mini reset-state2">Reset table state</button></div>
+
+              <div id="example2" style="width: 400px; height: 300px; overflow: scroll"></div>
+
+              <p>
+                <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">
+                  Dump
+                  data to console
+                </button>
+              </p>
+            </div>
+          </div>
+
+          <div class="codeLayout">
+            <div class="pad">
+              <div class="jsFiddle">
+                <button class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</button>
+              </div>
+
+              <script data-jsfiddle="example2">
+                $("#example2").handsontable({
+                  data: createBigData(),
+                  rowHeaders: true,
+                  colHeaders: true,
+                  colWidths: [55, 80, 80, 80, 80, 80, 80],
+                  manualColumnMove: true,
+                  manualColumnResize: true,
+                  minSpareRows: 1,
+                  persistentState: true,
+                  manualRowMove: true
+                });
+
+
+              </script>
+            </div>
+          </div>
+        </div>
+
+        <script type="text/javascript">
+          (function(){
+            var HOT = $('#example2').handsontable('getInstance');
+
+            $('.reset-state2').on('click', function(){
+
+              HOT.runHooks('persistentStateReset');
+
+              HOT.updateSettings({
+                manualColumnMove:true,
+                manualColumnResize: true,
+                manualRowMove: true
+              });
+
+              $(".state-loaded.example2").fadeOut(300);
+            });
+
+
+            var storedData = {};
+
+            HOT.runHooks('persistentStateLoad', '_persistentStateKeys', storedData);
+
+            var savedKeys = storedData.value;
+
+            if(savedKeys && savedKeys.length > 0){
+              $(".state-loaded.example2").show();
+            }
+          })();
+        </script>
+
+        <div class="footer-text">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+          licensed under the The MIT License.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div id="outside-links-wrapper"></div>
+
+</body>
+</html>
