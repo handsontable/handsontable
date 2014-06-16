@@ -76,7 +76,7 @@
             TH = instance.view.wt.wtDom.closest(mover, 'TH'),
             TR = TH.parentNode;
 
-        startRow = parseInt(instance.view.wt.wtDom.index(TR), 10) + 1;
+        startRow = parseInt(instance.view.wt.wtDom.index(TR), 10) + 1 + instance.rowOffset();
         endRow = startRow;
         pressed = true;
         startY = e.pageY;
@@ -97,13 +97,16 @@
           }
 
           var currentTarget = e.currentTarget,
-              TR = currentTarget.parentNode;
+              TR = currentTarget.parentNode,
+              rowOffset = instance.rowOffset();
 
-          endRow = parseInt(instance.view.wt.wtDom.index(TR), 10) + 1;
+          endRow = parseInt(instance.view.wt.wtDom.index(TR), 10) + 1 + rowOffset;
 
           var THs = instance.view.TBODY.querySelectorAll('th'),
-              mover = THs[endRow].querySelector('.manualRowMover');
+              totalVisibleRows = instance.countVisibleRows(),
+              currentPosition = (endRow > totalVisibleRows ? endRow - rowOffset : endRow);
 
+          var mover = THs[currentPosition].querySelector('.manualRowMover');
           instance.view.wt.wtDom.addClass(mover, 'active');
         }
       });
@@ -145,11 +148,8 @@
 
         if (source === 'afterInit') {
           bindMoveRowEvents.call(this);
-
-          if (instance.manualRowPositions.length > 0) {
-            instance.forceFullRender = true;
-            instance.render();
-          }
+          instance.forceFullRender = true;
+          instance.render();
         }
       } else {
         unbindMoveRowEvents.call(this);
