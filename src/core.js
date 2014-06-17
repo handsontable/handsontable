@@ -1121,6 +1121,14 @@ Handsontable.Core = function (rootElement, userSettings) {
         }
       }
     }
+
+    if (typeof settings.cellMeta !== 'undefined') {
+      for(i in settings.cellMeta) {
+        var cell = settings.cellMeta[i];
+        instance.setCellMetaObject(cell.row, cell.col, cell.meta);
+      }
+    }
+
     Handsontable.hooks.run(instance, 'afterCellMetaReset');
 
     if (typeof settings.className !== "undefined") {
@@ -1323,6 +1331,23 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.getDataAtRow = function (row) {
     return priv.settings.data[row];
+  };
+
+  /**
+   * Set cell meta data object to corresponding params row, col
+   * @param {Number} row
+   * @param {Number} col
+   * @param {Object} prop
+   */
+  this.setCellMetaObject = function (row, col, prop) {
+    if (typeof prop === 'object') {
+      for (var i in prop) {
+        var key = i,
+            value = prop[i];
+
+        this.setCellMeta(row, col, key, value);
+      }
+    }
   };
 
   /**
@@ -1899,6 +1924,7 @@ DefaultSettings.prototype = {
   startCols: 5,
   rowHeaders: null,
   colHeaders: null,
+  cellMeta: [],
   minRows: 0,
   minCols: 0,
   maxRows: Infinity,
