@@ -155,7 +155,7 @@ describe('Core_keepEmptyRows', function () {
     runs(function () {
       keyDown('arrow_down');
       keyDownUp('enter');
-
+      waits(1000);
       expect(data.length).toEqual(3);
     });
 
