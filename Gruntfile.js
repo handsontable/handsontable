@@ -105,7 +105,7 @@ module.exports = function (grunt) {
         'src/plugins/copyPaste.js',
         'src/plugins/search.js',
         'src/plugins/mergeCells/mergeCells.js',
-        'src/plugins/addRowsOnDrag.js'
+        'src/plugins/autofill.js'
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',
