@@ -174,17 +174,17 @@ Handsontable.Core = function (rootElement, userSettings) {
         }
       }
 
-      if (priv.settings.enterBeginsEditing) {
-        for (; (((priv.settings.minRows || priv.settings.minSpareRows) && instance.countRows() > priv.settings.minRows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows)); emptyRows--) {
-          datamap.removeRow();
-        }
-      }
+      // if (priv.settings.enterBeginsEditing) {
+      //   for (; (((priv.settings.minRows || priv.settings.minSpareRows) && instance.countRows() > priv.settings.minRows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows)); emptyRows--) {
+      //     datamap.removeRow();
+      //   }
+      // }
 
-      if (priv.settings.enterBeginsEditing && !priv.settings.columns) {
-        for (; (((priv.settings.minCols || priv.settings.minSpareCols) && instance.countCols() > priv.settings.minCols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols)); emptyCols--) {
-          datamap.removeCol();
-        }
-      }
+      // if (priv.settings.enterBeginsEditing && !priv.settings.columns) {
+      //   for (; (((priv.settings.minCols || priv.settings.minSpareCols) && instance.countCols() > priv.settings.minCols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols)); emptyCols--) {
+      //     datamap.removeCol();
+      //   }
+      // }
 
       var rowCount = instance.countRows();
       var colCount = instance.countCols();
