@@ -51,7 +51,7 @@ describe('RemoveRowSpec', function () {
       removeRowPlugin: true
     });
 
-    expect(this.$container.find('tbody th.htRemoveRow').length).toBe(5);
+    expect(this.$container.find('.wtHolder').first().find('tbody th.htRemoveRow').length).toBe(5);
   });
 
   it("should be possible to disable plugin using updateSettings", function () {
@@ -59,7 +59,7 @@ describe('RemoveRowSpec', function () {
       removeRowPlugin: true
     });
 
-    expect(this.$container.find('tbody th.htRemoveRow').length).toBe(5);
+    expect(this.$container.find('.wtHolder').first().find('tbody th.htRemoveRow').length).toBe(5);
 
     updateSettings({
       removeRowPlugin: false
@@ -81,14 +81,14 @@ describe('RemoveRowSpec', function () {
 
     var hot2 = this.$container2.handsontable('getInstance');
 
-    expect(this.$container.find('tbody th.htRemoveRow').length).toBe(5);
-    expect(this.$container2.find('tbody th.htRemoveRow').length).toBe(5);
+    expect(this.$container.find('.wtHolder').first().find('tbody th.htRemoveRow').length).toBe(5);
+    expect(this.$container2.find('.wtHolder').first().find('tbody th.htRemoveRow').length).toBe(5);
 
     hot2.updateSettings({
       removeRowPlugin: false
     });
 
-    expect(this.$container.find('tbody th.htRemoveRow').length).toBe(5);
+    expect(this.$container.find('.wtHolder').first().find('tbody th.htRemoveRow').length).toBe(5);
     expect(this.$container2.find('tbody th.htRemoveRow').length).toBe(0);
 
     this.$container2.handsontable('destroy');
