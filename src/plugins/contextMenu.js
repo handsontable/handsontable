@@ -121,7 +121,7 @@
         return;
       }
 
-      this.show(event.pageY, event.pageX);
+      this.show(event);
 
       $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.close, this));
     }
@@ -179,7 +179,7 @@
     $(document).off('mousedown.htContextMenu');
   };
 
-  ContextMenu.prototype.show = function(top, left){
+  ContextMenu.prototype.show = function(event){
 
     this.menu.style.display = 'block';
 
@@ -203,12 +203,27 @@
     });
     this.bindTableEvents();
 
-    this.setMenuPosition(top, left);
+    this.setMenuPosition(event.pageY, event.pageX);
 
+	$(this.menu).css('z-index', this.findZIndex(event.target) + 1 );
     $(this.menu).handsontable('listen');
 
   };
 
+  ContextMenu.prototype.findZIndex = function (target) {
+    var zin = 0,
+      $tt = $(target);
+
+    while (true) {
+      zin = Math.max(zin, parseInt($tt.css('z-index'), 10) || 0);
+      $tt = $tt.parent();
+      if (!$tt || !$tt.length || "html body".indexOf($tt.prop('nodeName').toLowerCase()) > -1 ) {
+        break;
+      }
+    }
+    return zin;
+  };
+  
   ContextMenu.prototype.close = function () {
     this.hide();
     $(document).off('mousedown.htContextMenu');
