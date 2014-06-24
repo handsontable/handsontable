@@ -18,12 +18,13 @@
     }
 
     function onPaste(str) {
-      if (!instance.isListening() || !instance.selection.isSelected()) {
+      var input = str.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, ''); //remove newline from the start and the end of the input
+
+      if (!instance.isListening() || !instance.selection.isSelected() || input.length === 0) {
         return;
       }
 
-      var input = str.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, '') //remove newline from the start and the end of the input
-        , inputArray = SheetClip.parse(input)
+      var inputArray = SheetClip.parse(input)
         , selected = instance.getSelected()
         , coordsFrom = new WalkontableCellCoords(selected[0], selected[1])
         , coordsTo = new WalkontableCellCoords(selected[2], selected[3])
@@ -46,15 +47,23 @@
     };
 
     function onBeforeKeyDown (event) {
-      if (Handsontable.helper.isCtrlKey(event.keyCode) && instance.getSelected()) {
-        //when CTRL is pressed, prepare selectable text in textarea
-        //http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
-        plugin.setCopyableText();
-        event.stopImmediatePropagation();
-        return;
-      }
+//      if (Handsontable.helper.isCtrlKey(event.keyCode) && instance.getSelected()) {
+//        //when CTRL is pressed, prepare selectable text in textarea
+//        //http://stackoverflow.com/questions/3902635/how-does-one-capture-a-macs-command-key-via-javascript
+//        plugin.setCopyableText();
+//        event.stopImmediatePropagation();
+//        return;
+//      }
 
       var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+
+      if ((ctrlDown || Handsontable.helper.isCtrlKey(event.keyCode)) && instance.getSelected()) {
+        if (event.keyCode === 67 || event.keyCode === 88) {
+          plugin.setCopyableText();
+          event.stopImmediatePropagation();
+          return;
+        }
+      }
 
       if (event.keyCode == Handsontable.helper.keyCode.A && ctrlDown) {
         setTimeout(Handsontable.helper.proxy(plugin.setCopyableText, plugin));
@@ -92,8 +101,9 @@
       var endCol = bottomRight.col;
       var finalEndRow = Math.min(endRow, startRow + copyRowsLimit - 1);
       var finalEndCol = Math.min(endCol, startCol + copyColsLimit - 1);
+      var copyAbleData = instance.getCopyableData(startRow, startCol, finalEndRow, finalEndCol);
 
-      instance.copyPaste.copyPasteInstance.copyable(instance.getCopyableData(startRow, startCol, finalEndRow, finalEndCol));
+      instance.copyPaste.copyPasteInstance.copyable(copyAbleData);
 
       if (endRow !== finalEndRow || endCol !== finalEndCol) {
         Handsontable.hooks.run(instance, "afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
