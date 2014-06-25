@@ -20,13 +20,13 @@ function HandsontableManualColumnMove() {
   var saveManualColumnPositions = function () {
     var instance = this;
 
-    instance.PluginHooks.run('persistentStateSave', 'manualColumnPositions', instance.manualColumnPositions);
+    Handsontable.hooks.run(instance, 'persistentStateSave', 'manualColumnPositions', instance.manualColumnPositions);
   };
 
   var loadManualColumnPositions = function () {
     var instance = this;
     var storedState = {};
-    instance.PluginHooks.run('persistentStateLoad', 'manualColumnPositions', storedState);
+    Handsontable.hooks.run(instance, 'persistentStateLoad', 'manualColumnPositions', storedState);
 
     return storedState.value;
   };
@@ -62,7 +62,7 @@ function HandsontableManualColumnMove() {
 
         saveManualColumnPositions.call(instance);
 
-        instance.PluginHooks.run('afterColumnMove', startCol, endCol);
+        Handsontable.hooks.run(instance, 'afterColumnMove', startCol, endCol);
       }
     });
 
@@ -168,13 +168,15 @@ function HandsontableManualColumnMove() {
 }
 var htManualColumnMove = new HandsontableManualColumnMove();
 
-Handsontable.PluginHooks.add('beforeInit', htManualColumnMove.beforeInit);
-Handsontable.PluginHooks.add('afterInit', function () {
+Handsontable.hooks.add('beforeInit', htManualColumnMove.beforeInit);
+Handsontable.hooks.add('afterInit', function () {
   htManualColumnMove.init.call(this, 'afterInit')
 });
 
-Handsontable.PluginHooks.add('afterUpdateSettings', function () {
+Handsontable.hooks.add('afterUpdateSettings', function () {
   htManualColumnMove.init.call(this, 'afterUpdateSettings')
 });
-Handsontable.PluginHooks.add('afterGetColHeader', htManualColumnMove.getColHeader);
-Handsontable.PluginHooks.add('modifyCol', htManualColumnMove.modifyCol);
+Handsontable.hooks.add('afterGetColHeader', htManualColumnMove.getColHeader);
+Handsontable.hooks.add('modifyCol', htManualColumnMove.modifyCol);
+
+Handsontable.hooks.register('afterColumnMove');

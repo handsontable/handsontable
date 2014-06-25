@@ -9,7 +9,7 @@ function WalkontableColumnStrategy(instance, containerSizeFn, sizeAtIndex, strat
   var size
     , i = 0;
 
-  WalkontableCellStrategy.apply(this, arguments);
+  WalkontableAbstractStrategy.apply(this, arguments);
 
   this.containerSizeFn = containerSizeFn;
   this.cellSizesSum = 0;
@@ -41,7 +41,7 @@ function WalkontableColumnStrategy(instance, containerSizeFn, sizeAtIndex, strat
   //positive value means the last cell is not fully visible
 }
 
-WalkontableColumnStrategy.prototype = new WalkontableCellStrategy();
+WalkontableColumnStrategy.prototype = new WalkontableAbstractStrategy();
 
 WalkontableColumnStrategy.prototype.getSize = function (index) {
   return this.cellSizes[index] + (this.cellStretch[index] || 0);

@@ -61,7 +61,6 @@ module.exports = function (grunt) {
         'src/renderers.js',
         'src/helpers.js',
         'src/fillHandle.js',
-        'src/selectionPoint.js',
         'src/dataMap.js',
 
         'src/renderers/cellDecorator.js',
@@ -104,8 +103,8 @@ module.exports = function (grunt) {
         'src/plugins/undoRedo.js',
         'src/plugins/dragToScroll/dragToScroll.js',
         'src/plugins/copyPaste.js',
-        'src/plugins/search.js'
-
+        'src/plugins/search.js',
+        'src/plugins/mergeCells/mergeCells.js'
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',
@@ -217,19 +216,19 @@ module.exports = function (grunt) {
           'demo/js/backbone/backbone.js',
           'demo/js/backbone/backbone-relational/backbone-relational.js',
           'lib/jquery-ui/js/jquery-ui.custom.js',
-          'extensions/jquery.handsontable.removeRow.js'
+          'plugins/removeRow/jquery.handsontable.removeRow.js'
         ],
         options: {
           specs: [
             'test/jasmine/spec/*Spec.js',
             'test/jasmine/spec/*/*Spec.js',
             'src/plugins/*/test/*.spec.js',
-            'src/plugins/*/test/*.Spec.js'
+            'plugins/*/test/*.spec.js'
           ],
           styles: [
             'test/jasmine/css/SpecRunner.css',
             'dist/jquery.handsontable.css',
-            'extensions/jquery.handsontable.removeRow.css',
+            'plugins/removeRow/jquery.handsontable.removeRow.css',
             'lib/jquery-ui/css/ui-bootstrap/jquery-ui.custom.css'
           ],
           vendor: [

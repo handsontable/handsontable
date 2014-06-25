@@ -2,8 +2,9 @@
   "use strict";
 
   /**
-   * Handsontable RemoveRow extension. See `demo/buttons.html` for example usage
-   * See `.../test/jasmine/spec/extensions/removeRowSpec.js` for tests
+   * Handsontable RemoveRow plugin. See `demo/buttons.html` for example usage
+   * This plugin is not a part of the Handsontable build (to use it, you must load it after loading Handsontable)
+   * See `test/removeRowSpec.js` for tests
    */
 
   function init() {
@@ -39,7 +40,7 @@
   }
 
 
-  Handsontable.PluginHooks.add('beforeInitWalkontable', function (walkontableConfig) {
+  Handsontable.hooks.add('beforeInitWalkontable', function (walkontableConfig) {
     var instance = this;
 
     /**
@@ -72,11 +73,11 @@
     };
   });
 
-  Handsontable.PluginHooks.add('beforeInit', function () {
+  Handsontable.hooks.add('beforeInit', function () {
     init.call(this)
   });
 
-  Handsontable.PluginHooks.add('afterUpdateSettings', function () {
+  Handsontable.hooks.add('afterUpdateSettings', function () {
     init.call(this)
   });
 })(jQuery);

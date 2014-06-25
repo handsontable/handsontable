@@ -121,6 +121,7 @@ WalkontableScroll.prototype.scrollLogicHorizontal = function (delta, offset, tot
 
 /**
  * Scrolls viewport to a cell by minimum number of cells
+ * @param {WalkontableCellCoords} coords
  */
 WalkontableScroll.prototype.scrollViewport = function (coords) {
   if (!this.instance.drawn) {
@@ -175,41 +176,38 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
     }
   }
 
-  if (coords[0] < 0 || coords[0] > totalRows - 1) {
-    throw new Error('row ' + coords[0] + ' does not exist');
-  }
-  else if (coords[1] < 0 || coords[1] > totalColumns - 1) {
-    throw new Error('column ' + coords[1] + ' does not exist');
+  if(!coords.isValid(this.instance)) {
+    throw new Error('Cell at row ' + coords.row + ' column ' + coords.col + ' does not exist');
   }
 
-  if (coords[0] > lastVisibleRow) {
-//    this.scrollVertical(coords[0] - lastVisibleRow + 1);
-    this.scrollVertical(coords[0] - fixedRowsTop - offsetRow);
+  if (coords.row > lastVisibleRow) {
+//    this.scrollVertical(coords.row - lastVisibleRow + 1);
+    this.scrollVertical(coords.row - fixedRowsTop - offsetRow);
     this.instance.wtTable.verticalRenderReverse = true;
   }
-  else if (coords[0] === lastVisibleRow && this.instance.wtTable.rowStrategy.isLastIncomplete()) {
-//    this.scrollVertical(coords[0] - lastVisibleRow + 1);
-    this.scrollVertical(coords[0] - fixedRowsTop - offsetRow);
+  else if (coords.row === lastVisibleRow && this.instance.wtTable.rowStrategy.isLastIncomplete()) {
+//    this.scrollVertical(coords.row - lastVisibleRow + 1);
+    this.scrollVertical(coords.row - fixedRowsTop - offsetRow);
     this.instance.wtTable.verticalRenderReverse = true;
   }
-  else if (coords[0] - fixedRowsTop < offsetRow) {
-    this.scrollVertical(coords[0] - fixedRowsTop - offsetRow);
+  else if (coords.row - fixedRowsTop < offsetRow) {
+    this.scrollVertical(coords.row - fixedRowsTop - offsetRow);
   }
   else {
     this.scrollVertical(0); //Craig's issue: remove row from the last scroll page should scroll viewport a row up if needed
   }
 
-  if (this.instance.wtTable.isColumnBeforeViewport(coords[1])) {
+  if (this.instance.wtTable.isColumnBeforeViewport(coords.col)) {
     //scroll left
-    this.instance.wtScrollbars.horizontal.scrollTo(coords[1] - fixedColumnsLeft);
+    this.instance.wtScrollbars.horizontal.scrollTo(coords.col - fixedColumnsLeft);
   }
-  else if (this.instance.wtTable.isColumnAfterViewport(coords[1]) || (this.instance.wtTable.getLastVisibleColumn() === coords[1] && !this.instance.wtTable.isLastColumnFullyVisible())) {
+  else if (this.instance.wtTable.isColumnAfterViewport(coords.col) || (this.instance.wtTable.getLastVisibleColumn() === coords.col && !this.instance.wtTable.isLastColumnFullyVisible())) {
     //scroll right
     var sum = 0;
     for (var i = 0; i < fixedColumnsLeft; i++) {
       sum += this.instance.getSetting('columnWidth', i);
     }
-    var scrollTo = coords[1];
+    var scrollTo = coords.col;
     sum += this.instance.getSetting('columnWidth', scrollTo);
     var available = this.instance.wtViewport.getViewportWidth();
     if (sum < available) {

@@ -6,7 +6,7 @@ function WalkontableColumnFilter() {
   this.countTH = 0;
 }
 
-WalkontableColumnFilter.prototype = new WalkontableCellFilter();
+WalkontableColumnFilter.prototype = new WalkontableAbstractFilter();
 
 WalkontableColumnFilter.prototype.readSettings = function (instance) {
   this.offset = instance.wtSettings.settings.offsetColumn;

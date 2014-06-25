@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Column sorting - Handsontable</title>
+  <title>Merge cells - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -14,7 +14,7 @@
   <!--
   Loading demo dependencies. They are used here only to enhance the examples on this page
   -->
-  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css?20140331">
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css">
   <script src="js/samples.js"></script>
   <script src="js/highlight/highlight.pack.js"></script>
   <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
@@ -23,15 +23,15 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Column sorting">
+  <meta property="og:title" content="Merge cells">
   <meta property="og:description"
-        content="Click on a column header to sort.">
-  <meta property="og:url" content="http://handsontable.com/demo/sorting.html">
+        content="This example shows the usage of the Merge cells feature.">
+  <meta property="og:url" content="http://handsontable.com/demo/merge_cells.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
-  <link rel="canonical" href="http://handsontable.com/demo/sorting.html">
+  <link rel="canonical" href="http://handsontable.com/demo/merge_cells.html">
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
@@ -44,10 +44,10 @@
         , i
         , j;
 
-      for (i = 0; i < 100000; i++) {
+      for (i = 0; i < 1000; i++) {
         var row = [];
-        for (j = 0; j < 7; j++) {
-          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + parseInt(i, 10) + parseInt(j, 10));
+        for (j = 0; j < 16; j++) {
+          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
         }
         rows.push(row);
       }
@@ -71,21 +71,20 @@
       <div class="columnLayout">
 
         <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad" data-jsfiddle="example1">
-          <h2>Column sorting</h2>
+          <div class="descLayout">
+            <div class="pad" data-jsfiddle="example1">
+              <h2>Merge cells</h2>
 
-          <p>Click on a column header to sort.</p>
-
-          <p>Only the table view is sorted. The data source remains in the original order.</p>
-
-          <p>For an in depth documentation of column sorting plugin see the
-              <a href="https://github.com/warpech/jquery-handsontable/wiki/Understanding-column-sorting-plugin">Understanding column sorting plugin</a> wiki page.
+          <p>To enable the merge cells feature, set the <code>mergeCells</code> option to be <code>true</code> or an
+            array.
           </p>
 
-          <div class="state-loaded alert">State of the table has been restored. <button class="mini reset-state">Reset table state</button></div>
+          <p>To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array:
+            <code>mergeCells: [{row: 1, col: 1, rowspan: 2, colspan: 2}]</code></p>
 
-          <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
+          <div style="overflow: scroll; height: 200px; width: 400px">
+            <div id="example1"></div>
+          </div>
 
           <p>
             <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
@@ -102,58 +101,19 @@
             <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
           </div>
 
-          <script data-jsfiddle="example1">
-
-
-            $("#example1").handsontable({
+          <script data-jsfiddle="example">
+            $('#example1').handsontable({
               data: createBigData(),
+              colWidths: [55, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47], //can also be a number or a function
               rowHeaders: true,
               colHeaders: true,
-              colWidths: [55, 80, 80, 80, 80, 80, 80],
-              columnSorting: true,
-              columns: [
-                {},
-                {},
-                {},
-                {},
-                {},
-                {},
-                {}
-              ],
-              manualColumnMove: true,
-              manualColumnResize: true,
-              minSpareRows: 1,
               contextMenu: true,
-              persistentState: true
+              mergeCells: [
+                {row: 1, col: 1, rowspan: 3, colspan: 3},
+                {row: 3, col: 4, rowspan: 2, colspan: 2}
+              ],
+              nativeScrollbars: true
             });
-
-            var HOT = $('#example1').handsontable('getInstance');
-
-            $('.reset-state').on('click', function(){
-
-              HOT.runHooks('persistentStateReset');
-
-              HOT.updateSettings({
-                columnSorting: true,
-                manualColumnMove:true,
-                manualColumnResize: true
-              });
-
-              $(".state-loaded").fadeOut(300);
-            });
-
-
-            var storedData = {};
-
-            HOT.runHooks('persistentStateLoad', '_persistentStateKeys', storedData);
-
-            var savedKeys = storedData.value;
-
-            if(savedKeys && savedKeys.length > 0){
-              $(".state-loaded").show();
-            }
-
-
           </script>
         </div>
       </div>

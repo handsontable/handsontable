@@ -21,7 +21,7 @@
           };
 
           instance.addHook('beforeRender', htAutoColumnSize.determineIfChanged);
-          instance.addHook('afterGetColWidth', htAutoColumnSize.getColWidth);
+          instance.addHook('modifyColWidth', htAutoColumnSize.modifyColWidth);
           instance.addHook('afterDestroy', htAutoColumnSize.afterDestroy);
 
           instance.determineColumnWidth = plugin.determineColumnWidth;
@@ -29,7 +29,7 @@
       } else {
         if (instance.autoColumnSizeTmp) {
           instance.removeHook('beforeRender', htAutoColumnSize.determineIfChanged);
-          instance.removeHook('afterGetColWidth', htAutoColumnSize.getColWidth);
+          instance.removeHook('modifyColWidth', htAutoColumnSize.modifyColWidth);
           instance.removeHook('afterDestroy', htAutoColumnSize.afterDestroy);
 
           delete instance.determineColumnWidth;
@@ -134,10 +134,11 @@
       }
     };
 
-    this.getColWidth = function (col, response) {
-      if (this.autoColumnWidths[col] && this.autoColumnWidths[col] > response.width) {
-        response.width = this.autoColumnWidths[col];
+    this.modifyColWidth = function (width, col) {
+      if (this.autoColumnWidths[col] && this.autoColumnWidths[col] > width) {
+        return this.autoColumnWidths[col];
       }
+      return width;
     };
 
     this.afterDestroy = function () {
@@ -173,7 +174,7 @@
 
   var htAutoColumnSize = new HandsontableAutoColumnSize();
 
-  Handsontable.PluginHooks.add('beforeInit', htAutoColumnSize.beforeInit);
-  Handsontable.PluginHooks.add('afterUpdateSettings', htAutoColumnSize.beforeInit);
+  Handsontable.hooks.add('beforeInit', htAutoColumnSize.beforeInit);
+  Handsontable.hooks.add('afterUpdateSettings', htAutoColumnSize.beforeInit);
 
 })(Handsontable);
