@@ -1,3 +1,49 @@
+## [0.11](https://github.com/warpech/jquery-handsontable/tree/v0.11)
+
+Changes since 0.10.5
+
+
+Features:
+
+- option <code>wordWrap</code> (true by default) which changes the CSS 'white-space' property ([#1460](https://github.com/warpech/jquery-handsontable/issues/1460))
+- option 'Make read-only/Make writable' option the the context menu ([#1464](https://github.com/warpech/jquery-handsontable/issues/1464))
+- Horizontal & vertical alignment [cell renderer]; new method <code>setCellMeta</code>; new hook <code>afterCellMetaReset</code> ([#1465](https://github.com/warpech/jquery-handsontable/issues/1465)) ([demo](http://handsontable.com/demo/align_cell.html))
+- HeatMaps ([demo](http://handsontable.com/demo/heatmaps.html))
+- <code>manualRowMove</code> plugin ([#556](https://github.com/warpech/jquery-handsontable/issues/556)) ([demo](http://handsontable.com/demo/row_move.html))
+- <code>manualRowResize</code> plugin ([#421](https://github.com/warpech/jquery-handsontable/issues/421)) ([demo](http://handsontable.com/demo/row_resize.html))
+- <code>autoRowSize</code> row plugin ([#1457](https://github.com/warpech/jquery-handsontable/issues/1457)) ([demo](http://handsontable.com/demo/row_resize.html))
+- Set up cell meta in configuration ([#1527](https://github.com/warpech/jquery-handsontable/issues/1527)) ([demo](http://handsontable.com/demo/setup_cell.html))
+- Custom borders ([#1461](https://github.com/warpech/jquery-handsontable/issues/1461)) ([demo](http://handsontable.com/demo/custom_borders.html))
+- Select entire row and column - context menu ([#1440](https://github.com/warpech/jquery-handsontable/issues/1440))
+- Highlight row and column heading for selected cell ([#1462](https://github.com/warpech/jquery-handsontable/issues/1462))
+- Continuous drag-down should add new rows ([#1459](https://github.com/warpech/jquery-handsontable/issues/1459))
+
+
+Improvements:
+
+- remove <code>DragDealer</code>
+- refactor <code>mergeCells</code> to not use HOT instance in the constructor (which makes it more testable)
+- use new logic for selecting merged cell horizontally and vertical selection
+- removed unused method from <code>abstractFilter</code>
+- <code>_doDraw</code> method decided into smaller functions and moved to <code>WalkontableTableRender</code> class
+- code cleanup
+
+
+Bug fixing:
+
+- calculation of expanding/shrinking
+- problem with total delta
+- keyboard shortcut <kbd>Ctrl+M</kbd>
+- problem when expanding to a merged cell in a corner
+- <code>mergedCellInfoCollection</code> when delta is in row
+- corner expansion
+- selection of a single cell when clicked on a merged cell
+- should not copy text of cells that are merged into another cell
+- determining the size of the column, when the column order has been changed by <code>manualColumnMove</code> plugin
+- default column headers order doesn't change after modyfing column order ([#1458](https://github.com/warpech/jquery-handsontable/issues/1458))
+- returning to desired row after transforming selection out from a merged cell
+- context menu
+
 ## [0.10.5](https://github.com/warpech/jquery-handsontable/tree/v0.10.5) (Mar 31, 2014)
 
 Changes since 0.10.4:
