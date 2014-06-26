@@ -851,7 +851,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && /^[0-9\s]*[.]*[0-9]{1,2}$/.test(changes[i][3].replace(numeral.languageData().delimiters.decimal, '.'))) {
             if(changes[i][3].indexOf(",") !== -1)
-              changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+              changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty strings
           }
         }
 
