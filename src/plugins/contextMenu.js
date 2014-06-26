@@ -69,6 +69,84 @@
     }
   }
 
+  function createCommentBox() {
+    var comments = $('body > .htComments')[0];
+
+    if(!comments){
+      comments = document.createElement('DIV');
+
+      var textArea = document.createElement('TEXTAREA');
+      Handsontable.Dom.addClass(textArea,'htCommentTextArea');
+      textArea.style.backgroundColor = '#FFFACD';
+      textArea.style.boxShadow = '1px 1px 2px #bbb';
+      textArea.style.fontFamily = 'Arial';
+      comments.appendChild(textArea);
+
+      Handsontable.Dom.addClass(comments, 'htComments');
+      document.getElementsByTagName('body')[0].appendChild(comments);
+    }
+
+    return comments;
+  }
+
+  function placeCommentBox (range, commentBox) {
+    var fromTD =  this.view.wt.wtTable.getCell(new WalkontableCellCoords(range.from.row, range.from.col)),
+      toTD =  this.view.wt.wtTable.getCell(new WalkontableCellCoords(range.to.row,range.to.col)),
+      fromOffset = this.view.wt.wtDom.offset(fromTD),
+      toOffset = this.view.wt.wtDom.offset(toTD),
+      lastColWidth = this.getColWidth(range.to.col);
+
+    commentBox.style.position = 'absolute';
+    commentBox.style.left = toOffset.left + lastColWidth + 'px';
+    commentBox.style.top = fromOffset.top + 'px';
+    commentBox.style.zIndex = 2;
+    console.log('poka poka');
+    bindMouseEvent(range, commentBox);
+  }
+
+  function unBindMouseEvent () {
+    $(document).off('mousedown.htCommment');
+  }
+
+  function bindMouseEvent(range, commentBox) {
+    console.log('bindMouseEvent');
+    function commentsListener(event){
+      console.log(event);
+
+      if( !(event.target.className== 'htCommentTextArea' || event.target.innerHTML == "Add comment") ){
+        var value = $(commentBox).find('textarea').val();
+        if(value.trim().length > 1) {
+          saveComment(range, value);
+        }
+        unBindMouseEvent();
+      }
+    }
+    $(document).on('mousedown.htCommment', Handsontable.helper.proxy(commentsListener));
+  }
+
+  function doSaveComment (row, col, comment) {
+    this.setCellMeta(row, col, 'comment',comment);
+    this.render();
+  }
+
+  function saveComment (range, comment) {
+    if (range.from.row == range.to.row && range.from.col == range.to.col){
+      doSaveComment.call(this,range.from.row, range.from.col, comment);
+    } else {
+      for(var row = range.from.row; row<= range.to.row; row++) {
+        for (var col = range.from.col; col <= range.to.col; col++) {
+          doSaveComment.call(this,row, col, comment);
+        }
+      }
+    }
+  }
+
+  function showCommentTextArea(range) {
+    var commentBox = createCommentBox();
+    commentBox.style.display = 'block';
+    placeCommentBox.call(this, range, commentBox);
+  }
+
   function ContextMenu(instance, customOptions){
     this.instance = instance;
     var contextMenu = this;
@@ -289,8 +367,35 @@
           disabled: function () {
             return false;
           }
+        },
+        'hsep7': ContextMenu.SEPARATOR,
+        comments: {
+          name: function () {
+            var hasComment = contextMenu.checkSelectionCommentsConsistency(this);
+            return hasComment ? "Remove comment" : "Add comment";
+          },
+          callback: function (key, selection, event) {
+            showCommentTextArea.call(this, this.getSelectedRange());
+          },
+          disabled: function () {
+            return false;
+          }
         }
+
       }
+    };
+
+    this.checkSelectionCommentsConsistency = function (hot) {
+      var hasComment = false;
+
+      hot.getSelectedRange().forAll(function (r, c) {
+        if(hot.getCellMeta(r,c).comment) {
+          hasComment = true;
+          return false;
+        }
+      });
+
+      return hasComment;
     };
 
     this.checkSelectionReadOnlyConsistency = function(hot) {
@@ -347,7 +452,7 @@
       //}
 
       this.show(event.pageY, event.pageX);
-
+      console.log('closeMenu')
       $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.close, this));
     }
 
