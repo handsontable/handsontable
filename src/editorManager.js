@@ -282,6 +282,10 @@
         return;
       }
 
+      if (pendingPrepare){
+        pendingPrepare = false;
+      }
+
       var row = priv.selStart.row();
       var col = priv.selStart.col();
       var prop = instance.colToProp(col);
