@@ -100,7 +100,7 @@
     commentBox.style.left = toOffset.left + lastColWidth + 'px';
     commentBox.style.top = fromOffset.top + 'px';
     commentBox.style.zIndex = 2;
-    console.log('poka poka');
+//    console.log('poka poka');
     bindMouseEvent(range, commentBox);
   }
 
@@ -109,9 +109,9 @@
   }
 
   function bindMouseEvent(range, commentBox) {
-    console.log('bindMouseEvent');
+//    console.log('bindMouseEvent');
     function commentsListener(event){
-      console.log(event);
+//      console.log(event);
 
       if( !(event.target.className== 'htCommentTextArea' || event.target.innerHTML == "Add comment") ){
         var value = $(commentBox).find('textarea').val();
@@ -452,7 +452,6 @@
       //}
 
       this.show(event.pageY, event.pageX);
-      console.log('closeMenu')
       $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.close, this));
     }
 
