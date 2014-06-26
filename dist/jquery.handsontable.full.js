@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jun 26 2014 15:53:21 GMT+0000 (GMT)
+ * Date: Thu Jun 26 2014 16:28:42 GMT+0000 (GMT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -500,6 +500,7 @@ Handsontable.Core = function (rootElement, userSettings) {
                 if(instance.getCellMeta(current.row, current.col).dataType === 'number') {
                   dataInp = dataInp.replace('.', numeral.languageData().delimiters.decimal)
                 }
+                setData.push([current.row, current.col, input[r][c]]);
               }
               current.col++;
               if (end && c === clen - 1) {
@@ -1039,7 +1040,7 @@ Handsontable.Core = function (rootElement, userSettings) {
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && /^[0-9\s]*[.]*[0-9]{1,2}$/.test(changes[i][3].replace(numeral.languageData().delimiters.decimal, '.'))) {
             if(changes[i][3].indexOf(",") !== -1)
-              changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+              changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty strings
           }
         }
 

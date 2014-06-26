@@ -312,6 +312,7 @@ Handsontable.Core = function (rootElement, userSettings) {
                 if(instance.getCellMeta(current.row, current.col).dataType === 'number') {
                   dataInp = dataInp.replace('.', numeral.languageData().delimiters.decimal)
                 }
+                setData.push([current.row, current.col, input[r][c]]);
               }
               current.col++;
               if (end && c === clen - 1) {
