@@ -308,7 +308,10 @@ Handsontable.Core = function (rootElement, userSettings) {
                 break;
               }
               if (!instance.getCellMeta(current.row, current.col).readOnly) {
-                setData.push([current.row, current.col, input[r][c]]);
+                var dataInp = input[r][c];
+                if(instance.getCellMeta(current.row, current.col).dataType === 'number') {
+                  dataInp = dataInp.replace('.', numeral.languageData().delimiters.decimal)
+                }
               }
               current.col++;
               if (end && c === clen - 1) {
@@ -846,8 +849,9 @@ Handsontable.Core = function (rootElement, userSettings) {
         var cellProperties = instance.getCellMeta(row, logicalCol);
 
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
-          if (changes[i][3].length > 0 && /^-?[\d\s]*\.?\d*$/.test(changes[i][3])) {
-            changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
+          if (changes[i][3].length > 0 && /^[0-9\s]*[.]*[0-9]{1,2}$/.test(changes[i][3].replace(numeral.languageData().delimiters.decimal, '.'))) {
+            if(changes[i][3].indexOf(",") !== -1)
+              changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty strings
           }
         }
 
