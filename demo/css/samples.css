@@ -371,12 +371,14 @@ dl dd {
   position: absolute;
   top: 31px;
   left: 320px;
+  z-index: 2;
 }
 
 #githubFork {
   position: absolute;
   top: 31px;
   left: 430px;
+  z-index: 2;
 }
 
 #domainNotice {
