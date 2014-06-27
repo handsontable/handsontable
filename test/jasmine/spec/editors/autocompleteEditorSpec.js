@@ -1806,9 +1806,8 @@ describe('AutocompleteEditor', function () {
       autocomplete().find('tbody td:eq(1)').mouseenter();
       autocomplete().find('tbody td:eq(1)').mouseleave();
 
-      waits(100);
-
       this.$container.mousedown();
+
       expect(getDataAtCell(0, 0)).toBeNull();
 
     });
@@ -1885,6 +1884,7 @@ describe('AutocompleteEditor', function () {
     runs(function () {
       onAfterChange.reset();
       autocomplete().find('tbody td:eq(1)').mousedown();
+
       expect(getDataAtCell(0,0)).toEqual('red');
       expect(onAfterChange.calls.length).toEqual(1);
       expect(onAfterChange).toHaveBeenCalledWith([[0, 0, null, 'red']], 'edit', undefined, undefined, undefined);
@@ -2119,7 +2119,6 @@ describe('AutocompleteEditor', function () {
     }, 'SyncSources call', 1000);
 
     runs(function () {
-      waits(500);
       expect(syncSources).toHaveBeenCalled();
       expect(syncSources.calls.length).toEqual(1);
     });
