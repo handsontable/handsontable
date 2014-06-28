@@ -2,7 +2,7 @@ describe('Core_view', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
-    this.$container = $('<div id="' + id + '" style="width: 400px; height: 60px;"></div>').appendTo('body');
+    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
   });
 
   afterEach(function () {
@@ -13,6 +13,9 @@ describe('Core_view', function () {
   });
 
   it('should focus cell after viewport is scrolled using down arrow', function () {
+    this.$container[0].style.width = '400px';
+    this.$container[0].style.height = '60px';
+
     handsontable({
       startRows: 20
     });
@@ -33,6 +36,8 @@ describe('Core_view', function () {
   });
 
   it('should scroll viewport when partially visible cell is clicked', function () {
+    this.$container[0].style.width = '400px';
+    this.$container[0].style.height = '60px';
 
     handsontable({
       data: createSpreadsheetData(10, 3),
@@ -56,11 +61,8 @@ describe('Core_view', function () {
   });
 
   it('should scroll viewport, respecting fixed rows', function () {
-
-    spec().$container.css({
-      width: '200px',
-      height: '100px'
-    });
+    this.$container[0].style.width = '200px';
+    this.$container[0].style.height = '100px';
 
     handsontable({
       data: createSpreadsheetData(10, 9),
@@ -87,6 +89,8 @@ describe('Core_view', function () {
   });
 
   it('should enable to change fixedRowsTop with updateSettings', function () {
+    this.$container[0].style.width = '400px';
+    this.$container[0].style.height = '60px';
 
     var HOT = handsontable({
       data: createSpreadsheetData(10, 9),
@@ -154,11 +158,8 @@ describe('Core_view', function () {
   });
 
   it('should scroll viewport, respecting fixed columns', function () {
-
-    spec().$container.css({
-      width: '200px',
-      height: '100px'
-    });
+    this.$container[0].style.width = '200px';
+    this.$container[0].style.height = '100px';
 
     handsontable({
       data: createSpreadsheetData(10, 9),
@@ -193,11 +194,8 @@ describe('Core_view', function () {
   });
 
   it('should enable to change fixedColumnsLeft with updateSettings', function () {
-
-    spec().$container.css({
-      width: '200px',
-      height: '100px'
-    });
+    this.$container[0].style.width = '200px';
+    this.$container[0].style.height = '100px';
 
     var HOT = handsontable({
       data: createSpreadsheetData(10, 9),
@@ -242,8 +240,6 @@ describe('Core_view', function () {
   });
 
   it('should not scroll viewport when last cell is clicked', function () {
-    this.$container.remove();
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
     handsontable({
       startRows: 40
     });
@@ -267,8 +263,7 @@ describe('Core_view', function () {
     var initHeight;
 
     runs(function () {
-      this.$container.remove();
-      this.$container = $('<div id="' + id + '" style="overflow: scroll;"></div>').appendTo('body');
+      this.$container[0].style.overflow = 'scroll';
       this.$container.wrap('<div style="width: 50px;"></div>');
       handsontable({
         startRows: 10,
@@ -291,9 +286,6 @@ describe('Core_view', function () {
   });
 
   it('should allow height to be a number', function () {
-    this.$container[0].style.width = '';
-    this.$container[0].style.height = '';
-
     handsontable({
       startRows: 10,
       startCols: 10,
@@ -304,9 +296,6 @@ describe('Core_view', function () {
   });
 
   it('should allow height to be a function', function () {
-    this.$container[0].style.width = '';
-    this.$container[0].style.height = '';
-
     handsontable({
       startRows: 10,
       startCols: 10,
@@ -319,9 +308,6 @@ describe('Core_view', function () {
   });
 
   it('should allow width to be a number', function () {
-    this.$container[0].style.width = '';
-    this.$container[0].style.height = '';
-
     handsontable({
       startRows: 10,
       startCols: 10,
@@ -332,9 +318,6 @@ describe('Core_view', function () {
   });
 
   it('should allow width to be a function', function () {
-    this.$container[0].style.width = '';
-    this.$container[0].style.height = '';
-
     handsontable({
       startRows: 10,
       startCols: 10,
@@ -347,6 +330,8 @@ describe('Core_view', function () {
   });
 
   it("should fire beforeRender event after table has been scrolled", function () {
+    this.$container[0].style.width = '400px';
+    this.$container[0].style.height = '60px';
 
     var hot = handsontable({
       data: createSpreadsheetData(20, 3)
@@ -365,6 +350,8 @@ describe('Core_view', function () {
   });
 
   it("should fire afterRender event after table has been scrolled", function () {
+    this.$container[0].style.width = '400px';
+    this.$container[0].style.height = '60px';
 
     var hot = handsontable({
       data: createSpreadsheetData(20, 3)
@@ -384,6 +371,9 @@ describe('Core_view', function () {
 
   describe('maximumVisibleElementWidth', function () {
     it('should return maximum width until right edge of the viewport', function () {
+      this.$container[0].style.width = '400px';
+      this.$container[0].style.height = '60px';
+
       var hot = handsontable({
         startRows: 2,
         startCols: 10,
@@ -395,6 +385,9 @@ describe('Core_view', function () {
     });
 
     it('should return maximum width until right edge of the viewport (excluding the scrollbar)', function () {
+      this.$container[0].style.width = '400px';
+      this.$container[0].style.height = '60px';
+
       var hot = handsontable({
         startRows: 10,
         startCols: 10,
@@ -408,6 +401,9 @@ describe('Core_view', function () {
 
   describe('maximumVisibleElementHeight', function () {
     it('should return maximum height until bottom edge of the viewport', function () {
+      this.$container[0].style.width = '400px';
+      this.$container[0].style.height = '60px';
+
       var hot = handsontable({
         startRows: 10,
         startCols: 2,
@@ -419,6 +415,9 @@ describe('Core_view', function () {
     });
 
     it('should return maximum height until bottom edge of the viewport (excluding the scrollbar)', function () {
+      this.$container[0].style.width = '400px';
+      this.$container[0].style.height = '60px';
+
       var hot = handsontable({
         startRows: 10,
         startCols: 10,
