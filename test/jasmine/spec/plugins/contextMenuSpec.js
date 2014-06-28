@@ -240,6 +240,68 @@ describe('ContextMenu', function () {
 
     });
 
+
+    it("should disable column manipulation when row header selected", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        colHeaders: true,
+        rowHeaders: true
+      });
+      var afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
+      hot.addHook('afterCreateRow', afterCreateRowCallback);
+
+      $('.ht_clone_left .htCore').eq(0).find('tbody').find('th').eq(0).trigger(
+        {
+          type: 'mousedown',
+          which: 3
+        });
+
+      contextMenu();
+
+      var $menu = $(hot.contextMenu.menu);
+
+      expect($menu.find('tbody td:eq(3)').text()).toEqual('Insert column on the left');
+      expect($menu.find('tbody td:eq(3)').hasClass('htDisabled')).toBe(true);
+      expect($menu.find('tbody td:eq(4)').text()).toEqual('Insert column on the right');
+      expect($menu.find('tbody td:eq(4)').hasClass('htDisabled')).toBe(true);
+      expect($menu.find('tbody td:eq(7)').text()).toEqual('Remove column');
+      expect($menu.find('tbody td:eq(7)').hasClass('htDisabled')).toBe(true);
+
+    });
+
+//    it("should disable row manipulation when column header selected", function () {
+//
+//      var hot = handsontable({
+//        data: createSpreadsheetData(4, 4),
+//        contextMenu: true,
+//        colHeaders: true,
+//        rowHeaders: true
+//      });
+//      var afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
+//      hot.addHook('afterCreateRow', afterCreateRowCallback);
+//
+//
+//      $('.ht_clone_top .htCore').find('thead').find('th').eq(2).trigger(
+//        {
+//          type: 'mousedown',
+//          which: 3
+//        });
+//
+//      contextMenu();
+//
+//      var $menu = $(hot.contextMenu.menu);
+//
+//      expect($menu.find('tbody td:eq(0)').text()).toEqual('Insert row above');
+//      expect($menu.find('tbody td:eq(0)').hasClass('htDisabled')).toBe(true);
+//      expect($menu.find('tbody td:eq(1)').text()).toEqual('Insert row below');
+//      expect($menu.find('tbody td:eq(1)').hasClass('htDisabled')).toBe(true);
+//      expect($menu.find('tbody td:eq(6)').text()).toEqual('Remove row');
+//      expect($menu.find('tbody td:eq(6)').hasClass('htDisabled')).toBe(true);
+//
+//
+//    });
+
     it("should insert row above selection", function () {
       var hot = handsontable({
         data: createSpreadsheetData(4, 4),

@@ -122,7 +122,7 @@ describe('WalkontableEvent', function () {
     expect(myTD).toEqual($td[0]);
   });
 
-  it("should not call `onCellMouseDown` callback when clicked on TH", function () {
+  it("should call `onCellMouseDown` callback when clicked on TH", function () {
     var called = false
       , wt = new Walkontable({
         table: $table[0],
@@ -143,8 +143,9 @@ describe('WalkontableEvent', function () {
     wt.draw();
 
     var $th = $table.find('th:first');
+
     $th.trigger('mousedown');
-    expect(called).toEqual(false);
+    expect(called).toEqual(true);
   });
 
   it("should not call `onCellMouseOver` callback when clicked on TH", function () {
@@ -172,7 +173,7 @@ describe('WalkontableEvent', function () {
     expect(called).toEqual(false);
   });
 
-  it("should not call `onCellDblClick` callback when clicked on TH", function () {
+  it("should call `onCellDblClick` callback when clicked on TH", function () {
     var called = false
       , wt = new Walkontable({
         table: $table[0],
@@ -197,7 +198,7 @@ describe('WalkontableEvent', function () {
     $th.trigger('mouseup');
     $th.trigger('mousedown');
     $th.trigger('mouseup');
-    expect(called).toEqual(false);
+    expect(called).toEqual(true);
   });
 
   it("should not call `onCellDblClick` callback when right-clicked", function () {

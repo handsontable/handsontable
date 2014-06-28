@@ -120,7 +120,8 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
     this.rowFilter = new WalkontableRowFilter(
       offsetRow,
       this.instance.getSetting('totalRows'),
-      this.instance.getSetting('fixedRowsTop')
+      this.instance.getSetting('fixedRowsTop'),
+      this.instance.getSetting('columnHeaders').length
     );
     this.columnFilter = new WalkontableColumnFilter(
       this.instance.wtSettings.settings.offsetColumn,
@@ -243,8 +244,19 @@ WalkontableTable.prototype.getCell = function (coords) {
  * @returns {WalkontableCellCoords}
  */
 WalkontableTable.prototype.getCoords = function (TD) {
+  var row;
+  if(TD.nodeName == 'TH'){
+    if(TD.nextSibling!=null || TD.previousSibling!=null){
+      row = this.rowFilter.visibleColHeadedColumnToSourceColumn(this.wtDom.index(TD.parentNode)); //
+    } else {
+      row = this.rowFilter.visibleToSource(this.wtDom.index(TD.parentNode));
+    }
+  } else {
+    row = this.rowFilter.visibleToSource(this.wtDom.index(TD.parentNode));
+  }
+
   return new WalkontableCellCoords(
-    this.rowFilter.visibleToSource(this.wtDom.index(TD.parentNode)),
+    row,
     this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex)
   );
 };

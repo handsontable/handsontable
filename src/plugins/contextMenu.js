@@ -49,6 +49,15 @@
   }
 
   function align (range, type, alignment) {
+    if (range.from.row < 0) {
+      range.from = new WalkontableCellCoords(0,range.from.col);
+      range.to = new WalkontableCellCoords(this.view.wt.wtTable.getRowStrategy().cellCount - 1, range.to.col);
+    }
+    if (range.from.col < 0) {
+      range.from = new WalkontableCellCoords(range.from.row, 0);
+      range.to = new WalkontableCellCoords(range.to.row, this.view.wt.wtTable.getColumnStrategy().cellCount - 1);
+    }
+
     if (range.from.row == range.to.row && range.from.col == range.to.col){
       doAlign.call(this,range.from.row, range.from.col, type, alignment);
     } else {
@@ -81,7 +90,7 @@
             this.alter("insert_row", selection.start.row);
           },
           disabled: function () {
-            return this.countRows() >= this.getSettings().maxRows;
+            return this.getSelected()[0] < 0 || this.countRows() >= this.getSettings().maxRows;
           }
         },
         'row_below': {
@@ -90,7 +99,7 @@
             this.alter("insert_row", selection.end.row + 1);
           },
           disabled: function () {
-            return this.countRows() >= this.getSettings().maxRows;
+            return this.getSelected()[0] < 0 || this.countRows() >= this.getSettings().maxRows;
           }
         },
         "hsep1": ContextMenu.SEPARATOR,
@@ -100,7 +109,7 @@
             this.alter("insert_col", selection.start.col);
           },
           disabled: function () {
-            return this.countCols() >= this.getSettings().maxCols;
+            return this.getSelected()[1] < 0 || this.countCols() >= this.getSettings().maxCols;
           }
         },
         'col_right': {
@@ -109,7 +118,7 @@
             this.alter("insert_col", selection.end.col + 1);
           },
           disabled: function () {
-            return this.countCols() >= this.getSettings().maxCols;
+            return this.getSelected()[1] < 0 || this.countCols() >= this.getSettings().maxCols;
           }
         },
         "hsep2": ContextMenu.SEPARATOR,
@@ -118,6 +127,9 @@
           callback: function(key, selection){
             var amount = selection.end.row - selection.start.row + 1;
             this.alter("remove_row", selection.start.row, amount);
+          },
+          disabled: function () {
+            return this.getSelected()[0] < 0;
           }
         },
         'remove_col': {
@@ -125,6 +137,9 @@
           callback: function(key, selection){
             var amount = selection.end.col - selection.start.col + 1;
             this.alter("remove_col", selection.start.col, amount);
+          },
+          disabled: function (){
+            return this.getSelected()[1] < 0;
           }
         },
         "hsep3": ContextMenu.SEPARATOR,
@@ -296,9 +311,18 @@
 
       event.preventDefault();
 
-      if(event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))){
-        return;
+      var showRowHeaders = this.instance.getSettings().rowHeaders,
+          showColHeaders = this.instance.getSettings().colHeaders;
+
+      if(!(showRowHeaders || showColHeaders)) {
+        if(event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))){
+          return;
+        }
       }
+
+      //if(event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))){
+      //	return;
+      //}
 
       this.show(event.pageY, event.pageX);
 
@@ -326,8 +350,6 @@
       this.instance.removeHook('afterScrollHorizontally', this._afterScrollCallback);
       this._afterScrollCallback = null;
     }
-
-
   };
 
   ContextMenu.prototype.performAction = function (event){
@@ -413,7 +435,7 @@
       Handsontable.Dom.fastInnerHTML(wrapper, value);
     }
 
-    if (itemIsDisabled(item, contextMenu.instance)){
+    if (itemIsDisabled(item)){
       Handsontable.Dom.addClass(TD, 'htDisabled');
 
       $(wrapper).on('mouseenter', function () {
@@ -433,7 +455,7 @@
       return new RegExp(ContextMenu.SEPARATOR, 'i').test(item.name);
     }
 
-    function itemIsDisabled(item, instance){
+    function itemIsDisabled(item){
       return item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(contextMenu.instance) === true);
     }
   };
@@ -665,11 +687,10 @@
   };
 
   ContextMenu.utils.normalizeSelection = function(selRange){
-    var selection = {
+   return {
       start: selRange.getTopLeftCorner(),
       end: selRange.getBottomRightCorner()
     };
-    return selection;
   };
 
   ContextMenu.utils.isSeparator = function (cell) {
