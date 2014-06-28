@@ -62,7 +62,9 @@ Walkontable.prototype.draw = function (selectionsOnly) {
     return;
   }
 
-  this.getSetting('beforeDraw', !selectionsOnly);
+  if (!this.cloneSource) {
+    this.getSetting('beforeDraw', !selectionsOnly);
+  }
   selectionsOnly = selectionsOnly && this.getSetting('offsetRow') === this.lastOffsetRow && this.getSetting('offsetColumn') === this.lastOffsetColumn;
   this.lastOffsetRow = this.getSetting('offsetRow');
   this.lastOffsetColumn = this.getSetting('offsetColumn');
