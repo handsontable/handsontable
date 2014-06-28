@@ -248,6 +248,7 @@ describe('Core_view', function () {
 
     $(window).scrollTop(10000);
     lastScroll = $(window).scrollTop();
+    render(); //renders synchronously so we don't have to put stuff in waits/runs
     selectCell(39, 0);
 
     expect($(window).scrollTop()).toEqual(lastScroll);

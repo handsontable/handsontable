@@ -75,8 +75,8 @@ function WalkontableTable(instance, table) {
   this.oldCellCache = new WalkontableClassNameCache();
   this.currentCellCache = new WalkontableClassNameCache();
 
-  this.rowFilter = new WalkontableRowFilter();
-  this.columnFilter = new WalkontableColumnFilter();
+  this.rowFilter = null;
+  this.columnFilter = null;
 }
 
 WalkontableTable.prototype.getRowStrategy = function () {
@@ -99,10 +99,6 @@ WalkontableTable.prototype.refreshHiderDimensions = function () {
 };
 
 WalkontableTable.prototype.draw = function (selectionsOnly) {
-
-  this.rowFilter.readSettings(this.instance);
-  this.columnFilter.readSettings(this.instance);
-
   if (!selectionsOnly) {
     if (this.isWorkingOnClone()) {
       this.tableOffset = this.instance.cloneSource.wtTable.tableOffset;
@@ -110,10 +106,28 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
     else {
       this.holderOffset = this.wtDom.offset(this.holder);
       this.tableOffset = this.wtDom.offset(this.TABLE);
-      this.instance.wtScrollbars.vertical.readWindowSize();
-      this.instance.wtScrollbars.horizontal.readWindowSize();
+      this.instance.wtScrollbars.vertical.readSettings();
+      this.instance.wtScrollbars.horizontal.readSettings();
       this.instance.wtViewport.resetSettings();
     }
+    var offsetRow;
+    if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
+      offsetRow = 0;
+    }
+    else {
+      offsetRow = this.instance.wtSettings.settings.offsetRow;
+    }
+    this.rowFilter = new WalkontableRowFilter(
+      offsetRow,
+      this.instance.getSetting('totalRows'),
+      this.instance.getSetting('fixedRowsTop')
+    );
+    this.columnFilter = new WalkontableColumnFilter(
+      this.instance.wtSettings.settings.offsetColumn,
+      this.instance.getSetting('totalColumns'),
+      this.instance.getSetting('fixedColumnsLeft'),
+      this.instance.getSetting('rowHeaders').length
+    );
     this._doDraw();
   }
   else {

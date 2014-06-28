@@ -116,6 +116,7 @@ WalkontableHorizontalScrollbarNative.prototype.readWindowSize = function () {
 
 //readSettings (in future merge it with this.prepare?)
 WalkontableHorizontalScrollbarNative.prototype.readSettings = function () {
+  this.readWindowSize();
   this.offset = this.instance.getSetting('offsetColumn');
   this.total = this.instance.getSetting('totalColumns');
 };

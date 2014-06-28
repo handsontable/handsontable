@@ -34,39 +34,6 @@ describe('WalkontableCore', function () {
     expect(TDs[1].innerHTML).toBe('a');
   });
 
-  it("first row (scrolled to 10) should have the same text as in data source", function () {
-    var wt = new Walkontable({
-      table: $table[0],
-      data: getData,
-      totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      offsetRow: 10,
-      height: 200,
-      width: 100
-    });
-    wt.draw();
-    var TDs = $table.find('tbody tr:first td');
-    expect(TDs[0].innerHTML).toBe('10');
-    expect(TDs[1].innerHTML).toBe('a');
-  });
-
-  it("update should change setting", function () {
-    var wt = new Walkontable({
-      table: $table[0],
-      data: getData,
-      totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      offsetRow: 0,
-      height: 200,
-      width: 100
-    });
-    wt.update({offsetRow: 10});
-    wt.draw();
-    var TDs = $table.find('tbody tr:first td');
-    expect(TDs[0].innerHTML).toBe('10');
-    expect(TDs[1].innerHTML).toBe('a');
-  });
-
   it("should bootstrap table if empty TABLE is given", function () {
     var rowHeight = 23; //measured in real life with walkontable.css
     var colCount = 4;

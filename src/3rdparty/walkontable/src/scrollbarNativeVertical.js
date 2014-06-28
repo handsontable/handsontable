@@ -83,33 +83,6 @@ WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) 
 WalkontableVerticalScrollbarNative.prototype.onScroll = function () {
   WalkontableOverlay.prototype.onScroll.call(this);
 
-  var scrollDelta;
-  var newOffset = 0;
-
-  if (1 == 1 || this.windowScrollPosition > this.tableParentOffset) {
-    scrollDelta = this.windowScrollPosition - this.tableParentOffset;
-
-    partialOffset = 0;
-    if (scrollDelta > 0) {
-      var sum = 0;
-      var last;
-      for (var i = 0; i < this.total; i++) {
-        last = this.instance.getSetting('rowHeight', i);
-        sum += last;
-        if (sum - 1> scrollDelta) {
-          break;
-        }
-      }
-
-      if (this.offset > 0) {
-        partialOffset = (sum - scrollDelta);
-      }
-      newOffset = i;
-      newOffset = Math.min(newOffset, this.total);
-    }
-  }
-
-  this.instance.update('offsetRow', newOffset);
   this.instance.draw();//
 
   this.instance.getSetting('onScrollVertically');
@@ -141,7 +114,6 @@ WalkontableVerticalScrollbarNative.prototype.applyToDOM = function () {
 WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {
   var newY = this.tableParentOffset + cell * this.cellSize;
   this.setScrollPosition(newY);
-  this.readWindowSize();
   this.onScroll();
 };
 
@@ -162,6 +134,36 @@ WalkontableVerticalScrollbarNative.prototype.readWindowSize = function () {
 
 //readSettings (in future merge it with this.prepare?)
 WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
+  this.readWindowSize();
+
+  var scrollDelta;
+  var newOffset = 0;
+
+  if (this.windowScrollPosition > this.tableParentOffset) {
+    scrollDelta = this.windowScrollPosition - this.tableParentOffset;
+
+    partialOffset = 0;
+    if (scrollDelta > 0) {
+      var sum = 0;
+      var last;
+      for (var i = 0; i < this.total; i++) {
+        last = this.instance.getSetting('rowHeight', i);
+        sum += last;
+        if (sum - 1> scrollDelta) {
+          break;
+        }
+      }
+
+      if (this.offset > 0) {
+        partialOffset = (sum - scrollDelta);
+      }
+      newOffset = i;
+      newOffset = Math.min(newOffset, this.total);
+    }
+  }
+
+  this.instance.update('offsetRow', newOffset);
+
   this.offset = this.instance.getSetting('offsetRow');
   this.total = this.instance.getSetting('totalRows');
 };

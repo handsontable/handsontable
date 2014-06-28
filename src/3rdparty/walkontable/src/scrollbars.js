@@ -22,6 +22,10 @@ WalkontableScrollbars.prototype.registerListeners = function () {
     , oldBoxHeight;
 
   function refreshAll() {
+    if(!that.instance.drawn) {
+      return;
+    }
+
     if (!that.instance.wtTable.holder.parentNode) {
       //Walkontable was detached from DOM, but this handler was not removed
       that.destroy();

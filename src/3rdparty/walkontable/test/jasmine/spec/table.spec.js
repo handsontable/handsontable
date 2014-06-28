@@ -137,32 +137,6 @@ describe('WalkontableTable', function () {
     expect($table.find('tbody tr:first th:eq(0)')[0].innerHTML).toBe('Row');
   });
 
-  it("rowHeaders and colHeaders should respect the offset", function () {
-    function plusOne(i) {
-      return i + 1;
-    }
-
-    var wt = new Walkontable({
-      table: $table[0],
-      data: getData,
-      totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      offsetRow: 1,
-      offsetColumn: 1,
-      height: 200,
-      width: 100,
-      columnHeaders: [function (col, TH) {
-        TH.innerHTML = plusOne(col);
-      }],
-      rowHeaders: [function (row, TH) {
-        TH.innerHTML = plusOne(row);
-      }]
-    });
-    wt.draw();
-    expect($table.find('tr:eq(0) th:eq(1)')[0].innerHTML).toBe('2');
-    expect($table.find('tr:eq(1) th:eq(0)')[0].innerHTML).toBe('2');
-  });
-
   it("getCell should only return cells from visible rows", function () {
     var wt = new Walkontable({
       table: $table[0],
@@ -195,13 +169,8 @@ describe('WalkontableTable', function () {
     });
     wt.draw();
 
-    wt.update({
-      offsetRow: 1,
-      offsetColumn: 1
-    }).draw();
-
     var $td2 = $table.find('tbody tr:eq(1) td:eq(1)');
-    expect(wt.wtTable.getCoords($td2[0])).toEqual(new WalkontableCellCoords(2, 2));
+    expect(wt.wtTable.getCoords($td2[0])).toEqual(new WalkontableCellCoords(1, 1));
   });
 
   it("getCoords should return coords of TD (with row header)", function () {
@@ -224,13 +193,8 @@ describe('WalkontableTable', function () {
     });
     wt.draw();
 
-    wt.update({
-      offsetRow: 1,
-      offsetColumn: 1
-    }).draw();
-
-    var $td2 = $table.find('tbody tr:eq(1) td:eq(0)');
-    expect(wt.wtTable.getCoords($td2[0])).toEqual(new WalkontableCellCoords(2, 1));
+    var $td2 = $table.find('tbody tr:eq(1) td:eq(1)');
+    expect(wt.wtTable.getCoords($td2[0])).toEqual(new WalkontableCellCoords(1, 1));
   });
 
   it("should use custom cell renderer if provided", function () {
