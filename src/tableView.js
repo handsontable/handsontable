@@ -193,12 +193,20 @@ Handsontable.TableView = function (instance) {
       that.activeWt = wt;
 
       isMouseDown = true;
-      if (coords.row >= 0 && coords.col >= 0) { //is not a header
-        if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
-          //do nothing
-        }
-        else if (event.shiftKey) {
-          instance.selection.setRangeEnd(coords);
+      if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
+        //do nothing
+      }
+      else if (event.shiftKey) {
+        instance.selection.setRangeEnd(coords);
+      }
+      else {
+        if(coords.row < 0 || coords.col < 0) {
+          if (coords.row < 0) {
+            instance.selectCell(0,coords.col,this.instance.wtTable.rowStrategy.cellCount - 1,coords.col)
+          }
+          if (coords.col < 0) {
+            instance.selectCell(coords.row,0,coords.row,this.instance.wtTable.columnStrategy.cellCount - 1)
+          }
         }
         else {
           instance.selection.setRangeStart(coords);

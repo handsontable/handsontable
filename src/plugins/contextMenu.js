@@ -49,14 +49,14 @@
   }
 
   function align (range, type, alignment) {
-    if (range.from.row < 0) {
-      range.from = new WalkontableCellCoords(0,range.from.col);
-      range.to = new WalkontableCellCoords(this.view.wt.wtTable.getRowStrategy().cellCount - 1, range.to.col);
-    }
-    if (range.from.col < 0) {
-      range.from = new WalkontableCellCoords(range.from.row, 0);
-      range.to = new WalkontableCellCoords(range.to.row, this.view.wt.wtTable.getColumnStrategy().cellCount - 1);
-    }
+//    if (range.from.row < 0) {
+//      range.from = new WalkontableCellCoords(0,range.from.col);
+//      range.to = new WalkontableCellCoords(this.view.wt.wtTable.getRowStrategy().cellCount - 1, range.to.col);
+//    }
+//    if (range.from.col < 0) {
+//      range.from = new WalkontableCellCoords(range.from.row, 0);
+//      range.to = new WalkontableCellCoords(range.to.row, this.view.wt.wtTable.getColumnStrategy().cellCount - 1);
+//    }
 
     if (range.from.row == range.to.row && range.from.col == range.to.col){
       doAlign.call(this,range.from.row, range.from.col, type, alignment);
@@ -220,6 +220,8 @@
 
             if (type === "BUTTON") {
               if(className) {
+
+                console.log(this.getSelectedRange());
                 align.call(this, this.getSelectedRange(),'horizontal','ht' + className );
               }
             }
