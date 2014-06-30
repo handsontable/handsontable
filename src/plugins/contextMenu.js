@@ -69,7 +69,7 @@
     }
   }
 
-  function createCommentBox() {
+  function createCommentBox(value) {
     var comments = $('body > .htComments')[0];
 
     if(!comments){
@@ -86,12 +86,18 @@
       document.getElementsByTagName('body')[0].appendChild(comments);
     }
 
+    if(value) {
+      document.getElementsByClassName('htCommentTextArea')[0].value = value;
+      //textArea.value = value;
+    }
+
     return comments;
   }
 
   function placeCommentBox (range, commentBox) {
     var fromTD =  this.view.wt.wtTable.getCell(new WalkontableCellCoords(range.from.row, range.from.col)),
-      toTD =  this.view.wt.wtTable.getCell(new WalkontableCellCoords(range.to.row,range.to.col)),
+      //toTD =  this.view.wt.wtTable.getCell(new WalkontableCellCoords(range.to.row,range.to.col)),
+      toTD = this.view.wt.wtTable.getCell(new WalkontableCellCoords(range.from.row, range.from.col)),
       fromOffset = this.view.wt.wtDom.offset(fromTD),
       toOffset = this.view.wt.wtDom.offset(toTD),
       lastColWidth = this.getColWidth(range.to.col);
@@ -100,8 +106,7 @@
     commentBox.style.left = toOffset.left + lastColWidth + 'px';
     commentBox.style.top = fromOffset.top + 'px';
     commentBox.style.zIndex = 2;
-//    console.log('poka poka');
-    bindMouseEvent(range, commentBox);
+    bindMouseEvent.call(this, range, commentBox);
   }
 
   function unBindMouseEvent () {
@@ -109,40 +114,56 @@
   }
 
   function bindMouseEvent(range, commentBox) {
-//    console.log('bindMouseEvent');
+    var instance = this;
     function commentsListener(event){
-//      console.log(event);
 
-      if( !(event.target.className== 'htCommentTextArea' || event.target.innerHTML == "Add comment") ){
+      if( !(event.target.className== 'htCommentTextArea' || event.target.innerHTML.indexOf('Comment') != -1) ){
         var value = $(commentBox).find('textarea').val();
         if(value.trim().length > 1) {
-          saveComment(range, value);
+          saveComment(range, value, instance);
         }
         unBindMouseEvent();
+        hideCommentTextArea(commentBox);
       }
     }
     $(document).on('mousedown.htCommment', Handsontable.helper.proxy(commentsListener));
   }
 
-  function doSaveComment (row, col, comment) {
-    this.setCellMeta(row, col, 'comment',comment);
-    this.render();
+  function doSaveComment (row, col, comment, instance) {
+    instance.setCellMeta(row, col, 'comment',comment);
+    instance.render();
   }
 
-  function saveComment (range, comment) {
+  function saveComment (range, comment, instance) {
     if (range.from.row == range.to.row && range.from.col == range.to.col){
-      doSaveComment.call(this,range.from.row, range.from.col, comment);
+      doSaveComment(range.from.row, range.from.col, comment, instance);
     } else {
       for(var row = range.from.row; row<= range.to.row; row++) {
         for (var col = range.from.col; col <= range.to.col; col++) {
-          doSaveComment.call(this,row, col, comment);
+          doSaveComment(row, col, comment, instance);
         }
       }
     }
   }
 
+  function removeComment (row, col) {
+    this.removeCellMeta(row,col, 'comment');
+    this.render();
+  }
+
+  function hideCommentTextArea (commentBox) {
+    commentBox.style.display = 'none';
+    $(commentBox).find('textarea').val('');
+  }
+
   function showCommentTextArea(range) {
-    var commentBox = createCommentBox();
+    var meta = this.getCellMeta(range.from.row, range.from.col),
+      value = '';
+
+    if (meta.comment) {
+      value = meta.comment;
+    }
+    var commentBox = createCommentBox(value);
     commentBox.style.display = 'block';
     placeCommentBox.call(this, range, commentBox);
   }
@@ -369,16 +390,29 @@
           }
         },
         'hsep7': ContextMenu.SEPARATOR,
-        comments: {
+        commentsAddEdit: {
           name: function () {
             var hasComment = contextMenu.checkSelectionCommentsConsistency(this);
-            return hasComment ? "Remove comment" : "Add comment";
+            return hasComment ? "Edit Comment" : "Add Comment";
+
           },
           callback: function (key, selection, event) {
             showCommentTextArea.call(this, this.getSelectedRange());
           },
           disabled: function () {
             return false;
+          }
+        },
+        commentsRemove: {
+          name: function () {
+            return "Delete Comment"
+          },
+          callback: function (key, selection, event) {
+            removeComment.call(this, selection.start.row, selection.start.col);
+          },
+          disabled: function () {
+            var hasComment = contextMenu.checkSelectionCommentsConsistency(this);
+            return !hasComment;
           }
         }
 

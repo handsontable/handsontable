@@ -376,6 +376,23 @@ NumericRenderer
   text-align: right;
 }
 
+/*
+Comment For Cell
+*/
+.htComment{
+  position: relative;
+}
+.htComment:after{
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-left: 6px solid transparent;
+  /*border-right: 5px solid transparent;*/
+
+  border-top: 6px solid red;
+}
+
 /*context menu rules*/
 
 ul.context-menu-list {
