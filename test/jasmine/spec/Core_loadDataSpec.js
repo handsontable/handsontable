@@ -187,26 +187,6 @@ describe('Core_loadData', function () {
     expect(cellsSpy.calls.length).toEqual(countRows() * countCols() + countCols()); //+ countCols() is to get column width information
   });
 
-  //https://github.com/warpech/jquery-handsontable/issues/239
-  it('should remove empty row if source data has more empty rows than allowed by minSpareRows', function () {
-    var blanks = [
-      [],
-      []
-    ];
-
-    handsontable({
-      minSpareCols: 1,
-      minSpareRows: 1,
-      rowHeaders: true,
-      colHeaders: true,
-      contextMenu: false
-    });
-
-    loadData(blanks);
-
-    expect(countRows()).toBe(1);
-  });
-
   it('should remove grid rows if new data source has less of them', function () {
     var data1 = [
       ["a"],
