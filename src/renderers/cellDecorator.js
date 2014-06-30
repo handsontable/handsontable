@@ -9,6 +9,11 @@
       TD.className = cellProperties.className;
     }
 
+    if(cellProperties.comment) {
+      console.log('comment');
+      console.log(cellProperties.comment);
+    }
+
     if (cellProperties.readOnly) {
       Handsontable.Dom.addClass(TD, cellProperties.readOnlyCellClassName);
     }
