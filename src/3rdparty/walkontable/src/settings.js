@@ -90,23 +90,18 @@ WalkontableSettings.prototype.update = function (settings, value) {
   return this.instance;
 };
 
-WalkontableSettings.prototype.getSetting = function (key, param1, param2, param3) {
-  var args = Array.prototype.slice.call(arguments);
-  var params = args.slice(1);
+WalkontableSettings.prototype.getSetting = function (key, param1, param2, param3, param4) {
   if (this[key]) {
-    return this[key].apply(this, params);
+    return this[key].call(this, param1, param2, param3, param4); //this is faster than .apply - https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
   else {
-    return this._getSetting.apply(this, args);
+    return this._getSetting.call(this, key, param1, param2, param3, param4);
   }
 };
 
-WalkontableSettings.prototype._getSetting = function (key, param1, param2, param3) {
-  var args = Array.prototype.slice.call(arguments);
-  var params = args.slice(1);
-
+WalkontableSettings.prototype._getSetting = function (key, param1, param2, param3, param4) {
   if (typeof this.settings[key] === 'function') {
-    return this.settings[key].apply(this, params);
+    return this.settings[key].call(this, param1, param2, param3, param4); //this is faster than .apply - https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
   else if (param1 !== void 0 && Object.prototype.toString.call(this.settings[key]) === '[object Array]') {
     return this.settings[key][param1];
