@@ -405,7 +405,7 @@ describe('WalkontableScroll', function () {
       expect($table.find('tbody tr:first td').length).toBeGreaterThan(3);
     });
 
-    it("should scroll to last row with very high rows", function () {
+    xit("should scroll to last row with very high rows", function () {
       createDataArray(20, 100);
 
       for (var i = 0, ilen = this.data.length; i < ilen; i++) {
@@ -428,7 +428,7 @@ describe('WalkontableScroll', function () {
       expect($table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell(new WalkontableCellCoords(this.data.length - 1, 0))); //last rendered row should be last data row
     });
 
-    it("should scroll to last row with very high rows (respecting fixedRows)", function () {
+    xit("should scroll to last row with very high rows (respecting fixedRows)", function () {
       createDataArray(20, 100);
 
       for (var i = 0, ilen = this.data.length; i < ilen; i++) {
@@ -612,7 +612,7 @@ describe('WalkontableScroll', function () {
       expect(wt.wtTable.getFirstVisibleColumn()).toEqual(1);
     });
 
-    it("should scroll to a very wide column that is after viewport", function () {
+    xit("should scroll to a very wide column that is after viewport", function () {
       this.data = createSpreadsheetData(10, 10);
 
       var wt = new Walkontable({
@@ -656,7 +656,7 @@ describe('WalkontableScroll', function () {
 
     });
 
-    it("should scroll to a very wide column that is after viewport (with fixedColumnsLeft)", function () {
+    xit("should scroll to a very wide column that is after viewport (with fixedColumnsLeft)", function () {
       this.data = createSpreadsheetData(1, 10);
 
       var wt = new Walkontable({
@@ -702,7 +702,7 @@ describe('WalkontableScroll', function () {
       $container.width(200).height(200);
     });
 
-    it("should scroll to a very high row that is after viewport", function () {
+    xit("should scroll to a very high row that is after viewport", function () {
       this.data = createSpreadsheetData(20, 1);
 
       var txt = 'Very very very very very very very very very very very very very very very very very long text.';
@@ -735,7 +735,7 @@ describe('WalkontableScroll', function () {
       expect(wt.wtTable.getFirstVisibleRow()).toEqual(3);
     });
 
-    it("should scroll to a very high row that is after viewport (at the end)", function () {
+    xit("should scroll to a very high row that is after viewport (at the end)", function () {
       this.data = createSpreadsheetData(20, 1);
 
       var txt = 'Very very very very very very very very very very very very very very very very very long text.';
