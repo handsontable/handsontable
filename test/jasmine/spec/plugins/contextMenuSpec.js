@@ -216,8 +216,8 @@ describe('ContextMenu', function () {
       var actions = items.not('.htSeparator');
       var separators = items.filter('.htSeparator');
 
-      expect(actions.length).toEqual(11);
-      expect(separators.length).toEqual(6);
+      expect(actions.length).toEqual(13);
+      expect(separators.length).toEqual(7);
 
       expect(actions.text()).toEqual([
         'Insert row above',
@@ -235,7 +235,9 @@ describe('ContextMenu', function () {
         'justify',
         'top',
         'middle',
-        'bottom'
+        'bottom',
+        'Add Comment',
+        'Delete Comment'
       ].join(''));
 
     });
@@ -785,6 +787,48 @@ describe('ContextMenu', function () {
       button.trigger('mousedown'); //Text bottom
       expect(getCellMeta(0,0).className).toEqual('htBottom');
       expect(getCell(0,0).className).toContain('htBottom');
+    });
+
+    it("should add comment", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      var testComment = 'Test comment';
+
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+      expect($menu.find('tbody td:eq(19)').hasClass('htDisabled')).toBe(true);
+
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(11).trigger('mousedown');
+
+      var comments = $('body > .htComments');
+      expect(comments[0]).not.toBeUndefined();
+      expect(comments.css('display')).toEqual('block');
+
+      comments.find('textarea').val(testComment);
+      mouseDown(hot.rootElement);
+      expect(getCellMeta(0,0).comment).toEqual(testComment);
+      expect(comments.css('display')).toEqual('none');
+      expect(getCell(0,0).className).toContain('htComment');
+    });
+
+    it("should delete comment", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        afterCellMetaReset: function() {
+          this.setCellMeta(0, 0, "comment", "Test comment");
+        }
+      });
+
+      expect(getCell(0,0).className).toContain('htComment');
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+      expect($menu.find('tbody td:eq(19)').hasClass('htDisabled')).toBe(false);
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(12).trigger('mousedown');
+      expect(getCellMeta(0,0).comment).toBeUndefined();
     });
 
     it("should make a group of selected cells read-only, if all of them are writable (reverse selection)", function(){
