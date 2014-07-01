@@ -15,6 +15,9 @@ function WalkontableTableRenderer(wtTable){
 }
 
   WalkontableTableRenderer.prototype.render = function () {
+    if (!this.wtTable.isWorkingOnClone()) {
+      this.instance.getSetting('beforeDraw', true);
+    }
 
     this.rowHeaders = this.instance.getSetting('rowHeaders');
     this.rowHeaderCount = this.rowHeaders.length;
@@ -85,6 +88,7 @@ function WalkontableTableRenderer(wtTable){
         this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = this.wtTable.getColumnStrategy().getSize(visibleColIndex) + 'px';
       }
     }
+    this.instance.getSetting('onDraw', true);
   }
 
 };

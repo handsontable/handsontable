@@ -63,7 +63,6 @@ Walkontable.prototype.draw = function (selectionsOnly) {
   }
 
   if (!this.cloneSource) {
-    this.getSetting('beforeDraw', !selectionsOnly);
     if (!selectionsOnly) {
       this.wtSettings.clearRowHeightCache();
     }
@@ -81,9 +80,6 @@ Walkontable.prototype.draw = function (selectionsOnly) {
 
 
   this.wtTable.draw(selectionsOnly);
-  if (!this.cloneSource) {
-    this.getSetting('onDraw',  !selectionsOnly);
-  }
   return this;
 };
 
