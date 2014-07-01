@@ -77,6 +77,8 @@ function WalkontableTable(instance, table) {
 
   this.rowFilter = null;
   this.columnFilter = null;
+
+  this.columnWidthCache = [];
 }
 
 WalkontableTable.prototype.getRowStrategy = function () {

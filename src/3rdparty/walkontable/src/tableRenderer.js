@@ -173,12 +173,27 @@ WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, d
 };
 
 WalkontableTableRenderer.prototype.adjustColumnWidths = function (displayTds) {
+  var cache = this.instance.wtTable.columnWidthCache;
+  var cacheChanged = false;
+  var width;
   for (var visibleColIndex = 0; visibleColIndex < displayTds; visibleColIndex++) {
-    this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = this.wtTable.getColumnStrategy().getSize(visibleColIndex) + 'px';
+    if(this.wtTable.isWorkingOnClone()) {
+      width = this.instance.cloneSource.wtTable.columnWidthCache[visibleColIndex];
+    }
+    else {
+      width = this.wtTable.getColumnStrategy().getSize(visibleColIndex);
+    }
+    if (width !== cache[visibleColIndex]) {
+      this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = width + 'px';
+      cache[visibleColIndex] = width;
+      cacheChanged = true;
+    }
   }
 
-  //Changing column widths may have caused changes in row heights, so row height cache may not be valid anymore
-  this.instance.wtSettings.clearRowHeightCache();
+  if (!this.wtTable.isWorkingOnClone() && cacheChanged) {
+    //Changing column widths may have caused changes in row heights, so row height cache may not be valid anymore
+    this.instance.wtSettings.clearRowHeightCache();
+  }
 };
 
 WalkontableTableRenderer.prototype.appendToTbody = function (TR) {

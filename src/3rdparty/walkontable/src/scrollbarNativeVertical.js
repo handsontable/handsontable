@@ -83,7 +83,7 @@ WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) 
 WalkontableVerticalScrollbarNative.prototype.onScroll = function () {
   WalkontableOverlay.prototype.onScroll.call(this);
 
-  this.instance.draw();//
+  this.instance.draw(true);//
 
   this.instance.getSetting('onScrollVertically');
 };
@@ -97,7 +97,7 @@ var partialOffset = 0;
 WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, length) {
   var sum = 0;
   while (from < length) {
-    sum += this.instance.getSetting('rowHeight', from);
+    sum += this.instance.wtSettings.rowHeight(from); //TODO optimize getSetting, because this is MUCH faster then getSetting
     from++;
   }
   return sum;
@@ -119,14 +119,13 @@ WalkontableVerticalScrollbarNative.prototype.scrollTo = function (cell) {
 
 //readWindowSize (in future merge it with this.prepare?)
 WalkontableVerticalScrollbarNative.prototype.readWindowSize = function () {
-  var settingsHeight = this.instance.getSetting('height');
   if (this.scrollHandler === window) {
     this.windowSize = document.documentElement.clientHeight;
     this.tableParentOffset = this.instance.wtTable.holderOffset.top;
   }
   else {
-    //this.windowSize = WalkontableDom.prototype.outerHeight(this.scrollHandler);
-    this.windowSize = settingsHeight > 0 && this.scrollHandler.clientHeight > 0 ? this.scrollHandler.clientHeight : Infinity; //returns height without DIV scrollbar
+    var elemHeight = WalkontableDom.prototype.outerHeight(this.scrollHandler);
+    this.windowSize = elemHeight > 0 && this.scrollHandler.clientHeight > 0 ? this.scrollHandler.clientHeight : Infinity; //returns height without DIV scrollbar
     this.tableParentOffset = 0;
   }
   this.windowScrollPosition = this.getScrollPosition();

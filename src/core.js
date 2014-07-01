@@ -1117,42 +1117,6 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    */
   this.parseSettingsFromDOM = function () {
-    priv.settingsFromDOM.overflow = this.rootElement.css('overflow');
-
-    if (priv.settings.width === void 0) {
-      priv.settingsFromDOM.width = this.rootElement.width();
-    }
-    else {
-      priv.settingsFromDOM.width = void 0;
-    }
-
-    priv.settingsFromDOM.height = void 0;
-    if (priv.settings.height === void 0) {
-      if (priv.settingsFromDOM.overflow === 'scroll' || priv.settingsFromDOM.overflow === 'auto') {
-        //this needs to read only CSS/inline style and not actual height
-        //so we need to call getComputedStyle on cloned container
-        var clone = this.rootElement[0].cloneNode(false);
-        var parent = this.rootElement[0].parentNode;
-        if (parent) {
-          clone.removeAttribute('id');
-          parent.appendChild(clone);
-          var computedClientHeight = parseInt(clone.clientHeight, 10);
-          var computedPaddingTop = parseInt(window.getComputedStyle(clone, null).getPropertyValue('paddingTop'), 10) || 0;
-          var computedPaddingBottom = parseInt(window.getComputedStyle(clone, null).getPropertyValue('paddingBottom'), 10) || 0;
-
-          var computedHeight = computedClientHeight - computedPaddingTop - computedPaddingBottom;
-
-          if(isNaN(computedHeight) && clone.currentStyle){
-            computedHeight = parseInt(clone.currentStyle.height, 10)
-          }
-
-          if (computedHeight > 0) {
-            priv.settingsFromDOM.height = computedHeight;
-          }
-          parent.removeChild(clone);
-        }
-      }
-    }
   };
 
   /**

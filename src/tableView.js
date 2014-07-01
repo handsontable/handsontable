@@ -16,22 +16,6 @@ Handsontable.TableView = function (instance) {
 
   instance.rootElement.addClass('handsontable');
 
-
-  if (instance.getSettings()['width']){
-    instance.rootElement[0].style.width =  instance.getSettings()['width'] + 'px';
-  }
-
-  if (instance.getSettings()['height']){
-    instance.rootElement[0].style.height = instance.getSettings()['height'] + 'px';
-  }
-
-
-
-  if (instance.rootElement[0].style.width || instance.rootElement[0].style.height){
-    instance.rootElement[0].style.overflow = 'auto';
-  }
-
-
   var table = document.createElement('TABLE');
   table.className = 'htCore';
   this.THEAD = document.createElement('THEAD');
@@ -134,8 +118,6 @@ Handsontable.TableView = function (instance) {
     totalColumns: instance.countCols,
     offsetRow: 0,
     offsetColumn: 0,
-    width: this.getWidth(),
-    height: this.getHeight(),
     fixedColumnsLeft: function () {
       return that.settings.fixedColumnsLeft;
     },
@@ -271,19 +253,12 @@ Handsontable.TableView = function (instance) {
   this.wt = new Walkontable(walkontableConfig);
   this.activeWt = this.wt;
 
-  $window.on('resize.' + instance.guid, function () {
+  /*$window.on('resize.' + instance.guid, function () {
     instance.registerTimeout('resizeTimeout', function () {
-      instance.parseSettingsFromDOM();
-      var newWidth = that.getWidth();
-      var newHeight = that.getHeight();
-      if (walkontableConfig.width !== newWidth || walkontableConfig.height !== newHeight) {
-        instance.forceFullRender = true;
-        that.render();
-        walkontableConfig.width = newWidth;
-        walkontableConfig.height = newHeight;
-      }
+      instance.forceFullRender = true;
+      that.render();
     }, 60);
-  });
+  });*/
 
   $(that.wt.wtTable.spreader).on('mousedown.handsontable, contextmenu.handsontable', function (event) {
     if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
@@ -317,20 +292,16 @@ Handsontable.TableView.prototype.isCellEdited = function () {
 };
 
 Handsontable.TableView.prototype.getWidth = function () {
-  var val = this.settings.width !== void 0 ? this.settings.width : this.settingsFromDOM.width;
-  return typeof val === 'function' ? val() : val;
+  return this.wt.wtViewport.getWorkspaceActualWidth();
 };
 
 Handsontable.TableView.prototype.getHeight = function () {
-  var val = this.settings.height !== void 0 ? this.settings.height : this.settingsFromDOM.height;
-  return typeof val === 'function' ? val() : val;
+  return this.wt.wtViewport.getWorkspaceActualHeight();
 };
 
 Handsontable.TableView.prototype.beforeRender = function (force) {
   if (force) { //force = did Walkontable decide to do full render
     Handsontable.hooks.run(this.instance, 'beforeRender', this.instance.forceFullRender); //this.instance.forceFullRender = did Handsontable request full render?
-    this.wt.update('width', this.getWidth());
-    this.wt.update('height', this.getHeight());
   }
 };
 
