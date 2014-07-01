@@ -35,6 +35,7 @@ function WalkontableSettings(instance, settings) {
       that.instance.wtDom.fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);
     },
     columnWidth: 50,
+    rowHeight: 23,
     selections: null,
     hideBorderOnMouseDownOver: false,
 
@@ -118,22 +119,22 @@ WalkontableSettings.prototype.has = function (key) {
 /**
  * specific methods
  */
-WalkontableSettings.prototype.rowHeight = function (row, TD) {
-  if (!this.instance.rowHeightCache) {
-    this.instance.rowHeightCache = []; //hack. This cache is being invalidated in WOT core.js
-  }
-  if (this.instance.rowHeightCache[row] === void 0) {
-    var size = 23; //guess
-    if (TD) {
-      size = this.instance.wtDom.outerHeight(TD); //measure
-      this.instance.rowHeightCache[row] = size; //cache only something we measured
-    }
-    return size;
-  }
-  else {
-    return this.instance.rowHeightCache[row];
-  }
-};
+//WalkontableSettings.prototype.rowHeight = function (row, TD) {
+//  if (!this.instance.rowHeightCache) {
+//    this.instance.rowHeightCache = []; //hack. This cache is being invalidated in WOT core.js
+//  }
+//  if (this.instance.rowHeightCache[row] === void 0) {
+//    var size = 23; //guess
+//    if (TD) {
+//      size = this.instance.wtDom.outerHeight(TD); //measure
+//      this.instance.rowHeightCache[row] = size; //cache only something we measured
+//    }
+//    return size;
+//  }
+//  else {
+//    return this.instance.rowHeightCache[row];
+//  }
+//};
 
 WalkontableSettings.prototype.clearRowHeightCache = function () {
   if (this.instance.rowHeightCache) {

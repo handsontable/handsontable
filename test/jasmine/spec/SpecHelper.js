@@ -350,6 +350,20 @@ function colWidth($elem, col) {
 }
 
 /**
+ * Returns row height for HOT container
+ * @param $elem
+ * @param row
+ * @returns {Number}
+ */
+function rowHeight($elem, row) {
+  var TD = $elem.find('tbody tr:eq(' + row +') td:eq(0)');
+  if (!TD) {
+    throw new Error("Cannot find table row of index '" + row + "'");
+  }
+  return TD.height();
+}
+
+/**
  * Returns value that has been rendered in table cell
  * @param {Number} trIndex
  * @param {Number} tdIndex

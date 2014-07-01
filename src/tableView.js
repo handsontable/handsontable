@@ -135,6 +135,7 @@ Handsontable.TableView = function (instance) {
       }] : []
     },
     columnWidth: instance.getColWidth,
+    rowHeight: instance.getRowHeight,
     cellRenderer: function (row, col, TD) {
 
       var prop = that.instance.colToProp(col)

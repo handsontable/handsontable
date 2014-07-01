@@ -1762,6 +1762,50 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
+   * Return row height from settings (no guessing). Private use intended
+   * @param {Number} row
+   * @return {Number}
+   */
+  this._getRowHeightFromSettings= function (row) {
+    var cellProperties = instance.getCellMeta(0, row);
+    var height = cellProperties.height;
+    if (height === void 0 || height === priv.settings.height) {
+      height = cellProperties.rowHeights;
+    }
+    if (height !== void 0 && height !== null) {
+      switch (typeof height) {
+        case 'object': //array
+          height = height[row];
+          break;
+
+        case 'function':
+          height = height(row);
+          break;
+      }
+      if (typeof height === 'string') {
+        height = parseInt(height, 10);
+      }
+    }
+    return height;
+  };
+
+  /**
+   * Return row height
+   * @param {Number} row
+   * @return {Number}
+   */
+  this.getRowHeight = function (row) {
+    var height = instance._getRowHeightFromSettings(row);
+
+    if (!height) {
+      height = 23;
+    }
+
+    height = Handsontable.hooks.execute(instance, 'modifyRowHeight', height, row);
+    return height;
+  };
+
+  /**
    * Return total number of rows in grid
    * @return {Number}
    */
