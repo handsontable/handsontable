@@ -140,7 +140,7 @@ Handsontable.Core = function (rootElement, userSettings) {
      * Makes sure there are empty rows at the bottom of the table
      */
     adjustRowsAndCols: function () {
-      var r, rlen, emptyRows = instance.countEmptyRows(true), emptyCols;
+      var r, rlen, emptyRows, emptyCols;
 
       //should I add empty rows to data source to meet minRows?
       rlen = instance.countRows();
@@ -149,6 +149,8 @@ Handsontable.Core = function (rootElement, userSettings) {
           datamap.createRow(instance.countRows(), 1, true);
         }
       }
+
+      emptyRows = instance.countEmptyRows(true);
 
       //should I add empty rows to meet minSpareRows?
       if (emptyRows < priv.settings.minSpareRows) {
@@ -174,17 +176,17 @@ Handsontable.Core = function (rootElement, userSettings) {
         }
       }
 
-      if (priv.settings.enterBeginsEditing) {
-        for (; (((priv.settings.minRows || priv.settings.minSpareRows) && instance.countRows() > priv.settings.minRows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows)); emptyRows--) {
-          datamap.removeRow();
-        }
-      }
+      // if (priv.settings.enterBeginsEditing) {
+      //   for (; (((priv.settings.minRows || priv.settings.minSpareRows) && instance.countRows() > priv.settings.minRows) && (priv.settings.minSpareRows && emptyRows > priv.settings.minSpareRows)); emptyRows--) {
+      //     datamap.removeRow();
+      //   }
+      // }
 
-      if (priv.settings.enterBeginsEditing && !priv.settings.columns) {
-        for (; (((priv.settings.minCols || priv.settings.minSpareCols) && instance.countCols() > priv.settings.minCols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols)); emptyCols--) {
-          datamap.removeCol();
-        }
-      }
+      // if (priv.settings.enterBeginsEditing && !priv.settings.columns) {
+      //   for (; (((priv.settings.minCols || priv.settings.minSpareCols) && instance.countCols() > priv.settings.minCols) && (priv.settings.minSpareCols && emptyCols > priv.settings.minSpareCols)); emptyCols--) {
+      //     datamap.removeCol();
+      //   }
+      // }
 
       var rowCount = instance.countRows();
       var colCount = instance.countCols();
@@ -867,6 +869,10 @@ Handsontable.Core = function (rootElement, userSettings) {
     for (; 0 <= i; i--) {
       if (changes[i] === null) {
         changes.splice(i, 1);
+        continue;
+      }
+
+      if(changes[i][2] == null && changes[i][3] == null) {
         continue;
       }
 
