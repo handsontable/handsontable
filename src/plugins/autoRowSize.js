@@ -61,7 +61,7 @@
 
       for (var c = 0; c < cols; c++) {
         var value = Handsontable.helper.stringify(instance.getDataAtCell(row, c)),
-          len = value.length;
+            len = value.length;
 
         if (len > maxLen) {
           maxLen = len;
@@ -82,23 +82,28 @@
 
       instance.view.wt.wtDom.empty(tmp.tbody);
 
+      var tr = null;
+
       for (var i in samples) {
         if (samples.hasOwnProperty(i)) {
 
-          var tr = document.createElement('tr');
+          if (!tr) {
+            tr = document.createElement('tr');
+          }
 
           for (var j = 0, jlen = samples[i].strings.length; j < jlen; j++) {
             var col = samples[i].strings[j].col,
-              cellProperties = instance.getCellMeta(row, col);
+                cellProperties = instance.getCellMeta(row, col);
 
             cellProperties.col = col;
             cellProperties.row = row;
 
             var renderer = instance.getCellRenderer(cellProperties),
-              td = document.createElement('td');
+                td = document.createElement('td');
 
             renderer(instance, td, row, col, 0, samples[i].strings[j].value, cellProperties);
             tr.appendChild(td);
+            c++;
           }
 
           tmp.tbody.appendChild(tr);
