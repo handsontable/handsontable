@@ -88,9 +88,9 @@
 
     if(value) {
       document.getElementsByClassName('htCommentTextArea')[0].value = value;
-      //textArea.value = value;
     }
-
+    var tA =document.getElementsByClassName('htCommentTextArea')[0];
+    tA.focus();
     return comments;
   }
 
@@ -135,15 +135,18 @@
   }
 
   function saveComment (range, comment, instance) {
-    if (range.from.row == range.to.row && range.from.col == range.to.col){
-      doSaveComment(range.from.row, range.from.col, comment, instance);
-    } else {
-      for(var row = range.from.row; row<= range.to.row; row++) {
-        for (var col = range.from.col; col <= range.to.col; col++) {
-          doSaveComment(row, col, comment, instance);
-        }
-      }
-    }
+    //LIKE IN EXCEL (TOP LEFT CELL)
+    doSaveComment(range.from.row, range.from.col, comment, instance);
+
+//    if (range.from.row == range.to.row && range.from.col == range.to.col){
+//      doSaveComment(range.from.row, range.from.col, comment, instance);
+//    } else {
+//      for(var row = range.from.row; row<= range.to.row; row++) {
+//        for (var col = range.from.col; col <= range.to.col; col++) {
+//          doSaveComment(row, col, comment, instance);
+//        }
+//      }
+//    }
   }
 
   function removeComment (row, col) {
@@ -422,12 +425,18 @@
     this.checkSelectionCommentsConsistency = function (hot) {
       var hasComment = false;
 
-      hot.getSelectedRange().forAll(function (r, c) {
-        if(hot.getCellMeta(r,c).comment) {
-          hasComment = true;
-          return false;
-        }
-      });
+      // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
+      var cell = hot.getSelectedRange().from;
+
+      if(hot.getCellMeta(cell.row,cell.col).comment) {
+        hasComment = true;
+      }
+//      hot.getSelectedRange().forAll(function (r, c) {
+//        if(hot.getCellMeta(r,c).comment) {
+//          hasComment = true;
+//          return false;
+//        }
+//      });
 
       return hasComment;
     };
