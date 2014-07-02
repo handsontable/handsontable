@@ -1543,7 +1543,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     row = translateRowIndex(row);
     col = translateColIndex(col);
 
-    if ("undefined" === typeof priv.columnSettings[col]) {
+    if (!priv.columnSettings[col]) {
       priv.columnSettings[col] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
     }
 

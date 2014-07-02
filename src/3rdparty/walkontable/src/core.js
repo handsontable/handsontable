@@ -123,9 +123,8 @@ Walkontable.prototype.getViewport = function () {
   ];
 };
 
-Walkontable.prototype.getSetting = function (key, param1, param2, param3) {
-  var args = Array.prototype.slice.call(arguments);
-  return WalkontableSettings.prototype.getSetting.apply(this.wtSettings, args);
+Walkontable.prototype.getSetting = function (key, param1, param2, param3, param4) {
+  return this.wtSettings.getSetting(key, param1, param2, param3, param4); //this is faster than .apply - https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
 };
 
 Walkontable.prototype.hasSetting = function (key) {
