@@ -93,11 +93,13 @@ module.exports = function (grunt) {
 
         'src/pluginHooks.js',
         'src/plugins/autoColumnSize.js',
+        'src/plugins/autoRowSize.js',
         'src/plugins/columnSorting.js',
         'src/plugins/contextMenu.js',
         'src/plugins/legacy.js',
         'src/plugins/manualColumnMove.js',
         'src/plugins/manualColumnResize.js',
+        'src/plugins/manualRowResize.js',
         'src/plugins/observeChanges.js',
         'src/plugins/persistentState.js',
         'src/plugins/undoRedo.js',

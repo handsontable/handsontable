@@ -350,6 +350,27 @@ function colWidth($elem, col) {
 }
 
 /**
+ * Returns row height for HOT container
+ * @param $elem
+ * @param row
+ * @returns {Number}
+ */
+function rowHeight($elem, row) {
+  var TD = $elem[0].querySelector('tbody tr:nth-child(' + (row + 1) +') td');
+  if (!TD) {
+    throw new Error("Cannot find table row of index '" + row + "'");
+  }
+  var height = Handsontable.Dom.outerHeight(TD);
+  if(row == 0) {
+    height = height - 2;
+  }
+  else {
+    height = height - 1;
+  }
+  return height;
+}
+
+/**
  * Returns value that has been rendered in table cell
  * @param {Number} trIndex
  * @param {Number} tdIndex

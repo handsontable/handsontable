@@ -195,9 +195,11 @@
       }
       $document.on('keydown.handsontable.' + instance.guid, onKeyDown);
 
-      function onDblClick() {
-//        that.instance.destroyEditor();
-        that.openEditor();
+      function onDblClick(event, coords, elem) {
+        if(elem.nodeName == "TD") { //may be TD or TH
+          //that.instance.destroyEditor();
+          that.openEditor();
+        }
       }
 
       instance.view.wt.update('onCellDblClick', onDblClick);

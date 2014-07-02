@@ -1543,7 +1543,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     row = translateRowIndex(row);
     col = translateColIndex(col);
 
-    if ("undefined" === typeof priv.columnSettings[col]) {
+    if (!priv.columnSettings[col]) {
       priv.columnSettings[col] = Handsontable.helper.columnFactory(GridSettings, priv.columnsSettingConflicts);
     }
 
@@ -1759,6 +1759,49 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
     width = Handsontable.hooks.execute(instance, 'modifyColWidth', width, col);
     return width;
+  };
+
+  /**
+   * Return row height from settings (no guessing). Private use intended
+   * @param {Number} row
+   * @return {Number}
+   */
+  this._getRowHeightFromSettings= function (row) {
+    /* inefficient
+    var cellProperties = instance.getCellMeta(0, row);
+    var height = cellProperties.height;
+    if (height === void 0 || height === priv.settings.height) {
+      height = cellProperties.rowHeights;
+    }
+    */
+    var height = priv.settings.rowHeights; //only uses grid settings
+    if (height !== void 0 && height !== null) {
+      switch (typeof height) {
+        case 'object': //array
+          height = height[row];
+          break;
+
+        case 'function':
+          height = height(row);
+          break;
+      }
+      if (typeof height === 'string') {
+        height = parseInt(height, 10);
+      }
+    }
+    return height;
+  };
+
+  /**
+   * Return row height
+   * @param {Number} row
+   * @return {Number}
+   */
+  this.getRowHeight = function (row) {
+    var height = instance._getRowHeightFromSettings(row);
+
+    height = Handsontable.hooks.execute(instance, 'modifyRowHeight', height, row);
+    return height;
   };
 
   /**

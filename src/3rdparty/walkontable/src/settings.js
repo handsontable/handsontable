@@ -35,6 +35,10 @@ function WalkontableSettings(instance, settings) {
       that.instance.wtDom.fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);
     },
     columnWidth: 50,
+    rowHeight: function (row) {
+      return 23;
+    },
+    defaultRowHeight: 23,
     selections: null,
     hideBorderOnMouseDownOver: false,
 
@@ -91,19 +95,10 @@ WalkontableSettings.prototype.update = function (settings, value) {
 };
 
 WalkontableSettings.prototype.getSetting = function (key, param1, param2, param3, param4) {
-  if (this[key]) {
-    return this[key].call(this, param1, param2, param3, param4); //this is faster than .apply - https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
-  }
-  else {
-    return this._getSetting.call(this, key, param1, param2, param3, param4);
-  }
-};
-
-WalkontableSettings.prototype._getSetting = function (key, param1, param2, param3, param4) {
   if (typeof this.settings[key] === 'function') {
-    return this.settings[key].call(this, param1, param2, param3, param4); //this is faster than .apply - https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+    return this.settings[key](param1, param2, param3, param4); //this is faster than .apply - https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
-  else if (param1 !== void 0 && Object.prototype.toString.call(this.settings[key]) === '[object Array]') {
+  else if (param1 !== void 0 && Object.prototype.toString.call(this.settings[key]) === '[object Array]') { //perhaps this can be removed, it is only used in tests
     return this.settings[key][param1];
   }
   else {
@@ -113,30 +108,4 @@ WalkontableSettings.prototype._getSetting = function (key, param1, param2, param
 
 WalkontableSettings.prototype.has = function (key) {
   return !!this.settings[key]
-};
-
-/**
- * specific methods
- */
-WalkontableSettings.prototype.rowHeight = function (row, TD) {
-  if (!this.instance.rowHeightCache) {
-    this.instance.rowHeightCache = []; //hack. This cache is being invalidated in WOT core.js
-  }
-  if (this.instance.rowHeightCache[row] === void 0) {
-    var size = 23; //guess
-    if (TD) {
-      size = this.instance.wtDom.outerHeight(TD); //measure
-      this.instance.rowHeightCache[row] = size; //cache only something we measured
-    }
-    return size;
-  }
-  else {
-    return this.instance.rowHeightCache[row];
-  }
-};
-
-WalkontableSettings.prototype.clearRowHeightCache = function () {
-  if (this.instance.rowHeightCache) {
-    this.instance.rowHeightCache.length = 0;
-  }
 };
