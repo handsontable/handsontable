@@ -1,7 +1,7 @@
 function WalkontableVerticalScrollbarNative(instance) {
   this.instance = instance;
   this.type = 'vertical';
-  this.cellSize = 23;
+  this.cellSize = this.instance.wtSettings.settings.defaultRowHeight;
   this.offset = 0;
   this.totalRows = 0;
   this.init();
@@ -146,7 +146,7 @@ WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
       var sum = 0;
       var last;
       for (var i = 0; i < this.total; i++) {
-        last = this.instance.getSetting('rowHeight', i);
+        last = this.instance.getSetting('rowHeight', i) || this.instance.wtSettings.settings.defaultRowHeight;
         sum += last;
         if (sum - 1> scrollDelta) {
           break;

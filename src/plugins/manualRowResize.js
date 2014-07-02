@@ -106,13 +106,11 @@
 
 
       instance.rootElement.on('mousedown.handsontable', '.manualRowResizer', function () {
-
         if (autoresizeTimeout == null) {
           autoresizeTimeout = setTimeout(function () {
 
             if (dblclick >= 2) {
-              newSize = instance.determineRowHeight.call(instance, currentRow);
-              setManualSize(currentRow, newSize);
+              setManualSize(currentRow, null); //double click sets auto row size
               instance.forceFullRender = true;
               instance.view.render();
               Handsontable.hooks.run(instance, 'afterRowResize', currentRow, newSize);
@@ -165,7 +163,9 @@
     };
 
     var setManualSize = function (row, height) {
-      height = Math.max(height, 23);
+      if(height !== null) {
+        height = Math.max(height, 23); //is this needed? [warpech]
+      }
 
       row = Handsontable.hooks.execute(instance, 'modifyRow', row);
 
@@ -176,7 +176,7 @@
     this.modifyRowHeight = function (height, row) {
       row = this.runHooksAndReturn('modifyRow', row);
 
-      if (this.getSettings().manualRowResize && this.manualRowHeights[row]) {
+      if (this.getSettings().manualRowResize && this.manualRowHeights[row] !== void 0) {
         return this.manualRowHeights[row];
       }
       return height;

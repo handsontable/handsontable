@@ -1,6 +1,6 @@
 describe('manualRowResize', function () {
   var id = 'test';
-  var defaultRowHeight = 23;
+  var defaultRowHeight = 22;
 
   beforeEach(function () {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
@@ -44,9 +44,9 @@ describe('manualRowResize', function () {
       manualRowResize: [50, 40, 100]
     });
 
-    expect(this.$container.find('tbody tr:eq(0) th:eq(0)').height()).toEqual(50);
-    expect(this.$container.find('tbody tr:eq(1) th:eq(0)').height()).toEqual(40);
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').height()).toEqual(100);
+    expect(rowHeight(this.$container, 0)).toEqual(50);
+    expect(rowHeight(this.$container, 1)).toEqual(40);
+    expect(rowHeight(this.$container, 2)).toEqual(100);
   });
 
   it("should change the default row height with updateSettings", function () {
@@ -54,17 +54,17 @@ describe('manualRowResize', function () {
       manualRowResize: true
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').height()).toEqual(defaultRowHeight);
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').height()).toEqual(defaultRowHeight);
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').height()).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 1)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight);
 
     updateSettings({
       manualRowResize: [60, 50, 80]
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').height()).toEqual(60);
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').height()).toEqual(50);
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').height()).toEqual(80);
+    expect(rowHeight(this.$container, 0)).toEqual(60);
+    expect(rowHeight(this.$container, 1)).toEqual(50);
+    expect(rowHeight(this.$container, 2)).toEqual(80);
   });
 
   it("should change the row height with updateSettings", function () {
@@ -72,17 +72,17 @@ describe('manualRowResize', function () {
       manualRowResize: [60, 50, 80]
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').height()).toEqual(60);
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').height()).toEqual(50);
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').height()).toEqual(80);
+    expect(rowHeight(this.$container, 0)).toEqual(60);
+    expect(rowHeight(this.$container, 1)).toEqual(50);
+    expect(rowHeight(this.$container, 2)).toEqual(80);
 
     updateSettings({
       manualRowResize: [30, 80, 100]
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').height()).toEqual(30);
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').height()).toEqual(80);
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').height()).toEqual(100);
+    expect(rowHeight(this.$container, 0)).toEqual(30);
+    expect(rowHeight(this.$container, 1)).toEqual(80);
+    expect(rowHeight(this.$container, 2)).toEqual(100);
   });
 
   it("should reset row height", function () {
@@ -90,17 +90,17 @@ describe('manualRowResize', function () {
       manualRowResize: true
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').height()).toEqual(defaultRowHeight);
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').height()).toEqual(defaultRowHeight);
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').height()).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 1)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight);
 
     updateSettings({
       manualRowResize: true
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').height()).toEqual(defaultRowHeight);
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').height()).toEqual(defaultRowHeight);
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').height()).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 1)).toEqual(defaultRowHeight);
+    expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight);
   });
 
   it("should trigger afterRowResize event after row height changes", function () {
@@ -198,7 +198,7 @@ describe('manualRowResize', function () {
       expect(afterRowResizeCallback.calls.length).toEqual(1);
       expect(afterRowResizeCallback.calls[0].args[0]).toEqual(2);
 
-      expect(afterRowResizeCallback.calls[0].args[1]).toEqual(defaultRowHeight);
+      expect(afterRowResizeCallback.calls[0].args[1]).toEqual(defaultRowHeight + 1);
       expect(rowHeight(this.$container, 2)).toEqual(defaultRowHeight);
     });
   });

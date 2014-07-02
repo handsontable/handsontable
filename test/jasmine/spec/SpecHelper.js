@@ -356,11 +356,18 @@ function colWidth($elem, col) {
  * @returns {Number}
  */
 function rowHeight($elem, row) {
-  var TD = $elem.find('tbody tr:eq(' + row +') td:eq(0)');
+  var TD = $elem[0].querySelector('tbody tr:nth-child(' + (row + 1) +') td');
   if (!TD) {
     throw new Error("Cannot find table row of index '" + row + "'");
   }
-  return TD.height();
+  var height = Handsontable.Dom.outerHeight(TD);
+  if(row == 0) {
+    height = height - 2;
+  }
+  else {
+    height = height - 1;
+  }
+  return height;
 }
 
 /**

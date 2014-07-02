@@ -1,3 +1,4 @@
+/*
 (function (Handsontable) {
 
   function HandsontableAutoRowSize() {
@@ -178,3 +179,4 @@
   Handsontable.hooks.add('afterUpdateSettings', htAutoRowSize.beforeInit);
 
 })(Handsontable);
+  */

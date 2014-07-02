@@ -1767,11 +1767,14 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this._getRowHeightFromSettings= function (row) {
+    /* inefficient
     var cellProperties = instance.getCellMeta(0, row);
     var height = cellProperties.height;
     if (height === void 0 || height === priv.settings.height) {
       height = cellProperties.rowHeights;
     }
+    */
+    var height = priv.settings.rowHeights; //only uses grid settings
     if (height !== void 0 && height !== null) {
       switch (typeof height) {
         case 'object': //array
@@ -1796,10 +1799,6 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.getRowHeight = function (row) {
     var height = instance._getRowHeightFromSettings(row);
-
-    if (!height) {
-      height = 23;
-    }
 
     height = Handsontable.hooks.execute(instance, 'modifyRowHeight', height, row);
     return height;

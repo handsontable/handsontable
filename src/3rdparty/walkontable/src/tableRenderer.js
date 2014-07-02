@@ -142,9 +142,13 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
     }
 
     if (TR.firstChild) {
-      TR.firstChild.style.height = this.instance.getSetting('rowHeight', sourceRowIndex) + 'px'; //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
-    } else {
-      this.instance.getSetting('rowHeight', sourceRowIndex, lastTD); //this trick saves rowHeight in rowHeightCache. It is then read in WalkontableVerticalScrollbarNative.prototype.sumCellSizes and reset in Walkontable constructor
+      var height = this.instance.getSetting('rowHeight', sourceRowIndex); //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
+      if(height) {
+        TR.firstChild.style.height = height + 'px';
+      }
+      else {
+        TR.firstChild.style.height = '';
+      }
     }
 
     visibleRowIndex++;
@@ -195,11 +199,6 @@ WalkontableTableRenderer.prototype.adjustColumnWidths = function (displayTds) {
       cache[visibleColIndex] = width;
       cacheChanged = true;
     }
-  }
-
-  if (!this.wtTable.isWorkingOnClone() && cacheChanged) {
-    //Changing column widths may have caused changes in row heights, so row height cache may not be valid anymore
-    this.instance.wtSettings.clearRowHeightCache();
   }
 };
 
@@ -399,7 +398,7 @@ WalkontableTableRenderer.prototype.refreshStretching = function () {
   };
 
   var rowHeightFn = function (i, TD) {
-    return 23;
+    return instance.wtSettings.settings.defaultRowHeight;
   };
 
   this.wtTable.columnStrategy = new WalkontableColumnStrategy(instance, containerWidthFn, columnWidthFn, stretchH);
