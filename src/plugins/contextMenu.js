@@ -49,14 +49,14 @@
   }
 
   function align (range, type, alignment) {
-    if (range.from.row < 0) {
-      range.from = new WalkontableCellCoords(0,range.from.col);
-      range.to = new WalkontableCellCoords(this.view.wt.wtTable.getRowStrategy().cellCount - 1, range.to.col);
-    }
-    if (range.from.col < 0) {
-      range.from = new WalkontableCellCoords(range.from.row, 0);
-      range.to = new WalkontableCellCoords(range.to.row, this.view.wt.wtTable.getColumnStrategy().cellCount - 1);
-    }
+//    if (range.from.row < 0) {
+//      range.from = new WalkontableCellCoords(0,range.from.col);
+//      range.to = new WalkontableCellCoords(this.view.wt.wtTable.getRowStrategy().cellCount - 1, range.to.col);
+//    }
+//    if (range.from.col < 0) {
+//      range.from = new WalkontableCellCoords(range.from.row, 0);
+//      range.to = new WalkontableCellCoords(range.to.row, this.view.wt.wtTable.getColumnStrategy().cellCount - 1);
+//    }
 
     if (range.from.row == range.to.row && range.from.col == range.to.col){
       doAlign.call(this,range.from.row, range.from.col, type, alignment);
@@ -90,7 +90,11 @@
             this.alter("insert_row", selection.start.row);
           },
           disabled: function () {
-            return this.getSelected()[0] < 0 || this.countRows() >= this.getSettings().maxRows;
+            var selected = this.getSelected(),
+              entireColumnSelection = [0,selected[1],this.view.wt.wtTable.getRowStrategy().cellCount-1,selected[1]],
+              columnSelected = entireColumnSelection.join(',') == selected.join(',');
+
+            return selected[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
           }
         },
         'row_below': {
@@ -99,7 +103,11 @@
             this.alter("insert_row", selection.end.row + 1);
           },
           disabled: function () {
-            return this.getSelected()[0] < 0 || this.countRows() >= this.getSettings().maxRows;
+            var selected = this.getSelected(),
+              entireColumnSelection = [0,selected[1],this.view.wt.wtTable.getRowStrategy().cellCount-1,selected[1]],
+              columnSelected = entireColumnSelection.join(',') == selected.join(',');
+
+            return this.getSelected()[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
           }
         },
         "hsep1": ContextMenu.SEPARATOR,
@@ -109,7 +117,11 @@
             this.alter("insert_col", selection.start.col);
           },
           disabled: function () {
-            return this.getSelected()[1] < 0 || this.countCols() >= this.getSettings().maxCols;
+            var selected = this.getSelected(),
+              entireRowSelection = [selected[0],0, selected[0],this.view.wt.wtTable.getColumnStrategy().cellCount-1],
+              rowSelected = entireRowSelection.join(',') == selected.join(',');
+
+            return this.getSelected()[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
           }
         },
         'col_right': {
@@ -118,7 +130,11 @@
             this.alter("insert_col", selection.end.col + 1);
           },
           disabled: function () {
-            return this.getSelected()[1] < 0 || this.countCols() >= this.getSettings().maxCols;
+            var selected = this.getSelected(),
+              entireRowSelection = [selected[0],0, selected[0],this.view.wt.wtTable.getColumnStrategy().cellCount-1],
+              rowSelected = entireRowSelection.join(',') == selected.join(',');
+
+            return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
           }
         },
         "hsep2": ContextMenu.SEPARATOR,
@@ -129,7 +145,10 @@
             this.alter("remove_row", selection.start.row, amount);
           },
           disabled: function () {
-            return this.getSelected()[0] < 0;
+            var selected = this.getSelected(),
+              entireColumnSelection = [0,selected[1],this.view.wt.wtTable.getRowStrategy().cellCount-1,selected[1]],
+              columnSelected = entireColumnSelection.join(',') == selected.join(',');
+            return (selected[0] < 0 || columnSelected);
           }
         },
         'remove_col': {
@@ -139,7 +158,10 @@
             this.alter("remove_col", selection.start.col, amount);
           },
           disabled: function (){
-            return this.getSelected()[1] < 0;
+            var selected = this.getSelected(),
+              entireRowSelection = [selected[0],0, selected[0],this.view.wt.wtTable.getColumnStrategy().cellCount-1],
+              rowSelected = entireRowSelection.join(',') == selected.join(',');
+            return (selected[1] < 0 || rowSelected);
           }
         },
         "hsep3": ContextMenu.SEPARATOR,
@@ -220,6 +242,8 @@
 
             if (type === "BUTTON") {
               if(className) {
+
+                console.log(this.getSelectedRange());
                 align.call(this, this.getSelectedRange(),'horizontal','ht' + className );
               }
             }
