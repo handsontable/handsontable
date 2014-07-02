@@ -193,14 +193,16 @@ Handsontable.TableView = function (instance) {
       that.activeWt = wt;
 
       isMouseDown = true;
-      if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
-        //do nothing
-      }
-      else if (event.shiftKey) {
-        instance.selection.setRangeEnd(coords);
-      }
-      else {
-        instance.selection.setRangeStart(coords);
+      if (coords.row >= 0 && coords.col >= 0) { //is not a header
+        if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
+          //do nothing
+        }
+        else if (event.shiftKey) {
+          instance.selection.setRangeEnd(coords);
+        }
+        else {
+          instance.selection.setRangeStart(coords);
+        }
       }
 
       Handsontable.hooks.run(instance, 'afterOnCellMouseDown', event, coords, TD);
@@ -214,15 +216,17 @@ Handsontable.TableView = function (instance) {
      },*/
     onCellMouseOver: function (event, coords, TD, wt) {
       that.activeWt = wt;
-      if (isMouseDown) {
-        /*if (that.settings.fragmentSelection === 'single') {
-         clearTextSelection(); //otherwise text selection blinks during multiple cells selection
-         }*/
-        instance.selection.setRangeEnd(coords);
-      }
-      else if (instance.autofill.handle && instance.autofill.handle.isDragged) {
-        instance.autofill.handle.isDragged++;
-        instance.autofill.showBorder(coords);
+      if (coords.row >= 0 && coords.col >= 0) { //is not a header
+        if (isMouseDown) {
+          /*if (that.settings.fragmentSelection === 'single') {
+           clearTextSelection(); //otherwise text selection blinks during multiple cells selection
+           }*/
+          instance.selection.setRangeEnd(coords);
+        }
+        else if (instance.autofill.handle && instance.autofill.handle.isDragged) {
+          instance.autofill.handle.isDragged++;
+          instance.autofill.showBorder(coords);
+        }
       }
       Handsontable.hooks.run(instance, 'afterOnCellMouseOver', event, coords, TD);
       that.activeWt = that.wt;
