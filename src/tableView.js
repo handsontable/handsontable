@@ -197,15 +197,17 @@ Handsontable.TableView = function (instance) {
         //do nothing
       }
       else if (event.shiftKey) {
-        instance.selection.setRangeEnd(coords);
+        if (coords.row >= 0 && coords.col >= 0) {
+          instance.selection.setRangeEnd(coords);
+        }
       }
       else {
-        if(coords.row < 0 || coords.col < 0) {
+        if (coords.row < 0 || coords.col < 0) {
           if (coords.row < 0) {
-            instance.selectCell(0,coords.col,this.instance.wtTable.rowStrategy.cellCount - 1,coords.col)
+            instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col)
           }
           if (coords.col < 0) {
-            instance.selectCell(coords.row,0,coords.row,this.instance.wtTable.columnStrategy.cellCount - 1)
+            instance.selectCell(coords.row, 0, coords.row, instance.countCols())
           }
         }
         else {
