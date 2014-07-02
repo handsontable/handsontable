@@ -745,12 +745,12 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.init = function () {
     Handsontable.hooks.run(instance, 'beforeInit');
 
+    this.updateSettings(priv.settings, true);
+
     this.view = new Handsontable.TableView(this);
     editorManager = new Handsontable.EditorManager(instance, priv, selection, datamap);
 
-    this.updateSettings(priv.settings, true);
     this.parseSettingsFromDOM();
-
 
     this.forceFullRender = true; //used when data was changed
     this.view.render();
