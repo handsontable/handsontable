@@ -64,17 +64,23 @@ Handsontable.TableView = function (instance) {
   $documentElement.on('mousedown.' + instance.guid, function (event) {
     var next = event.target;
 
+    if (next.shadowRoot && Handsontable.Dom.isChildOf(instance.rootElement[0], next.shadowRoot)) {
+      return; //click inside Web Component
+    }
+
     if (next !== that.wt.wtTable.spreader) { //immediate click on "spreader" means click on the right side of vertical scrollbar
       while (next !== document.documentElement) {
         if (next === null) {
           return; //click on something that was a row but now is detached (possibly because your click triggered a rerender)
         }
-        if (next === instance.rootElement[0] || next.nodeName === 'HANDSONTABLE-TABLE') {
-          return; //click inside container or Web Component (HANDSONTABLE-TABLE is the name of the custom element)
+        if (next === instance.rootElement[0]) {
+          return; //click inside container
         }
         next = next.parentNode;
       }
     }
+
+    //function did not return until here, we have an outside click!
 
     if (that.settings.outsideClickDeselects) {
       instance.deselectCell();
