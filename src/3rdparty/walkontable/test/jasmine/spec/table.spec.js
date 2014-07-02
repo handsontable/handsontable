@@ -242,24 +242,6 @@ describe('WalkontableTable', function () {
     expect($table.find('tbody tr').length).toBe(7);
   });
 
-  it("should render all rows if height is null", function () {
-    this.data.splice(20, this.data.length - 20); //second param is required by IE8
-
-    $container[0].style.height = null;
-
-    var wt = new Walkontable({
-      table: $table[0],
-      data: getData,
-      totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      width: 150,
-      offsetRow: 0,
-      offsetColumn: 0
-    });
-    wt.draw();
-    expect($table.find('tbody tr').length).toBe(20);
-  });
-
   it("should render all columns if width is null", function () {
     var wt = new Walkontable({
       table: $table[0],
