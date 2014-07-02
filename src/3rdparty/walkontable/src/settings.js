@@ -35,7 +35,9 @@ function WalkontableSettings(instance, settings) {
       that.instance.wtDom.fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);
     },
     columnWidth: 50,
-    rowHeight: 23,
+    rowHeight: function (row) {
+      return 23;
+    },
     selections: null,
     hideBorderOnMouseDownOver: false,
 
