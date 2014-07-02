@@ -97,7 +97,7 @@ var partialOffset = 0;
 WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, length) {
   var sum = 0;
   while (from < length) {
-    sum += this.instance.wtSettings.rowHeight(from); //TODO optimize getSetting, because this is MUCH faster then getSetting
+    sum += this.instance.wtSettings.settings.rowHeight(from) || this.instance.wtSettings.settings.defaultRowHeight; //TODO optimize getSetting, because this is MUCH faster then getSetting
     from++;
   }
   return sum;
