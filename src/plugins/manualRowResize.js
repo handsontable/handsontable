@@ -163,10 +163,6 @@
     };
 
     var setManualSize = function (row, height) {
-      if(height !== null) {
-        height = Math.max(height, 23); //is this needed? [warpech]
-      }
-
       row = Handsontable.hooks.execute(instance, 'modifyRow', row);
 
       instance.manualRowHeights[row] = height;
