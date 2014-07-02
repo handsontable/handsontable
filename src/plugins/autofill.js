@@ -9,7 +9,7 @@
 				wtOnCellCornerMouseDown,
 				wtOnCellMouseOver;
 
-		$document.on('mouseup.' + instance.guid, function (event) {
+		$(this.instance.$table).off('mouseup.' + instance.guid).on('mouseup.' + instance.guid, function (event) {
 			if (instance.autofill.handle && instance.autofill.handle.isDragged) {
 				if (instance.autofill.handle.isDragged > 1) {
 					instance.autofill.apply();
@@ -29,8 +29,8 @@
 
 		wtOnCellMouseOver = this.instance.view.wt.wtSettings.settings.onCellMouseOver;
 		this.instance.view.wt.wtSettings.settings.onCellMouseOver = function(event, coords, TD, wt) {
-			
-			if (!instance.view.isMouseDown() && instance.autofill.handle && instance.autofill.handle.isDragged) {
+
+			if (instance.autofill && (!instance.view.isMouseDown() && instance.autofill.handle && instance.autofill.handle.isDragged)) {
         instance.autofill.handle.isDragged++;
         instance.autofill.showBorder(coords);
         instance.autofill.checkIfNewRowNeeded();
