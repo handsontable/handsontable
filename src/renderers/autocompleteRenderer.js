@@ -44,7 +44,7 @@
     if (!instance.acArrowListener) {
       //not very elegant but easy and fast
       instance.acArrowListener = function () {
-        instance.view.wt.getSetting('onCellDblClick');
+        instance.view.wt.getSetting('onCellDblClick', null, new WalkontableCellCoords(row, col), TD);
       };
 
       instance.rootElement.on('mousedown.htAutocompleteArrow', '.htAutocompleteArrow', instance.acArrowListener); //this way we don't bind event listener to each arrow. We rely on propagation instead
