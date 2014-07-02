@@ -146,22 +146,6 @@ module.exports = function (grunt) {
             'dist/jquery.handsontable.css'
           ]
         }
-      },
-      wc: {
-        files: {
-          'dist_wc/handsontable-table/jquery-2.min.js': [
-            'lib/jquery-2.min.js'
-          ],
-          'dist_wc/handsontable-table/numeral.de-de.js': [
-            'lib/numeral.de-de.js'
-          ],
-          'dist_wc/handsontable-table/jquery.handsontable.full.js': [
-            'dist/jquery.handsontable.full.js'
-          ],
-          'dist_wc/handsontable-table/jquery.handsontable.full.css': [
-            'dist/jquery.handsontable.full.css'
-          ]
-        }
       }
     },
 
@@ -196,16 +180,6 @@ module.exports = function (grunt) {
           'tmp/intro.js': 'src/intro.js',
           'tmp/core.js': 'src/core.js',
           'dist/jquery.handsontable.css': 'src/css/jquery.handsontable.css'
-        }
-      },
-      wc: {
-        options: {
-          variables: {
-            controller: '<%= grunt.file.read("src/wc/handsontable-table-controller.js") %>'
-          }
-        },
-        files: {
-          'dist_wc/handsontable-table.html': 'src/wc/handsontable-table.html'
         }
       }
     },
@@ -316,7 +290,7 @@ module.exports = function (grunt) {
   });
 
   // Default task.
-  grunt.registerTask('default', ['gitinfo', 'replace:dist', 'concat', 'replace:wc', 'clean']);
+  grunt.registerTask('default', ['gitinfo', 'replace:dist', 'concat', 'clean']);
   grunt.registerTask('test', ['default', 'jasmine']);
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
