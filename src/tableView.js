@@ -210,10 +210,10 @@ Handsontable.TableView = function (instance) {
       else {
         if (coords.row < 0 || coords.col < 0) {
           if (coords.row < 0) {
-            instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col)
+            instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col);
           }
           if (coords.col < 0) {
-            instance.selectCell(coords.row, 0, coords.row, instance.countCols())
+            instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
           }
         }
         else {
