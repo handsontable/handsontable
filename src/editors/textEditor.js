@@ -188,13 +188,23 @@
     }
 
     //in future may change to pure JS http://stackoverflow.com/questions/454202/creating-a-textarea-with-auto-resize
-    this.$textarea.autoResize({
+//    this.$textarea.autoResize({
+//      minHeight: Math.min(height, maxHeight),
+//      maxHeight: maxHeight, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
+//      minWidth: Math.min(width, maxWidth),
+//      maxWidth: maxWidth, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
+//      animate: false,
+//      extraSpace: 0
+//    });
+
+    console.log($td);
+
+    autoResize(this.$textarea[0], {
+      fontSize: parseInt( window.getComputedStyle($td[0]).fontSize,10),
       minHeight: Math.min(height, maxHeight),
       maxHeight: maxHeight, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
       minWidth: Math.min(width, maxWidth),
-      maxWidth: maxWidth, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
-      animate: false,
-      extraSpace: 0
+      maxWidth: maxWidth //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
     });
 
     this.textareaParentStyle.display = 'block';
