@@ -14,14 +14,19 @@ var autoResize = function (el, config) {
         element.addEventListener(event, handler, false);
       }
     },
+    unObserve = function (element, event, handler) {
+      if (window.detachEvent) {
+        element.detachEvent('on' + event, handler);
+      } else {
+        element.removeEventListener(event, handler, false);
+      }
+    },
     resize = function () {
       var value = el.value,
         span = document.createElement('SPAN'),
         text = document.createTextNode(value);
       span.style.display = 'inline-block';
       span.style.fontSize = defaults.fontSize + 'px';
-
-//      console.log(defaults.fontSize  + 2);
 
       span.appendChild(text);
       body.appendChild(span);
@@ -35,14 +40,14 @@ var autoResize = function (el, config) {
       if (defaults.minWidth > width) {
         el.style.width = defaults.minWidth + 'px';
       }
-      else if(width > defaults.maxWidth) {
+      else if (width > defaults.maxWidth) {
         var scrollHeight = el.scrollHeight;
 
         el.style.width = defaults.maxWidth + 'px';
 
         if (defaults.minHeight > scrollHeight) {
           el.style.height = defaults.minHeight + 'px';
-        } else if(defaults.maxHeight < scrollHeight) {
+        } else if (defaults.maxHeight < scrollHeight) {
           el.style.height = defaults.maxHeight + 'px';
           el.style.overflowY = 'visible';
         } else {
@@ -138,5 +143,18 @@ var autoResize = function (el, config) {
     };
 
   init(el, config);
+
+  return {
+    init: function () {
+      init(el, config);
+    },
+    unObserve: function () {
+      unObserve(el, 'change', resize);
+      unObserve(el, 'cut', delayedResize);
+      unObserve(el, 'paste', delayedResize);
+      unObserve(el, 'drop', delayedResize);
+      unObserve(el, 'keydown', delayedResize);
+    }
+  }
 
 };
