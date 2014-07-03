@@ -3,6 +3,7 @@
 
   AutocompleteEditor.prototype.init = function () {
     Handsontable.editors.HandsontableEditor.prototype.init.apply(this, arguments);
+    this.$htContainer.handsontable('updateSettings', {height: this.getDropdownHeight()});
 
     this.query = null;
     this.choices = [];
@@ -89,7 +90,6 @@
     choicesListHot.addHook('beforeKeyDown', onBeforeKeyDownInner);
 
     this.queryChoices(this.TEXTAREA.value);
-
 
   };
 
@@ -204,6 +204,10 @@
 
 
     return bestMatch.index;
+  };
+
+  AutocompleteEditor.prototype.getDropdownHeight = function(){
+    return 10 * this.$htContainer.handsontable('getInstance').view.wt.wtSettings.rowHeight(0);
   };
 
 

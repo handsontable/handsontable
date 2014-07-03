@@ -209,7 +209,9 @@
       });
 
       instance.addHook('afterScrollVertically', function (delta) {
+        if(this.view.wt.wtScrollbars.horizontal.scrollHandler == window) {
          that.closeEditor();
+        }
       });
 
       function moveSelectionAfterEnter(shiftKey){
