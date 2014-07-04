@@ -209,7 +209,7 @@
       });
 
       instance.addHook('afterScrollVertically', function (delta) {
-        if(this.view.wt.wtScrollbars.horizontal.scrollHandler == window) {
+        if(this.view.wt.wtScrollbars.vertical.scrollHandler == window) {
          that.closeEditor();
         }
       });
