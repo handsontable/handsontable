@@ -65,7 +65,7 @@ WalkontableVerticalScrollbarNative.prototype.react = function () {
 
 WalkontableVerticalScrollbarNative.prototype.getScrollPosition = function () {
   if (this.scrollHandler === window) {
-    return this.scrollHandler.scrollY;
+    return WalkontableDom.prototype.getWindowScrollTop();
   }
   else {
     return this.scrollHandler.scrollTop;
@@ -74,7 +74,7 @@ WalkontableVerticalScrollbarNative.prototype.getScrollPosition = function () {
 
 WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) {
   if (this.scrollHandler === window){
-    window.scrollTo(this.instance.wtDom.getWindowScroll().left, pos);
+    window.scrollTo(WalkontableDom.prototype.getWindowScrollLeft(), pos);
   } else {
     this.scrollHandler.scrollTop = pos;
   }

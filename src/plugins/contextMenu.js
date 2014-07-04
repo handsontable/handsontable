@@ -640,15 +640,16 @@
   };
 
   ContextMenu.prototype.setMenuPosition = function (cursorY, cursorX) {
-    var scroll = this.instance.view.wt.wtDom.getWindowScroll();
+    var scrollTop = Handsontable.Dom.getWindowScrollTop();
+    var scrollLeft = Handsontable.Dom.getWindowScrollLeft();
 
     var cursor = {
       top:  cursorY,
-      topRelative: cursorY - scroll.top,
+      topRelative: cursorY - scrollTop,
       left: cursorX,
-      leftRelative:cursorX - scroll.left,
-      scrollTop: scroll.top,
-      scrollLeft: scroll.left
+      leftRelative:cursorX - scrollLeft,
+      scrollTop: scrollTop,
+      scrollLeft: scrollLeft
     };
 
     if(this.menuFitsBelowCursor(cursor)){
