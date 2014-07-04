@@ -328,6 +328,13 @@ WalkontableDom.prototype.offset = function (elem) {
   };
 };
 
+WalkontableDom.prototype.getWindowScroll = function () {
+  return {
+    top: window.scrollY,
+    left: window.scrollX
+  }
+}
+
 WalkontableDom.prototype.getComputedStyle = function (elem) {
   return elem.currentStyle || document.defaultView.getComputedStyle(elem);
 };

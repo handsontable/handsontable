@@ -130,6 +130,7 @@ Handsontable.TableView = function (instance) {
     fixedRowsTop: function () {
       return that.settings.fixedRowsTop;
     },
+    renderAllRows: that.settings.renderAllRows,
     rowHeaders: function () {
       return instance.hasRowHeaders() ? [function (index, TH) {
         that.appendRowHeader(index, TH);

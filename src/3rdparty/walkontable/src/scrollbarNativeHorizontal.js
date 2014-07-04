@@ -75,7 +75,7 @@ WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
 
 WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos) {
   if (this.scrollHandler === window){
-    window.scrollTo(pos, window.scrollY);
+    window.scrollTo(pos, this.instance.wtDom.getWindowScroll().top);
   } else {
     this.scrollHandler.scrollLeft = pos;
   }

@@ -398,7 +398,6 @@
   };
 
   ContextMenu.prototype.show = function(top, left){
-
     this.menu.style.display = 'block';
 
     $(this.menu)
@@ -417,7 +416,8 @@
           renderer: Handsontable.helper.proxy(this.renderer, this)
         }
       ],
-      beforeKeyDown: Handsontable.helper.proxy(this.onBeforeKeyDown, this)
+      beforeKeyDown: Handsontable.helper.proxy(this.onBeforeKeyDown, this),
+      renderAllRows: true
     });
     this.bindTableEvents();
 
@@ -640,18 +640,25 @@
   };
 
   ContextMenu.prototype.setMenuPosition = function (cursorY, cursorX) {
+    var scroll = this.instance.view.wt.wtDom.getWindowScroll();
 
     var cursor = {
       top:  cursorY,
-      topRelative: cursorY - document.documentElement.scrollTop,
+      topRelative: cursorY - scroll.top,
       left: cursorX,
-      leftRelative:cursorX - document.documentElement.scrollLeft
+      leftRelative:cursorX - scroll.left,
+      scrollTop: scroll.top,
+      scrollLeft: scroll.left
     };
 
     if(this.menuFitsBelowCursor(cursor)){
       this.positionMenuBelowCursor(cursor);
     } else {
-      this.positionMenuAboveCursor(cursor);
+      if (this.menuFitsAboveCursor(cursor)) {
+        this.positionMenuAboveCursor(cursor);
+      } else {
+        this.positionMenuBelowCursor(cursor);
+      }
     }
 
     if(this.menuFitsOnRightOfCursor(cursor)){
@@ -662,12 +669,16 @@
 
   };
 
+  ContextMenu.prototype.menuFitsAboveCursor = function (cursor) {
+    return cursor.topRelative >= this.menu.offsetHeight;
+  };
+
   ContextMenu.prototype.menuFitsBelowCursor = function (cursor) {
-    return cursor.topRelative + this.menu.offsetHeight <= document.documentElement.scrollTop + document.documentElement.clientHeight;
+    return cursor.topRelative + this.menu.offsetHeight <= cursor.scrollTop + document.body.clientHeight;
   };
 
   ContextMenu.prototype.menuFitsOnRightOfCursor = function (cursor) {
-    return cursor.leftRelative + this.menu.offsetWidth <= document.documentElement.scrollLeft + document.documentElement.clientWidth;
+    return cursor.leftRelative + this.menu.offsetWidth <= cursor.scrollLeft + document.body.clientWidth;
   };
 
   ContextMenu.prototype.positionMenuBelowCursor = function (cursor) {

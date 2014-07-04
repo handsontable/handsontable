@@ -389,7 +389,7 @@ WalkontableTableRenderer.prototype.refreshStretching = function () {
   };
 
   var containerHeightFn = function (cacheHeight) {
-    if (that.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
+    if (that.instance.cloneOverlay instanceof WalkontableDebugOverlay || instance.wtSettings.settings.renderAllRows) {
       return Infinity;
     }
     else {
