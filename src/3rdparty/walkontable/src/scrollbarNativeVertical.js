@@ -2,8 +2,8 @@ function WalkontableVerticalScrollbarNative(instance) {
   this.instance = instance;
   this.type = 'vertical';
   this.cellSize = this.instance.wtSettings.settings.defaultRowHeight;
-  this.offset = 0;
-  this.totalRows = 0;
+  this.offset;
+  this.total;
   this.init();
   this.clone = this.makeClone('top');
 }
@@ -92,8 +92,6 @@ WalkontableVerticalScrollbarNative.prototype.getLastCell = function () {
   return this.instance.getSetting('offsetRow') + this.instance.wtTable.tbodyChildrenLength - 1;
 };
 
-var partialOffset = 0;
-
 WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, length) {
   var sum = 0;
   while (from < length) {
@@ -135,34 +133,21 @@ WalkontableVerticalScrollbarNative.prototype.readWindowSize = function () {
 WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
   this.readWindowSize();
 
-  var scrollDelta;
-  var newOffset = 0;
+  this.offset = this.instance.getSetting('offsetRow');
+  this.total = this.instance.getSetting('totalRows');
 
-  if (this.windowScrollPosition > this.tableParentOffset) {
-    scrollDelta = this.windowScrollPosition - this.tableParentOffset;
+  var scrollDelta = scrollDelta = this.windowScrollPosition - this.tableParentOffset;
 
-    partialOffset = 0;
-    if (scrollDelta > 0) {
-      var sum = 0;
-      var last;
-      for (var i = 0; i < this.total; i++) {
-        last = this.instance.getSetting('rowHeight', i) || this.instance.wtSettings.settings.defaultRowHeight;
-        sum += last;
-        if (sum - 1> scrollDelta) {
-          break;
-        }
-      }
-
-      if (this.offset > 0) {
-        partialOffset = (sum - scrollDelta);
-      }
-      newOffset = i;
-      newOffset = Math.min(newOffset, this.total);
+  var sum = 0;
+  var last;
+  for (var i = 0; i < this.total; i++) {
+    last = this.instance.getSetting('rowHeight', i) || this.instance.wtSettings.settings.defaultRowHeight;
+    sum += last;
+    if (sum - 1 > scrollDelta) {
+      break;
     }
   }
 
-  this.instance.update('offsetRow', newOffset);
-
-  this.offset = this.instance.getSetting('offsetRow');
-  this.total = this.instance.getSetting('totalRows');
+  this.offset = Math.min(i, this.total);
+  this.instance.update('offsetRow', this.offset);
 };
