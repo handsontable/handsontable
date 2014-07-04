@@ -242,8 +242,6 @@
 
             if (type === "BUTTON") {
               if(className) {
-
-                console.log(this.getSelectedRange());
                 align.call(this, this.getSelectedRange(),'horizontal','ht' + className );
               }
             }
