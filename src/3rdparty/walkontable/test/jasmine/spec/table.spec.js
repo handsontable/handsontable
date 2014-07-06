@@ -4,7 +4,7 @@ describe('WalkontableTable', function () {
 
   beforeEach(function () {
     $container = $('<div></div>').css({'overflow': 'auto'});
-    $container.width(100).height(200);
+    $container.width(100).height(201);
     $table = $('<table></table>'); //create a table that is not attached to document
     $container.append($table).appendTo('body');
     createDataArray();
@@ -27,7 +27,7 @@ describe('WalkontableTable', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      height: 200,
+      height: 201,
       width: 100
     });
     wt.draw();
@@ -44,7 +44,7 @@ describe('WalkontableTable', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      height: 200,
+      height: 201,
       width: 100
     });
     wt.draw();
@@ -61,7 +61,7 @@ describe('WalkontableTable', function () {
         TH.innerHTML = col + 1;
       }],
       offsetRow: 0,
-      height: 200,
+      height: 201,
       width: 100
     });
     wt.draw();
@@ -76,7 +76,7 @@ describe('WalkontableTable', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      height: 200,
+      height: 201,
       width: 100,
       columnHeaders: [function (column, TH) {
         TH.innerHTML = headers[column];
@@ -96,7 +96,7 @@ describe('WalkontableTable', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      height: 200,
+      height: 201,
       width: 120,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
@@ -119,7 +119,7 @@ describe('WalkontableTable', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      height: 200,
+      height: 201,
       width: 120,
       columnHeaders: [function (col, TH) {
         TH.innerHTML = 'Column';
@@ -145,7 +145,7 @@ describe('WalkontableTable', function () {
       totalColumns: getTotalColumns,
       offsetRow: 0,
       offsetColumn: 0,
-      height: 200,
+      height: 201,
       width: 100
     });
     wt.draw();
@@ -164,7 +164,7 @@ describe('WalkontableTable', function () {
       totalColumns: getTotalColumns,
       offsetRow: 0,
       offsetColumn: 0,
-      height: 200,
+      height: 201,
       width: 100
     });
     wt.draw();
@@ -185,7 +185,7 @@ describe('WalkontableTable', function () {
       totalColumns: getTotalColumns,
       offsetRow: 0,
       offsetColumn: 0,
-      height: 200,
+      height: 201,
       width: 100,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = plusOne(row);
@@ -204,7 +204,7 @@ describe('WalkontableTable', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      height: 200,
+      height: 201,
       width: 100,
       cellRenderer: function (row, column, TD) {
         var cellData = getData(row, column);
@@ -231,7 +231,7 @@ describe('WalkontableTable', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      height: 200,
+      height: 201,
       width: 100
     });
     wt.draw();
@@ -248,7 +248,7 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
+      height: 201,
       offsetRow: 0,
       offsetColumn: 0,
       columnHeaders: [function (col, TH) {
@@ -266,7 +266,7 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
+      height: 201,
       offsetRow: 0,
       offsetColumn: 0,
       rowHeaders: [function (row, TH) {
@@ -287,7 +287,7 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
+      height: 201,
       offsetRow: 0,
       offsetColumn: 0,
       rowHeaders: [function (row, TH) {
@@ -307,7 +307,7 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
+      height: 201,
       offsetRow: 0,
       offsetColumn: 0,
       rowHeaders: [function (row, TH) {
@@ -333,7 +333,7 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
+      height: 201,
       offsetRow: 0,
       offsetColumn: 0,
       rowHeaders: [function (row, TH) {
@@ -342,13 +342,13 @@ describe('WalkontableTable', function () {
       columnHeaders: [function (col, TH) {
         TH.innerHTML = col + 1;
       }],
-      columnWidth: [50, 100, 150, 200]
+      columnWidth: [50, 100, 150, 201]
     });
     wt.draw();
     expect($table.find('tbody tr:first td:eq(0)').outerWidth()).toBe(50);
     expect($table.find('tbody tr:first td:eq(1)').outerWidth()).toBe(100);
     expect($table.find('tbody tr:first td:eq(2)').outerWidth()).toBe(150);
-    expect($table.find('tbody tr:first td:eq(3)').outerWidth()).toBe(200);
+    expect($table.find('tbody tr:first td:eq(3)').outerWidth()).toBe(201);
   });
 
   it("should use column width integer to get column width", function () {
@@ -357,7 +357,7 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      height: 200,
+      height: 201,
       offsetRow: 0,
       offsetColumn: 0,
       rowHeaders: [function (row, TH) {
@@ -383,7 +383,7 @@ describe('WalkontableTable', function () {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: 4,
-      height: 200,
+      height: 201,
       offsetRow: 0,
       offsetColumn: 0,
       rowHeaders: [function (row, TH) {
@@ -427,7 +427,7 @@ describe('WalkontableTable', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        width: 200,
+        width: 201,
         height: 100,
         offsetRow: 0,
         offsetColumn: 0,
@@ -450,7 +450,7 @@ describe('WalkontableTable', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        width: 200,
+        width: 201,
         height: 100,
         offsetRow: 0,
         offsetColumn: 0,
@@ -471,7 +471,7 @@ describe('WalkontableTable', function () {
     it("should strech all visible columns when stretchH equals 'all'", function () {
       createDataArray(20, 2);
 
-      $container.width(301).height(200);
+      $container.width(301).height(201);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -479,7 +479,7 @@ describe('WalkontableTable', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         width: 301,
-        height: 200,
+        height: 201,
         scrollH: 'scroll',
         scrollV: 'scroll',
         stretchH: 'all',
@@ -511,7 +511,7 @@ describe('WalkontableTable', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         width: 301,
-        height: 200,
+        height: 201,
         scrollH: 'scroll',
         scrollV: 'scroll',
         stretchH: 'all'
@@ -528,7 +528,7 @@ describe('WalkontableTable', function () {
     it("should strech last visible column when stretchH equals 'last'", function () {
       createDataArray(20, 2);
 
-      $container.width(300).height(200);
+      $container.width(300).height(201);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -536,7 +536,7 @@ describe('WalkontableTable', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         width: 300,
-        height: 200,
+        height: 201,
         scrollH: 'scroll',
         scrollV: 'scroll',
         stretchH: 'last',
@@ -554,7 +554,7 @@ describe('WalkontableTable', function () {
     it("should strech last visible column when stretchH equals 'last' (and no vertical scroll)", function () {
       createDataArray(2, 2);
 
-      $container.width(300).height(200);
+      $container.width(300).height(201);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -562,7 +562,7 @@ describe('WalkontableTable', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         width: 300,
-        height: 200,
+        height: 201,
         scrollH: 'auto',
         scrollV: 'auto',
         stretchH: 'last',
@@ -579,7 +579,7 @@ describe('WalkontableTable', function () {
 
     it("should not strech when stretchH equals 'none'", function () {
       createDataArray(20, 2);
-      $container.width(300).height(200);
+      $container.width(300).height(201);
 
       var wt = new Walkontable({
         table: $table[0],
@@ -587,7 +587,7 @@ describe('WalkontableTable', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         width: 300,
-        height: 200,
+        height: 201,
         scrollH: 'scroll',
         scrollV: 'scroll',
         stretchH: 'none',
