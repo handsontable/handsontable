@@ -4,7 +4,7 @@ describe('AutocompleteEditor', function () {
   var choices = ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"];
 
   beforeEach(function () {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $('<div id="' + id + '" style="width: 300px; height: 200px; overflow: auto"></div>').appendTo('body');
   });
 
   afterEach(function () {
