@@ -57,13 +57,22 @@
         }
         elem.className = 'htNoFrame htRemoveRow';
         if (row > -1) {
-          div = document.createElement('div');
+//RemoveRow		
+          div = document.createElement('span');
           div.className = 'btn';
           div.appendChild(document.createTextNode('x'));
           elem.appendChild(div);
-
           $(div).on('mouseup', function () {
             instance.alter("remove_row", row);
+          });
+//InsertRow
+          div = document.createElement('span');
+          div.className = 'btn';
+          div.appendChild(document.createTextNode('+'));
+          elem.appendChild(div);
+
+          $(div).on('mouseup', function () {
+            instance.alter("insert_row", row);
           });
         }
       };
