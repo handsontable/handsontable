@@ -207,7 +207,9 @@
   };
 
   AutocompleteEditor.prototype.getDropdownHeight = function(){
-    return 10 * this.$htContainer.handsontable('getInstance').view.wt.wtSettings.rowHeight(0);
+    //return 10 * this.$htContainer.handsontable('getInstance').getRowHeight(0);
+    //sorry, we can't measure row height before it was rendered. Let's use fixed height for now
+    return 230;
   };
 
 
