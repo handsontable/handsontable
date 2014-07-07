@@ -26,7 +26,7 @@ WalkontableOverlay.prototype.makeClone = function (direction) {
   var clone = document.createElement('DIV');
   clone.className = 'ht_clone_' + direction + ' handsontable';
   clone.style.position = 'fixed';
-  //clone.style.overflow = 'hidden';
+  clone.style.overflow = 'hidden';
 
   var table2 = document.createElement('TABLE');
   table2.className = this.instance.wtTable.TABLE.className;

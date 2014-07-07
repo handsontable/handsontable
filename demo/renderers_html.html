@@ -358,15 +358,15 @@
             var menu = buildMenu(columns[col].type);
 
             var $button = buildButton();
+
             $button.click(function (e) {
+              instance.rootElement[0].appendChild(menu[0]);
 
               e.preventDefault();
               e.stopImmediatePropagation();
 
               $('.changeTypeMenu').hide();
-
               menu.show();
-
               menu.position({
                  my: 'left top',
                  at: 'left bottom',
@@ -377,7 +377,8 @@
               $(document).off('click.changeTypeMenu.hide');
 
               $(document).one('click.changeTypeMenu.hide', function () {
-                 menu.hide();
+//                 menu.hide();
+                instance.rootElement[0].removeChild(menu[0]);
               });
 
 
@@ -388,7 +389,8 @@
             });
 
             TH.firstChild.appendChild($button[0]);
-            TH.appendChild(menu[0]);
+
+            //TH.appendChild(menu[0]);
           },
           cells: function (row, col, prop) {
             if (row === 0) {
