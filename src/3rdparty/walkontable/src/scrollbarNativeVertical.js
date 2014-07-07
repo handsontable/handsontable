@@ -131,7 +131,7 @@ WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
   this.offset = this.instance.getSetting('offsetRow');
   this.total = this.instance.getSetting('totalRows');
 
-  var scrollDelta = scrollDelta = this.windowScrollPosition - this.tableParentOffset;
+  var scrollDelta = this.windowScrollPosition - this.tableParentOffset;
 
   var sum = 0;
   var last;
