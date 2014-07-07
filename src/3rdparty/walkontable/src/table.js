@@ -339,7 +339,7 @@ WalkontableTable.prototype.getLastVisibleColumn = function () {
   var leftOffset = this.instance.wtScrollbars.horizontal.getScrollPosition();
   var leftPartOfTable = leftOffset + this.instance.wtViewport.getWorkspaceWidth(Infinity);
   var columnCount = this.getColumnStrategy().cellCount;
-  var rowHeaderCount = this.instance.getSetting('rowHeaders').length || 0
+  var rowHeaderCount = this.instance.getSetting('rowHeaders').length || 0;
   var firstTR = this.TBODY.firstChild;
 
   if (!columnCount) {
