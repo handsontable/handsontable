@@ -54,7 +54,7 @@ describe('Core_destroyEditor', function () {
     expect(getDataAtCell(1, 1)).toEqual(null);
   });
 
-  it("should destroy editor on scroll", function () {
+  it("should not destroy editor on scroll", function () {
     this.$container.css({
       width: 200,
       height: 100
@@ -73,7 +73,7 @@ describe('Core_destroyEditor', function () {
 
     this.$container.scroll();
 
-    expect(editor.is(':visible')).toBe(false);
+    expect(editor.is(':visible')).toBe(true);
 
   });
 

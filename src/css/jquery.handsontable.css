@@ -385,6 +385,13 @@ ul.context-menu-list li {
 }
 
 /**
+* Autocomplete Editor
+*/
+.handsontable .autocompleteEditor.handsontable {
+  padding-right: 15px;
+}
+
+/**
  * Handsontable listbox theme
  */
 
