@@ -170,10 +170,11 @@
     };
 
     this.modifyRowHeight = function (height, row) {
-      row = this.runHooksAndReturn('modifyRow', row);
-
-      if (this.getSettings().manualRowResize && this.manualRowHeights[row] !== void 0) {
-        return this.manualRowHeights[row];
+      if (this.getSettings().manualRowResize) {
+        row = this.runHooksAndReturn('modifyRow', row);
+        if (this.manualRowHeights[row] !== void 0) {
+          return this.manualRowHeights[row];
+        }
       }
       return height;
     };
