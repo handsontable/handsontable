@@ -100,6 +100,8 @@ Handsontable.PluginHookClass = (function () {
         bucket[key] = [];
       }
 
+      fn.skip = false;
+
       if (bucket[key].indexOf(fn) == -1) {
         bucket[key].push(fn); //only add a hook if it has not already be added (adding the same hook twice is now silently ignored)
       }
@@ -139,8 +141,7 @@ Handsontable.PluginHookClass = (function () {
       for (var i = 0, leni = bucket[key].length; i < leni; i++) {
 
         if (bucket[key][i] == fn) {
-          delete bucket[key][i].runOnce;
-          bucket[key].splice(i, 1);
+          bucket[key][i].skip = true;
           status = true;
           break;
         }
@@ -163,15 +164,15 @@ Handsontable.PluginHookClass = (function () {
   };
 
   PluginHookClass.prototype._runBucket = function (bucket, instance, key, p1, p2, p3, p4, p5) {
-    if (typeof bucket[key] !== 'undefined') {
-      //Make a copy of handler array
-      var handlers = Array.prototype.slice.call(bucket[key]);
-
+    var handlers = bucket[key];
+    if (handlers) {
       for (var i = 0, leni = handlers.length; i < leni; i++) {
-        handlers[i].call(instance, p1, p2, p3, p4, p5);
+        if (!handlers[i].skip) {
+          handlers[i].call(instance, p1, p2, p3, p4, p5);
 
-        if(handlers[i].runOnce){
-          this.remove(key, handlers[i], bucket === this.globalBucket ? null : instance);
+          if (handlers[i].runOnce) {
+            this.remove(key, handlers[i], bucket === this.globalBucket ? null : instance);
+          }
         }
       }
     }
@@ -189,23 +190,25 @@ Handsontable.PluginHookClass = (function () {
   };
 
   PluginHookClass.prototype._executeBucket = function (bucket, instance, key, p1, p2, p3, p4, p5) {
-    var res, handlers;
+    var res,
+      handlers = bucket[key];
 
     //performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-    if (typeof bucket[key] !== 'undefined') {
-      handlers = Array.prototype.slice.call(bucket[key]);
+    if (handlers) {
       for (var i = 0, leni = handlers.length; i < leni; i++) {
-        res = handlers[i].call(instance, p1, p2, p3, p4, p5);
-        if (res !== void 0) {
-          p1 = res;
-        }
+        if (!handlers[i].skip) {
+          res = handlers[i].call(instance, p1, p2, p3, p4, p5);
+          if (res !== void 0) {
+            p1 = res;
+          }
 
-        if(handlers[i].runOnce){
-          this.remove(key, handlers[i], bucket === this.globalBucket ? null : instance);
-        }
+          if (handlers[i].runOnce) {
+            this.remove(key, handlers[i], bucket === this.globalBucket ? null : instance);
+          }
 
-        if(res === false){ //if any handler returned false
-          return false; //event has been cancelled and further execution of handler queue is being aborted
+          if (res === false) { //if any handler returned false
+            return false; //event has been cancelled and further execution of handler queue is being aborted
+          }
         }
       }
     }
