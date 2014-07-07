@@ -120,10 +120,12 @@ function HandsontableColumnSorting() {
     var instance = this;
 
     instance.rootElement.on('click.handsontable', '.columnSorting', function (e) {
-      if (instance.view.wt.wtDom.hasClass(e.target, 'columnSorting')) {
+
+      // TODO (remove it to sort each column)
+//      if (instance.view.wt.wtDom.hasClass(e.target, 'columnSorting')) {
         var col = getColumn(e.target);
         plugin.sortByColumn.call(instance, col);
-      }
+//      }
     });
 
     function countRowHeaders() {
