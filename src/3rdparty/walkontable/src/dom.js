@@ -336,6 +336,24 @@ WalkontableDom.prototype.getWindowScrollLeft = function () {
   return window.scrollX;
 };
 
+WalkontableDom.prototype.getScrollTop = function (elem) {
+  if (elem === window) {
+    return WalkontableDom.prototype.getWindowScrollTop(elem);
+  }
+  else {
+    return elem.scrollTop;
+  }
+};
+
+WalkontableDom.prototype.getScrollLeft = function (elem) {
+  if (elem === window) {
+    return WalkontableDom.prototype.getWindowScrollLeft(elem);
+  }
+  else {
+    return elem.scrollLeft;
+  }
+};
+
 WalkontableDom.prototype.getComputedStyle = function (elem) {
   return elem.currentStyle || document.defaultView.getComputedStyle(elem);
 };

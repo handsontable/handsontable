@@ -65,12 +65,7 @@ WalkontableHorizontalScrollbarNative.prototype.refresh = function (selectionsOnl
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
-  if (this.scrollHandler === window) {
-    return WalkontableDom.prototype.getWindowScrollLeft();
-  }
-  else {
-    return this.scrollHandler.scrollLeft;
-  }
+  return WalkontableDom.prototype.getScrollLeft(this.scrollHandler);
 };
 
 WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos) {
