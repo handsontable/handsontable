@@ -789,10 +789,32 @@
 
   ContextMenu.SEPARATOR = "---------";
 
+    // WOT's sumCellSizes method override - needed for calculating contextMenu Height
+  ContextMenu.overrideWtMethods = function() {
+
+    WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, length) {
+      var sum = 0,
+          currentCell;
+      while (from < length) {
+        currentCell = this.instance.wtTable.getCell({row: from, col: 0});
+        if(isNaN(currentCell) && currentCell.className.match(/\bhtSeparator\b/)) {
+            sum += 7; // Dummy value - works good as a separator height
+        } else {
+          sum += this.instance.wtSettings.settings.rowHeight(from) || this.instance.wtSettings.settings.defaultRowHeight; //TODO optimize getSetting, because this is MUCH faster then getSetting
+        }
+        from++;
+      }
+      return sum;
+    };
+
+  };
+
   function init(){
     var instance = this;
     var contextMenuSetting = instance.getSettings().contextMenu;
     var customOptions = Handsontable.helper.isObject(contextMenuSetting) ? contextMenuSetting : {};
+
+    ContextMenu.overrideWtMethods();
 
     if(contextMenuSetting){
       if(!instance.contextMenu){
