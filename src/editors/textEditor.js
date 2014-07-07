@@ -173,10 +173,14 @@
     this.textareaParentStyle.left = editLeft + 'px';
     ///end prepare textarea position
 
+
+    var cellTopOffset = this.TD.offsetTop,
+      cellLeftOffset = this.TD.offsetLeft - this.instance.view.wt.wtScrollbars.horizontal.scrollHandler.scrollLeft;
+
     var width = $td.width()
-      , maxWidth = this.instance.view.maximumVisibleElementWidth(editLeft) - 10 //10 is TEXTAREAs border and padding
+      , maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 10 //10 is TEXTAREAs border and padding
       , height = $td.outerHeight() - 4
-      , maxHeight = this.instance.view.maximumVisibleElementHeight(editTop) - 5; //10 is TEXTAREAs border and padding
+      , maxHeight = this.instance.view.maximumVisibleElementHeight(cellTopOffset)-2; //10 is TEXTAREAs border and padding
 
     if (parseInt($td.css('border-top-width'), 10) > 0) {
       height -= 1;
@@ -186,6 +190,7 @@
         width -= 1;
       }
     }
+
 
     //in future may change to pure JS http://stackoverflow.com/questions/454202/creating-a-textarea-with-auto-resize
     this.$textarea.autoResize({
