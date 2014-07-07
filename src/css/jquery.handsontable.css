@@ -399,7 +399,7 @@ ul.context-menu-list li {
   margin: 0;
 }
 
-.handsontable.listbox table {
+.handsontable.listbox .ht_master table {
   border: 1px solid #ccc;
   border-collapse: separate;
   background: white;

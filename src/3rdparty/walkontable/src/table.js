@@ -37,6 +37,11 @@ function WalkontableTable(instance, table) {
     var holder = document.createElement('DIV');
     holder.style.position = 'relative';
     holder.className = 'wtHolder';
+
+    if(!instance.cloneSource) {
+      holder.className += ' ht_master';
+    }
+
     if (parent) {
       parent.insertBefore(holder, this.hider); //if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
     }
