@@ -329,11 +329,19 @@ WalkontableDom.prototype.offset = function (elem) {
 };
 
 WalkontableDom.prototype.getWindowScrollTop = function () {
-  return window.scrollY;
+  var res = window.scrollY;
+  if (res == void 0) { //IE8-11
+    res = document.documentElement.scrollTop;
+  }
+  return res;
 };
 
 WalkontableDom.prototype.getWindowScrollLeft = function () {
-  return window.scrollX;
+  var res = window.scrollX;
+  if (res == void 0) { //IE8-11
+    res = document.documentElement.scrollLeft;
+  }
+  return res;
 };
 
 WalkontableDom.prototype.getScrollTop = function (elem) {
