@@ -2171,7 +2171,7 @@ describe('AutocompleteEditor', function () {
     
   });
 
-  it("should not close editor if scrolling happend over a dropdown containing a scrollbar", function(){
+  it("should not close editor on scrolling", function(){
     var hot = handsontable({
       data: [
         ['', 'two','three'],
@@ -2191,13 +2191,13 @@ describe('AutocompleteEditor', function () {
 
         }
       ]
-    }),
-    continues = false;
+    });
 
     expect(choices.length).toBeGreaterThan(10);
 
     selectCell(0, 0);
     $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
+    $(getCell(0, 0)).find('.htAutocompleteArrow').mouseup();
 
     var dropdown = hot.getActiveEditor().$htContainer;
 
@@ -2205,19 +2205,24 @@ describe('AutocompleteEditor', function () {
 
     waits(30);
 
-    runs(function(){
-      expect($(dropdown[0]).is(':visible')).toBe(false);
-
+    runs(function () {
+      expect($(dropdown[0]).is(':visible')).toBe(true);
       selectCell(0, 0);
+    });
+
+    waits(30);
+
+    runs(function () {
       $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
+      $(getCell(0, 0)).find('.htAutocompleteArrow').mouseup();
 
       dropdown.handsontable('getInstance').view.wt.wtScrollbars.vertical.scrollTo(3);
+    });
 
-      waits(30);
+    waits(30);
 
-      runs(function(){
-        expect($(dropdown[0]).is(':visible')).toBe(true);
-      });
+    runs(function () {
+      expect($(dropdown[0]).is(':visible')).toBe(true);
     });
   });  
 

@@ -208,12 +208,6 @@
         $document.off('keydown.handsontable.' + instance.guid);
       });
 
-      instance.addHook('afterScrollVertically', function (delta) {
-        if(this.view.wt.wtScrollbars.vertical.scrollHandler == window) {
-         that.closeEditor();
-        }
-      });
-
       function moveSelectionAfterEnter(shiftKey){
         var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;
 
