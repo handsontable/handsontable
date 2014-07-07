@@ -790,15 +790,19 @@
   ContextMenu.SEPARATOR = "---------";
 
   function updateHeight() {
-    var separatorHeight = 0;
+    var realSeparatorHeight = 0,
+        realEntrySize = 0,
+        dataSize = this.getSettings().data.length;
 
-    for(var i = 0, dataSize = this.getSettings().data.length; i < dataSize; i++) {
+    for(var i = 0; i < dataSize; i++) {
       if(this.getSettings().data[i].name == ContextMenu.SEPARATOR) {
-        separatorHeight += 16;
+        realSeparatorHeight += 2;
+      } else {
+        realEntrySize += 26;
       }
     }
 
-    this.view.wt.wtScrollbars.vertical.fixedContainer.style.height = parseInt(this.view.wt.wtScrollbars.vertical.fixedContainer.style.height,10) - separatorHeight + "px";
+    this.view.wt.wtScrollbars.vertical.fixedContainer.style.height = realEntrySize + realSeparatorHeight + "px";
     this.updateSettings({});
   }
 
