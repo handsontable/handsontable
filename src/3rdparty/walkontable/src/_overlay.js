@@ -71,7 +71,7 @@ WalkontableOverlay.prototype.availableSize = function () {
 
   if (this.windowScrollPosition > this.tableParentOffset /*&& last > -1*/) { //last -1 means that viewport is scrolled behind the table
     if (this.instance.wtTable.getLastVisibleRow() === this.total - 1) {
-      availableSize = this.instance.wtDom.outerHeight(this.TABLE);
+      availableSize = Handsontable.Dom.outerHeight(this.TABLE);
     }
     else {
       availableSize = this.windowSize;

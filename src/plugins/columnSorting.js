@@ -120,7 +120,7 @@ function HandsontableColumnSorting() {
     var instance = this;
 
     instance.rootElement.on('click.handsontable', '.columnSorting', function (e) {
-      if (instance.view.wt.wtDom.hasClass(e.target, 'columnSorting')) {
+      if (Handsontable.Dom.hasClass(e.target, 'columnSorting')) {
         var col = getColumn(e.target);
         plugin.sortByColumn.call(instance, col);
       }
@@ -132,8 +132,8 @@ function HandsontableColumnSorting() {
     }
 
     function getColumn(target) {
-      var TH = instance.view.wt.wtDom.closest(target, 'TH');
-      return instance.view.wt.wtDom.index(TH) - countRowHeaders();
+      var TH = Handsontable.Dom.closest(target, 'TH');
+      return Handsontable.Dom.index(TH) - countRowHeaders();
     }
   };
 
@@ -243,7 +243,7 @@ function HandsontableColumnSorting() {
 
   this.getColHeader = function (col, TH) {
     if (this.getSettings().columnSorting) {
-      this.view.wt.wtDom.addClass(TH.querySelector('.colHeader'), 'columnSorting');
+      Handsontable.Dom.addClass(TH.querySelector('.colHeader'), 'columnSorting');
     }
   };
 

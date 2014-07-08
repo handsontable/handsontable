@@ -46,13 +46,13 @@ WalkontableHorizontalScrollbarNative.prototype.react = function () {
   if (this.instance.wtScrollbars.vertical.scrollHandler === window) {
     var box = this.instance.wtTable.hider.getBoundingClientRect();
     overlayContainer.style.top = Math.ceil(box.top, 10) + 'px';
-    overlayContainer.style.height = WalkontableDom.prototype.outerHeight(this.clone.wtTable.TABLE) + 'px';
+    overlayContainer.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 'px';
   }
   else {
     this.clone.wtTable.holder.style.top = -(this.instance.wtScrollbars.vertical.windowScrollPosition - this.instance.wtScrollbars.vertical.measureBefore) + 'px';
     overlayContainer.style.height = this.instance.wtViewport.getWorkspaceHeight() + 'px'
   }
-  overlayContainer.style.width = WalkontableDom.prototype.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px'; //4 is for the box shadow
+  overlayContainer.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px'; //4 is for the box shadow
 };
 
 WalkontableHorizontalScrollbarNative.prototype.prepare = function () {
@@ -65,12 +65,12 @@ WalkontableHorizontalScrollbarNative.prototype.refresh = function (selectionsOnl
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
-  return WalkontableDom.prototype.getScrollLeft(this.scrollHandler);
+  return Handsontable.Dom.getScrollLeft(this.scrollHandler);
 };
 
 WalkontableHorizontalScrollbarNative.prototype.setScrollPosition = function (pos) {
   if (this.scrollHandler === window){
-    window.scrollTo(pos, WalkontableDom.prototype.getWindowScrollTop());
+    window.scrollTo(pos, Handsontable.Dom.getWindowScrollTop());
   } else {
     this.scrollHandler.scrollLeft = pos;
   }

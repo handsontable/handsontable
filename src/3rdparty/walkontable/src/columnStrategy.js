@@ -91,8 +91,8 @@ WalkontableColumnStrategy.prototype.isLastIncomplete = function () {
   var firstRow = this.instance.wtTable.getFirstVisibleRow();
   var lastCol = this.instance.wtTable.getLastVisibleColumn();
   var cell = this.instance.wtTable.getCell(new WalkontableCellCoords(firstRow, lastCol));
-  var cellOffset = WalkontableDom.prototype.offset(cell);
-  var cellWidth = WalkontableDom.prototype.outerWidth(cell);
+  var cellOffset = Handsontable.Dom.offset(cell);
+  var cellWidth = Handsontable.Dom.outerWidth(cell);
   var cellEnd = cellOffset.left + cellWidth;
 
   var viewportOffsetLeft = this.instance.wtScrollbars.vertical.getScrollPosition();

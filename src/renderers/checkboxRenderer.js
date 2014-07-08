@@ -26,7 +26,7 @@
       cellProperties.uncheckedTemplate = false;
     }
 
-    instance.view.wt.wtDom.empty(TD); //TODO identify under what circumstances this line can be removed
+    Handsontable.Dom.empty(TD); //TODO identify under what circumstances this line can be removed
 
     var INPUT = clonableINPUT.cloneNode(false); //this is faster than createElement
 
@@ -42,7 +42,7 @@
       TD.appendChild(INPUT);
     }
     else {
-      instance.view.wt.wtDom.fastInnerText(TD, '#bad value#'); //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+      Handsontable.Dom.fastInnerText(TD, '#bad value#'); //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
     }
 
     var $input = $(INPUT);

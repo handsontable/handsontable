@@ -40,10 +40,10 @@ WalkontableVerticalScrollbarNative.prototype.resetFixedPosition = function () {
     elem.style.width = this.instance.wtViewport.getWorkspaceActualWidth() + 'px';
   }
   else {
-    elem.style.width = WalkontableDom.prototype.outerWidth(this.instance.wtTable.holder.parentNode) + 'px';
+    elem.style.width = Handsontable.Dom.outerWidth(this.instance.wtTable.holder.parentNode) + 'px';
   }
 
-  elem.style.height = WalkontableDom.prototype.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';
+  elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';
 };
 
 //react on movement of the other dimension scrollbar (in future merge it with this.refresh?)
@@ -59,17 +59,17 @@ WalkontableVerticalScrollbarNative.prototype.react = function () {
   } else {
       var box = this.instance.wtTable.hider.getBoundingClientRect();
       overlayContainer.style.left = Math.ceil(box.left, 10) + 'px';
-      overlayContainer.style.width = WalkontableDom.prototype.outerWidth(this.clone.wtTable.TABLE) + 'px';
+      overlayContainer.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 'px';
   }
 };
 
 WalkontableVerticalScrollbarNative.prototype.getScrollPosition = function () {
-  return WalkontableDom.prototype.getScrollTop(this.scrollHandler);
+  return Handsontable.Dom.getScrollTop(this.scrollHandler);
 };
 
 WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) {
   if (this.scrollHandler === window){
-    window.scrollTo(WalkontableDom.prototype.getWindowScrollLeft(), pos);
+    window.scrollTo(Handsontable.Dom.getWindowScrollLeft(), pos);
   } else {
     this.scrollHandler.scrollTop = pos;
   }
@@ -117,7 +117,7 @@ WalkontableVerticalScrollbarNative.prototype.readWindowSize = function () {
     this.tableParentOffset = this.instance.wtTable.holderOffset.top;
   }
   else {
-    var elemHeight = WalkontableDom.prototype.outerHeight(this.scrollHandler);
+    var elemHeight = Handsontable.Dom.outerHeight(this.scrollHandler);
     this.windowSize = elemHeight > 0 && this.scrollHandler.clientHeight > 0 ? this.scrollHandler.clientHeight : Infinity; //returns height without DIV scrollbar
     this.tableParentOffset = 0;
   }

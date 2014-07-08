@@ -4,7 +4,6 @@ function WalkontableBorder(instance, settings) {
   //reference to instance
   this.instance = instance;
   this.settings = settings;
-  this.wtDom = this.instance.wtDom;
 
   this.main = document.createElement("div");
   style = this.main.style;
@@ -193,19 +192,19 @@ WalkontableBorder.prototype.appear = function (corners) {
     isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
     fromTD = instance.wtTable.getCell(new WalkontableCellCoords(fromRow, fromColumn));
     toTD = isMultiple ? instance.wtTable.getCell(new WalkontableCellCoords(toRow, toColumn)) : fromTD;
-    fromOffset = this.wtDom.offset(fromTD);
-    toOffset = isMultiple ? this.wtDom.offset(toTD) : fromOffset;
-    containerOffset = this.wtDom.offset(instance.wtTable.TABLE);
+    fromOffset = Handsontable.Dom.offset(fromTD);
+    toOffset = isMultiple ? Handsontable.Dom.offset(toTD) : fromOffset;
+    containerOffset = Handsontable.Dom.offset(instance.wtTable.TABLE);
 
     minTop = fromOffset.top;
-    height = toOffset.top + this.wtDom.outerHeight(toTD) - minTop;
+    height = toOffset.top + Handsontable.Dom.outerHeight(toTD) - minTop;
     minLeft = fromOffset.left;
-    width = toOffset.left + this.wtDom.outerWidth(toTD) - minLeft;
+    width = toOffset.left + Handsontable.Dom.outerWidth(toTD) - minLeft;
 
     top = minTop - containerOffset.top - 1;
     left = minLeft - containerOffset.left - 1;
 
-    var style = this.wtDom.getComputedStyle(fromTD);
+    var style = Handsontable.Dom.getComputedStyle(fromTD);
     if (parseInt(style['borderTopWidth'], 10) > 0) {
       top += 1;
       height = height > 0 ? height - 1 : 0;

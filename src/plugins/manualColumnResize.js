@@ -35,7 +35,7 @@ function HandsontableManualColumnResize() {
 
   $document.mouseup(function () {
     if (pressed) {
-      instance.view.wt.wtDom.removeClass(resizer, 'active');
+      Handsontable.Dom.removeClass(resizer, 'active');
       pressed = false;
 
       if(newSize != startWidth){
@@ -72,10 +72,10 @@ function HandsontableManualColumnResize() {
     var col = this.view.wt.wtTable.getCoords(TH).col; //getCoords returns WalkontableCellCoords
     if (col >= 0) { //if not row header
       currentCol = col;
-      var rootOffset = this.view.wt.wtDom.offset(this.rootElement[0]).left;
-      var thOffset = this.view.wt.wtDom.offset(TH).left;
+      var rootOffset = Handsontable.Dom.offset(this.rootElement[0]).left;
+      var thOffset = Handsontable.Dom.offset(TH).left;
       startOffset = (thOffset - rootOffset) - 6 + scrollLeft;
-      resizer.style.left = startOffset + parseInt(this.view.wt.wtDom.outerWidth(TH), 10) + 'px';
+      resizer.style.left = startOffset + parseInt(Handsontable.Dom.outerWidth(TH), 10) + 'px';
       resizer.style.top = scrollTop + 'px';
       this.rootElement[0].appendChild(resizer);
     }
@@ -83,9 +83,9 @@ function HandsontableManualColumnResize() {
 
   function refreshLinePosition() {
     var instance = this;
-    startWidth = parseInt(this.view.wt.wtDom.outerWidth(currentTH), 10);
-    instance.view.wt.wtDom.addClass(resizer, 'active');
-    lineStyle.height = instance.view.wt.wtDom.outerHeight(instance.$table[0]) + 'px';
+    startWidth = parseInt(Handsontable.Dom.outerWidth(currentTH), 10);
+    Handsontable.Dom.addClass(resizer, 'active');
+    lineStyle.height = Handsontable.Dom.outerHeight(instance.$table[0]) + 'px';
     pressed = instance;
   }
 

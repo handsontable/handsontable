@@ -54,13 +54,12 @@ module.exports = function (grunt) {
       src: [
         'tmp/core.js',
         'src/multiMap.js',
-        'src/focusCatcher.js',
+        'src/dom.js',
         'src/tableView.js',
         'src/editors.js',
         'src/editorManager.js',
         'src/renderers.js',
         'src/helpers.js',
-        'src/fillHandle.js',
         'src/dataMap.js',
 
         'src/renderers/cellDecorator.js',
@@ -225,6 +224,7 @@ module.exports = function (grunt) {
       },
       walkontable: {
         src: [
+          'src/dom.js',
           'src/3rdparty/walkontable/src/*.js',
           'src/3rdparty/walkontable/src/3rdparty/*.js'
         ],

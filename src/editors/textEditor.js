@@ -36,13 +36,13 @@
 
     switch (event.keyCode) {
       case keyCodes.ARROW_RIGHT:
-        if (that.wtDom.getCaretPosition(that.TEXTAREA) !== that.TEXTAREA.value.length) {
+        if (Handsontable.Dom.getCaretPosition(that.TEXTAREA) !== that.TEXTAREA.value.length) {
           event.stopImmediatePropagation();
         }
         break;
 
       case keyCodes.ARROW_LEFT: /* arrow left */
-        if (that.wtDom.getCaretPosition(that.TEXTAREA) !== 0) {
+        if (Handsontable.Dom.getCaretPosition(that.TEXTAREA) !== 0) {
           event.stopImmediatePropagation();
         }
         break;
@@ -98,24 +98,23 @@
 
   TextEditor.prototype.focus = function(){
     this.TEXTAREA.focus();
-    this.wtDom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+    Handsontable.Dom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
   };
 
   TextEditor.prototype.createElements = function () {
     this.$body = $(document.body);
-    this.wtDom = new WalkontableDom();
 
     this.TEXTAREA = document.createElement('TEXTAREA');
     this.$textarea = $(this.TEXTAREA);
 
-    this.wtDom.addClass(this.TEXTAREA, 'handsontableInput');
+    Handsontable.Dom.addClass(this.TEXTAREA, 'handsontableInput');
 
     this.textareaStyle = this.TEXTAREA.style;
     this.textareaStyle.width = 0;
     this.textareaStyle.height = 0;
 
     this.TEXTAREA_PARENT = document.createElement('DIV');
-    this.wtDom.addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
+    Handsontable.Dom.addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
 
     this.textareaParentStyle = this.TEXTAREA_PARENT.style;
     this.textareaParentStyle.top = 0;
@@ -146,8 +145,8 @@
       return;
     }
     var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
-    var currentOffset = this.wtDom.offset(this.TD);
-    var containerOffset = this.wtDom.offset(this.instance.rootElement[0]);
+    var currentOffset = Handsontable.Dom.offset(this.TD);
+    var containerOffset = Handsontable.Dom.offset(this.instance.rootElement[0]);
     var editTop = currentOffset.top - containerOffset.top - 1;
     var editLeft = currentOffset.left - containerOffset.left - 1;
 

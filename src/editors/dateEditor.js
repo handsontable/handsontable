@@ -21,7 +21,7 @@
     Handsontable.editors.TextEditor.prototype.createElements.apply(this, arguments);
 
     this.datePicker = document.createElement('DIV');
-    this.instance.view.wt.wtDom.addClass(this.datePicker, 'htDatepickerHolder');
+    Handsontable.Dom.addClass(this.datePicker, 'htDatepickerHolder');
     this.datePickerStyle = this.datePicker.style;
     this.datePickerStyle.position = 'absolute';
     this.datePickerStyle.top = 0;

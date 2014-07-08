@@ -23,20 +23,20 @@ WalkontableViewport.prototype.getWorkspaceWidth = function (proposedWidth) {
 };
 
 WalkontableViewport.prototype.getWorkspaceOffset = function () {
-  return WalkontableDom.prototype.offset(this.instance.wtTable.TABLE);
+  return Handsontable.Dom.offset(this.instance.wtTable.TABLE);
 };
 
 WalkontableViewport.prototype.getWorkspaceActualHeight = function () {
-  return this.instance.wtDom.outerHeight(this.instance.wtTable.TABLE);
+  return Handsontable.Dom.outerHeight(this.instance.wtTable.TABLE);
 };
 
 WalkontableViewport.prototype.getWorkspaceActualWidth = function () {
-  return this.instance.wtDom.outerWidth(this.instance.wtTable.TABLE) || this.instance.wtDom.outerWidth(this.instance.wtTable.TBODY) || this.instance.wtDom.outerWidth(this.instance.wtTable.THEAD); //IE8 reports 0 as <table> offsetWidth;
+  return Handsontable.Dom.outerWidth(this.instance.wtTable.TABLE) || Handsontable.Dom.outerWidth(this.instance.wtTable.TBODY) || Handsontable.Dom.outerWidth(this.instance.wtTable.THEAD); //IE8 reports 0 as <table> offsetWidth;
 };
 
 WalkontableViewport.prototype.getColumnHeaderHeight = function () {
   if (isNaN(this.columnHeaderHeight)) {
-    var cellOffset = this.instance.wtDom.offset(this.instance.wtTable.TBODY)
+    var cellOffset = Handsontable.Dom.offset(this.instance.wtTable.TBODY)
       , tableOffset = this.instance.wtTable.tableOffset;
     this.columnHeaderHeight = cellOffset.top - tableOffset.top;
   }
@@ -70,7 +70,7 @@ WalkontableViewport.prototype.getRowHeaderWidth = function () {
       this.rowHeaderWidth = 0;
       for (var i = 0, ilen = rowHeaders.length; i < ilen; i++) {
         if (TH) {
-          this.rowHeaderWidth += this.instance.wtDom.outerWidth(TH);
+          this.rowHeaderWidth += Handsontable.Dom.outerWidth(TH);
           TH = TH.nextSibling;
         }
         else {

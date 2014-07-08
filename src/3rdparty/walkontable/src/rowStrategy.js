@@ -80,8 +80,8 @@ WalkontableRowStrategy.prototype.isLastIncomplete = function () {
   var lastRow = this.instance.wtTable.getLastVisibleRow();
   var firstCol = this.instance.wtTable.getFirstVisibleColumn();
   var cell = this.instance.wtTable.getCell(new WalkontableCellCoords(lastRow, firstCol));
-  var cellOffsetTop = WalkontableDom.prototype.offset(cell).top;
-  var cellHeight = WalkontableDom.prototype.outerHeight(cell);
+  var cellOffsetTop = Handsontable.Dom.offset(cell).top;
+  var cellHeight = Handsontable.Dom.outerHeight(cell);
   var cellEnd = cellOffsetTop + cellHeight;
 
   var viewportOffsetTop = this.instance.wtScrollbars.horizontal.scrollHandler.offsetTop + this.instance.wtScrollbars.vertical.getScrollPosition();

@@ -22,7 +22,7 @@
     var escaped = Handsontable.helper.stringify(value);
 
     if (cellProperties.rendererTemplate) {
-      instance.view.wt.wtDom.empty(TD);
+      Handsontable.Dom.empty(TD);
       var TEMPLATE = document.createElement('TEMPLATE');
       TEMPLATE.setAttribute('bind', '{{}}');
       TEMPLATE.innerHTML = cellProperties.rendererTemplate;
@@ -31,7 +31,7 @@
       TD.appendChild(TEMPLATE);
     }
     else {
-      instance.view.wt.wtDom.fastInnerText(TD, escaped); //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
+      Handsontable.Dom.fastInnerText(TD, escaped); //this is faster than innerHTML. See: https://github.com/warpech/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
     }
 
   };

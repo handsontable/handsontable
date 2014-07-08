@@ -159,10 +159,10 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
 };
 
 WalkontableScroll.prototype.scrollToRenderedCell = function (TD) {
-  var cellOffset = WalkontableDom.prototype.offset(TD);
-  var cellWidth = WalkontableDom.prototype.outerWidth(TD);
-  var cellHeight = WalkontableDom.prototype.outerHeight(TD);
-  var workspaceOffset = WalkontableDom.prototype.offset(this.instance.wtTable.TABLE);
+  var cellOffset = Handsontable.Dom.offset(TD);
+  var cellWidth = Handsontable.Dom.outerWidth(TD);
+  var cellHeight = Handsontable.Dom.outerHeight(TD);
+  var workspaceOffset = Handsontable.Dom.offset(this.instance.wtTable.TABLE);
   var viewportScrollPosition = {
     left: this.instance.wtScrollbars.horizontal.getScrollPosition(),
     top: this.instance.wtScrollbars.vertical.getScrollPosition()
@@ -170,17 +170,17 @@ WalkontableScroll.prototype.scrollToRenderedCell = function (TD) {
 
   var workspaceWidth = this.instance.wtViewport.getWorkspaceWidth();
   var workspaceHeight = this.instance.wtViewport.getWorkspaceHeight();
-  var leftCloneWidth = this.instance.wtDom.outerWidth(this.instance.wtScrollbars.horizontal.clone.wtTable.TABLE);
-  var topCloneHeight = this.instance.wtDom.outerHeight(this.instance.wtScrollbars.vertical.clone.wtTable.TABLE);
+  var leftCloneWidth = Handsontable.Dom.outerWidth(this.instance.wtScrollbars.horizontal.clone.wtTable.TABLE);
+  var topCloneHeight = Handsontable.Dom.outerHeight(this.instance.wtScrollbars.vertical.clone.wtTable.TABLE);
 
   if (this.instance.wtScrollbars.horizontal.scrollHandler !== window) {
     workspaceOffset.left = 0;
-    cellOffset.left -= WalkontableDom.prototype.offset(this.instance.wtScrollbars.horizontal.scrollHandler).left;
+    cellOffset.left -= Handsontable.Dom.offset(this.instance.wtScrollbars.horizontal.scrollHandler).left;
   }
 
   if (this.instance.wtScrollbars.vertical.scrollHandler !== window) {
     workspaceOffset.top = 0;
-    cellOffset.top = cellOffset.top - WalkontableDom.prototype.offset(this.instance.wtScrollbars.vertical.scrollHandler).top;
+    cellOffset.top = cellOffset.top - Handsontable.Dom.offset(this.instance.wtScrollbars.vertical.scrollHandler).top;
   }
 
   if (cellWidth < workspaceWidth) {

@@ -82,7 +82,7 @@
         instance.view.appendColHeader(col, tmp.theadTh); //TH innerHTML
       }
 
-      instance.view.wt.wtDom.empty(tmp.tbody);
+      Handsontable.Dom.empty(tmp.tbody);
 
       for (var i in samples) {
         if (samples.hasOwnProperty(i)) {
@@ -108,7 +108,7 @@
 
       var parent = instance.rootElement[0].parentNode;
       parent.appendChild(tmp.container);
-      var width = instance.view.wt.wtDom.outerWidth(tmp.table);
+      var width = Handsontable.Dom.outerWidth(tmp.table);
       parent.removeChild(tmp.container);
 
       return width;

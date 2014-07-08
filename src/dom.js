@@ -1,8 +1,15 @@
-function WalkontableDom() {
+/**
+ * DOM helper optimized for maximum performance
+ * It is recommended for Handsontable plugins and renderers, because it is much faster than jQuery
+ * @type {Object}
+ */
+if(!window.Handsontable) {
+  var Handsontable = {}; //required because Walkontable test suite uses this class directly
 }
+Handsontable.Dom = {};
 
 //goes up the DOM tree (including given element) until it finds an element that matches the nodeName
-WalkontableDom.prototype.closest = function (elem, nodeNames, until) {
+Handsontable.Dom.closest = function (elem, nodeNames, until) {
   while (elem != null && elem !== until) {
     if (elem.nodeType === 1 && nodeNames.indexOf(elem.nodeName) > -1) {
       return elem;
@@ -13,7 +20,7 @@ WalkontableDom.prototype.closest = function (elem, nodeNames, until) {
 };
 
 //goes up the DOM tree and checks if element is child of another element
-WalkontableDom.prototype.isChildOf = function (child, parent) {
+Handsontable.Dom.isChildOf = function (child, parent) {
   var node = child.parentNode;
   while (node != null) {
     if (node == parent) {
@@ -32,7 +39,7 @@ WalkontableDom.prototype.isChildOf = function (child, parent) {
  * @param {Element} elem
  * @return {Number}
  */
-WalkontableDom.prototype.index = function (elem) {
+Handsontable.Dom.index = function (elem) {
   var i = 0;
   while (elem = elem.previousSibling) {
     ++i
@@ -42,29 +49,29 @@ WalkontableDom.prototype.index = function (elem) {
 
 if (document.documentElement.classList) {
   // HTML5 classList API
-  WalkontableDom.prototype.hasClass = function (ele, cls) {
+  Handsontable.Dom.hasClass = function (ele, cls) {
     return ele.classList.contains(cls);
   };
 
-  WalkontableDom.prototype.addClass = function (ele, cls) {
+  Handsontable.Dom.addClass = function (ele, cls) {
     ele.classList.add(cls);
   };
 
-  WalkontableDom.prototype.removeClass = function (ele, cls) {
+  Handsontable.Dom.removeClass = function (ele, cls) {
     ele.classList.remove(cls);
   };
 }
 else {
   //http://snipplr.com/view/3561/addclass-removeclass-hasclass/
-  WalkontableDom.prototype.hasClass = function (ele, cls) {
+  Handsontable.Dom.hasClass = function (ele, cls) {
     return ele.className.match(new RegExp('(\\s|^)' + cls + '(\\s|$)'));
   };
 
-  WalkontableDom.prototype.addClass = function (ele, cls) {
+  Handsontable.Dom.addClass = function (ele, cls) {
     if (!this.hasClass(ele, cls)) ele.className += " " + cls;
   };
 
-  WalkontableDom.prototype.removeClass = function (ele, cls) {
+  Handsontable.Dom.removeClass = function (ele, cls) {
     if (this.hasClass(ele, cls)) { //is this really needed?
       var reg = new RegExp('(\\s|^)' + cls + '(\\s|$)');
       ele.className = ele.className.replace(reg, ' ').trim(); //String.prototype.trim is defined in polyfill.js
@@ -73,7 +80,7 @@ else {
 }
 
 /*//http://net.tutsplus.com/tutorials/javascript-ajax/javascript-from-null-cross-browser-event-binding/
- WalkontableDom.prototype.addEvent = (function () {
+ Handsontable.Dom.addEvent = (function () {
  var that = this;
  if (document.addEventListener) {
  return function (elem, type, cb) {
@@ -115,7 +122,7 @@ else {
  }
  })();
 
- WalkontableDom.prototype.triggerEvent = function (element, eventName, target) {
+ Handsontable.Dom.triggerEvent = function (element, eventName, target) {
  var event;
  if (document.createEvent) {
  event = document.createEvent("MouseEvents");
@@ -135,7 +142,7 @@ else {
  }
  };*/
 
-WalkontableDom.prototype.removeTextNodes = function (elem, parent) {
+Handsontable.Dom.removeTextNodes = function (elem, parent) {
   if (elem.nodeType === 3) {
     parent.removeChild(elem); //bye text nodes!
   }
@@ -156,20 +163,20 @@ WalkontableDom.prototype.removeTextNodes = function (elem, parent) {
  * @returns {void}
  */
 //
-WalkontableDom.prototype.empty = function (element) {
+Handsontable.Dom.empty = function (element) {
   var child;
   while (child = element.lastChild) {
     element.removeChild(child);
   }
 };
 
-WalkontableDom.prototype.HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
+Handsontable.Dom.HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
 
 /**
  * Insert content into element trying avoid innerHTML method.
  * @return {void}
  */
-WalkontableDom.prototype.fastInnerHTML = function (element, content) {
+Handsontable.Dom.fastInnerHTML = function (element, content) {
   if (this.HTML_CHARACTERS.test(content)) {
     element.innerHTML = content;
   }
@@ -183,7 +190,7 @@ WalkontableDom.prototype.fastInnerHTML = function (element, content) {
  * @return {void}
  */
 if (document.createTextNode('test').textContent) { //STANDARDS
-  WalkontableDom.prototype.fastInnerText = function (element, content) {
+  Handsontable.Dom.fastInnerText = function (element, content) {
     var child = element.firstChild;
     if (child && child.nodeType === 3 && child.nextSibling === null) {
       //fast lane - replace existing text node
@@ -198,7 +205,7 @@ if (document.createTextNode('test').textContent) { //STANDARDS
   };
 }
 else { //IE8
-  WalkontableDom.prototype.fastInnerText = function (element, content) {
+  Handsontable.Dom.fastInnerText = function (element, content) {
     var child = element.firstChild;
     if (child && child.nodeType === 3 && child.nextSibling === null) {
       //fast lane - replace existing text node
@@ -219,12 +226,12 @@ else { //IE8
  * @returns {boolean}
  */
 /*if (document.createTextNode('test').textContent) { //STANDARDS
-  WalkontableDom.prototype.hasOffsetParent = function (elem) {
+  Handsontable.Dom.hasOffsetParent = function (elem) {
     return !!elem.offsetParent;
   }
 }
 else {
-  WalkontableDom.prototype.hasOffsetParent = function (elem) {
+  Handsontable.Dom.hasOffsetParent = function (elem) {
     try {
       if (!elem.offsetParent) {
         return false;
@@ -242,10 +249,10 @@ else {
  * @param elem
  * @returns {boolean}
  */
-WalkontableDom.prototype.isVisible = function (elem) {
+Handsontable.Dom.isVisible = function (elem) {
   //fast method according to benchmarks, but requires layout so slow in our case
   /*
-  if (!WalkontableDom.prototype.hasOffsetParent(elem)) {
+  if (!Handsontable.Dom.hasOffsetParent(elem)) {
     return false; //fixes problem with UI Bootstrap <tabs> directive
   }
 
@@ -266,10 +273,10 @@ WalkontableDom.prototype.isVisible = function (elem) {
         //see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
         //according to spec, should be if (next.ownerDocument !== window.document), but that doesn't work yet
         if (next.host.impl) { //Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features disabled
-          return WalkontableDom.prototype.isVisible(next.host.impl);
+          return Handsontable.Dom.isVisible(next.host.impl);
         }
         else if (next.host) { //Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
-          return WalkontableDom.prototype.isVisible(next.host);
+          return Handsontable.Dom.isVisible(next.host);
         }
         else {
           throw new Error("Lost in Web Components world");
@@ -292,9 +299,9 @@ WalkontableDom.prototype.isVisible = function (elem) {
  * @param {HTMLElement} elem
  * @return {Object}
  */
-WalkontableDom.prototype.offset = function (elem) {
+Handsontable.Dom.offset = function (elem) {
   if (this.hasCaptionProblem() && elem.firstChild && elem.firstChild.nodeName === 'CAPTION') {
-    //fixes problem with Firefox ignoring <caption> in TABLE offset (see also WalkontableDom.prototype.outerHeight)
+    //fixes problem with Firefox ignoring <caption> in TABLE offset (see also Handsontable.Dom.outerHeight)
     //http://jsperf.com/offset-vs-getboundingclientrect/8
     var box = elem.getBoundingClientRect();
     return {
@@ -328,7 +335,7 @@ WalkontableDom.prototype.offset = function (elem) {
   };
 };
 
-WalkontableDom.prototype.getWindowScrollTop = function () {
+Handsontable.Dom.getWindowScrollTop = function () {
   var res = window.scrollY;
   if (res == void 0) { //IE8-11
     res = document.documentElement.scrollTop;
@@ -336,7 +343,7 @@ WalkontableDom.prototype.getWindowScrollTop = function () {
   return res;
 };
 
-WalkontableDom.prototype.getWindowScrollLeft = function () {
+Handsontable.Dom.getWindowScrollLeft = function () {
   var res = window.scrollX;
   if (res == void 0) { //IE8-11
     res = document.documentElement.scrollLeft;
@@ -344,33 +351,33 @@ WalkontableDom.prototype.getWindowScrollLeft = function () {
   return res;
 };
 
-WalkontableDom.prototype.getScrollTop = function (elem) {
+Handsontable.Dom.getScrollTop = function (elem) {
   if (elem === window) {
-    return WalkontableDom.prototype.getWindowScrollTop(elem);
+    return Handsontable.Dom.getWindowScrollTop(elem);
   }
   else {
     return elem.scrollTop;
   }
 };
 
-WalkontableDom.prototype.getScrollLeft = function (elem) {
+Handsontable.Dom.getScrollLeft = function (elem) {
   if (elem === window) {
-    return WalkontableDom.prototype.getWindowScrollLeft(elem);
+    return Handsontable.Dom.getWindowScrollLeft(elem);
   }
   else {
     return elem.scrollLeft;
   }
 };
 
-WalkontableDom.prototype.getComputedStyle = function (elem) {
+Handsontable.Dom.getComputedStyle = function (elem) {
   return elem.currentStyle || document.defaultView.getComputedStyle(elem);
 };
 
-WalkontableDom.prototype.outerWidth = function (elem) {
+Handsontable.Dom.outerWidth = function (elem) {
   return elem.offsetWidth;
 };
 
-WalkontableDom.prototype.outerHeight = function (elem) {
+Handsontable.Dom.outerHeight = function (elem) {
   if (this.hasCaptionProblem() && elem.firstChild && elem.firstChild.nodeName === 'CAPTION') {
     //fixes problem with Firefox ignoring <caption> in TABLE.offsetHeight
     //jQuery (1.10.1) still has this unsolved
@@ -411,7 +418,7 @@ WalkontableDom.prototype.outerHeight = function (elem) {
     document.body.removeChild(TABLE);
   }
 
-  WalkontableDom.prototype.hasCaptionProblem = function () {
+  Handsontable.Dom.hasCaptionProblem = function () {
     if (hasCaptionProblem === void 0) {
       detectCaptionProblem();
     }
@@ -423,7 +430,7 @@ WalkontableDom.prototype.outerHeight = function (elem) {
    * @author http://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
    * @return {Number}
    */
-  WalkontableDom.prototype.getCaretPosition = function (el) {
+  Handsontable.Dom.getCaretPosition = function (el) {
     if (el.selectionStart) {
       return el.selectionStart;
     }
@@ -449,7 +456,7 @@ WalkontableDom.prototype.outerHeight = function (elem) {
    * @param {Number} pos
    * @param {Number} endPos
    */
-  WalkontableDom.prototype.setCaretPosition = function (el, pos, endPos) {
+  Handsontable.Dom.setCaretPosition = function (el, pos, endPos) {
     if (endPos === void 0) {
       endPos = pos;
     }
@@ -498,7 +505,7 @@ WalkontableDom.prototype.outerHeight = function (elem) {
    * Returns the computed width of the native browser scroll bar
    * @return {Number} width
    */
-  WalkontableDom.prototype.getScrollbarWidth = function () {
+  Handsontable.Dom.getScrollbarWidth = function () {
     if (cachedScrollbarWidth === void 0) {
       cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
     }

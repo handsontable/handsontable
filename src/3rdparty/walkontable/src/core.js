@@ -1,11 +1,9 @@
 function Walkontable(settings) {
-  var that = this,
-    originalHeaders = [];
+  var originalHeaders = [];
 
   this.guid = 'wt_' + walkontableRandomString(); //this is the namespace for global events
 
   //bootstrap from settings
-  this.wtDom = new WalkontableDom();
   if (settings.cloneSource) {
     this.cloneSource = settings.cloneSource;
     this.cloneOverlay = settings.cloneOverlay;
@@ -34,7 +32,7 @@ function Walkontable(settings) {
     }
     if (!this.getSetting('columnHeaders').length) {
       this.update('columnHeaders', [function (column, TH) {
-        that.wtDom.fastInnerText(TH, originalHeaders[column]);
+        Handsontable.Dom.fastInnerText(TH, originalHeaders[column]);
       }]);
     }
   }
@@ -47,7 +45,7 @@ function Walkontable(settings) {
 
 Walkontable.prototype.draw = function (selectionsOnly) {
   this.drawInterrupted = false;
-  if (!selectionsOnly && !this.wtDom.isVisible(this.wtTable.TABLE)) {
+  if (!selectionsOnly && !Handsontable.Dom.isVisible(this.wtTable.TABLE)) {
     this.drawInterrupted = true; //draw interrupted because TABLE is not visible
     return;
   }

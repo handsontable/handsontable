@@ -26,12 +26,12 @@ function WalkontableDebugOverlay(instance) {
     }
     lastX = event.clientX;
     lastY = event.clientY;
-    WalkontableDom.prototype.addClass(overlayContainer, 'wtDebugHidden');
-    WalkontableDom.prototype.removeClass(overlayContainer, 'wtDebugVisible');
+    Handsontable.Dom.addClass(overlayContainer, 'wtDebugHidden');
+    Handsontable.Dom.removeClass(overlayContainer, 'wtDebugVisible');
     clearTimeout(lastTimeout);
     lastTimeout = setTimeout(function () {
-      WalkontableDom.prototype.removeClass(overlayContainer, 'wtDebugHidden');
-      WalkontableDom.prototype.addClass(overlayContainer, 'wtDebugVisible');
+      Handsontable.Dom.removeClass(overlayContainer, 'wtDebugHidden');
+      Handsontable.Dom.addClass(overlayContainer, 'wtDebugVisible');
     }, 1000);
   });
 }

@@ -2,12 +2,11 @@ function WalkontableTable(instance, table) {
   //reference to instance
   this.instance = instance;
   this.TABLE = table;
-  this.wtDom = this.instance.wtDom;
-  this.wtDom.removeTextNodes(this.TABLE);
+  Handsontable.Dom.removeTextNodes(this.TABLE);
 
   //wtSpreader
   var parent = this.TABLE.parentNode;
-  if (!parent || parent.nodeType !== 1 || !this.wtDom.hasClass(parent, 'wtHolder')) {
+  if (!parent || parent.nodeType !== 1 || !Handsontable.Dom.hasClass(parent, 'wtHolder')) {
     var spreader = document.createElement('DIV');
     spreader.className = 'wtSpreader';
     if (parent) {
@@ -19,7 +18,7 @@ function WalkontableTable(instance, table) {
 
   //wtHider
   parent = this.spreader.parentNode;
-  if (!parent || parent.nodeType !== 1 || !this.wtDom.hasClass(parent, 'wtHolder')) {
+  if (!parent || parent.nodeType !== 1 || !Handsontable.Dom.hasClass(parent, 'wtHolder')) {
     var hider = document.createElement('DIV');
     hider.className = 'wtHider';
     if (parent) {
@@ -33,7 +32,7 @@ function WalkontableTable(instance, table) {
 
   //wtHolder
   parent = this.hider.parentNode;
-  if (!parent || parent.nodeType !== 1 || !this.wtDom.hasClass(parent, 'wtHolder')) {
+  if (!parent || parent.nodeType !== 1 || !Handsontable.Dom.hasClass(parent, 'wtHolder')) {
     var holder = document.createElement('DIV');
     holder.style.position = 'relative';
     holder.className = 'wtHolder';
@@ -111,8 +110,8 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
       this.tableOffset = this.instance.cloneSource.wtTable.tableOffset;
     }
     else {
-      this.holderOffset = this.wtDom.offset(this.holder);
-      this.tableOffset = this.wtDom.offset(this.TABLE);
+      this.holderOffset = Handsontable.Dom.offset(this.holder);
+      this.tableOffset = Handsontable.Dom.offset(this.TABLE);
       this.instance.wtScrollbars.vertical.readSettings();
       this.instance.wtScrollbars.horizontal.readSettings();
       this.instance.wtViewport.resetSettings();
@@ -210,11 +209,11 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
         var cell;
         if (this.currentCellCache.test(vr, vc, classNames[s])) {
           cell = this.getCell(new WalkontableCellCoords(r, c));
-          if (typeof cell == 'object' ) this.wtDom.addClass(cell, classNames[s]);
+          if (typeof cell == 'object' ) Handsontable.Dom.addClass(cell, classNames[s]);
         }
         else if (selectionsOnly && this.oldCellCache.test(vr, vc, classNames[s])) {
           cell = this.getCell(new WalkontableCellCoords(r, c));
-          if (typeof cell == 'object' ) this.wtDom.removeClass(cell, classNames[s]);
+          if (typeof cell == 'object' ) Handsontable.Dom.removeClass(cell, classNames[s]);
 
         }
       }
@@ -252,7 +251,7 @@ WalkontableTable.prototype.getCell = function (coords) {
  */
 WalkontableTable.prototype.getCoords = function (TD) {
   var TR = TD.parentNode;
-  var row = this.wtDom.index(TR);
+  var row = Handsontable.Dom.index(TR);
   if (TR.parentNode === this.THEAD) {
     row = this.rowFilter.visibleColHeadedColumnToSourceColumn(row);
   }

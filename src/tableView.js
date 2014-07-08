@@ -301,7 +301,7 @@ Handsontable.TableView.prototype.isTextSelectionAllowed = function (el) {
   if ( Handsontable.helper.isInput(el) ) {
     return (true);
   }
-  if (this.settings.fragmentSelection && this.wt.wtDom.isChildOf(el, this.TBODY)) {
+  if (this.settings.fragmentSelection && Handsontable.Dom.isChildOf(el, this.TBODY)) {
     return (true);
   }
   return false;
@@ -367,13 +367,13 @@ Handsontable.TableView.prototype.scrollViewport = function (coords) {
  */
 Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
   if (row > -1) {
-    this.wt.wtDom.fastInnerHTML(TH, this.instance.getRowHeader(row));
+    Handsontable.Dom.fastInnerHTML(TH, this.instance.getRowHeader(row));
   }
   else {
     var DIV = document.createElement('DIV');
     DIV.className = 'relative';
-    this.wt.wtDom.fastInnerText(DIV, '\u00A0');
-    this.wt.wtDom.empty(TH);
+    Handsontable.Dom.fastInnerText(DIV, '\u00A0');
+    Handsontable.Dom.empty(TH);
     TH.appendChild(DIV);
   }
 };
@@ -390,10 +390,10 @@ Handsontable.TableView.prototype.appendColHeader = function (col, TH) {
   DIV.className = 'relative';
   SPAN.className = 'colHeader';
 
-  this.wt.wtDom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
+  Handsontable.Dom.fastInnerHTML(SPAN, this.instance.getColHeader(col));
   DIV.appendChild(SPAN);
 
-  this.wt.wtDom.empty(TH);
+  Handsontable.Dom.empty(TH);
   TH.appendChild(DIV);
   Handsontable.hooks.run(this.instance, 'afterGetColHeader', col, TH);
 };

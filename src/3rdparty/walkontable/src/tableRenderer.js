@@ -1,7 +1,6 @@
 function WalkontableTableRenderer(wtTable){
   this.wtTable = wtTable;
   this.instance = wtTable.instance;
-  this.wtDom = wtTable.wtDom;
   this.rowFilter = wtTable.rowFilter;
   this.columnFilter = wtTable.columnFilter;
 
@@ -313,7 +312,7 @@ WalkontableTableRenderer.prototype.adjustThead = function () {
     }
   }
   else if (TR) {
-    this.wtDom.empty(TR);
+    Handsontable.Dom.empty(TR);
   }
 };
 
@@ -342,10 +341,10 @@ WalkontableTableRenderer.prototype.getColumnCount = function () {
 WalkontableTableRenderer.prototype.renderColGroups = function () {
   for (var colIndex = 0; colIndex < this.wtTable.colgroupChildrenLength; colIndex++) {
     if (colIndex < this.rowHeaderCount) {
-      this.wtDom.addClass(this.COLGROUP.childNodes[colIndex], 'rowHeader');
+      Handsontable.Dom.addClass(this.COLGROUP.childNodes[colIndex], 'rowHeader');
     }
     else {
-      this.wtDom.removeClass(this.COLGROUP.childNodes[colIndex], 'rowHeader');
+      Handsontable.Dom.removeClass(this.COLGROUP.childNodes[colIndex], 'rowHeader');
     }
   }
 };
