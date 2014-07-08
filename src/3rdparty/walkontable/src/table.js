@@ -253,7 +253,7 @@ WalkontableTable.prototype.getCell = function (coords) {
 WalkontableTable.prototype.getCoords = function (TD) {
   var row;
   if(TD.nodeName == 'TH'){
-    if(TD.nextSibling!=null || TD.previousSibling!=null){
+    if((TD.nextSibling!=null || TD.previousSibling!=null) && (TD.previousSibling || TD.nextSibling).nodeName != 'TD'){
       row = this.rowFilter.visibleColHeadedColumnToSourceColumn(this.wtDom.index(TD.parentNode)); //
     } else {
       row = this.rowFilter.visibleToSource(this.wtDom.index(TD.parentNode));
