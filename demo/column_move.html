@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Manual row resize &amp; move - Handsontable</title>
+  <title>Column move - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -23,15 +23,15 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Row resize">
+  <meta property="og:title" content="Column move">
   <meta property="og:description"
         content=".">
-  <meta property="og:url" content="http://handsontable.com/demo/sorting.html">
+  <meta property="og:url" content="http://handsontable.com/demo/column_move.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
-  <link rel="canonical" href="http://handsontable.com/demo/sorting.html">
+  <link rel="canonical" href="http://handsontable.com/demo/column_move.html">
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
@@ -44,7 +44,7 @@
         , i
         , j;
 
-      for (i = 0; i < 100; i++) {
+      for (i = 0; i < 1000; i++) {
         var row = [];
         for (j = 0; j < 10; j++) {
           row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
@@ -72,40 +72,16 @@
 
         <div class="rowLayout">
           <div class="descLayout">
-            <div class="pad">
-              <h2>Manual row resize</h2>
-
-              <p>This page shows how to use Handsontable with row related built-in plugins:</p>
-
-              <ul>
-                <li><a href="#resize">Row resize</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div class="rowLayout">
-          <div class="descLayout">
             <div class="pad" data-jsfiddle="example1">
-              <a name="resize"></a>
+              <h2>Column move</h2>
 
-              <h2>Row resize</h2>
+              <p>To enable this experimental feature, use setting <code>manualColumnMove: true</code></p>
 
-              <p>To enable this experimental feature, use setting <code>manualRowResize: true</code></p>
+              <p>In the left part of column header a draggable column move handle will appear.</p>
 
-              <p>In the bottom part of row header a draggable row resize handle will appear.</p>
+              <div class="state-loaded example1 alert">State of the table has been restored. <button class="mini reset-state2">Reset table state</button></div>
 
-              <p>Double click on the row resize handle to automatically adjust row height.</p>
-
-              <div class="state-loaded example1 alert">State of the table has been restored. <button class="mini reset-state1">Reset table state</button></div>
               <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
-
-              <p>
-                <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
-                  Dump
-                  data to console
-                </button>
-              </p>
             </div>
           </div>
 
@@ -120,9 +96,10 @@
                   data: createBigData(),
                   rowHeaders: true,
                   colHeaders: true,
-                  rowHeights: [50, 40, 100],
-                  autoRowSize: true,
-                  manualRowResize: true,
+                  colWidths: [55, 80, 80, 80, 80, 80, 80],
+                  manualColumnMove: true,
+                  manualColumnResize: true,
+                  minSpareRows: 1,
                   persistentState: true
                 });
 
