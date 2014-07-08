@@ -130,13 +130,9 @@ WalkontableBorder.prototype.appear = function (corners) {
   if (instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
     ilen = instance.getSetting('fixedRowsTop');
   }
-  else if (instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative) {
-    ilen = instance.wtTable.getRowStrategy().cellCount;
-  } else {
+  else {
     ilen = instance.wtTable.getRowStrategy().countVisible();
   }
-
-
 
   for (i = 0; i < ilen; i++) {
     s = instance.wtTable.rowFilter.visibleToSource(i);

@@ -251,15 +251,13 @@ WalkontableTable.prototype.getCell = function (coords) {
  * @returns {WalkontableCellCoords}
  */
 WalkontableTable.prototype.getCoords = function (TD) {
-  var row;
-  if(TD.nodeName == 'TH'){
-    if(TD.nextSibling!=null || TD.previousSibling!=null){
-      row = this.rowFilter.visibleColHeadedColumnToSourceColumn(this.wtDom.index(TD.parentNode)); //
-    } else {
-      row = this.rowFilter.visibleToSource(this.wtDom.index(TD.parentNode));
-    }
-  } else {
-    row = this.rowFilter.visibleToSource(this.wtDom.index(TD.parentNode));
+  var TR = TD.parentNode;
+  var row = this.wtDom.index(TR);
+  if (TR.parentNode === this.THEAD) {
+    row = this.rowFilter.visibleColHeadedColumnToSourceColumn(row);
+  }
+  else {
+    row = this.rowFilter.visibleToSource(row);
   }
 
   return new WalkontableCellCoords(
