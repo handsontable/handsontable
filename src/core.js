@@ -40,7 +40,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     columnSettings: [],
     columnsSettingConflicts: ['data', 'width'],
     settings: new GridSettings(), // current settings instance
-    settingsFromDOM: {},
     selRange: null, //exposed by public method `getSelectedRange`
     isPopulated: null,
     scrollable: null,
@@ -750,8 +749,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     this.view = new Handsontable.TableView(this);
     editorManager = new Handsontable.EditorManager(instance, priv, selection, datamap);
 
-    this.parseSettingsFromDOM();
-
     this.forceFullRender = true; //used when data was changed
     this.view.render();
 
@@ -1118,12 +1115,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
   };
 
-  /**
-   * Parse settings from DOM and CSS
-   * @public
-   */
-  this.parseSettingsFromDOM = function () {
-  };
 
   /**
    * Render visible data
@@ -1132,7 +1123,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.render = function () {
     if (instance.view) {
       instance.forceFullRender = true; //used when data was changed
-      instance.parseSettingsFromDOM();
+//      instance.parseSettingsFromDOM();
       selection.refreshBorders(null, true);
     }
   };
@@ -1396,14 +1387,6 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.getSettings = function () {
     return priv.settings;
-  };
-
-  /**
-   * Returns current settingsFromDOM object
-   * @return {Object}
-   */
-  this.getSettingsFromDOM = function () {
-    return priv.settingsFromDOM;
   };
 
   /**
