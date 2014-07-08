@@ -199,6 +199,11 @@ Handsontable.TableView = function (instance) {
       that.activeWt = wt;
 
       isMouseDown = true;
+
+      if (event.target.className === 'manualColumnMover') {
+        return;
+      }
+
       if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
         //do nothing
       }

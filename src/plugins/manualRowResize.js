@@ -77,7 +77,7 @@
         currentRow = row;
         var rootOffset = Handsontable.Dom.offset(this.rootElement[0]).top;
         var thOffset = Handsontable.Dom.offset(TH).top;
-        startOffset = (thOffset - rootOffset) + scrollTop;
+        startOffset = (thOffset - rootOffset) + scrollTop - 4;
         resizer.style.top = startOffset + parseInt(Handsontable.Dom.outerHeight(TH), 10) + 'px';
         resizer.style.left = scrollLeft + 'px';
         this.rootElement[0].appendChild(resizer);
