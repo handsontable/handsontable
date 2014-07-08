@@ -792,7 +792,8 @@
   function updateHeight() {
     var realSeparatorHeight = 0,
         realEntrySize = 0,
-        dataSize = this.getSettings().data.length;
+        dataSize = this.getSettings().data.length,
+        startValue = this.view.wt.wtScrollbars.vertical.fixedContainer.style.height;
 
     for(var i = 0; i < dataSize; i++) {
       if(this.getSettings().data[i].name == ContextMenu.SEPARATOR) {
@@ -803,7 +804,11 @@
     }
 
     this.view.wt.wtScrollbars.vertical.fixedContainer.style.height = realEntrySize + realSeparatorHeight + "px";
-    this.updateSettings({});
+
+    if(!this.updatedHeight) {
+      this.updatedHeight = true;
+      this.selection.refreshBorders();  
+    }
   }
 
   function init(){
