@@ -790,10 +790,14 @@
   ContextMenu.SEPARATOR = "---------";
 
   function updateHeight() {
+
+    if(this.rootElement[0].className.indexOf('htContextMenu')) {
+      return;
+    }
+
     var realSeparatorHeight = 0,
         realEntrySize = 0,
-        dataSize = this.getSettings().data.length,
-        startValue = this.view.wt.wtScrollbars.vertical.fixedContainer.style.height;
+        dataSize = this.getSettings().data.length;
 
     for(var i = 0; i < dataSize; i++) {
       if(this.getSettings().data[i].name == ContextMenu.SEPARATOR) {
@@ -804,11 +808,6 @@
     }
 
     this.view.wt.wtScrollbars.vertical.fixedContainer.style.height = realEntrySize + realSeparatorHeight + "px";
-
-    if(!this.updatedHeight) {
-      this.updatedHeight = true;
-      this.selection.refreshBorders();  
-    }
   }
 
   function init(){
@@ -836,7 +835,7 @@
 
   Handsontable.hooks.add('afterInit', init);
   Handsontable.hooks.add('afterUpdateSettings', init);
-  Handsontable.hooks.add('afterRender',updateHeight);
+  Handsontable.hooks.add('afterInit',updateHeight);
 
   if(Handsontable.PluginHooks.register) { //HOT 0.11+
     Handsontable.PluginHooks.register('afterContextMenuDefaultOptions');
