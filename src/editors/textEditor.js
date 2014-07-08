@@ -128,7 +128,7 @@
 
     var that = this;
     Handsontable.hooks.add('afterRender', function () {
-      that.instance.registerTimeout('refresh_editor_dimensions', function () {
+      that.instance._registerTimeout('refresh_editor_dimensions', function () {
         that.refreshDimensions();
       }, 0);
     });

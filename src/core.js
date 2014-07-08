@@ -1977,7 +1977,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    */
   this.destroy = function () {
-    instance.clearTimeouts();
+    instance._clearTimeouts();
     if (instance.view) { //in case HT is destroyed before initialization has finished
       instance.view.wt.destroy();
     }
@@ -2033,7 +2033,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called
    * @public
    */
-  this.registerTimeout = function (key, handle, ms) {
+  this._registerTimeout = function (key, handle, ms) {
     clearTimeout(this.timeouts[key]);
     this.timeouts[key] = setTimeout(handle, ms || 0);
   };
@@ -2042,7 +2042,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * Clears all known timeouts
    * @public
    */
-  this.clearTimeouts = function () {
+  this._clearTimeouts = function () {
     for (var key in this.timeouts) {
       if (this.timeouts.hasOwnProperty(key)) {
         clearTimeout(this.timeouts[key]);

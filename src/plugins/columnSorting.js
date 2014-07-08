@@ -139,7 +139,7 @@ function HandsontableColumnSorting() {
 
   function enableObserveChangesPlugin () {
     var instance = this;
-    instance.registerTimeout('enableObserveChanges', function(){
+    instance._registerTimeout('enableObserveChanges', function(){
       instance.updateSettings({
         observeChanges: true
       });

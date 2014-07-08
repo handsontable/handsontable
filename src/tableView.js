@@ -275,7 +275,7 @@ Handsontable.TableView = function (instance) {
   this.activeWt = this.wt;
 
   /*$window.on('resize.' + instance.guid, function () {
-    instance.registerTimeout('resizeTimeout', function () {
+    instance._registerTimeout('resizeTimeout', function () {
       instance.forceFullRender = true;
       that.render();
     }, 60);
