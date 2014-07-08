@@ -406,4 +406,36 @@ describe('Core_selection', function () {
 
 
   });
+
+  it("should select the entire row after row header is clicked", function(){
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true,
+      rowHeaders: true
+    });
+
+    this.$container.find('tr:eq(2) th:eq(0)').trigger('mousedown');
+    expect(getSelected()).toEqual([1, 0, 1, 4]);
+
+  });
+
+  it("should select the entire row of a partially fixed table after row header is clicked", function(){
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true,
+      rowHeaders: true,
+      fixedRowsTop: 2,
+      fixedColumnsLeft: 2
+    });
+
+    this.$container.find('tr:eq(2) th:eq(0)').trigger('mousedown');
+    expect(getSelected()).toEqual([1, 0, 1, 4]);
+    this.$container.find('tr:eq(3) th:eq(0)').trigger('mousedown');
+    expect(getSelected()).toEqual([2, 0, 2, 4]);
+
+  });
+
+
 });
