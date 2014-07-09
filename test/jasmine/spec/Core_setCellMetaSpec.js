@@ -28,4 +28,26 @@ describe('Core_setCellMeta', function () {
     expect(cellMeta.className).toEqual(className);
   });
 
+  it('should call afterSetCellMeta plugin hook', function () {
+    var className = "htCenter htMiddle";
+    var res = {};
+
+    handsontable({
+      afterCellMetaReset: function () {
+        this.setCellMeta(0, 1, "className", className);
+      },
+      afterSetCellMeta: function (row, col, key, val) {
+        res.row = row;
+        res.col = col;
+        res.key = key;
+        res.val = val;
+      }
+    });
+
+    expect(res.row).toEqual(0);
+    expect(res.col).toEqual(1);
+    expect(res.key).toEqual("className");
+    expect(res.val).toEqual(className);
+  });
+
 });

@@ -25,6 +25,7 @@ Handsontable.PluginHookClass = (function () {
       afterChange : [],
       afterValidate: [],
       afterGetCellMeta: [],
+      afterSetCellMeta: [],
       afterGetColHeader: [],
       afterDestroy: [],
       afterRemoveRow: [],

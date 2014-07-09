@@ -1509,6 +1509,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       priv.cellSettings[row][col] = new priv.columnSettings[col]();
     }
     priv.cellSettings[row][col][key] = val;
+    Handsontable.hooks.run(instance, 'afterSetCellMeta', row, col, key, val);
   };
 
   /**
