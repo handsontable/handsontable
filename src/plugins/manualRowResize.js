@@ -157,7 +157,8 @@
           bindManualRowHeightEvents.call(this);
           instance.forceFullRender = true;
           instance.render();
-          Handsontable.hooks.add('afterRender', afterRender);
+          Handsontable.hooks.add('afterScrollVertically', afterScrollVertically);
+          Handsontable.hooks.add('afterScrollHorizontally', afterScrollHorizontally);
         }
       }
     };
@@ -179,10 +180,12 @@
       return height;
     };
 
-    var afterRender = function () {
-      var instance = this;
-      scrollTop = instance.rootElement.scrollTop();
-      scrollLeft = instance.rootElement.scrollLeft();
+    var afterScrollVertically = function () {
+      scrollTop = Handsontable.Dom.getScrollTop(this.rootElement[0]);
+    };
+
+    var afterScrollHorizontally = function () {
+      scrollLeft = Handsontable.Dom.getScrollLeft(this.rootElement[0]);
     }
   }
 
