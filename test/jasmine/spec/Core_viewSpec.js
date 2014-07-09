@@ -420,4 +420,47 @@ describe('Core_view', function () {
       expect(hot.view.maximumVisibleElementHeight()).toBeLessThan(100);
     });
   });
+
+  describe('stretchH', function () {
+
+    it("should stretch all visible columns with the ratio appropriate to the container's width", function() {
+
+      this.$container[0].style.width = '300px';
+   debugger;   
+      var hot = handsontable({
+        startRows: 5,
+        startCols: 5,
+        rowHeaders: true,
+        colHeaders: true,
+        stretchH: 'all'
+      }),
+      rowHeaderWidth = hot.view.wt.wtViewport.getRowHeaderWidth(),
+      expectedCellWidth = 0;
+
+      expectedCellWidth = (parseInt(this.$container[0].style.width,10) - rowHeaderWidth) / 5;
+
+      expect(getCell(0,0).offsetWidth).toEqual(expectedCellWidth);
+      expect(getCell(0,1).offsetWidth).toEqual(expectedCellWidth);
+      expect(getCell(0,2).offsetWidth).toEqual(expectedCellWidth);
+      expect(getCell(0,3).offsetWidth).toEqual(expectedCellWidth);
+      expect(getCell(0,4).offsetWidth).toEqual(expectedCellWidth);
+
+
+      this.$container[0].style.width = '';
+      this.$container.wrap('<div class="temp_wrapper" style="width:400px;"></div>');
+      hot.render();
+
+      expectedCellWidth = (parseInt($('.temp_wrapper')[0].style.width,10) - rowHeaderWidth) / 5;
+
+      expect(getCell(0,0).offsetWidth).toEqual(expectedCellWidth);
+      expect(getCell(0,1).offsetWidth).toEqual(expectedCellWidth);
+      expect(getCell(0,2).offsetWidth).toEqual(expectedCellWidth);
+      expect(getCell(0,3).offsetWidth).toEqual(expectedCellWidth);
+      expect(getCell(0,4).offsetWidth).toEqual(expectedCellWidth);      
+
+      this.$container.unwrap();
+    });
+
+  });
+
 });

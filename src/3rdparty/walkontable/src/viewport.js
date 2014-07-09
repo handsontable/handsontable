@@ -15,12 +15,32 @@ WalkontableViewport.prototype.getWorkspaceHeight = function (proposedHeight) {
 
 WalkontableViewport.prototype.getWorkspaceWidth = function (proposedWidth) {
   if (this.instance.wtScrollbars.horizontal.scrollHandler === window){
-    return Math.min(document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
+    return Math.min(this.getContainerFillWidth(), document.documentElement.offsetWidth - this.getWorkspaceOffset().left, document.documentElement.offsetWidth);
   }
 
   return this.instance.wtScrollbars.horizontal.windowSize;
 
 };
+
+WalkontableViewport.prototype.getContainerFillWidth = function() {
+  var mainContainer = this.instance.wtTable.holder,
+      fillWidth,
+      dummyElement;
+
+  while(mainContainer.parentNode != document.body && mainContainer.parentNode != null && mainContainer.className.indexOf('handsontable') === -1) {
+    mainContainer = mainContainer.parentNode;
+  }
+
+  dummyElement = document.createElement("DIV");
+  dummyElement.style.width = "100%";
+  dummyElement.style.height = "1px";
+  mainContainer.appendChild(dummyElement);
+  fillWidth = dummyElement.offsetWidth;
+
+  mainContainer.removeChild(dummyElement);
+
+  return fillWidth;
+}
 
 WalkontableViewport.prototype.getWorkspaceOffset = function () {
   return Handsontable.Dom.offset(this.instance.wtTable.TABLE);
@@ -85,6 +105,7 @@ WalkontableViewport.prototype.getRowHeaderWidth = function () {
   return this.rowHeaderWidth;
 };
 
+// Viewport width = Workspace width - Row Headers width
 WalkontableViewport.prototype.getViewportWidth = function (proposedWidth) {
   var containerWidth = this.getWorkspaceWidth(proposedWidth);
 
