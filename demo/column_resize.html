@@ -150,33 +150,7 @@
 
     if(savedKeys && savedKeys.length > 0){
       $(".state-loaded.example1").show();
-    }
-  })();
-
-  (function(){
-    var HOT = $('#example2').handsontable('getInstance');
-
-    $('.reset-state2').on('click', function(){
-
-      HOT.runHooks('persistentStateReset');
-
-      HOT.updateSettings({
-        manualColumnMove:true,
-        manualColumnResize: true
-      });
-
-      $(".state-loaded.example2").fadeOut(300);
-    });
-
-
-    var storedData = {};
-
-    HOT.runHooks('persistentStateLoad', '_persistentStateKeys', storedData);
-
-    var savedKeys = storedData.value;
-
-    if(savedKeys && savedKeys.length > 0){
-      $(".state-loaded.example2").show();
+      HOT.render();
     }
   })();
 </script>
