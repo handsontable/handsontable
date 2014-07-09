@@ -75,14 +75,18 @@
             <div class="pad" data-jsfiddle="example1">
               <h2>Horizontal & vertical alignment</h2>
 
-              <p>To initialize Handsontable with predefined horizontal and vertical alignment, provide className cells details in form of a function:
-                <code>
-                  afterCellMetaReset: function() {
-                  this.setCellMeta(3, 4, "className", "htRight htBottom");
-                  }
-                </code>
+              <p>To initialize Handsontable with predefined horizontal and vertical alignment, provide className cells details
+                in form of a <code>afterCellMetaReset</code> hook callback (see code sample below).
               </p>
-              <p>Available classNames: <br />horizontal [htLeft,htCenter,htRight,htJustify] <br />vertical [htTop, htMiddle, htBottom]</p>
+
+              <p>Available classNames:</p>
+
+              <ul>
+                <li>horizontal: <code>htLeft</code>, <code>htCenter</code>, <code>htRight</code>, <code>htJustify</code>,</li>
+                <li>vertical: <code>htTop</code>, <code>htMiddle</code>, <code>htBottom</code>.</li>
+              </ul>
+
+              <p>Alignment changes can be tracked using <code>afterSetCellMeta</code> hook callback.</p>
 
           <div style="overflow: scroll; height: 200px; width: 400px">
             <div id="example1"></div>
@@ -119,6 +123,9 @@
                 this.setCellMeta(0, 0, "className", "htCenter");
                 this.setCellMeta(1, 1, "className", "htCenter htMiddle");
                 this.setCellMeta(3, 4, "className", "htRight htBottom");
+              },
+              afterSetCellMeta: function (row, col, key, val) {
+                console.log("cell meta changed", row, col, key, val);
               }
             });
           </script>
