@@ -113,6 +113,7 @@
               rowHeaders: true,
               colHeaders: true,
               contextMenu: true,
+              className: "htCenter",
               mergeCells: [
                 {row: 1, col: 1, rowspan: 3, colspan: 3},
                 {row: 3, col: 4, rowspan: 2, colspan: 2}
@@ -120,9 +121,9 @@
               nativeScrollbars: true,
 
               afterCellMetaReset: function() {
-                this.setCellMeta(0, 0, "className", "htCenter");
-                this.setCellMeta(1, 1, "className", "htCenter htMiddle");
-                this.setCellMeta(3, 4, "className", "htRight htBottom");
+                this.setCellMeta(0, 0, "className", "htRight");
+                this.setCellMeta(1, 1, "className", "htLeft htMiddle");
+                this.setCellMeta(3, 4, "className", "htLeft htBottom");
               },
               afterSetCellMeta: function (row, col, key, val) {
                 console.log("cell meta changed", row, col, key, val);
