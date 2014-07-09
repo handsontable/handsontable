@@ -68,6 +68,10 @@
             href="https://github.com/warpech/jquery-handsontable/issues">Issue</a>.
           </p>
 
+          <p>
+            Note that some checkboxes below are initially unchecked (not all callbacks are displayed on this page by default).
+          </p>
+
           <div id="example1"></div>
 
           <p>
@@ -122,7 +126,7 @@
             var hooks = Handsontable.hooks.getRegistered();
             hooks.forEach(function(hook) {
               var checked = '';
-              if (hook === 'afterLoadData' || hook === 'afterChange' || hook === 'beforeChange' || hook === 'afterSelection' || hook === 'afterSelectionEnd') {
+              if (hook !== 'modifyRowHeight' && hook !== 'modifyRow' && hook !== 'modifyCol' && hook !== 'afterRenderer' && hook !== 'beforeGetCellMeta' && hook !== 'afterGetCellMeta') {
                 checked = 'checked';
 
               }
