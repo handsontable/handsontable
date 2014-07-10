@@ -36,7 +36,7 @@ describe('RowHeader', function () {
       rowHeaders: true
     });
 
-    var ths = that.$container.find('tbody th');
+    var ths = getLeftClone().find('tbody th');
     expect(ths.length).toEqual(startRows);
     expect($.trim(ths.eq(0).text())).toEqual('1');
     expect($.trim(ths.eq(1).text())).toEqual('2');
@@ -53,7 +53,7 @@ describe('RowHeader', function () {
       rowHeaders: ['First', 'Second', 'Third']
     });
 
-    var ths = that.$container.find('tbody th');
+    var ths = getLeftClone().find('tbody th');
     expect(ths.length).toEqual(startRows);
     expect($.trim(ths.eq(0).text())).toEqual('First');
     expect($.trim(ths.eq(1).text())).toEqual('Second');
@@ -68,7 +68,7 @@ describe('RowHeader', function () {
       rowHeaders: false
     });
 
-    expect(that.$container.find('tbody th').length).toEqual(0);
+    expect(getLeftClone().find('tbody th').length).toEqual(0);
   });
 
   it('should hide rows headers after updateSetting', function(){
@@ -77,13 +77,13 @@ describe('RowHeader', function () {
       rowHeaders: true
     });
 
-    expect(this.$container.find('tbody th').length).toEqual(5);
+    expect(getLeftClone().find('tbody th').length).toEqual(5);
 
     hot.updateSettings({
       rowHeaders: false
     });
 
-    expect(this.$container.find('tbody th').length).toEqual(0);
+    expect(getLeftClone().find('tbody th').length).toEqual(0);
   });
 
   it('should show rows headers after updateSettings', function(){
@@ -92,13 +92,13 @@ describe('RowHeader', function () {
       rowHeaders: false
     });
 
-    expect(this.$container.find('tbody th').length).toEqual(0);
+    expect(getLeftClone().find('tbody th').length).toEqual(0);
 
     hot.updateSettings({
       rowHeaders: true
     });
 
-    expect(this.$container.find('tbody th').length).toEqual(5);
+    expect(getLeftClone().find('tbody th').length).toEqual(5);
   });
 
   it('should show/hide rows headers after multiple updateSettings', function(){
@@ -107,25 +107,25 @@ describe('RowHeader', function () {
       rowHeaders: false
     });
 
-    expect(this.$container.find('tbody th').length).toEqual(0);
+    expect(getLeftClone().find('tbody th').length).toEqual(0);
 
     hot.updateSettings({
       rowHeaders: true
     });
 
-    expect(this.$container.find('tbody th').length).toEqual(5);
+    expect(getLeftClone().find('tbody th').length).toEqual(5);
 
     hot.updateSettings({
       rowHeaders: false
     });
 
-    expect(this.$container.find('tbody th').length).toEqual(0);
+    expect(getLeftClone().find('tbody th').length).toEqual(0);
 
     hot.updateSettings({
       rowHeaders: true
     });
 
-    expect(this.$container.find('tbody th').length).toEqual(5);
+    expect(getLeftClone().find('tbody th').length).toEqual(5);
 
   });
 
@@ -135,17 +135,19 @@ describe('RowHeader', function () {
       rowHeaders: ['A', 'B', 'C']
     });
 
-    expect(this.$container.find('tbody tr:eq(0) th:eq(0)').text()).toEqual('A');
-    expect(this.$container.find('tbody tr:eq(1) th:eq(0)').text()).toEqual('B');
-    expect(this.$container.find('tbody tr:eq(2) th:eq(0)').text()).toEqual('C');
+    var leftClone = getLeftClone();
+
+    expect(leftClone.find('tbody tr:eq(0) th:eq(0)').text()).toEqual('A');
+    expect(leftClone.find('tbody tr:eq(1) th:eq(0)').text()).toEqual('B');
+    expect(leftClone.find('tbody tr:eq(2) th:eq(0)').text()).toEqual('C');
 
     hot.updateSettings({
       rowHeaders: ['X', 'Y', 'Z']
     });
 
-    expect(this.$container.find('tbody tr:eq(0) th:eq(0)').text()).toEqual('X');
-    expect(this.$container.find('tbody tr:eq(1) th:eq(0)').text()).toEqual('Y');
-    expect(this.$container.find('tbody tr:eq(2) th:eq(0)').text()).toEqual('Z');
+    expect(leftClone.find('tbody tr:eq(0) th:eq(0)').text()).toEqual('X');
+    expect(leftClone.find('tbody tr:eq(1) th:eq(0)').text()).toEqual('Y');
+    expect(leftClone.find('tbody tr:eq(2) th:eq(0)').text()).toEqual('Z');
 
   });
 });

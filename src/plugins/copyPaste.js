@@ -25,14 +25,18 @@
       var input = str.replace(/^[\r\n]*/g, '').replace(/[\r\n]*$/g, '') //remove newline from the start and the end of the input
         , inputArray = SheetClip.parse(input)
         , selected = instance.getSelected()
-        , coords = instance.getCornerCoords([{row: selected[0], col: selected[1]}, {row: selected[2], col: selected[3]}])
-        , areaStart = coords.TL
-        , areaEnd = {
-          row: Math.max(coords.BR.row, inputArray.length - 1 + coords.TL.row),
-          col: Math.max(coords.BR.col, inputArray[0].length - 1 + coords.TL.col)
-        };
+        , coordsFrom = new WalkontableCellCoords(selected[0], selected[1])
+        , coordsTo = new WalkontableCellCoords(selected[2], selected[3])
+        , cellRange = new WalkontableCellRange(coordsFrom, coordsFrom, coordsTo)
+        , topLeftCorner = cellRange.getTopLeftCorner()
+        , bottomRightCorner = cellRange.getBottomRightCorner()
+        , areaStart = topLeftCorner
+        , areaEnd = new WalkontableCellCoords(
+          Math.max(bottomRightCorner.row, inputArray.length - 1 + topLeftCorner.row),
+          Math.max(bottomRightCorner.col, inputArray[0].length - 1 + topLeftCorner.col)
+        );
 
-      instance.PluginHooks.once('afterChange', function (changes, source) {
+      instance.addHookOnce('afterChange', function (changes, source) {
         if (changes && changes.length) {
           this.selectCell(areaStart.row, areaStart.col, areaEnd.row, areaEnd.col);
         }
@@ -75,22 +79,24 @@
      */
     this.setCopyableText = function () {
 
-      var selection = instance.getSelected();
       var settings = instance.getSettings();
       var copyRowsLimit = settings.copyRowsLimit;
       var copyColsLimit = settings.copyColsLimit;
 
-      var startRow = Math.min(selection[0], selection[2]);
-      var startCol = Math.min(selection[1], selection[3]);
-      var endRow = Math.max(selection[0], selection[2]);
-      var endCol = Math.max(selection[1], selection[3]);
+      var selRange = instance.getSelectedRange();
+      var topLeft = selRange.getTopLeftCorner();
+      var bottomRight = selRange.getBottomRightCorner();
+      var startRow = topLeft.row;
+      var startCol = topLeft.col;
+      var endRow = bottomRight.row;
+      var endCol = bottomRight.col;
       var finalEndRow = Math.min(endRow, startRow + copyRowsLimit - 1);
       var finalEndCol = Math.min(endCol, startCol + copyColsLimit - 1);
 
       instance.copyPaste.copyPasteInstance.copyable(instance.getCopyableData(startRow, startCol, finalEndRow, finalEndCol));
 
       if (endRow !== finalEndRow || endCol !== finalEndCol) {
-        instance.PluginHooks.run("afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
+        Handsontable.hooks.run(instance, "afterCopyLimit", endRow - startRow + 1, endCol - startCol + 1, copyRowsLimit, copyColsLimit);
       }
     };
 
@@ -115,7 +121,8 @@
 
   }
 
-  Handsontable.PluginHooks.add('afterInit', init);
-  Handsontable.PluginHooks.add('afterUpdateSettings', init);
+  Handsontable.hooks.add('afterInit', init);
+  Handsontable.hooks.add('afterUpdateSettings', init);
 
+  Handsontable.hooks.register('afterCopyLimit');
 })(Handsontable, CopyPaste, SheetClip);

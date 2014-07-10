@@ -1,10 +1,10 @@
 describe('AutocompleteEditor', function () {
   var id = 'testContainer';
 
-  var choices = ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"];
+  var choices = ["yellow", "red", "orange", "green", "blue", "gray", "black", "white", "purple", "lime", "olive", "cyan"];
 
   beforeEach(function () {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $('<div id="' + id + '" style="width: 300px; height: 200px; overflow: auto"></div>').appendTo('body');
   });
 
   afterEach(function () {
@@ -2055,7 +2055,7 @@ describe('AutocompleteEditor', function () {
 
     expect(syncSources).not.toHaveBeenCalled();
 
-  });
+    });
 
   it("should not call the `source` method if cell is read only and the arrow has been clicked", function () {
 
@@ -2126,5 +2126,104 @@ describe('AutocompleteEditor', function () {
 
 
   });
+
+  it("should add a scrollbar to the autocomplete dropdown, only if number of displayed choices exceeds 10", function(){
+    var hot = handsontable({
+      data: [
+        ['', 'two','three'],
+        ['four', 'five', 'six']
+      ],
+      columns: [
+        {
+          type: 'autocomplete',
+          source: choices,
+          allowInvalid: false,
+          strict: false
+        },
+        {
+
+        },
+        {
+
+        }
+      ]
+    });
+
+    expect(choices.length).toBeGreaterThan(10);
+
+    selectCell(0, 0);
+    $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
+
+    var dropdown = hot.getActiveEditor().$htContainer[0];
+
+    expect(dropdown.scrollHeight).toBeGreaterThan(dropdown.clientHeight);
+
+    keyDownUp('esc');
+
+    hot.getSettings().columns[0].source = hot.getSettings().columns[0].source.slice(0).splice(3);
+
+    hot.updateSettings({});
+
+    selectCell(0, 0);
+    $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
+
+    expect(dropdown.scrollHeight > dropdown.clientHeight).toBe(false);
+    
+  });
+
+  it("should not close editor on scrolling", function(){
+    var hot = handsontable({
+      data: [
+        ['', 'two','three'],
+        ['four', 'five', 'six']
+      ],
+      columns: [
+        {
+          type: 'autocomplete',
+          source: choices,
+          allowInvalid: false,
+          strict: false
+        },
+        {
+
+        },
+        {
+
+        }
+      ]
+    });
+
+    expect(choices.length).toBeGreaterThan(10);
+
+    selectCell(0, 0);
+    $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
+    $(getCell(0, 0)).find('.htAutocompleteArrow').mouseup();
+
+    var dropdown = hot.getActiveEditor().$htContainer;
+
+    hot.view.wt.wtScrollbars.vertical.scrollTo(1);
+
+    waits(30);
+
+    runs(function () {
+      expect($(dropdown[0]).is(':visible')).toBe(true);
+      selectCell(0, 0);
+    });
+
+    waits(30);
+
+    runs(function () {
+      $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
+      $(getCell(0, 0)).find('.htAutocompleteArrow').mouseup();
+
+      dropdown.handsontable('getInstance').view.wt.wtScrollbars.vertical.scrollTo(3);
+    });
+
+    waits(30);
+
+    runs(function () {
+      expect($(dropdown[0]).is(':visible')).toBe(true);
+    });
+  });  
 
 });

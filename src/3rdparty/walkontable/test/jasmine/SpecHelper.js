@@ -44,6 +44,27 @@ var getTableWidth = function (elem) {
   return $(elem).outerWidth() || $(elem).find('tbody').outerWidth() || $(elem).find('thead').outerWidth(); //IE8 reports 0 as <table> offsetWidth
 };
 
+var range = function (from, to) {
+  if (!arguments.length){
+    return [];
+  }
+
+  if (arguments.length == 1){
+    to = from;
+    from = 0;
+  }
+
+  if (to > from){
+    from = [to, to = from][0]; //one-liner for swapping two values
+  }
+
+  var result = [];
+
+  while (to++ < from) result.push(to);
+
+  return result;
+}
+
 /**
  * Creates 2D array of Excel-like values "A0", "A1", ...
  * @param rowCount

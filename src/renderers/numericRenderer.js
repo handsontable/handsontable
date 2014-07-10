@@ -18,7 +18,7 @@
         numeral.language(cellProperties.language)
       }
       value = numeral(value).format(cellProperties.format || '0'); //docs: http://numeraljs.com/
-      instance.view.wt.wtDom.addClass(TD, 'htNumeric');
+      Handsontable.Dom.addClass(TD, 'htNumeric');
     }
     Handsontable.renderers.TextRenderer(instance, TD, row, col, prop, value, cellProperties);
   };

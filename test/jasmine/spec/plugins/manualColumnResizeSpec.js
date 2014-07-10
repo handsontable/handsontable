@@ -98,7 +98,7 @@ describe('manualColumnResize', function () {
 
   it("should resize appropriate columns, even if the column order was changed with manualColumnMove plugin", function () {
     handsontable({
-      colHeaders: true,
+      colHeaders: ["First", "Second", "Third"],
       manualColumnMove: [2, 1, 0, 3],
       manualColumnResize: true
     });
@@ -114,7 +114,7 @@ describe('manualColumnResize', function () {
 
     var $resizedTh = $columnHeaders.eq(0);
 
-    expect($resizedTh.text()).toEqual('C');
+    expect($resizedTh.text()).toEqual('Third');
     expect($resizedTh.outerWidth()).toEqual(100);
 
     //Sizes of remaining columns should stay the same

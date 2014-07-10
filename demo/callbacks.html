@@ -60,12 +60,16 @@
 
           <p>
             This page shows usage of some callbacks available in Handsontable. Full list of callbacks is available in <a
-            href="https://github.com/warpech/jquery-handsontable">README.md</a>.
+            href="https://github.com/handsontable/jquery-handsontable">README.md</a>.
           </p>
 
           <p>
             If you require a new callback to be added to Handsontable, please open an <a
-            href="https://github.com/warpech/jquery-handsontable/issues">Issue</a>.
+            href="https://github.com/handsontable/jquery-handsontable/issues">Issue</a>.
+          </p>
+
+          <p>
+            Note that some checkboxes below are initially unchecked (not all callbacks are displayed on this page by default).
           </p>
 
           <div id="example1"></div>
@@ -119,22 +123,18 @@
             };
 
             var $hooksList = $('#hooksList');
-            var hooks = Handsontable.PluginHooks.hooks;
-            for (var hook in hooks) {
-              if (hooks.hasOwnProperty(hook)) {
-                config[hook] = (function (hook) {
-                  var checked = '';
-                  if (hook === 'afterLoadData' || hook === 'afterChange' || hook === 'beforeChange' || hook === 'afterSelection' || hook === 'afterSelectionEnd') {
-                    checked = 'checked';
+            var hooks = Handsontable.hooks.getRegistered();
+            hooks.forEach(function(hook) {
+              var checked = '';
+              if (hook !== 'modifyRowHeight' && hook !== 'modifyRow' && hook !== 'modifyCol' && hook !== 'afterRenderer' && hook !== 'beforeGetCellMeta' && hook !== 'afterGetCellMeta') {
+                checked = 'checked';
 
-                  }
-                  $hooksList.append('<li><label><input type="checkbox" ' + checked + ' id="check_' + hook + '"> ' + hook + '</label></li>');
-                  return function () {
-                    log_events(hook, arguments);
-                  }
-                })(hook);
               }
-            }
+              $hooksList.append('<li><label><input type="checkbox" ' + checked + ' id="check_' + hook + '"> ' + hook + '</label></li>');
+              config[hook] = function() {
+                log_events(hook, arguments);
+              }
+            });
 
             var start = (new Date()).getTime();
             var i = 0;
@@ -193,7 +193,7 @@
               var state = this.checked;
               $('input[type=checkbox]').each(function () {
                 if (state === true) {
-                  if (this.id === 'check_beforeSet' || this.id === 'check_beforeGet') {
+                  if (this.id === 'check_modifyRow') {
                     return; //too much noise in the log
                   }
                 }
@@ -211,7 +211,7 @@
       </div>
     </div>
 
-        <div class="footer-text">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+        <div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and documentation
           licensed under the The MIT License.
         </div>
       </div>

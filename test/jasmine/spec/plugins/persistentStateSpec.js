@@ -19,7 +19,7 @@ describe('persistentState', function () {
       persistentState: true
     });
 
-    hot.PluginHooks.run('persistentStateSave', 'testData', 100);
+    hot.runHooks('persistentStateSave', 'testData', 100);
 
     var rawStoredData = window.localStorage[id + '_testData'];
 
@@ -36,7 +36,7 @@ describe('persistentState', function () {
       persistentState: false
     });
 
-    hot.PluginHooks.run('persistentStateSave', 'testData', 100);
+    hot.runHooks('persistentStateSave', 'testData', 100);
 
     var rawStoredData = window.localStorage[id + '_testData'];
 
@@ -49,10 +49,10 @@ describe('persistentState', function () {
       persistentState: true
     });
 
-    hot.PluginHooks.run('persistentStateSave', 'testData', 100);
+    hot.runHooks('persistentStateSave', 'testData', 100);
 
     var storedData = {};
-    hot.PluginHooks.run('persistentStateLoad', 'testData', storedData);
+    hot.runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toEqual(100);
 
@@ -67,7 +67,7 @@ describe('persistentState', function () {
     window.localStorage[id + '_testData'] = JSON.stringify(100);
 
     var storedData = {};
-    hot.PluginHooks.run('persistentStateLoad', 'testData', storedData);
+    hot.runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toBeUndefined();
 
@@ -78,17 +78,17 @@ describe('persistentState', function () {
       persistentState: true
     });
 
-    hot.PluginHooks.run('persistentStateSave', 'testData', 100);
+    hot.runHooks('persistentStateSave', 'testData', 100);
 
     var storedData = {};
-    hot.PluginHooks.run('persistentStateLoad', 'testData', storedData);
+    hot.runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toEqual(100);
 
-    hot.PluginHooks.run('persistentStateReset', 'testData');
+    hot.runHooks('persistentStateReset', 'testData');
 
     storedData = {};
-    hot.PluginHooks.run('persistentStateLoad', 'testData', storedData);
+    hot.runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toBeUndefined();
 
@@ -104,7 +104,7 @@ describe('persistentState', function () {
     window.localStorage[id + '_testData'] = JSON.stringify(100);
 
     var storedData = {};
-    hot.PluginHooks.run('persistentStateReset', 'testData');
+    hot.runHooks('persistentStateReset', 'testData');
 
     expect(JSON.parse(window.localStorage[id + '_testData'])).toEqual(100);
 
@@ -115,33 +115,33 @@ describe('persistentState', function () {
       persistentState: true
     });
 
-    hot.PluginHooks.run('persistentStateSave', 'testData0', 100);
-    hot.PluginHooks.run('persistentStateSave', 'testData1', 'foo');
-    hot.PluginHooks.run('persistentStateSave', 'testData2', 200);
+    hot.runHooks('persistentStateSave', 'testData0', 100);
+    hot.runHooks('persistentStateSave', 'testData1', 'foo');
+    hot.runHooks('persistentStateSave', 'testData2', 200);
 
     var storedData = [
       {},
       {},
       {}
     ];
-    hot.PluginHooks.run('persistentStateLoad', 'testData0', storedData[0]);
-    hot.PluginHooks.run('persistentStateLoad', 'testData1', storedData[1]);
-    hot.PluginHooks.run('persistentStateLoad', 'testData2', storedData[2]);
+    hot.runHooks('persistentStateLoad', 'testData0', storedData[0]);
+    hot.runHooks('persistentStateLoad', 'testData1', storedData[1]);
+    hot.runHooks('persistentStateLoad', 'testData2', storedData[2]);
 
     expect(storedData[0].value).toEqual(100);
     expect(storedData[1].value).toEqual('foo');
     expect(storedData[2].value).toEqual(200);
 
-    hot.PluginHooks.run('persistentStateReset');
+    hot.runHooks('persistentStateReset');
 
     storedData = [
       {},
       {},
       {}
     ];
-    hot.PluginHooks.run('persistentStateLoad', 'testData0', storedData[0]);
-    hot.PluginHooks.run('persistentStateLoad', 'testData1', storedData[1]);
-    hot.PluginHooks.run('persistentStateLoad', 'testData2', storedData[2]);
+    hot.runHooks('persistentStateLoad', 'testData0', storedData[0]);
+    hot.runHooks('persistentStateLoad', 'testData1', storedData[1]);
+    hot.runHooks('persistentStateLoad', 'testData2', storedData[2]);
 
     expect(storedData[0].value).toBeUndefined();
     expect(storedData[1].value).toBeUndefined();
@@ -155,10 +155,10 @@ describe('persistentState', function () {
       persistentState: true
     });
 
-    hot.PluginHooks.run('persistentStateSave', 'testData', 100);
+    hot.runHooks('persistentStateSave', 'testData', 100);
 
     var storedData = {};
-    hot.PluginHooks.run('persistentStateLoad', 'testData', storedData);
+    hot.runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toEqual(100);
 
@@ -167,7 +167,7 @@ describe('persistentState', function () {
     });
 
     storedData = {};
-    hot.PluginHooks.run('persistentStateLoad', 'testData', storedData);
+    hot.runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toBeUndefined();
 
@@ -178,10 +178,10 @@ describe('persistentState', function () {
       persistentState: false
     });
 
-    hot.PluginHooks.run('persistentStateSave', 'testData', 100);
+    hot.runHooks('persistentStateSave', 'testData', 100);
 
     var storedData = {};
-    hot.PluginHooks.run('persistentStateLoad', 'testData', storedData);
+    hot.runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toBeUndefined();
 
@@ -189,10 +189,10 @@ describe('persistentState', function () {
       persistentState: true
     });
 
-    hot.PluginHooks.run('persistentStateSave', 'testData', 100);
+    hot.runHooks('persistentStateSave', 'testData', 100);
 
     storedData = {};
-    hot.PluginHooks.run('persistentStateLoad', 'testData', storedData);
+    hot.runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toEqual(100);
 

@@ -1,0 +1,188 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Heatmaps - Handsontable</title>
+
+  <!--
+  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  -->
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css?20140331">
+  <script src="js/samples.js"></script>
+  <script src="js/highlight/highlight.pack.js"></script>
+  <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+  <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+  <script src="bower_components/chroma-js/chroma.min.js"></script>
+
+  <!--
+  Facebook open graph. Don't copy this to your project :)
+  -->
+  <meta property="og:title" content="Heatmaps for values in a column">
+  <meta property="og:description"
+        content="">
+  <meta property="og:url" content="http://handsontable.com/demo/heatmaps.html">
+  <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="409">
+  <meta property="og:image:height" content="164">
+  <link rel="canonical" href="http://handsontable.com/demo/heatmaps.html">
+
+  <!--
+  Google Analytics for GitHub Page. Don't copy this to your project :)
+  -->
+  <script src="js/ga.js"></script>
+
+</head>
+
+<body>
+
+
+<div class="wrapper">
+  <div class="wrapper-row">
+    <div id="global-menu-clone">
+      <h1><a href="../index.html">Handsontable</a></h1>
+
+    </div>
+
+    <div id="container">
+      <div class="columnLayout">
+
+        <div class="rowLayout">
+      <div class="descLayout">
+        <div class="pad" data-jsfiddle="example1">
+          <a name="lazy"></a>
+
+          <h2>Heatmaps for values in a column</h2>
+
+          <p>
+            The following demo shows an example of using heatmaps for the values in tha grid's columns.
+          </p>
+
+          <p>
+            Changing the values in the grid automatically recalculates the font color for the whole column, thereby
+            updating a heatmap.
+          </p>
+
+          <p>
+            The dynamic color scale calculation is done using the excellent <a href="http://driven-by-data.net/about/chromajs">Chroma.js</a>.
+          </p>
+
+          <div id="example1"></div>
+
+        </div>
+      </div>
+
+      <div class="codeLayout">
+        <div class="pad">
+          <div class="jsFiddle">
+            <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+          </div>
+
+          <script data-jsfiddle="example1">
+            var container = $("#example1"), 
+            data = [
+                [2002, 190251, 5090, 195341],
+                [2003, 224495, 6486, 230981],
+                [2004, 254044, 6765, 260809],
+                [2005, 254099, 7521, 261620],
+                [2006, 271108, 9449, 280557],
+                [2007, 280565, 11714, 292279],
+                [2008, 284120, 11292, 295412],
+                [2009, 279742, 11468, 291210],
+                [2010, 290411, 11806, 302217],
+                [2011, 290652, 10891, 301543],
+                [2012, 283863, 10402, 294265],
+                [2013, 267646, 10104, 255850]
+              ];
+
+            var lastChange = null;
+
+            var heatmap;
+            var heatmapScale  = chroma.scale(['#17F556', '#ED6D47']);
+
+            function updateHeatmap(change,source) {              
+              if(change) {
+                heatmap[change[0][1]] = generateHeatmapData.call(this, change[0][1]);
+              } else {
+                heatmap = [];
+                for(var i = 1, colCount = this.countCols(); i < colCount ; i++) {
+                  heatmap[i] = generateHeatmapData.call(this, i);
+                }
+              }
+            }
+
+            function point(min, max, value) {
+              return (value - min) / (max - min);
+            }
+
+            function generateHeatmapData(colId) {
+              var values = this.getDataAtCol(colId);
+              return {
+                min: Math.min.apply(null, values),
+                max: Math.max.apply(null, values)
+              };
+            }
+
+            function heatmapRenderer(instance, td, row, col, prop, value, cellProperties) {
+              Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+              if(heatmap[col]) {
+                td.style.backgroundColor = heatmapScale(point(heatmap[col].min, heatmap[col].max, parseInt(value, 10))).hex();
+                td.style.textAlign = 'right';
+                td.style.fontWeight = 'bold';
+              }
+            }
+
+            container.handsontable({
+              data: data,
+              colHeaders: ["Year", "Domestic Flights", "International Flights", "Total Flights"],
+              columns: [
+                {
+                  type: 'numeric'
+                },
+                {
+                  type: 'numeric',
+                  format: '0,0',
+                  renderer: heatmapRenderer
+                },
+                {
+                  type: 'numeric',
+                  format: '0,0',
+                  renderer: heatmapRenderer
+                },
+                {
+                  type: 'numeric',
+                  format: '0,0',
+                  renderer: heatmapRenderer
+                },
+              ],
+              afterLoadData: updateHeatmap,
+              beforeChangeRender: updateHeatmap
+            });
+
+          </script>
+        </div>
+      </div>
+    </div>
+
+        <div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and documentation
+          licensed under the The MIT License.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div id="outside-links-wrapper"></div>
+
+</body>
+</html>

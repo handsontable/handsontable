@@ -51,12 +51,12 @@ DragToScroll.prototype.check = function (x, y) {
   this.callback(diffX, diffY);
 };
 
-var listening = false;
 var dragToScroll;
 var instance;
 
 if (typeof Handsontable !== 'undefined') {
   var setupListening = function (instance) {
+    instance.dragToScrollListening = false;
     var scrollHandler = instance.view.wt.wtScrollbars.vertical.scrollHandler; //native scroll
     dragToScroll = new DragToScroll();
     if (scrollHandler === window) {
@@ -106,30 +106,32 @@ if (typeof Handsontable !== 'undefined') {
       }
     });
 
-    listening = true;
+    instance.dragToScrollListening = true;
   };
 
-  Handsontable.PluginHooks.add('afterInit', function () {
+  Handsontable.hooks.add('afterInit', function () {
+    var instance = this;
+
     $(document).on('mouseup.' + this.guid, function () {
-      listening = false;
+      instance.dragToScrollListening = false;
     });
 
     $(document).on('mousemove.' + this.guid, function (event) {
-      if (listening) {
+      if (instance.dragToScrollListening) {
         dragToScroll.check(event.clientX, event.clientY);
       }
     });
   });
 
-  Handsontable.PluginHooks.add('destroy', function () {
+  Handsontable.hooks.add('afterDestroy', function () {
     $(document).off('.' + this.guid);
   });
 
-  Handsontable.PluginHooks.add('afterOnCellMouseDown', function () {
+  Handsontable.hooks.add('afterOnCellMouseDown', function () {
     setupListening(this);
   });
 
-  Handsontable.PluginHooks.add('afterOnCellCornerMouseDown', function () {
+  Handsontable.hooks.add('afterOnCellCornerMouseDown', function () {
     setupListening(this);
   });
 

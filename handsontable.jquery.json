@@ -1,7 +1,7 @@
 {
   "name": "handsontable",
   "title": "Handsontable",
-  "version": "0.10.5",
+  "version": "0.11-beta1",
   "author": {
     "name": "Marcin Warpechowski",
     "email": "marcin@nextgen.pl",
@@ -13,11 +13,11 @@
       "url": "https://raw.github.com/warpech/jquery-handsontable/master/LICENSE"
     }
   ],
-  "description": "Minimalistic spreadsheet-like data grid editor that provides copy/paste functionality compatible with Excel/Google Docs",
+  "description": "Spreadsheet-like data grid editor that provides copy/paste functionality compatible with Excel/Google Docs",
   "homepage": "http://handsontable.com/",
-  "docs": "https://github.com/warpech/jquery-handsontable",
+  "docs": "https://github.com/handsontable/jquery-handsontable",
   "demo": "http://handsontable.com/",
-  "download": "https://github.com/warpech/jquery-handsontable/archive/master.zip",
+  "download": "https://github.com/handsontable/jquery-handsontable/archive/master.zip",
   "keywords": [
     "grid",
     "datagrid",
@@ -28,7 +28,7 @@
     "handsontable",
     "spreadsheet"
   ],
-  "bugs": "https://github.com/warpech/jquery-handsontable/issues",
+  "bugs": "https://github.com/handsontable/jquery-handsontable/issues",
   "dependencies": {
     "jquery": ">=1.7",
     "bootstrap-typeahead.js": "2.1.1",

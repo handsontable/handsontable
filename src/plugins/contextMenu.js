@@ -1,6 +1,74 @@
 (function (Handsontable) {
   'use strict';
 
+  function prepareVerticalAlignClass (className, alignment) {
+    if (className.indexOf(alignment)!= -1){
+      return className;
+    }
+
+    className =  className
+      .replace('htTop','')
+      .replace('htMiddle','')
+      .replace('htBottom','')
+      .replace('  ','');
+
+    className += " " + alignment;
+    return className;
+  }
+
+  function prepareHorizontalAlignClass (className, alignment) {
+    if (className.indexOf(alignment)!= -1){
+      return className;
+    }
+
+    className =  className
+      .replace('htLeft','')
+      .replace('htCenter','')
+      .replace('htRight','')
+      .replace('htJustify','')
+      .replace('  ','');
+
+    className += " " + alignment;
+    return className;
+  }
+
+  function doAlign (row, col, type, alignment) {
+      var cellMeta = this.getCellMeta(row, col),
+        className = alignment;
+
+      if (cellMeta.className) {
+        if(type === 'vertical') {
+          className = prepareVerticalAlignClass(cellMeta.className, alignment);
+        } else {
+          className = prepareHorizontalAlignClass(cellMeta.className, alignment);
+        }
+      }
+
+      this.setCellMeta(row, col, 'className',className);
+      this.render();
+  }
+
+  function align (range, type, alignment) {
+//    if (range.from.row < 0) {
+//      range.from = new WalkontableCellCoords(0,range.from.col);
+//      range.to = new WalkontableCellCoords(this.view.wt.wtTable.getRowStrategy().cellCount - 1, range.to.col);
+//    }
+//    if (range.from.col < 0) {
+//      range.from = new WalkontableCellCoords(range.from.row, 0);
+//      range.to = new WalkontableCellCoords(range.to.row, this.view.wt.wtTable.getColumnStrategy().cellCount - 1);
+//    }
+
+    if (range.from.row == range.to.row && range.from.col == range.to.col){
+      doAlign.call(this,range.from.row, range.from.col, type, alignment);
+    } else {
+      for(var row = range.from.row; row<= range.to.row; row++) {
+        for (var col = range.from.col; col <= range.to.col; col++) {
+          doAlign.call(this,row, col, type, alignment);
+        }
+      }
+    }
+  }
+
   function ContextMenu(instance, customOptions){
     this.instance = instance;
     var contextMenu = this;
@@ -9,7 +77,6 @@
     this.enabled = true;
 
     this.bindMouseEvents();
-    this.bindTableEvents();
 
     this.instance.addHook('afterDestroy', function () {
        contextMenu.destroy();
@@ -20,53 +87,81 @@
         'row_above': {
           name: 'Insert row above',
           callback: function(key, selection){
-            this.alter("insert_row", selection.start.row());
+            this.alter("insert_row", selection.start.row);
           },
           disabled: function () {
-            return this.countRows() >= this.getSettings().maxRows;
+            var selected = this.getSelected(),
+              entireColumnSelection = [0,selected[1],this.view.wt.wtTable.getRowStrategy().cellCount-1,selected[1]],
+              columnSelected = entireColumnSelection.join(',') == selected.join(',');
+
+            return selected[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
           }
         },
         'row_below': {
           name: 'Insert row below',
           callback: function(key, selection){
-            this.alter("insert_row", selection.end.row() + 1);
+            this.alter("insert_row", selection.end.row + 1);
           },
           disabled: function () {
-            return this.countRows() >= this.getSettings().maxRows;
+            var selected = this.getSelected(),
+              entireColumnSelection = [0,selected[1],this.view.wt.wtTable.getRowStrategy().cellCount-1,selected[1]],
+              columnSelected = entireColumnSelection.join(',') == selected.join(',');
+
+            return this.getSelected()[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
           }
         },
         "hsep1": ContextMenu.SEPARATOR,
         'col_left': {
           name: 'Insert column on the left',
           callback: function(key, selection){
-            this.alter("insert_col", selection.start.col());
+            this.alter("insert_col", selection.start.col);
           },
           disabled: function () {
-            return this.countCols() >= this.getSettings().maxCols;
+            var selected = this.getSelected(),
+              entireRowSelection = [selected[0],0, selected[0],this.view.wt.wtTable.getColumnStrategy().cellCount-1],
+              rowSelected = entireRowSelection.join(',') == selected.join(',');
+
+            return this.getSelected()[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
           }
         },
         'col_right': {
           name: 'Insert column on the right',
           callback: function(key, selection){
-            this.alter("insert_col", selection.end.col() + 1);
+            this.alter("insert_col", selection.end.col + 1);
           },
           disabled: function () {
-            return this.countCols() >= this.getSettings().maxCols;
+            var selected = this.getSelected(),
+              entireRowSelection = [selected[0],0, selected[0],this.view.wt.wtTable.getColumnStrategy().cellCount-1],
+              rowSelected = entireRowSelection.join(',') == selected.join(',');
+
+            return selected[1] < 0 || this.countCols() >= this.getSettings().maxCols || rowSelected;
           }
         },
         "hsep2": ContextMenu.SEPARATOR,
         'remove_row': {
           name: 'Remove row',
           callback: function(key, selection){
-            var amount = selection.end.row() - selection.start.row() + 1;
-            this.alter("remove_row", selection.start.row(), amount);
+            var amount = selection.end.row - selection.start.row + 1;
+            this.alter("remove_row", selection.start.row, amount);
+          },
+          disabled: function () {
+            var selected = this.getSelected(),
+              entireColumnSelection = [0,selected[1],this.view.wt.wtTable.getRowStrategy().cellCount-1,selected[1]],
+              columnSelected = entireColumnSelection.join(',') == selected.join(',');
+            return (selected[0] < 0 || columnSelected);
           }
         },
         'remove_col': {
           name: 'Remove column',
           callback: function(key, selection){
-            var amount = selection.end.col() - selection.start.col() + 1;
-            this.alter("remove_col", selection.start.col(), amount);
+            var amount = selection.end.col - selection.start.col + 1;
+            this.alter("remove_col", selection.start.col, amount);
+          },
+          disabled: function (){
+            var selected = this.getSelected(),
+              entireRowSelection = [selected[0],0, selected[0],this.view.wt.wtTable.getColumnStrategy().cellCount-1],
+              rowSelected = entireRowSelection.join(',') == selected.join(',');
+            return (selected[1] < 0 || rowSelected);
           }
         },
         "hsep3": ContextMenu.SEPARATOR,
@@ -87,10 +182,131 @@
           disabled: function () {
             return this.undoRedo && !this.undoRedo.isRedoAvailable();
           }
-        }
+        },
+        "hsep4": ContextMenu.SEPARATOR,
+        'make_read_only': {
+          name: function() {
+            var atLeastOneReadOnly = contextMenu.checkSelectionReadOnlyConsistency(this);
 
+            if(!atLeastOneReadOnly) {
+              return "Make read-only";
+            } else {
+              return "Make writable";
+            }
+          },
+          callback: function() {
+            var atLeastOneReadOnly = contextMenu.checkSelectionReadOnlyConsistency(this);
+
+            var that = this;
+            this.getSelectedRange().forAll(function(r, c) {
+              that.getCellMeta(r, c).readOnly = atLeastOneReadOnly ? false : true;
+            });
+
+            this.render();
+          }
+        },
+        "hsep5": ContextMenu.SEPARATOR,
+        'horizontal_alignment': {
+          name: function () {
+            var div = document.createElement('div'),
+              button = document.createElement('button'),
+              lButton = button.cloneNode(true),
+              rButton = button.cloneNode(true),
+              cButton = button.cloneNode(true),
+              jButton = button.cloneNode(true),
+              lText = document.createTextNode('left'),
+              cText = document.createTextNode('center'),
+              rText = document.createTextNode('right'),
+              jText = document.createTextNode('justify');
+
+            lButton.appendChild(lText);
+            cButton.appendChild(cText);
+            rButton.appendChild(rText);
+            jButton.appendChild(jText);
+
+            Handsontable.Dom.addClass(lButton,'Left');
+            Handsontable.Dom.addClass(cButton,'Center');
+            Handsontable.Dom.addClass(rButton,'Right');
+            Handsontable.Dom.addClass(jButton,'Justify');
+
+            div.appendChild(lButton);
+            div.appendChild(cButton);
+            div.appendChild(rButton);
+            div.appendChild(jButton);
+
+            return div.outerHTML;
+          },
+          callback: function (key, selection ,event) {
+            var className = event.target.className,
+              type = event.target.tagName;
+
+            if (type === "BUTTON") {
+              if(className) {
+                align.call(this, this.getSelectedRange(),'horizontal','ht' + className );
+              }
+            }
+
+          },
+          disabled: function () {
+            return false;
+          }
+        },
+        "hsep6": ContextMenu.SEPARATOR,
+        'vertical_alignment': {
+          name: function () {
+            var div = document.createElement('div'),
+              button = document.createElement('button'),
+              tButton = button.cloneNode(true),
+              mButton = button.cloneNode(true),
+              bButton = button.cloneNode(true),
+              tText = document.createTextNode('top'),
+              mText = document.createTextNode('middle'),
+              bText = document.createTextNode('bottom');
+
+            tButton.appendChild(tText);
+            mButton.appendChild(mText);
+            bButton.appendChild(bText);
+
+            Handsontable.Dom.addClass(tButton,'Top');
+            Handsontable.Dom.addClass(mButton,'Middle');
+            Handsontable.Dom.addClass(bButton,'Bottom');
+
+            div.appendChild(tButton);
+            div.appendChild(mButton);
+            div.appendChild(bButton);
+
+            return div.outerHTML;
+          },
+          callback: function (key, selection ,event) {
+            var className = event.target.className,
+              type = event.target.tagName;
+            if (type === "BUTTON") {
+              if(className) {
+                align.call(this, this.getSelectedRange(),'vertical','ht' + className );
+              }
+            }
+          },
+          disabled: function () {
+            return false;
+          }
+        }
       }
     };
+
+    this.checkSelectionReadOnlyConsistency = function(hot) {
+      var atLeastOneReadOnly = false;
+
+      hot.getSelectedRange().forAll(function(r, c) {
+        if(hot.getCellMeta(r, c).readOnly) {
+          atLeastOneReadOnly = true;
+          return false; //breaks forAll
+        }
+      });
+
+      return atLeastOneReadOnly;
+    };
+
+    Handsontable.hooks.run(instance, 'afterContextMenuDefaultOptions', this.defaultOptions);
 
     this.options = {};
     Handsontable.helper.extend(this.options, this.defaultOptions);
@@ -117,9 +333,18 @@
 
       event.preventDefault();
 
-      if(event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))){
-        return;
+      var showRowHeaders = this.instance.getSettings().rowHeaders,
+          showColHeaders = this.instance.getSettings().colHeaders;
+
+      if(!(showRowHeaders || showColHeaders)) {
+        if(event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))){
+          return;
+        }
       }
+
+      //if(event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))){
+      //	return;
+      //}
 
       this.show(event.pageY, event.pageX);
 
@@ -142,19 +367,14 @@
   };
 
   ContextMenu.prototype.unbindTableEvents = function () {
-    var that = this;
-
     if(this._afterScrollCallback){
       this.instance.removeHook('afterScrollVertically', this._afterScrollCallback);
       this.instance.removeHook('afterScrollHorizontally', this._afterScrollCallback);
       this._afterScrollCallback = null;
     }
-
-
   };
 
-  ContextMenu.prototype.performAction = function (){
-
+  ContextMenu.prototype.performAction = function (event){
     var hot = $(this.menu).handsontable('getInstance');
     var selectedItemIndex = hot.getSelected()[0];
     var selectedItem = hot.getData()[selectedItemIndex];
@@ -166,12 +386,10 @@
     if(typeof selectedItem.callback != 'function'){
       return;
     }
+    var selRange = this.instance.getSelectedRange();
+    var normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
 
-    var corners = this.instance.getSelected();
-    var normalizedSelection = ContextMenu.utils.normalizeSelection(corners);
-
-    selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection);
-
+    selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
   };
 
   ContextMenu.prototype.unbindMouseEvents = function () {
@@ -180,7 +398,6 @@
   };
 
   ContextMenu.prototype.show = function(top, left){
-
     this.menu.style.display = 'block';
 
     $(this.menu)
@@ -199,7 +416,8 @@
           renderer: Handsontable.helper.proxy(this.renderer, this)
         }
       ],
-      beforeKeyDown: Handsontable.helper.proxy(this.onBeforeKeyDown, this)
+      beforeKeyDown: Handsontable.helper.proxy(this.onBeforeKeyDown, this),
+      renderAllRows: true
     });
     this.bindTableEvents();
 
@@ -226,16 +444,20 @@
     var item = instance.getData()[row];
     var wrapper = document.createElement('DIV');
 
+    if(typeof value === 'function') {
+      value = value.call(this.instance);
+    }
+
     Handsontable.Dom.empty(TD);
     TD.appendChild(wrapper);
 
     if(itemIsSeparator(item)){
       Handsontable.Dom.addClass(TD, 'htSeparator');
     } else {
-      Handsontable.Dom.fastInnerText(wrapper, value);
+      Handsontable.Dom.fastInnerHTML(wrapper, value);
     }
 
-    if (itemIsDisabled(item, contextMenu.instance)){
+    if (itemIsDisabled(item)){
       Handsontable.Dom.addClass(TD, 'htDisabled');
 
       $(wrapper).on('mouseenter', function () {
@@ -255,7 +477,7 @@
       return new RegExp(ContextMenu.SEPARATOR, 'i').test(item.name);
     }
 
-    function itemIsDisabled(item, instance){
+    function itemIsDisabled(item){
       return item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(contextMenu.instance) === true);
     }
   };
@@ -418,18 +640,26 @@
   };
 
   ContextMenu.prototype.setMenuPosition = function (cursorY, cursorX) {
+    var scrollTop = Handsontable.Dom.getWindowScrollTop();
+    var scrollLeft = Handsontable.Dom.getWindowScrollLeft();
 
     var cursor = {
       top:  cursorY,
-      topRelative: cursorY - document.documentElement.scrollTop,
+      topRelative: cursorY - scrollTop,
       left: cursorX,
-      leftRelative:cursorX - document.documentElement.scrollLeft
+      leftRelative:cursorX - scrollLeft,
+      scrollTop: scrollTop,
+      scrollLeft: scrollLeft
     };
 
     if(this.menuFitsBelowCursor(cursor)){
       this.positionMenuBelowCursor(cursor);
     } else {
-      this.positionMenuAboveCursor(cursor);
+      if (this.menuFitsAboveCursor(cursor)) {
+        this.positionMenuAboveCursor(cursor);
+      } else {
+        this.positionMenuBelowCursor(cursor);
+      }
     }
 
     if(this.menuFitsOnRightOfCursor(cursor)){
@@ -440,12 +670,16 @@
 
   };
 
+  ContextMenu.prototype.menuFitsAboveCursor = function (cursor) {
+    return cursor.topRelative >= this.menu.offsetHeight;
+  };
+
   ContextMenu.prototype.menuFitsBelowCursor = function (cursor) {
-    return cursor.topRelative + this.menu.offsetHeight <= document.documentElement.scrollTop + document.documentElement.clientHeight;
+    return cursor.topRelative + this.menu.offsetHeight <= cursor.scrollTop + document.body.clientHeight;
   };
 
   ContextMenu.prototype.menuFitsOnRightOfCursor = function (cursor) {
-    return cursor.leftRelative + this.menu.offsetWidth <= document.documentElement.scrollLeft + document.documentElement.clientWidth;
+    return cursor.leftRelative + this.menu.offsetWidth <= cursor.scrollLeft + document.body.clientWidth;
   };
 
   ContextMenu.prototype.positionMenuBelowCursor = function (cursor) {
@@ -486,19 +720,11 @@
     return itemArray;
   };
 
-  ContextMenu.utils.normalizeSelection = function(corners){
-    var selection = {
-      start: new Handsontable.SelectionPoint(),
-      end: new Handsontable.SelectionPoint()
+  ContextMenu.utils.normalizeSelection = function(selRange){
+   return {
+      start: selRange.getTopLeftCorner(),
+      end: selRange.getBottomRightCorner()
     };
-
-    selection.start.row(Math.min(corners[0], corners[2]));
-    selection.start.col(Math.min(corners[1], corners[3]));
-
-    selection.end.row(Math.max(corners[0], corners[2]));
-    selection.end.col(Math.max(corners[1], corners[3]));
-
-    return selection;
   };
 
   ContextMenu.utils.isSeparator = function (cell) {
@@ -555,13 +781,34 @@
     if(this.menu.parentNode){
       this.menu.parentNode.removeChild(this.menu);
     }
-  }
+  };
 
   ContextMenu.prototype.filterItems = function(itemsToLeave){
     this.itemsFilter = itemsToLeave;
   };
 
   ContextMenu.SEPARATOR = "---------";
+
+  function updateHeight() {
+
+    if(this.rootElement[0].className.indexOf('htContextMenu')) {
+      return;
+    }
+
+    var realSeparatorHeight = 0,
+        realEntrySize = 0,
+        dataSize = this.getSettings().data.length;
+
+    for(var i = 0; i < dataSize; i++) {
+      if(this.getSettings().data[i].name == ContextMenu.SEPARATOR) {
+        realSeparatorHeight += 2;
+      } else {
+        realEntrySize += 26;
+      }
+    }
+
+    this.view.wt.wtScrollbars.vertical.fixedContainer.style.height = realEntrySize + realSeparatorHeight + "px";
+  }
 
   function init(){
     var instance = this;
@@ -584,12 +831,15 @@
       delete instance.contextMenu;
     }
 
-
-
   }
 
-  Handsontable.PluginHooks.add('afterInit', init);
-  Handsontable.PluginHooks.add('afterUpdateSettings', init);
+  Handsontable.hooks.add('afterInit', init);
+  Handsontable.hooks.add('afterUpdateSettings', init);
+  Handsontable.hooks.add('afterInit',updateHeight);
+
+  if(Handsontable.PluginHooks.register) { //HOT 0.11+
+    Handsontable.PluginHooks.register('afterContextMenuDefaultOptions');
+  }
 
   Handsontable.ContextMenu = ContextMenu;
 

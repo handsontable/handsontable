@@ -129,26 +129,3 @@
   width: 1px;
   height: 1px;
 }
-
-/**
- * dragdealer
- */
-
-.wtHolder .dragdealer {
-  position: relative;
-  width: 9px;
-  height: 9px;
-  background: #F8F8F8;
-  border: 1px solid #DDD;
-}
-
-.wtHolder .dragdealer .handle {
-  position: absolute;
-  width: 9px;
-  height: 9px;
-  background: #C5C5C5;
-}
-
-.wtHolder .dragdealer .disabled {
-  background: #898989;
-}

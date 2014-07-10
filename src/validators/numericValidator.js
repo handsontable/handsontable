@@ -7,5 +7,5 @@ Handsontable.NumericValidator = function (value, callback) {
   if (value === null) {
     value = '';
   }
-  callback(/^-?\d*\.?\d*$/.test(value));
+  callback(/^-?\d*(\.|\,)?\d*$/.test(value));
 };

@@ -20,7 +20,7 @@
           priv.settings.beforeOnKeyDown.call(instance, event);
         }
 
-        instance.PluginHooks.run('beforeKeyDown', event);
+        Handsontable.hooks.run(instance, 'beforeKeyDown', event);
 
         if (!event.isImmediatePropagationStopped()) {
 
@@ -150,10 +150,10 @@
 
                 case keyCodes.HOME:
                   if (event.ctrlKey || event.metaKey) {
-                    rangeModifier({row: 0, col: priv.selStart.col()});
+                    rangeModifier(new WalkontableCellCoords(0, priv.selRange.from.col));
                   }
                   else {
-                    rangeModifier({row: priv.selStart.row(), col: 0});
+                    rangeModifier(new WalkontableCellCoords(priv.selRange.from.row, 0));
                   }
                   event.preventDefault(); //don't scroll the window
                   event.stopPropagation(); //required by HandsontableEditor
@@ -161,10 +161,10 @@
 
                 case keyCodes.END:
                   if (event.ctrlKey || event.metaKey) {
-                    rangeModifier({row: instance.countRows() - 1, col: priv.selStart.col()});
+                    rangeModifier(new WalkontableCellCoords(instance.countRows() - 1, priv.selRange.from.col));
                   }
                   else {
-                    rangeModifier({row: priv.selStart.row(), col: instance.countCols() - 1});
+                    rangeModifier(new WalkontableCellCoords(priv.selRange.from.row, instance.countCols() - 1));
                   }
                   event.preventDefault(); //don't scroll the window
                   event.stopPropagation(); //required by HandsontableEditor
@@ -195,9 +195,11 @@
       }
       $document.on('keydown.handsontable.' + instance.guid, onKeyDown);
 
-      function onDblClick() {
-//        that.instance.destroyEditor();
-        that.openEditor();
+      function onDblClick(event, coords, elem) {
+        if(elem.nodeName == "TD") { //may be TD or TH
+          //that.instance.destroyEditor();
+          that.openEditor();
+        }
       }
 
       instance.view.wt.update('onCellDblClick', onDblClick);
@@ -282,8 +284,8 @@
         return;
       }
 
-      var row = priv.selStart.row();
-      var col = priv.selStart.col();
+      var row = priv.selRange.highlight.row;
+      var col = priv.selRange.highlight.col;
       var prop = instance.colToProp(col);
       var td = instance.getCell(row, col);
       var originalValue = instance.getDataAtCell(row, col);

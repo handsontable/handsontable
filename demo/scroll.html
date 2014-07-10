@@ -44,7 +44,7 @@
         , i
         , j;
 
-      for (i = 0; i < 100000; i++) {
+      for (i = 0; i < 1000; i++) {
         var row = [];
         for (j = 0; j < 6; j++) {
           row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
@@ -100,7 +100,7 @@
         <button class="maximize">Maximize HOT table</button>
       </p>
 
-      <div id="example1" style="overflow: scroll"></div>
+      <div id="example1" style="width: 400px; height: 200px; overflow: auto"></div>
 
       <p>
         <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">Dump
@@ -117,12 +117,6 @@
       </div>
 
       <script data-jsfiddle="example1">
-        /*
-         Container looks like this:
-
-         <div id="example1" style="overflow: scroll"></div>
-         */
-
         var maxed = false
           , resizeTimeout
           , availableWidth
@@ -131,9 +125,12 @@
           , $example1 = $('#example1');
 
         var calculateSize = function () {
-          var offset = $example1.offset();
-          availableWidth = $window.width() - offset.left + $window.scrollLeft();
-          availableHeight = $window.height() - offset.top + $window.scrollTop();
+          if(maxed) {
+            var offset = $example1.offset();
+            availableWidth = $window.width() - offset.left + $window.scrollLeft();
+            availableHeight = $window.height() - offset.top + $window.scrollTop();
+            $example1.width(availableWidth).height(availableHeight);
+          }
         };
         $window.on('resize', calculateSize);
 
@@ -142,25 +139,21 @@
           colWidths: [55, 80, 80, 80, 80, 80, 80], //can also be a number or a function
           rowHeaders: true,
           colHeaders: true,
+          fixedColumnsLeft: 2,
+          fixedRowsTop: 2,
           minSpareRows: 1,
           stretchH: 'all',
-          contextMenu: true,
-          width: function () {
-            if (maxed && availableWidth === void 0) {
-              calculateSize();
-            }
-            return maxed ? availableWidth : 400;
-          },
-          height: function () {
-            if (maxed && availableHeight === void 0) {
-              calculateSize();
-            }
-            return maxed ? availableHeight : 300;
-          }
+          contextMenu: true
         });
 
         $('.maximize').on('click', function () {
           maxed = !maxed;
+          if(maxed) {
+            calculateSize();
+          }
+          else {
+            $example1.width(400).height(200);
+          }
           $example1.handsontable('render');
         });
 
@@ -319,7 +312,7 @@
   </div>
 </div>
 
-<div class="footer-text">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+<div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and documentation
   licensed under the The MIT License.
 </div>
 </div>

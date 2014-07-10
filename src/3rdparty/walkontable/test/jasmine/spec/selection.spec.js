@@ -3,8 +3,10 @@ describe('WalkontableSelection', function () {
     , debug = false;
 
   beforeEach(function () {
+    $container = $('<div></div>').css({'overflow': 'auto'});
+    $container.width(100).height(200);
     $table = $('<table></table>'); //create a table that is not attached to document
-    $table.appendTo('body');
+    $container.append($table).appendTo('body');
     createDataArray();
   });
 
@@ -12,6 +14,7 @@ describe('WalkontableSelection', function () {
     if (!debug) {
       $('.wtHolder').remove();
     }
+    $container.remove();
   });
 
   it("should add/remove class to selection when cell is clicked", function () {
@@ -64,7 +67,7 @@ describe('WalkontableSelection', function () {
       }
     });
     wt.draw();
-    wt.selections.current.add([0, 0]);
+    wt.selections.current.add(new WalkontableCellCoords(0, 0));
 
     var $td1 = $table.find('tbody td:eq(0)');
     expect($td1.hasClass('current')).toEqual(false);
@@ -114,84 +117,6 @@ describe('WalkontableSelection', function () {
     expect(pos2.left).toBeGreaterThan(pos1.left);
   });
 
-  it("should move the selection when table is scrolled vertically", function () {
-    var wt = new Walkontable({
-      table: $table[0],
-      data: getData,
-      totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      offsetRow: 0,
-      offsetColumn: 0,
-      height: 200,
-      selections: {
-        current: {
-          className: 'current',
-          border: {
-            width: 1,
-            color: 'red',
-            style: 'solid'
-          }
-        }
-      },
-      onCellMouseDown: function (event, coords, TD) {
-        wt.selections.current.clear();
-        wt.selections.current.add(coords);
-        wt.draw();
-      }
-    });
-    wt.draw();
-
-    var $td1 = $table.find('tbody tr:eq(2) td:eq(0)');
-    $td1.mousedown();
-
-    wt.update({
-      offsetRow: 20
-    });
-    wt.draw();
-
-    expect(wt.selections.current.border.bottom.style.display).toBe('none');
-    expect($table.find('td.current').length).toBe(0);
-  });
-
-  it("should move the selection when table is scrolled horizontally", function () {
-    var wt = new Walkontable({
-      table: $table[0],
-      data: getData,
-      totalRows: getTotalRows,
-      totalColumns: getTotalColumns,
-      offsetRow: 0,
-      offsetColumn: 0,
-      width: 100,
-      selections: {
-        current: {
-          className: 'current',
-          border: {
-            width: 1,
-            color: 'red',
-            style: 'solid'
-          }
-        }
-      },
-      onCellMouseDown: function (event, coords, TD) {
-        wt.selections.current.clear();
-        wt.selections.current.add(coords);
-        wt.draw();
-      }
-    });
-    wt.draw();
-
-    var $td1 = $table.find('tbody tr:eq(2) td:eq(0)');
-    $td1.mousedown();
-
-    wt.update({
-      offsetColumn: 3
-    });
-    wt.draw();
-
-    expect(wt.selections.current.border.right.style.display).toBe('none');
-    expect($table.find('td.current').length).toBe(0);
-  });
-
   it("should add a selection that is outside of the viewport", function () {
     var wt = new Walkontable({
       table: $table[0],
@@ -215,10 +140,10 @@ describe('WalkontableSelection', function () {
     wt.draw();
 
     wt.selections.current.add([20, 0]);
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual([0, 0]);
+    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new WalkontableCellCoords(0, 0));
   });
 
-  it("should clear a selection that is outside of the viewport", function () {
+  it("should not scroll the viewport after selection is cleared", function () {
     var wt = new Walkontable({
       table: $table[0],
       data: getData,
@@ -240,10 +165,13 @@ describe('WalkontableSelection', function () {
     });
     wt.draw();
 
-    wt.selections.current.add([0, 0]);
+    wt.selections.current.add(new WalkontableCellCoords(0, 0));
+    wt.draw();
+    expect(wt.wtTable.getFirstVisibleRow()).toEqual(0);
     wt.scrollVertical(10).draw();
+    expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
     wt.selections.current.clear();
-    expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual([10, 0]);
+    expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
   });
 
   it("should clear a selection that has more than one cell", function () {
@@ -268,17 +196,16 @@ describe('WalkontableSelection', function () {
     });
     wt.draw();
 
-    wt.selections.current.add([0, 0]);
-    wt.selections.current.add([0, 1]);
+    wt.selections.current.add(new WalkontableCellCoords(0, 0));
+    wt.selections.current.add(new WalkontableCellCoords(0, 1));
     wt.selections.current.clear();
 
-    expect(wt.selections.current.selected.length).toEqual(0);
+    expect(wt.selections.current.cellRange).toEqual(null);
   });
 
   it("should highlight cells in selected row & column", function () {
-    var rowHeight = 23; //measured in real life with walkontable.css
-    var height = 200;
-    var potentialRowCount = Math.ceil(height / rowHeight);
+
+    $container.width(300);
 
     var wt = new Walkontable({
       table: $table[0],
@@ -298,18 +225,17 @@ describe('WalkontableSelection', function () {
     });
     wt.draw();
 
-    wt.selections.area.add([0, 0]);
-    wt.selections.area.add([0, 1]);
+    wt.selections.area.add(new WalkontableCellCoords(0, 0));
+    wt.selections.area.add(new WalkontableCellCoords(0, 1));
     wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(2);
-    expect($table.find('.highlightColumn').length).toEqual((potentialRowCount - 1) * 2);
+    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.rowStrategy.countVisible() * 2 - 2);
   });
 
   it("should highlight cells in selected row & column, when same class is shared between 2 selection definitions", function () {
     var rowHeight = 23; //measured in real life with walkontable.css
     var height = 200;
-    var potentialRowCount = Math.ceil(height / rowHeight);
 
     var wt = new Walkontable({
       table: $table[0],
@@ -333,11 +259,11 @@ describe('WalkontableSelection', function () {
     });
     wt.draw();
 
-    wt.selections.current.add([0, 0]);
+    wt.selections.current.add(new WalkontableCellCoords(0, 0));
     wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(3);
-    expect($table.find('.highlightColumn').length).toEqual(potentialRowCount - 1);
+    expect($table.find('.highlightColumn').length).toEqual(wt.wtTable.rowStrategy.countVisible() - 1);
   });
 
   it("should remove highlight when selection is deselected", function () {
@@ -359,8 +285,8 @@ describe('WalkontableSelection', function () {
     });
     wt.draw();
 
-    wt.selections.area.add([0, 0]);
-    wt.selections.area.add([0, 1]);
+    wt.selections.area.add(new WalkontableCellCoords(0, 0));
+    wt.selections.area.add(new WalkontableCellCoords(0, 1));
     wt.draw();
 
     wt.selections.area.clear();
@@ -368,5 +294,35 @@ describe('WalkontableSelection', function () {
 
     expect($table.find('.highlightRow').length).toEqual(0);
     expect($table.find('.highlightColumn').length).toEqual(0);
+  });
+
+  describe("replace", function() {
+    it("should replace range from property and return true", function() {
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        offsetRow: 0,
+        offsetColumn: 0,
+        height: 200,
+        selections: {
+          current: {
+            className: 'current',
+            border: {
+              width: 1,
+              color: 'red',
+              style: 'solid'
+            }
+          }
+        }
+      });
+
+      wt.selections.current.add(new WalkontableCellCoords(1, 1));
+      wt.selections.current.add(new WalkontableCellCoords(3, 3));
+      var result = wt.selections.current.replace(new WalkontableCellCoords(3, 3), new WalkontableCellCoords(4, 4));
+      expect(result).toBe(true);
+      expect(wt.selections.current.getCorners()).toEqual([1, 1, 4, 4]);
+    });
   });
 });

@@ -216,8 +216,8 @@ describe('ContextMenu', function () {
       var actions = items.not('.htSeparator');
       var separators = items.filter('.htSeparator');
 
-      expect(actions.length).toEqual(8);
-      expect(separators.length).toEqual(3);
+      expect(actions.length).toEqual(11);
+      expect(separators.length).toEqual(6);
 
       expect(actions.text()).toEqual([
         'Insert row above',
@@ -227,8 +227,78 @@ describe('ContextMenu', function () {
         'Remove row',
         'Remove column',
         'Undo',
-        'Redo'
+        'Redo',
+        'Make read-only',
+        'left',
+        'center',
+        'right',
+        'justify',
+        'top',
+        'middle',
+        'bottom'
       ].join(''));
+
+    });
+
+
+    it("should disable column manipulation when row header selected", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        colHeaders: true,
+        rowHeaders: true
+      });
+      var afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
+      hot.addHook('afterCreateRow', afterCreateRowCallback);
+
+      $('.ht_clone_left .htCore').eq(0).find('tbody').find('th').eq(0).trigger(
+        {
+          type: 'mousedown',
+          which: 3
+        });
+
+      contextMenu();
+
+      var $menu = $(hot.contextMenu.menu);
+
+      expect($menu.find('tbody td:eq(3)').text()).toEqual('Insert column on the left');
+      expect($menu.find('tbody td:eq(3)').hasClass('htDisabled')).toBe(true);
+      expect($menu.find('tbody td:eq(4)').text()).toEqual('Insert column on the right');
+      expect($menu.find('tbody td:eq(4)').hasClass('htDisabled')).toBe(true);
+      expect($menu.find('tbody td:eq(7)').text()).toEqual('Remove column');
+      expect($menu.find('tbody td:eq(7)').hasClass('htDisabled')).toBe(true);
+
+    });
+
+    it("should disable row manipulation when column header selected", function () {
+
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        colHeaders: true,
+        rowHeaders: true
+      });
+      var afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
+      hot.addHook('afterCreateRow', afterCreateRowCallback);
+
+
+      $('.ht_clone_top .htCore').find('thead').find('th').eq(2).trigger(
+        {
+          type: 'mousedown',
+          which: 3
+        });
+
+      contextMenu();
+
+      var $menu = $(hot.contextMenu.menu);
+
+      expect($menu.find('tbody td:eq(0)').text()).toEqual('Insert row above');
+      expect($menu.find('tbody td:eq(0)').hasClass('htDisabled')).toBe(true);
+      expect($menu.find('tbody td:eq(1)').text()).toEqual('Insert row below');
+      expect($menu.find('tbody td:eq(1)').hasClass('htDisabled')).toBe(true);
+      expect($menu.find('tbody td:eq(6)').text()).toEqual('Remove row');
+      expect($menu.find('tbody td:eq(6)').hasClass('htDisabled')).toBe(true);
+
 
     });
 
@@ -396,7 +466,8 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(3).trigger('mousedown'); //Insert col right
 
-      expect(afterCreateColCallback).t
+      expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined);
+      expect(countCols()).toEqual(5);
     });
 
     it("should remove selected rows", function () {
@@ -540,6 +611,255 @@ describe('ContextMenu', function () {
       expect($(hot.contextMenu.menu).find('tbody td').length).toEqual(2);
     });
 
+    it("should make a single selected cell read-only", function(){
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      selectCell(0, 0);
+
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(hot.getCellMeta(0,0).readOnly).toBe(false);
+
+      selectCell(0,0);
+      contextMenu();
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make read-only
+
+      expect(hot.getCellMeta(0,0).readOnly).toBe(true);
+      
+    });
+
+    it("should make a single selected cell writable, when it's set to read-only", function() {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      selectCell(0, 0);
+
+      expect(getDataAtCell(0, 0)).toEqual('A0');
+
+      hot.getCellMeta(0,0).readOnly = true;
+
+      selectCell(0,0);
+      contextMenu();
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make writable
+
+      expect(hot.getCellMeta(0,0).readOnly).toBe(false);
+    });
+
+    it("should make a group of selected cells read-only, if all of them are writable", function(){
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(false);
+        }
+      }
+
+      selectCell(0, 0, 2, 2);
+
+      contextMenu();
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make read-only
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(true);
+        }
+      }
+    });
+
+    it("should align text left", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      contextMenu();
+
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
+      var button = buttonRow.find('button.Left');
+
+      button.trigger('mousedown'); //Text left
+      expect(getCellMeta(0,0).className).toEqual('htLeft');
+      expect(getCell(0,0).className).toContain('htLeft');
+    });
+
+    it("should align text center", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      contextMenu();
+
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
+      var button = buttonRow.find('button.Center');
+
+      button.trigger('mousedown'); //Text center
+      expect(getCellMeta(0,0).className).toEqual('htCenter');
+      expect(getCell(0,0).className).toContain('htCenter');
+    });
+
+    it("should align text right", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      contextMenu();
+
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
+      var button = buttonRow.find('button.Right');
+
+
+      button.trigger('mousedown'); //Text right
+      expect(getCellMeta(0,0).className).toEqual('htRight');
+      expect(getCell(0,0).className).toContain('htRight');
+    });
+
+    it("should justify text", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      contextMenu();
+
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
+      var button = buttonRow.find('button.Justify');
+
+      button.trigger('mousedown'); //Text justify
+      expect(getCellMeta(0,0).className).toEqual('htJustify');
+      expect(getCell(0,0).className).toContain('htJustify');
+    });
+
+    it("should vertical align text top", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      contextMenu();
+
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(10);
+      var button = buttonRow.find('button.Top');
+
+      button.trigger('mousedown'); //Text top
+      expect(getCellMeta(0,0).className).toEqual('htTop');
+      expect(getCell(0,0).className).toContain('htTop');
+    });
+
+    it("should vertical align text middle", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      contextMenu();
+
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(10);
+      var button = buttonRow.find('button.Middle');
+
+      button.trigger('mousedown'); //Text middle
+      expect(getCellMeta(0,0).className).toEqual('htMiddle');
+      expect(getCell(0,0).className).toContain('htMiddle');
+    });
+
+    it("should vertical align text bottom", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      contextMenu();
+      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(10);
+      var button = buttonRow.find('button.Bottom');
+
+      button.trigger('mousedown'); //Text bottom
+      expect(getCellMeta(0,0).className).toEqual('htBottom');
+      expect(getCell(0,0).className).toContain('htBottom');
+    });
+
+    it("should make a group of selected cells read-only, if all of them are writable (reverse selection)", function(){
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(false);
+        }
+      }
+
+      selectCell(2, 2, 0, 0);
+
+      contextMenu();
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make read-only
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(true);
+        }
+      }
+    });
+
+    it("should make a group of selected cells writable if at least one of them is read-only", function() {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(false);
+        }
+      }
+
+      hot.getCellMeta(1,1).readOnly = true;
+
+      selectCell(0, 0, 2, 2);
+
+      contextMenu();
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make writable
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(false);
+        }
+      }
+    });
+
+    it("should make a group of selected cells writable if at least one of them is read-only (reverse selection)", function() {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true
+      });
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(false);
+        }
+      }
+
+      hot.getCellMeta(1,1).readOnly = true;
+
+      selectCell(2, 2, 0, 0);
+
+      contextMenu();
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make writable
+
+      for(var i = 0; i < 2; i++) {
+        for(var j = 0; j < 2; j++) {
+          expect(hot.getCellMeta(i,j).readOnly).toEqual(false);
+        }
+      }
+    });
 
 
   });
@@ -697,6 +1017,43 @@ describe('ContextMenu', function () {
 
       expect(callback1.calls.length).toEqual(1);
       expect(callback2.calls.length).toEqual(1);
+
+    });
+
+    it("should have custom items list (defined as a function)", function () {
+      var enabled = false;
+      var hot = handsontable({
+        contextMenu: {
+          items: {
+            cust1: {
+              name: function() {
+                if(!enabled) {
+                  return 'Enable my custom option'
+                }
+                else {
+                  return 'Disable my custom option';
+                }
+              },
+              callback: function() {
+
+              }
+            }
+          }
+        }
+      });
+
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+      expect($menu.find('tbody td').text()).toEqual('Enable my custom option');
+
+      $menu.find('tbody td:eq(0)').trigger('mousedown');
+
+      enabled = true;
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+      expect($menu.find('tbody td').text()).toEqual('Disable my custom option');
+
+      $menu.find('tbody td:eq(0)').trigger('mousedown');
 
     });
 
@@ -1618,8 +1975,7 @@ describe('ContextMenu', function () {
         colWidths: 50, //can also be a number or a function
         rowHeaders: true,
         colHeaders: true,
-        contextMenu: true,
-        nativeScrollbars: true
+        contextMenu: true
       });
 
       contextMenu();
@@ -1637,8 +1993,7 @@ describe('ContextMenu', function () {
         colWidths: 50, //can also be a number or a function
         rowHeaders: true,
         colHeaders: true,
-        contextMenu: true,
-        nativeScrollbars: true
+        contextMenu: true
       });
 
       this.$wrapper.scrollTop(300);
@@ -1660,8 +2015,7 @@ describe('ContextMenu', function () {
         colWidths: 50, //can also be a number or a function
         rowHeaders: true,
         colHeaders: true,
-        contextMenu: true,
-        nativeScrollbars: true
+        contextMenu: true
       });
 
       selectCell(15, 3);
@@ -1693,8 +2047,7 @@ describe('ContextMenu', function () {
         colWidths: 50, //can also be a number or a function
         rowHeaders: true,
         colHeaders: true,
-        contextMenu: true,
-        nativeScrollbars: true
+        contextMenu: true
       });
 
       selectCell(15, 3);
@@ -1718,5 +2071,36 @@ describe('ContextMenu', function () {
 
   });
 
+  describe("afterContextMenuDefaultOptions hook", function() {
+    it("should call afterContextMenuDefaultOptions hook with context menu options as the first param", function () {
+      var options;
+
+      var afterContextMenuDefaultOptions = function(options_) {
+        options = options_;
+        options.items.cust1 = {
+          name: 'My custom item',
+          callback: function () {
+          }
+        };
+      }
+
+      Handsontable.hooks.add('afterContextMenuDefaultOptions', afterContextMenuDefaultOptions);
+
+      var hot = handsontable({
+        contextMenu: true
+      });
+
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+
+      expect(options).toBeDefined();
+      expect(options.items).toBeDefined();
+      expect($menu.find('tbody td').text()).toContain('My custom item');
+
+      $menu.find('tbody td:eq(0)').trigger('mousedown');
+
+      Handsontable.hooks.remove('afterContextMenuDefaultOptions', afterContextMenuDefaultOptions);
+    });
+  });
 
 });

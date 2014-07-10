@@ -2,7 +2,7 @@ describe('passwordEditor', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $('<div id="' + id + '" style="width: 300px; height: 300px;"></div>').appendTo('body');
   });
 
   afterEach(function () {

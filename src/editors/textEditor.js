@@ -36,13 +36,13 @@
 
     switch (event.keyCode) {
       case keyCodes.ARROW_RIGHT:
-        if (that.wtDom.getCaretPosition(that.TEXTAREA) !== that.TEXTAREA.value.length) {
+        if (Handsontable.Dom.getCaretPosition(that.TEXTAREA) !== that.TEXTAREA.value.length) {
           event.stopImmediatePropagation();
         }
         break;
 
       case keyCodes.ARROW_LEFT: /* arrow left */
-        if (that.wtDom.getCaretPosition(that.TEXTAREA) !== 0) {
+        if (Handsontable.Dom.getCaretPosition(that.TEXTAREA) !== 0) {
           event.stopImmediatePropagation();
         }
         break;
@@ -81,7 +81,7 @@
   };
 
   TextEditor.prototype.open = function(){
-    this.refreshDimensions(); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
+    this.refreshDimensions(); //need it instantly, to prevent https://github.com/handsontable/jquery-handsontable/issues/348
 
     this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   };
@@ -98,24 +98,23 @@
 
   TextEditor.prototype.focus = function(){
     this.TEXTAREA.focus();
-    this.wtDom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
+    Handsontable.Dom.setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
   };
 
   TextEditor.prototype.createElements = function () {
     this.$body = $(document.body);
-    this.wtDom = new WalkontableDom();
 
     this.TEXTAREA = document.createElement('TEXTAREA');
     this.$textarea = $(this.TEXTAREA);
 
-    this.wtDom.addClass(this.TEXTAREA, 'handsontableInput');
+    Handsontable.Dom.addClass(this.TEXTAREA, 'handsontableInput');
 
     this.textareaStyle = this.TEXTAREA.style;
     this.textareaStyle.width = 0;
     this.textareaStyle.height = 0;
 
     this.TEXTAREA_PARENT = document.createElement('DIV');
-    this.wtDom.addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
+    Handsontable.Dom.addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
 
     this.textareaParentStyle = this.TEXTAREA_PARENT.style;
     this.textareaParentStyle.top = 0;
@@ -127,8 +126,8 @@
     this.instance.rootElement[0].appendChild(this.TEXTAREA_PARENT);
 
     var that = this;
-    Handsontable.PluginHooks.add('afterRender', function () {
-      that.instance.registerTimeout('refresh_editor_dimensions', function () {
+    Handsontable.hooks.add('afterRender', function () {
+      that.instance._registerTimeout('refresh_editor_dimensions', function () {
         that.refreshDimensions();
       }, 0);
     });
@@ -146,12 +145,10 @@
       return;
     }
     var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
-    var currentOffset = this.wtDom.offset(this.TD);
-    var containerOffset = this.wtDom.offset(this.instance.rootElement[0]);
-    var scrollTop = this.instance.rootElement.scrollTop();
-    var scrollLeft = this.instance.rootElement.scrollLeft();
-    var editTop = currentOffset.top - containerOffset.top + scrollTop - 1;
-    var editLeft = currentOffset.left - containerOffset.left + scrollLeft - 1;
+    var currentOffset = Handsontable.Dom.offset(this.TD);
+    var containerOffset = Handsontable.Dom.offset(this.instance.rootElement[0]);
+    var editTop = currentOffset.top - containerOffset.top - 1;
+    var editLeft = currentOffset.left - containerOffset.left - 1;
 
     var settings = this.instance.getSettings();
     var rowHeadersCount = settings.rowHeaders === false ? 0 : 1;
@@ -175,10 +172,14 @@
     this.textareaParentStyle.left = editLeft + 'px';
     ///end prepare textarea position
 
+
+    var cellTopOffset = this.TD.offsetTop,
+      cellLeftOffset = this.TD.offsetLeft - this.instance.view.wt.wtScrollbars.horizontal.getScrollPosition();
+
     var width = $td.width()
-      , maxWidth = this.instance.view.maximumVisibleElementWidth(editLeft) - 10 //10 is TEXTAREAs border and padding
+      , maxWidth = this.instance.view.maximumVisibleElementWidth(cellLeftOffset) - 10 //10 is TEXTAREAs border and padding
       , height = $td.outerHeight() - 4
-      , maxHeight = this.instance.view.maximumVisibleElementHeight(editTop) - 5; //10 is TEXTAREAs border and padding
+      , maxHeight = this.instance.view.maximumVisibleElementHeight(cellTopOffset)-2; //10 is TEXTAREAs border and padding
 
     if (parseInt($td.css('border-top-width'), 10) > 0) {
       height -= 1;
@@ -188,6 +189,7 @@
         width -= 1;
       }
     }
+
 
     //in future may change to pure JS http://stackoverflow.com/questions/454202/creating-a-textarea-with-auto-resize
     this.$textarea.autoResize({
