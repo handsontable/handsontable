@@ -23,6 +23,11 @@ WalkontableViewport.prototype.getWorkspaceWidth = function (proposedWidth) {
 };
 
 WalkontableViewport.prototype.getContainerFillWidth = function() {
+
+  if(this.containerWidth) {
+    return this.containerWidth;
+  }
+
   var mainContainer = this.instance.wtTable.holder,
       fillWidth,
       dummyElement;
@@ -36,6 +41,8 @@ WalkontableViewport.prototype.getContainerFillWidth = function() {
   dummyElement.style.height = "1px";
   mainContainer.appendChild(dummyElement);
   fillWidth = dummyElement.offsetWidth;
+
+  this.containerWidth = fillWidth;
 
   mainContainer.removeChild(dummyElement);
 
@@ -64,6 +71,7 @@ WalkontableViewport.prototype.getColumnHeaderHeight = function () {
 };
 
 WalkontableViewport.prototype.getViewportHeight = function (proposedHeight) {
+
   var containerHeight = this.getWorkspaceHeight(proposedHeight);
 
   if (containerHeight === Infinity) {
