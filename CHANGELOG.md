@@ -1,1 +1,1 @@
-All releases are described at https://github.com/warpech/jquery-handsontable/releases
+All releases are described at https://github.com/handsontable/jquery-handsontable/releases

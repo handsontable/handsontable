@@ -3,7 +3,7 @@
   "description": "Spreadsheet-like data grid editor that provides copy/paste functionality compatible with Excel/Google Docs",
   "homepage": "http://handsontable.com/",
   "bugs": {
-    "url": "https://github.com/warpech/jquery-handsontable/issues"
+    "url": "https://github.com/handsontable/jquery-handsontable/issues"
   },
   "author": "Marcin Warpechowski <marcin@nextgen.pl>",
   "version": "0.10.5",

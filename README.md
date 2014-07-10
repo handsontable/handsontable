@@ -1,6 +1,6 @@
-# Handsontable [![Build Status](https://travis-ci.org/warpech/jquery-handsontable.png?branch=master)](https://travis-ci.org/warpech/jquery-handsontable)
+# Handsontable [![Build Status](https://travis-ci.org/handsontable/jquery-handsontable.png?branch=master)](https://travis-ci.org/handsontable/jquery-handsontable)
 
-Handsontable is a minimal approach to Excel-like table editor in HTML & jQuery. Requires jQuery 1.9+ or 2.0+ (may work with 1.7+ too, but there are known issues with [IE10](https://github.com/warpech/jquery-handsontable/issues/410)).
+Handsontable is a minimal approach to Excel-like table editor in HTML & jQuery. Requires jQuery 1.9+ or 2.0+ (may work with 1.7+ too, but there are known issues with [IE10](https://github.com/handsontable/jquery-handsontable/issues/410)).
 
 Runs in IE 8-11, Firefox, Chrome, Safari and Opera.
 
@@ -37,23 +37,23 @@ Then, run `handsontable()` constructor on an empty div. After that, load some da
 
 ## API Reference
 
-Check out the new wiki pages: [Options](https://github.com/warpech/jquery-handsontable/wiki/Options), [Methods](https://github.com/warpech/jquery-handsontable/wiki/Methods) and [Events](https://github.com/warpech/jquery-handsontable/wiki/Events)
+Check out the new wiki pages: [Options](https://github.com/handsontable/jquery-handsontable/wiki/Options), [Methods](https://github.com/handsontable/jquery-handsontable/wiki/Methods) and [Events](https://github.com/handsontable/jquery-handsontable/wiki/Events)
 
 ## Changelog
 
-To see the list of recent changes, see [Releases](https://github.com/warpech/jquery-handsontable/releases).
+To see the list of recent changes, see [Releases](https://github.com/handsontable/jquery-handsontable/releases).
 
 ## Questions
 
 Please use the :new: [Handsontable Google Group](https://groups.google.com/forum/?fromgroups=#!forum/handsontable) for posting general **Questions**.
 
-Make sure the question was not answered before in [FAQ](https://github.com/warpech/jquery-handsontable/wiki/FAQ) or [GitHub Issues](https://github.com/warpech/jquery-handsontable/issues)
+Make sure the question was not answered before in [FAQ](https://github.com/handsontable/jquery-handsontable/wiki/FAQ) or [GitHub Issues](https://github.com/handsontable/jquery-handsontable/issues)
 
 ## Reporting bugs and feature requests
 
 Please follow this guidelines when reporting bugs and feature requests:
 
-1. Use [GitHub Issues](https://github.com/warpech/jquery-handsontable/issues) board to report bugs and feature requests (not my email address)
+1. Use [GitHub Issues](https://github.com/handsontable/jquery-handsontable/issues) board to report bugs and feature requests (not my email address)
 2. Please **always** write steps to reporoduce the error. That way we can focus on fixing the bug, not scratching our heads trying to reproduce it.
 3. If possible, please add a JSFiddle link that shows the problem (start by forking [this fiddle](http://jsfiddle.net/warpech/hU6Kz/)). It saves me much time.
 4. If you can't reproduce it on JSFiddle, please add a screenshot that shows the problem. JSFiddle is much more appreciated because it lets me start fixing straight away.
@@ -80,4 +80,4 @@ I want to stay motivated to keep Handsontable the best possible editable datagri
 
 ## License
 
-The MIT License (see the [LICENSE](https://github.com/warpech/jquery-handsontable/blob/master/LICENSE) file for the full text)
+The MIT License (see the [LICENSE](https://github.com/handsontable/jquery-handsontable/blob/master/LICENSE) file for the full text)

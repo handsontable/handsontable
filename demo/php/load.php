@@ -6,7 +6,7 @@
  *
  * Copyright 2012, Marcin Warpechowski
  * Licensed under the MIT license.
- * http://warpech.github.com/jquery-handsontable/
+ * http://github.com/handsontable/jquery-handsontable/
  */
 
 require_once('functions.php');

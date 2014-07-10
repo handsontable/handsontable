@@ -81,7 +81,7 @@
   };
 
   TextEditor.prototype.open = function(){
-    this.refreshDimensions(); //need it instantly, to prevent https://github.com/warpech/jquery-handsontable/issues/348
+    this.refreshDimensions(); //need it instantly, to prevent https://github.com/handsontable/jquery-handsontable/issues/348
 
     this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
   };

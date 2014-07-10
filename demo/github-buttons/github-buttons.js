@@ -4,7 +4,7 @@
  * Copyright 2014 Mark Otto. Released under Apache 2.0.
  */
 
-var user = "warpech",
+var user = "handsontable",
   repo = "jquery-handsontable",
   head = document.getElementsByTagName('head')[0];
 

@@ -372,7 +372,7 @@ describe('Core_view', function () {
 
   });
 
-  //TODO fix these tests - https://github.com/warpech/jquery-handsontable/issues/1559
+  //TODO fix these tests - https://github.com/handsontable/jquery-handsontable/issues/1559
   describe('maximumVisibleElementWidth', function () {
     it('should return maximum width until right edge of the viewport', function () {
       var hot = handsontable({

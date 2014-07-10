@@ -1098,7 +1098,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    * @return {Array} [`startRow`, `startCol`, `endRow`, `endCol`]
    */
-  this.getSelected = function () { //https://github.com/warpech/jquery-handsontable/issues/44  //cjl
+  this.getSelected = function () { //https://github.com/handsontable/jquery-handsontable/issues/44  //cjl
     if (selection.isSelected()) {
       return [priv.selRange.from.row, priv.selRange.from.col, priv.selRange.to.row, priv.selRange.to.col];
     }
@@ -1109,7 +1109,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    * @return {WalkontableCellRange}
    */
-  this.getSelectedRange = function () { //https://github.com/warpech/jquery-handsontable/issues/44  //cjl
+  this.getSelectedRange = function () { //https://github.com/handsontable/jquery-handsontable/issues/44  //cjl
     if (selection.isSelected()) {
       return priv.selRange;
     }

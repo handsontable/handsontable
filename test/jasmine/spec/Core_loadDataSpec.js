@@ -175,7 +175,7 @@ describe('Core_loadData', function () {
     expect(getCell(9, 1).innerHTML).toEqual('Eve');
   });
 
-  //https://github.com/warpech/jquery-handsontable/pull/233
+  //https://github.com/handsontable/jquery-handsontable/pull/233
   it('Should not invoke the cells callback multiple times with the same row/col', function () {
     var cellsSpy = jasmine.createSpy('cellsSpy');
 
