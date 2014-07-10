@@ -63,7 +63,7 @@ Handsontable.TableView = function (instance) {
   $documentElement.on('mousedown.' + instance.guid, function (event) {
     var next = event.target;
 
-    if (next.shadowRoot && Handsontable.Dom.isChildOf(instance.rootElement[0], next.shadowRoot)) {
+    if (next.shadowRoot) {
       return; //click inside Web Component
     }
 
