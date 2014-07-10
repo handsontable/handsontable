@@ -305,7 +305,8 @@ describe('ContextMenu', function () {
     it("should insert row above selection", function () {
       var hot = handsontable({
         data: createSpreadsheetData(4, 4),
-        contextMenu: true
+        contextMenu: true,
+        height: 400
       });
 
       var afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
@@ -320,6 +321,7 @@ describe('ContextMenu', function () {
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(0).trigger('mousedown'); //Insert row above
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined);
+
       expect(countRows()).toEqual(5);
     });
 
@@ -2007,7 +2009,7 @@ describe('ContextMenu', function () {
 
     });
 
-    it("should close menu, when table is scrolled", function () {
+    it("should not close the menu, when table is scrolled", function () {
 
 
       var hot = handsontable({
@@ -2027,7 +2029,7 @@ describe('ContextMenu', function () {
 
       this.$wrapper.scrollTop(scrollTop + 60).scroll();
 
-      expect($menu.is(':visible')).toBe(false);
+      expect($menu.is(':visible')).toBe(true);
 
       contextMenu();
 
@@ -2035,11 +2037,11 @@ describe('ContextMenu', function () {
 
       this.$wrapper.scrollTop(scrollTop + 100).scroll();
 
-      expect($menu.is(':visible')).toBe(false)
+      expect($menu.is(':visible')).toBe(true)
 
     });
 
-    it("should not attempt to close menu, when table is scrolled and the menu is already closed", function () {
+    xit("should not attempt to close menu, when table is scrolled and the menu is already closed", function () {
 
 
       var hot = handsontable({
