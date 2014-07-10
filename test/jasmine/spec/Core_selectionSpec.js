@@ -30,7 +30,7 @@ describe('Core_selection', function () {
     var output = null;
 
     handsontable();
-    Handsontable.PluginHooks.add('onSelection', function (r, c) {
+    Handsontable.hooks.add('onSelection', function (r, c) {
       output = [r, c];
     });
     selectCell(1, 2);
@@ -406,4 +406,65 @@ describe('Core_selection', function () {
 
 
   });
+
+  it("should select the entire column after column header is clicked", function(){
+    handsontable({
+      width: 200,
+      height: 100,
+      startRows: 50,
+      startCols: 5,
+      colHeaders: true
+    });
+
+    this.$container.find('thead th:eq(0)').trigger('mousedown');
+    expect(getSelected()).toEqual([0, 0, 49, 0]);
+  });
+
+  it("should select the entire column after column header is clicked (in fixed rows/cols corner)", function(){
+    handsontable({
+      width: 200,
+      height: 100,
+      startRows: 50,
+      startCols: 5,
+      colHeaders: true,
+      rowHeaders: true,
+      fixedRowsTop: 2,
+      fixedColumnsLeft: 2
+    });
+
+    this.$container.find('.ht_clone_corner thead th:eq(1)').trigger('mousedown');
+    expect(getSelected()).toEqual([0, 0, 49, 0]);
+  });
+
+  it("should select the entire row after row header is clicked", function(){
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true,
+      rowHeaders: true
+    });
+
+    this.$container.find('tr:eq(2) th:eq(0)').trigger('mousedown');
+    expect(getSelected()).toEqual([1, 0, 1, 4]);
+
+  });
+
+  it("should select the entire row of a partially fixed table after row header is clicked", function(){
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true,
+      rowHeaders: true,
+      fixedRowsTop: 2,
+      fixedColumnsLeft: 2
+    });
+
+    this.$container.find('tr:eq(2) th:eq(0)').trigger('mousedown');
+    expect(getSelected()).toEqual([1, 0, 1, 4]);
+    this.$container.find('tr:eq(3) th:eq(0)').trigger('mousedown');
+    expect(getSelected()).toEqual([2, 0, 2, 4]);
+
+  });
+
+
 });

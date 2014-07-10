@@ -42,18 +42,6 @@
   Google Analytics for GitHub Page. Don't copy this to your project :)
   -->
   <script src="js/ga.js"></script>
-
-  <script data-jsfiddle="common">
-    function strip_tags(input, allowed) {
-      // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-      allowed = (((allowed || "") + "").toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
-      var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
-        commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
-      return input.replace(commentsAndPhpTags, '').replace(tags, function ($0, $1) {
-        return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
-      });
-    }
-  </script>
 </head>
 
 <body>
@@ -97,6 +85,15 @@
       <p>This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS
         attacks.</p>
 
+      <p>In the below configuration:</p>
+
+      <ul>
+        <li><strong>Title</strong> column uses built-in HTML renderer that allows any HTML. This is unsafe if your code comes from untrusted source. Take notice that a Handsontable user can use it to enter <code>&lt;script&gt;</code> or other potentially malicious tags using the cell editor!</li>
+        <li><strong>Description</strong> column also uses HTML renderer (same as above)</li>
+        <li><strong>Comments</strong> column uses a custom renderer (<code>safeHtmlRenderer</code>). This should be safe for user input, because only certain tags are allowed</li>
+        <li><strong>Cover</strong> column accepts image URL as a string and converts it to a <code>&lt;img&gt;</code> in the renderer</li>
+      </ul>
+
       <div id="example1"></div>
 
       <p>
@@ -116,25 +113,38 @@
       <script data-jsfiddle="example1">
         var data = [
           {
-            title: "Professional JavaScript for Web Developers",
+            title: "<a href='http://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691'>Professional JavaScript for Web Developers</a>",
             description: "This <a href='http://bit.ly/sM1bDf'>book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.",
+            comments: "I would rate it &#x2605;&#x2605;&#x2605;&#x2605;&#x2606;",
             cover: "http://ecx.images-amazon.com/images/I/51bRhyVTVGL._SL50_.jpg"
           },
           {
-            title: "JavaScript: The Good Parts",
+            title: "<a href='http://shop.oreilly.com/product/9780596517748.do'>JavaScript: The Good Parts</a>",
             description: "This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.",
+            comments: "This is <big>the</big> book about JavaScript",
             cover: "http://ecx.images-amazon.com/images/I/51gdVAEfPUL._SL50_.jpg"
           },
           {
-            title: "JavaScript: The Definitive Guide",
+            title: "<a href='http://shop.oreilly.com/product/9780596805531.do'>JavaScript: The Definitive Guide</a>",
             description: "<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.",
+            comments: "I've never actually read it, but the <a href='http://shop.oreilly.com/product/9780596805531.do'>comments</a> are highly <strong>positive</strong>.",
             cover: "http://ecx.images-amazon.com/images/I/51VFNL4T7kL._SL50_.jpg"
           }
         ];
 
-        var descriptionRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+        function strip_tags(input, allowed) {
+          // +   original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+          allowed = (((allowed || "") + "").toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
+          var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
+            commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
+          return input.replace(commentsAndPhpTags, '').replace(tags, function ($0, $1) {
+            return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
+          });
+        }
+
+        var safeHtmlRenderer = function (instance, td, row, col, prop, value, cellProperties) {
           var escaped = Handsontable.helper.stringify(value);
-          escaped = strip_tags(escaped, '<em><b><a>'); //be sure you only allow certain HTML tags to avoid XSS threats (you should also remove unwanted HTML attributes)
+          escaped = strip_tags(escaped, '<em><b><strong><a><big>'); //be sure you only allow certain HTML tags to avoid XSS threats (you should also remove unwanted HTML attributes)
           td.innerHTML = escaped;
           return td;
         };
@@ -158,11 +168,12 @@
         var $container = $("#example1");
         $container.handsontable({
           data: data,
-          colWidths: [120, 200, 80],
-          colHeaders: ["Plain text title", "HTML Description", "Cover"],
+          colWidths: [200, 200, 200, 60],
+          colHeaders: ["Title", "Description", "Comments", "Cover"],
           columns: [
-            {data: "title"},
-            {data: "description", renderer: descriptionRenderer},
+            {data: "title", renderer: "html"},
+            {data: "description", renderer: "html"},
+            {data: "comments", renderer: safeHtmlRenderer},
             {data: "cover", renderer: coverRenderer}
           ]
         });
@@ -358,15 +369,15 @@
             var menu = buildMenu(columns[col].type);
 
             var $button = buildButton();
+
             $button.click(function (e) {
+              instance.rootElement[0].appendChild(menu[0]);
 
               e.preventDefault();
               e.stopImmediatePropagation();
 
               $('.changeTypeMenu').hide();
-
               menu.show();
-
               menu.position({
                  my: 'left top',
                  at: 'left bottom',
@@ -377,7 +388,8 @@
               $(document).off('click.changeTypeMenu.hide');
 
               $(document).one('click.changeTypeMenu.hide', function () {
-                 menu.hide();
+//                 menu.hide();
+                instance.rootElement[0].removeChild(menu[0]);
               });
 
 
@@ -388,7 +400,8 @@
             });
 
             TH.firstChild.appendChild($button[0]);
-            TH.appendChild(menu[0]);
+
+            //TH.appendChild(menu[0]);
           },
           cells: function (row, col, prop) {
             if (row === 0) {
@@ -437,7 +450,7 @@
   </div>
 </div>
 
-<div class="footer-text">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+<div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and documentation
   licensed under the The MIT License.
 </div>
 </div>

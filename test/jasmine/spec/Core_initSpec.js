@@ -54,7 +54,7 @@ describe('Core_init', function () {
   });
 
   it('Handsontable.Dom should be available as a helper to the plugins', function () {
-    //all public methods of WalkontableDom should be exposed here
+    //all public methods of Handsontable.Dom should be exposed here
     expect(Handsontable.Dom.closest).toBeDefined();
     expect(Handsontable.Dom.isChildOf).toBeDefined();
     expect(Handsontable.Dom.index).toBeDefined();

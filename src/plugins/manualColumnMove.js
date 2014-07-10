@@ -20,13 +20,13 @@ function HandsontableManualColumnMove() {
   var saveManualColumnPositions = function () {
     var instance = this;
 
-    instance.PluginHooks.run('persistentStateSave', 'manualColumnPositions', instance.manualColumnPositions);
+    Handsontable.hooks.run(instance, 'persistentStateSave', 'manualColumnPositions', instance.manualColumnPositions);
   };
 
   var loadManualColumnPositions = function () {
     var instance = this;
     var storedState = {};
-    instance.PluginHooks.run('persistentStateLoad', 'manualColumnPositions', storedState);
+    Handsontable.hooks.run(instance, 'persistentStateLoad', 'manualColumnPositions', storedState);
 
     return storedState.value;
   };
@@ -62,24 +62,24 @@ function HandsontableManualColumnMove() {
 
         saveManualColumnPositions.call(instance);
 
-        instance.PluginHooks.run('afterColumnMove', startCol, endCol);
+        Handsontable.hooks.run(instance, 'afterColumnMove', startCol, endCol);
       }
     });
 
     instance.rootElement.on('mousedown.manualColumnMove', '.manualColumnMover', function (e) {
 
       var mover = e.currentTarget;
-      var TH = instance.view.wt.wtDom.closest(mover, 'TH');
-      startCol = instance.view.wt.wtDom.index(TH) + instance.colOffset();
+      var TH = Handsontable.Dom.closest(mover, 'TH');
+      startCol = Handsontable.Dom.index(TH) + instance.colOffset();
       endCol = startCol;
       pressed = true;
       startX = e.pageX;
 
       var TABLE = instance.$table[0];
       TABLE.parentNode.appendChild(ghost);
-      ghostStyle.width = instance.view.wt.wtDom.outerWidth(TH) + 'px';
-      ghostStyle.height = instance.view.wt.wtDom.outerHeight(TABLE) + 'px';
-      startOffset = parseInt(instance.view.wt.wtDom.offset(TH).left - instance.view.wt.wtDom.offset(TABLE).left, 10);
+      ghostStyle.width = Handsontable.Dom.outerWidth(TH) + 'px';
+      ghostStyle.height = Handsontable.Dom.outerHeight(TABLE) + 'px';
+      startOffset = parseInt(Handsontable.Dom.offset(TH).left - Handsontable.Dom.offset(TABLE).left, 10);
       ghostStyle.left = startOffset + 6 + 'px';
     });
 
@@ -87,12 +87,12 @@ function HandsontableManualColumnMove() {
       if (pressed) {
         var active = instance.view.THEAD.querySelector('.manualColumnMover.active');
         if (active) {
-          instance.view.wt.wtDom.removeClass(active, 'active');
+          Handsontable.Dom.removeClass(active, 'active');
         }
-        endCol = instance.view.wt.wtDom.index(this) + instance.colOffset();
+        endCol = Handsontable.Dom.index(this) + instance.colOffset();
         var THs = instance.view.THEAD.querySelectorAll('th');
         var mover = THs[endCol].querySelector('.manualColumnMover');
-        instance.view.wt.wtDom.addClass(mover, 'active');
+        Handsontable.Dom.addClass(mover, 'active');
       }
     });
 
@@ -168,13 +168,15 @@ function HandsontableManualColumnMove() {
 }
 var htManualColumnMove = new HandsontableManualColumnMove();
 
-Handsontable.PluginHooks.add('beforeInit', htManualColumnMove.beforeInit);
-Handsontable.PluginHooks.add('afterInit', function () {
+Handsontable.hooks.add('beforeInit', htManualColumnMove.beforeInit);
+Handsontable.hooks.add('afterInit', function () {
   htManualColumnMove.init.call(this, 'afterInit')
 });
 
-Handsontable.PluginHooks.add('afterUpdateSettings', function () {
+Handsontable.hooks.add('afterUpdateSettings', function () {
   htManualColumnMove.init.call(this, 'afterUpdateSettings')
 });
-Handsontable.PluginHooks.add('afterGetColHeader', htManualColumnMove.getColHeader);
-Handsontable.PluginHooks.add('modifyCol', htManualColumnMove.modifyCol);
+Handsontable.hooks.add('afterGetColHeader', htManualColumnMove.getColHeader);
+Handsontable.hooks.add('modifyCol', htManualColumnMove.modifyCol);
+
+Handsontable.hooks.register('afterColumnMove');

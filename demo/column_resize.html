@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Manual column resize &amp; move - Handsontable</title>
+  <title>Column &amp; row resize - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -26,12 +26,12 @@
   <meta property="og:title" content="Column resize">
   <meta property="og:description"
         content=".">
-  <meta property="og:url" content="http://handsontable.com/demo/sorting.html">
+  <meta property="og:url" content="http://handsontable.com/demo/column_resize.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
-  <link rel="canonical" href="http://handsontable.com/demo/sorting.html">
+  <link rel="canonical" href="http://handsontable.com/demo/column_resize.html">
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
@@ -44,7 +44,7 @@
         , i
         , j;
 
-      for (i = 0; i < 100000; i++) {
+      for (i = 0; i < 1000; i++) {
         var row = [];
         for (j = 0; j < 10; j++) {
           row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
@@ -70,33 +70,23 @@
     <div id="container">
       <div class="columnLayout">
 
-        <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad">
-          <h2>Manual column resize &amp; move</h2>
-
-          <p>This page shows how to use Handsontable with column related built-in plugins:</p>
-
-          <ul>
-            <li><a href="#resize">Column resize</a></li>
-            <li><a href="#move">Column move</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
     <div class="rowLayout">
       <div class="descLayout">
         <div class="pad" data-jsfiddle="example1">
           <a name="resize"></a>
 
-          <h2>Column resize</h2>
+          <h2>Column &amp; row resize</h2>
 
-          <p>To enable this experimental feature, use setting <code>manualColumnResize: true</code></p>
+          <p>To enable these features, use settings <code>manualColumnResize: true</code> and <code>manualRowResize: true</code></p>
 
-          <p>In the right part of column header a draggable column resize handle will appear.</p>
+          <p>The draggable resize handle appears:</p>
 
-          <p>Double click on the column resize handle to automatically adjust column width.</p>
+          <ul>
+            <li>in the right part of the column header,</li>
+            <li>in the bottom part of the row header.</li>
+          </ul>
+
+          <p>Double click on the resize handle automatically adjusts size of the row or column.</p>
 
           <div class="state-loaded example1 alert">State of the table has been restored. <button class="mini reset-state1">Reset table state</button></div>
           <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
@@ -122,61 +112,15 @@
               rowHeaders: true,
               colHeaders: true,
               colWidths: [55, 80, 80, 80, 80, 80, 80],
+              rowHeights: [50, 40, 100],
               manualColumnResize: true,
+              manualRowResize: true,
               minSpareRows: 1,
               persistentState: true
             });
 
           </script>
 
-        </div>
-      </div>
-    </div>
-
-    <div class="rowLayout">
-      <div class="descLayout">
-        <div class="pad" data-jsfiddle="example2">
-          <a name="move"></a>
-
-          <h2>Column move</h2>
-
-          <p>To enable this experimental feature, use setting <code>manualColumnMove: true</code></p>
-
-          <p>In the left part of column header a draggable column move handle will appear.</p>
-
-          <div class="state-loaded example2 alert">State of the table has been restored. <button class="mini reset-state2">Reset table state</button></div>
-
-          <div id="example2" style="width: 400px; height: 300px; overflow: scroll"></div>
-
-          <p>
-            <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump
-              data to console
-            </button>
-          </p>
-        </div>
-      </div>
-
-      <div class="codeLayout">
-        <div class="pad">
-          <div class="jsFiddle">
-            <button class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</button>
-          </div>
-
-          <script data-jsfiddle="example2">
-            $("#example2").handsontable({
-              data: createBigData(),
-              rowHeaders: true,
-              colHeaders: true,
-              colWidths: [55, 80, 80, 80, 80, 80, 80],
-              manualColumnMove: true,
-              manualColumnResize: true,
-              minSpareRows: 1,
-              persistentState: true
-            });
-
-
-          </script>
         </div>
       </div>
     </div>
@@ -187,10 +131,11 @@
 
     $('.reset-state1').on('click', function(){
 
-      HOT.PluginHooks.run('persistentStateReset');
+      HOT.runHooks('persistentStateReset');
 
       HOT.updateSettings({
-        manualColumnResize: true
+        manualColumnResize: true,
+        manualRowResize: true
       });
 
       $(".state-loaded.example1").fadeOut(300);
@@ -199,44 +144,18 @@
 
     var storedData = {};
 
-    HOT.PluginHooks.run('persistentStateLoad', '_persistentStateKeys', storedData);
+    HOT.runHooks('persistentStateLoad', '_persistentStateKeys', storedData);
 
     var savedKeys = storedData.value;
 
     if(savedKeys && savedKeys.length > 0){
       $(".state-loaded.example1").show();
-    }
-  })();
-
-  (function(){
-    var HOT = $('#example2').handsontable('getInstance');
-
-    $('.reset-state2').on('click', function(){
-
-      HOT.PluginHooks.run('persistentStateReset');
-
-      HOT.updateSettings({
-        manualColumnMove:true,
-        manualColumnResize: true
-      });
-
-      $(".state-loaded.example2").fadeOut(300);
-    });
-
-
-    var storedData = {};
-
-    HOT.PluginHooks.run('persistentStateLoad', '_persistentStateKeys', storedData);
-
-    var savedKeys = storedData.value;
-
-    if(savedKeys && savedKeys.length > 0){
-      $(".state-loaded.example2").show();
+      HOT.render();
     }
   })();
 </script>
 
-        <div class="footer-text">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+        <div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and documentation
           licensed under the The MIT License.
         </div>
       </div>

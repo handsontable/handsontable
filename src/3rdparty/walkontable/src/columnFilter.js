@@ -2,18 +2,14 @@
  * WalkontableColumnFilter
  * @constructor
  */
-function WalkontableColumnFilter() {
-  this.countTH = 0;
+function WalkontableColumnFilter(offset, total, fixedCount, countTH) {
+  this.offset = offset;
+  this.total = total;
+  this.fixedCount = fixedCount;
+  this.countTH = countTH;
 }
 
-WalkontableColumnFilter.prototype = new WalkontableCellFilter();
-
-WalkontableColumnFilter.prototype.readSettings = function (instance) {
-  this.offset = instance.wtSettings.settings.offsetColumn;
-  this.total = instance.getSetting('totalColumns');
-  this.fixedCount = instance.getSetting('fixedColumnsLeft');
-  this.countTH = instance.getSetting('rowHeaders').length;
-};
+WalkontableColumnFilter.prototype = new WalkontableAbstractFilter();
 
 WalkontableColumnFilter.prototype.offsettedTH = function (n) {
   return n - this.countTH;

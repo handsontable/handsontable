@@ -124,7 +124,7 @@
       this.$textarea[0].style.visibility = 'visible';
     }
 
-    this.wtDom.setCaretPosition(this.$textarea[0], 0, this.$textarea[0].value.length);
+    Handsontable.Dom.setCaretPosition(this.$textarea[0], 0, this.$textarea[0].value.length);
 
   };
 

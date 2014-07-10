@@ -2,7 +2,7 @@ describe('TextEditor', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $('<div id="' + id + '" style="width: 300px; height: 200px; overflow: auto"></div>').appendTo('body');
   });
 
   afterEach(function () {
@@ -178,33 +178,31 @@ describe('TextEditor', function () {
   });
 
   it('textarea should have cell dimensions (after render)', function () {
-    runs(function () {
-      var data = [
-        ["a", "b"],
-        ["c", "d"]
-      ];
+    var data = [
+      ["a", "b"],
+      ["c", "d"]
+    ];
 
-      handsontable({
-        data: data,
-        minRows: 4,
-        minCols: 4,
-        minSpareRows: 4,
-        minSpareCols: 4
-      });
-
-      selectCell(1, 1);
-      keyDownUp('enter');
-
-      data[1][1] = "dddddddddddddddddddd";
-      render();
+    var hot = handsontable({
+      data: data,
+      minRows: 4,
+      minCols: 4,
+      minSpareRows: 4,
+      minSpareCols: 4,
+      enterMoves: false
     });
 
-    waits(10);
+    selectCell(1, 1);
+    var $td = getHtCore().find('tbody tr:eq(1) td:eq(1)');
+    var editor = hot.getActiveEditor();
+    keyDownUp('enter');
+    expect(keyProxy().width()).toEqual($td.width());
+    keyDownUp('enter');
+    data[1][1] = "dddddddddddddddddddd";
+    render();
+    keyDownUp('enter');
 
-    runs(function () {
-      var $td = this.$container.find('.htCore tbody tr:eq(1) td:eq(1)');
-      expect(keyProxy().width()).toEqual($td.width());
-    });
+    expect(keyProxy().width()).toEqual($td.width());
   });
 
   it('global shortcuts (like CTRL+A) should be blocked when cell is being edited', function () {
@@ -222,12 +220,14 @@ describe('TextEditor', function () {
 
   it('should open editor after double clicking on a cell', function () {
 
-    handsontable({
+    var hot = handsontable({
       data: createSpreadsheetData(5, 2)
     });
 
     var cell = $(getCell(0, 0));
     var clicks = 0;
+
+    window.scrollTo(0, cell.offset().top);
 
     setTimeout(function () {
       mouseDown(cell);
@@ -246,7 +246,8 @@ describe('TextEditor', function () {
     }, 'Two clicks', 1000);
 
     runs(function () {
-      expect(document.activeElement.nodeName).toEqual('TEXTAREA');
+      var editor = hot.getActiveEditor();
+      expect(editor.isOpened()).toBe(true);
     });
 
   });
@@ -451,7 +452,7 @@ describe('TextEditor', function () {
     expect(getCell(0, 0)).not.toBeNull();
     expect(getCell(19, 19)).toBeNull();
 
-    hot.view.scrollViewport({row: 19, col: 19});
+    hot.view.scrollViewport(new WalkontableCellCoords(19, 19));
     hot.render();
 
     expect(getCell(0, 0)).toBeNull();

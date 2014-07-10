@@ -197,20 +197,6 @@ describe('AutoColumnSize', function () {
     expect(tmp.parentNode).not.toBe(document.body); //null in standard browsers, #document-fragment in IE8
   });
 
-  it('should not set column width wider than the viewport', function () {
-    handsontable({
-      data: arrayOfObjects(),
-      autoColumnSize: true,
-      width: 100,
-      height: 100,
-      rowHeaders: true
-    });
-
-    setDataAtCell(0, 0, 'LongLongLongLongLongLongLongLongLongLongLongLongLongLongCell');
-
-    expect(colWidth(this.$container, 0)).toBeLessThan(55); //remaining part is used by row header and scrollbar
-  });
-
   it('should not trigger autoColumnSize when column width is defined (through colWidths)', function () {
     handsontable({
       data: arrayOfObjects(),

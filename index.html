@@ -36,6 +36,12 @@
   Google Analytics for GitHub Page. Don't copy this to your project :)
   -->
   <script src="demo/js/ga.js"></script>
+
+  <!--
+  GitHub buttons. Don't copy this to your project :)
+  -->
+  <link rel="stylesheet" media="screen" href="demo/github-buttons/github-buttons.css">
+  <script src="demo/github-buttons/github-buttons.js" async></script>
 </head>
 
 <body class="home">
@@ -70,16 +76,13 @@
             <a href="demo/renderers.html">Cell renderers</a>
           </li>
           <li>
-            <a href="demo/renderers_html.html">Custom HTML</a>
+            <a href="demo/renderers_html.html">Custom HTML <sup>UPDATED</sup></a>
           </li>
           <li>
-            <a href="demo/scroll.html">Scroll bars / Column stretch</a>
+            <a href="demo/scroll.html">Scroll bars &amp; Column stretch <sup>UPD</sup></a>
           </li>
           <li>
-            <a href="demo/scroll_native.html"> &#x2514; Native scroll window <sup>BETA</sup></a>
-          </li>
-          <li>
-            <a href="demo/scroll_native_div.html"> &#x2514; Native scroll div <sup>BETA</sup></a>
+            <a href="demo/scroll_window.html"> &#x2514; Scroll window <sup>NEW</sup></a>
           </li>
           <li>
             <a href="demo/conditional.html">Conditional formatting</a>
@@ -94,7 +97,10 @@
             <a href="demo/sorting.html">Column sorting</a>
           </li>
           <li>
-            <a href="demo/column_resize.html">Column resize &amp; move</a>
+            <a href="demo/column_resize.html">Column &amp; row resize <sup>NEW</sup></a>
+          </li>
+          <li>
+            <a href="demo/column_move.html">Column move</a>
           </li>
           <li>
             <a href="demo/fixed.html">Fixed rows/columns</a>
@@ -102,9 +108,12 @@
           <li>
             <a href="demo/pagination.html">Pagination</a>
           </li>
-          <!--<li>
+          <li>
             <a href="demo/merge_cells.html">Merge cells <sup>NEW</sup></a>
-          </li>-->
+          </li>
+          <li>
+            <a href="demo/align_cell.html">Horizontal &amp; vertical align <sup>NEW</sup></a>
+          </li>
         </ul>
       </li>
 
@@ -121,10 +130,10 @@
             <a href="demo/checkbox.html">Checkbox</a>
           </li>
           <li>
-            <a href="demo/selectEditor.html">Select <sup>NEW</sup></a>
+            <a href="demo/selectEditor.html">Select</a>
           </li>
           <li>
-            <a href="demo/dropdown.html">Dropdown <sup>NEW</sup></a>
+            <a href="demo/dropdown.html">Dropdown</a>
           </li>
           <li>
             <a href="demo/autocomplete.html">Autocomplete</a>
@@ -151,7 +160,7 @@
             <a href="demo/buttons.html">Custom buttons</a>
           </li>
           <li>
-            <a href="demo/contextmenu.html">Context menu</a>
+            <a href="demo/contextmenu.html">Context menu <sup>UPDATED</sup></a>
           </li>
           <li>
             <a href="demo/readonly.html">Read-only cells</a>
@@ -181,7 +190,11 @@
             <a href="demo/bootstrap.html">Twitter Bootstrap</a>
           </li>
           <li>
-            <a href="demo/web_component.html">W3C Web Components (beta)</a>
+            <a href="demo/heatmaps.html">Chroma.js (Heatmaps) <sup>NEW</sup></a>
+          </li>
+          <li>
+            <a href="https://github.com/warpech/hot-table">W3C Web Components <sup><i
+              class="icon-external-link"></i></sup></a>
           </li>
         </ul>
       </li>
@@ -196,13 +209,23 @@
   <!-- menu end -->
 </div>
 
-<iframe id="githubWatch"
-        src="demo/github-buttons/github-btn.html?user=warpech&repo=jquery-handsontable&type=watch&count=true"
-        frameborder="0" scrolling="0" width="104" height="20"></iframe>
+<div id="github-buttons">
+  <span class="github-btn" id="githubWatch">
+    <a class="gh-btn github-watchers" href="https://github.com/handsontable/jquery-handsontable">
+      <span class="gh-ico"></span>
+      <span class="gh-text">Star</span>
+    </a>
+    <a class="gh-count" href="https://github.com/handsontable/jquery-handsontable/stargazers"></a>
+  </span>
 
-<iframe id="githubFork"
-        src="demo/github-buttons/github-btn.html?user=warpech&repo=jquery-handsontable&type=fork&count=true"
-        frameborder="0" scrolling="0" width="87" height="20"></iframe>
+  <span class="github-btn" id="githubFork">
+    <a class="gh-btn github-forks" href="https://github.com/handsontable/jquery-handsontable">
+      <span class="gh-ico"></span>
+      <span class="gh-text">Fork</span>
+    </a>
+    <a class="gh-count" href="https://github.com/handsontable/jquery-handsontable/network"></a>
+  </span>
+</div>
 
 <div id="container">
   <div class="columnLayout">
@@ -218,9 +241,20 @@
 
         <div class="pad" data-jsfiddle="example">
 
-          <p style="font-size: 20px"><strong>Handsontable</strong> is a minimalistic Excel-like <span class="nobreak">data grid</span>
+          <p style="font-size: 20px"><strong>Handsontable</strong> is a minimal Excel-like <span class="nobreak">data grid</span>
             editor
             for HTML, JavaScript &amp; jQuery</p>
+
+          <div class="warning">
+            This is Handsontable <a href="https://github.com/handsontable/jquery-handsontable/releases" class="ver"></a>, a new release published on July 7th, 2014. Most prominent changes include
+            <a href="demo/scroll.html">native scrolling</a> (also in a <a href="demo/scroll_window.html">window</a>)
+            and <a href="demo/merge_cells.html">merged cells</a>.
+
+            <br>If you experience some rough edges, please report an
+            <a href="https://github.com/handsontable/jquery-handsontable/issues">issue</a> or temporarily stick to
+            version <a href="http://old.handsontable.com">0.10.5 <sup><i
+            class="icon-external-link"></i></sup></a>.
+          </div>
 
           <div id="example"></div>
         </div>
@@ -275,7 +309,7 @@
       });
     </script>
 
-    <div class="footer-text">Handsontable &copy; 2012 Marcin Warpechowski and contributors.<br> Code and documentation
+    <div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and documentation
       licensed under the The MIT License.
     </div>
   </div>
@@ -289,20 +323,20 @@
   <div id="outside-links">
     <div class="inline-buttons">
       <a class="button"
-         href="https://github.com/warpech/jquery-handsontable/blob/master/CHANGELOG.md">Changelog</a>
-      <a class="button button-light" href="https://github.com/warpech/jquery-handsontable/wiki"><i
+         href="https://github.com/handsontable/jquery-handsontable/releases">Releases</a>
+      <a class="button button-light" href="https://github.com/handsontable/jquery-handsontable/wiki"><i
         class="icon-book"></i> Wiki</a>
       <a class="button button-secondary button-light"
-         href="https://github.com/warpech/jquery-handsontable/wiki/Options">Options</a>
+         href="https://github.com/handsontable/jquery-handsontable/wiki/Options">Options</a>
       <a class="button button-secondary button-light"
-         href="https://github.com/warpech/jquery-handsontable/wiki/Methods">Methods</a>
-      <a class="button button-secondary" href="https://github.com/warpech/jquery-handsontable/wiki/Events">Events</a>
+         href="https://github.com/handsontable/jquery-handsontable/wiki/Methods">Methods</a>
+      <a class="button button-secondary" href="https://github.com/handsontable/jquery-handsontable/wiki/Events">Events</a>
 
-      <a class="button" href="https://github.com/warpech/jquery-handsontable/wiki/FAQ">F.A.Q.</a>
+      <a class="button" href="https://github.com/handsontable/jquery-handsontable/wiki/FAQ">F.A.Q.</a>
 
-      <a class="button button-github" href="https://github.com/warpech/jquery-handsontable"><i
+      <a class="button button-github" href="https://github.com/handsontable/jquery-handsontable"><i
         class="icon-github"></i> Source</a>
-      <a class="button button-github" href="https://github.com/warpech/jquery-handsontable/issues"><i
+      <a class="button button-github" href="https://github.com/handsontable/jquery-handsontable/issues"><i
         class="icon-bug"></i> Issues</a>
     </div>
 

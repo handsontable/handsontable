@@ -1,7 +1,6 @@
 (function(Handsontable){
 
   var PasswordEditor = Handsontable.editors.TextEditor.prototype.extend();
-  var wtDom = new WalkontableDom();
 
   PasswordEditor.prototype.createElements = function () {
     Handsontable.editors.TextEditor.prototype.createElements.apply(this, arguments);
@@ -14,7 +13,7 @@
     this.textareaStyle.height = 0;
     this.$textarea = $(this.TEXTAREA);
 
-    wtDom.empty(this.TEXTAREA_PARENT);
+    Handsontable.Dom.empty(this.TEXTAREA_PARENT);
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
 
   };

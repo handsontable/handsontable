@@ -10,8 +10,7 @@ function WalkontableSettings(instance, settings) {
     //presentation mode
     scrollH: 'auto', //values: scroll (always show scrollbar), auto (show scrollbar if table does not fit in the container), none (never show scrollbar)
     scrollV: 'auto', //values: see above
-    nativeScrollbars: false, //values: false (dragdealer), true (native)
-    stretchH: 'hybrid', //values: hybrid, all, last, none
+    stretchH: 'none', //values: all, last, none
     currentRowClassName: null,
     currentColumnClassName: null,
 
@@ -33,9 +32,13 @@ function WalkontableSettings(instance, settings) {
     height: null,
     cellRenderer: function (row, column, TD) {
       var cellData = that.getSetting('data', row, column);
-      that.instance.wtDom.fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);
+      Handsontable.Dom.fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);
     },
     columnWidth: 50,
+    rowHeight: function (row) {
+      return 23;
+    },
+    defaultRowHeight: 23,
     selections: null,
     hideBorderOnMouseDownOver: false,
 
@@ -53,7 +56,9 @@ function WalkontableSettings(instance, settings) {
 
     //constants
     scrollbarWidth: 10,
-    scrollbarHeight: 10
+    scrollbarHeight: 10,
+
+    renderAllRows: false
   };
 
   //reference to settings
@@ -91,20 +96,11 @@ WalkontableSettings.prototype.update = function (settings, value) {
   return this.instance;
 };
 
-WalkontableSettings.prototype.getSetting = function (key, param1, param2, param3) {
-  if (this[key]) {
-    return this[key](param1, param2, param3);
-  }
-  else {
-    return this._getSetting(key, param1, param2, param3);
-  }
-};
-
-WalkontableSettings.prototype._getSetting = function (key, param1, param2, param3) {
+WalkontableSettings.prototype.getSetting = function (key, param1, param2, param3, param4) {
   if (typeof this.settings[key] === 'function') {
-    return this.settings[key](param1, param2, param3);
+    return this.settings[key](param1, param2, param3, param4); //this is faster than .apply - https://github.com/handsontable/jquery-handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
-  else if (param1 !== void 0 && Object.prototype.toString.call(this.settings[key]) === '[object Array]') {
+  else if (param1 !== void 0 && Object.prototype.toString.call(this.settings[key]) === '[object Array]') { //perhaps this can be removed, it is only used in tests
     return this.settings[key][param1];
   }
   else {
@@ -114,24 +110,4 @@ WalkontableSettings.prototype._getSetting = function (key, param1, param2, param
 
 WalkontableSettings.prototype.has = function (key) {
   return !!this.settings[key]
-};
-
-/**
- * specific methods
- */
-WalkontableSettings.prototype.rowHeight = function (row, TD) {
-  if (!this.instance.rowHeightCache) {
-    this.instance.rowHeightCache = []; //hack. This cache is being invalidated in WOT core.js
-  }
-  if (this.instance.rowHeightCache[row] === void 0) {
-    var size = 23; //guess
-    if (TD) {
-      size = this.instance.wtDom.outerHeight(TD); //measure
-      this.instance.rowHeightCache[row] = size; //cache only something we measured
-    }
-    return size;
-  }
-  else {
-    return this.instance.rowHeightCache[row];
-  }
 };

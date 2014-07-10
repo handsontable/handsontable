@@ -13,7 +13,7 @@
 
     for( hash = ''; hash.split(hashSymbol).length - 1 < hashLength; hash += hashSymbol);
 
-    instance.view.wt.wtDom.fastInnerHTML(TD, hash);
+    Handsontable.Dom.fastInnerHTML(TD, hash);
 
   };
 

@@ -1,11 +1,4 @@
 /**
- * DOM helper optimized for maximum performance
- * It is recommended for Handsontable plugins and renderers, because it is much faster than jQuery
- * @type {WalkonableDom}
- */
-Handsontable.Dom = new WalkontableDom();
-
-/**
  * Returns true if keyCode represents a printable character
  * @param {Number} keyCode
  * @return {Boolean}
@@ -158,7 +151,7 @@ Handsontable.helper.randomString = function () {
 /**
  * Inherit without without calling parent constructor, and setting `Child.prototype.constructor` to `Child` instead of `Parent`.
  * Creates temporary dummy function to call it as constructor.
- * Described in ticket: https://github.com/warpech/jquery-handsontable/pull/516
+ * Described in ticket: https://github.com/handsontable/jquery-handsontable/pull/516
  * @param  {Object} Child  child class
  * @param  {Object} Parent parent class
  * @return {Object}        extended Child
@@ -413,7 +406,7 @@ Handsontable.helper.cellMethodLookupFactory = function (methodName, allowUndefin
         return;                       //method not found
 
       }
-      else if (properties.hasOwnProperty(methodName) && properties[methodName]) { //check if it is own and is not empty
+      else if (properties.hasOwnProperty(methodName) && properties[methodName] !== void 0) { //check if it is own and is not empty
 
         return properties[methodName];  //method defined directly
 

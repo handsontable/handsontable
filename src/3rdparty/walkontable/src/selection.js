@@ -1,18 +1,55 @@
 function WalkontableSelection(instance, settings) {
   this.instance = instance;
   this.settings = settings;
-  this.selected = [];
+  this.cellRange = null;
   if (settings.border) {
     this.border = new WalkontableBorder(instance, settings);
   }
 }
 
+/**
+ * Returns boolean information if selection is empty
+ * @returns {boolean}
+ */
+WalkontableSelection.prototype.isEmpty = function () {
+  return (this.cellRange === null);
+};
+
+/**
+ * Adds a cell coords to the selection
+ * @param {WalkontableCellCoords} coords
+ */
 WalkontableSelection.prototype.add = function (coords) {
-  this.selected.push(coords);
+  if (this.isEmpty()) {
+    this.cellRange = new WalkontableCellRange(coords, coords, coords);
+  }
+  else {
+    this.cellRange.expand(coords);
+  }
+};
+
+/**
+ * If selection range from or to property equals oldCoords, replace it with newCoords. Return boolean information about success
+ * @param {WalkontableCellCoords} oldCoords
+ * @param {WalkontableCellCoords} newCoords
+ * @return {boolean}
+ */
+WalkontableSelection.prototype.replace = function (oldCoords, newCoords) {
+  if (!this.isEmpty()) {
+    if(this.cellRange.from.isEqual(oldCoords)) {
+      this.cellRange.from = newCoords;
+      return true;
+    }
+    if(this.cellRange.to.isEqual(oldCoords)) {
+      this.cellRange.to = newCoords;
+      return true;
+    }
+  }
+  return false;
 };
 
 WalkontableSelection.prototype.clear = function () {
-  this.selected.length = 0; //http://jsperf.com/clear-arrayxxx
+  this.cellRange = null;
 };
 
 /**
@@ -20,64 +57,42 @@ WalkontableSelection.prototype.clear = function () {
  * @returns {Object}
  */
 WalkontableSelection.prototype.getCorners = function () {
-  var minRow
-    , minColumn
-    , maxRow
-    , maxColumn
-    , i
-    , ilen = this.selected.length;
-
-  if (ilen > 0) {
-    minRow = maxRow = this.selected[0][0];
-    minColumn = maxColumn = this.selected[0][1];
-
-    if (ilen > 1) {
-      for (i = 1; i < ilen; i++) {
-        if (this.selected[i][0] < minRow) {
-          minRow = this.selected[i][0];
-        }
-        else if (this.selected[i][0] > maxRow) {
-          maxRow = this.selected[i][0];
-        }
-
-        if (this.selected[i][1] < minColumn) {
-          minColumn = this.selected[i][1];
-        }
-        else if (this.selected[i][1] > maxColumn) {
-          maxColumn = this.selected[i][1];
-        }
-      }
-    }
-  }
-
-  return [minRow, minColumn, maxRow, maxColumn];
+  var topLeft = this.cellRange.getTopLeftCorner();
+  var bottomRight = this.cellRange.getBottomRightCorner();
+  return [topLeft.row, topLeft.col, bottomRight.row, bottomRight.col];
 };
 
 WalkontableSelection.prototype.draw = function () {
-  var corners, r, c, source_r, source_c;
+  var corners, r, c, source_r, source_c,
+    instance = this.instance,
+    visibleRows = instance.wtTable.getRowStrategy().countVisible(),
+    renderedColumns = instance.wtTable.getColumnStrategy().cellCount;
 
-  var visibleRows = this.instance.wtTable.rowStrategy.countVisible()
-    , visibleColumns = this.instance.wtTable.columnStrategy.countVisible();
-
-  if (this.selected.length) {
+  if (!this.isEmpty()) {
     corners = this.getCorners();
 
     for (r = 0; r < visibleRows; r++) {
-      for (c = 0; c < visibleColumns; c++) {
-        source_r = this.instance.wtTable.rowFilter.visibleToSource(r);
-        source_c = this.instance.wtTable.columnFilter.visibleToSource(c);
+      for (c = 0; c < renderedColumns; c++) {
+        source_r = instance.wtTable.rowFilter.visibleToSource(r);
+        source_c = instance.wtTable.columnFilter.visibleToSource(c);
 
         if (source_r >= corners[0] && source_r <= corners[2] && source_c >= corners[1] && source_c <= corners[3]) {
           //selected cell
-          this.instance.wtTable.currentCellCache.add(r, c, this.settings.className);
+          if (this.settings.className) {
+            instance.wtTable.currentCellCache.add(r, c, this.settings.className);
+          }
         }
         else if (source_r >= corners[0] && source_r <= corners[2]) {
           //selection is in this row
-          this.instance.wtTable.currentCellCache.add(r, c, this.settings.highlightRowClassName);
+          if (this.settings.highlightRowClassName) {
+            instance.wtTable.currentCellCache.add(r, c, this.settings.highlightRowClassName);
+          }
         }
         else if (source_c >= corners[1] && source_c <= corners[3]) {
           //selection is in this column
-          this.instance.wtTable.currentCellCache.add(r, c, this.settings.highlightColumnClassName);
+          if (this.settings.highlightColumnClassName) {
+            instance.wtTable.currentCellCache.add(r, c, this.settings.highlightColumnClassName);
+          }
         }
       }
     }
@@ -87,4 +102,24 @@ WalkontableSelection.prototype.draw = function () {
   else {
     this.border && this.border.disappear();
   }
+};
+
+/*
+  Make a clone of a selection by overriding the WOT instance and creating new WalkontableBorder for the new instance
+  Method is used for creating selections in overlays
+ */
+WalkontableSelection.prototype.makeClone = function (instance) {
+  function WalkontableSelectionClone(){}
+  WalkontableSelectionClone.prototype = this;
+
+  var clone = new WalkontableSelectionClone();
+
+  clone.instance = instance;
+
+  if (clone.border){
+    clone.border = new WalkontableBorder(instance, clone.settings);
+  }
+
+  return clone;
+
 };

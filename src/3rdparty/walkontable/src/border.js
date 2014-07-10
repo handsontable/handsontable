@@ -4,14 +4,12 @@ function WalkontableBorder(instance, settings) {
   //reference to instance
   this.instance = instance;
   this.settings = settings;
-  this.wtDom = this.instance.wtDom;
 
   this.main = document.createElement("div");
   style = this.main.style;
   style.position = 'absolute';
   style.top = 0;
   style.left = 0;
-//  style.visibility = 'hidden';
 
   for (var i = 0; i < 5; i++) {
     var DIV = document.createElement('DIV');
@@ -27,28 +25,6 @@ function WalkontableBorder(instance, settings) {
   this.left = this.main.childNodes[1];
   this.bottom = this.main.childNodes[2];
   this.right = this.main.childNodes[3];
-
-
-  /*$(this.top).on(sss, function(event) {
-   event.preventDefault();
-   event.stopImmediatePropagation();
-   $(this).hide();
-   });
-   $(this.left).on(sss, function(event) {
-   event.preventDefault();
-   event.stopImmediatePropagation();
-   $(this).hide();
-   });
-   $(this.bottom).on(sss, function(event) {
-   event.preventDefault();
-   event.stopImmediatePropagation();
-   $(this).hide();
-   });
-   $(this.right).on(sss, function(event) {
-   event.preventDefault();
-   event.stopImmediatePropagation();
-   $(this).hide();
-   });*/
 
   this.topStyle = this.top.style;
   this.leftStyle = this.left.style;
@@ -128,8 +104,9 @@ WalkontableBorder.prototype.appear = function (corners) {
     return;
   }
 
-  var instance = this.instance
-    , fromRow
+  var instance = this.instance;
+
+  var fromRow
     , fromColumn
     , toRow
     , toColumn
@@ -149,7 +126,12 @@ WalkontableBorder.prototype.appear = function (corners) {
     hideBottom = true;
   }
 
-  ilen = instance.wtTable.rowStrategy.countVisible();
+  if (instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+    ilen = instance.getSetting('fixedRowsTop');
+  }
+  else {
+    ilen = instance.wtTable.getRowStrategy().countVisible();
+  }
 
   for (i = 0; i < ilen; i++) {
     s = instance.wtTable.rowFilter.visibleToSource(i);
@@ -180,7 +162,14 @@ WalkontableBorder.prototype.appear = function (corners) {
       hideRight = true;
     }
 
-    ilen = instance.wtTable.columnStrategy.countVisible();
+    if (instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+      ilen = instance.getSetting('fixedColumnsLeft');
+    }
+    else {
+      ilen = instance.wtTable.getColumnStrategy().cellCount;
+    }
+
+
 
     for (i = 0; i < ilen; i++) {
       s = instance.wtTable.columnFilter.visibleToSource(i);
@@ -201,21 +190,21 @@ WalkontableBorder.prototype.appear = function (corners) {
 
   if (fromRow !== void 0 && fromColumn !== void 0) {
     isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
-    fromTD = instance.wtTable.getCell([fromRow, fromColumn]);
-    toTD = isMultiple ? instance.wtTable.getCell([toRow, toColumn]) : fromTD;
-    fromOffset = this.wtDom.offset(fromTD);
-    toOffset = isMultiple ? this.wtDom.offset(toTD) : fromOffset;
-    containerOffset = this.wtDom.offset(instance.wtTable.TABLE);
+    fromTD = instance.wtTable.getCell(new WalkontableCellCoords(fromRow, fromColumn));
+    toTD = isMultiple ? instance.wtTable.getCell(new WalkontableCellCoords(toRow, toColumn)) : fromTD;
+    fromOffset = Handsontable.Dom.offset(fromTD);
+    toOffset = isMultiple ? Handsontable.Dom.offset(toTD) : fromOffset;
+    containerOffset = Handsontable.Dom.offset(instance.wtTable.TABLE);
 
     minTop = fromOffset.top;
-    height = toOffset.top + this.wtDom.outerHeight(toTD) - minTop;
+    height = toOffset.top + Handsontable.Dom.outerHeight(toTD) - minTop;
     minLeft = fromOffset.left;
-    width = toOffset.left + this.wtDom.outerWidth(toTD) - minLeft;
+    width = toOffset.left + Handsontable.Dom.outerWidth(toTD) - minLeft;
 
     top = minTop - containerOffset.top - 1;
     left = minLeft - containerOffset.left - 1;
 
-    var style = this.wtDom.getComputedStyle(fromTD);
+    var style = Handsontable.Dom.getComputedStyle(fromTD);
     if (parseInt(style['borderTopWidth'], 10) > 0) {
       top += 1;
       height = height > 0 ? height - 1 : 0;

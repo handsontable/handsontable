@@ -2,7 +2,7 @@ describe('ColumnSorting', function () {
   var id = 'testContainer';
 
   beforeEach(function () {
-    this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    this.$container = $('<div id="' + id + '" style="width: 300px; height: 200px;"></div>').appendTo('body');
 
     this.sortByColumn = function (columnIndex) {
       this.$container.find('th span.columnSorting:eq(' + columnIndex + ')').click();
@@ -33,29 +33,30 @@ describe('ColumnSorting', function () {
 
 
   it('should sort table by first visible column', function () {
-    this.$container.width(350);
     var hot = handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
         [9, 8, 7, 6, 5, 4, 3, 2, 1],
         [8, 7, 6, 5, 4, 3, 3, 1, 9],
-        [2, 3, 0, 5, 6, 7, 8, 9, 1]
+        [0, 3, 0, 5, 6, 7, 8, 9, 1]
       ],
       colHeaders: true,
       columnSorting: true
     });
 
-    hot.selectCell(0, 7);
-    var selected = hot.getSelected();
+    var htCore = getHtCore();
 
-    expect(hot.getDataAtCell(selected[0], selected[1])).toEqual(8);
-    expect(hot.colOffset()).toEqual(1);
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('9');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('3');
+    expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('4');
 
     this.sortByColumn(0);
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('0');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('5');
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('3');
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('0');
+    expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
   });
 
 
@@ -87,12 +88,14 @@ describe('ColumnSorting', function () {
 
     this.sortByColumn(0);
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+    var htCore = getHtCore();
 
-    expect(this.$container.find('tbody tr').length).toEqual(4);
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+    expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+
+    expect(htCore.find('tbody tr').length).toEqual(4);
 
     //Now if sort is launched, sorting ordered will be reversed
     hot.sortOrder = false;
@@ -100,10 +103,10 @@ describe('ColumnSorting', function () {
 
     hot.alter('remove_row', 0);
 
-    expect(this.$container.find('tbody tr').length).toEqual(3);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+    expect(htCore.find('tbody tr').length).toEqual(3);
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
   });
 
   it('should add an empty row to sorted table', function () {
@@ -120,22 +123,24 @@ describe('ColumnSorting', function () {
 
     this.sortByColumn(0);
 
-    expect(this.$container.find('tbody tr').length).toEqual(4);
+    var htCore = getHtCore();
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+    expect(htCore.find('tbody tr').length).toEqual(4);
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+    expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
 
     hot.alter('insert_row', 1, 2);
 
-    expect(this.$container.find('tbody tr').length).toEqual(6);
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('');
-    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(5) td:eq(0)').text()).toEqual('3');
+    expect(htCore.find('tbody tr').length).toEqual(6);
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('');
+    expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('2');
+    expect(htCore.find('tbody tr:eq(5) td:eq(0)').text()).toEqual('3');
   });
 
   it('should add an empty row to sorted table at a given index', function () {
@@ -150,21 +155,23 @@ describe('ColumnSorting', function () {
       columnSorting: true
     });
 
+    var htCore = getHtCore();
+
     this.sortByColumn(0);
 
-    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
-    expect(this.$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('');
+    expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+    expect(htCore.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('');
 
     hot.alter('insert_row', 2);
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
 
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('');
 
-    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
+    expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
   });
 
   it('should NOT sort the table after value update in sorted column', function () {
@@ -179,20 +186,22 @@ describe('ColumnSorting', function () {
       columnSorting: true
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
 
     this.sortByColumn(0);
     this.sortByColumn(0);
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
 
     hot.setDataAtCell(1, 0, 20);
 
     render();
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('20');
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('20');
 
 
   });
@@ -222,15 +231,17 @@ describe('ColumnSorting', function () {
       columnSorting: true
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/01\/14\/2006/);
+    var htCore = getHtCore();
 
-    this.$container.find('th span.columnSorting:eq(2)').click();  // DESC sort after first click
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/01\/14\/2006/);
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/02\/02\/2004/);
+    htCore.find('th span.columnSorting:eq(2)').click();  // DESC sort after first click
 
-    this.$container.find('th span.columnSorting:eq(2)').click();  // ASC sort after second click
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/02\/02\/2004/);
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/11\/19\/2011/);
+    htCore.find('th span.columnSorting:eq(2)').click();  // ASC sort after second click
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toMatch(/11\/19\/2011/);
 
 
   });
@@ -647,19 +658,21 @@ describe('ColumnSorting', function () {
       observeChanges: true
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('0');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
-    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('0');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+    expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
 
     this.sortByColumn(0);
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+    expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
 
-    expect(this.$container.find('tbody tr').length).toEqual(4);
+    expect(htCore.find('tbody tr').length).toEqual(4);
 
     var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
     hot.addHook('afterChangesObserved', afterChangesObservedCallback);
@@ -697,19 +710,21 @@ describe('ColumnSorting', function () {
     var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
     hot.addHook('afterChangesObserved', afterChangesObservedCallback);
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('0');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
-    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
+    var htCore = getHtCore();
+
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('0');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+    expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
 
     this.sortByColumn(0);
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
-    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+    expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+    expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+    expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+    expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
 
-    expect(this.$container.find('tbody tr').length).toEqual(4);
+    expect(htCore.find('tbody tr').length).toEqual(4);
 
     data.push([5, 'E']);
 
@@ -743,6 +758,8 @@ describe('ColumnSorting', function () {
     var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
     hot.addHook('afterChangesObserved', afterChangesObservedCallback);
 
+    var htCore = getHtCore();
+
     //columnSorting enables observeChanges plugin by asynchronously invoking updateSettings
     waitsFor(function () {
       return onUpdateSettings.calls.length > 0;
@@ -750,19 +767,19 @@ describe('ColumnSorting', function () {
 
 
     runs(function () {
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
-      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('0');
-      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
-      expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
+      expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
+      expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('0');
+      expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('3');
+      expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('2');
 
       this.sortByColumn(0);
 
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
-      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
-      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
-      expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
+      expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
+      expect(htCore.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
+      expect(htCore.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('2');
+      expect(htCore.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
 
-      expect(this.$container.find('tbody tr').length).toEqual(4);
+      expect(htCore.find('tbody tr').length).toEqual(4);
 
       var afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
       hot.addHook('afterChangesObserved', afterChangesObservedCallback);
@@ -776,12 +793,13 @@ describe('ColumnSorting', function () {
 
     runs(function () {
       expect(countRows()).toEqual(5);
-      expect(this.$container.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('5');
-      expect(this.$container.find('tbody tr:eq(4) td:eq(1)').text()).toEqual('E');
+      expect(htCore.find('tbody tr:eq(4) td:eq(0)').text()).toEqual('5');
+      expect(htCore.find('tbody tr:eq(4) td:eq(1)').text()).toEqual('E');
     });
 
 
   });
+
   it("should apply sorting when there are two tables and only one has sorting enabled and has been already sorted (#1020)", function () {
     var hot = handsontable({
       data: [

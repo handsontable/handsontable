@@ -2,18 +2,23 @@
  * WalkontableRowFilter
  * @constructor
  */
-function WalkontableRowFilter() {
+function WalkontableRowFilter(offset, total, fixedCount, countTH) {
+  this.offset = offset;
+  this.total = total;
+  this.fixedCount = fixedCount;
+  this.countTH = countTH;
 }
 
-WalkontableRowFilter.prototype = new WalkontableCellFilter();
+WalkontableRowFilter.prototype = new WalkontableAbstractFilter();
 
-WalkontableRowFilter.prototype.readSettings = function (instance) {
-  if (instance.cloneOverlay instanceof WalkontableDebugOverlay) {
-    this.offset = 0;
-  }
-  else {
-    this.offset = instance.wtSettings.settings.offsetRow;
-  }
-  this.total = instance.getSetting('totalRows');
-  this.fixedCount = instance.getSetting('fixedRowsTop');
+WalkontableRowFilter.prototype.offsettedTH = function (n) {
+  return n - this.countTH;
+};
+
+WalkontableRowFilter.prototype.visibleColHeadedColumnToSourceColumn = function (n) {
+  return this.visibleToSource(this.offsettedTH(n));
+};
+
+WalkontableRowFilter.prototype.sourceColumnToVisibleColHeadedColumn = function (n) {
+  return this.unOffsettedTH(this.sourceToVisible(n));
 };
