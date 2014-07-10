@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.10.5
+ * Handsontable 0.11-beta1
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
- * Copyright 2012, Marcin Warpechowski
+ * Copyright 2012-2014 Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Mar 31 2014 14:19:47 GMT+0200 (CEST)
+ * Date: Thu Jul 10 2014 12:59:49 GMT+0200 (CEST)
  */
 
 .handsontable {
@@ -48,7 +48,7 @@
   table-layout: fixed;
   width: 0;
   outline-width: 0;
-  /* reset bootstrap table style. for more info see: https://github.com/warpech/jquery-handsontable/issues/224 */
+  /* reset bootstrap table style. for more info see: https://github.com/handsontable/jquery-handsontable/issues/224 */
   max-width: none;
   max-height: none;
 }
@@ -82,6 +82,10 @@
   -webkit-transition: background 0.75s ease;
   transition: background 0.75s ease;
   background-color: #ff4c42;
+}
+
+.handsontable td.htNoWrap {
+  white-space: nowrap;
 }
 
 .handsontable th:last-child {
@@ -157,10 +161,13 @@
   background-color: #88F;
 }
 
+/* row + column resizer*/
+
 .handsontable .manualColumnResizer {
   position: absolute;
   top: 0;
   cursor: col-resize;
+  z-index: 100;
 }
 
 .handsontable .manualColumnResizerHandle {
@@ -169,8 +176,23 @@
   height: 25px;
 }
 
+.handsontable .manualRowResizer {
+  position: absolute;
+  left: 0;
+  cursor: row-resize;
+  z-index: 100;
+}
+
+.handsontable .manualRowResizerHandle {
+  background-color: transparent;
+  height: 5px;
+  width: 50px;
+}
+
 .handsontable .manualColumnResizer:hover .manualColumnResizerHandle,
-.handsontable .manualColumnResizer.active .manualColumnResizerHandle {
+.handsontable .manualColumnResizer.active .manualColumnResizerHandle,
+.handsontable .manualRowResizer:hover .manualRowResizerHandle,
+.handsontable .manualRowResizer.active .manualRowResizerHandle {
   background-color: #AAB;
 }
 
@@ -184,7 +206,18 @@
   border-right: 1px dashed #777;
 }
 
-.handsontable .manualColumnResizer.active .manualColumnResizerLine {
+.handsontable .manualRowResizerLine {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  background-color: #AAB;
+  display: none;
+  width: 0;
+  border-bottom: 1px dashed #777;
+}
+
+.handsontable .manualColumnResizer.active .manualColumnResizerLine,
+.handsontable .manualRowResizer.active .manualRowResizerLine {
   display: block;
 }
 
@@ -259,6 +292,34 @@ TextRenderer readOnly cell
 }
 
 /*
+TextRenderer horizontal alignment
+*/
+.handsontable .htLeft{
+  text-align: left;
+}
+.handsontable .htCenter{
+  text-align: center;
+}
+.handsontable .htRight{
+  text-align: right;
+}
+.handsontable .htJustify{
+  text-align: justify;
+}
+/*
+TextRenderer vertical alignment
+*/
+.handsontable .htTop{
+  vertical-align: top;
+}
+.handsontable .htMiddle{
+  vertical-align: middle;
+}
+.handsontable .htBottom{
+  vertical-align: bottom;
+}
+
+/*
 TextRenderer placeholder value
 */
 
@@ -311,29 +372,6 @@ ul.context-menu-list li {
 }
 
 /**
- * dragdealer
- */
-
-.handsontable .dragdealer {
-  position: relative;
-  width: 9px;
-  height: 9px;
-  background: #F8F8F8;
-  border: 1px solid #DDD;
-}
-
-.handsontable .dragdealer .handle {
-  position: absolute;
-  width: 9px;
-  height: 9px;
-  background: #C5C5C5;
-}
-
-.handsontable .dragdealer .disabled {
-  background: #898989;
-}
-
-/**
  * Handsontable in Handsontable
  */
 
@@ -347,6 +385,13 @@ ul.context-menu-list li {
 }
 
 /**
+* Autocomplete Editor
+*/
+.handsontable .autocompleteEditor.handsontable {
+  padding-right: 15px;
+}
+
+/**
  * Handsontable listbox theme
  */
 
@@ -354,7 +399,7 @@ ul.context-menu-list li {
   margin: 0;
 }
 
-.handsontable.listbox table {
+.handsontable.listbox .ht_master table {
   border: 1px solid #ccc;
   border-collapse: separate;
   background: white;
@@ -392,6 +437,12 @@ ul.context-menu-list li {
 .htContextMenu {
   display: none;
   position: absolute;
+}
+
+.htContextMenu .ht_clone_top,
+.htContextMenu .ht_clone_left,
+.htContextMenu .ht_clone_corner {
+  display: none;
 }
 
 .htContextMenu table.htCore {
@@ -439,6 +490,30 @@ ul.context-menu-list li {
   background: white;
   color: #999;
   cursor: default;
+}
+
+.htContextMenu button{
+  color: #fff;
+  font-size: 12px;
+  line-height: 12px;
+  height: 20px;
+  padding: 0 5px;
+  margin: 0 1px 0 0;
+  margin-bottom: 5px;
+}
+.htContextMenu button:first-child{
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+.htContextMenu button:last-child{
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+/*
+Context menu alignment buttons
+*/
+.htContextMenu button.Left{
+
 }
 
 .handsontable td.htSearchResult {
