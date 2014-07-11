@@ -30,7 +30,15 @@
 
             if (!activeEditor.isWaiting()) {
               if (!Handsontable.helper.isMetaKey(event.keyCode) && !ctrlDown && !that.isEditorOpened()) {
-                that.openEditor('');
+
+                var charCode = event.which || event.keyCode;
+                var charStr = String.fromCharCode(charCode);
+                if (event.keyCode < 96) {
+                  charStr = charStr.toLowerCase();
+                }
+
+                that.openEditor(charStr);
+                event.preventDefault();
                 event.stopPropagation(); //required by HandsontableEditor
                 return;
               }
