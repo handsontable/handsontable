@@ -59,6 +59,7 @@
       'colWidths': [Handsontable.Dom.outerWidth(this.TEXTAREA) - 2],
       afterRenderer: function (TD, row, col, prop, value) {
         var caseSensitive = this.getCellMeta(row, col).filteringCaseSensitive === true;
+        var value = Handsontable.helper.stringify(value);
         var indexOfMatch =  caseSensitive ? value.indexOf(this.query) : value.toLowerCase().indexOf(that.query.toLowerCase());
 
         if(indexOfMatch != -1){
@@ -178,7 +179,7 @@
 
 
     for(var i = 0, len = this.choices.length; i < len; i++){
-      currentItem = this.choices[i];
+      currentItem = Handsontable.helper.stringify(this.choices[i]);
 
       if(valueLength > 0){
         indexOfValue = currentItem.indexOf(this.getValue())
