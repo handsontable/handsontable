@@ -214,7 +214,7 @@
       <p>Autocomplete can be also used with Ajax data source. In the below example, suggestions for the "Car" column are
         loaded from server.</p>
 
-      <p>To load data from remote (asynchrous) source, assign a function to the 'source' property. Function should
+      <p>To load data from remote (asynchronous) source, assign a function to the 'source' property. Function should
         perform the server side request and call the callback function when the result is available.</p>
 
       <div id="example3"></div>
@@ -247,13 +247,14 @@
               type: 'autocomplete',
               source: function (query, process) {
                 $.ajax({
-                  url: 'php/cars.php',
+                  //url: 'php/cars.php', //commented out because our website is hosted on static GitHub Pages
+                  url: 'json/autocomplete.json',
                   data: {
                     query: query
                   },
                   success: function (response) {
                     console.log("response", response);
-                    process(response);
+                    process(JSON.parse(response));
                   }
                 });
               },

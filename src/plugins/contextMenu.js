@@ -359,7 +359,7 @@
     var that = this;
 
     this._afterScrollCallback = function () {
-      that.close();
+      // that.close();
     };
 
     this.instance.addHook('afterScrollVertically', this._afterScrollCallback);
