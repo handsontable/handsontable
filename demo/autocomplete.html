@@ -249,6 +249,7 @@
                 $.ajax({
                   //url: 'php/cars.php', //commented out because our website is hosted on static GitHub Pages
                   url: 'json/autocomplete.json',
+                  dataType: 'json',
                   data: {
                     query: query
                   },
