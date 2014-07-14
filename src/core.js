@@ -1322,10 +1322,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     if (height){
       instance.rootElement[0].style.overflow = 'auto';
-    } else {
-      instance.rootElement[0].style.overflow = '';
     }
-
 
     if (!init) {
       Handsontable.hooks.run(instance, 'afterUpdateSettings');
