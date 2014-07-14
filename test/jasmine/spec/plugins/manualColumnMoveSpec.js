@@ -13,10 +13,14 @@ describe('manualColumnMove', function () {
   });
 
   function moveSecondDisplayedColumnBeforeFirstColumn(container, secondDisplayedColIndex){
+    var $mainContainer = container.parents(".handsontable").not("[class*=clone]").first();
     var $colHeaders = container.find('thead tr:eq(0) th');
     var $firstColHeader = $colHeaders.eq(secondDisplayedColIndex - 1);
     var $secondColHeader = $colHeaders.eq(secondDisplayedColIndex);
-    var $manualColumnMover = $secondColHeader.find('.manualColumnMover');
+    var $manualColumnMover = $mainContainer.find('.manualColumnMover');
+
+    //Enter the second column header
+    $secondColHeader.trigger('mouseenter');
 
     //Grab the second column
     var mouseDownEvent = $.Event('mousedown');
@@ -328,7 +332,8 @@ describe('manualColumnMove', function () {
     selectCell(0, 0);
 
     var $colHeader = this.$container.find('thead tr:eq(0) th:eq(2)');
-    var $manualColumnMover = $colHeader.find('.manualColumnMover');
+    $colHeader.trigger("mouseenter");
+    var $manualColumnMover = this.$container.find('.manualColumnMover');
 
     //Grab the column
     var mouseDownEvent = $.Event('mousedown');
@@ -448,6 +453,29 @@ describe('manualColumnMove', function () {
       expect(hot.getColHeader(1)).toEqual('Id');
       expect(hot.getColHeader(2)).toEqual('Name');
     }
+  });
+
+  it("should not select the column when the user clicks the move handler", function() {
+    var hot = handsontable({
+      data: [
+        {id: 1, name: "Ted", lastName: "Right"},
+        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 3, name: "Joan", lastName: "Well"},
+        {id: 4, name: "Sid", lastName: "Strong"},
+        {id: 5, name: "Jane", lastName: "Neat"}
+      ],
+      colHeaders: true,
+      manualColumnMove: true
+    });
+
+    var $colHeader = this.$container.find('thead tr:eq(0) th:eq(1)');
+    $colHeader.trigger("mouseenter");
+    var $manualColumnMover = this.$container.find('.manualColumnMover');
+
+    $manualColumnMover.eq(1).trigger('mousedown');
+
+    expect(hot.getSelected()).toEqual(undefined);
+
   });
 
 });

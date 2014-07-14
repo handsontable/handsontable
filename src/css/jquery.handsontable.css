@@ -156,8 +156,8 @@
   cursor: move;
 }
 
-.handsontable th .manualColumnMover:hover,
-.handsontable th .manualColumnMover.active {
+.handsontable .manualColumnMover:hover,
+.handsontable .manualColumnMover.active {
   background-color: #88F;
 }
 
