@@ -2112,6 +2112,7 @@ DefaultSettings.prototype = {
   observeDOMVisibility: true,
   allowInvalid: true,
   invalidCellClassName: 'htInvalid',
+  placeholder: false,
   placeholderCellClassName: 'htPlaceholder',
   readOnlyCellClassName: 'htDimmed',
   fragmentSelection: false,
