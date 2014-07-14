@@ -17,9 +17,10 @@
   };
 
   AutocompleteEditor.prototype.bindEvents = function(){
-
     var that = this;
+
     this.$textarea.on('keydown.autocompleteEditor', function(event){
+
       if(!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) != -1){
         setTimeout(function () {
           that.queryChoices(that.$textarea.val());
@@ -55,6 +56,7 @@
 
     var choicesListHot =  this.$htContainer.handsontable('getInstance');
     var that = this;
+
     choicesListHot.updateSettings({
       'colWidths': [Handsontable.Dom.outerWidth(this.TEXTAREA) - 2],
       afterRenderer: function (TD, row, col, prop, value) {
@@ -101,7 +103,6 @@
   };
 
   AutocompleteEditor.prototype.queryChoices = function(query){
-
     this.query = query;
 
     if (typeof this.cellProperties.source == 'function'){
@@ -151,7 +152,8 @@
       this.highlightBestMatchingChoice();
     }
 
-    this.focus();
+    //this.focus(); // this override textEditor events ie. ctrl combinations
+    // Can't highlight text in the cell with ctrl+a in autocomplete demo #1590
   };
 
   AutocompleteEditor.prototype.highlightBestMatchingChoice = function () {
