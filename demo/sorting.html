@@ -139,7 +139,11 @@
                 manualColumnResize: true
               });
 
-              $(".state-loaded").fadeOut(300);
+              $(".state-loaded").fadeOut(300, function () {
+                // render table after hidden state-loaded alert
+                HOT.render();
+              });
+
             });
 
 
