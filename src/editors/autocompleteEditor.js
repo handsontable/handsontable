@@ -154,6 +154,7 @@
 
     //this.focus(); // this override textEditor events ie. ctrl combinations
     // Can't highlight text in the cell with ctrl+a in autocomplete demo #1590
+    // Editing autocomplete selection, cursor goes to the end of selected string. #1610
   };
 
   AutocompleteEditor.prototype.highlightBestMatchingChoice = function () {
