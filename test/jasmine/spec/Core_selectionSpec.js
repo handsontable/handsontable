@@ -466,5 +466,32 @@ describe('Core_selection', function () {
 
   });
 
+  it("should select the entire table after is clicked on top left table", function(){
+    handsontable({
+      width: 200,
+      height: 100,
+      startRows: 50,
+      startCols: 5,
+      colHeaders: true,
+      rowHeaders: true
+    });
+
+    this.$container.find('thead th:eq(0)').trigger('mousedown');
+    expect(getSelected()).toEqual([0, 0, 49, 4]);
+  });
+
+  it('should select the multi columns after is clicked column header with shift key', function () {
+    handsontable({
+      width: 200,
+      height: 100,
+      startRows: 50,
+      startCols: 5,
+      colHeaders: true
+    });
+
+    this.$container.find('thead th:eq(0)').trigger('mousedown');
+    this.$container.find('thead th:eq(1)').trigger(jQuery.Event('mousedown', { shiftKey: true }));
+    expect(getSelected()).toEqual([0, 0, 49, 1]);
+  });
 
 });

@@ -5,7 +5,9 @@
 Handsontable.TableView = function (instance) {
   var that = this
     , $window = $(window)
-    , $documentElement = $(document.documentElement);
+    , $documentElement = $(document.documentElement)
+    , colShiftKey = false
+    , rowShiftKey = false;
 
   this.instance = instance;
   this.settings = instance.getSettings();
@@ -83,6 +85,8 @@ Handsontable.TableView = function (instance) {
 
     if (that.settings.outsideClickDeselects) {
       instance.deselectCell();
+      colShiftKey = false;
+      rowShiftKey = false;
     }
     else {
       instance.destroyEditor();
@@ -210,15 +214,42 @@ Handsontable.TableView = function (instance) {
       else if (event.shiftKey) {
         if (coords.row >= 0 && coords.col >= 0) {
           instance.selection.setRangeEnd(coords);
+        } else {
+          // Column
+          if ( coords.row === -1 ) {
+            if (colShiftKey) {
+              coords.row = instance.countRows() - 1;
+              instance.selection.setRangeEnd(coords);
+            } else {
+              colShiftKey = true;
+              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col);
+            }
+          }
+          // Row.
+          if ( coords.col === -1 ) {
+            if (rowShiftKey) {
+              coords.col = instance.countCols() - 1;
+              instance.selection.setRangeEnd(coords);
+            } else {
+              rowShiftKey = true;
+              instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
+            }
+          }
         }
       }
       else {
         if (coords.row < 0 || coords.col < 0) {
-          if (coords.row < 0) {
-            instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col);
-          }
-          if (coords.col < 0) {
-            instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
+          if (coords.row === -1 && coords.col === -1) {
+            instance.selection.selectAll();
+          } else {
+            if (coords.row < 0) {
+              colShiftKey = true;
+              instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col);
+            }
+            if (coords.col < 0) {
+              rowShiftKey = true;
+              instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
+            }
           }
         }
         else {
