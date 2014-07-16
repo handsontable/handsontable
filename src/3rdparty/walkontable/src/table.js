@@ -224,9 +224,9 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
         cacheLength = this.currentCellCache.cache ? visibleRows : 0;
         cell = this.getColumnHeader(vc);
         if (this.currentCellCache.test(cacheLength, vc, classNames[s])) {
-          if (typeof cell == 'object' ) this.wtDom.addClass(cell,classNames[s]);
+          if (typeof cell == 'object' ) Handsontable.Dom.addClass(cell,classNames[s]);
         } else {
-          if (typeof cell == 'object' ) this.wtDom.removeClass(cell,classNames[s]);
+          if (typeof cell == 'object' ) Handsontable.Dom.removeClass(cell,classNames[s]);
         }
 
         // row headers
@@ -234,9 +234,9 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
         cell = this.getRowHeader(vr) != -1 ? this.getRowHeader(vr) : undefined;
 
         if (this.currentCellCache.test(vr, cacheLength, classNames[s])) {
-          if (typeof cell == 'object' ) this.wtDom.addClass(cell,classNames[s]);
+          if (typeof cell == 'object' ) Handsontable.Dom.addClass(cell,classNames[s]);
         } else {
-          if (typeof cell == 'object' ) this.wtDom.removeClass(cell,classNames[s]);
+          if (typeof cell == 'object' ) Handsontable.Dom.removeClass(cell,classNames[s]);
        }
 
       }

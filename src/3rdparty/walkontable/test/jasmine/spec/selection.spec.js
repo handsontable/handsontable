@@ -327,7 +327,7 @@ describe('WalkontableSelection', function () {
     wt.selections.area.add(new WalkontableCellCoords(2, 2));
     wt.draw();
 
-    expect($table.find('.highlightRow').length).toEqual(wt.wtTable.columnStrategy.countVisible() * 2 + 2);
+    expect($table.find('.highlightRow').length).toEqual(wt.wtTable.columnStrategy.countVisible() * 2 + 2 - 4);
 
     // *2 -> because there are 2 columns selected
     // +2 -> because there are the headers
