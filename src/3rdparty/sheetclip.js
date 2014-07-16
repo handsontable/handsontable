@@ -79,7 +79,9 @@
             str += val;
           }
         }
-        str += '\n';
+        if (arr.length > 1 && r < rlen) {
+          str += '\n';
+        }
       }
       return str;
     }
