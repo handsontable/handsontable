@@ -1122,10 +1122,10 @@ Handsontable.Core = function (rootElement, userSettings) {
       }
     }
 
-    if (typeof settings.cellMeta !== 'undefined') {
-      for(i in settings.cellMeta) {
-        var cell = settings.cellMeta[i];
-        instance.setCellMetaObject(cell.row, cell.col, cell.meta);
+    if (typeof settings.cell !== 'undefined') {
+      for(i in settings.cell) {
+        var cell = settings.cell[i];
+        instance.setCellMetaObject(cell.row, cell.col, cell);
       }
     }
 
@@ -1924,7 +1924,7 @@ DefaultSettings.prototype = {
   startCols: 5,
   rowHeaders: null,
   colHeaders: null,
-  cellMeta: [],
+  cell: [],
   minRows: 0,
   minCols: 0,
   maxRows: Infinity,

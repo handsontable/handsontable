@@ -76,7 +76,7 @@
               <h2>Horizontal & vertical alignment</h2>
 
               <p>To initialize Handsontable with predefined horizontal and vertical alignment, provide className cells details
-                in form of a <code>afterCellMetaReset</code> hook callback (see code sample below).
+                in form of a grid, <code>columns</code> or <code>cell</code> setting (see code sample below).
               </p>
 
               <p>Available classNames:</p>
@@ -113,18 +113,16 @@
               rowHeaders: true,
               colHeaders: true,
               contextMenu: true,
-              className: "htCenter",
               mergeCells: [
                 {row: 1, col: 1, rowspan: 3, colspan: 3},
                 {row: 3, col: 4, rowspan: 2, colspan: 2}
               ],
-              nativeScrollbars: true,
-
-              afterCellMetaReset: function() {
-                this.setCellMeta(0, 0, "className", "htRight");
-                this.setCellMeta(1, 1, "className", "htLeft htMiddle");
-                this.setCellMeta(3, 4, "className", "htLeft htBottom");
-              },
+              className: "htCenter",
+              cell: [
+                {row: 0, col: 0, className: "htRight"},
+                {row: 1, col: 1, className: "htLeft htMiddle"},
+                {row: 3, col: 4, className: "htLeft htBottom"}
+              ],
               afterSetCellMeta: function (row, col, key, val) {
                 console.log("cell meta changed", row, col, key, val);
               }
