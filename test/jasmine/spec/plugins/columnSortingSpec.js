@@ -921,4 +921,51 @@ describe('ColumnSorting', function () {
     expect(this.$container.find('tbody tr:eq(5) td:eq(1)').text()).toEqual('J');
 
   });
+
+  it("should use column sort function from the column options", function () {
+    var hot = handsontable({
+      data: [
+        [1, 'B'],
+        [0, 'D'],
+        [3, 'A'],
+        [2, 'C']
+      ],
+      columns: [
+        {},
+        {
+          // sort the second column by the reverse inital ordering instead of the data
+          sorter: function(sortOrder) {
+            return function (a, b) {
+              if (a[0] === b[0]) {
+               return 0;
+              }
+              if (a[0] === null) {
+                return 1;
+              }
+              if (b[0] === null) {
+                return -1;
+              }
+              if (a[0] < b[0]) return sortOrder ? 1 : -1;
+              if (a[0] > b[0]) return sortOrder ? -1 : 1;
+              return 0;
+            };
+          }
+        }
+      ],
+      columnSorting: {
+        column: 1
+      }
+    });
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('0');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('1');
+
+    expect(this.$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(1)').text()).toEqual('A');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(1)').text()).toEqual('D');
+    expect(this.$container.find('tbody tr:eq(3) td:eq(1)').text()).toEqual('B');
+  });
+
 });
