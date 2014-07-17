@@ -92,8 +92,6 @@ describe('CustomBorders', function () {
         }]
     });
 
-
-//    debugger;
     for (var row = 1; row <= 3; row++) {
       for (var column = 1; column <=4; column++){
         if(row == 1) {
@@ -122,7 +120,7 @@ describe('CustomBorders', function () {
 
   });
 
-  it('should open context menu with custom borders options', function () {
+  it('should draw top border from context menu options', function () {
     var hot = handsontable({
       data: createSpreadsheetData(4, 4),
       contextMenu: true,
@@ -135,13 +133,11 @@ describe('CustomBorders', function () {
       },
       empty = {
         hide: true
-      }
+      };
 
     contextMenu();
-    var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(10);
-
-    var topButton = buttonRow.find('button.top');
-    topButton.trigger('mousedown'); //Text center
+    var buttonRow1 = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(11);
+    buttonRow1.find('button.top').trigger('mousedown'); //Text center
 
     expect(getCellMeta(0,0).borders.hasOwnProperty('top')).toBe(true);
     expect(getCellMeta(0,0).borders.top).toEqual(defaultBorder);
@@ -149,45 +145,108 @@ describe('CustomBorders', function () {
     expect(getCellMeta(0,0).borders.bottom).toEqual(empty);
     expect(getCellMeta(0,0).borders.right).toEqual(empty);
 
+  });
+
+  it('should draw left border from context menu options', function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true,
+      customBorders: true
+    });
+
+    var defaultBorder = {
+        color:'#000',
+        width: 1
+      },
+      empty = {
+        hide: true
+      };
 
     contextMenu();
-    buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(10);
-    var leftButton = buttonRow.find('button.left');
-    leftButton.trigger('mousedown');
+    var buttonRow2 = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(11);
+    buttonRow2.find('button.left').trigger('mousedown');
+
     expect(getCellMeta(0,0).borders.hasOwnProperty('left')).toBe(true);
-    expect(getCellMeta(0,0).borders.top).toEqual(defaultBorder);
+    expect(getCellMeta(0,0).borders.top).toEqual(empty);
     expect(getCellMeta(0,0).borders.left).toEqual(defaultBorder);
     expect(getCellMeta(0,0).borders.bottom).toEqual(empty);
     expect(getCellMeta(0,0).borders.right).toEqual(empty);
-
-
-    contextMenu();
-    buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(10);
-    var rightButton = buttonRow.find('button.right');
-    rightButton.trigger('mousedown');
-    expect(getCellMeta(0,0).borders.hasOwnProperty('right')).toBe(true);
-    expect(getCellMeta(0,0).borders.top).toEqual(defaultBorder);
-    expect(getCellMeta(0,0).borders.left).toEqual(defaultBorder);
-    expect(getCellMeta(0,0).borders.bottom).toEqual(empty);
-    expect(getCellMeta(0,0).borders.right).toEqual(defaultBorder);
-
-
-    contextMenu();
-    buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(10);
-    var bottomButton = buttonRow.find('button.bottom');
-    bottomButton.trigger('mousedown');
-    expect(getCellMeta(0,0).borders.hasOwnProperty('right')).toBe(true);
-    expect(getCellMeta(0,0).borders.top).toEqual(defaultBorder);
-    expect(getCellMeta(0,0).borders.left).toEqual(defaultBorder);
-    expect(getCellMeta(0,0).borders.bottom).toEqual(defaultBorder);
-    expect(getCellMeta(0,0).borders.right).toEqual(defaultBorder);
-
-    contextMenu();
-    buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(10);
-    var noBordersButton = buttonRow.find('button.noBorders');
-    noBordersButton.trigger('mousedown');
-    expect(getCellMeta(0,0).borders).toBeUndefined();
-
   });
 
+  it('should draw right border from context menu options', function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true,
+      customBorders: true
+    });
+
+    var defaultBorder = {
+        color:'#000',
+        width: 1
+      },
+      empty = {
+        hide: true
+      };
+
+    contextMenu();
+    var buttonRow3 = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(11);
+    buttonRow3.find('button.right').trigger('mousedown');
+
+    expect(getCellMeta(0,0).borders.hasOwnProperty('right')).toBe(true);
+    expect(getCellMeta(0,0).borders.top).toEqual(empty);
+    expect(getCellMeta(0,0).borders.left).toEqual(empty);
+    expect(getCellMeta(0,0).borders.bottom).toEqual(empty);
+    expect(getCellMeta(0,0).borders.right).toEqual(defaultBorder);
+  });
+
+  it('should draw bottom border from context menu options', function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true,
+      customBorders: true
+    });
+
+    var defaultBorder = {
+        color:'#000',
+        width: 1
+      },
+      empty = {
+        hide: true
+      };
+
+
+    contextMenu();
+    var buttonRow4 = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(11);
+    buttonRow4.find('button.bottom').trigger('mousedown');
+    expect(getCellMeta(0,0).borders.hasOwnProperty('right')).toBe(true);
+    expect(getCellMeta(0,0).borders.top).toEqual(empty);
+    expect(getCellMeta(0,0).borders.left).toEqual(empty);
+    expect(getCellMeta(0,0).borders.bottom).toEqual(defaultBorder);
+    expect(getCellMeta(0,0).borders.right).toEqual(empty);
+  });
+
+  it('should remove all bottoms border from context menu options', function () {
+    var hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true,
+      customBorders: [
+      {
+        row: 0,
+        col: 0,
+        left:{
+          width:2,
+          color: 'red'
+        },
+        right:{
+          width:1,
+          color: 'green'
+        }
+      }]
+    });
+
+    contextMenu();
+    var buttonRow5 = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(11);
+    buttonRow5.find('button.noBorders').trigger('mousedown');
+    expect(getCellMeta(0,0).borders).toBeUndefined();
+  });
 });

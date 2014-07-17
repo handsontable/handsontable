@@ -176,7 +176,6 @@ WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, d
     TD.className = '';
     TD.removeAttribute('style');
 
-    //TUTAJ MAGIA
     this.instance.getSetting('cellRenderer', sourceRowIndex, sourceColIndex, TD);
 
   }
