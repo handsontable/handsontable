@@ -73,19 +73,19 @@
 
       instance.rootElement.on('mousedown.manualRowMove', '.manualRowMover', function (e) {
         var mover = e.currentTarget,
-            TH = instance.view.wt.wtDom.closest(mover, 'TH'),
+            TH = Handsontable.Dom.closest(mover, 'TH'),
             TR = TH.parentNode;
 
-        startRow = parseInt(instance.view.wt.wtDom.index(TR), 10) + 1 + instance.rowOffset();
+        startRow = parseInt(Handsontable.Dom.index(TR), 10) + 1 + instance.rowOffset();
         endRow = startRow;
         pressed = true;
         startY = e.pageY;
 
         var TABLE = instance.$table[0];
         TABLE.parentNode.appendChild(ghost);
-        ghostStyle.width = instance.view.wt.wtDom.outerWidth(TABLE) + 'px';
-        ghostStyle.height = instance.view.wt.wtDom.outerHeight(TH) + 'px';
-        startOffest = parseInt(instance.view.wt.wtDom.offset(TH).top - instance.view.wt.wtDom.offset(TABLE).top, 10);
+        ghostStyle.width = Handsontable.Dom.outerWidth(TABLE) + 'px';
+        ghostStyle.height = Handsontable.Dom.outerHeight(TH) + 'px';
+        startOffest = parseInt(Handsontable.Dom.offset(TH).top - Handsontable.Dom.offset(TABLE).top, 10);
         ghostStyle.top = startOffest + 'px';
       });
 
@@ -93,21 +93,21 @@
         if (pressed) {
           var active = instance.view.TBODY.querySelector('.manualRowMover.active');
           if (active) {
-            instance.view.wt.wtDom.removeClass(active, 'active');
+            Handsontable.Dom.removeClass(active, 'active');
           }
 
           var currentTarget = e.currentTarget,
               TR = currentTarget.parentNode,
               rowOffset = instance.rowOffset();
 
-          endRow = parseInt(instance.view.wt.wtDom.index(TR), 10) + 1 + rowOffset;
+          endRow = parseInt(Handsontable.Dom.index(TR), 10) + 1 + rowOffset;
 
           var THs = instance.view.TBODY.querySelectorAll('th'),
               totalVisibleRows = instance.countVisibleRows(),
               currentPosition = (endRow > totalVisibleRows ? endRow - rowOffset : endRow);
 
           var mover = THs[currentPosition].querySelector('.manualRowMover');
-          instance.view.wt.wtDom.addClass(mover, 'active');
+          Handsontable.Dom.addClass(mover, 'active');
         }
       });
 
