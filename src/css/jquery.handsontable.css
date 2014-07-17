@@ -172,8 +172,8 @@
 
 .handsontable th .manualColumnMover:hover,
 .handsontable th .manualColumnMover.active,
-.handsontable th .manualRowMover:hover,
-.handsontable th .manualRowMover.active{
+.handsontable .manualRowMover:hover,
+.handsontable .manualRowMover.active{
   background-color: #88F;
 }
 

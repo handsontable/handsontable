@@ -5,7 +5,12 @@
         startRow,
         endRow,
         startY,
-        startOffest;
+        startOffest,
+        moveHandle,
+        startOffset,
+        scrollTop = 0,
+        scrollLeft = 0,
+        currentRow;
 
     var ghost = document.createElement('DIV'),
         ghostStyle = ghost.style;
@@ -19,10 +24,12 @@
     ghostStyle.backgroundColor = '#CCC';
     ghostStyle.opacity = 0.7;
 
+    moveHandle = document.createElement('DIV');
+    moveHandle.className = 'manualRowMover';
+
     var saveManualRowPostions = function () {
       var instance = this;
-
-      Handsontable.hooks.run(instance, 'persistentStateSave', 'manualRowPostions', instance.manualRowPositions);
+      Handsontable.hooks.run(instance, 'persistentStateSave', 'manualRowPositions', instance.manualRowPositions);
     };
 
     var loadManualRowPositions = function () {
@@ -34,12 +41,28 @@
       return storedState.value;
     };
 
+    var refreshMoverPosition = function(TH) {
+      var row = this.view.wt.wtTable.getCoords(TH).row; //getCoords returns WalkontableCellCoords
+
+      if (row >= 0) { //if not row header
+        currentRow = row;
+
+        var rootOffset = Handsontable.Dom.offset(this.rootElement[0]).top;
+        var thOffset = Handsontable.Dom.offset(TH).top;
+        startOffset = (thOffset - rootOffset) + scrollTop;
+        //moveHandle.style.top = startOffset + parseInt(Handsontable.Dom.outerHeight(TH), 10) + 'px';
+        moveHandle.style.top = startOffset + 'px';
+        moveHandle.style.left = scrollLeft + 'px';
+      }
+    }
+
     var bindMoveRowEvents = function () {
       var instance = this;
 
       instance.rootElement.on('mousemove.manualRowMove', function (e) {
         if (pressed) {
-          ghostStyle.top = startOffest + e.pageY - startY + 'px';
+          var top = startOffest + e.pageY - startY + 'px';
+          ghostStyle.top = top;
           if (ghostStyle.display === 'none') {
             ghostStyle.display = 'block';
           }
@@ -58,7 +81,11 @@
           }
 
           instance.manualRowPositions.splice(endRow, 0, instance.manualRowPositions.splice(startRow, 1)[0]);
-          $('.manualRowMover.active').removeClass('active');
+
+          var mover = instance.rootElement[0].querySelector('.manualRowMover.active');
+          if (mover) {
+            Handsontable.Dom.removeClass(mover, 'active');
+          }
 
           pressed = false;
           instance.forceFullRender = true;
@@ -72,11 +99,11 @@
       });
 
       instance.rootElement.on('mousedown.manualRowMove', '.manualRowMover', function (e) {
-        var mover = e.currentTarget,
-            TH = Handsontable.Dom.closest(mover, 'TH'),
+        var rowOffset = instance.rowOffset(),
+            TH = instance.view.TBODY.querySelectorAll('TH')[currentRow - rowOffset],
             TR = TH.parentNode;
 
-        startRow = parseInt(Handsontable.Dom.index(TR), 10) + 1 + instance.rowOffset();
+        startRow = parseInt(Handsontable.Dom.index(TR), 10) + 1 + rowOffset;
         endRow = startRow;
         pressed = true;
         startY = e.pageY;
@@ -86,29 +113,27 @@
         ghostStyle.width = Handsontable.Dom.outerWidth(TABLE) + 'px';
         ghostStyle.height = Handsontable.Dom.outerHeight(TH) + 'px';
         startOffest = parseInt(Handsontable.Dom.offset(TH).top - Handsontable.Dom.offset(TABLE).top, 10);
+
         ghostStyle.top = startOffest + 'px';
+        ghostStyle.display = 'none';
+
       });
 
       instance.rootElement.on('mouseenter.manualRowMove', 'table tbody th, table tbody td', function (e) {
-        if (pressed) {
-          var active = instance.view.TBODY.querySelector('.manualRowMover.active');
-          if (active) {
-            Handsontable.Dom.removeClass(active, 'active');
-          }
 
+        if (pressed) {
           var currentTarget = e.currentTarget,
               TR = currentTarget.parentNode,
               rowOffset = instance.rowOffset();
 
-          endRow = parseInt(Handsontable.Dom.index(TR), 10) + 1 + rowOffset;
+          currentRow = parseInt(Handsontable.Dom.index(TR), 10) + 1 + rowOffset;
+          endRow = currentRow;
 
-          var THs = instance.view.TBODY.querySelectorAll('th'),
-              totalVisibleRows = instance.countVisibleRows(),
-              currentPosition = (endRow > totalVisibleRows ? endRow - rowOffset : endRow);
-
-          var mover = THs[currentPosition].querySelector('.manualRowMover');
+          var mover = instance.rootElement[0].querySelector('.manualRowMover');
           Handsontable.Dom.addClass(mover, 'active');
         }
+
+        refreshMoverPosition.apply(instance, [e.currentTarget]);
       });
 
       instance.addHook('afterDestroy', unbindMoveRowEvents);
@@ -148,8 +173,16 @@
 
         if (source === 'afterInit') {
           bindMoveRowEvents.call(this);
-          instance.forceFullRender = true;
-          instance.render();
+
+          if (this.manualRowPositions.length > 0) {
+            instance.forceFullRender = true;
+            instance.render();
+          }
+
+          Handsontable.hooks.add('afterScrollVertically', afterScrollVertically);
+          Handsontable.hooks.add('afterScrollHorizontally', afterScrollHorizontally);
+
+          this.rootElement[0].appendChild(moveHandle);
         }
       } else {
         unbindMoveRowEvents.call(this);
@@ -157,6 +190,14 @@
       }
 
     };
+
+    var afterScrollVertically = function () {
+      scrollTop = Handsontable.Dom.getScrollTop(this.rootElement[0]);
+    };
+
+    var afterScrollHorizontally = function () {
+      scrollLeft = Handsontable.Dom.getScrollLeft(this.rootElement[0]);
+    }
 
     this.modifyRow = function (row) {
       var instance = this;
@@ -168,14 +209,6 @@
       }
 
       return row;
-    };
-
-    this.getRowHeader = function (row, TH) {
-      if (this.getSettings().manualRowMove) {
-        var DIV = document.createElement('DIV');
-        DIV.className = 'manualRowMover';
-        TH.firstChild.appendChild(DIV);
-      }
     };
   }
 
@@ -190,7 +223,6 @@
     htManualRowMove.init.call(this, 'afterUpdateSettings');
   });
 
-  Handsontable.hooks.add('afterGetRowHeader', htManualRowMove.getRowHeader);
   Handsontable.hooks.add('modifyRow', htManualRowMove.modifyRow);
   Handsontable.hooks.register('afterRowMove');
 

@@ -86,7 +86,7 @@
 
         <div class="rowLayout">
           <div class="descLayout">
-            <div class="pad" data-jsfiddle="example2">
+            <div class="pad" data-jsfiddle="example1">
               <a name="move"></a>
 
               <h2>Row move</h2>
@@ -95,12 +95,12 @@
 
               <p>In the top part of row header a draggable row move handle will appear.</p>
 
-              <div class="state-loaded example2 alert">State of the table has been restored. <button class="mini reset-state2">Reset table state</button></div>
+              <div class="state-loaded example1 alert">State of the table has been restored. <button class="mini reset-state1">Reset table state</button></div>
 
-              <div id="example2" style="width: 400px; height: 300px; overflow: scroll"></div>
+              <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
 
               <p>
-                <button name="dump" data-dump="#example2" title="Prints current data source to Firebug/Chrome Dev Tools">
+                <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
                   Dump
                   data to console
                 </button>
@@ -111,11 +111,11 @@
           <div class="codeLayout">
             <div class="pad">
               <div class="jsFiddle">
-                <button class="jsFiddleLink" data-runfiddle="example2">Edit in jsFiddle</button>
+                <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
               </div>
 
-              <script data-jsfiddle="example2">
-                $("#example2").handsontable({
+              <script data-jsfiddle="example1">
+                $("#example1").handsontable({
                   data: createBigData(),
                   rowHeaders: true,
                   colHeaders: true,
@@ -135,9 +135,9 @@
 
         <script type="text/javascript">
           (function(){
-            var HOT = $('#example2').handsontable('getInstance');
+            var HOT = $('#example1').handsontable('getInstance');
 
-            $('.reset-state2').on('click', function(){
+            $('.reset-state1').on('click', function(){
 
               HOT.runHooks('persistentStateReset');
 
@@ -147,7 +147,9 @@
                 manualRowMove: true
               });
 
-              $(".state-loaded.example2").fadeOut(300);
+              $(".state-loaded.example1").fadeOut(300, function () {
+                HOT.render();
+              });
             });
 
 
@@ -158,7 +160,7 @@
             var savedKeys = storedData.value;
 
             if(savedKeys && savedKeys.length > 0){
-              $(".state-loaded.example2").show();
+              $(".state-loaded.example1").show();
             }
           })();
         </script>
