@@ -208,7 +208,7 @@
         $document.off('keydown.handsontable.' + instance.guid);
       });
 
-      instance.addHook('afterChange', instance.markOversizedCells);
+      // instance.addHook('afterChange', instance.markOversizedCells);
 
       function moveSelectionAfterEnter(shiftKey){
         var enterMoves = typeof priv.settings.enterMoves === 'function' ? priv.settings.enterMoves(event) : priv.settings.enterMoves;

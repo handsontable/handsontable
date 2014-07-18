@@ -420,4 +420,18 @@ describe('Core_view', function () {
       expect(hot.view.maximumVisibleElementHeight()).toBeLessThan(100);
     });
   });
+
+  describe('fixed column row heights', function () {
+    it('should be the same as the row heights in the main table', function () {
+      var hot = handsontable({
+        startRows: 3,
+        startCols: 4,
+        fixedColumnsLeft: 2
+      });
+
+      expect(hot.view.maximumVisibleElementHeight(0)).toEqual(100);
+    });
+
+  });
+
 });

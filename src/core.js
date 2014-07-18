@@ -1781,14 +1781,24 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this.getRowHeight = function (row) {
-    var height = instance._getRowHeightFromSettings(row);
+    var height = instance._getRowHeightFromSettings(row),
+        oversizedHeight = instance.checkIfRowIsOversized(row);
 
     height = Handsontable.hooks.execute(instance, 'modifyRowHeight', height, row);
 
-    height = height ? Math.max(height,instance.checkIfRowIsOversized(row)) : instance.checkIfRowIsOversized(row);
+    if(oversizedHeight) {
+      height = height ? Math.max(height,oversizedHeight) : oversizedHeight;
+    }
 
     return height;
   };
+
+  // this.markOversizedCell = function(row, col) {
+  //   if(instance.getCell(row,col).offsetHeight > actualRowHeight + 1) {
+  //     instance.getCellMeta(row,col).oversized = instance.getCell(row,col).offsetHeight;
+  //     // oversizedCount++;
+  //   }
+  // }
 
   /**
    * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height
@@ -1796,46 +1806,53 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
    this.checkIfRowIsOversized = function(row) {
-    var max,
-        oversized;
-    for(var i=0, colCount = this.countCols(); i < colCount; i++) {
-      oversized = instance.getCellMeta(row,i).oversized;
-      if(oversized) {
-        max = oversized;
-      }
+    // var max,
+        // oversized;
+    // for(var i=0, colCount = this.countCols(); i < colCount; i++) {
+    //   oversized = (priv.cellSettings[row] && priv.cellSettings[row][i]) ? priv.cellSettings[row][i].oversizedCount : undefined;
+    //   if(oversized) {
+    //     max = oversized;
+    //   }
+    // }
+    if(instance.view.activeWt.wtTable.oversizedRows) {
+      return instance.view.activeWt.wtTable.oversizedRows[row];  
     }
-    return max;
+    
    }
 
-  /**
-   * Adds 'oversized' parameter to cell meta, if its contents exceed the initial cell height
-   * @param {Array} changes
-   */
-   this.markOversizedCells = function(changes) {
+  // /**
+  //  * Adds 'oversized' parameter to cell meta, if its contents exceed the initial cell height
+  //  * @param {Array} changes
+  //  */
+  //  this.markOversizedCells = function(changes) {
 
-    if(!changes) {
-      return;
-    }
+  //   if(!changes) {
+  //     return;
+  //   }
 
-    var actualRowHeight,
-        oversizedCount = 0;
-    for(var i = 0, changesLenght = changes.length; i < changesLenght; i++) {
-      actualRowHeight = instance.view.wt.wtSettings.settings.rowHeight(changes[i][0]) || instance.view.wt.wtSettings.settings.defaultRowHeight;
+  //   var actualRowHeight,
+  //       oversizedCount = 0;
+  //   for(var i = 0, changesLenght = changes.length; i < changesLenght; i++) {
+  //     if(!changes[i]) {
+  //       continue;
+  //     }
 
-      if(!instance.getCell(changes[i][0],changes[i][1])) {
-        continue;
-      }
+  //     actualRowHeight = instance.view.wt.wtSettings.settings.rowHeight(changes[i][0]) || instance.view.wt.wtSettings.settings.defaultRowHeight;
 
-      if(instance.getCell(changes[i][0],changes[i][1]).offsetHeight > actualRowHeight) {
-        instance.getCellMeta(changes[i][0],changes[i][1]).oversized = instance.getCell(changes[i][0],changes[i][1]).offsetHeight;
-        oversizedCount++;
-      }
-    }
+  //     if(!instance.getCell(changes[i][0],changes[i][1])) {
+  //       continue;
+  //     }
 
-    if(oversizedCount > 0) {
-      instance.render();
-    }
-   }
+  //     if(instance.getCell(changes[i][0],changes[i][1]).offsetHeight > actualRowHeight + 1) {
+  //       instance.getCellMeta(changes[i][0],changes[i][1]).oversized = instance.getCell(changes[i][0],changes[i][1]).offsetHeight;
+  //       oversizedCount++;
+  //     }
+  //   }
+
+  //   if(oversizedCount > 0) {
+  //     instance.render();
+  //   }
+  //  }
 
 
   /**
