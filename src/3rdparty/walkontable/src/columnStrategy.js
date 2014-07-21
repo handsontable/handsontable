@@ -59,10 +59,6 @@ WalkontableColumnStrategy.prototype.stretch = function () {
 
   this.cellStretch.length = 0; //clear previous stretch
 
-  if(this.instance.wtViewport) {
-    this.instance.wtViewport.containerWidth = null;
-  }
-
   if (this.strategy === 'all') {
     if (this.remainingSize < 0) {
       var ratio = containerSize / this.cellSizesSum;
