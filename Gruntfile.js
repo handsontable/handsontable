@@ -94,6 +94,7 @@ module.exports = function (grunt) {
         'src/plugins/autoColumnSize.js',
         'src/plugins/columnSorting.js',
         'src/plugins/contextMenu.js',
+        'src/plugins/comments.js',
         'src/plugins/legacy.js',
         'src/plugins/manualColumnMove.js',
         'src/plugins/manualColumnResize.js',
