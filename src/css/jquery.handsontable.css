@@ -233,7 +233,12 @@
   font-size: 0;
 }
 .handsontable .wtBorder.hidden{
-  display:none !important;;
+  display:none !important;
+}
+.handsontable .wtBorder.current,
+.handsontable .wtBorder.area,
+.handsontable .wtBorder.fill {
+  z-index: 100;
 }
 
 .handsontable td.area {
