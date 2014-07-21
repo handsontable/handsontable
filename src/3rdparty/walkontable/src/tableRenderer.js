@@ -60,6 +60,7 @@ function WalkontableTableRenderer(wtTable){
 
     if (!this.wtTable.isWorkingOnClone()) {
       workspaceWidth = this.instance.wtViewport.getWorkspaceWidth();
+      this.instance.wtViewport.containerWidth = null;
       this.wtTable.getColumnStrategy().stretch();
     }
 
@@ -82,6 +83,7 @@ function WalkontableTableRenderer(wtTable){
 
     if (workspaceWidth !== this.instance.wtViewport.getWorkspaceWidth()) {
       //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
+      this.instance.wtViewport.containerWidth = null;
       this.wtTable.getColumnStrategy().stretch();
       for (visibleColIndex = 0; visibleColIndex < this.wtTable.getColumnStrategy().cellCount; visibleColIndex++) {
         this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = this.wtTable.getColumnStrategy().getSize(visibleColIndex) + 'px';
