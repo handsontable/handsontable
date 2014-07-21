@@ -379,10 +379,10 @@ NumericRenderer
 /*
 Comment For Cell
 */
-.htComment{
+.htCommentCell{
   position: relative;
 }
-.htComment:after{
+.htCommentCell:after{
   content: '';
   position: absolute;
   top: 0;

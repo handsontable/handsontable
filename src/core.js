@@ -1983,7 +1983,7 @@ DefaultSettings.prototype = {
   placeholder: false,
   placeholderCellClassName: 'htPlaceholder',
   readOnlyCellClassName: 'htDimmed',
-  commentedCellClassName: 'htComment',
+  commentedCellClassName: 'htCommentCell',
   fragmentSelection: false,
   readOnly: false,
   type: 'text',

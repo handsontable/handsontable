@@ -6,21 +6,23 @@ function Comments(instance) {
     },
     saveComment = function (range, comment, instance) {
       //LIKE IN EXCEL (TOP LEFT CELL)
+
       doSaveComment(range.from.row, range.from.col, comment, instance);
     },
-    hideCommentTextArea = function (commentBox) {
+    hideCommentTextArea = function () {
+      var commentBox = createCommentBox();
       commentBox.style.display = 'none';
-      document.getElementsByClassName('htCommentTextArea')[0].value = '';
+      commentBox.value = '';
     },
-    bindMouseEvent = function (range, commentBox) {
+    bindMouseEvent = function (range) {
       function commentsListener(event) {
         if (!(event.target.className == 'htCommentTextArea' || event.target.innerHTML.indexOf('Comment') != -1)) {
-          var value = document.getElementsByClassName('htCommentTextArea')[0].value; // $(commentBox).find('textarea').val();
+          var value = document.getElementsByClassName('htCommentTextArea')[0].value;
           if (value.trim().length > 1) {
             saveComment(range, value, instance);
           }
           unBindMouseEvent();
-          hideCommentTextArea(commentBox);
+          hideCommentTextArea();
         }
       }
 
@@ -32,7 +34,7 @@ function Comments(instance) {
     placeCommentBox = function (range, commentBox) {
       var TD = instance.view.wt.wtTable.getCell(range.from),
         offset = instance.view.wt.wtDom.offset(TD),
-        lastColWidth = instance.getColWidth(range.to.col);
+        lastColWidth = instance.getColWidth(range.from.col);
 
       commentBox.style.position = 'absolute';
       commentBox.style.left = offset.left + lastColWidth + 'px';
@@ -60,14 +62,28 @@ function Comments(instance) {
       if (value) {
         document.getElementsByClassName('htCommentTextArea')[0].value = value;
       }
-      var tA = document.getElementsByClassName('htCommentTextArea')[0];
-      tA.focus();
+      //var tA = document.getElementsByClassName('htCommentTextArea')[0];
+      //tA.focus();
       return comments;
-    }
+    },
+    commentsMouseOverListener = function (event) {
+        if(event.target.className.indexOf('htCommentCell') != -1) {
+            var coords = instance.view.wt.wtTable.getCoords(event.target);
+            var range = {
+                from: new WalkontableCellCoords(coords.row, coords.col)
+            };
 
-    ;
+            Handsontable.Comments.showComment(range);
+        }
+//        else if(event.target.className !='htCommentTextArea'){
+//            //hideCommentTextArea();
+//        }
+    };
 
   return {
+    init: function () {
+        $(document).on('mouseover.htCommment', Handsontable.helper.proxy(commentsMouseOverListener));
+    },
     showComment: function (range) {
       var meta = instance.getCellMeta(range.from.row, range.from.col),
         value = '';
@@ -79,13 +95,10 @@ function Comments(instance) {
       commentBox.style.display = 'block';
       placeCommentBox(range, commentBox);
     },
-
     removeComment: function (row, col) {
       instance.removeCellMeta(row, col, 'comment');
       instance.render();
     },
-
-
     checkSelectionCommentsConsistency : function () {
       var hasComment = false;
       // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
@@ -97,6 +110,7 @@ function Comments(instance) {
       return hasComment;
     }
 
+
   };
 }
 
@@ -107,6 +121,7 @@ var init = function () {
 
     if (commentsSetting) {
       Handsontable.Comments = new Comments(instance);
+        Handsontable.Comments.init();
     }
   },
   addCommentsActionsToContextMenu = function (defaultOptions) {
@@ -119,12 +134,12 @@ var init = function () {
 
     defaultOptions.items.commentsAddEdit = {
       name: function () {
-        var hasComment = Handsontable.Comments.checkSelectionCommentsConsistency();  //contextMenu.checkSelectionCommentsConsistency(this);
+        var hasComment = Handsontable.Comments.checkSelectionCommentsConsistency();
         return hasComment ? "Edit Comment" : "Add Comment";
 
       },
       callback: function (key, selection, event) {
-        Handsontable.Comments.showComment(this.getSelectedRange());
+          Handsontable.Comments.showComment(this.getSelectedRange());
       },
       disabled: function () {
         return false;
@@ -139,8 +154,7 @@ var init = function () {
         Handsontable.Comments.removeComment(selection.start.row, selection.start.col);
       },
       disabled: function () {
-        var hasComment = Handsontable.Comments.checkSelectionCommentsConsistency();  //contextMenu.checkSelectionCommentsConsistency(this);
-        //var hasComment = contextMenu.checkSelectionCommentsConsistency(this);
+        var hasComment = Handsontable.Comments.checkSelectionCommentsConsistency();
         return !hasComment;
       }
     }
@@ -148,3 +162,4 @@ var init = function () {
 
 Handsontable.hooks.add('beforeInit', init);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addCommentsActionsToContextMenu);
+//$(document).on('mouseover.htCommment', Handsontable.helper.proxy(commentsMouseOverListener));

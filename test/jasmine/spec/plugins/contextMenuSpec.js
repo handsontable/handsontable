@@ -811,7 +811,7 @@ describe('ContextMenu', function () {
       mouseDown(hot.rootElement);
       expect(getCellMeta(0,0).comment).toEqual(testComment);
       expect(comments.css('display')).toEqual('none');
-      expect(getCell(0,0).className).toContain('htComment');
+      expect(getCell(0,0).className).toContain('htCommentCell');
     });
 
     it("should delete comment", function () {
@@ -823,7 +823,7 @@ describe('ContextMenu', function () {
         }
       });
 
-      expect(getCell(0,0).className).toContain('htComment');
+      expect(getCell(0,0).className).toContain('htCommentCell');
       contextMenu();
       var $menu = $(hot.contextMenu.menu);
       expect($menu.find('tbody td:eq(19)').hasClass('htDisabled')).toBe(false);
