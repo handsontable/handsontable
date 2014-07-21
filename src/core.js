@@ -1357,7 +1357,14 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return value (mixed data type)
    */
   this.getDataAtRow = function (row) {
-    return [].concat.apply([], datamap.getRange(new WalkontableCellCoords(row, 0), new WalkontableCellCoords(row, this.countCols() - 1), datamap.DESTINATION_RENDERER));
+    var out = [],
+        data = datamap.getRange(new WalkontableCellCoords(row, 0), new WalkontableCellCoords(row, this.countCols() - 1), datamap.DESTINATION_RENDERER);
+
+    if (Handsontable.helper.isArray(data)) {
+      out = data[0];
+    }
+
+    return out;
   };
 
   /**
