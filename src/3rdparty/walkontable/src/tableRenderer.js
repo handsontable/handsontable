@@ -156,13 +156,13 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
     }
 
     var previousRowHeight = height || this.instance.wtSettings.settings.rowHeight(sourceRowIndex),
-      trClientHeight = TR.clientHeight - 1;
+      trInnerHeight = Handsontable.Dom.innerHeight(TR) - 1;
     
-    if(!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < trClientHeight || previousRowHeight < trClientHeight) {
+    if(!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < trInnerHeight || previousRowHeight < trInnerHeight) {
         if(!this.instance.wtTable.oversizedRows) {
           this.instance.wtTable.oversizedRows = {};
         }
-          this.instance.wtTable.oversizedRows[sourceRowIndex] = trClientHeight;
+          this.instance.wtTable.oversizedRows[sourceRowIndex] = trInnerHeight;
     }
     
 

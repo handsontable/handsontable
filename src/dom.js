@@ -394,6 +394,14 @@ Handsontable.Dom.outerHeight = function (elem) {
   }
 };
 
+Handsontable.Dom.innerHeight = function (elem) {
+  return elem.clientHeight;
+};
+
+Handsontable.Dom.innerWidth = function (elem) {
+  return elem.innerWidth;
+};
+
 (function () {
   var hasCaptionProblem;
 
