@@ -140,14 +140,10 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
       }
     }
 
-    var previousRowHeight = this.instance.wtSettings.settings.rowHeight(sourceRowIndex),
-        trOffsetHeight = TR.offsetHeight;
-
-    if((trOffsetHeight > 0 && (previousRowHeight && trOffsetHeight < previousRowHeight)) || !previousRowHeight) {
       if(this.instance.wtTable.oversizedRows && this.instance.wtTable.oversizedRows[sourceRowIndex]) {
         delete this.instance.wtTable.oversizedRows[sourceRowIndex];
       }
-    }
+
 
     if (TR.firstChild) {
       var height = this.instance.getSetting('rowHeight', sourceRowIndex); //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
@@ -158,13 +154,15 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
         TR.firstChild.style.height = '';
       }
     }
+
+    var previousRowHeight = height || this.instance.wtSettings.settings.rowHeight(sourceRowIndex),
+      trClientHeight = TR.clientHeight - 1;
     
-    trOffsetHeight = TR.offsetHeight;
-    if(!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight + 1 < trOffsetHeight || previousRowHeight < trOffsetHeight) {
+    if(!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < trClientHeight || previousRowHeight < trClientHeight) {
         if(!this.instance.wtTable.oversizedRows) {
           this.instance.wtTable.oversizedRows = {};
         }
-        this.instance.wtTable.oversizedRows[sourceRowIndex] = trOffsetHeight;
+          this.instance.wtTable.oversizedRows[sourceRowIndex] = trClientHeight;
     }
     
 
@@ -194,45 +192,6 @@ WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, d
     TD.className = '';
     TD.removeAttribute('style');
     this.instance.getSetting('cellRenderer', sourceRowIndex, sourceColIndex, TD);
-
-
-    // var rowHeight = this.instance.wtSettings.settings.rowHeight(sourceRowIndex);
-    // if(!rowHeight && this.instance.wtSettings.settings.defaultRowHeight < TD.offsetHeight || rowHeight < TD.offsetHeight) {
-    //   if(this.instance.wtTable.oversizedRows[sourceRowIndex]) {
-    //     // TD.setAttribute('data-oversized',TD.offsetHeight);
-    //     if(!this.instance.wtTable.oversizedCells) {
-    //       this.instance.wtTable.oversizedCells = [];
-    //     }
-    //     this.instance.wtTable.oversizedCells.push({row: sourceRowIndex, col: sourceColIndex, height: TD.offsetHeight});
-    //   }
-    // }
-    
-
-    // this.instance.wtSettings.settings.markOversizedCell(sourceRowIndex,visibleColIndex);
-
-    // var actualRowHeight,
-    //     oversizedCount = 0;
-    // for(var i = 0, changesLenght = changes.length; i < changesLenght; i++) {
-    //   if(!changes[i]) {
-    //     continue;
-    //   }
-
-    //   actualRowHeight = instance.view.wt.wtSettings.settings.rowHeight(changes[i][0]) || instance.view.wt.wtSettings.settings.defaultRowHeight;
-
-    //   if(!instance.getCell(changes[i][0],changes[i][1])) {
-    //     continue;
-    //   }
-
-    //   if(instance.getCell(changes[i][0],changes[i][1]).offsetHeight > actualRowHeight + 1) {
-    //     instance.getCellMeta(changes[i][0],changes[i][1]).oversized = instance.getCell(changes[i][0],changes[i][1]).offsetHeight;
-    //     oversizedCount++;
-    //   }
-    // }
-
-    // if(oversizedCount > 0) {
-    //   instance.render();
-    // }
-
 
   }
 

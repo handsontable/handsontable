@@ -423,13 +423,18 @@ describe('Core_view', function () {
 
   describe('fixed column row heights', function () {
     it('should be the same as the row heights in the main table', function () {
-      var hot = handsontable({
-        startRows: 3,
-        startCols: 4,
-        fixedColumnsLeft: 2
-      });
+        var hot = handsontable({
+          data: [["A","B","C","D"],["a","b","c\nc","d"],["aa","bb","cc","dd"]],
+          startRows: 3,
+          startCols: 4,
+          fixedColumnsLeft: 2
+        });
 
-      expect(hot.view.maximumVisibleElementHeight(0)).toEqual(100);
+        expect(hot.getCell(1,2).clientHeight).toEqual(hot.getCell(1,1).clientHeight);
+
+        hot.setDataAtCell(1,2,"c");
+
+        expect(hot.getCell(1,2).clientHeight).toEqual(hot.getCell(1,1).clientHeight);
     });
 
   });
