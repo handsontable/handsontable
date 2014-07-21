@@ -25,16 +25,17 @@
         setTimeout(function () {
           that.queryChoices(that.$textarea.val());
         });
-      } else if (event.keyCode == Handsontable.helper.keyCode.ENTER && that.cellProperties.strict !== true){
+      //} else if (event.keyCode == Handsontable.helper.keyCode.ENTER && that.cellProperties.strict !== true){
+      } else if (event.keyCode == Handsontable.helper.keyCode.ENTER){
         that.$htContainer.handsontable('deselectCell');
       }
 
     });
 
     this.$htContainer.on('mouseleave', function () {
-      if(that.cellProperties.strict === true){
-        that.highlightBestMatchingChoice();
-      }
+//      if(that.cellProperties.strict === true){
+//        that.highlightBestMatchingChoice();
+//      }
     });
 
     this.$htContainer.on('mouseenter', function () {
@@ -76,12 +77,23 @@
       if (event.keyCode == Handsontable.helper.keyCode.ARROW_UP){
         if (instance.getSelected() && instance.getSelected()[0] == 0){
 
-          if(!parent.cellProperties.strict){
+          var cellProperties = parent.cellProperties;
+
+          if (cellProperties && !cellProperties.strict) {
             instance.deselectCell();
           }
 
-          parent.instance.listen();
-          parent.focus();
+          if (parent) {
+            parent.focus();
+
+            if (parent.instance) {
+              parent.instance.listen();
+            } else {
+              instance.listen();
+            }
+
+          }
+
           event.preventDefault();
           event.stopImmediatePropagation();
         }
@@ -148,7 +160,7 @@
 
     this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
 
-    if(this.cellProperties.strict === true){
+    if(this.cellProperties.strict === true) {
       this.highlightBestMatchingChoice();
     }
 
