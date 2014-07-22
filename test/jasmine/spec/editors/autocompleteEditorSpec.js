@@ -2168,7 +2168,7 @@ describe('AutocompleteEditor', function () {
     $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
 
     expect(dropdown.scrollHeight > dropdown.clientHeight).toBe(false);
-    
+
   });
 
   it("should not close editor on scrolling", function(){
@@ -2224,6 +2224,105 @@ describe('AutocompleteEditor', function () {
     runs(function () {
       expect($(dropdown[0]).is(':visible')).toBe(true);
     });
-  });  
+  });
 
+  it("should be chosen first value from choice list to selected cell after hit TAB button", function () {
+    var hot = handsontable({
+      data: [
+        ["Nissan", 2009, "", "black"],
+        ["Nissan", 2006, "blue", "blue"],
+        ["Chrysler", 2004, "yellow", "black"],
+        ["Volvo", 2012, "white", "gray"]
+      ],
+      colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+      columns: [
+        {
+          type: 'autocomplete',
+          source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
+          strict: false
+        },
+        {type: 'numeric'},
+        {
+          type: 'autocomplete',
+          source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white", "purple", "lime", "olive", "cyan"],
+          strict: false
+        },
+        {
+          type: 'autocomplete',
+          source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white", "purple", "lime", "olive", "cyan"],
+          strict: false
+        }
+      ]
+    });
+
+    selectCell(0, 2);
+
+    keyDownUp('enter');
+
+    var $textarea = hot.getActiveEditor().$textarea;
+
+    $textarea[0].value = 'y';
+
+    keyDownUp('tab');
+
+    waits(100);
+
+    runs(function () {
+      var $cell = $(getCell(0, 2)),
+          value = $cell[0].childNodes[0].data;
+
+      expect(value).toEqual("yellow");
+    });
+
+  });
+
+  it("should be chosen first value from choice list to selected cell after hit ENTER button", function () {
+    var hot = handsontable({
+      data: [
+        ["Nissan", 2009, "", "black"],
+        ["Nissan", 2006, "blue", "blue"],
+        ["Chrysler", 2004, "yellow", "black"],
+        ["Volvo", 2012, "white", "gray"]
+      ],
+      colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+      columns: [
+        {
+          type: 'autocomplete',
+          source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
+          strict: false
+        },
+        {type: 'numeric'},
+        {
+          type: 'autocomplete',
+          source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white", "purple", "lime", "olive", "cyan"],
+          strict: false
+        },
+        {
+          type: 'autocomplete',
+          source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white", "purple", "lime", "olive", "cyan"],
+          strict: false
+        }
+      ]
+    });
+
+    selectCell(0, 2);
+
+    keyDownUp('enter');
+
+    var $textarea = hot.getActiveEditor().$textarea;
+
+    $textarea[0].value = 'y';
+
+    keyDownUp('enter');
+
+    waits(100);
+
+    runs(function () {
+      var $cell = $(getCell(0, 2)),
+          value = $cell[0].childNodes[0].data;
+
+      expect(value).toEqual("yellow");
+    });
+
+  });
 });

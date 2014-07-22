@@ -21,21 +21,33 @@
 
     this.$textarea.on('keydown.autocompleteEditor', function(event){
 
-      if(!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) != -1){
+      var value = that.$textarea.val();
+
+      if(!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) !== -1){
         setTimeout(function () {
-          that.queryChoices(that.$textarea.val());
+          that.queryChoices(value);
         });
-      //} else if (event.keyCode == Handsontable.helper.keyCode.ENTER && that.cellProperties.strict !== true){
-      } else if (event.keyCode == Handsontable.helper.keyCode.ENTER){
-        that.$htContainer.handsontable('deselectCell');
+      } else if ([Handsontable.helper.keyCode.ENTER, Handsontable.helper.keyCode.TAB].indexOf(event.keyCode) !== -1){
+
+        var choice = that.choices[0];
+
+        if (value.length > 0 && choice) {
+          if (choice.length > 0) {
+            that.$textarea[0].value = choice;
+          }
+        }
+
+        if (that.cellProperties.strict !== true) {
+          that.$htContainer.handsontable('deselectCell');
+        }
       }
 
     });
 
     this.$htContainer.on('mouseleave', function () {
-//      if(that.cellProperties.strict === true){
-//        that.highlightBestMatchingChoice();
-//      }
+      if(that.cellProperties.strict === true){
+        that.highlightBestMatchingChoice();
+      }
     });
 
     this.$htContainer.on('mouseenter', function () {
@@ -55,7 +67,7 @@
     this.$textarea[0].style.visibility = 'visible';
     this.focus();
 
-    var choicesListHot =  this.$htContainer.handsontable('getInstance');
+    var choicesListHot = this.$htContainer.handsontable('getInstance');
     var that = this;
 
     choicesListHot.updateSettings({
@@ -156,13 +168,13 @@
 
   AutocompleteEditor.prototype.updateChoicesList = function (choices) {
 
-     this.choices = choices;
+    this.choices = choices;
 
     this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
 
-    if(this.cellProperties.strict === true) {
-      this.highlightBestMatchingChoice();
-    }
+    //if(this.cellProperties.strict === true) {
+    //  this.highlightBestMatchingChoice();
+    //}
 
     //this.focus(); // this override textEditor events ie. ctrl combinations
     // Can't highlight text in the cell with ctrl+a in autocomplete demo #1590

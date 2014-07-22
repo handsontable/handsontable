@@ -63,7 +63,6 @@
             break;
 
           case Handsontable.helper.keyCode.ARROW_UP:
-            //if (instance.getSelected() && instance.getSelected()[0] == 0 && !parent.cellProperties.strict){
             if (instance.getSelected() && instance.getSelected()[0] == 0){
               instance.deselectCell();
               parent.instance.listen();
