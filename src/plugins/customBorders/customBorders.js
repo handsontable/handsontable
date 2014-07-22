@@ -118,7 +118,7 @@
       width: 1,
       color: '#000'
     };
-  }
+  };
 
   /***
    * Create default Handsontable border object
@@ -183,7 +183,7 @@
       defaultBorder.left = customBorder.left;
     }
     return defaultBorder;
-  }
+  };
 
   /***
    * Insert object with borders for each cell to bordersArray
@@ -278,9 +278,8 @@
    *
    * @param range
    * @param place
-   * @param border
    */
-  var prepareBorder = function (range, place, border) {
+  var prepareBorder = function (range, place) {
     if (range.from.row == range.to.row && range.from.col == range.to.col){
       if(place == "noBorders"){
         removeBorder.call(this, range.from.row, range.from.col);
@@ -393,7 +392,6 @@
           drawBorders.call(this,bordersArray[key])
         }
       }
-      doDraw = false;
     }
   });
   Handsontable.CustomBorders = CustomBorders;
