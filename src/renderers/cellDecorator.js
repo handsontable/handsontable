@@ -15,7 +15,7 @@
     }
 
     if(cellProperties.comment) {
-      instance.view.wt.wtDom.addClass(TD, cellProperties.commentedCellClassName);
+      Handsontable.Dom.addClass(TD, cellProperties.commentedCellClassName);
 
     }
 

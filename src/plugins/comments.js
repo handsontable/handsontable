@@ -33,7 +33,7 @@ function Comments(instance) {
     },
     placeCommentBox = function (range, commentBox) {
       var TD = instance.view.wt.wtTable.getCell(range.from),
-        offset = instance.view.wt.wtDom.offset(TD),
+        offset = Handsontable.Dom.offset(TD),
         lastColWidth = instance.getColWidth(range.from.col);
 
       commentBox.style.position = 'absolute';
