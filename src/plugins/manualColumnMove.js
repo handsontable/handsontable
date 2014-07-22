@@ -21,10 +21,6 @@ function HandsontableManualColumnMove() {
   ghostStyle.backgroundColor = '#CCC';
   ghostStyle.opacity = 0.7;
 
-  moveHandle = document.createElement('DIV');
-  moveHandle.className = 'manualColumnMover';
-  // moveHandle.style.border = "1px solid red";
-
   var saveManualColumnPositions = function () {
     var instance = this;
 
@@ -38,19 +34,6 @@ function HandsontableManualColumnMove() {
 
     return storedState.value;
   };
-
-  function refreshHandlePosition(TH) {
-    instance = this;
-
-    var colId = this.view.wt.wtTable.getCoords(TH).col; //getCoords returns WalkontableCellCoords
-    if (colId > 0) { //if not row header
-      var rootOffset = Handsontable.Dom.offset(this.rootElement[0]).left,
-      thOffset = Handsontable.Dom.offset(TH).left,
-      startOffset = (thOffset - rootOffset) + scrollLeft;
-      moveHandle.style.left = startOffset + 'px';
-      moveHandle.style.top = scrollTop + 'px';
-    }
-  }
 
   var bindMoveColEvents = function () {
     var instance = this;
@@ -118,8 +101,11 @@ function HandsontableManualColumnMove() {
         var mover = instance.rootElement[0].querySelector('.manualColumnMover');
         Handsontable.Dom.addClass(mover, 'active');
       }
-        refreshHandlePosition.apply(instance,[e.currentTarget]);
 
+    });
+
+    instance.rootElement.on('mouseenter.manualColumnMove', 'table thead tr > th', function (event) {
+      updateHandlePosition.call(instance, moveHandle, event.target);
     });
 
     instance.addHook('afterDestroy', unbindMoveColEvents);
@@ -164,7 +150,8 @@ function HandsontableManualColumnMove() {
           this.forceFullRender = true;
           this.render();
         }
-        this.rootElement[0].appendChild(moveHandle);
+
+        moveHandle = addHandle.call(this,'manualColumnMover');
         Handsontable.hooks.add('afterRender', afterRender);
       }
 
@@ -179,7 +166,26 @@ function HandsontableManualColumnMove() {
     scrollTop = instance.rootElement.scrollTop();
     scrollLeft = instance.rootElement.scrollLeft();
     currentCol = 0;
-  }
+  };
+
+  var addHandle = function (className) {
+    var handle = document.createElement('DIV')
+      , instance = this;
+
+    handle.className = className;
+    handle.style.left = instance.getCell(0,0).offsetLeft + 'px';
+    handle.style.top ='0px';
+    instance.rootElement[0].appendChild(handle);
+
+    return handle;
+  };
+
+  var updateHandlePosition = function (handle, target) {
+    var instance = this;
+
+    handle.style.left = target.offsetLeft + 'px';
+    handle.style.top = Handsontable.Dom.getScrollTop(instance.rootElement[0]) + "px";
+  };
 
   this.modifyCol = function (col) {
     //TODO test performance: http://jsperf.com/object-wrapper-vs-primitive/2
@@ -207,3 +213,5 @@ Handsontable.hooks.add('afterUpdateSettings', function () {
 Handsontable.hooks.add('modifyCol', htManualColumnMove.modifyCol);
 
 Handsontable.hooks.register('afterColumnMove');
+
+
