@@ -441,4 +441,26 @@ describe('Search plugin', function () {
 
     });
   });
+
+  describe("HOT properties compatibility", function () {
+    it("should work properly when the last row is empty", function () { // connected with https://github.com/handsontable/jquery-handsontable/issues/1606
+      var hot = handsontable({
+          data: createSpreadsheetData(5, 5),
+          colHeaders: true,
+          search: true,
+          minSpareRows: 1
+        })
+        , errorThrown = false;
+
+      try {
+        hot.search.query("A");
+      } catch (err) {
+        var errorThrown = true;
+      }
+
+      expect(errorThrown).toBe(false);
+
+    });
+  });
+
 });
