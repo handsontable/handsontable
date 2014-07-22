@@ -359,16 +359,24 @@ Handsontable.TableView.prototype.scrollViewport = function (coords) {
  * @param TH
  */
 Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
+  var DIV = document.createElement('DIV'),
+      SPAN = document.createElement('SPAN');
+
+  DIV.className = 'relative';
+  SPAN.className = 'rowHeader';
+
   if (row > -1) {
-    Handsontable.Dom.fastInnerHTML(TH, this.instance.getRowHeader(row));
+    Handsontable.Dom.fastInnerHTML(SPAN, this.instance.getRowHeader(row));
+  } else {
+    Handsontable.Dom.fastInnerText(SPAN, '\u00A0');
   }
-  else {
-    var DIV = document.createElement('DIV');
-    DIV.className = 'relative';
-    Handsontable.Dom.fastInnerText(DIV, '\u00A0');
-    Handsontable.Dom.empty(TH);
-    TH.appendChild(DIV);
-  }
+
+  DIV.appendChild(SPAN);
+  Handsontable.Dom.empty(TH);
+
+  TH.appendChild(DIV);
+
+  Handsontable.hooks.run(this.instance, 'afterGetRowHeader', row, TH);
 };
 
 /**

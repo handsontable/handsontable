@@ -13,6 +13,10 @@
   position: relative;
 }
 
+.handsontable .relative {
+  position: relative;
+}
+
 .handsontable.htAutoColumnSize {
   visibility: hidden;
   left: 0;
@@ -139,7 +143,6 @@
 }
 
 .handsontable thead th .relative {
-  position: relative;
   padding: 2px 4px;
 }
 
@@ -156,8 +159,21 @@
   cursor: move;
 }
 
+.handsontable .manualRowMover {
+  position: absolute;
+  left: -4px;
+  top: 0;
+  background-color: transparent;
+  height: 5px;
+  width: 50px;
+  z-index: 999;
+  cursor: move;
+}
+
 .handsontable th .manualColumnMover:hover,
-.handsontable th .manualColumnMover.active {
+.handsontable th .manualColumnMover.active,
+.handsontable .manualRowMover:hover,
+.handsontable .manualRowMover.active{
   background-color: #88F;
 }
 
