@@ -139,7 +139,7 @@ describe('manualColumnResize', function () {
 
     resizeColumn(0, 100);
 
-    expect(afterColumnResizeCallback).toHaveBeenCalledWith(0, 100, void 0, void 0, void 0);
+    expect(afterColumnResizeCallback).toHaveBeenCalledWith(0, 100, void 0, void 0, void 0, void 0);
     expect(colWidth(this.$container, 0)).toEqual(100);
 
   });

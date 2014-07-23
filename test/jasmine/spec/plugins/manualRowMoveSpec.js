@@ -277,7 +277,7 @@ describe('manualRowMove', function () {
       expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex - 2) + ') td:eq(0)').text()).toEqual('7');
       expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex) + ') td:eq(0)').text()).toEqual('8');
 
-      expect(afterMoveRowCallback).toHaveBeenCalledWith(lastVisibleRowIndex, lastVisibleRowIndex - 1, void 0, void 0, void 0);
+      expect(afterMoveRowCallback).toHaveBeenCalledWith(lastVisibleRowIndex, lastVisibleRowIndex - 1, void 0, void 0, void 0, void 0);
     });
   });
 

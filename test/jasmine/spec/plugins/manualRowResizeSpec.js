@@ -116,7 +116,7 @@ describe('manualRowResize', function () {
     expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
 
     resizeRow(0, 100);
-    expect(afterRowResizeCallback).toHaveBeenCalledWith(0, 100, void 0, void 0, void 0);
+    expect(afterRowResizeCallback).toHaveBeenCalledWith(0, 100, void 0, void 0, void 0, void 0);
     expect(rowHeight(this.$container, 0)).toEqual(100);
   });
 

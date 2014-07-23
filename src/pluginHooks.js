@@ -155,22 +155,22 @@ Handsontable.PluginHookClass = (function () {
     return status;
   };
 
-  PluginHookClass.prototype.run = function (instance, key, p1, p2, p3, p4, p5) {
+  PluginHookClass.prototype.run = function (instance, key, p1, p2, p3, p4, p5, p6) {
     // provide support for old versions of HOT
     if (key in legacy) {
       key = legacy[key];
     }
 
-    this._runBucket(this.globalBucket, instance, key, p1, p2, p3, p4, p5);
-    this._runBucket(this.getBucket(instance), instance, key, p1, p2, p3, p4, p5);
+    this._runBucket(this.globalBucket, instance, key, p1, p2, p3, p4, p5, p6);
+    this._runBucket(this.getBucket(instance), instance, key, p1, p2, p3, p4, p5, p6);
   };
 
-  PluginHookClass.prototype._runBucket = function (bucket, instance, key, p1, p2, p3, p4, p5) {
+  PluginHookClass.prototype._runBucket = function (bucket, instance, key, p1, p2, p3, p4, p5, p6) {
     var handlers = bucket[key];
     if (handlers) {
       for (var i = 0, leni = handlers.length; i < leni; i++) {
         if (!handlers[i].skip) {
-          handlers[i].call(instance, p1, p2, p3, p4, p5);
+          handlers[i].call(instance, p1, p2, p3, p4, p5, p6);
 
           if (handlers[i].runOnce) {
             this.remove(key, handlers[i], bucket === this.globalBucket ? null : instance);
@@ -180,18 +180,18 @@ Handsontable.PluginHookClass = (function () {
     }
   };
 
-  PluginHookClass.prototype.execute = function (instance, key, p1, p2, p3, p4, p5) {
+  PluginHookClass.prototype.execute = function (instance, key, p1, p2, p3, p4, p5, p6) {
     // provide support for old versions of HOT
     if (key in legacy) {
       key = legacy[key];
     }
 
-    p1 = this._executeBucket(this.globalBucket, instance, key, p1, p2, p3, p4, p5);
-    p1 = this._executeBucket(this.getBucket(instance), instance, key, p1, p2, p3, p4, p5);
+    p1 = this._executeBucket(this.globalBucket, instance, key, p1, p2, p3, p4, p5, p6);
+    p1 = this._executeBucket(this.getBucket(instance), instance, key, p1, p2, p3, p4, p5, p6);
     return p1;
   };
 
-  PluginHookClass.prototype._executeBucket = function (bucket, instance, key, p1, p2, p3, p4, p5) {
+  PluginHookClass.prototype._executeBucket = function (bucket, instance, key, p1, p2, p3, p4, p5, p6) {
     var res,
       handlers = bucket[key];
 
@@ -199,7 +199,7 @@ Handsontable.PluginHookClass = (function () {
     if (handlers) {
       for (var i = 0, leni = handlers.length; i < leni; i++) {
         if (!handlers[i].skip) {
-          res = handlers[i].call(instance, p1, p2, p3, p4, p5);
+          res = handlers[i].call(instance, p1, p2, p3, p4, p5, p6);
           if (res !== void 0) {
             p1 = res;
           }

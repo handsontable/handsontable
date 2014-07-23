@@ -509,7 +509,6 @@
       //}
 
       this.show(event.pageY, event.pageX);
-
       $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.close, this));
     }
 
