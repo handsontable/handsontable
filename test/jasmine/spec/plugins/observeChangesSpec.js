@@ -469,7 +469,7 @@ describe('HandsontableObserveChanges', function () {
 
         runs(function () {
           expect(afterCreateRowCallback.calls.length).toEqual(1);
-          expect(afterCreateRowCallback).toHaveBeenCalledWith(2, undefined, undefined, undefined, undefined);
+          expect(afterCreateRowCallback).toHaveBeenCalledWith(2, undefined, undefined, undefined, undefined, undefined);
         });
       });
 
@@ -489,7 +489,7 @@ describe('HandsontableObserveChanges', function () {
 
         runs(function () {
           expect(afterRemoveRowCallback.calls.length).toEqual(1);
-          expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined);
+          expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
         });
       });
 
@@ -514,8 +514,8 @@ describe('HandsontableObserveChanges', function () {
           var args = [];
           args.push(afterRemoveRowCallback.calls[0].args);
           args.push(afterRemoveRowCallback.calls[1].args);
-          expect(args).toContain([1, 1, undefined, undefined, undefined]);
-          expect(args).toContain([0, 1, undefined, undefined, undefined]);
+          expect(args).toContain([1, 1, undefined, undefined, undefined, undefined]);
+          expect(args).toContain([0, 1, undefined, undefined, undefined, undefined]);
         });
       });
 
@@ -536,7 +536,7 @@ describe('HandsontableObserveChanges', function () {
 
         runs(function () {
           expect(afterCreateColCallback.calls.length).toEqual(1);
-          expect(afterCreateColCallback.calls[0].args).toEqual([2, undefined, undefined, undefined, undefined]);
+          expect(afterCreateColCallback.calls[0].args).toEqual([2, undefined, undefined, undefined, undefined, undefined]);
         });
       });
 
@@ -557,7 +557,7 @@ describe('HandsontableObserveChanges', function () {
 
         runs(function () {
           expect(afterRemoveColCallback.calls.length).toEqual(1);
-          expect(afterRemoveColCallback.calls[0].args).toEqual([1, 1, undefined, undefined, undefined]);
+          expect(afterRemoveColCallback.calls[0].args).toEqual([1, 1, undefined, undefined, undefined, undefined]);
         });
       });
 
@@ -585,8 +585,8 @@ describe('HandsontableObserveChanges', function () {
           var args = [];
           args.push(afterRemoveColCallback.calls[0].args);
           args.push(afterRemoveColCallback.calls[1].args);
-          expect(args).toContain([1, 1, undefined, undefined, undefined]);
-          expect(args).toContain([0, 1, undefined, undefined, undefined]);
+          expect(args).toContain([1, 1, undefined, undefined, undefined, undefined]);
+          expect(args).toContain([0, 1, undefined, undefined, undefined, undefined]);
         });
       });
 
@@ -606,7 +606,7 @@ describe('HandsontableObserveChanges', function () {
 
         runs(function () {
           expect(afterChangeCallback.calls.length).toEqual(1);
-          expect(afterChangeCallback).toHaveBeenCalledWith([0, 0, null, "new string"], 'external', undefined, undefined, undefined);
+          expect(afterChangeCallback).toHaveBeenCalledWith([0, 0, null, "new string"], 'external', undefined, undefined, undefined, undefined);
         });
       });
     });
@@ -646,7 +646,7 @@ describe('HandsontableObserveChanges', function () {
 
         runs(function () {
           expect(afterCreateRowCallback.calls.length).toEqual(1);
-          expect(afterCreateRowCallback).toHaveBeenCalledWith(2, undefined, undefined, undefined, undefined);
+          expect(afterCreateRowCallback).toHaveBeenCalledWith(2, undefined, undefined, undefined, undefined, undefined);
         });
       });
 
@@ -666,7 +666,7 @@ describe('HandsontableObserveChanges', function () {
 
         runs(function () {
           expect(afterRemoveRowCallback.calls.length).toEqual(1);
-          expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined);
+          expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
         });
       });
 
@@ -691,8 +691,8 @@ describe('HandsontableObserveChanges', function () {
           var args = [];
           args.push(afterRemoveRowCallback.calls[0].args);
           args.push(afterRemoveRowCallback.calls[1].args);
-          expect(args).toContain([1, 1, undefined, undefined, undefined]);
-          expect(args).toContain([0, 1, undefined, undefined, undefined]);
+          expect(args).toContain([1, 1, undefined, undefined, undefined, undefined]);
+          expect(args).toContain([0, 1, undefined, undefined, undefined, undefined]);
         });
       });
 
@@ -712,7 +712,7 @@ describe('HandsontableObserveChanges', function () {
 
         runs(function () {
           expect(afterChangeCallback.calls.length).toEqual(1);
-          expect(afterChangeCallback).toHaveBeenCalledWith([0, 'prop0', null, "new string"], 'external', undefined, undefined, undefined);
+          expect(afterChangeCallback).toHaveBeenCalledWith([0, 'prop0', null, "new string"], 'external', undefined, undefined, undefined, undefined);
         });
       });
     });

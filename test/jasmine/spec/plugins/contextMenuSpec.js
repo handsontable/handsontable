@@ -323,7 +323,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(0).trigger('mousedown'); //Insert row above
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
 
       expect(countRows()).toEqual(5);
     });
@@ -345,7 +345,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(0).trigger('mousedown'); //Insert row above
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
       expect(countRows()).toEqual(5);
     });
 
@@ -366,7 +366,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(1).trigger('mousedown'); //Insert row above
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined, undefined);
       expect(countRows()).toEqual(5);
     });
 
@@ -387,7 +387,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(1).trigger('mousedown'); //Insert row below
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined, undefined);
       expect(countRows()).toEqual(5);
     });
 
@@ -408,7 +408,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(2).trigger('mousedown'); //Insert col left
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
     });
 
@@ -429,7 +429,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(2).trigger('mousedown'); //Insert col left
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
     });
 
@@ -450,7 +450,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(3).trigger('mousedown'); //Insert col right
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
     });
 
@@ -471,7 +471,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(3).trigger('mousedown'); //Insert col right
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
     });
 
@@ -492,7 +492,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(4).trigger('mousedown'); //Remove row
 
-      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined);
+      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
       expect(countRows()).toEqual(1);
     });
 
@@ -513,7 +513,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(4).trigger('mousedown'); //Remove row
 
-      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined);
+      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
       expect(countRows()).toEqual(1);
     });
 
@@ -534,7 +534,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(5).trigger('mousedown'); //Remove col
 
-      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined);
+      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(1);
     });
 
@@ -555,7 +555,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(5).trigger('mousedown'); //Remove col
 
-      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined);
+      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(1);
     });
 

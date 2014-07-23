@@ -1887,12 +1887,12 @@ Handsontable.Core = function (rootElement, userSettings) {
     Handsontable.hooks.remove(key, fn, instance);
   };
 
-  this.runHooks = function (key, p1, p2, p3, p4, p5) {
-    Handsontable.hooks.run(instance, key, p1, p2, p3, p4, p5);
+  this.runHooks = function (key, p1, p2, p3, p4, p5, p6) {
+    Handsontable.hooks.run(instance, key, p1, p2, p3, p4, p5, p6);
   };
 
-  this.runHooksAndReturn = function (key, p1, p2, p3, p4, p5) {
-    return Handsontable.hooks.execute(instance, key, p1, p2, p3, p4, p5);
+  this.runHooksAndReturn = function (key, p1, p2, p3, p4, p5, p6) {
+    return Handsontable.hooks.execute(instance, key, p1, p2, p3, p4, p5, p6);
   };
 
   this.timeouts = {};
