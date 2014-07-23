@@ -5,7 +5,6 @@ function Comments(instance) {
       instance.render();
     },
     saveComment = function (range, comment, instance) {
-			console.log(1);
 		 //LIKE IN EXCEL (TOP LEFT CELL)
       doSaveComment(range.from.row, range.from.col, comment, instance);
     },
@@ -93,8 +92,6 @@ function Comments(instance) {
 			var meta = instance.getCellMeta(range.from.row, range.from.col),
         value = '';
 
-
-			console.log(meta.comment);
       if (meta.comment) {
         value = meta.comment;
       }
