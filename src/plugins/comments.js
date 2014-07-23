@@ -5,8 +5,8 @@ function Comments(instance) {
       instance.render();
     },
     saveComment = function (range, comment, instance) {
-      //LIKE IN EXCEL (TOP LEFT CELL)
-
+			console.log(1);
+		 //LIKE IN EXCEL (TOP LEFT CELL)
       doSaveComment(range.from.row, range.from.col, comment, instance);
     },
     hideCommentTextArea = function () {
@@ -15,13 +15,15 @@ function Comments(instance) {
       commentBox.value = '';
     },
     bindMouseEvent = function (range) {
-      function commentsListener(event) {
+
+			function commentsListener(event) {
+				$(document).off('mouseover.htCommment');
         if (!(event.target.className == 'htCommentTextArea' || event.target.innerHTML.indexOf('Comment') != -1)) {
           var value = document.getElementsByClassName('htCommentTextArea')[0].value;
           if (value.trim().length > 1) {
             saveComment(range, value, instance);
           }
-          unBindMouseEvent();
+		      unBindMouseEvent();
           hideCommentTextArea();
         }
       }
@@ -30,6 +32,7 @@ function Comments(instance) {
     },
     unBindMouseEvent = function () {
       $(document).off('mousedown.htCommment');
+			$(document).on('mouseover.htCommment', Handsontable.helper.proxy(commentsMouseOverListener));
     },
     placeCommentBox = function (range, commentBox) {
       var TD = instance.view.wt.wtTable.getCell(range.from),
@@ -59,15 +62,17 @@ function Comments(instance) {
         document.getElementsByTagName('body')[0].appendChild(comments);
       }
 
-      if (value) {
-        document.getElementsByClassName('htCommentTextArea')[0].value = value;
-      }
+			value = value ||'';
+
+      document.getElementsByClassName('htCommentTextArea')[0].value = value;
+
       //var tA = document.getElementsByClassName('htCommentTextArea')[0];
       //tA.focus();
       return comments;
     },
     commentsMouseOverListener = function (event) {
         if(event.target.className.indexOf('htCommentCell') != -1) {
+						unBindMouseEvent();
             var coords = instance.view.wt.wtTable.getCoords(event.target);
             var range = {
                 from: new WalkontableCellCoords(coords.row, coords.col)
@@ -75,9 +80,9 @@ function Comments(instance) {
 
             Handsontable.Comments.showComment(range);
         }
-//        else if(event.target.className !='htCommentTextArea'){
-//            //hideCommentTextArea();
-//        }
+        else if(event.target.className !='htCommentTextArea'){
+            hideCommentTextArea();
+        }
     };
 
   return {
@@ -85,9 +90,11 @@ function Comments(instance) {
         $(document).on('mouseover.htCommment', Handsontable.helper.proxy(commentsMouseOverListener));
     },
     showComment: function (range) {
-      var meta = instance.getCellMeta(range.from.row, range.from.col),
+			var meta = instance.getCellMeta(range.from.row, range.from.col),
         value = '';
 
+
+			console.log(meta.comment);
       if (meta.comment) {
         value = meta.comment;
       }
