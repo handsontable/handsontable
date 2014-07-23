@@ -25,7 +25,7 @@
   -->
   <meta property="og:title" content="Comments">
   <meta property="og:description"
-        content="This page shows how to use comments in Handsontable">
+        content="This page shows how to use cell comments in Handsontable">
   <meta property="og:url" content="http://handsontable.com/demo/contextmenu.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
@@ -57,10 +57,12 @@
     <div class="pad" data-jsfiddle="example1">
       <a name="default"></a>
 
-      <h2>Comments via context menu</h2>
+      <h2>Comments</h2>
 
-      <p>To initialize Handsontable with predefined comments, provide comment cells details in form of a function:
-        <code>afterCellMetaReset: function() { this.setCellMeta(1, 1, "comment", "Sample comment"); }</code></p>
+      <p>With option <code>comments: true</code>, you can add and remove cell coments through the context menu.</p>
+
+      <p>To initialize Handsontable with predefined comments, provide <code>comment</code> cell property:
+        <code>{row: 1, col: 1, comment: "Test comment"}</code></p>
 
       <div id="example1"></div>
 
@@ -103,11 +105,10 @@
           minSpareRows: 1,
           contextMenu: true,
           comments: true,
-          afterCellMetaReset: function() {
-            this.setCellMeta(1, 1, "comment", "Test comment");
-            this.setCellMeta(2, 2, "comment", "Sample");
-          }
-
+          cell: [
+            {row: 1, col: 1, comment: "Test comment"},
+            {row: 2, col: 2, comment: "Sample"}
+          ]
         });
       </script>
     </div>
