@@ -75,52 +75,39 @@
             <div class="pad" data-jsfiddle="example1">
               <h2>Custom borders</h2>
 
-          <p>To enable the custom borders feature, set the <code>customBorders</code> option.
-            It could be set as <code>true</code> or an array of cells with borders arrays like:
+              <p>To enable the custom borders feature, set the <code>customBorders</code> option.
+                It could be set as <code>true</code> or initialized as an array with predefined setup.
+              </p>
 
-               or
-          </p>
+              <p>To initialize Handsontable with predefined custom borders, provide cells coordinates and border styles
+                in form of an array:</p>
 
-          <p>To initialize Handsontable with predefined custom borders, provide cells details in form of an array:
-            <code>
-{
-  row: 2,
-  col: 2,
-  left:{
-    width:2,
-    color: 'red'
-  },
-  right:{
-    width:1,
-    color: 'green'
-  }
-}
+              <ul>
+                <li>with row/col pairs: <code>{
+                  row: 2,
+                  col: 2,
+                  left: { /*...*/ }
+                  }</code>
+                </li>
+                <li>or with range details: <code>{
+                  range:{
+                  from:{
+                  row: 1,
+                  col: 1
+                  },
+                  to:{
+                  row: 3,
+                  col: 4
+                  }
+                  },
+                  left: { /*...*/ }
+                  }</code>
+                </li>
+              </ul>
 
-            </code> or range details in form of an array
-            <code>
-              {
-              range:{
-              from:{
-              row: 1,
-              col: 1
-              },
-              to:{
-              row: 3,
-              col: 4
-              }
-              },
 
-              top:{
-              width: 2,
-              color: '#5292F7'
-              },
-              left: {
-              width:2,
-              color: 'orange'
-              }
-              }
-            </code>
-            </p>
+              <p>See full example below.
+              </p>
 
           <div style="overflow: scroll; height: 200px; width: 400px">
             <div id="example1"></div>
