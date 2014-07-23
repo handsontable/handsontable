@@ -177,6 +177,7 @@ WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, d
 
     TD.className = '';
     TD.removeAttribute('style');
+
     this.instance.getSetting('cellRenderer', sourceRowIndex, sourceColIndex, TD);
 
   }

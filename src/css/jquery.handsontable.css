@@ -248,6 +248,14 @@
   position: absolute;
   font-size: 0;
 }
+.handsontable .wtBorder.hidden{
+  display:none !important;
+}
+.handsontable .wtBorder.current,
+.handsontable .wtBorder.area,
+.handsontable .wtBorder.fill {
+  z-index: 100;
+}
 
 .handsontable td.area {
   background-color: #EEF4FF;
@@ -525,16 +533,33 @@ ul.context-menu-list li {
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
 }
-/*
-Context menu alignment buttons
-*/
-.htContextMenu button.Left{
-
-}
-
 .handsontable td.htSearchResult {
   background: #fcedd9;
   color: #583707;
+}
+
+/*
+Cell borders
+*/
+.htBordered{
+  /*box-sizing: border-box !important;*/
+  border-width: 1px;
+}
+.htBordered.htTopBorderSolid{
+  border-top-style: solid;
+  border-top-color: #000;
+}
+.htBordered.htRightBorderSolid{
+  border-right-style: solid;
+  border-right-color: #000;
+}
+.htBordered.htBottomBorderSolid{
+  border-bottom-style: solid;
+  border-bottom-color: #000;
+}
+.htBordered.htLeftBorderSolid{
+  border-left-style: solid;
+  border-left-color: #000;
 }
 
 /*WalkontableDebugOverlay*/
