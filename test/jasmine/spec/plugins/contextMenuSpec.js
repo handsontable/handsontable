@@ -207,7 +207,8 @@ describe('ContextMenu', function () {
 
     it("should display the default set of actions", function () {
       var hot = handsontable({
-        contextMenu: true
+        contextMenu: true,
+				comments: true
       });
 
       contextMenu();
@@ -792,7 +793,8 @@ describe('ContextMenu', function () {
     it("should add comment", function () {
       var hot = handsontable({
         data: createSpreadsheetData(4, 4),
-        contextMenu: true
+        contextMenu: true,
+				comments: true
       });
 
       var testComment = 'Test comment';
@@ -818,6 +820,8 @@ describe('ContextMenu', function () {
       var hot = handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
+
+				comments: true,
         afterCellMetaReset: function() {
           this.setCellMeta(0, 0, "comment", "Test comment");
         }
