@@ -14,11 +14,6 @@
 
     }
 
-    if(cellProperties.comment) {
-      Handsontable.Dom.addClass(TD, cellProperties.commentedCellClassName);
-
-    }
-
     if (cellProperties.readOnly) {
       Handsontable.Dom.addClass(TD, cellProperties.readOnlyCellClassName);
     }

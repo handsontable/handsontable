@@ -124,6 +124,11 @@ var init = function () {
         Handsontable.Comments.init();
     }
   },
+  afterRenderer = function (TD, row, col, prop, value, cellProperties) {
+    if(cellProperties.comment) {
+      Handsontable.Dom.addClass(TD, cellProperties.commentedCellClassName);
+    }
+  },
   addCommentsActionsToContextMenu = function (defaultOptions) {
     var instance = this;
     if (!instance.getSettings().comments) {
@@ -162,4 +167,5 @@ var init = function () {
 
 Handsontable.hooks.add('beforeInit', init);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addCommentsActionsToContextMenu);
+Handsontable.hooks.add('afterRenderer', afterRenderer);
 //$(document).on('mouseover.htCommment', Handsontable.helper.proxy(commentsMouseOverListener));
