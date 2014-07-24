@@ -150,8 +150,8 @@ Handsontable.TableView = function (instance) {
       Handsontable.hooks.run(that.instance, 'afterRenderer', TD, row, col, prop, value, cellProperties);
 
     },
-    selections: {
-      current: {
+    selections: [
+      {
         className: 'current',
         border: {
           width: 2,
@@ -162,7 +162,7 @@ Handsontable.TableView = function (instance) {
           }
         }
       },
-      area: {
+      {
         className: 'area',
         border: {
           width: 1,
@@ -173,11 +173,12 @@ Handsontable.TableView = function (instance) {
           }
         }
       },
-      highlight: {
+      {
+        className: 'highlight',
         highlightRowClassName: that.settings.currentRowClassName,
         highlightColumnClassName: that.settings.currentColClassName
       },
-      fill: {
+      {
         className: 'fill',
         border: {
           width: 1,
@@ -185,7 +186,7 @@ Handsontable.TableView = function (instance) {
           //style: 'solid' // not used
         }
       }
-    },
+    ],
     hideBorderOnMouseDownOver: function () {
       return that.settings.fragmentSelection;
     },

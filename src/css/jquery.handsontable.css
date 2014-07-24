@@ -251,11 +251,6 @@
 .handsontable .wtBorder.hidden{
   display:none !important;
 }
-.handsontable .wtBorder.current,
-.handsontable .wtBorder.area,
-.handsontable .wtBorder.fill {
-  z-index: 100;
-}
 
 .handsontable td.area {
   background-color: #EEF4FF;

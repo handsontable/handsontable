@@ -58,7 +58,7 @@ function WalkontableBorder(instance, settings) {
     instance.wtTable.hider.appendChild(instance.wtTable.bordersHolder);
 
   }
-  instance.wtTable.bordersHolder.appendChild(this.main);
+  instance.wtTable.bordersHolder.insertBefore(this.main, instance.wtTable.bordersHolder.firstChild);
 
   var down = false;
   var $body = $(document.body);
