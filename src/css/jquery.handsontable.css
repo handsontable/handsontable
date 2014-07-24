@@ -478,6 +478,7 @@ ul.context-menu-list li {
 .htContextMenu {
   display: none;
   position: absolute;
+  z-index: 1000;
 }
 
 .htContextMenu .ht_clone_top,
