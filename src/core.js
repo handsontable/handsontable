@@ -12,7 +12,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     , grid
     , selection
     , editorManager
-    , autofill
     , instance = this
     , GridSettings = function () {};
 
@@ -584,163 +583,6 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
   };
 
-  this.autofill = autofill = { //this public assignment is only temporary
-    handle: null,
-
-    /**
-     * Create fill handle and fill border objects
-     */
-    init: function () {
-      if (!autofill.handle) {
-        autofill.handle = {};
-      }
-      else {
-        autofill.handle.disabled = false;
-      }
-    },
-
-    /**
-     * Hide fill handle and fill border permanently
-     */
-    disable: function () {
-      autofill.handle.disabled = true;
-    },
-
-    /**
-     * Selects cells down to the last row in the left column, then fills down to that cell
-     */
-    selectAdjacent: function () {
-      var select, data, r, maxR, c;
-
-      if (selection.isMultiple()) {
-        select = instance.view.wt.selections.area.getCorners();
-      }
-      else {
-        select = instance.view.wt.selections.current.getCorners();
-      }
-
-      data = datamap.getAll();
-      rows : for (r = select[2] + 1; r < instance.countRows(); r++) {
-        for (c = select[1]; c <= select[3]; c++) {
-          if (data[r][c]) {
-            break rows;
-          }
-        }
-        if (!!data[r][select[1] - 1] || !!data[r][select[3] + 1]) {
-          maxR = r;
-        }
-      }
-      if (maxR) {
-        instance.view.wt.selections.fill.clear();
-        instance.view.wt.selections.fill.add([select[0], select[1]]);
-        instance.view.wt.selections.fill.add([maxR, select[3]]);
-        autofill.apply();
-      }
-    },
-
-    /**
-     * Apply fill values to the area in fill border, omitting the selection border
-     */
-    apply: function () {
-      var drag, select, start, end, _data;
-
-      autofill.handle.isDragged = 0;
-
-      drag = instance.view.wt.selections.fill.getCorners();
-      if (!drag) {
-        return;
-      }
-
-      instance.view.wt.selections.fill.clear();
-
-      if (selection.isMultiple()) {
-        select = instance.view.wt.selections.area.getCorners();
-      }
-      else {
-        select = instance.view.wt.selections.current.getCorners();
-      }
-
-      if (drag[0] === select[0] && drag[1] < select[1]) {
-        start = new WalkontableCellCoords(
-          drag[0],
-          drag[1]
-        );
-        end = new WalkontableCellCoords(
-          drag[2],
-          select[1] - 1
-        );
-      }
-      else if (drag[0] === select[0] && drag[3] > select[3]) {
-        start = new WalkontableCellCoords(
-          drag[0],
-          select[3] + 1
-        );
-        end = new WalkontableCellCoords(
-          drag[2],
-          drag[3]
-        );
-      }
-      else if (drag[0] < select[0] && drag[1] === select[1]) {
-        start = new WalkontableCellCoords(
-          drag[0],
-          drag[1]
-        );
-        end = new WalkontableCellCoords(
-          select[0] - 1,
-          drag[3]
-        );
-      }
-      else if (drag[2] > select[2] && drag[1] === select[1]) {
-        start = new WalkontableCellCoords(
-          select[2] + 1,
-          drag[1]
-        );
-        end = new WalkontableCellCoords(
-          drag[2],
-          drag[3]
-        );
-      }
-
-      if (start) {
-
-        _data = SheetClip.parse(datamap.getText(priv.selRange.from, priv.selRange.to));
-        Handsontable.hooks.run(instance, 'beforeAutofill', start, end, _data);
-
-        grid.populateFromArray(start, _data, end, 'autofill');
-        selection.setRangeStart(new WalkontableCellCoords(drag[0], drag[1]));
-        selection.setRangeEnd(new WalkontableCellCoords(drag[2], drag[3]));
-      }
-      /*else {
-       //reset to avoid some range bug
-       selection.refreshBorders();
-       }*/
-    },
-
-    /**
-     * Show fill border
-     * @param {WalkontableCellCoords} coords
-     */
-    showBorder: function (coords) {
-      var topLeft = priv.selRange.getTopLeftCorner();
-      var bottomRight = priv.selRange.getBottomRightCorner();
-      if (priv.settings.fillHandle !== 'horizontal' && (bottomRight.row < coords.row || topLeft.row > coords.row)) {
-        coords = new WalkontableCellCoords(coords.row, bottomRight.col);
-      }
-      else if (priv.settings.fillHandle !== 'vertical') {
-        coords = new WalkontableCellCoords(bottomRight.row, coords.col);
-      }
-      else {
-        return; //wrong direction
-      }
-
-      instance.view.wt.selections.fill.clear();
-      instance.view.wt.selections.fill.add(priv.selRange.from);
-      instance.view.wt.selections.fill.add(priv.selRange.to);
-      instance.view.wt.selections.fill.add(coords);
-      instance.view.render();
-    }
-  };
-
   this.init = function () {
     Handsontable.hooks.run(instance, 'beforeInit');
 
@@ -1203,8 +1045,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   this.getData = function (r, c, r2, c2) {
     if (typeof r === 'undefined') {
       return datamap.getAll();
-    }
-    else {
+    } else {
       return datamap.getRange(new WalkontableCellCoords(r, c), new WalkontableCellCoords(r2, c2), datamap.DESTINATION_RENDERER);
     }
   };
@@ -1280,16 +1121,15 @@ Handsontable.Core = function (rootElement, userSettings) {
         }
       }
     }
-    Handsontable.hooks.run(instance, 'afterCellMetaReset');
 
-    if (typeof settings.fillHandle !== "undefined") {
-      if (autofill.handle && settings.fillHandle === false) {
-        autofill.disable();
-      }
-      else if (!autofill.handle && settings.fillHandle !== false) {
-        autofill.init();
+    if (typeof settings.cell !== 'undefined') {
+      for(i in settings.cell) {
+        var cell = settings.cell[i];
+        instance.setCellMetaObject(cell.row, cell.col, cell);
       }
     }
+
+    Handsontable.hooks.run(instance, 'afterCellMetaReset');
 
     if (typeof settings.className !== "undefined") {
       if (GridSettings.prototype.className) {
@@ -1322,10 +1162,7 @@ Handsontable.Core = function (rootElement, userSettings) {
 
     if (height){
       instance.rootElement[0].style.overflow = 'auto';
-    } else {
-      instance.rootElement[0].style.overflow = 'none';
     }
-
 
     if (!init) {
       Handsontable.hooks.run(instance, 'afterUpdateSettings');
@@ -1491,6 +1328,36 @@ Handsontable.Core = function (rootElement, userSettings) {
    */
   this.getDataAtRow = function (row) {
     return priv.settings.data[row];
+  };
+
+  /***
+   *  Remove "key" property object from cell meta data corresponding to params row,col
+   * @param {Number} row
+   * @param {Number} col
+   * @param {String} key
+   */
+  this.removeCellMeta = function(row, col, key) {
+    var cellMeta = instance.getCellMeta(row, col);
+    if(cellMeta[key] != undefined){
+      delete priv.cellSettings[row][col][key];
+    }
+  };
+
+  /**
+   * Set cell meta data object to corresponding params row, col
+   * @param {Number} row
+   * @param {Number} col
+   * @param {Object} prop
+   */
+  this.setCellMetaObject = function (row, col, prop) {
+    if (typeof prop === 'object') {
+      for (var i in prop) {
+        var key = i,
+            value = prop[i];
+
+        this.setCellMeta(row, col, key, value);
+      }
+    }
   };
 
   /**
@@ -2020,12 +1887,12 @@ Handsontable.Core = function (rootElement, userSettings) {
     Handsontable.hooks.remove(key, fn, instance);
   };
 
-  this.runHooks = function (key, p1, p2, p3, p4, p5) {
-    Handsontable.hooks.run(instance, key, p1, p2, p3, p4, p5);
+  this.runHooks = function (key, p1, p2, p3, p4, p5, p6) {
+    Handsontable.hooks.run(instance, key, p1, p2, p3, p4, p5, p6);
   };
 
-  this.runHooksAndReturn = function (key, p1, p2, p3, p4, p5) {
-    return Handsontable.hooks.execute(instance, key, p1, p2, p3, p4, p5);
+  this.runHooksAndReturn = function (key, p1, p2, p3, p4, p5, p6) {
+    return Handsontable.hooks.execute(instance, key, p1, p2, p3, p4, p5, p6);
   };
 
   this.timeouts = {};
@@ -2067,6 +1934,7 @@ DefaultSettings.prototype = {
   startCols: 5,
   rowHeaders: null,
   colHeaders: null,
+  cell: [],
   minRows: 0,
   minCols: 0,
   maxRows: Infinity,
@@ -2112,8 +1980,10 @@ DefaultSettings.prototype = {
   observeDOMVisibility: true,
   allowInvalid: true,
   invalidCellClassName: 'htInvalid',
+  placeholder: false,
   placeholderCellClassName: 'htPlaceholder',
   readOnlyCellClassName: 'htDimmed',
+  commentedCellClassName: 'htCommentCell',
   fragmentSelection: false,
   readOnly: false,
   type: 'text',

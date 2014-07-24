@@ -207,7 +207,8 @@ describe('ContextMenu', function () {
 
     it("should display the default set of actions", function () {
       var hot = handsontable({
-        contextMenu: true
+        contextMenu: true,
+				comments: true
       });
 
       contextMenu();
@@ -216,8 +217,8 @@ describe('ContextMenu', function () {
       var actions = items.not('.htSeparator');
       var separators = items.filter('.htSeparator');
 
-      expect(actions.length).toEqual(11);
-      expect(separators.length).toEqual(6);
+      expect(actions.length).toEqual(13);
+      expect(separators.length).toEqual(7);
 
       expect(actions.text()).toEqual([
         'Insert row above',
@@ -235,7 +236,9 @@ describe('ContextMenu', function () {
         'justify',
         'top',
         'middle',
-        'bottom'
+        'bottom',
+        'Add Comment',
+        'Delete Comment'
       ].join(''));
 
     });
@@ -305,7 +308,8 @@ describe('ContextMenu', function () {
     it("should insert row above selection", function () {
       var hot = handsontable({
         data: createSpreadsheetData(4, 4),
-        contextMenu: true
+        contextMenu: true,
+        height: 400
       });
 
       var afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
@@ -319,7 +323,8 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(0).trigger('mousedown'); //Insert row above
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
+
       expect(countRows()).toEqual(5);
     });
 
@@ -340,7 +345,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(0).trigger('mousedown'); //Insert row above
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
       expect(countRows()).toEqual(5);
     });
 
@@ -361,7 +366,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(1).trigger('mousedown'); //Insert row above
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined, undefined);
       expect(countRows()).toEqual(5);
     });
 
@@ -382,7 +387,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(1).trigger('mousedown'); //Insert row below
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined, undefined);
       expect(countRows()).toEqual(5);
     });
 
@@ -403,7 +408,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(2).trigger('mousedown'); //Insert col left
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
     });
 
@@ -424,7 +429,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(2).trigger('mousedown'); //Insert col left
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
     });
 
@@ -445,7 +450,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(3).trigger('mousedown'); //Insert col right
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
     });
 
@@ -466,7 +471,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(3).trigger('mousedown'); //Insert col right
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
     });
 
@@ -487,7 +492,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(4).trigger('mousedown'); //Remove row
 
-      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined);
+      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
       expect(countRows()).toEqual(1);
     });
 
@@ -508,7 +513,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(4).trigger('mousedown'); //Remove row
 
-      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined);
+      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
       expect(countRows()).toEqual(1);
     });
 
@@ -529,7 +534,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(5).trigger('mousedown'); //Remove col
 
-      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined);
+      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(1);
     });
 
@@ -550,7 +555,7 @@ describe('ContextMenu', function () {
 
       $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(5).trigger('mousedown'); //Remove col
 
-      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined);
+      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(1);
     });
 
@@ -783,6 +788,51 @@ describe('ContextMenu', function () {
       button.trigger('mousedown'); //Text bottom
       expect(getCellMeta(0,0).className).toEqual('htBottom');
       expect(getCell(0,0).className).toContain('htBottom');
+    });
+
+    it("should add comment", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+				comments: true
+      });
+
+      var testComment = 'Test comment';
+
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+      expect($menu.find('tbody td:eq(19)').hasClass('htDisabled')).toBe(true);
+
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(11).trigger('mousedown');
+
+      var comments = $('body > .htComments');
+      expect(comments[0]).not.toBeUndefined();
+      expect(comments.css('display')).toEqual('block');
+
+      comments.find('textarea').val(testComment);
+      mouseDown(hot.rootElement);
+      expect(getCellMeta(0,0).comment).toEqual(testComment);
+      expect(comments.css('display')).toEqual('none');
+      expect(getCell(0,0).className).toContain('htCommentCell');
+    });
+
+    it("should delete comment", function () {
+      var hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+
+				comments: true,
+        afterCellMetaReset: function() {
+          this.setCellMeta(0, 0, "comment", "Test comment");
+        }
+      });
+
+      expect(getCell(0,0).className).toContain('htCommentCell');
+      contextMenu();
+      var $menu = $(hot.contextMenu.menu);
+      expect($menu.find('tbody td:eq(19)').hasClass('htDisabled')).toBe(false);
+      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(12).trigger('mousedown');
+      expect(getCellMeta(0,0).comment).toBeUndefined();
     });
 
     it("should make a group of selected cells read-only, if all of them are writable (reverse selection)", function(){
@@ -2007,7 +2057,7 @@ describe('ContextMenu', function () {
 
     });
 
-    it("should close menu, when table is scrolled", function () {
+    it("should not close the menu, when table is scrolled", function () {
 
 
       var hot = handsontable({
@@ -2027,7 +2077,7 @@ describe('ContextMenu', function () {
 
       this.$wrapper.scrollTop(scrollTop + 60).scroll();
 
-      expect($menu.is(':visible')).toBe(false);
+      expect($menu.is(':visible')).toBe(true);
 
       contextMenu();
 
@@ -2035,11 +2085,11 @@ describe('ContextMenu', function () {
 
       this.$wrapper.scrollTop(scrollTop + 100).scroll();
 
-      expect($menu.is(':visible')).toBe(false)
+      expect($menu.is(':visible')).toBe(true)
 
     });
 
-    it("should not attempt to close menu, when table is scrolled and the menu is already closed", function () {
+    xit("should not attempt to close menu, when table is scrolled and the menu is already closed", function () {
 
 
       var hot = handsontable({

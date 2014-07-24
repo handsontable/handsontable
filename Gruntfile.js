@@ -94,6 +94,7 @@ module.exports = function (grunt) {
         'src/plugins/autoColumnSize.js',
         'src/plugins/columnSorting.js',
         'src/plugins/contextMenu.js',
+        'src/plugins/comments.js',
         'src/plugins/legacy.js',
         'src/plugins/manualColumnMove.js',
         'src/plugins/manualColumnResize.js',
@@ -104,7 +105,10 @@ module.exports = function (grunt) {
         'src/plugins/dragToScroll/dragToScroll.js',
         'src/plugins/copyPaste.js',
         'src/plugins/search.js',
-        'src/plugins/mergeCells/mergeCells.js'
+        'src/plugins/mergeCells/mergeCells.js',
+        'src/plugins/customBorders/customBorders.js',
+        'src/plugins/manualRowMove.js',
+        'src/plugins/autofill.js'
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',

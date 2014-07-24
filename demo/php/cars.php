@@ -70,5 +70,9 @@ else {
   $out = $cars;
 }
 
+$out = array(
+    "data" => $out
+);
+
 echo json_encode($out);
 ?>

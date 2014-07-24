@@ -110,7 +110,7 @@ describe('CheckboxRenderer', function () {
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
     expect(getData()).toEqual([[false], [true], [true]]);
     expect(afterChangeCallback.calls.length).toEqual(1);
-    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined);
+    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
 
 
   });
@@ -288,7 +288,7 @@ describe('CheckboxRenderer', function () {
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
     expect(getData()).toEqual([[false], [true], [true]]);
     expect(afterChangeCallback.calls.length).toEqual(1);
-    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined);
+    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
 
   });
 
@@ -323,7 +323,7 @@ describe('CheckboxRenderer', function () {
     expect(checkboxes.eq(2).prop('checked')).toBe(false);
     expect(getData()).toEqual([['no'], ['yes'], ['no']]);
     expect(afterChangeCallback.calls.length).toEqual(1);
-    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 'yes', 'no']], 'edit', undefined, undefined, undefined);
+    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 'yes', 'no']], 'edit', undefined, undefined, undefined, undefined);
 
   });
 

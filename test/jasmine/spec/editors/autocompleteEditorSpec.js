@@ -1887,7 +1887,7 @@ describe('AutocompleteEditor', function () {
 
       expect(getDataAtCell(0,0)).toEqual('red');
       expect(onAfterChange.calls.length).toEqual(1);
-      expect(onAfterChange).toHaveBeenCalledWith([[0, 0, null, 'red']], 'edit', undefined, undefined, undefined);
+      expect(onAfterChange).toHaveBeenCalledWith([[0, 0, null, 'red']], 'edit', undefined, undefined, undefined, undefined);
     });
 
   });

@@ -47,7 +47,7 @@ describe('NumericValidator', function () {
     }, 'Cell validation', 1000);
 
     runs(function () {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id', undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id', undefined, undefined);
     });
 
 
@@ -73,7 +73,7 @@ describe('NumericValidator', function () {
     }, 'Cell validation', 1000);
 
     runs(function () {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id', undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id', undefined, undefined);
     });
 
   });
@@ -98,7 +98,7 @@ describe('NumericValidator', function () {
     }, 'Cell validation', 1000);
 
     runs(function () {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, -123, 2, 'id', undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, -123, 2, 'id', undefined, undefined);
     });
   });
 

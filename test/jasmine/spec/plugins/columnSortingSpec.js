@@ -531,7 +531,7 @@ describe('ColumnSorting', function () {
     hot.sort(sortColumn, sortOrder);
 
     expect(this.beforeColumnSortHandler.callCount).toEqual(1);
-    expect(this.beforeColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0);
+    expect(this.beforeColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
   });
 
   it("should add beforeColumnSort event listener in constructor", function () {
@@ -550,7 +550,7 @@ describe('ColumnSorting', function () {
     hot.sort(sortColumn, sortOrder);
 
     expect(beforeColumnSortCallback.callCount).toEqual(1);
-    expect(beforeColumnSortCallback).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0);
+    expect(beforeColumnSortCallback).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
   });
 
   it("should fire afterColumnSort event before data has been sorted", function () {
@@ -582,7 +582,7 @@ describe('ColumnSorting', function () {
     hot.sort(sortColumn, sortOrder);
 
     expect(this.afterColumnSortHandler.callCount).toEqual(1);
-    expect(this.afterColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0);
+    expect(this.afterColumnSortHandler).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
   });
 
   it("should add afterColumnSort event listener in constructor", function () {
@@ -601,7 +601,7 @@ describe('ColumnSorting', function () {
     hot.sort(sortColumn, sortOrder);
 
     expect(afterColumnSortCallback.callCount).toEqual(1);
-    expect(afterColumnSortCallback).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0);
+    expect(afterColumnSortCallback).toHaveBeenCalledWith(sortColumn, sortOrder, void 0, void 0, void 0, void 0);
   });
 
 

@@ -152,6 +152,9 @@
                   source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"]
                 }
               ],
+              cell: [
+                {row: 1, col: 0, renderer: greenRenderer}
+              ],
               cells: function (row, col, prop) {
                 if (row === 0 && col === 0) {
                   this.renderer = greenRenderer;

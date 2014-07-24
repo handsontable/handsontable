@@ -67,7 +67,7 @@ describe('Core_alter', function () {
       });
       alter('remove_row');
 
-      expect(onBeforeRemoveRow).toHaveBeenCalledWith(countRows(), 1, undefined, undefined, undefined);
+      expect(onBeforeRemoveRow).toHaveBeenCalledWith(countRows(), 1, undefined, undefined, undefined, undefined);
     });
 
     it('should not remove row if removing has been canceled by beforeRemoveRow event handler', function () {
@@ -344,7 +344,7 @@ describe('Core_alter', function () {
       });
       alter('remove_col');
 
-      expect(onBeforeRemoveCol).toHaveBeenCalledWith(countCols(), 1, undefined, undefined, undefined);
+      expect(onBeforeRemoveCol).toHaveBeenCalledWith(countCols(), 1, undefined, undefined, undefined, undefined);
     });
 
     it('should not remove column if removing has been canceled by beforeRemoveCol event handler', function () {
