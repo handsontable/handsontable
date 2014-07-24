@@ -40,6 +40,9 @@ Handsontable.TableView = function (instance) {
   });
 
   var isMouseDown;
+  this.isMouseDown = function() {
+    return isMouseDown;
+  }
 
   $documentElement.on('mouseup.' + instance.guid, function (event) {
     if (instance.selection.isInProgress() && event.which === 1) { //is left mouse button
@@ -47,13 +50,6 @@ Handsontable.TableView = function (instance) {
     }
 
     isMouseDown = false;
-
-    if (instance.autofill.handle && instance.autofill.handle.isDragged) {
-      if (instance.autofill.handle.isDragged > 1) {
-        instance.autofill.apply();
-      }
-      instance.autofill.handle.isDragged = 0;
-    }
 
     if (Handsontable.helper.isOutsideInput(document.activeElement)) {
       instance.unlisten();
@@ -151,7 +147,6 @@ Handsontable.TableView = function (instance) {
       var value = that.instance.getDataAtRowProp(row, prop);
 
       renderer(that.instance, TD, row, col, prop, value, cellProperties);
-
       Handsontable.hooks.run(that.instance, 'afterRenderer', TD, row, col, prop, value, cellProperties);
 
     },
@@ -161,7 +156,7 @@ Handsontable.TableView = function (instance) {
         border: {
           width: 2,
           color: '#5292F7',
-          style: 'solid',
+          //style: 'solid', //not used
           cornerVisible: function () {
             return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
           }
@@ -172,7 +167,7 @@ Handsontable.TableView = function (instance) {
         border: {
           width: 1,
           color: '#89AFF9',
-          style: 'solid',
+          //style: 'solid', // not used
           cornerVisible: function () {
             return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
           }
@@ -186,8 +181,8 @@ Handsontable.TableView = function (instance) {
         className: 'fill',
         border: {
           width: 1,
-          color: 'red',
-          style: 'solid'
+          color: 'red'
+          //style: 'solid' // not used
         }
       }
     },
@@ -199,10 +194,6 @@ Handsontable.TableView = function (instance) {
       that.activeWt = wt;
 
       isMouseDown = true;
-
-      if (event.target.className === 'manualColumnMover') {
-        return;
-      }
 
       if (event.button === 2 && instance.selection.inInSelection(coords)) { //right mouse button
         //do nothing
@@ -244,21 +235,13 @@ Handsontable.TableView = function (instance) {
            }*/
           instance.selection.setRangeEnd(coords);
         }
-        else if (instance.autofill.handle && instance.autofill.handle.isDragged) {
-          instance.autofill.handle.isDragged++;
-          instance.autofill.showBorder(coords);
-        }
       }
       Handsontable.hooks.run(instance, 'afterOnCellMouseOver', event, coords, TD);
       that.activeWt = that.wt;
     },
     onCellCornerMouseDown: function (event) {
-      instance.autofill.handle.isDragged = 1;
       event.preventDefault();
       Handsontable.hooks.run(instance, 'afterOnCellCornerMouseDown', event);
-    },
-    onCellCornerDblClick: function () {
-      instance.autofill.selectAdjacent();
     },
     beforeDraw: function (force) {
       that.beforeRender(force);
@@ -371,16 +354,24 @@ Handsontable.TableView.prototype.scrollViewport = function (coords) {
  * @param TH
  */
 Handsontable.TableView.prototype.appendRowHeader = function (row, TH) {
+  var DIV = document.createElement('DIV'),
+      SPAN = document.createElement('SPAN');
+
+  DIV.className = 'relative';
+  SPAN.className = 'rowHeader';
+
   if (row > -1) {
-    Handsontable.Dom.fastInnerHTML(TH, this.instance.getRowHeader(row));
+    Handsontable.Dom.fastInnerHTML(SPAN, this.instance.getRowHeader(row));
+  } else {
+    Handsontable.Dom.fastInnerText(SPAN, '\u00A0');
   }
-  else {
-    var DIV = document.createElement('DIV');
-    DIV.className = 'relative';
-    Handsontable.Dom.fastInnerText(DIV, '\u00A0');
-    Handsontable.Dom.empty(TH);
-    TH.appendChild(DIV);
-  }
+
+  DIV.appendChild(SPAN);
+  Handsontable.Dom.empty(TH);
+
+  TH.appendChild(DIV);
+
+  Handsontable.hooks.run(this.instance, 'afterGetRowHeader', row, TH);
 };
 
 /**

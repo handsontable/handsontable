@@ -99,7 +99,8 @@
     this.select.style.height = height + 'px';
     this.select.style.minWidth = width + 'px';
     this.select.style.top = tdOffset.top - rootOffset.top + 'px';
-    this.select.style.left = tdOffset.left - rootOffset.left - 2 + 'px'; //2 is cell border
+    this.select.style.left = tdOffset.left - rootOffset.left + 'px';
+    this.select.style.margin = '0px';
     this.select.style.display = '';
 
     this.instance.addHook('beforeKeyDown', onBeforeKeyDown);

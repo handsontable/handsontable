@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>gRaphaël integration - Handsontable</title>
+
+  <!--
+  Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
+  -->
+  <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
+  <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
+
+  <!--
+  Loading demo dependencies. They are used here only to enhance the examples on this page
+  -->
+  <link data-jsfiddle="common" rel="stylesheet" media="screen" href="css/samples.css?20140331">
+  <script src="js/samples.js"></script>
+  <script src="js/highlight/highlight.pack.js"></script>
+  <script src="js/raphael/raphael-min.js"></script>
+  <script src="js/raphael/g.raphael-min.js"></script>
+  <script src="js/raphael/g.bar-min.js"></script>
+  <link rel="stylesheet" media="screen" href="js/highlight/styles/github.css">
+  <link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css">
+  <style type="text/css">
+    #example1 {
+      float: left;
+      margin-top: 30px;
+    }
+
+    #example1-side {
+      margin-top: 30px;
+      display: inline-block;
+    }
+
+    #graphael-example {
+      margin-bottom: 30px;
+    }
+
+    #example1-side:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+  </style>
+
+  <!--
+  Facebook open graph. Don't copy this to your project :)
+  -->
+  <meta property="og:title" content="gRaphael charts integration">
+  <meta property="og:description"
+        content="">
+  <meta property="og:url" content="http://handsontable.com/demo/graphael.html">
+  <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="409">
+  <meta property="og:image:height" content="164">
+  <link rel="canonical" href="http://handsontable.com/demo/graphael.html">
+
+  <!--
+  Google Analytics for GitHub Page. Don't copy this to your project :)
+  -->
+  <script src="js/ga.js"></script>
+
+</head>
+
+<body>
+
+
+<div class="wrapper">
+  <div class="wrapper-row">
+    <div id="global-menu-clone">
+      <h1><a href="../index.html">Handsontable</a></h1>
+
+    </div>
+
+    <div id="container">
+      <div class="columnLayout">
+
+        <div class="rowLayout">
+          <div class="descLayout">
+            <div class="pad" data-jsfiddle="example1">
+              <a name="lazy"></a>
+
+              <h2>gRaphaël bar chart integration example</h2>
+
+              <p>The following demo shows an example of data visualisation using <a href="http://g.raphaeljs.com/"
+                                                                                    rel="nofollow">gRaphaël's</a> bar
+                charts.</p>
+
+              <ul>
+                <li>Choosing any of the <em>Aggregate</em> buttons changes the currently used column</li>
+                <li>Editing data in the grid automatically refreshes the chart with updated values.</li>
+              </ul>
+
+              <div id="example1"></div>
+              <div id="example1-side">
+                <div id="graphael-example"></div>
+                <div class="aggregation">Aggregate:
+                  <button data-aggregate="0" title="Aggregates the Cars column">
+                    Cars
+                  </button>
+                  <button data-aggregate="1" title="Aggregates the Years column">
+                    Years
+                  </button>
+                  <button data-aggregate="2" title="Aggregates the Colors column">
+                    Colors
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="codeLayout">
+            <div class="pad">
+              <div class="jsFiddle">
+                <button class="jsFiddleLink" data-runfiddle="example1">Edit in jsFiddle</button>
+              </div>
+
+              <script data-jsfiddle="example1">
+                var container = $("#example1")
+                  , data = [
+                    ["Nissan", 2009, "black"],
+                    ["Nissan", 2006, "blue"],
+                    ["Chrysler", 2004, "yellow"],
+                    ["Volvo", 2012, "white"],
+                    ["Nissan", 2006, "blue"],
+                    ["Chevrolet", 2004, "yellow"],
+                    ["Volvo", 2012, "red"],
+                    ["Ford", 2006, "yellow"],
+                    ["Chevrolet", 2004, "yellow"],
+                    ["Ford", 2012, "yellow"]
+                  ];
+
+                var lastChange = null;
+
+                container.handsontable({
+                    data: data,
+                    width: 250,
+                    colHeaders: ["Car", "Year", "Color"],
+                    rowHeaders: true,
+                    afterChange: refreshChart
+                  }
+                );
+
+                var ht = container.handsontable('getInstance'),
+                  r = Raphael("graphael-example", 250, 250),
+                  chartData = [
+                    gatherColData(0),
+                    gatherColData(1),
+                    gatherColData(2)
+                  ],
+                  activeColumn = 0;
+
+                renderChart();
+
+
+                function fin() {
+                  var label = chartData[activeColumn].labels[$("path").toArray().indexOf(this.bar[0])];
+                  this.flag = r.popup(this.bar.x, this.bar.y, label + " - " + this.bar.value || "0").insertBefore(this);
+                }
+
+                function fout() {
+                  this.flag.animate({opacity: 0}, 300, function () {
+                    this.remove();
+                  });
+                }
+
+                function refreshChart(changes, source) {
+                  if (source != "loadData") {
+                    chartData[changes[0][1]] = gatherColData(changes[0][1]);
+                    activeColumn = changes[0][1];
+
+                    renderChart();
+                  }
+                }
+
+                function renderChart() {
+                  r.clear();
+                  r.text(125, 25, "Aggregated by " + $(".aggregation button[data-aggregate='" + activeColumn + "']").text()).attr({ font: "20px sans-serif" });
+
+                  r.barchart(10, 75, 220, 200, [chartData[activeColumn].values]).hover(fin, fout);
+                }
+
+                function gatherColData(colNum) {
+                  var data = ht.getDataAtCol(colNum),
+                    chartData = {labels: [], values: []},
+                    entryIndex = -1,
+                    labelsSize;
+
+                  for (var i = 0; i < data.length; i++) {
+                    entryIndex = chartData.labels.indexOf(data[i]);
+                    if (entryIndex != -1) {
+                      chartData.values[entryIndex]++;
+                    } else {
+                      labelsSize = chartData.labels.length;
+                      chartData.labels[labelsSize] = data[i];
+                      chartData.values[labelsSize] = 1;
+                    }
+                  }
+
+                  return chartData;
+                }
+
+                $(".aggregation").on("click", "button", function () {
+                  activeColumn = $(this).attr("data-aggregate");
+                  renderChart();
+                });
+
+              </script>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and
+          documentation
+          licensed under the The MIT License.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div id="outside-links-wrapper"></div>
+
+</body>
+</html>

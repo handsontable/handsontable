@@ -1,6 +1,10 @@
 function WalkontableBorder(instance, settings) {
   var style;
 
+  if(!settings){
+    return;
+  }
+
   //reference to instance
   this.instance = instance;
   this.settings = settings;
@@ -11,13 +15,22 @@ function WalkontableBorder(instance, settings) {
   style.top = 0;
   style.left = 0;
 
+  var borderDivs = ['top','left','bottom','right','corner'];
+
   for (var i = 0; i < 5; i++) {
+    var position = borderDivs[i];
+
     var DIV = document.createElement('DIV');
-    DIV.className = 'wtBorder ' + (settings.className || '');
+    DIV.className = 'wtBorder ' + (this.settings.className || ''); // + borderDivs[i];
+    if(this.settings[position] && this.settings[position].hide){
+      DIV.className += " hidden";
+    }
+
     style = DIV.style;
-    style.backgroundColor = settings.border.color;
-    style.height = settings.border.width + 'px';
-    style.width = settings.border.width + 'px';
+    style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
+    style.height = (this.settings[position] && this.settings[position].width) ? this.settings[position].width + 'px' : settings.border.width + 'px';
+    style.width = (this.settings[position] && this.settings[position].width) ? this.settings[position].width + 'px' : settings.border.width + 'px';
+
     this.main.appendChild(DIV);
   }
 
@@ -110,21 +123,9 @@ WalkontableBorder.prototype.appear = function (corners) {
     , fromColumn
     , toRow
     , toColumn
-    , hideTop = false
-    , hideLeft = false
-    , hideBottom = false
-    , hideRight = false
     , i
     , ilen
     , s;
-
-  if (!instance.wtTable.isRowInViewport(corners[0])) {
-    hideTop = true;
-  }
-
-  if (!instance.wtTable.isRowInViewport(corners[2])) {
-    hideBottom = true;
-  }
 
   if (instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
     ilen = instance.getSetting('fixedRowsTop');
@@ -149,42 +150,26 @@ WalkontableBorder.prototype.appear = function (corners) {
     }
   }
 
-  if (hideTop && hideBottom) {
-    hideLeft = true;
-    hideRight = true;
+  if (instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
+    ilen = instance.getSetting('fixedColumnsLeft');
   }
   else {
-    if (!instance.wtTable.isColumnInViewport(corners[1])) {
-      hideLeft = true;
+    ilen = instance.wtTable.getColumnStrategy().cellCount;
+  }
+
+  for (i = 0; i < ilen; i++) {
+    s = instance.wtTable.columnFilter.visibleToSource(i);
+    if (s >= corners[1] && s <= corners[3]) {
+      fromColumn = s;
+      break;
     }
+  }
 
-    if (!instance.wtTable.isColumnInViewport(corners[3])) {
-      hideRight = true;
-    }
-
-    if (instance.cloneOverlay instanceof WalkontableHorizontalScrollbarNative || instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
-      ilen = instance.getSetting('fixedColumnsLeft');
-    }
-    else {
-      ilen = instance.wtTable.getColumnStrategy().cellCount;
-    }
-
-
-
-    for (i = 0; i < ilen; i++) {
-      s = instance.wtTable.columnFilter.visibleToSource(i);
-      if (s >= corners[1] && s <= corners[3]) {
-        fromColumn = s;
-        break;
-      }
-    }
-
-    for (i = ilen - 1; i >= 0; i--) {
-      s = instance.wtTable.columnFilter.visibleToSource(i);
-      if (s >= corners[1] && s <= corners[3]) {
-        toColumn = s;
-        break;
-      }
+  for (i = ilen - 1; i >= 0; i--) {
+    s = instance.wtTable.columnFilter.visibleToSource(i);
+    if (s >= corners[1] && s <= corners[3]) {
+      toColumn = s;
+      break;
     }
   }
 
@@ -219,49 +204,31 @@ WalkontableBorder.prototype.appear = function (corners) {
     return;
   }
 
-  if (hideTop) {
-    this.topStyle.display = 'none';
-  }
-  else {
-    this.topStyle.top = top + 'px';
-    this.topStyle.left = left + 'px';
-    this.topStyle.width = width + 'px';
-    this.topStyle.display = 'block';
-  }
+  this.topStyle.top = top + 'px';
+  this.topStyle.left = left + 'px';
+  this.topStyle.width = width + 'px';
+  this.topStyle.display = 'block';
 
-  if (hideLeft) {
-    this.leftStyle.display = 'none';
-  }
-  else {
-    this.leftStyle.top = top + 'px';
-    this.leftStyle.left = left + 'px';
-    this.leftStyle.height = height + 'px';
-    this.leftStyle.display = 'block';
-  }
+
+
+  this.leftStyle.top = top + 'px';
+  this.leftStyle.left = left + 'px';
+  this.leftStyle.height = height + 'px';
+  this.leftStyle.display = 'block';
 
   var delta = Math.floor(this.settings.border.width / 2);
 
-  if (hideBottom) {
-    this.bottomStyle.display = 'none';
-  }
-  else {
-    this.bottomStyle.top = top + height - delta + 'px';
-    this.bottomStyle.left = left + 'px';
-    this.bottomStyle.width = width + 'px';
-    this.bottomStyle.display = 'block';
-  }
+  this.bottomStyle.top = top + height - delta + 'px';
+  this.bottomStyle.left = left + 'px';
+  this.bottomStyle.width = width + 'px';
+  this.bottomStyle.display = 'block';
 
-  if (hideRight) {
-    this.rightStyle.display = 'none';
-  }
-  else {
-    this.rightStyle.top = top + 'px';
-    this.rightStyle.left = left + width - delta + 'px';
-    this.rightStyle.height = height + 1 + 'px';
-    this.rightStyle.display = 'block';
-  }
+  this.rightStyle.top = top + 'px';
+  this.rightStyle.left = left + width - delta + 'px';
+  this.rightStyle.height = height + 1 + 'px';
+  this.rightStyle.display = 'block';
 
-  if (hideBottom || hideRight || !this.hasSetting(this.settings.border.cornerVisible)) {
+  if (!this.hasSetting(this.settings.border.cornerVisible)) {
     this.cornerStyle.display = 'none';
   }
   else {

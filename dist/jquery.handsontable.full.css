@@ -1,15 +1,19 @@
 /**
- * Handsontable 0.11.0-beta1
+ * Handsontable 0.11.0-beta2
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012-2014 Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jul 10 2014 13:20:50 GMT+0200 (CEST)
+ * Date: Thu Jul 24 2014 13:18:23 GMT+0200 (CEST)
  */
 
 .handsontable {
+  position: relative;
+}
+
+.handsontable .relative {
   position: relative;
 }
 
@@ -139,7 +143,6 @@
 }
 
 .handsontable thead th .relative {
-  position: relative;
   padding: 2px 4px;
 }
 
@@ -156,8 +159,21 @@
   cursor: move;
 }
 
-.handsontable th .manualColumnMover:hover,
-.handsontable th .manualColumnMover.active {
+.handsontable .manualRowMover {
+  position: absolute;
+  left: -4px;
+  top: 0;
+  background-color: transparent;
+  height: 5px;
+  width: 50px;
+  z-index: 999;
+  cursor: move;
+}
+
+.handsontable .manualColumnMover:hover,
+.handsontable .manualColumnMover.active,
+.handsontable .manualRowMover:hover,
+.handsontable .manualRowMover.active{
   background-color: #88F;
 }
 
@@ -231,6 +247,14 @@
 .handsontable .wtBorder {
   position: absolute;
   font-size: 0;
+}
+.handsontable .wtBorder.hidden{
+  display:none !important;
+}
+.handsontable .wtBorder.current,
+.handsontable .wtBorder.area,
+.handsontable .wtBorder.fill {
+  z-index: 100;
 }
 
 .handsontable td.area {
@@ -358,6 +382,23 @@ NumericRenderer
 
 .handsontable .htNumeric {
   text-align: right;
+}
+
+/*
+Comment For Cell
+*/
+.htCommentCell{
+  position: relative;
+}
+.htCommentCell:after{
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-left: 6px solid transparent;
+  /*border-right: 5px solid transparent;*/
+
+  border-top: 6px solid red;
 }
 
 /*context menu rules*/
@@ -509,16 +550,33 @@ ul.context-menu-list li {
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
 }
-/*
-Context menu alignment buttons
-*/
-.htContextMenu button.Left{
-
-}
-
 .handsontable td.htSearchResult {
   background: #fcedd9;
   color: #583707;
+}
+
+/*
+Cell borders
+*/
+.htBordered{
+  /*box-sizing: border-box !important;*/
+  border-width: 1px;
+}
+.htBordered.htTopBorderSolid{
+  border-top-style: solid;
+  border-top-color: #000;
+}
+.htBordered.htRightBorderSolid{
+  border-right-style: solid;
+  border-right-color: #000;
+}
+.htBordered.htBottomBorderSolid{
+  border-bottom-style: solid;
+  border-bottom-color: #000;
+}
+.htBordered.htLeftBorderSolid{
+  border-left-style: solid;
+  border-left-color: #000;
 }
 
 /*WalkontableDebugOverlay*/

@@ -68,7 +68,8 @@ else {
   };
 
   Handsontable.Dom.addClass = function (ele, cls) {
-    if (!this.hasClass(ele, cls)) ele.className += " " + cls;
+    if(ele.className == "") ele.className = cls;
+    else if (!this.hasClass(ele, cls)) ele.className += " " + cls;
   };
 
   Handsontable.Dom.removeClass = function (ele, cls) {

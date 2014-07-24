@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Align cell - Handsontable</title>
+  <title>Custom borders - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
@@ -23,15 +23,15 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Align cells">
+  <meta property="og:title" content="Custom borders">
   <meta property="og:description"
-        content="This example shows the usage of the align cell's content feature.">
-  <meta property="og:url" content="http://handsontable.com/demo/align_cell.html">
+        content="This example shows the usage of the Custom borders feature.">
+  <meta property="og:url" content="http://handsontable.com/demo/custom_borders.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
-  <link rel="canonical" href="http://handsontable.com/demo/align_cell.html">
+  <link rel="canonical" href="http://handsontable.com/demo/custom_borders.html">
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
@@ -46,7 +46,7 @@
 
       for (i = 0; i < 1000; i++) {
         var row = [];
-        for (j = 0; j < 16; j++) {
+        for (j = 0; j < 7; j++) {
           row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
         }
         rows.push(row);
@@ -73,20 +73,41 @@
         <div class="rowLayout">
           <div class="descLayout">
             <div class="pad" data-jsfiddle="example1">
-              <h2>Horizontal & vertical alignment</h2>
+              <h2>Custom borders</h2>
 
-              <p>To initialize Handsontable with predefined horizontal and vertical alignment, provide className cells details
-                in form of a grid, <code>columns</code> or <code>cell</code> setting (see code sample below).
+              <p>To enable the custom borders feature, set the <code>customBorders</code> option.
+                It could be set as <code>true</code> or initialized as an array with predefined setup.
               </p>
 
-              <p>Available classNames:</p>
+              <p>To initialize Handsontable with predefined custom borders, provide cells coordinates and border styles
+                in form of an array:</p>
 
               <ul>
-                <li>horizontal: <code>htLeft</code>, <code>htCenter</code>, <code>htRight</code>, <code>htJustify</code>,</li>
-                <li>vertical: <code>htTop</code>, <code>htMiddle</code>, <code>htBottom</code>.</li>
+                <li>with row/col pairs: <code>{
+                  row: 2,
+                  col: 2,
+                  left: { /*...*/ }
+                  }</code>
+                </li>
+                <li>or with range details: <code>{
+                  range:{
+                  from:{
+                  row: 1,
+                  col: 1
+                  },
+                  to:{
+                  row: 3,
+                  col: 4
+                  }
+                  },
+                  left: { /*...*/ }
+                  }</code>
+                </li>
               </ul>
 
-              <p>Alignment changes can be tracked using <code>afterSetCellMeta</code> hook callback.</p>
+
+              <p>See full example below.
+              </p>
 
           <div style="overflow: scroll; height: 200px; width: 400px">
             <div id="example1"></div>
@@ -94,7 +115,8 @@
 
           <p>
             <button name="dump" data-dump="#example1" title="Prints current data source to Firebug/Chrome Dev Tools">
-              Dump data to console
+              Dump
+              data to console
             </button>
           </p>
         </div>
@@ -109,30 +131,58 @@
           <script data-jsfiddle="example">
             $('#example1').handsontable({
               data: createBigData(),
-              colWidths: [55, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47], //can also be a number or a function
               rowHeaders: true,
               colHeaders: true,
               contextMenu: true,
-              mergeCells: [
-                {row: 1, col: 1, rowspan: 3, colspan: 3},
-                {row: 3, col: 4, rowspan: 2, colspan: 2}
-              ],
-              className: "htCenter",
-              cell: [
-                {row: 0, col: 0, className: "htRight"},
-                {row: 1, col: 1, className: "htLeft htMiddle"},
-                {row: 3, col: 4, className: "htLeft htBottom"}
-              ],
-              afterSetCellMeta: function (row, col, key, val) {
-                console.log("cell meta changed", row, col, key, val);
-              }
+              customBorders: [
+                {
+                  range:{
+                    from:{
+                      row: 1,
+                      col: 1
+                    },
+                    to:{
+                      row: 3,
+                      col: 4
+                    }
+                  },
+
+                  top:{
+                    width: 2,
+                    color: '#5292F7'
+                  },
+                  left: {
+                    width:2,
+                    color: 'orange'
+                  },
+                  bottom:{
+                    width: 2,
+                    color: 'red'
+                  },
+                  right: {
+                    width:2,
+                    color:'magenta'
+                  }
+                },
+                {
+                  row: 2,
+                  col: 2,
+                  left:{
+                    width:2,
+                    color: 'red'
+                  },
+                  right:{
+                    width:1,
+                    color: 'green'
+                  }
+                }]
             });
           </script>
         </div>
       </div>
     </div>
 
-        <div class="footer-text">Handsontable &copy; 2012-2014 Marcin Warpechowski and contributors.<br> Code and documentation
+        <div class="footer-text">Handsontable &copy; 2014 Marcin Warpechowski and contributors.<br> Code and documentation
           licensed under the The MIT License.
         </div>
       </div>

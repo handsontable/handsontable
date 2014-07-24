@@ -69,6 +69,114 @@
     }
   }
 
+  /***
+   *
+   * @param className
+   * @param {String} placement [noBorders, Top, Right, Bottom, Left]
+   * @param {String} type [Solid,Dotted,Dashed]
+   * @returns {*}
+
+   */
+  function prepareBorderClass (className, placement, type){
+    var borderedClass = 'htBordered';
+    if (className.indexOf(placement)!= -1){
+      return className;
+    }
+
+    if (placement == "noBorders") {
+      className = className
+        .replace(borderedClass,'')
+        .replace('htTopBorderSolid','')
+        .replace('htRightBorderSolid','')
+        .replace('htBottomBorderSolid','')
+        .replace('htLeftBorderSolid','');
+    } else {
+      if (className.indexOf(borderedClass)== -1){
+        className += " " + borderedClass;
+      }
+      className += " ht" + placement + "Border" + type;
+    }
+
+    return className;
+  }
+
+  function setBorderStyle(row, col, place, type){
+    var cellMeta = this.getCellMeta(row, col),
+      currentClassName = cellMeta.className ? cellMeta.className : "",
+      borderClassName = prepareBorderClass(currentClassName, place,type);
+
+    this.setCellMeta(row, col, 'className', borderClassName);
+    this.render();
+  }
+
+  function prepareBorder (range,place, type) {
+    type = "Solid";
+
+    // WHEN WE WANT TO CHANGE/ADD VIA CSS TOP BORDER THE WHOLE ROW MOVES 1PX VERTICAL
+    // WHEN WE WANT TO CHANGE/ADD VIA CSS RIGHT BORDER THE WHOLE COLUMN MOVES 1PX HORIZONTAL
+    if (range.from.row == range.to.row && range.from.col == range.to.col){
+      switch(place){
+        case "Top":
+          if (range.from.row == 0){ // FIRST ROW
+            setBorderStyle.call(this,range.from.row, range.from.col, place, type);
+          } else{
+            setBorderStyle.call(this,range.from.row-1, range.from.col, "Bottom", type);
+          }
+          break;
+        case "Left":
+          if (range.from.col == 0){ // FIRST COLUMN
+            setBorderStyle.call(this,range.from.row, range.from.col, place, type);
+          } else{
+            setBorderStyle.call(this,range.from.row, range.from.col-1, "Right", type);
+          }
+          break;
+        default:
+          setBorderStyle.call(this,range.from.row, range.from.col, place, type);
+          break;
+      }
+    } else {
+      switch (place) {
+        case "Top":
+          var topCol;
+          if (range.from.row == 0){ // FIRST ROW
+            for(topCol = range.from.col; topCol <= range.to.col; topCol++){
+              setBorderStyle.call(this, range.from.row, topCol, place, type);
+            }
+          } else {
+            for(topCol = range.from.col; topCol <= range.to.col; topCol++){
+              setBorderStyle.call(this, range.from.row-1, topCol, "Bottom", type);
+            }
+          }
+
+          break;
+        case "Right":
+          for(var rowRight = range.from.row; rowRight <=range.to.row; rowRight++){
+            setBorderStyle.call(this,rowRight, range.to.col, place, type);
+          }
+          break;
+        case "Bottom":
+          for(var bottomCol = range.from.col; bottomCol <= range.to.col; bottomCol++){
+            setBorderStyle.call(this, range.to.row, bottomCol, place, type);
+          }
+          break;
+        case "Left":
+          var rowLeft;
+          if (range.from.col == 0){ // FIRST COLUMN
+            for(rowLeft = range.from.row; rowLeft <=range.to.row; rowLeft++){
+              setBorderStyle.call(this,rowLeft, range.from.col, place, type);
+            }
+          } else {
+            for(rowLeft = range.from.row; rowLeft <=range.to.row; rowLeft++){
+              setBorderStyle.call(this,rowLeft, range.from.col-1, "Right", type);
+            }
+          }
+
+          break;
+      }
+    }
+
+  }
+
   function ContextMenu(instance, customOptions){
     this.instance = instance;
     var contextMenu = this;
@@ -290,6 +398,60 @@
             return false;
           }
         }
+//        ,
+//        'hsep6': ContextMenu.SEPARATOR,
+//        'borders': {
+//          name: function () {
+//            var div = document.createElement('div'),
+//              button = document.createElement('button'),
+//              xButton = button.cloneNode(true),
+//              tButton = button.cloneNode(true),
+//              lButton = button.cloneNode(true),
+//              bButton = button.cloneNode(true),
+//              rButton = button.cloneNode(true),
+//
+//              xText = document.createTextNode('X'),
+//              tText = document.createTextNode('top'),
+//              rText = document.createTextNode('right'),
+//              bText = document.createTextNode('bottom'),
+//              lText = document.createTextNode('left');
+//
+//            xButton.appendChild(xText);
+//            tButton.appendChild(tText);
+//            rButton.appendChild(rText);
+//            bButton.appendChild(bText);
+//            lButton.appendChild(lText);
+//
+//            Handsontable.Dom.addClass(xButton,'noBorders');
+//            Handsontable.Dom.addClass(tButton,'Top');
+//            Handsontable.Dom.addClass(rButton,'Right');
+//            Handsontable.Dom.addClass(bButton,'Bottom');
+//            Handsontable.Dom.addClass(lButton,'Left');
+//
+//            div.appendChild(xButton);
+//            div.appendChild(tButton);
+//            div.appendChild(rButton);
+//            div.appendChild(bButton);
+//            div.appendChild(lButton);
+//
+//            return div.outerHTML;
+//          },
+//          callback:function(key, selection ,event){
+//            var className = event.target.className,
+//              type = event.target.tagName;
+//            if (type === "BUTTON") {
+//              console.log('button');
+//              if(className) {
+//                prepareBorder.call(this, this.getSelectedRange(), className);
+//              }
+//            }
+//
+//
+//          },
+//          disabled:function () {
+//            return false;
+//          }
+//        }
       }
     };
 
@@ -347,7 +509,6 @@
       //}
 
       this.show(event.pageY, event.pageX);
-
       $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.close, this));
     }
 
@@ -359,7 +520,7 @@
     var that = this;
 
     this._afterScrollCallback = function () {
-      that.close();
+      // that.close();
     };
 
     this.instance.addHook('afterScrollVertically', this._afterScrollCallback);
@@ -721,10 +882,10 @@
   };
 
   ContextMenu.utils.normalizeSelection = function(selRange){
-   return {
+    return {
       start: selRange.getTopLeftCorner(),
       end: selRange.getBottomRightCorner()
-    };
+    }
   };
 
   ContextMenu.utils.isSeparator = function (cell) {
