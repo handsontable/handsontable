@@ -148,29 +148,30 @@ describe('WalkontableEvent', function () {
     expect(called).toEqual(true);
   });
 
-  it("should not call `onCellMouseOver` callback when clicked on TH", function () {
-    var called = false
+  it("should call `onCellMouseOver` callback when clicked on TH", function () {
+    var called
       , wt = new Walkontable({
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        offsetRow: 10,
-        offsetColumn: 2,
+        offsetRow: 0,
+        offsetColumn: 0,
         height: 200,
         width: 100,
         columnHeaders: [function (col, TH) {
           TH.innerHTML = col + 1;
         }],
         onCellMouseOver: function (event, coords, TD) {
-          called = true
+          called = coords;
         }
       });
     wt.draw();
 
     var $th = $table.find('th:first');
     $th.trigger('mouseover');
-    expect(called).toEqual(false);
+    expect(called.row).toEqual(-1);
+    expect(called.col).toEqual(0);
   });
 
   it("should call `onCellDblClick` callback when clicked on TH", function () {

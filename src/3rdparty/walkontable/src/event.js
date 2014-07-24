@@ -12,16 +12,13 @@ function WalkontableEvent(instance) {
     if (Handsontable.Dom.hasClass(event.target, 'corner')) {
       that.instance.getSetting('onCellCornerMouseDown', event, event.target);
     }
-    else if (cell.TD){
-//      if(cell.TD.nodeName == 'TD' || cell.TD.nodeName == 'TH'){
-        if (that.instance.hasSetting('onCellMouseDown')) {
-          that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, that.instance);
-        }
-//      }
+    else if (cell.TD) {
+      if (that.instance.hasSetting('onCellMouseDown')) {
+        that.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, that.instance);
+      }
     }
 
     if (event.button !== 2) { //if not right mouse button
-//      if (cell.TD && cell.TD.nodeName === 'TD') {
       if (cell.TD) {
         dblClickOrigin[0] = cell.TD;
         clearTimeout(dblClickTimeout[0]);
@@ -39,9 +36,7 @@ function WalkontableEvent(instance) {
       var TD = Handsontable.Dom.closest(event.target, ['TD', 'TH'], TABLE);
       if (TD && TD !== lastMouseOver && Handsontable.Dom.isChildOf(TD, TABLE)) {
         lastMouseOver = TD;
-        if (TD.nodeName === 'TD') {
-          that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(TD), TD, that.instance);
-        }
+        that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(TD), TD, that.instance);
       }
     }
   };
@@ -68,7 +63,6 @@ function WalkontableEvent(instance) {
         if (Handsontable.Dom.hasClass(event.target, 'corner')) {
           that.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD, that.instance);
         }
-//        else if (cell.TD) {
         else {
           that.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, that.instance);
         }
