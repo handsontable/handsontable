@@ -130,9 +130,7 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
       this.instance.getSetting('columnHeaders').length
     );
     this.columnFilter = new WalkontableColumnFilter(
-      this.instance.wtSettings.settings.offsetColumn,
       this.instance.getSetting('totalColumns'),
-      this.instance.getSetting('fixedColumnsLeft'),
       this.instance.getSetting('rowHeaders').length
     );
     this._doDraw();
@@ -306,7 +304,7 @@ WalkontableTable.prototype.getCoords = function (TD) {
   var TR = TD.parentNode;
   var row = Handsontable.Dom.index(TR);
   if (TR.parentNode === this.THEAD) {
-    row = this.rowFilter.visibleColHeadedColumnToSourceColumn(row);
+    row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
   }
   else {
     row = this.rowFilter.visibleToSource(row);

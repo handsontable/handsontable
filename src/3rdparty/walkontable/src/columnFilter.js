@@ -2,14 +2,18 @@
  * WalkontableColumnFilter
  * @constructor
  */
-function WalkontableColumnFilter(offset, total, fixedCount, countTH) {
-  this.offset = offset;
+function WalkontableColumnFilter(total, countTH) {
   this.total = total;
-  this.fixedCount = fixedCount;
   this.countTH = countTH;
 }
 
-WalkontableColumnFilter.prototype = new WalkontableAbstractFilter();
+WalkontableColumnFilter.prototype.visibleToSource = function (n) {
+  return n;
+};
+
+WalkontableColumnFilter.prototype.sourceToVisible = function (n) {
+  return n;
+};
 
 WalkontableColumnFilter.prototype.offsettedTH = function (n) {
   return n - this.countTH;

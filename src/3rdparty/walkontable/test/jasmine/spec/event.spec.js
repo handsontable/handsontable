@@ -23,7 +23,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         width: 100,
         onCellMouseDown: function (event, coords, TD) {
@@ -49,7 +48,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         width: 100,
         onCellMouseOver: function (event, coords, TD) {
@@ -75,7 +73,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         width: 100,
         onCellDblClick: function (event, coords, TD) {
@@ -103,7 +100,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         width: 100
       });
@@ -130,7 +126,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 10,
-        offsetColumn: 2,
         height: 200,
         width: 100,
         columnHeaders: [function (col, TH) {
@@ -156,7 +151,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         width: 100,
         columnHeaders: [function (col, TH) {
@@ -182,7 +176,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 10,
-        offsetColumn: 2,
         height: 200,
         width: 100,
         columnHeaders: [function (col, TH) {
@@ -210,7 +203,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 10,
-        offsetColumn: 2,
         height: 200,
         width: 100,
         onCellDblClick: function (event, coords, TD) {
@@ -238,7 +230,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 10,
-        offsetColumn: 2,
         height: 200,
         width: 100,
         onCellDblClick: function (event, coords, TD) {
@@ -265,7 +256,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         width: 100,
         selections: [
@@ -303,7 +293,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         width: 100,
         selections: [
@@ -344,7 +333,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 10,
-        offsetColumn: 2,
         height: 200,
         width: 100,
         selections: [
@@ -377,7 +365,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 10,
-        offsetColumn: 2,
         height: 200,
         width: 100,
         selections: [
@@ -413,7 +400,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 10,
-        offsetColumn: 2,
         height: 200,
         width: 100,
         onDraw: function () {

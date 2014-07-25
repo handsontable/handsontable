@@ -24,7 +24,6 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 100,
       selections: [
@@ -57,7 +56,6 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 100,
       selections: [
@@ -83,7 +81,6 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 100,
       selections: [
@@ -124,7 +121,6 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 150,
       selections: [
@@ -150,7 +146,6 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 150,
       selections: [
@@ -181,7 +176,6 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 150,
       selections: [
@@ -213,7 +207,6 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 300,
       selections: [
@@ -243,7 +236,6 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 300,
       selections: [
@@ -273,7 +265,6 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 300,
       selections: [
@@ -311,7 +302,6 @@ describe('WalkontableSelection', function () {
         TH.innerHTML = row + 1;
       }],
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 300,
       selections: [
@@ -359,7 +349,6 @@ describe('WalkontableSelection', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         selections: [
           {

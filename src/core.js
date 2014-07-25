@@ -1693,7 +1693,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this.rowOffset = function () {
-    return instance.view.wt.getSetting('offsetRow');
+    return instance.view.wt.getSetting('offsetRow'); //actually offsetRow is the first rendered row, not neccessarily first visible
   };
 
   /**
@@ -1701,7 +1701,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this.colOffset = function () {
-    return instance.view.wt.getSetting('offsetColumn');
+    return 0; //all columns are always rendered
   };
 
   /**
