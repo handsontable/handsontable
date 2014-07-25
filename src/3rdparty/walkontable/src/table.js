@@ -130,9 +130,7 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
       this.instance.getSetting('columnHeaders').length
     );
     this.columnFilter = new WalkontableColumnFilter(
-      this.instance.wtSettings.settings.offsetColumn,
       this.instance.getSetting('totalColumns'),
-      this.instance.getSetting('fixedColumnsLeft'),
       this.instance.getSetting('rowHeaders').length
     );
     this._doDraw();
@@ -183,20 +181,17 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
   this.currentCellCache = new WalkontableClassNameCache();
 
   if (this.instance.selections) {
-    for (r in this.instance.selections) {
-      if (this.instance.selections.hasOwnProperty(r)) {
+    for (var i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
+      this.instance.selections[i].draw();
 
-        this.instance.selections[r].draw();
-
-        if (this.instance.selections[r].settings.className) {
-          classNames.push(this.instance.selections[r].settings.className);
-        }
-        if (this.instance.selections[r].settings.highlightRowClassName) {
-          classNames.push(this.instance.selections[r].settings.highlightRowClassName);
-        }
-        if (this.instance.selections[r].settings.highlightColumnClassName) {
-          classNames.push(this.instance.selections[r].settings.highlightColumnClassName);
-        }
+      if (this.instance.selections[i].settings.className) {
+        classNames.push(this.instance.selections[i].settings.className);
+      }
+      if (this.instance.selections[i].settings.highlightRowClassName) {
+        classNames.push(this.instance.selections[i].settings.highlightRowClassName);
+      }
+      if (this.instance.selections[i].settings.highlightColumnClassName) {
+        classNames.push(this.instance.selections[i].settings.highlightColumnClassName);
       }
     }
   }
@@ -309,7 +304,7 @@ WalkontableTable.prototype.getCoords = function (TD) {
   var TR = TD.parentNode;
   var row = Handsontable.Dom.index(TR);
   if (TR.parentNode === this.THEAD) {
-    row = this.rowFilter.visibleColHeadedColumnToSourceColumn(row);
+    row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
   }
   else {
     row = this.rowFilter.visibleToSource(row);

@@ -921,4 +921,136 @@ describe('ColumnSorting', function () {
     expect(this.$container.find('tbody tr:eq(5) td:eq(1)').text()).toEqual('J');
 
   });
+
+  it('should return updated data at specyfied row after sorted', function () {
+    var hot = handsontable({
+      data:  [
+        [1, "Ted", "Right"],
+        [2, "Frank", "Honest"],
+        [3, "Joan", "Well"],
+        [4, "Sid", "Strong"],
+        [5, "Jane", "Neat"],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      columnSorting: true
+    });
+
+    this.sortByColumn(0);
+
+    expect(getDataAtRow(0)).toEqual([1, "Ted", "Right"]);
+    expect(getDataAtRow(4)).toEqual([5, "Jane", "Neat"]);
+
+    this.sortByColumn(0);
+
+    expect(getDataAtRow(0)).toEqual([5, "Jane", "Neat"]);
+    expect(getDataAtRow(4)).toEqual([1, "Ted", "Right"]);
+
+    this.sortByColumn(0);
+
+    expect(getDataAtRow(0)).toEqual([1, "Ted", "Right"]);
+    expect(getDataAtRow(4)).toEqual([5, "Jane", "Neat"]);
+  });
+
+  it('should return updated data at specyfied col after sorted', function () {
+    var hot = handsontable({
+      data:  [
+        [1, "Ted", "Right"],
+        [2, "Frank", "Honest"],
+        [3, "Joan", "Well"],
+        [4, "Sid", "Strong"],
+        [5, "Jane", "Neat"],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      columnSorting: true
+    });
+
+    this.sortByColumn(0);
+
+    expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
+    expect(getDataAtCol(1)).toEqual(["Ted", "Frank", "Joan", "Sid", "Jane"]);
+
+    this.sortByColumn(0);
+
+    expect(getDataAtCol(0)).toEqual([5, 4, 3, 2, 1]);
+    expect(getDataAtCol(1)).toEqual(["Jane", "Sid",  "Joan", "Frank", "Ted"]);
+
+    this.sortByColumn(0);
+
+    expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
+    expect(getDataAtCol(1)).toEqual(["Ted", "Frank", "Joan", "Sid", "Jane"]);
+  });
+
+
+  it('should return original data source at specyfied row after sorted', function () {
+    var hot = handsontable({
+      data:  [
+        [1, "Ted", "Right"],
+        [2, "Frank", "Honest"],
+        [3, "Joan", "Well"],
+        [4, "Sid", "Strong"],
+        [5, "Jane", "Neat"],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      columnSorting: true
+    });
+
+    this.sortByColumn(0);
+
+    expect(getDataAtRow(0)).toEqual([1, "Ted", "Right"]);
+    expect(getDataAtRow(4)).toEqual([5, "Jane", "Neat"]);
+
+    expect(getSourceDataAtRow(0)).toEqual([1, "Ted", "Right"]);
+    expect(getSourceDataAtRow(4)).toEqual([5, "Jane", "Neat"]);
+
+    this.sortByColumn(0);
+
+    expect(getDataAtRow(0)).toEqual([5, "Jane", "Neat"]);
+    expect(getDataAtRow(4)).toEqual([1, "Ted", "Right"]);
+
+    expect(getSourceDataAtRow(0)).toEqual([1, "Ted", "Right"]);
+    expect(getSourceDataAtRow(4)).toEqual([5, "Jane", "Neat"]);
+
+  });
+
+  it('should return original data source at specyfied col after sorted', function () {
+    var hot = handsontable({
+      data:  [
+        [1, "Ted", "Right"],
+        [2, "Frank", "Honest"],
+        [3, "Joan", "Well"],
+        [4, "Sid", "Strong"],
+        [5, "Jane", "Neat"],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      columnSorting: true
+    });
+
+    this.sortByColumn(0);
+
+    expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
+    expect(getDataAtCol(1)).toEqual(["Ted", "Frank", "Joan", "Sid", "Jane"]);
+
+    expect(getSourceDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
+    expect(getSourceDataAtCol(1)).toEqual(["Ted", "Frank", "Joan", "Sid", "Jane"]);
+
+    this.sortByColumn(0);
+
+    expect(getDataAtCol(0)).toEqual([5, 4, 3, 2, 1]);
+    expect(getDataAtCol(1)).toEqual(["Jane", "Sid",  "Joan", "Frank", "Ted"]);
+
+    expect(getSourceDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
+    expect(getSourceDataAtCol(1)).toEqual(["Ted", "Frank", "Joan", "Sid", "Jane"]);
+
+    this.sortByColumn(0);
+
+    expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
+    expect(getDataAtCol(1)).toEqual(["Ted", "Frank", "Joan", "Sid", "Jane"]);
+
+    expect(getSourceDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
+    expect(getSourceDataAtCol(1)).toEqual(["Ted", "Frank", "Joan", "Sid", "Jane"]);
+  });
 });

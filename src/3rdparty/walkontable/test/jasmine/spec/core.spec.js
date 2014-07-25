@@ -47,7 +47,6 @@ describe('WalkontableCore', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: height,
       width: 200
     });
@@ -69,7 +68,6 @@ describe('WalkontableCore', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       rowHeaders: [function (row, TH) {
         TH.innerHTML = row + 1;
@@ -92,7 +90,6 @@ describe('WalkontableCore', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 400
     });
     wt.draw();
@@ -112,7 +109,6 @@ describe('WalkontableCore', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       width: 100
     });
     wt.draw();
@@ -127,7 +123,6 @@ describe('WalkontableCore', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       width: 100
     });
     wt.draw();
@@ -145,7 +140,6 @@ describe('WalkontableCore', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       width: 100
     });
     wt.draw();

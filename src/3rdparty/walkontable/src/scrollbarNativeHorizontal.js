@@ -2,6 +2,7 @@ function WalkontableHorizontalScrollbarNative(instance) {
   this.instance = instance;
   this.type = 'horizontal';
   this.cellSize = 50;
+  this.offset = 0;
   this.init();
   this.clone = this.makeClone('left');
 }
@@ -112,6 +113,5 @@ WalkontableHorizontalScrollbarNative.prototype.readWindowSize = function () {
 //readSettings (in future merge it with this.prepare?)
 WalkontableHorizontalScrollbarNative.prototype.readSettings = function () {
   this.readWindowSize();
-  this.offset = this.instance.getSetting('offsetColumn');
   this.total = this.instance.getSetting('totalColumns');
 };
