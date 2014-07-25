@@ -27,7 +27,7 @@
       TEMPLATE.setAttribute('bind', '{{}}');
       TEMPLATE.innerHTML = cellProperties.rendererTemplate;
       HTMLTemplateElement.decorate(TEMPLATE);
-      TEMPLATE.model = instance.getDataAtRow(row);
+      TEMPLATE.model = instance.getSourceDataAtRow(row);
       TD.appendChild(TEMPLATE);
     }
     else {

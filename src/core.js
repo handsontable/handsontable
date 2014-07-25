@@ -1301,23 +1301,52 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return value at `col`
+   * Return value at `col`, where `col` is the visible index of the column
    * @param {Number} col
    * @public
-   * @return value (mixed data type)
+   * @return {Array} value (mixed data type)
    */
   this.getDataAtCol = function (col) {
-    return [].concat.apply([], datamap.getRange(new WalkontableCellCoords(0, col), new WalkontableCellCoords(priv.settings.data.length - 1, col), datamap.DESTINATION_RENDERER));
+    var out = [];
+    return out.concat.apply(out, datamap.getRange(new WalkontableCellCoords(0, col), new WalkontableCellCoords(priv.settings.data.length - 1, col), datamap.DESTINATION_RENDERER));
   };
 
   /**
    * Return value at `prop`
    * @param {String} prop
    * @public
-   * @return value (mixed data type)
+   * @return {Array} value (mixed data type)
    */
   this.getDataAtProp = function (prop) {
-    return [].concat.apply([], datamap.getRange(new WalkontableCellCoords(0, datamap.propToCol(prop)), new WalkontableCellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)), datamap.DESTINATION_RENDERER));
+    var out = [];
+    return out.concat.apply(out, datamap.getRange(new WalkontableCellCoords(0, datamap.propToCol(prop)), new WalkontableCellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)), datamap.DESTINATION_RENDERER));
+  };
+
+  /**
+   * Return original source values at 'col'
+   * @param {Number} col
+   * @public
+   * @returns value (mixed data type)
+   */
+  this.getSourceDataAtCol = function (col) {
+    var out = [],
+        data = priv.settings.data;
+
+    for (var i = 0; i < data.length; i++) {
+      out.push(data[i][col]);
+    }
+
+    return out;
+  };
+
+  /**
+   * Return original source values at 'row'
+   * @param {Number} row
+   * @public
+   * @returns value {mixed data type}
+   */
+  this.getSourceDataAtRow = function (row) {
+    return priv.settings.data[row];
   };
 
   /**
@@ -1327,7 +1356,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return value (mixed data type)
    */
   this.getDataAtRow = function (row) {
-    return priv.settings.data[row];
+    var data = datamap.getRange(new WalkontableCellCoords(row, 0), new WalkontableCellCoords(row, this.countCols() - 1), datamap.DESTINATION_RENDERER);
+    return data[0];
   };
 
   /***
