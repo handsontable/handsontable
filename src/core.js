@@ -1304,23 +1304,25 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return value at `col`
+   * Return value at `col`, where `col` is the visible index of the column
    * @param {Number} col
    * @public
-   * @return value (mixed data type)
+   * @return {Array} value (mixed data type)
    */
   this.getDataAtCol = function (col) {
-    return [].concat.apply([], datamap.getRange(new WalkontableCellCoords(0, col), new WalkontableCellCoords(priv.settings.data.length - 1, col), datamap.DESTINATION_RENDERER));
+    var out = [];
+    return out.concat.apply(out, datamap.getRange(new WalkontableCellCoords(0, col), new WalkontableCellCoords(priv.settings.data.length - 1, col), datamap.DESTINATION_RENDERER));
   };
 
   /**
    * Return value at `prop`
    * @param {String} prop
    * @public
-   * @return value (mixed data type)
+   * @return {Array} value (mixed data type)
    */
   this.getDataAtProp = function (prop) {
-    return [].concat.apply([], datamap.getRange(new WalkontableCellCoords(0, datamap.propToCol(prop)), new WalkontableCellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)), datamap.DESTINATION_RENDERER));
+    var out = [];
+    return out.concat.apply(out, datamap.getRange(new WalkontableCellCoords(0, datamap.propToCol(prop)), new WalkontableCellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)), datamap.DESTINATION_RENDERER));
   };
 
   /**
