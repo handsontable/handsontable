@@ -24,17 +24,16 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 100,
-      selections: {
-        current: {
+      selections: [
+        {
           className: 'current'
         }
-      },
+      ],
       onCellMouseDown: function (event, coords, TD) {
-        wt.selections.current.clear();
-        wt.selections.current.add(coords);
+        wt.selections[0].clear();
+        wt.selections[0].add(coords);
         wt.draw();
       }
     });
@@ -57,17 +56,16 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 100,
-      selections: {
-        current: {
+      selections: [
+        {
           className: 'current'
         }
-      }
+      ]
     });
     wt.draw();
-    wt.selections.current.add(new WalkontableCellCoords(0, 0));
+    wt.selections[0].add(new WalkontableCellCoords(0, 0));
 
     var $td1 = $table.find('tbody td:eq(0)');
     expect($td1.hasClass('current')).toEqual(false);
@@ -83,21 +81,20 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 100,
-      selections: {
-        current: {
+      selections: [
+        {
           border: {
             width: 1,
             color: 'red',
             style: 'solid'
           }
         }
-      },
+      ],
       onCellMouseDown: function (event, coords, TD) {
-        wt.selections.current.clear();
-        wt.selections.current.add(coords);
+        wt.selections[0].clear();
+        wt.selections[0].add(coords);
         wt.draw();
       }
     });
@@ -105,7 +102,7 @@ describe('WalkontableSelection', function () {
 
     var $td1 = $table.find('tbody tr:eq(1) td:eq(0)');
     var $td2 = $table.find('tbody tr:eq(2) td:eq(1)');
-    var $top = $(wt.selections.current.border.top);
+    var $top = $(wt.selections[0].border.top);
     $td1.mousedown();
     var pos1 = $top.position();
     expect(pos1.top).toBeGreaterThan(0);
@@ -124,22 +121,21 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 150,
-      selections: {
-        current: {
+      selections: [
+        {
           border: {
             width: 1,
             color: 'red',
             style: 'solid'
           }
         }
-      }
+      ]
     });
     wt.draw();
 
-    wt.selections.current.add([20, 0]);
+    wt.selections[0].add([20, 0]);
     expect(wt.wtTable.getCoords($table.find('tbody tr:first td:first')[0])).toEqual(new WalkontableCellCoords(0, 0));
   });
 
@@ -150,27 +146,26 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 150,
-      selections: {
-        current: {
+      selections: [
+        {
           border: {
             width: 1,
             color: 'red',
             style: 'solid'
           }
         }
-      }
+      ]
     });
     wt.draw();
 
-    wt.selections.current.add(new WalkontableCellCoords(0, 0));
+    wt.selections[0].add(new WalkontableCellCoords(0, 0));
     wt.draw();
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(0);
     wt.scrollVertical(10).draw();
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
-    wt.selections.current.clear();
+    wt.selections[0].clear();
     expect(wt.wtTable.getFirstVisibleRow()).toEqual(10);
   });
 
@@ -181,26 +176,25 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 150,
-      selections: {
-        current: {
+      selections: [
+        {
           border: {
             width: 1,
             color: 'red',
             style: 'solid'
           }
         }
-      }
+      ]
     });
     wt.draw();
 
-    wt.selections.current.add(new WalkontableCellCoords(0, 0));
-    wt.selections.current.add(new WalkontableCellCoords(0, 1));
-    wt.selections.current.clear();
+    wt.selections[0].add(new WalkontableCellCoords(0, 0));
+    wt.selections[0].add(new WalkontableCellCoords(0, 1));
+    wt.selections[0].clear();
 
-    expect(wt.selections.current.cellRange).toEqual(null);
+    expect(wt.selections[0].cellRange).toEqual(null);
   });
 
   it("should highlight cells in selected row & column", function () {
@@ -213,20 +207,19 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 300,
-      selections: {
-        area: {
+      selections: [
+        {
           highlightRowClassName: 'highlightRow',
           highlightColumnClassName: 'highlightColumn'
         }
-      }
+      ]
     });
     wt.draw();
 
-    wt.selections.area.add(new WalkontableCellCoords(0, 0));
-    wt.selections.area.add(new WalkontableCellCoords(0, 1));
+    wt.selections[0].add(new WalkontableCellCoords(0, 0));
+    wt.selections[0].add(new WalkontableCellCoords(0, 1));
     wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(2);
@@ -243,23 +236,22 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 300,
-      selections: {
-        current: {
+      selections: [
+        {
           highlightRowClassName: 'highlightRow',
           highlightColumnClassName: 'highlightColumn'
         },
-        area: {
+        {
           highlightRowClassName: 'highlightRow',
           highlightColumnClassName: 'highlightColumn'
         }
-      }
+      ]
     });
     wt.draw();
 
-    wt.selections.current.add(new WalkontableCellCoords(0, 0));
+    wt.selections[0].add(new WalkontableCellCoords(0, 0));
     wt.draw(true);
 
     expect($table.find('.highlightRow').length).toEqual(3);
@@ -273,23 +265,22 @@ describe('WalkontableSelection', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 300,
-      selections: {
-        area: {
+      selections: [
+        {
           highlightRowClassName: 'highlightRow',
           highlightColumnClassName: 'highlightColumn'
         }
-      }
+      ]
     });
     wt.draw();
 
-    wt.selections.area.add(new WalkontableCellCoords(0, 0));
-    wt.selections.area.add(new WalkontableCellCoords(0, 1));
+    wt.selections[0].add(new WalkontableCellCoords(0, 0));
+    wt.selections[0].add(new WalkontableCellCoords(0, 1));
     wt.draw();
 
-    wt.selections.area.clear();
+    wt.selections[0].clear();
     wt.draw();
 
     expect($table.find('.highlightRow').length).toEqual(0);
@@ -311,20 +302,19 @@ describe('WalkontableSelection', function () {
         TH.innerHTML = row + 1;
       }],
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 300,
-      selections: {
-        area: {
+      selections: [
+        {
           highlightRowClassName: 'highlightRow',
           highlightColumnClassName: 'highlightColumn'
         }
-      }
+      ]
     });
     wt.draw();
 
-    wt.selections.area.add(new WalkontableCellCoords(1, 1));
-    wt.selections.area.add(new WalkontableCellCoords(2, 2));
+    wt.selections[0].add(new WalkontableCellCoords(1, 1));
+    wt.selections[0].add(new WalkontableCellCoords(2, 2));
     wt.draw();
 
     expect($table.find('.highlightRow').length).toEqual(wt.wtTable.columnStrategy.countVisible() * 2 + 2 - 4);
@@ -343,7 +333,7 @@ describe('WalkontableSelection', function () {
     expect($rowHeaders.eq(1).hasClass('highlightRow')).toBe(true);
     expect($rowHeaders.eq(2).hasClass('highlightRow')).toBe(true);
 
-    wt.selections.area.clear();
+    wt.selections[0].clear();
     wt.draw();
 
     expect($table.find('.highlightRow').length).toEqual(0);
@@ -359,25 +349,23 @@ describe('WalkontableSelection', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
-        selections: {
-          current: {
-            className: 'current',
+        selections: [
+          {
             border: {
               width: 1,
               color: 'red',
               style: 'solid'
             }
           }
-        }
+        ]
       });
 
-      wt.selections.current.add(new WalkontableCellCoords(1, 1));
-      wt.selections.current.add(new WalkontableCellCoords(3, 3));
-      var result = wt.selections.current.replace(new WalkontableCellCoords(3, 3), new WalkontableCellCoords(4, 4));
+      wt.selections[0].add(new WalkontableCellCoords(1, 1));
+      wt.selections[0].add(new WalkontableCellCoords(3, 3));
+      var result = wt.selections[0].replace(new WalkontableCellCoords(3, 3), new WalkontableCellCoords(4, 4));
       expect(result).toBe(true);
-      expect(wt.selections.current.getCorners()).toEqual([1, 1, 4, 4]);
+      expect(wt.selections[0].getCorners()).toEqual([1, 1, 4, 4]);
     });
   });
 });

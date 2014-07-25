@@ -8,8 +8,6 @@ function WalkontableSettings(instance, settings) {
     debug: false, //shows WalkontableDebugOverlay
 
     //presentation mode
-    scrollH: 'auto', //values: scroll (always show scrollbar), auto (show scrollbar if table does not fit in the container), none (never show scrollbar)
-    scrollV: 'auto', //values: see above
     stretchH: 'none', //values: all, last, none
     currentRowClassName: null,
     currentColumnClassName: null,
@@ -17,7 +15,6 @@ function WalkontableSettings(instance, settings) {
     //data source
     data: void 0,
     offsetRow: 0,
-    offsetColumn: 0,
     fixedColumnsLeft: 0,
     fixedRowsTop: 0,
     rowHeaders: function () {

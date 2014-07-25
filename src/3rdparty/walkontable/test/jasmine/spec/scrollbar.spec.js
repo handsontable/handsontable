@@ -24,7 +24,6 @@ describe('WalkontableScrollbar', function () {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       offsetRow: 0,
-      offsetColumn: 0,
       height: 200,
       width: 100
     });
@@ -33,7 +32,7 @@ describe('WalkontableScrollbar', function () {
     expect($table.parents('.wtHolder').length).toEqual(1);
   });
 
-  it("scrolling should have no effect when totalRows/Columns is smaller than height/width", function () {
+  it("scrolling should have no effect when totalRows is smaller than height", function () {
     this.data.splice(5, this.data.length - 5);
 
     try {
@@ -43,16 +42,10 @@ describe('WalkontableScrollbar', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         width: 500
       });
       wt.draw();
-
-      wt.wtScrollbars.horizontal.onScroll(1);
-      expect(wt.getSetting('offsetColumn')).toEqual(0);
-      wt.wtScrollbars.horizontal.onScroll(-1);
-      expect(wt.getSetting('offsetColumn') + 1).toEqual(1); //+1 so it can be distinguished from previous one
 
       wt.wtScrollbars.vertical.onScroll(1);
       expect(wt.getSetting('offsetRow') + 2).toEqual(2); //+2 so it can be distinguished from previous one

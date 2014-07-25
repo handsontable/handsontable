@@ -108,7 +108,7 @@
              <div id="example1" style="width: 400px; height: 300px; overflow: scroll"></div>
              */
 
-            var myData = createSpreadsheetData(1000, 1000);
+            var myData = createSpreadsheetData(1000, 100);
 
             $("#example1").handsontable({
               data: myData,
@@ -124,8 +124,7 @@
 
             setInterval(function () {
               var str = '';
-              str += 'offsetRow: ' + ht.view.wt.getSetting('offsetRow') + '\n';
-              str += 'offsetColumn: ' + ht.view.wt.getSetting('offsetColumn');
+              str += 'offsetRow: ' + ht.view.wt.getSetting('offsetRow');
               $('#positions').html(str);
             }, 100);
           </script>

@@ -23,7 +23,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         width: 100,
         onCellMouseDown: function (event, coords, TD) {
@@ -49,7 +48,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         width: 100,
         onCellMouseOver: function (event, coords, TD) {
@@ -75,7 +73,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         width: 100,
         onCellDblClick: function (event, coords, TD) {
@@ -103,7 +100,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         width: 100
       });
@@ -130,7 +126,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 10,
-        offsetColumn: 2,
         height: 200,
         width: 100,
         columnHeaders: [function (col, TH) {
@@ -156,7 +151,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         width: 100,
         columnHeaders: [function (col, TH) {
@@ -182,7 +176,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 10,
-        offsetColumn: 2,
         height: 200,
         width: 100,
         columnHeaders: [function (col, TH) {
@@ -210,7 +203,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 10,
-        offsetColumn: 2,
         height: 200,
         width: 100,
         onCellDblClick: function (event, coords, TD) {
@@ -238,7 +230,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 10,
-        offsetColumn: 2,
         height: 200,
         width: 100,
         onCellDblClick: function (event, coords, TD) {
@@ -265,11 +256,10 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         width: 100,
-        selections: {
-          current: {
+        selections: [
+          {
             className: 'current',
             border: {
               width: 1,
@@ -277,13 +267,13 @@ describe('WalkontableEvent', function () {
               style: 'solid'
             }
           }
-        },
+        ],
         onCellMouseDown: function (event, coords, TD) {
           myCoords = coords;
           myTD = TD;
         }
       });
-    wt.selections.current.add(new WalkontableCellCoords(1, 1));
+    wt.selections[0].add(new WalkontableCellCoords(1, 1));
     wt.draw();
 
     var $td = $table.find('tbody tr:eq(1) td:eq(1)');
@@ -303,11 +293,10 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 0,
-        offsetColumn: 0,
         height: 200,
         width: 100,
-        selections: {
-          current: {
+        selections: [
+          {
             className: 'current',
             border: {
               width: 1,
@@ -315,13 +304,13 @@ describe('WalkontableEvent', function () {
               style: 'solid'
             }
           }
-        },
+        ],
         onCellDblClick: function (event, coords, TD) {
           myCoords = coords;
           myTD = TD;
         }
       });
-    wt.selections.current.add(new WalkontableCellCoords(1, 1));
+    wt.selections[0].add(new WalkontableCellCoords(1, 1));
     wt.draw();
 
     var $td = $table.find('tbody tr:eq(1) td:eq(1)');
@@ -344,11 +333,10 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 10,
-        offsetColumn: 2,
         height: 200,
         width: 100,
-        selections: {
-          current: {
+        selections: [
+          {
             className: 'current',
             border: {
               width: 1,
@@ -356,12 +344,12 @@ describe('WalkontableEvent', function () {
               style: 'solid'
             }
           }
-        },
+        ],
         onCellCornerMouseDown: function (event) {
           clicked = true;
         }
       });
-    wt.selections.current.add(new WalkontableCellCoords(10, 2));
+    wt.selections[0].add(new WalkontableCellCoords(10, 2));
     wt.draw();
 
     var $td = $table.parents('.wtHolder').find('.current.corner');
@@ -377,11 +365,10 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 10,
-        offsetColumn: 2,
         height: 200,
         width: 100,
-        selections: {
-          current: {
+        selections: [
+          {
             className: 'current',
             border: {
               width: 1,
@@ -389,9 +376,9 @@ describe('WalkontableEvent', function () {
               style: 'solid'
             }
           }
-        }
+        ]
       });
-    wt.selections.current.add(new WalkontableCellCoords(10, 2));
+    wt.selections[0].add(new WalkontableCellCoords(10, 2));
     wt.draw();
 
     var $td = $table.parents('.wtHolder').find('.current.corner');
@@ -413,7 +400,6 @@ describe('WalkontableEvent', function () {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         offsetRow: 10,
-        offsetColumn: 2,
         height: 200,
         width: 100,
         onDraw: function () {

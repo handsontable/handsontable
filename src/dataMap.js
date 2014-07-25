@@ -344,7 +344,7 @@
   Handsontable.DataMap.prototype.spliceRow = function (row, index, amount/*, elements...*/) {
     var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : [];
 
-    var rowData = this.instance.getDataAtRow(row);
+    var rowData = this.instance.getSourceDataAtRow(row);
     var removed = rowData.slice(index, index + amount);
     var after = rowData.slice(index + amount);
 

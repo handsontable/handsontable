@@ -373,8 +373,7 @@ WalkontableTableRenderer.prototype.refreshStretching = function () {
   var instance = this.instance
     , stretchH = instance.getSetting('stretchH')
     , totalRows = instance.getSetting('totalRows')
-    , totalColumns = instance.getSetting('totalColumns')
-    , offsetColumn = instance.getSetting('offsetColumn');
+    , totalColumns = instance.getSetting('totalColumns');
 
   var containerWidthFn = function (cacheWidth) {
     var viewportWidth = that.instance.wtViewport.getViewportWidth(cacheWidth);

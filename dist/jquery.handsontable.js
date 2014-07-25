@@ -1,12 +1,12 @@
 /**
- * Handsontable 0.11.0-beta2
+ * Handsontable 0.11.0-beta3
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012-2014 Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jul 24 2014 13:18:23 GMT+0200 (CEST)
+ * Date: Fri Jul 25 2014 11:41:59 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -1488,23 +1488,52 @@ Handsontable.Core = function (rootElement, userSettings) {
   };
 
   /**
-   * Return value at `col`
+   * Return value at `col`, where `col` is the visible index of the column
    * @param {Number} col
    * @public
-   * @return value (mixed data type)
+   * @return {Array} value (mixed data type)
    */
   this.getDataAtCol = function (col) {
-    return [].concat.apply([], datamap.getRange(new WalkontableCellCoords(0, col), new WalkontableCellCoords(priv.settings.data.length - 1, col), datamap.DESTINATION_RENDERER));
+    var out = [];
+    return out.concat.apply(out, datamap.getRange(new WalkontableCellCoords(0, col), new WalkontableCellCoords(priv.settings.data.length - 1, col), datamap.DESTINATION_RENDERER));
   };
 
   /**
    * Return value at `prop`
    * @param {String} prop
    * @public
-   * @return value (mixed data type)
+   * @return {Array} value (mixed data type)
    */
   this.getDataAtProp = function (prop) {
-    return [].concat.apply([], datamap.getRange(new WalkontableCellCoords(0, datamap.propToCol(prop)), new WalkontableCellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)), datamap.DESTINATION_RENDERER));
+    var out = [];
+    return out.concat.apply(out, datamap.getRange(new WalkontableCellCoords(0, datamap.propToCol(prop)), new WalkontableCellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)), datamap.DESTINATION_RENDERER));
+  };
+
+  /**
+   * Return original source values at 'col'
+   * @param {Number} col
+   * @public
+   * @returns value (mixed data type)
+   */
+  this.getSourceDataAtCol = function (col) {
+    var out = [],
+        data = priv.settings.data;
+
+    for (var i = 0; i < data.length; i++) {
+      out.push(data[i][col]);
+    }
+
+    return out;
+  };
+
+  /**
+   * Return original source values at 'row'
+   * @param {Number} row
+   * @public
+   * @returns value {mixed data type}
+   */
+  this.getSourceDataAtRow = function (row) {
+    return priv.settings.data[row];
   };
 
   /**
@@ -1514,7 +1543,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return value (mixed data type)
    */
   this.getDataAtRow = function (row) {
-    return priv.settings.data[row];
+    var data = datamap.getRange(new WalkontableCellCoords(row, 0), new WalkontableCellCoords(row, this.countCols() - 1), datamap.DESTINATION_RENDERER);
+    return data[0];
   };
 
   /***
@@ -1880,7 +1910,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this.rowOffset = function () {
-    return instance.view.wt.getSetting('offsetRow');
+    return instance.view.wt.getSetting('offsetRow'); //actually offsetRow is the first rendered row, not neccessarily first visible
   };
 
   /**
@@ -1888,7 +1918,7 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this.colOffset = function () {
-    return instance.view.wt.getSetting('offsetColumn');
+    return 0; //all columns are always rendered
   };
 
   /**
@@ -2108,7 +2138,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.11.0-beta2'; //inserted by grunt from package.json
+  this.version = '0.11.0-beta3'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {};
@@ -2922,7 +2952,6 @@ Handsontable.TableView = function (instance) {
     totalRows: instance.countRows,
     totalColumns: instance.countCols,
     offsetRow: 0,
-    offsetColumn: 0,
     fixedColumnsLeft: function () {
       return that.settings.fixedColumnsLeft;
     },
@@ -2954,8 +2983,8 @@ Handsontable.TableView = function (instance) {
       Handsontable.hooks.run(that.instance, 'afterRenderer', TD, row, col, prop, value, cellProperties);
 
     },
-    selections: {
-      current: {
+    selections: [
+      {
         className: 'current',
         border: {
           width: 2,
@@ -2966,7 +2995,7 @@ Handsontable.TableView = function (instance) {
           }
         }
       },
-      area: {
+      {
         className: 'area',
         border: {
           width: 1,
@@ -2977,11 +3006,12 @@ Handsontable.TableView = function (instance) {
           }
         }
       },
-      highlight: {
+      {
+        className: 'highlight',
         highlightRowClassName: that.settings.currentRowClassName,
         highlightColumnClassName: that.settings.currentColClassName
       },
-      fill: {
+      {
         className: 'fill',
         border: {
           width: 1,
@@ -2989,7 +3019,7 @@ Handsontable.TableView = function (instance) {
           //style: 'solid' // not used
         }
       }
-    },
+    ],
     hideBorderOnMouseDownOver: function () {
       return that.settings.fragmentSelection;
     },
@@ -4474,7 +4504,7 @@ Handsontable.helper.toString = function (obj) {
   Handsontable.DataMap.prototype.spliceRow = function (row, index, amount/*, elements...*/) {
     var elements = 4 <= arguments.length ? [].slice.call(arguments, 3) : [];
 
-    var rowData = this.instance.getDataAtRow(row);
+    var rowData = this.instance.getSourceDataAtRow(row);
     var removed = rowData.slice(index, index + amount);
     var after = rowData.slice(index + amount);
 
@@ -4727,7 +4757,7 @@ Handsontable.helper.toString = function (obj) {
       TEMPLATE.setAttribute('bind', '{{}}');
       TEMPLATE.innerHTML = cellProperties.rendererTemplate;
       HTMLTemplateElement.decorate(TEMPLATE);
-      TEMPLATE.model = instance.getDataAtRow(row);
+      TEMPLATE.model = instance.getSourceDataAtRow(row);
       TD.appendChild(TEMPLATE);
     }
     else {
@@ -4741,6 +4771,7 @@ Handsontable.helper.toString = function (obj) {
   Handsontable.renderers.registerRenderer('text', TextRenderer);
 
 })(Handsontable);
+
 (function (Handsontable) {
 
   var clonableWRAPPER = document.createElement('DIV');
@@ -10354,20 +10385,20 @@ function Storage(prefix) {
     instance.setDataAtRowProp(data, null, null, 'undo');
 
     for (var i = 0, len = data.length; i < len; i++) {
-     if(instance.getSettings().minSpareRows && 
+     if(instance.getSettings().minSpareRows &&
       data[i][0] + 1 + instance.getSettings().minSpareRows === instance.countRows()
       && emptyRowsAtTheEnd == instance.getSettings().minSpareRows) {
         instance.alter('remove_row', parseInt(data[i][0]+1,10), instance.getSettings().minSpareRows);
-        
+
         instance.undoRedo.doneActions.pop();
 
       }
-      
-      if (instance.getSettings().minSpareCols && 
+
+      if (instance.getSettings().minSpareCols &&
       data[i][1] + 1 + instance.getSettings().minSpareCols === instance.countCols()
       && emptyColsAtTheEnd == instance.getSettings().minSpareCols) {
         instance.alter('remove_col', parseInt(data[i][1]+1,10), instance.getSettings().minSpareCols);
-        
+
         instance.undoRedo.doneActions.pop();
       }
     }
@@ -10442,7 +10473,7 @@ function Storage(prefix) {
   Handsontable.UndoRedo.RemoveColumnAction.prototype.undo = function (instance, undoneCallback) {
     var row, spliceArgs;
     for (var i = 0, len = instance.getData().length; i < len; i++) {
-      row = instance.getDataAtRow(i);
+      row = instance.getSourceDataAtRow(i);
 
       spliceArgs = [this.index, 0];
       Array.prototype.push.apply(spliceArgs, this.data[i]);
@@ -10551,6 +10582,7 @@ function Storage(prefix) {
   Handsontable.hooks.add('afterUpdateSettings', init);
 
 })(Handsontable);
+
 /**
  * Plugin used to scroll Handsontable by selecting a cell and dragging outside of visible viewport
  * @constructor
@@ -12431,49 +12463,6 @@ WalkontableOverlay.prototype.destroy = function () {
   $(document.body).off('.' + this.clone.guid);
 };
 /**
- * WalkontableAbstractFilter (WalkontableColumnFilter and WalkontableRowFilter inherit from this)
- * @constructor
- */
-function WalkontableAbstractFilter() {
-  this.offset = 0;
-  this.total = 0;
-  this.fixedCount = 0;
-}
-
-WalkontableAbstractFilter.prototype.offsetted = function (n) {
-  return n + this.offset;
-};
-
-WalkontableAbstractFilter.prototype.unOffsetted = function (n) {
-  return n - this.offset;
-};
-
-WalkontableAbstractFilter.prototype.fixed = function (n) {
-  if (n < this.fixedCount) {
-    return n - this.offset;
-  }
-  else {
-    return n;
-  }
-};
-
-WalkontableAbstractFilter.prototype.unFixed = function (n) {
-  if (n < this.fixedCount) {
-    return n + this.offset;
-  }
-  else {
-    return n;
-  }
-};
-
-WalkontableAbstractFilter.prototype.visibleToSource = function (n) {
-  return this.offsetted(this.fixed(n));
-};
-
-WalkontableAbstractFilter.prototype.sourceToVisible = function (n) {
-  return this.unOffsetted(this.unFixed(n));
-};
-/**
  * WalkontableAbstractStrategy (WalkontableColumnStrategy and WalkontableRowStrategy inherit from this)
  * @constructor
  */
@@ -12556,7 +12545,7 @@ function WalkontableBorder(instance, settings) {
     instance.wtTable.hider.appendChild(instance.wtTable.bordersHolder);
 
   }
-  instance.wtTable.bordersHolder.appendChild(this.main);
+  instance.wtTable.bordersHolder.insertBefore(this.main, instance.wtTable.bordersHolder.firstChild);
 
   var down = false;
   var $body = $(document.body);
@@ -12985,14 +12974,18 @@ WalkontableClassNameCache.prototype.test = function (r, c, cls) {
  * WalkontableColumnFilter
  * @constructor
  */
-function WalkontableColumnFilter(offset, total, fixedCount, countTH) {
-  this.offset = offset;
+function WalkontableColumnFilter(total, countTH) {
   this.total = total;
-  this.fixedCount = fixedCount;
   this.countTH = countTH;
 }
 
-WalkontableColumnFilter.prototype = new WalkontableAbstractFilter();
+WalkontableColumnFilter.prototype.visibleToSource = function (n) {
+  return n;
+};
+
+WalkontableColumnFilter.prototype.sourceToVisible = function (n) {
+  return n;
+};
 
 WalkontableColumnFilter.prototype.offsettedTH = function (n) {
   return n - this.countTH;
@@ -13127,7 +13120,7 @@ function Walkontable(settings) {
     this.wtScroll = new WalkontableScroll(this);
     this.wtViewport = settings.cloneSource.wtViewport;
     this.wtEvent = new WalkontableEvent(this);
-    this.selections = this.cloneSource.selections.makeClone(this);
+    this.selections = this.generateSelectionClones(this.cloneSource.selections);
   }
   else {
     this.wtSettings = new WalkontableSettings(this, settings);
@@ -13135,7 +13128,8 @@ function Walkontable(settings) {
     this.wtScroll = new WalkontableScroll(this);
     this.wtViewport = new WalkontableViewport(this);
     this.wtEvent = new WalkontableEvent(this);
-    this.selections = new WalkontableSelections(this, this.getSetting('selections'));
+    var selectionSettings = this.getSetting('selections');
+    this.selections = selectionSettings ? this.generateSelections(selectionSettings) : [];
 
     this.wtScrollbars = new WalkontableScrollbars(this);
   }
@@ -13165,9 +13159,8 @@ Walkontable.prototype.draw = function (selectionsOnly) {
     return;
   }
 
-  selectionsOnly = selectionsOnly && this.getSetting('offsetRow') === this.lastOffsetRow && this.getSetting('offsetColumn') === this.lastOffsetColumn;
+  selectionsOnly = selectionsOnly && this.getSetting('offsetRow') === this.lastOffsetRow;
   this.lastOffsetRow = this.getSetting('offsetRow');
-  this.lastOffsetColumn = this.getSetting('offsetColumn');
 
   var totalRows = this.getSetting('totalRows');
 
@@ -13227,6 +13220,30 @@ Walkontable.prototype.getSetting = function (key, param1, param2, param3, param4
 
 Walkontable.prototype.hasSetting = function (key) {
   return this.wtSettings.has(key);
+};
+
+Walkontable.prototype.generateSelections = function (settings) {
+  var selections = [];
+  for (var i = 0, ilen = settings.length; i < ilen; i++) {
+    var sel = new WalkontableSelection(this, settings[i]);
+    selections.push(sel);
+    if (sel.settings.className) {
+      selections[sel.settings.className] = sel; //create shorthand access
+    }
+  }
+  return selections;
+};
+
+Walkontable.prototype.generateSelectionClones = function (selections) {
+  var clones = [];
+  for (var i = 0, ilen = selections.length; i < ilen; i++) {
+    var sel = selections[i].makeClone(this);
+    clones.push(sel);
+    if (sel.settings.className) {
+      clones[sel.settings.className] = sel; //create shorthand access
+    }
+  }
+  return clones;
 };
 
 Walkontable.prototype.destroy = function () {
@@ -13505,17 +13522,49 @@ function WalkontableRowFilter(offset, total, fixedCount, countTH) {
   this.countTH = countTH;
 }
 
-WalkontableRowFilter.prototype = new WalkontableAbstractFilter();
+WalkontableRowFilter.prototype.offsetted = function (n) {
+  return n + this.offset;
+};
+
+WalkontableRowFilter.prototype.unOffsetted = function (n) {
+  return n - this.offset;
+};
+
+WalkontableRowFilter.prototype.fixed = function (n) {
+  if (n < this.fixedCount) {
+    return n - this.offset;
+  }
+  else {
+    return n;
+  }
+};
+
+WalkontableRowFilter.prototype.unFixed = function (n) {
+  if (n < this.fixedCount) {
+    return n + this.offset;
+  }
+  else {
+    return n;
+  }
+};
+
+WalkontableRowFilter.prototype.visibleToSource = function (n) {
+  return this.offsetted(this.fixed(n));
+};
+
+WalkontableRowFilter.prototype.sourceToVisible = function (n) {
+  return this.unOffsetted(this.unFixed(n));
+};
 
 WalkontableRowFilter.prototype.offsettedTH = function (n) {
   return n - this.countTH;
 };
 
-WalkontableRowFilter.prototype.visibleColHeadedColumnToSourceColumn = function (n) {
+WalkontableRowFilter.prototype.visibleColHeadedRowToSourceRow = function (n) {
   return this.visibleToSource(this.offsettedTH(n));
 };
 
-WalkontableRowFilter.prototype.sourceColumnToVisibleColHeadedColumn = function (n) {
+WalkontableRowFilter.prototype.sourceRowToVisibleColHeadedRow = function (n) {
   return this.unOffsettedTH(this.sourceToVisible(n));
 };
 
@@ -13650,35 +13699,8 @@ WalkontableScroll.prototype.scrollVertical = function (delta) {
 };
 
 WalkontableScroll.prototype.scrollHorizontal = function (delta) {
-  if (!this.instance.drawn) {
-    throw new Error('scrollHorizontal can only be called after table was drawn to DOM');
-  }
-
-  var instance = this.instance
-    , newOffset
-    , offset = instance.getSetting('offsetColumn')
-    , fixedCount = instance.getSetting('fixedColumnsLeft')
-    , total = instance.getSetting('totalColumns')
-    , maxSize = instance.wtViewport.getViewportWidth();
-
-  if (total > 0) {
-    newOffset = this.scrollLogicHorizontal(delta, offset, total, fixedCount, maxSize, function (col) {
-      if (col - offset < fixedCount && col - offset >= 0) {
-        return instance.getSetting('columnWidth', col - offset);
-      }
-      else {
-        return instance.getSetting('columnWidth', col);
-      }
-    });
-  }
-  else {
-    newOffset = 0;
-  }
-
-  if (newOffset !== offset) {
-    this.instance.wtScrollbars.horizontal.scrollTo(newOffset);
-  }
-  return instance;
+  this.instance.wtScrollbars.horizontal.scrollTo(delta);
+  return this.instance;
 };
 
 WalkontableScroll.prototype.scrollLogicVertical = function (delta, offset, total, fixedCount, maxSize, cellSizeFn) {
@@ -13695,42 +13717,6 @@ WalkontableScroll.prototype.scrollLogicVertical = function (delta, offset, total
   return newOffset;
 };
 
-WalkontableScroll.prototype.scrollLogicHorizontal = function (delta, offset, total, fixedCount, maxSize, cellSizeFn) {
-  var newOffset = offset + delta
-    , sum = 0
-    , col;
-
-  if (newOffset > fixedCount) {
-    if (newOffset >= total - fixedCount) {
-      newOffset = total - fixedCount - 1;
-    }
-
-    col = newOffset;
-    while (sum < maxSize && col < total) {
-      sum += cellSizeFn(col);
-      col++;
-    }
-
-    if (sum < maxSize) {
-      while (newOffset > 0) {
-        //if sum still less than available width, we cannot scroll that far (must move offset to the left)
-        sum += cellSizeFn(newOffset - 1);
-        if (sum < maxSize) {
-          newOffset--;
-        }
-        else {
-          break;
-        }
-      }
-    }
-  }
-  else if (newOffset < 0) {
-    newOffset = 0;
-  }
-
-  return newOffset;
-};
-
 /**
  * Scrolls viewport to a cell by minimum number of cells
  * @param {WalkontableCellCoords} coords
@@ -13741,11 +13727,8 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
   }
 
   var offsetRow = this.instance.getSetting('offsetRow')
-    , offsetColumn = this.instance.getSetting('offsetColumn')
     , totalRows = this.instance.getSetting('totalRows')
-    , totalColumns = this.instance.getSetting('totalColumns')
-    , fixedRowsTop = this.instance.getSetting('fixedRowsTop')
-    , fixedColumnsLeft = this.instance.getSetting('fixedColumnsLeft');
+    , totalColumns = this.instance.getSetting('totalColumns');
 
 
   if (coords.row < 0 || coords.row > totalRows - 1) {
@@ -13767,7 +13750,7 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
       this.scrollViewport(coords)
     }
 
-  } else if (coords.row >= this.instance.getSetting('fixedColumnsLeft')){
+  } else if (coords.row >= this.instance.getSetting('fixedRowsTop')){
     this.scrollVertical(coords.row - this.instance.wtTable.getFirstVisibleRow());
   }
 };
@@ -13897,6 +13880,7 @@ function WalkontableHorizontalScrollbarNative(instance) {
   this.instance = instance;
   this.type = 'horizontal';
   this.cellSize = 50;
+  this.offset = 0;
   this.init();
   this.clone = this.makeClone('left');
 }
@@ -14007,7 +13991,6 @@ WalkontableHorizontalScrollbarNative.prototype.readWindowSize = function () {
 //readSettings (in future merge it with this.prepare?)
 WalkontableHorizontalScrollbarNative.prototype.readSettings = function () {
   this.readWindowSize();
-  this.offset = this.instance.getSetting('offsetColumn');
   this.total = this.instance.getSetting('totalColumns');
 };
 function WalkontableVerticalScrollbarNative(instance) {
@@ -14374,30 +14357,6 @@ WalkontableSelection.prototype.makeClone = function (instance) {
 
 };
 
-function WalkontableSelections(instance, config){
-  if (config) {
-    for (var i in config) {
-      if (config.hasOwnProperty(i)) {
-        this[i] = new WalkontableSelection(instance, config[i]);
-      }
-    }
-  }
-}
-
-WalkontableSelections.prototype.makeClone = function (instance) {
-  function WalkontableSelectionsClone(){}
-
-  var clone = new WalkontableSelectionsClone();
-
-  for (var selectionName in this){
-    if (this.hasOwnProperty(selectionName)){
-      clone[selectionName] = this[selectionName].makeClone(instance);
-    }
-  }
-
-  return clone;
-
-};
 function WalkontableSettings(instance, settings) {
   var that = this;
   this.instance = instance;
@@ -14408,8 +14367,6 @@ function WalkontableSettings(instance, settings) {
     debug: false, //shows WalkontableDebugOverlay
 
     //presentation mode
-    scrollH: 'auto', //values: scroll (always show scrollbar), auto (show scrollbar if table does not fit in the container), none (never show scrollbar)
-    scrollV: 'auto', //values: see above
     stretchH: 'none', //values: all, last, none
     currentRowClassName: null,
     currentColumnClassName: null,
@@ -14417,7 +14374,6 @@ function WalkontableSettings(instance, settings) {
     //data source
     data: void 0,
     offsetRow: 0,
-    offsetColumn: 0,
     fixedColumnsLeft: 0,
     fixedRowsTop: 0,
     rowHeaders: function () {
@@ -14643,9 +14599,7 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
       this.instance.getSetting('columnHeaders').length
     );
     this.columnFilter = new WalkontableColumnFilter(
-      this.instance.wtSettings.settings.offsetColumn,
       this.instance.getSetting('totalColumns'),
-      this.instance.getSetting('fixedColumnsLeft'),
       this.instance.getSetting('rowHeaders').length
     );
     this._doDraw();
@@ -14696,20 +14650,17 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
   this.currentCellCache = new WalkontableClassNameCache();
 
   if (this.instance.selections) {
-    for (r in this.instance.selections) {
-      if (this.instance.selections.hasOwnProperty(r)) {
+    for (var i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
+      this.instance.selections[i].draw();
 
-        this.instance.selections[r].draw();
-
-        if (this.instance.selections[r].settings.className) {
-          classNames.push(this.instance.selections[r].settings.className);
-        }
-        if (this.instance.selections[r].settings.highlightRowClassName) {
-          classNames.push(this.instance.selections[r].settings.highlightRowClassName);
-        }
-        if (this.instance.selections[r].settings.highlightColumnClassName) {
-          classNames.push(this.instance.selections[r].settings.highlightColumnClassName);
-        }
+      if (this.instance.selections[i].settings.className) {
+        classNames.push(this.instance.selections[i].settings.className);
+      }
+      if (this.instance.selections[i].settings.highlightRowClassName) {
+        classNames.push(this.instance.selections[i].settings.highlightRowClassName);
+      }
+      if (this.instance.selections[i].settings.highlightColumnClassName) {
+        classNames.push(this.instance.selections[i].settings.highlightColumnClassName);
       }
     }
   }
@@ -14822,7 +14773,7 @@ WalkontableTable.prototype.getCoords = function (TD) {
   var TR = TD.parentNode;
   var row = Handsontable.Dom.index(TR);
   if (TR.parentNode === this.THEAD) {
-    row = this.rowFilter.visibleColHeadedColumnToSourceColumn(row);
+    row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
   }
   else {
     row = this.rowFilter.visibleToSource(row);
@@ -15339,8 +15290,7 @@ WalkontableTableRenderer.prototype.refreshStretching = function () {
   var instance = this.instance
     , stretchH = instance.getSetting('stretchH')
     , totalRows = instance.getSetting('totalRows')
-    , totalColumns = instance.getSetting('totalColumns')
-    , offsetColumn = instance.getSetting('offsetColumn');
+    , totalColumns = instance.getSetting('totalColumns');
 
   var containerWidthFn = function (cacheWidth) {
     var viewportWidth = that.instance.wtViewport.getViewportWidth(cacheWidth);
