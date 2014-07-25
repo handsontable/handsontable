@@ -561,6 +561,11 @@
   ContextMenu.prototype.show = function(top, left){
     this.menu.style.display = 'block';
 
+    // DEFAULT Z-INDEX FOR TWITTER BOOTSTRAP IS 1050
+    if(checkBootstrapModal()) {
+      this.menu.style.zIndex = 1060;
+    }
+
     $(this.menu)
       .off('mousedown.htContextMenu')
       .on('mousedown.htContextMenu', Handsontable.helper.proxy(this.performAction, this));
@@ -969,6 +974,11 @@
     }
 
     this.view.wt.wtScrollbars.vertical.fixedContainer.style.height = realEntrySize + realSeparatorHeight + "px";
+  }
+
+  function checkBootstrapModal() {
+    var modals = document.getElementsByClassName('modal');
+    return modals.length > 0;
   }
 
   function init(){
