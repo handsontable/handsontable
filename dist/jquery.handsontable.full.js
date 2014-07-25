@@ -3274,7 +3274,7 @@ Handsontable.TableView.prototype.mainViewIsActive = function () {
       }
 
       return instances[hotInstance.guid];
-    }
+    };
 
   }
 
