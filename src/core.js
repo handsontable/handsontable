@@ -1804,7 +1804,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       if(instance.view.activeWt.wtTable.oversizedRows) {
         return instance.view.activeWt.wtTable.oversizedRows[row];
       }
-   }
+   };
 
 
   /**

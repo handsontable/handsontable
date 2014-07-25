@@ -117,12 +117,15 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
       this.instance.wtViewport.resetSettings();
     }
     var offsetRow;
-    if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
+    if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay
+        || this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative
+        || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
       offsetRow = 0;
     }
     else {
       offsetRow = this.instance.wtSettings.settings.offsetRow;
     }
+
     this.rowFilter = new WalkontableRowFilter(
       offsetRow,
       this.instance.getSetting('totalRows'),
@@ -263,6 +266,10 @@ WalkontableTable.prototype.getCoords = function (TD) {
     row,
     this.columnFilter.visibleRowHeadedColumnToSourceColumn(TD.cellIndex)
   );
+};
+
+WalkontableTable.prototype.getTrForRow = function (row) {
+  return this.TBODY.childNodes[this.rowFilter.sourceToVisible(row)];
 };
 
 //returns -1 if no row is visible

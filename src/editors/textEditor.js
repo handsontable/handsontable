@@ -87,6 +87,7 @@
   };
 
   TextEditor.prototype.close = function(){
+    this.reallocateTextarea(true);
     this.textareaParentStyle.display = 'none';
 
     if (document.activeElement === this.TEXTAREA) {
@@ -127,10 +128,131 @@
 
     var that = this;
     Handsontable.hooks.add('afterRender', function () {
+//      if(that.compensateOfffset() < 15) {
+//        debugger;
+//      }
       that.instance._registerTimeout('refresh_editor_dimensions', function () {
         that.refreshDimensions();
       }, 0);
     });
+  };
+
+  TextEditor.prototype.getEditedCell = function () {
+    var editorSection = this.checkEditorSection()
+      , editedCell;
+
+    switch (editorSection) {
+      case 'top':
+        editedCell = this.instance.view.wt.wtScrollbars.vertical.clone.wtTable.getCell({row: this.row, col: this.col});
+        break;
+      case 'corner':
+        editedCell = this.instance.view.wt.wtScrollbars.corner.clone.wtTable.getCell({row: this.row, col: this.col});
+        break;
+      case 'left':
+        editedCell = this.instance.view.wt.wtScrollbars.horizontal.clone.wtTable.getCell({row: this.row, col: this.col});
+        break;
+      default :
+        editedCell = this.instance.getCell(this.row, this.col);
+        break;
+    }
+
+    return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
+  };
+
+  TextEditor.prototype.checkEditorSection = function () {
+    if(this.row < this.instance.getSettings().fixedRowsTop) {
+      if(this.col < this.instance.getSettings().fixedColumnsLeft) {
+        return 'corner';
+      } else {
+        return 'top';
+      }
+    } else {
+      if(this.col < this.instance.getSettings().fixedColumnsLeft) {
+        return 'left';
+      }
+    }
+  };
+
+  TextEditor.prototype.reallocateTextarea = function (revertPosition) {
+    var editorSection = this.checkEditorSection()
+      , newParent
+      , editor = this;
+
+    var getHolder = function (type) {
+      return editor.instance.view.wt.wtScrollbars[type].clone.wtTable.holder;
+    };
+
+    if(revertPosition) {
+      switch (editorSection) {
+        case 'top':
+          newParent = getHolder('vertical');
+          if(this.TEXTAREA_PARENT.parentNode == newParent) {
+            newParent.removeChild(this.TEXTAREA_PARENT);
+            this.instance.rootElement[0].appendChild(this.TEXTAREA_PARENT);
+          }
+          break;
+        case 'left':
+          newParent = getHolder('horizontal');
+          if(this.TEXTAREA_PARENT.parentNode == newParent) {
+            newParent.removeChild(this.TEXTAREA_PARENT);
+            this.instance.rootElement[0].appendChild(this.TEXTAREA_PARENT);
+          }
+          break;
+        case 'corner':
+          newParent = getHolder('corner');
+          if(this.TEXTAREA_PARENT.parentNode == newParent) {
+            newParent.removeChild(this.TEXTAREA_PARENT);
+            this.instance.rootElement[0].appendChild(this.TEXTAREA_PARENT);
+          }
+          break;
+      }
+      return;
+    }
+
+    switch (editorSection) {
+      case 'top':
+        newParent = getHolder('vertical');
+        if(this.TEXTAREA_PARENT.parentNode == this.instance.rootElement[0]) {
+          this.instance.rootElement[0].removeChild(this.TEXTAREA_PARENT);
+          newParent.appendChild(this.TEXTAREA_PARENT);
+        }
+        break;
+      case 'left':
+        newParent = getHolder('horizontal');
+        if(this.TEXTAREA_PARENT.parentNode == this.instance.rootElement[0]) {
+          this.instance.rootElement[0].removeChild(this.TEXTAREA_PARENT);
+          newParent.appendChild(this.TEXTAREA_PARENT);
+        }
+        break;
+      case 'corner':
+        newParent = getHolder('corner');
+        if(this.TEXTAREA_PARENT.parentNode == this.instance.rootElement[0]) {
+          this.instance.rootElement[0].removeChild(this.TEXTAREA_PARENT);
+          newParent.appendChild(this.TEXTAREA_PARENT);
+        }
+        break;
+    }
+  };
+
+  TextEditor.prototype.compensateOfffset = function () {
+    var editorSection = this.checkEditorSection()
+      , offset = 0
+      , editor = this;
+
+    var getHolder = function (type) {
+      return editor.instance.view.wt.wtScrollbars[type].clone.wtTable.holder;
+    };
+
+    switch (editorSection) {
+      case 'top':
+        offset = getHolder('vertical').style.left;
+        break;
+      case 'left':
+        offset = getHolder('horizontal').style.top;
+        break;
+    }
+
+    return parseInt(offset,10);
   };
 
   TextEditor.prototype.refreshDimensions = function () {
@@ -139,20 +261,31 @@
     }
 
     ///start prepare textarea position
-    this.TD = this.instance.getCell(this.row, this.col);
+
+//    this.TD = this.instance.getCell(this.row, this.col);
+      this.TD = this.getEditedCell();
+
     if (!this.TD) {
       //TD is outside of the viewport. Otherwise throws exception when scrolling the table while a cell is edited
+
+      this.close();
+
       return;
     }
+
+    this.reallocateTextarea();
+
     var $td = $(this.TD); //because old td may have been scrolled out with scrollViewport
     var currentOffset = Handsontable.Dom.offset(this.TD);
     var containerOffset = Handsontable.Dom.offset(this.instance.rootElement[0]);
+
     var editTop = currentOffset.top - containerOffset.top - 1;
     var editLeft = currentOffset.left - containerOffset.left - 1;
 
     var settings = this.instance.getSettings();
     var rowHeadersCount = settings.rowHeaders === false ? 0 : 1;
     var colHeadersCount = settings.colHeaders === false ? 0 : 1;
+    var editorSection = this.checkEditorSection();
 
     if (editTop < 0) {
       editTop = 0;
@@ -170,9 +303,16 @@
 
     this.textareaParentStyle.top = editTop + 'px';
     this.textareaParentStyle.left = editLeft + 'px';
+
+    if(editorSection == 'top') {
+      this.textareaParentStyle.left = editLeft - this.compensateOfffset() + 'px';
+    } else if(editorSection == 'left') {
+      this.textareaParentStyle.top = editTop - this.compensateOfffset() + 'px';
+
+    }
+
+
     ///end prepare textarea position
-
-
     var cellTopOffset = this.TD.offsetTop,
       cellLeftOffset = this.TD.offsetLeft - this.instance.view.wt.wtScrollbars.horizontal.getScrollPosition();
 
@@ -205,6 +345,7 @@
   };
 
   TextEditor.prototype.bindEvents = function () {
+    // var editor = this;
     this.$textarea.on('cut.editor', function (event) {
       event.stopPropagation();
     });
@@ -212,6 +353,22 @@
     this.$textarea.on('paste.editor', function (event) {
       event.stopPropagation();
     });
+
+//    Handsontable.hooks.add('afterScrollVertically', function () {
+//      var editorSection = editor.checkEditorSection();
+//
+//      switch(editorSection) {
+//        case 'top':
+//          editor.refreshDimensions();
+////          console.log(parseInt(editor.textareaParentStyle.left,10) - parseInt(editor.instance.view.wt.wtScrollbars.vertical.clone.wtTable.holder.style.left,10));
+////          editor.textareaParentStyle.left = parseInt(editor.textareaParentStyle.left,10) - parseInt(editor.instance.view.wt.wtScrollbars.vertical.clone.wtTable.holder.style.left,10) + 'px';
+//          break;
+//        case 'left':
+//          editor.refreshDimensions();
+//          break;
+//      }
+//    });
+
   };
 
   Handsontable.editors.TextEditor = TextEditor;
