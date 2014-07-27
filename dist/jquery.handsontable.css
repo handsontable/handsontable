@@ -6,10 +6,14 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jul 10 2014 13:20:50 GMT+0200 (CEST)
+ * Date: Sun Jul 27 2014 16:19:08 GMT+0200 (CEST)
  */
 
 .handsontable {
+  position: relative;
+}
+
+.handsontable .relative {
   position: relative;
 }
 
@@ -139,7 +143,6 @@
 }
 
 .handsontable thead th .relative {
-  position: relative;
   padding: 2px 4px;
 }
 
@@ -156,8 +159,21 @@
   cursor: move;
 }
 
+.handsontable .manualRowMover {
+  position: absolute;
+  left: -4px;
+  top: 0;
+  background-color: transparent;
+  height: 5px;
+  width: 50px;
+  z-index: 999;
+  cursor: move;
+}
+
 .handsontable th .manualColumnMover:hover,
-.handsontable th .manualColumnMover.active {
+.handsontable th .manualColumnMover.active,
+.handsontable .manualRowMover:hover,
+.handsontable .manualRowMover.active{
   background-color: #88F;
 }
 
@@ -520,6 +536,23 @@ Context menu alignment buttons
   background: #fcedd9;
   color: #583707;
 }
+
+.colsGroupContainer ul > li, .rowsGroupContainer ul > li {
+  list-style: none;
+  font-size: 11px;
+  padding: 1px 3px;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.colsGroupContainer ul > li {
+  border: 1px solid red;
+}
+
+.rowsGroupContainer ul > li {
+  border: 1px solid green;
+}
+
 
 /*WalkontableDebugOverlay*/
 

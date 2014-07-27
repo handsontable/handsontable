@@ -212,9 +212,11 @@ Handsontable.TableView = function (instance) {
         if (coords.row < 0 || coords.col < 0) {
           if (coords.row < 0) {
             instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col);
+            instance.selection.setSelectedHeaders(false, true);
           }
           if (coords.col < 0) {
             instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
+            instance.selection.setSelectedHeaders(true, false);
           }
         }
         else {
@@ -240,7 +242,22 @@ Handsontable.TableView = function (instance) {
            }*/
           instance.selection.setRangeEnd(coords);
         }
+      } else {
+        if (isMouseDown) {
+          // multi select columns
+          if (coords.row < 0) {
+            instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+            instance.selection.setSelectedHeaders(false, true);
+          }
+
+          // multi select rows
+          if (coords.col < 0) {
+            instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+            instance.selection.setSelectedHeaders(true, false);
+          }
+        }
       }
+
       Handsontable.hooks.run(instance, 'afterOnCellMouseOver', event, coords, TD);
       that.activeWt = that.wt;
     },

@@ -537,6 +537,23 @@ Context menu alignment buttons
   color: #583707;
 }
 
+.colsGroupContainer ul > li, .rowsGroupContainer ul > li {
+  list-style: none;
+  font-size: 11px;
+  padding: 1px 3px;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.colsGroupContainer ul > li {
+  border: 1px solid red;
+}
+
+.rowsGroupContainer ul > li {
+  border: 1px solid green;
+}
+
+
 /*WalkontableDebugOverlay*/
 
 .wtDebugHidden {
