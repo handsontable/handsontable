@@ -68,8 +68,8 @@
       case keyCodes.V:
         if(ctrlDown){
           event.stopImmediatePropagation(); //CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
-          break;
         }
+        break;
       case keyCodes.BACKSPACE:
       case keyCodes.DELETE:
       case keyCodes.HOME:
