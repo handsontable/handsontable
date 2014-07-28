@@ -489,7 +489,6 @@
 
 			selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
 
-
 		}
 
   };
