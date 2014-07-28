@@ -516,6 +516,18 @@ Context menu alignment buttons
 
 }
 
+.ht_clone_top {
+  z-index: 101 !important;
+}
+
+.ht_clone_left {
+  z-index: 102 !important;;
+}
+
+.ht_clone_corner {
+  z-index: 103 !important;;
+}
+
 .handsontable td.htSearchResult {
   background: #fcedd9;
   color: #583707;
