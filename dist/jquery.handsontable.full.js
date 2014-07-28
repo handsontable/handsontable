@@ -15359,7 +15359,9 @@ function WalkontableViewport(instance) {
 
 //used by scrollbar
 WalkontableViewport.prototype.getWorkspaceHeight = function (proposedHeight) {
-  return this.instance.wtScrollbars.vertical.windowSize;
+  if(this.instance.wtScrollbars){
+    return this.instance.wtScrollbars.vertical.windowSize;
+  }
 };
 
 WalkontableViewport.prototype.getWorkspaceWidth = function (proposedWidth) {
