@@ -86,7 +86,6 @@ module.exports = function (grunt) {
 
         'src/cellTypes.js',
 
-//        'src/3rdparty/jquery.autoresize.js',
         'src/3rdparty/autoResize.js',
         'src/3rdparty/sheetclip.js',
         'src/3rdparty/copypaste.js',

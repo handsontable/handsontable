@@ -1,3 +1,9 @@
+/**
+ * autoResize - resizes a DOM element to the width and height of another DOM element
+ *
+ * Copyright 2014, Marcin Warpechowski
+ * Licensed under the MIT license
+ */
 var autoResize = function (el, config) {
   var defaults = {
       minHeight: 200,
@@ -6,7 +12,9 @@ var autoResize = function (el, config) {
       maxWidth: 300,
       fontSize: 11
     },
-    body = document.getElementsByTagName("body")[0],
+    body = document.body,
+    text = document.createTextNode(''),
+    span = document.createElement('SPAN'),
     observe = function (element, event, handler) {
       if (window.attachEvent) {
         element.attachEvent('on' + event, handler);
@@ -22,19 +30,13 @@ var autoResize = function (el, config) {
       }
     },
     resize = function () {
-      var value = el.value,
-        span = document.createElement('SPAN'),
-        text = document.createTextNode(value);
-      span.style.display = 'inline-block';
+      text.textContent = el.value;
       span.style.fontSize = defaults.fontSize + 'px';
 
-      span.appendChild(text);
       body.appendChild(span);
-
       var width = span.clientWidth;
       body.removeChild(span);
 
-      el.style.height = 'auto';
       el.style.height = defaults.minHeight + 'px';
 
       if (defaults.minWidth > width) {
@@ -117,6 +119,11 @@ var autoResize = function (el, config) {
         }
       }
 
+      if(!span.firstChild) {
+        span.className = "autoResize";
+        span.style.display = 'inline-block';
+        span.appendChild(text);
+      }
     },
     init = function (el, config) {
       extendDefaults(config);
@@ -124,7 +131,7 @@ var autoResize = function (el, config) {
       if (el.nodeName == 'TEXTAREA') {
 
         el.style.resize = 'none';
-        el.style.overflowY = 'none';
+        el.style.overflowY = '';
         el.style.height = defaults.minHeight + 'px';
         el.style.minWidth = defaults.minWidth + 'px';
         el.style.maxWidth = defaults.maxWidth + 'px';
