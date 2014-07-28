@@ -4,6 +4,7 @@
   TextEditor.prototype.init = function(){
     this.createElements();
     this.bindEvents();
+    this.autoResize = autoResize();
   };
 
   TextEditor.prototype.getValue = function(){
@@ -89,7 +90,7 @@
   TextEditor.prototype.close = function(){
     this.textareaParentStyle.display = 'none';
 
-    autoResize(this.$textarea[0]).unObserve();
+    this.autoResize.unObserve();
 
     if (document.activeElement === this.TEXTAREA) {
       this.instance.listen(); //don't refocus the table if user focused some cell outside of HT on purpose
@@ -192,13 +193,13 @@
       }
     }
 
-    autoResize(this.$textarea[0], {
+    this.autoResize.init(this.$textarea[0], {
       fontSize: parseInt( window.getComputedStyle($td[0]).fontSize,10),
       minHeight: Math.min(height, maxHeight),
       maxHeight: maxHeight, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
       minWidth: Math.min(width, maxWidth),
       maxWidth: maxWidth //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
-    }).init();
+    });
 
     this.textareaParentStyle.display = 'block';
   };

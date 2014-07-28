@@ -4,7 +4,7 @@
  * Copyright 2014, Marcin Warpechowski
  * Licensed under the MIT license
  */
-var autoResize = function (el, config) {
+var autoResize = function () {
   var defaults = {
       minHeight: 200,
       maxHeight: 300,
@@ -12,6 +12,7 @@ var autoResize = function (el, config) {
       maxWidth: 300,
       fontSize: 11
     },
+    el,
     body = document.body,
     text = document.createTextNode(''),
     span = document.createElement('SPAN'),
@@ -125,7 +126,8 @@ var autoResize = function (el, config) {
         span.appendChild(text);
       }
     },
-    init = function (el, config) {
+    init = function (el_, config) {
+      el = el_;
       extendDefaults(config);
 
       if (el.nodeName == 'TEXTAREA') {
@@ -149,11 +151,9 @@ var autoResize = function (el, config) {
       resize();
     };
 
-  init(el, config);
-
   return {
-    init: function () {
-      init(el, config);
+    init: function (el_, config) {
+      init(el_, config);
     },
     unObserve: function () {
       unObserve(el, 'change', resize);
