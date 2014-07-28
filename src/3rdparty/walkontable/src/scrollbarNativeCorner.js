@@ -11,34 +11,53 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
     return; //removed from DOM
   }
   var elem = this.clone.wtTable.holder.parentNode;
-
+	var fixedColumns = this.instance.getSetting('fixedColumnsLeft') > 0,
+		fixedRows = this.instance.getSetting('fixedRowsTop') > 0,
+		fixedElements = fixedColumns && fixedRows;
   var box;
+
+
   if (this.scrollHandler === window) {
-    box = this.instance.wtTable.hider.getBoundingClientRect();
-    var top = Math.ceil(box.top, 10);
-    var bottom = Math.ceil(box.bottom, 10);
 
-    if (top < 0 && bottom > 0) {
-      elem.style.top = '0';
-    }
-    else {
-      elem.style.top = top + 'px';
-    }
+		elem.style.position = 'absolute';
 
-    var left = Math.ceil(box.left, 10);
-    var right = Math.ceil(box.right, 10);
+		if(fixedElements){
+			box = this.instance.wtTable.hider.getBoundingClientRect();
 
-    if (left < 0 && right > 0) {
-      elem.style.left = '0';
-    }
-    else {
-      elem.style.left = left + 'px';
-    }
+			var top = Math.ceil(box.top);
+			var left = Math.ceil(box.left);
+
+			if (left < 0) {
+				elem.style.left = -left + 'px';
+			} else {
+				elem.style.left = '0';
+			}
+
+			if (top < 0) {
+				elem.style.top = this.instance.wtTable.hider.style.top
+			} else {
+				elem.style.top = '0';
+			}
+
+		} else {
+			elem.style.left = '0';
+			elem.style.top = '0';
+		}
   }
   else {
-    box = this.scrollHandler.getBoundingClientRect();
-    elem.style.top = Math.ceil(box.top, 10) + 'px';
-    elem.style.left = Math.ceil(box.left, 10) + 'px';
+
+		if(fixedElements){
+			box = this.scrollHandler.getBoundingClientRect();
+
+			elem.style.position = 'fixed';
+			elem.style.top = Math.ceil(box.top) + 'px';
+			elem.style.left = Math.ceil(box.left) + 'px';
+		} else {
+			elem.style.position = 'absolute';
+			elem.style.top = '0';
+			elem.style.left = '0';
+		}
+
   }
 
   elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
