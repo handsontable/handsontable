@@ -69,122 +69,24 @@
     }
   }
 
-  /***
-   *
-   * @param className
-   * @param {String} placement [noBorders, Top, Right, Bottom, Left]
-   * @param {String} type [Solid,Dotted,Dashed]
-   * @returns {*}
-
-   */
-  function prepareBorderClass (className, placement, type){
-    var borderedClass = 'htBordered';
-    if (className.indexOf(placement)!= -1){
-      return className;
-    }
-
-    if (placement == "noBorders") {
-      className = className
-        .replace(borderedClass,'')
-        .replace('htTopBorderSolid','')
-        .replace('htRightBorderSolid','')
-        .replace('htBottomBorderSolid','')
-        .replace('htLeftBorderSolid','');
-    } else {
-      if (className.indexOf(borderedClass)== -1){
-        className += " " + borderedClass;
-      }
-      className += " ht" + placement + "Border" + type;
-    }
-
-    return className;
-  }
-
-  function setBorderStyle(row, col, place, type){
-    var cellMeta = this.getCellMeta(row, col),
-      currentClassName = cellMeta.className ? cellMeta.className : "",
-      borderClassName = prepareBorderClass(currentClassName, place,type);
-
-    this.setCellMeta(row, col, 'className', borderClassName);
-    this.render();
-  }
-
-  function prepareBorder (range,place, type) {
-    type = "Solid";
-
-    // WHEN WE WANT TO CHANGE/ADD VIA CSS TOP BORDER THE WHOLE ROW MOVES 1PX VERTICAL
-    // WHEN WE WANT TO CHANGE/ADD VIA CSS RIGHT BORDER THE WHOLE COLUMN MOVES 1PX HORIZONTAL
-    if (range.from.row == range.to.row && range.from.col == range.to.col){
-      switch(place){
-        case "Top":
-          if (range.from.row == 0){ // FIRST ROW
-            setBorderStyle.call(this,range.from.row, range.from.col, place, type);
-          } else{
-            setBorderStyle.call(this,range.from.row-1, range.from.col, "Bottom", type);
-          }
-          break;
-        case "Left":
-          if (range.from.col == 0){ // FIRST COLUMN
-            setBorderStyle.call(this,range.from.row, range.from.col, place, type);
-          } else{
-            setBorderStyle.call(this,range.from.row, range.from.col-1, "Right", type);
-          }
-          break;
-        default:
-          setBorderStyle.call(this,range.from.row, range.from.col, place, type);
-          break;
-      }
-    } else {
-      switch (place) {
-        case "Top":
-          var topCol;
-          if (range.from.row == 0){ // FIRST ROW
-            for(topCol = range.from.col; topCol <= range.to.col; topCol++){
-              setBorderStyle.call(this, range.from.row, topCol, place, type);
-            }
-          } else {
-            for(topCol = range.from.col; topCol <= range.to.col; topCol++){
-              setBorderStyle.call(this, range.from.row-1, topCol, "Bottom", type);
-            }
-          }
-
-          break;
-        case "Right":
-          for(var rowRight = range.from.row; rowRight <=range.to.row; rowRight++){
-            setBorderStyle.call(this,rowRight, range.to.col, place, type);
-          }
-          break;
-        case "Bottom":
-          for(var bottomCol = range.from.col; bottomCol <= range.to.col; bottomCol++){
-            setBorderStyle.call(this, range.to.row, bottomCol, place, type);
-          }
-          break;
-        case "Left":
-          var rowLeft;
-          if (range.from.col == 0){ // FIRST COLUMN
-            for(rowLeft = range.from.row; rowLeft <=range.to.row; rowLeft++){
-              setBorderStyle.call(this,rowLeft, range.from.col, place, type);
-            }
-          } else {
-            for(rowLeft = range.from.row; rowLeft <=range.to.row; rowLeft++){
-              setBorderStyle.call(this,rowLeft, range.from.col-1, "Right", type);
-            }
-          }
-
-          break;
-      }
-    }
-
-  }
-
   function ContextMenu(instance, customOptions){
+
     this.instance = instance;
     var contextMenu = this;
 
-    this.menu = createMenu();
+    contextMenu.submenu = {};
+    contextMenu.subMenuPosition = {};
+
+    var menu = createMenu();
+
+    this.menu = menu;
+
+
+
     this.enabled = true;
 
-    this.bindMouseEvents();
+
+    this.bindMouseEvents(menu);
 
     this.instance.addHook('afterDestroy', function () {
        contextMenu.destroy();
@@ -192,6 +94,55 @@
 
     this.defaultOptions = {
       items: {
+
+        'test':{
+          name:'test',
+          items: {
+            'test1':{
+              name: 'test1',
+              callback: function () {
+                alert(1);
+              },
+              disabled: function () {
+              }
+            },
+            'test2':{
+              name: 'test1',
+              callback: function () {
+                alert(1);
+              },
+              disabled: function () {
+              }
+            }
+          },
+          callback: function () {
+            var name = 'test';
+            var subMenu = {
+              'test1':{
+                name: 'test1',
+                callback: function () {
+                  alert(1);
+                },
+                disabled: function () {
+                }
+              },
+              'test2':{
+                name: 'test1',
+                callback: function () {
+                  alert(1);
+                },
+                disabled: function () {
+                }
+              }
+            };
+
+
+            serveSubMenu(name,subMenu)
+
+          }
+        },
+
+
         'row_above': {
           name: 'Insert row above',
           callback: function(key, selection){
@@ -398,60 +349,6 @@
             return false;
           }
         }
-//        ,
-//        'hsep6': ContextMenu.SEPARATOR,
-//        'borders': {
-//          name: function () {
-//            var div = document.createElement('div'),
-//              button = document.createElement('button'),
-//              xButton = button.cloneNode(true),
-//              tButton = button.cloneNode(true),
-//              lButton = button.cloneNode(true),
-//              bButton = button.cloneNode(true),
-//              rButton = button.cloneNode(true),
-//
-//              xText = document.createTextNode('X'),
-//              tText = document.createTextNode('top'),
-//              rText = document.createTextNode('right'),
-//              bText = document.createTextNode('bottom'),
-//              lText = document.createTextNode('left');
-//
-//            xButton.appendChild(xText);
-//            tButton.appendChild(tText);
-//            rButton.appendChild(rText);
-//            bButton.appendChild(bText);
-//            lButton.appendChild(lText);
-//
-//            Handsontable.Dom.addClass(xButton,'noBorders');
-//            Handsontable.Dom.addClass(tButton,'Top');
-//            Handsontable.Dom.addClass(rButton,'Right');
-//            Handsontable.Dom.addClass(bButton,'Bottom');
-//            Handsontable.Dom.addClass(lButton,'Left');
-//
-//            div.appendChild(xButton);
-//            div.appendChild(tButton);
-//            div.appendChild(rButton);
-//            div.appendChild(bButton);
-//            div.appendChild(lButton);
-//
-//            return div.outerHTML;
-//          },
-//          callback:function(key, selection ,event){
-//            var className = event.target.className,
-//              type = event.target.tagName;
-//            if (type === "BUTTON") {
-//              console.log('button');
-//              if(className) {
-//                prepareBorder.call(this, this.getSelectedRange(), className);
-//              }
-//            }
-//
-//
-//          },
-//          disabled:function () {
-//            return false;
-//          }
-//        }
       }
     };
 
@@ -487,13 +384,37 @@
 
       return menu;
     }
+
+    function serveSubMenu (name, values) {
+      var menu = createSubMenu(name);
+      var items = contextMenu.getSubItems(values);
+      contextMenu.show(menu, items);
+    };
+
+
+    function createSubMenu(name){
+
+      var menu = $('body > .htContextMenu.sub_' + name)[0];
+
+      if(!menu){
+        menu = document.createElement('DIV');
+        Handsontable.Dom.addClass(menu, 'htContextMenu');
+        Handsontable.Dom.addClass(menu, 'sub_' + name);
+        document.getElementsByTagName('body')[0].appendChild(menu);
+      }
+
+      contextMenu.submenu[name] = menu;
+      return menu;
+    }
+
   }
 
-  ContextMenu.prototype.bindMouseEvents = function (){
+  ContextMenu.prototype.bindMouseEvents = function (menu){
 
     function contextMenuOpenListener(event){
 
       event.preventDefault();
+      event.stopPropagation();
 
       var showRowHeaders = this.instance.getSettings().rowHeaders,
           showColHeaders = this.instance.getSettings().colHeaders;
@@ -504,12 +425,15 @@
         }
       }
 
-      //if(event.target.nodeName != 'TD' && !(Handsontable.Dom.hasClass(event.target, 'current') && Handsontable.Dom.hasClass(event.target, 'wtBorder'))){
-      //	return;
-      //}
+      var items = this.getItems();
+      this.top = event.pageY;
+      this.left = event.pageX;
 
-      this.show(event.pageY, event.pageX);
-      $(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.close, this));
+      this.show(menu, items);
+
+
+      //$(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.close, this));
+
     }
 
     this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
@@ -536,6 +460,11 @@
   };
 
   ContextMenu.prototype.performAction = function (event){
+
+    //console.log(menu);
+    console.log(event);
+    console.log(this);
+
     var hot = $(this.menu).handsontable('getInstance');
     var selectedItemIndex = hot.getSelected()[0];
     var selectedItem = hot.getData()[selectedItemIndex];
@@ -558,15 +487,21 @@
     $(document).off('mousedown.htContextMenu');
   };
 
-  ContextMenu.prototype.show = function(top, left){
-    this.menu.style.display = 'block';
+  ContextMenu.prototype.show = function(menu, items){
+    console.log(menu)
+    console.log(this.top);
+    console.log(this.left);
 
-    $(this.menu)
+
+    menu.style.display = 'block';
+
+    $(menu)
       .off('mousedown.htContextMenu')
-      .on('mousedown.htContextMenu', Handsontable.helper.proxy(this.performAction, this));
 
-    $(this.menu).handsontable({
-      data: ContextMenu.utils.convertItemsToArray(this.getItems()),
+      .on('mousedown.htContextMenu',  Handsontable.helper.proxy(this.performAction, this));
+//      .on('mousedown.htContextMenu',  this.performAction(menu, event));
+    $(menu).handsontable({
+      data: ContextMenu.utils.convertItemsToArray(items),
       colHeaders: false,
       colWidths: [160],
       readOnly: true,
@@ -582,9 +517,9 @@
     });
     this.bindTableEvents();
 
-    this.setMenuPosition(top, left);
+    this.setMenuPosition(this.top, this.left, menu);
 
-    $(this.menu).handsontable('listen');
+    $(menu).handsontable('listen');
 
   };
 
@@ -595,7 +530,7 @@
     this.instance.listen();
   };
 
-  ContextMenu.prototype.hide = function(){
+  ContextMenu.prototype.hide = function(menu){
     this.menu.style.display = 'none';
     $(this.menu).handsontable('destroy');
   };
@@ -773,6 +708,27 @@
         items[itemName] = new Item(this.options.items[itemName]);
       }
     }
+    return items;
+
+  };
+
+
+  ContextMenu.prototype.getSubItems = function (submenu) {
+    var items = {};
+    function Item(rawItem){
+      if(typeof rawItem == 'string'){
+        this.name = rawItem;
+      } else {
+        Handsontable.helper.extend(this, rawItem);
+      }
+    }
+    Item.prototype = this.options;
+
+    for(var itemName in submenu){
+      if(submenu.hasOwnProperty(itemName) && (!this.itemsFilter || this.itemsFilter.indexOf(itemName) != -1)){
+        items[itemName] = new Item(submenu[itemName]);
+      }
+    }
 
     return items;
 
@@ -800,7 +756,7 @@
     Handsontable.helper.extend(this.options, newOptions);
   };
 
-  ContextMenu.prototype.setMenuPosition = function (cursorY, cursorX) {
+  ContextMenu.prototype.setMenuPosition = function (cursorY, cursorX, menu) {
     var scrollTop = Handsontable.Dom.getWindowScrollTop();
     var scrollLeft = Handsontable.Dom.getWindowScrollLeft();
 
@@ -813,50 +769,50 @@
       scrollLeft: scrollLeft
     };
 
-    if(this.menuFitsBelowCursor(cursor)){
-      this.positionMenuBelowCursor(cursor);
+    if(this.menuFitsBelowCursor(cursor, menu)){
+      this.positionMenuBelowCursor(cursor, menu);
     } else {
-      if (this.menuFitsAboveCursor(cursor)) {
-        this.positionMenuAboveCursor(cursor);
+      if (this.menuFitsAboveCursor(cursor, menu)) {
+        this.positionMenuAboveCursor(cursor, menu);
       } else {
-        this.positionMenuBelowCursor(cursor);
+        this.positionMenuBelowCursor(cursor, menu);
       }
     }
 
-    if(this.menuFitsOnRightOfCursor(cursor)){
-      this.positionMenuOnRightOfCursor(cursor);
+    if(this.menuFitsOnRightOfCursor(cursor, menu)){
+      this.positionMenuOnRightOfCursor(cursor, menu);
     } else {
-      this.positionMenuOnLeftOfCursor(cursor);
+      this.positionMenuOnLeftOfCursor(cursor, menu);
     }
 
   };
 
-  ContextMenu.prototype.menuFitsAboveCursor = function (cursor) {
-    return cursor.topRelative >= this.menu.offsetHeight;
+  ContextMenu.prototype.menuFitsAboveCursor = function (cursor, menu) {
+    return cursor.topRelative >= menu.offsetHeight;
   };
 
-  ContextMenu.prototype.menuFitsBelowCursor = function (cursor) {
-    return cursor.topRelative + this.menu.offsetHeight <= cursor.scrollTop + document.body.clientHeight;
+  ContextMenu.prototype.menuFitsBelowCursor = function (cursor, menu) {
+    return cursor.topRelative + menu.offsetHeight <= cursor.scrollTop + document.body.clientHeight;
   };
 
-  ContextMenu.prototype.menuFitsOnRightOfCursor = function (cursor) {
-    return cursor.leftRelative + this.menu.offsetWidth <= cursor.scrollLeft + document.body.clientWidth;
+  ContextMenu.prototype.menuFitsOnRightOfCursor = function (cursor, menu) {
+    return cursor.leftRelative + menu.offsetWidth <= cursor.scrollLeft + document.body.clientWidth;
   };
 
-  ContextMenu.prototype.positionMenuBelowCursor = function (cursor) {
-    this.menu.style.top = cursor.top + 'px';
+  ContextMenu.prototype.positionMenuBelowCursor = function (cursor, menu) {
+    menu.style.top = cursor.top + 'px';
   };
 
-  ContextMenu.prototype.positionMenuAboveCursor = function (cursor) {
-    this.menu.style.top = (cursor.top - this.menu.offsetHeight) + 'px';
+  ContextMenu.prototype.positionMenuAboveCursor = function (cursor, menu) {
+    menu.style.top = (cursor.top - menu.offsetHeight) + 'px';
   };
 
-  ContextMenu.prototype.positionMenuOnRightOfCursor = function (cursor) {
-    this.menu.style.left = cursor.left + 'px';
+  ContextMenu.prototype.positionMenuOnRightOfCursor = function (cursor, menu) {
+    menu.style.left = cursor.left + 'px';
   };
 
-  ContextMenu.prototype.positionMenuOnLeftOfCursor = function (cursor) {
-    this.menu.style.left = (cursor.left - this.menu.offsetWidth) + 'px';
+  ContextMenu.prototype.positionMenuOnLeftOfCursor = function (cursor, menu) {
+    menu.style.left = (cursor.left - menu.offsetWidth) + 'px';
   };
 
   ContextMenu.utils = {};
@@ -938,7 +894,7 @@
     return menuEnabled;
   };
 
-  ContextMenu.prototype.removeMenu = function () {
+  ContextMenu.prototype.removeMenu = function (menu) {
     if(this.menu.parentNode){
       this.menu.parentNode.removeChild(this.menu);
     }
