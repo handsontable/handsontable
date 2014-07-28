@@ -77,16 +77,13 @@
     contextMenu.submenu = {};
     contextMenu.subMenuPosition = {};
 
-    var menu = createMenu();
+    //var menu = createMenu();
+
+		var menu = this.createMenu();
 
     this.menu = menu;
 
-
-
     this.enabled = true;
-
-
-    this.bindMouseEvents(menu);
 
     this.instance.addHook('afterDestroy', function () {
        contextMenu.destroy();
@@ -97,49 +94,33 @@
 
         'test':{
           name:'test',
-          items: {
-            'test1':{
-              name: 'test1',
-              callback: function () {
-                alert(1);
-              },
-              disabled: function () {
-              }
-            },
-            'test2':{
-              name: 'test1',
-              callback: function () {
-                alert(1);
-              },
-              disabled: function () {
-              }
-            }
-          },
+
+					submenu: {
+						items: {
+							'test1':{
+								name: 'test1',
+								callback: function () {
+									alert(1);
+								},
+								disabled: function () {
+								}
+							},
+							'test2':{
+								name: 'test1',
+								callback: function () {
+									alert(1);
+								},
+								disabled: function () {
+								}
+							}
+						}
+					},
           callback: function () {
-            var name = 'test';
-            var subMenu = {
-              'test1':{
-                name: 'test1',
-                callback: function () {
-                  alert(1);
-                },
-                disabled: function () {
-                }
-              },
-              'test2':{
-                name: 'test1',
-                callback: function () {
-                  alert(1);
-                },
-                disabled: function () {
-                }
-              }
-            };
 
+          },
+					disabled: function () {
 
-            serveSubMenu(name,subMenu)
-
-          }
+					}
         },
 
 
@@ -352,6 +333,14 @@
       }
     };
 
+		var options = {};
+
+		Handsontable.helper.extend(options, this.defaultOptions);
+
+		this.updateOptions(customOptions, options);
+
+		this.bindMouseEvents(menu, options);
+
     this.checkSelectionReadOnlyConsistency = function(hot) {
       var atLeastOneReadOnly = false;
 
@@ -367,51 +356,48 @@
 
     Handsontable.hooks.run(instance, 'afterContextMenuDefaultOptions', this.defaultOptions);
 
-    this.options = {};
-    Handsontable.helper.extend(this.options, this.defaultOptions);
-
-    this.updateOptions(customOptions);
-
-    function createMenu(){
-
-      var menu = $('body > .htContextMenu')[0];
-
-      if(!menu){
-        menu = document.createElement('DIV');
-        Handsontable.Dom.addClass(menu, 'htContextMenu');
-        document.getElementsByTagName('body')[0].appendChild(menu);
-      }
-
-      return menu;
-    }
-
-    function serveSubMenu (name, values) {
-      var menu = createSubMenu(name);
-      var items = contextMenu.getSubItems(values);
-      contextMenu.show(menu, items);
-    };
+//    this.options = {};
+//		Handsontable.helper.extend(this.options, this.defaultOptions);
+//
+//    this.updateOptions(customOptions);
 
 
-    function createSubMenu(name){
 
-      var menu = $('body > .htContextMenu.sub_' + name)[0];
 
-      if(!menu){
-        menu = document.createElement('DIV');
-        Handsontable.Dom.addClass(menu, 'htContextMenu');
-        Handsontable.Dom.addClass(menu, 'sub_' + name);
-        document.getElementsByTagName('body')[0].appendChild(menu);
-      }
 
-      contextMenu.submenu[name] = menu;
-      return menu;
-    }
+	}
 
-  }
+	ContextMenu.prototype.createMenu = function (className) {
+		if (className) {
+			className = 'htContextSubMenu_' + className;
+		}
 
-  ContextMenu.prototype.bindMouseEvents = function (menu){
+		var menu;
+		if (className) {
+			menu = $('body > .htContextMenu.' + className)[0];
+		} else {
+			menu = $('body > .htContextMenu')[0];
+		}
+
+
+		if(!menu){
+			menu = document.createElement('DIV');
+			Handsontable.Dom.addClass(menu, 'htContextMenu');
+			if(className) {
+				Handsontable.Dom.addClass(menu, className);
+			}
+
+			document.getElementsByTagName('body')[0].appendChild(menu);
+		}
+
+		return menu;
+	};
+
+	ContextMenu.prototype.bindMouseEvents = function (menu, options, contextMenu){
 
     function contextMenuOpenListener(event){
+
+			console.log('contextMenuOpenListener');
 
       event.preventDefault();
       event.stopPropagation();
@@ -425,18 +411,28 @@
         }
       }
 
-      var items = this.getItems();
-      this.top = event.pageY;
-      this.left = event.pageX;
+      var items = this.getItems(options);
+//      this.top = event.pageY;
+//      this.left = event.pageX;
 
-      this.show(menu, items);
+      this.show(menu, items, event.pageY, event.pageX);
 
-
-      //$(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.close, this));
+//			console.log(contextMenu);
+//			if(!contextMenu) {
+//				console.log('wszedl');
+//				$(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.close, this));
+//			}
 
     }
 
-    this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
+		if (contextMenu) {
+			contextMenu.on('click.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
+		} else {
+			this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
+		}
+
+
+//		this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
 
   };
 
@@ -459,27 +455,43 @@
     }
   };
 
-  ContextMenu.prototype.performAction = function (event){
-
-    //console.log(menu);
-    console.log(event);
-    console.log(this);
-
-    var hot = $(this.menu).handsontable('getInstance');
-    var selectedItemIndex = hot.getSelected()[0];
+  ContextMenu.prototype.performAction = function (event, menu){
+    var hot = $(menu).handsontable('getInstance');
+		var selectedItemIndex = hot.getSelected()[0];
     var selectedItem = hot.getData()[selectedItemIndex];
 
-    if (selectedItem.disabled === true || (typeof selectedItem.disabled == 'function' && selectedItem.disabled.call(this.instance) === true)){
-      return;
-    }
+		console.log(hot);
 
-    if(typeof selectedItem.callback != 'function'){
-      return;
-    }
-    var selRange = this.instance.getSelectedRange();
-    var normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
+		if (selectedItem.disabled === true || (typeof selectedItem.disabled == 'function' && selectedItem.disabled.call(this.instance) === true)){
+			return;
+		}
 
-    selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
+
+		var selRange,normalizedSelection;
+		if (selectedItem.hasOwnProperty('submenu')) {
+			var subMenu = this.createMenu(selectedItem.name);
+
+			this.bindMouseEvents(subMenu, selectedItem.submenu, $(menu));
+
+			selRange = this.instance.getSelectedRange();
+			//normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
+
+			//selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
+
+
+		} else {
+			if(typeof selectedItem.callback != 'function'){
+				return;
+			}
+
+			selRange = this.instance.getSelectedRange();
+			normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
+
+			selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
+
+
+		}
+
   };
 
   ContextMenu.prototype.unbindMouseEvents = function () {
@@ -487,20 +499,17 @@
     $(document).off('mousedown.htContextMenu');
   };
 
-  ContextMenu.prototype.show = function(menu, items){
-    console.log(menu)
-    console.log(this.top);
-    console.log(this.left);
-
-
+  ContextMenu.prototype.show = function(menu, items, top, left){
     menu.style.display = 'block';
 
-    $(menu)
-      .off('mousedown.htContextMenu')
+		var that = this;
+		$(menu)
+			.off('mousedown.htContextMenu')
+			.on('mousedown.htContextMenu',  function (event) {
+				that.performAction(event, menu)
+			});
 
-      .on('mousedown.htContextMenu',  Handsontable.helper.proxy(this.performAction, this));
-//      .on('mousedown.htContextMenu',  this.performAction(menu, event));
-    $(menu).handsontable({
+		$(menu).handsontable({
       data: ContextMenu.utils.convertItemsToArray(items),
       colHeaders: false,
       colWidths: [160],
@@ -517,7 +526,7 @@
     });
     this.bindTableEvents();
 
-    this.setMenuPosition(this.top, this.left, menu);
+    this.setMenuPosition(top, left, menu);
 
     $(menu).handsontable('listen');
 
@@ -561,13 +570,27 @@
       });
 
     } else {
-      Handsontable.Dom.removeClass(TD, 'htDisabled');
+			if (isSubMenu(item)) {
+				Handsontable.Dom.addClass(TD, 'htSubmenu');
 
-      $(wrapper).on('mouseenter', function () {
-        instance.selectCell(row, col);
-      });
+				$(wrapper).on('mouseenter', function () {
+					instance.selectCell(row, col);
+				});
 
+			} else {
+				Handsontable.Dom.removeClass(TD, 'htSubmenu');
+				Handsontable.Dom.removeClass(TD, 'htDisabled');
+
+				$(wrapper).on('mouseenter', function () {
+					instance.selectCell(row, col);
+				});
+			}
     }
+
+
+		function isSubMenu(item) {
+			return item.hasOwnProperty('submenu');
+		}
 
     function itemIsSeparator(item){
       return new RegExp(ContextMenu.SEPARATOR, 'i').test(item.name);
@@ -692,8 +715,8 @@
 
   };
 
-  ContextMenu.prototype.getItems = function () {
-    var items = {};
+  ContextMenu.prototype.getItems = function (options) {
+		var items = {};
     function Item(rawItem){
       if(typeof rawItem == 'string'){
         this.name = rawItem;
@@ -701,41 +724,42 @@
         Handsontable.helper.extend(this, rawItem);
       }
     }
-    Item.prototype = this.options;
+    Item.prototype = options;
 
-    for(var itemName in this.options.items){
-      if(this.options.items.hasOwnProperty(itemName) && (!this.itemsFilter || this.itemsFilter.indexOf(itemName) != -1)){
-        items[itemName] = new Item(this.options.items[itemName]);
+    for(var itemName in options.items){
+      if(options.items.hasOwnProperty(itemName) && (!this.itemsFilter || this.itemsFilter.indexOf(itemName) != -1)){
+        items[itemName] = new Item(options.items[itemName]);
       }
     }
     return items;
 
   };
 
+//  ContextMenu.prototype.getSubItems = function (submenu) {
+//    var items = {};
+//    function Item(rawItem){
+//      if(typeof rawItem == 'string'){
+//        this.name = rawItem;
+//      } else {
+//        Handsontable.helper.extend(this, rawItem);
+//      }
+//    }
+//    Item.prototype = this.options;
+//
+//    for(var itemName in submenu){
+//      if(submenu.hasOwnProperty(itemName) && (!this.itemsFilter || this.itemsFilter.indexOf(itemName) != -1)){
+//        items[itemName] = new Item(submenu[itemName]);
+//      }
+//    }
+//
+//    return items;
+//
+//  };
 
-  ContextMenu.prototype.getSubItems = function (submenu) {
-    var items = {};
-    function Item(rawItem){
-      if(typeof rawItem == 'string'){
-        this.name = rawItem;
-      } else {
-        Handsontable.helper.extend(this, rawItem);
-      }
-    }
-    Item.prototype = this.options;
-
-    for(var itemName in submenu){
-      if(submenu.hasOwnProperty(itemName) && (!this.itemsFilter || this.itemsFilter.indexOf(itemName) != -1)){
-        items[itemName] = new Item(submenu[itemName]);
-      }
-    }
-
-    return items;
-
-  };
-
-  ContextMenu.prototype.updateOptions = function(newOptions){
+  ContextMenu.prototype.updateOptions = function(newOptions, options){
     newOptions = newOptions || {};
+
+
 
     if(newOptions.items){
       for(var itemName in newOptions.items){
@@ -753,8 +777,11 @@
       }
     }
 
-    Handsontable.helper.extend(this.options, newOptions);
+//    Handsontable.helper.extend(this.options, newOptions);
+		Handsontable.helper.extend(options, newOptions);
   };
+
+
 
   ContextMenu.prototype.setMenuPosition = function (cursorY, cursorX, menu) {
     var scrollTop = Handsontable.Dom.getWindowScrollTop();
