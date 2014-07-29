@@ -106,7 +106,7 @@
                         url: "json/save.json",
                         dataType: "json",
                         type: "POST",
-                        data: change, //contains changed cells' data
+                        data: JSON.stringify({data: change}), //contains changed cells' data
                         complete: function (data) {
                           $console.text('Autosaved (' + change.length + ' ' +
                             'cell' + (change.length > 1 ? 's' : '') + ')');
@@ -135,7 +135,7 @@
                 $parent.find('button[name=save]').click(function () {
                   $.ajax({
                     url: "json/save.json",
-                    data: {"data": handsontable.getData()}, //returns all cells' data
+                    data: JSON.stringify({"data": handsontable.getData()}), //returns all cells' data
                     dataType: 'json',
                     type: 'POST',
                     success: function (res) {
