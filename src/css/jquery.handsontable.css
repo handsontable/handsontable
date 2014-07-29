@@ -481,6 +481,18 @@ ul.context-menu-list li {
   display: none;
 }
 
+.ht_clone_top {
+  z-index: 101 !important;
+}
+
+.ht_clone_left {
+  z-index: 102 !important;;
+}
+
+.ht_clone_corner {
+  z-index: 103 !important;;
+}
+
 .htContextMenu table.htCore {
   outline: 1px solid #bbb;
 }

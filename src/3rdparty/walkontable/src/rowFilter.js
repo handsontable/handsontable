@@ -17,30 +17,12 @@ WalkontableRowFilter.prototype.unOffsetted = function (n) {
   return n - this.offset;
 };
 
-WalkontableRowFilter.prototype.fixed = function (n) {
-  if (n < this.fixedCount) {
-    return n - this.offset;
-  }
-  else {
-    return n;
-  }
-};
-
-WalkontableRowFilter.prototype.unFixed = function (n) {
-  if (n < this.fixedCount) {
-    return n + this.offset;
-  }
-  else {
-    return n;
-  }
-};
-
 WalkontableRowFilter.prototype.visibleToSource = function (n) {
-  return this.offsetted(this.fixed(n));
+  return this.offsetted(n);
 };
 
 WalkontableRowFilter.prototype.sourceToVisible = function (n) {
-  return this.unOffsetted(this.unFixed(n));
+  return this.unOffsetted(n);
 };
 
 WalkontableRowFilter.prototype.offsettedTH = function (n) {
