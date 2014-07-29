@@ -92,8 +92,53 @@
     this.defaultOptions = {
       items: {
 
-        'test':{
-          name:'test',
+				'first':{
+					name:'first',
+
+					submenu: {
+						items: {
+							'test1':{
+								name: 'first 1',
+								callback: function () {
+									alert(1);
+								},
+								disabled: function () {
+								}
+							},
+							'test2':{
+								name: 'first 2',
+								callback: function () {
+									alert(1);
+								},
+								disabled: function () {
+								}
+							}
+						}
+					},
+					callback: function () {
+
+					},
+					disabled: function () {
+
+					}
+				},
+
+
+        'row_above': {
+          name: 'Insert row above',
+          callback: function(key, selection){
+            this.alter("insert_row", selection.start.row);
+          },
+          disabled: function () {
+            var selected = this.getSelected(),
+              entireColumnSelection = [0,selected[1],this.view.wt.wtTable.getRowStrategy().cellCount-1,selected[1]],
+              columnSelected = entireColumnSelection.join(',') == selected.join(',');
+
+            return selected[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
+          }
+        },
+				'test':{
+					name:'test',
 
 					submenu: {
 						items: {
@@ -115,28 +160,13 @@
 							}
 						}
 					},
-          callback: function () {
+					callback: function () {
 
-          },
+					},
 					disabled: function () {
 
 					}
-        },
-
-
-        'row_above': {
-          name: 'Insert row above',
-          callback: function(key, selection){
-            this.alter("insert_row", selection.start.row);
-          },
-          disabled: function () {
-            var selected = this.getSelected(),
-              entireColumnSelection = [0,selected[1],this.view.wt.wtTable.getRowStrategy().cellCount-1,selected[1]],
-              columnSelected = entireColumnSelection.join(',') == selected.join(',');
-
-            return selected[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
-          }
-        },
+				},
         'row_below': {
           name: 'Insert row below',
           callback: function(key, selection){
@@ -356,15 +386,6 @@
 
     Handsontable.hooks.run(instance, 'afterContextMenuDefaultOptions', this.defaultOptions);
 
-//    this.options = {};
-//		Handsontable.helper.extend(this.options, this.defaultOptions);
-//
-//    this.updateOptions(customOptions);
-
-
-
-
-
 	}
 
 	ContextMenu.prototype.createMenu = function (className) {
@@ -393,13 +414,9 @@
 		return menu;
 	};
 
-	ContextMenu.prototype.bindMouseEvents = function (menu, options, contextMenu){
-
+	ContextMenu.prototype.bindMouseEvents = function (menu, options, parentMenu){
     function contextMenuOpenListener(event){
-
-			console.log('contextMenuOpenListener');
-
-      event.preventDefault();
+			event.preventDefault();
       event.stopPropagation();
 
       var showRowHeaders = this.instance.getSettings().rowHeaders,
@@ -412,27 +429,18 @@
       }
 
       var items = this.getItems(options);
-//      this.top = event.pageY;
-//      this.left = event.pageX;
 
-      this.show(menu, items, event.pageY, event.pageX);
-
-//			console.log(contextMenu);
-//			if(!contextMenu) {
-//				console.log('wszedl');
-//				$(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.close, this));
-//			}
+      this.show(menu, items, event, parentMenu);
 
     }
 
-		if (contextMenu) {
-			contextMenu.on('click.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
+		if (parentMenu) {
+			parentMenu.on('click.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
 		} else {
 			this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
 		}
 
 
-//		this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
 
   };
 
@@ -455,29 +463,21 @@
     }
   };
 
-  ContextMenu.prototype.performAction = function (event, menu){
-    var hot = $(menu).handsontable('getInstance');
+  ContextMenu.prototype.performAction = function (event, menu, parentMenu){
+		var contextMenu = this;
+		var hot = $(menu).handsontable('getInstance');
 		var selectedItemIndex = hot.getSelected()[0];
     var selectedItem = hot.getData()[selectedItemIndex];
-
-		console.log(hot);
 
 		if (selectedItem.disabled === true || (typeof selectedItem.disabled == 'function' && selectedItem.disabled.call(this.instance) === true)){
 			return;
 		}
 
-
 		var selRange,normalizedSelection;
+
 		if (selectedItem.hasOwnProperty('submenu')) {
 			var subMenu = this.createMenu(selectedItem.name);
-
 			this.bindMouseEvents(subMenu, selectedItem.submenu, $(menu));
-
-			selRange = this.instance.getSelectedRange();
-			//normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
-
-			//selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
-
 
 		} else {
 			if(typeof selectedItem.callback != 'function'){
@@ -488,9 +488,12 @@
 			normalizedSelection = ContextMenu.utils.normalizeSelection(selRange);
 
 			selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
+			contextMenu.close(menu);
 
+//			if(parentMenu) {
+//				contextMenu.close(parentMenu[0]);
+//			}
 		}
-
   };
 
   ContextMenu.prototype.unbindMouseEvents = function () {
@@ -498,15 +501,32 @@
     $(document).off('mousedown.htContextMenu');
   };
 
-  ContextMenu.prototype.show = function(menu, items, top, left){
-    menu.style.display = 'block';
+  ContextMenu.prototype.show = function(menu, items, event, parentMenu){
+		menu.style.display = 'block';
 
 		var that = this;
 		$(menu)
 			.off('mousedown.htContextMenu')
 			.on('mousedown.htContextMenu',  function (event) {
-				that.performAction(event, menu)
+				that.performAction(event, menu, parentMenu)
 			});
+
+//		$(menu)
+//			.off('mouseover.htContextMenu')
+//			.on('mouseover.htContextMenu',  function (event) {
+//				var hot = $(menu).handsontable('getInstance');
+//				var selection = hot.getSelected();
+//				if (selection){
+//					var selectedItemIndex = selection[0];
+//					var selectedItem = hot.getData()[selectedItemIndex];
+//					if (selectedItem.hasOwnProperty('submenu')){
+//						that.performAction(event, menu, parentMenu);
+//					} else {
+//						console.log(menu);
+//						console.log(parentMenu);
+//					}
+//				}
+//			});
 
 		$(menu).handsontable({
       data: ContextMenu.utils.convertItemsToArray(items),
@@ -520,27 +540,53 @@
           renderer: Handsontable.helper.proxy(this.renderer, this)
         }
       ],
-      beforeKeyDown: Handsontable.helper.proxy(this.onBeforeKeyDown, this),
-      renderAllRows: true
+      beforeKeyDown: function (event) {
+				that.onBeforeKeyDown(event, menu);
+			},
+			afterOnCellMouseOver: function (event, coords, TD) {
+				that.onCellMouseOver(event, coords, TD);
+			},
+
+			renderAllRows: true
     });
     this.bindTableEvents();
 
-    this.setMenuPosition(top, left, menu);
+    this.setMenuPosition(event, menu, parentMenu);
 
     $(menu).handsontable('listen');
 
   };
 
-  ContextMenu.prototype.close = function () {
-    this.hide();
+  ContextMenu.prototype.close = function (menu) {
+    this.hide(menu);
     $(document).off('mousedown.htContextMenu');
     this.unbindTableEvents();
     this.instance.listen();
   };
 
   ContextMenu.prototype.hide = function(menu){
-    this.menu.style.display = 'none';
-    $(this.menu).handsontable('destroy');
+//		console.log(menu.className);
+//    if (menu.className.indexOf('htContextSubMenu')!= -1) {
+//			console.log(123);
+//			var menus =document.getElementsByClassName('htContextMenu');
+//
+//			for(var i = 0; i< menus.length; i++){
+//				menus[i].style.display = 'none';
+//				$(menus[i]).handsontable('destroy');
+//			}
+//
+//		} else {
+//			menu.style.display = 'none';
+//			$(menu).handsontable('destroy');
+//		}
+
+		var menus = document.getElementsByClassName('htContextMenu');
+
+		for(var i = 0; i< menus.length; i++){
+			menus[i].style.display = 'none';
+			$(menus[i]).handsontable('destroy');
+		}
+
   };
 
   ContextMenu.prototype.renderer = function(instance, TD, row, col, prop, value, cellProperties){
@@ -600,10 +646,19 @@
     }
   };
 
-  ContextMenu.prototype.onBeforeKeyDown = function (event) {
-    var contextMenu = this;
-    var instance = $(contextMenu.menu).handsontable('getInstance');
-    var selection = instance.getSelected();
+	ContextMenu.prototype.onCellMouseOver = function (event, coords, TD) {
+		if(TD.className.indexOf('htSubmenu')){
+			console.log('show Submenu')
+		} else {
+			console.log('hide Submenu')
+		}
+
+	};
+
+  ContextMenu.prototype.onBeforeKeyDown = function (event, menu) {
+		var contextMenu = this;
+		var instance = $(menu).handsontable('getInstance');
+		var selection = instance.getSelected();
 
     switch(event.keyCode){
 
@@ -614,9 +669,24 @@
         break;
 
       case Handsontable.helper.keyCode.ENTER:
-        if(instance.getSelected()){
-          contextMenu.performAction();
-          contextMenu.close();
+        if(selection){
+					var selectedItemIndex = selection[0];
+					var selectedItem = instance.getData()[selectedItemIndex];
+
+					if (selectedItem.hasOwnProperty('submenu')){
+
+						var items = this.getItems(selectedItem.submenu);
+						var subMenu = this.createMenu(selectedItem.name);
+
+						this.show(subMenu, items, event, $(menu));
+
+					} else {
+						contextMenu.performAction(event, menu);
+						//contextMenu.close();
+					}
+
+
+
         }
         break;
 
@@ -782,8 +852,10 @@
 
 
 
-  ContextMenu.prototype.setMenuPosition = function (cursorY, cursorX, menu) {
-    var scrollTop = Handsontable.Dom.getWindowScrollTop();
+  ContextMenu.prototype.setMenuPosition = function (event, menu, parentMenu) {
+    var cursorY = event.pageY;
+		var cursorX = event.pageX;
+		var scrollTop = Handsontable.Dom.getWindowScrollTop();
     var scrollLeft = Handsontable.Dom.getWindowScrollLeft();
 
     var cursor = {
@@ -792,23 +864,29 @@
       left: cursorX,
       leftRelative:cursorX - scrollLeft,
       scrollTop: scrollTop,
-      scrollLeft: scrollLeft
+      scrollLeft: scrollLeft,
+			mouseInCellTop: event.offsetY,
+			mouseInCellLeft: event.offsetX,
+			cellHeight: event.target.clientHeight,
+			cellWidth: event.target.clientWidth
     };
 
+		var subMenu = parentMenu ? true : false;
+
     if(this.menuFitsBelowCursor(cursor, menu)){
-      this.positionMenuBelowCursor(cursor, menu);
+      this.positionMenuBelowCursor(cursor, menu, subMenu);
     } else {
       if (this.menuFitsAboveCursor(cursor, menu)) {
-        this.positionMenuAboveCursor(cursor, menu);
+        this.positionMenuAboveCursor(cursor, menu, subMenu);
       } else {
-        this.positionMenuBelowCursor(cursor, menu);
+        this.positionMenuBelowCursor(cursor, menu, subMenu);
       }
     }
 
     if(this.menuFitsOnRightOfCursor(cursor, menu)){
-      this.positionMenuOnRightOfCursor(cursor, menu);
+      this.positionMenuOnRightOfCursor(cursor, menu, subMenu);
     } else {
-      this.positionMenuOnLeftOfCursor(cursor, menu);
+      this.positionMenuOnLeftOfCursor(cursor, menu, subMenu);
     }
 
   };
@@ -825,20 +903,36 @@
     return cursor.leftRelative + menu.offsetWidth <= cursor.scrollLeft + document.body.clientWidth;
   };
 
-  ContextMenu.prototype.positionMenuBelowCursor = function (cursor, menu) {
-    menu.style.top = cursor.top + 'px';
+  ContextMenu.prototype.positionMenuBelowCursor = function (cursor, menu, subMenu) {
+    if (subMenu){
+			menu.style.top = (cursor.top - cursor.mouseInCellTop - 4) + 'px'; // 4px top padding
+		} else {
+			menu.style.top = cursor.top + 'px';
+		}
   };
 
-  ContextMenu.prototype.positionMenuAboveCursor = function (cursor, menu) {
-    menu.style.top = (cursor.top - menu.offsetHeight) + 'px';
+  ContextMenu.prototype.positionMenuAboveCursor = function (cursor, menu, subMenu) {
+    if (subMenu) {
+			menu.style.top = (cursor.top + (cursor.cellHeight - cursor.mouseInCellTop) - menu.offsetHeight) + 'px';
+		} else {
+			menu.style.top = (cursor.top - menu.offsetHeight) + 'px';
+		}
   };
 
-  ContextMenu.prototype.positionMenuOnRightOfCursor = function (cursor, menu) {
-    menu.style.left = cursor.left + 'px';
+  ContextMenu.prototype.positionMenuOnRightOfCursor = function (cursor, menu, subMenu) {
+    if (subMenu) {
+			menu.style.left = cursor.left + (cursor.cellWidth - cursor.mouseInCellLeft) + 'px';
+		} else {
+			menu.style.left = cursor.left + 'px';
+		}
   };
 
-  ContextMenu.prototype.positionMenuOnLeftOfCursor = function (cursor, menu) {
-    menu.style.left = (cursor.left - menu.offsetWidth) + 'px';
+  ContextMenu.prototype.positionMenuOnLeftOfCursor = function (cursor, menu, subMenu) {
+    if (subMenu) {
+			menu.style.left = (cursor.left - cursor.mouseInCellLeft - menu.offsetWidth) + 'px';
+		} else {
+			menu.style.left = (cursor.left - menu.offsetWidth) + 'px';
+		}
   };
 
   ContextMenu.utils = {};
@@ -983,6 +1077,8 @@
   if(Handsontable.PluginHooks.register) { //HOT 0.11+
     Handsontable.PluginHooks.register('afterContextMenuDefaultOptions');
   }
+
+
 
   Handsontable.ContextMenu = ContextMenu;
 
