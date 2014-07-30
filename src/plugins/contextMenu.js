@@ -73,6 +73,7 @@
     this.instance = instance;
     var contextMenu = this;
 		contextMenu.menus = [];
+		contextMenu.triggerRows = [];
 
     this.enabled = true;
 
@@ -379,7 +380,7 @@
 
 	}
 
-	ContextMenu.prototype.createMenu = function (menuName) {
+	ContextMenu.prototype.createMenu = function (menuName, row) {
 		if (menuName) {
 			menuName = 'htContextSubMenu_' + menuName;
 		}
@@ -402,6 +403,8 @@
 
 		if(this.menus.indexOf(menu) < 0){
 			this.menus.push(menu);
+			row = row || 0;
+			this.triggerRows.push(row);
 		}
 
 		return menu;
@@ -535,7 +538,9 @@
 			if (menu) {
 				this.close(menu);
 			}
+
 		}
+		this.triggerRows = [];
 	};
 
 	ContextMenu.prototype.closeLastOpenedSubMenu = function (){
@@ -544,6 +549,7 @@
 			this.hide(menu);
 //			this.close(menu);
 		}
+
 	};
 
   ContextMenu.prototype.hide = function(menu){
@@ -616,7 +622,7 @@
 				var selectedItem = hot.getData()[coords.row];
 				var items = this.getItems(selectedItem.submenu);
 
-				var subMenu = this.createMenu(selectedItem.name);
+				var subMenu = this.createMenu(selectedItem.name, coords.row);
 				var tdCoords = TD.getBoundingClientRect();
 
 				this.show(subMenu, items);
@@ -652,16 +658,11 @@
 
       case Handsontable.helper.keyCode.ENTER:
         if(selection){
-//					var selectedItemIndex = selection[0];
-//					var selectedItem = instance.getData()[selectedItemIndex];
-
 					contextMenu.performAction(event, menu);
-
         }
         break;
 
       case Handsontable.helper.keyCode.ARROW_DOWN:
-        console.log('arrowDown');
 
 				if(!selection){
 
@@ -709,8 +710,6 @@
 
 			case Handsontable.helper.keyCode.ARROW_LEFT:
 				if (selection) {
-					console.log(instance);
-					console.log(menu);
 
 					if (menu.className.indexOf('htContextSubMenu_')!= -1) {
 						contextMenu.closeLastOpenedSubMenu();
@@ -718,8 +717,9 @@
 
 						if (index > 0){
 							menu = contextMenu.menus[index - 1];
-							console.log(menu);
+							var triggerRow = contextMenu.triggerRows.pop();
 							instance = $(menu).handsontable('getInstance');
+							instance.selectCell(triggerRow,0);
 						}
 
 					}
@@ -733,7 +733,6 @@
     }
 
     function selectFirstCell(instance) {
-			console.log('selectFirstCell');
 
 			var firstCell = instance.getCell(0, 0);
 
@@ -794,11 +793,13 @@
 		function openSubMenu (instance, contextMenu, cell, row) {
 			var selectedItem = instance.getData()[row];
 			var items = contextMenu.getItems(selectedItem.submenu);
-			var subMenu = contextMenu.createMenu(selectedItem.name);
+			var subMenu = contextMenu.createMenu(selectedItem.name, row);
 			var coords = cell.getBoundingClientRect();
 
 			contextMenu.show(subMenu, items);
 			contextMenu.setSubMenuPosition(coords,subMenu);
+			var subMenuInstance = $(subMenu).handsontable('getInstance');
+			subMenuInstance.selectCell(0,0);
 		}
 
   };
@@ -1018,6 +1019,7 @@
     this.closeAll();
 		while(this.menus.length > 0) {
 			var menu = this.menus.pop();
+			this.triggerRows.pop();
 			if (menu) {
 				this.close(menu);
 				if(!this.isMenuEnabledByOtherHotInstance()){
