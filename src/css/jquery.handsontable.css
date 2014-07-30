@@ -183,7 +183,7 @@
   position: absolute;
   top: 0;
   cursor: col-resize;
-  z-index: 110;
+  z-index: 100;
 }
 
 .handsontable .manualColumnResizerHandle {
@@ -196,7 +196,7 @@
   position: absolute;
   left: 0;
   cursor: row-resize;
-  z-index: 110;
+  z-index: 100;
 }
 
 .handsontable .manualRowResizerHandle {
@@ -482,15 +482,15 @@ ul.context-menu-list li {
 }
 
 .ht_clone_top {
-  z-index: 101;
+  z-index: 101 !important;
 }
 
 .ht_clone_left {
-  z-index: 102;
+  z-index: 102 !important;;
 }
 
 .ht_clone_corner {
-  z-index: 103;
+  z-index: 103 !important;;
 }
 
 .htContextMenu table.htCore {

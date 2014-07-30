@@ -325,7 +325,7 @@ WalkontableTable.prototype.getTrForRow = function (row) {
 
 //returns -1 if no row is visible
 WalkontableTable.prototype.getFirstVisibleRow = function () {
-  return this.rowFilter.visibleToSource(0);
+  return this.rowFilter.visibleToSource(0 + this.rowFilter.fixedCount);
 };
 
 //returns -1 if no column is visible
@@ -414,7 +414,7 @@ WalkontableTable.prototype.getLastVisibleColumn = function () {
 };
 
 WalkontableTable.prototype.isRowBeforeViewport = function (r) {
-  return (this.rowFilter.sourceToVisible(r) < 0 && r >= 0);
+  return (this.rowFilter.sourceToVisible(r) < this.rowFilter.fixedCount && r >= this.rowFilter.fixedCount);
 };
 
 WalkontableTable.prototype.isRowAfterViewport = function (r) {
@@ -422,7 +422,7 @@ WalkontableTable.prototype.isRowAfterViewport = function (r) {
 };
 
 WalkontableTable.prototype.isColumnBeforeViewport = function (c) {
-  return (this.columnFilter.sourceToVisible(c) < 0 && c >= 0);
+  return (this.columnFilter.sourceToVisible(c) < this.columnFilter.fixedCount && c >= this.columnFilter.fixedCount);
 };
 
 WalkontableTable.prototype.isColumnAfterViewport = function (c) {
