@@ -2,10 +2,9 @@
  * WalkontableRowFilter
  * @constructor
  */
-function WalkontableRowFilter(offset, total, fixedCount, countTH) {
+function WalkontableRowFilter(offset, total, countTH) {
   this.offset = offset;
   this.total = total;
-  this.fixedCount = fixedCount;
   this.countTH = countTH;
 }
 

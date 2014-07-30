@@ -42,23 +42,22 @@ var autoResize = function () {
 
       if (defaults.minWidth > width) {
         el.style.width = defaults.minWidth + 'px';
-      }
-      else if (width > defaults.maxWidth) {
-        var scrollHeight = el.scrollHeight;
-
+      } else if (width > defaults.maxWidth) {
         el.style.width = defaults.maxWidth + 'px';
-
-        if (defaults.minHeight > scrollHeight) {
-          el.style.height = defaults.minHeight + 'px';
-        } else if (defaults.maxHeight < scrollHeight) {
-          el.style.height = defaults.maxHeight + 'px';
-          el.style.overflowY = 'visible';
-        } else {
-          el.style.height = scrollHeight + 'px';
-        }
       } else {
         el.style.width = width + 'px';
       }
+
+      var scrollHeight = el.scrollHeight;
+      if (defaults.minHeight > scrollHeight) {
+        el.style.height = defaults.minHeight + 'px';
+      } else if (defaults.maxHeight < scrollHeight) {
+        el.style.height = defaults.maxHeight + 'px';
+        el.style.overflowY = 'visible';
+      } else {
+        el.style.height = scrollHeight + 'px';
+      }
+
     },
     delayedResize = function () {
       window.setTimeout(resize, 0);
