@@ -129,7 +129,6 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
     this.rowFilter = new WalkontableRowFilter(
       offsetRow,
       this.instance.getSetting('totalRows'),
-      this.instance.getSetting('fixedRowsTop'),
       this.instance.getSetting('columnHeaders').length
     );
     this.columnFilter = new WalkontableColumnFilter(
