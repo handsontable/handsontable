@@ -310,6 +310,14 @@ TextRenderer readOnly cell
   color: #777;
 }
 
+.handsontable .htSubmenu :after{
+    content: '▶';
+    color: #777;
+    position: absolute;
+    right: 5px;
+}
+
+
 /*
 TextRenderer horizontal alignment
 */
