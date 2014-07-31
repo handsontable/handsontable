@@ -441,4 +441,20 @@ describe('Search plugin', function () {
 
     });
   });
+
+  it("should add minSpareRows when the cell is null", function () {
+    var hot = handsontable({
+      data: [
+        [1, 2],
+        [22, 4]
+      ],
+      search: true,
+      minSpareRows: 1
+    });
+
+    var searchResult = hot.search.query('2');
+
+    expect(searchResult.length).toEqual(2);
+
+  });
 });

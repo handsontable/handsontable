@@ -52,7 +52,7 @@
 
   Handsontable.Search.DEFAULT_QUERY_METHOD = function (query, value) {
 
-    if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length == 0){
+    if (typeof query == 'undefined' || query == null || !query.toLowerCase || query.length == 0 || typeof value == 'undefined' || value == null) {
       return false;
     }
 
