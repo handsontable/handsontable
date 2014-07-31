@@ -65,6 +65,8 @@ function WalkontableTableRenderer(wtTable){
     }
 
     this.adjustColumnWidths(displayTds);
+
+    this.markOversizedRows();
   }
 
   if (!adjusted) {
@@ -118,7 +120,7 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
       break; //we have as much rows as needed for this clone
     }
 
-    TR = this.getTrForRow(visibleRowIndex, TR);
+    TR = this.getOrCreateTrForRow(visibleRowIndex, TR);
 
     //Render row headers
     this.renderRowHeaders(sourceRowIndex, TR);
@@ -142,6 +144,9 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
       }
     }
 
+    this.resetOversizedRow(sourceRowIndex);
+
+
     if (TR.firstChild) {
       var height = this.instance.getSetting('rowHeight', sourceRowIndex); //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
       if(height) {
@@ -158,6 +163,37 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
   }
 };
 
+WalkontableTableRenderer.prototype.resetOversizedRow = function (rowNum) {
+  var sourceRow = this.instance.wtTable.rowFilter.visibleToSource(rowNum);
+  if (this.instance.wtTable.oversizedRows && this.instance.wtTable.oversizedRows[sourceRow]) {
+    delete this.instance.wtTable.oversizedRows[sourceRow];
+  }
+};
+
+WalkontableTableRenderer.prototype.markOversizedRows = function () {
+  var previousRowHeight
+    , trInnerHeight
+    , sourceRowIndex
+    , currentTr;
+
+  var rowCount = this.instance.wtTable.TBODY.childNodes.length;
+  while (rowCount--) {
+    sourceRowIndex = this.instance.wtTable.rowFilter.visibleToSource(rowCount);
+    previousRowHeight = this.instance.getSetting('rowHeight', rowCount) || this.instance.wtSettings.settings.rowHeight(rowCount);
+    currentTr = this.instance.wtTable.getTrForRow(sourceRowIndex);
+
+    if(!currentTr) { debugger; }
+    trInnerHeight = Handsontable.Dom.innerHeight(currentTr) - 1;
+
+    if ((!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < trInnerHeight || previousRowHeight < trInnerHeight)) {
+      if (!this.instance.wtTable.oversizedRows) {
+        this.instance.wtTable.oversizedRows = {};
+      }
+      this.instance.wtTable.oversizedRows[sourceRowIndex] = trInnerHeight;
+    }
+  }
+
+};
 
 WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, displayTds) {
   var TD, sourceColIndex;
@@ -209,7 +245,7 @@ WalkontableTableRenderer.prototype.appendToTbody = function (TR) {
   this.wtTable.tbodyChildrenLength++;
 };
 
-WalkontableTableRenderer.prototype.getTrForRow = function (rowIndex, currentTr) {
+WalkontableTableRenderer.prototype.getOrCreateTrForRow = function (rowIndex, currentTr) {
   var TR;
 
   if (rowIndex >= this.wtTable.tbodyChildrenLength) {

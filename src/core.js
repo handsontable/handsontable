@@ -1678,11 +1678,31 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
   this.getRowHeight = function (row) {
-    var height = instance._getRowHeightFromSettings(row);
+    var height = instance._getRowHeightFromSettings(row),
+        oversizedHeight = instance.checkIfRowIsOversized(row);
 
     height = Handsontable.hooks.execute(instance, 'modifyRowHeight', height, row);
+
+    if(oversizedHeight) {
+      height = height ? Math.max(height,oversizedHeight) : oversizedHeight;
+    }
+
     return height;
   };
+
+
+
+  /**
+   * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height
+   * @param {Number} row
+   * @return {Number}
+   */
+   this.checkIfRowIsOversized = function(row) {
+      if(instance.view.activeWt.wtTable.oversizedRows) {
+        return instance.view.activeWt.wtTable.oversizedRows[row];
+      }
+   };
+
 
   /**
    * Return total number of rows in grid
