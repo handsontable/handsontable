@@ -49,15 +49,6 @@
   }
 
   function align (range, type, alignment) {
-//    if (range.from.row < 0) {
-//      range.from = new WalkontableCellCoords(0,range.from.col);
-//      range.to = new WalkontableCellCoords(this.view.wt.wtTable.getRowStrategy().cellCount - 1, range.to.col);
-//    }
-//    if (range.from.col < 0) {
-//      range.from = new WalkontableCellCoords(range.from.row, 0);
-//      range.to = new WalkontableCellCoords(range.to.row, this.view.wt.wtTable.getColumnStrategy().cellCount - 1);
-//    }
-
     if (range.from.row == range.to.row && range.from.col == range.to.col){
       doAlign.call(this,range.from.row, range.from.col, type, alignment);
     } else {
@@ -83,39 +74,6 @@
 
     this.defaultOptions = {
       items: {
-
-				'first':{
-					name:'first',
-
-					submenu: {
-						items: {
-							'test1':{
-								name: 'first 1',
-								callback: function () {
-									alert(1);
-								},
-								disabled: function () {
-								}
-							},
-							'test2':{
-								name: 'first 2',
-								callback: function () {
-									alert(1);
-								},
-								disabled: function () {
-								}
-							}
-						}
-					},
-					callback: function () {
-
-					},
-					disabled: function () {
-
-					}
-				},
-
-
         'row_above': {
           name: 'Insert row above',
           callback: function(key, selection){
@@ -129,37 +87,7 @@
             return selected[0] < 0 || this.countRows() >= this.getSettings().maxRows || columnSelected;
           }
         },
-				'test':{
-					name:'test',
-
-					submenu: {
-						items: {
-							'test1':{
-								name: 'test1',
-								callback: function () {
-									alert(1);
-								},
-								disabled: function () {
-								}
-							},
-							'test2':{
-								name: 'test1',
-								callback: function () {
-									alert(1);
-								},
-								disabled: function () {
-								}
-							}
-						}
-					},
-					callback: function () {
-
-					},
-					disabled: function () {
-
-					}
-				},
-        'row_below': {
+				'row_below': {
           name: 'Insert row below',
           callback: function(key, selection){
             this.alter("insert_row", selection.end.row + 1);
@@ -248,13 +176,12 @@
         "hsep4": ContextMenu.SEPARATOR,
         'make_read_only': {
           name: function() {
+            var label = "Read only";
             var atLeastOneReadOnly = contextMenu.checkSelectionReadOnlyConsistency(this);
-
-            if(!atLeastOneReadOnly) {
-              return "Make read-only";
-            } else {
-              return "Make writable";
+            if (atLeastOneReadOnly) {
+              label = contextMenu.markSelected(label);
             }
+            return label;
           },
           callback: function() {
             var atLeastOneReadOnly = contextMenu.checkSelectionReadOnlyConsistency(this);
@@ -268,88 +195,130 @@
           }
         },
         "hsep5": ContextMenu.SEPARATOR,
-        'horizontal_alignment': {
-          name: function () {
-            var div = document.createElement('div'),
-              button = document.createElement('button'),
-              lButton = button.cloneNode(true),
-              rButton = button.cloneNode(true),
-              cButton = button.cloneNode(true),
-              jButton = button.cloneNode(true),
-              lText = document.createTextNode('left'),
-              cText = document.createTextNode('center'),
-              rText = document.createTextNode('right'),
-              jText = document.createTextNode('justify');
+        'aligment':{
+          name: 'Alignment',
+          submenu: {
+            items: {
+              'horizontal_alignment': {
+                name: 'Horizontal Alignment',
+                submenu: {
+                  items: {
+                    left: {
+                      name: function () {
+                        var label = "Left";
+                        var hasClass = contextMenu.checkSelectionAlignment(this,'htLeft');
 
-            lButton.appendChild(lText);
-            cButton.appendChild(cText);
-            rButton.appendChild(rText);
-            jButton.appendChild(jText);
+                        if (hasClass){
+                          label = contextMenu.markSelected(label);
+                        }
+                        return label;
+                      },
+                      callback: function (){
+                        align.call(this, this.getSelectedRange(),'horizontal','htLeft');
+                      },
+                      disabled: false
+                    },
+                    center: {
+                      name: function () {
+                        var label = "Center";
+                        var hasClass = contextMenu.checkSelectionAlignment(this,'htCenter');
 
-            Handsontable.Dom.addClass(lButton,'Left');
-            Handsontable.Dom.addClass(cButton,'Center');
-            Handsontable.Dom.addClass(rButton,'Right');
-            Handsontable.Dom.addClass(jButton,'Justify');
+                        if (hasClass){
+                          label = contextMenu.markSelected(label);
+                        }
+                        return label;
+                      },
+                      callback: function () {
+                        align.call(this, this.getSelectedRange(),'horizontal','htCenter');
+                      },
+                      disabled: false
+                    },
+                    right: {
+                      name: function () {
+                        var label = "Right";
+                        var hasClass = contextMenu.checkSelectionAlignment(this,'htRight');
 
-            div.appendChild(lButton);
-            div.appendChild(cButton);
-            div.appendChild(rButton);
-            div.appendChild(jButton);
+                        if (hasClass){
+                          label = contextMenu.markSelected(label);
+                        }
+                        return label;
+                      },
+                      callback: function () {
+                        align.call(this, this.getSelectedRange(),'horizontal','htRight');
+                      },
+                      disabled: false
+                    },
+                    justify: {
+                      name: function () {
+                        var label = "Justify";
+                        var hasClass = contextMenu.checkSelectionAlignment(this,'htJustify');
 
-            return div.outerHTML;
-          },
-          callback: function (key, selection ,event) {
-            var className = event.target.className,
-              type = event.target.tagName;
+                        if (hasClass){
+                          label = contextMenu.markSelected(label);
+                        }
+                        return label;
+                      },
+                      callback: function () {
+                        align.call(this, this.getSelectedRange(),'horizontal','htJustify');
+                      },
+                      disabled: false
+                    }
+                  }
+                }
+              },
+              'vertical_alignment': {
+                name: 'Vertical Alignment',
+                submenu: {
+                  items: {
+                    top: {
+                      name: function () {
+                        var label = "Top";
+                        var hasClass = contextMenu.checkSelectionAlignment(this,'htTop');
 
-            if (type === "BUTTON") {
-              if(className) {
-                align.call(this, this.getSelectedRange(),'horizontal','ht' + className );
+                        if (hasClass){
+                          label = contextMenu.markSelected(label);
+                        }
+                        return label;
+                      },
+                      callback: function() {
+                        align.call(this, this.getSelectedRange(),'vertical','htTop');
+                      },
+                      disabled: false
+                    },
+                    middle:{
+                      name: function () {
+                        var label = "Middle";
+                        var hasClass = contextMenu.checkSelectionAlignment(this,'htMiddle');
+
+                        if (hasClass){
+                          label = contextMenu.markSelected(label);
+                        }
+                        return label;
+                      },
+                      callback: function() {
+                        align.call(this, this.getSelectedRange(),'vertical','htMiddle');
+                      },
+                      disabled: false
+                    },
+                    bottom: {
+                      name: function () {
+                        var label = "Bottom";
+                        var hasClass = contextMenu.checkSelectionAlignment(this,'htBottom');
+
+                        if (hasClass){
+                          label = contextMenu.markSelected(label);
+                        }
+                        return label;
+                      },
+                      callback: function() {
+                        align.call(this, this.getSelectedRange(),'vertical','htBottom');
+                      },
+                      disabled: false
+                    }
+                  }
+                }
               }
             }
-
-          },
-          disabled: function () {
-            return false;
-          }
-        },
-        "hsep6": ContextMenu.SEPARATOR,
-        'vertical_alignment': {
-          name: function () {
-            var div = document.createElement('div'),
-              button = document.createElement('button'),
-              tButton = button.cloneNode(true),
-              mButton = button.cloneNode(true),
-              bButton = button.cloneNode(true),
-              tText = document.createTextNode('top'),
-              mText = document.createTextNode('middle'),
-              bText = document.createTextNode('bottom');
-
-            tButton.appendChild(tText);
-            mButton.appendChild(mText);
-            bButton.appendChild(bText);
-
-            Handsontable.Dom.addClass(tButton,'Top');
-            Handsontable.Dom.addClass(mButton,'Middle');
-            Handsontable.Dom.addClass(bButton,'Bottom');
-
-            div.appendChild(tButton);
-            div.appendChild(mButton);
-            div.appendChild(bButton);
-
-            return div.outerHTML;
-          },
-          callback: function (key, selection ,event) {
-            var className = event.target.className,
-              type = event.target.tagName;
-            if (type === "BUTTON") {
-              if(className) {
-                align.call(this, this.getSelectedRange(),'vertical','ht' + className );
-              }
-            }
-          },
-          disabled: function () {
-            return false;
           }
         }
       }
@@ -362,6 +331,24 @@
 		this.updateOptions(customOptions, this.options);
 
 		this.bindMouseEvents();
+
+    this.markSelected = function (label) {
+      return "<span class='selected'>✓</span>" + label;
+    };
+
+    this.checkSelectionAlignment = function (hot, className){
+      var hasAlignment = false;
+
+      hot.getSelectedRange().forAll(function(r, c) {
+        var metaClassName = hot.getCellMeta(r, c).className;
+        if (metaClassName && metaClassName.indexOf(className)!= -1) {
+          hasAlignment = true;
+          return false;
+        }
+      });
+
+      return hasAlignment;
+    };
 
     this.checkSelectionReadOnlyConsistency = function(hot) {
       var atLeastOneReadOnly = false;
@@ -382,6 +369,7 @@
 
 	ContextMenu.prototype.createMenu = function (menuName, row) {
 		if (menuName) {
+      menuName = menuName.replace(/ /g, '_'); // replace all spaces in name
 			menuName = 'htContextSubMenu_' + menuName;
 		}
 
@@ -494,7 +482,7 @@
 		$(menu).handsontable({
       data: ContextMenu.utils.convertItemsToArray(items),
       colHeaders: false,
-      colWidths: [160],
+      colWidths: [200],
       readOnly: true,
       copyPaste: false,
       columns: [
@@ -514,12 +502,6 @@
     });
 
 		this.bindTableEvents();
-
-//		if (keyboard){
-//			this.setSubMenuPosition(event, menu, subMenu);
-//		} else {
-//			this.setMenuPosition(event, menu, subMenu);
-//		}
 
     $(menu).handsontable('listen');
 
@@ -557,7 +539,7 @@
 		$(menu).handsontable('destroy');
   };
 
-  ContextMenu.prototype.renderer = function(instance, TD, row, col, prop, value, cellProperties){
+  ContextMenu.prototype.renderer = function(instance, TD, row, col, prop, value){
     var contextMenu = this;
     var item = instance.getData()[row];
     var wrapper = document.createElement('DIV');
@@ -612,35 +594,36 @@
     function itemIsDisabled(item){
       return item.disabled === true || (typeof item.disabled == 'function' && item.disabled.call(contextMenu.instance) === true);
     }
+
+
+
   };
 
 	ContextMenu.prototype.onCellMouseOver = function (event, coords, TD, menu) {
 
 		var hot = $(menu).handsontable('getInstance');
+    var menusLength = this.menus.length;
 
-			if(TD.className.indexOf('htSubmenu')!=-1){
-				var selectedItem = hot.getData()[coords.row];
-				var items = this.getItems(selectedItem.submenu);
+    if (menusLength > 0) {
+      var lastMenu = this.menus[menusLength-1];
+      if(lastMenu.id != menu.id) {
+        this.closeLastOpenedSubMenu();
+      }
+    }else {
+      this.closeLastOpenedSubMenu();
+    }
 
-				var subMenu = this.createMenu(selectedItem.name, coords.row);
-				var tdCoords = TD.getBoundingClientRect();
+    if(TD.className.indexOf('htSubmenu')!=-1){
+      var selectedItem = hot.getData()[coords.row];
+      var items = this.getItems(selectedItem.submenu);
 
-				this.show(subMenu, items);
-				this.setSubMenuPosition(tdCoords, subMenu);
+      var subMenu = this.createMenu(selectedItem.name, coords.row);
+      var tdCoords = TD.getBoundingClientRect();
 
-			} else {
-				var menusLength = this.menus.length;
-				if (menusLength > 0) {
-					var lastMenu = this.menus[menusLength-1];
-					if(lastMenu.id != menu.id) {
-						this.closeLastOpenedSubMenu();
-					}
-				} else {
-					this.closeLastOpenedSubMenu();
-				}
-			}
+      this.show(subMenu, items);
+      this.setSubMenuPosition(tdCoords, subMenu);
 
-
+    }
 	};
 
   ContextMenu.prototype.onBeforeKeyDown = function (event, menu) {
@@ -758,7 +741,7 @@
 
     }
 
-    function selectNextCell(row, col, instance, contextMenu){
+    function selectNextCell(row, col, instance){
       var nextRow = row + 1;
       var nextCell =  nextRow < instance.countRows() ? instance.getCell(nextRow, col) : null;
 
@@ -925,12 +908,7 @@
     return cursor.leftRelative + menu.offsetWidth <= cursor.scrollLeft + document.body.clientWidth;
   };
 
-  ContextMenu.prototype.positionMenuBelowCursor = function (cursor, menu, subMenu) {
-//    if (subMenu){
-//			menu.style.top = cursor.top + 'px';
-//		} else {
-//			menu.style.top = cursor.top + 'px';
-//		}
+  ContextMenu.prototype.positionMenuBelowCursor = function (cursor, menu) {
 		menu.style.top = cursor.top + 'px';
   };
 
@@ -993,7 +971,7 @@
 
 	ContextMenu.utils.hasSubMenu = function (cell){
 		return Handsontable.Dom.hasClass(cell, 'htSubmenu');
-	}
+	};
 
   ContextMenu.utils.isDisabled = function (cell) {
     return Handsontable.Dom.hasClass(cell, 'htDisabled');
