@@ -182,7 +182,6 @@ WalkontableTableRenderer.prototype.markOversizedRows = function () {
     previousRowHeight = this.instance.getSetting('rowHeight', rowCount) || this.instance.wtSettings.settings.rowHeight(rowCount);
     currentTr = this.instance.wtTable.getTrForRow(sourceRowIndex);
 
-    if(!currentTr) { debugger; }
     trInnerHeight = Handsontable.Dom.innerHeight(currentTr) - 1;
 
     if ((!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < trInnerHeight || previousRowHeight < trInnerHeight)) {
@@ -328,6 +327,9 @@ WalkontableTableRenderer.prototype.adjustColGroups = function () {
   while (this.wtTable.colgroupChildrenLength > columnCount + this.rowHeaderCount) {
     this.COLGROUP.removeChild(this.COLGROUP.lastChild);
     this.wtTable.colgroupChildrenLength--;
+    if(this.wtTable.columnWidthCache) {
+      this.wtTable.columnWidthCache.splice(-1,1);
+    }
   }
 };
 
