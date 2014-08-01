@@ -60,9 +60,6 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
   elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';
 };
 
-WalkontableCornerScrollbarNative.prototype.prepare = function () {
-};
-
 WalkontableCornerScrollbarNative.prototype.refresh = function (selectionsOnly) {
   this.measureBefore = 0;
   this.measureAfter = 0;

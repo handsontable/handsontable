@@ -17,9 +17,7 @@ WalkontableScrollbars.prototype.registerListeners = function () {
   var oldVerticalScrollPosition
     , oldHorizontalScrollPosition
     , oldBoxTop
-    , oldBoxLeft
-    , oldBoxWidth
-    , oldBoxHeight;
+    , oldBoxLeft;
 
   function refreshAll() {
     if(!that.instance.drawn) {
@@ -35,13 +33,6 @@ WalkontableScrollbars.prototype.registerListeners = function () {
     that.vertical.windowScrollPosition = that.vertical.getScrollPosition();
     that.horizontal.windowScrollPosition = that.horizontal.getScrollPosition();
     that.box = that.instance.wtTable.hider.getBoundingClientRect();
-
-    /*if((that.box.width !== oldBoxWidth || that.box.height !== oldBoxHeight) && that.instance.rowHeightCache) {
-      //that.instance.rowHeightCache.length = 0; //at this point the cached row heights may be invalid, but it is better not to reset the cache, which could cause scrollbar jumping when there are multiline cells outside of the rendered part of the table
-      oldBoxWidth = that.box.width;
-      oldBoxHeight = that.box.height;
-      that.instance.draw(true);
-    }*/
 
     if (that.vertical.windowScrollPosition !== oldVerticalScrollPosition || that.horizontal.windowScrollPosition !== oldHorizontalScrollPosition || that.box.top !== oldBoxTop || that.box.left !== oldBoxLeft) {
       that.vertical.onScroll();
@@ -78,8 +69,6 @@ WalkontableScrollbars.prototype.destroy = function () {
 WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
   this.horizontal && this.horizontal.readSettings();
   this.vertical && this.vertical.readSettings();
-  this.horizontal && this.horizontal.prepare();
-  this.vertical && this.vertical.prepare();
   this.horizontal && this.horizontal.refresh(selectionsOnly);
   this.vertical && this.vertical.refresh(selectionsOnly);
   this.corner && this.corner.refresh(selectionsOnly);

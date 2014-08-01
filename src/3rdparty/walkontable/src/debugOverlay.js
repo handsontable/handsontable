@@ -48,9 +48,6 @@ WalkontableDebugOverlay.prototype.resetFixedPosition = function () {
   elem.style.left = Math.ceil(box.left, 10) + 'px';
 };
 
-WalkontableDebugOverlay.prototype.prepare = function () {
-};
-
 WalkontableDebugOverlay.prototype.refresh = function (selectionsOnly) {
   this.clone && this.clone.draw(selectionsOnly);
 };

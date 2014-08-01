@@ -16,8 +16,6 @@ WalkontableOverlay.prototype.init = function () {
   this.TABLE = this.instance.wtTable.TABLE;
   this.fixed = this.instance.wtTable.hider;
   this.fixedContainer = this.instance.wtTable.holder;
-//  this.fixed.style.position = 'absolute';
-//  this.fixed.style.left = '0';
   this.scrollHandler = this.getScrollableElement(this.TABLE);
   this.$scrollHandler = $(this.scrollHandler); //in future remove jQuery from here
 };
@@ -25,7 +23,6 @@ WalkontableOverlay.prototype.init = function () {
 WalkontableOverlay.prototype.makeClone = function (direction) {
   var clone = document.createElement('DIV');
   clone.className = 'ht_clone_' + direction + ' handsontable';
-//  clone.style.position = 'fixed';
 	clone.style.position = 'absolute';
   clone.style.overflow = 'hidden';
 
@@ -54,9 +51,6 @@ WalkontableOverlay.prototype.getScrollableElement = function (TABLE) {
     el = el.parentNode;
   }
   return window;
-};
-
-WalkontableOverlay.prototype.prepare = function () {
 };
 
 WalkontableOverlay.prototype.onScroll = function () {
