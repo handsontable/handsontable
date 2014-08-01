@@ -19,11 +19,12 @@ describe('ContextMenu', function () {
       });
 
       expect(hot.contextMenu).toBeDefined();
-      expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
+
+      expect($('.htContextMenu').is(':visible')).toBe(false);
 
       contextMenu();
 
-      expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
+      expect($('.htContextMenu').is(':visible')).toBe(true);
 
 
     });
@@ -34,7 +35,7 @@ describe('ContextMenu', function () {
       });
 
       expect(hot.contextMenu).toBeDefined();
-      expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
+      expect($('.htContextMenu').is(':visible')).toBe(false);
 
       selectCell(0, 0);
       var cellOffset = $(getCell(0, 0)).offset();
@@ -44,9 +45,9 @@ describe('ContextMenu', function () {
         pageY: cellOffset.top
       });
 
-      this.$container.find('.wtBorder.current:eq(0)').trigger(event);
+			this.$container.find('.wtBorder.current:eq(0)').trigger(event);
 
-      expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
+      expect($('.htContextMenu').is(':visible')).toBe(true);
 
 
     });
@@ -60,11 +61,11 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
+      expect($('.htContextMenu').is(':visible')).toBe(true);
 
       mouseDown(this.$container);
 
-      expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
+      expect($('.htContextMenu').is(':visible')).toBe(false);
 
     });
   });
@@ -76,13 +77,13 @@ describe('ContextMenu', function () {
         contextMenu: true
       });
 
-      hot.contextMenu.disable();
+			hot.contextMenu.disable();
 
-      expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
+      expect($('.htContextMenu').is(':visible')).toBe(false);
 
       contextMenu();
 
-      expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
+      expect($('.htContextMenu').is(':visible')).toBe(false);
 
     });
 
@@ -102,17 +103,17 @@ describe('ContextMenu', function () {
 
       hot.contextMenu.disable();
 
-      expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
+      expect($('.htContextMenu').is(':visible')).toBe(false);
 
       contextMenu();
 
-      expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
+      expect($('.htContextMenu').is(':visible')).toBe(false);
 
       hot.contextMenu.enable();
 
       contextMenu();
 
-      expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
+      expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
     it("should reenable menu with updateSettings when it was disabled in constructor", function () {
@@ -128,11 +129,11 @@ describe('ContextMenu', function () {
 
       expect(hot.contextMenu).toBeDefined();
 
-      expect($(hot.contextMenu.menu).is(':visible')).toBe(false);
+      expect($('.htContextMenu').is(':visible')).toBe(false);
 
       contextMenu();
 
-      expect($(hot.contextMenu.menu).is(':visible')).toBe(true);
+      expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
     it("should disable menu with updateSettings when it was enabled in constructor", function () {
@@ -159,7 +160,7 @@ describe('ContextMenu', function () {
         });
         selectCell(0, 0);
         contextMenu();
-        $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(0).trigger('mousedown');
+				$('.htContextMenu .ht_master .htCore tbody').find('td').not('.htSeparator').eq(0).trigger('mousedown');
         expect(getData().length).toEqual(4);
       };
       test();
@@ -177,7 +178,6 @@ describe('ContextMenu', function () {
       var hot = handsontable({
         contextMenu: true
       });
-
       expect($('.htContextMenu').length).toEqual(1);
 
       destroy();
@@ -217,8 +217,8 @@ describe('ContextMenu', function () {
       var actions = items.not('.htSeparator');
       var separators = items.filter('.htSeparator');
 
-      expect(actions.length).toEqual(13);
-      expect(separators.length).toEqual(7);
+      expect(actions.length).toEqual(12);
+      expect(separators.length).toEqual(6);
 
       expect(actions.text()).toEqual([
         'Insert row above',
@@ -229,14 +229,8 @@ describe('ContextMenu', function () {
         'Remove column',
         'Undo',
         'Redo',
-        'Make read-only',
-        'left',
-        'center',
-        'right',
-        'justify',
-        'top',
-        'middle',
-        'bottom',
+        'Read only',
+        'Alignment',
         'Add Comment',
         'Delete Comment'
       ].join(''));
@@ -262,7 +256,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      var $menu = $(hot.contextMenu.menu);
+      var $menu = $('.htContextMenu .ht_master .htCore');
 
       expect($menu.find('tbody td:eq(3)').text()).toEqual('Insert column on the left');
       expect($menu.find('tbody td:eq(3)').hasClass('htDisabled')).toBe(true);
@@ -293,7 +287,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      var $menu = $(hot.contextMenu.menu);
+      var $menu = $('.htContextMenu .ht_master .htCore');
 
       expect($menu.find('tbody td:eq(0)').text()).toEqual('Insert row above');
       expect($menu.find('tbody td:eq(0)').hasClass('htDisabled')).toBe(true);
@@ -321,7 +315,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(0).trigger('mousedown'); //Insert row above
+			$('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).trigger('mousedown'); //Insert row above
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
 
@@ -343,7 +337,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(0).trigger('mousedown'); //Insert row above
+			$('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).trigger('mousedown'); //Insert row above
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
       expect(countRows()).toEqual(5);
@@ -364,7 +358,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(1).trigger('mousedown'); //Insert row above
+			$('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1).trigger('mousedown'); //Insert row above
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined, undefined);
       expect(countRows()).toEqual(5);
@@ -385,7 +379,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(1).trigger('mousedown'); //Insert row below
+			$('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1).trigger('mousedown'); //Insert row below
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined, undefined);
       expect(countRows()).toEqual(5);
@@ -406,7 +400,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(2).trigger('mousedown'); //Insert col left
+			$('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2).trigger('mousedown'); //Insert col left
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
@@ -427,7 +421,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(2).trigger('mousedown'); //Insert col left
+			$('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2).trigger('mousedown'); //Insert col left
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
@@ -448,7 +442,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(3).trigger('mousedown'); //Insert col right
+			$('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3).trigger('mousedown'); //Insert col right
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
@@ -469,7 +463,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(3).trigger('mousedown'); //Insert col right
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3).trigger('mousedown'); //Insert col right
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(5);
@@ -490,7 +484,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(4).trigger('mousedown'); //Remove row
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(4).trigger('mousedown'); //Remove row
 
       expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
       expect(countRows()).toEqual(1);
@@ -511,7 +505,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(4).trigger('mousedown'); //Remove row
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(4).trigger('mousedown'); //Remove row
 
       expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
       expect(countRows()).toEqual(1);
@@ -532,7 +526,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(5).trigger('mousedown'); //Remove col
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(5).trigger('mousedown'); //Remove col
 
       expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(1);
@@ -553,7 +547,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(5).trigger('mousedown'); //Remove col
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(5).trigger('mousedown'); //Remove col
 
       expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, undefined, undefined, undefined, undefined);
       expect(countCols()).toEqual(1);
@@ -575,7 +569,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(6).trigger('mousedown'); //Undo
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(6).trigger('mousedown'); //Undo
 
       expect(getDataAtCell(0, 0)).toEqual('A0');
     });
@@ -600,7 +594,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(7).trigger('mousedown'); //Redo
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(7).trigger('mousedown'); //Redo
 
       expect(getDataAtCell(0, 0)).toEqual('XX');
     });
@@ -613,7 +607,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      expect($(hot.contextMenu.menu).find('tbody td').length).toEqual(2);
+      expect($('.htContextMenu .ht_master .htCore').find('tbody td').length).toEqual(2);
     });
 
     it("should make a single selected cell read-only", function(){
@@ -629,7 +623,8 @@ describe('ContextMenu', function () {
 
       selectCell(0,0);
       contextMenu();
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make read-only
+			var menu = $('.htContextMenu .ht_master .htCore tbody');
+      menu.find('td').not('.htSeparator').eq(8).trigger('mousedown'); //Make read-only
 
       expect(hot.getCellMeta(0,0).readOnly).toBe(true);
       
@@ -649,7 +644,9 @@ describe('ContextMenu', function () {
 
       selectCell(0,0);
       contextMenu();
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make writable
+			var menu = $('.htContextMenu .ht_master .htCore tbody');
+			menu.find('td').not('.htSeparator').eq(8).trigger('mousedown');
+//      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make writable
 
       expect(hot.getCellMeta(0,0).readOnly).toBe(false);
     });
@@ -669,7 +666,9 @@ describe('ContextMenu', function () {
       selectCell(0, 0, 2, 2);
 
       contextMenu();
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make read-only
+			var menu = $('.htContextMenu .ht_master .htCore tbody');
+			menu.find('td').not('.htSeparator').eq(8).trigger('mousedown');
+//      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make read-only
 
       for(var i = 0; i < 2; i++) {
         for(var j = 0; j < 2; j++) {
@@ -686,7 +685,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
+      var buttonRow = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       var button = buttonRow.find('button.Left');
 
       button.trigger('mousedown'); //Text left
@@ -702,7 +701,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
+      var buttonRow = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       var button = buttonRow.find('button.Center');
 
       button.trigger('mousedown'); //Text center
@@ -718,7 +717,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
+      var buttonRow = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       var button = buttonRow.find('button.Right');
 
 
@@ -735,7 +734,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(9);
+      var buttonRow = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
       var button = buttonRow.find('button.Justify');
 
       button.trigger('mousedown'); //Text justify
@@ -751,7 +750,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(10);
+      var buttonRow = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
       var button = buttonRow.find('button.Top');
 
       button.trigger('mousedown'); //Text top
@@ -767,7 +766,7 @@ describe('ContextMenu', function () {
 
       contextMenu();
 
-      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(10);
+      var buttonRow = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
       var button = buttonRow.find('button.Middle');
 
       button.trigger('mousedown'); //Text middle
@@ -782,7 +781,7 @@ describe('ContextMenu', function () {
       });
 
       contextMenu();
-      var buttonRow = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(10);
+      var buttonRow = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
       var button = buttonRow.find('button.Bottom');
 
       button.trigger('mousedown'); //Text bottom
@@ -803,7 +802,7 @@ describe('ContextMenu', function () {
       var $menu = $(hot.contextMenu.menu);
       expect($menu.find('tbody td:eq(19)').hasClass('htDisabled')).toBe(true);
 
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(11).trigger('mousedown');
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(11).trigger('mousedown');
 
       var comments = $('body > .htComments');
       expect(comments[0]).not.toBeUndefined();
@@ -831,7 +830,7 @@ describe('ContextMenu', function () {
       contextMenu();
       var $menu = $(hot.contextMenu.menu);
       expect($menu.find('tbody td:eq(19)').hasClass('htDisabled')).toBe(false);
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(12).trigger('mousedown');
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(12).trigger('mousedown');
       expect(getCellMeta(0,0).comment).toBeUndefined();
     });
 
@@ -850,7 +849,7 @@ describe('ContextMenu', function () {
       selectCell(2, 2, 0, 0);
 
       contextMenu();
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make read-only
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make read-only
 
       for(var i = 0; i < 2; i++) {
         for(var j = 0; j < 2; j++) {
@@ -876,7 +875,7 @@ describe('ContextMenu', function () {
       selectCell(0, 0, 2, 2);
 
       contextMenu();
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make writable
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make writable
 
       for(var i = 0; i < 2; i++) {
         for(var j = 0; j < 2; j++) {
@@ -902,7 +901,7 @@ describe('ContextMenu', function () {
       selectCell(2, 2, 0, 0);
 
       contextMenu();
-      $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make writable
+      $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(8).trigger('mousedown'); //Make writable
 
       for(var i = 0; i < 2; i++) {
         for(var j = 0; j < 2; j++) {

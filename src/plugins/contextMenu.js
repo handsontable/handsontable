@@ -199,125 +199,113 @@
           name: 'Alignment',
           submenu: {
             items: {
-              'horizontal_alignment': {
-                name: 'Horizontal Alignment',
-                submenu: {
-                  items: {
-                    left: {
-                      name: function () {
-                        var label = "Left";
-                        var hasClass = contextMenu.checkSelectionAlignment(this,'htLeft');
+							left: {
+								name: function () {
+									var label = "Left";
+									var hasClass = contextMenu.checkSelectionAlignment(this,'htLeft');
 
-                        if (hasClass){
-                          label = contextMenu.markSelected(label);
-                        }
-                        return label;
-                      },
-                      callback: function (){
-                        align.call(this, this.getSelectedRange(),'horizontal','htLeft');
-                      },
-                      disabled: false
-                    },
-                    center: {
-                      name: function () {
-                        var label = "Center";
-                        var hasClass = contextMenu.checkSelectionAlignment(this,'htCenter');
+									if (hasClass){
+										label = contextMenu.markSelected(label);
+									}
+									return label;
+								},
+								callback: function (){
+									align.call(this, this.getSelectedRange(),'horizontal','htLeft');
+								},
+								disabled: false
+							},
+							center: {
+								name: function () {
+									var label = "Center";
+									var hasClass = contextMenu.checkSelectionAlignment(this,'htCenter');
 
-                        if (hasClass){
-                          label = contextMenu.markSelected(label);
-                        }
-                        return label;
-                      },
-                      callback: function () {
-                        align.call(this, this.getSelectedRange(),'horizontal','htCenter');
-                      },
-                      disabled: false
-                    },
-                    right: {
-                      name: function () {
-                        var label = "Right";
-                        var hasClass = contextMenu.checkSelectionAlignment(this,'htRight');
+									if (hasClass){
+										label = contextMenu.markSelected(label);
+									}
+									return label;
+								},
+								callback: function () {
+									align.call(this, this.getSelectedRange(),'horizontal','htCenter');
+								},
+								disabled: false
+							},
+							right: {
+								name: function () {
+									var label = "Right";
+									var hasClass = contextMenu.checkSelectionAlignment(this,'htRight');
 
-                        if (hasClass){
-                          label = contextMenu.markSelected(label);
-                        }
-                        return label;
-                      },
-                      callback: function () {
-                        align.call(this, this.getSelectedRange(),'horizontal','htRight');
-                      },
-                      disabled: false
-                    },
-                    justify: {
-                      name: function () {
-                        var label = "Justify";
-                        var hasClass = contextMenu.checkSelectionAlignment(this,'htJustify');
+									if (hasClass){
+										label = contextMenu.markSelected(label);
+									}
+									return label;
+								},
+								callback: function () {
+									align.call(this, this.getSelectedRange(),'horizontal','htRight');
+								},
+								disabled: false
+							},
+							justify: {
+								name: function () {
+									var label = "Justify";
+									var hasClass = contextMenu.checkSelectionAlignment(this,'htJustify');
 
-                        if (hasClass){
-                          label = contextMenu.markSelected(label);
-                        }
-                        return label;
-                      },
-                      callback: function () {
-                        align.call(this, this.getSelectedRange(),'horizontal','htJustify');
-                      },
-                      disabled: false
-                    }
-                  }
-                }
-              },
-              'vertical_alignment': {
-                name: 'Vertical Alignment',
-                submenu: {
-                  items: {
-                    top: {
-                      name: function () {
-                        var label = "Top";
-                        var hasClass = contextMenu.checkSelectionAlignment(this,'htTop');
+									if (hasClass){
+										label = contextMenu.markSelected(label);
+									}
+									return label;
+								},
+								callback: function () {
+									align.call(this, this.getSelectedRange(),'horizontal','htJustify');
+								},
+								disabled: false
+							},
+							"hsep1": ContextMenu.SEPARATOR,
+							top: {
+								name: function () {
+									var label = "Top";
+									var hasClass = contextMenu.checkSelectionAlignment(this,'htTop');
 
-                        if (hasClass){
-                          label = contextMenu.markSelected(label);
-                        }
-                        return label;
-                      },
-                      callback: function() {
-                        align.call(this, this.getSelectedRange(),'vertical','htTop');
-                      },
-                      disabled: false
-                    },
-                    middle:{
-                      name: function () {
-                        var label = "Middle";
-                        var hasClass = contextMenu.checkSelectionAlignment(this,'htMiddle');
+									if (hasClass){
+										label = contextMenu.markSelected(label);
+									}
+									return label;
+								},
+								callback: function() {
+									align.call(this, this.getSelectedRange(),'vertical','htTop');
+								},
+								disabled: false
+							},
+							middle:{
+								name: function () {
+									var label = "Middle";
+									var hasClass = contextMenu.checkSelectionAlignment(this,'htMiddle');
 
-                        if (hasClass){
-                          label = contextMenu.markSelected(label);
-                        }
-                        return label;
-                      },
-                      callback: function() {
-                        align.call(this, this.getSelectedRange(),'vertical','htMiddle');
-                      },
-                      disabled: false
-                    },
-                    bottom: {
-                      name: function () {
-                        var label = "Bottom";
-                        var hasClass = contextMenu.checkSelectionAlignment(this,'htBottom');
+									if (hasClass){
+										label = contextMenu.markSelected(label);
+									}
+									return label;
+								},
+								callback: function() {
+									align.call(this, this.getSelectedRange(),'vertical','htMiddle');
+								},
+								disabled: false
+							},
+							bottom: {
+								name: function () {
+									var label = "Bottom";
+									var hasClass = contextMenu.checkSelectionAlignment(this,'htBottom');
 
-                        if (hasClass){
-                          label = contextMenu.markSelected(label);
-                        }
-                        return label;
-                      },
-                      callback: function() {
-                        align.call(this, this.getSelectedRange(),'vertical','htBottom');
-                      },
-                      disabled: false
-                    }
-                  }
-                }
-              }
+									if (hasClass){
+										label = contextMenu.markSelected(label);
+									}
+									return label;
+								},
+								callback: function() {
+									align.call(this, this.getSelectedRange(),'vertical','htBottom');
+								},
+								disabled: false
+							}
+
             }
           }
         }
@@ -418,6 +406,8 @@
 
       this.show(menu, items);
 			this.setMenuPosition(event, menu);
+
+			$(document).on('mousedown.htContextMenu', Handsontable.helper.proxy(ContextMenu.prototype.closeAll, this));
     }
 
 		this.instance.rootElement.on('contextmenu.htContextMenu', Handsontable.helper.proxy(contextMenuOpenListener, this));
