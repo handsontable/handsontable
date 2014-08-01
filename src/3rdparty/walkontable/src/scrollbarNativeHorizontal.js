@@ -16,23 +16,40 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
   }
   var elem = this.clone.wtTable.holder.parentNode;
 
-  var box;
-  if (this.scrollHandler === window) {
-    box = this.instance.wtTable.hider.getBoundingClientRect();
-    var left = Math.ceil(box.left, 10);
-    var right = Math.ceil(box.right, 10);
+  var box = this.instance.wtTable.hider.getBoundingClientRect();
 
-    if (left < 0 && right > 0) {
-      elem.style.left = '0';
-    }
-    else {
-      elem.style.left = left + 'px';
-    }
+	var fixedColumns = this.instance.getSetting('fixedColumnsLeft') > 0,
+		fixedRows = this.instance.getSetting('fixedRowsTop') > 0,
+		fixedElements = fixedColumns && fixedRows;
+
+	if (this.scrollHandler === window) {
+
+		if(fixedElements){
+
+			var left = Math.ceil(box.left);
+
+			if (left < 0) {
+				elem.style.left = -left + 'px';
+			} else {
+				elem.style.left = '0';
+			}
+
+		} else {
+			elem.style.left = '0';
+			elem.style.top = '0';
+		}
   }
   else {
-    box = this.scrollHandler.getBoundingClientRect();
-    elem.style.top = Math.ceil(box.top, 10) + 'px';
-    elem.style.left = Math.ceil(box.left, 10) + 'px';
+
+		if(fixedElements) {
+			var hider = this.scrollHandler.getBoundingClientRect();
+			elem.style.top = this.instance.wtTable.hider.style.top;
+
+			elem.style.left = Math.ceil(hider.left) - Math.ceil(box.left) + 'px';
+		} else {
+			elem.style.top = '0';
+			elem.style.left = '0';
+		}
   }
 
   this.react();
@@ -43,17 +60,23 @@ WalkontableHorizontalScrollbarNative.prototype.react = function () {
   if (!this.instance.wtTable.holder.parentNode) {
     return; //removed from DOM
   }
-  var overlayContainer = this.clone.wtTable.holder.parentNode;
-  if (this.instance.wtScrollbars.vertical.scrollHandler === window) {
-    var box = this.instance.wtTable.hider.getBoundingClientRect();
-    overlayContainer.style.top = Math.ceil(box.top, 10) + 'px';
-    overlayContainer.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 'px';
-  }
-  else {
-    this.clone.wtTable.holder.style.top = -(this.instance.wtScrollbars.vertical.windowScrollPosition - this.instance.wtScrollbars.vertical.measureBefore) + 'px';
-    overlayContainer.style.height = this.instance.wtViewport.getWorkspaceHeight() + 'px'
-  }
-  overlayContainer.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px'; //4 is for the box shadow
+	var overlayContainer = this.clone.wtTable.holder.parentNode;
+
+	if (this.instance.wtScrollbars.vertical.scrollHandler === window) {
+		var box  = this.instance.wtTable.hider.getBoundingClientRect(),
+			left = box.left;
+
+		if (left < 0) {
+			overlayContainer.style.left = - left + 'px';
+		} else {
+			overlayContainer.style.left = '0';
+		}
+
+		overlayContainer.style.position = 'absolute';
+		overlayContainer.style.top = this.instance.wtTable.hider.style.top;
+	}
+	overlayContainer.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 'px';
+  overlayContainer.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
 };
 
 WalkontableHorizontalScrollbarNative.prototype.prepare = function () {

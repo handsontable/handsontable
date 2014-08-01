@@ -12,33 +12,48 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
   }
   var elem = this.clone.wtTable.holder.parentNode;
 
-  var box;
+	var box = this.instance.wtTable.hider.getBoundingClientRect();
+
+	var fixedColumns = this.instance.getSetting('fixedColumnsLeft') > 0,
+		fixedRows = this.instance.getSetting('fixedRowsTop') > 0,
+		fixedElements = fixedColumns && fixedRows;
+
+
   if (this.scrollHandler === window) {
-    box = this.instance.wtTable.hider.getBoundingClientRect();
-    var top = Math.ceil(box.top, 10);
-    var bottom = Math.ceil(box.bottom, 10);
 
-    if (top < 0 && bottom > 0) {
-      elem.style.top = '0';
-    }
-    else {
-      elem.style.top = top + 'px';
-    }
+		if(fixedElements){
 
-    var left = Math.ceil(box.left, 10);
-    var right = Math.ceil(box.right, 10);
+			var top = Math.ceil(box.top);
+			var left = Math.ceil(box.left);
 
-    if (left < 0 && right > 0) {
-      elem.style.left = '0';
-    }
-    else {
-      elem.style.left = left + 'px';
-    }
+			if (left < 0) {
+				elem.style.left = -left + 'px';
+			} else {
+				elem.style.left = '0';
+			}
+
+			if (top < 0) {
+				elem.style.top = this.instance.wtTable.hider.style.top
+			} else {
+				elem.style.top = '0';
+			}
+
+		} else {
+			elem.style.left = '0';
+			elem.style.top = '0';
+		}
   }
   else {
-    box = this.scrollHandler.getBoundingClientRect();
-    elem.style.top = Math.ceil(box.top, 10) + 'px';
-    elem.style.left = Math.ceil(box.left, 10) + 'px';
+
+		if(fixedElements){
+			var hider = this.scrollHandler.getBoundingClientRect();
+			elem.style.top = this.instance.wtTable.hider.style.top;
+			elem.style.left =  Math.ceil(hider.left) - Math.ceil(box.left) + 'px';
+		} else {
+			elem.style.top = '0';
+			elem.style.left = '0';
+		}
+
   }
 
   elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
