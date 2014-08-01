@@ -11,18 +11,17 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
     return; //removed from DOM
   }
   var elem = this.clone.wtTable.holder.parentNode;
+
+	var box = this.instance.wtTable.hider.getBoundingClientRect();
+
 	var fixedColumns = this.instance.getSetting('fixedColumnsLeft') > 0,
 		fixedRows = this.instance.getSetting('fixedRowsTop') > 0,
 		fixedElements = fixedColumns && fixedRows;
-  var box;
 
 
   if (this.scrollHandler === window) {
 
-		elem.style.position = 'absolute';
-
 		if(fixedElements){
-			box = this.instance.wtTable.hider.getBoundingClientRect();
 
 			var top = Math.ceil(box.top);
 			var left = Math.ceil(box.left);
@@ -47,13 +46,10 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
   else {
 
 		if(fixedElements){
-			box = this.scrollHandler.getBoundingClientRect();
-
-			elem.style.position = 'fixed';
-			elem.style.top = Math.ceil(box.top) + 'px';
-			elem.style.left = Math.ceil(box.left) + 'px';
+			var hider = this.scrollHandler.getBoundingClientRect();
+			elem.style.top = this.instance.wtTable.hider.style.top;
+			elem.style.left =  Math.ceil(hider.left) - Math.ceil(box.left) + 'px';
 		} else {
-			elem.style.position = 'absolute';
 			elem.style.top = '0';
 			elem.style.left = '0';
 		}

@@ -15,23 +15,17 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
   }
   var elem = this.clone.wtTable.holder.parentNode;
 
-  var box;
+  var box = this.instance.wtTable.hider.getBoundingClientRect();
 
 	var fixedColumns = this.instance.getSetting('fixedColumnsLeft') > 0,
 		fixedRows = this.instance.getSetting('fixedRowsTop') > 0,
 		fixedElements = fixedColumns && fixedRows;
 
-
 	if (this.scrollHandler === window) {
 
-		elem.style.position = 'absolute';
-
 		if(fixedElements){
-			box = this.instance.wtTable.hider.getBoundingClientRect();
 
 			var left = Math.ceil(box.left);
-
-			elem.style.position = 'absolute';
 
 			if (left < 0) {
 				elem.style.left = -left + 'px';
@@ -47,12 +41,11 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
   else {
 
 		if(fixedElements) {
-			box = this.scrollHandler.getBoundingClientRect();
-			elem.style.position = 'fixed';
-    	elem.style.top = Math.ceil(box.top) + 'px';
-    	elem.style.left = Math.ceil(box.left) + 'px';
+			var hider = this.scrollHandler.getBoundingClientRect();
+			elem.style.top = this.instance.wtTable.hider.style.top;
+
+			elem.style.left = Math.ceil(hider.left) - Math.ceil(box.left) + 'px';
 		} else {
-			elem.style.position = 'absolute';
 			elem.style.top = '0';
 			elem.style.left = '0';
 		}
@@ -79,16 +72,10 @@ WalkontableHorizontalScrollbarNative.prototype.react = function () {
 		}
 
 		overlayContainer.style.position = 'absolute';
-		overlayContainer.style.top = this.instance.wtTable.hider.style.top; //Math.ceil(box.top) + 'px';
-
-		overlayContainer.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 'px';
+		overlayContainer.style.top = this.instance.wtTable.hider.style.top;
 	}
-	else {
-		this.clone.wtTable.holder.style.top = -(this.instance.wtScrollbars.vertical.windowScrollPosition - this.instance.wtScrollbars.vertical.measureBefore) + 'px';
-		overlayContainer.style.height = this.instance.wtViewport.getWorkspaceHeight() + 'px'
-	}
-
-  overlayContainer.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px'; //4 is for the box shadow
+	overlayContainer.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 'px';
+  overlayContainer.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
 };
 
 WalkontableHorizontalScrollbarNative.prototype.prepare = function () {
