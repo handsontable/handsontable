@@ -39,9 +39,6 @@ WalkontableScrollbars.prototype.registerListeners = function () {
       that.horizontal.onScroll(); //it's done here to make sure that all onScroll's are executed before changing styles
       that.corner.onScroll();
 
-      that.vertical.react();
-      that.horizontal.react(); //it's done here to make sure that all onScroll's are executed before changing styles
-
       oldVerticalScrollPosition = that.vertical.windowScrollPosition;
       oldHorizontalScrollPosition = that.horizontal.windowScrollPosition;
       oldBoxTop = that.box.top;
