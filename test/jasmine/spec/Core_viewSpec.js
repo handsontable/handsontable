@@ -439,6 +439,49 @@ describe('Core_view', function () {
 
   });
 
+  describe('fixed column widths', function () {
+    it("should set the columns width correctly after changes made during updateSettings", function () {
+      var hot = handsontable({
+        startRows: 2,
+        fixedColumnsLeft: 2,
+        columns: [{
+          width: 50
+        }, {
+          width: 80
+        }, {
+          width: 110
+        }, {
+          width: 140
+        }, {
+          width: 30
+        }, {
+          width: 30
+        }, {
+          width: 30
+        }]
+      });
+
+      var leftClone = this.$container.find('.ht_clone_left');
+
+      expect(Handsontable.Dom.outerWidth(leftClone.find("tbody tr:nth-child(1) td:nth-child(2)")[0])).toEqual(80);
+
+      hot.updateSettings({
+        manualColumnMove: [2, 0, 1],
+        fixedColumnsLeft: 1
+      });
+
+      expect(leftClone.find("tbody tr:nth-child(1) td:nth-child(2)")[0]).toBe(undefined);
+
+      hot.updateSettings({
+        manualColumnMove: false,
+        fixedColumnsLeft: 2
+      });
+
+      expect(Handsontable.Dom.outerWidth(leftClone.find("tbody tr:nth-child(1) td:nth-child(2)")[0])).toEqual(80);
+
+    });
+  });
+
   describe('stretchH', function () {
 
     it("should stretch all visible columns with the ratio appropriate to the container's width", function() {
