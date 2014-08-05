@@ -62,6 +62,12 @@ var Grouping = function (instance) {
   var cssClass = 'group';
 
   /**
+   * last clicked item
+   * @type {Object}
+   */
+  var lastClicked = null;
+
+  /**
    * create list element
    * @param {Number} index
    * @returns {HTMLElement}
@@ -194,9 +200,11 @@ var Grouping = function (instance) {
   /**
    * Get all groups for cell
    * @param {Object} coords {row:1, col:2}
+   * @param {Number} groupLevel Optional
+   * @param {String} groupType Optional
    * @returns {Array}
    */
-  var getCellGroups = function (coords) {
+  var getCellGroups = function (coords, groupLevel, groupType) {
     var row = coords.row,
         col = coords.col;
 
@@ -224,8 +232,26 @@ var Grouping = function (instance) {
     if (col === -1) {
       _groups = _groups.concat(getColGroups());
     } else if (row === -1) {
-    // add row groups
+      // add row groups
       _groups = _groups.concat(getRowGroups());
+    }
+
+    if (groupLevel) {
+      _groups = _groups.filter(function (item) {
+        return item['level'] === groupLevel;
+      });
+    }
+
+    if (groupType) {
+      if (groupType === 'cols') {
+        _groups = _groups.filter(function (item) {
+          return item['cols'];
+        });
+      } else if (groupType === 'rows') {
+        _groups = _groups.filter(function (item) {
+          return item['rows'];
+        });
+      }
     }
 
     // remove dups
@@ -336,6 +362,34 @@ var Grouping = function (instance) {
     return level;
   };
 
+  var getRangeFromGroups = function (groups, type) {
+    var min = 0,
+        max = 0;
+
+    var values = [];
+
+    groups.forEach(function (item) {
+      if (item[type] instanceof Array) {
+        item[type].map(function (val) {
+          values.push(val);
+        });
+      }
+    });
+
+    if (values) {
+      values.sort();
+
+      min = values[0];
+      max = values[values.length - 1];
+    }
+
+    return {
+      min: min,
+      max: max
+    }
+
+  };
+
   /**
    * update col groups level
    * @param level
@@ -387,7 +441,8 @@ var Grouping = function (instance) {
     groups.push({
       id: 'c' + counters.cols,
       level: levels.cols,
-      cols: range(from, to)
+      cols: range(from, to),
+      hide: 0
     });
   };
 
@@ -468,7 +523,8 @@ var Grouping = function (instance) {
     groups.push({
       id: 'r' + counters.rows,
       level: levels.rows,
-      rows: range(from, to)
+      rows: range(from, to),
+      hide: 0
     });
   };
 
@@ -524,6 +580,17 @@ var Grouping = function (instance) {
     }
   };
 
+  /**
+   * show or hide groups
+   * @param showHide
+   * @param groups
+   */
+  var showHideGroups = function (showHide, groups) {
+    groups.forEach(function (item) {
+      item.hide = showHide;
+    });
+  };
+
   var bindEvents = function () {
     var root = instance.rootElement[0].parentNode;
 
@@ -537,26 +604,71 @@ var Grouping = function (instance) {
 
       if (isNaN(hide)) {
         hide = 1;
+      } else {
+        hide = (hide ? 0 : 1);
       }
 
-      if (hide) {
-        // hide groups
-        hide = 0;
-      } else {
-        // show groups
-        hide = 1;
-      }
+      lastClicked = {
+        id: null,
+        level: level,
+        type: type,
+        hide: hide
+      };
 
       element.setAttribute('hide', hide.toString());
+
+      // get all groups for level
+      var groups = [];
+
+      switch (type) {
+        case 'cols':
+          groups = getColGroupsByLevel(level);
+        break;
+
+        case 'rows':
+          groups = getRowGroupsByLevel(level);
+        break;
+      }
+
+      if (groups.length) {
+        showHideGroups(hide, groups);
+        instance.render();
+      }
     });
+  };
+
+  var renderRows = function (rootElement) {
+    if (!rowsGroupList.querySelector('.group_' + levels.rows)) {
+      var liElement = createListElement(levels.rows);
+      rowsGroupList.appendChild(liElement);
+    }
+
+    if (!rootElement.querySelector('.rowsGroupContainer')) {
+      rootElement.appendChild(rowsGroupContainer);
+    }
+  };
+
+  var renderCols = function (rootElement) {
+    if (!colsGroupList.querySelector('.group_' + levels.cols)) {
+      var liElement = createListElement(levels.cols);
+      colsGroupList.appendChild(liElement);
+    }
+
+    if (!rootElement.querySelector('.colsGroupContainer')) {
+      rootElement.appendChild(colsGroupContainer);
+    }
   };
 
   return {
 
+    /**
+     * all groups for ht instance
+     */
     groups: groups,
 
     /**
-     * initilize groups from configuration
+     * init group
+     * @param {Object} settings, could be an array of objects [{cols: [0,1,2]}, {cols: [3,4,5]}, {rows: [0,1]}]
      */
     init: function (settings) {
 
@@ -571,6 +683,9 @@ var Grouping = function (instance) {
       }
     },
 
+    /**
+     * init groups from configuration on startup
+     */
     initGroupsOnStartup: function (initialGroups) {
       var that = this;
       initialGroups.forEach(function (item) {
@@ -637,7 +752,6 @@ var Grouping = function (instance) {
     ungroup: function (start, end) {
       instance.selection.selectedHeader.rows ? ungroupRows(start.row, end.row) : ungroupCols(start.col, end.col);
     },
-
     /**
      * render groups
      */
@@ -645,31 +759,14 @@ var Grouping = function (instance) {
       var rootElement = instance.rootElement[0].parentNode;
 
       if (instance.selection.selectedHeader.cols) {
-
-        if (!colsGroupList.querySelector('.group_' + levels.cols)) {
-          var liElement = createListElement(levels.cols);
-          colsGroupList.appendChild(liElement);
-        }
-
-        if (!rootElement.querySelector('.colsGroupContainer')) {
-          rootElement.appendChild(colsGroupContainer);
-        }
-
+        renderCols(rootElement);
       } else {
-
-        if (!rowsGroupList.querySelector('.group_' + levels.rows)) {
-          var liElement = createListElement(levels.rows);
-          rowsGroupList.appendChild(liElement);
-        }
-
-        if (!rootElement.querySelector('.rowsGroupContainer')) {
-          rootElement.appendChild(rowsGroupContainer);
-        }
+        renderRows(rootElement);
       }
     },
 
     /**
-     * check if grouping is enabled
+     * check if grouping is allowed
      * @returns {boolean}
      */
     groupIsAllowed: function () {
@@ -691,7 +788,7 @@ var Grouping = function (instance) {
     },
 
     /**
-     * check if ungrouping is enabled
+     * check if ungrouping is allowed
      * @returns {boolean}
      */
     ungroupIsAllowed: function () {
@@ -725,8 +822,182 @@ var Grouping = function (instance) {
       var _groups = getRangeGroups(start, end);
 
       return  (instance.selection.selectedHeader.cols) ? (_groups.total.cols > 0 ? true : false) : (_groups.total.rows > 0 ? true : false);
+    },
+
+    /**
+     * add group/ungroup options to context menu
+     * @param options
+     */
+    addGroupingToContextMenu: function (options) {
+      var instance = this;
+      if (!instance.getSettings().groups) {
+        return;
+      }
+
+      options.items.groupingCellsSeparator = Handsontable.ContextMenu.SEPARATOR;
+
+      options.items.grouping = {
+        name: function () {
+          return 'Group';
+        },
+        callback: function (key, selection) {
+          var start = selection.start,
+            end = selection.end;
+
+          Handsontable.Grouping.group(start, end);
+        },
+        disabled: function () {
+          return !Handsontable.Grouping.groupIsAllowed();
+        }
+      };
+
+      options.items.ungrouping = {
+        name: function () {
+          return 'Ungroup';
+        },
+        callback: function (key, selection) {
+          var start = selection.start,
+            end = selection.end;
+
+          Handsontable.Grouping.ungroup(start, end);
+
+        },
+        disabled: function () {
+          return !Handsontable.Grouping.ungroupIsAllowed();
+        }
+      };
+    },
+
+    afterGetRowHeader: function (row, TH) {
+      var instance = this;
+
+      if (!lastClicked) {
+        return;
+      }
+
+      if (lastClicked.type === 'rows') {
+
+        if (row < 0) {
+          return;
+        }
+
+        var cellGroups = getCellGroups({
+          row: row,
+          col: 0
+        }, lastClicked.level, 'rows');
+
+        if (!cellGroups.length) {
+          return;
+        }
+
+        var filtered = [],
+            isHidden = false;
+
+        if (cellGroups.length) {
+
+          if (lastClicked.hide) {
+            filtered = cellGroups.filter(function (item) {
+              return item.hide === 1;
+            });
+
+            isHidden = filtered.length ? true : false;
+          } else {
+            filtered = cellGroups.filter(function (item) {
+              return item.hide === 0;
+            });
+
+            isHidden = filtered.length ? false : true;
+          }
+        }
+
+        var header = instance.view.wt.wtScrollbars.horizontal.clone.wtTable.TBODY;
+
+        var THs = header.querySelectorAll('tr th'),
+            index = row;
+
+        if (isHidden) {
+
+          TH.style.height = '2px';
+          THs[index].style.height = '2px';
+
+        } else {
+
+          TH.style.height = '';
+          THs[index].style.height = '';
+
+        }
+      }
+    },
+
+    afterGetColHeader: function (col, TH) {
+      var instance = this;
+
+      if (!lastClicked) {
+        return;
+      }
+
+      if (lastClicked.type === 'cols') {
+
+        var cellGroups = getCellGroups({
+              row: 0,
+              col: col
+        }, lastClicked.level, 'cols');
+
+        if (!cellGroups.length) {
+          return;
+        }
+
+        var filtered = [],
+            isHidden = false;
+
+        if (cellGroups.length) {
+
+          if (lastClicked.hide) {
+            filtered = cellGroups.filter(function (item) {
+              return item.hide === 1;
+            });
+
+            isHidden = filtered.length ? true : false;
+          } else {
+            filtered = cellGroups.filter(function (item) {
+              return item.hide === 0;
+            });
+
+            isHidden = filtered.length ? false : true;
+          }
+        }
+
+        var header = instance.view.wt.wtScrollbars.vertical.clone.wtTable.THEAD;
+
+        var colGroupClone = instance.view.wt.wtScrollbars.vertical.clone.wtTable.COLGROUP,
+            colGroup = instance.view.wt.wtTable.COLGROUP;
+
+        var colsClone = colGroupClone.querySelectorAll('col'),
+            cols = colGroup.querySelectorAll('col');
+
+        var THs = header.querySelectorAll('tr th'),
+            index = col + 1;
+
+        if (isHidden) {
+
+          // hide cell
+          TH.style.width = '2px';
+
+          THs[index].style.width = '2px';
+          colsClone[index].style.width = '2px';
+          cols[index].style.width = '2px';
+
+        } else {
+
+          TH.style.width = '';
+
+          THs[index].style.width = '';
+          colsClone[index].style.width = '';
+          cols[index].style.width = '';
+        }
+      }
     }
-  };
+  }
 };
 
 /**
@@ -739,52 +1010,12 @@ var init = function () {
   if (groupingSetting) {
     Handsontable.Grouping = new Grouping(instance);
     Handsontable.Grouping.init(groupingSetting);
+
+    Handsontable.hooks.add('afterContextMenuDefaultOptions', Handsontable.Grouping.addGroupingToContextMenu);
+
+    Handsontable.hooks.add('afterGetRowHeader', Handsontable.Grouping.afterGetRowHeader);
+    Handsontable.hooks.add('afterGetColHeader', Handsontable.Grouping.afterGetColHeader);
   }
-};
-
-/**
- * add group/ungroup options to context menu
- * @param options
- */
-var addGroupingToContextMenu = function (options) {
-  var instance = this;
-  if (!instance.getSettings().groups) {
-    return;
-  }
-
-  options.items.groupingCellsSeparator = Handsontable.ContextMenu.SEPARATOR;
-
-  options.items.grouping = {
-    name: function () {
-      return 'Group';
-    },
-    callback: function (key, selection) {
-      var start = selection.start,
-          end = selection.end;
-
-      Handsontable.Grouping.group(start, end);
-    },
-    disabled: function () {
-      return !Handsontable.Grouping.groupIsAllowed();
-    }
-  };
-
-  options.items.ungrouping = {
-    name: function () {
-      return 'Ungroup';
-    },
-    callback: function (key, selection) {
-      var start = selection.start,
-          end = selection.end;
-
-      Handsontable.Grouping.ungroup(start, end);
-
-    },
-    disabled: function () {
-      return !Handsontable.Grouping.ungroupIsAllowed();
-    }
-  };
 };
 
 Handsontable.hooks.add('beforeInit', init);
-Handsontable.hooks.add('afterContextMenuDefaultOptions', addGroupingToContextMenu);
