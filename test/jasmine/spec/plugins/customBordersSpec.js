@@ -136,8 +136,14 @@ describe('CustomBorders', function () {
       };
 
     contextMenu();
-    var buttonRow1 = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(11);
-    buttonRow1.find('button.top').trigger('mousedown'); //Text center
+
+    var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
+    item.trigger('mouseover');
+
+    var contextSubMenu = $('.htContextSubMenu_' + item.text());
+    var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(0);
+
+    button.trigger('mousedown');
 
     expect(getCellMeta(0,0).borders.hasOwnProperty('top')).toBe(true);
     expect(getCellMeta(0,0).borders.top).toEqual(defaultBorder);
@@ -163,8 +169,14 @@ describe('CustomBorders', function () {
       };
 
     contextMenu();
-    var buttonRow2 = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(11);
-    buttonRow2.find('button.left').trigger('mousedown');
+    var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
+    item.trigger('mouseover');
+
+    var contextSubMenu = $('.htContextSubMenu_' + item.text());
+    var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(3);
+
+    button.trigger('mousedown');
+
 
     expect(getCellMeta(0,0).borders.hasOwnProperty('left')).toBe(true);
     expect(getCellMeta(0,0).borders.top).toEqual(empty);
@@ -189,8 +201,14 @@ describe('CustomBorders', function () {
       };
 
     contextMenu();
-    var buttonRow3 = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(11);
-    buttonRow3.find('button.right').trigger('mousedown');
+    var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
+    item.trigger('mouseover');
+
+    var contextSubMenu = $('.htContextSubMenu_' + item.text());
+    var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(1);
+
+    button.trigger('mousedown');
+
 
     expect(getCellMeta(0,0).borders.hasOwnProperty('right')).toBe(true);
     expect(getCellMeta(0,0).borders.top).toEqual(empty);
@@ -216,8 +234,14 @@ describe('CustomBorders', function () {
 
 
     contextMenu();
-    var buttonRow4 = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(11);
-    buttonRow4.find('button.bottom').trigger('mousedown');
+    var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
+    item.trigger('mouseover');
+
+    var contextSubMenu = $('.htContextSubMenu_' + item.text());
+    var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
+
+    button.trigger('mousedown');
+
     expect(getCellMeta(0,0).borders.hasOwnProperty('right')).toBe(true);
     expect(getCellMeta(0,0).borders.top).toEqual(empty);
     expect(getCellMeta(0,0).borders.left).toEqual(empty);
@@ -245,8 +269,14 @@ describe('CustomBorders', function () {
     });
 
     contextMenu();
-    var buttonRow5 = $(hot.contextMenu.menu).find('tbody td').not('.htSeparator').eq(11);
-    buttonRow5.find('button.noBorders').trigger('mousedown');
+    var item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(10);
+    item.trigger('mouseover');
+
+    var contextSubMenu = $('.htContextSubMenu_' + item.text());
+    var button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(4);
+
+    button.trigger('mousedown');
+
     expect(getCellMeta(0,0).borders).toBeUndefined();
   });
 });
