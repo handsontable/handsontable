@@ -523,7 +523,7 @@ describe('Core_view', function () {
     });
 
     it("should stretch all visible columns with overflow auto", function() {
-      this.$container[0].style.width = '500px';
+      this.$container[0].style.width = '501px';
       this.$container[0].style.height = '100px';
       this.$container[0].style.overflow = 'auto';
 
@@ -533,7 +533,7 @@ describe('Core_view', function () {
         colWidths: [47, 47, 47, 47, 47],
         rowHeaders: true,
         colHeaders: true,
-        stretchH: 'all',
+        stretchH: 'all'
       });
 
       var masterTH = this.$container[0].querySelectorAll(".ht_master thead tr th");
@@ -542,20 +542,13 @@ describe('Core_view', function () {
       expect(masterTH[0].offsetWidth).toEqual(50);
       expect(overlayTH[0].offsetWidth).toEqual(50);
 
-//      expect(masterTH[1].offsetWidth).toEqual(87);
+      expect(masterTH[1].offsetWidth).toEqual(87);
       expect(overlayTH[1].offsetWidth).toEqual(87); //if you get 90, it means it is calculated before scrollbars were applied
-/*
-      expect(masterTH[2].offsetWidth).toEqual(87);
-      expect(overlayTH[2].offsetWidth).toEqual(87);
 
-      expect(masterTH[3].offsetWidth).toEqual(87);
-      expect(overlayTH[3].offsetWidth).toEqual(87);
-
-      expect(masterTH[4].offsetWidth).toEqual(87);
-      expect(overlayTH[4].offsetWidth).toEqual(87);
-
-      expect(masterTH[5].offsetWidth).toEqual(87);
-      expect(overlayTH[5].offsetWidth).toEqual(87);*/
+      expect(masterTH[2].offsetWidth).toEqual(overlayTH[2].offsetWidth);
+      expect(masterTH[3].offsetWidth).toEqual(overlayTH[3].offsetWidth);
+      expect(masterTH[4].offsetWidth).toEqual(overlayTH[4].offsetWidth);
+      expect(masterTH[5].offsetWidth).toEqual(overlayTH[5].offsetWidth);
     });
 
   });
