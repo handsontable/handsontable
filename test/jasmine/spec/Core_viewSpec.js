@@ -43,7 +43,7 @@ describe('Core_view', function () {
       data: createSpreadsheetData(10, 3),
       height: 60
     });
-    
+
     var htCore = getHtCore();
 
     expect(this.$container.height()).toEqual(60);
@@ -421,12 +421,73 @@ describe('Core_view', function () {
     });
   });
 
+  describe('fixed column row heights', function () {
+    it('should be the same as the row heights in the main table', function () {
+        var hot = handsontable({
+          data: [["A","B","C","D"],["a","b","c\nc","d"],["aa","bb","cc","dd"]],
+          startRows: 3,
+          startCols: 4,
+          fixedColumnsLeft: 2
+        });
+
+        expect(hot.getCell(1,2).clientHeight).toEqual(hot.getCell(1,1).clientHeight);
+
+        hot.setDataAtCell(1,2,"c");
+
+        expect(hot.getCell(1,2).clientHeight).toEqual(hot.getCell(1,1).clientHeight);
+    });
+
+  });
+
+  describe('fixed column widths', function () {
+    it("should set the columns width correctly after changes made during updateSettings", function () {
+      var hot = handsontable({
+        startRows: 2,
+        fixedColumnsLeft: 2,
+        columns: [{
+          width: 50
+        }, {
+          width: 80
+        }, {
+          width: 110
+        }, {
+          width: 140
+        }, {
+          width: 30
+        }, {
+          width: 30
+        }, {
+          width: 30
+        }]
+      });
+
+      var leftClone = this.$container.find('.ht_clone_left');
+
+      expect(Handsontable.Dom.outerWidth(leftClone.find("tbody tr:nth-child(1) td:nth-child(2)")[0])).toEqual(80);
+
+      hot.updateSettings({
+        manualColumnMove: [2, 0, 1],
+        fixedColumnsLeft: 1
+      });
+
+      expect(leftClone.find("tbody tr:nth-child(1) td:nth-child(2)")[0]).toBe(undefined);
+
+      hot.updateSettings({
+        manualColumnMove: false,
+        fixedColumnsLeft: 2
+      });
+
+      expect(Handsontable.Dom.outerWidth(leftClone.find("tbody tr:nth-child(1) td:nth-child(2)")[0])).toEqual(80);
+
+    });
+  });
+
   describe('stretchH', function () {
 
     it("should stretch all visible columns with the ratio appropriate to the container's width", function() {
 
       this.$container[0].style.width = '300px';
-   debugger;   
+
       var hot = handsontable({
         startRows: 5,
         startCols: 5,
@@ -456,7 +517,7 @@ describe('Core_view', function () {
       expect(getCell(0,1).offsetWidth).toEqual(expectedCellWidth);
       expect(getCell(0,2).offsetWidth).toEqual(expectedCellWidth);
       expect(getCell(0,3).offsetWidth).toEqual(expectedCellWidth);
-      expect(getCell(0,4).offsetWidth).toEqual(expectedCellWidth);      
+      expect(getCell(0,4).offsetWidth).toEqual(expectedCellWidth);
 
       this.$container.unwrap();
     });

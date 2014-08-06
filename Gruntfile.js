@@ -85,7 +85,7 @@ module.exports = function (grunt) {
 
         'src/cellTypes.js',
 
-        'src/3rdparty/jquery.autoresize.js',
+        'src/3rdparty/autoResize.js',
         'src/3rdparty/sheetclip.js',
         'src/3rdparty/copypaste.js',
         'src/3rdparty/json-patch-duplex.js',
@@ -108,7 +108,8 @@ module.exports = function (grunt) {
         'src/plugins/mergeCells/mergeCells.js',
         'src/plugins/customBorders/customBorders.js',
         'src/plugins/manualRowMove.js',
-        'src/plugins/autofill.js'
+        'src/plugins/autofill.js',
+        'src/plugins/contextMenuCopyPaste/contextMenuCopyPaste.js'
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',
