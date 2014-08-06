@@ -12,11 +12,12 @@ var Grouping = function (instance) {
 
   /**
    * group definition
-   * @type {{id: String, level: Number, rows: Array, cols: Array}}
+   * @type {{id: String, level: Number, rows: Array, cols: Array, hide: Number}}
    */
   var item = {
     id: '',
     level: 0,
+    hide: 0,
     rows: [],
     cols: []
   };
@@ -40,20 +41,32 @@ var Grouping = function (instance) {
   };
 
   /**
-   * create containers for columns and rows groups
+   * create containers for columns and rows groups and levels
    * @type {HTMLElement}
    */
-  var colsGroupContainer = document.createElement('DIV'),
-      colsGroupList = document.createElement('UL');
+  var colGroupLevelsContainer = document.createElement('DIV'),
+      colGroupListLevels = document.createElement('UL');
 
-  colsGroupContainer.className = 'colsGroupContainer';
-  colsGroupContainer.appendChild(colsGroupList);
+  colGroupLevelsContainer.className = 'colGroupLevelsContainer';
+  colGroupLevelsContainer.appendChild(colGroupListLevels);
 
-  var rowsGroupContainer = document.createElement('DIV'),
-      rowsGroupList = document.createElement('UL');
+  var rowGroupLevelsContainer = document.createElement('DIV'),
+      rowGroupListLevels = document.createElement('UL');
 
-  rowsGroupContainer.className = 'rowsGroupContainer';
-  rowsGroupContainer.appendChild(rowsGroupList);
+  rowGroupLevelsContainer.className = 'rowGroupLevelsContainer';
+  rowGroupLevelsContainer.appendChild(rowGroupListLevels);
+
+  var colGroupsContainer = document.createElement('DIV'),
+      colGroupsList = document.createElement('UL');
+
+  colGroupsContainer.className = 'colGroupsContainer';
+  colGroupsContainer.appendChild(colGroupsList);
+
+  var rowGroupsContainer = document.createElement('DIV'),
+      rowGroupsList = document.createElement('UL');
+
+  rowGroupsContainer.className = 'rowGroupsContainer';
+  rowGroupsContainer.appendChild(rowGroupsList);
 
   /**
    * default css class
@@ -78,24 +91,46 @@ var Grouping = function (instance) {
     li.innerHTML = index;
     li.className = cssClass + ' group_' + index;
 
-    var level = 0,
+    var level = index,
         type = '';
 
     if (instance.selection.selectedHeader.cols) {
-      level = levels.cols;
       type = 'cols';
     } else {
-      level = levels.rows;
       type = 'rows';
     }
 
     li.setAttribute('level', level.toString());
     li.setAttribute('type', type);
 
-    rowsGroupList.appendChild(li);
-
     return li;
   };
+
+  /**
+   * create group element
+   * @param item
+   * @returns {HTMLElement}
+   */
+  var createGroupElement = function (item) {
+    var li = document.createElement('li');
+
+    li.innerHTML = item.id;
+    li.className = cssClass;
+
+    var type = '';
+
+    if (item.cols instanceof Array) {
+      type = 'cols';
+    } else {
+      type = 'rows';
+    }
+
+    li.setAttribute('id', item.id);
+    li.setAttribute('level', item.level.toString());
+    li.setAttribute('type', type);
+
+    return li;
+  }
 
   /**
    * compare object properties
@@ -254,7 +289,7 @@ var Grouping = function (instance) {
       }
     }
 
-    // remove dups
+    // remove duplicates
     var tmp = [];
     return _groups.filter(function (item) {
       if (tmp.indexOf(item.id) === -1) {
@@ -265,12 +300,23 @@ var Grouping = function (instance) {
   };
 
   /**
+   * get group by id
+   * @param id
+   * @returns {Object} group
+   */
+  var getGroupById = function (id) {
+    return groups.filter(function (item) {
+      return item.id === id;
+    })[0];
+  };
+
+  /**
    * get total column groups
    * @returns {*|Array}
    */
   var getColGroups = function () {
     return groups.filter(function (item) {
-      return item['cols'];
+      return item['cols'] instanceof Array;
     });
   };
 
@@ -291,7 +337,7 @@ var Grouping = function (instance) {
    */
   var getRowGroups = function () {
     return groups.filter(function (item) {
-      return item['rows'];
+      return item['rows'] instanceof Array;
     });
   };
 
@@ -360,34 +406,6 @@ var Grouping = function (instance) {
     }
 
     return level;
-  };
-
-  var getRangeFromGroups = function (groups, type) {
-    var min = 0,
-        max = 0;
-
-    var values = [];
-
-    groups.forEach(function (item) {
-      if (item[type] instanceof Array) {
-        item[type].map(function (val) {
-          values.push(val);
-        });
-      }
-    });
-
-    if (values) {
-      values.sort();
-
-      min = values[0];
-      max = values[values.length - 1];
-    }
-
-    return {
-      min: min,
-      max: max
-    }
-
   };
 
   /**
@@ -484,6 +502,7 @@ var Grouping = function (instance) {
               var len = item.cols.length;
               // there are no elements, remove object from array
               if (!len) {
+                counters.cols--;
                 groups.splice(i, 1);
 
                 if (levels.cols && decrementLevel) {
@@ -565,6 +584,7 @@ var Grouping = function (instance) {
               var len = item.rows.length;
               // there are no elements, remove object from array
               if (!len) {
+                counters.rows--;
                 groups.splice(j, 1);
 
                 if (levels.rows && decrementLevel) {
@@ -594,8 +614,38 @@ var Grouping = function (instance) {
   var bindEvents = function () {
     var root = instance.rootElement[0].parentNode;
 
+    // show/hide single group
+    $(root).on('mousedown.groupContainer', '.colGroupsContainer ul li, .rowGroupsContainer ul li', function (e) {
+      var element = e.currentTarget,
+          id = element.getAttribute('id'),
+          level = parseInt(element.getAttribute('level'), 10),
+          type = element.getAttribute('type'),
+          hide = parseInt(element.getAttribute('hide'), 10);
+
+      if (isNaN(hide)) {
+        hide = 1;
+      } else {
+        hide = (hide ? 0 : 1);
+      }
+
+      lastClicked = {
+        id: id,
+        level: level,
+        type: type,
+        hide: hide
+      };
+
+      element.setAttribute('hide', hide.toString());
+
+      var groups = [];
+      groups.push(getGroupById(id));
+
+      showHideGroups(hide, groups);
+      instance.render();
+    });
+
     // show/hide all groups on the same level and type
-    $(root).on('mousedown.groupContainer', '.colsGroupContainer ul li, .rowsGroupContainer ul li', function (e) {
+    $(root).on('mousedown.groupLevelsContainer', '.colGroupLevelsContainer ul li, .rowGroupLevelsContainer ul li', function (e) {
 
       var element = e.currentTarget,
           level = parseInt(element.getAttribute('level'), 10),
@@ -637,25 +687,70 @@ var Grouping = function (instance) {
     });
   };
 
-  var renderRows = function (rootElement) {
-    if (!rowsGroupList.querySelector('.group_' + levels.rows)) {
-      var liElement = createListElement(levels.rows);
-      rowsGroupList.appendChild(liElement);
+  var renderRowGroupLevels = function (rootElement) {
+
+    while (rowGroupListLevels.firstChild) {
+      rowGroupListLevels.removeChild(rowGroupListLevels.firstChild);
     }
 
-    if (!rootElement.querySelector('.rowsGroupContainer')) {
-      rootElement.appendChild(rowsGroupContainer);
+    for (var i = 1; i <= levels.rows; i++) {
+      if (!rowGroupListLevels.querySelector('.group_' + i)) {
+        var liElement = createListElement(i);
+        rowGroupListLevels.appendChild(liElement);
+      }
+    }
+
+    if (!rootElement.querySelector('.rowGroupLevelsContainer')) {
+      rootElement.appendChild(rowGroupLevelsContainer);
     }
   };
 
-  var renderCols = function (rootElement) {
-    if (!colsGroupList.querySelector('.group_' + levels.cols)) {
-      var liElement = createListElement(levels.cols);
-      colsGroupList.appendChild(liElement);
+  var renderColGroupLevels = function (rootElement) {
+    while (colGroupListLevels.firstChild) {
+      colGroupListLevels.removeChild(colGroupListLevels.firstChild);
     }
 
-    if (!rootElement.querySelector('.colsGroupContainer')) {
-      rootElement.appendChild(colsGroupContainer);
+    for (var i = 1; i <= levels.cols; i++) {
+      if (!colGroupListLevels.querySelector('.group_' + i)) {
+        var liElement = createListElement(i);
+        colGroupListLevels.appendChild(liElement);
+      }
+    }
+
+    if (!rootElement.querySelector('.colGroupLevelsContainer')) {
+      rootElement.appendChild(colGroupLevelsContainer);
+    }
+  };
+
+  var renderColGroups = function (rootElement) {
+    while (colGroupsList.firstChild) {
+      colGroupsList.removeChild(colGroupsList.firstChild);
+    }
+
+    var colGroups = getColGroups();
+    colGroups.forEach(function (item) {
+      var liElement = createGroupElement(item);
+      colGroupsList.appendChild(liElement);
+    });
+
+    if (!rootElement.querySelector('.colGroupsContainer')) {
+      rootElement.appendChild(colGroupsContainer);
+    }
+  };
+
+  var renderRowGroups = function (rootElement) {
+    while (rowGroupsList.firstChild) {
+      rowGroupsList.removeChild(rowGroupsList.firstChild);
+    }
+
+    var rowGroups = getRowGroups();
+    rowGroups.forEach(function (item) {
+      var liElement = createGroupElement(item);
+      rowGroupsList.appendChild(liElement);
+    });
+
+    if (!rootElement.querySelector('.rowGroupsContainer')) {
+      rootElement.appendChild(rowGroupsContainer);
     }
   };
 
@@ -751,17 +846,26 @@ var Grouping = function (instance) {
      */
     ungroup: function (start, end) {
       instance.selection.selectedHeader.rows ? ungroupRows(start.row, end.row) : ungroupCols(start.col, end.col);
+      this.render();
     },
+
     /**
-     * render groups
+     * render groups by level and for single group
      */
     render: function () {
       var rootElement = instance.rootElement[0].parentNode;
 
+      // render group levels and groups
       if (instance.selection.selectedHeader.cols) {
-        renderCols(rootElement);
-      } else {
-        renderRows(rootElement);
+
+        renderColGroupLevels(rootElement);
+        renderColGroups(rootElement);
+
+      } else if (instance.selection.selectedHeader.rows) {
+
+        renderRowGroupLevels(rootElement);
+        renderRowGroups(rootElement);
+
       }
     },
 
@@ -826,7 +930,7 @@ var Grouping = function (instance) {
 
     /**
      * add group/ungroup options to context menu
-     * @param options
+     * @param {Object} options
      */
     addGroupingToContextMenu: function (options) {
       var instance = this;
@@ -877,54 +981,54 @@ var Grouping = function (instance) {
 
       if (lastClicked.type === 'rows') {
 
+        // ignore row header
         if (row < 0) {
           return;
         }
 
-        var cellGroups = getCellGroups({
-          row: row,
-          col: 0
-        }, lastClicked.level, 'rows');
+        var cellGroups = [];
+
+        if (lastClicked.id) {
+          // show single group
+          cellGroups.push(getGroupById(lastClicked.id));
+
+          cellGroups = cellGroups.filter(function (item) {
+            return item['rows'].indexOf(row) !== -1;
+          });
+
+        } else if (lastClicked.level > 0) {
+          // show group by level
+          cellGroups = getCellGroups({
+            row: row,
+            col: 0
+          }, lastClicked.level, 'rows');
+
+        } else {
+          return;
+        }
+
 
         if (!cellGroups.length) {
           return;
         }
 
-        var filtered = [],
-            isHidden = false;
+        var isHidden = lastClicked.hide;
 
-        if (cellGroups.length) {
-
-          if (lastClicked.hide) {
-            filtered = cellGroups.filter(function (item) {
-              return item.hide === 1;
-            });
-
-            isHidden = filtered.length ? true : false;
-          } else {
-            filtered = cellGroups.filter(function (item) {
-              return item.hide === 0;
-            });
-
-            isHidden = filtered.length ? false : true;
-          }
-        }
-
-        var header = instance.view.wt.wtScrollbars.horizontal.clone.wtTable.TBODY;
-
-        var THs = header.querySelectorAll('tr th'),
+        var header = instance.view.wt.wtScrollbars.horizontal.clone.wtTable.TBODY,
+            THs = header.querySelectorAll('tr th'),
             index = row;
 
         if (isHidden) {
 
-          TH.style.height = '2px';
-          THs[index].style.height = '2px';
+          TH.style.display = 'none';
+          THs[index].style.display = 'none';
+          TH.parentNode.style.display = 'none';
 
         } else {
 
-          TH.style.height = '';
-          THs[index].style.height = '';
-
+          TH.style.display = '';
+          THs[index].style.display = '';
+          TH.parentNode.style.display = '';
         }
       }
     },
@@ -938,62 +1042,78 @@ var Grouping = function (instance) {
 
       if (lastClicked.type === 'cols') {
 
-        var cellGroups = getCellGroups({
-              row: 0,
-              col: col
-        }, lastClicked.level, 'cols');
+        var cellGroups = [];
+
+        if (lastClicked.id) {
+          // show single group
+          cellGroups.push(getGroupById(lastClicked.id));
+
+          cellGroups = cellGroups.filter(function (item) {
+            return item['cols'].indexOf(col) !== -1;
+          });
+
+        } else if (lastClicked.level > 0) {
+          // show group by level
+          cellGroups = getCellGroups({
+            row: 0,
+            col: col
+          }, lastClicked.level, 'cols');
+
+        } else {
+          return;
+        }
 
         if (!cellGroups.length) {
           return;
         }
 
-        var filtered = [],
-            isHidden = false;
+        var isHidden = lastClicked.hide;
 
-        if (cellGroups.length) {
-
-          if (lastClicked.hide) {
-            filtered = cellGroups.filter(function (item) {
-              return item.hide === 1;
-            });
-
-            isHidden = filtered.length ? true : false;
-          } else {
-            filtered = cellGroups.filter(function (item) {
-              return item.hide === 0;
-            });
-
-            isHidden = filtered.length ? false : true;
-          }
-        }
-
-        var header = instance.view.wt.wtScrollbars.vertical.clone.wtTable.THEAD;
-
-        var colGroupClone = instance.view.wt.wtScrollbars.vertical.clone.wtTable.COLGROUP,
+        var header = instance.view.wt.wtScrollbars.vertical.clone.wtTable.THEAD,
+            colGroupClone = instance.view.wt.wtScrollbars.vertical.clone.wtTable.COLGROUP,
             colGroup = instance.view.wt.wtTable.COLGROUP;
 
         var colsClone = colGroupClone.querySelectorAll('col'),
             cols = colGroup.querySelectorAll('col');
 
         var THs = header.querySelectorAll('tr th'),
-            index = col + 1;
+            index = col + 1,
+            totalRows = instance.countRows(),
+            totalRowsVisible = instance.view.wt.wtTable.getRowStrategy().countVisible(),
+            i = 0;
+
+        if (!totalRowsVisible) {
+          return;
+        }
 
         if (isHidden) {
 
           // hide cell
-          TH.style.width = '2px';
+          TH.style.display = 'none';
+          THs[index].style.display = 'none';
+          colsClone[index].style.display = 'none';
+          cols[index].style.display = 'none';
 
-          THs[index].style.width = '2px';
-          colsClone[index].style.width = '2px';
-          cols[index].style.width = '2px';
+          for (i; i < totalRows; i++) {
+            var cell = instance.getCell(i, col);
+            if (cell) {
+              cell.style.display = 'none';
+            }
+          }
 
         } else {
 
-          TH.style.width = '';
+          TH.style.display = '';
+          THs[index].style.display = '';
+          colsClone[index].style.display = '';
+          cols[index].style.display = '';
 
-          THs[index].style.width = '';
-          colsClone[index].style.width = '';
-          cols[index].style.width = '';
+          for (i; i < totalRows; i++) {
+            var cell = instance.getCell(i, col);
+            if (cell) {
+              cell.style.display = '';
+            }
+          }
         }
       }
     }

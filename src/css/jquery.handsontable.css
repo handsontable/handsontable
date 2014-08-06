@@ -537,7 +537,11 @@ Context menu alignment buttons
   color: #583707;
 }
 
-.colsGroupContainer ul > li, .rowsGroupContainer ul > li {
+.colGroupLevelsContainer ul > li,
+.rowGroupLevelsContainer ul > li,
+.colGroupsContainer ul > li,
+.rowGroupsContainer ul > li
+{
   list-style: none;
   font-size: 11px;
   padding: 1px 3px;
@@ -545,11 +549,11 @@ Context menu alignment buttons
   cursor: pointer;
 }
 
-.colsGroupContainer ul > li {
+.colGroupLevelsContainer ul > li {
   border: 1px solid red;
 }
 
-.rowsGroupContainer ul > li {
+.rowGroupLevelsContainer ul > li {
   border: 1px solid green;
 }
 

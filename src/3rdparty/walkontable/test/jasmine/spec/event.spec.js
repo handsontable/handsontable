@@ -148,7 +148,7 @@ describe('WalkontableEvent', function () {
     expect(called).toEqual(true);
   });
 
-  it("should not call `onCellMouseOver` callback when clicked on TH", function () {
+  xit("should not call `onCellMouseOver` callback when clicked on TH", function () {
     var called = false
       , wt = new Walkontable({
         table: $table[0],
