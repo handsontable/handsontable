@@ -81,16 +81,22 @@ function WalkontableTableRenderer(wtTable){
 
   if (!this.wtTable.isWorkingOnClone()) {
 
-    this.instance.wtScrollbars.refresh(false);
+    this.instance.wtScrollbars.applyToDOM();
 
     if (workspaceWidth !== this.instance.wtViewport.getWorkspaceWidth()) {
       //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
       this.instance.wtViewport.containerWidth = null;
       this.wtTable.getColumnStrategy().stretch();
+      var cache = this.instance.wtTable.columnWidthCache;
       for (visibleColIndex = 0; visibleColIndex < this.wtTable.getColumnStrategy().cellCount; visibleColIndex++) {
-        this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = this.wtTable.getColumnStrategy().getSize(visibleColIndex) + 'px';
+        var width = this.wtTable.getColumnStrategy().getSize(visibleColIndex);
+        this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = width + 'px';
+        cache[visibleColIndex] = width;
       }
     }
+
+    this.instance.wtScrollbars.refresh(false);
+
     this.instance.getSetting('onDraw', true);
   }
 

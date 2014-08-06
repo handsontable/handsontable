@@ -522,6 +522,42 @@ describe('Core_view', function () {
       this.$container.unwrap();
     });
 
+    it("should stretch all visible columns with overflow auto", function() {
+      this.$container[0].style.width = '500px';
+      this.$container[0].style.height = '100px';
+      this.$container[0].style.overflow = 'auto';
+
+      var hot = handsontable({
+        startRows: 10,
+        startCols: 5,
+        colWidths: [47, 47, 47, 47, 47],
+        rowHeaders: true,
+        colHeaders: true,
+        stretchH: 'all',
+      });
+
+      var masterTH = this.$container[0].querySelectorAll(".ht_master thead tr th");
+      var overlayTH = this.$container[0].querySelectorAll(".ht_clone_top thead tr th");
+
+      expect(masterTH[0].offsetWidth).toEqual(50);
+      expect(overlayTH[0].offsetWidth).toEqual(50);
+
+//      expect(masterTH[1].offsetWidth).toEqual(87);
+      expect(overlayTH[1].offsetWidth).toEqual(87); //if you get 90, it means it is calculated before scrollbars were applied
+/*
+      expect(masterTH[2].offsetWidth).toEqual(87);
+      expect(overlayTH[2].offsetWidth).toEqual(87);
+
+      expect(masterTH[3].offsetWidth).toEqual(87);
+      expect(overlayTH[3].offsetWidth).toEqual(87);
+
+      expect(masterTH[4].offsetWidth).toEqual(87);
+      expect(overlayTH[4].offsetWidth).toEqual(87);
+
+      expect(masterTH[5].offsetWidth).toEqual(87);
+      expect(overlayTH[5].offsetWidth).toEqual(87);*/
+    });
+
   });
 
 });

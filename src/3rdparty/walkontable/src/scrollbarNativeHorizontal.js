@@ -67,6 +67,7 @@ WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
 
 //applyToDOM (in future merge it with this.refresh?)
 WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
+  this.readWindowSize();
   this.fixedContainer.style.paddingLeft = this.measureBefore + 'px';
   this.fixedContainer.style.paddingRight = this.measureAfter + 'px';
 };

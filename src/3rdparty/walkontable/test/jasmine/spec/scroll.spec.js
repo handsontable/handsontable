@@ -348,7 +348,7 @@ describe('WalkontableScroll', function () {
       this.data.splice(getTotalRows() - 4, 1); //remove row at index 96
       wt.draw();
 
-      expect(originalOffsetRow).toEqual(wt.getSetting('offsetRow'));
+      expect(originalOffsetRow - 1).toEqual(wt.getSetting('offsetRow'));
     });
 
     it("should scroll to last row if smaller data source is loaded that does not have currently displayed row", function () {

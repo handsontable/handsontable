@@ -71,3 +71,10 @@ WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
   this.corner && this.corner.refresh(selectionsOnly);
   this.debug && this.debug.refresh(selectionsOnly);
 };
+
+WalkontableScrollbars.prototype.applyToDOM = function () {
+  this.horizontal && this.horizontal.applyToDOM();
+  this.vertical && this.vertical.applyToDOM();
+  this.corner && this.corner.applyToDOM();
+  this.debug && this.debug.applyToDOM();
+};
