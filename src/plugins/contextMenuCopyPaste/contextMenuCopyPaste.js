@@ -25,7 +25,6 @@
 
   ContextMenuCopyPaste.prototype.copy = function () {
     this.instance.copyPaste.setCopyableText();
-//    this.instance.getSettings().outsideClickDeselects = false;
     return this.instance.copyPaste.copyPasteInstance.elTextarea.value;
   };
 
@@ -58,16 +57,19 @@
 
     function constructSeparator(double) {
       var separatorCount = 0;
-      for(var prop in contextMenu.options.items) {
-        if(prop.indexOf('hsep') != -1) {
+      for (var prop in contextMenu.options.items) {
+        if (prop.indexOf('hsep') != -1) {
           separatorCount++;
         }
         contextMenuEntryCount++;
       }
-      var sepName = 'hsep' + parseInt(separatorCount + 1,10);
+      var sepName = 'hsep' + parseInt(separatorCount + 1, 10);
 
-      if(double) {
-        return [[sepName, Handsontable.ContextMenu.SEPARATOR],['hsep' + parseInt(separatorCount + 2,10),Handsontable.ContextMenu.SEPARATOR]];
+      if (double) {
+        return [
+          [sepName, Handsontable.ContextMenu.SEPARATOR],
+          ['hsep' + parseInt(separatorCount + 2, 10), Handsontable.ContextMenu.SEPARATOR]
+        ];
       } else {
         return [sepName, Handsontable.ContextMenu.SEPARATOR];
       }
@@ -75,67 +77,83 @@
 
     newSeparator = constructSeparator();
 
-    if(index < 0) {
+    if (index < 0) {
       newCMEntries.items = entries;
       newCMEntries.items[newSeparator[0]] = newSeparator[1];
-      Handsontable.helper.extend(newCMEntries.items,contextMenu.options.items);
-    } else if(!index) {
+      Handsontable.helper.extend(newCMEntries.items, contextMenu.options.items);
+    } else if (!index) {
       newCMEntries.items = contextMenu.options.items;
       newCMEntries.items[newSeparator[0]] = newSeparator[1];
-      Handsontable.helper.extend(newCMEntries.items,entries);
+      Handsontable.helper.extend(newCMEntries.items, entries);
     } else {
-      for(var prop in contextMenu.options.items) {
-        if(prop.indexOf('hsep') == -1) {
+      for (var prop in contextMenu.options.items) {
+        if (prop.indexOf('hsep') == -1) {
           propCount++;
         }
-        if(propCount - 1 == index) {
-          if(index == 0) {
-            Handsontable.helper.extend(newCMEntries.items,entries);
+        if (propCount - 1 == index) {
+          if (index == 0) {
+            Handsontable.helper.extend(newCMEntries.items, entries);
             newCMEntries.items[newSeparator[0]] = newSeparator[1];
           } else {
             newSeparator = constructSeparator(true);
             newCMEntries.items[newSeparator[0][0]] = newSeparator[0][1];
-            Handsontable.helper.extend(newCMEntries.items,entries);
+            Handsontable.helper.extend(newCMEntries.items, entries);
             newCMEntries.items[newSeparator[1][0]] = newSeparator[1][1];
           }
         }
 
-        if(!newCMEntries.items) {
+        if (!newCMEntries.items) {
           newCMEntries.items = {};
         }
         newCMEntries.items[prop] = contextMenu.options.items[prop];
       }
     }
 
-  this.cmEntryIndex = index ? index > 0 ? index : 0 : contextMenuEntryCount + 1;
+    this.cmEntryIndex = index ? index > 0 ? index : 0 : contextMenuEntryCount + 1;
 
-  contextMenu.updateOptions(newCMEntries);
+    contextMenu.updateOptions(newCMEntries);
   };
 
   ContextMenuCopyPaste.prototype.setupZeroClipboard = function (cmInstance) {
     var plugin = this;
     this.cmInstance = cmInstance;
 
-    this.zeroClipboardInstance = new ZeroClipboard(cmInstance.getCell(this.cmEntryIndex,0));
+    this.zeroClipboardInstance = new ZeroClipboard(cmInstance.getCell(this.cmEntryIndex, 0));
 
     this.zeroClipboardInstance.off();
-    this.zeroClipboardInstance.on( "copy", function (event) {
+    this.zeroClipboardInstance.on("copy", function (event) {
       var clipboard = event.clipboardData;
-      clipboard.setData( "text/plain", plugin.copy());
+      clipboard.setData("text/plain", plugin.copy());
+      plugin.instance.getSettings().outsideClickDeselects = plugin.outsideClickDeselectsCache;
     });
+
+    cmCopyPaste.bindEvents();
   };
 
   ContextMenuCopyPaste.prototype.bindEvents = function () {
     var plugin = this;
 
 
-//    $(document).on('mousedown', function(e) {
-//      console.log('safasfsaf', e);
-//    });
+    // Workaround for 'current' and 'zeroclipboard-is-hover' classes being stuck when moving the cursor over the context menu
+    if (plugin.cmInstance) {
+      $(document).off('mouseenter.' + plugin.cmInstance.guid).on('mouseenter.' + plugin.cmInstance.guid, '#global-zeroclipboard-flash-bridge', function (event) {
+        var hadClass = plugin.cmInstance.rootElement[0].querySelectorAll('tr td.current')[0];
+        if(hadClass.className && hadClass.className.indexOf('current') != -1) {
+          Handsontable.Dom.removeClass(hadClass,'current');
+        }
 
-//    $(document).on('mousedown.' + plugin.cmInstance.guid, '#global-zeroclipboard-flash-bridge', function (event) {
-//      plugin.instance.getSettings().outsideClickDeselects = false;
-//    });
+        plugin.outsideClickDeselectsCache = plugin.instance.getSettings().outsideClickDeselects;
+        plugin.instance.getSettings().outsideClickDeselects = false;
+      });
+
+      $(document).off('mouseleave.' + plugin.cmInstance.guid).on('mouseleave.' + plugin.cmInstance.guid, '#global-zeroclipboard-flash-bridge', function (event) {
+        var hadClass = plugin.cmInstance.rootElement[0].querySelectorAll('tr td.zeroclipboard-is-hover')[0];
+        if(hadClass.className && hadClass.className.indexOf('zeroclipboard-is-hover') != -1) {
+          Handsontable.Dom.removeClass(hadClass,'zeroclipboard-is-hover');
+        }
+        plugin.instance.getSettings().outsideClickDeselects = plugin.outsideClickDeselectsCache;
+      });
+    }
   };
 
   ContextMenuCopyPaste.prototype.init = function () {
@@ -143,16 +161,16 @@
       return;
     }
     cmCopyPaste.instance = this;
-console.log('wwaaat')
+
     cmCopyPaste.prepareZeroClipboard();
     cmCopyPaste.addToContextMenu();
-    cmCopyPaste.instance.getSettings().outsideClickDeselects = false;
   };
 
   var cmCopyPaste = new ContextMenuCopyPaste();
 
   Handsontable.hooks.add('afterRender', function () {
-    if(cmCopyPaste.instance && this.guid == cmCopyPaste.instance.contextMenu.menu.id) {
+
+    if (cmCopyPaste.instance && cmCopyPaste.instance.contextMenu.menus.length > 0 && this.guid === cmCopyPaste.instance.contextMenu.menus[0].id) {
       cmCopyPaste.cmInstance = this;
       cmCopyPaste.setupZeroClipboard(this);
     }

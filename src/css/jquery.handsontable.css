@@ -528,7 +528,8 @@ Comment For Cell
   color: #323232;
 }
 
-.htContextMenu table tbody tr td.current{
+.htContextMenu table tbody tr td.current,
+.htContextMenu table tbody tr td.zeroclipboard-is-hover {
   background: rgb(233, 233, 233);
 }
 

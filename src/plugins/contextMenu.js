@@ -799,6 +799,7 @@
 
   ContextMenu.prototype.updateOptions = function(newOptions, options){
     newOptions = newOptions || {};
+    options = options || this.options;
 
     if(newOptions.items){
       for(var itemName in newOptions.items){
