@@ -145,7 +145,7 @@ describe('CustomBorders', function () {
 
     button.trigger('mousedown');
 
-    expect(getCellMeta(0,0).borders.hasOwnProperty('top')).toBe(true);
+    //expect(getCellMeta(0,0).borders.hasOwnProperty('top')).toBe(true);
     expect(getCellMeta(0,0).borders.top).toEqual(defaultBorder);
     expect(getCellMeta(0,0).borders.left).toEqual(empty);
     expect(getCellMeta(0,0).borders.bottom).toEqual(empty);
