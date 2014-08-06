@@ -17,15 +17,29 @@
   };
 
   AutocompleteEditor.prototype.bindEvents = function(){
-
     var that = this;
+
     this.$textarea.on('keydown.autocompleteEditor', function(event){
-      if(!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) != -1){
+
+      var value = that.$textarea.val();
+
+      if(!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) !== -1){
         setTimeout(function () {
-          that.queryChoices(that.$textarea.val());
+          that.queryChoices(value);
         });
-      } else if (event.keyCode == Handsontable.helper.keyCode.ENTER && that.cellProperties.strict !== true){
-        that.$htContainer.handsontable('deselectCell');
+      } else if ([Handsontable.helper.keyCode.ENTER, Handsontable.helper.keyCode.TAB].indexOf(event.keyCode) !== -1){
+
+        var choice = that.choices[0];
+
+        if (value.length > 0 && choice) {
+          if (choice.length > 0) {
+            that.$textarea[0].value = choice;
+          }
+        }
+
+        if (that.cellProperties.strict !== true) {
+          that.$htContainer.handsontable('deselectCell');
+        }
       }
 
     });
@@ -47,8 +61,9 @@
     this.$textarea[0].style.visibility = 'visible';
     this.focus();
 
-    var choicesListHot =  this.$htContainer.handsontable('getInstance');
+    var choicesListHot = this.$htContainer.handsontable('getInstance');
     var that = this;
+
     choicesListHot.updateSettings({
       'colWidths': [Handsontable.Dom.outerWidth(this.TEXTAREA) - 2],
       afterRenderer: function (TD, row, col, prop, value) {
@@ -68,12 +83,23 @@
       if (event.keyCode == Handsontable.helper.keyCode.ARROW_UP){
         if (instance.getSelected() && instance.getSelected()[0] == 0){
 
-          if(!parent.cellProperties.strict){
+          var cellProperties = parent.cellProperties;
+
+          if (cellProperties && !cellProperties.strict) {
             instance.deselectCell();
           }
 
-          parent.instance.listen();
-          parent.focus();
+          if (parent) {
+            parent.focus();
+
+            if (parent.instance) {
+              parent.instance.listen();
+            } else {
+              instance.listen();
+            }
+
+          }
+
           event.preventDefault();
           event.stopImmediatePropagation();
         }
@@ -95,7 +121,6 @@
   };
 
   AutocompleteEditor.prototype.queryChoices = function(query){
-
     this.query = query;
 
     if (typeof this.cellProperties.source == 'function'){
@@ -137,15 +162,17 @@
 
   AutocompleteEditor.prototype.updateChoicesList = function (choices) {
 
-     this.choices = choices;
+    this.choices = choices;
 
     this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
 
-    if(this.cellProperties.strict === true){
-      this.highlightBestMatchingChoice();
-    }
+    //if(this.cellProperties.strict === true) {
+    //  this.highlightBestMatchingChoice();
+    //}
 
-    this.focus();
+    //this.focus(); // this override textEditor events ie. ctrl combinations
+    // Can't highlight text in the cell with ctrl+a in autocomplete demo #1590
+    // Editing autocomplete selection, cursor goes to the end of selected string. #1610
   };
 
   AutocompleteEditor.prototype.highlightBestMatchingChoice = function () {
