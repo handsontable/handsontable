@@ -137,6 +137,18 @@
     };
   };
 
+
+  /***
+   * Create default object for empty border
+   * @returns {{hide: boolean}}
+   */
+  var createSingleEmptyBorder = function () {
+    return {
+      hide: true
+    }
+  };
+
+
   /***
    * Create default Handsontable border object
    * @returns {{width: number, color: string, cornerVisible: boolean}}
@@ -162,18 +174,10 @@
       border: createDefaultHtBorder(),
       row: row,
       col: col,
-      top:{
-        hide:true
-      },
-      right:{
-        hide:true
-      },
-      bottom:{
-        hide:true
-      },
-      left:{
-        hide:true
-      }
+      top: createSingleEmptyBorder(),
+      right: createSingleEmptyBorder(),
+      bottom: createSingleEmptyBorder(),
+      left: createSingleEmptyBorder()
     }
   };
 
@@ -243,14 +247,13 @@
    * @param row
    * @param col
    */
-  var removeBorder = function(row,col) {
+  var removeAllBorders = function(row,col) {
     var borderClassName = createClassName(row,col);
     removeBordersFromDom(borderClassName);
     removeBorderFromArray(borderClassName);
 
     this.removeCellMeta(row, col, 'borders');
   };
-
 
   /***
    * Draw borders for single cell
@@ -276,13 +279,21 @@
    * @param row
    * @param col
    * @param place
+   * @param remove
    */
-  var setBorder = function (row, col,place){
+  var setBorder = function (row, col,place, remove){
     var bordersMeta = this.getCellMeta(row, col).borders;
     if (!bordersMeta || bordersMeta.border == undefined){
       bordersMeta = createEmptyBorders(row, col);
     }
-    bordersMeta[place] = createDefaultCustomBorder();
+
+    if (remove) {
+      bordersMeta[place] = createSingleEmptyBorder();
+    } else {
+      bordersMeta[place] = createDefaultCustomBorder();
+    }
+
+
     this.setCellMeta(row, col, 'borders', bordersMeta);
     insertBorderToArray(bordersMeta);
 //    doDraw = true;
@@ -295,26 +306,27 @@
    *
    * @param range
    * @param place
+   * @param remove
    */
-  var prepareBorder = function (range, place) {
+  var prepareBorder = function (range, place, remove) {
     if (range.from.row == range.to.row && range.from.col == range.to.col){
       if(place == "noBorders"){
-        removeBorder.call(this, range.from.row, range.from.col);
+        removeAllBorders.call(this, range.from.row, range.from.col);
       } else {
-        setBorder.call(this, range.from.row, range.from.col, place);
+        setBorder.call(this, range.from.row, range.from.col, place, remove);
       }
     } else {
       switch (place) {
         case "noBorders":
           for(var column = range.from.col; column <= range.to.col; column++){
             for(var row = range.from.row; row <= range.to.row; row++) {
-              removeBorder.call(this, row, column);
+              removeAllBorders.call(this, row, column);
             }
           }
           break;
         case "top":
           for(var topCol = range.from.col; topCol <= range.to.col; topCol++){
-            setBorder.call(this, range.from.row, topCol, place);
+            setBorder.call(this, range.from.row, topCol, place, remove);
           }
           break;
         case "right":
@@ -393,7 +405,7 @@
           top: {
             name: function () {
               var label = "Top";
-              var hasBorder = checkSelectionBorders(this, 'top')
+              var hasBorder = checkSelectionBorders(this, 'top');
               if(hasBorder) {
                 label = markSelected(label);
               }
@@ -401,42 +413,45 @@
               return label;
             },
             callback: function () {
-              prepareBorder.call(this, this.getSelectedRange(), 'top');
+              var hasBorder = checkSelectionBorders(this, 'top');
+              prepareBorder.call(this, this.getSelectedRange(), 'top', hasBorder);
             },
             disabled: false
           },
           right: {
             name: function () {
               var label = 'Right';
-              var hasBorder = checkSelectionBorders(this, 'right')
+              var hasBorder = checkSelectionBorders(this, 'right');
               if(hasBorder) {
                 label = markSelected(label);
               }
               return label;
             },
             callback: function () {
-              prepareBorder.call(this, this.getSelectedRange(), 'right');
+              var hasBorder = checkSelectionBorders(this, 'right');
+              prepareBorder.call(this, this.getSelectedRange(), 'right', hasBorder);
             },
             disabled: false
           },
           bottom: {
             name: function () {
               var label = 'Bottom';
-              var hasBorder = checkSelectionBorders(this, 'bottom')
+              var hasBorder = checkSelectionBorders(this, 'bottom');
               if(hasBorder) {
                 label = markSelected(label);
               }
               return label;
             },
             callback: function () {
-              prepareBorder.call(this, this.getSelectedRange(), 'bottom');
+              var hasBorder = checkSelectionBorders(this, 'bottom');
+              prepareBorder.call(this, this.getSelectedRange(), 'bottom', hasBorder);
             },
             disabled: false
           },
           left: {
             name: function () {
               var label = 'Left';
-              var hasBorder = checkSelectionBorders(this, 'left')
+              var hasBorder = checkSelectionBorders(this, 'left');
               if(hasBorder) {
                 label = markSelected(label);
               }
@@ -444,7 +459,8 @@
               return label
             },
             callback: function () {
-              prepareBorder.call(this, this.getSelectedRange(), 'left');
+              var hasBorder = checkSelectionBorders(this, 'bottom');
+              prepareBorder.call(this, this.getSelectedRange(), 'left', hasBorder);
             },
             disabled: false
           },
