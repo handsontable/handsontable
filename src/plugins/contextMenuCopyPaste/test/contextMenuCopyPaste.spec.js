@@ -5,6 +5,13 @@ describe("ContextMenuCopyPaste", function () {
     $('head').append('<script src="../../demo/js/ZeroClipboard.js"></script>');
 
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    var wrapper = $('<div></div>').css({
+      width: 400,
+      height: 200,
+      overflow: 'scroll'
+    });
+
+    this.$wrapper = this.$container.wrap(wrapper).parent();
   });
 
   afterEach(function () {
@@ -12,6 +19,7 @@ describe("ContextMenuCopyPaste", function () {
       destroy();
       this.$container.remove();
     }
+    this.$wrapper.remove();
 
     $('head').find('script[src*=ZeroClipboard]').remove();
     delete ZeroClipboard;
