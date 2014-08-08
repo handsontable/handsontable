@@ -9,25 +9,37 @@
     this.instance = null;
   }
 
+  /**
+   * Configure and initialize ZeroClipboard
+   */
   ContextMenuCopyPaste.prototype.prepareZeroClipboard = function () {
-    this.flashClass = 'copyPasteFlash';
-
-    var flashClip = document.createElement('DIV');
-    flashClip.className = this.flashClass;
-    document.body.appendChild(flashClip);
 
     ZeroClipboard.config({
-      swfPath: "http://localhost/lib/ZeroClipboard.swf"
+      swfPath: this.swfPath
     });
 
-    this.zeroClipboardInstance = new ZeroClipboard(flashClip);
+    this.zeroClipboardInstance = new ZeroClipboard();
   };
 
+  /**
+   * Copy action
+   * @returns {CopyPasteClass.elTextarea.value|*}
+   */
   ContextMenuCopyPaste.prototype.copy = function () {
     this.instance.copyPaste.setCopyableText();
     return this.instance.copyPaste.copyPasteInstance.elTextarea.value;
   };
 
+  /**
+   * Paste action
+   */
+  ContextMenuCopyPaste.prototype.paste = function () {
+    this.copyPaste.triggerPaste();
+  };
+
+  /**
+   * Prepare copy and paste context menu entries and their callbacks
+   */
   ContextMenuCopyPaste.prototype.prepareEntries = function () {
     var entries = {
       'copy': {
@@ -49,7 +61,6 @@
   ContextMenuCopyPaste.prototype.addToContextMenu = function (index) {
     var entries = this.prepareEntries()
       , contextMenu = this.instance.contextMenu
-      , cmIndex = index
       , newCMEntries = {}
       , newSeparator
       , propCount = 0
@@ -114,6 +125,10 @@
     contextMenu.updateOptions(newCMEntries);
   };
 
+  /**
+   * Setup ZeroClipboard swf clip position and event handlers
+   * @param cmInstance Current context menu instance
+   */
   ContextMenuCopyPaste.prototype.setupZeroClipboard = function (cmInstance) {
     var plugin = this;
     this.cmInstance = cmInstance;
@@ -130,40 +145,55 @@
     cmCopyPaste.bindEvents();
   };
 
+  /**
+   * Bind all the standard events
+   */
   ContextMenuCopyPaste.prototype.bindEvents = function () {
     var plugin = this;
-
 
     // Workaround for 'current' and 'zeroclipboard-is-hover' classes being stuck when moving the cursor over the context menu
     if (plugin.cmInstance) {
       $(document).off('mouseenter.' + plugin.cmInstance.guid).on('mouseenter.' + plugin.cmInstance.guid, '#global-zeroclipboard-flash-bridge', function (event) {
         var hadClass = plugin.cmInstance.rootElement[0].querySelectorAll('tr td.current')[0];
-        if(hadClass.className && hadClass.className.indexOf('current') != -1) {
-          Handsontable.Dom.removeClass(hadClass,'current');
+        if (hadClass.className && hadClass.className.indexOf('current') != -1) {
+          Handsontable.Dom.removeClass(hadClass, 'current');
         }
-
         plugin.outsideClickDeselectsCache = plugin.instance.getSettings().outsideClickDeselects;
         plugin.instance.getSettings().outsideClickDeselects = false;
       });
 
       $(document).off('mouseleave.' + plugin.cmInstance.guid).on('mouseleave.' + plugin.cmInstance.guid, '#global-zeroclipboard-flash-bridge', function (event) {
         var hadClass = plugin.cmInstance.rootElement[0].querySelectorAll('tr td.zeroclipboard-is-hover')[0];
-        if(hadClass.className && hadClass.className.indexOf('zeroclipboard-is-hover') != -1) {
-          Handsontable.Dom.removeClass(hadClass,'zeroclipboard-is-hover');
+        if (hadClass.className && hadClass.className.indexOf('zeroclipboard-is-hover') != -1) {
+          Handsontable.Dom.removeClass(hadClass, 'zeroclipboard-is-hover');
         }
         plugin.instance.getSettings().outsideClickDeselects = plugin.outsideClickDeselectsCache;
       });
     }
   };
 
+  /**
+   * Initialize plugin
+   * @returns {boolean} Returns false if ZeroClipboard is not properly included
+   */
   ContextMenuCopyPaste.prototype.init = function () {
     if (!this.getSettings().contextMenuCopyPaste) {
       return;
+    } else if (typeof this.getSettings().contextMenuCopyPaste == "object") {
+      cmCopyPaste.swfPath = this.getSettings().contextMenuCopyPaste.swfPath;
+      cmCopyPaste.entryIndex = this.getSettings().contextMenuCopyPaste.entryIndex;
     }
-    cmCopyPaste.instance = this;
 
+    if (typeof ZeroClipboard === 'undefined') {
+      throw new Error("To be able to use the Copy/Paste feature from the context menu, you need to manualy include ZeroClipboard.js file to your website.");
+
+      return false;
+    }
+
+    cmCopyPaste.instance = this;
     cmCopyPaste.prepareZeroClipboard();
-    cmCopyPaste.addToContextMenu();
+
+    cmCopyPaste.addToContextMenu(cmCopyPaste.entryIndex);
   };
 
   var cmCopyPaste = new ContextMenuCopyPaste();

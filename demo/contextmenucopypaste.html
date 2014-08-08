@@ -2,13 +2,13 @@
 <html xmlns="http://www.w3.org/1999/html">
 <head>
   <meta charset='utf-8'>
-  <title>Context Menu - Handsontable</title>
+  <title>Copy/Paste from the Context Menu - Handsontable</title>
 
   <!--
   Loading Handsontable (full distribution that includes all dependencies apart from jQuery)
   -->
   <script data-jsfiddle="common" src="../lib/jquery.min.js"></script>
-  <script data-jsfiddle="common" src="../lib/ZeroClipboard.js"></script>
+  <script data-jsfiddle="common" src="../demo/js/ZeroClipboard.js"></script>
   <script data-jsfiddle="common" src="../dist/jquery.handsontable.full.js"></script>
   <link data-jsfiddle="common" rel="stylesheet" media="screen" href="../dist/jquery.handsontable.full.css">
 
@@ -24,15 +24,15 @@
   <!--
   Facebook open graph. Don't copy this to your project :)
   -->
-  <meta property="og:title" content="Context Menu">
+  <meta property="og:title" content="Copy/Paste from theContext Menu">
   <meta property="og:description"
-        content="This page shows how to use and configure right-click context menu with Handsontable">
-  <meta property="og:url" content="http://handsontable.com/demo/contextmenu.html">
+        content="This page shows how to use and configure Context Menu's Copy and Paste features in Handsontable.">
+  <meta property="og:url" content="http://handsontable.com/demo/contextmenucopypaste.html">
   <meta property="og:image" content="http://handsontable.com/demo/image/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="409">
   <meta property="og:image:height" content="164">
-  <link rel="canonical" href="http://handsontable.com/demo/contextmenu.html">
+  <link rel="canonical" href="http://handsontable.com/demo/contextmenucopypaste.html">
 
   <!--
   Google Analytics for GitHub Page. Don't copy this to your project :)
@@ -55,32 +55,37 @@
 
 <div class="rowLayout">
   <div class="descLayout">
-    <div class="pad">
-      <h2>Context Menu</h2>
-
-      <p>This page shows how to use and configure right-click context menu with Handsontable:</p>
-
-      <ul>
-        <li><a href="#default">context menu with default options</a></li>
-        <li><a href="#specific">context menu with specific options</a></li>
-        <li><a href="#custom">context menu with fully custom configuration</a></li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<div class="rowLayout">
-  <div class="descLayout">
     <div class="pad" data-jsfiddle="example1">
       <a name="default"></a>
 
-      <h2>Context Menu with default options</h2>
+      <h2>Copy/Paste from the Context Menu</h2>
 
-      <p>Tu run the basic configuration of the Context Menu, just set the contextMenu option to true.</p>
+      <p>This page shows how to use and configure the Context Menu's Copy and Paste features in Handsontable.</p>
 
-      <p>From version 0.11, context menu also works for row and column headers. When the context menu for the row
-        header is opened, the column options are disabled. Likewise, when the context menu for the column header is opened,
-        the row options are disabled</p>
+      <p>Copy and Paste feature are available in Handsontable by default, but only as key shortcuts (<code>Ctrl (Cmd) + C</code> and <code>Ctrl (Cmd) + V</code> respectively).<br>
+      This plugin makes them available also as a clickable options in the context menu. Unfortunately, due to the browser's security restrictions, Handsontable is forced to use a third-party flash-based library. We chose to use <a rel="nofollow" title="Zero Clipboard library" href="https://github.com/zeroclipboard/zeroclipboard">ZeroClipboard</a> - it adds a small invisible flash clip to your website, allowing the user to click on it, and thus save data to the clipboard.</p>
+      <p>Please note, that our Copy/Paste Context Menu plugin requires some additional preparation:
+      <ul>
+        <li><code>ZeroClipboard.js</code> must be present on your server and included in your website's <code>script</code> tag.</li>
+        <li><code>ZeroClipboard.swf</code> must also be present at your server</li>
+      </ul>
+      </p>
+
+      <p>To configure Handsontable to use this plugin you need to add a <code>contextMenuCopyPaste</code> config item to your Hansontable instance.<br>
+      It can be set to:
+      <ul>
+        <li><code>true</code> - if the <code>ZeroClipboard.swf</code> file is placed in the same directory as the <code>ZeroClipboard.js</code>, or</li>
+        <li><code>{<br>
+          <b style="padding-left: 20px;">swfPath</b>: [path to the swf file],<br>
+          <b style="padding-left: 20px;">entryIndex</b>: [index at which the Copy and Paste options will be placed in the context menu]<br>
+        &nbsp;}</code></li>
+      </ul>
+
+      For example, if <code>entryIndex</code> is set to <code>5</code>, both Copy and Paste options will be placed after the fourth context menu entry. By default both of them will pop at the end of the menu.
+      <br><br>
+      </p>
+
+
 
       <div id="example1"></div>
 
@@ -122,7 +127,9 @@
           colHeaders: true,
           minSpareRows: 1,
           contextMenu: true,
-          contextMenuCopyPaste: true
+          contextMenuCopyPaste: {
+            swfPath: "swf/ZeroClipboard.swf"
+          }
         });
       </script>
     </div>
