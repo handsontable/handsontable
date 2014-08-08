@@ -3,6 +3,13 @@ describe('CustomBorders', function () {
 
   beforeEach(function () {
     this.$container = $('<div id="' + id + '"></div>').appendTo('body');
+    var wrapper = $('<div></div>').css({
+      width: 400,
+      height: 200,
+      overflow: 'scroll'
+    });
+
+    this.$wrapper = this.$container.wrap(wrapper).parent();
   });
 
   afterEach(function () {
@@ -10,6 +17,7 @@ describe('CustomBorders', function () {
       destroy();
       this.$container.remove();
     }
+    this.$wrapper.remove();
   });
 
   var createBigData = function() {
