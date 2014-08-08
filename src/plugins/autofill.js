@@ -17,15 +17,25 @@
 
     var $document = $(document),
       wtOnCellCornerMouseDown,
-      wtOnCellMouseOver;
+      wtOnCellMouseOver,
+      mouseDownOnCellCorner = false;
 
-    $(this.instance.$table).off('mouseup.' + instance.guid).on('mouseup.' + instance.guid, function (event) {
+
+    var mouseUpCallback = function (event) {
       if (instance.autofill.handle && instance.autofill.handle.isDragged) {
         if (instance.autofill.handle.isDragged > 1) {
           instance.autofill.apply();
         }
         instance.autofill.handle.isDragged = 0;
+        mouseDownOnCellCorner = false;
       }
+    };
+
+    $(this.instance.$table).off('mouseup.' + instance.guid).on('mouseup.' + instance.guid, function (event) {
+      mouseUpCallback(event);
+    });
+    $(this.instance.view.wt.wtTable.bordersHolder).off('mouseup.' + instance.guid).on('mouseup.' + instance.guid, function (event) {
+      mouseUpCallback(event);
     });
 
     /*
@@ -34,13 +44,15 @@
     wtOnCellCornerMouseDown = this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown;
     this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown = function(event) {
       instance.autofill.handle.isDragged = 1;
+      mouseDownOnCellCorner = true;
+
       wtOnCellCornerMouseDown(event);
     }
 
     wtOnCellMouseOver = this.instance.view.wt.wtSettings.settings.onCellMouseOver;
     this.instance.view.wt.wtSettings.settings.onCellMouseOver = function(event, coords, TD, wt) {
 
-      if (instance.autofill && (!instance.view.isMouseDown() && instance.autofill.handle && instance.autofill.handle.isDragged)) {
+      if (instance.autofill && (mouseDownOnCellCorner && !instance.view.isMouseDown() && instance.autofill.handle && instance.autofill.handle.isDragged)) {
         instance.autofill.handle.isDragged++;
         instance.autofill.showBorder(coords);
         instance.autofill.checkIfNewRowNeeded();
