@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jul 25 2014 11:41:59 GMT+0200 (CEST)
+ * Date: Sun Aug 10 2014 14:09:54 GMT+0200 (CEST)
  */
 
 .handsontable {
@@ -183,7 +183,7 @@
   position: absolute;
   top: 0;
   cursor: col-resize;
-  z-index: 100;
+  z-index: 110;
 }
 
 .handsontable .manualColumnResizerHandle {
@@ -196,7 +196,7 @@
   position: absolute;
   left: 0;
   cursor: row-resize;
-  z-index: 100;
+  z-index: 110;
 }
 
 .handsontable .manualRowResizerHandle {
@@ -310,6 +310,14 @@ TextRenderer readOnly cell
   color: #777;
 }
 
+.handsontable .htSubmenu :after{
+    content: '▶';
+    color: #777;
+    position: absolute;
+    right: 5px;
+}
+
+
 /*
 TextRenderer horizontal alignment
 */
@@ -391,20 +399,7 @@ Comment For Cell
   top: 0;
   right: 0;
   border-left: 6px solid transparent;
-  /*border-right: 5px solid transparent;*/
-
   border-top: 6px solid red;
-}
-
-/*context menu rules*/
-
-ul.context-menu-list {
-  color: black;
-}
-
-ul.context-menu-list li {
-  margin-bottom: 0;
-  /*Foundation framework fix*/
 }
 
 /**
@@ -481,6 +476,18 @@ ul.context-menu-list li {
   display: none;
 }
 
+.ht_clone_top {
+  z-index: 101;
+}
+
+.ht_clone_left {
+  z-index: 102;
+}
+
+.ht_clone_corner {
+  z-index: 103;
+}
+
 .htContextMenu table.htCore {
   outline: 1px solid #bbb;
 }
@@ -527,24 +534,15 @@ ul.context-menu-list li {
   color: #999;
   cursor: default;
 }
+.htContextMenu table tbody tr td div{
+  padding-left: 10px;
+}
+.htContextMenu table tbody tr td div span.selected{
+  margin-top: -2px;
+  position: absolute;
+  left: 4px;
+}
 
-.htContextMenu button{
-  color: #fff;
-  font-size: 12px;
-  line-height: 12px;
-  height: 20px;
-  padding: 0 5px;
-  margin: 0 1px 0 0;
-  margin-bottom: 5px;
-}
-.htContextMenu button:first-child{
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-}
-.htContextMenu button:last-child{
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-}
 .handsontable td.htSearchResult {
   background: #fcedd9;
   color: #583707;
@@ -572,6 +570,15 @@ Cell borders
 .htBordered.htLeftBorderSolid{
   border-left-style: solid;
   border-left-color: #000;
+}
+
+.htCommentTextArea{
+  background-color: #FFFACD;
+  box-shadow: 1px 1px 2px #bbb;
+  font-family: 'Arial';
+  -webkit-box-shadow: 1px 1px 2px #bbb;
+  -moz-box-shadow: 1px 1px 2px #bbb;
+
 }
 
 /*WalkontableDebugOverlay*/
