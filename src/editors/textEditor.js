@@ -176,23 +176,6 @@
     return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
   };
 
-  TextEditor.prototype.compensateOfffset = function () {
-    var editorSection = this.checkEditorSection()
-      , offset = {}
-      , editor = this;
-
-    switch (editorSection) {
-      case 'top':
-        offset = editor.instance.view.wt.wtScrollbars.horizontal.getScrollPosition();
-        break;
-      case 'left':
-        offset = editor.instance.view.wt.wtScrollbars.vertical.getScrollPosition();
-        break;
-    }
-
-    return offset;
-  };
-
 
   TextEditor.prototype.refreshDimensions = function () {
     if (this.state !== Handsontable.EditorState.EDITING) {
@@ -217,7 +200,6 @@
     var rowHeadersCount = settings.rowHeaders === false ? 0 : 1;
     var colHeadersCount = settings.colHeaders === false ? 0 : 1;
     var editorSection = this.checkEditorSection();
-    var offsetCompensation = this.compensateOfffset();
 
 
     if (editTop < 0) {
@@ -237,11 +219,6 @@
     this.textareaParentStyle.top = editTop + 'px';
     this.textareaParentStyle.left = editLeft + 'px';
 
-    if(editorSection == 'top') {
-      this.textareaParentStyle.left = editLeft + offsetCompensation + 'px';
-    } else if(editorSection == 'left') {
-      this.textareaParentStyle.top = editTop + offsetCompensation + 'px';
-    }
     ///end prepare textarea position
 
 
