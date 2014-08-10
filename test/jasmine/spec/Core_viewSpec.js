@@ -539,7 +539,7 @@ describe('Core_view', function () {
 
       var masterTH = this.$container[0].querySelectorAll(".ht_master thead tr th");
       var overlayTH = this.$container[0].querySelectorAll(".ht_clone_top thead tr th");
-//			debugger;
+
       expect(masterTH[0].offsetWidth).toEqual(50);
       expect(overlayTH[0].offsetWidth).toEqual(50);
 
