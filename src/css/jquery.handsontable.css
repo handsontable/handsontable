@@ -149,7 +149,7 @@
 /* plugins */
 
 .handsontable .manualColumnMover {
-  position: absolute;
+  position: fixed;
   left: 0;
   top: 0;
   background-color: transparent;
@@ -160,7 +160,7 @@
 }
 
 .handsontable .manualRowMover {
-  position: absolute;
+  position: fixed;
   left: -4px;
   top: 0;
   background-color: transparent;
@@ -168,6 +168,23 @@
   width: 50px;
   z-index: 999;
   cursor: move;
+}
+
+.handsontable .manualColumnMoverGuide,
+.handsontable .manualRowMoverGuide {
+  position: fixed;
+  left: 0;
+  top: 0;
+  background-color: #CCC;
+  width: 25px;
+  height: 25px;
+  opacity: 0.7;
+  display: none;
+}
+
+.handsontable .manualColumnMoverGuide.active,
+.handsontable .manualRowMoverGuide.active {
+  display: block;
 }
 
 .handsontable .manualColumnMover:hover,
@@ -180,60 +197,54 @@
 /* row + column resizer*/
 
 .handsontable .manualColumnResizer {
-  position: absolute;
+  position: fixed;
   top: 0;
   cursor: col-resize;
   z-index: 110;
-}
-
-.handsontable .manualColumnResizerHandle {
-  background-color: transparent;
   width: 5px;
   height: 25px;
 }
 
 .handsontable .manualRowResizer {
-  position: absolute;
+  position: fixed;
   left: 0;
   cursor: row-resize;
   z-index: 110;
-}
-
-.handsontable .manualRowResizerHandle {
-  background-color: transparent;
   height: 5px;
   width: 50px;
 }
 
-.handsontable .manualColumnResizer:hover .manualColumnResizerHandle,
-.handsontable .manualColumnResizer.active .manualColumnResizerHandle,
-.handsontable .manualRowResizer:hover .manualRowResizerHandle,
-.handsontable .manualRowResizer.active .manualRowResizerHandle {
+.handsontable .manualColumnResizer:hover,
+.handsontable .manualColumnResizer.active,
+.handsontable .manualRowResizer:hover,
+.handsontable .manualRowResizer.active {
   background-color: #AAB;
 }
 
-.handsontable .manualColumnResizerLine {
-  position: absolute;
+.handsontable .manualColumnResizerGuide {
+  position: fixed;
   right: 0;
   top: 0;
   background-color: #AAB;
   display: none;
   width: 0;
   border-right: 1px dashed #777;
+  margin-left: 5px;
 }
 
-.handsontable .manualRowResizerLine {
-  position: absolute;
+.handsontable .manualRowResizerGuide {
+  position: fixed;
   left: 0;
   bottom: 0;
   background-color: #AAB;
   display: none;
-  width: 0;
+  height: 0;
   border-bottom: 1px dashed #777;
+  margin-top: 5px;
 }
 
-.handsontable .manualColumnResizer.active .manualColumnResizerLine,
-.handsontable .manualRowResizer.active .manualRowResizerLine {
+.handsontable .manualColumnResizerGuide.active,
+.handsontable .manualRowResizerGuide.active {
   display: block;
 }
 

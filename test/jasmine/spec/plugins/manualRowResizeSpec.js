@@ -228,4 +228,30 @@ describe('manualRowResize', function () {
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
     expect(rowHeight(this.$container, 0)).toEqual(defaultRowHeight);
   })
+
+  it("should display the resize handle in the correct place after the table has been scrolled", function () {
+    handsontable({
+      data: createSpreadsheetData(20, 20),
+      rowHeaders: true,
+      manualRowResize: true,
+      height: 100,
+      width: 200
+    });
+
+    var $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
+    $rowHeader.trigger("mouseenter");
+    var $handle = this.$container.find('.manualRowResizer');
+    $handle[0].style.background = "red";
+
+    expect($rowHeader.offset().left).toEqual($handle.offset().left);
+    expect($rowHeader.offset().top + $rowHeader.height() - 5).toEqual($handle.offset().top);
+
+    this.$container.scrollTop(200);
+    this.$container.scroll();
+
+    $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(10) th:eq(0)');
+    $rowHeader.trigger("mouseenter");
+    expect($rowHeader.offset().left).toEqual($handle.offset().left);
+    expect($rowHeader.offset().top + $rowHeader.height() - 5).toEqual($handle.offset().top);
+  });
 });
