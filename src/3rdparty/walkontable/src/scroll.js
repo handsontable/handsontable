@@ -78,7 +78,9 @@ WalkontableScroll.prototype.scrollViewport = function (coords) {
 
   var TD = this.instance.wtTable.getCell(coords);
   if (typeof TD === 'object') {
-    this.scrollToRenderedCell(TD);
+    if (coords.col >= this.instance.getSetting('fixedColumnsLeft')) {
+      this.scrollToRenderedCell(TD);
+    }
   }  else if (coords.row >= this.instance.wtTable.getLastVisibleRow()) {
 
     this.scrollVertical(coords.row - this.instance.wtTable.getLastVisibleRow());

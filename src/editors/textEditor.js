@@ -262,32 +262,7 @@
     });
 
     Handsontable.hooks.add('afterScrollVertically', function () {
-      if(!editor.TD) {
-        return;
-      }
-
-      var offsetTop = editor.TD.offsetTop
-        , offsetLeft = editor.TD.offsetLeft
-        , horizontalScrollPosition = editor.instance.view.wt.wtScrollbars.horizontal.getScrollPosition()
-        , verticalScrollPosition = editor.instance.view.wt.wtScrollbars.vertical.getScrollPosition()
-        , editorSection = editor.checkEditorSection();
-
-      switch (editorSection) {
-        case 'top':
-          editor.textareaParentStyle.top = offsetTop - 1 + verticalScrollPosition + "px";
-          break;
-        case 'corner':
-          editor.textareaParentStyle.top = offsetTop - 1 + verticalScrollPosition + "px";
-          editor.textareaParentStyle.left = offsetLeft - 1 + horizontalScrollPosition + "px";
-          break;
-        case 'left':
-          editor.textareaParentStyle.left = offsetLeft - 1 + horizontalScrollPosition + "px";
-          break;
-        default :
-          editor.textareaParentStyle.zIndex = "";
-          break;
-      }
-
+      editor.refreshDimensions();
     });
   };
 
