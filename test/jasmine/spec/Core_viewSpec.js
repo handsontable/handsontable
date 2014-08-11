@@ -437,6 +437,59 @@ describe('Core_view', function () {
         expect(hot.getCell(1,2).clientHeight).toEqual(hot.getCell(1,1).clientHeight);
     });
 
+    it('should be the same as the row heights in the main table (after scroll)', function () {
+      var myData = createSpreadsheetData(20, 4);
+      myData[1][3] = "very\nlong\ntext";
+      myData[5][3] = "very\nlong\ntext";
+      myData[10][3] = "very\nlong\ntext";
+      myData[15][3] = "very\nlong\ntext";
+
+      var hot = handsontable({
+        data: myData,
+        startRows: 3,
+        startCols: 4,
+        fixedRowsTop: 2,
+        fixedColumnsLeft: 2,
+        width: 200,
+        height: 200
+      });
+
+      this.$container.scrollTop(200);
+      hot.render();
+
+      var masterTD = this.$container.find('.ht_master tbody tr:eq(5) td:eq(1)')[0];
+      var cloneTD = this.$container.find('.ht_clone_left tbody tr:eq(5) td:eq(1)')[0];
+
+      expect(cloneTD.clientHeight).toEqual(masterTD.clientHeight);
+    });
+
+    it('should be the same as the row heights in the main table (after scroll, in corner)', function () {
+      var myData = createSpreadsheetData(20, 4);
+      myData[1][3] = "very\nlong\ntext";
+      myData[5][3] = "very\nlong\ntext";
+      myData[10][3] = "very\nlong\ntext";
+      myData[15][3] = "very\nlong\ntext";
+
+      var hot = handsontable({
+        data: myData,
+        startRows: 3,
+        startCols: 4,
+        fixedRowsTop: 2,
+        fixedColumnsLeft: 2,
+        width: 200,
+        height: 200
+      });
+
+      var rowHeight = hot.getCell(1,3).clientHeight;
+
+      expect(this.$container.find('.ht_clone_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
+
+      this.$container.scrollTop(200);
+      hot.render();
+
+      expect(this.$container.find('.ht_clone_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
+    });
+
   });
 
   describe('fixed column widths', function () {

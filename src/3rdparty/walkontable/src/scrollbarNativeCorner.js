@@ -1,5 +1,6 @@
 function WalkontableCornerScrollbarNative(instance) {
   this.instance = instance;
+  this.type = 'corner';
   this.init();
   this.clone = this.makeClone('corner');
 }

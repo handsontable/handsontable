@@ -1698,8 +1698,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
    this.checkIfRowIsOversized = function(row) {
-      if(instance.view.activeWt.wtTable.oversizedRows) {
-        return instance.view.activeWt.wtTable.oversizedRows[row];
+      if(instance.view.wt.wtTable.oversizedRows) {
+        return instance.view.wt.wtTable.oversizedRows[row];
       }
    };
 
