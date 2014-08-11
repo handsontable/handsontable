@@ -12,7 +12,9 @@
 .handsontable {
   position: relative;
 }
-
+.handsontable .hide {
+  display: none;
+}
 .handsontable .relative {
   position: relative;
 }

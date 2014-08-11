@@ -40,6 +40,8 @@ var Grouping = function (instance) {
     cols: 1
   };
 
+  var rootElement = instance.rootElement[0].parentNode;
+
   /**
    * create containers for columns and rows groups and levels
    * @type {HTMLElement}
@@ -611,6 +613,10 @@ var Grouping = function (instance) {
     });
   };
 
+  /**
+   * handle clicks on groups and group levels
+   */
+
   var bindEvents = function () {
     var root = instance.rootElement[0].parentNode;
 
@@ -667,7 +673,7 @@ var Grouping = function (instance) {
 
       element.setAttribute('hide', hide.toString());
 
-      // get all groups for level
+      // get all groups by level
       var groups = [];
 
       switch (type) {
@@ -687,7 +693,7 @@ var Grouping = function (instance) {
     });
   };
 
-  var renderRowGroupLevels = function (rootElement) {
+  var renderRowGroupLevels = function () {
 
     while (rowGroupListLevels.firstChild) {
       rowGroupListLevels.removeChild(rowGroupListLevels.firstChild);
@@ -705,7 +711,7 @@ var Grouping = function (instance) {
     }
   };
 
-  var renderColGroupLevels = function (rootElement) {
+  var renderColGroupLevels = function () {
     while (colGroupListLevels.firstChild) {
       colGroupListLevels.removeChild(colGroupListLevels.firstChild);
     }
@@ -722,7 +728,7 @@ var Grouping = function (instance) {
     }
   };
 
-  var renderColGroups = function (rootElement) {
+  var renderColGroups = function () {
     while (colGroupsList.firstChild) {
       colGroupsList.removeChild(colGroupsList.firstChild);
     }
@@ -738,7 +744,7 @@ var Grouping = function (instance) {
     }
   };
 
-  var renderRowGroups = function (rootElement) {
+  var renderRowGroups = function () {
     while (rowGroupsList.firstChild) {
       rowGroupsList.removeChild(rowGroupsList.firstChild);
     }
@@ -850,21 +856,19 @@ var Grouping = function (instance) {
     },
 
     /**
-     * render groups by level and for single group
+     * render groups by level and single group
      */
     render: function () {
-      var rootElement = instance.rootElement[0].parentNode;
-
       // render group levels and groups
       if (instance.selection.selectedHeader.cols) {
 
-        renderColGroupLevels(rootElement);
-        renderColGroups(rootElement);
+        renderColGroupLevels();
+        renderColGroups();
 
       } else if (instance.selection.selectedHeader.rows) {
 
-        renderRowGroupLevels(rootElement);
-        renderRowGroups(rootElement);
+        renderRowGroupLevels();
+        renderRowGroups();
 
       }
     },
@@ -980,16 +984,17 @@ var Grouping = function (instance) {
       }
 
       if (lastClicked.type === 'rows') {
-
         // ignore row header
         if (row < 0) {
           return;
         }
 
+        var isHidden = lastClicked.hide;
+
         var cellGroups = [];
 
         if (lastClicked.id) {
-          // show single group
+          // get single group
           cellGroups.push(getGroupById(lastClicked.id));
 
           cellGroups = cellGroups.filter(function (item) {
@@ -997,7 +1002,7 @@ var Grouping = function (instance) {
           });
 
         } else if (lastClicked.level > 0) {
-          // show group by level
+          // get groups by level
           cellGroups = getCellGroups({
             row: row,
             col: 0
@@ -1007,12 +1012,9 @@ var Grouping = function (instance) {
           return;
         }
 
-
         if (!cellGroups.length) {
           return;
         }
-
-        var isHidden = lastClicked.hide;
 
         var header = instance.view.wt.wtScrollbars.horizontal.clone.wtTable.TBODY,
             THs = header.querySelectorAll('tr th'),
@@ -1020,19 +1022,20 @@ var Grouping = function (instance) {
 
         if (isHidden) {
 
-          TH.style.display = 'none';
-          THs[index].style.display = 'none';
-          TH.parentNode.style.display = 'none';
+          Handsontable.Dom.addClass(TH, 'hide');
+          Handsontable.Dom.addClass(THs[index], 'hide');
+          Handsontable.Dom.addClass(THs[index].parentNode, 'hide');
+          Handsontable.Dom.addClass(TH.parentNode, 'hide');
 
         } else {
 
-          TH.style.display = '';
-          THs[index].style.display = '';
-          TH.parentNode.style.display = '';
+          Handsontable.Dom.removeClass(TH, 'hide');
+          Handsontable.Dom.removeClass(THs[index], 'hide');
+          Handsontable.Dom.removeClass(THs[index].parentNode, 'hide');
+          Handsontable.Dom.removeClass(TH.parentNode, 'hide');
         }
       }
     },
-
     afterGetColHeader: function (col, TH) {
       var instance = this;
 
@@ -1045,7 +1048,7 @@ var Grouping = function (instance) {
         var cellGroups = [];
 
         if (lastClicked.id) {
-          // show single group
+          // get single group
           cellGroups.push(getGroupById(lastClicked.id));
 
           cellGroups = cellGroups.filter(function (item) {
@@ -1053,7 +1056,7 @@ var Grouping = function (instance) {
           });
 
         } else if (lastClicked.level > 0) {
-          // show group by level
+          // get groups by level
           cellGroups = getCellGroups({
             row: 0,
             col: col
@@ -1079,39 +1082,35 @@ var Grouping = function (instance) {
         var THs = header.querySelectorAll('tr th'),
             index = col + 1,
             totalRows = instance.countRows(),
-            totalRowsVisible = instance.view.wt.wtTable.getRowStrategy().countVisible(),
             i = 0;
 
-        if (!totalRowsVisible) {
-          return;
-        }
-
         if (isHidden) {
-
           // hide cell
-          TH.style.display = 'none';
-          THs[index].style.display = 'none';
-          colsClone[index].style.display = 'none';
-          cols[index].style.display = 'none';
+
+          Handsontable.Dom.addClass(TH, 'hide');
+          Handsontable.Dom.addClass(THs[index], 'hide');
+          Handsontable.Dom.addClass(colsClone[index], 'hide');
+          Handsontable.Dom.addClass(cols[index], 'hide');
 
           for (i; i < totalRows; i++) {
             var cell = instance.getCell(i, col);
             if (cell) {
-              cell.style.display = 'none';
+              //cell.style.display = 'none';
+              Handsontable.Dom.addClass(cell, 'hide');
             }
           }
 
         } else {
-
-          TH.style.display = '';
-          THs[index].style.display = '';
-          colsClone[index].style.display = '';
-          cols[index].style.display = '';
+          // show cell
+          Handsontable.Dom.removeClass(TH, 'hide');
+          Handsontable.Dom.removeClass(THs[index], 'hide');
+          Handsontable.Dom.removeClass(colsClone[index], 'hide');
+          Handsontable.Dom.removeClass(cols[index], 'hide');
 
           for (i; i < totalRows; i++) {
             var cell = instance.getCell(i, col);
             if (cell) {
-              cell.style.display = '';
+              Handsontable.Dom.removeClass(cell, 'hide');
             }
           }
         }

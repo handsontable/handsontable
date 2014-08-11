@@ -175,8 +175,12 @@ WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, d
       TD = this.utils.replaceThWithTd(TD, TR);
     }
 
-    TD.className = '';
+    if (!Handsontable.Dom.hasClass(TD, 'hide')) {
+      TD.className = '';
+    }
+
     TD.removeAttribute('style');
+
     this.instance.getSetting('cellRenderer', sourceRowIndex, sourceColIndex, TD);
 
   }
