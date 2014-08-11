@@ -28,7 +28,7 @@ describe('CustomBorders', function () {
     for (i = 0; i < 7; i++) {
       var row = [];
       for (j = 0; j < 7; j++) {
-        row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
+        row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
       }
       rows.push(row);
     }

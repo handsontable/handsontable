@@ -591,7 +591,7 @@ describe('ContextMenu', function () {
 
       selectCell(0, 0);
 
-      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 0)).toEqual('A1');
 
       setDataAtCell(0, 0, 'XX');
 
@@ -601,7 +601,7 @@ describe('ContextMenu', function () {
 
       $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(6).trigger('mousedown'); //Undo
 
-      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 0)).toEqual('A1');
     });
 
     it("should redo changes", function () {
@@ -612,7 +612,7 @@ describe('ContextMenu', function () {
 
       selectCell(0, 0);
 
-      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 0)).toEqual('A1');
 
       setDataAtCell(0, 0, 'XX');
 
@@ -620,7 +620,7 @@ describe('ContextMenu', function () {
 
       hot.undo();
 
-      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 0)).toEqual('A1');
 
       contextMenu();
 
@@ -648,7 +648,7 @@ describe('ContextMenu', function () {
 
       selectCell(0, 0);
 
-      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 0)).toEqual('A1');
       expect(hot.getCellMeta(0,0).readOnly).toBe(false);
 
       selectCell(0,0);
@@ -668,7 +668,7 @@ describe('ContextMenu', function () {
 
       selectCell(0, 0);
 
-      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 0)).toEqual('A1');
 
       hot.getCellMeta(0,0).readOnly = true;
 

@@ -469,7 +469,7 @@ describe('TextEditor', function () {
        data: createSpreadsheetData(4, 4)
      });
 
-     expect(getDataAtCell(0, 0)).toEqual('A0');
+     expect(getDataAtCell(0, 0)).toEqual('A1');
 
      selectCell(0, 0);
 
@@ -489,7 +489,7 @@ describe('TextEditor', function () {
       data: createSpreadsheetData(4, 4)
     });
 
-    expect(getDataAtCell(0, 0)).toEqual('A0');
+    expect(getDataAtCell(0, 0)).toEqual('A1');
 
     selectCell(0, 0);
 
@@ -509,7 +509,7 @@ describe('TextEditor', function () {
       data: createSpreadsheetData(4, 4)
     });
 
-    expect(getDataAtCell(0, 0)).toEqual('A0');
+    expect(getDataAtCell(0, 0)).toEqual('A1');
 
     selectCell(0, 0);
 

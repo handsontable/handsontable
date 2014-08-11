@@ -340,7 +340,7 @@ describe('Core_validate', function () {
     var hot = handsontable({
       data: createSpreadsheetData(2, 2),
       validator: function (value, callb) {
-        if (value == 'A0') {
+        if (value == 'A1') {
           callb(false)
         }
         else {
@@ -400,9 +400,9 @@ describe('Core_validate', function () {
     });
 
     populateFromArray(0, 0, [
-      ['A0-new'],
+      ['A1-new'],
       ['fail'],
-      ['A2-new']
+      ['A3-new']
     ]);
 
     waitsFor(function () {
@@ -411,11 +411,11 @@ describe('Core_validate', function () {
 
     runs(function () {
       expect(validatedChanges.length).toEqual(2);
-      expect(validatedChanges[0]).toEqual([0, 0, 'A0', 'A0-new']);
-      expect(validatedChanges[1]).toEqual([2, 0, 'A2', 'A2-new']);
-      expect(getDataAtCell(0, 0)).toEqual('A0-new');
-      expect(getDataAtCell(1, 0)).toEqual('A1');
-      expect(getDataAtCell(2, 0)).toEqual('A2-new');
+      expect(validatedChanges[0]).toEqual([0, 0, 'A1', 'A1-new']);
+      expect(validatedChanges[1]).toEqual([2, 0, 'A3', 'A3-new']);
+      expect(getDataAtCell(0, 0)).toEqual('A1-new');
+      expect(getDataAtCell(1, 0)).toEqual('A2');
+      expect(getDataAtCell(2, 0)).toEqual('A3-new');
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
       expect(getCellMeta(2, 0).valid).toBe(true);
@@ -921,7 +921,7 @@ describe('Core_validate', function () {
 
     runs(function () {
       expect(validationResult).toBe(false);
-      expect(getDataAtCell(0, 0)).toEqual('A0');
+      expect(getDataAtCell(0, 0)).toEqual('A1');
     });
 
   });

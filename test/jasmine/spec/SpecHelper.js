@@ -298,7 +298,7 @@ var destroy = handsontableMethodFactory('destroy');
 var addHook = handsontableMethodFactory('addHook');
 
 /**
- * Creates 2D array of Excel-like values "A0", "A1", ...
+ * Creates 2D array of Excel-like values "A1", "A2", ...
  * @param rowCount
  * @param colCount
  * @returns {Array}
@@ -314,7 +314,7 @@ function createSpreadsheetData(rowCount, colCount) {
   for (i = 0; i < rowCount; i++) {
     var row = [];
     for (j = 0; j < colCount; j++) {
-      row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
+      row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
     }
     rows.push(row);
   }
@@ -332,7 +332,7 @@ function createSpreadsheetObjectData(rowCount, colCount) {
   for (i = 0; i < rowCount; i++) {
     var row = {};
     for (j = 0; j < colCount; j++) {
-      row['prop' + j] = Handsontable.helper.spreadsheetColumnLabel(j) + i
+      row['prop' + j] = Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1)
     }
     rows.push(row);
   }
