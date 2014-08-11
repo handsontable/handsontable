@@ -468,6 +468,7 @@ Comment For Cell
 .htContextMenu {
   display: none;
   position: absolute;
+  z-index: 900;
 }
 
 .htContextMenu .ht_clone_top,
