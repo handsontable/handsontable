@@ -100,6 +100,7 @@ WalkontableSelection.prototype.draw = function () {
       }
     }
 
+    instance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
     this.border && this.border.appear(corners); //warning! border.appear modifies corners!
   }
   else {

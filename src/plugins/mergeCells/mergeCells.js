@@ -201,7 +201,7 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
         var updateCornerInfo = function () {
           topLeft = currentSelectedRange.getTopLeftCorner();
           bottomRight = currentSelectedRange.getBottomRightCorner();
-        }
+        };
         updateCornerInfo();
 
         var expanding = false; //expanding false means shrinking
@@ -469,6 +469,46 @@ var beforeSetRangeEnd = function (coords) {
   }
 };
 
+/**
+ * Returns correct coordinates for merged start / end cells in selection for area borders
+ * @param corners
+ * @param className
+ */
+var beforeDrawAreaBorders = function (corners, className) {
+  if (className && className == 'area'){
+    var mergeCellsSetting = this.getSettings().mergeCells;
+    if (mergeCellsSetting) {
+      var selRange = this.getSelectedRange();
+      var startRange = new WalkontableCellRange(selRange.from, selRange.from, selRange.from);
+      var stopRange = new WalkontableCellRange(selRange.to, selRange.to, selRange.to);
+
+      for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
+
+        var cellInfo = this.mergeCells.mergedCellInfoCollection[i];
+
+        var mergedCellTopLeft = new WalkontableCellCoords(cellInfo.row, cellInfo.col);
+
+        var mergedCellBottomRight = new WalkontableCellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
+
+        var mergedCellRange = new WalkontableCellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
+
+        if (startRange.expandByRange(mergedCellRange)) {
+          corners[0] = startRange.from.row;
+          corners[1] = startRange.from.col;
+        }
+
+        if (stopRange.expandByRange(mergedCellRange)) {
+          corners[2] = stopRange.from.row;
+          corners[3] = stopRange.from.col;
+        }
+      }
+    }
+  }
+
+
+};
+
+
 var afterGetCellMeta = function(row, col, cellProperties) {
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (mergeCellsSetting) {
@@ -484,6 +524,7 @@ Handsontable.hooks.add('beforeKeyDown', onBeforeKeyDown);
 Handsontable.hooks.add('modifyTransformStart', modifyTransformFactory('modifyTransformStart'));
 Handsontable.hooks.add('modifyTransformEnd', modifyTransformFactory('modifyTransformEnd'));
 Handsontable.hooks.add('beforeSetRangeEnd', beforeSetRangeEnd);
+Handsontable.hooks.add('beforeDrawBorders', beforeDrawAreaBorders);
 Handsontable.hooks.add('afterRenderer', afterRenderer);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addMergeActionsToContextMenu);
 Handsontable.hooks.add('afterGetCellMeta', afterGetCellMeta);
