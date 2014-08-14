@@ -28,6 +28,25 @@ describe('Core_beforeKeyDown', function () {
     expect(called).toEqual(true);
   });
 
+  it('should run afterWindowKeyDown and beforeKeyDown hook', function () {
+    var called = [];
+
+    handsontable({
+      data : [[1,2,3,4,5],[1,2,3,4,5]],
+      afterWindowKeyDown: function () {
+        called.push("afterWindowKeyDown");
+      },
+      beforeKeyDown: function () {
+        called.push("beforeKeyDown");
+      }
+    });
+    selectCell(0,0);
+
+    keyDown('arrow_right');
+
+    expect(called).toEqual(["afterWindowKeyDown", "beforeKeyDown"]);
+  });
+
   it('should prevent hook fron running default action', function () {
     var called = false;
 

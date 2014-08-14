@@ -3,7 +3,7 @@
 
   Handsontable.EditorManager = function(instance, priv, selection){
     var that = this;
-    var $document = $(document);
+    var $window = $(window);
     var keyCodes = Handsontable.helper.keyCode;
     var destroyed = false;
 
@@ -198,7 +198,14 @@
           }
         }
       }
-      $document.on('keydown.handsontable.' + instance.guid, onKeyDown);
+
+      instance.addHook('afterWindowKeyDown', function(originalEvent){
+        onKeyDown(originalEvent);
+      });
+
+      $window.on('keydown.' + instance.guid, function(ev) {
+        instance.runHooks('afterWindowKeyDown', ev);
+      });
 
       function onDblClick(event, coords, elem) {
         if(elem.nodeName == "TD") { //may be TD or TH
