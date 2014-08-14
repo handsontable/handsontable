@@ -13,7 +13,9 @@ Handsontable.Core = function (rootElement, userSettings) {
     , selection
     , editorManager
     , instance = this
-    , GridSettings = function () {};
+    , GridSettings = function () {}
+    , $document = $(document.documentElement)
+    , $body = $(document.body);
 
   Handsontable.helper.extend(GridSettings.prototype, DefaultSettings.prototype); //create grid settings as a copy of default settings
   Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
@@ -26,8 +28,6 @@ Handsontable.Core = function (rootElement, userSettings) {
   rootElement.prepend(this.container);
   this.container = $(this.container);
 
-  var $document = $(document.documentElement);
-  var $body = $(document.body);
   this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
 
   if (!this.rootElement[0].id) {
@@ -1908,6 +1908,41 @@ Handsontable.Core = function (rootElement, userSettings) {
     $body.off('.' + instance.guid);
     Handsontable.hooks.run(instance, 'afterDestroy');
     Handsontable.hooks.destroy(instance);
+
+    for (var i in instance) {
+      if (instance.hasOwnProperty(i)) {
+        //replace instance methods with post mortem
+        if (typeof instance[i] === "function") {
+          if (i !== "runHooks" && i !== "runHooksAndReturn") {
+            instance[i] = postMortem;
+          }
+        }
+        //replace instance properties with null (restores memory)
+        //it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
+        else if (i !== "guid") {
+          instance[i] = null;
+        }
+      }
+    }
+
+    //replace private properties with null (restores memory)
+    //it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
+    priv = null;
+    datamap = null;
+    grid = null;
+    selection = null;
+    editorManager = null;
+    instance = null;
+    GridSettings = null;
+    $document = null;
+    $body = null;
+  };
+
+  /**
+   * Replacement for all methods after Handsotnable was destroyed
+   */
+  function postMortem() {
+    throw new Error("This method cannot be called because this Handsontable instance has been destroyed");
   };
 
   /**
