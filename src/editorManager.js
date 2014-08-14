@@ -5,6 +5,7 @@
     var that = this;
     var $document = $(document);
     var keyCodes = Handsontable.helper.keyCode;
+    var destroyed = false;
 
     var activeEditor;
 
@@ -21,6 +22,10 @@
         }
 
         Handsontable.hooks.run(instance, 'beforeKeyDown', event);
+
+        if(destroyed) {
+          return;
+        }
 
         if (!event.isImmediatePropagationStopped()) {
 
@@ -205,7 +210,7 @@
       instance.view.wt.update('onCellDblClick', onDblClick);
 
       instance.addHook('afterDestroy', function(){
-        $document.off('keydown.handsontable.' + instance.guid);
+        destroyed = true;
       });
 
       function moveSelectionAfterEnter(shiftKey){
