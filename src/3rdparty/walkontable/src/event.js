@@ -94,11 +94,14 @@ WalkontableEvent.prototype.parentCell = function (elem) {
   if (TD && Handsontable.Dom.isChildOf(TD, TABLE)) {
     cell.coords = this.instance.wtTable.getCoords(TD);
     cell.TD = TD;
-  }
-  else if (Handsontable.Dom.hasClass(elem, 'wtBorder') && Handsontable.Dom.hasClass(elem, 'current')) {
+  } else if (Handsontable.Dom.hasClass(elem, 'wtBorder') && Handsontable.Dom.hasClass(elem, 'current')) {
     cell.coords = this.instance.selections.current.cellRange.highlight;
     cell.TD = this.instance.wtTable.getCell(cell.coords);
+  } else if (Handsontable.Dom.hasClass(elem, 'wtBorder') && Handsontable.Dom.hasClass(elem, 'area')) {
+    cell.coords = this.instance.selections.current.cellRange.to;
+    cell.TD = this.instance.wtTable.getCell(cell.coords);
   }
+
   return cell;
 };
 
