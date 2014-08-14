@@ -80,15 +80,6 @@ WalkontableOverlay.prototype.availableSize = function () {
 };
 
 WalkontableOverlay.prototype.refresh = function (selectionsOnly) {
-  var last = this.getLastCell();
-  this.measureBefore = this.sumCellSizes(0, this.offset);
-  if (last === -1) { //last -1 means that viewport is scrolled behind the table
-    this.measureAfter = 0;
-  }
-  else {
-    this.measureAfter = this.sumCellSizes(last, this.total - last);
-  }
-  this.applyToDOM();
   this.clone && this.clone.draw(selectionsOnly);
 };
 

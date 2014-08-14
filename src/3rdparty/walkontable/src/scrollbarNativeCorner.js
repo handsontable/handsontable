@@ -40,9 +40,7 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
 };
 
 WalkontableCornerScrollbarNative.prototype.refresh = function (selectionsOnly) {
-  this.measureBefore = 0;
-  this.measureAfter = 0;
-  this.clone && this.clone.draw(selectionsOnly);
+  WalkontableOverlay.prototype.refresh.call(this, selectionsOnly);
 };
 
 WalkontableCornerScrollbarNative.prototype.getScrollPosition = function () {

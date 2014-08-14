@@ -38,9 +38,7 @@ WalkontableHorizontalScrollbarNative.prototype.resetFixedPosition = function () 
 };
 
 WalkontableHorizontalScrollbarNative.prototype.refresh = function (selectionsOnly) {
-  this.measureBefore = 0;
-  this.measureAfter = 0;
-  this.clone && this.clone.draw(selectionsOnly);
+  WalkontableOverlay.prototype.refresh.call(this, selectionsOnly);
 };
 
 WalkontableHorizontalScrollbarNative.prototype.getScrollPosition = function () {
@@ -68,8 +66,6 @@ WalkontableHorizontalScrollbarNative.prototype.getLastCell = function () {
 //applyToDOM (in future merge it with this.refresh?)
 WalkontableHorizontalScrollbarNative.prototype.applyToDOM = function () {
   this.readWindowSize();
-  this.fixedContainer.style.paddingLeft = this.measureBefore + 'px';
-  this.fixedContainer.style.paddingRight = this.measureAfter + 'px';
 };
 
 WalkontableHorizontalScrollbarNative.prototype.scrollTo = function (cell) {
