@@ -753,7 +753,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       value = Handsontable.hooks.execute(instance, "beforeValidate", value, cellProperties.row, cellProperties.prop, source);
 
       // To provide consistent behaviour, validation should be always asynchronous
-      setTimeout(function () {
+      instance._registerTimeout(setTimeout(function () {
         validator.call(cellProperties, value, function (valid) {
           cellProperties.valid = valid;
 
@@ -761,8 +761,9 @@ Handsontable.Core = function (rootElement, userSettings) {
 
           callback(valid);
         });
-      });
 
+        return value;
+      }, 0));
     } else { //resolve callback even if validator function was not found
       cellProperties.valid = true;
       callback(true);
@@ -1946,15 +1947,14 @@ Handsontable.Core = function (rootElement, userSettings) {
     return Handsontable.hooks.execute(instance, key, p1, p2, p3, p4, p5, p6);
   };
 
-  this.timeouts = {};
+  this.timeouts = [];
 
   /**
    * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called
    * @public
    */
-  this._registerTimeout = function (key, handle, ms) {
-    clearTimeout(this.timeouts[key]);
-    this.timeouts[key] = setTimeout(handle, ms || 0);
+  this._registerTimeout = function (handle) {
+    this.timeouts.push(handle);
   };
 
   /**
@@ -1962,10 +1962,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    */
   this._clearTimeouts = function () {
-    for (var key in this.timeouts) {
-      if (this.timeouts.hasOwnProperty(key)) {
-        clearTimeout(this.timeouts[key]);
-      }
+    for(var i = 0, ilen = this.timeouts.length; i<ilen; i++) {
+      clearTimeout(this.timeouts[i]);
     }
   };
 

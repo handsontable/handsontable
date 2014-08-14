@@ -104,6 +104,7 @@
             dblclick = 0;
             autoresizeTimeout = null;
           }, 500);
+          instance._registerTimeout(autoresizeTimeout);
         }
         dblclick++;
 

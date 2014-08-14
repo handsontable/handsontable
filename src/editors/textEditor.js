@@ -129,11 +129,9 @@
     this.instance.rootElement[0].appendChild(this.TEXTAREA_PARENT);
 
     var that = this;
-//    Handsontable.hooks.add('afterRender', function () {
-      that.instance._registerTimeout('refresh_editor_dimensions', function () {
-        that.refreshDimensions();
-//      }, 0);
-    });
+    this.instance._registerTimeout(setTimeout(function () {
+      that.refreshDimensions();
+    }, 0));
   };
 
   TextEditor.prototype.checkEditorSection = function () {
@@ -261,7 +259,7 @@
       event.stopPropagation();
     });
 
-    Handsontable.hooks.add('afterScrollVertically', function () {
+    this.instance.addHook('afterScrollVertically', function () {
       editor.refreshDimensions();
     });
   };

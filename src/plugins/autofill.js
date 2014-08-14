@@ -217,10 +217,10 @@
       if(fillCorners[2] === tableRows - 1) {
         this.addingStarted = true;
 
-        setTimeout(function() {
+        this.instance._registerTimeout(setTimeout(function () {
           that.instance.alter('insert_row');
           that.addingStarted = false;
-        }, 200);
+        }, 200));
       }
     }
 

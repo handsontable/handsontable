@@ -24,9 +24,9 @@
       var value = that.$textarea.val();
 
       if(!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) !== -1){
-        setTimeout(function () {
+        this.instance._registerTimeout(setTimeout(function () {
           that.queryChoices(value);
-        });
+        }, 0));
       } else if ([Handsontable.helper.keyCode.ENTER, Handsontable.helper.keyCode.TAB].indexOf(event.keyCode) !== -1){
 
         var choice = that.choices[0];
