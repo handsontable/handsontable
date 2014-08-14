@@ -58,8 +58,15 @@ WalkontableScrollbars.prototype.registerListeners = function () {
 };
 
 WalkontableScrollbars.prototype.destroy = function () {
-  this.vertical && this.vertical.destroy();
-  this.horizontal && this.horizontal.destroy();
+  if (this.vertical) {
+    this.vertical.destroy();
+    this.vertical.$scrollHandler.off('scroll.' + this.instance.guid);
+  }
+  if (this.horizontal) {
+    this.horizontal.destroy();
+    this.vertical.$scrollHandler.off('scroll.' + this.instance.guid);
+  }
+  $(window).off('scroll.' + this.instance.guid);
   this.corner && this.corner.destroy();
 };
 
