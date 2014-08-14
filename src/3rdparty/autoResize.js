@@ -31,7 +31,12 @@ var autoResize = function () {
       }
     },
     resize = function () {
-      text.textContent = el.value;
+      if (text.textContent !== void 0) {
+        text.textContent = el.value;
+      }
+      else {
+        text.data = el.value; //IE8
+      }
       span.style.fontSize = defaults.fontSize + 'px';
 
       body.appendChild(span);
