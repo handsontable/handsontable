@@ -1906,6 +1906,7 @@ Handsontable.Core = function (rootElement, userSettings) {
     $document.off('.' + instance.guid);
     $body.off('.' + instance.guid);
     Handsontable.hooks.run(instance, 'afterDestroy');
+    Handsontable.hooks.destroy(instance);
   };
 
   /**
