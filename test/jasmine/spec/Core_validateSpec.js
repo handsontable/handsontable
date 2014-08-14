@@ -69,7 +69,7 @@ describe('Core_validate', function () {
     });
   });
 
-  it('beforeValidate should can manipulate value', function () {
+  it('beforeValidate can manipulate value', function () {
     var result = null;
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
