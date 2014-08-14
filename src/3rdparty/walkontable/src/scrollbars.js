@@ -68,6 +68,7 @@ WalkontableScrollbars.prototype.destroy = function () {
   }
   $(window).off('scroll.' + this.instance.guid);
   this.corner && this.corner.destroy();
+  this.debug && this.debug.destroy();
 };
 
 WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
