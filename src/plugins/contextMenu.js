@@ -913,9 +913,9 @@
 
   ContextMenu.prototype.positionMenuOnRightOfCursor = function (cursor, menu, subMenu) {
     if (subMenu) {
-			menu.style.left = cursor.left + cursor.cellWidth  + 'px';
+			menu.style.left = 1 + cursor.left + cursor.cellWidth  + 'px';
 		} else {
-			menu.style.left = cursor.left + 'px';
+			menu.style.left = 1 + cursor.left + 'px';
 		}
   };
 
