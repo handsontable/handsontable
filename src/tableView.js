@@ -262,13 +262,6 @@ Handsontable.TableView = function (instance) {
   this.wt = new Walkontable(walkontableConfig);
   this.activeWt = this.wt;
 
-  /*$window.on('resize.' + instance.guid, function () {
-    instance._registerTimeout('resizeTimeout', function () {
-      instance.forceFullRender = true;
-      that.render();
-    }, 60);
-  });*/
-
   $(that.wt.wtTable.spreader).on('mousedown.handsontable, contextmenu.handsontable', function (event) {
     if (event.target === that.wt.wtTable.spreader && event.which === 3) { //right mouse button exactly on spreader means right clickon the right hand side of vertical scrollbar
       event.stopPropagation();
