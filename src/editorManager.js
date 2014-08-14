@@ -3,7 +3,7 @@
 
   Handsontable.EditorManager = function(instance, priv, selection){
     var that = this;
-    var $window = $(window);
+    var $document = $(document);
     var keyCodes = Handsontable.helper.keyCode;
     var destroyed = false;
 
@@ -199,12 +199,12 @@
         }
       }
 
-      instance.addHook('afterWindowKeyDown', function(originalEvent){
+      instance.addHook('afterDocumentKeyDown', function(originalEvent){
         onKeyDown(originalEvent);
       });
 
-      $window.on('keydown.' + instance.guid, function(ev) {
-        instance.runHooks('afterWindowKeyDown', ev);
+      $document.on('keydown.' + instance.guid, function(ev) {
+        instance.runHooks('afterDocumentKeyDown', ev);
       });
 
       function onDblClick(event, coords, elem) {

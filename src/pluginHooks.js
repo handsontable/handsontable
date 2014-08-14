@@ -44,7 +44,7 @@ Handsontable.PluginHookClass = (function () {
       afterScrollVertically: [],
       afterScrollHorizontally: [],
 	  afterCellMetaReset:[],
-      afterWindowKeyDown: [],
+      afterDocumentKeyDown: [],
 
       // Modifiers
       modifyColWidth: [],
