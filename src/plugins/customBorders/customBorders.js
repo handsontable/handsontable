@@ -268,7 +268,7 @@
       removeBordersFromDom(createClassName(borderObj.row,borderObj.col));
     }
 
-    var border = new WalkontableBorder(instance.view.wt,borderObj);
+    var border = new WalkontableBorder(this.view.wt,borderObj);
     border.appear([borderObj.row,borderObj.col,borderObj.row,borderObj.col]);
   };
 
