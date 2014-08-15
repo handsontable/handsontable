@@ -15,6 +15,8 @@
     "grunt-contrib-watch": "~0.6.1",
     "grunt-contrib-jasmine": "~0.5.1",
     "grunt-contrib-connect": "~0.8.0",
+    "grunt-contrib-uglify": "~0.5.1",
+    "grunt-contrib-cssmin": "~0.10.0",
     "grunt-saucelabs": "~4.0.4",
     "grunt-gitinfo": "~0.1.6"
   },
