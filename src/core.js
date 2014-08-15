@@ -546,6 +546,9 @@ Handsontable.Core = function (rootElement, userSettings) {
       priv.selRange = null;
       instance.view.wt.selections.current.clear();
       instance.view.wt.selections.area.clear();
+      if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
+        instance.view.wt.selections.highlight.clear();
+      }
       editorManager.destroyEditor();
       selection.refreshBorders();
       Handsontable.hooks.run(instance, 'afterDeselect');
