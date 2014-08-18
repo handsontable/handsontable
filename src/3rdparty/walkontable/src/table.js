@@ -180,7 +180,7 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
 
 
   this.oldCellCache = this.currentCellCache;
-  this.currentCellCache = new WalkontableClassNameCache();
+  this.currentCellCache = new WalkontableClassNameCache(this.instance);
 
   if (this.instance.selections) {
     for (var i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
@@ -221,6 +221,8 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
         cacheLength = this.currentCellCache.cache ? visibleRows : 0;
         cell = this.getColumnHeader(vc);
         if (this.currentCellCache.test(cacheLength, vc, classNames[s])) {
+
+          // TODO - HERE SHOULD NOT ADD CLASS IF BOFEREMARKSELECTED returns true;
           if (typeof cell == 'object' ) Handsontable.Dom.addClass(cell,classNames[s]);
         } else {
           if (typeof cell == 'object' ) Handsontable.Dom.removeClass(cell,classNames[s]);

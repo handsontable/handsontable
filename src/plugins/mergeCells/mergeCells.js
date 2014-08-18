@@ -504,10 +504,38 @@ var beforeDrawAreaBorders = function (corners, className) {
       }
     }
   }
-
-
 };
 
+var beforeMarkSelected = function (className) {
+  var mergeCellsSetting = this.getSettings().mergeCells;
+
+    if (mergeCellsSetting) {
+
+      if (className && className == 'area') {
+
+        var selRange = this.getSelectedRange();
+
+        if (selRange) {
+
+          for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
+
+            var cellInfo = this.mergeCells.mergedCellInfoCollection[i];
+
+            var mergedCellTopLeft = new WalkontableCellCoords(cellInfo.row, cellInfo.col);
+
+            var mergedCellBottomRight = new WalkontableCellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
+
+            if (selRange.from.row == mergedCellTopLeft.row.from
+              && selRange.to.row == mergedCellBottomRight.row.to
+              && selRange.from.col == mergedCellTopLeft.col.from
+              && selRange.to.col == mergedCellBottomRight.col.to) {
+              className = ''
+            }
+          }
+        }
+    }
+  }
+}
 
 var afterGetCellMeta = function(row, col, cellProperties) {
   var mergeCellsSetting = this.getSettings().mergeCells;
@@ -525,6 +553,7 @@ Handsontable.hooks.add('modifyTransformStart', modifyTransformFactory('modifyTra
 Handsontable.hooks.add('modifyTransformEnd', modifyTransformFactory('modifyTransformEnd'));
 Handsontable.hooks.add('beforeSetRangeEnd', beforeSetRangeEnd);
 Handsontable.hooks.add('beforeDrawBorders', beforeDrawAreaBorders);
+Handsontable.hooks.add('beforeMarkSelected', beforeMarkSelected);
 Handsontable.hooks.add('afterRenderer', afterRenderer);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addMergeActionsToContextMenu);
 Handsontable.hooks.add('afterGetCellMeta', afterGetCellMeta);
