@@ -223,7 +223,8 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
         if (this.currentCellCache.test(cacheLength, vc, classNames[s])) {
 
           // TODO - HERE SHOULD NOT ADD CLASS IF BOFEREMARKSELECTED returns true;
-          if (typeof cell == 'object' ) Handsontable.Dom.addClass(cell,classNames[s]);
+          //instance.getSetting('onBeforeMarkSelected',classNames[s]);
+        if (typeof cell == 'object' ) Handsontable.Dom.addClass(cell,classNames[s]);
         } else {
           if (typeof cell == 'object' ) Handsontable.Dom.removeClass(cell,classNames[s]);
         }
