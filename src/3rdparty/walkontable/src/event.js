@@ -84,6 +84,9 @@ function WalkontableEvent(instance) {
   $(this.instance.wtTable.TABLE).on('mouseover', onMouseOver);
   $(this.instance.wtTable.holder).on('mouseup', onMouseUp);
 
+  $(window).on('resize.' + this.instance.guid, function () {
+    that.instance.draw();
+  });
 }
 
 WalkontableEvent.prototype.parentCell = function (elem) {

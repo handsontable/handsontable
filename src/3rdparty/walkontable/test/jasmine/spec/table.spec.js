@@ -477,6 +477,43 @@ describe('WalkontableTable', function () {
       expect(wtHider.find('col:eq(1)').width()).toBe(wtHider.find('col:eq(2)').width());
     });
 
+    it("should stretch all visible columns when stretchH equals 'all' and window is resized", function () {
+      createDataArray(20, 2);
+
+      $container.width(301).height(201);
+
+      var wt = new Walkontable({
+        table: $table[0],
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        stretchH: 'all',
+        rowHeaders: [function (row, TH) {
+          TH.innerHTML = row + 1;
+        }]
+      });
+      wt.draw();
+
+      var wtHider = $table.parents('.wtHider');
+      var initialTableWidth = wtHider.outerWidth();
+      expect(initialTableWidth).toBe($table[0].clientWidth);
+      var initialColWidth = wtHider.find('col:eq(1)').width();
+      expect(initialColWidth).toBe(wtHider.find('col:eq(2)').width());
+
+      $container.width(401).height(201);
+
+      $(window).trigger('resize');
+
+      runs(function() {
+        var currentTableWidth = wtHider.outerWidth();
+        var currentColWidth = wtHider.find('col:eq(1)').width();
+        expect(currentTableWidth).toBe($table[0].clientWidth);
+        expect(currentColWidth).toBe(wtHider.find('col:eq(2)').width());
+        expect(currentTableWidth).toBeGreaterThan(initialColWidth);
+        expect(currentColWidth).toBeGreaterThan(initialColWidth);
+      });
+    });
+
     it("should stretch all visible columns when stretchH equals 'all' (when rows are of variable height)", function () {
       createDataArray(20, 2);
 
