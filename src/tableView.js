@@ -255,9 +255,9 @@ Handsontable.TableView = function (instance) {
     onScrollHorizontally: function () {
       instance.runHooks('afterScrollHorizontally');
     },
-    onBeforeMarkSelected: function (className) {
-      instance.runHooks('beforeMarkSelected', className);
-    },
+//    onBeforeMarkSelected: function (className) {
+//      instance.runHooks('beforeMarkSelected', className);
+//    },
     onBeforeDrawBorders: function (corners, borderClassName) {
       instance.runHooks('beforeDrawBorders', corners, borderClassName);
     }

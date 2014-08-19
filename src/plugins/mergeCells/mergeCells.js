@@ -483,13 +483,9 @@ var beforeDrawAreaBorders = function (corners, className) {
       var stopRange = new WalkontableCellRange(selRange.to, selRange.to, selRange.to);
 
       for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
-
         var cellInfo = this.mergeCells.mergedCellInfoCollection[i];
-
         var mergedCellTopLeft = new WalkontableCellCoords(cellInfo.row, cellInfo.col);
-
         var mergedCellBottomRight = new WalkontableCellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
-
         var mergedCellRange = new WalkontableCellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
 
         if (startRange.expandByRange(mergedCellRange)) {
@@ -504,38 +500,34 @@ var beforeDrawAreaBorders = function (corners, className) {
       }
     }
   }
-};
 
-var beforeMarkSelected = function (className) {
-  var mergeCellsSetting = this.getSettings().mergeCells;
+  // Remove 'area' from the class cache if a single merged group is selected
+  var currentCellCache = this.view.wt.wtTable.currentCellCache.cache
+    , mergedGroup = this.mergeCells ? this.mergeCells.mergedCellInfoCollection : void 0
+    , selRange = selRange || this.getSelectedRange();
 
-    if (mergeCellsSetting) {
+  if (mergedGroup && currentCellCache.length > 0)
+    for (var i = 0, ilen = mergedGroup.length; i < ilen; i++) {
 
-      if (className && className == 'area') {
+      selRange = this.getSelectedRange();
 
-        var selRange = this.getSelectedRange();
+      if (selRange.from.row == mergedGroup[i].row
+        && selRange.to.row == mergedGroup[i].row + mergedGroup[i].rowspan - 1
+        && selRange.from.col == mergedGroup[i].col
+        && selRange.to.col == mergedGroup[i].col + mergedGroup[i].colspan - 1) {
 
-        if (selRange) {
+          if (currentCellCache[mergedGroup[i].row]
+            && currentCellCache[mergedGroup[i].row][mergedGroup[i].col]
+            && currentCellCache[mergedGroup[i].row][mergedGroup[i].col].area) {
+//            console.log(currentCellCache[mergedGroup[i].row][mergedGroup[i].col].area);
+//              currentCellCache[mergedGroup[i].row][mergedGroup[i].col].area = void 0;
+                this.view.wt.wtTable.currentCellCache.remove(mergedGroup[i].row,mergedGroup[i].col,'area');
+            break;
 
-          for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
-
-            var cellInfo = this.mergeCells.mergedCellInfoCollection[i];
-
-            var mergedCellTopLeft = new WalkontableCellCoords(cellInfo.row, cellInfo.col);
-
-            var mergedCellBottomRight = new WalkontableCellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
-
-            if (selRange.from.row == mergedCellTopLeft.row.from
-              && selRange.to.row == mergedCellBottomRight.row.to
-              && selRange.from.col == mergedCellTopLeft.col.from
-              && selRange.to.col == mergedCellBottomRight.col.to) {
-              className = ''
-            }
           }
-        }
+      }
     }
-  }
-}
+};
 
 var afterGetCellMeta = function(row, col, cellProperties) {
   var mergeCellsSetting = this.getSettings().mergeCells;
@@ -553,7 +545,6 @@ Handsontable.hooks.add('modifyTransformStart', modifyTransformFactory('modifyTra
 Handsontable.hooks.add('modifyTransformEnd', modifyTransformFactory('modifyTransformEnd'));
 Handsontable.hooks.add('beforeSetRangeEnd', beforeSetRangeEnd);
 Handsontable.hooks.add('beforeDrawBorders', beforeDrawAreaBorders);
-Handsontable.hooks.add('beforeMarkSelected', beforeMarkSelected);
 Handsontable.hooks.add('afterRenderer', afterRenderer);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addMergeActionsToContextMenu);
 Handsontable.hooks.add('afterGetCellMeta', afterGetCellMeta);

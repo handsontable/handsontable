@@ -204,6 +204,11 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
     for (vc = 0; vc < renderedCells; vc++) {
       r = this.rowFilter.visibleToSource(vr);
       c = this.columnFilter.visibleToSource(vc);
+
+//      if(this.getCell(new WalkontableCellCoords(1, 1)) && this.getCell(new WalkontableCellCoords(1, 1)) != -2) {
+//        console.log(this.currentCellCache.test(1, 1, 'area'));
+//      }
+
       for (s = 0; s < slen; s++) {
         var cell;
         if (this.currentCellCache.test(vr, vc, classNames[s])) {
@@ -221,10 +226,7 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
         cacheLength = this.currentCellCache.cache ? visibleRows : 0;
         cell = this.getColumnHeader(vc);
         if (this.currentCellCache.test(cacheLength, vc, classNames[s])) {
-
-          // TODO - HERE SHOULD NOT ADD CLASS IF BOFEREMARKSELECTED returns true;
-          //instance.getSetting('onBeforeMarkSelected',classNames[s]);
-        if (typeof cell == 'object' ) Handsontable.Dom.addClass(cell,classNames[s]);
+          if (typeof cell == 'object' ) Handsontable.Dom.addClass(cell,classNames[s]);
         } else {
           if (typeof cell == 'object' ) Handsontable.Dom.removeClass(cell,classNames[s]);
         }
