@@ -76,7 +76,20 @@
 
   BaseEditor.prototype.saveValue = function (val, ctrlDown) {
     if (ctrlDown) { //if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
-      var sel = this.instance.getSelected();
+      var sel = this.instance.getSelected()
+        , tmp;
+
+      if(sel[0] > sel[2]) {
+        tmp = sel[0];
+        sel[0] = sel[2];
+        sel[2] = tmp;
+      }
+      if(sel[1] > sel[3]) {
+        tmp = sel[1];
+        sel[1] = sel[3];
+        sel[3] = tmp;
+      }
+
       this.instance.populateFromArray(sel[0], sel[1], val, sel[2], sel[3], 'edit');
     }
     else {
