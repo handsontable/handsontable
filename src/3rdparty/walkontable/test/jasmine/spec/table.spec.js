@@ -454,8 +454,8 @@ describe('WalkontableTable', function () {
     expect(count).toBeGreaterThan(oldCount);
   });
 
-  xdescribe("stretchH", function () {
-    it("should strech all visible columns when stretchH equals 'all'", function () {
+  describe("stretchH", function () {
+    it("should stretch all visible columns when stretchH equals 'all'", function () {
       createDataArray(20, 2);
 
       $container.width(301).height(201);
@@ -465,8 +465,6 @@ describe('WalkontableTable', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        width: 301,
-        height: 201,
         stretchH: 'all',
         rowHeaders: [function (row, TH) {
           TH.innerHTML = row + 1;
@@ -479,7 +477,7 @@ describe('WalkontableTable', function () {
       expect(wtHider.find('col:eq(1)').width()).toBe(wtHider.find('col:eq(2)').width());
     });
 
-    it("should strech all visible columns when stretchH equals 'all' (when rows are of variable height)", function () {
+    it("should stretch all visible columns when stretchH equals 'all' (when rows are of variable height)", function () {
       createDataArray(20, 2);
 
       for(var i= 0, ilen=this.data.length; i<ilen; i++) {
@@ -495,8 +493,6 @@ describe('WalkontableTable', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        width: 301,
-        height: 201,
         stretchH: 'all'
       });
       wt.draw();
@@ -508,7 +504,7 @@ describe('WalkontableTable', function () {
       expect(wtHider.find('col:eq(1)').width()).toBe(expectedColWidth);
     });
 
-    it("should strech last visible column when stretchH equals 'last'", function () {
+    it("should stretch last visible column when stretchH equals 'last'", function () {
       createDataArray(20, 2);
 
       $container.width(300).height(201);
@@ -518,8 +514,6 @@ describe('WalkontableTable', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        width: 300,
-        height: 201,
         stretchH: 'last',
         rowHeaders: [function (row, TH) {
           TH.innerHTML = row + 1;
@@ -532,7 +526,7 @@ describe('WalkontableTable', function () {
       expect(wtHider.find('col:eq(1)').width()).toBeLessThan(wtHider.find('col:eq(2)').width());
     });
 
-    it("should strech last visible column when stretchH equals 'last' (and no vertical scroll)", function () {
+    it("should stretch last visible column when stretchH equals 'last' (and no vertical scroll)", function () {
       createDataArray(2, 2);
 
       $container.width(300).height(201);
@@ -542,8 +536,6 @@ describe('WalkontableTable', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        width: 300,
-        height: 201,
         stretchH: 'last',
         rowHeaders: [function (row, TH) {
           TH.innerHTML = row + 1;
@@ -556,7 +548,7 @@ describe('WalkontableTable', function () {
       expect(wtHider.find('col:eq(1)').width()).toBeLessThan(wtHider.find('col:eq(2)').width());
     });
 
-    it("should not strech when stretchH equals 'none'", function () {
+    it("should not stretch when stretchH equals 'none'", function () {
       createDataArray(20, 2);
       $container.width(300).height(201);
 
@@ -565,8 +557,6 @@ describe('WalkontableTable', function () {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        width: 300,
-        height: 201,
         stretchH: 'none',
         rowHeaders: [function (row, TH) {
           TH.innerHTML = row + 1;
@@ -630,9 +620,7 @@ describe('WalkontableTable', function () {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        width: 209,
-        height: 185
+        totalColumns: getTotalColumns
       });
       wt.draw();
 
@@ -648,9 +636,7 @@ describe('WalkontableTable', function () {
         table: $table[0],
         data: getData,
         totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        width: 180,
-        height: 185
+        totalColumns: getTotalColumns
       });
       wt.draw();
       wt.scrollHorizontal(1);

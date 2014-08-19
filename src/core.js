@@ -2043,7 +2043,7 @@ DefaultSettings.prototype = {
   pasteMode: 'overwrite',
   currentRowClassName: void 0,
   currentColClassName: void 0,
-  stretchH: 'hybrid',
+  stretchH: 'none',
   isEmptyRow: function (r) {
     var val;
     for (var c = 0, clen = this.countCols(); c < clen; c++) {
