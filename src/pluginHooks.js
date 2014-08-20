@@ -4,11 +4,9 @@ Handsontable.PluginHookClass = (function () {
     return {
       // Hooks
       beforeInitWalkontable: [],
-
       beforeInit: [],
       beforeRender: [],
       beforeSetRangeEnd: [],
-//      beforeMarkSelected: [],
       beforeDrawBorders: [],
       beforeChange: [],
       beforeChangeRender: [],
@@ -18,7 +16,6 @@ Handsontable.PluginHookClass = (function () {
       beforeGetCellMeta: [],
       beforeAutofill: [],
       beforeKeyDown: [],
-
       afterInit : [],
       afterLoadData : [],
       afterUpdateSettings: [],
@@ -45,7 +42,8 @@ Handsontable.PluginHookClass = (function () {
       afterOnCellCornerMouseDown: [],
       afterScrollVertically: [],
       afterScrollHorizontally: [],
-	  afterCellMetaReset:[],
+      afterCellMetaReset: [],
+      afterIsMultipleSelectionCheck: [],
 
       // Modifiers
       modifyColWidth: [],

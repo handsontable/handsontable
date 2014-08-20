@@ -500,33 +500,6 @@ var beforeDrawAreaBorders = function (corners, className) {
       }
     }
   }
-
-  // Remove 'area' from the class cache if a single merged group is selected
-  var currentCellCache = this.view.wt.wtTable.currentCellCache.cache
-    , mergedGroup = this.mergeCells ? this.mergeCells.mergedCellInfoCollection : void 0
-    , selRange = selRange || this.getSelectedRange();
-
-  if (mergedGroup && currentCellCache.length > 0)
-    for (var i = 0, ilen = mergedGroup.length; i < ilen; i++) {
-
-      selRange = this.getSelectedRange();
-
-      if (selRange.from.row == mergedGroup[i].row
-        && selRange.to.row == mergedGroup[i].row + mergedGroup[i].rowspan - 1
-        && selRange.from.col == mergedGroup[i].col
-        && selRange.to.col == mergedGroup[i].col + mergedGroup[i].colspan - 1) {
-
-          if (currentCellCache[mergedGroup[i].row]
-            && currentCellCache[mergedGroup[i].row][mergedGroup[i].col]
-            && currentCellCache[mergedGroup[i].row][mergedGroup[i].col].area) {
-//            console.log(currentCellCache[mergedGroup[i].row][mergedGroup[i].col].area);
-//              currentCellCache[mergedGroup[i].row][mergedGroup[i].col].area = void 0;
-                this.view.wt.wtTable.currentCellCache.remove(mergedGroup[i].row,mergedGroup[i].col,'area');
-            break;
-
-          }
-      }
-    }
 };
 
 var afterGetCellMeta = function(row, col, cellProperties) {
@@ -539,12 +512,29 @@ var afterGetCellMeta = function(row, col, cellProperties) {
   }
 };
 
+var isMultipleSelection = function(isMultiple) {
+  if(isMultiple && this.mergeCells) {
+    var mergedCells = this.mergeCells.mergedCellInfoCollection
+      , selectionRange = this.getSelectedRange();
+
+    for(var group in mergedCells) {
+      if(selectionRange.highlight.row == mergedCells[group].row && selectionRange.highlight.col == mergedCells[group].col
+        && selectionRange.to.row == mergedCells[group].row + mergedCells[group].rowspan - 1
+        && selectionRange.to.col == mergedCells[group].col + mergedCells[group].colspan - 1) {
+        return false;
+      }
+    }
+  }
+  return isMultiple;
+};
+
 Handsontable.hooks.add('beforeInit', init);
 Handsontable.hooks.add('beforeKeyDown', onBeforeKeyDown);
 Handsontable.hooks.add('modifyTransformStart', modifyTransformFactory('modifyTransformStart'));
 Handsontable.hooks.add('modifyTransformEnd', modifyTransformFactory('modifyTransformEnd'));
 Handsontable.hooks.add('beforeSetRangeEnd', beforeSetRangeEnd);
 Handsontable.hooks.add('beforeDrawBorders', beforeDrawAreaBorders);
+Handsontable.hooks.add('afterIsMultipleSelection', isMultipleSelection);
 Handsontable.hooks.add('afterRenderer', afterRenderer);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addMergeActionsToContextMenu);
 Handsontable.hooks.add('afterGetCellMeta', afterGetCellMeta);

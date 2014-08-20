@@ -428,7 +428,12 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @return {Boolean}
      */
     isMultiple: function () {
-      return !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row);
+      var isMultiple = !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row)
+        , modifier = Handsontable.hooks.execute(instance, 'afterIsMultipleSelection', isMultiple);
+
+      if(isMultiple) {
+        return modifier;
+      }
     },
 
     /**

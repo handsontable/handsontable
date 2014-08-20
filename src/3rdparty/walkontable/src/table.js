@@ -205,10 +205,6 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
       r = this.rowFilter.visibleToSource(vr);
       c = this.columnFilter.visibleToSource(vc);
 
-//      if(this.getCell(new WalkontableCellCoords(1, 1)) && this.getCell(new WalkontableCellCoords(1, 1)) != -2) {
-//        console.log(this.currentCellCache.test(1, 1, 'area'));
-//      }
-
       for (s = 0; s < slen; s++) {
         var cell;
         if (this.currentCellCache.test(vr, vc, classNames[s])) {
