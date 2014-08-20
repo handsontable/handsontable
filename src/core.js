@@ -2015,12 +2015,16 @@ var DefaultSettings = function () {};
 
 DefaultSettings.prototype = {
   data: void 0,
+  dataSchema: void 0,
   width: void 0,
   height: void 0,
   startRows: 5,
   startCols: 5,
   rowHeaders: null,
   colHeaders: null,
+  colWidths: void 0,
+  columns: void 0,
+  cells: void 0,
   cell: [],
   minRows: 0,
   minCols: 0,
@@ -2077,7 +2081,14 @@ DefaultSettings.prototype = {
   copyable: true,
   debug: false, //shows debug overlays in Walkontable
   wordWrap: true,
-  noWordWrapClassName: 'htNoWrap'
+  noWordWrapClassName: 'htNoWrap',
+  contextMenu: void 0,
+  undo: void 0,
+  columnSorting: void 0,
+  manualColumnMove: void 0,
+  manualColumnResize: void 0,
+  manualRowMove: void 0,
+  manualRowResize: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;
 
