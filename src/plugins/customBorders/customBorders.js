@@ -268,8 +268,17 @@
       removeBordersFromDom(createClassName(borderObj.row,borderObj.col));
     }
 
-    var border = new WalkontableBorder(this.view.wt,borderObj);
-    border.appear([borderObj.row,borderObj.col,borderObj.row,borderObj.col]);
+
+    var coords = {
+      row: borderObj.row,
+      col: borderObj.col
+    };
+    var selection = new WalkontableSelection(instance.view.wt, borderObj,new WalkontableCellRange(coords, coords, coords) );
+
+    instance.view.wt.selections.push(selection);
+
+//    var border = new WalkontableBorder(this.view.wt, borderObj);
+//    border.appear([borderObj.row,borderObj.col,borderObj.row,borderObj.col]);
   };
 
 

@@ -1,9 +1,10 @@
-function WalkontableSelection(instance, settings) {
+function WalkontableSelection(instance, settings, cellRange) {
   this.instance = instance;
   this.settings = settings;
-  this.cellRange = null;
+  this.cellRange = cellRange || null;
   if (settings.border) {
     this.border = new WalkontableBorder(instance, settings);
+//    console.log('border', this.border);
   }
 }
 
@@ -100,6 +101,7 @@ WalkontableSelection.prototype.draw = function () {
       }
     }
 
+//    console.log('corners', corners);
     this.border && this.border.appear(corners); //warning! border.appear modifies corners!
   }
   else {
