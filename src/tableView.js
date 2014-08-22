@@ -202,6 +202,20 @@ Handsontable.TableView = function (instance) {
         if (coords.row >= 0 && coords.col >= 0) {
           instance.selection.setRangeEnd(coords);
         }
+        else {
+          if (coords.row < 0 && event.button !== 2) {
+            if(instance.getSelectedType() != 'col') {
+              instance.selection.setRangeStart(new WalkontableCellCoords(0, coords.col), 'col');
+            }
+            instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+          }
+          if (coords.col < 0 && event.button !==2) {
+            if(instance.getSelectedType() != 'row') {
+              instance.selection.setRangeStart(new WalkontableCellCoords(coords.row, 0), 'row');
+            }
+            instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+          }
+        }
       }
       else {
         if (coords.row < 0 || coords.col < 0) {
