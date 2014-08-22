@@ -107,6 +107,28 @@ WalkontableCellRange.prototype.getBottomRightCorner = function () {
   return new WalkontableCellCoords(Math.max(this.from.row, this.to.row), Math.max(this.from.col, this.to.col));
 };
 
+WalkontableCellRange.prototype.getTopRightCorner = function () {
+  return new WalkontableCellCoords(Math.min(this.from.row, this.to.row), Math.max(this.from.col, this.to.col));
+};
+
+WalkontableCellRange.prototype.getBottomLeftCorner = function () {
+  return new WalkontableCellCoords(Math.max(this.from.row, this.to.row), Math.min(this.from.col, this.to.col));
+};
+
+WalkontableCellRange.prototype.getOppositeCorner = function (coords) {
+  if(!(coords instanceof WalkontableCellCoords)) return false;
+
+  if(coords.isEqual(this.getBottomRightCorner())) {
+    return this.getTopLeftCorner();
+  } else if(coords.isEqual(this.getTopLeftCorner())) {
+    return this.getBottomRightCorner();
+  } else if(coords.isEqual(this.getTopRightCorner())) {
+    return this.getBottomLeftCorner();
+  } else if(coords.isEqual(this.getBottomLeftCorner())) {
+    return  this.getTopRightCorner();
+  }
+};
+
 WalkontableCellRange.prototype.getInner = function () {
   var topLeft = this.getTopLeftCorner();
   var bottomRight = this.getBottomRightCorner();
