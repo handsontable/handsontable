@@ -214,6 +214,7 @@
 
     instance.addHookOnce('afterRender', undoneCallback);
     instance.render();
+    Handsontable.hooks.run(instance, 'afterCreateRow', this.index, this.data.length, false);
   };
   Handsontable.UndoRedo.RemoveRowAction.prototype.redo = function (instance, redoneCallback) {
     instance.addHookOnce('afterRemoveRow', redoneCallback);
