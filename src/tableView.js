@@ -205,11 +205,13 @@ Handsontable.TableView = function (instance) {
       }
       else {
         if (coords.row < 0 || coords.col < 0) {
-          if (coords.row < 0) {
-            instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col);
+          if (coords.row < 0 && event.button !== 2) {
+            instance.selection.setRangeStart(new WalkontableCellCoords(0, coords.col), 'col');
+            instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
           }
-          if (coords.col < 0) {
-            instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
+          if (coords.col < 0 && event.button !==2) {
+            instance.selection.setRangeStart(new WalkontableCellCoords(coords.row, 0), 'row');
+            instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
           }
         }
         else {
@@ -226,16 +228,22 @@ Handsontable.TableView = function (instance) {
      clearTextSelection(); //otherwise text selection blinks during multiple cells selection
      }
      },*/
-    onCellMouseOver: function (event, coords, TD, wt) {
-      that.activeWt = wt;
-      if (coords.row >= 0 && coords.col >= 0) { //is not a header
-        if (isMouseDown) {
-          /*if (that.settings.fragmentSelection === 'single') {
-           clearTextSelection(); //otherwise text selection blinks during multiple cells selection
-           }*/
+    onCellMouseOver: function (event, coords, TD, wt) {      
+      that.activeWt = wt;      
+      if(isMouseDown) {
+        var selType = instance.getSelectedType();
+        
+        if(selType == 'cell' && coords.row >= 0 && coords.col >= 0) {
           instance.selection.setRangeEnd(coords);
         }
+        else if(selType == 'col' && coords.col >= 0) {
+          instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+        }
+        else if(selType == 'row' && coords.row >= 0) {
+          instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+        }
       }
+
       Handsontable.hooks.run(instance, 'afterOnCellMouseOver', event, coords, TD);
       that.activeWt = that.wt;
     },
