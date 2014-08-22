@@ -160,6 +160,41 @@ describe("handsontable.MergeCells", function () {
 
     });
 
+    xit("should not switch the selection start point when selecting from non-merged cells to merged cells", function() {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(10, 10),
+//        colWidths: [55, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47], //can also be a number or a function
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        mergeCells: [
+          {row: 1, col: 1, rowspan: 3, colspan: 3},
+          {row: 3, col: 4, rowspan: 2, colspan: 2}
+        ]
+      });
+
+      $(hot.getCell(6,6)).trigger('mousedown');
+
+      expect(hot.getSelectedRange().from.col).toEqual(6);
+      expect(hot.getSelectedRange().from.row).toEqual(6);
+
+//      $(hot.getCell(1,1)).trigger('mouseenter');
+
+//      expect(hot.getSelectedRange().from.col).toEqual(6);
+//      expect(hot.getSelectedRange().from.row).toEqual(6);
+
+//      $(hot.getCell(3,3)).trigger('mouseenter');
+
+//      expect(hot.getSelectedRange().from.col).toEqual(6);
+//      expect(hot.getSelectedRange().from.row).toEqual(6);
+
+      $(hot.getCell(4,4)).trigger('mouseenter');
+
+      expect(hot.getSelectedRange().from.col).toEqual(6);
+      expect(hot.getSelectedRange().from.row).toEqual(6);
+
+    });
+
   });
 
   describe("modifyTransform", function () {

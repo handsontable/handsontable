@@ -81,12 +81,22 @@ WalkontableCellRange.prototype.expandByRange = function (expandingRange) {
   var resultBottomRow = Math.max(bottomRight.row, expandingBottomRight.row);
   var resultBottomCol = Math.max(bottomRight.col, expandingBottomRight.col);
 
-  this.from = new WalkontableCellCoords(resultTopRow, resultTopCol);
-  this.to = new WalkontableCellCoords(resultBottomRow, resultBottomCol);
+  var finalFrom = new WalkontableCellCoords(resultTopRow, resultTopCol)
+    , finalTo = new WalkontableCellCoords(resultBottomRow, resultBottomCol);
+
+  if(this.from.col >= this.to.col) {
+    finalFrom.col = resultBottomCol;
+    finalTo.col = resultTopCol;
+  }
+  if(this.from.row >= this.to.row) {
+    finalFrom.row = resultBottomRow;
+    finalTo.row = resultTopRow;
+  }
+
+  this.from = finalFrom;
+  this.to = finalTo;
 
   return true;
-
-
 };
 
 WalkontableCellRange.prototype.getTopLeftCorner = function () {

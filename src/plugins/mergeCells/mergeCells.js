@@ -454,18 +454,25 @@ var beforeSetRangeEnd = function (coords) {
     selRange.highlight = new WalkontableCellCoords(selRange.highlight.row, selRange.highlight.col); //clone in case we will modify its reference
     selRange.to = coords;
 
-    for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
-      var cellInfo = this.mergeCells.mergedCellInfoCollection[i];
-      var mergedCellTopLeft = new WalkontableCellCoords(cellInfo.row, cellInfo.col);
-      var mergedCellBottomRight = new WalkontableCellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
+    var rangeExpanded = false;
+    do {
+      rangeExpanded = false;
 
-      var mergedCellRange = new WalkontableCellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
-      if (selRange.expandByRange(mergedCellRange)) {
-        var selRangeBottomRight = selRange.getBottomRightCorner();
-        coords.row = selRangeBottomRight.row;
-        coords.col = selRangeBottomRight.col;
+      for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
+        var cellInfo = this.mergeCells.mergedCellInfoCollection[i];
+        var mergedCellTopLeft = new WalkontableCellCoords(cellInfo.row, cellInfo.col);
+        var mergedCellBottomRight = new WalkontableCellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
+
+        var mergedCellRange = new WalkontableCellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
+        if (selRange.expandByRange(mergedCellRange)) {
+          var updatedCorner = JSON.stringify(selRange.getBottomRightCorner()) === JSON.stringify(selRange.highlight) ? selRange.getTopLeftCorner() : selRange.getBottomRightCorner();
+          coords.row = updatedCorner.row;
+          coords.col = updatedCorner.col;
+          rangeExpanded = true;
+        }
       }
-    }
+    } while(rangeExpanded);
+
   }
 };
 

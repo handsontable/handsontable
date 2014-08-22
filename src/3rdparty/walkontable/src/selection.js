@@ -66,8 +66,7 @@ WalkontableSelection.prototype.draw = function () {
   var corners, r, c, source_r, source_c,
     instance = this.instance,
     visibleRows = instance.wtTable.getRowStrategy().countVisible(),
-    renderedColumns = instance.wtTable.getColumnStrategy().cellCount,
-    cacheLength;
+    renderedColumns = instance.wtTable.getColumnStrategy().cellCount;
 
   if (!this.isEmpty()) {
     corners = this.getCorners();
