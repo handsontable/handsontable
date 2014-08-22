@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jul 25 2014 11:41:59 GMT+0200 (CEST)
+ * Date: Thu Aug 21 2014 22:06:08 GMT-0700 (PDT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -544,10 +544,12 @@ Handsontable.Core = function (rootElement, userSettings) {
     /**
      * Starts selection range on given td object
      * @param {WalkontableCellCoords} coords
+     * @param {String} [type='cell'] Where the selection was started: 'cell', 'row', or 'col'
      */
-    setRangeStart: function (coords) {
+    setRangeStart: function (coords, type) {
       Handsontable.hooks.run(instance, "beforeSetRangeStart", coords);
       priv.selRange = new WalkontableCellRange(coords, coords, coords);
+      priv.selType = type || 'cell';
       selection.setRangeEnd(coords);
     },
 
@@ -1144,6 +1146,17 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
   };
 
+  /**
+   * Returns the type of the current selection. 'cell' if the selection started on a cell, 'col' if the selection
+   * started on a column header, or 'row' if the selection started on a row header
+   * @public
+   * @return {String}
+   */
+  this.getSelectedType = function() {
+    if(selection.isSelected()) {
+      return priv.selType;
+    }
+  }
 
   /**
    * Render visible data
@@ -3036,14 +3049,30 @@ Handsontable.TableView = function (instance) {
         if (coords.row >= 0 && coords.col >= 0) {
           instance.selection.setRangeEnd(coords);
         }
+        else {
+          if (coords.row < 0 && event.button !== 2) {
+            if(instance.getSelectedType() != 'col') {
+              instance.selection.setRangeStart(new WalkontableCellCoords(0, coords.col), 'col');
+            }
+            instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+          }
+          if (coords.col < 0 && event.button !==2) {
+            if(instance.getSelectedType() != 'row') {
+              instance.selection.setRangeStart(new WalkontableCellCoords(coords.row, 0), 'row');
+            }
+            instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+          }
+        }
       }
       else {
         if (coords.row < 0 || coords.col < 0) {
-          if (coords.row < 0) {
-            instance.selectCell(0, coords.col, instance.countRows() - 1, coords.col);
+          if (coords.row < 0 && event.button !== 2) {
+            instance.selection.setRangeStart(new WalkontableCellCoords(0, coords.col), 'col');
+            instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
           }
-          if (coords.col < 0) {
-            instance.selectCell(coords.row, 0, coords.row, instance.countCols() - 1);
+          if (coords.col < 0 && event.button !==2) {
+            instance.selection.setRangeStart(new WalkontableCellCoords(coords.row, 0), 'row');
+            instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
           }
         }
         else {
@@ -3060,16 +3089,22 @@ Handsontable.TableView = function (instance) {
      clearTextSelection(); //otherwise text selection blinks during multiple cells selection
      }
      },*/
-    onCellMouseOver: function (event, coords, TD, wt) {
-      that.activeWt = wt;
-      if (coords.row >= 0 && coords.col >= 0) { //is not a header
-        if (isMouseDown) {
-          /*if (that.settings.fragmentSelection === 'single') {
-           clearTextSelection(); //otherwise text selection blinks during multiple cells selection
-           }*/
+    onCellMouseOver: function (event, coords, TD, wt) {      
+      that.activeWt = wt;      
+      if(isMouseDown) {
+        var selType = instance.getSelectedType();
+        
+        if(selType == 'cell' && coords.row >= 0 && coords.col >= 0) {
           instance.selection.setRangeEnd(coords);
         }
+        else if(selType == 'col' && coords.col >= 0) {
+          instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+        }
+        else if(selType == 'row' && coords.row >= 0) {
+          instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+        }
       }
+
       Handsontable.hooks.run(instance, 'afterOnCellMouseOver', event, coords, TD);
       that.activeWt = that.wt;
     },
@@ -10443,6 +10478,7 @@ function Storage(prefix) {
 
     instance.addHookOnce('afterRender', undoneCallback);
     instance.render();
+    Handsontable.hooks.run(instance, 'afterCreateRow', this.index, this.data.length, false);
   };
   Handsontable.UndoRedo.RemoveRowAction.prototype.redo = function (instance, redoneCallback) {
     instance.addHookOnce('afterRemoveRow', redoneCallback);
@@ -14073,7 +14109,9 @@ WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) 
 WalkontableVerticalScrollbarNative.prototype.onScroll = function () {
   WalkontableOverlay.prototype.onScroll.call(this);
 
+  this.clone.ignoreColumnHeaders = this.instance.ignoreColumnHeaders = true;
   this.instance.draw(true);//
+  this.clone.ignoreColumnHeaders = this.instance.ignoreColumnHeaders = false;
 
   this.instance.getSetting('onScrollVertically');
 };
@@ -15183,7 +15221,7 @@ WalkontableTableRenderer.prototype.adjustAvailableNodes = function () {
 };
 
 WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
-  if (!this.columnHeaders.length) {
+  if (!this.columnHeaders.length || this.instance.ignoreColumnHeaders) {
     return;
   }
 
