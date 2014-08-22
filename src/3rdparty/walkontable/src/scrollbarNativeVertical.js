@@ -78,7 +78,9 @@ WalkontableVerticalScrollbarNative.prototype.setScrollPosition = function (pos) 
 WalkontableVerticalScrollbarNative.prototype.onScroll = function () {
   WalkontableOverlay.prototype.onScroll.call(this);
 
+  this.clone.ignoreColumnHeaders = this.instance.ignoreColumnHeaders = true;
   this.instance.draw(true);//
+  this.clone.ignoreColumnHeaders = this.instance.ignoreColumnHeaders = false;
 
   this.instance.getSetting('onScrollVertically');
 };
