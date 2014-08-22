@@ -357,10 +357,12 @@ Handsontable.Core = function (rootElement, userSettings) {
     /**
      * Starts selection range on given td object
      * @param {WalkontableCellCoords} coords
+     * @param {String} [type='cell'] Where the selection was started: 'cell', 'row', or 'col'
      */
-    setRangeStart: function (coords) {
+    setRangeStart: function (coords, type) {
       Handsontable.hooks.run(instance, "beforeSetRangeStart", coords);
       priv.selRange = new WalkontableCellRange(coords, coords, coords);
+      priv.selType = type || 'cell';
       selection.setRangeEnd(coords);
     },
 
@@ -957,6 +959,17 @@ Handsontable.Core = function (rootElement, userSettings) {
     }
   };
 
+  /**
+   * Returns the type of the current selection. 'cell' if the selection started on a cell, 'col' if the selection
+   * started on a column header, or 'row' if the selection started on a row header
+   * @public
+   * @return {String}
+   */
+  this.getSelectedType = function() {
+    if(selection.isSelected()) {
+      return priv.selType;
+    }
+  }
 
   /**
    * Render visible data
