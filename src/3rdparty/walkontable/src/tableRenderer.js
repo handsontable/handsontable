@@ -266,7 +266,7 @@ WalkontableTableRenderer.prototype.adjustAvailableNodes = function () {
 };
 
 WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
-  if (!this.columnHeaders.length) {
+  if (!this.columnHeaders.length || this.instance.ignoreColumnHeaders) {
     return;
   }
 
