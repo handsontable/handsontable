@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Mon Aug 25 2014 08:01:13 GMT-0700 (Pacific Daylight Time)
+ * Date: Mon Aug 25 2014 10:32:54 GMT-0700 (Pacific Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -14403,7 +14403,6 @@ function WalkontableSettings(instance, settings) {
   this.defaults = {
     table: void 0,
     debug: false, //shows WalkontableDebugOverlay
-
     //presentation mode
     stretchH: 'none', //values: all, last, none
     currentRowClassName: null,
@@ -14473,7 +14472,7 @@ function WalkontableSettings(instance, settings) {
     }
   }
 
-  this.modifyRowHeight = function (height, row) {
+  var modifyRowHeight = function (height, row) {
     if(that.settings.ignoreRowHeightCache) {
       return height;
     }
@@ -14485,7 +14484,13 @@ function WalkontableSettings(instance, settings) {
     return height;
   };
 
-  Handsontable.hooks.add('modifyRowHeight', this.modifyRowHeight);
+  var removeHooks = function() {
+    Handsontable.hooks.remove('modifyRowHeight', modifyRowHeight);
+    Handsontable.hooks.remove('afterDestroy', removeHooks);
+  };
+
+  Handsontable.hooks.add('modifyRowHeight', modifyRowHeight);
+  Handsontable.hooks.add('afterDestroy', removeHooks);
 }
 
 /**
@@ -15142,13 +15147,15 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
         if(isWorkingOnClone && this.instance.cloneSource) {
           // Floating row headers don't have the correct height when source content is larger than standard size
           var origTR = this.instance.cloneSource.wtTable.TBODY.children[visibleRowIndex];
-          var origHeight = origTR.clientHeight;//$(origTR).height();
+          var origHeight = origTR.scrollHeight;
 
           if(origHeight) {            
-            TR.firstChild.style.height = origHeight + 'px';
+            TR.style.height = origHeight + 'px';
+            TR.firstChild.style.height = '';
             this.instance.wtSettings.setRowHeight(sourceRowIndex, origHeight);
           }
           else {
+            TR.style.height = '';
             TR.firstChild.style.height = '';
           }
         }
