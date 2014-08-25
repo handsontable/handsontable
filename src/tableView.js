@@ -219,13 +219,35 @@ Handsontable.TableView = function (instance) {
       }
       else {
         if (coords.row < 0 || coords.col < 0) {
-          if (coords.row < 0 && event.button !== 2) {
-            instance.selection.setRangeStart(new WalkontableCellCoords(0, coords.col), 'col');
-            instance.selection.setRangeEnd(new WalkontableCellCoords(instance.countRows() - 1, coords.col));
+          if (coords.row < 0) {
+            var initialColCoords = new WalkontableCellCoords(0, coords.col);
+            var finalColCoords = new WalkontableCellCoords(instance.countRows() - 1, coords.col);
+            var runSelection = true;
+            if(event.button === 2) {
+              if(instance.selection.inInSelection(initialColCoords) && instance.selection.inInSelection(finalColCoords)) {
+                runSelection = false;
+              }
+            }
+
+            if(runSelection) {
+              instance.selection.setRangeStart(initialColCoords, 'col');
+              instance.selection.setRangeEnd(finalColCoords);
+            }
           }
-          if (coords.col < 0 && event.button !==2) {
-            instance.selection.setRangeStart(new WalkontableCellCoords(coords.row, 0), 'row');
-            instance.selection.setRangeEnd(new WalkontableCellCoords(coords.row, instance.countCols() - 1));
+          if (coords.col < 0) {
+            var initialRowCoords = new WalkontableCellCoords(coords.row, 0);
+            var finalRowCoords = new WalkontableCellCoords(coords.row, instance.countCols() - 1);
+            var runSelection = true;
+            if(event.button === 2) {
+              if(instance.selection.inInSelection(initialRowCoords) && instance.selection.inInSelection(finalRowCoords)) {
+                runSelection = false;
+              }
+            }
+
+            if(runSelection) {
+              instance.selection.setRangeStart(initialRowCoords, 'row');
+              instance.selection.setRangeEnd(finalRowCoords);
+            }
           }
         }
         else {
