@@ -96,7 +96,7 @@ WalkontableEvent.prototype.parentCell = function (elem) {
     cell.TD = TD;
   }
   else if (Handsontable.Dom.hasClass(elem, 'wtBorder') && Handsontable.Dom.hasClass(elem, 'current')) {
-    cell.coords = this.instance.selections.current.cellRange.highlight;
+    cell.coords = this.instance.selections[0].cellRange.highlight; //selections[0] is current selected cell
     cell.TD = this.instance.wtTable.getCell(cell.coords);
   }
   return cell;

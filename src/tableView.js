@@ -108,6 +108,48 @@ Handsontable.TableView = function (instance) {
     }
   };
 
+  var selections = [
+    new WalkontableSelection({
+      className: 'current',
+      border: {
+        width: 2,
+        color: '#5292F7',
+        //style: 'solid', //not used
+        cornerVisible: function () {
+          return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
+        }
+      }
+    }),
+    new WalkontableSelection({
+      className: 'area',
+      border: {
+        width: 1,
+        color: '#89AFF9',
+        //style: 'solid', // not used
+        cornerVisible: function () {
+          return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
+        }
+      }
+    }),
+    new WalkontableSelection({
+      className: 'highlight',
+      highlightRowClassName: that.settings.currentRowClassName,
+      highlightColumnClassName: that.settings.currentColClassName
+    }),
+    new WalkontableSelection({
+      className: 'fill',
+      border: {
+        width: 1,
+        color: 'red'
+        //style: 'solid' // not used
+      }
+    })
+  ];
+  selections.current = selections[0];
+  selections.area = selections[1];
+  selections.highlight = selections[2];
+  selections.fill = selections[3];
+
   var walkontableConfig = {
     debug: function () {
       return that.settings.debug;
@@ -149,43 +191,7 @@ Handsontable.TableView = function (instance) {
       Handsontable.hooks.run(that.instance, 'afterRenderer', TD, row, col, prop, value, cellProperties);
 
     },
-    selections: [
-      {
-        className: 'current',
-        border: {
-          width: 2,
-          color: '#5292F7',
-          //style: 'solid', //not used
-          cornerVisible: function () {
-            return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
-          }
-        }
-      },
-      {
-        className: 'area',
-        border: {
-          width: 1,
-          color: '#89AFF9',
-          //style: 'solid', // not used
-          cornerVisible: function () {
-            return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
-          }
-        }
-      },
-      {
-        className: 'highlight',
-        highlightRowClassName: that.settings.currentRowClassName,
-        highlightColumnClassName: that.settings.currentColClassName
-      },
-      {
-        className: 'fill',
-        border: {
-          width: 1,
-          color: 'red'
-          //style: 'solid' // not used
-        }
-      }
-    ],
+    selections: selections,
     hideBorderOnMouseDownOver: function () {
       return that.settings.fragmentSelection;
     },

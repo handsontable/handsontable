@@ -12,7 +12,7 @@ function Walkontable(settings) {
     this.wtScroll = new WalkontableScroll(this);
     this.wtViewport = settings.cloneSource.wtViewport;
     this.wtEvent = new WalkontableEvent(this);
-    this.selections = this.generateSelectionClones(this.cloneSource.selections);
+    this.selections = this.cloneSource.selections;
   }
   else {
     this.wtSettings = new WalkontableSettings(this, settings);
@@ -20,8 +20,7 @@ function Walkontable(settings) {
     this.wtScroll = new WalkontableScroll(this);
     this.wtViewport = new WalkontableViewport(this);
     this.wtEvent = new WalkontableEvent(this);
-    var selectionSettings = this.getSetting('selections');
-    this.selections = selectionSettings ? this.generateSelections(selectionSettings) : [];
+    this.selections = this.getSetting('selections');
 
     this.wtScrollbars = new WalkontableScrollbars(this);
   }
@@ -112,30 +111,6 @@ Walkontable.prototype.getSetting = function (key, param1, param2, param3, param4
 
 Walkontable.prototype.hasSetting = function (key) {
   return this.wtSettings.has(key);
-};
-
-Walkontable.prototype.generateSelections = function (settings) {
-  var selections = [];
-  for (var i = 0, ilen = settings.length; i < ilen; i++) {
-    var sel = new WalkontableSelection(this, settings[i]);
-    selections.push(sel);
-    if (sel.settings.className) {
-      selections[sel.settings.className] = sel; //create shorthand access
-    }
-  }
-  return selections;
-};
-
-Walkontable.prototype.generateSelectionClones = function (selections) {
-  var clones = [];
-  for (var i = 0, ilen = selections.length; i < ilen; i++) {
-    var sel = selections[i].makeClone(this);
-    clones.push(sel);
-    if (sel.settings.className) {
-      clones[sel.settings.className] = sel; //create shorthand access
-    }
-  }
-  return clones;
 };
 
 Walkontable.prototype.destroy = function () {

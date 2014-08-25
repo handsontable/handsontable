@@ -167,7 +167,6 @@ WalkontableTable.prototype.refreshPositions = function (selectionsOnly) {
 };
 
 WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
-
   var vr
     , r
     , vc
@@ -183,13 +182,9 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
   this.oldCellCache = this.currentCellCache;
   this.currentCellCache = new WalkontableClassNameCache();
 
-
-  console.log('selections',this.instance.selections);
-
   if (this.instance.selections) {
     for (var i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
-//      console.log('selection',this.instance.selections[i]);
-      this.instance.selections[i].draw();
+      this.instance.selections[i].draw(this.instance);
 
       if (this.instance.selections[i].settings.className) {
         classNames.push(this.instance.selections[i].settings.className);
