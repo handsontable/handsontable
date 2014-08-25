@@ -276,11 +276,11 @@ WalkontableTable.prototype.getColumnHeader = function(col) {
   if (THEAD) {
     return THEAD.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
   }
-}
+};
 
 /**
  * getRowHeader
- * @param col
+ * @param row
  * @return {Object} HTMLElement on success or {Number} one of the exit codes on error:
  *  -1 table doesn't have row headers
  *
@@ -295,7 +295,7 @@ WalkontableTable.prototype.getRowHeader = function(row) {
   if (TR) {
     return TR.childNodes[0];
   }
-}
+};
 
 /**
  * Returns cell coords object for a given TD
