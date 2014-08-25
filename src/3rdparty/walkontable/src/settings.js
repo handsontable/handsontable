@@ -6,7 +6,6 @@ function WalkontableSettings(instance, settings) {
   this.defaults = {
     table: void 0,
     debug: false, //shows WalkontableDebugOverlay
-
     //presentation mode
     stretchH: 'none', //values: all, last, none
     currentRowClassName: null,
@@ -76,7 +75,7 @@ function WalkontableSettings(instance, settings) {
     }
   }
 
-  this.modifyRowHeight = function (height, row) {
+  var modifyRowHeight = function (height, row) {
     if(that.settings.ignoreRowHeightCache) {
       return height;
     }
@@ -88,7 +87,13 @@ function WalkontableSettings(instance, settings) {
     return height;
   };
 
-  Handsontable.hooks.add('modifyRowHeight', this.modifyRowHeight);
+  var removeHooks = function() {
+    Handsontable.hooks.remove('modifyRowHeight', modifyRowHeight);
+    Handsontable.hooks.remove('afterDestroy', removeHooks);
+  };
+
+  Handsontable.hooks.add('modifyRowHeight', modifyRowHeight);
+  Handsontable.hooks.add('afterDestroy', removeHooks);
 }
 
 /**
