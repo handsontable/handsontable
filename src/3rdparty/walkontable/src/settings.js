@@ -35,6 +35,8 @@ function WalkontableSettings(instance, settings) {
     rowHeight: function (row) {
       return 23;
     },
+    rowHeightCache: [],
+    ignoreRowHeightCache: false,
     defaultRowHeight: 23,
     selections: null,
     hideBorderOnMouseDownOver: false,
@@ -73,6 +75,20 @@ function WalkontableSettings(instance, settings) {
       }
     }
   }
+
+  this.modifyRowHeight = function (height, row) {
+    if(that.settings.ignoreRowHeightCache) {
+      return height;
+    }
+
+    //row = this.runHooksAndReturn('modifyRow', row);
+    if (that.settings.rowHeightCache && that.settings.rowHeightCache[row]) {
+      return that.settings.rowHeightCache[row];
+    }
+    return height;
+  };
+
+  Handsontable.hooks.add('modifyRowHeight', this.modifyRowHeight);
 }
 
 /**
@@ -107,4 +123,22 @@ WalkontableSettings.prototype.getSetting = function (key, param1, param2, param3
 
 WalkontableSettings.prototype.has = function (key) {
   return !!this.settings[key]
+};
+
+WalkontableSettings.prototype.setIgnoreRowHeightCache = function(ignore) {
+  this.settings.ignoreRowHeightCache = ignore;
+};
+
+WalkontableSettings.prototype.setRowHeight = function(row, height) {
+  //var defaultRowHeight = this.instance.getSetting('rowHeight', row);
+  //row = this.runHooksAndReturn('modifyRow', row);
+
+  //if(height != defaultRowHeight) {
+    this.settings.rowHeightCache[row] = height;
+  //}
+  //else {
+   // this.instance.rowHeightCache = null;
+  //}
+
+  return height;
 };
