@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Aug 21 2014 22:06:08 GMT-0700 (PDT)
+ * Date: Mon Aug 25 2014 08:01:13 GMT-0700 (Pacific Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -14432,6 +14432,8 @@ function WalkontableSettings(instance, settings) {
     rowHeight: function (row) {
       return 23;
     },
+    rowHeightCache: [],
+    ignoreRowHeightCache: false,
     defaultRowHeight: 23,
     selections: null,
     hideBorderOnMouseDownOver: false,
@@ -14470,6 +14472,20 @@ function WalkontableSettings(instance, settings) {
       }
     }
   }
+
+  this.modifyRowHeight = function (height, row) {
+    if(that.settings.ignoreRowHeightCache) {
+      return height;
+    }
+
+    //row = this.runHooksAndReturn('modifyRow', row);
+    if (that.settings.rowHeightCache && that.settings.rowHeightCache[row]) {
+      return that.settings.rowHeightCache[row];
+    }
+    return height;
+  };
+
+  Handsontable.hooks.add('modifyRowHeight', this.modifyRowHeight);
 }
 
 /**
@@ -14504,6 +14520,24 @@ WalkontableSettings.prototype.getSetting = function (key, param1, param2, param3
 
 WalkontableSettings.prototype.has = function (key) {
   return !!this.settings[key]
+};
+
+WalkontableSettings.prototype.setIgnoreRowHeightCache = function(ignore) {
+  this.settings.ignoreRowHeightCache = ignore;
+};
+
+WalkontableSettings.prototype.setRowHeight = function(row, height) {
+  //var defaultRowHeight = this.instance.getSetting('rowHeight', row);
+  //row = this.runHooksAndReturn('modifyRow', row);
+
+  //if(height != defaultRowHeight) {
+    this.settings.rowHeightCache[row] = height;
+  //}
+  //else {
+   // this.instance.rowHeightCache = null;
+  //}
+
+  return height;
 };
 function WalkontableTable(instance, table) {
   //reference to instance
@@ -15098,13 +15132,32 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
     }
 
     if (TR.firstChild) {
+      this.instance.wtSettings.setIgnoreRowHeightCache(true);
       var height = this.instance.getSetting('rowHeight', sourceRowIndex); //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
       if(height) {
         TR.firstChild.style.height = height + 'px';
+        this.instance.wtSettings.setRowHeight(sourceRowIndex, height);
       }
       else {
-        TR.firstChild.style.height = '';
+        if(isWorkingOnClone && this.instance.cloneSource) {
+          // Floating row headers don't have the correct height when source content is larger than standard size
+          var origTR = this.instance.cloneSource.wtTable.TBODY.children[visibleRowIndex];
+          var origHeight = origTR.clientHeight;//$(origTR).height();
+
+          if(origHeight) {            
+            TR.firstChild.style.height = origHeight + 'px';
+            this.instance.wtSettings.setRowHeight(sourceRowIndex, origHeight);
+          }
+          else {
+            TR.firstChild.style.height = '';
+          }
+        }
+        else {
+          TR.firstChild.style.height = '';
+        }
       }
+
+      this.instance.wtSettings.setIgnoreRowHeightCache(false);
     }
 
     visibleRowIndex++;
