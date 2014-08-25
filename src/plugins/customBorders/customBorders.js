@@ -47,6 +47,20 @@
     }
   };
 
+	/***
+	 * get index of border setting
+	 * @param className
+	 * @returns {number}
+	 */
+	var getSettingIndex = function (className) {
+		for (var i = 0; i < instance.view.wt.selections.length; i++){
+			if (instance.view.wt.selections[i].settings.className == className){
+				return i;
+			}
+		}
+		return -1;
+	};
+
   /***
    * Insert WalkontableSelection instance into Walkontable.settings
    * @param border
@@ -57,7 +71,13 @@
       col: border.col
     };
     var selection = new WalkontableSelection(border, new WalkontableCellRange(coordinates, coordinates, coordinates));
-    instance.view.wt.selections.push(selection);
+		var index = getSettingIndex(border.className);
+
+		if(index >=0) {
+			instance.view.wt.selections[index] = selection;
+		} else {
+			instance.view.wt.selections.push(selection);
+		}
   };
 
   /***
@@ -217,14 +237,14 @@
     return defaultBorder;
   };
 
-  /***
-   * Insert object with borders for each cell to bordersArray
-   *
-   * @param bordersObj
-   */
-  var insertBorderToArray = function (bordersObj) {
-    bordersArray[bordersObj.className] = bordersObj;
-  };
+//  /***
+//   * Insert object with borders for each cell to bordersArray
+//   *
+//   * @param bordersObj
+//   */
+//  var insertBorderToArray = function (bordersObj) {
+//    bordersArray[bordersObj.className] = bordersObj;
+//  };
 
   /***
    * Clean bordersArray for cell when custom border has been removed
@@ -242,13 +262,16 @@
    * @param borderClassName
    */
   var removeBordersFromDom = function (borderClassName) {
-    var borders = document.getElementsByClassName(borderClassName)[0];
+	  var borders = document.getElementsByClassName(borderClassName);
 
-    if(borders){
-      var parent = borders.parentNode;
-      parent.parentNode.removeChild(parent);
-    }
-
+		for(var i = 0; i< borders.length; i++) {
+			if (borders[i]) {
+				if(borders[i].nodeName != 'TD') {
+					var parent = borders[i].parentNode;
+      		parent.parentNode.removeChild(parent);
+				}
+			}
+		}
   };
 
 
@@ -261,34 +284,8 @@
   var removeAllBorders = function(row,col) {
     var borderClassName = createClassName(row,col);
     removeBordersFromDom(borderClassName);
-    removeBorderFromArray(borderClassName);
-
     this.removeCellMeta(row, col, 'borders');
   };
-
-  /***
-   * Draw borders for single cell
-   *
-   * @param borderObj
-   */
-//  var drawBorders = function (borderObj) {
-//    var bordersInDOM = document.getElementsByClassName(createClassName(borderObj.row,borderObj.col)),
-//      bordersExist = bordersInDOM.length > 0;
-//
-//    if(bordersExist){
-//      removeBordersFromDom(createClassName(borderObj.row,borderObj.col));
-//    }
-//
-//
-//    var coords = {
-//      row: borderObj.row,
-//      col: borderObj.col
-//    };
-//
-//    var selection = new WalkontableSelection(borderObj, new WalkontableCellRange(coords, coords, coords));
-//    instance.view.wt.selections.push(selection);
-//  };
-
 
   /***
    * Set borders for each cell re. to border position
@@ -299,12 +296,16 @@
    * @param remove
    */
   var setBorder = function (row, col,place, remove){
+
     var bordersMeta = this.getCellMeta(row, col).borders;
     if (!bordersMeta || bordersMeta.border == undefined){
       bordersMeta = createEmptyBorders(row, col);
     }
 
     if (remove) {
+//			if (bordersMeta[place]){
+//				delete bordersMeta[place];
+//			}
       bordersMeta[place] = createSingleEmptyBorder();
     } else {
       bordersMeta[place] = createDefaultCustomBorder();
@@ -312,8 +313,9 @@
 
 
     this.setCellMeta(row, col, 'borders', bordersMeta);
-    insertBorderToArray(bordersMeta);
-//    doDraw = true;
+
+		insertBorderIntoSettings(bordersMeta);
+
     this.render();
   };
 
@@ -326,7 +328,8 @@
    * @param remove
    */
   var prepareBorder = function (range, place, remove) {
-    if (range.from.row == range.to.row && range.from.col == range.to.col){
+
+		if (range.from.row == range.to.row && range.from.col == range.to.col){
       if(place == "noBorders"){
         removeAllBorders.call(this, range.from.row, range.from.col);
       } else {
@@ -476,7 +479,7 @@
               return label
             },
             callback: function () {
-              var hasBorder = checkSelectionBorders(this, 'bottom');
+              var hasBorder = checkSelectionBorders(this, 'left');
               prepareBorder.call(this, this.getSelectedRange(), 'left', hasBorder);
             },
             disabled: false
@@ -510,6 +513,8 @@
           prepareBorderFromCustomAdded.call(this,customBorders[i].row, customBorders[i].col, customBorders[i]);
         }
       }
+
+			this.render();
     }
 
   });

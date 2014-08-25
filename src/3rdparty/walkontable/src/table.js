@@ -182,7 +182,7 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
   this.oldCellCache = this.currentCellCache;
   this.currentCellCache = new WalkontableClassNameCache();
 
-  console.log('selections',this.instance.selections);
+//	console.log(this.instance.selections.length);
 
   if (this.instance.selections) {
     for (var i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
