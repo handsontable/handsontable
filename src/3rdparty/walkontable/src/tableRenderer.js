@@ -143,13 +143,32 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
     }
 
     if (TR.firstChild) {
+      this.instance.wtSettings.setIgnoreRowHeightCache(true);
       var height = this.instance.getSetting('rowHeight', sourceRowIndex); //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
       if(height) {
         TR.firstChild.style.height = height + 'px';
+        this.instance.wtSettings.setRowHeight(sourceRowIndex, height);
       }
       else {
-        TR.firstChild.style.height = '';
+        if(isWorkingOnClone && this.instance.cloneSource) {
+          // Floating row headers don't have the correct height when source content is larger than standard size
+          var origTR = this.instance.cloneSource.wtTable.TBODY.children[visibleRowIndex];
+          var origHeight = origTR.clientHeight;//$(origTR).height();
+
+          if(origHeight) {            
+            TR.firstChild.style.height = origHeight + 'px';
+            this.instance.wtSettings.setRowHeight(sourceRowIndex, origHeight);
+          }
+          else {
+            TR.firstChild.style.height = '';
+          }
+        }
+        else {
+          TR.firstChild.style.height = '';
+        }
       }
+
+      this.instance.wtSettings.setIgnoreRowHeightCache(false);
     }
 
     visibleRowIndex++;
