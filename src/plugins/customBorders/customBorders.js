@@ -9,13 +9,7 @@
    * @type {{}}
    */
   var bordersArray = {},
-    /***
-     * Flag for prevent redraw borders after each AfterRender hook
-     * @type {boolean}
-     */
-    initialDraw = false,
-
-    /***
+        /***
      * Current instance (table where borders should be placed)
      */
     instance;
@@ -24,30 +18,46 @@
   /***
    * Check if plugin should be enabled
    */
-  var init = function () {
-
-    var customBorders = this.getSettings().customBorders;
-    var enable = false;
-
+  var checkEnable = function (customBorders) {
     if(typeof customBorders === "boolean"){
       if (customBorders == true){
-        enable = true;
+        return true;
       }
     }
 
     if(typeof customBorders === "object"){
       if(customBorders.length > 0) {
-        initialDraw = true;
-        enable = true;
+        return true;
       }
     }
+    return false;
+  };
 
-    if(enable){
+
+  /***
+   * Initialize plugin
+    */
+  var init = function () {
+
+    if(checkEnable(this.getSettings().customBorders)){
       if(!this.customBorders){
         instance = this;
         this.customBorders = new CustomBorders();
       }
     }
+  };
+
+  /***
+   * Insert WalkontableSelection instance into Walkontable.settings
+   * @param border
+   */
+  var insertBorderIntoSettings = function (border) {
+    var coordinates = {
+      row: border.row,
+      col: border.col
+    };
+    var selection = new WalkontableSelection(border, new WalkontableCellRange(coordinates, coordinates, coordinates));
+    instance.view.wt.selections.push(selection);
   };
 
   /***
@@ -61,7 +71,8 @@
     var border = createEmptyBorders(row, col);
     border = extendDefaultBorder(border, borderObj);
     this.setCellMeta(row, col, 'borders', border);
-    insertBorderToArray(border);
+
+    insertBorderIntoSettings(border);
   };
 
   /***
@@ -109,7 +120,7 @@
 
         if(add>0){
           this.setCellMeta(row, col, 'borders', border);
-          insertBorderToArray(border);
+          insertBorderIntoSettings(border);
         }
       }
     }
@@ -260,26 +271,23 @@
    *
    * @param borderObj
    */
-  var drawBorders = function (borderObj) {
-    var bordersInDOM = document.getElementsByClassName(createClassName(borderObj.row,borderObj.col)),
-      bordersExist = bordersInDOM.length > 0;
-
-    if(bordersExist){
-      removeBordersFromDom(createClassName(borderObj.row,borderObj.col));
-    }
-
-
-    var coords = {
-      row: borderObj.row,
-      col: borderObj.col
-    };
-    var selection = new WalkontableSelection(instance.view.wt, borderObj,new WalkontableCellRange(coords, coords, coords) );
-
-    instance.view.wt.selections.push(selection);
-
-//    var border = new WalkontableBorder(this.view.wt, borderObj);
-//    border.appear([borderObj.row,borderObj.col,borderObj.row,borderObj.col]);
-  };
+//  var drawBorders = function (borderObj) {
+//    var bordersInDOM = document.getElementsByClassName(createClassName(borderObj.row,borderObj.col)),
+//      bordersExist = bordersInDOM.length > 0;
+//
+//    if(bordersExist){
+//      removeBordersFromDom(createClassName(borderObj.row,borderObj.col));
+//    }
+//
+//
+//    var coords = {
+//      row: borderObj.row,
+//      col: borderObj.col
+//    };
+//
+//    var selection = new WalkontableSelection(borderObj, new WalkontableCellRange(coords, coords, coords));
+//    instance.view.wt.selections.push(selection);
+//  };
 
 
   /***
@@ -489,10 +497,12 @@
 
   Handsontable.hooks.add('beforeInit', init);
   Handsontable.hooks.add('afterContextMenuDefaultOptions', addBordersOptionsToContextMenu);
-  Handsontable.hooks.add('afterRender', function () {
+
+  Handsontable.hooks.add('afterInit', function () {
     var customBorders = this.getSettings().customBorders;
 
-    if (initialDraw){
+    if (customBorders){
+
       for(var i = 0; i< customBorders.length; i++) {
         if(customBorders[i].range){
           prepareBorderFromCustomAddedRange.call(this,customBorders[i]);
@@ -500,17 +510,10 @@
           prepareBorderFromCustomAdded.call(this,customBorders[i].row, customBorders[i].col, customBorders[i]);
         }
       }
-      initialDraw = false;
-    }
-
-    for (var key in bordersArray) {
-      if (bordersArray.hasOwnProperty(key)) {
-
-        drawBorders.call(this,bordersArray[key])
-      }
     }
 
   });
+
   Handsontable.CustomBorders = CustomBorders;
 
 }());

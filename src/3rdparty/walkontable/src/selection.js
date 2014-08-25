@@ -1,6 +1,6 @@
-function WalkontableSelection(settings) {
+function WalkontableSelection(settings, cellRange) {
   this.settings = settings;
-  this.cellRange = null;
+  this.cellRange = cellRange || null;
   this.instanceBorders = {};
 }
 
@@ -75,6 +75,7 @@ WalkontableSelection.prototype.draw = function (instance) {
   var corners, r, c, source_r, source_c,
     visibleRows = instance.wtTable.getRowStrategy().countVisible(),
     renderedColumns = instance.wtTable.getColumnStrategy().cellCount;
+
 
   if (!this.isEmpty()) {
     corners = this.getCorners();
