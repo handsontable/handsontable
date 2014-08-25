@@ -153,13 +153,15 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
         if(isWorkingOnClone && this.instance.cloneSource) {
           // Floating row headers don't have the correct height when source content is larger than standard size
           var origTR = this.instance.cloneSource.wtTable.TBODY.children[visibleRowIndex];
-          var origHeight = origTR.clientHeight;//$(origTR).height();
+          var origHeight = origTR.scrollHeight;
 
           if(origHeight) {            
-            TR.firstChild.style.height = origHeight + 'px';
+            TR.style.height = origHeight + 'px';
+            TR.firstChild.style.height = '';
             this.instance.wtSettings.setRowHeight(sourceRowIndex, origHeight);
           }
           else {
+            TR.style.height = '';
             TR.firstChild.style.height = '';
           }
         }
@@ -285,7 +287,7 @@ WalkontableTableRenderer.prototype.adjustAvailableNodes = function () {
 };
 
 WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
-  if (!this.columnHeaders.length) {
+  if (!this.columnHeaders.length || this.instance.ignoreColumnHeaders) {
     return;
   }
 
