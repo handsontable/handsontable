@@ -465,7 +465,7 @@ var beforeSetRangeEnd = function (coords) {
 
         var mergedCellRange = new WalkontableCellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
         if (selRange.expandByRange(mergedCellRange)) {
-          var updatedCorner = selRange.getOppositeCorner(selRange.highlight);
+          var updatedCorner = selRange.getOppositeCorner(selRange.highlight) || selRange.getBottomRightCorner();
 
           coords.row = updatedCorner.row;
           coords.col = updatedCorner.col;

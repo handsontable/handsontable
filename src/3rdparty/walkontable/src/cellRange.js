@@ -84,11 +84,11 @@ WalkontableCellRange.prototype.expandByRange = function (expandingRange) {
   var finalFrom = new WalkontableCellCoords(resultTopRow, resultTopCol)
     , finalTo = new WalkontableCellCoords(resultBottomRow, resultBottomCol);
 
-  if(this.from.col >= this.to.col) {
+  if(this.from.col > this.to.col) {
     finalFrom.col = resultBottomCol;
     finalTo.col = resultTopCol;
   }
-  if(this.from.row >= this.to.row) {
+  if(this.from.row > this.to.row) {
     finalFrom.row = resultBottomRow;
     finalTo.row = resultTopRow;
   }
