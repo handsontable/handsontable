@@ -28,7 +28,12 @@
     instance.addHook("beforeRemoveRow", function (index, amount) {
       var originalData = plugin.instance.getData();
       index = ( originalData.length + index ) % originalData.length;
-      var removedData = originalData.slice(index, index + amount);
+      var removedData = [];
+      for(var i = index; i < index + amount; i++) {
+            var row = Handsontable.hooks.execute(instance, 'modifyRow', index);
+            removedData.push(originalData[row]);
+      }
+      
       var action = new Handsontable.UndoRedo.RemoveRowAction(index, removedData);
       plugin.done(action);
     });
