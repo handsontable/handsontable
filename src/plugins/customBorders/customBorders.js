@@ -4,15 +4,15 @@
 
   }
 
-  /***
-   * Array for all custom border objects (for redraw)
-   * @type {{}}
-   */
-  var bordersArray = {},
+//  /***
+//   * Array for all custom border objects (for redraw)
+//   * @type {{}}
+//   */
+//  var bordersArray = {},
         /***
      * Current instance (table where borders should be placed)
      */
-    instance;
+  var instance;
 
 
   /***
@@ -246,14 +246,14 @@
 //    bordersArray[bordersObj.className] = bordersObj;
 //  };
 
-  /***
-   * Clean bordersArray for cell when custom border has been removed
-   *
-   * @param className
-   */
-  var removeBorderFromArray = function (className) {
-    delete bordersArray[className];
-  };
+//  /***
+//   * Clean bordersArray for cell when custom border has been removed
+//   *
+//   * @param className
+//   */
+//  var removeBorderFromArray = function (className) {
+//    delete bordersArray[className];
+//  };
 
 
   /***
