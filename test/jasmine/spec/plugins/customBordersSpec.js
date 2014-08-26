@@ -56,8 +56,8 @@ describe('CustomBorders', function () {
     });
     //[top,left, bottom, right]
 
-    var borders = $('.border_row2col2');
-    expect(borders.length).toEqual(5); // 5 elements (top,right, bottom, left, corner)
+    var borders = $('.wtBorder.border_row2col2');
+    expect(borders.length).toEqual(20); //4 times 5 elements (top,right, bottom, left, corner)
     expect(borders[0].className).toContain('hidden'); // hidden top
     expect(borders[1].style.backgroundColor).toEqual('red'); // left red
     expect(borders[1].style.width).toEqual('2px'); // left 2px width
@@ -103,29 +103,31 @@ describe('CustomBorders', function () {
     for (var row = 1; row <= 3; row++) {
       for (var column = 1; column <=4; column++){
         if(row == 1) {
-          var topRow = $('.border_row' + row + 'col' + column);
+          var topRow = $('.wtBorder.border_row' + row + 'col' + column);
+          expect(topRow.length).toEqual(20); // borders for all tables (main and hiders)
           expect(topRow[0].style.backgroundColor).toEqual('black');
           expect(topRow[0].style.height).toEqual('2px');
         }
         if(column == 1) {
-          var leftColumn = $('.border_row' + row + 'col' + column);
+          var leftColumn = $('.wtBorder.border_row' + row + 'col' + column);
+          expect(leftColumn.length).toEqual(20); // borders for all tables (main and hiders)
           expect(leftColumn[1].style.backgroundColor).toEqual('red');
           expect(leftColumn[1].style.width).toEqual('2px');
         }
         if(row == 3) {
-          var bottomRow = $('.border_row' + row + 'col' + column);
+          var bottomRow = $('.wtBorder.border_row' + row + 'col' + column);
+          expect(bottomRow.length).toEqual(20); // borders for all tables (main and hiders)
           expect(bottomRow[2].style.backgroundColor).toEqual('red');
           expect(bottomRow[2].style.height).toEqual('2px');
         }
         if(column == 4){
-          var rightColumn = $('.border_row' + row + 'col' + column);
+          var rightColumn = $('.wtBorder.border_row' + row + 'col' + column);
+          expect(rightColumn.length).toEqual(20); // borders for all tables (main and hiders)
           expect(rightColumn[3].style.backgroundColor).toEqual('black');
           expect(rightColumn[3].style.width).toEqual('3px');
         }
       }
     }
-
-
   });
 
   it('should draw top border from context menu options', function () {

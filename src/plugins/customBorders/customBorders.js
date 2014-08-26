@@ -237,25 +237,6 @@
     return defaultBorder;
   };
 
-//  /***
-//   * Insert object with borders for each cell to bordersArray
-//   *
-//   * @param bordersObj
-//   */
-//  var insertBorderToArray = function (bordersObj) {
-//    bordersArray[bordersObj.className] = bordersObj;
-//  };
-
-//  /***
-//   * Clean bordersArray for cell when custom border has been removed
-//   *
-//   * @param className
-//   */
-//  var removeBorderFromArray = function (className) {
-//    delete bordersArray[className];
-//  };
-
-
   /***
    * Remove borders divs from DOM
    *
@@ -303,17 +284,15 @@
     }
 
     if (remove) {
-//			if (bordersMeta[place]){
-//				delete bordersMeta[place];
-//			}
       bordersMeta[place] = createSingleEmptyBorder();
     } else {
       bordersMeta[place] = createDefaultCustomBorder();
     }
 
-
     this.setCellMeta(row, col, 'borders', bordersMeta);
 
+    var borderClassName = createClassName(row,col);
+    removeBordersFromDom(borderClassName);
 		insertBorderIntoSettings(bordersMeta);
 
     this.render();
@@ -501,6 +480,7 @@
   Handsontable.hooks.add('beforeInit', init);
   Handsontable.hooks.add('afterContextMenuDefaultOptions', addBordersOptionsToContextMenu);
 
+
   Handsontable.hooks.add('afterInit', function () {
     var customBorders = this.getSettings().customBorders;
 
@@ -515,6 +495,7 @@
       }
 
 			this.render();
+      this.view.wt.draw(true);
     }
 
   });
