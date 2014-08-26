@@ -277,8 +277,27 @@
     if(pluginEnabled){
       if(!instance.undoRedo){
         instance.undoRedo = new Handsontable.UndoRedo(instance);
+        instance.undoRedo.paused = false;
 
         exposeUndoRedoMethods(instance);
+
+        instance.pauseUndo = function(pause) {
+          var instance = this;
+          var newState = (pause === undefined ? true : pause);
+
+          if(!newState && instance.undoRedo.paused) {
+            exposeUndoRedoMethods(instance);
+            instance.addHook('beforeKeyDown', onBeforeKeyDown);
+            instance.addHook('afterChange', onAfterChange);
+          }
+          else if(newState && !instance.undoRedo.paused) {
+            removeExposedUndoRedoMethods(instance);
+            instance.removeHook('beforeKeyDown', onBeforeKeyDown);
+            instance.removeHook('afterChange', onAfterChange);
+          }
+
+          instance.undoRedo.paused = newState;
+        };
 
         instance.addHook('beforeKeyDown', onBeforeKeyDown);
         instance.addHook('afterChange', onAfterChange);
