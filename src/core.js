@@ -593,6 +593,9 @@ Handsontable.Core = function (rootElement, userSettings) {
     this.view = new Handsontable.TableView(this);
     editorManager = new Handsontable.EditorManager(instance, priv, selection, datamap);
 
+    // Make sure we have row-height hooks
+    this.addHook('modifyRowHeight', this.view.wt.wtSettings.modifyRowHeight);
+
     this.forceFullRender = true; //used when data was changed
     this.view.render();
 
