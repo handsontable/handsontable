@@ -226,6 +226,26 @@
     instance.alter('remove_row', this.index, this.data.length);
   };
 
+  Handsontable.UndoRedo.CreateDataRowAction = function (index, data) {
+    this.index = index;
+    this.data = data;
+  };
+  Handsontable.helper.inherit(Handsontable.UndoRedo.CreateDataRowAction, Handsontable.UndoRedo.Action);
+  Handsontable.UndoRedo.CreateDataRowAction.prototype.redo = function (instance, undoneCallback) {
+    var spliceArgs = [this.index, 0];
+    Array.prototype.push.apply(spliceArgs, this.data);
+
+    Array.prototype.splice.apply(instance.getData(), spliceArgs);
+
+    instance.addHookOnce('afterRender', undoneCallback);
+    Handsontable.hooks.run(instance, 'afterCreateRow', this.index, this.data.length, false);
+    instance.render();    
+  };
+  Handsontable.UndoRedo.CreateDataRowAction.prototype.undo = function (instance, redoneCallback) {
+    instance.addHookOnce('afterRemoveRow', redoneCallback);
+    instance.alter('remove_row', this.index, this.data.length);
+  };
+
   Handsontable.UndoRedo.CreateColumnAction = function (index, amount) {
     this.index = index;
     this.amount = amount;
