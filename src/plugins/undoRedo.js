@@ -213,8 +213,8 @@
     Array.prototype.splice.apply(instance.getData(), spliceArgs);
 
     instance.addHookOnce('afterRender', undoneCallback);
-    instance.render();
     Handsontable.hooks.run(instance, 'afterCreateRow', this.index, this.data.length, false);
+    instance.render();    
   };
   Handsontable.UndoRedo.RemoveRowAction.prototype.redo = function (instance, redoneCallback) {
     instance.addHookOnce('afterRemoveRow', redoneCallback);
