@@ -71,6 +71,9 @@
     if (!this.ignoreNewActions) {
       this.doneActions.push(action);
       this.undoneActions.length = 0;
+
+      Handsontable.hooks.run(this.instance, 'undoRedoState', 'undo', this.isUndoAvailable());
+      Handsontable.hooks.run(this.instance, 'undoRedoState', 'redo', this.isRedoAvailable());
     }
   };
 
@@ -83,13 +86,14 @@
 
       this.ignoreNewActions = true;
       var that = this;
+
+      Handsontable.hooks.run(this.instance, 'undoRedoState', 'undo', this.isUndoAvailable());
+
       action.undo(this.instance, function () {
         that.ignoreNewActions = false;
         that.undoneActions.push(action);
+        Handsontable.hooks.run(that.instance, 'undoRedoState', 'redo', that.isRedoAvailable());
       });
-
-
-
     }
   };
 
@@ -102,9 +106,13 @@
 
       this.ignoreNewActions = true;
       var that = this;
+
+      Handsontable.hooks.run(this.instance, 'undoRedoState', 'redo', this.isRedoAvailable());
+
       action.redo(this.instance, function () {
         that.ignoreNewActions = false;
         that.doneActions.push(action);
+        Handsontable.hooks.run(that.instance, 'undoRedoState', 'undo', that.isUndoAvailable());
       });
 
 
@@ -134,6 +142,9 @@
   Handsontable.UndoRedo.prototype.clear = function () {
     this.doneActions.length = 0;
     this.undoneActions.length = 0;
+
+    Handsontable.hooks.run(this.instance, 'undoRedoState', 'undo', false);
+    Handsontable.hooks.run(this.instance, 'undoRedoState', 'redo', false);
   };
 
   Handsontable.UndoRedo.Action = function () {
@@ -315,11 +326,15 @@
             exposeUndoRedoMethods(instance);
             instance.addHook('beforeKeyDown', onBeforeKeyDown);
             instance.addHook('afterChange', onAfterChange);
+            Handsontable.hooks.run(instance, 'undoRedoState', 'undo', this.isUndoAvailable());
+            Handsontable.hooks.run(instance, 'undoRedoState', 'redo', this.isRedoAvailable());
           }
           else if(newState && !instance.undoRedo.paused) {
             removeExposedUndoRedoMethods(instance);
             instance.removeHook('beforeKeyDown', onBeforeKeyDown);
             instance.removeHook('afterChange', onAfterChange);
+            Handsontable.hooks.run(instance, 'undoRedoState', 'undo', false);
+            Handsontable.hooks.run(instance, 'undoRedoState', 'redo', false);
           }
 
           instance.undoRedo.paused = newState;
@@ -396,5 +411,6 @@
 
   Handsontable.hooks.add('afterInit', init);
   Handsontable.hooks.add('afterUpdateSettings', init);
+  Handsontable.hooks.register('undoRedoState');  
 
 })(Handsontable);
