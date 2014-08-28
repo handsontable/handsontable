@@ -20,7 +20,7 @@
       wtOnCellMouseOver;
 
     $(this.instance.$table).off('mouseup.' + instance.guid).on('mouseup.' + instance.guid, function (event) {
-      if (instance.autofill.handle && instance.autofill.handle.isDragged) {
+      if (instance.autofill && instance.autofill.handle && instance.autofill.handle.isDragged) {
         if (instance.autofill.handle.isDragged > 1) {
           instance.autofill.apply();
         }
