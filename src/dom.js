@@ -4,7 +4,12 @@
  * @type {Object}
  */
 if(!window.Handsontable) {
-  var Handsontable = {}; //required because Walkontable test suite uses this class directly
+  if(!Handsontable) {
+    var Handsontable = {}; //required because Walkontable test suite uses this class directly
+  }
+  else {
+    window.Handsontable = Handsontable;
+  }
 }
 Handsontable.Dom = {};
 

@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Wed Aug 27 2014 07:52:51 GMT-0700 (Pacific Daylight Time)
+ * Date: Thu Aug 28 2014 11:51:39 GMT-0700 (Pacific Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2338,7 +2338,12 @@ $.fn.handsontable = function (action) {
  * @type {Object}
  */
 if(!window.Handsontable) {
-  var Handsontable = {}; //required because Walkontable test suite uses this class directly
+  if(!Handsontable) {
+    var Handsontable = {}; //required because Walkontable test suite uses this class directly
+  }
+  else {
+    window.Handsontable = Handsontable;
+  }
 }
 Handsontable.Dom = {};
 
