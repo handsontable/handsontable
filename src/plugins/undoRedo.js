@@ -65,12 +65,12 @@
   };
 
   Handsontable.UndoRedo.prototype.collectUndo = function(enableCollection) {    
-    if(!enableCollection && this.collectActions.length > 0) {
-      this.done(this.collectActions);
-      this.collectActions = [];
-    }
-
     this.collectActions = enableCollection;
+
+    if(!this.collectActions && this.collectedActions.length > 0) {
+      this.done(new Handsontable.UndoRedo.CollectionAction(this.collectedActions));
+      this.collectActions = [];
+    }  
   };
 
   Handsontable.UndoRedo.prototype.done = function (action) {
