@@ -335,7 +335,7 @@
   };
   Handsontable.UndoRedo.CollectionAction.prototype.redo = function(instance, redoneCallback) {
     var callbackStub = function() {};
-    for(var i = this.collection.length - 1; i >= 0; i--) {
+    for(var i = 0; i < this.collection.length; i++) {
       this.collection[i].redo(instance, callbackStub);
     }
 
