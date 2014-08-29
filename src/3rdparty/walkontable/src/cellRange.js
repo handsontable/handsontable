@@ -31,6 +31,13 @@ WalkontableCellRange.prototype.includesRange = function (testedRange) {
   return this.includes(testedRange.getTopLeftCorner()) && this.includes(testedRange.getBottomRightCorner());
 };
 
+WalkontableCellRange.prototype.isEqual = function (testedRange) {
+  return (Math.min(this.from.row, this.to.row) == Math.min(testedRange.from.row, testedRange.to.row))
+    && (Math.max(this.from.row, this.to.row) == Math.max(testedRange.from.row, testedRange.to.row))
+    && (Math.min(this.from.col, this.to.col) == Math.min(testedRange.from.col, testedRange.to.col))
+    && (Math.max(this.from.col, this.to.col) == Math.max(testedRange.from.col, testedRange.to.col));
+};
+
 /**
  * Returns true if tested range overlaps with the range.
  * Range A is considered to to be overlapping with range B if intersection of A and B or B and A is not empty.
@@ -66,12 +73,14 @@ WalkontableCellRange.prototype.expand = function (cellCoords) {
 };
 
 WalkontableCellRange.prototype.expandByRange = function (expandingRange) {
-  if (this.includesRange(expandingRange) || !this.overlaps(expandingRange)){
+  if (this.includesRange(expandingRange) || !this.overlaps(expandingRange)) {
     return false;
   }
 
-  var topLeft = this.getTopLeftCorner();
-  var bottomRight = this.getBottomRightCorner();
+  var topLeft = this.getTopLeftCorner()
+    , bottomRight = this.getBottomRightCorner()
+    , topRight = this.getTopRightCorner()
+    , bottomLeft = this.getBottomLeftCorner();
 
   var expandingTopLeft = expandingRange.getTopLeftCorner();
   var expandingBottomRight = expandingRange.getBottomRightCorner();
@@ -83,20 +92,57 @@ WalkontableCellRange.prototype.expandByRange = function (expandingRange) {
 
   var finalFrom = new WalkontableCellCoords(resultTopRow, resultTopCol)
     , finalTo = new WalkontableCellCoords(resultBottomRow, resultBottomCol);
+  var isCorner = new WalkontableCellRange(finalFrom, finalFrom, finalTo).isCorner(this.from, expandingRange)
+    , onlyMerge = expandingRange.isEqual(new WalkontableCellRange(finalFrom, finalFrom, finalTo));
 
-  if(this.from.col > this.to.col) {
-    finalFrom.col = resultBottomCol;
-    finalTo.col = resultTopCol;
-  }
-  if(this.from.row > this.to.row) {
-    finalFrom.row = resultBottomRow;
-    finalTo.row = resultTopRow;
+  if (isCorner && !onlyMerge) {
+    if (this.from.col > finalFrom.col) {
+      finalFrom.col = resultBottomCol;
+      finalTo.col = resultTopCol;
+    }
+    if (this.from.row > finalFrom.row) {
+      finalFrom.row = resultBottomRow;
+      finalTo.row = resultTopRow;
+    }
   }
 
   this.from = finalFrom;
   this.to = finalTo;
 
   return true;
+};
+
+WalkontableCellRange.prototype.getDirection = function () {
+  if (this.from.isNorthWestOf(this.to)) {        // NorthWest - SouthEast
+    return "NW-SE";
+  } else if (this.from.isNorthEastOf(this.to)) { // NorthEast - SouthWest
+    return "NE-SW";
+  } else if (this.from.isSouthEastOf(this.to)) { // SouthEast - NorthWest
+    return "SE-NW";
+  } else if (this.from.isSouthWestOf(this.to)) { // SouthWest - NorthEast
+    return "SW-NE";
+  }
+};
+
+WalkontableCellRange.prototype.setDirection = function (direction) {
+  switch (direction) {
+    case "NW-SE" :
+      this.from = this.getTopLeftCorner();
+      this.to = this.getBottomRightCorner();
+      break;
+    case "NE-SW" :
+      this.from = this.getTopRightCorner();
+      this.to = this.getBottomLeftCorner();
+      break;
+    case "SE-NW" :
+      this.from = this.getBottomRightCorner();
+      this.to = this.getTopLeftCorner();
+      break;
+    case "SW-NE" :
+      this.from = this.getBottomLeftCorner();
+      this.to = this.getTopRightCorner();
+      break;
+  }
 };
 
 WalkontableCellRange.prototype.getTopLeftCorner = function () {
@@ -115,18 +161,76 @@ WalkontableCellRange.prototype.getBottomLeftCorner = function () {
   return new WalkontableCellCoords(Math.max(this.from.row, this.to.row), Math.min(this.from.col, this.to.col));
 };
 
-WalkontableCellRange.prototype.getOppositeCorner = function (coords) {
-  if(!(coords instanceof WalkontableCellCoords)) return false;
+WalkontableCellRange.prototype.isCorner = function (coords, expandedRange) {
+  if (expandedRange) {
+    if (expandedRange.includes(coords)) {
+      if (this.getTopLeftCorner().isEqual(new WalkontableCellCoords(expandedRange.from.row, expandedRange.from.col))
+        || this.getTopRightCorner().isEqual(new WalkontableCellCoords(expandedRange.from.row, expandedRange.to.col))
+        || this.getBottomLeftCorner().isEqual(new WalkontableCellCoords(expandedRange.to.row, expandedRange.from.col))
+        || this.getBottomRightCorner().isEqual(new WalkontableCellCoords(expandedRange.to.row, expandedRange.to.col))) {
+        return true;
+      }
+    }
+  }
+  return coords.isEqual(this.getTopLeftCorner()) || coords.isEqual(this.getTopRightCorner()) || coords.isEqual(this.getBottomLeftCorner()) || coords.isEqual(this.getBottomRightCorner());
+};
 
-  if(coords.isEqual(this.getBottomRightCorner())) {
+WalkontableCellRange.prototype.getOppositeCorner = function (coords, expandedRange) {
+  if (!(coords instanceof WalkontableCellCoords)) return false;
+
+  if (expandedRange) {
+    if (expandedRange.includes(coords)) {
+      if (this.getTopLeftCorner().isEqual(new WalkontableCellCoords(expandedRange.from.row, expandedRange.from.col))) return this.getBottomRightCorner();
+      if (this.getTopRightCorner().isEqual(new WalkontableCellCoords(expandedRange.from.row, expandedRange.to.col))) return this.getBottomLeftCorner();
+      if (this.getBottomLeftCorner().isEqual(new WalkontableCellCoords(expandedRange.to.row, expandedRange.from.col))) return this.getTopRightCorner();
+      if (this.getBottomRightCorner().isEqual(new WalkontableCellCoords(expandedRange.to.row, expandedRange.to.col))) return this.getTopLeftCorner();
+    }
+  }
+
+  if (coords.isEqual(this.getBottomRightCorner())) {
     return this.getTopLeftCorner();
-  } else if(coords.isEqual(this.getTopLeftCorner())) {
+  } else if (coords.isEqual(this.getTopLeftCorner())) {
     return this.getBottomRightCorner();
-  } else if(coords.isEqual(this.getTopRightCorner())) {
+  } else if (coords.isEqual(this.getTopRightCorner())) {
     return this.getBottomLeftCorner();
-  } else if(coords.isEqual(this.getBottomLeftCorner())) {
+  } else if (coords.isEqual(this.getBottomLeftCorner())) {
     return  this.getTopRightCorner();
   }
+};
+
+WalkontableCellRange.prototype.getBordersSharedWith = function (range) {
+  if (!this.includesRange(range)) {
+    return [];
+  }
+
+  var thisBorders = {
+      top: Math.min(this.from.row, this.to.row),
+      bottom: Math.max(this.from.row, this.to.row),
+      left: Math.min(this.from.col, this.to.col),
+      right: Math.max(this.from.col, this.to.col)
+    }
+    , rangeBorders = {
+      top: Math.min(range.from.row, range.to.row),
+      bottom: Math.max(range.from.row, range.to.row),
+      left: Math.min(range.from.col, range.to.col),
+      right: Math.max(range.from.col, range.to.col)
+    }
+    , result = [];
+
+  if (thisBorders.top == rangeBorders.top) {
+    result.push('top');
+  }
+  if (thisBorders.right == rangeBorders.right) {
+    result.push('right');
+  }
+  if (thisBorders.bottom == rangeBorders.bottom) {
+    result.push('bottom');
+  }
+  if (thisBorders.left == rangeBorders.left) {
+    result.push('left');
+  }
+
+  return result;
 };
 
 WalkontableCellRange.prototype.getInner = function () {
