@@ -8,6 +8,8 @@
     this.doneActions = [];
     this.undoneActions = [];
     this.ignoreNewActions = false;
+    this.collectActions = false;
+    this.collectedActions = [];
     instance.addHook("afterChange", function (changes, origin) {
       if(changes){
         var action = new Handsontable.UndoRedo.ChangeAction(changes);
@@ -67,10 +69,24 @@
     });
   };
 
+  Handsontable.UndoRedo.prototype.collectUndo = function(enableCollection) {    
+    if(!enableCollection && this.collectActions.length > 0) {
+      this.done(this.collectActions);
+      this.collectActions = [];
+    }
+
+    this.collectActions = enableCollection;
+  };
+
   Handsontable.UndoRedo.prototype.done = function (action) {
     if (!this.ignoreNewActions) {
-      this.doneActions.push(action);
-      this.undoneActions.length = 0;
+      if(!this.collectActions) {
+        this.doneActions.push(action);
+        this.undoneActions.length = 0;
+      }
+      else {
+        this.collectedActions.push(action);
+      }
 
       Handsontable.hooks.run(this.instance, 'undoRedoState', 'undo', this.isUndoAvailable());
       Handsontable.hooks.run(this.instance, 'undoRedoState', 'redo', this.isRedoAvailable());
@@ -303,6 +319,30 @@
     instance.addHookOnce('afterRemoveCol', redoneCallback);
     instance.alter('remove_col', this.index, this.amount);
   };
+
+  Handsontable.UndoRedo.CollectionAction = function(collection) {
+    this.collection = collection;
+  };
+  Handsontable.helper.inherit(Handsontable.UndoRedo.CollectionAction, Handsontable.UndoRedo.Action);
+  Handsontable.UndoRedo.CollectionAction.prototype.undo = function(instance, undoneCallback) {
+    var callbackStub = function() {};
+    for(var i = 0; i < this.collection.length; i++) {
+      this.collection[i].undo(instance, callbackStub);
+    }
+
+    instance.addHookOnce('afterRender', undoneCallback);
+    instance.render();
+  };
+  Handsontable.UndoRedo.CollectionAction.prototype.redo = function(instance, redoneCallback) {
+    var callbackStub = function() {};
+    for(var i = this.collection.length - 1; i >= 0; i--) {
+      this.collection[i].redo(instance, callbackStub);
+    }
+
+    instance.addHookOnce('afterRender', redoneCallback);
+    instance.render();
+  };
+
 })(Handsontable);
 
 (function(Handsontable){
@@ -399,6 +439,10 @@
     instance.clearUndo = function(){
       return instance.undoRedo.clear();
     };
+
+    instance.collectUndo = function(enabledCollection) {
+      return instance.undoRedo.collectUndo(enabledCollection);
+    }
   }
 
   function removeExposedUndoRedoMethods(instance){
