@@ -69,7 +69,7 @@
 
     if(!this.collectActions && this.collectedActions.length > 0) {
       this.done(new Handsontable.UndoRedo.CollectionAction(this.collectedActions));
-      this.collectActions = [];
+      this.collectedActions = [];
     }  
   };
 
