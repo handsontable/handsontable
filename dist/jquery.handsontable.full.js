@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Aug 28 2014 11:51:39 GMT-0700 (Pacific Daylight Time)
+ * Date: Fri Aug 29 2014 11:12:23 GMT-0700 (Pacific Daylight Time)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -10302,6 +10302,8 @@ function Storage(prefix) {
     this.doneActions = [];
     this.undoneActions = [];
     this.ignoreNewActions = false;
+    this.collectActions = false;
+    this.collectedActions = [];
     instance.addHook("afterChange", function (changes, origin) {
       if(changes){
         var action = new Handsontable.UndoRedo.ChangeAction(changes);
@@ -10361,10 +10363,24 @@ function Storage(prefix) {
     });
   };
 
+  Handsontable.UndoRedo.prototype.collectUndo = function(enableCollection) {    
+    this.collectActions = enableCollection;
+
+    if(!this.collectActions && this.collectedActions.length > 0) {
+      this.done(new Handsontable.UndoRedo.CollectionAction(this.collectedActions));
+      this.collectedActions = [];
+    }  
+  };
+
   Handsontable.UndoRedo.prototype.done = function (action) {
     if (!this.ignoreNewActions) {
-      this.doneActions.push(action);
-      this.undoneActions.length = 0;
+      if(!this.collectActions) {
+        this.doneActions.push(action);
+        this.undoneActions.length = 0;
+      }
+      else {
+        this.collectedActions.push(action);
+      }
 
       Handsontable.hooks.run(this.instance, 'undoRedoState', 'undo', this.isUndoAvailable());
       Handsontable.hooks.run(this.instance, 'undoRedoState', 'redo', this.isRedoAvailable());
@@ -10597,6 +10613,30 @@ function Storage(prefix) {
     instance.addHookOnce('afterRemoveCol', redoneCallback);
     instance.alter('remove_col', this.index, this.amount);
   };
+
+  Handsontable.UndoRedo.CollectionAction = function(collection) {
+    this.collection = collection;
+  };
+  Handsontable.helper.inherit(Handsontable.UndoRedo.CollectionAction, Handsontable.UndoRedo.Action);
+  Handsontable.UndoRedo.CollectionAction.prototype.undo = function(instance, undoneCallback) {
+    var callbackStub = function() {};
+    for(var i = 0; i < this.collection.length; i++) {
+      this.collection[i].undo(instance, callbackStub);
+    }
+
+    instance.addHookOnce('afterRender', undoneCallback);
+    instance.render();
+  };
+  Handsontable.UndoRedo.CollectionAction.prototype.redo = function(instance, redoneCallback) {
+    var callbackStub = function() {};
+    for(var i = 0; i < this.collection.length; i++) {
+      this.collection[i].redo(instance, callbackStub);
+    }
+
+    instance.addHookOnce('afterRender', redoneCallback);
+    instance.render();
+  };
+
 })(Handsontable);
 
 (function(Handsontable){
@@ -10693,6 +10733,10 @@ function Storage(prefix) {
     instance.clearUndo = function(){
       return instance.undoRedo.clear();
     };
+
+    instance.collectUndo = function(enabledCollection) {
+      return instance.undoRedo.collectUndo(enabledCollection);
+    }
   }
 
   function removeExposedUndoRedoMethods(instance){
@@ -12258,7 +12302,7 @@ Handsontable.MergeCells = MergeCells;
       wtOnCellMouseOver;
 
     $(this.instance.$table).off('mouseup.' + instance.guid).on('mouseup.' + instance.guid, function (event) {
-      if (instance.autofill.handle && instance.autofill.handle.isDragged) {
+      if (instance.autofill && instance.autofill.handle && instance.autofill.handle.isDragged) {
         if (instance.autofill.handle.isDragged > 1) {
           instance.autofill.apply();
         }
