@@ -114,39 +114,7 @@ describe('CopyPaste plugin', function () {
       expect(copyPasteTextarea.val().length).toEqual(0);
 
       selectCell(0, 0);
-      keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT);
-
-      expect(copyPasteTextarea.val()).toEqual('A1\n');
-
-    });
-
-    it("should set copyable text when selecting a single cell and hitting left command", function () {
-      handsontable({
-        data: createSpreadsheetData(2, 2)
-      });
-
-      var copyPasteTextarea = $('textarea.copyPaste');
-
-      expect(copyPasteTextarea.val().length).toEqual(0);
-
-      selectCell(0, 0);
-      keyDownUp(Handsontable.helper.keyCode.COMMAND_LEFT);
-
-      expect(copyPasteTextarea.val()).toEqual('A1\n');
-
-    });
-
-    it("should set copyable text when selecting a single cell and hitting right command", function () {
-      handsontable({
-        data: createSpreadsheetData(2, 2)
-      });
-
-      var copyPasteTextarea = $('textarea.copyPaste');
-
-      expect(copyPasteTextarea.val().length).toEqual(0);
-
-      selectCell(0, 0);
-      keyDownUp(Handsontable.helper.keyCode.COMMAND_RIGHT);
+      $(document.activeElement).trigger($.Event('keydown', {keyCode: Handsontable.helper.keyCode.C, ctrlKey: true}));
 
       expect(copyPasteTextarea.val()).toEqual('A1\n');
 
@@ -162,7 +130,7 @@ describe('CopyPaste plugin', function () {
       expect(copyPasteTextarea.val().length).toEqual(0);
 
       selectCell(0, 0, 1, 0);
-      keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT);
+      $(document.activeElement).trigger($.Event('keydown', {keyCode: Handsontable.helper.keyCode.C, ctrlKey: true}));
 
       expect(copyPasteTextarea.val()).toEqual('A1\nA2\n');
 
@@ -178,7 +146,6 @@ describe('CopyPaste plugin', function () {
       expect(copyPasteTextarea.val().length).toEqual(0);
 
       selectCell(0, 0);
-      keyDown(Handsontable.helper.keyCode.CONTROL_LEFT);
       $(document.activeElement).trigger($.Event('keydown', {keyCode: Handsontable.helper.keyCode.A, ctrlKey: true}));
 
       waits(0);
@@ -228,8 +195,7 @@ describe('CopyPaste plugin', function () {
       expect(copyPasteTextarea.val().length).toEqual(0);
 
       selectCell(0, 0, 1, 1);
-      keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT);
-
+      $(document.activeElement).trigger($.Event('keydown', {keyCode: Handsontable.helper.keyCode.C, ctrlKey: true}));
       expect(copyPasteTextarea.val()).toEqual('A\t1\nB\t2\n');
 
     });

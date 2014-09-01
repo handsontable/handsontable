@@ -28,7 +28,7 @@ describe('Core_copy', function () {
     });
 
     selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
-    keyDownUp('ctrl');
+    $(document.activeElement).trigger($.Event('keydown', {keyCode: Handsontable.helper.keyCode.C, ctrlKey: true}));
     expect($('textarea.copyPaste').val()).toEqual('\tKia\tNissan\tToyota\tHonda\n2008\t10\t11\t12\t13\n'); //should prepare 2 rows for copying
   });
 
@@ -39,7 +39,7 @@ describe('Core_copy', function () {
     });
 
     selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
-    keyDownUp('ctrl');
+    $(document.activeElement).trigger($.Event('keydown', {keyCode: Handsontable.helper.keyCode.C, ctrlKey: true}));
     expect($('textarea.copyPaste').val()).toEqual('\tKia\n2008\t10\n2009\t20\n2010\t30\n'); //should prepare 2 columns for copying
   });
 
@@ -56,7 +56,7 @@ describe('Core_copy', function () {
     });
 
     selectCell(0, 0, countRows() - 1, countCols() - 1); //selectAll
-    keyDownUp('ctrl');
+    $(document.activeElement).trigger($.Event('keydown', {keyCode: Handsontable.helper.keyCode.C, ctrlKey: true}));
     expect(result).toEqual([4, 5, 2, 2]);
   });
 });
