@@ -23,6 +23,10 @@
 
 
     var mouseUpCallback = function (event) {
+      if(!instance.autofill) {
+        return true;
+      }
+
       if (instance.autofill.handle && instance.autofill.handle.isDragged) {
         if (instance.autofill.handle.isDragged > 1) {
           instance.autofill.apply();
