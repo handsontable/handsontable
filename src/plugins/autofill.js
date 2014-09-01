@@ -17,14 +17,48 @@
 
     var $document = $(document),
       wtOnCellCornerMouseDown,
-      wtOnCellMouseOver;
+      wtOnCellMouseOver,
+      mouseDownOnCellCorner = false,
+      plugin = this;
 
-    $(this.instance.$table).off('mouseup.' + instance.guid).on('mouseup.' + instance.guid, function (event) {
+
+    var mouseUpCallback = function (event) {
       if (instance.autofill.handle && instance.autofill.handle.isDragged) {
         if (instance.autofill.handle.isDragged > 1) {
           instance.autofill.apply();
         }
         instance.autofill.handle.isDragged = 0;
+        mouseDownOnCellCorner = false;
+      }
+    };
+
+    $(this.instance.$table).off('mouseup.' + instance.guid).on('mouseup.' + instance.guid, function (event) {
+      mouseUpCallback(event);
+    });
+    $(this.instance.view.wt.wtTable.bordersHolder).off('mouseup.' + instance.guid).on('mouseup.' + instance.guid, function (event) {
+      mouseUpCallback(event);
+    });
+
+    $(document).off('mousemove.moveOutside_' + instance.guid).on('mousemove.moveOutside_' + instance.guid, function (event) {
+      if (!plugin.instance.autofill) {
+        return 0;
+      }
+
+      var tableBottom = Handsontable.Dom.offset(plugin.instance.$table[0]).top - (window.pageYOffset || document.documentElement.scrollTop) + Handsontable.Dom.outerHeight(plugin.instance.$table[0])
+        , tableRight = Handsontable.Dom.offset(plugin.instance.$table[0]).left - (window.pageXOffset || document.documentElement.scrollLeft) + Handsontable.Dom.outerWidth(plugin.instance.$table[0]);
+
+      if (plugin.addingStarted === false && plugin.instance.autofill.handle.isDragged > 0 && event.clientY > tableBottom && event.clientX <= tableRight) { // dragged outside bottom
+        this.mouseDragOutside = true;
+        plugin.addingStarted = true;
+      } else {
+        this.mouseDragOutside = false;
+      }
+
+      if (this.mouseDragOutside) {
+        setTimeout(function () {
+          plugin.addingStarted = false;
+          plugin.instance.alter('insert_row');
+        }, 200);
       }
     });
 
@@ -32,28 +66,30 @@
      * Appeding autofill-specific methods to walkontable event settings
      */
     wtOnCellCornerMouseDown = this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown;
-    this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown = function(event) {
+    this.instance.view.wt.wtSettings.settings.onCellCornerMouseDown = function (event) {
       instance.autofill.handle.isDragged = 1;
+      mouseDownOnCellCorner = true;
+
       wtOnCellCornerMouseDown(event);
-    }
+    };
 
     wtOnCellMouseOver = this.instance.view.wt.wtSettings.settings.onCellMouseOver;
-    this.instance.view.wt.wtSettings.settings.onCellMouseOver = function(event, coords, TD, wt) {
+    this.instance.view.wt.wtSettings.settings.onCellMouseOver = function (event, coords, TD, wt) {
 
-      if (instance.autofill && (!instance.view.isMouseDown() && instance.autofill.handle && instance.autofill.handle.isDragged)) {
+      if (instance.autofill && (mouseDownOnCellCorner && !instance.view.isMouseDown() && instance.autofill.handle && instance.autofill.handle.isDragged)) {
         instance.autofill.handle.isDragged++;
         instance.autofill.showBorder(coords);
         instance.autofill.checkIfNewRowNeeded();
       }
 
       wtOnCellMouseOver(event, coords, TD, wt);
-    }
+    };
 
     this.instance.view.wt.wtSettings.settings.onCellCornerDblClick = function () {
       instance.autofill.selectAdjacent();
     };
 
-  };
+  }
 
   /**
    * Create fill handle and fill border objects
@@ -130,13 +166,13 @@
         );
         end = new WalkontableCellCoords(
           drag[2],
-          select[1] - 1
+            select[1] - 1
         );
       }
       else if (drag[0] === select[0] && drag[3] > select[3]) {
         start = new WalkontableCellCoords(
           drag[0],
-          select[3] + 1
+            select[3] + 1
         );
         end = new WalkontableCellCoords(
           drag[2],
@@ -149,13 +185,13 @@
           drag[1]
         );
         end = new WalkontableCellCoords(
-          select[0] - 1,
+            select[0] - 1,
           drag[3]
         );
       }
       else if (drag[2] > select[2] && drag[1] === select[1]) {
         start = new WalkontableCellCoords(
-          select[2] + 1,
+            select[2] + 1,
           drag[1]
         );
         end = new WalkontableCellCoords(
@@ -167,7 +203,7 @@
       if (start) {
         var selRange = {from: this.instance.getSelectedRange().from, to: this.instance.getSelectedRange().to};
 
-        _data = this.instance.getData(selRange.from.row,selRange.from.col,selRange.to.row,selRange.to.col);
+        _data = this.instance.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
 
         Handsontable.hooks.run(this.instance, 'beforeAutofill', start, end, _data);
 
@@ -206,15 +242,15 @@
       this.instance.view.render();
     }
 
-  Autofill.prototype.checkIfNewRowNeeded = function() {
+  Autofill.prototype.checkIfNewRowNeeded = function () {
     var fillCorners,
       tableRows = this.instance.countRows(),
       that = this;
 
-    if(this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false) {
+    if (this.instance.view.wt.selections.fill.cellRange && this.addingStarted === false) {
       fillCorners = this.instance.view.wt.selections.fill.getCorners();
 
-      if(fillCorners[2] === tableRows - 1) {
+      if (fillCorners[2] === tableRows - 1) {
         this.addingStarted = true;
 
         this.instance._registerTimeout(setTimeout(function () {
@@ -224,10 +260,10 @@
       }
     }
 
-  }
+  };
 
 
-  Handsontable.hooks.add('afterInit', function(){
+  Handsontable.hooks.add('afterInit', function () {
     var autofill = new Autofill(this);
 
     if (typeof this.getSettings().fillHandle !== "undefined") {

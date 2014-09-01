@@ -137,4 +137,77 @@ describe('FillHandle', function () {
 
     document.body.removeChild($table[0]);
   });
+
+  it('should add new row after dragging the handle to the last table row', function () {
+    var hot = handsontable({
+      data: [
+        [1, 2, "test", 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ]
+    });
+
+    selectCell(0, 2);
+
+    this.$container.find('.wtBorder.corner').trigger('mousedown');
+    this.$container.find('tr:last-child td:eq(2)').trigger('mouseenter');
+
+    expect(hot.countRows()).toBe(4);
+    waits(300);
+
+    runs(function () {
+      expect(hot.countRows()).toBe(5);
+
+      this.$container.find('tr:last-child td:eq(2)').trigger('mouseenter');
+
+      waits(300);
+
+      runs(function () {
+        expect(hot.countRows()).toBe(6);
+      });
+
+    });
+  });
+
+  it('should add new row after dragging the handle outside the viewport', function () {
+    var hot = handsontable({
+      data: [
+        [1, 2, "test", 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ]
+    });
+
+    selectCell(0, 2);
+
+    this.$container.find('.wtBorder.corner').trigger('mousedown');
+    var ev = jQuery.Event('mousemove')
+      , $lastRow = this.$container.find('tr:last-child td:eq(2)');
+
+    expect(hot.countRows()).toBe(4);
+
+    ev.clientX = $lastRow.offset().left / 2;
+    ev.clientY = $lastRow.offset().top + 50;
+
+    $(document).trigger(ev);
+
+    waits(300);
+
+    runs(function () {
+      expect(hot.countRows()).toBe(5);
+
+      ev.clientY = $lastRow.offset().top + 150;
+      $(document).trigger(ev);
+
+      waits(300);
+
+      runs(function () {
+        expect(hot.countRows()).toBe(6);
+      });
+    });
+  });
+
 });
+
