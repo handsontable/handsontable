@@ -3,7 +3,6 @@
 
   AutocompleteEditor.prototype.init = function () {
     Handsontable.editors.HandsontableEditor.prototype.init.apply(this, arguments);
-    this.$htContainer.handsontable('updateSettings', {height: this.getDropdownHeight()});
 
     this.query = null;
     this.choices = [];
@@ -23,24 +22,24 @@
 
       var value;
 
-      if(!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) !== -1){
-        setTimeout(function () {
+      if (!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) !== -1) {
+        that.instance._registerTimeout(setTimeout(function () {
           value = that.$textarea.val();
           that.queryChoices(value);
         }, 0));
       } else if ([Handsontable.helper.keyCode.ENTER, Handsontable.helper.keyCode.TAB].indexOf(event.keyCode) !== -1) {
 
         if (that.cellProperties.strict === true && that.cellProperties.allowInvalid !== true) {
-          var choice = that.choices[0];
-          value = that.$textarea.val();
 
           var choice = that.choices[0];
+          value = that.$textarea.val();
 
           if (value.length > 0 && choice) {
             if (choice.length > 0) {
               that.$textarea[0].value = choice;
             }
           }
+
         } else if (that.cellProperties.strict !== true) {
           that.$htContainer.handsontable('deselectCell');
         }
@@ -175,6 +174,7 @@
     this.choices = choices;
 
     this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
+    this.$htContainer.handsontable('updateSettings', {height: this.getDropdownHeight()});
 
     if(this.cellProperties.strict === true) {
       this.highlightBestMatchingChoice();
@@ -240,7 +240,7 @@
     return this.choices.length >= 10 ? 10 * firstRowHeight : this.choices.length * firstRowHeight + 8;
     //return 10 * this.$htContainer.handsontable('getInstance').getRowHeight(0);
     //sorry, we can't measure row height before it was rendered. Let's use fixed height for now
-  return 230;
+    return 230;
   };
 
 
