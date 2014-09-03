@@ -16,28 +16,30 @@
 
   };
 
-  AutocompleteEditor.prototype.bindEvents = function(){
+  AutocompleteEditor.prototype.bindEvents = function () {
     var that = this;
 
-    this.$textarea.on('keydown.autocompleteEditor', function(event){
+    this.$textarea.on('keydown.autocompleteEditor', function (event) {
 
       var value = that.$textarea.val();
 
-      if(!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) !== -1){
-        this.instance._registerTimeout(setTimeout(function () {
+      if (!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) !== -1) {
+        that.instance._registerTimeout(setTimeout(function () {
           that.queryChoices(value);
         }, 0));
-      } else if ([Handsontable.helper.keyCode.ENTER, Handsontable.helper.keyCode.TAB].indexOf(event.keyCode) !== -1){
+      } else if ([Handsontable.helper.keyCode.ENTER, Handsontable.helper.keyCode.TAB].indexOf(event.keyCode) !== -1) {
 
-        var choice = that.choices[0];
+        if (that.cellProperties.strict === true && that.cellProperties.allowInvalid !== true) {
 
-        if (value.length > 0 && choice) {
-          if (choice.length > 0) {
-            that.$textarea[0].value = choice;
+          var choice = that.choices[0];
+
+          if (value.length > 0 && choice) {
+            if (choice.length > 0) {
+              that.$textarea[0].value = choice;
+            }
           }
-        }
 
-        if (that.cellProperties.strict !== true) {
+        } else if (that.cellProperties.strict !== true) {
           that.$htContainer.handsontable('deselectCell');
         }
       }
@@ -46,6 +48,12 @@
 
     this.$htContainer.on('mouseenter', function () {
       that.$htContainer.handsontable('deselectCell');
+    });
+
+    this.$htContainer.on('mouseleave', function () {
+      if(that.cellProperties.strict === true){
+        that.highlightBestMatchingChoice();
+      }
     });
 
     Handsontable.editors.HandsontableEditor.prototype.bindEvents.apply(this, arguments);
@@ -166,13 +174,11 @@
 
     this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
 
-    //if(this.cellProperties.strict === true) {
-    //  this.highlightBestMatchingChoice();
-    //}
+    if(this.cellProperties.strict === true) {
+      this.highlightBestMatchingChoice();
+    }
 
-    //this.focus(); // this override textEditor events ie. ctrl combinations
-    // Can't highlight text in the cell with ctrl+a in autocomplete demo #1590
-    // Editing autocomplete selection, cursor goes to the end of selected string. #1610
+    this.focus();
   };
 
   AutocompleteEditor.prototype.highlightBestMatchingChoice = function () {
