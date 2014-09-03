@@ -21,8 +21,12 @@
     this.$textarea.on('keydown.autocompleteEditor', function (event) {
 
       var value;
+      var isCtrlA = function(event) {
+        if(event.which == 65 && (event.metaKey || event.ctrlKey)) return true;
+        else return false;
+      };
 
-      if (!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) !== -1) {
+      if (!isCtrlA(event) && (!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) !== -1)) {
         that.instance._registerTimeout(setTimeout(function () {
           value = that.$textarea.val();
           that.queryChoices(value);
@@ -136,7 +140,7 @@
       var that = this;
 
       this.cellProperties.source(query, function(choices){
-        that.updateChoicesList(choices)
+        that.updateChoicesList(choices);
       });
 
     } else if (Handsontable.helper.isArray(this.cellProperties.source)) {
@@ -161,7 +165,7 @@
         });
       }
 
-      this.updateChoicesList(choices)
+      this.updateChoicesList(choices);
 
     } else {
       this.updateChoicesList([]);
