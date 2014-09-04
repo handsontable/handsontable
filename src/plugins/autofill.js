@@ -36,10 +36,7 @@
       }
     };
 
-    $(this.instance.$table).off('mouseup.' + instance.guid).on('mouseup.' + instance.guid, function (event) {
-      mouseUpCallback(event);
-    });
-    $(this.instance.view.wt.wtTable.bordersHolder).off('mouseup.' + instance.guid).on('mouseup.' + instance.guid, function (event) {
+    $(document).off('mouseup.autofill.' + instance.guid, this.instance.rootElement).on('mouseup.autofill.' + instance.guid, this.instance.rootElement,  function (event) {
       mouseUpCallback(event);
     });
 
