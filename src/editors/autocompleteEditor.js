@@ -26,55 +26,15 @@
 
   AutocompleteEditor.prototype.bindEvents = function () {
     var that = this;
-
     this.$textarea.on('keydown.autocompleteEditor', function (event) {
-
-      var value;
-      var isCtrlA = function(event) {
-        if(event.which == 65 && (event.metaKey || event.ctrlKey)) return true;
-        else return false;
-      };
-
-      if (!isCtrlA(event) && (!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) !== -1)) {
+      var keyCodes = Handsontable.helper.keyCode;
+      if (event.keyCode !== keyCodes.ARROW_DOWN && event.keyCode !== keyCodes.ARROW_UP) {
         that.instance._registerTimeout(setTimeout(function () {
-          value = that.$textarea.val();
-          that.queryChoices(value);
+          that.queryChoices(that.TEXTAREA.value);
         }, 0));
-      } else if ([Handsontable.helper.keyCode.ENTER, Handsontable.helper.keyCode.TAB].indexOf(event.keyCode) !== -1) {
-
-        if (that.cellProperties.strict === true && that.cellProperties.allowInvalid !== true) {
-
-          var choice = that.choices[0];
-          value = that.$textarea.val();
-
-          if (value.length > 0 && choice) {
-            if (choice.length > 0) {
-              that.$textarea[0].value = choice;
-            }
-          }
-
-        } else if (that.cellProperties.strict !== true) {
-          that.$htContainer.handsontable('deselectCell');
-        }
-      }
-
-    });
-
-    this.$htContainer.on('mouseenter', function () {
-      that.$htContainer.handsontable('deselectCell');
-    });
-
-    this.$htContainer.on('mouseleave', function () {
-      if(that.cellProperties.strict === true){
-        that.highlightBestMatchingChoice();
       }
     });
-
-    Handsontable.editors.HandsontableEditor.prototype.bindEvents.apply(this, arguments);
-
   };
-
-  var onBeforeKeyDownInner;
 
   AutocompleteEditor.prototype.open = function () {
 
@@ -99,46 +59,11 @@
       }
     });
 
-    onBeforeKeyDownInner = function (event) {
-      var instance = this;
-
-      if (event.keyCode == Handsontable.helper.keyCode.ARROW_UP){
-        if (instance.getSelected() && instance.getSelected()[0] == 0){
-
-          var cellProperties = parent.cellProperties;
-
-          if (cellProperties && !cellProperties.strict) {
-            instance.deselectCell();
-          }
-
-          if (parent) {
-            parent.focus();
-
-            if (parent.instance) {
-              parent.instance.listen();
-            } else {
-              instance.listen();
-            }
-
-          }
-
-          event.preventDefault();
-          event.stopImmediatePropagation();
-        }
-      }
-
-    };
-
-    choicesListHot.addHook('beforeKeyDown', onBeforeKeyDownInner);
-
     this.queryChoices(this.TEXTAREA.value);
 
   };
 
   AutocompleteEditor.prototype.close = function () {
-
-    this.$htContainer.handsontable('getInstance').removeHook('beforeKeyDown', onBeforeKeyDownInner);
-
     Handsontable.editors.HandsontableEditor.prototype.close.apply(this, arguments);
   };
 
@@ -183,6 +108,7 @@
   };
 
   AutocompleteEditor.prototype.updateChoicesList = function (choices) {
+    var pos = Handsontable.Dom.getCaretPosition(this.TEXTAREA);
 
     this.choices = choices;
 
@@ -193,7 +119,9 @@
       this.highlightBestMatchingChoice();
     }
 
-    this.focus();
+    this.instance.listen();
+    this.TEXTAREA.focus();
+    Handsontable.Dom.setCaretPosition(this.TEXTAREA, pos);
   };
 
   AutocompleteEditor.prototype.highlightBestMatchingChoice = function () {
@@ -208,7 +136,6 @@
     } else {
       this.$htContainer.handsontable('selectCell', bestMatchingChoice, 0);
     }
-
   };
 
   AutocompleteEditor.prototype.findBestMatchingChoice = function(){
