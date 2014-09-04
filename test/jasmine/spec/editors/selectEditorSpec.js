@@ -71,17 +71,19 @@ describe('selectEditor', function () {
   });
 
   it("should populate select with given options (object)", function () {
-    var options = {
-      'mit' : 'Misubishi',
-      'che' : 'Chevrolet',
-      'lam' : 'Lamborgini'
-    };
+    var options = [
+      {key:'mit', value:'Misubishi'},
+      {key:'che', value:'Chevrolet'},
+      {key:'lam', value:'Lamborgini'}
+    ];
 
     handsontable({
       columns: [
         {
           editor: 'select',
-          selectOptions: options
+          selectOptions: options,
+		  selectKey:"key",
+		  selectText:"value"
         }
       ]
     });
@@ -137,18 +139,20 @@ describe('selectEditor', function () {
 
   it("should populate select with given options (function:object)", function () {
     var options = function () {
-      return {
-        'mit' : 'Misubishi',
-        'che' : 'Chevrolet',
-        'lam' : 'Lamborgini'
-      }
+      return [
+      {key:'mit', value:'Misubishi'},
+      {key:'che', value:'Chevrolet'},
+      {key:'lam', value:'Lamborgini'}
+	  ];
     };
 
     handsontable({
       columns: [
         {
           editor: 'select',
-          selectOptions: options
+          selectOptions: options,
+		  selectKey:"key",
+		  selectText:"value"
         }
       ]
     });
