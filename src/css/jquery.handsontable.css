@@ -430,8 +430,12 @@ Comment For Cell
 * Autocomplete Editor
 */
 .handsontable .autocompleteEditor.handsontable {
+  padding-right: 17px;
+}
+.handsontable .autocompleteEditor.handsontable.htMacScroll {
   padding-right: 15px;
 }
+
 
 /**
  * Handsontable listbox theme

@@ -11,7 +11,16 @@
   AutocompleteEditor.prototype.createElements = function(){
     Handsontable.editors.HandsontableEditor.prototype.createElements.apply(this, arguments);
 
+    var getSystemSpecificPaddingClass = function () {
+      if(window.navigator.platform.indexOf('Mac') != -1) {
+        return "htMacScroll";
+      } else {
+        return "";
+      }
+    };
+
     this.$htContainer.addClass('autocompleteEditor');
+    this.$htContainer.addClass(getSystemSpecificPaddingClass());
 
   };
 
