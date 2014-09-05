@@ -71,9 +71,7 @@ WalkontableViewport.prototype.getWorkspaceActualWidth = function () {
 
 WalkontableViewport.prototype.getColumnHeaderHeight = function () {
   if (isNaN(this.columnHeaderHeight)) {
-    var cellOffset = Handsontable.Dom.offset(this.instance.wtTable.TBODY)
-      , tableOffset = this.instance.wtTable.tableOffset;
-    this.columnHeaderHeight = cellOffset.top - tableOffset.top;
+    this.columnHeaderHeight = Handsontable.Dom.outerHeight(this.instance.wtTable.THEAD);
   }
   return this.columnHeaderHeight;
 };
