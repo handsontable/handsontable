@@ -472,7 +472,7 @@ Handsontable.Dom.innerWidth = function (elem) {
       }
       var re = el.createTextRange();
 
-      return re.text.indexOf(r.text) + r.text.lenght;
+      return re.text.indexOf(r.text) + r.text.length;
     }
   };
 
