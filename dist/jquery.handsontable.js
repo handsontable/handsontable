@@ -1,12 +1,12 @@
 /*!
- * Handsontable 0.11.0
+ * Handsontable 0.11.1
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012-2014 Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Sep 05 2014 04:11:49 GMT+0200 (CEST)
+ * Date: Fri Sep 05 2014 12:54:36 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -2199,7 +2199,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.11.0'; //inserted by grunt from package.json
+  this.version = '0.11.1'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {};
@@ -2846,6 +2846,24 @@ Handsontable.Dom.innerWidth = function (elem) {
       return rc.text.length;
     }
     return 0;
+  };
+
+  /**
+   * Returns end of the selection in text input
+   * @return {Number}
+   */
+  Handsontable.Dom.getSelectionEndPosition = function (el) {
+    if(el.selectionEnd) {
+      return el.selectionEnd;
+    } else if(document.selection) { //IE8
+      var r = document.selection.createRange();
+      if(r == null) {
+        return 0;
+      }
+      var re = el.createTextRange();
+
+      return re.text.indexOf(r.text) + r.text.length;
+    }
   };
 
   /**
@@ -5987,7 +6005,8 @@ Handsontable.helper.toString = function (obj) {
   };
 
   AutocompleteEditor.prototype.updateChoicesList = function (choices) {
-    var pos = Handsontable.Dom.getCaretPosition(this.TEXTAREA);
+    var pos = Handsontable.Dom.getCaretPosition(this.TEXTAREA),
+        endPos = Handsontable.Dom.getSelectionEndPosition(this.TEXTAREA);
 
     this.choices = choices;
 
@@ -6000,7 +6019,7 @@ Handsontable.helper.toString = function (obj) {
 
     this.instance.listen();
     this.TEXTAREA.focus();
-    Handsontable.Dom.setCaretPosition(this.TEXTAREA, pos);
+    Handsontable.Dom.setCaretPosition(this.TEXTAREA, pos, (pos != endPos ? endPos : void 0));
   };
 
   AutocompleteEditor.prototype.highlightBestMatchingChoice = function () {
