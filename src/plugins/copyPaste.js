@@ -57,7 +57,7 @@
       var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey; //catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
 
       if (event.keyCode == Handsontable.helper.keyCode.A && ctrlDown) {
-        setTimeout(Handsontable.helper.proxy(plugin.setCopyableText, plugin));
+        instance._registerTimeout(setTimeout(Handsontable.helper.proxy(plugin.setCopyableText, plugin), 0));
       }
 
     }

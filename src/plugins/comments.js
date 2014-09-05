@@ -52,9 +52,6 @@ function Comments(instance) {
 
         var textArea = document.createElement('TEXTAREA');
         Handsontable.Dom.addClass(textArea, 'htCommentTextArea');
-        textArea.style.backgroundColor = '#FFFACD';
-        textArea.style.boxShadow = '1px 1px 2px #bbb';
-        textArea.style.fontFamily = 'Arial';
         comments.appendChild(textArea);
 
         Handsontable.Dom.addClass(comments, 'htComments');

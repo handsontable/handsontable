@@ -56,6 +56,10 @@
       return false;
     }
 
+    if(typeof value == 'undefined' || value == null) {
+      return false;
+    }
+
     return value.toString().toLowerCase().indexOf(query.toLowerCase()) != -1;
   };
 

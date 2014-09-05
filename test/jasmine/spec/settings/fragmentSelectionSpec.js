@@ -93,7 +93,7 @@ describe('settings', function () {
 
         var sel = getSelected();
         sel = sel.replace(/\s/g, ''); //tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
-        expect(sel).toEqual('B0C0D0');
+        expect(sel).toEqual('B1C1D1');
       });
 
       it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to false', function () {
@@ -156,7 +156,7 @@ describe('settings', function () {
 
         var sel = getSelected();
         sel = sel.replace(/\s/g, ''); //tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
-        expect(sel).toEqual('B0C0D0');
+        expect(sel).toEqual('B1C1D1');
       });
     });
   });

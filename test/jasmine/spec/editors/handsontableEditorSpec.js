@@ -81,6 +81,25 @@ describe('HandsontableEditor', function () {
     expect(getDataAtCell(2, 0)).toEqual('BMW');
   });
 
+  it('should keep focus on textarea after arrow is pressed', function () {
+    var hot = handsontable({
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        }
+      ]
+    });
+    selectCell(2, 0);
+
+    keyDownUp('enter');
+    keyDownUp('arrow_down');
+    expect(document.activeElement).toEqual(hot.getActiveEditor().TEXTAREA);
+  });
+
   it('should focus the TD after HT editor is prepared and destroyed', function () {
     handsontable({
       columns: [

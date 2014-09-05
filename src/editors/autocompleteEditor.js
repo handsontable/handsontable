@@ -3,7 +3,6 @@
 
   AutocompleteEditor.prototype.init = function () {
     Handsontable.editors.HandsontableEditor.prototype.init.apply(this, arguments);
-    this.$htContainer.handsontable('updateSettings', {height: this.getDropdownHeight()});
 
     this.query = null;
     this.choices = [];
@@ -12,33 +11,30 @@
   AutocompleteEditor.prototype.createElements = function(){
     Handsontable.editors.HandsontableEditor.prototype.createElements.apply(this, arguments);
 
-    this.$htContainer.addClass('autocompleteEditor');
-
-  };
-
-  AutocompleteEditor.prototype.bindEvents = function(){
-
-    var that = this;
-    this.$textarea.on('keydown.autocompleteEditor', function(event){
-      if(!Handsontable.helper.isMetaKey(event.keyCode) || [Handsontable.helper.keyCode.BACKSPACE, Handsontable.helper.keyCode.DELETE].indexOf(event.keyCode) != -1){
-        setTimeout(function () {
-          that.queryChoices(that.$textarea.val());
-        });
-      } else if (event.keyCode == Handsontable.helper.keyCode.ENTER && that.cellProperties.strict !== true){
-        that.$htContainer.handsontable('deselectCell');
+    var getSystemSpecificPaddingClass = function () {
+      if(window.navigator.platform.indexOf('Mac') != -1) {
+        return "htMacScroll";
+      } else {
+        return "";
       }
+    };
 
-    });
-
-    this.$htContainer.on('mouseenter', function () {
-      that.$htContainer.handsontable('deselectCell');
-    });
-
-    Handsontable.editors.HandsontableEditor.prototype.bindEvents.apply(this, arguments);
+    this.$htContainer.addClass('autocompleteEditor');
+    this.$htContainer.addClass(getSystemSpecificPaddingClass());
 
   };
 
-  var onBeforeKeyDownInner;
+  AutocompleteEditor.prototype.bindEvents = function () {
+    var that = this;
+    this.$textarea.on('keydown.autocompleteEditor', function (event) {
+      var keyCodes = Handsontable.helper.keyCode;
+      if (event.keyCode !== keyCodes.ARROW_DOWN && event.keyCode !== keyCodes.ARROW_UP) {
+        that.instance._registerTimeout(setTimeout(function () {
+          that.queryChoices(that.TEXTAREA.value);
+        }, 0));
+      }
+    });
+  };
 
   AutocompleteEditor.prototype.open = function () {
 
@@ -47,8 +43,9 @@
     this.$textarea[0].style.visibility = 'visible';
     this.focus();
 
-    var choicesListHot =  this.$htContainer.handsontable('getInstance');
+    var choicesListHot = this.$htContainer.handsontable('getInstance');
     var that = this;
+
     choicesListHot.updateSettings({
       'colWidths': [Handsontable.Dom.outerWidth(this.TEXTAREA) - 2],
       afterRenderer: function (TD, row, col, prop, value) {
@@ -62,47 +59,22 @@
       }
     });
 
-    onBeforeKeyDownInner = function (event) {
-      var instance = this;
-
-      if (event.keyCode == Handsontable.helper.keyCode.ARROW_UP){
-        if (instance.getSelected() && instance.getSelected()[0] == 0){
-
-          if(!parent.cellProperties.strict){
-            instance.deselectCell();
-          }
-
-          parent.instance.listen();
-          parent.focus();
-          event.preventDefault();
-          event.stopImmediatePropagation();
-        }
-      }
-
-    };
-
-    choicesListHot.addHook('beforeKeyDown', onBeforeKeyDownInner);
-
     this.queryChoices(this.TEXTAREA.value);
 
   };
 
   AutocompleteEditor.prototype.close = function () {
-
-    this.$htContainer.handsontable('getInstance').removeHook('beforeKeyDown', onBeforeKeyDownInner);
-
     Handsontable.editors.HandsontableEditor.prototype.close.apply(this, arguments);
   };
 
   AutocompleteEditor.prototype.queryChoices = function(query){
-
     this.query = query;
 
     if (typeof this.cellProperties.source == 'function'){
       var that = this;
 
       this.cellProperties.source(query, function(choices){
-        that.updateChoicesList(choices)
+        that.updateChoicesList(choices);
       });
 
     } else if (Handsontable.helper.isArray(this.cellProperties.source)) {
@@ -127,7 +99,7 @@
         });
       }
 
-      this.updateChoicesList(choices)
+      this.updateChoicesList(choices);
 
     } else {
       this.updateChoicesList([]);
@@ -136,16 +108,20 @@
   };
 
   AutocompleteEditor.prototype.updateChoicesList = function (choices) {
+    var pos = Handsontable.Dom.getCaretPosition(this.TEXTAREA);
 
-     this.choices = choices;
+    this.choices = choices;
 
     this.$htContainer.handsontable('loadData', Handsontable.helper.pivot([choices]));
+    this.$htContainer.handsontable('updateSettings', {height: this.getDropdownHeight()});
 
-    if(this.cellProperties.strict === true){
+    if(this.cellProperties.strict === true) {
       this.highlightBestMatchingChoice();
     }
 
-    this.focus();
+    this.instance.listen();
+    this.TEXTAREA.focus();
+    Handsontable.Dom.setCaretPosition(this.TEXTAREA, pos);
   };
 
   AutocompleteEditor.prototype.highlightBestMatchingChoice = function () {
@@ -160,7 +136,6 @@
     } else {
       this.$htContainer.handsontable('selectCell', bestMatchingChoice, 0);
     }
-
   };
 
   AutocompleteEditor.prototype.findBestMatchingChoice = function(){
@@ -201,6 +176,8 @@
   };
 
   AutocompleteEditor.prototype.getDropdownHeight = function(){
+    var firstRowHeight = this.$htContainer.handsontable('getInstance').getRowHeight(0) || 23;
+    return this.choices.length >= 10 ? 10 * firstRowHeight : this.choices.length * firstRowHeight + 8;
     //return 10 * this.$htContainer.handsontable('getInstance').getRowHeight(0);
     //sorry, we can't measure row height before it was rendered. Let's use fixed height for now
     return 230;

@@ -151,9 +151,9 @@ describe('Core_paste', function () {
     var copiedData1 = "foo";
     var copiedData2 = "bar";
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A0');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A1');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A2');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A3');
 
     expect(getSelected()).toBeUndefined();
 
@@ -162,9 +162,9 @@ describe('Core_paste', function () {
     waits(100);
 
     runs(function(){
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A0');
-      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A1');
-      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A2');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A3');
     });
 
     runs(function(){
@@ -176,7 +176,7 @@ describe('Core_paste', function () {
     waits(100);
 
     runs(function(){
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A0');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual(copiedData2);
       expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual(copiedData2);
     });
@@ -191,9 +191,9 @@ describe('Core_paste', function () {
 
     var copiedData = "foo";
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A0');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A1');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A2');
+    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
+    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A3');
 
     this.$container.find('tbody tr:eq(1) td:eq(0)').mousedown();
 
@@ -208,9 +208,9 @@ describe('Core_paste', function () {
     waits(100);
 
     runs(function(){
-      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A0');
-      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A1');
-      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A2');
+      expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
+      expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A3');
     });
 
   });

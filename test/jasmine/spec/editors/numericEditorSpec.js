@@ -137,13 +137,13 @@ describe('NumericEditor', function () {
 
   });
 
-  it("should convert string in format 'XX,XX' (with comma as separator) to a float with the same value", function() {
+  it("should convert string in format 'XX,XX' (with comma as separator) to a float with the same value if the numeric locale specifies comma as the precision delimiter (language=de)", function() {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'id', type: 'numeric'},
+        {data: 'id', type: 'numeric', language: 'de'},
         {data: 'name'},
         {data: 'lastName'}
       ],
@@ -199,7 +199,7 @@ describe('NumericEditor', function () {
 
   });
 
-  it("should display a string in a format 'X XXX,XX €' when using language=de, appropriate format in column settings and 'XXXX.XX' as an input string", function() {
+  it("should display a string in a format 'X XXX,XX €' when using language=de, appropriate format in column settings and 'XXXX,XX' as an input string (that comes from manual input)", function() {
     var onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -214,7 +214,38 @@ describe('NumericEditor', function () {
     selectCell(2, 0);
 
     keyDown('enter');
-    
+
+    document.activeElement.value = '2456,22';
+
+    onAfterValidate.reset();
+    destroyEditor();
+
+    waitsFor(function () {
+      return onAfterValidate.calls.length > 0;
+    }, 'Cell validation', 1000);
+
+    runs(function () {
+      expect(getCell(2, 0).innerHTML).toEqual('2 456,22 €');
+    });
+
+  });
+
+  it("should display a string in a format 'X XXX,XX €' when using language=de, appropriate format in column settings and 'XXXX.XX' as an input string (that comes from paste)", function() {
+    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        {data: 'id', type: 'numeric', format: '0,0.00 $', language: 'de'},
+        {data: 'name'},
+        {data: 'lastName'}
+      ],
+      afterValidate: onAfterValidate
+    });
+    selectCell(2, 0);
+
+    keyDown('enter');
+
     document.activeElement.value = '2456.22';
 
     onAfterValidate.reset();

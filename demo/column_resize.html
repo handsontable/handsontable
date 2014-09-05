@@ -47,7 +47,7 @@
       for (i = 0; i < 1000; i++) {
         var row = [];
         for (j = 0; j < 10; j++) {
-          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
+          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
         }
         rows.push(row);
       }
@@ -138,7 +138,10 @@
         manualRowResize: true
       });
 
-      $(".state-loaded.example1").fadeOut(300);
+      $(".state-loaded.example1").fadeOut(300, function () {
+        // render table after hidden state-loaded alert
+        HOT.render();
+      });
     });
 
 
