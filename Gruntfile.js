@@ -256,6 +256,7 @@ module.exports = function (grunt) {
     },
     uglify: {
       options: {
+        preserveComments: 'some'
       },
       "dist/jquery.handsontable.full.min.js": ["dist/jquery.handsontable.full.js" ]
     },
