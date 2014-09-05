@@ -85,10 +85,10 @@ CopyPasteClass.prototype.init = function () {
         return; //this is needed by fragmentSelection in Handsontable. Ignore copypaste.js behavior if fragment of cell text is selected
       }
 
-//      that.selectNodeText(that.elTextarea);
-//      setTimeout(function () {
-//        that.selectNodeText(that.elTextarea);
-//      }, 0);
+      that.selectNodeText(that.elTextarea);
+      setTimeout(function () {
+        that.selectNodeText(that.elTextarea);
+      }, 0);
     }
 
     /* 67 = c
@@ -96,7 +96,7 @@ CopyPasteClass.prototype.init = function () {
      * 88 = x
      */
     if (isCtrlDown && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
-      //that.selectNodeText(that.elTextarea);
+      // that.selectNodeText(that.elTextarea);
 
       if (event.keyCode === 88) { //works in all browsers, incl. Opera < 12.12
         setTimeout(function () {
@@ -135,7 +135,6 @@ CopyPasteClass.prototype.copyable = function (str) {
   if (typeof str !== 'string' && str.toString === void 0) {
     throw new Error('copyable requires string parameter');
   }
-
   this.elTextarea.value = str;
 };
 
