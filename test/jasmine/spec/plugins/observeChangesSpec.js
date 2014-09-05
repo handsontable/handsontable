@@ -165,7 +165,7 @@ describe('HandsontableObserveChanges', function () {
         waits(100); //Object.observe is async
 
         runs(function () {
-          expect(htCore.find('td:eq(0)').html()).toEqual('A0');
+          expect(htCore.find('td:eq(0)').html()).toEqual('A1');
         });
       });
     });
@@ -268,7 +268,7 @@ describe('HandsontableObserveChanges', function () {
         waits(100); //Object.observe is async
 
         runs(function () {
-          expect(htCore.find('td:eq(0)').html()).toEqual('A0');
+          expect(htCore.find('td:eq(0)').html()).toEqual('A1');
         });
       });
     });
@@ -285,7 +285,7 @@ describe('HandsontableObserveChanges', function () {
       waits(100); //Object.observe is async
 
       runs(function () {
-        expect(htCore.find('td:eq(0)').html()).toEqual('A0');
+        expect(htCore.find('td:eq(0)').html()).toEqual('A1');
 
         updateSettings({
           observeChanges: true
@@ -323,7 +323,7 @@ describe('HandsontableObserveChanges', function () {
 
       runs(function () {
         expect(htCore.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('new string');
-        expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A1');
+        expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A2');
       });
 
       runs(function () {
@@ -339,7 +339,7 @@ describe('HandsontableObserveChanges', function () {
 
       runs(function () {
         expect(htCore.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('new string');
-        expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A1');
+        expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A2');
       });
 
 
@@ -368,7 +368,7 @@ describe('HandsontableObserveChanges', function () {
 
       runs(function () {
         expect(htCore.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('new string');
-        expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A1');
+        expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A2');
       });
 
       runs(function () {
@@ -382,7 +382,7 @@ describe('HandsontableObserveChanges', function () {
 
       runs(function () {
         expect(htCore.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('new string');
-        expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A1');
+        expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A2');
       });
 
 
@@ -410,8 +410,8 @@ describe('HandsontableObserveChanges', function () {
       waits(100);
 
       runs(function () {
-        expect(htCore.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('A0');
-        expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A1');
+        expect(htCore.find('tbody tr:eq(0) td:eq(0)').html()).toEqual('A1');
+        expect(htCore.find('tbody tr:eq(1) td:eq(0)').html()).toEqual('A2');
       });
 
       runs(function () {

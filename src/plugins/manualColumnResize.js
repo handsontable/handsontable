@@ -1,6 +1,16 @@
+/**
+ * HandsontableManualColumnResize
+ *
+ * Has 2 UI components:
+ * - handle - the draggable element that sets the desired width of the column
+ * - guide - the helper guide that shows the desired width as a vertical guide
+ *
+ * Warning! Whenever you make a change in this file, make an analogous change in manualRowResize.js
+ * @constructor
+ */
+(function (Handsontable) {
 function HandsontableManualColumnResize() {
-  var pressed
-    , currentTH
+  var currentTH
     , currentCol
     , currentWidth
     , instance
@@ -8,52 +18,15 @@ function HandsontableManualColumnResize() {
     , startX
     , startWidth
     , startOffset
-    , scrollTop = 0
-    , scrollLeft = 0
-    , resizer = document.createElement('DIV')
     , handle = document.createElement('DIV')
-    , line = document.createElement('DIV')
-    , lineStyle = line.style;
+    , guide = document.createElement('DIV')
+    , $window = $(window);
 
-  resizer.className = 'manualColumnResizer';
-
-  handle.className = 'manualColumnResizerHandle';
-  resizer.appendChild(handle);
-
-  line.className = 'manualColumnResizerLine';
-  resizer.appendChild(line);
-
-  var $document = $(document);
-
-  $document.mousemove(function (e) {
-    if (pressed) {
-      currentWidth = startWidth + (e.pageX - startX);
-      newSize = setManualSize(currentCol, currentWidth); //save col width
-      resizer.style.left = startOffset + currentWidth + 'px';
-    }
-  });
-
-  $document.mouseup(function () {
-    if (pressed) {
-      Handsontable.Dom.removeClass(resizer, 'active');
-      pressed = false;
-
-      if(newSize != startWidth){
-        instance.forceFullRender = true;
-        instance.view.render(); //updates all
-
-        saveManualColumnWidths.call(instance);
-
-        Handsontable.hooks.run(instance, 'afterColumnResize', currentCol, newSize);
-      }
-
-      refreshResizerPosition.call(instance, currentTH);
-    }
-  });
+  handle.className = 'manualColumnResizer';
+  guide.className = 'manualColumnResizerGuide';
 
   var saveManualColumnWidths = function () {
     var instance = this;
-
     Handsontable.hooks.run(instance, 'persistentStateSave', 'manualColumnWidths', instance.manualColumnWidths);
   };
 
@@ -61,46 +34,64 @@ function HandsontableManualColumnResize() {
     var instance = this;
     var storedState = {};
     Handsontable.hooks.run(instance, 'persistentStateLoad', 'manualColumnWidths', storedState);
-
     return storedState.value;
   };
 
-  function refreshResizerPosition(TH) {
+  function setupHandlePosition(TH) {
     instance = this;
     currentTH = TH;
 
     var col = this.view.wt.wtTable.getCoords(TH).col; //getCoords returns WalkontableCellCoords
     if (col >= 0) { //if not row header
       currentCol = col;
-      var rootOffset = Handsontable.Dom.offset(this.rootElement[0]).left;
-      var thOffset = Handsontable.Dom.offset(TH).left;
-      startOffset = (thOffset - rootOffset) - 6 + scrollLeft;
-      resizer.style.left = startOffset + parseInt(Handsontable.Dom.outerWidth(TH), 10) + 'px';
-      resizer.style.top = scrollTop + 'px';
-      this.rootElement[0].appendChild(resizer);
+      var box = currentTH.getBoundingClientRect();
+      startOffset = box.left - 6;
+      startWidth = parseInt(box.width, 10);
+      handle.style.top = box.top + 'px';
+      handle.style.left = startOffset + startWidth + 'px';
+      instance.rootElement[0].appendChild(handle);
     }
   }
 
-  function refreshLinePosition() {
-    var instance = this;
-    startWidth = parseInt(Handsontable.Dom.outerWidth(currentTH), 10);
-    Handsontable.Dom.addClass(resizer, 'active');
-    lineStyle.height = Handsontable.Dom.outerHeight(instance.$table[0]) + 'px';
-    pressed = instance;
+  function refreshHandlePosition() {
+    handle.style.left = startOffset + currentWidth + 'px';
   }
 
-  var bindManualColumnWidthEvents = function () {
+  function setupGuidePosition() {
     var instance = this;
+    Handsontable.Dom.addClass(handle, 'active');
+    Handsontable.Dom.addClass(guide, 'active');
+    guide.style.top = handle.style.top;
+    guide.style.left = handle.style.left;
+    guide.style.height = instance.view.maximumVisibleElementHeight(0) + 'px';
+    instance.rootElement[0].appendChild(guide);
+  }
+
+  function refreshGuidePosition() {
+    guide.style.left = handle.style.left;
+  }
+
+  function hideHandleAndGuide() {
+    Handsontable.Dom.removeClass(handle, 'active');
+    Handsontable.Dom.removeClass(guide, 'active');
+  }
+
+  var bindEvents = function () {
+    var instance = this;
+    var pressed;
     var dblclick = 0;
     var autoresizeTimeout = null;
 
-    this.rootElement.on('mouseenter.handsontable', 'table thead tr > th', function (e) {
+    instance.rootElement.on('mouseenter.manualColumnResize.' + instance.guid, 'table thead tr > th', function (e) {
       if (!pressed) {
-        refreshResizerPosition.call(instance, e.currentTarget);
+        setupHandlePosition.call(instance, e.currentTarget);
       }
     });
 
-    this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function () {
+    instance.rootElement.on('mousedown.manualColumnResize.' + instance.guid, '.manualColumnResizer', function (e) {
+      setupGuidePosition.call(instance);
+      pressed = instance;
+
       if (autoresizeTimeout == null) {
         autoresizeTimeout = setTimeout(function () {
           if (dblclick >= 2) {
@@ -113,15 +104,50 @@ function HandsontableManualColumnResize() {
           dblclick = 0;
           autoresizeTimeout = null;
         }, 500);
+        instance._registerTimeout(autoresizeTimeout);
       }
       dblclick++;
-    });
 
-    this.rootElement.on('mousedown.handsontable', '.manualColumnResizer', function (e) {
       startX = e.pageX;
-      refreshLinePosition.call(instance);
       newSize = startWidth;
     });
+
+    $window.on('mousemove.manualColumnResize.' + instance.guid, function (e) {
+      if (pressed) {
+        currentWidth = startWidth + (e.pageX - startX);
+        newSize = setManualSize(currentCol, currentWidth); //save col width
+        refreshHandlePosition();
+        refreshGuidePosition();
+      }
+    });
+
+    $window.on('mouseup.manualColumnResize.' + instance.guid, function () {
+      if (pressed) {
+        hideHandleAndGuide();
+        pressed = false;
+
+        if(newSize != startWidth){
+          instance.forceFullRender = true;
+          instance.view.render(); //updates all
+
+          saveManualColumnWidths.call(instance);
+
+          Handsontable.hooks.run(instance, 'afterColumnResize', currentCol, newSize);
+        }
+
+        setupHandlePosition.call(instance, currentTH);
+      }
+    });
+
+    instance.addHook('afterDestroy', unbindEvents);
+  };
+
+  var unbindEvents = function(){
+    var instance = this;
+    instance.rootElement.off('mouseenter.manualColumnResize.' + instance.guid, 'table thead tr > th');
+    instance.rootElement.off('mousedown.manualColumnResize.' + instance.guid, '.manualColumnResizer');
+    $window.off('mousemove.manualColumnResize.' + instance.guid);
+    $window.off('mouseup.manualColumnResize.' + instance.guid);
   };
 
   this.beforeInit = function () {
@@ -146,13 +172,16 @@ function HandsontableManualColumnResize() {
       }
 
       if (source == 'afterInit') {
-        bindManualColumnWidthEvents.call(this);
-        instance.forceFullRender = true;
-        instance.render();
-
-        Handsontable.hooks.add('afterScrollVertically', afterScrollVertically);
-        Handsontable.hooks.add('afterScrollHorizontally', afterScrollHorizontally);
+        bindEvents.call(this);
+        if (this.manualColumnWidths.length > 0) {
+          this.forceFullRender = true;
+          this.render();
+        }
       }
+    }
+    else {
+      unbindEvents.call(this);
+      this.manualColumnWidths = [];
     }
   };
 
@@ -177,14 +206,6 @@ function HandsontableManualColumnResize() {
     }
     return width;
   };
-
-  var afterScrollVertically = function () {
-    scrollTop = Handsontable.Dom.getScrollTop(this.rootElement[0]);
-  };
-
-  var afterScrollHorizontally = function () {
-    scrollLeft = Handsontable.Dom.getScrollLeft(this.rootElement[0]);
-  }
 }
 var htManualColumnResize = new HandsontableManualColumnResize();
 
@@ -198,3 +219,5 @@ Handsontable.hooks.add('afterUpdateSettings', function () {
 Handsontable.hooks.add('modifyColWidth', htManualColumnResize.modifyColWidth);
 
 Handsontable.hooks.register('afterColumnResize');
+
+})(Handsontable);

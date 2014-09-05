@@ -1,5 +1,6 @@
 function WalkontableCornerScrollbarNative(instance) {
   this.instance = instance;
+  this.type = 'corner';
   this.init();
   this.clone = this.makeClone('corner');
 }
@@ -12,46 +13,34 @@ WalkontableCornerScrollbarNative.prototype.resetFixedPosition = function () {
   }
   var elem = this.clone.wtTable.holder.parentNode;
 
-  var box;
   if (this.scrollHandler === window) {
-    box = this.instance.wtTable.hider.getBoundingClientRect();
-    var top = Math.ceil(box.top, 10);
-    var bottom = Math.ceil(box.bottom, 10);
+    var box = this.instance.wtTable.holder.getBoundingClientRect();
+    var top = Math.ceil(box.top);
+    var left = Math.ceil(box.left);
 
-    if (top < 0 && bottom > 0) {
-      elem.style.top = '0';
-    }
-    else {
-      elem.style.top = top + 'px';
-    }
-
-    var left = Math.ceil(box.left, 10);
-    var right = Math.ceil(box.right, 10);
-
-    if (left < 0 && right > 0) {
+    if (left < 0) {
+      elem.style.left = -left + 'px';
+    } else {
       elem.style.left = '0';
     }
-    else {
-      elem.style.left = left + 'px';
+
+    if (top < 0) {
+      elem.style.top = -top + "px";
+    } else {
+      elem.style.top = "0";
     }
   }
   else {
-    box = this.scrollHandler.getBoundingClientRect();
-    elem.style.top = Math.ceil(box.top, 10) + 'px';
-    elem.style.left = Math.ceil(box.left, 10) + 'px';
+    elem.style.top = this.instance.wtScrollbars.vertical.windowScrollPosition + "px";
+    elem.style.left = this.instance.wtScrollbars.horizontal.windowScrollPosition + "px";
   }
 
   elem.style.width = Handsontable.Dom.outerWidth(this.clone.wtTable.TABLE) + 4 + 'px';
   elem.style.height = Handsontable.Dom.outerHeight(this.clone.wtTable.TABLE) + 4 + 'px';
 };
 
-WalkontableCornerScrollbarNative.prototype.prepare = function () {
-};
-
 WalkontableCornerScrollbarNative.prototype.refresh = function (selectionsOnly) {
-  this.measureBefore = 0;
-  this.measureAfter = 0;
-  this.clone && this.clone.draw(selectionsOnly);
+  WalkontableOverlay.prototype.refresh.call(this, selectionsOnly);
 };
 
 WalkontableCornerScrollbarNative.prototype.getScrollPosition = function () {

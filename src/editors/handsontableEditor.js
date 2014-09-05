@@ -42,36 +42,6 @@
           parent.setValue(value);
         }
         parent.instance.destroyEditor();
-      },
-      beforeOnKeyDown: function (event) {
-        var instance = this;
-
-        switch (event.keyCode) {
-          case Handsontable.helper.keyCode.ESCAPE:
-            parent.instance.destroyEditor(true);
-            event.stopImmediatePropagation();
-            event.preventDefault();
-            break;
-
-          case Handsontable.helper.keyCode.ENTER: //enter
-            var sel = instance.getSelected();
-            var value = this.getDataAtCell(sel[0], sel[1]);
-            if (value !== void 0) { //if the value is undefined then it means we don't want to set the value
-              parent.setValue(value);
-            }
-            parent.instance.destroyEditor();
-            break;
-
-          case Handsontable.helper.keyCode.ARROW_UP:
-            if (instance.getSelected() && instance.getSelected()[0] == 0 && !parent.cellProperties.strict){
-              instance.deselectCell();
-              parent.instance.listen();
-              parent.focus();
-              event.preventDefault();
-              event.stopImmediatePropagation();
-            }
-            break;
-        }
       }
     };
 
@@ -90,22 +60,39 @@
 
     var editor = this.getActiveEditor();
     var innerHOT = editor.$htContainer.handsontable('getInstance');
+    var rowToSelect;
 
     if (event.keyCode == Handsontable.helper.keyCode.ARROW_DOWN) {
-
-      if (!innerHOT.getSelected()){
-        innerHOT.selectCell(0, 0);
-      } else {
+      if (!innerHOT.getSelected()) {
+        rowToSelect = 0;
+      }
+      else {
         var selectedRow = innerHOT.getSelected()[0];
-        var rowToSelect = selectedRow < innerHOT.countRows() - 1 ? selectedRow + 1 : selectedRow;
+        var lastRow = innerHOT.countRows() - 1;
+        rowToSelect = Math.min(lastRow, selectedRow + 1);
+      }
+    }
+    else if (event.keyCode == Handsontable.helper.keyCode.ARROW_UP) {
+      if (innerHOT.getSelected()) {
+        var selectedRow = innerHOT.getSelected()[0];
+        rowToSelect = selectedRow - 1;
+      }
+    }
 
+    if (rowToSelect !== void 0) {
+      if (rowToSelect < 0) {
+        innerHOT.deselectCell();
+      }
+      else {
         innerHOT.selectCell(rowToSelect, 0);
       }
 
       event.preventDefault();
       event.stopImmediatePropagation();
-    }
 
+      editor.instance.listen();
+      editor.TEXTAREA.focus();
+    }
   };
 
   HandsontableEditor.prototype.open = function () {

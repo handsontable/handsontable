@@ -75,20 +75,25 @@ function WalkontableTableRenderer(wtTable){
     this.removeRedundantRows();
   }
 
-
-
   if (!this.wtTable.isWorkingOnClone()) {
+    this.markOversizedRows();
 
-    this.instance.wtScrollbars.refresh(false);
+    this.instance.wtScrollbars.applyToDOM();
 
     if (workspaceWidth !== this.instance.wtViewport.getWorkspaceWidth()) {
       //workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
       this.instance.wtViewport.containerWidth = null;
       this.wtTable.getColumnStrategy().stretch();
+      var cache = this.instance.wtTable.columnWidthCache;
       for (visibleColIndex = 0; visibleColIndex < this.wtTable.getColumnStrategy().cellCount; visibleColIndex++) {
-        this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = this.wtTable.getColumnStrategy().getSize(visibleColIndex) + 'px';
+        var width = this.wtTable.getColumnStrategy().getSize(visibleColIndex);
+        this.COLGROUP.childNodes[visibleColIndex + this.rowHeaderCount].style.width = width + 'px';
+        cache[visibleColIndex] = width;
       }
     }
+
+    this.instance.wtScrollbars.refresh(false);
+
     this.instance.getSetting('onDraw', true);
   }
 
@@ -118,7 +123,7 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
       break; //we have as much rows as needed for this clone
     }
 
-    TR = this.getTrForRow(visibleRowIndex, TR);
+    TR = this.getOrCreateTrForRow(visibleRowIndex, TR);
 
     //Render row headers
     this.renderRowHeaders(sourceRowIndex, TR);
@@ -140,7 +145,10 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
       if (visibleRowIndex == 0) { //rendering the first row may caused bottom scrollbar to appear, so we need to refresh the window size
         this.instance.wtScrollbars.vertical.readWindowSize();
       }
+
+      this.resetOversizedRow(sourceRowIndex);
     }
+
 
     if (TR.firstChild) {
       var height = this.instance.getSetting('rowHeight', sourceRowIndex); //if I have 2 fixed columns with one-line content and the 3rd column has a multiline content, this is the way to make sure that the overlay will has same row height
@@ -158,6 +166,36 @@ WalkontableTableRenderer.prototype.renderRows = function (totalRows, cloneLimit,
   }
 };
 
+WalkontableTableRenderer.prototype.resetOversizedRow = function (sourceRow) {
+  if (this.instance.wtTable.oversizedRows && this.instance.wtTable.oversizedRows[sourceRow]) {
+    this.instance.wtTable.oversizedRows[sourceRow] = void 0;  //void 0 is faster than delete, see http://jsperf.com/delete-vs-undefined-vs-null/16
+  }
+};
+
+WalkontableTableRenderer.prototype.markOversizedRows = function () {
+  var previousRowHeight
+    , trInnerHeight
+    , sourceRowIndex
+    , currentTr;
+
+  var rowCount = this.instance.wtTable.TBODY.childNodes.length;
+  while (rowCount) {
+    rowCount--;
+    sourceRowIndex = this.instance.wtTable.rowFilter.visibleToSource(rowCount);
+    previousRowHeight = this.instance.wtSettings.settings.rowHeight(sourceRowIndex);
+    currentTr = this.instance.wtTable.getTrForRow(sourceRowIndex);
+
+    trInnerHeight = Handsontable.Dom.innerHeight(currentTr) - 1;
+
+    if ((!previousRowHeight && this.instance.wtSettings.settings.defaultRowHeight < trInnerHeight || previousRowHeight < trInnerHeight)) {
+      if (!this.instance.wtTable.oversizedRows) {
+        this.instance.wtTable.oversizedRows = {};
+      }
+      this.instance.wtTable.oversizedRows[sourceRowIndex] = trInnerHeight;
+    }
+  }
+
+};
 
 WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, displayTds) {
   var TD, sourceColIndex;
@@ -209,7 +247,7 @@ WalkontableTableRenderer.prototype.appendToTbody = function (TR) {
   this.wtTable.tbodyChildrenLength++;
 };
 
-WalkontableTableRenderer.prototype.getTrForRow = function (rowIndex, currentTr) {
+WalkontableTableRenderer.prototype.getOrCreateTrForRow = function (rowIndex, currentTr) {
   var TR;
 
   if (rowIndex >= this.wtTable.tbodyChildrenLength) {
@@ -292,6 +330,9 @@ WalkontableTableRenderer.prototype.adjustColGroups = function () {
   while (this.wtTable.colgroupChildrenLength > columnCount + this.rowHeaderCount) {
     this.COLGROUP.removeChild(this.COLGROUP.lastChild);
     this.wtTable.colgroupChildrenLength--;
+    if(this.wtTable.columnWidthCache) {
+      this.wtTable.columnWidthCache.splice(-1,1);
+    }
   }
 };
 

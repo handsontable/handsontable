@@ -117,16 +117,18 @@ WalkontableTable.prototype.draw = function (selectionsOnly) {
       this.instance.wtViewport.resetSettings();
     }
     var offsetRow;
-    if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay) {
+    if (this.instance.cloneOverlay instanceof WalkontableDebugOverlay
+        || this.instance.cloneOverlay instanceof WalkontableVerticalScrollbarNative
+        || this.instance.cloneOverlay instanceof WalkontableCornerScrollbarNative) {
       offsetRow = 0;
     }
     else {
       offsetRow = this.instance.wtSettings.settings.offsetRow;
     }
+
     this.rowFilter = new WalkontableRowFilter(
       offsetRow,
       this.instance.getSetting('totalRows'),
-      this.instance.getSetting('fixedRowsTop'),
       this.instance.getSetting('columnHeaders').length
     );
     this.columnFilter = new WalkontableColumnFilter(
@@ -274,11 +276,11 @@ WalkontableTable.prototype.getColumnHeader = function(col) {
   if (THEAD) {
     return THEAD.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
   }
-}
+};
 
 /**
  * getRowHeader
- * @param col
+ * @param row
  * @return {Object} HTMLElement on success or {Number} one of the exit codes on error:
  *  -1 table doesn't have row headers
  *
@@ -293,7 +295,7 @@ WalkontableTable.prototype.getRowHeader = function(row) {
   if (TR) {
     return TR.childNodes[0];
   }
-}
+};
 
 /**
  * Returns cell coords object for a given TD
@@ -316,9 +318,13 @@ WalkontableTable.prototype.getCoords = function (TD) {
   );
 };
 
+WalkontableTable.prototype.getTrForRow = function (row) {
+  return this.TBODY.childNodes[this.rowFilter.sourceToVisible(row)];
+};
+
 //returns -1 if no row is visible
 WalkontableTable.prototype.getFirstVisibleRow = function () {
-  return this.rowFilter.visibleToSource(0 + this.rowFilter.fixedCount);
+  return this.rowFilter.visibleToSource(0);
 };
 
 //returns -1 if no column is visible
@@ -407,7 +413,7 @@ WalkontableTable.prototype.getLastVisibleColumn = function () {
 };
 
 WalkontableTable.prototype.isRowBeforeViewport = function (r) {
-  return (this.rowFilter.sourceToVisible(r) < this.rowFilter.fixedCount && r >= this.rowFilter.fixedCount);
+  return (this.rowFilter.sourceToVisible(r) < 0 && r >= 0);
 };
 
 WalkontableTable.prototype.isRowAfterViewport = function (r) {
@@ -415,7 +421,7 @@ WalkontableTable.prototype.isRowAfterViewport = function (r) {
 };
 
 WalkontableTable.prototype.isColumnBeforeViewport = function (c) {
-  return (this.columnFilter.sourceToVisible(c) < this.columnFilter.fixedCount && c >= this.columnFilter.fixedCount);
+  return (this.columnFilter.sourceToVisible(c) < 0 && c >= 0);
 };
 
 WalkontableTable.prototype.isColumnAfterViewport = function (c) {

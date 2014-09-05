@@ -254,11 +254,12 @@ describe('manualColumnResize', function () {
 
     this.$container.find('thead th:eq(0)').mouseenter();
 
-    var resizer = this.$container.find('.manualColumnResizer');
-    var handle = resizer.find('.manualColumnResizerHandle');
+    var handle = this.$container.find('.manualColumnResizer');
+    var handleBox = handle[0].getBoundingClientRect();
     var th0 = this.$container.find('thead th:eq(0)');
+    var thBox = th0[0].getBoundingClientRect();
 
-    expect(resizer.offset().left + handle.outerWidth()).toEqual(th0.offset().left + th0.outerWidth() - 1);
+    expect(handleBox.left + handleBox.width).toEqual(thBox.left + thBox.width - 1);
 
     maxed = true;
 
@@ -266,8 +267,34 @@ describe('manualColumnResize', function () {
 
     this.$container.find('thead th:eq(0)').mouseenter();
 
-    expect(resizer.offset().left + handle.outerWidth()).toEqual(th0.offset().left + th0.outerWidth() - 1);
+    handleBox = handle[0].getBoundingClientRect();
+    thBox = th0[0].getBoundingClientRect();
+    expect(handleBox.left + handleBox.width).toEqual(thBox.left + thBox.width - 1);
+  });
 
+  it("should display the resize handle in the correct place after the table has been scrolled", function () {
+    handsontable({
+      data: createSpreadsheetData(10, 20),
+      colHeaders: true,
+      manualColumnResize: true,
+      height: 100,
+      width: 200
+    });
 
+    var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
+    $colHeader.trigger("mouseenter");
+    var $handle = this.$container.find('.manualColumnResizer');
+    $handle[0].style.background = "red";
+
+    expect($colHeader.offset().left + $colHeader.width() - 5).toEqual($handle.offset().left);
+    expect($colHeader.offset().top).toEqual($handle.offset().top);
+
+    this.$container.scrollLeft(200);
+    this.$container.scroll();
+
+    $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(5)');
+    $colHeader.trigger("mouseenter");
+    expect($colHeader.offset().left + $colHeader.width() - 5).toEqual($handle.offset().left);
+    expect($colHeader.offset().top).toEqual($handle.offset().top);
   });
 });

@@ -1,33 +1,30 @@
+/**
+ * HandsontableManualRowMove
+ *
+ * Has 2 UI components:
+ * - handle - the draggable element that sets the desired position of the row
+ * - guide - the helper guide that shows the desired position as a horizontal guide
+ *
+ * Warning! Whenever you make a change in this file, make an analogous change in manualRowMove.js
+ * @constructor
+ */
 (function (Handsontable) {
   function HandsontableManualRowMove() {
 
-    var pressed,
-        startRow,
+    var startRow,
         endRow,
         startY,
-        startOffest,
-        moveHandle,
         startOffset,
-        scrollTop = 0,
-        scrollLeft = 0,
-        currentRow;
+        currentRow,
+        currentTH,
+        handle = document.createElement('DIV'),
+        guide = document.createElement('DIV'),
+        $window = $(window);
 
-    var ghost = document.createElement('DIV'),
-        ghostStyle = ghost.style;
+    handle.className = 'manualRowMover';
+    guide.className = 'manualRowMoverGuide';
 
-    ghost.className = 'ghost';
-    ghostStyle.position = 'absolute';
-    ghostStyle.top = '25px';
-    ghostStyle.left = '50px';
-    ghostStyle.width = '10px';
-    ghostStyle.height = '10px';
-    ghostStyle.backgroundColor = '#CCC';
-    ghostStyle.opacity = 0.7;
-
-    moveHandle = document.createElement('DIV');
-    moveHandle.className = 'manualRowMover';
-
-    var saveManualRowPostions = function () {
+    var saveManualRowPositions = function () {
       var instance = this;
       Handsontable.hooks.run(instance, 'persistentStateSave', 'manualRowPositions', instance.manualRowPositions);
     };
@@ -35,116 +32,119 @@
     var loadManualRowPositions = function () {
       var instance = this,
           storedState = {};
-
       Handsontable.hooks.run(instance, 'persistentStateLoad', 'manualRowPositions', storedState);
-
       return storedState.value;
     };
 
-    var refreshMoverPosition = function(TH) {
-      var row = this.view.wt.wtTable.getCoords(TH).row; //getCoords returns WalkontableCellCoords
+    function setupHandlePosition(TH) {
+      instance = this;
+      currentTH = TH;
 
+      var row = this.view.wt.wtTable.getCoords(TH).row; //getCoords returns WalkontableCellCoords
       if (row >= 0) { //if not row header
         currentRow = row;
-
-        var rootOffset = Handsontable.Dom.offset(this.rootElement[0]).top;
-        var thOffset = Handsontable.Dom.offset(TH).top;
-        startOffset = (thOffset - rootOffset) + scrollTop;
-        //moveHandle.style.top = startOffset + parseInt(Handsontable.Dom.outerHeight(TH), 10) + 'px';
-        moveHandle.style.top = startOffset + 'px';
-        moveHandle.style.left = scrollLeft + 'px';
+        var box = currentTH.getBoundingClientRect();
+        startOffset = box.top;
+        handle.style.top = startOffset + 'px';
+        handle.style.left = box.left + 'px';
+        instance.rootElement[0].appendChild(handle);
       }
     }
 
-    var bindMoveRowEvents = function () {
-      var instance = this;
+    function refreshHandlePosition(TH) {
+      var box = TH.getBoundingClientRect();
+      handle.style.top = box.top + 'px';
+    }
 
-      instance.rootElement.on('mousemove.manualRowMove', function (e) {
+    function setupGuidePosition() {
+      var instance = this;
+      Handsontable.Dom.addClass(handle, 'active');
+      Handsontable.Dom.addClass(guide, 'active');
+      var box = currentTH.getBoundingClientRect();
+      guide.style.width = instance.view.maximumVisibleElementWidth(0) + 'px';
+      guide.style.height = box.height + 'px';
+      guide.style.top = startOffset + 'px';
+      guide.style.left = handle.style.left;
+      instance.rootElement[0].appendChild(guide);
+    }
+
+    function refreshGuidePosition(diff) {
+      guide.style.top = startOffset + diff + 'px';
+    }
+
+    function hideHandleAndGuide() {
+      Handsontable.Dom.removeClass(handle, 'active');
+      Handsontable.Dom.removeClass(guide, 'active');
+    }
+
+    var bindEvents = function () {
+      var instance = this;
+      var pressed;
+
+      instance.rootElement.on('mouseenter.manualRowMove.' + instance.guid, 'table tbody tr > th', function (e) {
         if (pressed) {
-          var top = startOffest + e.pageY - startY + 'px';
-          ghostStyle.top = top;
-          if (ghostStyle.display === 'none') {
-            ghostStyle.display = 'block';
-          }
+          endRow = instance.view.wt.wtTable.getCoords(e.currentTarget).row;
+          refreshHandlePosition(e.currentTarget);
+        }
+        else {
+          setupHandlePosition.call(instance, e.currentTarget);
         }
       });
 
-      instance.rootElement.on('mouseup.manualRowMove', function () {
+      instance.rootElement.on('mousedown.manualRowMove.' + instance.guid, '.manualRowMover', function (e) {
+        startY = e.pageY;
+        setupGuidePosition.call(instance);
+        pressed = instance;
+
+        startRow = currentRow;
+        endRow = currentRow;
+      });
+
+      $window.on('mousemove.manualRowMove.' + instance.guid, function (e) {
         if (pressed) {
+          refreshGuidePosition(e.pageY - startY);
+        }
+      });
+
+      $window.on('mouseup.manualRowMove.' + instance.guid, function () {
+        if (pressed) {
+          hideHandleAndGuide();
+          pressed = false;
+
           if (startRow < endRow) {
             endRow--;
           }
-
-          if (instance.getSettings().colHeaders) {
-            startRow--;
-            endRow--;
-          }
-
+          createPositionData(instance.manualRowPositions, instance.countRows());
           instance.manualRowPositions.splice(endRow, 0, instance.manualRowPositions.splice(startRow, 1)[0]);
 
-          var mover = instance.rootElement[0].querySelector('.manualRowMover.active');
-          if (mover) {
-            Handsontable.Dom.removeClass(mover, 'active');
-          }
-
-          pressed = false;
           instance.forceFullRender = true;
-          instance.view.render();
-          ghostStyle.display = 'none';
+          instance.view.render(); //updates all
 
-          saveManualRowPostions.call(instance);
+          saveManualRowPositions.call(instance);
 
           Handsontable.hooks.run(instance, 'afterRowMove', startRow, endRow);
+
+          setupHandlePosition.call(instance, currentTH);
         }
       });
 
-      instance.rootElement.on('mousedown.manualRowMove', '.manualRowMover', function (e) {
-        var rowOffset = instance.rowOffset(),
-            TH = instance.view.TBODY.querySelectorAll('TH')[currentRow - rowOffset],
-            TR = TH.parentNode;
-
-        startRow = parseInt(Handsontable.Dom.index(TR), 10) + 1 + rowOffset;
-        endRow = startRow;
-        pressed = true;
-        startY = e.pageY;
-
-        var TABLE = instance.$table[0];
-        TABLE.parentNode.appendChild(ghost);
-        ghostStyle.width = Handsontable.Dom.outerWidth(TABLE) + 'px';
-        ghostStyle.height = Handsontable.Dom.outerHeight(TH) + 'px';
-        startOffest = parseInt(Handsontable.Dom.offset(TH).top - Handsontable.Dom.offset(TABLE).top, 10);
-
-        ghostStyle.top = startOffest + 'px';
-        ghostStyle.display = 'none';
-
-      });
-
-      instance.rootElement.on('mouseenter.manualRowMove', 'table tbody th, table tbody td', function (e) {
-
-        if (pressed) {
-          var currentTarget = e.currentTarget,
-              TR = currentTarget.parentNode,
-              rowOffset = instance.rowOffset();
-
-          currentRow = parseInt(Handsontable.Dom.index(TR), 10) + 1 + rowOffset;
-          endRow = currentRow;
-
-          var mover = instance.rootElement[0].querySelector('.manualRowMover');
-          Handsontable.Dom.addClass(mover, 'active');
-        }
-
-        refreshMoverPosition.apply(instance, [e.currentTarget]);
-      });
-
-      instance.addHook('afterDestroy', unbindMoveRowEvents);
+      instance.addHook('afterDestroy', unbindEvents);
     };
 
-    var unbindMoveRowEvents = function () {
+    var unbindEvents = function () {
       var instance = this;
-      instance.rootElement.off('mouseup.manualRowMove');
-      instance.rootElement.off('mousemove.manualRowMove');
-      instance.rootElement.off('mousedown.manualRowMove');
-      instance.rootElement.off('mouseenter.manualRowMove');
+      instance.rootElement.off('mouseenter.manualRowMove.' + instance.guid, 'table tbody tr > th');
+      instance.rootElement.off('mousedown.manualRowMove.' + instance.guid, '.manualRowMover');
+      $window.off('mousemove.manualRowMove.' + instance.guid);
+      $window.off('mouseup.manualRowMove.' + instance.guid);
+    };
+
+    var createPositionData = function (positionArr, len) {
+      if (positionArr.length < len) {
+        for (var i = positionArr.length; i < len; i++) {
+          positionArr[i] = i;
+        }
+      }
     };
 
     this.beforeInit = function () {
@@ -169,41 +169,25 @@
           this.manualRowPositions = [];
         }
 
-        instance.forceFullRender = true;
-
         if (source === 'afterInit') {
-          bindMoveRowEvents.call(this);
-
+          bindEvents.call(this);
           if (this.manualRowPositions.length > 0) {
             instance.forceFullRender = true;
             instance.render();
           }
-
-          Handsontable.hooks.add('afterScrollVertically', afterScrollVertically);
-          Handsontable.hooks.add('afterScrollHorizontally', afterScrollHorizontally);
-
-          this.rootElement[0].appendChild(moveHandle);
         }
       } else {
-        unbindMoveRowEvents.call(this);
+        unbindEvents.call(this);
         instance.manualRowPositions = [];
       }
 
     };
 
-    var afterScrollVertically = function () {
-      scrollTop = Handsontable.Dom.getScrollTop(this.rootElement[0]);
-    };
-
-    var afterScrollHorizontally = function () {
-      scrollLeft = Handsontable.Dom.getScrollLeft(this.rootElement[0]);
-    }
-
     this.modifyRow = function (row) {
       var instance = this;
       if (instance.getSettings().manualRowMove) {
         if (typeof instance.manualRowPositions[row] === 'undefined') {
-          instance.manualRowPositions[row] = row;
+          createPositionData(this.manualRowPositions, row + 1);
         }
         return instance.manualRowPositions[row];
       }

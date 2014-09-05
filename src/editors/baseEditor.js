@@ -124,9 +124,9 @@
 
     if (this.state == Handsontable.EditorState.VIRGIN) {
       var that = this;
-      setTimeout(function () {
+      this.instance._registerTimeout(setTimeout(function () {
         that._fireCallbacks(true);
-      });
+      }, 0));
       return;
     }
 

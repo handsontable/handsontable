@@ -139,11 +139,11 @@ function HandsontableColumnSorting() {
 
   function enableObserveChangesPlugin () {
     var instance = this;
-    instance._registerTimeout('enableObserveChanges', function(){
+    instance._registerTimeout(setTimeout(function(){
       instance.updateSettings({
         observeChanges: true
       });
-    }, 0);
+    }, 0));
   }
 
   function defaultSort(sortOrder) {
@@ -315,11 +315,11 @@ function HandsontableColumnSorting() {
     }
 
     if (sortColumnChanged) {
-      setTimeout(function () {
+      instance._registerTimeout(setTimeout(function () {
         plugin.sort.call(instance);
         instance.render();
         instance.selectCell(plugin.untranslateRow.call(instance, selection.row), selection.col);
-      }, 0);
+      }, 0));
     }
   };
 }

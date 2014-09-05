@@ -17,9 +17,7 @@ WalkontableScrollbars.prototype.registerListeners = function () {
   var oldVerticalScrollPosition
     , oldHorizontalScrollPosition
     , oldBoxTop
-    , oldBoxLeft
-    , oldBoxWidth
-    , oldBoxHeight;
+    , oldBoxLeft;
 
   function refreshAll() {
     if(!that.instance.drawn) {
@@ -36,20 +34,10 @@ WalkontableScrollbars.prototype.registerListeners = function () {
     that.horizontal.windowScrollPosition = that.horizontal.getScrollPosition();
     that.box = that.instance.wtTable.hider.getBoundingClientRect();
 
-    /*if((that.box.width !== oldBoxWidth || that.box.height !== oldBoxHeight) && that.instance.rowHeightCache) {
-      //that.instance.rowHeightCache.length = 0; //at this point the cached row heights may be invalid, but it is better not to reset the cache, which could cause scrollbar jumping when there are multiline cells outside of the rendered part of the table
-      oldBoxWidth = that.box.width;
-      oldBoxHeight = that.box.height;
-      that.instance.draw(true);
-    }*/
-
     if (that.vertical.windowScrollPosition !== oldVerticalScrollPosition || that.horizontal.windowScrollPosition !== oldHorizontalScrollPosition || that.box.top !== oldBoxTop || that.box.left !== oldBoxLeft) {
       that.vertical.onScroll();
       that.horizontal.onScroll(); //it's done here to make sure that all onScroll's are executed before changing styles
       that.corner.onScroll();
-
-      that.vertical.react();
-      that.horizontal.react(); //it's done here to make sure that all onScroll's are executed before changing styles
 
       oldVerticalScrollPosition = that.vertical.windowScrollPosition;
       oldHorizontalScrollPosition = that.horizontal.windowScrollPosition;
@@ -70,18 +58,31 @@ WalkontableScrollbars.prototype.registerListeners = function () {
 };
 
 WalkontableScrollbars.prototype.destroy = function () {
-  this.vertical && this.vertical.destroy();
-  this.horizontal && this.horizontal.destroy();
+  if (this.vertical) {
+    this.vertical.destroy();
+    this.vertical.$scrollHandler.off('scroll.' + this.instance.guid);
+  }
+  if (this.horizontal) {
+    this.horizontal.destroy();
+    this.vertical.$scrollHandler.off('scroll.' + this.instance.guid);
+  }
+  $(window).off('scroll.' + this.instance.guid);
   this.corner && this.corner.destroy();
+  this.debug && this.debug.destroy();
 };
 
 WalkontableScrollbars.prototype.refresh = function (selectionsOnly) {
   this.horizontal && this.horizontal.readSettings();
   this.vertical && this.vertical.readSettings();
-  this.horizontal && this.horizontal.prepare();
-  this.vertical && this.vertical.prepare();
   this.horizontal && this.horizontal.refresh(selectionsOnly);
   this.vertical && this.vertical.refresh(selectionsOnly);
   this.corner && this.corner.refresh(selectionsOnly);
   this.debug && this.debug.refresh(selectionsOnly);
+};
+
+WalkontableScrollbars.prototype.applyToDOM = function () {
+  this.horizontal && this.horizontal.applyToDOM();
+  this.vertical && this.vertical.applyToDOM();
+  this.corner && this.corner.applyToDOM();
+  this.debug && this.debug.applyToDOM();
 };

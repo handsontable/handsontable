@@ -21,11 +21,11 @@ describe('UndoRedo', function () {
           });
           var HOT = getInstance();
 
-          setDataAtCell(0, 0, 'X0');
-          expect(getDataAtCell(0, 0)).toBe('X0');
+          setDataAtCell(0, 0, 'X1');
+          expect(getDataAtCell(0, 0)).toBe('X1');
 
           HOT.undo();
-          expect(getDataAtCell(0, 0)).toBe('A0');
+          expect(getDataAtCell(0, 0)).toBe('A1');
         });
 
         it('should undo single change on cell with validator', function () {
@@ -40,14 +40,14 @@ describe('UndoRedo', function () {
           });
           var HOT = getInstance();
 
-          setDataAtCell(0, 0, 'X0');
+          setDataAtCell(0, 0, 'X1');
 
           waitsFor(function () {
             return validatorSpy.calls.length;
           }, 1000);
 
           runs(function () {
-            expect(getDataAtCell(0, 0)).toBe('X0');
+            expect(getDataAtCell(0, 0)).toBe('X1');
 
             validatorSpy.reset();
             HOT.undo();
@@ -58,7 +58,7 @@ describe('UndoRedo', function () {
           }, 1000);
 
           runs(function () {
-            expect(getDataAtCell(0, 0)).toBe('A0');
+            expect(getDataAtCell(0, 0)).toBe('A1');
           });
 
 
@@ -102,17 +102,17 @@ describe('UndoRedo', function () {
             minSpareRows: 2
           });
 
-          expect(getData()).toEqual([['A0'], ['A1'], [null], [null]]);
+          expect(getData()).toEqual([['A1'], ['A2'], [null], [null]]);
 
-          setDataAtCell(2, 0, 'A2');
-          setDataAtCell(4, 0, 'A3');
+          setDataAtCell(2, 0, 'A3');
+          setDataAtCell(4, 0, 'A4');
 
-          expect(getData()).toEqual([['A0'], ['A1'], ['A2'], [null], ['A3'], [null], [null]]);
+          expect(getData()).toEqual([['A1'], ['A2'], ['A3'], [null], ['A4'], [null], [null]]);
 
           HOT.undo();
           HOT.undo();
 
-          expect(getData()).toEqual([['A0'], ['A1'], [null], [null]]);
+          expect(getData()).toEqual([['A1'], ['A2'], [null], [null]]);
         });
 
         it('should undo removal of single row', function () {
@@ -121,30 +121,30 @@ describe('UndoRedo', function () {
           });
 
           expect(countRows()).toEqual(3);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(2, 0)).toEqual('A2');
-          expect(getDataAtCell(2, 1)).toEqual('B2');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
 
           alter('remove_row', 1);
 
           expect(countRows()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A3');
+          expect(getDataAtCell(1, 1)).toEqual('B3');
 
           HOT.undo();
 
           expect(countRows()).toEqual(3);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(2, 0)).toEqual('A2');
-          expect(getDataAtCell(2, 1)).toEqual('B2');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
         });
 
         it('should undo removal of multiple rows', function () {
@@ -153,34 +153,34 @@ describe('UndoRedo', function () {
           });
 
           expect(countRows()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(2, 0)).toEqual('A2');
-          expect(getDataAtCell(2, 1)).toEqual('B2');
-          expect(getDataAtCell(3, 0)).toEqual('A3');
-          expect(getDataAtCell(3, 1)).toEqual('B3');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
+          expect(getDataAtCell(3, 0)).toEqual('A4');
+          expect(getDataAtCell(3, 1)).toEqual('B4');
 
           alter('remove_row', 1, 2);
 
           expect(countRows()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A3');
-          expect(getDataAtCell(1, 1)).toEqual('B3');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A4');
+          expect(getDataAtCell(1, 1)).toEqual('B4');
 
           HOT.undo();
 
           expect(countRows()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(2, 0)).toEqual('A2');
-          expect(getDataAtCell(2, 1)).toEqual('B2');
-          expect(getDataAtCell(3, 0)).toEqual('A3');
-          expect(getDataAtCell(3, 1)).toEqual('B3');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
+          expect(getDataAtCell(3, 0)).toEqual('A4');
+          expect(getDataAtCell(3, 1)).toEqual('B4');
         });
 
         it('should undo creation of a single column (colHeaders: undefined)', function () {
@@ -303,17 +303,17 @@ describe('UndoRedo', function () {
             minSpareCols: 2
           });
 
-          expect(getData()).toEqual([['A0', null, null]]);
+          expect(getData()).toEqual([['A1', null, null]]);
 
-          setDataAtCell(0, 1, 'B0');
-          setDataAtCell(0, 3, 'C0');
+          setDataAtCell(0, 1, 'B1');
+          setDataAtCell(0, 3, 'C1');
 
-          expect(getData()).toEqual([['A0', 'B0', null, 'C0', null, null]]);
+          expect(getData()).toEqual([['A1', 'B1', null, 'C1', null, null]]);
 
           HOT.undo();
           HOT.undo();
 
-          expect(getData()).toEqual([['A0', null, null]]);
+          expect(getData()).toEqual([['A1', null, null]]);
         });
 
         it('should undo removal of single column (colHeaders: undefined)', function () {
@@ -322,30 +322,30 @@ describe('UndoRedo', function () {
           });
 
           expect(countCols()).toEqual(3);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(0, 2)).toEqual('C0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(1, 2)).toEqual('C1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 2)).toEqual('C1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(1, 2)).toEqual('C2');
 
           alter('remove_col', 1);
 
           expect(countCols()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('C0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('C1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('C1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('C2');
 
           HOT.undo();
 
           expect(countCols()).toEqual(3);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(0, 2)).toEqual('C0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(1, 2)).toEqual('C1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 2)).toEqual('C1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(1, 2)).toEqual('C2');
         });
 
         it('should undo removal of single column (colHeaders: true)', function () {
@@ -355,28 +355,28 @@ describe('UndoRedo', function () {
           });
 
           expect(countCols()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
           expect(getColHeader()).toEqual(['A', 'B']);
 
           alter('remove_col');
 
           expect(countCols()).toEqual(1);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
           expect(getDataAtCell(0, 1)).toBeUndefined();
-          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
           expect(getDataAtCell(1, 1)).toBeUndefined();
           expect(getColHeader()).toEqual(['A']);
 
           HOT.undo();
 
           expect(countCols()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
 
           expect(getColHeader()).toEqual(['A', 'B']);
 
@@ -389,28 +389,28 @@ describe('UndoRedo', function () {
           });
 
           expect(countCols()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
           expect(getColHeader()).toEqual(['Header1', 'Header2']);
 
           alter('remove_col');
 
           expect(countCols()).toEqual(1);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
           expect(getDataAtCell(0, 1)).toBeUndefined();
-          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
           expect(getDataAtCell(1, 1)).toBeUndefined();
           expect(getColHeader()).toEqual(['Header1']);
 
           HOT.undo();
 
           expect(countCols()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
 
           expect(getColHeader()).toEqual(['Header1', 'Header2']);
 
@@ -424,38 +424,38 @@ describe('UndoRedo', function () {
           });
 
           expect(countCols()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(0, 2)).toEqual('C0');
-          expect(getDataAtCell(0, 3)).toEqual('D0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(1, 2)).toEqual('C1');
-          expect(getDataAtCell(1, 3)).toEqual('D1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 2)).toEqual('C1');
+          expect(getDataAtCell(0, 3)).toEqual('D1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(1, 2)).toEqual('C2');
+          expect(getDataAtCell(1, 3)).toEqual('D2');
 
           alter('remove_col', 1, 2);
 
           expect(countCols()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('D0');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('D1');
           expect(getDataAtCell(0, 2)).toBeUndefined();
           expect(getDataAtCell(0, 3)).toBeUndefined();
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('D1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('D2');
           expect(getDataAtCell(1, 2)).toBeUndefined();
           expect(getDataAtCell(1, 3)).toBeUndefined();
 
           HOT.undo();
 
           expect(countCols()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(0, 2)).toEqual('C0');
-          expect(getDataAtCell(0, 3)).toEqual('D0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(1, 2)).toEqual('C1');
-          expect(getDataAtCell(1, 3)).toEqual('D1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 2)).toEqual('C1');
+          expect(getDataAtCell(0, 3)).toEqual('D1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(1, 2)).toEqual('C2');
+          expect(getDataAtCell(1, 3)).toEqual('D2');
         });
 
         it('should undo removal of multiple columns (colHeaders: true)', function () {
@@ -465,24 +465,24 @@ describe('UndoRedo', function () {
           });
 
           expect(countCols()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(0, 2)).toEqual('C0');
-          expect(getDataAtCell(0, 3)).toEqual('D0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(1, 2)).toEqual('C1');
-          expect(getDataAtCell(1, 3)).toEqual('D1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 2)).toEqual('C1');
+          expect(getDataAtCell(0, 3)).toEqual('D1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(1, 2)).toEqual('C2');
+          expect(getDataAtCell(1, 3)).toEqual('D2');
           expect(getColHeader()).toEqual(['A', 'B', 'C', 'D']);
 
           alter('remove_col', 1, 3);
 
           expect(countCols()).toEqual(1);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
           expect(getDataAtCell(0, 1)).toBeUndefined();
           expect(getDataAtCell(0, 2)).toBeUndefined();
           expect(getDataAtCell(0, 3)).toBeUndefined();
-          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
           expect(getDataAtCell(1, 1)).toBeUndefined();
           expect(getDataAtCell(1, 2)).toBeUndefined();
           expect(getDataAtCell(1, 3)).toBeUndefined();
@@ -491,14 +491,14 @@ describe('UndoRedo', function () {
           HOT.undo();
 
           expect(countCols()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(0, 2)).toEqual('C0');
-          expect(getDataAtCell(0, 3)).toEqual('D0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(1, 2)).toEqual('C1');
-          expect(getDataAtCell(1, 3)).toEqual('D1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 2)).toEqual('C1');
+          expect(getDataAtCell(0, 3)).toEqual('D1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(1, 2)).toEqual('C2');
+          expect(getDataAtCell(1, 3)).toEqual('D2');
           expect(getColHeader()).toEqual(['A', 'B', 'C', 'D']);
         });
 
@@ -509,25 +509,25 @@ describe('UndoRedo', function () {
           });
 
           expect(countCols()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(0, 2)).toEqual('C0');
-          expect(getDataAtCell(0, 3)).toEqual('D0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(1, 2)).toEqual('C1');
-          expect(getDataAtCell(1, 3)).toEqual('D1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 2)).toEqual('C1');
+          expect(getDataAtCell(0, 3)).toEqual('D1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(1, 2)).toEqual('C2');
+          expect(getDataAtCell(1, 3)).toEqual('D2');
           expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3', 'Header4']);
 
           alter('remove_col', 1, 2);
 
           expect(countCols()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('D0');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('D1');
           expect(getDataAtCell(0, 2)).toBeUndefined();
           expect(getDataAtCell(0, 3)).toBeUndefined();
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('D1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('D2');
           expect(getDataAtCell(1, 2)).toBeUndefined();
           expect(getDataAtCell(1, 3)).toBeUndefined();
           expect(getColHeader()).toEqual(['Header1', 'Header4']);
@@ -535,14 +535,14 @@ describe('UndoRedo', function () {
           HOT.undo();
 
           expect(countCols()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(0, 2)).toEqual('C0');
-          expect(getDataAtCell(0, 3)).toEqual('D0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(1, 2)).toEqual('C1');
-          expect(getDataAtCell(1, 3)).toEqual('D1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 2)).toEqual('C1');
+          expect(getDataAtCell(0, 3)).toEqual('D1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(1, 2)).toEqual('C2');
+          expect(getDataAtCell(1, 3)).toEqual('D2');
           expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3', 'Header4']);
         });
 
@@ -552,45 +552,45 @@ describe('UndoRedo', function () {
           });
           var HOT = getInstance();
 
-          setDataAtCell(0, 0, 'X0');
-          setDataAtCell(1, 0, 'X1');
-          setDataAtCell(0, 1, 'Y0');
-          setDataAtCell(1, 1, 'Y1');
+          setDataAtCell(0, 0, 'X1');
+          setDataAtCell(1, 0, 'X2');
+          setDataAtCell(0, 1, 'Y1');
+          setDataAtCell(1, 1, 'Y2');
 
-          expect(getDataAtCell(0, 0)).toBe('X0');
-          expect(getDataAtCell(1, 0)).toBe('X1');
-          expect(getDataAtCell(0, 1)).toBe('Y0');
-          expect(getDataAtCell(1, 1)).toBe('Y1');
-
-          HOT.undo();
-          expect(getDataAtCell(0, 0)).toBe('X0');
-          expect(getDataAtCell(1, 0)).toBe('X1');
-          expect(getDataAtCell(0, 1)).toBe('Y0');
-          expect(getDataAtCell(1, 1)).toBe('B1');
+          expect(getDataAtCell(0, 0)).toBe('X1');
+          expect(getDataAtCell(1, 0)).toBe('X2');
+          expect(getDataAtCell(0, 1)).toBe('Y1');
+          expect(getDataAtCell(1, 1)).toBe('Y2');
 
           HOT.undo();
-          expect(getDataAtCell(0, 0)).toBe('X0');
-          expect(getDataAtCell(1, 0)).toBe('X1');
-          expect(getDataAtCell(0, 1)).toBe('B0');
-          expect(getDataAtCell(1, 1)).toBe('B1');
+          expect(getDataAtCell(0, 0)).toBe('X1');
+          expect(getDataAtCell(1, 0)).toBe('X2');
+          expect(getDataAtCell(0, 1)).toBe('Y1');
+          expect(getDataAtCell(1, 1)).toBe('B2');
 
           HOT.undo();
-          expect(getDataAtCell(0, 0)).toBe('X0');
-          expect(getDataAtCell(1, 0)).toBe('A1');
-          expect(getDataAtCell(0, 1)).toBe('B0');
-          expect(getDataAtCell(1, 1)).toBe('B1');
+          expect(getDataAtCell(0, 0)).toBe('X1');
+          expect(getDataAtCell(1, 0)).toBe('X2');
+          expect(getDataAtCell(0, 1)).toBe('B1');
+          expect(getDataAtCell(1, 1)).toBe('B2');
 
           HOT.undo();
-          expect(getDataAtCell(0, 0)).toBe('A0');
-          expect(getDataAtCell(1, 0)).toBe('A1');
-          expect(getDataAtCell(0, 1)).toBe('B0');
-          expect(getDataAtCell(1, 1)).toBe('B1');
+          expect(getDataAtCell(0, 0)).toBe('X1');
+          expect(getDataAtCell(1, 0)).toBe('A2');
+          expect(getDataAtCell(0, 1)).toBe('B1');
+          expect(getDataAtCell(1, 1)).toBe('B2');
 
           HOT.undo();
-          expect(getDataAtCell(0, 0)).toBe('A0');
-          expect(getDataAtCell(1, 0)).toBe('A1');
-          expect(getDataAtCell(0, 1)).toBe('B0');
-          expect(getDataAtCell(1, 1)).toBe('B1');
+          expect(getDataAtCell(0, 0)).toBe('A1');
+          expect(getDataAtCell(1, 0)).toBe('A2');
+          expect(getDataAtCell(0, 1)).toBe('B1');
+          expect(getDataAtCell(1, 1)).toBe('B2');
+
+          HOT.undo();
+          expect(getDataAtCell(0, 0)).toBe('A1');
+          expect(getDataAtCell(1, 0)).toBe('A2');
+          expect(getDataAtCell(0, 1)).toBe('B1');
+          expect(getDataAtCell(1, 1)).toBe('B2');
 
         });
 
@@ -606,20 +606,20 @@ describe('UndoRedo', function () {
           });
           var HOT = getInstance();
 
-          setDataAtCell(0, 0, 'X0');
-          setDataAtCell(1, 0, 'X1');
-          setDataAtCell(0, 1, 'Y0');
-          setDataAtCell(1, 1, 'Y1');
+          setDataAtCell(0, 0, 'X1');
+          setDataAtCell(1, 0, 'X2');
+          setDataAtCell(0, 1, 'Y1');
+          setDataAtCell(1, 1, 'Y2');
 
           waitsFor(function () {
             return validatorSpy.calls.length == 4;
           }, 'validatorSpy call after modification', 1000);
 
           runs(function () {
-            expect(getDataAtCell(0, 0)).toBe('X0');
-            expect(getDataAtCell(1, 0)).toBe('X1');
-            expect(getDataAtCell(0, 1)).toBe('Y0');
-            expect(getDataAtCell(1, 1)).toBe('Y1');
+            expect(getDataAtCell(0, 0)).toBe('X1');
+            expect(getDataAtCell(1, 0)).toBe('X2');
+            expect(getDataAtCell(0, 1)).toBe('Y1');
+            expect(getDataAtCell(1, 1)).toBe('Y2');
 
             validatorSpy.reset();
             HOT.undo();
@@ -630,10 +630,10 @@ describe('UndoRedo', function () {
           },'validatorSpy call after first undo', 1000);
 
           runs(function () {
-            expect(getDataAtCell(0, 0)).toBe('X0');
-            expect(getDataAtCell(1, 0)).toBe('X1');
-            expect(getDataAtCell(0, 1)).toBe('Y0');
-            expect(getDataAtCell(1, 1)).toBe('B1');
+            expect(getDataAtCell(0, 0)).toBe('X1');
+            expect(getDataAtCell(1, 0)).toBe('X2');
+            expect(getDataAtCell(0, 1)).toBe('Y1');
+            expect(getDataAtCell(1, 1)).toBe('B2');
 
             validatorSpy.reset();
             HOT.undo();
@@ -645,10 +645,10 @@ describe('UndoRedo', function () {
           },'validatorSpy call after second undo', 1000);
 
           runs(function () {
-            expect(getDataAtCell(0, 0)).toBe('X0');
-            expect(getDataAtCell(1, 0)).toBe('X1');
-            expect(getDataAtCell(0, 1)).toBe('B0');
-            expect(getDataAtCell(1, 1)).toBe('B1');
+            expect(getDataAtCell(0, 0)).toBe('X1');
+            expect(getDataAtCell(1, 0)).toBe('X2');
+            expect(getDataAtCell(0, 1)).toBe('B1');
+            expect(getDataAtCell(1, 1)).toBe('B2');
 
             validatorSpy.reset();
             HOT.undo();
@@ -659,10 +659,10 @@ describe('UndoRedo', function () {
           },'validatorSpy call after third undo', 1000);
 
           runs(function () {
-            expect(getDataAtCell(0, 0)).toBe('X0');
-            expect(getDataAtCell(1, 0)).toBe('A1');
-            expect(getDataAtCell(0, 1)).toBe('B0');
-            expect(getDataAtCell(1, 1)).toBe('B1');
+            expect(getDataAtCell(0, 0)).toBe('X1');
+            expect(getDataAtCell(1, 0)).toBe('A2');
+            expect(getDataAtCell(0, 1)).toBe('B1');
+            expect(getDataAtCell(1, 1)).toBe('B2');
 
             validatorSpy.reset();
             HOT.undo();
@@ -673,10 +673,10 @@ describe('UndoRedo', function () {
           },'validatorSpy call after fourth undo', 1000);
 
           runs(function () {
-            expect(getDataAtCell(0, 0)).toBe('A0');
-            expect(getDataAtCell(1, 0)).toBe('A1');
-            expect(getDataAtCell(0, 1)).toBe('B0');
-            expect(getDataAtCell(1, 1)).toBe('B1');
+            expect(getDataAtCell(0, 0)).toBe('A1');
+            expect(getDataAtCell(1, 0)).toBe('A2');
+            expect(getDataAtCell(0, 1)).toBe('B1');
+            expect(getDataAtCell(1, 1)).toBe('B2');
 
             validatorSpy.reset();
             HOT.undo();
@@ -685,10 +685,10 @@ describe('UndoRedo', function () {
           waits(100);
 
           runs(function () {
-            expect(getDataAtCell(0, 0)).toBe('A0');
-            expect(getDataAtCell(1, 0)).toBe('A1');
-            expect(getDataAtCell(0, 1)).toBe('B0');
-            expect(getDataAtCell(1, 1)).toBe('B1');
+            expect(getDataAtCell(0, 0)).toBe('A1');
+            expect(getDataAtCell(1, 0)).toBe('A2');
+            expect(getDataAtCell(0, 1)).toBe('B1');
+            expect(getDataAtCell(1, 1)).toBe('B2');
           });
 
 
@@ -731,60 +731,60 @@ describe('UndoRedo', function () {
           });
 
           expect(countRows()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(2, 0)).toEqual('A2');
-          expect(getDataAtCell(2, 1)).toEqual('B2');
-          expect(getDataAtCell(3, 0)).toEqual('A3');
-          expect(getDataAtCell(3, 1)).toEqual('B3');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
+          expect(getDataAtCell(3, 0)).toEqual('A4');
+          expect(getDataAtCell(3, 1)).toEqual('B4');
 
           alter('remove_row');
           alter('remove_row');
           alter('remove_row');
 
           expect(countRows()).toEqual(1);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
 
           HOT.undo();
           expect(countRows()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
 
           HOT.undo();
           expect(countRows()).toEqual(3);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(2, 0)).toEqual('A2');
-          expect(getDataAtCell(2, 1)).toEqual('B2');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
 
           HOT.undo();
           expect(countRows()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(2, 0)).toEqual('A2');
-          expect(getDataAtCell(2, 1)).toEqual('B2');
-          expect(getDataAtCell(3, 0)).toEqual('A3');
-          expect(getDataAtCell(3, 1)).toEqual('B3');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
+          expect(getDataAtCell(3, 0)).toEqual('A4');
+          expect(getDataAtCell(3, 1)).toEqual('B4');
 
           HOT.undo();
           expect(countRows()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(2, 0)).toEqual('A2');
-          expect(getDataAtCell(2, 1)).toEqual('B2');
-          expect(getDataAtCell(3, 0)).toEqual('A3');
-          expect(getDataAtCell(3, 1)).toEqual('B3');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
+          expect(getDataAtCell(3, 0)).toEqual('A4');
+          expect(getDataAtCell(3, 1)).toEqual('B4');
         });
 
         it('should undo changes only for table where the change actually took place', function(){
@@ -836,7 +836,7 @@ describe('UndoRedo', function () {
           expect(getDataAtCell(0, 0)).toBe('new value');
 
           HOT.undo();
-          expect(getDataAtCell(0, 0)).toBe('A0');
+          expect(getDataAtCell(0, 0)).toBe('A1');
 
           HOT.redo();
           expect(getDataAtCell(0, 0)).toBe('new value');
@@ -872,7 +872,7 @@ describe('UndoRedo', function () {
           }, 'validator spy call after undo', 1000);
 
           runs(function () {
-            expect(getDataAtCell(0, 0)).toBe('A0');
+            expect(getDataAtCell(0, 0)).toBe('A1');
 
             validatorSpy.reset();
             HOT.redo();
@@ -934,38 +934,38 @@ describe('UndoRedo', function () {
           });
 
           expect(countRows()).toEqual(3);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(2, 0)).toEqual('A2');
-          expect(getDataAtCell(2, 1)).toEqual('B2');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
 
           alter('remove_row', 1);
 
           expect(countRows()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A3');
+          expect(getDataAtCell(1, 1)).toEqual('B3');
 
           HOT.undo();
 
           expect(countRows()).toEqual(3);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(2, 0)).toEqual('A2');
-          expect(getDataAtCell(2, 1)).toEqual('B2');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
 
           HOT.redo();
 
           expect(countRows()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A3');
+          expect(getDataAtCell(1, 1)).toEqual('B3');
 
 
         });
@@ -976,42 +976,42 @@ describe('UndoRedo', function () {
           });
 
           expect(countRows()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(2, 0)).toEqual('A2');
-          expect(getDataAtCell(2, 1)).toEqual('B2');
-          expect(getDataAtCell(3, 0)).toEqual('A3');
-          expect(getDataAtCell(3, 1)).toEqual('B3');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
+          expect(getDataAtCell(3, 0)).toEqual('A4');
+          expect(getDataAtCell(3, 1)).toEqual('B4');
 
           alter('remove_row', 1, 2);
 
           expect(countRows()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A3');
-          expect(getDataAtCell(1, 1)).toEqual('B3');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A4');
+          expect(getDataAtCell(1, 1)).toEqual('B4');
 
           HOT.undo();
 
           expect(countRows()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(2, 0)).toEqual('A2');
-          expect(getDataAtCell(2, 1)).toEqual('B2');
-          expect(getDataAtCell(3, 0)).toEqual('A3');
-          expect(getDataAtCell(3, 1)).toEqual('B3');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
+          expect(getDataAtCell(3, 0)).toEqual('A4');
+          expect(getDataAtCell(3, 1)).toEqual('B4');
 
           HOT.redo();
 
           expect(countRows()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A3');
-          expect(getDataAtCell(1, 1)).toEqual('B3');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A4');
+          expect(getDataAtCell(1, 1)).toEqual('B4');
         });
 
         it('should redo creation of a single column', function () {
@@ -1060,33 +1060,33 @@ describe('UndoRedo', function () {
           });
 
           expect(countCols()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
 
           alter('remove_col');
 
           expect(countCols()).toEqual(1);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
           expect(getDataAtCell(0, 1)).toBeUndefined();
-          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
           expect(getDataAtCell(1, 1)).toBeUndefined();
 
           HOT.undo();
 
           expect(countCols()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
 
           HOT.redo();
 
           expect(countCols()).toEqual(1);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
           expect(getDataAtCell(0, 1)).toBeUndefined();
-          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
           expect(getDataAtCell(1, 1)).toBeUndefined();
         });
 
@@ -1096,23 +1096,23 @@ describe('UndoRedo', function () {
           });
 
           expect(countCols()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(0, 2)).toEqual('C0');
-          expect(getDataAtCell(0, 3)).toEqual('D0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(1, 2)).toEqual('C1');
-          expect(getDataAtCell(1, 3)).toEqual('D1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 2)).toEqual('C1');
+          expect(getDataAtCell(0, 3)).toEqual('D1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(1, 2)).toEqual('C2');
+          expect(getDataAtCell(1, 3)).toEqual('D2');
 
           alter('remove_col', 1, 3);
 
           expect(countCols()).toEqual(1);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
           expect(getDataAtCell(0, 1)).toBeUndefined();
           expect(getDataAtCell(0, 2)).toBeUndefined();
           expect(getDataAtCell(0, 3)).toBeUndefined();
-          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
           expect(getDataAtCell(1, 1)).toBeUndefined();
           expect(getDataAtCell(1, 2)).toBeUndefined();
           expect(getDataAtCell(1, 3)).toBeUndefined();
@@ -1120,23 +1120,23 @@ describe('UndoRedo', function () {
           HOT.undo();
 
           expect(countCols()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(0, 2)).toEqual('C0');
-          expect(getDataAtCell(0, 3)).toEqual('D0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(1, 2)).toEqual('C1');
-          expect(getDataAtCell(1, 3)).toEqual('D1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 2)).toEqual('C1');
+          expect(getDataAtCell(0, 3)).toEqual('D1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(1, 2)).toEqual('C2');
+          expect(getDataAtCell(1, 3)).toEqual('D2');
 
           HOT.redo();
 
           expect(countCols()).toEqual(1);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
           expect(getDataAtCell(0, 1)).toBeUndefined();
           expect(getDataAtCell(0, 2)).toBeUndefined();
           expect(getDataAtCell(0, 3)).toBeUndefined();
-          expect(getDataAtCell(1, 0)).toEqual('A1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
           expect(getDataAtCell(1, 1)).toBeUndefined();
           expect(getDataAtCell(1, 2)).toBeUndefined();
           expect(getDataAtCell(1, 3)).toBeUndefined();
@@ -1148,55 +1148,55 @@ describe('UndoRedo', function () {
           });
           var HOT = getInstance();
 
-          setDataAtCell(0, 0, 'X0');
-          setDataAtCell(1, 0, 'X1');
-          setDataAtCell(0, 1, 'Y0');
-          setDataAtCell(1, 1, 'Y1');
+          setDataAtCell(0, 0, 'X1');
+          setDataAtCell(1, 0, 'X2');
+          setDataAtCell(0, 1, 'Y1');
+          setDataAtCell(1, 1, 'Y2');
 
-          expect(getDataAtCell(0, 0)).toBe('X0');
-          expect(getDataAtCell(1, 0)).toBe('X1');
-          expect(getDataAtCell(0, 1)).toBe('Y0');
-          expect(getDataAtCell(1, 1)).toBe('Y1');
+          expect(getDataAtCell(0, 0)).toBe('X1');
+          expect(getDataAtCell(1, 0)).toBe('X2');
+          expect(getDataAtCell(0, 1)).toBe('Y1');
+          expect(getDataAtCell(1, 1)).toBe('Y2');
 
           HOT.undo();
           HOT.undo();
           HOT.undo();
           HOT.undo();
 
-          expect(getDataAtCell(0, 0)).toBe('A0');
-          expect(getDataAtCell(1, 0)).toBe('A1');
-          expect(getDataAtCell(0, 1)).toBe('B0');
-          expect(getDataAtCell(1, 1)).toBe('B1');
+          expect(getDataAtCell(0, 0)).toBe('A1');
+          expect(getDataAtCell(1, 0)).toBe('A2');
+          expect(getDataAtCell(0, 1)).toBe('B1');
+          expect(getDataAtCell(1, 1)).toBe('B2');
 
           HOT.redo();
-          expect(getDataAtCell(0, 0)).toBe('X0');
-          expect(getDataAtCell(1, 0)).toBe('A1');
-          expect(getDataAtCell(0, 1)).toBe('B0');
-          expect(getDataAtCell(1, 1)).toBe('B1');
+          expect(getDataAtCell(0, 0)).toBe('X1');
+          expect(getDataAtCell(1, 0)).toBe('A2');
+          expect(getDataAtCell(0, 1)).toBe('B1');
+          expect(getDataAtCell(1, 1)).toBe('B2');
 
           HOT.redo();
-          expect(getDataAtCell(0, 0)).toBe('X0');
-          expect(getDataAtCell(1, 0)).toBe('X1');
-          expect(getDataAtCell(0, 1)).toBe('B0');
-          expect(getDataAtCell(1, 1)).toBe('B1');
+          expect(getDataAtCell(0, 0)).toBe('X1');
+          expect(getDataAtCell(1, 0)).toBe('X2');
+          expect(getDataAtCell(0, 1)).toBe('B1');
+          expect(getDataAtCell(1, 1)).toBe('B2');
 
           HOT.redo();
-          expect(getDataAtCell(0, 0)).toBe('X0');
-          expect(getDataAtCell(1, 0)).toBe('X1');
-          expect(getDataAtCell(0, 1)).toBe('Y0');
-          expect(getDataAtCell(1, 1)).toBe('B1');
+          expect(getDataAtCell(0, 0)).toBe('X1');
+          expect(getDataAtCell(1, 0)).toBe('X2');
+          expect(getDataAtCell(0, 1)).toBe('Y1');
+          expect(getDataAtCell(1, 1)).toBe('B2');
 
           HOT.redo();
-          expect(getDataAtCell(0, 0)).toBe('X0');
-          expect(getDataAtCell(1, 0)).toBe('X1');
-          expect(getDataAtCell(0, 1)).toBe('Y0');
-          expect(getDataAtCell(1, 1)).toBe('Y1');
+          expect(getDataAtCell(0, 0)).toBe('X1');
+          expect(getDataAtCell(1, 0)).toBe('X2');
+          expect(getDataAtCell(0, 1)).toBe('Y1');
+          expect(getDataAtCell(1, 1)).toBe('Y2');
 
           HOT.redo();
-          expect(getDataAtCell(0, 0)).toBe('X0');
-          expect(getDataAtCell(1, 0)).toBe('X1');
-          expect(getDataAtCell(0, 1)).toBe('Y0');
-          expect(getDataAtCell(1, 1)).toBe('Y1');
+          expect(getDataAtCell(0, 0)).toBe('X1');
+          expect(getDataAtCell(1, 0)).toBe('X2');
+          expect(getDataAtCell(0, 1)).toBe('Y1');
+          expect(getDataAtCell(1, 1)).toBe('Y2');
 
         });
 
@@ -1212,20 +1212,20 @@ describe('UndoRedo', function () {
           });
           var HOT = getInstance();
 
-          setDataAtCell(0, 0, 'X0');
-          setDataAtCell(1, 0, 'X1');
-          setDataAtCell(0, 1, 'Y0');
-          setDataAtCell(1, 1, 'Y1');
+          setDataAtCell(0, 0, 'X1');
+          setDataAtCell(1, 0, 'X2');
+          setDataAtCell(0, 1, 'Y1');
+          setDataAtCell(1, 1, 'Y2');
 
           waitsFor(function () {
             return validatorSpy.calls.length;
           }, 'validator spy call after change', 1000);
 
           runs(function () {
-            expect(getDataAtCell(0, 0)).toBe('X0');
-            expect(getDataAtCell(1, 0)).toBe('X1');
-            expect(getDataAtCell(0, 1)).toBe('Y0');
-            expect(getDataAtCell(1, 1)).toBe('Y1');
+            expect(getDataAtCell(0, 0)).toBe('X1');
+            expect(getDataAtCell(1, 0)).toBe('X2');
+            expect(getDataAtCell(0, 1)).toBe('Y1');
+            expect(getDataAtCell(1, 1)).toBe('Y2');
 
             validatorSpy.reset();
             HOT.undo();
@@ -1264,10 +1264,10 @@ describe('UndoRedo', function () {
           }, 'validator spy call after 4th undo', 1000);
 
           runs(function () {
-            expect(getDataAtCell(0, 0)).toBe('A0');
-            expect(getDataAtCell(1, 0)).toBe('A1');
-            expect(getDataAtCell(0, 1)).toBe('B0');
-            expect(getDataAtCell(1, 1)).toBe('B1');
+            expect(getDataAtCell(0, 0)).toBe('A1');
+            expect(getDataAtCell(1, 0)).toBe('A2');
+            expect(getDataAtCell(0, 1)).toBe('B1');
+            expect(getDataAtCell(1, 1)).toBe('B2');
 
             validatorSpy.reset();
             HOT.redo();
@@ -1278,10 +1278,10 @@ describe('UndoRedo', function () {
           }, 'validator spy call after 1st redo', 1000);
 
           runs(function () {
-            expect(getDataAtCell(0, 0)).toBe('X0');
-            expect(getDataAtCell(1, 0)).toBe('A1');
-            expect(getDataAtCell(0, 1)).toBe('B0');
-            expect(getDataAtCell(1, 1)).toBe('B1');
+            expect(getDataAtCell(0, 0)).toBe('X1');
+            expect(getDataAtCell(1, 0)).toBe('A2');
+            expect(getDataAtCell(0, 1)).toBe('B1');
+            expect(getDataAtCell(1, 1)).toBe('B2');
 
             validatorSpy.reset();
             HOT.redo();
@@ -1292,10 +1292,10 @@ describe('UndoRedo', function () {
           }, 'validator spy call after 2nd redo', 1000);
 
           runs(function () {
-            expect(getDataAtCell(0, 0)).toBe('X0');
-            expect(getDataAtCell(1, 0)).toBe('X1');
-            expect(getDataAtCell(0, 1)).toBe('B0');
-            expect(getDataAtCell(1, 1)).toBe('B1');
+            expect(getDataAtCell(0, 0)).toBe('X1');
+            expect(getDataAtCell(1, 0)).toBe('X2');
+            expect(getDataAtCell(0, 1)).toBe('B1');
+            expect(getDataAtCell(1, 1)).toBe('B2');
 
             validatorSpy.reset();
             HOT.redo();
@@ -1306,10 +1306,10 @@ describe('UndoRedo', function () {
           }, 'validator spy call after 3rd redo', 1000);
 
           runs(function () {
-            expect(getDataAtCell(0, 0)).toBe('X0');
-            expect(getDataAtCell(1, 0)).toBe('X1');
-            expect(getDataAtCell(0, 1)).toBe('Y0');
-            expect(getDataAtCell(1, 1)).toBe('B1');
+            expect(getDataAtCell(0, 0)).toBe('X1');
+            expect(getDataAtCell(1, 0)).toBe('X2');
+            expect(getDataAtCell(0, 1)).toBe('Y1');
+            expect(getDataAtCell(1, 1)).toBe('B2');
 
             validatorSpy.reset();
             HOT.redo();
@@ -1320,10 +1320,10 @@ describe('UndoRedo', function () {
           }, 'validator spy call after 4th redo', 1000);
 
           runs(function () {
-            expect(getDataAtCell(0, 0)).toBe('X0');
-            expect(getDataAtCell(1, 0)).toBe('X1');
-            expect(getDataAtCell(0, 1)).toBe('Y0');
-            expect(getDataAtCell(1, 1)).toBe('Y1');
+            expect(getDataAtCell(0, 0)).toBe('X1');
+            expect(getDataAtCell(1, 0)).toBe('X2');
+            expect(getDataAtCell(0, 1)).toBe('Y1');
+            expect(getDataAtCell(1, 1)).toBe('Y2');
             validatorSpy.reset();
             HOT.redo();
           });
@@ -1334,10 +1334,10 @@ describe('UndoRedo', function () {
 
             expect(validatorSpy).not.toHaveBeenCalled();
 
-            expect(getDataAtCell(0, 0)).toBe('X0');
-            expect(getDataAtCell(1, 0)).toBe('X1');
-            expect(getDataAtCell(0, 1)).toBe('Y0');
-            expect(getDataAtCell(1, 1)).toBe('Y1');
+            expect(getDataAtCell(0, 0)).toBe('X1');
+            expect(getDataAtCell(1, 0)).toBe('X2');
+            expect(getDataAtCell(0, 1)).toBe('Y1');
+            expect(getDataAtCell(1, 1)).toBe('Y2');
           });
 
         });
@@ -1389,62 +1389,62 @@ describe('UndoRedo', function () {
           });
 
           expect(countRows()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(2, 0)).toEqual('A2');
-          expect(getDataAtCell(2, 1)).toEqual('B2');
-          expect(getDataAtCell(3, 0)).toEqual('A3');
-          expect(getDataAtCell(3, 1)).toEqual('B3');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
+          expect(getDataAtCell(3, 0)).toEqual('A4');
+          expect(getDataAtCell(3, 1)).toEqual('B4');
 
           alter('remove_row');
           alter('remove_row');
           alter('remove_row');
 
           expect(countRows()).toEqual(1);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
 
           HOT.undo();
           HOT.undo();
           HOT.undo();
 
           expect(countRows()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(2, 0)).toEqual('A2');
-          expect(getDataAtCell(2, 1)).toEqual('B2');
-          expect(getDataAtCell(3, 0)).toEqual('A3');
-          expect(getDataAtCell(3, 1)).toEqual('B3');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
+          expect(getDataAtCell(3, 0)).toEqual('A4');
+          expect(getDataAtCell(3, 1)).toEqual('B4');
 
           HOT.redo();
           expect(countRows()).toEqual(3);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
-          expect(getDataAtCell(2, 0)).toEqual('A2');
-          expect(getDataAtCell(2, 1)).toEqual('B2');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
+          expect(getDataAtCell(2, 0)).toEqual('A3');
+          expect(getDataAtCell(2, 1)).toEqual('B3');
 
           HOT.redo();
           expect(countRows()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
-          expect(getDataAtCell(1, 0)).toEqual('A1');
-          expect(getDataAtCell(1, 1)).toEqual('B1');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
+          expect(getDataAtCell(1, 0)).toEqual('A2');
+          expect(getDataAtCell(1, 1)).toEqual('B2');
 
           HOT.redo();
           expect(countRows()).toEqual(1);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
 
           HOT.redo();
           expect(countRows()).toEqual(1);
-          expect(getDataAtCell(0, 0)).toEqual('A0');
-          expect(getDataAtCell(0, 1)).toEqual('B0');
+          expect(getDataAtCell(0, 0)).toEqual('A1');
+          expect(getDataAtCell(0, 1)).toEqual('B1');
         });
 
         it('should redo changes only for table where the change actually took place', function(){
@@ -2415,7 +2415,7 @@ describe('UndoRedo', function () {
 
         var keyboardEvent = $.Event('keydown', {ctrlKey: true, keyCode: 'Z'.charCodeAt(0)});
         this.$container.trigger(keyboardEvent);
-        expect(getDataAtCell(0, 0)).toBe('A0');
+        expect(getDataAtCell(0, 0)).toBe('A1');
       });
 
       it('should redo single change after hitting CTRL+Y', function () {
@@ -2430,7 +2430,7 @@ describe('UndoRedo', function () {
         expect(getDataAtCell(0, 0)).toBe('new value');
 
         HOT.undo();
-        expect(getDataAtCell(0, 0)).toBe('A0');
+        expect(getDataAtCell(0, 0)).toBe('A1');
 
         var keyboardEvent = $.Event('keydown', {ctrlKey: true, keyCode: 'Y'.charCodeAt(0)});
         this.$container.trigger(keyboardEvent);
@@ -2450,7 +2450,7 @@ describe('UndoRedo', function () {
         expect(getDataAtCell(0, 0)).toBe('new value');
 
         HOT.undo();
-        expect(getDataAtCell(0, 0)).toBe('A0');
+        expect(getDataAtCell(0, 0)).toBe('A1');
 
         var keyboardEvent = $.Event('keydown', {ctrlKey: true, shiftKey: true, keyCode: 'Z'.charCodeAt(0)});
         this.$container.trigger(keyboardEvent);

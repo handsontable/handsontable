@@ -87,7 +87,7 @@
           </h3>
 
           <div id="example1_events"
-               style="width: 400px; height: 250px; overflow: scroll; background-color: #fdfdfd; font-size: 11px"></div>
+               style="height: 250px; overflow: scroll; background-color: #fdfdfd; font-size: 11px"></div>
 
           <p>Choose events to be logged:</p>
 
@@ -139,6 +139,8 @@
             var start = (new Date()).getTime();
             var i = 0;
 
+            var timer;
+            var example1_events = document.getElementById("example1_events");
             function log_events(event, data) {
               if (document.getElementById('check_' + event).checked) {
                 var now = (new Date()).getTime();
@@ -179,10 +181,15 @@
                     data);
                 }
 
-                $("#example1_events").prepend(
-                    $("<div/>").text(vals.join(" "))
-                  )
-                  .scrollTop(0);
+                var div = document.createElement("DIV");
+                var text = document.createTextNode(vals.join(" "));
+                div.appendChild(text);
+                example1_events.appendChild(div);
+                clearTimeout(timer);
+                timer = setTimeout(function() {
+                  example1_events.scrollTop = example1_events.scrollHeight;
+                }, 10);
+
                 i++;
               }
             }

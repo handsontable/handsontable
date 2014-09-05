@@ -44,6 +44,7 @@ Handsontable.PluginHookClass = (function () {
       afterScrollVertically: [],
       afterScrollHorizontally: [],
 	  afterCellMetaReset:[],
+      afterDocumentKeyDown: [],
 
       // Modifiers
       modifyColWidth: [],
@@ -175,6 +176,17 @@ Handsontable.PluginHookClass = (function () {
           if (handlers[i].runOnce) {
             this.remove(key, handlers[i], bucket === this.globalBucket ? null : instance);
           }
+        }
+      }
+    }
+  };
+
+  PluginHookClass.prototype.destroy = function (instance) {
+    var bucket = this.getBucket(instance);
+    for (var key in bucket) {
+      if (bucket.hasOwnProperty(key)) {
+        for (var i = 0, leni = bucket[key].length; i < leni; i++) {
+          this.remove(key, bucket[key], instance);
         }
       }
     }
