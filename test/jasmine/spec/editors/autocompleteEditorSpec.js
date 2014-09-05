@@ -2166,4 +2166,86 @@ describe('AutocompleteEditor', function () {
       expect($(dropdown[0]).is(':visible')).toBe(true);
     });
   });
+
+  it("should keep textarea caret position, after moving the selection to the suggestion list (pressing down arrow)", function () {
+    var syncSources = jasmine.createSpy('syncSources');
+
+    syncSources.plan = function (query, process) {
+      process(choices.filter(function (choice) {
+        return choice.indexOf(query) != -1;
+      }));
+    };
+
+    handsontable({
+      columns: [
+        {
+          type: 'autocomplete',
+          source: syncSources,
+          strict: false
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+    var $editorInput = $('.handsontableInput');
+    $editorInput.val("an");
+    keyDownUp(65); //a
+    keyDownUp(78); //n
+    Handsontable.Dom.setCaretPosition($editorInput[0],1);
+
+    waitsFor(function () {
+      return syncSources.calls.length > 0;
+    }, 'Source function call', 1000);
+
+    runs(function () {
+      keyDownUp('arrow_down');
+      expect(Handsontable.Dom.getCaretPosition($editorInput[0])).toEqual(1);
+      keyDownUp('arrow_down');
+      expect(Handsontable.Dom.getCaretPosition($editorInput[0])).toEqual(1);
+
+    });
+  });
+
+  it("should keep textarea selection, after moving the selection to the suggestion list (pressing down arrow)", function () {
+    var syncSources = jasmine.createSpy('syncSources');
+
+    syncSources.plan = function (query, process) {
+      process(choices.filter(function (choice) {
+        return choice.indexOf(query) != -1;
+      }));
+    };
+
+    handsontable({
+      columns: [
+        {
+          type: 'autocomplete',
+          source: syncSources,
+          strict: false
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+    var $editorInput = $('.handsontableInput');
+    $editorInput.val("an");
+    keyDownUp(65); //a
+    keyDownUp(78); //n
+    Handsontable.Dom.setCaretPosition($editorInput[0],1,2);
+
+    waitsFor(function () {
+      return syncSources.calls.length > 0;
+    }, 'Source function call', 1000);
+
+    runs(function () {
+      keyDownUp('arrow_down');
+      expect(Handsontable.Dom.getCaretPosition($editorInput[0])).toEqual(1);
+      expect(Handsontable.Dom.getSelectionEndPosition($editorInput[0])).toEqual(2);
+      keyDownUp('arrow_down');
+      expect(Handsontable.Dom.getCaretPosition($editorInput[0])).toEqual(1);
+      expect(Handsontable.Dom.getSelectionEndPosition($editorInput[0])).toEqual(2);
+
+    });
+  });
 });
