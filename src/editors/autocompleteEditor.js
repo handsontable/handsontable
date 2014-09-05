@@ -108,7 +108,8 @@
   };
 
   AutocompleteEditor.prototype.updateChoicesList = function (choices) {
-    var pos = Handsontable.Dom.getCaretPosition(this.TEXTAREA);
+    var pos = Handsontable.Dom.getCaretPosition(this.TEXTAREA),
+        endPos = Handsontable.Dom.getSelectionEndPosition(this.TEXTAREA);
 
     this.choices = choices;
 
@@ -121,7 +122,7 @@
 
     this.instance.listen();
     this.TEXTAREA.focus();
-    Handsontable.Dom.setCaretPosition(this.TEXTAREA, pos);
+    Handsontable.Dom.setCaretPosition(this.TEXTAREA, pos, (pos != endPos ? endPos : void 0));
   };
 
   AutocompleteEditor.prototype.highlightBestMatchingChoice = function () {
