@@ -69,7 +69,11 @@
 
       <h2>Autocomplete cell type</h2>
 
-      <p>This page shows how to configure Handsontable with Autocomplete cell type:</p>
+      <p>This page shows how to configure Handsontable with Autocomplete cell type, which expands the
+      <a href="handsontable.html">Handsontable cell type.</a> with features typical for a combo box that
+      updates its options based on user input.</p>
+
+      <p>There are three demos on this page:</p>
 
       <ul>
         <li><a href="#lazy">Autocomplete lazy mode</a></li>
@@ -87,15 +91,12 @@
 
       <h2>Autocomplete lazy mode</h2>
 
-      <p>This example shows the usage of the Autocomplete feature.</p>
+      <p>This example shows the usage of the Autocomplete feature in the default <strong>lazy&nbsp;mode</strong>. In this mode,
+      user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.</p>
 
-      <p>List of autocomplete suggestions is rendered by <a
-        href="https://github.com/twitter/bootstrap/blob/master/js/bootstrap-typeahead.js">Twitter Bootstrap
-        Typeahead</a> library.
-      </p>
+      <p>In this mode, the mouse and keyboard bindings are identical as in <a href="handsontable.html">Handsontable cell type.</a></p>
 
-      <p>The property <code>options</code> overrides <code>$.fn.typeahead.defaults</code> from Bootstrap. It may be
-        useful to configure the number of displayed suggestions.</p>
+      <p>The options are rendered from the <code>source</code> property which can be an array, or a function that returns an array.</p>
 
       <div id="example1"></div>
 
@@ -156,6 +157,13 @@
       <p>In this mode, the autocomplete cells will only accept values that are defined in the source
         array.</p>
 
+      <p>In this mode, the mouse and keyboard bindings are identical as in <a href="handsontable.html">Handsontable cell type</a> with the below differences:</p>
+
+      <ul>
+        <li>If there is at least one option visible, there always is a selection in HOT-in-HOT.</li>
+        <li>When the first row is selected, pressing <kbd>Arrow up</kbd> does not deselect HOT-in-HOT. Instead behaves as the ENTER key but moves the selection in the main HOT upwards.</li>
+      </ul>
+
       <div id="example2"></div>
 
       <p>
@@ -181,7 +189,9 @@
           columns: [
             {
               type: 'autocomplete',
-              source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo", ""], //empty string is a valid value
+              source: function (query, process) {
+                process(['red', 'dark-yellow', 'yellow', 'light-yellow', 'black']);
+              },
               strict: true,
               allowInvalid: false
 

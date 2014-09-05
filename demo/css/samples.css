@@ -279,6 +279,20 @@ ul ul {
   padding: 3px 5px;
 }
 
+kbd {
+  background-color: #e7e7e7;
+  background-image: -moz-linear-gradient(#fefefe, #e7e7e7);
+  background-image: -webkit-linear-gradient(#fefefe, #e7e7e7);
+  background-image: linear-gradient(#fefefe, #e7e7e7);
+  background-repeat: repeat-x;
+  border-radius: 2px;
+  border: 1px solid #cfcfcf;
+  color: #000;
+  padding: 3px 5px 0 5px;
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  display: inline-block;
+}
+
 /**
  * jsFiddle
  */
