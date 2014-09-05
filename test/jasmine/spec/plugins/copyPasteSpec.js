@@ -116,7 +116,7 @@ describe('CopyPaste plugin', function () {
       selectCell(0, 0);
       keyDownUp(Handsontable.helper.keyCode.CONTROL_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('A0\n');
+      expect(copyPasteTextarea.val()).toEqual('A1\n');
 
     });
 
@@ -132,7 +132,7 @@ describe('CopyPaste plugin', function () {
       selectCell(0, 0);
       keyDownUp(Handsontable.helper.keyCode.COMMAND_LEFT);
 
-      expect(copyPasteTextarea.val()).toEqual('A0\n');
+      expect(copyPasteTextarea.val()).toEqual('A1\n');
 
     });
 
