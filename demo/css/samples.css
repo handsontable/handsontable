@@ -101,8 +101,8 @@ global menu
 #global-menu-clone {
   background: #efefef;
   box-shadow: inset -4px 0px 4px -4px rgba(0, 0, 0, 0.20);
-  width: 290px;
-  min-width: 290px;
+  width: 250px;
+  min-width: 250px;
   display: table-cell;
   vertical-align: top;
   padding: 20px 10px 20px 20px;
@@ -390,14 +390,14 @@ dl dd {
 #githubWatch {
   position: absolute;
   top: 31px;
-  left: 362px;
+  left: 322px;
   z-index: 10;
 }
 
 #githubFork {
   position: absolute;
   top: 31px;
-  left: 472px;
+  left: 432px;
   z-index: 10;
 }
 
