@@ -62,8 +62,8 @@
 
                     event.preventDefault();
                     event.stopPropagation();
-                    break;
                   }
+                  break;
 
                 case keyCodes.ARROW_UP:
 
