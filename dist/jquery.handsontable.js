@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Sep 05 2014 12:54:36 GMT+0200 (CEST)
+ * Date: Mon Sep 08 2014 10:23:50 GMT-0400 (EDT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -3474,8 +3474,8 @@ Handsontable.TableView.prototype.mainViewIsActive = function () {
 
                     event.preventDefault();
                     event.stopPropagation();
-                    break;
                   }
+                  break;
 
                 case keyCodes.ARROW_UP:
 
@@ -5403,8 +5403,8 @@ Handsontable.helper.toString = function (obj) {
       case keyCodes.V:
         if(ctrlDown){
           event.stopImmediatePropagation(); //CTRL+A, CTRL+C, CTRL+V, CTRL+X should only work locally when cell is edited (not in table context)
-          break;
         }
+        break;
       case keyCodes.BACKSPACE:
       case keyCodes.DELETE:
       case keyCodes.HOME:
