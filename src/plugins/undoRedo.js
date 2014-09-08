@@ -67,6 +67,16 @@
       var action = new Handsontable.UndoRedo.RemoveColumnAction(index, removedData, headers);
       plugin.done(action);
     });
+
+    instance.addHook('afterFilter', function(currentFilterColumns, previousFilterColumns) {
+      var action = new Handsontable.UndoRedo.RevertFilterAction(currentFilterColumns, previousFilterColumns);
+      plugin.done(action);
+    });
+
+    instance.addHook('afterColumnSort', function(currentSortColumns, previousSortColumns) {
+      var action = new Handsontable.UndoRedo.RevertSortAction(currentSortColumns, previousSortColumns);
+      plugin.done(action);
+    });
   };
 
   Handsontable.UndoRedo.prototype.collectUndo = function(enableCollection) {    
@@ -341,6 +351,34 @@
 
     instance.addHookOnce('afterRender', redoneCallback);
     instance.render();
+  };
+
+  Handsontable.UndoRedo.RevertFilterAction = function(currentFilterColumns, previousFilterColumns) {
+      this.currentFilterColumns = currentFilterColumns;
+      this.previousFilterColumns = previousFilterColumns;
+  };
+  Handsontable.helper.inherit(Handsontable.UndoRedo.RevertFilterAction, Handsontable.UndoRedo.Action);
+  Handsontable.UndoRedo.RevertFilterAction.prototype.undo = function(instance, doneCallback) {      
+      instance.filter(this.previousFilterColumns);
+      doneCallback();
+  };
+  Handsontable.UndoRedo.RevertFilterAction.prototype.redo = function(instance, redoneCallback) {      
+      instance.filter(this.currentFilterColumns);
+      redoneCallback();
+  };
+
+  Handsontable.UndoRedo.RevertSortAction = function(currentSortColumns, previousSortColumns) {
+      this.currentSortColumns = currentSortColumns;
+      this.previousSortColumns = previousSortColumns;
+  };
+  Handsontable.helper.inherit(Handsontable.UndoRedo.RevertSortAction, Handsontable.UndoRedo.Action);
+  Handsontable.UndoRedo.RevertSortAction.prototype.undo = function(instance, doneCallback) {      
+      instance.sort(this.previousSortColumns);
+      doneCallback();
+  };
+  Handsontable.UndoRedo.RevertSortAction.prototype.redo = function(instance, redoneCallback) {      
+      instance.sort(this.currentSortColumns);
+      redoneCallback();
   };
 
 })(Handsontable);
