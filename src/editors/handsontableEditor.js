@@ -105,13 +105,13 @@
 
     if (this.cellProperties.strict) {
       this.$htContainer.handsontable('selectCell', 0, 0);
-      this.$textarea[0].style.visibility = 'hidden';
+      this.TEXTAREA.style.visibility = 'hidden';
     } else {
       this.$htContainer.handsontable('deselectCell');
-      this.$textarea[0].style.visibility = 'visible';
+      this.TEXTAREA.style.visibility = 'visible';
     }
 
-    Handsontable.Dom.setCaretPosition(this.$textarea[0], 0, this.$textarea[0].value.length);
+    Handsontable.Dom.setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
 
   };
 

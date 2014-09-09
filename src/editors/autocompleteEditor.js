@@ -40,7 +40,7 @@
 
     Handsontable.editors.HandsontableEditor.prototype.open.apply(this, arguments);
 
-    this.$textarea[0].style.visibility = 'visible';
+    this.TEXTAREA.style.visibility = 'visible';
     this.focus();
 
     var choicesListHot = this.$htContainer.handsontable('getInstance');
