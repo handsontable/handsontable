@@ -24,20 +24,22 @@
 
   };
 
-  AutocompleteEditor.prototype.bindEvents = function () {
-    var that = this;
-    $(document.body).on('keydown.autocompleteEditor', function (event) { //TODO before feature merge: it needs to be unbound!
-      var keyCodes = Handsontable.helper.keyCode;
-      if (event.keyCode !== keyCodes.ARROW_DOWN && event.keyCode !== keyCodes.ARROW_UP) {
-        that.instance._registerTimeout(setTimeout(function () {
-          that.queryChoices(that.TEXTAREA.value);
-        }, 0));
-      }
-    });
+  var onBeforeKeyDown = function (event) {
+    var editor = this.getActiveEditor();
+    var keyCodes = Handsontable.helper.keyCode;
+    if (event.keyCode !== keyCodes.ARROW_DOWN && event.keyCode !== keyCodes.ARROW_UP) {
+      editor.instance._registerTimeout(setTimeout(function () {
+        editor.queryChoices(editor.TEXTAREA.value);
+      }, 0));
+    }
+  };
+
+  AutocompleteEditor.prototype.prepare = function () {
+    this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
+    Handsontable.editors.HandsontableEditor.prototype.prepare.apply(this, arguments);
   };
 
   AutocompleteEditor.prototype.open = function () {
-
     Handsontable.editors.HandsontableEditor.prototype.open.apply(this, arguments);
 
     this.TEXTAREA.style.visibility = 'visible';
@@ -125,6 +127,13 @@
     this.instance.listen();
     this.TEXTAREA.focus();
     Handsontable.Dom.setCaretPosition(this.TEXTAREA, pos, (pos != endPos ? endPos : void 0));
+  };
+
+  AutocompleteEditor.prototype.finishEditing = function (restoreOriginalValue) {
+    if (!restoreOriginalValue) {
+      this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
+    }
+    Handsontable.editors.HandsontableEditor.prototype.finishEditing.apply(this, arguments);
   };
 
   AutocompleteEditor.prototype.highlightBestMatchingChoice = function () {
