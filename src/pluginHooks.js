@@ -106,7 +106,7 @@ Handsontable.PluginHookClass = (function () {
       fn.skip = false;
 
       if (bucket[key].indexOf(fn) == -1) {
-        bucket[key].push(fn); //only add a hook if it has not already be added (adding the same hook twice is now silently ignored)
+        bucket[key].push(fn); //only add a hook if it has not already been added (adding the same hook twice is now silently ignored)
       }
     }
     return this;
