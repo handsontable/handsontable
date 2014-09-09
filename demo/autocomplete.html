@@ -164,6 +164,17 @@
         <li>When the first row is selected, pressing <kbd>Arrow up</kbd> does not deselect HOT-in-HOT. Instead behaves as the ENTER key but moves the selection in the main HOT upwards.</li>
       </ul>
 
+      <p>In strict mode, the <strong>allowInvalid</strong> option determines the behaviour in case of manual user input:</p>
+
+      <ul>
+        <li><code>allowInvalid: true</code> (optional) - allows manual input of value that does not exist in the
+          <code>source</code>. In this case, the field background highlight becomes red and the selection
+          advances to the next cell
+        </li>
+        <li><code>allowInvalid: false</code> - does not allow manual input of value that does not exist in the
+          <code>source</code>. In this case, the <kbd>ENTER</kbd> key is ignored and the editor field remains opened.</li>
+      </ul>
+
       <div id="example2"></div>
 
       <p>
@@ -185,27 +196,27 @@
           data: getCarData(),
           startRows: 7,
           startCols: 4,
-          colHeaders: ["Car", "Year", "Chassis color", "Bumper color"],
+          colHeaders: ["Car<br>(allowInvalid true)", "Year", "Chassis color<br>(allowInvalid false)", "Bumper color<br>(allowInvalid true)"],
           columns: [
             {
               type: 'autocomplete',
-              source: function (query, process) {
-                process(['red', 'dark-yellow', 'yellow', 'light-yellow', 'black']);
-              },
-              strict: true,
-              allowInvalid: false
+              source: ["BMW", "Chrysler", "Nissan", "Suzuki", "Toyota", "Volvo"],
+              strict: true
+              //allowInvalid: true //true is default
 
             },
             {},
             {
               type: 'autocomplete',
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white", "purple", "lime", "olive", "cyan"],
-              strict: true
+              strict: true,
+              allowInvalid: false
             },
             {
               type: 'autocomplete',
               source: ["yellow", "red", "orange", "green", "blue", "gray", "black", "white", "purple", "lime", "olive", "cyan"],
-              strict: true
+              strict: true,
+              allowInvalid: true //true is default
             }
           ]
         });
