@@ -83,9 +83,7 @@
 }
 
 .handsontable td.htInvalid {
-  -webkit-transition: background 0.75s ease;
-  transition: background 0.75s ease;
-  background-color: #ff4c42;
+  background-color: #ff4c42 !important; /*gives priority over td.area selection background*/
 }
 
 .handsontable td.htNoWrap {
