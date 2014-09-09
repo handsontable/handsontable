@@ -26,7 +26,7 @@
 
   AutocompleteEditor.prototype.bindEvents = function () {
     var that = this;
-    this.$textarea.on('keydown.autocompleteEditor', function (event) {
+    $(document.body).on('keydown.autocompleteEditor', function (event) { //TODO before feature merge: it needs to be unbound!
       var keyCodes = Handsontable.helper.keyCode;
       if (event.keyCode !== keyCodes.ARROW_DOWN && event.keyCode !== keyCodes.ARROW_UP) {
         that.instance._registerTimeout(setTimeout(function () {
@@ -59,7 +59,9 @@
       }
     });
 
-    this.queryChoices(this.TEXTAREA.value);
+    that.instance._registerTimeout(setTimeout(function () {
+      that.queryChoices(that.TEXTAREA.value);
+    }, 0));
 
   };
 
