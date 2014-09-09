@@ -27,7 +27,7 @@
   var onBeforeKeyDown = function (event) {
     var editor = this.getActiveEditor();
     var keyCodes = Handsontable.helper.keyCode;
-    if (event.keyCode !== keyCodes.ARROW_DOWN && event.keyCode !== keyCodes.ARROW_UP) {
+    if (Handsontable.helper.isPrintableChar(event.keyCode) || event.keyCode === keyCodes.BACKSPACE) {
       editor.instance._registerTimeout(setTimeout(function () {
         editor.queryChoices(editor.TEXTAREA.value);
       }, 0));
