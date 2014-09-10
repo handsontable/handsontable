@@ -24,12 +24,16 @@
 
   };
 
+  var skipOne = false;
   var onBeforeKeyDown = function (event) {
+    skipOne = false;
     var editor = this.getActiveEditor();
     var keyCodes = Handsontable.helper.keyCode;
-    if (Handsontable.helper.isPrintableChar(event.keyCode) || event.keyCode === keyCodes.BACKSPACE) {
+
+    if (Handsontable.helper.isPrintableChar(event.keyCode) || event.keyCode === keyCodes.BACKSPACE || event.keyCode === keyCodes.DELETE  || event.keyCode === keyCodes.INSERT) {
       editor.instance._registerTimeout(setTimeout(function () {
         editor.queryChoices(editor.TEXTAREA.value);
+        skipOne = true;
       }, 0));
     }
   };
@@ -61,6 +65,9 @@
       }
     });
 
+    if(skipOne) {
+      skipOne = false;
+    }
     that.instance._registerTimeout(setTimeout(function () {
       that.queryChoices(that.TEXTAREA.value);
     }, 0));
