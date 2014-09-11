@@ -203,7 +203,7 @@ describe('FillHandle', function () {
 
     selectCell(0, 2);
 
-    this.$container.find('.wtBorder.corner').trigger('mousedown');
+    this.$container.find('.wtBorder.current.corner').trigger('mousedown');
     this.$container.find('tr:last-child td:eq(2)').trigger('mouseenter');
 
     expect(hot.countRows()).toBe(4);
@@ -235,7 +235,7 @@ describe('FillHandle', function () {
 
     selectCell(0, 2);
 
-    this.$container.find('.wtBorder.corner').trigger('mousedown');
+    this.$container.find('.wtBorder.current.corner').trigger('mousedown');
     var ev = jQuery.Event('mousemove')
       , $lastRow = this.$container.find('tr:last-child td:eq(2)');
 
