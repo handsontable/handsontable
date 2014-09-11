@@ -160,6 +160,33 @@ describe("handsontable.MergeCells", function () {
 
     });
 
+    it("should not add an area class to the selected cell if a single merged cell is selected", function() {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(6, 6),
+        mergeCells: [
+          {
+            row: 1,
+            col: 1,
+            colspan: 3,
+            rowspan: 2
+          }
+        ]
+      });
+
+      selectCell(1,1);
+      expect(getCell(1,1).className.indexOf('area')).toEqual(-1);
+
+      selectCell(1,1,4,4);
+      expect(getCell(1,1).className.indexOf('area')).toNotEqual(-1);
+
+      selectCell(1,1);
+      expect(getCell(1,1).className.indexOf('area')).toEqual(-1);
+
+      selectCell(0,0);
+      expect(getCell(1,1).className.indexOf('area')).toEqual(-1);
+
+    });
+
   });
 
   describe("modifyTransform", function () {

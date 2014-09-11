@@ -180,7 +180,7 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
 
 
   this.oldCellCache = this.currentCellCache;
-  this.currentCellCache = new WalkontableClassNameCache();
+  this.currentCellCache = new WalkontableClassNameCache(this.instance);
 
   if (this.instance.selections) {
     for (var i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
@@ -204,6 +204,7 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
     for (vc = 0; vc < renderedCells; vc++) {
       r = this.rowFilter.visibleToSource(vr);
       c = this.columnFilter.visibleToSource(vc);
+
       for (s = 0; s < slen; s++) {
         var cell;
         if (this.currentCellCache.test(vr, vc, classNames[s])) {

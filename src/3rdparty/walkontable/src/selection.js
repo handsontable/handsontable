@@ -108,6 +108,7 @@ WalkontableSelection.prototype.draw = function (instance) {
       }
     }
 
+    instance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
     if (this.settings.border) {
       var border = this.getBorder(instance);
       if (border) {
