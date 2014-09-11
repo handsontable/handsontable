@@ -24,20 +24,26 @@
 
   };
 
-  AutocompleteEditor.prototype.bindEvents = function () {
-    var that = this;
-    this.$textarea.on('keydown.autocompleteEditor', function (event) {
-      var keyCodes = Handsontable.helper.keyCode;
-      if (event.keyCode !== keyCodes.ARROW_DOWN && event.keyCode !== keyCodes.ARROW_UP) {
-        that.instance._registerTimeout(setTimeout(function () {
-          that.queryChoices(that.TEXTAREA.value);
-        }, 0));
-      }
-    });
+  var skipOne = false;
+  var onBeforeKeyDown = function (event) {
+    skipOne = false;
+    var editor = this.getActiveEditor();
+    var keyCodes = Handsontable.helper.keyCode;
+
+    if (Handsontable.helper.isPrintableChar(event.keyCode) || event.keyCode === keyCodes.BACKSPACE || event.keyCode === keyCodes.DELETE  || event.keyCode === keyCodes.INSERT) {
+      editor.instance._registerTimeout(setTimeout(function () {
+        editor.queryChoices(editor.TEXTAREA.value);
+        skipOne = true;
+      }, 0));
+    }
+  };
+
+  AutocompleteEditor.prototype.prepare = function () {
+    this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
+    Handsontable.editors.HandsontableEditor.prototype.prepare.apply(this, arguments);
   };
 
   AutocompleteEditor.prototype.open = function () {
-
     Handsontable.editors.HandsontableEditor.prototype.open.apply(this, arguments);
 
     this.TEXTAREA.style.visibility = 'visible';
@@ -59,7 +65,12 @@
       }
     });
 
-    this.queryChoices(this.TEXTAREA.value);
+    if(skipOne) {
+      skipOne = false;
+    }
+    that.instance._registerTimeout(setTimeout(function () {
+      that.queryChoices(that.TEXTAREA.value);
+    }, 0));
 
   };
 
@@ -123,6 +134,13 @@
     this.instance.listen();
     this.TEXTAREA.focus();
     Handsontable.Dom.setCaretPosition(this.TEXTAREA, pos, (pos != endPos ? endPos : void 0));
+  };
+
+  AutocompleteEditor.prototype.finishEditing = function (restoreOriginalValue) {
+    if (!restoreOriginalValue) {
+      this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
+    }
+    Handsontable.editors.HandsontableEditor.prototype.finishEditing.apply(this, arguments);
   };
 
   AutocompleteEditor.prototype.highlightBestMatchingChoice = function () {

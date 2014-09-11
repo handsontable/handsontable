@@ -2108,7 +2108,11 @@ describe('AutocompleteEditor', function () {
     selectCell(0, 0);
     $(getCell(0, 0)).find('.htAutocompleteArrow').mousedown();
 
-    expect(dropdown.scrollHeight > dropdown.clientHeight).toBe(false);
+    waits(30);
+
+    runs(function() {
+      expect(dropdown.scrollHeight > dropdown.clientHeight).toBe(false);
+    });
 
   });
 
