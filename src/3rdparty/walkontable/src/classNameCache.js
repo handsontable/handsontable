@@ -16,6 +16,12 @@ WalkontableClassNameCache.prototype.add = function (r, c, cls) {
   this.cache[r][c][cls] = true;
 };
 
+WalkontableClassNameCache.prototype.remove = function (r, c, cls) {
+  if(this.test(r, c, cls)) {
+    this.cache[r][c][cls] = void 0;
+  }
+};
+
 WalkontableClassNameCache.prototype.test = function (r, c, cls) {
   return (this.cache[r] && this.cache[r][c] && this.cache[r][c][cls]);
 };

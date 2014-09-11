@@ -209,8 +209,6 @@ WalkontableBorder.prototype.appear = function (corners) {
   this.topStyle.width = width + 'px';
   this.topStyle.display = 'block';
 
-
-
   this.leftStyle.top = top + 'px';
   this.leftStyle.left = left + 'px';
   this.leftStyle.height = height + 'px';

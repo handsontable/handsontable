@@ -137,6 +137,59 @@ describe('FillHandle', function () {
 
     document.body.removeChild($table[0]);
   });
+  it("should fill cells below until the end of content in the neighbouring column with current cell's data", function() {
+    var hot = handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, null, null, null, null],
+        [1, 2, null, null, null, null]
+      ]
+    });
+
+    selectCell(1,3);
+    var fillHandle = this.$container.find('.wtBorder.current.corner')[0];
+    mouseDoubleClick(fillHandle);
+
+    expect(getDataAtCell(2,3)).toEqual(null);
+    expect(getDataAtCell(3,3)).toEqual(null);
+
+    selectCell(1,2);
+    mouseDoubleClick(fillHandle);
+
+    expect(getDataAtCell(2,2)).toEqual(3);
+    expect(getDataAtCell(3,2)).toEqual(3);
+
+  });
+
+  it("should fill cells below until the end of content in the neighbouring column with the currently selected area's data", function() {
+    var hot = handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, null, null, null, null],
+        [1, 2, null, null, null, null]
+      ]
+    });
+
+    selectCell(1,3,1,4);
+    var fillHandle = this.$container.find('.wtBorder.area.corner')[0];
+    mouseDoubleClick(fillHandle);
+
+    expect(getDataAtCell(2,3)).toEqual(null);
+    expect(getDataAtCell(3,3)).toEqual(null);
+    expect(getDataAtCell(2,4)).toEqual(null);
+    expect(getDataAtCell(3,4)).toEqual(null);
+
+    selectCell(1,2,1,3);
+    mouseDoubleClick(fillHandle);
+
+    expect(getDataAtCell(2,2)).toEqual(3);
+    expect(getDataAtCell(3,2)).toEqual(3);
+    expect(getDataAtCell(2,3)).toEqual(4);
+    expect(getDataAtCell(3,3)).toEqual(4);
+
+  });
 
   it('should add new row after dragging the handle to the last table row', function () {
     var hot = handsontable({
@@ -150,7 +203,7 @@ describe('FillHandle', function () {
 
     selectCell(0, 2);
 
-    this.$container.find('.wtBorder.corner').trigger('mousedown');
+    this.$container.find('.wtBorder.current.corner').trigger('mousedown');
     this.$container.find('tr:last-child td:eq(2)').trigger('mouseenter');
 
     expect(hot.countRows()).toBe(4);
@@ -182,7 +235,7 @@ describe('FillHandle', function () {
 
     selectCell(0, 2);
 
-    this.$container.find('.wtBorder.corner').trigger('mousedown');
+    this.$container.find('.wtBorder.current.corner').trigger('mousedown');
     var ev = jQuery.Event('mousemove')
       , $lastRow = this.$container.find('tr:last-child td:eq(2)');
 
