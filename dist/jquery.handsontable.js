@@ -1,12 +1,12 @@
 /*!
- * Handsontable 0.11.1
+ * Handsontable 0.11.2
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2012-2014 Marcin Warpechowski
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Sep 05 2014 12:54:36 GMT+0200 (CEST)
+ * Date: Thu Sep 11 2014 23:41:54 GMT+0200 (CEST)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -615,7 +615,12 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @return {Boolean}
      */
     isMultiple: function () {
-      return !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row);
+      var isMultiple = !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row)
+        , modifier = Handsontable.hooks.execute(instance, 'afterIsMultipleSelection', isMultiple);
+
+      if(isMultiple) {
+        return modifier;
+      }
     },
 
     /**
@@ -2199,7 +2204,7 @@ Handsontable.Core = function (rootElement, userSettings) {
   /**
    * Handsontable version
    */
-  this.version = '0.11.1'; //inserted by grunt from package.json
+  this.version = '0.11.2'; //inserted by grunt from package.json
 };
 
 var DefaultSettings = function () {};
@@ -3039,6 +3044,48 @@ Handsontable.TableView = function (instance) {
     }
   };
 
+  var selections = [
+    new WalkontableSelection({
+      className: 'current',
+      border: {
+        width: 2,
+        color: '#5292F7',
+        //style: 'solid', //not used
+        cornerVisible: function () {
+          return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
+        }
+      }
+    }),
+    new WalkontableSelection({
+      className: 'area',
+      border: {
+        width: 1,
+        color: '#89AFF9',
+        //style: 'solid', // not used
+        cornerVisible: function () {
+          return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
+        }
+      }
+    }),
+    new WalkontableSelection({
+      className: 'highlight',
+      highlightRowClassName: that.settings.currentRowClassName,
+      highlightColumnClassName: that.settings.currentColClassName
+    }),
+    new WalkontableSelection({
+      className: 'fill',
+      border: {
+        width: 1,
+        color: 'red'
+        //style: 'solid' // not used
+      }
+    })
+  ];
+  selections.current = selections[0];
+  selections.area = selections[1];
+  selections.highlight = selections[2];
+  selections.fill = selections[3];
+
   var walkontableConfig = {
     debug: function () {
       return that.settings.debug;
@@ -3080,43 +3127,7 @@ Handsontable.TableView = function (instance) {
       Handsontable.hooks.run(that.instance, 'afterRenderer', TD, row, col, prop, value, cellProperties);
 
     },
-    selections: [
-      {
-        className: 'current',
-        border: {
-          width: 2,
-          color: '#5292F7',
-          //style: 'solid', //not used
-          cornerVisible: function () {
-            return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple()
-          }
-        }
-      },
-      {
-        className: 'area',
-        border: {
-          width: 1,
-          color: '#89AFF9',
-          //style: 'solid', // not used
-          cornerVisible: function () {
-            return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple()
-          }
-        }
-      },
-      {
-        className: 'highlight',
-        highlightRowClassName: that.settings.currentRowClassName,
-        highlightColumnClassName: that.settings.currentColClassName
-      },
-      {
-        className: 'fill',
-        border: {
-          width: 1,
-          color: 'red'
-          //style: 'solid' // not used
-        }
-      }
-    ],
+    selections: selections,
     hideBorderOnMouseDownOver: function () {
       return that.settings.fragmentSelection;
     },
@@ -3185,6 +3196,9 @@ Handsontable.TableView = function (instance) {
     },
     onScrollHorizontally: function () {
       instance.runHooks('afterScrollHorizontally');
+    },
+    onBeforeDrawBorders: function (corners, borderClassName) {
+      instance.runHooks('beforeDrawBorders', corners, borderClassName);
     }
   };
 
@@ -3447,19 +3461,7 @@ Handsontable.TableView.prototype.mainViewIsActive = function () {
 
             if (!activeEditor.isWaiting()) {
               if (!Handsontable.helper.isMetaKey(event.keyCode) && !ctrlDown && !that.isEditorOpened()) {
-
-                var charCode = event.keyCode;
-                var charStr = String.fromCharCode(charCode);
-                var isUp = (charCode >= 65 && charCode <= 90) ? true : false; // uppercase
-                var isLow = (charCode >= 97 && charCode <= 122) ? true : false; // lowercase
-                // uppercase w/out shift or lowercase with shift == caps lock
-                if ((isUp && !event.shiftKey) || (isLow && event.shiftKey)) {
-                  charStr = charStr.toLowerCase();
-                }
-                that.openEditor(charStr);
-
-                event.preventDefault();
-                event.stopPropagation(); //required by HandsontableEditor
+                that.openEditor("");
                 return;
               }
             }
@@ -4098,6 +4100,7 @@ Handsontable.helper.keyCode = {
   MOUSE_MIDDLE: 2,
   BACKSPACE: 8,
   COMMA: 188,
+  INSERT: 45,
   DELETE: 46,
   END: 35,
   ENTER: 13,
@@ -5571,8 +5574,10 @@ Handsontable.helper.toString = function (obj) {
       }
     }
 
-    this.autoResize.init(this.$textarea[0], {
-      fontSize: parseInt( window.getComputedStyle($td[0]).fontSize,10),
+    this.TEXTAREA.style.fontSize = Handsontable.Dom.getComputedStyle(this.TD).fontSize;
+    this.TEXTAREA.style.fontFamily = Handsontable.Dom.getComputedStyle(this.TD).fontFamily;
+
+    this.autoResize.init(this.TEXTAREA, {
       minHeight: Math.min(height, maxHeight),
       maxHeight: maxHeight, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
       minWidth: Math.min(width, maxWidth),
@@ -5835,13 +5840,13 @@ Handsontable.helper.toString = function (obj) {
 
     if (this.cellProperties.strict) {
       this.$htContainer.handsontable('selectCell', 0, 0);
-      this.$textarea[0].style.visibility = 'hidden';
+      this.TEXTAREA.style.visibility = 'hidden';
     } else {
       this.$htContainer.handsontable('deselectCell');
-      this.$textarea[0].style.visibility = 'visible';
+      this.TEXTAREA.style.visibility = 'visible';
     }
 
-    Handsontable.Dom.setCaretPosition(this.$textarea[0], 0, this.$textarea[0].value.length);
+    Handsontable.Dom.setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
 
   };
 
@@ -5921,23 +5926,29 @@ Handsontable.helper.toString = function (obj) {
 
   };
 
-  AutocompleteEditor.prototype.bindEvents = function () {
-    var that = this;
-    this.$textarea.on('keydown.autocompleteEditor', function (event) {
-      var keyCodes = Handsontable.helper.keyCode;
-      if (event.keyCode !== keyCodes.ARROW_DOWN && event.keyCode !== keyCodes.ARROW_UP) {
-        that.instance._registerTimeout(setTimeout(function () {
-          that.queryChoices(that.TEXTAREA.value);
-        }, 0));
-      }
-    });
+  var skipOne = false;
+  var onBeforeKeyDown = function (event) {
+    skipOne = false;
+    var editor = this.getActiveEditor();
+    var keyCodes = Handsontable.helper.keyCode;
+
+    if (Handsontable.helper.isPrintableChar(event.keyCode) || event.keyCode === keyCodes.BACKSPACE || event.keyCode === keyCodes.DELETE  || event.keyCode === keyCodes.INSERT) {
+      editor.instance._registerTimeout(setTimeout(function () {
+        editor.queryChoices(editor.TEXTAREA.value);
+        skipOne = true;
+      }, 0));
+    }
+  };
+
+  AutocompleteEditor.prototype.prepare = function () {
+    this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
+    Handsontable.editors.HandsontableEditor.prototype.prepare.apply(this, arguments);
   };
 
   AutocompleteEditor.prototype.open = function () {
-
     Handsontable.editors.HandsontableEditor.prototype.open.apply(this, arguments);
 
-    this.$textarea[0].style.visibility = 'visible';
+    this.TEXTAREA.style.visibility = 'visible';
     this.focus();
 
     var choicesListHot = this.$htContainer.handsontable('getInstance');
@@ -5956,7 +5967,12 @@ Handsontable.helper.toString = function (obj) {
       }
     });
 
-    this.queryChoices(this.TEXTAREA.value);
+    if(skipOne) {
+      skipOne = false;
+    }
+    that.instance._registerTimeout(setTimeout(function () {
+      that.queryChoices(that.TEXTAREA.value);
+    }, 0));
 
   };
 
@@ -6020,6 +6036,13 @@ Handsontable.helper.toString = function (obj) {
     this.instance.listen();
     this.TEXTAREA.focus();
     Handsontable.Dom.setCaretPosition(this.TEXTAREA, pos, (pos != endPos ? endPos : void 0));
+  };
+
+  AutocompleteEditor.prototype.finishEditing = function (restoreOriginalValue) {
+    if (!restoreOriginalValue) {
+      this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
+    }
+    Handsontable.editors.HandsontableEditor.prototype.finishEditing.apply(this, arguments);
   };
 
   AutocompleteEditor.prototype.highlightBestMatchingChoice = function () {
@@ -6383,8 +6406,7 @@ var autoResize = function () {
       minHeight: 200,
       maxHeight: 300,
       minWidth: 100,
-      maxWidth: 300,
-      fontSize: 11
+      maxWidth: 300
     },
     el,
     body = document.body,
@@ -6411,7 +6433,8 @@ var autoResize = function () {
       else {
         text.data = el.value; //IE8
       }
-      span.style.fontSize = defaults.fontSize + 'px';
+      span.style.fontSize = Handsontable.Dom.getComputedStyle(el).fontSize;
+      span.style.fontFamily = Handsontable.Dom.getComputedStyle(el).fontFamily;
 
       body.appendChild(span);
       var width = span.clientWidth;
@@ -6487,17 +6510,6 @@ var autoResize = function () {
         }
       }
 
-      if (config && config.fontSize) {
-        if (config.fontSize == 'inherit') {
-          defaults.fontSize = el.fontSize;
-        } else {
-          var fontSize = parseInt(config.fontSize);
-          if (!isNaN(fontSize)) {
-            defaults.fontSize = fontSize
-          }
-        }
-      }
-
       if(!span.firstChild) {
         span.className = "autoResize";
         span.style.display = 'inline-block';
@@ -6515,7 +6527,6 @@ var autoResize = function () {
         el.style.height = defaults.minHeight + 'px';
         el.style.minWidth = defaults.minWidth + 'px';
         el.style.maxWidth = defaults.maxWidth + 'px';
-        el.style.fontSize = defaults.fontSize + 'px';
         el.style.overflowY = 'hidden';
       }
 
@@ -7340,10 +7351,10 @@ Handsontable.PluginHookClass = (function () {
     return {
       // Hooks
       beforeInitWalkontable: [],
-
       beforeInit: [],
       beforeRender: [],
       beforeSetRangeEnd: [],
+      beforeDrawBorders: [],
       beforeChange: [],
       beforeChangeRender: [],
       beforeRemoveCol: [],
@@ -7352,7 +7363,6 @@ Handsontable.PluginHookClass = (function () {
       beforeGetCellMeta: [],
       beforeAutofill: [],
       beforeKeyDown: [],
-
       afterInit : [],
       afterLoadData : [],
       afterUpdateSettings: [],
@@ -7379,7 +7389,8 @@ Handsontable.PluginHookClass = (function () {
       afterOnCellCornerMouseDown: [],
       afterScrollVertically: [],
       afterScrollHorizontally: [],
-	  afterCellMetaReset:[],
+      afterCellMetaReset: [],
+      afterIsMultipleSelectionCheck: [],
       afterDocumentKeyDown: [],
 
       // Modifiers
@@ -7442,7 +7453,7 @@ Handsontable.PluginHookClass = (function () {
       fn.skip = false;
 
       if (bucket[key].indexOf(fn) == -1) {
-        bucket[key].push(fn); //only add a hook if it has not already be added (adding the same hook twice is now silently ignored)
+        bucket[key].push(fn); //only add a hook if it has not already been added (adding the same hook twice is now silently ignored)
       }
     }
     return this;
@@ -11360,7 +11371,7 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
         var updateCornerInfo = function () {
           topLeft = currentSelectedRange.getTopLeftCorner();
           bottomRight = currentSelectedRange.getBottomRightCorner();
-        }
+        };
         updateCornerInfo();
 
         var expanding = false; //expanding false means shrinking
@@ -11511,7 +11522,7 @@ if (typeof Handsontable == 'undefined') {
   throw new Error('Handsontable is not defined');
 }
 
-var init = function () {
+var beforeInit = function () {
   var instance = this;
   var mergeCellsSetting = instance.getSettings().mergeCells;
 
@@ -11519,6 +11530,25 @@ var init = function () {
     if (!instance.mergeCells) {
       instance.mergeCells = new MergeCells(mergeCellsSetting);
     }
+  }
+};
+
+var afterInit = function () {
+  var instance = this;
+  if (instance.mergeCells) {
+    /**
+     * Monkey patch WalkontableTable.prototype.getCell to return TD for merged cell parent if asked for TD of a cell that is
+     * invisible due to the merge. This is not the cleanest solution but there is a test case for it (merged cells scroll) so feel free to refactor it!
+     */
+    instance.view.wt.wtTable.getCell = function (coords) {
+      if (instance.getSettings().mergeCells) {
+        var mergeParent = instance.mergeCells.mergedCellInfoCollection.getInfo(coords.row, coords.col);
+        if (mergeParent) {
+          coords = mergeParent;
+        }
+      }
+      return WalkontableTable.prototype.getCell.call(this, coords);
+    };
   }
 };
 
@@ -11628,6 +11658,39 @@ var beforeSetRangeEnd = function (coords) {
   }
 };
 
+/**
+ * Returns correct coordinates for merged start / end cells in selection for area borders
+ * @param corners
+ * @param className
+ */
+var beforeDrawAreaBorders = function (corners, className) {
+  if (className && className == 'area'){
+    var mergeCellsSetting = this.getSettings().mergeCells;
+    if (mergeCellsSetting) {
+      var selRange = this.getSelectedRange();
+      var startRange = new WalkontableCellRange(selRange.from, selRange.from, selRange.from);
+      var stopRange = new WalkontableCellRange(selRange.to, selRange.to, selRange.to);
+
+      for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
+        var cellInfo = this.mergeCells.mergedCellInfoCollection[i];
+        var mergedCellTopLeft = new WalkontableCellCoords(cellInfo.row, cellInfo.col);
+        var mergedCellBottomRight = new WalkontableCellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
+        var mergedCellRange = new WalkontableCellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
+
+        if (startRange.expandByRange(mergedCellRange)) {
+          corners[0] = startRange.from.row;
+          corners[1] = startRange.from.col;
+        }
+
+        if (stopRange.expandByRange(mergedCellRange)) {
+          corners[2] = stopRange.from.row;
+          corners[3] = stopRange.from.col;
+        }
+      }
+    }
+  }
+};
+
 var afterGetCellMeta = function(row, col, cellProperties) {
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (mergeCellsSetting) {
@@ -11638,11 +11701,30 @@ var afterGetCellMeta = function(row, col, cellProperties) {
   }
 };
 
-Handsontable.hooks.add('beforeInit', init);
+var isMultipleSelection = function(isMultiple) {
+  if(isMultiple && this.mergeCells) {
+    var mergedCells = this.mergeCells.mergedCellInfoCollection
+      , selectionRange = this.getSelectedRange();
+
+    for(var group in mergedCells) {
+      if(selectionRange.highlight.row == mergedCells[group].row && selectionRange.highlight.col == mergedCells[group].col
+        && selectionRange.to.row == mergedCells[group].row + mergedCells[group].rowspan - 1
+        && selectionRange.to.col == mergedCells[group].col + mergedCells[group].colspan - 1) {
+        return false;
+      }
+    }
+  }
+  return isMultiple;
+};
+
+Handsontable.hooks.add('beforeInit', beforeInit);
+Handsontable.hooks.add('afterInit', afterInit);
 Handsontable.hooks.add('beforeKeyDown', onBeforeKeyDown);
 Handsontable.hooks.add('modifyTransformStart', modifyTransformFactory('modifyTransformStart'));
 Handsontable.hooks.add('modifyTransformEnd', modifyTransformFactory('modifyTransformEnd'));
 Handsontable.hooks.add('beforeSetRangeEnd', beforeSetRangeEnd);
+Handsontable.hooks.add('beforeDrawBorders', beforeDrawAreaBorders);
+Handsontable.hooks.add('afterIsMultipleSelection', isMultipleSelection);
 Handsontable.hooks.add('afterRenderer', afterRenderer);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addMergeActionsToContextMenu);
 Handsontable.hooks.add('afterGetCellMeta', afterGetCellMeta);
@@ -11656,50 +11738,80 @@ Handsontable.MergeCells = MergeCells;
 
   }
 
-  /***
-   * Array for all custom border objects (for redraw)
-   * @type {{}}
-   */
-  var bordersArray = {},
-    /***
-     * Flag for prevent redraw borders after each AfterRender hook
-     * @type {boolean}
-     */
-    initialDraw = false,
-
-    /***
+//  /***
+//   * Array for all custom border objects (for redraw)
+//   * @type {{}}
+//   */
+//  var bordersArray = {},
+        /***
      * Current instance (table where borders should be placed)
      */
-    instance;
+  var instance;
 
 
   /***
    * Check if plugin should be enabled
    */
-  var init = function () {
-
-    var customBorders = this.getSettings().customBorders;
-    var enable = false;
-
+  var checkEnable = function (customBorders) {
     if(typeof customBorders === "boolean"){
       if (customBorders == true){
-        enable = true;
+        return true;
       }
     }
 
     if(typeof customBorders === "object"){
       if(customBorders.length > 0) {
-        initialDraw = true;
-        enable = true;
+        return true;
       }
     }
+    return false;
+  };
 
-    if(enable){
+
+  /***
+   * Initialize plugin
+    */
+  var init = function () {
+
+    if(checkEnable(this.getSettings().customBorders)){
       if(!this.customBorders){
         instance = this;
         this.customBorders = new CustomBorders();
       }
     }
+  };
+
+	/***
+	 * get index of border setting
+	 * @param className
+	 * @returns {number}
+	 */
+	var getSettingIndex = function (className) {
+		for (var i = 0; i < instance.view.wt.selections.length; i++){
+			if (instance.view.wt.selections[i].settings.className == className){
+				return i;
+			}
+		}
+		return -1;
+	};
+
+  /***
+   * Insert WalkontableSelection instance into Walkontable.settings
+   * @param border
+   */
+  var insertBorderIntoSettings = function (border) {
+    var coordinates = {
+      row: border.row,
+      col: border.col
+    };
+    var selection = new WalkontableSelection(border, new WalkontableCellRange(coordinates, coordinates, coordinates));
+		var index = getSettingIndex(border.className);
+
+		if(index >=0) {
+			instance.view.wt.selections[index] = selection;
+		} else {
+			instance.view.wt.selections.push(selection);
+		}
   };
 
   /***
@@ -11713,7 +11825,8 @@ Handsontable.MergeCells = MergeCells;
     var border = createEmptyBorders(row, col);
     border = extendDefaultBorder(border, borderObj);
     this.setCellMeta(row, col, 'borders', border);
-    insertBorderToArray(border);
+
+    insertBorderIntoSettings(border);
   };
 
   /***
@@ -11761,7 +11874,7 @@ Handsontable.MergeCells = MergeCells;
 
         if(add>0){
           this.setCellMeta(row, col, 'borders', border);
-          insertBorderToArray(border);
+          insertBorderIntoSettings(border);
         }
       }
     }
@@ -11859,37 +11972,21 @@ Handsontable.MergeCells = MergeCells;
   };
 
   /***
-   * Insert object with borders for each cell to bordersArray
-   *
-   * @param bordersObj
-   */
-  var insertBorderToArray = function (bordersObj) {
-    bordersArray[bordersObj.className] = bordersObj;
-  };
-
-  /***
-   * Clean bordersArray for cell when custom border has been removed
-   *
-   * @param className
-   */
-  var removeBorderFromArray = function (className) {
-    delete bordersArray[className];
-  };
-
-
-  /***
    * Remove borders divs from DOM
    *
    * @param borderClassName
    */
   var removeBordersFromDom = function (borderClassName) {
-    var borders = document.getElementsByClassName(borderClassName)[0];
+	  var borders = document.getElementsByClassName(borderClassName);
 
-    if(borders){
-      var parent = borders.parentNode;
-      parent.parentNode.removeChild(parent);
-    }
-
+		for(var i = 0; i< borders.length; i++) {
+			if (borders[i]) {
+				if(borders[i].nodeName != 'TD') {
+					var parent = borders[i].parentNode;
+      		parent.parentNode.removeChild(parent);
+				}
+			}
+		}
   };
 
 
@@ -11902,28 +11999,8 @@ Handsontable.MergeCells = MergeCells;
   var removeAllBorders = function(row,col) {
     var borderClassName = createClassName(row,col);
     removeBordersFromDom(borderClassName);
-    removeBorderFromArray(borderClassName);
-
     this.removeCellMeta(row, col, 'borders');
   };
-
-  /***
-   * Draw borders for single cell
-   *
-   * @param borderObj
-   */
-  var drawBorders = function (borderObj) {
-    var bordersInDOM = document.getElementsByClassName(createClassName(borderObj.row,borderObj.col)),
-      bordersExist = bordersInDOM.length > 0;
-
-    if(bordersExist){
-      removeBordersFromDom(createClassName(borderObj.row,borderObj.col));
-    }
-
-    var border = new WalkontableBorder(this.view.wt,borderObj);
-    border.appear([borderObj.row,borderObj.col,borderObj.row,borderObj.col]);
-  };
-
 
   /***
    * Set borders for each cell re. to border position
@@ -11934,6 +12011,7 @@ Handsontable.MergeCells = MergeCells;
    * @param remove
    */
   var setBorder = function (row, col,place, remove){
+
     var bordersMeta = this.getCellMeta(row, col).borders;
     if (!bordersMeta || bordersMeta.border == undefined){
       bordersMeta = createEmptyBorders(row, col);
@@ -11945,10 +12023,12 @@ Handsontable.MergeCells = MergeCells;
       bordersMeta[place] = createDefaultCustomBorder();
     }
 
-
     this.setCellMeta(row, col, 'borders', bordersMeta);
-    insertBorderToArray(bordersMeta);
-//    doDraw = true;
+
+    var borderClassName = createClassName(row,col);
+    removeBordersFromDom(borderClassName);
+		insertBorderIntoSettings(bordersMeta);
+
     this.render();
   };
 
@@ -11961,7 +12041,8 @@ Handsontable.MergeCells = MergeCells;
    * @param remove
    */
   var prepareBorder = function (range, place, remove) {
-    if (range.from.row == range.to.row && range.from.col == range.to.col){
+
+		if (range.from.row == range.to.row && range.from.col == range.to.col){
       if(place == "noBorders"){
         removeAllBorders.call(this, range.from.row, range.from.col);
       } else {
@@ -12111,7 +12192,7 @@ Handsontable.MergeCells = MergeCells;
               return label
             },
             callback: function () {
-              var hasBorder = checkSelectionBorders(this, 'bottom');
+              var hasBorder = checkSelectionBorders(this, 'left');
               prepareBorder.call(this, this.getSelectedRange(), 'left', hasBorder);
             },
             disabled: false
@@ -12132,10 +12213,13 @@ Handsontable.MergeCells = MergeCells;
 
   Handsontable.hooks.add('beforeInit', init);
   Handsontable.hooks.add('afterContextMenuDefaultOptions', addBordersOptionsToContextMenu);
-  Handsontable.hooks.add('afterRender', function () {
+
+
+  Handsontable.hooks.add('afterInit', function () {
     var customBorders = this.getSettings().customBorders;
 
-    if (initialDraw){
+    if (customBorders){
+
       for(var i = 0; i< customBorders.length; i++) {
         if(customBorders[i].range){
           prepareBorderFromCustomAddedRange.call(this,customBorders[i]);
@@ -12143,17 +12227,13 @@ Handsontable.MergeCells = MergeCells;
           prepareBorderFromCustomAdded.call(this,customBorders[i].row, customBorders[i].col, customBorders[i]);
         }
       }
-      initialDraw = false;
-    }
 
-    for (var key in bordersArray) {
-      if (bordersArray.hasOwnProperty(key)) {
-
-        drawBorders.call(this,bordersArray[key])
-      }
+			this.render();
+      this.view.wt.draw(true);
     }
 
   });
+
   Handsontable.CustomBorders = CustomBorders;
 
 }());
@@ -12981,8 +13061,6 @@ WalkontableBorder.prototype.appear = function (corners) {
   this.topStyle.width = width + 'px';
   this.topStyle.display = 'block';
 
-
-
   this.leftStyle.top = top + 'px';
   this.leftStyle.left = left + 'px';
   this.leftStyle.height = height + 'px';
@@ -13253,9 +13331,16 @@ WalkontableClassNameCache.prototype.add = function (r, c, cls) {
   this.cache[r][c][cls] = true;
 };
 
+WalkontableClassNameCache.prototype.remove = function (r, c, cls) {
+  if(this.test(r, c, cls)) {
+    this.cache[r][c][cls] = void 0;
+  }
+};
+
 WalkontableClassNameCache.prototype.test = function (r, c, cls) {
   return (this.cache[r] && this.cache[r][c] && this.cache[r][c][cls]);
 };
+
 /**
  * WalkontableColumnFilter
  * @constructor
@@ -13407,7 +13492,7 @@ function Walkontable(settings) {
     this.wtScroll = new WalkontableScroll(this);
     this.wtViewport = settings.cloneSource.wtViewport;
     this.wtEvent = new WalkontableEvent(this);
-    this.selections = this.generateSelectionClones(this.cloneSource.selections);
+    this.selections = this.cloneSource.selections;
   }
   else {
     this.wtSettings = new WalkontableSettings(this, settings);
@@ -13415,8 +13500,7 @@ function Walkontable(settings) {
     this.wtScroll = new WalkontableScroll(this);
     this.wtViewport = new WalkontableViewport(this);
     this.wtEvent = new WalkontableEvent(this);
-    var selectionSettings = this.getSetting('selections');
-    this.selections = selectionSettings ? this.generateSelections(selectionSettings) : [];
+    this.selections = this.getSetting('selections');
 
     this.wtScrollbars = new WalkontableScrollbars(this);
   }
@@ -13509,36 +13593,13 @@ Walkontable.prototype.hasSetting = function (key) {
   return this.wtSettings.has(key);
 };
 
-Walkontable.prototype.generateSelections = function (settings) {
-  var selections = [];
-  for (var i = 0, ilen = settings.length; i < ilen; i++) {
-    var sel = new WalkontableSelection(this, settings[i]);
-    selections.push(sel);
-    if (sel.settings.className) {
-      selections[sel.settings.className] = sel; //create shorthand access
-    }
-  }
-  return selections;
-};
-
-Walkontable.prototype.generateSelectionClones = function (selections) {
-  var clones = [];
-  for (var i = 0, ilen = selections.length; i < ilen; i++) {
-    var sel = selections[i].makeClone(this);
-    clones.push(sel);
-    if (sel.settings.className) {
-      clones[sel.settings.className] = sel; //create shorthand access
-    }
-  }
-  return clones;
-};
-
 Walkontable.prototype.destroy = function () {
   $(window).off('.' + this.guid);
   $(document.body).off('.' + this.guid);
   this.wtScrollbars.destroy();
   this.wtEvent && this.wtEvent.destroy();
 };
+
 /**
  * A overlay that renders ALL available rows & columns positioned on top of the original Walkontable instance and all other overlays.
  * Used for debugging purposes to see if the other overlays (that render only part of the rows & columns) are positioned correctly
@@ -13710,11 +13771,14 @@ WalkontableEvent.prototype.parentCell = function (elem) {
   if (TD && Handsontable.Dom.isChildOf(TD, TABLE)) {
     cell.coords = this.instance.wtTable.getCoords(TD);
     cell.TD = TD;
-  }
-  else if (Handsontable.Dom.hasClass(elem, 'wtBorder') && Handsontable.Dom.hasClass(elem, 'current')) {
-    cell.coords = this.instance.selections.current.cellRange.highlight;
+  } else if (Handsontable.Dom.hasClass(elem, 'wtBorder') && Handsontable.Dom.hasClass(elem, 'current')) {
+    cell.coords = this.instance.selections[0].cellRange.highlight; //selections[0] is current selected cell
+    cell.TD = this.instance.wtTable.getCell(cell.coords);
+  } else if (Handsontable.Dom.hasClass(elem, 'wtBorder') && Handsontable.Dom.hasClass(elem, 'area')) {
+    cell.coords = this.instance.selections[1].cellRange.to; //selections[1] is area selected cells
     cell.TD = this.instance.wtTable.getCell(cell.coords);
   }
+
   return cell;
 };
 
@@ -14455,14 +14519,23 @@ WalkontableScrollbars.prototype.applyToDOM = function () {
   this.corner && this.corner.applyToDOM();
   this.debug && this.debug.applyToDOM();
 };
-function WalkontableSelection(instance, settings) {
-  this.instance = instance;
+function WalkontableSelection(settings, cellRange) {
   this.settings = settings;
-  this.cellRange = null;
-  if (settings.border) {
-    this.border = new WalkontableBorder(instance, settings);
-  }
+  this.cellRange = cellRange || null;
+  this.instanceBorders = {};
 }
+
+/**
+ * Each Walkontable clone requires it's own border for every selection. This method creates and returns selection borders per instance
+ * @param {Walkotnable}
+ * @returns {WalkontableBorder}
+ */
+WalkontableSelection.prototype.getBorder = function (instance) {
+  if (this.instanceBorders[instance.guid]) {
+    return this.instanceBorders[instance.guid];
+  }
+  this.instanceBorders[instance.guid] = new WalkontableBorder(instance, this.settings);
+};
 
 /**
  * Returns boolean information if selection is empty
@@ -14519,12 +14592,11 @@ WalkontableSelection.prototype.getCorners = function () {
   return [topLeft.row, topLeft.col, bottomRight.row, bottomRight.col];
 };
 
-WalkontableSelection.prototype.draw = function () {
+WalkontableSelection.prototype.draw = function (instance) {
   var corners, r, c, source_r, source_c,
-    instance = this.instance,
     visibleRows = instance.wtTable.getRowStrategy().countVisible(),
-    renderedColumns = instance.wtTable.getColumnStrategy().cellCount,
-    cacheLength;
+    renderedColumns = instance.wtTable.getColumnStrategy().cellCount;
+
 
   if (!this.isEmpty()) {
     corners = this.getCorners();
@@ -14557,31 +14629,22 @@ WalkontableSelection.prototype.draw = function () {
       }
     }
 
-    this.border && this.border.appear(corners); //warning! border.appear modifies corners!
+    instance.getSetting('onBeforeDrawBorders', corners, this.settings.className);
+    if (this.settings.border) {
+      var border = this.getBorder(instance);
+      if (border) {
+        border.appear(corners); //warning! border.appear modifies corners!
+      }
+    }
   }
   else {
-    this.border && this.border.disappear();
+    if (this.settings.border) {
+      var border = this.getBorder(instance);
+      if (border) {
+        border.disappear();
+      }
+    }
   }
-};
-
-/*
-  Make a clone of a selection by overriding the WOT instance and creating new WalkontableBorder for the new instance
-  Method is used for creating selections in overlays
- */
-WalkontableSelection.prototype.makeClone = function (instance) {
-  function WalkontableSelectionClone(){}
-  WalkontableSelectionClone.prototype = this;
-
-  var clone = new WalkontableSelectionClone();
-
-  clone.instance = instance;
-
-  if (clone.border){
-    clone.border = new WalkontableBorder(instance, clone.settings);
-  }
-
-  return clone;
-
 };
 
 function WalkontableSettings(instance, settings) {
@@ -14634,6 +14697,7 @@ function WalkontableSettings(instance, settings) {
     onCellCornerDblClick: null,
     beforeDraw: null,
     onDraw: null,
+    onBeforeDrawBorders: null,
     onScrollVertically: null,
     onScrollHorizontally: null,
 
@@ -14694,6 +14758,7 @@ WalkontableSettings.prototype.getSetting = function (key, param1, param2, param3
 WalkontableSettings.prototype.has = function (key) {
   return !!this.settings[key]
 };
+
 function WalkontableTable(instance, table) {
   //reference to instance
   this.instance = instance;
@@ -14876,11 +14941,11 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
 
 
   this.oldCellCache = this.currentCellCache;
-  this.currentCellCache = new WalkontableClassNameCache();
+  this.currentCellCache = new WalkontableClassNameCache(this.instance);
 
   if (this.instance.selections) {
     for (var i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
-      this.instance.selections[i].draw();
+      this.instance.selections[i].draw(this.instance);
 
       if (this.instance.selections[i].settings.className) {
         classNames.push(this.instance.selections[i].settings.className);
@@ -14900,6 +14965,7 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
     for (vc = 0; vc < renderedCells; vc++) {
       r = this.rowFilter.visibleToSource(vr);
       c = this.columnFilter.visibleToSource(vc);
+
       for (s = 0; s < slen; s++) {
         var cell;
         if (this.currentCellCache.test(vr, vc, classNames[s])) {
