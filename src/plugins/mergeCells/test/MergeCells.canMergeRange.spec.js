@@ -326,5 +326,57 @@ describe("handsontable.MergeCells", function () {
     });
 
   });
-})
-;
+
+  describe("merged cells scroll", function () {
+    it("getCell should return merged cell parent", function () {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(10, 5),
+        mergeCells: [
+          {row: 0, col: 0, rowspan: 2, colspan: 2}
+        ],
+        height: 100,
+        width: 400
+      });
+
+      var mergedCellParent = hot.getCell(0, 0);
+      var mergedCellHidden = hot.getCell(1, 1);
+
+      expect(mergedCellHidden).toBe(mergedCellParent);
+    });
+
+    it("should scroll viewport to beginning of a merged cell when it's clicked", function () {
+      var hot = handsontable({
+        data: createSpreadsheetObjectData(10, 5),
+        mergeCells: [
+          {row: 5, col: 0, rowspan: 2, colspan: 2}
+        ],
+        height: 100,
+        width: 400
+      });
+
+      hot.rootElement[0].scrollTop = 130;
+      hot.render();
+
+      expect(hot.rootElement[0].scrollTop).toBe(130);
+
+      var TD = hot.getCell(5, 0);
+      mouseDown(TD);
+      mouseUp(TD);
+      var mergedCellScrollTop = hot.rootElement[0].scrollTop;
+      expect(mergedCellScrollTop).toBeLessThan(130);
+      expect(mergedCellScrollTop).toBeGreaterThan(0);
+
+      hot.rootElement[0].scrollTop = 0;
+      hot.render();
+
+      hot.rootElement[0].scrollTop = 130;
+      hot.render();
+
+      TD = hot.getCell(5, 2);
+      mouseDown(TD);
+      mouseUp(TD);
+      var regularCellScrollTop = hot.rootElement[0].scrollTop;
+      expect(mergedCellScrollTop).toBe(regularCellScrollTop);
+    });
+  });
+});
