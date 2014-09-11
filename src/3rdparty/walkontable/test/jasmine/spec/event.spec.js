@@ -259,14 +259,14 @@ describe('WalkontableEvent', function () {
         height: 200,
         width: 100,
         selections: [
-          {
+          new WalkontableSelection({
             className: 'current',
             border: {
               width: 1,
               color: 'red',
               style: 'solid'
             }
-          }
+          })
         ],
         onCellMouseDown: function (event, coords, TD) {
           myCoords = coords;
@@ -296,14 +296,14 @@ describe('WalkontableEvent', function () {
         height: 200,
         width: 100,
         selections: [
-          {
+          new WalkontableSelection({
             className: 'current',
             border: {
               width: 1,
               color: 'red',
               style: 'solid'
             }
-          }
+          })
         ],
         onCellDblClick: function (event, coords, TD) {
           myCoords = coords;
@@ -336,14 +336,14 @@ describe('WalkontableEvent', function () {
         height: 200,
         width: 100,
         selections: [
-          {
+          new WalkontableSelection({
             className: 'current',
             border: {
               width: 1,
               color: 'red',
               style: 'solid'
             }
-          }
+          })
         ],
         onCellCornerMouseDown: function (event) {
           clicked = true;
@@ -368,14 +368,14 @@ describe('WalkontableEvent', function () {
         height: 200,
         width: 100,
         selections: [
-          {
+          new WalkontableSelection({
             className: 'current',
             border: {
               width: 1,
               color: 'red',
               style: 'solid'
             }
-          }
+          })
         ]
       });
     wt.selections[0].add(new WalkontableCellCoords(10, 2));

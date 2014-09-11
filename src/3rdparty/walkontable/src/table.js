@@ -184,7 +184,7 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
 
   if (this.instance.selections) {
     for (var i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
-      this.instance.selections[i].draw();
+      this.instance.selections[i].draw(this.instance);
 
       if (this.instance.selections[i].settings.className) {
         classNames.push(this.instance.selections[i].settings.className);
