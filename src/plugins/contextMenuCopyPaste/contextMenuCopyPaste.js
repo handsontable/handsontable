@@ -154,8 +154,8 @@
     // Workaround for 'current' and 'zeroclipboard-is-hover' classes being stuck when moving the cursor over the context menu
     if (plugin.cmInstance) {
       $(document).off('mouseenter.' + plugin.cmInstance.guid).on('mouseenter.' + plugin.cmInstance.guid, '#global-zeroclipboard-flash-bridge', function (event) {
-        var hadClass = plugin.cmInstance.rootElement[0].querySelectorAll('tr td.current')[0];
-        if (hadClass.className && hadClass.className.indexOf('current') != -1) {
+        var hadClass = plugin.cmInstance.rootElement[0].querySelector('td.current');
+        if (hadClass) {
           Handsontable.Dom.removeClass(hadClass, 'current');
         }
         plugin.outsideClickDeselectsCache = plugin.instance.getSettings().outsideClickDeselects;
@@ -163,8 +163,8 @@
       });
 
       $(document).off('mouseleave.' + plugin.cmInstance.guid).on('mouseleave.' + plugin.cmInstance.guid, '#global-zeroclipboard-flash-bridge', function (event) {
-        var hadClass = plugin.cmInstance.rootElement[0].querySelectorAll('tr td.zeroclipboard-is-hover')[0];
-        if (hadClass.className && hadClass.className.indexOf('zeroclipboard-is-hover') != -1) {
+        var hadClass = plugin.cmInstance.rootElement[0].querySelector('td.zeroclipboard-is-hover');
+        if (hadClass) {
           Handsontable.Dom.removeClass(hadClass, 'zeroclipboard-is-hover');
         }
         plugin.instance.getSettings().outsideClickDeselects = plugin.outsideClickDeselectsCache;
