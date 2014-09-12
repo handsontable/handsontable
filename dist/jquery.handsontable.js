@@ -6,7 +6,7 @@
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Thu Jun 26 2014 16:28:42 GMT+0000 (GMT)
+ * Date: Fri Sep 12 2014 15:59:53 GMT+0000 (GMT)
  */
 /*jslint white: true, browser: true, plusplus: true, indent: 4, maxerr: 50 */
 
@@ -4097,7 +4097,7 @@ Handsontable.SelectionPoint.prototype.arr = function (arr) {
 
     this.instance.PluginHooks.run('afterRemoveRow', index, amount);
 
-    this.instance.forceFullRender = true; //used when data was changed
+    //this.instance.forceFullRender = true; //used when data was changed
   };
 
   /**

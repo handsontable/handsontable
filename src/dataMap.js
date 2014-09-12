@@ -274,7 +274,7 @@
 
     this.instance.PluginHooks.run('afterRemoveRow', index, amount);
 
-    this.instance.forceFullRender = true; //used when data was changed
+    //this.instance.forceFullRender = true; //used when data was changed
   };
 
   /**
