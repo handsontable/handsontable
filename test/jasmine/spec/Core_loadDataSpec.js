@@ -399,4 +399,32 @@ describe('Core_loadData', function () {
 
   });
 
+  // https://github.com/handsontable/jquery-handsontable/issues/1700
+  // can't edit anything after starting editing cell with no nested object
+  it('should correct behave with cell with no nested object data source corresponding to column mapping', function () {
+
+    var objectData = [
+      {id: 1, user: {firstName: "Ted", lastName: "Right"}},
+      {id: 2, user: {firstName: "Frank"}},
+      {id: 3, user: {}}
+    ];
+
+    handsontable({
+      data: objectData,
+      columns: [
+        {data: 'id'},
+        {data: 'user.firstName'},
+        {data: 'user.lastName'}
+      ]
+    });
+
+    mouseDoubleClick(getCell(1, 1));
+    var editor = $('.handsontableInputHolder');
+    expect(editor.is(':visible')).toBe(true);
+
+    selectCell(0, 0);
+    expect(editor.is(':visible')).toBe(false);
+
+  });
+
 });
