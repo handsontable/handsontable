@@ -451,7 +451,6 @@
 
 			selectedItem.callback.call(this.instance, selectedItem.key, normalizedSelection, event);
 			contextMenu.closeAll();
-      this.instance.deselectCell();
 		}
   };
 
