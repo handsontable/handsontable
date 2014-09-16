@@ -108,7 +108,8 @@ module.exports = function (grunt) {
         'src/plugins/mergeCells/mergeCells.js',
         'src/plugins/customBorders/customBorders.js',
         'src/plugins/manualRowMove.js',
-        'src/plugins/autofill.js'
+        'src/plugins/autofill.js',
+        'src/plugins/grouping.js'
       ],
       walkontable: [
         'src/3rdparty/walkontable/src/*.js',

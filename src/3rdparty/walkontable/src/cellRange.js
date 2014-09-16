@@ -24,6 +24,15 @@ WalkontableCellRange.prototype.isSingle = function () {
 WalkontableCellRange.prototype.includes = function (cellCoords) {
   var topLeft = this.getTopLeftCorner();
   var bottomRight = this.getBottomRightCorner();
+
+  if (cellCoords.row < 0) {
+    cellCoords.row = 0;
+  }
+
+  if (cellCoords.col < 0) {
+    cellCoords.col = 0;
+  }
+
   return (topLeft.row <= cellCoords.row && bottomRight.row >= cellCoords.row && topLeft.col <= cellCoords.col && bottomRight.col >= cellCoords.col);
 };
 

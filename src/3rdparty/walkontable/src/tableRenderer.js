@@ -22,6 +22,7 @@ function WalkontableTableRenderer(wtTable){
     this.rowHeaderCount = this.rowHeaders.length;
     this.fixedRowsTop = this.instance.getSetting('fixedRowsTop');
     this.columnHeaders = this.instance.getSetting('columnHeaders');
+    this.columnHeaderCount = this.columnHeaders.length;
 
   var visibleColIndex
     , totalRows = this.instance.getSetting('totalRows')
@@ -213,7 +214,10 @@ WalkontableTableRenderer.prototype.renderCells = function (sourceRowIndex, TR, d
       TD = this.utils.replaceThWithTd(TD, TR);
     }
 
-    TD.className = '';
+    if (!Handsontable.Dom.hasClass(TD, 'hide')) {
+      TD.className = '';
+    }
+
     TD.removeAttribute('style');
 
     this.instance.getSetting('cellRenderer', sourceRowIndex, sourceColIndex, TD);
@@ -304,18 +308,26 @@ WalkontableTableRenderer.prototype.adjustAvailableNodes = function () {
 };
 
 WalkontableTableRenderer.prototype.renderColumnHeaders = function () {
-  if (!this.columnHeaders.length) {
+  if (!this.columnHeaderCount) {
     return;
   }
 
   var columnCount = this.getColumnCount();
+  for (var i = 0; i < this.columnHeaderCount; i++) {
 
-  var TR = this.getTrForColumnHeaders();
+      var TR = this.THEAD.childNodes[i];
 
-  for (var columnIndex = 0; columnIndex < columnCount; columnIndex++) {
-    if (this.columnHeaders.length) {
-     this.renderColumnHeader( this.columnFilter.visibleToSource(columnIndex), TR.childNodes[this.rowHeaderCount + columnIndex]);
-    }
+      if(!this.THEAD.childNodes[i]) {
+        TR = this.createRow();
+        this.THEAD.appendChild(TR);
+        for(var j = 0; j < columnCount ; j++) {
+          TR.appendChild(document.createElement('TH'))
+        }
+      }
+
+      for (var columnIndex = 0; columnIndex < columnCount; columnIndex++) {
+          this.renderColumnHeader(i, this.columnFilter.visibleToSource(columnIndex), TR.childNodes[this.rowHeaderCount + columnIndex]);
+      }
   }
 };
 
@@ -360,17 +372,17 @@ WalkontableTableRenderer.prototype.adjustThead = function () {
   }
 };
 
-WalkontableTableRenderer.prototype.getTrForColumnHeaders = function () {
-  var TR = this.THEAD.firstChild;
-  if (this.rowHeaderCount) {
-    this.renderRowHeaders(-1, TR);
-  }
+//WalkontableTableRenderer.prototype.getTrForColumnHeaders = function () {
+//  var TR = this.THEAD.firstChild;
+//  if (this.rowHeaderCount) {
+//    this.renderRowHeaders(-1, TR);
+//  }
+//
+//  return TR;
+//};
 
-  return TR;
-};
-
-WalkontableTableRenderer.prototype.renderColumnHeader = function (col, TR) {
-  return this.columnHeaders[0](col, TR);
+WalkontableTableRenderer.prototype.renderColumnHeader = function (row, col, TH) {
+  return this.columnHeaders[row](col, TH);
 };
 
 WalkontableTableRenderer.prototype.getColumnCount = function () {
