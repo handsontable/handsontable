@@ -12,7 +12,8 @@
 .handsontable {
   position: relative;
 }
-.handsontable .hide {
+.handsontable .hide,
+.handsontable .hidden {
   display: none;
 }
 .handsontable .relative {
@@ -539,26 +540,169 @@ Context menu alignment buttons
   color: #583707;
 }
 
-.colGroupLevelsContainer ul > li,
-.rowGroupLevelsContainer ul > li,
-.colGroupsContainer ul > li,
-.rowGroupsContainer ul > li
-{
-  list-style: none;
-  font-size: 11px;
-  padding: 1px 3px;
-  display: inline-block;
+/*.colGroupLevelsContainer ul > li,*/
+/*.rowGroupLevelsContainer ul > li,*/
+/*.colGroupsContainer ul > li,*/
+/*.rowGroupsContainer ul > li*/
+/*{*/
+  /*list-style: none;*/
+  /*font-size: 11px;*/
+  /*padding: 1px 3px;*/
+  /*display: inline-block;*/
+  /*cursor: pointer;*/
+/*}*/
+
+/*.colGroupLevelsContainer ul > li {*/
+  /*border: 1px solid red;*/
+/*}*/
+
+/*.rowGroupLevelsContainer ul > li {*/
+  /*border: 1px solid green;*/
+/*}*/
+
+/* Grouping indicators */
+
+.handsontable colgroup col.rowHeader.htGroupCol {
+  width: 25px;
+}
+.handsontable colgroup col.rowHeader.htGroupColClosest {
+  width: 30px;
+}
+
+.handsontable .htGroupIndicatorContainer {
+  background: #fff;
+  border: 0px;
+  padding-bottom: 0px;
+  vertical-align: bottom;
+  position: relative;
+}
+
+.handsontable thead .htGroupIndicatorContainer {
+  vertical-align: top;
+  border-bottom: 0px;
+}
+
+/*.handsontable .htGroupIndicatorContainer {*/
+  /*border-right: 0px;*/
+/*}*/
+
+.handsontable tbody tr th:nth-last-child(2) {
+  border-right: 1px solid #CCC;
+}
+
+.handsontable thead tr:nth-last-child(2) th {
+  border-bottom: 1px solid #CCC;
+  padding-bottom: 5px;
+}
+
+.htVerticalGroup {
+  height: 100%;
+}
+
+.htHorizontalGroup {
+  width: 100%;
+  height: 100%;
+}
+
+.htVerticalGroup:not(.htCollapseGroup):after {
+  content: "";
+  height: 100%;
+  width: 1px;
+  display: block;
+  background: #ccc;
+  margin-left: 5px;
+}
+
+.htHorizontalGroup:not(.htCollapseGroup):after {
+  content: "";
+  width: 100%;
+  height: 1px;
+  display: block;
+  background: #ccc;
+  margin-top: 20%;
+}
+
+.htCollapseGroup {
+  width: 10px;
+  height: 10px;
+  line-height: 10px;
+  text-align: center;
+  border-radius: 5px;
+  border: 1px solid #f3f3f3;
+  -webkit-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
   cursor: pointer;
+  margin-bottom: 3px;
+  position: relative;
 }
 
-.colGroupLevelsContainer ul > li {
-  border: 1px solid red;
+.htCollapseGroup:after {
+  content: "";
+  height: 300%;
+  width: 1px;
+  display: block;
+  background: #ccc;
+  margin-left: 4px;
+  position: absolute;
+  /*top: -300%;*/
+  bottom: 10px;
 }
 
-.rowGroupLevelsContainer ul > li {
-  border: 1px solid green;
+
+thead .htCollapseGroup {
+  right: 5px;
+  position: absolute;
+  top: 5px;
+  background: #fff;
 }
 
+thead .htCollapseGroup:after {
+  height: 1px;
+  width: 700%;
+  right: 10px;
+  top: 4px;
+}
+
+.handsontable tr th .htGroupStart:after {
+  background: transparent;
+  border-left: 1px solid #ccc;
+  border-top: 1px solid #ccc;
+  width: 5px;
+  position: relative;
+  top: 50%;
+}
+
+.handsontable thead tr th .htGroupStart:after {
+  background: transparent;
+  border-left: 1px solid #ccc;
+  border-top: 1px solid #ccc;
+  height: 5px;
+  width: 50%;
+  position: relative;
+  top: 0px;
+  left: 50%;
+}
+
+
+
+.handsontable tr th .htExpandGroup {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  line-height: 10px;
+  text-align: center;
+  border-radius: 5px;
+  border: 1px solid #f3f3f3;
+  -webkit-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  top: 0px;
+  display: none;
+}
+
+.handsontable tr th .htExpandGroup.clickable {
+  display: block;
+}
 
 /*WalkontableDebugOverlay*/
 

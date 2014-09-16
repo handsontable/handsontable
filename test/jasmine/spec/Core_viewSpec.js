@@ -43,7 +43,7 @@ describe('Core_view', function () {
       data: createSpreadsheetData(10, 3),
       height: 60
     });
-    
+
     var htCore = getHtCore();
 
     expect(this.$container.height()).toEqual(60);
@@ -426,7 +426,6 @@ describe('Core_view', function () {
     it("should stretch all visible columns with the ratio appropriate to the container's width", function() {
 
       this.$container[0].style.width = '300px';
-   debugger;   
       var hot = handsontable({
         startRows: 5,
         startCols: 5,
@@ -456,7 +455,7 @@ describe('Core_view', function () {
       expect(getCell(0,1).offsetWidth).toEqual(expectedCellWidth);
       expect(getCell(0,2).offsetWidth).toEqual(expectedCellWidth);
       expect(getCell(0,3).offsetWidth).toEqual(expectedCellWidth);
-      expect(getCell(0,4).offsetWidth).toEqual(expectedCellWidth);      
+      expect(getCell(0,4).offsetWidth).toEqual(expectedCellWidth);
 
       this.$container.unwrap();
     });
