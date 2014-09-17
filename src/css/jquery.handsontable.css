@@ -12,8 +12,7 @@
 .handsontable {
   position: relative;
 }
-.handsontable .hide:not(col),
-.handsontable .hidden:not(col) {
+.handsontable .hide{
   display: none;
 }
 .handsontable .relative {
@@ -618,6 +617,8 @@ Cell borders
 
 /* Grouping indicators */
 
+
+
 .handsontable colgroup col.rowHeader.htGroupCol {
   width: 25px;
 }
@@ -765,8 +766,14 @@ thead .htCollapseGroup:after {
   display: block;
 }
 
-.handsontable col.hide {
+.handsontable col.hidden {
   width: 0px !important;
+}
+
+.handsontable tr.hidden,
+.handsontable tr.hidden td,
+.handsontable tr.hidden th {
+  display: none;
 }
 
 /*WalkontableDebugOverlay*/

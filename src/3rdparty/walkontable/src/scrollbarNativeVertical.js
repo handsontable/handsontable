@@ -69,9 +69,11 @@ WalkontableVerticalScrollbarNative.prototype.getLastCell = function () {
 };
 
 WalkontableVerticalScrollbarNative.prototype.sumCellSizes = function (from, length) {
-  var sum = 0;
+  var sum = 0
+    , settingsRowHeight;
   while (from < length) {
-    sum += this.instance.wtSettings.settings.rowHeight(from) || this.instance.wtSettings.settings.defaultRowHeight; //TODO optimize getSetting, because this is MUCH faster then getSetting
+    settingsRowHeight = this.instance.wtSettings.settings.rowHeight(from);
+    sum += settingsRowHeight !== void 0 ? settingsRowHeight : this.instance.wtSettings.settings.defaultRowHeight; //TODO optimize getSetting, because this is MUCH faster then getSetting
     from++;
   }
   return sum;
@@ -127,8 +129,10 @@ WalkontableVerticalScrollbarNative.prototype.readSettings = function () {
 
   var sum = 0;
   var last;
+  var settingsRowHeight;
   for (var i = 0; i < this.total; i++) {
-    last = this.instance.getSetting('rowHeight', i) || this.instance.wtSettings.settings.defaultRowHeight;
+    settingsRowHeight = this.instance.getSetting('rowHeight', i);
+    last = settingsRowHeight !== void 0 ? settingsRowHeight : this.instance.wtSettings.settings.defaultRowHeight;
     sum += last;
     if (sum - 1 > scrollDelta) {
       break;

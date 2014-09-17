@@ -6,15 +6,15 @@
 /*
  1) TODO: lining up expander buttons, when multiple groups collapse to the same slot
  2) TODO: displaying expander buttons, when all rows are collapsed
- [v] 3) TODO: clicking the collapse/expand button shouldn't select the whole row
- [v] 4) TODO: expanding a collapsed group, which contains another collapsed group should expand the parent group, but not the child group
+ [v] 3) TODOne: clicking the collapse/expand button shouldn't select the whole row
+ [v] 4) TODOne: expanding a collapsed group, which contains another collapsed group should expand the parent group, but not the child group
  5) TODO: Write tests for checking group header content, because they seem not to work
- 6) TODO : CHECK IF SCROLLING THE TABLE WORKS CORRECTLY WHEN SOME GROUPS ARE COLLAPSED (LOOKS LIKE A SIMILAR ISSUE TO https://github.com/handsontable/jquery-handsontable/issues/1670, MAYBE IS ALREADY FIXED)
+ [v] 6) TODOne : Fix scrolling issue (when a row group is collapsed, scrolling past it is real choppy)
  7) TODO: Error / Warning handling
- [v] 8) TODO: Keyboard control (skipping grouped cols/rows)
- 9) TODO: Unable user to select cell in merged column
+ [v] 8) TODOne: Keyboard control (skipping grouped cols/rows)
+ [v] TODOne: Unable user to select cell in merged column
  10) TODO: hide all cols/rows on a level
- 11) TODO: check why top headers are off by a few pixels
+ [v] TODOne: check why top headers are off by a few pixels
  */
 
 var Grouping = function (instance) {
@@ -26,12 +26,12 @@ var Grouping = function (instance) {
 
   /**
    * group definition
-   * @type {{id: String, level: Number, rows: Array, cols: Array, hide: Number}}
+   * @type {{id: String, level: Number, rows: Array, cols: Array, hidden: Number}}
    */
   var item = {
     id: '',
     level: 0,
-    hide: 0,
+    hidden: 0,
     rows: [],
     cols: []
   };
@@ -469,7 +469,7 @@ var Grouping = function (instance) {
       id: 'c' + counters.cols,
       level: levels.cols,
       cols: range(from, to),
-      hide: 0
+      hidden: 0
     });
   };
 
@@ -548,7 +548,7 @@ var Grouping = function (instance) {
       id: 'r' + counters.rows,
       level: levels.rows,
       rows: range(from, to),
-      hide: 0
+      hidden: 0
     });
   };
 
@@ -612,7 +612,7 @@ var Grouping = function (instance) {
    */
   var showHideGroups = function (showHide, groups, level) {
     for (var i = 0, groupsLength = groups.length; i < groupsLength; i++) {
-      groups[i].hide = showHide;
+      groups[i].hidden = showHide;
 
       if (!hiddenRows[level]) hiddenRows[level] = [];
       if (!hiddenCols[level]) hiddenCols[level] = [];
@@ -798,7 +798,7 @@ var Grouping = function (instance) {
         expanderButton.appendChild(document.createTextNode('+'));
         expanderButton.setAttribute('data-level', level);
         expanderButton.setAttribute('data-type', dimension);
-        expanderButton.setAttribute('data-hide', "1");
+        expanderButton.setAttribute('data-hidden', "1");
 
         elem.appendChild(expanderButton);
 
@@ -806,6 +806,44 @@ var Grouping = function (instance) {
       }
     }
     return null;
+  };
+
+  /**
+   * Check if provided cell is collapsed (either by rows or cols)
+   * @param currentPosition
+   * @returns {boolean}
+   */
+  var isCollapsed = function (currentPosition) {
+    var rowGroups = getRowGroups()
+      , colGroups = getColGroups();
+
+    for(var i = 0, rowGroupsCount = rowGroups.length; i < rowGroupsCount; i++) {
+      if(rowGroups[i].rows.indexOf(currentPosition.row) > -1 && rowGroups[i].hidden) {
+        return true;
+      }
+    }
+
+    for(var i = 0, colGroupsCount = colGroups.length; i < colGroupsCount; i++) {
+      if(colGroups[i].cols.indexOf(currentPosition.col) > -1 && colGroups[i].hidden) {
+        return true;
+      }
+    }
+
+    return false;
+
+//    var cell = instance.getCell(currentPosition.row, currentPosition.col)
+//      , thisColElement = instance.rootElement[0].querySelectorAll('colgroup:first-child col:not([class~="rowHeader"])')[currentPosition.col];
+//
+//    if (!cell)
+//      return false;
+//
+//    if (currentPosition.col < 0 || currentPosition.row < 0)
+//      return false;
+//
+//    if (Handsontable.Dom.hasClass(cell.parentNode, 'hidden') || Handsontable.Dom.hasClass(thisColElement, 'hidden')) {
+//      return true;
+//    }
+//    return false;
   };
 
   return {
@@ -1038,9 +1076,9 @@ var Grouping = function (instance) {
       }
 
       if (currentRowHidden) {
-        Handsontable.Dom.addClass(TH.parentNode, 'hide');
-      } else if (!currentRowHidden && Handsontable.Dom.hasClass(TH.parentNode, 'hide')) {
-        Handsontable.Dom.removeClass(TH.parentNode, 'hide');
+        Handsontable.Dom.addClass(TH.parentNode, 'hidden');
+      } else if (!currentRowHidden && Handsontable.Dom.hasClass(TH.parentNode, 'hidden')) {
+        Handsontable.Dom.removeClass(TH.parentNode, 'hidden');
       }
 
     },
@@ -1061,11 +1099,11 @@ var Grouping = function (instance) {
 
       if (currentColHidden) {
         for (var i = 0, colsAmount = thisColgroup.length; i < colsAmount; i++) {
-          Handsontable.Dom.addClass(thisColgroup[i], 'hide');
+          Handsontable.Dom.addClass(thisColgroup[i], 'hidden');
         }
-      } else if (!currentColHidden && Handsontable.Dom.hasClass(thisColgroup[0], 'hide')) {
+      } else if (!currentColHidden && Handsontable.Dom.hasClass(thisColgroup[0], 'hidden')) {
         for (var i = 0, colsAmount = thisColgroup.length; i < colsAmount; i++) {
-          Handsontable.Dom.removeClass(thisColgroup[i], 'hide');
+          Handsontable.Dom.removeClass(thisColgroup[i], 'hidden');
         }
       }
     },
@@ -1113,7 +1151,7 @@ var Grouping = function (instance) {
           if (row > 0) {
             var previousGroupObj = getGroupByRowAndLevel(row - 1, level);
 
-            if (expanderButton && previousGroupObj.hide) {
+            if (expanderButton && previousGroupObj.hidden) {
               Handsontable.Dom.addClass(expanderButton, 'clickable');
             }
           }
@@ -1171,7 +1209,7 @@ var Grouping = function (instance) {
           if (col > 0) {
             var previousGroupObj = getGroupByColAndLevel(col - 1, level);
 
-            if (expanderButton && previousGroupObj.hide) {
+            if (expanderButton && previousGroupObj.hidden) {
               Handsontable.Dom.addClass(expanderButton, 'clickable');
             }
           }
@@ -1237,73 +1275,60 @@ var Grouping = function (instance) {
         var id = element.id.split('-')[1]
           , level = parseInt(element.getAttribute('data-level'), 10)
           , type = element.getAttribute('data-type')
-          , hide = parseInt(element.getAttribute('data-hide'));
+          , hidden = parseInt(element.getAttribute('data-hidden'));
 
-        if (isNaN(hide)) {
-          hide = 1;
+        if (isNaN(hidden)) {
+          hidden = 1;
         } else {
-          hide = (hide ? 0 : 1);
+          hidden = (hidden ? 0 : 1);
         }
 
         lastClicked = {
           id: id,
           level: level,
           type: type,
-          hide: hide
+          hidden: hidden
         };
 
-        element.setAttribute('data-hide', hide.toString());
+        element.setAttribute('data-hidden', hidden.toString());
 
         var groups = [];
         groups.push(getGroupById(id));
 
-        showHideGroups(hide, groups, level);
+        showHideGroups(hidden, groups, level);
         instance.render();
 
         event.stopImmediatePropagation();
       }
     },
-    modifySelectionFactory: function(position) {
+    modifySelectionFactory: function (position) {
       var instance = this.instance;
       var currentlySelected
-        , nextPosition = new WalkontableCellCoords(0,0);
-
-      var isHidden = function (currentPosition) {
-          var cell = instance.getCell(currentPosition.row, currentPosition.col)
-            , thisColElement = instance.rootElement[0].querySelectorAll('colgroup:first-child col:not([class~="rowHeader"])')[currentPosition.col];
-
-          if(currentPosition.col < 0 || currentPosition.row < 0)
-            return false;
-
-          if(Handsontable.Dom.hasClass(cell.parentNode,'hide') || Handsontable.Dom.hasClass(thisColElement,'hide')) {
-            return true;
-          }
-          return false;
-        }
+        , nextPosition = new WalkontableCellCoords(0, 0)
         , nextVisible = function (direction, currentPosition) { // updates delta to skip to the next visible cell
           var updateDelta = 0;
 
-          switch(direction) {
+          switch (direction) {
             case 'down':
-              while (isHidden(currentPosition)) {
+              while (isCollapsed(currentPosition)) {
                 updateDelta++;
                 currentPosition.row += 1;
               }
               break;
             case 'up':
-              while (isHidden(currentPosition)) {
+              while (isCollapsed(currentPosition)) {
                 updateDelta--;
                 currentPosition.row -= 1;
               }
               break;
             case 'right':
-              while (isHidden(currentPosition)) {
+              while (isCollapsed(currentPosition)) {
                 updateDelta++;
                 currentPosition.col += 1;
               }
               break;
             case 'left':
-              while (isHidden(currentPosition)) {
+              while (isCollapsed(currentPosition)) {
                 updateDelta--;
                 currentPosition.col -= 1;
               }
@@ -1314,45 +1339,50 @@ var Grouping = function (instance) {
         }
         , updateDelta = function (delta, nextPosition) {
           if (delta.row > 0) { // moving down
-            if(isHidden(nextPosition)) {
+            if (isCollapsed(nextPosition)) {
               delta.row += nextVisible('down', nextPosition);
             }
           } else if (delta.row < 0) { // moving up
-            if(isHidden(nextPosition)) {
+            if (isCollapsed(nextPosition)) {
               delta.row += nextVisible('up', nextPosition);
             }
           }
 
           if (delta.col > 0) { // moving right
-            if(isHidden(nextPosition)) {
+            if (isCollapsed(nextPosition)) {
               delta.col += nextVisible('right', nextPosition);
             }
           } else if (delta.col < 0) { // moving left
-            if(isHidden(nextPosition)) {
+            if (isCollapsed(nextPosition)) {
               delta.col += nextVisible('left', nextPosition);
             }
           }
         };
 
-      switch(position) {
+      switch (position) {
         case 'start':
-          return function(delta) {
+          return function (delta) {
             currentlySelected = instance.getSelected();
             nextPosition.row = currentlySelected[0] + delta.row;
             nextPosition.col = currentlySelected[1] + delta.col;
 
-            updateDelta(delta,nextPosition);
+            updateDelta(delta, nextPosition);
           };
           break;
         case 'end':
-          return function(delta) {
+          return function (delta) {
             currentlySelected = instance.getSelected();
             nextPosition.row = currentlySelected[2] + delta.row;
             nextPosition.col = currentlySelected[3] + delta.col;
 
-            updateDelta(delta,nextPosition);
+            updateDelta(delta, nextPosition);
           };
           break;
+      }
+    },
+    modifyRowHeight: function (height, row) {
+      if (instance.view.wt.wtTable.rowFilter && isCollapsed({row: row, col: 0})) {
+        return 0;
       }
     }
   }
@@ -1378,6 +1408,11 @@ var init = function () {
     Handsontable.hooks.add('beforeOnCellMouseDown', Handsontable.Grouping.toggleGroupVisibility);
     Handsontable.hooks.add('modifyTransformStart', Handsontable.Grouping.modifySelectionFactory('start'));
     Handsontable.hooks.add('modifyTransformEnd', Handsontable.Grouping.modifySelectionFactory('end'));
+    Handsontable.hooks.add('modifyRowHeight', Handsontable.Grouping.modifyRowHeight);
+
+//    Handsontable.hooks.add('afterScrollVertically', function () {
+//      debugger;
+//    });
   }
 };
 
