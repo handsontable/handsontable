@@ -930,22 +930,14 @@
   ContextMenu.utils = {};
   ContextMenu.utils.convertItemsToArray = function (items) {
     var itemArray = [];
-    var item;
     for(var itemName in items){
       if(items.hasOwnProperty(itemName)){
-        if(typeof items[itemName] == 'string'){
-          item = {name: items[itemName]};
-        } else if (items[itemName].visible !== false) {
-          item = items[itemName];
-        } else {
-          continue;
+        if (items[itemName].visible !== false) {
+          items[itemName].key = itemName;
+          itemArray.push(items[itemName]);
         }
-
-        item.key = itemName;
-        itemArray.push(item);
       }
     }
-
     return itemArray;
   };
 
