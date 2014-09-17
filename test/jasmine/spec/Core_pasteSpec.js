@@ -196,6 +196,7 @@ describe('Core_paste', function () {
     expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A3');
 
     this.$container.find('tbody tr:eq(1) td:eq(0)').mousedown();
+    this.$container.find('tbody tr:eq(1) td:eq(0)').mouseup();
 
     expect(getSelected()).toEqual([1, 0, 1, 0]);
 
