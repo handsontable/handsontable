@@ -180,11 +180,11 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
 
 
   this.oldCellCache = this.currentCellCache;
-  this.currentCellCache = new WalkontableClassNameCache();
+  this.currentCellCache = new WalkontableClassNameCache(this.instance);
 
   if (this.instance.selections) {
     for (var i = 0, ilen = this.instance.selections.length; i < ilen; i++) {
-      this.instance.selections[i].draw();
+      this.instance.selections[i].draw(this.instance);
 
       if (this.instance.selections[i].settings.className) {
         classNames.push(this.instance.selections[i].settings.className);
@@ -204,6 +204,7 @@ WalkontableTable.prototype.refreshSelections = function (selectionsOnly) {
     for (vc = 0; vc < renderedCells; vc++) {
       r = this.rowFilter.visibleToSource(vr);
       c = this.columnFilter.visibleToSource(vc);
+
       for (s = 0; s < slen; s++) {
         var cell;
         if (this.currentCellCache.test(vr, vc, classNames[s])) {
@@ -276,11 +277,11 @@ WalkontableTable.prototype.getColumnHeader = function(col) {
   if (THEAD) {
     return THEAD.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
   }
-}
+};
 
 /**
  * getRowHeader
- * @param col
+ * @param row
  * @return {Object} HTMLElement on success or {Number} one of the exit codes on error:
  *  -1 table doesn't have row headers
  *
@@ -295,7 +296,7 @@ WalkontableTable.prototype.getRowHeader = function(row) {
   if (TR) {
     return TR.childNodes[0];
   }
-}
+};
 
 /**
  * Returns cell coords object for a given TD

@@ -1,4 +1,4 @@
-/**
+/*!
  * Handsontable @@version
  * Handsontable is a simple jQuery plugin for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
@@ -83,9 +83,7 @@
 }
 
 .handsontable td.htInvalid {
-  -webkit-transition: background 0.75s ease;
-  transition: background 0.75s ease;
-  background-color: #ff4c42;
+  background-color: #ff4c42 !important; /*gives priority over td.area selection background*/
 }
 
 .handsontable td.htNoWrap {
@@ -149,7 +147,7 @@
 /* plugins */
 
 .handsontable .manualColumnMover {
-  position: absolute;
+  position: fixed;
   left: 0;
   top: 0;
   background-color: transparent;
@@ -160,7 +158,7 @@
 }
 
 .handsontable .manualRowMover {
-  position: absolute;
+  position: fixed;
   left: -4px;
   top: 0;
   background-color: transparent;
@@ -168,6 +166,23 @@
   width: 50px;
   z-index: 999;
   cursor: move;
+}
+
+.handsontable .manualColumnMoverGuide,
+.handsontable .manualRowMoverGuide {
+  position: fixed;
+  left: 0;
+  top: 0;
+  background-color: #CCC;
+  width: 25px;
+  height: 25px;
+  opacity: 0.7;
+  display: none;
+}
+
+.handsontable .manualColumnMoverGuide.active,
+.handsontable .manualRowMoverGuide.active {
+  display: block;
 }
 
 .handsontable .manualColumnMover:hover,
@@ -180,60 +195,54 @@
 /* row + column resizer*/
 
 .handsontable .manualColumnResizer {
-  position: absolute;
+  position: fixed;
   top: 0;
   cursor: col-resize;
   z-index: 110;
-}
-
-.handsontable .manualColumnResizerHandle {
-  background-color: transparent;
   width: 5px;
   height: 25px;
 }
 
 .handsontable .manualRowResizer {
-  position: absolute;
+  position: fixed;
   left: 0;
   cursor: row-resize;
   z-index: 110;
-}
-
-.handsontable .manualRowResizerHandle {
-  background-color: transparent;
   height: 5px;
   width: 50px;
 }
 
-.handsontable .manualColumnResizer:hover .manualColumnResizerHandle,
-.handsontable .manualColumnResizer.active .manualColumnResizerHandle,
-.handsontable .manualRowResizer:hover .manualRowResizerHandle,
-.handsontable .manualRowResizer.active .manualRowResizerHandle {
+.handsontable .manualColumnResizer:hover,
+.handsontable .manualColumnResizer.active,
+.handsontable .manualRowResizer:hover,
+.handsontable .manualRowResizer.active {
   background-color: #AAB;
 }
 
-.handsontable .manualColumnResizerLine {
-  position: absolute;
+.handsontable .manualColumnResizerGuide {
+  position: fixed;
   right: 0;
   top: 0;
   background-color: #AAB;
   display: none;
   width: 0;
   border-right: 1px dashed #777;
+  margin-left: 5px;
 }
 
-.handsontable .manualRowResizerLine {
-  position: absolute;
+.handsontable .manualRowResizerGuide {
+  position: fixed;
   left: 0;
   bottom: 0;
   background-color: #AAB;
   display: none;
-  width: 0;
+  height: 0;
   border-bottom: 1px dashed #777;
+  margin-top: 5px;
 }
 
-.handsontable .manualColumnResizer.active .manualColumnResizerLine,
-.handsontable .manualRowResizer.active .manualRowResizerLine {
+.handsontable .manualColumnResizerGuide.active,
+.handsontable .manualRowResizerGuide.active {
   display: block;
 }
 
@@ -274,10 +283,8 @@
   outline-width: 0;
   margin: 0;
   padding: 1px 4px 0 2px;
-  font-family: Arial, Helvetica, sans-serif;
-  /*repeat from .handsontable (inherit doesn't work with IE<8) */
-  line-height: 1.3em;
-  /*repeat from .handsontable (inherit doesn't work with IE<8) */
+  font-family: inherit;
+  line-height: inherit;
   font-size: inherit;
   -webkit-box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
   box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);
@@ -399,21 +406,8 @@ Comment For Cell
   top: 0;
   right: 0;
   border-left: 6px solid transparent;
-  /*border-right: 5px solid transparent;*/
-
   border-top: 6px solid red;
 }
-
-/*context menu rules*/
-
-/*ul.context-menu-list {*/
-  /*color: black;*/
-/*}*/
-
-/*ul.context-menu-list li {*/
-  /*margin-bottom: 0;*/
-  /*Foundation framework fix*/
-/*}*/
 
 /**
  * Handsontable in Handsontable
@@ -432,8 +426,12 @@ Comment For Cell
 * Autocomplete Editor
 */
 .handsontable .autocompleteEditor.handsontable {
+  padding-right: 17px;
+}
+.handsontable .autocompleteEditor.handsontable.htMacScroll {
   padding-right: 15px;
 }
+
 
 /**
  * Handsontable listbox theme
@@ -481,6 +479,7 @@ Comment For Cell
 .htContextMenu {
   display: none;
   position: absolute;
+  z-index: 1060; /*needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569)*/
 }
 
 .htContextMenu .ht_clone_top,
@@ -586,7 +585,14 @@ Cell borders
   border-left-color: #000;
 }
 
+.htCommentTextArea{
+  background-color: #FFFACD;
+  box-shadow: 1px 1px 2px #bbb;
+  font-family: 'Arial';
+  -webkit-box-shadow: 1px 1px 2px #bbb;
+  -moz-box-shadow: 1px 1px 2px #bbb;
 
+}
 
 /*WalkontableDebugOverlay*/
 

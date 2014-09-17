@@ -13,22 +13,21 @@ describe('manualRowMove', function () {
   });
 
   var moveSecondDisplayedRowBeforeFirstRow = function(container, secondDisplayedRowIndex) {
-     var $mainContainer = container.parents(".handsontable").not("[class*=clone]").first(),
-        $rowHeaders = container.find('tbody tr th'),
-        $firstRowHeader = $rowHeaders.eq(secondDisplayedRowIndex - 1),
-        $secondRowHeader = $rowHeaders.eq(secondDisplayedRowIndex),
-        $manualRowMover = $mainContainer.find('.manualRowMover');
+    var $mainContainer = container.parents(".handsontable").not("[class*=clone]").first(),
+      $rowHeaders = container.find('tbody tr th'),
+      $firstRowHeader = $rowHeaders.eq(secondDisplayedRowIndex - 1),
+      $secondRowHeader = $rowHeaders.eq(secondDisplayedRowIndex);
 
-    if ($manualRowMover.length) {
+    $secondRowHeader.trigger('mouseenter');
+    var $manualRowMover = $mainContainer.find('.manualRowMover');
 
-      $secondRowHeader.trigger('mouseenter');
-
+    if($manualRowMover.length) {
       var mouseDownEvent = $.Event('mousedown');
-      mouseDownEvent.pageY = $manualRowMover.position().top;
+      mouseDownEvent.pageY = $manualRowMover[0].getBoundingClientRect().top;
       $manualRowMover.trigger(mouseDownEvent);
 
       var mouseMoveEvent = $.Event('mousemove');
-      mouseMoveEvent.pageY = $manualRowMover.position().top - 25;
+      mouseMoveEvent.pageY = $manualRowMover[0].getBoundingClientRect().top - 20;
       $manualRowMover.trigger(mouseMoveEvent);
 
       $firstRowHeader.trigger('mouseenter');
@@ -186,7 +185,7 @@ describe('manualRowMove', function () {
     waits(500);
 
     runs(function () {
-      moveSecondDisplayedRowBeforeFirstRow(htCore, lastVisibleRowIndex - 1);
+      moveSecondDisplayedRowBeforeFirstRow(htCore, lastVisibleRowIndex);
 
       expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex - 1) + ') td:eq(0)').text()).toEqual('10');
       expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex) + ') td:eq(0)').text()).toEqual('9');
@@ -271,7 +270,7 @@ describe('manualRowMove', function () {
 
     runs(function () {
 
-      moveSecondDisplayedRowBeforeFirstRow(htCore, lastVisibleRowIndex - 1);
+      moveSecondDisplayedRowBeforeFirstRow(htCore, lastVisibleRowIndex);
 
       expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex - 1) + ') td:eq(0)').text()).toEqual('9');
       expect(htCore.find('tbody tr:eq(' + (lastVisibleRowIndex - 2) + ') td:eq(0)').text()).toEqual('7');
@@ -305,6 +304,32 @@ describe('manualRowMove', function () {
     $manualRowMover.eq(1).trigger('mousedown');
 
     expect(hot.getSelected()).toEqual(undefined);
+  });
+
+  it("should display the move handle in the correct place after the table has been scrolled", function () {
+    handsontable({
+      data: createSpreadsheetData(20, 20),
+      rowHeaders: true,
+      manualRowMove: true,
+      height: 100,
+      width: 200
+    });
+
+    var $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
+    $rowHeader.trigger("mouseenter");
+    var $handle = this.$container.find('.manualRowMover');
+    $handle[0].style.background = "red";
+
+    expect($rowHeader.offset().left).toEqual($handle.offset().left);
+    expect($rowHeader.offset().top).toEqual($handle.offset().top);
+
+    this.$container.scrollTop(200);
+    this.$container.scroll();
+
+    $rowHeader = this.$container.find('.ht_clone_left tbody tr:eq(10) th:eq(0)');
+    $rowHeader.trigger("mouseenter");
+    expect($rowHeader.offset().left).toEqual($handle.offset().left);
+    expect($rowHeader.offset().top).toEqual($handle.offset().top);
   });
 
 });

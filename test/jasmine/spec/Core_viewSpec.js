@@ -49,14 +49,14 @@ describe('Core_view', function () {
     expect(this.$container.height()).toEqual(60);
     expect(this.$container.find('.wtHolder .wtHider').height()).toBeGreaterThan(60);
 
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A2");
+    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
 
     htCore.find('tr:eq(3) td:eq(0)').trigger('mousedown');
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A1"); //test whether it scrolled
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A2"); //test whether it scrolled
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A3"); //test whether it scrolled
+    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A2"); //test whether it scrolled
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A3"); //test whether it scrolled
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A4"); //test whether it scrolled
     expect(getSelected()).toEqual([3, 0, 3, 0]); //test whether it is selected
   });
 
@@ -71,9 +71,9 @@ describe('Core_view', function () {
 
     var htCore = getHtCore();
 
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(htCore.find('tr:eq(0) td:eq(1)').html()).toEqual("B0");
-    expect(htCore.find('tr:eq(0) td:eq(2)').html()).toEqual("C0");
+    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
+    expect(htCore.find('tr:eq(0) td:eq(1)').html()).toEqual("B1");
+    expect(htCore.find('tr:eq(0) td:eq(2)').html()).toEqual("C1");
 
     selectCell(0, 0);
 
@@ -82,9 +82,9 @@ describe('Core_view', function () {
     keyDown('arrow_down');
     keyDown('arrow_down');
 
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
+    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A3");
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A4");
 
   });
 
@@ -105,12 +105,12 @@ describe('Core_view', function () {
     var topClone = this.$container.find('.ht_clone_top');
 
     expect(topClone.find('tr').length).toEqual(1);
-    expect(topClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
+    expect(topClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
 
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A2");
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual("A3");
+    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
+    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual("A4");
 
     keyDown('arrow_down');
     keyDown('arrow_down');
@@ -118,42 +118,42 @@ describe('Core_view', function () {
     keyDown('arrow_down');
 
     expect(topClone.find('tr').length).toEqual(1);
-    expect(topClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
+    expect(topClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
 
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual("A4");
+    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A3");
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A4");
+    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual("A5");
 
     selectCell(0, 0);
 
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A2");
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual("A3");
+    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
+    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual("A4");
 
     HOT.updateSettings({
       fixedRowsTop: 2
     });
 
     expect(topClone.find('tr').length).toEqual(2);
-    expect(topClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(topClone.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
+    expect(topClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
+    expect(topClone.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
 
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A2");
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual("A3");
-
-    keyDown('arrow_down');
-    keyDown('arrow_down');
-    keyDown('arrow_down');
-    keyDown('arrow_down');
-
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
+    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
     expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
     expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual("A4");
+
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+    keyDown('arrow_down');
+
+    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A4");
+    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual("A5");
 
   });
 
@@ -171,13 +171,13 @@ describe('Core_view', function () {
 
 
     expect(leftClone.find('tr:eq(0) td').length).toEqual(1);
-    expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
-    expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual("A2");
+    expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
+    expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
+    expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
 
-    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A2");
+    expect(htCore.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
 
     selectCell(0, 3);
 
@@ -186,9 +186,9 @@ describe('Core_view', function () {
     keyDown('arrow_right');
     keyDown('arrow_right');
 
-    expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
-    expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual("A2");
+    expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
+    expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
+    expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
 
 
   });
@@ -208,18 +208,18 @@ describe('Core_view', function () {
     var leftClone = this.$container.find('.ht_clone_left');
 
     expect(leftClone.find('tr:eq(0) td').length).toEqual(1);
-    expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
-    expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual("A2");
+    expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
+    expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
+    expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
 
     keyDown('arrow_right');
     keyDown('arrow_right');
     keyDown('arrow_right');
     keyDown('arrow_right');
 
-    expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
-    expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual("A2");
+    expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
+    expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
+    expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
 
     selectCell(0, 0);
 
@@ -228,12 +228,12 @@ describe('Core_view', function () {
     });
 
     expect(leftClone.find('tr:eq(0) td').length).toEqual(2);
-    expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A0");
-    expect(leftClone.find('tr:eq(0) td:eq(1)').html()).toEqual("B0");
-    expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual("A1");
-    expect(leftClone.find('tr:eq(1) td:eq(1)').html()).toEqual("B1");
-    expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual("A2");
-    expect(leftClone.find('tr:eq(2) td:eq(1)').html()).toEqual("B2");
+    expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual("A1");
+    expect(leftClone.find('tr:eq(0) td:eq(1)').html()).toEqual("B1");
+    expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual("A2");
+    expect(leftClone.find('tr:eq(1) td:eq(1)').html()).toEqual("B2");
+    expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual("A3");
+    expect(leftClone.find('tr:eq(2) td:eq(1)').html()).toEqual("B3");
 
 
 
@@ -437,6 +437,59 @@ describe('Core_view', function () {
         expect(hot.getCell(1,2).clientHeight).toEqual(hot.getCell(1,1).clientHeight);
     });
 
+    it('should be the same as the row heights in the main table (after scroll)', function () {
+      var myData = createSpreadsheetData(20, 4);
+      myData[1][3] = "very\nlong\ntext";
+      myData[5][3] = "very\nlong\ntext";
+      myData[10][3] = "very\nlong\ntext";
+      myData[15][3] = "very\nlong\ntext";
+
+      var hot = handsontable({
+        data: myData,
+        startRows: 3,
+        startCols: 4,
+        fixedRowsTop: 2,
+        fixedColumnsLeft: 2,
+        width: 200,
+        height: 200
+      });
+
+      this.$container.scrollTop(200);
+      hot.render();
+
+      var masterTD = this.$container.find('.ht_master tbody tr:eq(5) td:eq(1)')[0];
+      var cloneTD = this.$container.find('.ht_clone_left tbody tr:eq(5) td:eq(1)')[0];
+
+      expect(cloneTD.clientHeight).toEqual(masterTD.clientHeight);
+    });
+
+    it('should be the same as the row heights in the main table (after scroll, in corner)', function () {
+      var myData = createSpreadsheetData(20, 4);
+      myData[1][3] = "very\nlong\ntext";
+      myData[5][3] = "very\nlong\ntext";
+      myData[10][3] = "very\nlong\ntext";
+      myData[15][3] = "very\nlong\ntext";
+
+      var hot = handsontable({
+        data: myData,
+        startRows: 3,
+        startCols: 4,
+        fixedRowsTop: 2,
+        fixedColumnsLeft: 2,
+        width: 200,
+        height: 200
+      });
+
+      var rowHeight = hot.getCell(1,3).clientHeight;
+
+      expect(this.$container.find('.ht_clone_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
+
+      this.$container.scrollTop(200);
+      hot.render();
+
+      expect(this.$container.find('.ht_clone_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
+    });
+
   });
 
   describe('fixed column widths', function () {
@@ -520,6 +573,35 @@ describe('Core_view', function () {
       expect(getCell(0,4).offsetWidth).toEqual(expectedCellWidth);
 
       this.$container.unwrap();
+    });
+
+    it("should stretch all visible columns with overflow auto", function() {
+      this.$container[0].style.width = '501px';
+      this.$container[0].style.height = '100px';
+      this.$container[0].style.overflow = 'auto';
+
+      var hot = handsontable({
+        startRows: 10,
+        startCols: 5,
+        colWidths: [47, 47, 47, 47, 47],
+        rowHeaders: true,
+        colHeaders: true,
+        stretchH: 'all'
+      });
+
+      var masterTH = this.$container[0].querySelectorAll(".ht_master thead tr th");
+      var overlayTH = this.$container[0].querySelectorAll(".ht_clone_top thead tr th");
+
+      expect(masterTH[0].offsetWidth).toEqual(50);
+      expect(overlayTH[0].offsetWidth).toEqual(50);
+
+      expect(masterTH[1].offsetWidth).toEqual(87);
+      expect(overlayTH[1].offsetWidth).toEqual(87); //if you get 90, it means it is calculated before scrollbars were applied
+
+      expect(masterTH[2].offsetWidth).toEqual(overlayTH[2].offsetWidth);
+      expect(masterTH[3].offsetWidth).toEqual(overlayTH[3].offsetWidth);
+      expect(masterTH[4].offsetWidth).toEqual(overlayTH[4].offsetWidth);
+      expect(masterTH[5].offsetWidth).toEqual(overlayTH[5].offsetWidth);
     });
 
   });

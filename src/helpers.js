@@ -118,10 +118,6 @@ Handsontable.helper.isNumeric = function (n) {
            t == 'object' ? !!n && typeof n.valueOf() == "number" && !(n instanceof Date) : false;
 };
 
-Handsontable.helper.isArray = function (obj) {
-  return Object.prototype.toString.call(obj).match(/array/i) !== null;
-};
-
 /**
  * Checks if child is a descendant of given parent node
  * http://stackoverflow.com/questions/2234979/how-to-check-in-javascript-if-one-element-is-a-child-of-another
@@ -288,6 +284,7 @@ Handsontable.helper.keyCode = {
   MOUSE_MIDDLE: 2,
   BACKSPACE: 8,
   COMMA: 188,
+  INSERT: 45,
   DELETE: 46,
   END: 35,
   ENTER: 13,

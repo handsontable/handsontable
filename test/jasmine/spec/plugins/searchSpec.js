@@ -368,7 +368,7 @@ describe('Search plugin', function () {
         search: true
       });
 
-      var searchResult = hot.search.query('1');
+      var searchResult = hot.search.query('2');
 
       for (var rowIndex = 0, rowCount = countRows(); rowIndex < rowCount; rowIndex++){
         for (var colIndex = 0, colCount = countCols(); colIndex < colCount; colIndex++){
@@ -394,7 +394,7 @@ describe('Search plugin', function () {
         search: true
       });
 
-      var searchResult = hot.search.query('1');
+      var searchResult = hot.search.query('2');
 
       render();
 
@@ -422,7 +422,7 @@ describe('Search plugin', function () {
         }
       });
 
-      var searchResult = hot.search.query('1');
+      var searchResult = hot.search.query('2');
 
       render();
 

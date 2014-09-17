@@ -459,6 +459,24 @@ Handsontable.Dom.innerWidth = function (elem) {
   };
 
   /**
+   * Returns end of the selection in text input
+   * @return {Number}
+   */
+  Handsontable.Dom.getSelectionEndPosition = function (el) {
+    if(el.selectionEnd) {
+      return el.selectionEnd;
+    } else if(document.selection) { //IE8
+      var r = document.selection.createRange();
+      if(r == null) {
+        return 0;
+      }
+      var re = el.createTextRange();
+
+      return re.text.indexOf(r.text) + r.text.length;
+    }
+  };
+
+  /**
    * Sets caret position in text input
    * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
    * @param {Element} el

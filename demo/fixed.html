@@ -50,7 +50,7 @@
       for (i = 0; i < rowCount; i++) {
         var row = [];
         for (j = 0; j < colCount; j++) {
-          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + i);
+          row.push(Handsontable.helper.spreadsheetColumnLabel(j) + (i + 1));
         }
         rows.push(row);
       }

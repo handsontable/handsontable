@@ -4,10 +4,10 @@ Handsontable.PluginHookClass = (function () {
     return {
       // Hooks
       beforeInitWalkontable: [],
-
       beforeInit: [],
       beforeRender: [],
       beforeSetRangeEnd: [],
+      beforeDrawBorders: [],
       beforeChange: [],
       beforeChangeRender: [],
       beforeRemoveCol: [],
@@ -16,7 +16,6 @@ Handsontable.PluginHookClass = (function () {
       beforeGetCellMeta: [],
       beforeAutofill: [],
       beforeKeyDown: [],
-
       afterInit : [],
       afterLoadData : [],
       afterUpdateSettings: [],
@@ -43,7 +42,9 @@ Handsontable.PluginHookClass = (function () {
       afterOnCellCornerMouseDown: [],
       afterScrollVertically: [],
       afterScrollHorizontally: [],
-	  afterCellMetaReset:[],
+      afterCellMetaReset: [],
+      afterIsMultipleSelectionCheck: [],
+      afterDocumentKeyDown: [],
 
       // Modifiers
       modifyColWidth: [],
@@ -105,7 +106,7 @@ Handsontable.PluginHookClass = (function () {
       fn.skip = false;
 
       if (bucket[key].indexOf(fn) == -1) {
-        bucket[key].push(fn); //only add a hook if it has not already be added (adding the same hook twice is now silently ignored)
+        bucket[key].push(fn); //only add a hook if it has not already been added (adding the same hook twice is now silently ignored)
       }
     }
     return this;
@@ -175,6 +176,17 @@ Handsontable.PluginHookClass = (function () {
           if (handlers[i].runOnce) {
             this.remove(key, handlers[i], bucket === this.globalBucket ? null : instance);
           }
+        }
+      }
+    }
+  };
+
+  PluginHookClass.prototype.destroy = function (instance) {
+    var bucket = this.getBucket(instance);
+    for (var key in bucket) {
+      if (bucket.hasOwnProperty(key)) {
+        for (var i = 0, leni = bucket[key].length; i < leni; i++) {
+          this.remove(key, bucket[key], instance);
         }
       }
     }

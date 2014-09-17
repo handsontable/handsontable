@@ -9,8 +9,7 @@ var autoResize = function () {
       minHeight: 200,
       maxHeight: 300,
       minWidth: 100,
-      maxWidth: 300,
-      fontSize: 11
+      maxWidth: 300
     },
     el,
     body = document.body,
@@ -31,8 +30,14 @@ var autoResize = function () {
       }
     },
     resize = function () {
-      text.textContent = el.value;
-      span.style.fontSize = defaults.fontSize + 'px';
+      if (text.textContent !== void 0) {
+        text.textContent = el.value;
+      }
+      else {
+        text.data = el.value; //IE8
+      }
+      span.style.fontSize = Handsontable.Dom.getComputedStyle(el).fontSize;
+      span.style.fontFamily = Handsontable.Dom.getComputedStyle(el).fontFamily;
 
       body.appendChild(span);
       var width = span.clientWidth;
@@ -108,17 +113,6 @@ var autoResize = function () {
         }
       }
 
-      if (config && config.fontSize) {
-        if (config.fontSize == 'inherit') {
-          defaults.fontSize = el.fontSize;
-        } else {
-          var fontSize = parseInt(config.fontSize);
-          if (!isNaN(fontSize)) {
-            defaults.fontSize = fontSize
-          }
-        }
-      }
-
       if(!span.firstChild) {
         span.className = "autoResize";
         span.style.display = 'inline-block';
@@ -136,7 +130,6 @@ var autoResize = function () {
         el.style.height = defaults.minHeight + 'px';
         el.style.minWidth = defaults.minWidth + 'px';
         el.style.maxWidth = defaults.maxWidth + 'px';
-        el.style.fontSize = defaults.fontSize + 'px';
         el.style.overflowY = 'hidden';
       }
 

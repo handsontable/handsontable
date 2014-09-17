@@ -201,7 +201,7 @@ MergeCells.prototype.modifyTransform = function (hook, currentSelectedRange, del
         var updateCornerInfo = function () {
           topLeft = currentSelectedRange.getTopLeftCorner();
           bottomRight = currentSelectedRange.getBottomRightCorner();
-        }
+        };
         updateCornerInfo();
 
         var expanding = false; //expanding false means shrinking
@@ -352,7 +352,7 @@ if (typeof Handsontable == 'undefined') {
   throw new Error('Handsontable is not defined');
 }
 
-var init = function () {
+var beforeInit = function () {
   var instance = this;
   var mergeCellsSetting = instance.getSettings().mergeCells;
 
@@ -360,6 +360,25 @@ var init = function () {
     if (!instance.mergeCells) {
       instance.mergeCells = new MergeCells(mergeCellsSetting);
     }
+  }
+};
+
+var afterInit = function () {
+  var instance = this;
+  if (instance.mergeCells) {
+    /**
+     * Monkey patch WalkontableTable.prototype.getCell to return TD for merged cell parent if asked for TD of a cell that is
+     * invisible due to the merge. This is not the cleanest solution but there is a test case for it (merged cells scroll) so feel free to refactor it!
+     */
+    instance.view.wt.wtTable.getCell = function (coords) {
+      if (instance.getSettings().mergeCells) {
+        var mergeParent = instance.mergeCells.mergedCellInfoCollection.getInfo(coords.row, coords.col);
+        if (mergeParent) {
+          coords = mergeParent;
+        }
+      }
+      return WalkontableTable.prototype.getCell.call(this, coords);
+    };
   }
 };
 
@@ -469,6 +488,39 @@ var beforeSetRangeEnd = function (coords) {
   }
 };
 
+/**
+ * Returns correct coordinates for merged start / end cells in selection for area borders
+ * @param corners
+ * @param className
+ */
+var beforeDrawAreaBorders = function (corners, className) {
+  if (className && className == 'area'){
+    var mergeCellsSetting = this.getSettings().mergeCells;
+    if (mergeCellsSetting) {
+      var selRange = this.getSelectedRange();
+      var startRange = new WalkontableCellRange(selRange.from, selRange.from, selRange.from);
+      var stopRange = new WalkontableCellRange(selRange.to, selRange.to, selRange.to);
+
+      for (var i = 0, ilen = this.mergeCells.mergedCellInfoCollection.length; i < ilen; i++) {
+        var cellInfo = this.mergeCells.mergedCellInfoCollection[i];
+        var mergedCellTopLeft = new WalkontableCellCoords(cellInfo.row, cellInfo.col);
+        var mergedCellBottomRight = new WalkontableCellCoords(cellInfo.row + cellInfo.rowspan - 1, cellInfo.col + cellInfo.colspan - 1);
+        var mergedCellRange = new WalkontableCellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
+
+        if (startRange.expandByRange(mergedCellRange)) {
+          corners[0] = startRange.from.row;
+          corners[1] = startRange.from.col;
+        }
+
+        if (stopRange.expandByRange(mergedCellRange)) {
+          corners[2] = stopRange.from.row;
+          corners[3] = stopRange.from.col;
+        }
+      }
+    }
+  }
+};
+
 var afterGetCellMeta = function(row, col, cellProperties) {
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (mergeCellsSetting) {
@@ -479,11 +531,30 @@ var afterGetCellMeta = function(row, col, cellProperties) {
   }
 };
 
-Handsontable.hooks.add('beforeInit', init);
+var isMultipleSelection = function(isMultiple) {
+  if(isMultiple && this.mergeCells) {
+    var mergedCells = this.mergeCells.mergedCellInfoCollection
+      , selectionRange = this.getSelectedRange();
+
+    for(var group in mergedCells) {
+      if(selectionRange.highlight.row == mergedCells[group].row && selectionRange.highlight.col == mergedCells[group].col
+        && selectionRange.to.row == mergedCells[group].row + mergedCells[group].rowspan - 1
+        && selectionRange.to.col == mergedCells[group].col + mergedCells[group].colspan - 1) {
+        return false;
+      }
+    }
+  }
+  return isMultiple;
+};
+
+Handsontable.hooks.add('beforeInit', beforeInit);
+Handsontable.hooks.add('afterInit', afterInit);
 Handsontable.hooks.add('beforeKeyDown', onBeforeKeyDown);
 Handsontable.hooks.add('modifyTransformStart', modifyTransformFactory('modifyTransformStart'));
 Handsontable.hooks.add('modifyTransformEnd', modifyTransformFactory('modifyTransformEnd'));
 Handsontable.hooks.add('beforeSetRangeEnd', beforeSetRangeEnd);
+Handsontable.hooks.add('beforeDrawBorders', beforeDrawAreaBorders);
+Handsontable.hooks.add('afterIsMultipleSelection', isMultipleSelection);
 Handsontable.hooks.add('afterRenderer', afterRenderer);
 Handsontable.hooks.add('afterContextMenuDefaultOptions', addMergeActionsToContextMenu);
 Handsontable.hooks.add('afterGetCellMeta', afterGetCellMeta);

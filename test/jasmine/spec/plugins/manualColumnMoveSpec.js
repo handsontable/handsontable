@@ -17,19 +17,19 @@ describe('manualColumnMove', function () {
     var $colHeaders = container.find('thead tr:eq(0) th');
     var $firstColHeader = $colHeaders.eq(secondDisplayedColIndex - 1);
     var $secondColHeader = $colHeaders.eq(secondDisplayedColIndex);
-    var $manualColumnMover = $mainContainer.find('.manualColumnMover');
 
     //Enter the second column header
     $secondColHeader.trigger('mouseenter');
+    var $manualColumnMover = $mainContainer.find('.manualColumnMover');
 
     //Grab the second column
     var mouseDownEvent = $.Event('mousedown');
-    mouseDownEvent.pageX = $manualColumnMover.position().left;
+    mouseDownEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left;
     $manualColumnMover.trigger(mouseDownEvent);
 
     //Drag the second column over the first column
     var mouseMoveEvent = $.Event('mousemove');
-    mouseMoveEvent.pageX = $manualColumnMover.position().left - 20;
+    mouseMoveEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left - 20;
     $manualColumnMover.trigger(mouseMoveEvent);
 
     $firstColHeader.trigger('mouseenter');
@@ -202,8 +202,8 @@ describe('manualColumnMove', function () {
 
     handsontable({
       data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Frank", lastName: "Honest"},
+        {id: 1, name: "Ted", lastName: "Left"},
+        {id: 2, name: "Frank", lastName: "Sincere"},
         {id: 3, name: "Joan", lastName: "Well"},
         {id: 4, name: "Sid", lastName: "Strong"},
         {id: 5, name: "Jane", lastName: "Neat"},
@@ -242,7 +242,7 @@ describe('manualColumnMove', function () {
     hot2.selectCell(0, 0);
     expect(htCore1.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
     expect(htCore1.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
-    expect(htCore1.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
+    expect(htCore1.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Left');
 
     expect(htCore2.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
     expect(htCore2.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
@@ -252,7 +252,7 @@ describe('manualColumnMove', function () {
 
     expect(htCore1.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
     expect(htCore1.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('Ted');
-    expect(htCore1.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Right');
+    expect(htCore1.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('Left');
 
     expect(htCore2.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('Ted');
     expect(htCore2.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('1');
@@ -318,38 +318,28 @@ describe('manualColumnMove', function () {
 
   it("should display the move handle in the correct place after the table has been scrolled", function () {
     handsontable({
-      data: [
-        {id: 1, name: "Ted", lastName: "Right"},
-        {id: 2, name: "Ted", lastName: "Right"},
-        {id: 3, name: "Ted", lastName: "Right"},
-        {id: 4, name: "Ted", lastName: "Right"},
-        {id: 5, name: "Ted", lastName: "Right"},
-        {id: 6, name: "Ted", lastName: "Right"},
-        {id: 7, name: "Ted", lastName: "Right"},
-        {id: 8, name: "Ted", lastName: "Right"},
-        {id: 9, name: "Ted", lastName: "Right"},
-        {id: 10, name: "Ted", lastName: "Right"},
-      ],
+      data: createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnMove: true,
-      height: 100
+      height: 100,
+      width: 200
     });
 
     var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
     $colHeader.trigger("mouseenter");
-    var $manualColumnMover = this.$container.find('.manualColumnMover');
+    var $handle = this.$container.find('.manualColumnMover');
+    $handle[0].style.background = "red";
 
-    expect($colHeader.offset().left).toEqual($manualColumnMover.offset().left);
-    expect($colHeader.offset().top).toEqual($manualColumnMover.offset().top);
+    expect($colHeader.offset().left).toEqual($handle.offset().left);
+    expect($colHeader.offset().top).toEqual($handle.offset().top);
 
-    this.$container.scrollTop(100);
+    this.$container.scrollLeft(200);
     this.$container.scroll();
 
-    $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(1)');
+    $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(5)');
     $colHeader.trigger("mouseenter");
-    expect($colHeader.offset().left).toEqual($manualColumnMover.offset().left);
-    expect($colHeader.offset().top).toEqual($manualColumnMover.offset().top);
-
+    expect($colHeader.offset().left).toEqual($handle.offset().left);
+    expect($colHeader.offset().top).toEqual($handle.offset().top);
   });
 
   it("should not move the column if you click the handle without dragging", function () {
@@ -367,13 +357,13 @@ describe('manualColumnMove', function () {
 
     selectCell(0, 0);
 
-    var $colHeader = this.$container.find('thead tr:eq(0) th:eq(2)');
+    var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
     $colHeader.trigger("mouseenter");
     var $manualColumnMover = this.$container.find('.manualColumnMover');
 
     //Grab the column
     var mouseDownEvent = $.Event('mousedown');
-    mouseDownEvent.pageX = $manualColumnMover.position().left;
+    mouseDownEvent.pageX = $manualColumnMover[0].getBoundingClientRect().left;
     $manualColumnMover.trigger(mouseDownEvent);
 
     //Drop it without dragging
@@ -504,7 +494,7 @@ describe('manualColumnMove', function () {
       manualColumnMove: true
     });
 
-    var $colHeader = this.$container.find('thead tr:eq(0) th:eq(1)');
+    var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(1)');
     $colHeader.trigger("mouseenter");
     var $manualColumnMover = this.$container.find('.manualColumnMover');
 
@@ -512,6 +502,32 @@ describe('manualColumnMove', function () {
 
     expect(hot.getSelected()).toEqual(undefined);
 
+  });
+
+  it("should display the resize handle in the correct place after the table has been scrolled", function () {
+    handsontable({
+      data: createSpreadsheetData(10, 20),
+      colHeaders: true,
+      manualColumnMove: true,
+      height: 100,
+      width: 200
+    });
+
+    var $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
+    $colHeader.trigger("mouseenter");
+    var $handle = this.$container.find('.manualColumnMover');
+    $handle[0].style.background = "red";
+
+    expect($colHeader.offset().left).toEqual($handle.offset().left);
+    expect($colHeader.offset().top).toEqual($handle.offset().top);
+
+    this.$container.scrollLeft(200);
+    this.$container.scroll();
+
+    $colHeader = this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(5)');
+    $colHeader.trigger("mouseenter");
+    expect($colHeader.offset().left).toEqual($handle.offset().left);
+    expect($colHeader.offset().top).toEqual($handle.offset().top);
   });
 
 });

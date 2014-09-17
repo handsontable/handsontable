@@ -13,7 +13,9 @@ Handsontable.Core = function (rootElement, userSettings) {
     , selection
     , editorManager
     , instance = this
-    , GridSettings = function () {};
+    , GridSettings = function () {}
+    , $document = $(document.documentElement)
+    , $body = $(document.body);
 
   Handsontable.helper.extend(GridSettings.prototype, DefaultSettings.prototype); //create grid settings as a copy of default settings
   Handsontable.helper.extend(GridSettings.prototype, userSettings); //overwrite defaults with user settings
@@ -26,8 +28,6 @@ Handsontable.Core = function (rootElement, userSettings) {
   rootElement.prepend(this.container);
   this.container = $(this.container);
 
-  var $document = $(document.documentElement);
-  var $body = $(document.body);
   this.guid = 'ht_' + Handsontable.helper.randomString(); //this is the namespace for global events
 
   if (!this.rootElement[0].id || this.rootElement[0].id.substring(0, 3) === "ht_") {
@@ -428,7 +428,12 @@ Handsontable.Core = function (rootElement, userSettings) {
      * @return {Boolean}
      */
     isMultiple: function () {
-      return !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row);
+      var isMultiple = !(priv.selRange.to.col === priv.selRange.from.col && priv.selRange.to.row === priv.selRange.from.row)
+        , modifier = Handsontable.hooks.execute(instance, 'afterIsMultipleSelection', isMultiple);
+
+      if(isMultiple) {
+        return modifier;
+      }
     },
 
     /**
@@ -546,6 +551,9 @@ Handsontable.Core = function (rootElement, userSettings) {
       priv.selRange = null;
       instance.view.wt.selections.current.clear();
       instance.view.wt.selections.area.clear();
+      if (priv.settings.currentRowClassName || priv.settings.currentColClassName) {
+        instance.view.wt.selections.highlight.clear();
+      }
       editorManager.destroyEditor();
       selection.refreshBorders();
       Handsontable.hooks.run(instance, 'afterDeselect');
@@ -641,14 +649,18 @@ Handsontable.Core = function (rootElement, userSettings) {
 
         if (cellProperties.type === 'numeric' && typeof changes[i][3] === 'string') {
           if (changes[i][3].length > 0 && /^-?[\d\s]*(\.|\,)?\d*$/.test(changes[i][3])) {
-
-            if(typeof cellProperties.language == 'undefined') {
+            var len = changes[i][3].length
+            if (typeof cellProperties.language == 'undefined') {
               numeral.language('en');
-            } else {
+            }
+            else if (changes[i][3].indexOf(".") === len - 3 && changes[i][3].indexOf(",") === -1) { //this input in format XXXX.XX is likely to come from paste. Let's parse it using international rules
+              numeral.language('en');
+            }
+            else {
               numeral.language(cellProperties.language);
             }
 
-            changes[i][3] = parseFloat(changes[i][3].replace(',','.'));
+            changes[i][3] = numeral().unformat(changes[i][3] || '0'); //numeral cannot unformat empty string
           }
         }
 
@@ -753,7 +765,7 @@ Handsontable.Core = function (rootElement, userSettings) {
       value = Handsontable.hooks.execute(instance, "beforeValidate", value, cellProperties.row, cellProperties.prop, source);
 
       // To provide consistent behaviour, validation should be always asynchronous
-      setTimeout(function () {
+      instance._registerTimeout(setTimeout(function () {
         validator.call(cellProperties, value, function (valid) {
           cellProperties.valid = valid;
 
@@ -761,8 +773,9 @@ Handsontable.Core = function (rootElement, userSettings) {
 
           callback(valid);
         });
-      });
 
+        return value;
+      }, 0));
     } else { //resolve callback even if validator function was not found
       cellProperties.valid = true;
       callback(true);
@@ -1698,8 +1711,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @return {Number}
    */
    this.checkIfRowIsOversized = function(row) {
-      if(instance.view.activeWt.wtTable.oversizedRows) {
-        return instance.view.activeWt.wtTable.oversizedRows[row];
+      if(instance.view.wt.wtTable.oversizedRows) {
+        return instance.view.wt.wtTable.oversizedRows[row];
       }
    };
 
@@ -1906,6 +1919,42 @@ Handsontable.Core = function (rootElement, userSettings) {
     $document.off('.' + instance.guid);
     $body.off('.' + instance.guid);
     Handsontable.hooks.run(instance, 'afterDestroy');
+    Handsontable.hooks.destroy(instance);
+
+    for (var i in instance) {
+      if (instance.hasOwnProperty(i)) {
+        //replace instance methods with post mortem
+        if (typeof instance[i] === "function") {
+          if (i !== "runHooks" && i !== "runHooksAndReturn") {
+            instance[i] = postMortem;
+          }
+        }
+        //replace instance properties with null (restores memory)
+        //it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
+        else if (i !== "guid") {
+          instance[i] = null;
+        }
+      }
+    }
+
+    //replace private properties with null (restores memory)
+    //it should not be necessary but this prevents a memory leak side effects that show itself in Jasmine tests
+    priv = null;
+    datamap = null;
+    grid = null;
+    selection = null;
+    editorManager = null;
+    instance = null;
+    GridSettings = null;
+    $document = null;
+    $body = null;
+  };
+
+  /**
+   * Replacement for all methods after Handsotnable was destroyed
+   */
+  function postMortem() {
+    throw new Error("This method cannot be called because this Handsontable instance has been destroyed");
   };
 
   /**
@@ -1945,15 +1994,14 @@ Handsontable.Core = function (rootElement, userSettings) {
     return Handsontable.hooks.execute(instance, key, p1, p2, p3, p4, p5, p6);
   };
 
-  this.timeouts = {};
+  this.timeouts = [];
 
   /**
    * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called
    * @public
    */
-  this._registerTimeout = function (key, handle, ms) {
-    clearTimeout(this.timeouts[key]);
-    this.timeouts[key] = setTimeout(handle, ms || 0);
+  this._registerTimeout = function (handle) {
+    this.timeouts.push(handle);
   };
 
   /**
@@ -1961,10 +2009,8 @@ Handsontable.Core = function (rootElement, userSettings) {
    * @public
    */
   this._clearTimeouts = function () {
-    for (var key in this.timeouts) {
-      if (this.timeouts.hasOwnProperty(key)) {
-        clearTimeout(this.timeouts[key]);
-      }
+    for(var i = 0, ilen = this.timeouts.length; i<ilen; i++) {
+      clearTimeout(this.timeouts[i]);
     }
   };
 
@@ -1978,12 +2024,16 @@ var DefaultSettings = function () {};
 
 DefaultSettings.prototype = {
   data: void 0,
+  dataSchema: void 0,
   width: void 0,
   height: void 0,
   startRows: 5,
   startCols: 5,
   rowHeaders: null,
   colHeaders: null,
+  colWidths: void 0,
+  columns: void 0,
+  cells: void 0,
   cell: [],
   minRows: 0,
   minCols: 0,
@@ -2006,7 +2056,7 @@ DefaultSettings.prototype = {
   pasteMode: 'overwrite',
   currentRowClassName: void 0,
   currentColClassName: void 0,
-  stretchH: 'hybrid',
+  stretchH: 'none',
   isEmptyRow: function (r) {
     var val;
     for (var c = 0, clen = this.countCols(); c < clen; c++) {
@@ -2040,7 +2090,14 @@ DefaultSettings.prototype = {
   copyable: true,
   debug: false, //shows debug overlays in Walkontable
   wordWrap: true,
-  noWordWrapClassName: 'htNoWrap'
+  noWordWrapClassName: 'htNoWrap',
+  contextMenu: void 0,
+  undo: void 0,
+  columnSorting: void 0,
+  manualColumnMove: void 0,
+  manualColumnResize: void 0,
+  manualRowMove: void 0,
+  manualRowResize: void 0
 };
 Handsontable.DefaultSettings = DefaultSettings;
 

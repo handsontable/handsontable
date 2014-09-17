@@ -201,6 +201,8 @@ CopyPasteClass.prototype.destroy = function () {
   if(!this.hasBeenDestroyed() && --this.refCounter == 0){
     if (this.elDiv && this.elDiv.parentNode) {
       this.elDiv.parentNode.removeChild(this.elDiv);
+      this.elDiv = null;
+      this.elTextarea = null;
     }
 
     this._unbindEvent(this.listenerElement, 'keydown', this.keydownListener);

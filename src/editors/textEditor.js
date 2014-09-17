@@ -129,11 +129,9 @@
     this.instance.rootElement[0].appendChild(this.TEXTAREA_PARENT);
 
     var that = this;
-//    Handsontable.hooks.add('afterRender', function () {
-      that.instance._registerTimeout('refresh_editor_dimensions', function () {
-        that.refreshDimensions();
-//      }, 0);
-    });
+    this.instance._registerTimeout(setTimeout(function () {
+      that.refreshDimensions();
+    }, 0));
   };
 
   TextEditor.prototype.checkEditorSection = function () {
@@ -176,23 +174,6 @@
     return editedCell != -1 && editedCell != -2 ? editedCell : void 0;
   };
 
-  TextEditor.prototype.compensateOfffset = function () {
-    var editorSection = this.checkEditorSection()
-      , offset = {}
-      , editor = this;
-
-    switch (editorSection) {
-      case 'top':
-        offset = editor.instance.view.wt.wtScrollbars.horizontal.getScrollPosition();
-        break;
-      case 'left':
-        offset = editor.instance.view.wt.wtScrollbars.vertical.getScrollPosition();
-        break;
-    }
-
-    return offset;
-  };
-
 
   TextEditor.prototype.refreshDimensions = function () {
     if (this.state !== Handsontable.EditorState.EDITING) {
@@ -217,7 +198,6 @@
     var rowHeadersCount = settings.rowHeaders === false ? 0 : 1;
     var colHeadersCount = settings.colHeaders === false ? 0 : 1;
     var editorSection = this.checkEditorSection();
-    var offsetCompensation = this.compensateOfffset();
 
 
     if (editTop < 0) {
@@ -237,11 +217,6 @@
     this.textareaParentStyle.top = editTop + 'px';
     this.textareaParentStyle.left = editLeft + 'px';
 
-    if(editorSection == 'top') {
-      this.textareaParentStyle.left = editLeft + offsetCompensation + 'px';
-    } else if(editorSection == 'left') {
-      this.textareaParentStyle.top = editTop + offsetCompensation + 'px';
-    }
     ///end prepare textarea position
 
 
@@ -262,8 +237,10 @@
       }
     }
 
-    this.autoResize.init(this.$textarea[0], {
-      fontSize: parseInt( window.getComputedStyle($td[0]).fontSize,10),
+    this.TEXTAREA.style.fontSize = Handsontable.Dom.getComputedStyle(this.TD).fontSize;
+    this.TEXTAREA.style.fontFamily = Handsontable.Dom.getComputedStyle(this.TD).fontFamily;
+
+    this.autoResize.init(this.TEXTAREA, {
       minHeight: Math.min(height, maxHeight),
       maxHeight: maxHeight, //TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
       minWidth: Math.min(width, maxWidth),
@@ -284,33 +261,8 @@
       event.stopPropagation();
     });
 
-    Handsontable.hooks.add('afterScrollVertically', function () {
-      if(!editor.TD) {
-        return;
-      }
-
-      var offsetTop = editor.TD.offsetTop
-        , offsetLeft = editor.TD.offsetLeft
-        , horizontalScrollPosition = editor.instance.view.wt.wtScrollbars.horizontal.getScrollPosition()
-        , verticalScrollPosition = editor.instance.view.wt.wtScrollbars.vertical.getScrollPosition()
-        , editorSection = editor.checkEditorSection();
-
-      switch (editorSection) {
-        case 'top':
-          editor.textareaParentStyle.top = offsetTop - 1 + verticalScrollPosition + "px";
-          break;
-        case 'corner':
-          editor.textareaParentStyle.top = offsetTop - 1 + verticalScrollPosition + "px";
-          editor.textareaParentStyle.left = offsetLeft - 1 + horizontalScrollPosition + "px";
-          break;
-        case 'left':
-          editor.textareaParentStyle.left = offsetLeft - 1 + horizontalScrollPosition + "px";
-          break;
-        default :
-          editor.textareaParentStyle.zIndex = "";
-          break;
-      }
-
+    this.instance.addHook('afterScrollVertically', function () {
+      editor.refreshDimensions();
     });
   };
 

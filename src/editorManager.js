@@ -5,6 +5,7 @@
     var that = this;
     var $document = $(document);
     var keyCodes = Handsontable.helper.keyCode;
+    var destroyed = false;
 
     var activeEditor;
 
@@ -22,6 +23,10 @@
 
         Handsontable.hooks.run(instance, 'beforeKeyDown', event);
 
+        if(destroyed) {
+          return;
+        }
+
         if (!event.isImmediatePropagationStopped()) {
 
           priv.lastKeyCode = event.keyCode;
@@ -30,8 +35,7 @@
 
             if (!activeEditor.isWaiting()) {
               if (!Handsontable.helper.isMetaKey(event.keyCode) && !ctrlDown && !that.isEditorOpened()) {
-                that.openEditor('');
-                event.stopPropagation(); //required by HandsontableEditor
+                that.openEditor("");
                 return;
               }
             }
@@ -193,7 +197,14 @@
           }
         }
       }
-      $document.on('keydown.handsontable.' + instance.guid, onKeyDown);
+
+      instance.addHook('afterDocumentKeyDown', function(originalEvent){
+        onKeyDown(originalEvent);
+      });
+
+      $document.on('keydown.' + instance.guid, function(ev) {
+        instance.runHooks('afterDocumentKeyDown', ev);
+      });
 
       function onDblClick(event, coords, elem) {
         if(elem.nodeName == "TD") { //may be TD or TH
@@ -205,7 +216,7 @@
       instance.view.wt.update('onCellDblClick', onDblClick);
 
       instance.addHook('afterDestroy', function(){
-        $document.off('keydown.handsontable.' + instance.guid);
+        destroyed = true;
       });
 
       function moveSelectionAfterEnter(shiftKey){

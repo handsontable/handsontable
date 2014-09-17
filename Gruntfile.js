@@ -255,6 +255,22 @@ module.exports = function (grunt) {
         }
       }
     },
+    uglify: {
+      options: {
+        preserveComments: 'some'
+      },
+      "dist/jquery.handsontable.full.min.js": ["dist/jquery.handsontable.full.js" ]
+    },
+    cssmin: {
+      minify: {
+        expand: true,
+        cwd: 'dist/',
+        src: ['jquery.handsontable.full.css'],
+        dest: 'dist/',
+        extDot: 'last',
+        ext: '.min.css'
+      }
+    },
     connect: {
       server: {
         options: {
@@ -296,7 +312,7 @@ module.exports = function (grunt) {
   });
 
   // Default task.
-  grunt.registerTask('default', ['gitinfo', 'replace:dist', 'concat', 'clean']);
+  grunt.registerTask('default', ['gitinfo', 'replace:dist', 'concat', 'uglify', 'cssmin', 'clean']);
   grunt.registerTask('test', ['default', 'jasmine']);
   grunt.registerTask('test:handsontable', ['default', 'jasmine:handsontable']);
   grunt.registerTask('test:walkontable', ['default', 'jasmine:walkontable']);
@@ -338,6 +354,8 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-jasmine');
   grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-saucelabs');
   grunt.loadNpmTasks('grunt-gitinfo');
 };
