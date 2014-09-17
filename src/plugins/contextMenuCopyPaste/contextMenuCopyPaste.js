@@ -10,15 +10,12 @@
   }
 
   /**
-   * Configure and initialize ZeroClipboard
+   * Configure ZeroClipboard
    */
   ContextMenuCopyPaste.prototype.prepareZeroClipboard = function () {
-
     ZeroClipboard.config({
       swfPath: this.swfPath
     });
-
-    this.zeroClipboardInstance = new ZeroClipboard();
   };
 
   /**
@@ -31,98 +28,27 @@
   };
 
   /**
-   * Paste action
+   * Adds copy/paste items to context menu
    */
-  ContextMenuCopyPaste.prototype.paste = function () {
-    this.copyPaste.triggerPaste();
-  };
+  ContextMenuCopyPaste.prototype.addToContextMenu = function (defaultOptions) {
+    if (!this.getSettings().contextMenuCopyPaste) {
+      return;
+    }
 
-  /**
-   * Prepare copy and paste context menu entries and their callbacks
-   */
-  ContextMenuCopyPaste.prototype.prepareEntries = function () {
-    var entries = {
-      'copy': {
+    defaultOptions.items.unshift(
+      {
+        key: 'copy',
         name: 'Copy'
       },
-      'paste': {
+      {
+        key: 'paste',
         name: 'Paste',
-        callback: this.paste
-      }
-    };
-
-    return entries;
-  };
-
-  /**
-   * Adds copy/paste items to context menu at specified index
-   * @param index Index at which the items are supposed to be placed (if negative - beggining of the context menu, if not specified - end of the context menu)
-   */
-  ContextMenuCopyPaste.prototype.addToContextMenu = function (index) {
-    var entries = this.prepareEntries()
-      , contextMenu = this.instance.contextMenu
-      , newCMEntries = {}
-      , newSeparator
-      , propCount = 0
-      , contextMenuEntryCount = 0;
-
-    function constructSeparator(double) {
-      var separatorCount = 0;
-      for (var prop in contextMenu.options.items) {
-        if (prop.indexOf('hsep') != -1) {
-          separatorCount++;
+        callback: function () {
+          this.copyPaste.triggerPaste();
         }
-        contextMenuEntryCount++;
-      }
-      var sepName = 'hsep' + parseInt(separatorCount + 1, 10);
-
-      if (double) {
-        return [
-          [sepName, Handsontable.ContextMenu.SEPARATOR],
-          ['hsep' + parseInt(separatorCount + 2, 10), Handsontable.ContextMenu.SEPARATOR]
-        ];
-      } else {
-        return [sepName, Handsontable.ContextMenu.SEPARATOR];
-      }
-    }
-
-    newSeparator = constructSeparator();
-
-    if (index < 0) {
-      newCMEntries.items = entries;
-      newCMEntries.items[newSeparator[0]] = newSeparator[1];
-      Handsontable.helper.extend(newCMEntries.items, contextMenu.options.items);
-    } else if (!index) {
-      newCMEntries.items = contextMenu.options.items;
-      newCMEntries.items[newSeparator[0]] = newSeparator[1];
-      Handsontable.helper.extend(newCMEntries.items, entries);
-    } else {
-      for (var prop in contextMenu.options.items) {
-        if (prop.indexOf('hsep') == -1) {
-          propCount++;
-        }
-        if (propCount - 1 == index) {
-          if (index == 0) {
-            Handsontable.helper.extend(newCMEntries.items, entries);
-            newCMEntries.items[newSeparator[0]] = newSeparator[1];
-          } else {
-            newSeparator = constructSeparator(true);
-            newCMEntries.items[newSeparator[0][0]] = newSeparator[0][1];
-            Handsontable.helper.extend(newCMEntries.items, entries);
-            newCMEntries.items[newSeparator[1][0]] = newSeparator[1][1];
-          }
-        }
-
-        if (!newCMEntries.items) {
-          newCMEntries.items = {};
-        }
-        newCMEntries.items[prop] = contextMenu.options.items[prop];
-      }
-    }
-
-    this.cmEntryIndex = index ? index > 0 ? index : 0 : contextMenuEntryCount + 1;
-
-    contextMenu.updateOptions(newCMEntries);
+      },
+      Handsontable.ContextMenu.SEPARATOR
+    );
   };
 
   /**
@@ -133,16 +59,26 @@
     var plugin = this;
     this.cmInstance = cmInstance;
 
-    this.zeroClipboardInstance = new ZeroClipboard(cmInstance.getCell(this.cmEntryIndex, 0));
+    if (!Handsontable.Dom.hasClass(this.cmInstance.rootElement[0], 'htContextMenu')) {
+      return;
+    }
 
-    this.zeroClipboardInstance.off();
-    this.zeroClipboardInstance.on("copy", function (event) {
-      var clipboard = event.clipboardData;
-      clipboard.setData("text/plain", plugin.copy());
-      plugin.instance.getSettings().outsideClickDeselects = plugin.outsideClickDeselectsCache;
-    });
+    var data = cmInstance.getData();
+    for (var i = 0, ilen = data.length; i < ilen; i++) { //find position of 'copy' option
+      if (data[i].key === 'copy') {
+        this.zeroClipboardInstance = new ZeroClipboard(cmInstance.getCell(i, 0));
 
-    cmCopyPaste.bindEvents();
+        this.zeroClipboardInstance.off();
+        this.zeroClipboardInstance.on("copy", function (event) {
+          var clipboard = event.clipboardData;
+          clipboard.setData("text/plain", plugin.copy());
+          plugin.instance.getSettings().outsideClickDeselects = plugin.outsideClickDeselectsCache;
+        });
+
+        cmCopyPaste.bindEvents();
+        break;
+      }
+    }
   };
 
   /**
@@ -181,7 +117,6 @@
       return;
     } else if (typeof this.getSettings().contextMenuCopyPaste == "object") {
       cmCopyPaste.swfPath = this.getSettings().contextMenuCopyPaste.swfPath;
-      cmCopyPaste.entryIndex = this.getSettings().contextMenuCopyPaste.entryIndex;
     }
 
     if (typeof ZeroClipboard === 'undefined') {
@@ -192,21 +127,16 @@
 
     cmCopyPaste.instance = this;
     cmCopyPaste.prepareZeroClipboard();
-
-    cmCopyPaste.addToContextMenu(cmCopyPaste.entryIndex);
   };
 
   var cmCopyPaste = new ContextMenuCopyPaste();
 
   Handsontable.hooks.add('afterRender', function () {
-
-    if (cmCopyPaste.instance && cmCopyPaste.instance.contextMenu.menus.length > 0 && this.guid === cmCopyPaste.instance.contextMenu.menus[0].id) {
-      cmCopyPaste.cmInstance = this;
-      cmCopyPaste.setupZeroClipboard(this);
-    }
+    cmCopyPaste.setupZeroClipboard(this);
   });
 
   Handsontable.hooks.add('afterInit', cmCopyPaste.init);
+  Handsontable.hooks.add('afterContextMenuDefaultOptions', cmCopyPaste.addToContextMenu);
   Handsontable.ContextMenuCopyPaste = ContextMenuCopyPaste;
 
 })(Handsontable);

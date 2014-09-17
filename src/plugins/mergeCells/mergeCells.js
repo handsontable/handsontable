@@ -403,9 +403,10 @@ var addMergeActionsToContextMenu = function (defaultOptions) {
     return;
   }
 
-  defaultOptions.items.mergeCellsSeparator = Handsontable.ContextMenu.SEPARATOR;
+  defaultOptions.items.push(Handsontable.ContextMenu.SEPARATOR);
 
-  defaultOptions.items.mergeCells = {
+  defaultOptions.items.push({
+    key: 'mergeCells',
     name: function () {
       var sel = this.getSelected();
       var info = this.mergeCells.mergedCellInfoCollection.getInfo(sel[0], sel[1]);
@@ -423,7 +424,7 @@ var addMergeActionsToContextMenu = function (defaultOptions) {
     disabled: function () {
       return false;
     }
-  };
+  });
 };
 
 var afterRenderer = function (TD, row, col, prop, value, cellProperties) {

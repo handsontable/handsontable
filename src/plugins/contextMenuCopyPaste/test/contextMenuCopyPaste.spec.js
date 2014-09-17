@@ -25,7 +25,7 @@ describe("ContextMenuCopyPaste", function () {
     delete ZeroClipboard;
   });
 
-  it("should add Copy and Paste context menu options at the end if no entryIndex is provided", function () {
+  it("should add Copy and Paste context menu options at the beginning by default", function () {
     var hot = handsontable({
       data: createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
@@ -49,21 +49,20 @@ describe("ContextMenuCopyPaste", function () {
         return (/Paste/i).test($(this).text())
       }).parents('td');
 
-    expect($contextMenuEntries.index($copyButton)).toEqual($contextMenuEntries.size() - 2);
-    expect($contextMenuEntries.index($pasteButton)).toEqual($contextMenuEntries.size() - 1);
+    expect($contextMenuEntries.index($copyButton)).toEqual(0);
+    expect($contextMenuEntries.index($pasteButton)).toEqual(1);
 
   });
 
-  it("should add Copy and Paste context menu options at a provided entryIndex", function () {
+  it("should add Copy and Paste context menu options at the provided index", function () {
     var hot = handsontable({
       data: createSpreadsheetObjectData(10, 5),
       rowHeaders: true,
       colHeaders: true,
       minSpareRows: 1,
-      contextMenu: true,
+      contextMenu: ['row_above', 'copy', 'paste', 'row_below'],
       contextMenuCopyPaste: {
-        swfPath: "../../demo/swf/ZeroClipboard.swf",
-        entryIndex: 5
+        swfPath: "../../demo/swf/ZeroClipboard.swf"
       }
     });
 
@@ -79,8 +78,8 @@ describe("ContextMenuCopyPaste", function () {
         return (/Paste/i).test($(this).text())
       }).parents('td');
 
-    expect($contextMenuEntries.not('[class*=htSeparator]').index($copyButton)).toEqual(hot.getSettings().contextMenuCopyPaste.entryIndex);
-    expect($contextMenuEntries.not('[class*=htSeparator]').index($pasteButton)).toEqual(hot.getSettings().contextMenuCopyPaste.entryIndex + 1);
+    expect($contextMenuEntries.not('[class*=htSeparator]').index($copyButton)).toEqual(1);
+    expect($contextMenuEntries.not('[class*=htSeparator]').index($pasteButton)).toEqual(2);
   });
 
 
