@@ -136,9 +136,10 @@ var init = function () {
       return;
     }
 
-    defaultOptions.items.commentsCellsSeparator = Handsontable.ContextMenu.SEPARATOR;
+    defaultOptions.items.push(Handsontable.ContextMenu.SEPARATOR);
 
-    defaultOptions.items.commentsAddEdit = {
+    defaultOptions.items.push({
+      key: 'commentsAddEdit',
       name: function () {
         var hasComment = Handsontable.Comments.checkSelectionCommentsConsistency();
         return hasComment ? "Edit Comment" : "Add Comment";
@@ -150,9 +151,10 @@ var init = function () {
       disabled: function () {
         return false;
       }
-    };
+    });
 
-    defaultOptions.items.commentsRemove = {
+    defaultOptions.items.push({
+      key: 'commentsRemove',
       name: function () {
         return "Delete Comment"
       },
@@ -163,7 +165,7 @@ var init = function () {
         var hasComment = Handsontable.Comments.checkSelectionCommentsConsistency();
         return !hasComment;
       }
-    }
+    });
   };
 
 Handsontable.hooks.add('beforeInit', init);

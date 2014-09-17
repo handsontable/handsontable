@@ -395,9 +395,10 @@
       return;
     }
 
-    defaultOptions.items.bordersCellsSeparator = Handsontable.ContextMenu.SEPARATOR;
+    defaultOptions.items.push(Handsontable.ContextMenu.SEPARATOR);
 
-    defaultOptions.items.borders = {
+    defaultOptions.items.push({
+      key: 'borders',
       name: 'Borders',
       submenu: {
         items: {
@@ -474,7 +475,7 @@
           }
         }
       }
-    };
+    });
   };
 
   Handsontable.hooks.add('beforeInit', init);
