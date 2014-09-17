@@ -12,8 +12,8 @@
 .handsontable {
   position: relative;
 }
-.handsontable .hide,
-.handsontable .hidden {
+.handsontable .hide:not(col),
+.handsontable .hidden:not(col) {
   display: none;
 }
 .handsontable .relative {
@@ -756,8 +756,17 @@ thead .htCollapseGroup:after {
   display: none;
 }
 
+.handsontable thead tr th .htExpandGroup {
+  /*left: 5px;*/
+  top: 5px;
+}
+
 .handsontable tr th .htExpandGroup.clickable {
   display: block;
+}
+
+.handsontable col.hide {
+  width: 0px !important;
 }
 
 /*WalkontableDebugOverlay*/

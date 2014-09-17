@@ -36,9 +36,6 @@ function WalkontableEvent(instance) {
       var TD = Handsontable.Dom.closest(event.target, ['TD', 'TH'], TABLE);
       if (TD && TD !== lastMouseOver && Handsontable.Dom.isChildOf(TD, TABLE)) {
         lastMouseOver = TD;
-        if (TD.nodeName === 'TD' || TD.nodeName === 'TH') {
-          that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(TD), TD, that.instance);
-        }
         that.instance.getSetting('onCellMouseOver', event, that.instance.wtTable.getCoords(TD), TD, that.instance);
       }
     }
