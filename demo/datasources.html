@@ -216,9 +216,6 @@
   </div>
 </div>
 
-
-
-
 <div class="rowLayout">
   <div class="descLayout">
     <div class="pad" data-jsfiddle="example4">
@@ -250,7 +247,7 @@
       <script data-jsfiddle="example4">
         var nestedObjects = [
           {id: 1, name: {first: "Ted", last: "Right"}, address: ""},
-          {id: 2, name: {first: "Frank", last: "Honest"}, address: ""},
+          {id: 2, address: ""}, //HOT will create missing properties on demand
           {id: 3, name: {first: "Joan", last: "Well"}, address: ""}
         ];
 
@@ -408,54 +405,6 @@
             return row.attr(attr, value);
           }
         }
-      </script>
-    </div>
-  </div>
-</div>
-
-<div class="rowLayout">
-  <div class="descLayout">
-    <div class="pad" data-jsfiddle="example3">
-      <a name="object"></a>
-
-      <h2>Object data source (custom data schema)</h2>
-
-      <p>With version 0.11 fixes missing property bug</p>
-
-      <div id="example7"></div>
-
-      <p>
-        <button name="dump" data-dump="#example3">Dump to console</button>
-      </p>
-    </div>
-  </div>
-
-  <div class="codeLayout">
-    <div class="pad">
-      <div class="jsFiddle">
-        <button class="jsFiddleLink" data-runfiddle="example7">Edit in jsFiddle</button>
-      </div>
-
-      <script data-jsfiddle="example7">
-        var objectData = [
-          {id: 1, user: {firstName: "Ted", lastName: "Right"}},
-          {id: 2, user: {firstName: "Frank"}},
-          {id: 3, user: {}}
-        ];
-
-        var $container = $("#example7");
-        $container.handsontable({
-          data: objectData,
-          columns: [
-            {data: 'id'},
-            {data: 'user.firstName'},
-            {data: 'user.lastName'}
-          ],
-          startRows: 5,
-          startCols: 3,
-          colHeaders: true,
-          minSpareRows: 1
-        });
       </script>
     </div>
   </div>
